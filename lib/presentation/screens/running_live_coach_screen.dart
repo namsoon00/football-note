@@ -12,6 +12,7 @@ import '../../application/running_live_coaching_service.dart';
 import '../../domain/entities/running_live_coaching_state.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
+import '../models/running_pose_outline_frame.dart';
 import 'running_coach_insight_copy.dart';
 import 'running_live_coach_guide_screen.dart';
 
@@ -187,7 +188,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     final insightDetails = _buildInsightDetails(l10n);
     final focusPriorities =
         _coachingState.coachingReport?.focusPriorityByMetric ??
-            const <RunningCoachMetric, int>{};
+        const <RunningCoachMetric, int>{};
     final insightSections = _buildInsightSections(l10n, insightDetails);
     final panelTitle = _panelTitle(l10n);
     return Stack(
@@ -344,11 +345,12 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       }
 
       _cameras = cameras;
-      final selectedCamera = preferredCamera ??
+      final selectedCamera =
+          preferredCamera ??
           cameras.cast<CameraDescription?>().firstWhere(
-                (camera) => camera?.lensDirection == CameraLensDirection.back,
-                orElse: () => cameras.first,
-              )!;
+            (camera) => camera?.lensDirection == CameraLensDirection.back,
+            orElse: () => cameras.first,
+          )!;
       _activeCamera = selectedCamera;
 
       final controller = CameraController(
@@ -598,8 +600,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     }
 
     final now = DateTime.now();
-    final cooldown =
-        _lastSpokenCue == cue ? _repeatSpeechCooldown : _changeSpeechCooldown;
+    final cooldown = _lastSpokenCue == cue
+        ? _repeatSpeechCooldown
+        : _changeSpeechCooldown;
     if (_lastSpokenAt != null && now.difference(_lastSpokenAt!) < cooldown) {
       return;
     }
@@ -862,9 +865,9 @@ class _CueBanner extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -872,9 +875,9 @@ class _CueBanner extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
-                          height: 1.25,
-                        ),
+                      color: Colors.white70,
+                      height: 1.25,
+                    ),
                   ),
                 ],
               ),
@@ -942,9 +945,9 @@ class _LiveTopBar extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                          ),
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ],
@@ -1110,17 +1113,17 @@ class _ScoreExplanationPanel extends StatelessWidget {
               Text(
                 l10n.runningCoachResultsTitle,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Colors.white60,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: Colors.white60,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -1162,20 +1165,25 @@ class _ScoreExplanationPanel extends StatelessWidget {
               ],
               if (metricSections.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                for (var index = 0;
-                    index < metricSections.length;
-                    index += 1) ...[
+                for (
+                  var index = 0;
+                  index < metricSections.length;
+                  index += 1
+                ) ...[
                   _PanelSectionTitle(text: metricSections[index].title),
                   const SizedBox(height: 8),
-                  for (var itemIndex = 0;
-                      itemIndex < metricSections[index].items.length;
-                      itemIndex += 1) ...[
+                  for (
+                    var itemIndex = 0;
+                    itemIndex < metricSections[index].items.length;
+                    itemIndex += 1
+                  ) ...[
                     _LiveInsightCard(
                       data: metricSections[index].items[itemIndex],
-                      priority: focusPriorities[metricSections[index]
-                          .items[itemIndex]
-                          .insight
-                          .metric],
+                      priority:
+                          focusPriorities[metricSections[index]
+                              .items[itemIndex]
+                              .insight
+                              .metric],
                     ),
                     if (itemIndex != metricSections[index].items.length - 1)
                       const SizedBox(height: 10),
@@ -1202,9 +1210,9 @@ class _PanelSectionTitle extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-          ),
+        color: Colors.white,
+        fontWeight: FontWeight.w800,
+      ),
     );
   }
 }
@@ -1238,10 +1246,10 @@ class _LiveGuidanceCard extends StatelessWidget {
               Text(
                 cueText,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      height: 1.3,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  height: 1.3,
+                ),
               ),
             ],
             if (diagnosis.isNotEmpty) ...[
@@ -1294,9 +1302,9 @@ class _LiveInsightCard extends StatelessWidget {
             Text(
               data.copy.title,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -1313,26 +1321,26 @@ class _LiveInsightCard extends StatelessWidget {
             Text(
               data.copy.value,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w800,
-                  ),
+                color: accent,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
               data.copy.summary,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white70,
-                    height: 1.3,
-                  ),
+                color: Colors.white70,
+                height: 1.3,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               data.copy.cue,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    height: 1.3,
-                  ),
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                height: 1.3,
+              ),
             ),
           ],
         ),
@@ -1373,9 +1381,9 @@ class _CompactMetricScoreCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -1401,9 +1409,9 @@ class _CompactMetricScoreCard extends StatelessWidget {
               Text(
                 data.copy.value,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -1431,9 +1439,9 @@ class _StatusBadge extends StatelessWidget {
         child: Text(
           text,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: accent,
-                fontWeight: FontWeight.w800,
-              ),
+            color: accent,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
     );
@@ -1460,9 +1468,9 @@ class _PriorityBadge extends StatelessWidget {
         child: Text(
           l10n.runningCoachPriorityLabel(priority),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: accent,
-                fontWeight: FontWeight.w800,
-              ),
+            color: accent,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
     );
@@ -1488,9 +1496,9 @@ class _ScoreBadge extends StatelessWidget {
         child: Text(
           l10n.runningCoachMetricScore(score),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-              ),
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
     );
@@ -1513,9 +1521,9 @@ class _InfoChip extends StatelessWidget {
       child: Text(
         text,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white70,
-              fontWeight: FontWeight.w700,
-            ),
+          color: Colors.white70,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -1556,9 +1564,9 @@ class _StatusPane extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -1646,47 +1654,6 @@ class _RunningPosePainter extends CustomPainter {
     (RunningPoseLandmarkType.rightHeel, RunningPoseLandmarkType.rightFootIndex),
   ];
 
-  static const _torsoOutlineTypes = [
-    RunningPoseLandmarkType.leftShoulder,
-    RunningPoseLandmarkType.rightShoulder,
-    RunningPoseLandmarkType.leftHip,
-    RunningPoseLandmarkType.rightHip,
-  ];
-
-  static const _headOutlineTypes = [
-    RunningPoseLandmarkType.nose,
-    RunningPoseLandmarkType.leftEar,
-    RunningPoseLandmarkType.rightEar,
-    RunningPoseLandmarkType.leftShoulder,
-    RunningPoseLandmarkType.rightShoulder,
-  ];
-
-  static const _footOutlineTypes = [
-    RunningPoseLandmarkType.leftKnee,
-    RunningPoseLandmarkType.rightKnee,
-    RunningPoseLandmarkType.leftAnkle,
-    RunningPoseLandmarkType.rightAnkle,
-    RunningPoseLandmarkType.leftHeel,
-    RunningPoseLandmarkType.rightHeel,
-    RunningPoseLandmarkType.leftFootIndex,
-    RunningPoseLandmarkType.rightFootIndex,
-  ];
-
-  static const _supportOutlineTypes = [
-    RunningPoseLandmarkType.leftElbow,
-    RunningPoseLandmarkType.rightElbow,
-    RunningPoseLandmarkType.leftWrist,
-    RunningPoseLandmarkType.rightWrist,
-    RunningPoseLandmarkType.leftKnee,
-    RunningPoseLandmarkType.rightKnee,
-    RunningPoseLandmarkType.leftAnkle,
-    RunningPoseLandmarkType.rightAnkle,
-    RunningPoseLandmarkType.leftHeel,
-    RunningPoseLandmarkType.rightHeel,
-    RunningPoseLandmarkType.leftFootIndex,
-    RunningPoseLandmarkType.rightFootIndex,
-  ];
-
   @override
   void paint(Canvas canvas, Size size) {
     final overlay = this.overlay;
@@ -1772,176 +1739,20 @@ class _RunningPosePainter extends CustomPainter {
     Paint outlinePaint,
     Paint outlineFillPaint,
   ) {
-    if (visiblePoints.length < 4) {
+    final outlineFrame = buildRunningPoseOutlineFrame(
+      visiblePoints: visiblePoints,
+      canvasSize: canvasSize,
+    );
+    if (outlineFrame == null) {
       return;
     }
 
-    final shoulderCenter = _pairMidpoint(
-      visiblePoints,
-      RunningPoseLandmarkType.leftShoulder,
-      RunningPoseLandmarkType.rightShoulder,
-    );
-    final hipCenter = _pairMidpoint(
-      visiblePoints,
-      RunningPoseLandmarkType.leftHip,
-      RunningPoseLandmarkType.rightHip,
-    );
-    final ankleCenter = _pairMidpoint(
-      visiblePoints,
-      RunningPoseLandmarkType.leftAnkle,
-      RunningPoseLandmarkType.rightAnkle,
-    );
-    if (shoulderCenter == null || hipCenter == null) {
-      _drawFallbackOutline(
-        canvas,
-        canvasSize,
-        visiblePoints.values.toList(growable: false),
-        outlinePaint,
-        outlineFillPaint,
-      );
-      return;
-    }
-
-    var bodyAxis = (ankleCenter ?? hipCenter) - shoulderCenter;
-    if (bodyAxis.distanceSquared < 1) {
-      bodyAxis = hipCenter - shoulderCenter;
-    }
-    if (bodyAxis.distanceSquared < 1) {
-      _drawFallbackOutline(
-        canvas,
-        canvasSize,
-        visiblePoints.values.toList(growable: false),
-        outlinePaint,
-        outlineFillPaint,
-      );
-      return;
-    }
-
-    final axisLength = bodyAxis.distance;
-    final axisY = Offset(bodyAxis.dx / axisLength, bodyAxis.dy / axisLength);
-    final axisX = Offset(axisY.dy, -axisY.dx);
-    final origin = hipCenter;
-
-    double projectX(Offset point) => _project(point - origin, axisX);
-
-    double projectY(Offset point) => _project(point - origin, axisY);
-
-    final torsoPoints = _pointsForTypes(visiblePoints, _torsoOutlineTypes);
-    final headPoints = _pointsForTypes(visiblePoints, _headOutlineTypes);
-    final footPoints = _pointsForTypes(visiblePoints, _footOutlineTypes);
-    final supportPoints = _pointsForTypes(visiblePoints, _supportOutlineTypes);
-    final allPoints = visiblePoints.values.toList(growable: false);
-    final topPoints = headPoints.isNotEmpty ? headPoints : allPoints;
-    final bottomPoints = footPoints.isNotEmpty ? footPoints : allPoints;
-    final widthPoints = supportPoints.isNotEmpty ? supportPoints : allPoints;
-
-    final topExtent = topPoints.map(projectY).reduce(math.min);
-    final bottomExtent = bottomPoints.map(projectY).reduce(math.max);
-    final bodyHeight = math.max(1.0, bottomExtent - topExtent);
-    final torsoHalfWidth = torsoPoints.isEmpty
-        ? allPoints.map((point) => projectX(point).abs()).reduce(math.max) *
-            0.55
-        : torsoPoints.map((point) => projectX(point).abs()).reduce(math.max);
-    final supportHalfWidth =
-        widthPoints.map((point) => projectX(point).abs()).reduce(math.max);
-    final cappedSupportHalfWidth = math.min(
-      supportHalfWidth * 0.82,
-      torsoHalfWidth * 1.65,
-    );
-    final horizontalPadding = math.max(10.0, bodyHeight * 0.04);
-    final verticalPadding = math.max(12.0, bodyHeight * 0.05);
-    final halfWidth = math.min(
-      math.max(torsoHalfWidth * 1.16, cappedSupportHalfWidth) +
-          horizontalPadding,
-      bodyHeight * 0.34,
-    );
-
-    final outlineRect = Rect.fromLTWH(
-      -halfWidth,
-      topExtent - verticalPadding,
-      halfWidth * 2,
-      bodyHeight + (verticalPadding * 2),
-    );
-    final outlineRadius = Radius.circular(
-      math.min(outlineRect.width * 0.48, 34),
-    );
-    final rotationAngle = math.atan2(axisY.dy, axisY.dx) - (math.pi / 2);
-
-    canvas.save();
-    canvas.translate(origin.dx, origin.dy);
-    canvas.rotate(rotationAngle);
-    final frame = RRect.fromRectAndRadius(outlineRect, outlineRadius);
-    canvas.drawRRect(frame, outlineFillPaint);
-    canvas.drawRRect(frame, outlinePaint);
-    canvas.restore();
-  }
-
-  void _drawFallbackOutline(
-    Canvas canvas,
-    Size canvasSize,
-    List<Offset> points,
-    Paint outlinePaint,
-    Paint outlineFillPaint,
-  ) {
-    if (points.length < 3) {
-      return;
-    }
-
-    var minX = points.first.dx;
-    var maxX = points.first.dx;
-    var minY = points.first.dy;
-    var maxY = points.first.dy;
-    for (final point in points.skip(1)) {
-      minX = math.min(minX, point.dx);
-      maxX = math.max(maxX, point.dx);
-      minY = math.min(minY, point.dy);
-      maxY = math.max(maxY, point.dy);
-    }
-
-    final height = math.max(1.0, maxY - minY);
-    final horizontalPadding = math.max(10.0, height * 0.04);
-    final verticalPadding = math.max(12.0, height * 0.05);
-    final center = Offset((minX + maxX) / 2, (minY + maxY) / 2);
-    final maxWidth = height * 0.7;
-    final width = math.min((maxX - minX) + (horizontalPadding * 2), maxWidth);
-    final rect = Rect.fromCenter(
-      center: center,
-      width: width,
-      height: height + (verticalPadding * 2),
-    ).intersect(Offset.zero & canvasSize);
     final frame = RRect.fromRectAndRadius(
-      rect,
-      Radius.circular(math.min(width * 0.45, 30)),
+      outlineFrame.rect,
+      outlineFrame.radius,
     );
     canvas.drawRRect(frame, outlineFillPaint);
     canvas.drawRRect(frame, outlinePaint);
-  }
-
-  List<Offset> _pointsForTypes(
-    Map<RunningPoseLandmarkType, Offset> visiblePoints,
-    List<RunningPoseLandmarkType> types,
-  ) {
-    return [
-      for (final type in types)
-        if (visiblePoints[type] case final point?) point,
-    ];
-  }
-
-  Offset? _pairMidpoint(
-    Map<RunningPoseLandmarkType, Offset> visiblePoints,
-    RunningPoseLandmarkType firstType,
-    RunningPoseLandmarkType secondType,
-  ) {
-    final first = visiblePoints[firstType];
-    final second = visiblePoints[secondType];
-    if (first == null || second == null) {
-      return null;
-    }
-    return Offset((first.dx + second.dx) / 2, (first.dy + second.dy) / 2);
-  }
-
-  double _project(Offset vector, Offset axis) {
-    return (vector.dx * axis.dx) + (vector.dy * axis.dy);
   }
 
   Offset _translatePoint({
@@ -1953,8 +1764,7 @@ class _RunningPosePainter extends CustomPainter {
   }) {
     final rotatedPoint = _rotatePoint(point, imageSize, rotation);
     final rotatedImageSize = switch (rotation) {
-      InputImageRotation.rotation90deg ||
-      InputImageRotation.rotation270deg =>
+      InputImageRotation.rotation90deg || InputImageRotation.rotation270deg =>
         Size(imageSize.height, imageSize.width),
       _ => imageSize,
     };
@@ -1992,17 +1802,17 @@ class _RunningPosePainter extends CustomPainter {
   ) {
     return switch (rotation) {
       InputImageRotation.rotation90deg => Offset(
-          point.dy,
-          imageSize.width - point.dx,
-        ),
+        point.dy,
+        imageSize.width - point.dx,
+      ),
       InputImageRotation.rotation180deg => Offset(
-          imageSize.width - point.dx,
-          imageSize.height - point.dy,
-        ),
+        imageSize.width - point.dx,
+        imageSize.height - point.dy,
+      ),
       InputImageRotation.rotation270deg => Offset(
-          imageSize.height - point.dy,
-          point.dx,
-        ),
+        imageSize.height - point.dy,
+        point.dx,
+      ),
       _ => point,
     };
   }
