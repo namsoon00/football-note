@@ -176,6 +176,18 @@ abstract class AppLocalizations {
   /// **'Clear all'**
   String get newsClearAll;
 
+  /// No description provided for @newsDomesticFeedsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Domestic feeds'**
+  String get newsDomesticFeedsLabel;
+
+  /// No description provided for @newsInternationalFeedsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'International feeds'**
+  String get newsInternationalFeedsLabel;
+
   /// No description provided for @newsNationalSnapshotTitle.
   ///
   /// In en, this message translates to:
