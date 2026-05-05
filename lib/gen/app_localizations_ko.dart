@@ -54,6 +54,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsInternationalFeedsLabel => '해외 피드';
 
   @override
+  String get newsRegionAllLabel => '전체';
+
+  @override
+  String get newsRegionDomesticLabel => '국내';
+
+  @override
+  String get newsRegionInternationalLabel => '해외';
+
+  @override
   String get newsNationalSnapshotTitle => '국가대표 스냅샷';
 
   @override

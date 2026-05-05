@@ -188,6 +188,24 @@ abstract class AppLocalizations {
   /// **'International feeds'**
   String get newsInternationalFeedsLabel;
 
+  /// No description provided for @newsRegionAllLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get newsRegionAllLabel;
+
+  /// No description provided for @newsRegionDomesticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Domestic'**
+  String get newsRegionDomesticLabel;
+
+  /// No description provided for @newsRegionInternationalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'World'**
+  String get newsRegionInternationalLabel;
+
   /// No description provided for @newsNationalSnapshotTitle.
   ///
   /// In en, this message translates to:

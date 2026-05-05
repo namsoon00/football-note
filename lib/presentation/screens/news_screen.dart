@@ -48,6 +48,8 @@ class NewsScreen extends StatefulWidget {
   State<NewsScreen> createState() => _NewsScreenState();
 }
 
+enum _NewsRegionFilter { all, domestic, international }
+
 class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _titleTranslateEnabledKey =
       'news_title_translate_enabled';
@@ -89,6 +91,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   bool _titleTranslateInitialized = false;
   bool _showSearch = false;
   bool _showScrappedOnly = false;
+  _NewsRegionFilter _regionFilter = _NewsRegionFilter.all;
   bool _guideShownOnce = false;
   bool _isBackgroundLoading = false;
   int _loadToken = 0;
@@ -215,6 +218,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    _buildRegionFilter(l10n),
                   ],
                 ),
               ),
@@ -257,7 +262,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          _statusSummary(isKo),
+                          _statusSummary(l10n, isKo),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -308,6 +313,34 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRegionFilter(AppLocalizations l10n) {
+    return SizedBox(
+      width: double.infinity,
+      child: SegmentedButton<_NewsRegionFilter>(
+        segments: [
+          ButtonSegment<_NewsRegionFilter>(
+            value: _NewsRegionFilter.all,
+            icon: const Icon(Icons.public, size: 18),
+            label: Text(l10n.newsRegionAllLabel),
+          ),
+          ButtonSegment<_NewsRegionFilter>(
+            value: _NewsRegionFilter.domestic,
+            icon: const Icon(Icons.flag_outlined, size: 18),
+            label: Text(l10n.newsRegionDomesticLabel),
+          ),
+          ButtonSegment<_NewsRegionFilter>(
+            value: _NewsRegionFilter.international,
+            icon: const Icon(Icons.language_outlined, size: 18),
+            label: Text(l10n.newsRegionInternationalLabel),
+          ),
+        ],
+        selected: {_regionFilter},
+        showSelectedIcon: false,
+        onSelectionChanged: _changeRegionFilter,
       ),
     );
   }
@@ -431,16 +464,16 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   String _channelSummary(bool isKo) {
-    if (_selectedChannelIds.isEmpty) {
+    final selectedChannels = _effectiveSelectedChannels();
+    final availableChannels = _channelsForRegion(_regionFilter);
+    if (selectedChannels.isEmpty) {
       return isKo ? '선택된 채널 없음' : 'No channels selected';
     }
-    if (_selectedChannelIds.length == _channels.length) {
+    if (selectedChannels.length == availableChannels.length) {
       return isKo ? '모든 채널 선택됨' : 'All channels selected';
     }
-    final selectedNames = _channels
-        .where((channel) => _selectedChannelIds.contains(channel.id))
-        .map((channel) => channel.name)
-        .toList(growable: false);
+    final selectedNames =
+        selectedChannels.map((channel) => channel.name).toList(growable: false);
     final first = selectedNames.first;
     final rest = selectedNames.length - 1;
     if (rest <= 0) {
@@ -449,20 +482,23 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     return isKo ? '$first 외 $rest개' : '$first +$rest';
   }
 
-  String _statusSummary(bool isKo) {
+  String _statusSummary(AppLocalizations l10n, bool isKo) {
     final channelText = _channelSummary(isKo);
     final scrapCount = _scrappedItemsByLink.length;
+    final regionPrefix = _regionFilter == _NewsRegionFilter.all
+        ? ''
+        : '${_regionFilterLabel(l10n, _regionFilter)} · ';
     if (_showScrappedOnly) {
       return isKo
-          ? '스크랩 $scrapCount개 보는 중 · $channelText'
-          : 'Showing $scrapCount scrapped items · $channelText';
+          ? '$regionPrefix스크랩 $scrapCount개 보는 중 · $channelText'
+          : '${regionPrefix}Showing $scrapCount scrapped items · $channelText';
     }
     if (scrapCount == 0) {
-      return channelText;
+      return '$regionPrefix$channelText';
     }
     return isKo
-        ? '$channelText · 스크랩 $scrapCount개'
-        : '$channelText · $scrapCount scrapped';
+        ? '$regionPrefix$channelText · 스크랩 $scrapCount개'
+        : '$regionPrefix$channelText · $scrapCount scrapped';
   }
 
   List<NewsArticle> _filteredArticles() {
@@ -476,8 +512,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final base = _showScrappedOnly
         ? scrappedBase.map((item) => item.article).toList(growable: false)
         : List<NewsArticle>.unmodifiable(_articles);
-    if (query.isEmpty) return base;
-    return base.where((article) {
+    final regionBase = base.where(_matchesRegionFilter).toList(growable: false);
+    if (query.isEmpty) return regionBase;
+    return regionBase.where((article) {
       final title = article.title.toLowerCase();
       final sourceText = article.source.toLowerCase();
       final translated =
@@ -544,9 +581,18 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     });
   }
 
+  void _changeRegionFilter(Set<_NewsRegionFilter> selection) {
+    if (selection.isEmpty) return;
+    final next = selection.first;
+    if (next == _regionFilter) return;
+    setState(() {
+      _regionFilter = next;
+    });
+    _loadProgressive(force: true);
+  }
+
   Future<void> _openChannelPicker() async {
     final l10n = AppLocalizations.of(context)!;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final initial = Set<String>.from(_selectedChannelIds);
     final selected = await showModalBottomSheet<Set<String>>(
       context: context,
@@ -593,7 +639,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                       child: ListView(
                         children: _buildChannelPickerItems(
                           l10n: l10n,
-                          isKo: isKo,
                           temp: temp,
                           setSheetState: setSheetState,
                         ),
@@ -621,22 +666,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   List<Widget> _buildChannelPickerItems({
     required AppLocalizations l10n,
-    required bool isKo,
     required Set<String> temp,
     required StateSetter setSheetState,
   }) {
-    if (!isKo) {
-      return _channels
-          .map(
-            (channel) => _buildChannelTile(
-              channel: channel,
-              temp: temp,
-              setSheetState: setSheetState,
-            ),
-          )
-          .toList(growable: false);
-    }
-
     final domesticChannels =
         _channels.where(_isDomesticNewsChannel).toList(growable: false);
     final internationalChannels =
@@ -702,7 +734,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   bool _isDomesticNewsChannel(NewsChannel channel) =>
-      channel.id.endsWith('_ko');
+      channel.isDomestic || channel.id.endsWith('_ko');
 
   Future<void> _loadProgressive({bool force = false}) async {
     if (!force && !_shouldRefreshByPolicy()) {
@@ -780,7 +812,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final cachedChannels = _cachedChannelIds;
     if (cachedAt == null || cachedChannels == null) return;
     if (DateTime.now().difference(cachedAt) >= _autoRefreshInterval) return;
-    if (!_hasSameChannels(_selectedChannelIds, cachedChannels)) return;
+    if (!_hasSameChannels(_effectiveSelectedChannelIds(), cachedChannels)) {
+      return;
+    }
     if (_cachedArticles.isEmpty) return;
     _articles
       ..clear()
@@ -823,7 +857,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   void _updateNewsCache() {
     _lastLoadedAt = DateTime.now();
     _cachedLoadedAt = _lastLoadedAt;
-    _cachedChannelIds = Set<String>.from(_selectedChannelIds);
+    _cachedChannelIds = _effectiveSelectedChannelIds();
     _cachedArticles
       ..clear()
       ..addAll(_articles);
@@ -971,13 +1005,77 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   List<String> _prioritizedSelectedChannelIds() {
-    final selected = _channels
-        .where((channel) => _selectedChannelIds.contains(channel.id))
-        .toList(growable: false)
+    final selected = _effectiveSelectedChannels().toList(growable: false)
       ..sort(
         (a, b) => _channelPriorityScore(b).compareTo(_channelPriorityScore(a)),
       );
     return selected.map((channel) => channel.id).toList(growable: false);
+  }
+
+  List<NewsChannel> _channelsForRegion(_NewsRegionFilter filter) {
+    switch (filter) {
+      case _NewsRegionFilter.all:
+        return _channels;
+      case _NewsRegionFilter.domestic:
+        return _channels.where(_isDomesticNewsChannel).toList(growable: false);
+      case _NewsRegionFilter.international:
+        return _channels
+            .where((channel) => !_isDomesticNewsChannel(channel))
+            .toList(growable: false);
+    }
+  }
+
+  List<NewsChannel> _effectiveSelectedChannels() {
+    return _channelsForRegion(_regionFilter)
+        .where((channel) => _selectedChannelIds.contains(channel.id))
+        .toList(growable: false);
+  }
+
+  Set<String> _effectiveSelectedChannelIds() =>
+      _effectiveSelectedChannels().map((channel) => channel.id).toSet();
+
+  String _regionFilterLabel(
+    AppLocalizations l10n,
+    _NewsRegionFilter filter,
+  ) {
+    switch (filter) {
+      case _NewsRegionFilter.all:
+        return l10n.newsRegionAllLabel;
+      case _NewsRegionFilter.domestic:
+        return l10n.newsRegionDomesticLabel;
+      case _NewsRegionFilter.international:
+        return l10n.newsRegionInternationalLabel;
+    }
+  }
+
+  bool _matchesRegionFilter(NewsArticle article) {
+    switch (_regionFilter) {
+      case _NewsRegionFilter.all:
+        return true;
+      case _NewsRegionFilter.domestic:
+        return _isDomesticNewsArticle(article);
+      case _NewsRegionFilter.international:
+        return !_isDomesticNewsArticle(article);
+    }
+  }
+
+  bool _isDomesticNewsArticle(NewsArticle article) {
+    final channelId = article.channelId.trim();
+    if (channelId.isNotEmpty) {
+      final channel = _channelForId(channelId);
+      return channel == null
+          ? channelId.endsWith('_ko')
+          : _isDomesticNewsChannel(channel);
+    }
+    final haystack = '${article.title} ${article.source} ${article.link}';
+    return RegExp(r'[가-힣]').hasMatch(haystack);
+  }
+
+  NewsChannel? _channelForId(String id) {
+    for (final channel in _channels) {
+      if (channel.id == id) return channel;
+    }
+    return null;
   }
 
   double _channelPriorityScore(NewsChannel channel) {
@@ -1307,6 +1405,7 @@ class _ScrappedNewsItem {
         'source': article.source,
         'publishedAt': article.publishedAt?.toIso8601String(),
         'imageUrl': article.imageUrl,
+        'channelId': article.channelId,
       },
     };
   }
@@ -1327,6 +1426,7 @@ class _ScrappedNewsItem {
       source: articleMap['source']?.toString() ?? '',
       publishedAt: DateTime.tryParse(publishedAtText),
       imageUrl: articleMap['imageUrl']?.toString() ?? '',
+      channelId: articleMap['channelId']?.toString() ?? '',
     );
     return _ScrappedNewsItem(
       link: link,

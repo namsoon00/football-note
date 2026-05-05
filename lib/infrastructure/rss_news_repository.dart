@@ -248,7 +248,13 @@ class RssNewsRepository implements NewsRepository {
   @override
   List<NewsChannel> channels() {
     return _feeds
-        .map((feed) => NewsChannel(id: feed.id, name: feed.name))
+        .map(
+          (feed) => NewsChannel(
+            id: feed.id,
+            name: feed.name,
+            isDomestic: feed.id.endsWith('_ko'),
+          ),
+        )
         .toList(growable: false);
   }
 
@@ -448,6 +454,7 @@ class RssNewsRepository implements NewsRepository {
               source: (source == null || source.isEmpty) ? feed.name : source,
               imageUrl: imageUrl,
               publishedAt: publishedAt,
+              channelId: feed.id,
             ),
           );
         }
@@ -476,6 +483,7 @@ class RssNewsRepository implements NewsRepository {
           source: _extractSource(item, feed),
           imageUrl: _extractImageUrl(item),
           publishedAt: publishedAt,
+          channelId: feed.id,
         ),
       );
     }

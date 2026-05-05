@@ -54,6 +54,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsInternationalFeedsLabel => 'International feeds';
 
   @override
+  String get newsRegionAllLabel => 'All';
+
+  @override
+  String get newsRegionDomesticLabel => 'Domestic';
+
+  @override
+  String get newsRegionInternationalLabel => 'World';
+
+  @override
   String get newsNationalSnapshotTitle => 'National Team Snapshot';
 
   @override
