@@ -58,93 +58,7 @@ class RssNewsRepository implements NewsRepository {
     'partner content',
   ];
 
-  static const List<String> _domesticFootballKeywords = [
-    '국내축구',
-    '한국축구',
-    '프로축구',
-    'k리그',
-    'k league',
-    'kleague',
-    'k리그1',
-    'k리그2',
-    'k3리그',
-    'k4리그',
-    'k5리그',
-    'k6리그',
-    'k7리그',
-    'wk리그',
-    '코리아컵',
-    '축구대표팀',
-    '대표팀',
-    '대한축구협회',
-    '축구협회',
-    '홍명보호',
-    '울산 hd',
-    '전북 현대',
-    'fc서울',
-    '수원 삼성',
-    '수원fc',
-    '포항 스틸러스',
-    '대구fc',
-    '인천 유나이티드',
-    '광주fc',
-    '대전하나시티즌',
-    '강원fc',
-    '제주 유나이티드',
-    '김천 상무',
-    'fc안양',
-    '부천fc',
-    '성남fc',
-    '전남 드래곤즈',
-    '부산 아이파크',
-    '경남fc',
-    '충남아산',
-    '천안시티',
-    '충북청주',
-    '안산 그리너스',
-    '김포fc',
-    '화성fc',
-  ];
-
   static const List<_FeedConfig> _feeds = [
-    _FeedConfig(
-      id: 'sports_khan_domestic_soccer_ko',
-      name: '스포츠경향 · 국내축구',
-      url: 'https://sports.khan.co.kr/rss/soccer_korea-soccer',
-      requireImage: false,
-    ),
-    _FeedConfig(
-      id: 'sports_khan_soccer_ko',
-      name: '스포츠경향 · 축구',
-      url: 'https://sports.khan.co.kr/rss/soccer',
-      requireImage: false,
-    ),
-    _FeedConfig(
-      id: 'sportschosun_soccer_ko',
-      name: '스포츠조선 · 축구',
-      url: 'https://www.sportschosun.com/rss/index_sc.htm',
-      requireImage: false,
-    ),
-    _FeedConfig(
-      id: 'sportsdonga_soccer_ko',
-      name: '스포츠동아 · 축구',
-      url: 'https://rss.donga.com/sportsdonga/soccer.xml',
-      requireImage: false,
-    ),
-    _FeedConfig(
-      id: 'newsis_sports_domestic_soccer_ko',
-      name: '뉴시스 · 국내축구',
-      url: 'https://www.newsis.com/RSS/sports.xml',
-      requireImage: false,
-      keywords: _domesticFootballKeywords,
-    ),
-    _FeedConfig(
-      id: 'khan_sports_domestic_soccer_ko',
-      name: '경향신문 · 국내축구',
-      url: 'https://www.khan.co.kr/rss/rssdata/kh_sports.xml',
-      requireImage: false,
-      keywords: _domesticFootballKeywords,
-    ),
     _FeedConfig(
       id: 'google_news_domestic_soccer_ko',
       name: 'Google 뉴스 · 국내축구',
@@ -286,23 +200,8 @@ class RssNewsRepository implements NewsRepository {
     required _FeedConfig feed,
     required NewsArticle article,
   }) {
-    if (feed.keywords.isNotEmpty &&
-        !_matchesAnyKeyword(article, feed.keywords)) {
-      return false;
-    }
     if (feed.requireImage && !_hasUsableImage(article)) return false;
     return !_isBlocked(article);
-  }
-
-  bool _matchesAnyKeyword(NewsArticle article, List<String> keywords) {
-    final haystack =
-        '${article.title} ${article.source} ${article.link}'.toLowerCase();
-    for (final keyword in keywords) {
-      if (haystack.contains(keyword.toLowerCase())) {
-        return true;
-      }
-    }
-    return false;
   }
 
   bool _hasUsableImage(NewsArticle article) {
@@ -565,14 +464,12 @@ class _FeedConfig {
   final String name;
   final String url;
   final bool requireImage;
-  final List<String> keywords;
 
   const _FeedConfig({
     required this.id,
     required this.name,
     required this.url,
     this.requireImage = true,
-    this.keywords = const [],
   });
 }
 

@@ -15,6 +15,7 @@ This file mirrors agent workflow expectations for this repository.
 - If a PR flow is requested, use: feature branch -> commit -> pull request -> merge to `main`.
 - If an issue number is provided or detected from commit message `#<number>`, close the issue after main push (and leave a merge comment).
 - Execute Git/GitHub operations without asking for confirmation in this project.
+- Do not consider an implementation task complete until `git push origin main` succeeds after the merge commit. Never intentionally skip, defer, or leave the push for the user; if push is blocked by credentials, network, or remote rejection, report the exact blocker in the final response.
 - In the final response, always include the commit hash applied on `main`.
 
 ## Session Additions (Mandatory)
