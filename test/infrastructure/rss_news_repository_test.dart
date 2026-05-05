@@ -34,4 +34,24 @@ void main() {
 
     expect(ids.toSet(), hasLength(ids.length));
   });
+
+  test('domestic football channels use Korean suffix for picker grouping', () {
+    final channels = RssNewsRepository().channels();
+    final domesticChannels = channels.where(
+      (channel) =>
+          channel.name.contains('국내축구') ||
+          channel.name.contains('K리그') ||
+          channel.name.contains('축구대표팀') ||
+          channel.name.contains('대한축구협회') ||
+          channel.name.contains('코리아컵') ||
+          channel.name.contains('WK리그') ||
+          channel.name.contains('K3/K4'),
+    );
+
+    expect(domesticChannels, isNotEmpty);
+    expect(
+      domesticChannels.every((channel) => channel.id.endsWith('_ko')),
+      isTrue,
+    );
+  });
 }

@@ -12,6 +12,8 @@
   "newsSelectChannelsTitle": "뉴스 채널 선택",
   "newsSelectAll": "전체 선택",
   "newsClearAll": "전체 해제",
+  "newsDomesticFeedsLabel": "국내 피드",
+  "newsInternationalFeedsLabel": "해외 피드",
   "newsNationalSnapshotTitle": "국가대표 스냅샷",
   "newsNationalSnapshotSubtitle": "공식 페이지 기준 대한민국 남자 대표팀 요약",
   "newsFifaRankingTitle": "FIFA 랭킹",

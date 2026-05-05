@@ -546,6 +546,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   Future<void> _openChannelPicker() async {
     final l10n = AppLocalizations.of(context)!;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final initial = Set<String>.from(_selectedChannelIds);
     final selected = await showModalBottomSheet<Set<String>>(
       context: context,
@@ -590,23 +591,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                     SizedBox(
                       height: 320,
                       child: ListView(
-                        children: _channels.map((channel) {
-                          return CheckboxListTile(
-                            dense: true,
-                            value: temp.contains(channel.id),
-                            title: Text(channel.name),
-                            controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (checked) {
-                              setSheetState(() {
-                                if (checked == true) {
-                                  temp.add(channel.id);
-                                } else {
-                                  temp.remove(channel.id);
-                                }
-                              });
-                            },
-                          );
-                        }).toList(growable: false),
+                        children: _buildChannelPickerItems(
+                          l10n: l10n,
+                          isKo: isKo,
+                          temp: temp,
+                          setSheetState: setSheetState,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -628,6 +618,91 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     });
     _loadProgressive(force: true);
   }
+
+  List<Widget> _buildChannelPickerItems({
+    required AppLocalizations l10n,
+    required bool isKo,
+    required Set<String> temp,
+    required StateSetter setSheetState,
+  }) {
+    if (!isKo) {
+      return _channels
+          .map(
+            (channel) => _buildChannelTile(
+              channel: channel,
+              temp: temp,
+              setSheetState: setSheetState,
+            ),
+          )
+          .toList(growable: false);
+    }
+
+    final domesticChannels =
+        _channels.where(_isDomesticNewsChannel).toList(growable: false);
+    final internationalChannels =
+        _channels.where((channel) => !_isDomesticNewsChannel(channel)).toList(
+              growable: false,
+            );
+    return [
+      if (domesticChannels.isNotEmpty) ...[
+        _buildChannelGroupHeader(l10n.newsDomesticFeedsLabel),
+        ...domesticChannels.map(
+          (channel) => _buildChannelTile(
+            channel: channel,
+            temp: temp,
+            setSheetState: setSheetState,
+          ),
+        ),
+      ],
+      if (internationalChannels.isNotEmpty) ...[
+        _buildChannelGroupHeader(l10n.newsInternationalFeedsLabel),
+        ...internationalChannels.map(
+          (channel) => _buildChannelTile(
+            channel: channel,
+            temp: temp,
+            setSheetState: setSheetState,
+          ),
+        ),
+      ],
+    ];
+  }
+
+  Widget _buildChannelGroupHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      child: Text(
+        title,
+        style: Theme.of(
+          context,
+        ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+
+  Widget _buildChannelTile({
+    required NewsChannel channel,
+    required Set<String> temp,
+    required StateSetter setSheetState,
+  }) {
+    return CheckboxListTile(
+      dense: true,
+      value: temp.contains(channel.id),
+      title: Text(channel.name),
+      controlAffinity: ListTileControlAffinity.leading,
+      onChanged: (checked) {
+        setSheetState(() {
+          if (checked == true) {
+            temp.add(channel.id);
+          } else {
+            temp.remove(channel.id);
+          }
+        });
+      },
+    );
+  }
+
+  bool _isDomesticNewsChannel(NewsChannel channel) =>
+      channel.id.endsWith('_ko');
 
   Future<void> _loadProgressive({bool force = false}) async {
     if (!force && !_shouldRefreshByPolicy()) {

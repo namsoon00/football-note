@@ -12,6 +12,8 @@
   "newsSelectChannelsTitle": "Select news channels",
   "newsSelectAll": "Select all",
   "newsClearAll": "Clear all",
+  "newsDomesticFeedsLabel": "Domestic feeds",
+  "newsInternationalFeedsLabel": "International feeds",
   "newsNationalSnapshotTitle": "National Team Snapshot",
   "newsNationalSnapshotSubtitle": "Korea Republic men's team summary from official pages",
   "newsFifaRankingTitle": "FIFA Ranking",

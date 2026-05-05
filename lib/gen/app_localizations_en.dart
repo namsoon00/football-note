@@ -48,6 +48,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsClearAll => 'Clear all';
 
   @override
+  String get newsDomesticFeedsLabel => 'Domestic feeds';
+
+  @override
+  String get newsInternationalFeedsLabel => 'International feeds';
+
+  @override
   String get newsNationalSnapshotTitle => 'National Team Snapshot';
 
   @override
