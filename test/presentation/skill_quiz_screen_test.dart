@@ -73,6 +73,33 @@ void main() {
     },
   );
 
+  testWidgets('quiz library can find newly added category booster items', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byTooltip('전체 문제 보기'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '글리코겐');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('글리코겐'), findsWidgets);
+
+    await tester.enterText(find.byType(TextField), '디로드');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('디로드'), findsWidgets);
+  });
+
   testWidgets('skill quiz restores saved general football question session', (
     WidgetTester tester,
   ) async {
@@ -143,8 +170,9 @@ void main() {
             'questionId': 'ox_offside_own_half_0_0_t',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
         ]),
       );
@@ -162,12 +190,14 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds = (jsonDecode(
-      repository.getValue<String>(
-        SkillQuizScreen.dailyQuestionsKey,
-      )!,
-    ) as List<dynamic>)
-        .cast<String>();
+    final savedIds =
+        (jsonDecode(
+                  repository.getValue<String>(
+                    SkillQuizScreen.dailyQuestionsKey,
+                  )!,
+                )
+                as List<dynamic>)
+            .cast<String>();
     expect(savedIds, hasLength(10));
   });
 
@@ -183,15 +213,17 @@ void main() {
             'questionId': 'ox_support_angle_15',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'mcq_support_angle_best_10',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
         ]),
       );
@@ -209,12 +241,14 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds = (jsonDecode(
-      repository.getValue<String>(
-        SkillQuizScreen.dailyQuestionsKey,
-      )!,
-    ) as List<dynamic>)
-        .cast<String>();
+    final savedIds =
+        (jsonDecode(
+                  repository.getValue<String>(
+                    SkillQuizScreen.dailyQuestionsKey,
+                  )!,
+                )
+                as List<dynamic>)
+            .cast<String>();
 
     final duplicateConceptIds = savedIds
         .where((id) => id.contains('support_angle'))
@@ -234,22 +268,25 @@ void main() {
             'questionId': 'ox_support_angle_15',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'mcq_support_angle_best_10',
             'dueAt': now.subtract(const Duration(hours: 12)).toIso8601String(),
             'wrongCount': 2,
-            'lastWrongAt':
-                now.subtract(const Duration(hours: 18)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(hours: 18))
+                .toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'missing_question',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 3)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 3))
+                .toIso8601String(),
           },
         ]),
       );
@@ -290,8 +327,9 @@ void main() {
             'conceptKey': 'support_angle',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
         ]),
       );
@@ -373,6 +411,55 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets('short answer can reveal answer before submitting', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository()
+      ..seed(
+        SkillQuizScreen.sessionKey,
+        jsonEncode(<String, dynamic>{
+          'mode': 'daily',
+          'questionIds': <String>['sa_short_0'],
+          'index': 0,
+          'score': 0,
+          'streak': 0,
+          'bestStreak': 0,
+          'timeouts': 0,
+          'answerCount': 0,
+          'responseMillisSum': 0,
+          'selectedIndex': null,
+          'answered': false,
+          'retryUsed': false,
+          'retryFeedback': null,
+          'answerRevealed': false,
+          'wrongIds': <String>[],
+          'finished': false,
+          'speedLeft': 12,
+        }),
+      );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('이어하기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('정답 보기'), findsOneWidget);
+
+    await tester.tap(find.text('정답 보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('정답:'), findsOneWidget);
+    expect(find.text('다음'), findsOneWidget);
   });
 
   testWidgets('short answer can reveal answer after one wrong try', (

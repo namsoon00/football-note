@@ -51,6 +51,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsTitleTranslateDisabledTooltip => 'Title translation off';
 
   @override
+  String get newsTranslateAction => 'Translate';
+
+  @override
   String get newsSelectChannelsTitle => 'Select news channels';
 
   @override
@@ -1584,6 +1587,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quizShortAnswerHintAction => 'Show hint';
+
+  @override
+  String get quizRevealAnswerAction => 'Reveal answer';
 
   @override
   String get quizShortAnswerHintUnavailable => 'No hint is available yet.';
