@@ -3153,44 +3153,31 @@ class _WeeklyForecastRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      forecast.summary,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            forecast.summary,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
+                        Icon(
+                          Icons.thermostat_rounded,
+                          size: 18,
+                          color: theme.colorScheme.primary,
                         ),
-                        const SizedBox(width: 10),
-                        Container(
-                          constraints: const BoxConstraints(
-                            minWidth: 96,
-                            maxWidth: 122,
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 9,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: theme.colorScheme.outlineVariant
-                                  .withValues(alpha: 0.38),
-                            ),
-                          ),
+                        const SizedBox(width: 6),
+                        Expanded(
                           child: Text(
                             range,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w900,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
@@ -3204,6 +3191,7 @@ class _WeeklyForecastRow extends StatelessWidget {
                             icon: Icons.water_drop_outlined,
                             label: precipitationLabel,
                             value: precipitation,
+                            showLabel: false,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -3212,6 +3200,7 @@ class _WeeklyForecastRow extends StatelessWidget {
                             icon: Icons.air_rounded,
                             label: windLabel,
                             value: wind,
+                            showLabel: false,
                           ),
                         ),
                       ],
@@ -3226,6 +3215,7 @@ class _WeeklyForecastRow extends StatelessWidget {
                                 icon: Icons.blur_on_rounded,
                                 label: fineDustLabel,
                                 value: fineDust!,
+                                showLabel: false,
                               ),
                             ),
                           if (fineDust != null && ultraFineDust != null)
@@ -3236,6 +3226,7 @@ class _WeeklyForecastRow extends StatelessWidget {
                                 icon: Icons.blur_circular_rounded,
                                 label: ultraFineDustLabel,
                                 value: ultraFineDust!,
+                                showLabel: false,
                               ),
                             ),
                         ],
@@ -3256,41 +3247,47 @@ class _ForecastStatPill extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final bool showLabel;
 
   const _ForecastStatPill({
     required this.icon,
     required this.label,
     required this.value,
+    this.showLabel = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.32),
+    final visibleText = showLabel ? '$label $value' : value;
+    return Semantics(
+      label: '$label $value',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.32),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: theme.colorScheme.primary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              '$label $value',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w800,
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: theme.colorScheme.primary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                visibleText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

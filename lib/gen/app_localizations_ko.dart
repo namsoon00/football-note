@@ -4219,4 +4219,87 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get trainingSketchBallRouteLimitReached =>
       '모든 공 이동선이 이미 있어요. 공을 선택해서 이동선을 바꾸거나 다시 그려 주세요.';
+
+  @override
+  String get trainingSketchTemplatePickerTitle => '템플릿 선택';
+
+  @override
+  String get trainingSketchTemplateBlankLabel => '빈 스케치';
+
+  @override
+  String get trainingSketchTemplateBlankDescription => '아무 요소 없이 바로 시작';
+
+  @override
+  String get trainingSketchTemplatePassWarmupLabel => '패스 워밍업';
+
+  @override
+  String get trainingSketchTemplatePassWarmupDescription => '기본 3인 패스 구조';
+
+  @override
+  String get trainingSketchTemplatePassWarmupMethod => '2터치 패스 + 움직임 교대';
+
+  @override
+  String get trainingSketchTemplateBuildUpLabel => '빌드업 패턴';
+
+  @override
+  String get trainingSketchTemplateBuildUpDescription => '후방 전개 기본 구조';
+
+  @override
+  String get trainingSketchTemplateBuildUpMethod => '후방 빌드업 3-2 전개';
+
+  @override
+  String get trainingSketchTemplatePressingLabel => '압박 전환';
+
+  @override
+  String get trainingSketchTemplatePressingDescription => '전방 압박 시작 위치';
+
+  @override
+  String get trainingSketchTemplatePressingMethod => '전방 압박 트리거 확인';
+
+  @override
+  String get trainingSketchTemplateSetPieceLabel => '세트피스';
+
+  @override
+  String get trainingSketchTemplateSetPieceDescription => '코너킥 기본 배치';
+
+  @override
+  String get trainingSketchTemplateSetPieceMethod => '코너킥 공격 패턴';
+
+  @override
+  String get trainingSketchTemplateRondoLabel => '론도';
+
+  @override
+  String get trainingSketchTemplateRondoDescription => '4대1 볼 돌리기 구조';
+
+  @override
+  String get trainingSketchTemplateRondoMethod => '4대1 론도, 2터치 제한';
+
+  @override
+  String get trainingSketchTemplateFinishingLabel => '마무리 슈팅';
+
+  @override
+  String get trainingSketchTemplateFinishingDescription => '크로스 후 박스 침투 마무리';
+
+  @override
+  String get trainingSketchTemplateFinishingMethod => '측면 전개 후 박스 침투 슈팅';
+
+  @override
+  String get trainingSketchTemplateWingCombinationLabel => '측면 연계';
+
+  @override
+  String get trainingSketchTemplateWingCombinationDescription =>
+      '윙어와 풀백 오버래핑 패턴';
+
+  @override
+  String get trainingSketchTemplateWingCombinationMethod => '윙어-풀백 오버래핑 후 컷백';
+
+  @override
+  String get trainingSketchTemplateTransitionAttackLabel => '전환 공격';
+
+  @override
+  String get trainingSketchTemplateTransitionAttackDescription =>
+      '볼 탈취 직후 빠른 전개';
+
+  @override
+  String get trainingSketchTemplateTransitionAttackMethod => '볼 탈취 후 6초 안에 전진';
 }

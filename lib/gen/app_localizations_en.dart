@@ -4360,4 +4360,100 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get trainingSketchBallRouteLimitReached =>
       'All ball routes are already assigned. Select a ball to replace or redraw its route.';
+
+  @override
+  String get trainingSketchTemplatePickerTitle => 'Choose template';
+
+  @override
+  String get trainingSketchTemplateBlankLabel => 'Blank sketch';
+
+  @override
+  String get trainingSketchTemplateBlankDescription =>
+      'Start from an empty board';
+
+  @override
+  String get trainingSketchTemplatePassWarmupLabel => 'Pass warm-up';
+
+  @override
+  String get trainingSketchTemplatePassWarmupDescription =>
+      'Basic 3-player passing setup';
+
+  @override
+  String get trainingSketchTemplatePassWarmupMethod =>
+      'Two-touch pass plus rotate';
+
+  @override
+  String get trainingSketchTemplateBuildUpLabel => 'Build-up pattern';
+
+  @override
+  String get trainingSketchTemplateBuildUpDescription =>
+      'Back build-up structure';
+
+  @override
+  String get trainingSketchTemplateBuildUpMethod =>
+      'Back build-up in a 3-2 shape';
+
+  @override
+  String get trainingSketchTemplatePressingLabel => 'Pressing transition';
+
+  @override
+  String get trainingSketchTemplatePressingDescription =>
+      'Front pressing trigger shape';
+
+  @override
+  String get trainingSketchTemplatePressingMethod =>
+      'Check front-press trigger cues';
+
+  @override
+  String get trainingSketchTemplateSetPieceLabel => 'Set piece';
+
+  @override
+  String get trainingSketchTemplateSetPieceDescription => 'Corner-kick layout';
+
+  @override
+  String get trainingSketchTemplateSetPieceMethod =>
+      'Corner-kick attacking setup';
+
+  @override
+  String get trainingSketchTemplateRondoLabel => 'Rondo';
+
+  @override
+  String get trainingSketchTemplateRondoDescription => '4v1 keep-away shape';
+
+  @override
+  String get trainingSketchTemplateRondoMethod =>
+      '4v1 rondo with a two-touch limit';
+
+  @override
+  String get trainingSketchTemplateFinishingLabel => 'Finishing pattern';
+
+  @override
+  String get trainingSketchTemplateFinishingDescription =>
+      'Cross and box-finishing flow';
+
+  @override
+  String get trainingSketchTemplateFinishingMethod =>
+      'Wide combination into a box finish';
+
+  @override
+  String get trainingSketchTemplateWingCombinationLabel => 'Wide combination';
+
+  @override
+  String get trainingSketchTemplateWingCombinationDescription =>
+      'Winger and fullback overlap pattern';
+
+  @override
+  String get trainingSketchTemplateWingCombinationMethod =>
+      'Winger-fullback overlap into a cutback';
+
+  @override
+  String get trainingSketchTemplateTransitionAttackLabel => 'Transition attack';
+
+  @override
+  String get trainingSketchTemplateTransitionAttackDescription =>
+      'Quick attack right after the regain';
+
+  @override
+  String get trainingSketchTemplateTransitionAttackMethod =>
+      'Attack forward within six seconds of the regain';
 }
