@@ -158,6 +158,30 @@ abstract class AppLocalizations {
   /// **'Channels'**
   String get newsChannelsAction;
 
+  /// No description provided for @newsShowAllNewsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all news'**
+  String get newsShowAllNewsAction;
+
+  /// No description provided for @newsShowScrappedOnlyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show scrapped only'**
+  String get newsShowScrappedOnlyAction;
+
+  /// No description provided for @newsTitleTranslateEnabledTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Title translation on'**
+  String get newsTitleTranslateEnabledTooltip;
+
+  /// No description provided for @newsTitleTranslateDisabledTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Title translation off'**
+  String get newsTitleTranslateDisabledTooltip;
+
   /// No description provided for @newsSelectChannelsTitle.
   ///
   /// In en, this message translates to:

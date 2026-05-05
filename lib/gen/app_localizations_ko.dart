@@ -39,6 +39,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsChannelsAction => '채널 선택';
 
   @override
+  String get newsShowAllNewsAction => '전체 소식 보기';
+
+  @override
+  String get newsShowScrappedOnlyAction => '스크랩한 소식만 보기';
+
+  @override
+  String get newsTitleTranslateEnabledTooltip => '제목 번역 켜짐';
+
+  @override
+  String get newsTitleTranslateDisabledTooltip => '제목 번역 꺼짐';
+
+  @override
   String get newsSelectChannelsTitle => '뉴스 채널 선택';
 
   @override
