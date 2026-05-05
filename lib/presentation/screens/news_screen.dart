@@ -61,6 +61,18 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const Duration _autoRefreshInterval = Duration(hours: 1);
   static const int _defaultPrimaryChannelLoadCount = 3;
   static const int _domesticPrimaryChannelLoadCount = 2;
+  static const ValueKey<String> _channelsActionKey = ValueKey<String>(
+    'news_quick_action_channels',
+  );
+  static const ValueKey<String> _scrapToggleActionKey = ValueKey<String>(
+    'news_quick_action_scrap_toggle',
+  );
+  static const ValueKey<String> _translateToggleActionKey = ValueKey<String>(
+    'news_quick_action_translate_toggle',
+  );
+  static const ValueKey<String> _fifaHubActionKey = ValueKey<String>(
+    'news_quick_action_fifa_hub',
+  );
   static DateTime? _cachedLoadedAt;
   static Set<String>? _cachedChannelIds;
   static final List<NewsArticle> _cachedArticles = <NewsArticle>[];
@@ -202,6 +214,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                           icon: Icon(_showSearch ? Icons.close : Icons.search),
                         ),
                         TextButton.icon(
+                          key: _fifaHubActionKey,
                           onPressed: _openFifaRankingHub,
                           icon: const Icon(
                             Icons.leaderboard_outlined,
@@ -294,6 +307,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       child: Row(
         children: [
           OutlinedButton.icon(
+            key: _channelsActionKey,
             onPressed: _openChannelPicker,
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -303,11 +317,16 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
           ),
           const SizedBox(width: 8),
           _buildQuickToggleAction(
+            buttonKey: _scrapToggleActionKey,
             label: _showScrappedOnly
                 ? l10n.newsShowAllNewsAction
                 : l10n.newsShowScrappedOnlyAction,
             icon: _showScrappedOnly ? Icons.bookmark : Icons.bookmark_border,
             selected: _showScrappedOnly,
+            showLabel: false,
+            tooltip: _showScrappedOnly
+                ? l10n.newsShowAllNewsAction
+                : l10n.newsShowScrappedOnlyAction,
             onPressed: () {
               setState(() {
                 _showScrappedOnly = !_showScrappedOnly;
@@ -321,9 +340,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                   ? l10n.newsTitleTranslateEnabledTooltip
                   : l10n.newsTitleTranslateDisabledTooltip,
               child: _buildQuickToggleAction(
+                buttonKey: _translateToggleActionKey,
                 label: l10n.newsTranslateAction,
                 icon: Icons.translate_rounded,
                 selected: _titleTranslateEnabled,
+                showLabel: false,
                 onPressed: _toggleTitleTranslate,
               ),
             ),
@@ -334,29 +355,54 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildQuickToggleAction({
+    Key? buttonKey,
     required String label,
     required IconData icon,
     required bool selected,
     required VoidCallback onPressed,
+    bool showLabel = true,
+    String? tooltip,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        backgroundColor: selected
-            ? colorScheme.primaryContainer
-            : colorScheme.surfaceContainerLow,
-        foregroundColor: selected
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onSurface,
-        side: BorderSide(
-          color: selected ? colorScheme.primary : colorScheme.outlineVariant,
-        ),
+    final style = OutlinedButton.styleFrom(
+      padding: showLabel
+          ? const EdgeInsets.symmetric(horizontal: 14, vertical: 12)
+          : const EdgeInsets.all(12),
+      minimumSize: showLabel ? null : const Size(46, 46),
+      backgroundColor: selected
+          ? colorScheme.primaryContainer
+          : colorScheme.surfaceContainerLow,
+      foregroundColor: selected
+          ? colorScheme.onPrimaryContainer
+          : colorScheme.onSurface,
+      side: BorderSide(
+        color: selected ? colorScheme.primary : colorScheme.outlineVariant,
       ),
-      icon: Icon(icon, size: 18),
-      label: Text(label),
     );
+    final child = showLabel
+        ? OutlinedButton.icon(
+            key: buttonKey,
+            onPressed: onPressed,
+            style: style,
+            icon: Icon(icon, size: 18),
+            label: Text(label),
+          )
+        : OutlinedButton(
+            key: buttonKey,
+            onPressed: onPressed,
+            style: style,
+            child: Icon(icon, size: 18),
+          );
+    final button = Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: child,
+    );
+    if (tooltip == null || tooltip.trim().isEmpty) {
+      return button;
+    }
+    return Tooltip(message: tooltip, child: button);
   }
 
   Widget _buildNewsBody(bool isKo) {

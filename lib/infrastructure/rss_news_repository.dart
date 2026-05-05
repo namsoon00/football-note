@@ -139,13 +139,6 @@ class RssNewsRepository implements NewsRepository {
       keywords: _domesticFootballKeywords,
     ),
     _FeedConfig(
-      id: 'khan_sports_domestic_soccer_ko',
-      name: '경향신문 · 국내축구',
-      url: 'https://www.khan.co.kr/rss/rssdata/kh_sports.xml',
-      requireImage: false,
-      keywords: _domesticFootballKeywords,
-    ),
-    _FeedConfig(
       id: 'bbc_football_en',
       name: 'BBC Sport',
       url: 'https://feeds.bbci.co.uk/sport/football/rss.xml',

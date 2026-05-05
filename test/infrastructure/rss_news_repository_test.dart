@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/infrastructure/rss_news_repository.dart';
 
 void main() {
-  test('restores legacy Korean domestic football news channels', () {
+  test('keeps supported Korean domestic football news channels', () {
     final channels = RssNewsRepository().channels();
     final ids = channels.map((channel) => channel.id).toSet();
 
@@ -14,9 +14,15 @@ void main() {
         'sportschosun_soccer_ko',
         'sportsdonga_soccer_ko',
         'newsis_sports_domestic_soccer_ko',
-        'khan_sports_domestic_soccer_ko',
       }),
     );
+  });
+
+  test('removes Kyunghyang domestic football news channel', () {
+    final channels = RssNewsRepository().channels();
+    final ids = channels.map((channel) => channel.id).toSet();
+
+    expect(ids, isNot(contains('khan_sports_domestic_soccer_ko')));
   });
 
   test('removes Google domestic football news channels', () {
