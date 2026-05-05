@@ -12,7 +12,6 @@ void main() {
         'sports_khan_domestic_soccer_ko',
         'sports_khan_soccer_ko',
         'sportschosun_soccer_ko',
-        'sportsdonga_soccer_ko',
         'newsis_sports_domestic_soccer_ko',
       }),
     );
@@ -42,6 +41,13 @@ void main() {
     }) {
       expect(ids, isNot(contains(id)));
     }
+  });
+
+  test('removes Sports Donga football news channel', () {
+    final channels = RssNewsRepository().channels();
+    final ids = channels.map((channel) => channel.id).toSet();
+
+    expect(ids, isNot(contains('sportsdonga_soccer_ko')));
   });
 
   test('uses unique news channel ids', () {

@@ -126,12 +126,6 @@ class RssNewsRepository implements NewsRepository {
       requireImage: false,
     ),
     _FeedConfig(
-      id: 'sportsdonga_soccer_ko',
-      name: '스포츠동아 · 축구',
-      url: 'https://rss.donga.com/sportsdonga/soccer.xml',
-      requireImage: false,
-    ),
-    _FeedConfig(
       id: 'newsis_sports_domestic_soccer_ko',
       name: '뉴시스 · 국내축구',
       url: 'https://www.newsis.com/RSS/sports.xml',
