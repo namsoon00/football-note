@@ -13,6 +13,7 @@ import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
+import '../models/training_board_templates.dart';
 import '../widgets/app_page_route.dart';
 
 class TrainingMethodBoardScreen extends StatefulWidget {
@@ -348,6 +349,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         if (!mounted || !saved) return;
       }
     }
+    final template = await showTrainingBoardTemplatePicker(context);
+    if (!mounted) return;
+    if (template == null) {
+      if (isInitialFlow) {
+        Navigator.of(context).pop(widget.initialSelectedBoardIds);
+      }
+      return;
+    }
     final title = await _showBoardNameDialog(
       isKo: isKo,
       titleKo: '훈련 스케치 제목',
@@ -363,13 +372,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       }
       return;
     }
+    final layout = template.buildLayout(title);
     final created = await _managedBoardService!.createBoard(
       title: title,
-      layoutJson: TrainingMethodLayout(
-        pages: <TrainingMethodPage>[
-          TrainingMethodPage(name: title, items: const <TrainingMethodItem>[]),
-        ],
-      ).encode(),
+      layoutJson: layout.encode(),
     );
     if (!mounted) return;
     setState(() {
@@ -1769,20 +1775,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   void _onPlayStatusChanged(AnimationStatus status) {
-    if (status != AnimationStatus.completed &&
-        status != AnimationStatus.dismissed) {
+    if (status != AnimationStatus.completed) {
       return;
     }
     setState(() {
       for (final track in _playbackTracks) {
-        track.item.x = track.startPosition.dx;
-        track.item.y = track.startPosition.dy;
+        final lastPoint = track.route.points.last;
+        track.item.x = lastPoint.dx.clamp(0.03, 0.97);
+        track.item.y = lastPoint.dy.clamp(0.03, 0.97);
       }
       _playbackTracks = const <_PlaybackTrack>[];
     });
-    if (status == AnimationStatus.completed) {
-      _playController.reset();
-    }
+    _playController.reset();
   }
 
   void _stopRoutePlayback({bool restoreStart = true}) {
@@ -1928,12 +1932,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             .round(),
       ),
     );
-    final adjustedMs = slowestTrackMs ~/ _playSpeed.clamp(0.75, 1.5).toDouble();
-    final clampedMs = adjustedMs.clamp(
-      _minPlaybackDuration.inMilliseconds,
-      _maxPlaybackDuration.inMilliseconds,
+    final adjustedMs = (slowestTrackMs / _playSpeed.clamp(0.75, 1.5).toDouble())
+        .round();
+    return Duration(
+      milliseconds: math.max(adjustedMs, _minPlaybackDuration.inMilliseconds),
     );
-    return Duration(milliseconds: clampedMs);
   }
 
   double _playbackSpeedMetersPerSecond(_PathDrawMode kind) {
@@ -3295,10 +3298,9 @@ double _defaultRouteWidth(_PathDrawMode kind) {
 // sketch instead of full-pitch broadcast tracking.
 const double _trainingBoardReferenceLengthMeters = 60.0;
 const double _trainingBoardReferenceWidthMeters = 40.0;
-const double _playerPlaybackSpeedMetersPerSecond = 4.6;
+const double _playerPlaybackSpeedMetersPerSecond = 6.2;
 const double _ballPlaybackSpeedMetersPerSecond = 9.2;
 const Duration _minPlaybackDuration = Duration(milliseconds: 900);
-const Duration _maxPlaybackDuration = Duration(milliseconds: 6200);
 
 const List<Color> _playerItemColors = <Color>[
   Color(0xFF42A5F5),

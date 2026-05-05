@@ -7591,6 +7591,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All ball routes are already assigned. Select a ball to replace or redraw its route.'**
   String get trainingSketchBallRouteLimitReached;
+
+  /// No description provided for @trainingSketchTemplatePickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose template'**
+  String get trainingSketchTemplatePickerTitle;
+
+  /// No description provided for @trainingSketchTemplateBlankLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Blank sketch'**
+  String get trainingSketchTemplateBlankLabel;
+
+  /// No description provided for @trainingSketchTemplateBlankDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from an empty board'**
+  String get trainingSketchTemplateBlankDescription;
+
+  /// No description provided for @trainingSketchTemplatePassWarmupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass warm-up'**
+  String get trainingSketchTemplatePassWarmupLabel;
+
+  /// No description provided for @trainingSketchTemplatePassWarmupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic 3-player passing setup'**
+  String get trainingSketchTemplatePassWarmupDescription;
+
+  /// No description provided for @trainingSketchTemplatePassWarmupMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-touch pass plus rotate'**
+  String get trainingSketchTemplatePassWarmupMethod;
+
+  /// No description provided for @trainingSketchTemplateBuildUpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Build-up pattern'**
+  String get trainingSketchTemplateBuildUpLabel;
+
+  /// No description provided for @trainingSketchTemplateBuildUpDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Back build-up structure'**
+  String get trainingSketchTemplateBuildUpDescription;
+
+  /// No description provided for @trainingSketchTemplateBuildUpMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Back build-up in a 3-2 shape'**
+  String get trainingSketchTemplateBuildUpMethod;
+
+  /// No description provided for @trainingSketchTemplatePressingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressing transition'**
+  String get trainingSketchTemplatePressingLabel;
+
+  /// No description provided for @trainingSketchTemplatePressingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Front pressing trigger shape'**
+  String get trainingSketchTemplatePressingDescription;
+
+  /// No description provided for @trainingSketchTemplatePressingMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Check front-press trigger cues'**
+  String get trainingSketchTemplatePressingMethod;
+
+  /// No description provided for @trainingSketchTemplateSetPieceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Set piece'**
+  String get trainingSketchTemplateSetPieceLabel;
+
+  /// No description provided for @trainingSketchTemplateSetPieceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Corner-kick layout'**
+  String get trainingSketchTemplateSetPieceDescription;
+
+  /// No description provided for @trainingSketchTemplateSetPieceMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Corner-kick attacking setup'**
+  String get trainingSketchTemplateSetPieceMethod;
+
+  /// No description provided for @trainingSketchTemplateRondoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rondo'**
+  String get trainingSketchTemplateRondoLabel;
+
+  /// No description provided for @trainingSketchTemplateRondoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'4v1 keep-away shape'**
+  String get trainingSketchTemplateRondoDescription;
+
+  /// No description provided for @trainingSketchTemplateRondoMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'4v1 rondo with a two-touch limit'**
+  String get trainingSketchTemplateRondoMethod;
+
+  /// No description provided for @trainingSketchTemplateFinishingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Finishing pattern'**
+  String get trainingSketchTemplateFinishingLabel;
+
+  /// No description provided for @trainingSketchTemplateFinishingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Cross and box-finishing flow'**
+  String get trainingSketchTemplateFinishingDescription;
+
+  /// No description provided for @trainingSketchTemplateFinishingMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide combination into a box finish'**
+  String get trainingSketchTemplateFinishingMethod;
+
+  /// No description provided for @trainingSketchTemplateWingCombinationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide combination'**
+  String get trainingSketchTemplateWingCombinationLabel;
+
+  /// No description provided for @trainingSketchTemplateWingCombinationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Winger and fullback overlap pattern'**
+  String get trainingSketchTemplateWingCombinationDescription;
+
+  /// No description provided for @trainingSketchTemplateWingCombinationMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Winger-fullback overlap into a cutback'**
+  String get trainingSketchTemplateWingCombinationMethod;
+
+  /// No description provided for @trainingSketchTemplateTransitionAttackLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Transition attack'**
+  String get trainingSketchTemplateTransitionAttackLabel;
+
+  /// No description provided for @trainingSketchTemplateTransitionAttackDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick attack right after the regain'**
+  String get trainingSketchTemplateTransitionAttackDescription;
+
+  /// No description provided for @trainingSketchTemplateTransitionAttackMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack forward within six seconds of the regain'**
+  String get trainingSketchTemplateTransitionAttackMethod;
 }
 
 class _AppLocalizationsDelegate
