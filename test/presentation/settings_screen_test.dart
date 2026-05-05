@@ -126,6 +126,8 @@ void main() {
       find.widgetWithText(ElevatedButton, 'Google Drive 백업'),
       findsOneWidget,
     );
+    expect(find.text('Google Drive 백업'), findsOneWidget);
+    expect(find.text('Google Drive 최신 데이터 가져오기'), findsOneWidget);
     expect(
       find.text('이 기기가 직접 기록하는 선수용인지, 보호자/코치가 확인하는 기기인지 먼저 고르세요.'),
       findsNothing,
@@ -719,24 +721,24 @@ class _FakeDriveBackupService extends BackupService {
     this.signInConnectionInfo,
     this.throwIsSignedInAfterSignInOnce = false,
     DateTime? lastBackupAt,
-  }) : _signedIn = signedIn,
-       signOutCalled = false,
-       refreshParentSharedDataIfNeededCalled = false,
-       throwNextIsSignedIn = false,
-       _connectionInfo = connectionInfo,
-       _sharedChildDriveLabel = sharedChildDriveLabel,
-       _sharedChildDriveEmail = sharedChildDriveEmail,
-       _savedRecordDriveLabel = savedRecordDriveLabel,
-       _savedRecordDriveEmail = savedRecordDriveEmail,
-       _savedParentDriveLabel = savedParentDriveLabel,
-       _savedParentDriveEmail = savedParentDriveEmail,
-       _lastFamilySyncPushAt = lastFamilySyncPushAt,
-       _lastFamilySyncPullAt = lastFamilySyncPullAt,
-       _localPreRestoreAt = localPreRestoreAt,
-       _remoteSharedChildConnectionInfo = remoteSharedChildConnectionInfo,
-       _hasRemotePlayerBackup = hasRemotePlayerBackup,
-       _pendingParentSharedChanges = pendingParentSharedChanges,
-       super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
+  })  : _signedIn = signedIn,
+        signOutCalled = false,
+        refreshParentSharedDataIfNeededCalled = false,
+        throwNextIsSignedIn = false,
+        _connectionInfo = connectionInfo,
+        _sharedChildDriveLabel = sharedChildDriveLabel,
+        _sharedChildDriveEmail = sharedChildDriveEmail,
+        _savedRecordDriveLabel = savedRecordDriveLabel,
+        _savedRecordDriveEmail = savedRecordDriveEmail,
+        _savedParentDriveLabel = savedParentDriveLabel,
+        _savedParentDriveEmail = savedParentDriveEmail,
+        _lastFamilySyncPushAt = lastFamilySyncPushAt,
+        _lastFamilySyncPullAt = lastFamilySyncPullAt,
+        _localPreRestoreAt = localPreRestoreAt,
+        _remoteSharedChildConnectionInfo = remoteSharedChildConnectionInfo,
+        _hasRemotePlayerBackup = hasRemotePlayerBackup,
+        _pendingParentSharedChanges = pendingParentSharedChanges,
+        super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
 
   bool get signedIn => _signedIn;
   DriveConnectionInfo? get connectionInfo => _connectionInfo;
@@ -778,9 +780,8 @@ class _FakeDriveBackupService extends BackupService {
       if (localEmail.isNotEmpty) {
         final suffix = ' · $localEmail';
         if (localLabel.endsWith(suffix)) {
-          displayName = localLabel
-              .substring(0, localLabel.length - suffix.length)
-              .trim();
+          displayName =
+              localLabel.substring(0, localLabel.length - suffix.length).trim();
         } else if (localLabel.toLowerCase() == localEmail.toLowerCase()) {
           displayName = '';
         }

@@ -916,7 +916,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
       if (localRestoreAvailable)
         _buildSubtleLocalRestoreCard(
-          l10n: l10n,
           title: l10n.settingsPlayerRestoreLocalActionTitle,
           onPressed: _restoreBusy
               ? null
@@ -949,7 +948,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
       if (localRestoreAvailable)
         _buildSubtleLocalRestoreCard(
-          l10n: l10n,
           title: l10n.settingsSupportRestoreLocalActionTitle,
           onPressed: _restoreBusy
               ? null
@@ -1019,52 +1017,15 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildSubtleLocalRestoreCard({
-    required AppLocalizations l10n,
     required String title,
     required VoidCallback? onPressed,
   }) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.12)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.history_toggle_off_rounded,
-                size: 18,
-                color: scheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  l10n.settingsRestoreRollbackTitle,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: onPressed,
-              icon: const Icon(Icons.undo_rounded),
-              label: Text(title),
-            ),
-          ),
-        ],
+      child: TextButton.icon(
+        onPressed: onPressed,
+        icon: const Icon(Icons.undo_rounded),
+        label: Text(title),
       ),
     );
   }
@@ -1075,70 +1036,21 @@ class _SettingsScreenState extends State<SettingsScreen>
     required VoidCallback? onPressed,
     bool primary = false,
   }) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final accentColor = primary ? scheme.primary : scheme.secondary;
-    final borderColor = primary
-        ? scheme.primary.withValues(alpha: 0.26)
-        : scheme.outline.withValues(alpha: 0.14);
-    final backgroundColor = primary
-        ? scheme.primaryContainer.withValues(alpha: 0.30)
-        : scheme.surfaceContainerHigh;
-
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: Icon(icon, size: 18, color: accentColor),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: primary
-                ? ElevatedButton.icon(
-                    onPressed: onPressed,
-                    icon: Icon(icon),
-                    label: Text(title),
-                    style: _elevatedActionStyle(),
-                  )
-                : OutlinedButton.icon(
-                    onPressed: onPressed,
-                    icon: Icon(icon),
-                    label: Text(title),
-                    style: _outlinedActionStyle(),
-                  ),
-          ),
-        ],
-      ),
+      child: primary
+          ? ElevatedButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon),
+              label: Text(title),
+              style: _elevatedActionStyle(),
+            )
+          : OutlinedButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon),
+              label: Text(title),
+              style: _outlinedActionStyle(),
+            ),
     );
   }
 
