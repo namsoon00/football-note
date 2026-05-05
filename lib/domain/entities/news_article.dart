@@ -4,6 +4,7 @@ class NewsArticle {
   final String source;
   final String imageUrl;
   final DateTime? publishedAt;
+  final String channelId;
 
   const NewsArticle({
     required this.title,
@@ -11,5 +12,6 @@ class NewsArticle {
     required this.source,
     this.imageUrl = '',
     this.publishedAt,
+    this.channelId = '',
   });
 }

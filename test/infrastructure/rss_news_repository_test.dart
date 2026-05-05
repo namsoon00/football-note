@@ -54,4 +54,22 @@ void main() {
       isTrue,
     );
   });
+
+  test('marks domestic and international channel groups for news filters', () {
+    final channels = RssNewsRepository().channels();
+    final domesticChannels = channels.where((channel) => channel.isDomestic);
+    final internationalChannels =
+        channels.where((channel) => !channel.isDomestic);
+
+    expect(domesticChannels, isNotEmpty);
+    expect(internationalChannels, isNotEmpty);
+    expect(
+      domesticChannels.every((channel) => channel.id.endsWith('_ko')),
+      isTrue,
+    );
+    expect(
+      internationalChannels.every((channel) => channel.id.endsWith('_en')),
+      isTrue,
+    );
+  });
 }
