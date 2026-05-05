@@ -214,6 +214,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   precipitationLabel: l10n.homeWeatherPrecipitation,
                   windLabel: l10n.homeWeatherWindSpeed,
                   fineDustLabel: l10n.homeWeatherPm10,
+                  ultraFineDustLabel: l10n.homeWeatherPm25,
                   forecasts: _dailyForecasts.take(7).toList(growable: false),
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
@@ -2943,6 +2944,7 @@ class _WeeklyForecastCard extends StatelessWidget {
   final String precipitationLabel;
   final String windLabel;
   final String fineDustLabel;
+  final String ultraFineDustLabel;
   final List<_DailyWeatherForecast> forecasts;
   final String Function(double?, double?) formatRange;
   final String Function(double?) formatMillimeter;
@@ -2955,6 +2957,7 @@ class _WeeklyForecastCard extends StatelessWidget {
     required this.precipitationLabel,
     required this.windLabel,
     required this.fineDustLabel,
+    required this.ultraFineDustLabel,
     required this.forecasts,
     required this.formatRange,
     required this.formatMillimeter,
@@ -3013,6 +3016,7 @@ class _WeeklyForecastCard extends StatelessWidget {
               precipitationLabel: precipitationLabel,
               windLabel: windLabel,
               fineDustLabel: fineDustLabel,
+              ultraFineDustLabel: ultraFineDustLabel,
               forecast: forecast,
               range: formatRange(
                 forecast.temperatureMax,
@@ -3022,6 +3026,8 @@ class _WeeklyForecastCard extends StatelessWidget {
               wind: formatWind(forecast.windSpeedMax),
               fineDust:
                   forecast.pm10 == null ? null : formatFineDust(forecast.pm10),
+              ultraFineDust:
+                  forecast.pm25 == null ? null : formatFineDust(forecast.pm25),
               icon: iconForCode(forecast.weatherCode),
             ),
             if (!identical(forecast, forecasts.last))
@@ -3037,22 +3043,26 @@ class _WeeklyForecastRow extends StatelessWidget {
   final String precipitationLabel;
   final String windLabel;
   final String fineDustLabel;
+  final String ultraFineDustLabel;
   final _DailyWeatherForecast forecast;
   final String range;
   final String precipitation;
   final String wind;
   final String? fineDust;
+  final String? ultraFineDust;
   final IconData icon;
 
   const _WeeklyForecastRow({
     required this.precipitationLabel,
     required this.windLabel,
     required this.fineDustLabel,
+    required this.ultraFineDustLabel,
     required this.forecast,
     required this.range,
     required this.precipitation,
     required this.wind,
     required this.fineDust,
+    required this.ultraFineDust,
     required this.icon,
   });
 
@@ -3143,38 +3153,50 @@ class _WeeklyForecastRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      forecast.summary,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      constraints: const BoxConstraints(minWidth: 96),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 9,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: theme.colorScheme.outlineVariant.withValues(
-                            alpha: 0.38,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            forecast.summary,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
-                      ),
-                      child: Text(
-                        range,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w900,
+                        const SizedBox(width: 10),
+                        Container(
+                          constraints: const BoxConstraints(
+                            minWidth: 96,
+                            maxWidth: 122,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 9,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: theme.colorScheme.outlineVariant
+                                  .withValues(alpha: 0.38),
+                            ),
+                          ),
+                          child: Text(
+                            range,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
                         Expanded(
@@ -3194,12 +3216,29 @@ class _WeeklyForecastRow extends StatelessWidget {
                         ),
                       ],
                     ),
-                    if (fineDust != null) ...[
+                    if (fineDust != null || ultraFineDust != null) ...[
                       const SizedBox(height: 8),
-                      _ForecastStatPill(
-                        icon: Icons.blur_on_rounded,
-                        label: fineDustLabel,
-                        value: fineDust!,
+                      Row(
+                        children: [
+                          if (fineDust != null)
+                            Expanded(
+                              child: _ForecastStatPill(
+                                icon: Icons.blur_on_rounded,
+                                label: fineDustLabel,
+                                value: fineDust!,
+                              ),
+                            ),
+                          if (fineDust != null && ultraFineDust != null)
+                            const SizedBox(width: 8),
+                          if (ultraFineDust != null)
+                            Expanded(
+                              child: _ForecastStatPill(
+                                icon: Icons.blur_circular_rounded,
+                                label: ultraFineDustLabel,
+                                value: ultraFineDust!,
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ],

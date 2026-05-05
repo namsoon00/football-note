@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/weather_shared_resource.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/weather_detail_screen.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
 void main() {
+  setUp(WeatherSharedResource.debugClearCache);
+  tearDown(WeatherSharedResource.debugClearCache);
+
   testWidgets('Weather detail header renders without layout exceptions', (
     WidgetTester tester,
   ) async {
@@ -42,6 +46,74 @@ void main() {
     expect(find.text('초미세먼지'), findsOneWidget);
     expect(find.text('야외 활동 가이드'), findsNothing);
     expect(find.text('AQI'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Weekly forecast shows temperature beside status and PM2.5', (
+    WidgetTester tester,
+  ) async {
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: DateTime.now(),
+        summary: '맑음',
+        weatherCode: 0,
+        temperature: 21,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: DateTime(2026, 5, 5),
+            summary: '대체로 맑음',
+            weatherCode: 0,
+            temperatureMax: 25,
+            temperatureMin: 14,
+            precipitationSum: 1.2,
+            windSpeedMax: 5.5,
+            pm10: 42,
+            pm25: 18,
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '맑음 21°C',
+            initialWeatherCode: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.scrollUntilVisible(
+      find.text('주간 날씨'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('주간 날씨'), findsOneWidget);
+    expect(find.text('대체로 맑음'), findsOneWidget);
+    expect(find.text('25°C / 14°C'), findsOneWidget);
+    expect(find.textContaining('미세먼지 42'), findsOneWidget);
+    expect(find.textContaining('초미세먼지 18'), findsOneWidget);
+
+    final summaryTopLeft = tester.getTopLeft(find.text('대체로 맑음'));
+    final rangeTopLeft = tester.getTopLeft(find.text('25°C / 14°C'));
+    expect(rangeTopLeft.dx, greaterThan(summaryTopLeft.dx));
+    expect((rangeTopLeft.dy - summaryTopLeft.dy).abs(), lessThan(24));
     expect(tester.takeException(), isNull);
   });
 
