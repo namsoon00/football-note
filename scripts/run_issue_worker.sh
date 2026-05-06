@@ -429,9 +429,13 @@ post_workflow_summary() {
 }
 
 is_plan_request_issue() {
-  local haystack
-  haystack="$(printf '%s\n%s' "${ISSUE_TITLE:-}" "${ISSUE_BODY:-}" | tr '[:upper:]' '[:lower:]')"
-  if grep -Eiq '계획|플랜|기획|논의|discussion|plan' <<<"$haystack"; then
+  local classification
+  classification="$(
+    python3 scripts/issue_plan_request_classifier.py \
+      --title "${ISSUE_TITLE:-}" \
+      --body "${ISSUE_BODY:-}"
+  )"
+  if [[ "${classification}" == "plan" ]]; then
     return 0
   fi
   return 1
