@@ -45,6 +45,9 @@ flutter gen-l10n
 echo "==> flutter analyze"
 flutter analyze
 
+echo "==> issue worker plan classifier regression"
+./scripts/test_issue_plan_request_classifier.sh
+
 if [[ "${VERIFY_SCOPE}" == "minimal" ]]; then
   echo "==> minimal verification complete (skipping flutter test/run)"
   exit 0
