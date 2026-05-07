@@ -449,7 +449,7 @@ create_plan_discussion() {
 import sys
 
 issue_number, issue_title = sys.argv[1:3]
-print(f"[계획] Issue #{issue_number} - {issue_title}")
+print(f"[플랜] Issue #{issue_number} - {issue_title}")
 PY
   )"
 
@@ -470,14 +470,14 @@ body = f"""## 이슈 정보
 ## 요청 요약
 {trimmed_body if trimmed_body else '(본문 없음)'}
 
-## 작업 계획(초안)
+## 작업 플랜(초안)
 1. 문제/요구사항 범위 확정
 2. 영향받는 화면/로직 식별
 3. 최소 변경안과 대안 비교
 4. 구현 순서/검증 방법 확정
 5. 리스크와 롤백 포인트 정리
 
-자동 워커가 생성한 계획 Discussion입니다. 필요하면 여기서 바로 피드백 주세요.
+자동 워커가 생성한 플랜 Discussion입니다. 필요하면 여기서 바로 피드백 주세요.
 """
 pathlib.Path(body_path).write_text(body, encoding="utf-8")
 PY
@@ -489,7 +489,7 @@ PY
         --body-file "${body_file}"
     )"; then
       LINKED_DISCUSSION_URL="${discussion_target}"
-      post_issue_comment "요청하신 계획을 연결된 Discussion에 남겼습니다: ${discussion_target}" || true
+      post_issue_comment "요청하신 플랜을 연결된 Discussion에 남겼습니다: ${discussion_target}" || true
       log "Plan discussion comment posted: ${discussion_target}"
       return 0
     fi
@@ -503,7 +503,7 @@ PY
       --repo "${GITHUB_REPOSITORY}"
   )"; then
     LINKED_DISCUSSION_URL="${discussion_target}"
-    post_issue_comment "요청하신 계획을 Discussion에 남겼습니다: ${discussion_target}" || true
+    post_issue_comment "요청하신 플랜을 Discussion에 남겼습니다: ${discussion_target}" || true
     log "Plan discussion created: ${discussion_target}"
     return 0
   fi
@@ -692,17 +692,17 @@ if is_plan_request_issue; then
   if create_plan_discussion; then
     log "Plan discussion flow completed."
     record_final_result \
-      "계획 Discussion 작성 완료" \
-      "요청하신 계획을 Discussion에 남겼습니다." \
+      "플랜 Discussion 작성 완료" \
+      "요청하신 플랜을 Discussion에 남겼습니다." \
       "" \
-      "요청하신 계획을 Discussion에 남겼습니다."
+      "요청하신 플랜을 Discussion에 남겼습니다."
     if [[ "${LAST_ISSUE_COMMENT_POSTED}" == "1" ]]; then
       WORKER_RESULT_FINAL_COMMENT_POSTED="1"
       mark_final_comment_posted
     fi
     exit 0
   fi
-  notify_issue_and_discussion "계획 요청을 감지했지만 Discussion 생성에 실패했습니다. 저장소 Discussions 활성화/권한을 확인해 주세요."
+  notify_issue_and_discussion "플랜 요청을 감지했지만 Discussion 생성에 실패했습니다. 저장소 Discussions 활성화/권한을 확인해 주세요."
 fi
 
 SAFE_SLUG="$(python3 - "$ISSUE_TITLE" <<'PY'

@@ -48,6 +48,9 @@ flutter analyze
 echo "==> issue worker plan classifier regression"
 ./scripts/test_issue_plan_request_classifier.sh
 
+echo "==> issue worker wording regression"
+./scripts/test_issue_worker_plan_wording.sh
+
 if [[ "${VERIFY_SCOPE}" == "minimal" ]]; then
   echo "==> minimal verification complete (skipping flutter test/run)"
   exit 0
