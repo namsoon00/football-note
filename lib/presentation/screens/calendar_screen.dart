@@ -1531,6 +1531,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 editScope == _PlanEditScope.series;
                             final editingAfterThis =
                                 editScope == _PlanEditScope.afterThis;
+                            final useRepeatRangeForSave =
+                                TrainingPlanSeriesBuilder.shouldUseRepeatRangeForSave(
+                                  isCreatingPlan: editingPlan == null,
+                                  showRepeatRangePicker: showRepeatRangePicker,
+                                  isSingleEditScope:
+                                      editScope == _PlanEditScope.single,
+                                );
                             final scheduledAt = DateTime(
                               planDay.year,
                               planDay.month,
@@ -1539,7 +1546,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               time.minute,
                             );
                             final occurrenceDates =
-                                editScope == _PlanEditScope.single
+                                !useRepeatRangeForSave
                                 ? <DateTime>[scheduledAt]
                                 : TrainingPlanSeriesBuilder.buildOccurrenceDates(
                                     startDate: planDay,
@@ -1558,7 +1565,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               return;
                             }
                             final isRecurring =
-                                editScope != _PlanEditScope.single &&
+                                useRepeatRangeForSave &&
                                 TrainingPlanSeriesBuilder.isRecurringSelection(
                                   startDate: planDay,
                                   endDate: planEndDay,

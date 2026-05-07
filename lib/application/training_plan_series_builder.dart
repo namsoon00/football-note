@@ -51,4 +51,13 @@ class TrainingPlanSeriesBuilder {
         uniqueWeekdays.length > 1 ||
         !uniqueWeekdays.contains(normalizedStart.weekday);
   }
+
+  static bool shouldUseRepeatRangeForSave({
+    required bool isCreatingPlan,
+    required bool showRepeatRangePicker,
+    required bool isSingleEditScope,
+  }) {
+    if (isCreatingPlan) return showRepeatRangePicker;
+    return !isSingleEditScope;
+  }
 }
