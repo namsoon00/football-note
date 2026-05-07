@@ -74,27 +74,29 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           ),
           const SizedBox(height: 12),
           _CoachIntentCard(
-            icon: Icons.videocam_outlined,
+            icon: Icons.motion_photos_on_rounded,
             title: l10n.runningCoachLiveCardTitle,
             body: l10n.runningCoachLiveCardBody,
-            primaryLabel: l10n.runningCoachLiveAction,
-            primaryIcon: Icons.play_arrow_rounded,
-            onPrimary: _openLiveCoach,
-            secondaryLabel: l10n.runningCoachLiveGuideAction,
-            secondaryIcon: Icons.info_outline_rounded,
-            onSecondary: _openLiveGuide,
-          ),
-          const SizedBox(height: 12),
-          _CoachIntentCard(
-            icon: Icons.flash_on_rounded,
-            title: l10n.runningCoachSprintLiveCardTitle,
-            body: l10n.runningCoachSprintLiveCardBody,
-            primaryLabel: l10n.runningCoachSprintLiveAction,
-            primaryIcon: Icons.directions_run_rounded,
-            onPrimary: _openSprintLiveCoach,
-            secondaryLabel: l10n.runningCoachLiveGuideAction,
-            secondaryIcon: Icons.info_outline_rounded,
-            onSecondary: _openSprintLiveGuide,
+            actions: [
+              _CoachIntentAction(
+                label: l10n.runningCoachLiveAction,
+                icon: Icons.play_arrow_rounded,
+                onPressed: _openLiveCoach,
+                tone: _CoachIntentActionTone.filled,
+              ),
+              _CoachIntentAction(
+                label: l10n.runningCoachSprintLiveAction,
+                icon: Icons.directions_run_rounded,
+                onPressed: _openSprintLiveCoach,
+                tone: _CoachIntentActionTone.tonal,
+              ),
+              _CoachIntentAction(
+                label: l10n.runningCoachLiveGuideAction,
+                icon: Icons.info_outline_rounded,
+                onPressed: _openCombinedLiveGuide,
+                tone: _CoachIntentActionTone.outlined,
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           _VideoAnalysisIntentCard(
@@ -120,9 +122,11 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            for (var sectionIndex = 0;
-                sectionIndex < insightSections.length;
-                sectionIndex += 1) ...[
+            for (
+              var sectionIndex = 0;
+              sectionIndex < insightSections.length;
+              sectionIndex += 1
+            ) ...[
               _InsightRegionSectionCard(
                 title: insightSections[sectionIndex].title,
                 insights: insightSections[sectionIndex].insights,
@@ -145,10 +149,17 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     ).push(MaterialPageRoute(builder: (_) => const RunningLiveCoachScreen()));
   }
 
-  void _openLiveGuide() {
+  void _openCombinedLiveGuide() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => RunningLiveCoachGuideScreen(onStart: _openLiveCoach),
+        builder: (_) => RunningLiveCoachGuideScreen(
+          onStart: _openLiveCoach,
+          secondaryStart: _openSprintLiveCoach,
+          secondaryStartLabel: AppLocalizations.of(
+            context,
+          )!.runningCoachSprintLiveAction,
+          secondaryStartIcon: Icons.directions_run_rounded,
+        ),
       ),
     );
   }
@@ -157,15 +168,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const SprintLiveCoachingScreen()));
-  }
-
-  void _openSprintLiveGuide() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) =>
-            RunningLiveCoachGuideScreen(onStart: _openSprintLiveCoach),
-      ),
-    );
   }
 
   Future<void> _pickVideo() async {
@@ -283,23 +285,13 @@ class _CoachIntentCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
-  final String primaryLabel;
-  final IconData primaryIcon;
-  final VoidCallback onPrimary;
-  final String secondaryLabel;
-  final IconData secondaryIcon;
-  final VoidCallback onSecondary;
+  final List<_CoachIntentAction> actions;
 
   const _CoachIntentCard({
     required this.icon,
     required this.title,
     required this.body,
-    required this.primaryLabel,
-    required this.primaryIcon,
-    required this.onPrimary,
-    required this.secondaryLabel,
-    required this.secondaryIcon,
-    required this.onSecondary,
+    required this.actions,
   });
 
   @override
@@ -334,10 +326,7 @@ class _CoachIntentCard extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        body,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
+                      Text(body, style: Theme.of(context).textTheme.bodyMedium),
                     ],
                   ),
                 ),
@@ -347,24 +336,49 @@ class _CoachIntentCard extends StatelessWidget {
             Wrap(
               spacing: 10,
               runSpacing: 10,
-              children: [
-                FilledButton.icon(
-                  onPressed: onPrimary,
-                  icon: Icon(primaryIcon),
-                  label: Text(primaryLabel),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onSecondary,
-                  icon: Icon(secondaryIcon),
-                  label: Text(secondaryLabel),
-                ),
-              ],
+              children: actions
+                  .map((action) {
+                    return switch (action.tone) {
+                      _CoachIntentActionTone.filled => FilledButton.icon(
+                        onPressed: action.onPressed,
+                        icon: Icon(action.icon),
+                        label: Text(action.label),
+                      ),
+                      _CoachIntentActionTone.tonal => FilledButton.tonalIcon(
+                        onPressed: action.onPressed,
+                        icon: Icon(action.icon),
+                        label: Text(action.label),
+                      ),
+                      _CoachIntentActionTone.outlined => OutlinedButton.icon(
+                        onPressed: action.onPressed,
+                        icon: Icon(action.icon),
+                        label: Text(action.label),
+                      ),
+                    };
+                  })
+                  .toList(growable: false),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+enum _CoachIntentActionTone { filled, tonal, outlined }
+
+class _CoachIntentAction {
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+  final _CoachIntentActionTone tone;
+
+  const _CoachIntentAction({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+    required this.tone,
+  });
 }
 
 class _VideoAnalysisIntentCard extends StatelessWidget {
@@ -642,9 +656,9 @@ class _HeroCard extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: scheme.onPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: scheme.onPrimary,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -719,8 +733,8 @@ class _ResultsSummaryCard extends StatelessWidget {
     final headline = score >= 85
         ? l10n.runningCoachOverallHeadlineStrong
         : score >= 70
-            ? l10n.runningCoachOverallHeadlineSolid
-            : l10n.runningCoachOverallHeadlineNeedsWork;
+        ? l10n.runningCoachOverallHeadlineSolid
+        : l10n.runningCoachOverallHeadlineNeedsWork;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -763,9 +777,11 @@ class _ResultsSummaryCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
-            for (var index = 0;
-                index < prioritizedInsights.length;
-                index += 1) ...[
+            for (
+              var index = 0;
+              index < prioritizedInsights.length;
+              index += 1
+            ) ...[
               _MetricScoreRow(
                 insight: prioritizedInsights[index],
                 priority: focusPriorities[prioritizedInsights[index].metric],
@@ -923,9 +939,9 @@ class _InsightCard extends StatelessWidget {
                     child: Text(
                       copy.statusLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: badgeTextColor,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: badgeTextColor,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
@@ -941,9 +957,9 @@ class _InsightCard extends StatelessWidget {
               Text(
                 _qualityReasonText(context, insight.quality),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.error,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
             const SizedBox(height: 12),
@@ -1090,18 +1106,16 @@ class _PrimaryFocusCard extends StatelessWidget {
                             ? l10n.runningCoachFocusTitle
                             : l10n.runningCoachMaintainTitle,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: isFix
-                                  ? scheme.onPrimaryContainer
-                                  : scheme.onTertiaryContainer,
-                              fontWeight: FontWeight.w800,
-                            ),
+                          color: isFix
+                              ? scheme.onPrimaryContainer
+                              : scheme.onTertiaryContainer,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         copy.title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ],
@@ -1127,9 +1141,9 @@ class _PrimaryFocusCard extends StatelessWidget {
               Text(
                 _qualityReasonText(context, insight.quality),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.error,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: scheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ],
@@ -1214,9 +1228,9 @@ class _QualityBadge extends StatelessWidget {
         child: Text(
           '${_confidenceLabel(context)} ${quality.confidencePercent}%',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: isLow ? scheme.onErrorContainer : null,
-                fontWeight: FontWeight.w700,
-              ),
+            color: isLow ? scheme.onErrorContainer : null,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
@@ -1242,9 +1256,9 @@ class _PriorityBadge extends StatelessWidget {
         child: Text(
           l10n.runningCoachPriorityLabel(priority),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: scheme.onPrimaryContainer,
-                fontWeight: FontWeight.w700,
-              ),
+            color: scheme.onPrimaryContainer,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
@@ -1260,18 +1274,22 @@ String _confidenceLabel(BuildContext context) {
 String _qualityReasonText(BuildContext context, RunningMetricQuality quality) {
   final isKorean = Localizations.localeOf(context).languageCode == 'ko';
   return switch (quality.reason) {
-    'low_coverage' => isKorean
-        ? '추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.'
-        : 'Tracking coverage is low, so treat this metric conservatively.',
-    'limited_samples' => isKorean
-        ? '안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.'
-        : 'Only a small set of stable frames was read; confirm once more from the same angle.',
-    'contact_phase_proxy' => isKorean
-        ? '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.'
-        : 'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.',
-    _ => isKorean
-        ? '촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.'
-        : 'Capture quality is low; confirm again from the same angle.',
+    'low_coverage' =>
+      isKorean
+          ? '추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.'
+          : 'Tracking coverage is low, so treat this metric conservatively.',
+    'limited_samples' =>
+      isKorean
+          ? '안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.'
+          : 'Only a small set of stable frames was read; confirm once more from the same angle.',
+    'contact_phase_proxy' =>
+      isKorean
+          ? '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.'
+          : 'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.',
+    _ =>
+      isKorean
+          ? '촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.'
+          : 'Capture quality is low; confirm again from the same angle.',
   };
 }
 

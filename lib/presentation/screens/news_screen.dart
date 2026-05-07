@@ -73,6 +73,15 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const ValueKey<String> _fifaHubActionKey = ValueKey<String>(
     'news_quick_action_fifa_hub',
   );
+  static const ValueKey<String> _kLeagueStandingsActionKey = ValueKey<String>(
+    'news_quick_action_kleague_standings',
+  );
+  static const ValueKey<String> _searchActionKey = ValueKey<String>(
+    'news_quick_action_search',
+  );
+  static final Uri _kLeagueStandingsUri = Uri.parse(
+    'https://www.kleague.com/record/team.do',
+  );
   static DateTime? _cachedLoadedAt;
   static Set<String>? _cachedChannelIds;
   static final List<NewsArticle> _cachedArticles = <NewsArticle>[];
@@ -208,19 +217,34 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
-                        IconButton(
-                          tooltip: l10n.newsSearchAction,
-                          onPressed: _toggleSearch,
-                          icon: Icon(_showSearch ? Icons.close : Icons.search),
-                        ),
-                        TextButton.icon(
-                          key: _fifaHubActionKey,
-                          onPressed: _openFifaRankingHub,
-                          icon: const Icon(
-                            Icons.leaderboard_outlined,
-                            size: 18,
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (isKo) ...[
+                                    _buildHeaderActionButton(
+                                      key: _kLeagueStandingsActionKey,
+                                      label: l10n.newsKLeagueStandingsButton,
+                                      icon: Icons.table_chart_outlined,
+                                      onPressed: _openKLeagueStandings,
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  _buildHeaderActionButton(
+                                    key: _fifaHubActionKey,
+                                    label: l10n.newsFifaHubButton,
+                                    icon: Icons.leaderboard_outlined,
+                                    onPressed: _openFifaRankingHub,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          label: Text(l10n.newsFifaHubButton),
                         ),
                       ],
                     ),
@@ -302,9 +326,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     required AppLocalizations l10n,
     required bool isKo,
   }) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Wrap(
+        alignment: WrapAlignment.end,
+        spacing: 8,
+        runSpacing: 8,
         children: [
           OutlinedButton.icon(
             key: _channelsActionKey,
@@ -315,7 +342,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             icon: const Icon(Icons.rss_feed, size: 18),
             label: Text(l10n.newsChannelsAction),
           ),
-          const SizedBox(width: 8),
           _buildQuickToggleAction(
             buttonKey: _scrapToggleActionKey,
             label: _showScrappedOnly
@@ -333,8 +359,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
               });
             },
           ),
-          if (isKo) ...[
-            const SizedBox(width: 8),
+          if (isKo)
             Tooltip(
               message: _titleTranslateEnabled
                   ? l10n.newsTitleTranslateEnabledTooltip
@@ -348,9 +373,44 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                 onPressed: _toggleTitleTranslate,
               ),
             ),
-          ],
+          _buildQuickToggleAction(
+            buttonKey: _searchActionKey,
+            label: l10n.newsSearchAction,
+            icon: _showSearch ? Icons.close : Icons.search,
+            selected: _showSearch,
+            showLabel: false,
+            tooltip: l10n.newsSearchAction,
+            onPressed: _toggleSearch,
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildHeaderActionButton({
+    required Key key,
+    required String label,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return OutlinedButton.icon(
+      key: key,
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        foregroundColor: colorScheme.onSurface,
+        backgroundColor:
+            (isDark ? colorScheme.surfaceContainerHigh : colorScheme.surface)
+                .withValues(alpha: isDark ? 0.88 : 0.96),
+        side: BorderSide(color: colorScheme.outlineVariant),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      icon: Icon(icon, size: 18),
+      label: Text(label),
     );
   }
 
@@ -534,19 +594,34 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final base = _showScrappedOnly
         ? scrappedBase.map((item) => item.article).toList(growable: false)
         : List<NewsArticle>.unmodifiable(_articles);
-    final regionBase = base.where(_matchesRegionFilter).toList(growable: false);
-    if (query.isEmpty) return regionBase;
-    return regionBase
-        .where((article) {
-          final title = article.title.toLowerCase();
-          final sourceText = article.source.toLowerCase();
-          final translated =
-              _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
-          return title.contains(query) ||
-              sourceText.contains(query) ||
-              translated.contains(query);
-        })
-        .toList(growable: false);
+    final regionBase = base.where(_matchesRegionFilter).toList(growable: true);
+    final filtered = query.isEmpty
+        ? regionBase
+        : regionBase
+              .where((article) {
+                final title = article.title.toLowerCase();
+                final sourceText = article.source.toLowerCase();
+                final translated =
+                    _translatedTitlesByLink[article.link.trim()]
+                        ?.toLowerCase() ??
+                    '';
+                return title.contains(query) ||
+                    sourceText.contains(query) ||
+                    translated.contains(query);
+              })
+              .toList(growable: true);
+    if (_regionFilter == _NewsRegionFilter.domestic) {
+      filtered.sort((a, b) {
+        final thumbCompare = (_hasUsableThumbnail(b) ? 1 : 0).compareTo(
+          _hasUsableThumbnail(a) ? 1 : 0,
+        );
+        if (thumbCompare != 0) {
+          return thumbCompare;
+        }
+        return _scoreArticle(b).compareTo(_scoreArticle(a));
+      });
+    }
+    return filtered;
   }
 
   String _scrapKeyForArticle(NewsArticle article) {
@@ -1223,6 +1298,19 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     await Navigator.of(
       context,
     ).push<void>(AppPageRoute(builder: (_) => const FifaRankingScreen()));
+  }
+
+  Future<void> _openKLeagueStandings() async {
+    await launchUrl(
+      _kLeagueStandingsUri,
+      mode: LaunchMode.inAppBrowserView,
+      browserConfiguration: const BrowserConfiguration(showTitle: true),
+    );
+  }
+
+  bool _hasUsableThumbnail(NewsArticle article) {
+    final url = article.imageUrl.trim();
+    return url.startsWith('http://') || url.startsWith('https://');
   }
 
   Future<void> _openLink(NewsArticle article) async {

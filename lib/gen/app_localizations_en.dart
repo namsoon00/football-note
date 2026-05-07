@@ -33,6 +33,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsFifaHubButton => 'FIFA Ranking';
 
   @override
+  String get newsKLeagueStandingsButton => 'K League Standings';
+
+  @override
   String get newsSearchAction => 'Search news';
 
   @override
@@ -1260,10 +1263,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherOutfitButton => 'Outfit guide';
 
   @override
-  String get homeWeatherOutfitLayersLabel => 'Layers';
+  String get homeWeatherOutfitLayersLabel => 'Top layers';
 
   @override
-  String get homeWeatherOutfitOuterLabel => 'Outerwear';
+  String get homeWeatherOutfitOuterLabel => 'Outer layer';
 
   @override
   String get homeWeatherOutfitBottomLabel => 'Bottom';
@@ -1282,7 +1285,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherOutfitAllCasesSubtitle =>
-      'Review each weather band with layer, bottom, and accessory details.';
+      'Review each weather band with top layers, outer layer, bottoms, and accessory details.';
 
   @override
   String get homeWeatherOutfitCaseHotTitle => 'Hot summer';
@@ -2057,7 +2060,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      'Instead of a yellow framing box, the live coach marks the runner outline and pose line directly, while the lower panel shows guidance and body-part results together.';
+      'Track the runner outline and pose line live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.';
 
   @override
   String get runningCoachLiveAction => 'Start live coach';
