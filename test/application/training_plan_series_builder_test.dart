@@ -37,4 +37,39 @@ void main() {
 
     expect(isRecurring, isTrue);
   });
+
+  test('새 계획은 반복 기간 설정을 켜면 저장 시 반복 범위를 사용한다', () {
+    final scheduledAt = DateTime(2026, 3, 23, 18);
+    final useRepeatRange =
+        TrainingPlanSeriesBuilder.shouldUseRepeatRangeForSave(
+      isCreatingPlan: true,
+      showRepeatRangePicker: true,
+      isSingleEditScope: true,
+    );
+    final dates = !useRepeatRange
+        ? <DateTime>[scheduledAt]
+        : TrainingPlanSeriesBuilder.buildOccurrenceDates(
+            startDate: DateTime(2026, 3, 23),
+            endDate: DateTime(2026, 3, 30),
+            weekdays: const [DateTime.monday],
+            hour: 18,
+            minute: 0,
+          );
+
+    expect(dates, <DateTime>[
+      DateTime(2026, 3, 23, 18),
+      DateTime(2026, 3, 30, 18),
+    ]);
+  });
+
+  test('기존 계획을 이번 일정만 수정하면 반복 범위를 다시 만들지 않는다', () {
+    expect(
+      TrainingPlanSeriesBuilder.shouldUseRepeatRangeForSave(
+        isCreatingPlan: false,
+        showRepeatRangePicker: true,
+        isSingleEditScope: true,
+      ),
+      isFalse,
+    );
+  });
 }
