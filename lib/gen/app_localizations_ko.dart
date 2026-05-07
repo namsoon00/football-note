@@ -33,6 +33,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsFifaHubButton => 'FIFA 랭킹';
 
   @override
+  String get newsKLeagueStandingsButton => 'K리그 순위';
+
+  @override
   String get newsSearchAction => '기사 검색';
 
   @override
@@ -1223,10 +1226,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherOutfitButton => '추천 복장';
 
   @override
-  String get homeWeatherOutfitLayersLabel => '레이어';
+  String get homeWeatherOutfitLayersLabel => '상의 조합';
 
   @override
-  String get homeWeatherOutfitOuterLabel => '아우터';
+  String get homeWeatherOutfitOuterLabel => '겉옷';
 
   @override
   String get homeWeatherOutfitBottomLabel => '하의';
@@ -1245,7 +1248,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherOutfitAllCasesSubtitle =>
-      '날씨대별 추천 복장을 레이어, 하의, 준비물까지 자세히 확인하세요.';
+      '날씨대별 추천 복장을 상의 조합, 겉옷, 하의, 준비물까지 자세히 확인하세요.';
 
   @override
   String get homeWeatherOutfitCaseHotTitle => '한여름 더위';
@@ -2003,7 +2006,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      '노란 네모 대신 러너 윤곽과 자세 선을 바로 마킹하고, 하단 패널에서 현재 설명과 부위별 결과를 함께 확인할 수 있어요.';
+      '러너 윤곽과 자세 선을 실시간으로 보고, 필요하면 바로 스프린트 전용 피드백으로 넘어가 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형까지 확인할 수 있어요.';
 
   @override
   String get runningCoachLiveAction => '실시간 코치 시작';

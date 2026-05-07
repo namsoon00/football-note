@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'FIFA Ranking'**
   String get newsFifaHubButton;
 
+  /// No description provided for @newsKLeagueStandingsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'K League Standings'**
+  String get newsKLeagueStandingsButton;
+
   /// No description provided for @newsSearchAction.
   ///
   /// In en, this message translates to:
@@ -2423,13 +2429,13 @@ abstract class AppLocalizations {
   /// No description provided for @homeWeatherOutfitLayersLabel.
   ///
   /// In en, this message translates to:
-  /// **'Layers'**
+  /// **'Top layers'**
   String get homeWeatherOutfitLayersLabel;
 
   /// No description provided for @homeWeatherOutfitOuterLabel.
   ///
   /// In en, this message translates to:
-  /// **'Outerwear'**
+  /// **'Outer layer'**
   String get homeWeatherOutfitOuterLabel;
 
   /// No description provided for @homeWeatherOutfitBottomLabel.
@@ -2465,7 +2471,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeWeatherOutfitAllCasesSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Review each weather band with layer, bottom, and accessory details.'**
+  /// **'Review each weather band with top layers, outer layer, bottoms, and accessory details.'**
   String get homeWeatherOutfitAllCasesSubtitle;
 
   /// No description provided for @homeWeatherOutfitCaseHotTitle.
@@ -3815,7 +3821,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Instead of a yellow framing box, the live coach marks the runner outline and pose line directly, while the lower panel shows guidance and body-part results together.'**
+  /// **'Track the runner outline and pose line live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.'**
   String get runningCoachLiveCardBody;
 
   /// No description provided for @runningCoachLiveAction.

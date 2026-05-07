@@ -99,13 +99,28 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
     colorValue: color,
   );
 
+  TrainingMethodPoint point(double x, double y) =>
+      TrainingMethodPoint(x: x, y: y);
+
+  TrainingMethodRoute route(
+    String id,
+    TrainingMethodRouteKind kind,
+    List<TrainingMethodPoint> points,
+  ) => TrainingMethodRoute(id: id, kind: kind, points: points);
+
   TrainingMethodLayout onePage({
     required String title,
     required String methodText,
     required List<TrainingMethodItem> items,
+    List<TrainingMethodRoute> routes = const <TrainingMethodRoute>[],
   }) => TrainingMethodLayout(
     pages: <TrainingMethodPage>[
-      TrainingMethodPage(name: title, methodText: methodText, items: items),
+      TrainingMethodPage(
+        name: title,
+        methodText: methodText,
+        items: items,
+        routes: routes,
+      ),
     ],
   );
 
@@ -125,6 +140,26 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
       cone(0.5, 0.75),
       ball(0.2, 0.5),
     ],
+    routes: <TrainingMethodRoute>[
+      route(
+        'pass_warmup_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.5, 0.75),
+          point(0.42, 0.62),
+          point(0.35, 0.48),
+        ],
+      ),
+      route(
+        'pass_warmup_ball',
+        TrainingMethodRouteKind.ball,
+        <TrainingMethodPoint>[
+          point(0.2, 0.5),
+          point(0.5, 0.25),
+          point(0.8, 0.5),
+        ],
+      ),
+    ],
   );
 
   TrainingMethodLayout buildUp(String title) => onePage(
@@ -138,6 +173,26 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
       player(0.62, 0.58),
       ball(0.5, 0.82),
     ],
+    routes: <TrainingMethodRoute>[
+      route(
+        'build_up_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.38, 0.58),
+          point(0.44, 0.5),
+          point(0.5, 0.42),
+        ],
+      ),
+      route(
+        'build_up_ball',
+        TrainingMethodRouteKind.ball,
+        <TrainingMethodPoint>[
+          point(0.5, 0.82),
+          point(0.38, 0.58),
+          point(0.62, 0.58),
+        ],
+      ),
+    ],
   );
 
   TrainingMethodLayout pressing(String title) => onePage(
@@ -148,6 +203,26 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
       player(0.5, 0.42, color: playerRed),
       player(0.7, 0.35, color: playerRed),
       ball(0.5, 0.18),
+    ],
+    routes: <TrainingMethodRoute>[
+      route(
+        'pressing_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.5, 0.42),
+          point(0.5, 0.3),
+          point(0.48, 0.2),
+        ],
+      ),
+      route(
+        'pressing_ball',
+        TrainingMethodRouteKind.ball,
+        <TrainingMethodPoint>[
+          point(0.5, 0.18),
+          point(0.42, 0.24),
+          point(0.32, 0.34),
+        ],
+      ),
     ],
   );
 
@@ -162,6 +237,27 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
       player(0.45, 0.24, color: playerRed),
       player(0.56, 0.32, color: playerRed),
       player(0.66, 0.4, color: playerRed),
+    ],
+    routes: <TrainingMethodRoute>[
+      route(
+        'set_piece_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.3, 0.28),
+          point(0.4, 0.34),
+          point(0.5, 0.42),
+        ],
+      ),
+      route(
+        'set_piece_ball',
+        TrainingMethodRouteKind.ball,
+        <TrainingMethodPoint>[
+          point(0.06, 0.08),
+          point(0.28, 0.16),
+          point(0.48, 0.3),
+          point(0.66, 0.4),
+        ],
+      ),
     ],
   );
 
@@ -180,6 +276,22 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
       cone(0.18, 0.8, color: conePurple),
       cone(0.82, 0.8, color: conePurple),
     ],
+    routes: <TrainingMethodRoute>[
+      route(
+        'rondo_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.5, 0.5),
+          point(0.56, 0.44),
+          point(0.62, 0.38),
+        ],
+      ),
+      route('rondo_ball', TrainingMethodRouteKind.ball, <TrainingMethodPoint>[
+        point(0.24, 0.28),
+        point(0.5, 0.24),
+        point(0.76, 0.28),
+      ]),
+    ],
   );
 
   TrainingMethodLayout finishing(String title) => onePage(
@@ -196,6 +308,28 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
       cone(0.3, 0.78),
       cone(0.48, 0.64),
       cone(0.66, 0.5),
+    ],
+    routes: <TrainingMethodRoute>[
+      route(
+        'finishing_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.16, 0.76),
+          point(0.38, 0.56),
+          point(0.64, 0.36),
+          point(0.82, 0.22),
+        ],
+      ),
+      route(
+        'finishing_ball',
+        TrainingMethodRouteKind.ball,
+        <TrainingMethodPoint>[
+          point(0.16, 0.76),
+          point(0.4, 0.54),
+          point(0.68, 0.34),
+          point(0.84, 0.24),
+        ],
+      ),
     ],
   );
 
@@ -214,6 +348,27 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
       cone(0.26, 0.84),
       cone(0.56, 0.74),
     ],
+    routes: <TrainingMethodRoute>[
+      route(
+        'wing_combination_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.42, 0.78),
+          point(0.52, 0.62),
+          point(0.62, 0.48),
+        ],
+      ),
+      route(
+        'wing_combination_ball',
+        TrainingMethodRouteKind.ball,
+        <TrainingMethodPoint>[
+          point(0.18, 0.68),
+          point(0.3, 0.52),
+          point(0.62, 0.48),
+          point(0.74, 0.34),
+        ],
+      ),
+    ],
   );
 
   TrainingMethodLayout transitionAttack(String title) => onePage(
@@ -230,6 +385,26 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
       cone(0.12, 0.64),
       cone(0.3, 0.18),
       cone(0.84, 0.16),
+    ],
+    routes: <TrainingMethodRoute>[
+      route(
+        'transition_attack_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.5, 0.42),
+          point(0.6, 0.34),
+          point(0.68, 0.3),
+        ],
+      ),
+      route(
+        'transition_attack_ball',
+        TrainingMethodRouteKind.ball,
+        <TrainingMethodPoint>[
+          point(0.34, 0.54),
+          point(0.5, 0.42),
+          point(0.68, 0.3),
+        ],
+      ),
     ],
   );
 
