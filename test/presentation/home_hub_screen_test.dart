@@ -20,6 +20,69 @@ import 'package:football_note/presentation/screens/home_hub_screen.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
 
 void main() {
+  testWidgets('today plan section can start a training log from plan', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final now = DateTime.now();
+    final todayPlanAt = DateTime(now.year, now.month, now.day, 18, 30);
+
+    await optionRepository.setValue(
+      'training_plans_v1',
+      jsonEncode([
+        <String, dynamic>{
+          'id': 'plan-issue-271',
+          'scheduledAt': todayPlanAt.toIso8601String(),
+          'category': '패스 훈련',
+          'durationMinutes': 75,
+          'reminderMinutesBefore': 30,
+          'repeatWeekdays': <int>[todayPlanAt.weekday],
+          'alarmLoopEnabled': true,
+          'note': '짧은 패스 후 전진 타이밍 점검',
+        },
+      ]),
+    );
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeHubScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          onCreate: () {},
+          onQuickPlan: () {},
+          onQuickMatch: () {},
+          onQuickQuiz: () {},
+          onQuickMeal: () {},
+          onQuickBoard: () {},
+          onOpenPlans: () {},
+          onOpenLogs: () {},
+          onOpenDiary: () {},
+          onOpenWeeklyStats: () {},
+          onEdit: (_) {},
+          onEditTrainingBoard: (_) {},
+          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byKey(const ValueKey('today-plan-log-action')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(find.byType(EntryFormScreen), findsOneWidget);
+    expect(find.byKey(const ValueKey('entry-plan-banner')), findsOneWidget);
+    expect(find.textContaining('패스 훈련'), findsWidgets);
+  });
+
   testWidgets('today task sketch opens today saved board before entry editor', (
     WidgetTester tester,
   ) async {

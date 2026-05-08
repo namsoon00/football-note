@@ -44,11 +44,9 @@ class SkillQuizScreen extends StatefulWidget {
     ).length;
 
     final rawCompletedAt = optionRepository.getValue<String>(completionKey);
-    final completedAt = rawCompletedAt == null
-        ? null
-        : DateTime.tryParse(rawCompletedAt);
-    final completedToday =
-        completedAt != null &&
+    final completedAt =
+        rawCompletedAt == null ? null : DateTime.tryParse(rawCompletedAt);
+    final completedToday = completedAt != null &&
         completedAt.year == now.year &&
         completedAt.month == now.month &&
         completedAt.day == now.day;
@@ -893,8 +891,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   explanationText: (_answered || _retryUsed)
                       ? question.explainText(isKo)
                       : (isKo
-                            ? '정답을 고르면 여기에서 바로 설명을 볼 수 있어요.'
-                            : 'The explanation will appear here right after you answer.'),
+                          ? '정답을 고르면 여기에서 바로 설명을 볼 수 있어요.'
+                          : 'The explanation will appear here right after you answer.'),
                 ),
                 const SizedBox(height: 12),
                 if (question.style == _QuestionStyle.shortAnswer)
@@ -966,7 +964,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                                 Expanded(
                                   child: Text(
                                     _shortAnswerHintText(question, l10n, isKo),
-                                    style: Theme.of(context).textTheme.bodySmall
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
                                         ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
                                 ),
@@ -1006,8 +1006,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Material(
-                        color:
-                            bgColor ??
+                        color: bgColor ??
                             Theme.of(context).colorScheme.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(16),
                         child: InkWell(
@@ -1023,8 +1022,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color:
-                                    borderColor ??
+                                color: borderColor ??
                                     Theme.of(
                                       context,
                                     ).colorScheme.outlineVariant,
@@ -1066,9 +1064,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   Text(
                     isKo ? '틀렸어요. 한 번 더 고를 수 있어요.' : 'Incorrect. One more try.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFFEB5757),
-                      fontWeight: FontWeight.w700,
-                    ),
+                          color: const Color(0xFFEB5757),
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 if (!_answered && _retryFeedback == 'timeout')
                   Text(
@@ -1076,9 +1074,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                         ? '시간 초과! 다음엔 더 빨리 판단해보세요.'
                         : 'Time out! Try a faster decision.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFFEB5757),
-                      fontWeight: FontWeight.w700,
-                    ),
+                          color: const Color(0xFFEB5757),
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 if (_answered) ...[
                   const SizedBox(height: 10),
@@ -1095,7 +1093,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       children: [
                         Text(
                           isKo ? '정답 포인트' : 'Answer insight',
-                          style: Theme.of(context).textTheme.labelLarge
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge
                               ?.copyWith(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 6),
@@ -1110,7 +1110,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                             isKo
                                 ? '정답: ${_primaryAnswerLabel(question)}'
                                 : 'Answer: ${_primaryAnswerLabel(question)}',
-                            style: Theme.of(context).textTheme.bodyMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                         ],
@@ -1119,7 +1121,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           isKo
                               ? '다음에 볼 포인트: ${question.nextPoint(true)}'
                               : 'Next focus: ${question.nextPoint(false)}',
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                       ],
@@ -1183,9 +1187,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               Text(
                 isKo ? '축구 퀴즈 결과' : 'Football Quiz Result',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
               const SizedBox(height: 10),
               Text(
@@ -1193,9 +1197,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     ? '$_score / $total 정답, 정확도 $accuracy%'
                     : '$_score / $total correct, accuracy $accuracy%',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -1374,17 +1378,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         recap.weakestCategory?.label(isKo) ?? (isKo ? '기본기' : 'basics');
     final reviewCount = _resumeSummary.pendingWrongCount;
     final now = DateTime.now();
-    final accuracy = _questions.isEmpty
-        ? 0.0
-        : (_score / _questions.length).clamp(0.0, 1.0);
-    final avgSeconds = _answerCount == 0
-        ? 8.0
-        : (_responseMillisSum / _answerCount) / 1000;
+    final accuracy =
+        _questions.isEmpty ? 0.0 : (_score / _questions.length).clamp(0.0, 1.0);
+    final avgSeconds =
+        _answerCount == 0 ? 8.0 : (_responseMillisSum / _answerCount) / 1000;
     final timeoutRate = _questions.isEmpty
         ? 0.0
         : (_timeouts / _questions.length).clamp(0.0, 1.0);
-    final seedBase =
-        (_score * 31) +
+    final seedBase = (_score * 31) +
         (_timeouts * 17) +
         (_bestStreak * 13) +
         (_bestComboRun * 7) +
@@ -1443,11 +1444,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         title: isKo ? '오답 큐 우선 정리' : 'Clear review queue first',
         body: reviewCount > 0
             ? (isKo
-                  ? '복습 대기 $reviewCount문제를 먼저 비우면 다음 세트의 체감 난이도가 내려갑니다.'
-                  : 'Clearing $reviewCount queued misses lowers the felt difficulty next run.')
+                ? '복습 대기 $reviewCount문제를 먼저 비우면 다음 세트의 체감 난이도가 내려갑니다.'
+                : 'Clearing $reviewCount queued misses lowers the felt difficulty next run.')
             : (isKo
-                  ? '이번 오답은 복습 큐로 저장됐어요. 다음 세션 시작 전에 3개만 확인해보세요.'
-                  : 'Misses are queued for review. Check just 3 before the next session.'),
+                ? '이번 오답은 복습 큐로 저장됐어요. 다음 세션 시작 전에 3개만 확인해보세요.'
+                : 'Misses are queued for review. Check just 3 before the next session.'),
       ),
       _QuizSuggestionItem(
         id: 'review_retry_three',
@@ -1474,11 +1475,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         title: isKo ? '속도 리듬 조정' : 'Tune your response tempo',
         body: avgSeconds >= 7.0
             ? (isKo
-                  ? '답을 확신한 뒤 2초 안에 선택하는 루틴으로 평균 응답 시간을 줄여보세요.'
-                  : 'After confidence, commit within 2 seconds to cut response time.')
+                ? '답을 확신한 뒤 2초 안에 선택하는 루틴으로 평균 응답 시간을 줄여보세요.'
+                : 'After confidence, commit within 2 seconds to cut response time.')
             : (isKo
-                  ? '지금 속도는 좋습니다. 동일 속도에서 오답률만 낮추는 데 집중해보세요.'
-                  : 'Speed is strong. Keep tempo and target fewer mistakes.'),
+                ? '지금 속도는 좋습니다. 동일 속도에서 오답률만 낮추는 데 집중해보세요.'
+                : 'Speed is strong. Keep tempo and target fewer mistakes.'),
       ),
       _QuizSuggestionItem(
         id: 'tempo_timeout_cut',
@@ -1486,11 +1487,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         title: isKo ? '타임아웃 줄이기' : 'Cut timeout risk',
         body: timeoutRate >= 0.18
             ? (isKo
-                  ? '타임아웃이 잦아요. 확신이 낮으면 먼저 소거법으로 2개부터 지워보세요.'
-                  : 'Timeouts are frequent. Use elimination quickly to remove 2 options first.')
+                ? '타임아웃이 잦아요. 확신이 낮으면 먼저 소거법으로 2개부터 지워보세요.'
+                : 'Timeouts are frequent. Use elimination quickly to remove 2 options first.')
             : (isKo
-                  ? '타임아웃 관리가 좋아요. 이제 첫 반응의 정확도를 높여보세요.'
-                  : 'Timeout control is solid. Now improve first-response accuracy.'),
+                ? '타임아웃 관리가 좋아요. 이제 첫 반응의 정확도를 높여보세요.'
+                : 'Timeout control is solid. Now improve first-response accuracy.'),
       ),
       _QuizSuggestionItem(
         id: 'tempo_10sec_routine',
@@ -1536,15 +1537,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         title: isKo ? '현재 폼 평가' : 'Current form check',
         body: accuracy >= 0.8
             ? (isKo
-                  ? '지금은 상위 구간입니다. 새 문제를 늘리기보다 실수 1개 줄이기에 집중하세요.'
-                  : 'You are in a high band. Prioritize reducing one mistake.')
+                ? '지금은 상위 구간입니다. 새 문제를 늘리기보다 실수 1개 줄이기에 집중하세요.'
+                : 'You are in a high band. Prioritize reducing one mistake.')
             : accuracy >= 0.6
-            ? (isKo
-                  ? '중간 구간입니다. 약점 카테고리 집중이 성장을 가장 빠르게 만듭니다.'
-                  : 'Mid band now. Weak-category focus gives the fastest lift.')
-            : (isKo
-                  ? '기초 재정렬 구간입니다. 짧게 자주 풀어 리듬부터 회복하세요.'
-                  : 'Rebuild phase. Go short and frequent to recover rhythm.'),
+                ? (isKo
+                    ? '중간 구간입니다. 약점 카테고리 집중이 성장을 가장 빠르게 만듭니다.'
+                    : 'Mid band now. Weak-category focus gives the fastest lift.')
+                : (isKo
+                    ? '기초 재정렬 구간입니다. 짧게 자주 풀어 리듬부터 회복하세요.'
+                    : 'Rebuild phase. Go short and frequent to recover rhythm.'),
       ),
       _QuizSuggestionItem(
         id: 'confidence_habit_check',
@@ -1586,14 +1587,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             promptEn: question.prompt(false),
             answerKo: question.displayAnswer(true),
             answerEn: question.displayAnswer(false),
-            wrongAnswerKo:
-                _wrongQuestionResponses[question.id]?.label(
+            wrongAnswerKo: _wrongQuestionResponses[question.id]?.label(
                   AppLocalizations.of(context)!,
                   true,
                 ) ??
                 '',
-            wrongAnswerEn:
-                _wrongQuestionResponses[question.id]?.label(
+            wrongAnswerEn: _wrongQuestionResponses[question.id]?.label(
                   AppLocalizations.of(context)!,
                   false,
                 ) ??
@@ -1619,9 +1618,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         bestStreak: _bestStreak,
         bestCombo: _bestComboRun,
         timeouts: _timeouts,
-        avgResponseMs: _answerCount == 0
-            ? 0
-            : (_responseMillisSum ~/ _answerCount),
+        avgResponseMs:
+            _answerCount == 0 ? 0 : (_responseMillisSum ~/ _answerCount),
         questions: allQuestions,
         wrongQuestions: wrongQuestions,
       ),
@@ -1790,8 +1788,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         subtitle: _resumeSummary.completedToday
             ? (isKo ? '오늘 세트를 다시 풀어요' : 'Replay today’s set')
             : (isKo
-                  ? '오늘 10문제 세트, 지난 오답도 1~2문제 섞여 나와요'
-                  : 'Play today’s 10-question set with 1-2 past wrong answers mixed in'),
+                ? '오늘 10문제 세트, 지난 오답도 1~2문제 섞여 나와요'
+                : 'Play today’s 10-question set with 1-2 past wrong answers mixed in'),
         badge: isKo ? '기본 추천' : 'Recommended',
       ),
       _QuizEntryCardData(
@@ -1866,9 +1864,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               Text(
                 isKo ? '오늘의 퀴즈 시작' : 'Start today’s quiz',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -1876,9 +1874,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     ? '오늘 문제를 다시 풀지, 다른 스타일로 풀지, 약점 분야를 파고들지 고르세요.'
                     : 'Choose whether to replay today, try a different mode, or drill into your weakest area.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.92),
-                  height: 1.5,
-                ),
+                      color: Colors.white.withValues(alpha: 0.92),
+                      height: 1.5,
+                    ),
               ),
               const SizedBox(height: 12),
               _QuizCoachBanner(
@@ -1970,9 +1968,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   Future<void> _recordRecentPerformance() async {
     if (_questions.isEmpty) return;
     final accuracy = _score / _questions.length;
-    final avgSec = _answerCount == 0
-        ? 8.0
-        : (_responseMillisSum / _answerCount) / 1000;
+    final avgSec =
+        _answerCount == 0 ? 8.0 : (_responseMillisSum / _answerCount) / 1000;
     final perf = _RecentPerformance(accuracy: accuracy, avgSeconds: avgSec);
     await widget.optionRepository.setValue(
       SkillQuizScreen.recentPerformanceKey,
@@ -2122,12 +2119,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final hardPool = [...hard]..shuffle(random);
 
     final total = math.min(count, source.length);
-    final hardRatio = targetDifficulty >= 3
-        ? 0.45
-        : (targetDifficulty <= 1 ? 0.15 : 0.30);
-    final easyRatio = targetDifficulty <= 1
-        ? 0.45
-        : (targetDifficulty >= 3 ? 0.18 : 0.25);
+    final hardRatio =
+        targetDifficulty >= 3 ? 0.45 : (targetDifficulty <= 1 ? 0.15 : 0.30);
+    final easyRatio =
+        targetDifficulty <= 1 ? 0.45 : (targetDifficulty >= 3 ? 0.18 : 0.25);
     final midRatio = 1 - easyRatio - hardRatio;
 
     final needEasy = (total * easyRatio).round();
@@ -2214,26 +2209,22 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     }
     final excludedIds = reviewQuestions.map((question) => question.id).toSet();
     final remainingCount = math.max(0, _dailyCount - reviewQuestions.length);
-    final ox =
-        _allQuestions
-            .where((q) => q.style == _QuestionStyle.ox)
-            .where((q) => !excludedIds.contains(q.id))
-            .toList(growable: false)
-          ..shuffle(random);
-    final mcq =
-        _allQuestions
-            .where((q) => q.style == _QuestionStyle.multipleChoice)
-            .where((q) => !excludedIds.contains(q.id))
-            .toList(growable: false)
-          ..shuffle(random);
-    final shortAnswer =
-        _allQuestions
-            .where((q) => q.style == _QuestionStyle.shortAnswer)
-            .where((q) => !excludedIds.contains(q.id))
-            .toList(growable: false)
-          ..shuffle(random);
-    final shortCount =
-        (reviewShortAnswerCount == 0 &&
+    final ox = _allQuestions
+        .where((q) => q.style == _QuestionStyle.ox)
+        .where((q) => !excludedIds.contains(q.id))
+        .toList(growable: false)
+      ..shuffle(random);
+    final mcq = _allQuestions
+        .where((q) => q.style == _QuestionStyle.multipleChoice)
+        .where((q) => !excludedIds.contains(q.id))
+        .toList(growable: false)
+      ..shuffle(random);
+    final shortAnswer = _allQuestions
+        .where((q) => q.style == _QuestionStyle.shortAnswer)
+        .where((q) => !excludedIds.contains(q.id))
+        .toList(growable: false)
+      ..shuffle(random);
+    final shortCount = (reviewShortAnswerCount == 0 &&
             remainingCount > 0 &&
             shortAnswer.isNotEmpty)
         ? 1
@@ -2683,9 +2674,9 @@ class _QuestionHeroCard extends StatelessWidget {
                       ? '${question.category.label(true)} ${question.style.label(true)}'
                       : '${question.category.label(false)} ${question.style.label(false)}',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w900,
-                  ),
+                        color: accent,
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
               ),
               const Spacer(),
@@ -2709,18 +2700,18 @@ class _QuestionHeroCard extends StatelessWidget {
                         overlay.title,
                         textAlign: TextAlign.right,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: overlay.accent,
-                          fontWeight: FontWeight.w900,
-                        ),
+                              color: overlay.accent,
+                              fontWeight: FontWeight.w900,
+                            ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         overlay.subtitle,
                         textAlign: TextAlign.right,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.72),
-                          fontWeight: FontWeight.w700,
-                        ),
+                              color: scheme.onSurface.withValues(alpha: 0.72),
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                     ],
                   ),
@@ -2732,9 +2723,9 @@ class _QuestionHeroCard extends StatelessWidget {
           Text(
             question.prompt(isKo),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w900,
-              height: 1.35,
-            ),
+                  fontWeight: FontWeight.w900,
+                  height: 1.35,
+                ),
           ),
           const SizedBox(height: 12),
           Container(
@@ -2752,8 +2743,8 @@ class _QuestionHeroCard extends StatelessWidget {
                   child: Text(
                     explanationText,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ),
               ],
@@ -2783,9 +2774,9 @@ class _OptionBadge extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w900,
-          color: Theme.of(context).colorScheme.primary,
-        ),
+              fontWeight: FontWeight.w900,
+              color: Theme.of(context).colorScheme.primary,
+            ),
       ),
     );
   }
@@ -2818,9 +2809,8 @@ class _QuizEntryCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final enabled = onTap != null;
     return Material(
-      color: enabled
-          ? scheme.surfaceContainerLow
-          : scheme.surfaceContainerLowest,
+      color:
+          enabled ? scheme.surfaceContainerLow : scheme.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(22),
       child: InkWell(
         borderRadius: BorderRadius.circular(22),
@@ -2857,21 +2847,21 @@ class _QuizEntryCard extends StatelessWidget {
                     Text(
                       data.title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: enabled
-                            ? null
-                            : scheme.onSurface.withValues(alpha: 0.66),
-                        fontWeight: FontWeight.w900,
-                      ),
+                            color: enabled
+                                ? null
+                                : scheme.onSurface.withValues(alpha: 0.66),
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       data.subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurface.withValues(
-                          alpha: enabled ? 0.74 : 0.52,
-                        ),
-                        height: 1.4,
-                      ),
+                            color: scheme.onSurface.withValues(
+                              alpha: enabled ? 0.74 : 0.52,
+                            ),
+                            height: 1.4,
+                          ),
                     ),
                   ],
                 ),
@@ -2894,11 +2884,11 @@ class _QuizEntryCard extends StatelessWidget {
                     child: Text(
                       data.badge,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: enabled
-                            ? scheme.primary
-                            : scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w800,
-                      ),
+                            color: enabled
+                                ? scheme.primary
+                                : scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -2941,25 +2931,23 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
 
   List<_FootballQuizQuestion> get _filteredQuestions {
     final normalized = _query.trim().toLowerCase();
-    final filtered = widget.questions
-        .where((question) {
-          if (_category != null && question.category != _category) return false;
-          if (_style != null && question.style != _style) return false;
-          if (_difficulty != null && question.difficulty != _difficulty) {
-            return false;
-          }
-          if (normalized.isEmpty) return true;
-          final haystack = [
-            question.koPrompt,
-            question.enPrompt,
-            question.koExplain,
-            question.enExplain,
-            question.displayAnswer(true),
-            question.displayAnswer(false),
-          ].join(' ').toLowerCase();
-          return haystack.contains(normalized);
-        })
-        .toList(growable: false);
+    final filtered = widget.questions.where((question) {
+      if (_category != null && question.category != _category) return false;
+      if (_style != null && question.style != _style) return false;
+      if (_difficulty != null && question.difficulty != _difficulty) {
+        return false;
+      }
+      if (normalized.isEmpty) return true;
+      final haystack = [
+        question.koPrompt,
+        question.enPrompt,
+        question.koExplain,
+        question.enExplain,
+        question.displayAnswer(true),
+        question.displayAnswer(false),
+      ].join(' ').toLowerCase();
+      return haystack.contains(normalized);
+    }).toList(growable: false);
     return _deduplicateQuestionsByConcept(filtered);
   }
 
@@ -2971,9 +2959,8 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
     final coreFocusCount = widget.questions
         .where((question) => question.category.isCoreFocus)
         .length;
-    final filteredCoreFocus = filtered
-        .where((question) => question.category.isCoreFocus)
-        .length;
+    final filteredCoreFocus =
+        filtered.where((question) => question.category.isCoreFocus).length;
     final uniqueConceptCount = _deduplicateQuestionsByConcept(
       widget.questions,
     ).length;
@@ -3003,9 +2990,9 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
                 Text(
                   isKo ? '코치용 퀴즈 라이브러리' : 'Coach quiz library',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -3013,9 +3000,9 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
                       ? '전체 문제를 카테고리, 유형, 난이도, 검색어로 점검하세요. 기본기와 전술 비중이 높고, 규칙·포지션·대회 상식도 섞여 있습니다.'
                       : 'Inspect the full question bank by category, style, difficulty, and search. Fundamentals and tactics are emphasized while rules, positions, and competition knowledge stay mixed in.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.92),
-                    height: 1.45,
-                  ),
+                        color: Colors.white.withValues(alpha: 0.92),
+                        height: 1.45,
+                      ),
                 ),
                 const SizedBox(height: 14),
                 Wrap(
@@ -3143,9 +3130,9 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
                       ? '필터 안에서도 기본기/전술 $filteredCoreFocus문제가 유지됩니다.'
                       : '$filteredCoreFocus core-focus questions remain in the current filter.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurface.withValues(alpha: 0.72),
-                    fontWeight: FontWeight.w700,
-                  ),
+                        color: scheme.onSurface.withValues(alpha: 0.72),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ],
             ),
@@ -3245,9 +3232,9 @@ class _QuizLibraryCard extends StatelessWidget {
           Text(
             question.prompt(isKo),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-              height: 1.35,
-            ),
+                  fontWeight: FontWeight.w900,
+                  height: 1.35,
+                ),
           ),
           const SizedBox(height: 10),
           Text(
@@ -3255,17 +3242,17 @@ class _QuizLibraryCard extends StatelessWidget {
                 ? '정답: ${question.displayAnswer(true)}'
                 : 'Answer: ${question.displayAnswer(false)}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w800,
-            ),
+                  color: accent,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
             question.explainText(isKo),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.78),
-              height: 1.45,
-            ),
+                  color: scheme.onSurface.withValues(alpha: 0.78),
+                  height: 1.45,
+                ),
           ),
         ],
       ),
@@ -3299,25 +3286,25 @@ class _QuizCoachBanner extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
           const SizedBox(height: 6),
           Text(
             subtitle,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
             detail,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.9),
-              height: 1.45,
-            ),
+                  color: Colors.white.withValues(alpha: 0.9),
+                  height: 1.45,
+                ),
           ),
         ],
       ),
@@ -3347,17 +3334,17 @@ class _ResultMetricChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.92),
-              fontWeight: FontWeight.w700,
-            ),
+                  color: Colors.white.withValues(alpha: 0.92),
+                  fontWeight: FontWeight.w700,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
         ],
       ),
@@ -3469,17 +3456,17 @@ class _FlipQuizReviewCard extends StatelessWidget {
           Text(
             isKo ? '문제' : 'Question',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-            ),
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
             prompt,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1.4,
-            ),
+                  fontWeight: FontWeight.w800,
+                  height: 1.4,
+                ),
           ),
           const SizedBox(height: 12),
           Container(
@@ -3495,17 +3482,17 @@ class _FlipQuizReviewCard extends StatelessWidget {
                 Text(
                   isKo ? '정답' : 'Answer',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: scheme.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   answer,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    height: 1.35,
-                  ),
+                        fontWeight: FontWeight.w800,
+                        height: 1.35,
+                      ),
                 ),
               ],
             ),
@@ -3573,7 +3560,9 @@ class _QuizHistoryScreen extends StatelessWidget {
                       ),
                       title: Text(
                         item.title(isKo),
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
                       subtitle: Text(
@@ -3618,17 +3607,17 @@ class _QuizHistoryScreen extends StatelessWidget {
                           )
                         else
                           ...item.wrongQuestions.asMap().entries.map(
-                            (entry) => Padding(
-                              key: ValueKey(
-                                'quiz-history-wrong-${item.finishedAt.toIso8601String()}-${entry.value.id}-${entry.key}',
+                                (entry) => Padding(
+                                  key: ValueKey(
+                                    'quiz-history-wrong-${item.finishedAt.toIso8601String()}-${entry.value.id}-${entry.key}',
+                                  ),
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _FlipQuizReviewCard(
+                                    question: entry.value,
+                                    isKo: isKo,
+                                  ),
+                                ),
                               ),
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: _FlipQuizReviewCard(
-                                question: entry.value,
-                                isKo: isKo,
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                   );
@@ -3661,9 +3650,8 @@ class _InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final bgColor = danger
-        ? const Color(0x1AEB5757)
-        : scheme.surfaceContainerHighest;
+    final bgColor =
+        danger ? const Color(0x1AEB5757) : scheme.surfaceContainerHighest;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -3673,9 +3661,9 @@ class _InfoChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w800,
-          color: danger ? const Color(0xFFC62828) : null,
-        ),
+              fontWeight: FontWeight.w800,
+              color: danger ? const Color(0xFFC62828) : null,
+            ),
       ),
     );
   }
@@ -3694,15 +3682,15 @@ class _AnswerFxBadge extends StatelessWidget {
     final (icon, text, color) = switch (fx) {
       _AnswerFx.success => (Icons.check_circle, '', const Color(0xFF0FA968)),
       _AnswerFx.fail => (
-        Icons.cancel,
-        isKo ? '다시 보기' : 'Review',
-        const Color(0xFFEB5757),
-      ),
+          Icons.cancel,
+          isKo ? '다시 보기' : 'Review',
+          const Color(0xFFEB5757),
+        ),
       _AnswerFx.timeout => (
-        Icons.timer_off,
-        isKo ? '시간 초과' : 'Time out',
-        const Color(0xFFF57C00),
-      ),
+          Icons.timer_off,
+          isKo ? '시간 초과' : 'Time out',
+          const Color(0xFFF57C00),
+        ),
       _AnswerFx.none => (Icons.circle, '', Colors.transparent),
     };
 
@@ -3722,9 +3710,9 @@ class _AnswerFxBadge extends StatelessWidget {
             Text(
               text,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w900,
-              ),
+                    color: color,
+                    fontWeight: FontWeight.w900,
+                  ),
             ),
           ],
         ],
@@ -3773,32 +3761,31 @@ class _QuizSessionSnapshot {
   });
 
   String encode() => jsonEncode(<String, dynamic>{
-    'mode': mode,
-    'questionIds': questionIds,
-    'index': index,
-    'score': score,
-    'streak': streak,
-    'bestStreak': bestStreak,
-    'timeouts': timeouts,
-    'answerCount': answerCount,
-    'responseMillisSum': responseMillisSum,
-    'selectedIndex': selectedIndex,
-    'answered': answered,
-    'retryUsed': retryUsed,
-    'retryFeedback': retryFeedback,
-    'answerRevealed': answerRevealed,
-    'wrongIds': wrongIds,
-    'finished': finished,
-    'speedLeft': speedLeft,
-  });
+        'mode': mode,
+        'questionIds': questionIds,
+        'index': index,
+        'score': score,
+        'streak': streak,
+        'bestStreak': bestStreak,
+        'timeouts': timeouts,
+        'answerCount': answerCount,
+        'responseMillisSum': responseMillisSum,
+        'selectedIndex': selectedIndex,
+        'answered': answered,
+        'retryUsed': retryUsed,
+        'retryFeedback': retryFeedback,
+        'answerRevealed': answerRevealed,
+        'wrongIds': wrongIds,
+        'finished': finished,
+        'speedLeft': speedLeft,
+      });
 
   static _QuizSessionSnapshot? tryParse(String? raw) {
     if (raw == null || raw.trim().isEmpty) return null;
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic>) return null;
-      final ids =
-          (decoded['questionIds'] as List?)
+      final ids = (decoded['questionIds'] as List?)
               ?.map((item) => item.toString())
               .toList(growable: false) ??
           const <String>[];
@@ -3818,8 +3805,7 @@ class _QuizSessionSnapshot {
         retryUsed: decoded['retryUsed'] == true,
         retryFeedback: decoded['retryFeedback']?.toString(),
         answerRevealed: decoded['answerRevealed'] == true,
-        wrongIds:
-            (decoded['wrongIds'] as List?)
+        wrongIds: (decoded['wrongIds'] as List?)
                 ?.map((item) => item.toString())
                 .toList(growable: false) ??
             const <String>[],
@@ -3846,13 +3832,13 @@ class _QuizHistoryResponse {
   });
 
   const _QuizHistoryResponse.bilingual({required String ko, required String en})
-    : this._(wrongAnswerKo: ko, wrongAnswerEn: en);
+      : this._(wrongAnswerKo: ko, wrongAnswerEn: en);
 
   const _QuizHistoryResponse.text(String value)
-    : this._(wrongAnswerKo: value, wrongAnswerEn: value);
+      : this._(wrongAnswerKo: value, wrongAnswerEn: value);
 
   const _QuizHistoryResponse.marker(_QuizWrongAnswerKind kind)
-    : this._(kind: kind);
+      : this._(kind: kind);
 
   String label(AppLocalizations l10n, bool isKo) {
     final text = isKo ? wrongAnswerKo : wrongAnswerEn;
@@ -3896,18 +3882,18 @@ class _QuizHistoryQuestion {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'id': id,
-    'promptKo': promptKo,
-    'promptEn': promptEn,
-    'answerKo': answerKo,
-    'answerEn': answerEn,
-    'wrongAnswerKo': wrongAnswerKo,
-    'wrongAnswerEn': wrongAnswerEn,
-    'explanationKo': explanationKo,
-    'explanationEn': explanationEn,
-    'category': category,
-    'style': style,
-  };
+        'id': id,
+        'promptKo': promptKo,
+        'promptEn': promptEn,
+        'answerKo': answerKo,
+        'answerEn': answerEn,
+        'wrongAnswerKo': wrongAnswerKo,
+        'wrongAnswerEn': wrongAnswerEn,
+        'explanationKo': explanationKo,
+        'explanationEn': explanationEn,
+        'category': category,
+        'style': style,
+      };
 
   String prompt(bool isKo) => isKo ? promptKo : promptEn;
   String answer(bool isKo) => isKo ? answerKo : answerEn;
@@ -3963,24 +3949,23 @@ class _QuizHistoryEntry {
   double get accuracy => totalQuestions == 0 ? 0 : score / totalQuestions;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'id': id,
-    'mode': mode,
-    'finishedAt': finishedAt.toIso8601String(),
-    'totalQuestions': totalQuestions,
-    'score': score,
-    'bestStreak': bestStreak,
-    'bestCombo': bestCombo,
-    'timeouts': timeouts,
-    'avgResponseMs': avgResponseMs,
-    'questions': questions.map((item) => item.toMap()).toList(),
-    'wrongQuestions': wrongQuestions.map((item) => item.toMap()).toList(),
-  };
+        'id': id,
+        'mode': mode,
+        'finishedAt': finishedAt.toIso8601String(),
+        'totalQuestions': totalQuestions,
+        'score': score,
+        'bestStreak': bestStreak,
+        'bestCombo': bestCombo,
+        'timeouts': timeouts,
+        'avgResponseMs': avgResponseMs,
+        'questions': questions.map((item) => item.toMap()).toList(),
+        'wrongQuestions': wrongQuestions.map((item) => item.toMap()).toList(),
+      };
 
   String title(bool isKo) {
     final modeLabel =
         _QuizModeX.tryParse(mode)?.label(isKo) ?? (isKo ? '퀴즈' : 'Quiz');
-    final date =
-        '${finishedAt.year.toString().padLeft(4, '0')}.'
+    final date = '${finishedAt.year.toString().padLeft(4, '0')}.'
         '${finishedAt.month.toString().padLeft(2, '0')}.'
         '${finishedAt.day.toString().padLeft(2, '0')} '
         '${finishedAt.hour.toString().padLeft(2, '0')}:'
@@ -4005,8 +3990,7 @@ class _QuizHistoryEntry {
               map['finishedAt']?.toString() ?? '',
             );
             if (id.isEmpty || finishedAt == null) return null;
-            final questions =
-                (map['questions'] as List?)
+            final questions = (map['questions'] as List?)
                     ?.whereType<Map>()
                     .map(
                       (item) => _QuizHistoryQuestion.fromMap(
@@ -4016,8 +4000,7 @@ class _QuizHistoryEntry {
                     .whereType<_QuizHistoryQuestion>()
                     .toList(growable: false) ??
                 const <_QuizHistoryQuestion>[];
-            final wrongQuestions =
-                (map['wrongQuestions'] as List?)
+            final wrongQuestions = (map['wrongQuestions'] as List?)
                     ?.whereType<Map>()
                     .map(
                       (item) => _QuizHistoryQuestion.fromMap(
@@ -4065,12 +4048,12 @@ class _ScheduledWrongItem {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'questionId': questionId,
-    'conceptKey': conceptKey,
-    'dueAt': dueAt.toIso8601String(),
-    'wrongCount': wrongCount,
-    'lastWrongAt': lastWrongAt.toIso8601String(),
-  };
+        'questionId': questionId,
+        'conceptKey': conceptKey,
+        'dueAt': dueAt.toIso8601String(),
+        'wrongCount': wrongCount,
+        'lastWrongAt': lastWrongAt.toIso8601String(),
+      };
 
   static String encodeList(List<_ScheduledWrongItem> list) =>
       jsonEncode(list.map((item) => item.toMap()).toList(growable: false));
@@ -4121,9 +4104,9 @@ class _RecentPerformance {
   }
 
   String encode() => jsonEncode(<String, dynamic>{
-    'accuracy': accuracy,
-    'avgSeconds': avgSeconds,
-  });
+        'accuracy': accuracy,
+        'avgSeconds': avgSeconds,
+      });
 
   static _RecentPerformance? tryParse(String? raw) {
     if (raw == null || raw.trim().isEmpty) return null;
@@ -4178,9 +4161,9 @@ class _QuizCategoryAggregate {
   }
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'total': total,
-    'correct': correct,
-  };
+        'total': total,
+        'correct': correct,
+      };
 
   static String encodeMap(Map<_QuizCategory, _QuizCategoryAggregate> map) {
     return jsonEncode({
@@ -4586,6 +4569,7 @@ List<_McqSeed> _buildMcqSeedPool300() {
     ..._historyAndFifaRecordMcqSeeds(),
     ..._generatedGlobalFootballMcqSeeds(),
     ..._issue260CategoryBoosterMcqSeeds(),
+    ..._issue271CoreCategoryMcqSeeds(),
   ];
 }
 
@@ -4595,27 +4579,23 @@ List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
     ..._historyAndFifaRecordShortAnswerSeeds(),
     ..._issue260CategoryBoosterShortAnswerSeeds(),
   ];
-  final seeded = keywords
-      .asMap()
-      .entries
-      .map((entry) {
-        final i = entry.key;
-        final key = entry.value;
-        return _ShortAnswerSeed(
-          id: 'short_$i',
-          conceptKey: key.id,
-          difficulty: key.difficulty,
-          category: key.category,
-          koPrompt: '다음 설명의 용어를 입력하세요: "${key.koClue}"',
-          enPrompt: 'Write the term for: "${key.enClue}"',
-          acceptedAnswers: key.acceptedAnswers,
-          koExplain: key.koExplain,
-          enExplain: key.enExplain,
-          koNextPoint: key.koNextPoint,
-          enNextPoint: key.enNextPoint,
-        );
-      })
-      .toList(growable: false);
+  final seeded = keywords.asMap().entries.map((entry) {
+    final i = entry.key;
+    final key = entry.value;
+    return _ShortAnswerSeed(
+      id: 'short_$i',
+      conceptKey: key.id,
+      difficulty: key.difficulty,
+      category: key.category,
+      koPrompt: '다음 설명의 용어를 입력하세요: "${key.koClue}"',
+      enPrompt: 'Write the term for: "${key.enClue}"',
+      acceptedAnswers: key.acceptedAnswers,
+      koExplain: key.koExplain,
+      enExplain: key.enExplain,
+      koNextPoint: key.koNextPoint,
+      enNextPoint: key.enNextPoint,
+    );
+  }).toList(growable: false);
   return <_ShortAnswerSeed>[
     ...seeded,
     ..._generatedGlobalFootballShortAnswerSeeds(),
@@ -5116,6 +5096,542 @@ List<_ShortAnswerKnowledgeSeed> _issue260CategoryBoosterShortAnswerSeeds() {
   ];
 }
 
+List<_McqSeed> _issue271CoreCategoryMcqSeeds() {
+  return const <_McqSeed>[
+    _McqSeed(
+      id: 'issue271_third_man_escape_press',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '중앙으로 바로 찔러 넣는 패스 길이 막혔을 때 압박을 가장 깔끔하게 벗기는 전개는 무엇일까요?',
+      enStem:
+          'When the direct central passing lane is blocked, which pattern most cleanly escapes the press?',
+      options: [
+        _FootballQuizOption(
+          koText: '볼 가진 선수가 무리하게 전진 드리블한다',
+          enText: 'The ball carrier forces a forward dribble',
+        ),
+        _FootballQuizOption(
+          koText: '서드맨 조합으로 벽패스를 거쳐 전진한다',
+          enText: 'Use a third-man combination to bounce and play forward',
+        ),
+        _FootballQuizOption(
+          koText: '모든 선수가 볼 쪽으로 더 붙는다',
+          enText: 'Everyone crowds even closer to the ball',
+        ),
+        _FootballQuizOption(
+          koText: '일단 터치라인 밖으로 차낸다',
+          enText: 'Kick it out of bounds immediately',
+        ),
+      ],
+      correctIndex: 1,
+      koExplain: '직접 패스가 끊길 때는 서드맨을 활용해 압박의 시선을 한 번 비틀고 전진하는 것이 효과적입니다.',
+      enExplain:
+          'When the direct lane is shut, a third-man pattern shifts the defenders’ attention and opens the forward route.',
+      koNextPoint: '전술은 받는 선수뿐 아니라 세 번째 선수의 움직임까지 함께 보세요.',
+      enNextPoint:
+          'In tactics, read not only the receiver but also the third player’s run.',
+    ),
+    _McqSeed(
+      id: 'issue271_rest_defense_balance',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '한쪽 풀백이 높게 올라가 공격 숫자를 늘릴 때 가장 안정적인 레스트 디펜스 구조는 무엇일까요?',
+      enStem:
+          'When one full back pushes high to support the attack, which rest-defense structure is most stable?',
+      options: [
+        _FootballQuizOption(
+          koText: '반대 풀백과 미드필더가 안쪽을 보호한다',
+          enText: 'The opposite full back and a midfielder protect the inside',
+        ),
+        _FootballQuizOption(
+          koText: '양쪽 풀백이 동시에 끝까지 올라간다',
+          enText: 'Both full backs push to the last line together',
+        ),
+        _FootballQuizOption(
+          koText: '센터백 한 명만 중앙에 남긴다',
+          enText: 'Leave only one center back in the middle',
+        ),
+        _FootballQuizOption(
+          koText: '공격수까지 모두 박스 안으로 들어간다',
+          enText: 'Send even the forwards into the box',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '공격 숫자를 늘리더라도 반대쪽과 중앙 보호를 남겨야 역습 첫 장면을 제어할 수 있습니다.',
+      enExplain:
+          'Even while committing numbers forward, you still need the far side and central cover to control the first counterattack moment.',
+      koNextPoint: '공격 전술은 잃었을 때 어디가 비는지도 함께 설계해야 합니다.',
+      enNextPoint:
+          'When building attacks, also plan what remains protected after the ball is lost.',
+    ),
+    _McqSeed(
+      id: 'issue271_pressing_trap_touchline',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koStem: '상대 빌드업을 터치라인 쪽으로 몰아 압박 함정을 만들 때 가장 중요한 원칙은 무엇일까요?',
+      enStem:
+          'What is the most important principle when building a pressing trap toward the touchline?',
+      options: [
+        _FootballQuizOption(
+          koText: '중앙 탈출 패스를 먼저 막는다',
+          enText: 'Block the central escape pass first',
+        ),
+        _FootballQuizOption(
+          koText: '무조건 태클부터 들어간다',
+          enText: 'Dive into a tackle immediately',
+        ),
+        _FootballQuizOption(
+          koText: '마크를 모두 버리고 골문으로 뛴다',
+          enText: 'Abandon every mark and sprint to goal',
+        ),
+        _FootballQuizOption(
+          koText: '압박 각도 없이 직선으로만 달려든다',
+          enText: 'Press only in a straight line without angle',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '터치라인은 자연스러운 경계이지만, 중앙 탈출 길을 남기면 함정이 아니라 초대장이 됩니다.',
+      enExplain:
+          'The touchline is useful only if the central escape route is closed. Leave that lane open and the trap disappears.',
+      koNextPoint: '압박은 속도보다 각도와 팀 간격이 먼저입니다.',
+      enNextPoint:
+          'In pressing, angle and team spacing matter before pure speed.',
+    ),
+    _McqSeed(
+      id: 'issue271_low_block_far_side',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koStem: '상대가 깊게 내려선 수비를 할 때 공간을 여는 데 가장 좋은 접근은 무엇일까요?',
+      enStem:
+          'Against a deep block, which approach most often helps open space?',
+      options: [
+        _FootballQuizOption(
+          koText: '한쪽으로 끌어낸 뒤 반대편을 빠르게 공략한다',
+          enText:
+              'Pull the block to one side, then attack the far side quickly',
+        ),
+        _FootballQuizOption(
+          koText: '중앙에만 서서 짧은 패스만 반복한다',
+          enText: 'Stay only in the center and repeat short passes',
+        ),
+        _FootballQuizOption(
+          koText: '모든 선수가 공 앞으로만 달려간다',
+          enText: 'Have every player run only ahead of the ball',
+        ),
+        _FootballQuizOption(
+          koText: '슈팅 각도 없이 먼 거리에서만 찬다',
+          enText: 'Shoot only from poor long-range angles',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '내려선 블록은 좌우 이동에 부담을 느끼므로, 한쪽으로 흔든 뒤 반대편을 빠르게 쓰는 전개가 유효합니다.',
+      enExplain:
+          'Deep blocks dislike long side-to-side shifts, so moving them first and then hitting the far side is often effective.',
+      koNextPoint: '공간이 없을수록 폭과 타이밍 변화의 가치가 커집니다.',
+      enNextPoint:
+          'The tighter the space, the more value width and timing changes bring.',
+    ),
+    _McqSeed(
+      id: 'issue271_half_turn_receive',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koStem: '중앙 미드필더가 등 뒤 압박을 느끼며 패스를 받을 때 다음 플레이를 가장 살리기 좋은 몸 방향은 무엇일까요?',
+      enStem:
+          'Which body shape best preserves the next action when a central midfielder receives with pressure from behind?',
+      options: [
+        _FootballQuizOption(
+          koText: '하프턴으로 양쪽 시야를 열어둔다',
+          enText: 'Receive on a half-turn with both sides in view',
+        ),
+        _FootballQuizOption(
+          koText: '등을 완전히 돌려 골문을 등진다',
+          enText: 'Turn fully and face away from the play',
+        ),
+        _FootballQuizOption(
+          koText: '두 발을 평평하게 두고 멈춘다',
+          enText: 'Plant both feet flat and stop still',
+        ),
+        _FootballQuizOption(
+          koText: '무조건 원터치 백패스만 한다',
+          enText: 'Always play a one-touch back pass',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '하프턴은 압박을 느끼면서도 앞뒤 선택지를 모두 남겨 주어 다음 결정의 폭을 넓혀줍니다.',
+      enExplain:
+          'The half-turn keeps pressure in view while preserving both forward and backward options for the next decision.',
+      koNextPoint: '기술은 발동작만이 아니라 몸 방향과 시야 준비까지 포함합니다.',
+      enNextPoint:
+          'Technique includes body shape and visual preparation, not just foot contact.',
+    ),
+    _McqSeed(
+      id: 'issue271_cushion_touch',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koStem: '강한 패스가 발밑으로 들어올 때 볼을 안정적으로 다루는 첫 터치 원칙은 무엇일까요?',
+      enStem:
+          'When a firm pass arrives into your feet, what is the key first-touch principle for control?',
+      options: [
+        _FootballQuizOption(
+          koText: '공의 힘을 흡수해 다음 공간으로 눌러 놓는다',
+          enText: 'Absorb the pace and cushion it into the next space',
+        ),
+        _FootballQuizOption(
+          koText: '같은 힘으로 더 세게 튕겨낸다',
+          enText: 'Bounce it back harder with the same force',
+        ),
+        _FootballQuizOption(
+          koText: '눈을 감고 감각만 믿는다',
+          enText: 'Close the eyes and trust only feel',
+        ),
+        _FootballQuizOption(
+          koText: '무조건 발바닥으로 밟아 멈춘다',
+          enText: 'Always stop it dead under the sole',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '좋은 퍼스트 터치는 단순히 멈추는 것이 아니라 공의 속도를 죽이며 다음 행동 방향까지 준비합니다.',
+      enExplain:
+          'A strong first touch does more than stop the ball. It softens the pace and prepares the next action.',
+      koNextPoint: '퍼스트 터치는 멈춤보다 연결을 만든다는 관점으로 보세요.',
+      enNextPoint:
+          'Think of the first touch as creating the next action, not just stopping the ball.',
+    ),
+    _McqSeed(
+      id: 'issue271_jockey_delay',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koStem: '1대1 수비에서 첫 수비수가 가장 먼저 지켜야 할 원칙은 무엇일까요?',
+      enStem: 'In 1v1 defending, what is the first defender’s top priority?',
+      options: [
+        _FootballQuizOption(
+          koText: '각도를 잡고 시간을 벌며 상대를 지연시킨다',
+          enText: 'Set the angle, buy time, and delay the attacker',
+        ),
+        _FootballQuizOption(
+          koText: '바로 발을 뻗어 공만 노린다',
+          enText: 'Stab for the ball immediately',
+        ),
+        _FootballQuizOption(
+          koText: '뒤를 보지 않고 등을 돌린다',
+          enText: 'Turn away without seeing the play',
+        ),
+        _FootballQuizOption(
+          koText: '라인을 버리고 중앙을 비운다',
+          enText: 'Abandon the line and open the center',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain:
+          '첫 수비수의 핵심은 곧바로 뺏는 것보다 상대를 원하는 방향으로 유도하며 동료가 정렬할 시간을 버는 데 있습니다.',
+      enExplain:
+          'The first defender’s main job is often to delay and guide the attacker so the team can recover shape, not to steal instantly.',
+      koNextPoint: '수비 기술은 공만 보는 것이 아니라 상대의 선택지를 줄이는 과정입니다.',
+      enNextPoint:
+          'Defensive technique is not only about the ball. It is about reducing the attacker’s options.',
+    ),
+    _McqSeed(
+      id: 'issue271_finish_across_goal',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koStem: '골키퍼와 마주한 상황에서 반대 구석으로 정확히 마무리하려면 어떤 슈팅 감각이 보통 더 적합할까요?',
+      enStem:
+          'When facing the goalkeeper and aiming for the far corner, which finishing feel is usually more suitable?',
+      options: [
+        _FootballQuizOption(
+          koText: '몸을 열고 인사이드로 방향을 정한다',
+          enText: 'Open the body and guide it with the inside of the foot',
+        ),
+        _FootballQuizOption(
+          koText: '상체를 젖히고 최대한 힘만 준다',
+          enText: 'Lean back and hit only for maximum power',
+        ),
+        _FootballQuizOption(
+          koText: '시선 없이 발등만 강하게 휘두른다',
+          enText: 'Swing hard with the laces without visual focus',
+        ),
+        _FootballQuizOption(
+          koText: '수비수를 향해 일부러 맞힌다',
+          enText: 'Deliberately hit the defender',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '정확한 반대 구석 마무리는 몸을 열고 방향을 조절하는 인사이드 감각이 자주 유리합니다.',
+      enExplain:
+          'For a precise far-corner finish, an opened body and guided inside-foot contact are often more reliable than pure power.',
+      koNextPoint: '마무리는 상황에 맞는 표면 선택이 중요합니다.',
+      enNextPoint:
+          'Finishing depends on choosing the striking surface that fits the moment.',
+    ),
+    _McqSeed(
+      id: 'issue271_speed_when_fresh',
+      difficulty: 2,
+      category: _QuizCategory.training,
+      koStem: '최고 속도 노출이나 질 높은 스프린트 훈련은 보통 세션의 어느 시점에 두는 편이 좋을까요?',
+      enStem:
+          'At what stage of a session are max-speed exposures or high-quality sprints usually best placed?',
+      options: [
+        _FootballQuizOption(
+          koText: '충분한 준비운동 직후, 아직 신선할 때',
+          enText: 'Soon after the warm-up, while the player is still fresh',
+        ),
+        _FootballQuizOption(
+          koText: '완전히 지친 마지막 구간',
+          enText: 'At the very end when fatigue is highest',
+        ),
+        _FootballQuizOption(
+          koText: '정리운동이 끝난 뒤',
+          enText: 'After the cool-down has finished',
+        ),
+        _FootballQuizOption(
+          koText: '언제든 똑같이 상관없다',
+          enText: 'It makes no difference at all',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '높은 속도 훈련은 신경계 품질이 중요해, 준비가 끝난 뒤 아직 피로가 쌓이기 전이 가장 안정적입니다.',
+      enExplain:
+          'High-speed work depends on nervous-system quality, so it is usually safest and most effective soon after the warm-up.',
+      koNextPoint: '훈련은 내용만이 아니라 배치 순서도 성과를 바꿉니다.',
+      enNextPoint:
+          'Training quality depends not only on content but also on where it sits in the session.',
+    ),
+    _McqSeed(
+      id: 'issue271_small_sided_constraint',
+      difficulty: 2,
+      category: _QuizCategory.training,
+      koStem: '좁은 공간에서 빠른 판단과 패스 지원 위치를 더 끌어내고 싶다면 어떤 훈련 설계가 가장 적합할까요?',
+      enStem:
+          'If you want more quick decisions and supporting options in tight space, which practice design fits best?',
+      options: [
+        _FootballQuizOption(
+          koText: '터치 수와 공간을 제한한 소형 게임',
+          enText: 'A small-sided game with touch and space constraints',
+        ),
+        _FootballQuizOption(
+          koText: '아무 규칙 없는 긴 조깅',
+          enText: 'A long jog with no task constraints',
+        ),
+        _FootballQuizOption(
+          koText: '볼 없이 체력 테스트만 반복',
+          enText: 'Repeat only fitness tests without the ball',
+        ),
+        _FootballQuizOption(
+          koText: '매번 같은 정지 패턴만 걷기 속도로 수행',
+          enText: 'Repeat the same static pattern at walking pace only',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '의도한 행동을 끌어내려면 공간, 시간, 터치 같은 제약을 설계해 판단을 압축해야 합니다.',
+      enExplain:
+          'To pull out the target behaviors, you need constraints on space, time, or touches that compress decision-making.',
+      koNextPoint: '훈련 설계는 무엇을 많이 일어나게 만들고 싶은지부터 정해야 합니다.',
+      enNextPoint:
+          'Start practice design by deciding which game actions you want to happen more often.',
+    ),
+    _McqSeed(
+      id: 'issue271_progressive_load',
+      difficulty: 2,
+      category: _QuizCategory.training,
+      koStem: '훈련 부하를 올릴 때 가장 안전하고 관리하기 쉬운 원칙은 무엇일까요?',
+      enStem:
+          'What is the safest and most manageable principle when increasing training load?',
+      options: [
+        _FootballQuizOption(
+          koText: '한 번에 한 변수씩 점진적으로 올린다',
+          enText: 'Increase one variable at a time progressively',
+        ),
+        _FootballQuizOption(
+          koText: '시간, 강도, 횟수를 한꺼번에 크게 올린다',
+          enText: 'Raise time, intensity, and repetitions all at once',
+        ),
+        _FootballQuizOption(
+          koText: '피곤할수록 무조건 강도를 더한다',
+          enText: 'Always add more intensity when tired',
+        ),
+        _FootballQuizOption(
+          koText: '몸 반응을 보지 않고 계획만 고수한다',
+          enText: 'Ignore body response and follow the plan blindly',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '부하는 한 요소씩 올려야 무엇이 효과였고 무엇이 부담이었는지 추적하기 쉽습니다.',
+      enExplain:
+          'Progressing one variable at a time makes it easier to track what helped and what added too much stress.',
+      koNextPoint: '훈련 부하는 숫자보다 반응과 맥락까지 함께 읽어야 합니다.',
+      enNextPoint:
+          'Read training load through both the numbers and the body’s response.',
+    ),
+    _McqSeed(
+      id: 'issue271_repeat_sprint_quality',
+      difficulty: 2,
+      category: _QuizCategory.training,
+      koStem: '반복 스프린트 훈련에서 질을 유지하려면 어떤 운영이 가장 적절할까요?',
+      enStem:
+          'Which management choice best helps maintain quality in repeated-sprint training?',
+      options: [
+        _FootballQuizOption(
+          koText: '각 반복 사이에 충분한 회복을 준다',
+          enText: 'Allow enough recovery between repetitions',
+        ),
+        _FootballQuizOption(
+          koText: '형태가 무너져도 쉬지 않고 이어간다',
+          enText: 'Continue without rest even after mechanics collapse',
+        ),
+        _FootballQuizOption(
+          koText: '첫 질주 이후 속도는 신경 쓰지 않는다',
+          enText: 'Ignore speed after the first sprint',
+        ),
+        _FootballQuizOption(
+          koText: '볼 없이 무조건 거리만 늘린다',
+          enText: 'Increase only distance no matter what',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '반복 스프린트는 단순히 지치는 훈련이 아니라, 높은 속도 행동을 여러 번 재현하는 질 훈련입니다.',
+      enExplain:
+          'Repeated-sprint work is not just about getting tired. It is about reproducing high-speed actions with quality multiple times.',
+      koNextPoint: '스피드 훈련은 양보다 질이 먼저 무너지지 않게 관리하세요.',
+      enNextPoint:
+          'In speed work, protect the quality before chasing more volume.',
+    ),
+    _McqSeed(
+      id: 'issue271_reset_after_error',
+      difficulty: 1,
+      category: _QuizCategory.mindset,
+      koStem: '큰 실수 직후 다음 플레이에 가장 빨리 복귀하도록 돕는 루틴은 무엇일까요?',
+      enStem:
+          'Which routine best helps a player return to the next action right after a major mistake?',
+      options: [
+        _FootballQuizOption(
+          koText: '짧게 호흡하고 다음 임무를 한 문장으로 정리한다',
+          enText: 'Take a brief breath and name the next job in one sentence',
+        ),
+        _FootballQuizOption(
+          koText: '방금 장면만 계속 떠올리며 자책한다',
+          enText: 'Replay the mistake and keep blaming yourself',
+        ),
+        _FootballQuizOption(
+          koText: '동료 말을 끊고 혼자 흥분한다',
+          enText: 'Ignore teammates and stay emotionally heated',
+        ),
+        _FootballQuizOption(
+          koText: '다음 상황을 포기하고 걸어 다닌다',
+          enText: 'Give up on the next phase and walk',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '실수 직후에는 감정을 끌고 가기보다 호흡과 짧은 행동 큐로 다음 장면에 주의를 재배치하는 것이 중요합니다.',
+      enExplain:
+          'After a mistake, it is more useful to reset attention with breath and a short action cue than to carry the emotion forward.',
+      koNextPoint: '마인드는 감정 억누르기보다 다음 행동으로 복귀하는 기술에 가깝습니다.',
+      enNextPoint:
+          'Mindset work is less about suppressing emotion and more about returning to the next action.',
+    ),
+    _McqSeed(
+      id: 'issue271_process_goal_pressure',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koStem: '중요한 경기에서 긴장이 클수록 어떤 목표 설정이 집중 유지에 더 도움이 될까요?',
+      enStem:
+          'In an important match, which type of goal setting helps concentration most under pressure?',
+      options: [
+        _FootballQuizOption(
+          koText: '스캔, 첫 압박, 복귀 속도처럼 행동으로 쪼갠 목표',
+          enText:
+              'Goals broken into actions such as scanning, first press, and recovery speed',
+        ),
+        _FootballQuizOption(
+          koText: '무조건 최고 평점 받기',
+          enText: 'Get the top rating no matter what',
+        ),
+        _FootballQuizOption(
+          koText: '관중 반응을 계속 의식하기',
+          enText: 'Keep thinking about the crowd reaction',
+        ),
+        _FootballQuizOption(
+          koText: '실수하지 않겠다고만 반복하기',
+          enText: 'Repeat only that you must not make mistakes',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '압박이 클수록 통제 가능한 행동 목표가 현재 장면에 집중을 묶어 주고 경기력을 안정시킵니다.',
+      enExplain:
+          'The more pressure there is, the more controllable action goals help anchor concentration to the present moment.',
+      koNextPoint: '결과 목표를 행동 목표로 번역하는 습관을 들이세요.',
+      enNextPoint:
+          'Build the habit of translating outcome goals into action goals.',
+    ),
+    _McqSeed(
+      id: 'issue271_preperformance_routine',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koStem: '경기 시작 전 루틴이 잘 작동하려면 어떤 특징을 가져야 할까요?',
+      enStem:
+          'What makes a pre-performance routine most effective before kickoff?',
+      options: [
+        _FootballQuizOption(
+          koText: '짧고 반복 가능하며 몸과 시선을 행동에 연결한다',
+          enText: 'It is short, repeatable, and links body and gaze to action',
+        ),
+        _FootballQuizOption(
+          koText: '매번 길고 즉흥적으로 바뀐다',
+          enText: 'It is long and changes randomly every time',
+        ),
+        _FootballQuizOption(
+          koText: '감정이 올라올 때만 가끔 한다',
+          enText: 'It is used only occasionally when emotion spikes',
+        ),
+        _FootballQuizOption(
+          koText: '동료와 분리돼 혼자만 이해할 수 있다',
+          enText: 'It isolates the player and cannot connect with team cues',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '좋은 루틴은 짧고 재현 가능해야 실제 경기 속도 안에서도 사용할 수 있고, 몸과 시선을 행동에 맞춰 줍니다.',
+      enExplain:
+          'A good routine must be short and repeatable so it can survive match speed and connect the body and eyes to action.',
+      koNextPoint: '루틴은 멋있어 보이는 것보다 바로 실행 가능한지가 더 중요합니다.',
+      enNextPoint:
+          'A routine is valuable not because it looks impressive, but because it is executable immediately.',
+    ),
+    _McqSeed(
+      id: 'issue271_halftime_refocus',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koStem: '전반이 뜻대로 풀리지 않았을 때 하프타임에 가장 좋은 리셋 방식은 무엇일까요?',
+      enStem:
+          'When the first half has gone poorly, what is the best halftime reset approach?',
+      options: [
+        _FootballQuizOption(
+          koText: '바꿀 수 있는 두 가지 행동만 정리한다',
+          enText: 'Clarify only two controllable actions to change',
+        ),
+        _FootballQuizOption(
+          koText: '실수 장면을 길게 비난한다',
+          enText: 'Spend the break blaming the mistakes in detail',
+        ),
+        _FootballQuizOption(
+          koText: '아무 계획 없이 감정만 끌어올린다',
+          enText: 'Raise emotion only, without a plan',
+        ),
+        _FootballQuizOption(
+          koText: '후반 시작 전까지 결과만 계산한다',
+          enText: 'Think only about the result before the second half starts',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain:
+          '하프타임은 반성보다 재정렬의 시간이라, 후반 시작과 동시에 실행할 수 있는 행동 기준을 좁혀 주는 편이 좋습니다.',
+      enExplain:
+          'Halftime is more for reorganization than replay. Narrowing the focus to a few actionable changes helps immediately after restart.',
+      koNextPoint: '마인드 정리는 길게 설명하기보다 짧게 실행되게 해야 합니다.',
+      enNextPoint:
+          'Mindset adjustments work best when they become short, actionable instructions.',
+    ),
+  ];
+}
+
 List<_OxFactSeed> _historyAndFifaRecordOxFacts() {
   return const [
     _OxFactSeed(
@@ -5569,17 +6085,15 @@ int _correctIndexFromOptions({
 }
 
 List<
-  ({
-    String id,
-    String koName,
-    String enName,
-    String koPosition,
-    String enPosition,
-    String koNation,
-    String enNation,
-  })
->
-_playerKnowledgeBank() {
+    ({
+      String id,
+      String koName,
+      String enName,
+      String koPosition,
+      String enPosition,
+      String koNation,
+      String enNation,
+    })> _playerKnowledgeBank() {
   return const [
     (
       id: 'messi',
@@ -6674,9 +7188,13 @@ _playerKnowledgeBank() {
 }
 
 List<
-  ({String id, String koName, String enName, String koLeague, String enLeague})
->
-_clubKnowledgeBank() {
+    ({
+      String id,
+      String koName,
+      String enName,
+      String koLeague,
+      String enLeague
+    })> _clubKnowledgeBank() {
   return const [
     (
       id: 'realmadrid',
@@ -7158,15 +7676,13 @@ _clubKnowledgeBank() {
 }
 
 List<
-  ({
-    String id,
-    String koName,
-    String enName,
-    String koOrganizer,
-    String enOrganizer,
-  })
->
-_tournamentKnowledgeBank() {
+    ({
+      String id,
+      String koName,
+      String enName,
+      String koOrganizer,
+      String enOrganizer,
+    })> _tournamentKnowledgeBank() {
   return const [
     (
       id: 'fifa_world_cup',
@@ -7487,15 +8003,13 @@ _tournamentKnowledgeBank() {
 }
 
 List<
-  ({
-    String id,
-    String koTerm,
-    String enTerm,
-    _QuizCategory category,
-    int difficulty,
-  })
->
-_footballTermBank() {
+    ({
+      String id,
+      String koTerm,
+      String enTerm,
+      _QuizCategory category,
+      int difficulty,
+    })> _footballTermBank() {
   return const [
     (
       id: 'first_touch',
@@ -8106,9 +8620,8 @@ void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
     }
   }
 
-  final coreFocusCount = questions
-      .where((question) => question.category.isCoreFocus)
-      .length;
+  final coreFocusCount =
+      questions.where((question) => question.category.isCoreFocus).length;
   if (coreFocusCount < (questions.length * 0.30).round()) {
     _reportQuizPoolQualityWarning(
       'Technique and tactics should dominate the quiz bank.',
@@ -8133,9 +8646,10 @@ void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
   ];
   for (final item in selfChecks) {
     final question = questions.cast<_FootballQuizQuestion?>().firstWhere(
-      (candidate) => candidate != null && candidate.id.startsWith(item.prefix),
-      orElse: () => null,
-    );
+          (candidate) =>
+              candidate != null && candidate.id.startsWith(item.prefix),
+          orElse: () => null,
+        );
     if (question == null || !_answerMatchesQuestion(question, item.answer)) {
       throw StateError('Quiz self-check failed for ${item.prefix}.');
     }
@@ -8208,8 +8722,8 @@ final Map<String, String> _quizConceptKeyByQuestionId = () {
   return map;
 }();
 
-final Set<String> _quizKnownConceptKeys = _quizConceptKeyByQuestionId.values
-    .toSet();
+final Set<String> _quizKnownConceptKeys =
+    _quizConceptKeyByQuestionId.values.toSet();
 
 final Map<String, _FootballQuizQuestion> _quizQuestionById = () {
   final map = <String, _FootballQuizQuestion>{};

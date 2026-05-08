@@ -6,8 +6,8 @@
   "tabStats": "Stats",
   "tabDiary": "Diary",
   "tabNews": "Today News",
-  "newsFifaHubButton": "FIFA Ranking",
-  "newsKLeagueStandingsButton": "K League Standings",
+  "newsFifaHubButton": "FIFA Rank",
+  "newsKLeagueStandingsButton": "K League",
   "newsSearchAction": "Search news",
   "newsChannelsAction": "Channels",
   "newsShowAllNewsAction": "Show all news",
@@ -36,6 +36,26 @@
   "newsMatchResultWin": "Win",
   "newsMatchResultDraw": "Draw",
   "newsMatchResultLoss": "Loss",
+  "homeTodayPlanCardTitle": "Today training plan",
+  "homeTodayPlanCardSummary": "Open your {count} saved plans for today.",
+  "@homeTodayPlanCardSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTodayPlanOpenAction": "Open plans",
+  "homeTodayPlanSelectForLogTitle": "Choose a plan to turn into a training log",
+  "profileTestsActionLabel": "Profile tests",
+  "entryStartedFromPlanSummary": "Started from today’s plan: {summary}",
+  "@entryStartedFromPlanSummary": {
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
   "fifaHubAppBarTitle": "FIFA Ranking Hub",
   "fifaHubHeroTitle": "Worldwide FIFA ranking and A-match tracker",
   "fifaHubHeroSubtitle": "Check the full rankings, recent results, and upcoming fixtures from FIFA official data.",

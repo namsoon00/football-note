@@ -33,7 +33,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsFifaHubButton => 'FIFA 랭킹';
 
   @override
-  String get newsKLeagueStandingsButton => 'K리그 순위';
+  String get newsKLeagueStandingsButton => 'K리그';
 
   @override
   String get newsSearchAction => '기사 검색';
@@ -118,6 +118,28 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get newsMatchResultLoss => '패';
+
+  @override
+  String get homeTodayPlanCardTitle => '오늘의 훈련 계획';
+
+  @override
+  String homeTodayPlanCardSummary(int count) {
+    return '등록된 계획 $count개를 바로 확인하세요.';
+  }
+
+  @override
+  String get homeTodayPlanOpenAction => '계획 보기';
+
+  @override
+  String get homeTodayPlanSelectForLogTitle => '훈련기록으로 만들 계획을 선택하세요';
+
+  @override
+  String get profileTestsActionLabel => '성향 테스트';
+
+  @override
+  String entryStartedFromPlanSummary(String summary) {
+    return '오늘 계획 반영: $summary';
+  }
 
   @override
   String get fifaHubAppBarTitle => 'FIFA 랭킹';

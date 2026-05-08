@@ -24,6 +24,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('성향 테스트'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.psychology_alt_outlined));
     await tester.pumpAndSettle();
 
@@ -174,9 +175,11 @@ void main() {
     expect(find.text('테스트 결과와 응답'), findsOneWidget);
     expect(find.text('ENTJ · 전술 지휘형'), findsOneWidget);
     expect(
-      tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, '두 테스트 이어서 하기'),
-      ).onPressed,
+      tester
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, '두 테스트 이어서 하기'),
+          )
+          .onPressed,
       isNull,
     );
   });
