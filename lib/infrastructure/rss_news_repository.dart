@@ -75,7 +75,6 @@ class RssNewsRepository implements NewsRepository {
     'wk리그',
     '코리아컵',
     '축구대표팀',
-    '대표팀',
     '대한축구협회',
     '축구협회',
     '홍명보호',
@@ -219,8 +218,25 @@ class RssNewsRepository implements NewsRepository {
   }
 
   bool _matchesAnyKeyword(NewsArticle article, List<String> keywords) {
-    final haystack = '${article.title} ${article.source} ${article.link}'
-        .toLowerCase();
+    return _matchesKeywords(
+      text: '${article.title} ${article.summary} ${article.link}',
+      keywords: keywords,
+    );
+  }
+
+  @visibleForTesting
+  static bool matchesDomesticFootballKeywords(NewsArticle article) {
+    return _matchesKeywords(
+      text: '${article.title} ${article.summary} ${article.link}',
+      keywords: _domesticFootballKeywords,
+    );
+  }
+
+  static bool _matchesKeywords({
+    required String text,
+    required List<String> keywords,
+  }) {
+    final haystack = text.toLowerCase();
     for (final keyword in keywords) {
       if (haystack.contains(keyword.toLowerCase())) {
         return true;
@@ -267,7 +283,7 @@ class RssNewsRepository implements NewsRepository {
     final merged = <String>{..._defaultBlockedDomains};
     final custom =
         _optionRepository?.getOptions('news_blocked_domains', const []) ??
-        const <String>[];
+            const <String>[];
     for (final domain in custom) {
       final normalized = _normalizeDomain(domain);
       if (normalized.isNotEmpty) {
@@ -376,6 +392,9 @@ class RssNewsRepository implements NewsRepository {
               title: title,
               link: link,
               source: (source == null || source.isEmpty) ? feed.name : source,
+              summary: _extractSummaryText(
+                item['description']?.toString() ?? '',
+              ),
               imageUrl: imageUrl,
               publishedAt: publishedAt,
               channelId: feed.id,
@@ -405,6 +424,9 @@ class RssNewsRepository implements NewsRepository {
           title: title,
           link: link,
           source: _extractSource(item, feed),
+          summary: _extractSummaryText(
+            item.getElement('description')?.innerText ?? '',
+          ),
           imageUrl: _extractImageUrl(item),
           publishedAt: publishedAt,
           channelId: feed.id,
@@ -472,6 +494,14 @@ class RssNewsRepository implements NewsRepository {
     final htmlImage = _extractImageFromHtml(description);
     if (htmlImage.isNotEmpty) return htmlImage;
     return '';
+  }
+
+  String _extractSummaryText(String raw) {
+    return raw
+        .replaceAll(RegExp(r'<[^>]+>'), ' ')
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 
   String _extractImageFromHtml(String html) {

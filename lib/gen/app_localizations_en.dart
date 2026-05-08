@@ -30,10 +30,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabNews => 'Today News';
 
   @override
-  String get newsFifaHubButton => 'FIFA Ranking';
+  String get newsFifaHubButton => 'FIFA Rank';
 
   @override
-  String get newsKLeagueStandingsButton => 'K League Standings';
+  String get newsKLeagueStandingsButton => 'K League';
 
   @override
   String get newsSearchAction => 'Search news';
@@ -119,6 +119,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsMatchResultLoss => 'Loss';
+
+  @override
+  String get homeTodayPlanCardTitle => 'Today training plan';
+
+  @override
+  String homeTodayPlanCardSummary(int count) {
+    return 'Open your $count saved plans for today.';
+  }
+
+  @override
+  String get homeTodayPlanOpenAction => 'Open plans';
+
+  @override
+  String get homeTodayPlanSelectForLogTitle =>
+      'Choose a plan to turn into a training log';
+
+  @override
+  String get profileTestsActionLabel => 'Profile tests';
+
+  @override
+  String entryStartedFromPlanSummary(String summary) {
+    return 'Started from today’s plan: $summary';
+  }
 
   @override
   String get fifaHubAppBarTitle => 'FIFA Ranking Hub';

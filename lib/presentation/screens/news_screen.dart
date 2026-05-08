@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -125,16 +126,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _newsService =
-        widget.newsService ??
+    _newsService = widget.newsService ??
         NewsService(RssNewsRepository(widget.optionRepository));
     _profileService = PlayerProfileService(widget.optionRepository);
     _channels = _newsService.channels();
-    _positionHint = _profileService
-        .load()
-        .positionTestResult
-        .trim()
-        .toLowerCase();
+    _positionHint =
+        _profileService.load().positionTestResult.trim().toLowerCase();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
     _scrappedLinks = widget.optionRepository
         .getOptions(_scrappedLinksKey, const [])
@@ -213,36 +210,38 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                             l10n.tabNews,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleLarge
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Flexible(
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (isKo) ...[
-                                    _buildHeaderActionButton(
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            width: isKo ? 196 : 108,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (isKo) ...[
+                                  Expanded(
+                                    child: _buildHeaderActionButton(
                                       key: _kLeagueStandingsActionKey,
                                       label: l10n.newsKLeagueStandingsButton,
-                                      icon: Icons.table_chart_outlined,
                                       onPressed: _openKLeagueStandings,
                                     ),
-                                    const SizedBox(width: 8),
-                                  ],
-                                  _buildHeaderActionButton(
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                                Expanded(
+                                  child: _buildHeaderActionButton(
                                     key: _fifaHubActionKey,
                                     label: l10n.newsFifaHubButton,
-                                    icon: Icons.leaderboard_outlined,
                                     onPressed: _openFifaRankingHub,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -390,18 +389,18 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   Widget _buildHeaderActionButton({
     required Key key,
     required String label,
-    required IconData icon,
     required VoidCallback onPressed,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return OutlinedButton.icon(
+    return OutlinedButton(
       key: key,
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        minimumSize: const Size(0, 40),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         foregroundColor: colorScheme.onSurface,
         backgroundColor:
             (isDark ? colorScheme.surfaceContainerHigh : colorScheme.surface)
@@ -409,8 +408,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         side: BorderSide(color: colorScheme.outlineVariant),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      icon: Icon(icon, size: 18),
-      label: Text(label),
+      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
     );
   }
 
@@ -432,9 +430,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       backgroundColor: selected
           ? colorScheme.primaryContainer
           : colorScheme.surfaceContainerLow,
-      foregroundColor: selected
-          ? colorScheme.onPrimaryContainer
-          : colorScheme.onSurface,
+      foregroundColor:
+          selected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
       side: BorderSide(
         color: selected ? colorScheme.primary : colorScheme.outlineVariant,
       ),
@@ -542,7 +539,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
           child: Row(
             children: [
-              _NewsThumb(imageUrl: article.imageUrl),
+              _NewsThumb(article: article),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -597,19 +594,16 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final regionBase = base.where(_matchesRegionFilter).toList(growable: true);
     final filtered = query.isEmpty
         ? regionBase
-        : regionBase
-              .where((article) {
-                final title = article.title.toLowerCase();
-                final sourceText = article.source.toLowerCase();
-                final translated =
-                    _translatedTitlesByLink[article.link.trim()]
-                        ?.toLowerCase() ??
+        : regionBase.where((article) {
+            final title = article.title.toLowerCase();
+            final sourceText = article.source.toLowerCase();
+            final translated =
+                _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ??
                     '';
-                return title.contains(query) ||
-                    sourceText.contains(query) ||
-                    translated.contains(query);
-              })
-              .toList(growable: true);
+            return title.contains(query) ||
+                sourceText.contains(query) ||
+                translated.contains(query);
+          }).toList(growable: true);
     if (_regionFilter == _NewsRegionFilter.domestic) {
       filtered.sort((a, b) {
         final thumbCompare = (_hasUsableThumbnail(b) ? 1 : 0).compareTo(
@@ -768,9 +762,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     required Set<String> temp,
     required StateSetter setSheetState,
   }) {
-    final domesticChannels = _channels
-        .where(_isDomesticNewsChannel)
-        .toList(growable: false);
+    final domesticChannels =
+        _channels.where(_isDomesticNewsChannel).toList(growable: false);
     final internationalChannels = _channels
         .where((channel) => !_isDomesticNewsChannel(channel))
         .toList(growable: false);
@@ -860,9 +853,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     }
     final foregroundCount = _foregroundChannelLoadCount();
     final primaryIds = channelIds.take(foregroundCount).toList(growable: false);
-    final secondaryIds = channelIds
-        .skip(foregroundCount)
-        .toList(growable: false);
+    final secondaryIds =
+        channelIds.skip(foregroundCount).toList(growable: false);
 
     final primarySucceeded = await _loadChannels(
       token: token,
@@ -945,20 +937,18 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }) async {
     if (channelIds.isEmpty) return false;
     var loadedAny = false;
-    final tasks = channelIds
-        .map((id) async {
-          try {
-            final chunk = await _newsService.latest(id);
-            if (!mounted || token != _loadToken || chunk.isEmpty) return;
-            loadedAny = true;
-            setState(() {
-              _mergeChunk(chunk);
-            });
-          } catch (_) {
-            // Keep loading remaining channels even if one feed fails.
-          }
-        })
-        .toList(growable: false);
+    final tasks = channelIds.map((id) async {
+      try {
+        final chunk = await _newsService.latest(id);
+        if (!mounted || token != _loadToken || chunk.isEmpty) return;
+        loadedAny = true;
+        setState(() {
+          _mergeChunk(chunk);
+        });
+      } catch (_) {
+        // Keep loading remaining channels even if one feed fails.
+      }
+    }).toList(growable: false);
     await Future.wait(tasks);
     return loadedAny;
   }
@@ -1214,9 +1204,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       final decoded = jsonDecode(raw);
       if (decoded is! Map) return <String, int>{};
       return decoded.map<String, int>((key, value) {
-        final count = value is num
-            ? value.toInt()
-            : int.tryParse('$value') ?? 0;
+        final count =
+            value is num ? value.toInt() : int.tryParse('$value') ?? 0;
         return MapEntry(key.toString(), count);
       });
     } catch (_) {
@@ -1412,19 +1401,17 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
     _translatingLinks.add(key);
-    _translateToKorean(originalTitle)
-        .then((translated) {
-          if (!mounted) return;
-          final value = translated.trim();
-          if (value.isNotEmpty && value != originalTitle) {
-            setState(() {
-              _translatedTitlesByLink[key] = value;
-            });
-          }
-        })
-        .whenComplete(() {
-          _translatingLinks.remove(key);
+    _translateToKorean(originalTitle).then((translated) {
+      if (!mounted) return;
+      final value = translated.trim();
+      if (value.isNotEmpty && value != originalTitle) {
+        setState(() {
+          _translatedTitlesByLink[key] = value;
         });
+      }
+    }).whenComplete(() {
+      _translatingLinks.remove(key);
+    });
   }
 
   Future<void> _toggleTitleTranslate() async {
@@ -1532,6 +1519,7 @@ class _ScrappedNewsItem {
         'title': article.title,
         'link': article.link,
         'source': article.source,
+        'summary': article.summary,
         'publishedAt': article.publishedAt?.toIso8601String(),
         'imageUrl': article.imageUrl,
         'channelId': article.channelId,
@@ -1553,6 +1541,7 @@ class _ScrappedNewsItem {
       title: articleMap['title']?.toString() ?? '',
       link: articleMap['link']?.toString() ?? link,
       source: articleMap['source']?.toString() ?? '',
+      summary: articleMap['summary']?.toString() ?? '',
       publishedAt: DateTime.tryParse(publishedAtText),
       imageUrl: articleMap['imageUrl']?.toString() ?? '',
       channelId: articleMap['channelId']?.toString() ?? '',
@@ -1565,15 +1554,118 @@ class _ScrappedNewsItem {
   }
 }
 
-class _NewsThumb extends StatelessWidget {
-  final String imageUrl;
+class _NewsThumb extends StatefulWidget {
+  final NewsArticle article;
 
-  const _NewsThumb({required this.imageUrl});
+  const _NewsThumb({required this.article});
+
+  @override
+  State<_NewsThumb> createState() => _NewsThumbState();
+}
+
+class _NewsThumbState extends State<_NewsThumb> {
+  static final Map<String, String> _resolvedImageByLink = <String, String>{};
+  static final RegExp _ogImagePattern = RegExp(
+    '<meta[^>]+property=["\\\']og:image["\\\'][^>]*content=["\\\']([^"\\\']+)["\\\']',
+    caseSensitive: false,
+  );
+  static final RegExp _twitterImagePattern = RegExp(
+    '<meta[^>]+name=["\\\']twitter:image["\\\'][^>]*content=["\\\']([^"\\\']+)["\\\']',
+    caseSensitive: false,
+  );
+
+  String _resolvedImageUrl = '';
+  bool _didRequestFallback = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncResolvedImageUrl();
+    _loadFallbackImage();
+  }
+
+  @override
+  void didUpdateWidget(covariant _NewsThumb oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldLink = oldWidget.article.link.trim();
+    final newLink = widget.article.link.trim();
+    final oldImageUrl = oldWidget.article.imageUrl.trim();
+    final newImageUrl = widget.article.imageUrl.trim();
+    if (oldLink == newLink && oldImageUrl == newImageUrl) {
+      return;
+    }
+    _didRequestFallback = false;
+    _syncResolvedImageUrl();
+    _loadFallbackImage();
+  }
+
+  void _syncResolvedImageUrl() {
+    final directUrl = widget.article.imageUrl.trim();
+    if (_isHttpUrl(directUrl)) {
+      _resolvedImageUrl = directUrl;
+      return;
+    }
+    final cached = _resolvedImageByLink[widget.article.link.trim()] ?? '';
+    _resolvedImageUrl = _isHttpUrl(cached) ? cached : '';
+  }
+
+  Future<void> _loadFallbackImage() async {
+    if (_didRequestFallback ||
+        _resolvedImageUrl.isNotEmpty ||
+        !_isSportsKhanArticle(widget.article.link)) {
+      return;
+    }
+    _didRequestFallback = true;
+    final resolved = await _fetchArticleMetaImage(widget.article.link);
+    if (!mounted || !_isHttpUrl(resolved)) {
+      return;
+    }
+    final link = widget.article.link.trim();
+    _resolvedImageByLink[link] = resolved;
+    setState(() {
+      _resolvedImageUrl = resolved;
+    });
+  }
+
+  Future<String> _fetchArticleMetaImage(String link) async {
+    final normalizedLink = link.trim();
+    if (normalizedLink.isEmpty) return '';
+    final requestUrl = kIsWeb
+        ? 'https://api.allorigins.win/raw?url=${Uri.encodeComponent(normalizedLink)}'
+        : normalizedLink;
+    try {
+      final response = await http
+          .get(Uri.parse(requestUrl))
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode != 200) return '';
+      final body = response.body;
+      for (final pattern in <RegExp>[_ogImagePattern, _twitterImagePattern]) {
+        final match = pattern.firstMatch(body);
+        final candidate = match?.group(1)?.trim() ?? '';
+        if (_isHttpUrl(candidate)) {
+          return candidate;
+        }
+      }
+    } catch (_) {
+      return '';
+    }
+    return '';
+  }
+
+  bool _isSportsKhanArticle(String link) {
+    final uri = Uri.tryParse(link.trim());
+    if (uri == null || uri.host.isEmpty) return false;
+    return uri.host.toLowerCase() == 'sports.khan.co.kr';
+  }
+
+  bool _isHttpUrl(String url) {
+    return url.startsWith('http://') || url.startsWith('https://');
+  }
 
   @override
   Widget build(BuildContext context) {
-    final url = imageUrl.trim();
-    final canShow = url.startsWith('http://') || url.startsWith('https://');
+    final url = _resolvedImageUrl.trim();
+    final canShow = _isHttpUrl(url);
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Container(

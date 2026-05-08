@@ -20,8 +20,54 @@ const _translateToggleActionKey = ValueKey<String>(
   'news_quick_action_translate_toggle',
 );
 const _fifaHubActionKey = ValueKey<String>('news_quick_action_fifa_hub');
+const _kLeagueActionKey = ValueKey<String>(
+  'news_quick_action_kleague_standings',
+);
 
 void main() {
+  testWidgets('news header actions show fixed text buttons without icons', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final repository = _MemoryOptionRepository();
+    final newsRepository = _FakeNewsRepository(
+      channels: const [
+        NewsChannel(
+          id: 'issue271_domestic_soccer_ko',
+          name: '테스트 · 국내축구',
+          isDomestic: true,
+        ),
+      ],
+      articlesByChannelId: <String, List<NewsArticle>>{
+        'issue271_domestic_soccer_ko': const [
+          NewsArticle(
+            title: '국내 기사',
+            link: 'https://example.com/domestic-issue271',
+            source: '테스트',
+            channelId: 'issue271_domestic_soccer_ko',
+          ),
+        ],
+      },
+    );
+
+    await tester.pumpWidget(
+      _buildNewsApp(
+        optionRepository: repository,
+        newsService: NewsService(newsRepository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(_kLeagueActionKey), findsOneWidget);
+    expect(find.byKey(_fifaHubActionKey), findsOneWidget);
+    expect(find.text('K리그'), findsOneWidget);
+    expect(find.text('FIFA 랭킹'), findsOneWidget);
+    expect(find.byIcon(Icons.table_chart_outlined), findsNothing);
+    expect(find.byIcon(Icons.leaderboard_outlined), findsNothing);
+  });
+
   testWidgets('news quick actions keep scrap, translate, FIFA order', (
     WidgetTester tester,
   ) async {

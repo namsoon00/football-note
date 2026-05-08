@@ -38,6 +38,20 @@ import 'training_method_board_screen.dart';
 
 enum EntryFormInitialFocusTarget { lifting, jumpRope }
 
+class EntryFormInitialPlanContext {
+  final DateTime scheduledAt;
+  final String program;
+  final int durationMinutes;
+  final String note;
+
+  const EntryFormInitialPlanContext({
+    required this.scheduledAt,
+    this.program = '',
+    this.durationMinutes = 0,
+    this.note = '',
+  });
+}
+
 class EntryFormScreen extends StatefulWidget {
   final TrainingService trainingService;
   final OptionRepository optionRepository;
@@ -46,6 +60,7 @@ class EntryFormScreen extends StatefulWidget {
   final BackupService? driveBackupService;
   final TrainingEntry? entry;
   final DateTime? initialDate;
+  final EntryFormInitialPlanContext? initialPlanContext;
   final EntryFormInitialFocusTarget? initialFocusTarget;
   final bool initialFocusViewOnly;
   final bool initialOpenTrainingBoardEditor;
@@ -60,6 +75,7 @@ class EntryFormScreen extends StatefulWidget {
     this.driveBackupService,
     this.entry,
     this.initialDate,
+    this.initialPlanContext,
     this.initialFocusTarget,
     this.initialFocusViewOnly = false,
     this.initialOpenTrainingBoardEditor = false,
@@ -346,6 +362,28 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _weatherSummary = '';
       _savedParentFeedback = '';
       _savedParentFeedbackUpdatedAt = null;
+      final planContext = widget.initialPlanContext;
+      if (planContext != null) {
+        _date = DateTime(
+          planContext.scheduledAt.year,
+          planContext.scheduledAt.month,
+          planContext.scheduledAt.day,
+        );
+        if (planContext.program.trim().isNotEmpty) {
+          _type = _initSelection(
+            'programs',
+            _programOptions,
+            planContext.program.trim(),
+          );
+        }
+        if (planContext.durationMinutes > 0) {
+          _durationMinutes = _initIntSelection(
+            'durations',
+            _durationOptions,
+            planContext.durationMinutes,
+          );
+        }
+      }
       unawaited(_applyLatestEntryDefaults());
     }
     _applyInitialFocusTarget();
@@ -582,11 +620,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final latest = await widget.trainingService.latestTrainingEntry();
     if (!mounted || latest == null || widget.entry != null) return;
     setState(() {
-      _durationMinutes = _initIntSelection(
-        'durations',
-        _durationOptions,
-        latest.durationMinutes,
-      );
+      if (widget.initialPlanContext == null ||
+          widget.initialPlanContext!.durationMinutes <= 0) {
+        _durationMinutes = _initIntSelection(
+          'durations',
+          _durationOptions,
+          latest.durationMinutes,
+        );
+      }
       _location = _initSelection(
         'locations',
         _locationOptions,
@@ -1443,6 +1484,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           _savedParentFeedback.trim().isNotEmpty)
                         const SizedBox(height: 12),
                     ],
+                    if (widget.entry == null &&
+                        widget.initialPlanContext != null) ...[
+                      InfoBanner(
+                        key: const ValueKey('entry-plan-banner'),
+                        icon: Icons.event_note_outlined,
+                        summary: l10n.entryStartedFromPlanSummary(
+                          _initialPlanSummary(isKo),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -2096,6 +2148,27 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         ),
       ),
     );
+  }
+
+  String _initialPlanSummary(bool isKo) {
+    final plan = widget.initialPlanContext;
+    if (plan == null) return '';
+    final parts = <String>[];
+    final program = plan.program.trim();
+    if (program.isNotEmpty) {
+      parts.add(program);
+    }
+    if (plan.durationMinutes > 0) {
+      parts.add(
+        isKo ? '${plan.durationMinutes}분' : '${plan.durationMinutes} min',
+      );
+    }
+    parts.add(DateFormat('HH:mm').format(plan.scheduledAt));
+    final note = plan.note.trim();
+    if (note.isNotEmpty) {
+      parts.add(note);
+    }
+    return parts.join(' · ');
   }
 
   Widget _buildAnimatedSection({required bool visible, required Widget child}) {

@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:football_note/gen/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -84,6 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final familyState = FamilyAccessService(
       widget.optionRepository,
     ).loadState();
@@ -118,13 +120,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         appBar: AppBar(
           title: Text(isKo ? '유저 프로필' : 'Player Profile'),
           actions: [
-            IconButton(
-              tooltip: isKo ? '성향 테스트' : 'Profile tests',
+            TextButton.icon(
               onPressed: () => _openProfileTestsScreen(context),
-              iconSize: 28,
-              constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
-              icon: const Icon(Icons.psychology_alt_outlined),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(0, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+              icon: const Icon(Icons.psychology_alt_outlined, size: 20),
+              label: Text(l10n.profileTestsActionLabel),
             ),
+            const SizedBox(width: 4),
           ],
         ),
         body: ListView(

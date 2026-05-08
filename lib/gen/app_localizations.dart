@@ -143,13 +143,13 @@ abstract class AppLocalizations {
   /// No description provided for @newsFifaHubButton.
   ///
   /// In en, this message translates to:
-  /// **'FIFA Ranking'**
+  /// **'FIFA Rank'**
   String get newsFifaHubButton;
 
   /// No description provided for @newsKLeagueStandingsButton.
   ///
   /// In en, this message translates to:
-  /// **'K League Standings'**
+  /// **'K League'**
   String get newsKLeagueStandingsButton;
 
   /// No description provided for @newsSearchAction.
@@ -319,6 +319,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loss'**
   String get newsMatchResultLoss;
+
+  /// No description provided for @homeTodayPlanCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today training plan'**
+  String get homeTodayPlanCardTitle;
+
+  /// No description provided for @homeTodayPlanCardSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Open your {count} saved plans for today.'**
+  String homeTodayPlanCardSummary(int count);
+
+  /// No description provided for @homeTodayPlanOpenAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open plans'**
+  String get homeTodayPlanOpenAction;
+
+  /// No description provided for @homeTodayPlanSelectForLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a plan to turn into a training log'**
+  String get homeTodayPlanSelectForLogTitle;
+
+  /// No description provided for @profileTestsActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile tests'**
+  String get profileTestsActionLabel;
+
+  /// No description provided for @entryStartedFromPlanSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Started from today’s plan: {summary}'**
+  String entryStartedFromPlanSummary(String summary);
 
   /// No description provided for @fifaHubAppBarTitle.
   ///

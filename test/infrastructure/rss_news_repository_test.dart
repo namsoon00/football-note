@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/domain/entities/news_article.dart';
 import 'package:football_note/infrastructure/rss_news_repository.dart';
 
 void main() {
@@ -88,4 +89,33 @@ void main() {
       isTrue,
     );
   });
+
+  test(
+    'Newsis football filter uses article content instead of feed source',
+    () {
+      const nonFootballArticle = NewsArticle(
+        title: '남자탁구 세계선수권 8강 마감',
+        link: 'https://www.newsis.com/view/NISX20260509_0003622582',
+        source: '뉴시스 · 국내축구',
+        summary: '한국 남자 탁구 대표팀이 중국과 맞붙었다.',
+        channelId: 'newsis_sports_domestic_soccer_ko',
+      );
+      const footballArticle = NewsArticle(
+        title: '전북, K리그 3연승 도전',
+        link: 'https://www.newsis.com/view/NISX20260509_0003999999',
+        source: '뉴시스 · 국내축구',
+        summary: 'K리그와 대표팀 이슈를 다룬 축구 기사다.',
+        channelId: 'newsis_sports_domestic_soccer_ko',
+      );
+
+      expect(
+        RssNewsRepository.matchesDomesticFootballKeywords(nonFootballArticle),
+        isFalse,
+      );
+      expect(
+        RssNewsRepository.matchesDomesticFootballKeywords(footballArticle),
+        isTrue,
+      );
+    },
+  );
 }
