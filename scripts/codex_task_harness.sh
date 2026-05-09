@@ -32,13 +32,10 @@ log() {
 }
 
 sanitize_reasoning_effort() {
-  local raw="${1:-${CODEX_REASONING_EFFORT:-${OPENAI_REASONING_EFFORT:-high}}}"
+  local raw="${1:-${CODEX_REASONING_EFFORT:-${OPENAI_REASONING_EFFORT:-xhigh}}}"
   case "${raw}" in
-    minimal|low|medium|high)
+    minimal|low|medium|high|xhigh)
       echo "${raw}"
-      ;;
-    xhigh)
-      echo "high"
       ;;
     xmedium)
       echo "medium"
@@ -418,19 +415,19 @@ run_codex_prompt() {
   fi
 
   prompt_text="$(cat "${prompt_file}")"
-  log "Running codex CLI (model=${CODEX_MODEL:-gpt-5}, sandbox=${CODEX_SANDBOX:-workspace-write}, approval=${CODEX_APPROVAL:-never}, unsafe=${CODEX_UNSAFE:-1})"
+  log "Running codex CLI (model=${CODEX_MODEL:-gpt-5.5}, sandbox=${CODEX_SANDBOX:-workspace-write}, approval=${CODEX_APPROVAL:-never}, unsafe=${CODEX_UNSAFE:-1})"
 
   if codex exec --help >/dev/null 2>&1; then
     if [[ "${CODEX_UNSAFE:-1}" == "1" ]]; then
       codex -C "${ROOT_DIR}" \
-        -m "${CODEX_MODEL:-gpt-5}" \
+        -m "${CODEX_MODEL:-gpt-5.5}" \
         -c "model_reasoning_effort=\"${reasoning_effort}\"" \
         --dangerously-bypass-approvals-and-sandbox \
         exec "${prompt_text}"
       exit_code=$?
     else
       codex -C "${ROOT_DIR}" \
-        -m "${CODEX_MODEL:-gpt-5}" \
+        -m "${CODEX_MODEL:-gpt-5.5}" \
         -c "model_reasoning_effort=\"${reasoning_effort}\"" \
         --sandbox "${CODEX_SANDBOX:-workspace-write}" \
         --ask-for-approval "${CODEX_APPROVAL:-never}" \
@@ -440,14 +437,14 @@ run_codex_prompt() {
   else
     if [[ "${CODEX_UNSAFE:-1}" == "1" ]]; then
       codex -C "${ROOT_DIR}" \
-        -m "${CODEX_MODEL:-gpt-5}" \
+        -m "${CODEX_MODEL:-gpt-5.5}" \
         -c "model_reasoning_effort=\"${reasoning_effort}\"" \
         --dangerously-bypass-approvals-and-sandbox \
         "${prompt_text}"
       exit_code=$?
     else
       codex -C "${ROOT_DIR}" \
-        -m "${CODEX_MODEL:-gpt-5}" \
+        -m "${CODEX_MODEL:-gpt-5.5}" \
         -c "model_reasoning_effort=\"${reasoning_effort}\"" \
         --sandbox "${CODEX_SANDBOX:-workspace-write}" \
         --ask-for-approval "${CODEX_APPROVAL:-never}" \

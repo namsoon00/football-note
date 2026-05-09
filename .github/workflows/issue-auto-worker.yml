@@ -7,6 +7,21 @@ on:
         description: "Optional issue number to run directly"
         required: false
         type: string
+      codex_model:
+        description: "Codex model to use"
+        required: false
+        default: "gpt-5.5"
+        type: string
+      reasoning_effort:
+        description: "Codex reasoning effort"
+        required: false
+        default: "xhigh"
+        type: choice
+        options:
+          - low
+          - medium
+          - high
+          - xhigh
 
 permissions:
   contents: write
@@ -46,7 +61,8 @@ jobs:
           CODEX_SANDBOX: ${{ vars.CODEX_SANDBOX }}
           CODEX_APPROVAL: ${{ vars.CODEX_APPROVAL }}
           CODEX_UNSAFE: ${{ vars.CODEX_UNSAFE }}
-          CODEX_MODEL: ${{ vars.CODEX_MODEL }}
+          CODEX_MODEL: ${{ inputs.codex_model || 'gpt-5.5' }}
+          CODEX_REASONING_EFFORT: ${{ inputs.reasoning_effort || 'xhigh' }}
           FORCE_MAIN_MERGE: "1"
           LOCAL_SYNC_REPO_PATH: ${{ vars.LOCAL_SYNC_REPO_PATH }}
           RUN_VERIFY: ${{ vars.RUN_VERIFY }}
