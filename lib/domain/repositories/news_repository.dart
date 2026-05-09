@@ -3,5 +3,8 @@ import '../entities/news_channel.dart';
 
 abstract class NewsRepository {
   List<NewsChannel> channels();
-  Future<List<NewsArticle>> fetchLatest(String channelId);
+  Future<List<NewsArticle>> fetchLatest(
+    String channelId, {
+    bool forceRefresh = false,
+  });
 }

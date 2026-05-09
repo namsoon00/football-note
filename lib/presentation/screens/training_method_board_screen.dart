@@ -15,6 +15,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_templates.dart';
 import '../widgets/app_page_route.dart';
+import 'training_board_template_gallery_screen.dart';
 
 class TrainingMethodBoardScreen extends StatefulWidget {
   final String boardTitle;
@@ -77,6 +78,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _showLandscapeMemo = false;
   bool _showPortraitMemo = false;
   bool _showPortraitInspector = true;
+  Timer? _autoSaveTimer;
+  bool _autoSaveInProgress = false;
 
   bool get _isManagedMode => widget.optionRepository != null;
   _BoardPageState get _currentPage => _pages.first;
@@ -89,6 +92,32 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       if (test(item)) return item;
     }
     return null;
+  }
+
+  void _scheduleAutoSave() {
+    if (widget.readOnly) return;
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer(const Duration(milliseconds: 800), () {
+      unawaited(_runAutoSave());
+    });
+  }
+
+  Future<void> _runAutoSave() async {
+    if (widget.readOnly || _autoSaveInProgress || !_hasUnsavedChanges) {
+      return;
+    }
+    _autoSaveInProgress = true;
+    try {
+      final isKo = mounted
+          ? Localizations.localeOf(context).languageCode == 'ko'
+          : false;
+      await _saveBoard(isKo, showFeedback: false, awardXp: false);
+    } finally {
+      _autoSaveInProgress = false;
+      if (mounted && _hasUnsavedChanges) {
+        _scheduleAutoSave();
+      }
+    }
   }
 
   @override
@@ -349,7 +378,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         if (!mounted || !saved) return;
       }
     }
-    final template = await showTrainingBoardTemplatePicker(context);
+    final template = await showTrainingBoardTemplatePicker(
+      context,
+      onOpenGallery: _openTemplateGallery,
+    );
     if (!mounted) return;
     if (template == null) {
       if (isInitialFlow) {
@@ -849,6 +881,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _pathMode = false;
       _routeReplaceMode = false;
     });
+    _scheduleAutoSave();
   }
 
   void _removeSelected() {
@@ -867,6 +900,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       }
       _selectedItemId = null;
     });
+    _scheduleAutoSave();
   }
 
   Future<void> _renameCurrentPage(bool isKo) async {
@@ -882,6 +916,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     setState(() {
       _currentPage.name = renamed;
     });
+    _scheduleAutoSave();
+  }
+
+  Future<void> _openTemplateGallery() {
+    return Navigator.of(context).push<void>(
+      AppPageRoute(builder: (_) => const TrainingBoardTemplateGalleryScreen()),
+    );
   }
 
   void _dismissKeyboard() {
@@ -914,7 +955,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return confirmed == true;
   }
 
-  Future<bool> _saveBoard(bool isKo, {bool showFeedback = true}) async {
+  Future<bool> _saveBoard(
+    bool isKo, {
+    bool showFeedback = true,
+    bool awardXp = true,
+  }) async {
     if (widget.readOnly) return false;
     if (mounted) {
       setState(_normalizeCurrentPageRoutes);
@@ -938,18 +983,20 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
       await _managedBoardService!.saveBoard(updated);
       _managedBoards = _managedBoardService!.allBoards();
-      boardAward = await PlayerLevelService(
-        widget.optionRepository!,
-      ).awardForBoardSaved(boardId: updated.id, boardTitle: title);
-      await TrainingPlanReminderService(
-        widget.optionRepository!,
-        SettingsService(widget.optionRepository!)..load(),
-      ).showXpGainAlert(
-        gainedXp: boardAward.gainedXp,
-        totalXp: boardAward.after.totalXp,
-        isKo: isKo,
-        sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
-      );
+      if (awardXp) {
+        boardAward = await PlayerLevelService(
+          widget.optionRepository!,
+        ).awardForBoardSaved(boardId: updated.id, boardTitle: title);
+        await TrainingPlanReminderService(
+          widget.optionRepository!,
+          SettingsService(widget.optionRepository!)..load(),
+        ).showXpGainAlert(
+          gainedXp: boardAward.gainedXp,
+          totalXp: boardAward.after.totalXp,
+          isKo: isKo,
+          sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
+        );
+      }
     } else {
       widget.onSaved?.call(serialized);
     }
@@ -1206,6 +1253,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _routeReplaceMode = false;
       _playbackTracks = const <_PlaybackTrack>[];
     });
+    _scheduleAutoSave();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1478,6 +1526,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
       _activeStroke = null;
     });
+    _scheduleAutoSave();
   }
 
   void _startPlayerPath(Offset localPosition, double width, double height) {
@@ -1560,6 +1609,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _routeReplaceMode = false;
     });
+    _scheduleAutoSave();
   }
 
   void _togglePathMode(_PathDrawMode kind) {
@@ -1621,6 +1671,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _routeReplaceMode = false;
       _activeRoutePoints = null;
     });
+    _scheduleAutoSave();
   }
 
   void _clearAllRoutes() {
@@ -1631,6 +1682,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _routeReplaceMode = false;
     });
+    _scheduleAutoSave();
   }
 
   String _routeLabel(_PathDrawMode kind, int index) {
@@ -1918,6 +1970,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
     _currentPage.methodText = nextText;
     _memoCommitted = true;
+    _scheduleAutoSave();
   }
 
   Duration _playbackDurationForTracks(List<_PlaybackTrack> tracks) {
@@ -1993,6 +2046,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   @override
   void dispose() {
     _memoSession++;
+    _autoSaveTimer?.cancel();
     unawaited(_speech.cancel());
     unawaited(SystemChrome.setPreferredOrientations(DeviceOrientation.values));
     _playController
@@ -2362,24 +2416,28 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                             onLongPress:
                                 widget.readOnly || _penMode || _pathMode
                                 ? null
-                                : () => setState(() {
-                                    _currentPage.items.removeWhere(
-                                      (entry) => entry.id == item.id,
-                                    );
-                                    _currentPage.routes.removeWhere(
-                                      (route) => route.linkedItemId == item.id,
-                                    );
-                                    if (_selectedItemId == item.id) {
-                                      _selectedItemId = null;
-                                    }
-                                    if (_selectedRoute != null &&
-                                        !_currentPage.routes.any(
-                                          (route) =>
-                                              route.id == _selectedRoute!.id,
-                                        )) {
-                                      _selectedRouteId = null;
-                                    }
-                                  }),
+                                : () {
+                                    setState(() {
+                                      _currentPage.items.removeWhere(
+                                        (entry) => entry.id == item.id,
+                                      );
+                                      _currentPage.routes.removeWhere(
+                                        (route) =>
+                                            route.linkedItemId == item.id,
+                                      );
+                                      if (_selectedItemId == item.id) {
+                                        _selectedItemId = null;
+                                      }
+                                      if (_selectedRoute != null &&
+                                          !_currentPage.routes.any(
+                                            (route) =>
+                                                route.id == _selectedRoute!.id,
+                                          )) {
+                                        _selectedRouteId = null;
+                                      }
+                                    });
+                                    _scheduleAutoSave();
+                                  },
                             onPanUpdate:
                                 widget.readOnly || _penMode || _pathMode
                                 ? null
@@ -2401,6 +2459,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                         nextY: nextY,
                                       );
                                     });
+                                    _scheduleAutoSave();
                                   },
                             child: SizedBox(
                               width: 52,
@@ -2473,6 +2532,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 ? Icons.description_rounded
                 : Icons.description_outlined,
             label: l10n.notes,
+          ),
+        ),
+        PopupMenuItem<_TopBarMenuAction>(
+          value: _TopBarMenuAction.viewTemplates,
+          child: _buildTopBarMenuEntry(
+            icon: Icons.grid_view_rounded,
+            label: l10n.trainingSketchTemplateGalleryAction,
           ),
         ),
         if (!widget.readOnly)
@@ -2582,6 +2648,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           }
         });
         break;
+      case _TopBarMenuAction.viewTemplates:
+        await _openTemplateGallery();
+        break;
       case _TopBarMenuAction.toggleControls:
         if (widget.readOnly) return;
         setState(() {
@@ -2688,6 +2757,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ? null
           : (value) {
               _currentPage.methodText = value;
+              _scheduleAutoSave();
             },
     );
   }
@@ -2752,10 +2822,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       OutlinedButton.icon(
         onPressed: _currentPage.strokes.isEmpty
             ? null
-            : () => setState(() {
-                _currentPage.strokes.clear();
-                _activeStroke = null;
-              }),
+            : () {
+                setState(() {
+                  _currentPage.strokes.clear();
+                  _activeStroke = null;
+                });
+                _scheduleAutoSave();
+              },
         icon: const Icon(Icons.layers_clear_outlined),
         label: Text(l10n.trainingSketchClearInkButton),
         style: _toolButtonStyle(),
@@ -2781,6 +2854,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             _selectedRouteId = null;
             _routeReplaceMode = false;
           });
+          _scheduleAutoSave();
         },
         icon: const Icon(Icons.delete_sweep_outlined),
         label: Text(l10n.trainingSketchResetButton),
@@ -3104,10 +3178,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               .map((c) {
                 final selectedColor = c.toARGB32() == selected.color.toARGB32();
                 return InkWell(
-                  onTap: () => setState(() {
-                    selected.color = c;
-                    _syncLinkedRouteColors(selected.id);
-                  }),
+                  onTap: () {
+                    setState(() {
+                      selected.color = c;
+                      _syncLinkedRouteColors(selected.id);
+                    });
+                    _scheduleAutoSave();
+                  },
                   borderRadius: BorderRadius.circular(999),
                   child: Container(
                     width: 24,
@@ -3233,6 +3310,7 @@ enum _PendingBoardAction { save, discard, cancel }
 
 enum _TopBarMenuAction {
   toggleNotes,
+  viewTemplates,
   toggleControls,
   speed075,
   speed100,

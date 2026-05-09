@@ -1836,5 +1836,8 @@
   "trainingSketchTemplateWingCombinationMethod": "윙어-풀백 오버래핑 후 컷백",
   "trainingSketchTemplateTransitionAttackLabel": "전환 공격",
   "trainingSketchTemplateTransitionAttackDescription": "볼 탈취 직후 빠른 전개",
-  "trainingSketchTemplateTransitionAttackMethod": "볼 탈취 후 6초 안에 전진"
+  "trainingSketchTemplateTransitionAttackMethod": "볼 탈취 후 6초 안에 전진",
+  "trainingSketchTemplateGalleryAction": "템플릿 보기",
+  "trainingSketchTemplateGalleryTitle": "훈련 템플릿 갤러리",
+  "trainingSketchTemplateGallerySubtitle": "스케치를 만들기 전에 이동선과 메모 구성을 미리 확인하세요."
 }

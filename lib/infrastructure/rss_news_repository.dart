@@ -15,6 +15,9 @@ class RssNewsRepository implements NewsRepository {
 
   RssNewsRepository([this._optionRepository]);
 
+  static const String _channelCacheKey = 'news_channel_cache_v1';
+  static const Duration _channelCacheTtl = Duration(hours: 1);
+
   static const List<String> _blockedSourceKeywords = [
     '카지노',
     '도박',
@@ -182,15 +185,22 @@ class RssNewsRepository implements NewsRepository {
   }
 
   @override
-  Future<List<NewsArticle>> fetchLatest(String channelId) async {
+  Future<List<NewsArticle>> fetchLatest(
+    String channelId, {
+    bool forceRefresh = false,
+  }) async {
     final feed = _feeds.firstWhere(
       (item) => item.id == channelId,
       orElse: () => _feeds.first,
     );
-    final results = await _fetchFeed(feed);
-    if (results.isEmpty) {
-      throw StateError('Failed to fetch football news.');
+    final cached = _loadCachedFeed(feed.id);
+    if (!forceRefresh &&
+        cached != null &&
+        cached.articles.isNotEmpty &&
+        DateTime.now().difference(cached.fetchedAt) < _channelCacheTtl) {
+      return cached.articles;
     }
+    final results = await _fetchFeed(feed);
     final filtered = results.where((article) {
       return _isUsableArticle(feed: feed, article: article);
     }).toList();
@@ -202,7 +212,90 @@ class RssNewsRepository implements NewsRepository {
       if (bt == null) return -1;
       return bt.compareTo(at);
     });
-    return filtered;
+    if (filtered.isNotEmpty) {
+      await _saveCachedFeed(feed.id, filtered);
+      return filtered;
+    }
+    if (cached != null && cached.articles.isNotEmpty) {
+      return cached.articles;
+    }
+    throw StateError('Failed to fetch football news.');
+  }
+
+  _CachedNewsFeed? _loadCachedFeed(String channelId) {
+    final cacheMap = _loadCacheMap();
+    final raw = cacheMap[channelId];
+    if (raw is! Map) return null;
+    final fetchedAt = DateTime.tryParse(raw['fetchedAt']?.toString() ?? '');
+    final rawArticles = raw['articles'];
+    if (fetchedAt == null || rawArticles is! List) return null;
+    final articles = rawArticles
+        .whereType<Map>()
+        .map((item) => _articleFromCacheMap(item.cast<String, dynamic>()))
+        .whereType<NewsArticle>()
+        .toList(growable: false);
+    if (articles.isEmpty) return null;
+    return _CachedNewsFeed(fetchedAt: fetchedAt, articles: articles);
+  }
+
+  Future<void> _saveCachedFeed(
+    String channelId,
+    List<NewsArticle> articles,
+  ) async {
+    final options = _optionRepository;
+    if (options == null) return;
+    final cacheMap = _loadCacheMap();
+    cacheMap[channelId] = <String, dynamic>{
+      'fetchedAt': DateTime.now().toIso8601String(),
+      'articles': articles.map(_articleToCacheMap).toList(growable: false),
+    };
+    await options.setValue(_channelCacheKey, jsonEncode(cacheMap));
+  }
+
+  Map<String, dynamic> _loadCacheMap() {
+    final raw = _optionRepository?.getValue<String>(_channelCacheKey);
+    if (raw == null || raw.trim().isEmpty) return <String, dynamic>{};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) {
+        return Map<String, dynamic>.from(decoded);
+      }
+      if (decoded is Map) {
+        return decoded.cast<String, dynamic>();
+      }
+    } catch (_) {
+      return <String, dynamic>{};
+    }
+    return <String, dynamic>{};
+  }
+
+  Map<String, dynamic> _articleToCacheMap(NewsArticle article) {
+    return <String, dynamic>{
+      'title': article.title,
+      'link': article.link,
+      'source': article.source,
+      'summary': article.summary,
+      'imageUrl': article.imageUrl,
+      'publishedAt': article.publishedAt?.toIso8601String(),
+      'channelId': article.channelId,
+    };
+  }
+
+  NewsArticle? _articleFromCacheMap(Map<String, dynamic> map) {
+    final title = map['title']?.toString() ?? '';
+    final link = map['link']?.toString() ?? '';
+    if (title.trim().isEmpty || link.trim().isEmpty) {
+      return null;
+    }
+    return NewsArticle(
+      title: title,
+      link: link,
+      source: map['source']?.toString() ?? '',
+      summary: map['summary']?.toString() ?? '',
+      imageUrl: map['imageUrl']?.toString() ?? '',
+      publishedAt: DateTime.tryParse(map['publishedAt']?.toString() ?? ''),
+      channelId: map['channelId']?.toString() ?? '',
+    );
   }
 
   bool _isUsableArticle({
@@ -283,7 +376,7 @@ class RssNewsRepository implements NewsRepository {
     final merged = <String>{..._defaultBlockedDomains};
     final custom =
         _optionRepository?.getOptions('news_blocked_domains', const []) ??
-            const <String>[];
+        const <String>[];
     for (final domain in custom) {
       final normalized = _normalizeDomain(domain);
       if (normalized.isNotEmpty) {
@@ -528,6 +621,13 @@ class _FeedConfig {
     this.requireImage = true,
     this.keywords = const [],
   });
+}
+
+class _CachedNewsFeed {
+  final DateTime fetchedAt;
+  final List<NewsArticle> articles;
+
+  const _CachedNewsFeed({required this.fetchedAt, required this.articles});
 }
 
 enum _FeedResponseType { xml, allOriginsGet, rss2Json }

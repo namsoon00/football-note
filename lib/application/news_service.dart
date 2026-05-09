@@ -9,6 +9,8 @@ class NewsService {
 
   List<NewsChannel> channels() => _repository.channels();
 
-  Future<List<NewsArticle>> latest(String channelId) =>
-      _repository.fetchLatest(channelId);
+  Future<List<NewsArticle>> latest(
+    String channelId, {
+    bool forceRefresh = false,
+  }) => _repository.fetchLatest(channelId, forceRefresh: forceRefresh);
 }

@@ -260,18 +260,29 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         ),
                         if (data.todayPlanCount > 0) ...[
                           const SizedBox(height: 8),
-                          _TodayPlanHighlightCard(
-                            l10n: AppLocalizations.of(context)!,
-                            isKo: isKo,
-                            plans: data.todayPlans,
-                            count: data.todayPlanCount,
-                            onOpenPlans: widget.onOpenPlans,
-                            onCreateLog: _isParentMode
-                                ? null
-                                : _trackedAction(
-                                    'today_plan_log',
-                                    () => unawaited(_openTodayPlanLog(data)),
-                                  ),
+                          Builder(
+                            builder: (context) {
+                              final firstPlan = data.todayPlans.first;
+                              final showLogAction = DateTime.now().isAfter(
+                                firstPlan.endsAt,
+                              );
+                              return _TodayPlanHighlightCard(
+                                l10n: AppLocalizations.of(context)!,
+                                isKo: isKo,
+                                plans: data.todayPlans,
+                                count: data.todayPlanCount,
+                                onOpenPlans: widget.onOpenPlans,
+                                onPrimaryAction: _isParentMode
+                                    ? widget.onOpenPlans
+                                    : showLogAction
+                                        ? _trackedAction(
+                                            'today_plan_log',
+                                            () => unawaited(
+                                                _openTodayPlanLog(data)),
+                                          )
+                                        : widget.onOpenPlans,
+                              );
+                            },
                           ),
                         ] else if (data.upcomingPlanDays.isNotEmpty) ...[
                           const SizedBox(height: 8),
@@ -838,6 +849,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         scheduledAt: selectedPlan.scheduledAt,
         program: selectedPlan.category,
         durationMinutes: selectedPlan.durationMinutes,
+        location: selectedPlan.location,
         note: selectedPlan.note,
       ),
     );
@@ -895,11 +907,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     final timeLabel = DateFormat('HH:mm').format(plan.scheduledAt);
     final durationLabel =
         isKo ? '${plan.durationMinutes}분' : '${plan.durationMinutes} min';
+    final location = plan.location.trim();
     final note = plan.note.trim();
-    if (note.isEmpty) {
+    if (note.isEmpty && location.isEmpty) {
       return '$timeLabel · $durationLabel';
     }
-    return '$timeLabel · $durationLabel · $note';
+    final extras = <String>[
+      if (location.isNotEmpty) location,
+      if (note.isNotEmpty) note,
+    ];
+    return '$timeLabel · $durationLabel · ${extras.join(' · ')}';
   }
 
   void _openTodayBoardSketch(_HomeHubData data) {
@@ -1131,7 +1148,10 @@ class _HomeHubData {
       return day == today;
     }).toList(growable: false)
       ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
-    final todayPlanCount = todayPlans.length;
+    final remainingTodayPlans = todayPlans
+        .where((plan) => !_isPlanCoveredByTrainingEntry(plan, entries))
+        .toList(growable: false);
+    final todayPlanCount = remainingTodayPlans.length;
     final planDayCount = <DateTime, int>{};
     for (final plan in plans) {
       final day = DateTime(
@@ -1203,7 +1223,7 @@ class _HomeHubData {
       latestBoardUpdatedAt: boards.isEmpty ? null : boards.first.updatedAt,
       latestBoard: boards.isEmpty ? null : boards.first,
       todayPlanCount: todayPlanCount,
-      todayPlans: todayPlans,
+      todayPlans: remainingTodayPlans,
       upcomingPlanDays: upcomingPlanDaySummaries,
       strongestSignal: strongest,
       focusSignal: focus,
@@ -1221,6 +1241,45 @@ class _HomeHubData {
       quizResumeSummary: quizResumeSummary,
     );
   }
+
+  static bool _isPlanCoveredByTrainingEntry(
+    _DashboardPlan plan,
+    Iterable<TrainingEntry> entries,
+  ) {
+    final planDay = DateTime(
+      plan.scheduledAt.year,
+      plan.scheduledAt.month,
+      plan.scheduledAt.day,
+    );
+    final normalizedCategory = plan.category.trim().toLowerCase();
+    final normalizedLocation = plan.location.trim().toLowerCase();
+    var hasTrainingEntryOnPlanDay = false;
+    for (final entry in entries) {
+      if (entry.isMatch) continue;
+      final entryDay = DateTime(
+        entry.date.year,
+        entry.date.month,
+        entry.date.day,
+      );
+      if (entryDay != planDay) continue;
+      hasTrainingEntryOnPlanDay = true;
+      if (normalizedCategory.isEmpty && normalizedLocation.isEmpty) {
+        return true;
+      }
+      final entryType = entry.type.trim().toLowerCase();
+      final entryProgram = entry.program.trim().toLowerCase();
+      final entryLocation = entry.location.trim().toLowerCase();
+      final categoryMatches = normalizedCategory.isEmpty ||
+          entryType == normalizedCategory ||
+          entryProgram == normalizedCategory;
+      final locationMatches =
+          normalizedLocation.isEmpty || entryLocation == normalizedLocation;
+      if (categoryMatches && locationMatches) {
+        return true;
+      }
+    }
+    return hasTrainingEntryOnPlanDay && DateTime.now().isAfter(plan.endsAt);
+  }
 }
 
 class _DashboardPlan {
@@ -1228,6 +1287,7 @@ class _DashboardPlan {
   final DateTime scheduledAt;
   final String category;
   final int durationMinutes;
+  final String location;
   final String note;
 
   const _DashboardPlan({
@@ -1235,8 +1295,11 @@ class _DashboardPlan {
     required this.scheduledAt,
     required this.category,
     required this.durationMinutes,
+    required this.location,
     required this.note,
   });
+
+  DateTime get endsAt => scheduledAt.add(Duration(minutes: durationMinutes));
 
   factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
     return _DashboardPlan(
@@ -1246,6 +1309,7 @@ class _DashboardPlan {
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,
+      location: map['location']?.toString() ?? '',
       note: map['note']?.toString() ?? '',
     );
   }
@@ -1276,7 +1340,7 @@ class _TodayPlanHighlightCard extends StatelessWidget {
   final List<_DashboardPlan> plans;
   final int count;
   final VoidCallback onOpenPlans;
-  final VoidCallback? onCreateLog;
+  final VoidCallback? onPrimaryAction;
 
   const _TodayPlanHighlightCard({
     required this.l10n,
@@ -1284,19 +1348,22 @@ class _TodayPlanHighlightCard extends StatelessWidget {
     required this.plans,
     required this.count,
     required this.onOpenPlans,
-    required this.onCreateLog,
+    required this.onPrimaryAction,
   });
 
   @override
   Widget build(BuildContext context) {
     final firstPlan = plans.isEmpty ? null : plans.first;
+    final showLogAction =
+        firstPlan != null && DateTime.now().isAfter(firstPlan.endsAt);
+    final location = firstPlan?.location.trim() ?? '';
     final summary = firstPlan == null
         ? l10n.homeTodayPlanCardSummary(count)
         : firstPlan.category.trim().isEmpty
             ? l10n.homeTodayPlanCardSummary(count)
             : isKo
-                ? '${l10n.homeTodayPlanCardSummary(count)} · ${firstPlan.category.trim()}'
-                : '${l10n.homeTodayPlanCardSummary(count)} · ${firstPlan.category.trim()}';
+                ? '${l10n.homeTodayPlanCardSummary(count)} · ${firstPlan.category.trim()}${location.isEmpty ? '' : ' · $location'}'
+                : '${l10n.homeTodayPlanCardSummary(count)} · ${firstPlan.category.trim()}${location.isEmpty ? '' : ' · $location'}';
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1364,23 +1431,16 @@ class _TodayPlanHighlightCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  if (onCreateLog != null)
+                  if (onPrimaryAction != null)
                     FilledButton.tonal(
-                      key: const ValueKey('today-plan-log-action'),
-                      onPressed: onCreateLog,
-                      child: Text(l10n.tabLogs),
+                      key: showLogAction
+                          ? const ValueKey('today-plan-log-action')
+                          : const ValueKey('today-plan-open-action'),
+                      onPressed: onPrimaryAction,
+                      child: Text(
+                        showLogAction ? l10n.tabLogs : l10n.drawerTrainingPlan,
+                      ),
                     ),
-                  if (onCreateLog != null) const SizedBox(height: 6),
-                  TextButton(
-                    onPressed: onOpenPlans,
-                    child: Text(
-                      l10n.homeTodayPlanOpenAction,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                  ),
                 ],
               ),
             ],

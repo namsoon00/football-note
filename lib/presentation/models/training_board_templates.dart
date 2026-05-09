@@ -20,8 +20,9 @@ class TrainingBoardTemplateOption {
 }
 
 Future<TrainingBoardTemplateOption?> showTrainingBoardTemplatePicker(
-  BuildContext context,
-) {
+  BuildContext context, {
+  Future<void> Function()? onOpenGallery,
+}) {
   final l10n = AppLocalizations.of(context)!;
   final templates = buildTrainingBoardTemplateOptions(l10n);
   return showModalBottomSheet<TrainingBoardTemplateOption>(
@@ -46,6 +47,18 @@ Future<TrainingBoardTemplateOption?> showTrainingBoardTemplatePicker(
               onTap: () => Navigator.of(context).pop(template),
             ),
           ),
+          if (onOpenGallery != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => onOpenGallery(),
+                  icon: const Icon(Icons.grid_view_rounded),
+                  label: Text(l10n.trainingSketchTemplateGalleryAction),
+                ),
+              ),
+            ),
         ],
       ),
     ),
@@ -151,6 +164,24 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
         ],
       ),
       route(
+        'pass_warmup_player_support_top',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.5, 0.25),
+          point(0.62, 0.34),
+          point(0.72, 0.44),
+        ],
+      ),
+      route(
+        'pass_warmup_player_support_right',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.8, 0.5),
+          point(0.7, 0.62),
+          point(0.56, 0.72),
+        ],
+      ),
+      route(
         'pass_warmup_ball',
         TrainingMethodRouteKind.ball,
         <TrainingMethodPoint>[
@@ -175,6 +206,24 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
     ],
     routes: <TrainingMethodRoute>[
       route(
+        'build_up_left_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.2, 0.8),
+          point(0.24, 0.7),
+          point(0.3, 0.6),
+        ],
+      ),
+      route(
+        'build_up_right_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.8, 0.8),
+          point(0.74, 0.7),
+          point(0.68, 0.6),
+        ],
+      ),
+      route(
         'build_up_player',
         TrainingMethodRouteKind.player,
         <TrainingMethodPoint>[
@@ -184,11 +233,21 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
         ],
       ),
       route(
+        'build_up_mid_support',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.62, 0.58),
+          point(0.58, 0.48),
+          point(0.52, 0.38),
+        ],
+      ),
+      route(
         'build_up_ball',
         TrainingMethodRouteKind.ball,
         <TrainingMethodPoint>[
           point(0.5, 0.82),
           point(0.38, 0.58),
+          point(0.5, 0.42),
           point(0.62, 0.58),
         ],
       ),
@@ -206,12 +265,30 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
     ],
     routes: <TrainingMethodRoute>[
       route(
+        'pressing_left_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.3, 0.35),
+          point(0.36, 0.28),
+          point(0.44, 0.22),
+        ],
+      ),
+      route(
         'pressing_player',
         TrainingMethodRouteKind.player,
         <TrainingMethodPoint>[
           point(0.5, 0.42),
           point(0.5, 0.3),
           point(0.48, 0.2),
+        ],
+      ),
+      route(
+        'pressing_right_player',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.7, 0.35),
+          point(0.64, 0.28),
+          point(0.56, 0.22),
         ],
       ),
       route(
@@ -240,12 +317,30 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
     ],
     routes: <TrainingMethodRoute>[
       route(
+        'set_piece_near_post_run',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.2, 0.2),
+          point(0.3, 0.24),
+          point(0.38, 0.3),
+        ],
+      ),
+      route(
         'set_piece_player',
         TrainingMethodRouteKind.player,
         <TrainingMethodPoint>[
           point(0.3, 0.28),
           point(0.4, 0.34),
           point(0.5, 0.42),
+        ],
+      ),
+      route(
+        'set_piece_far_post_run',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.38, 0.36),
+          point(0.5, 0.4),
+          point(0.64, 0.44),
         ],
       ),
       route(
@@ -278,6 +373,15 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
     ],
     routes: <TrainingMethodRoute>[
       route(
+        'rondo_left_support',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.24, 0.28),
+          point(0.22, 0.5),
+          point(0.24, 0.72),
+        ],
+      ),
+      route(
         'rondo_player',
         TrainingMethodRouteKind.player,
         <TrainingMethodPoint>[
@@ -286,9 +390,21 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
           point(0.62, 0.38),
         ],
       ),
+      route(
+        'rondo_right_support',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.76, 0.28),
+          point(0.78, 0.5),
+          point(0.76, 0.72),
+        ],
+      ),
       route('rondo_ball', TrainingMethodRouteKind.ball, <TrainingMethodPoint>[
         point(0.24, 0.28),
         point(0.5, 0.24),
+        point(0.76, 0.28),
+        point(0.76, 0.72),
+        point(0.24, 0.72),
         point(0.76, 0.28),
       ]),
     ],
@@ -311,6 +427,15 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
     ],
     routes: <TrainingMethodRoute>[
       route(
+        'finishing_overlap',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.34, 0.6),
+          point(0.48, 0.52),
+          point(0.62, 0.48),
+        ],
+      ),
+      route(
         'finishing_player',
         TrainingMethodRouteKind.player,
         <TrainingMethodPoint>[
@@ -318,6 +443,15 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
           point(0.38, 0.56),
           point(0.64, 0.36),
           point(0.82, 0.22),
+        ],
+      ),
+      route(
+        'finishing_box_run',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.72, 0.32),
+          point(0.8, 0.34),
+          point(0.84, 0.46),
         ],
       ),
       route(
@@ -350,6 +484,15 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
     ],
     routes: <TrainingMethodRoute>[
       route(
+        'wing_combination_overlap',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.42, 0.78),
+          point(0.52, 0.68),
+          point(0.62, 0.48),
+        ],
+      ),
+      route(
         'wing_combination_player',
         TrainingMethodRouteKind.player,
         <TrainingMethodPoint>[
@@ -359,12 +502,23 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
         ],
       ),
       route(
+        'wing_combination_box_run',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.74, 0.34),
+          point(0.78, 0.42),
+          point(0.68, 0.56),
+        ],
+      ),
+      route(
         'wing_combination_ball',
         TrainingMethodRouteKind.ball,
         <TrainingMethodPoint>[
           point(0.18, 0.68),
           point(0.3, 0.52),
           point(0.62, 0.48),
+          point(0.74, 0.34),
+          point(0.66, 0.54),
           point(0.74, 0.34),
         ],
       ),
@@ -388,6 +542,15 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
     ],
     routes: <TrainingMethodRoute>[
       route(
+        'transition_attack_support_left',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.34, 0.54),
+          point(0.28, 0.44),
+          point(0.24, 0.3),
+        ],
+      ),
+      route(
         'transition_attack_player',
         TrainingMethodRouteKind.player,
         <TrainingMethodPoint>[
@@ -397,11 +560,21 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
         ],
       ),
       route(
+        'transition_attack_support_right',
+        TrainingMethodRouteKind.player,
+        <TrainingMethodPoint>[
+          point(0.68, 0.3),
+          point(0.74, 0.38),
+          point(0.78, 0.48),
+        ],
+      ),
+      route(
         'transition_attack_ball',
         TrainingMethodRouteKind.ball,
         <TrainingMethodPoint>[
           point(0.34, 0.54),
           point(0.5, 0.42),
+          point(0.62, 0.32),
           point(0.68, 0.3),
         ],
       ),
