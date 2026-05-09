@@ -4482,4 +4482,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get trainingSketchTemplateTransitionAttackMethod =>
       'Attack forward within six seconds of the regain';
+
+  @override
+  String get trainingSketchTemplateGalleryAction => 'View templates';
+
+  @override
+  String get trainingSketchTemplateGalleryTitle => 'Training template gallery';
+
+  @override
+  String get trainingSketchTemplateGallerySubtitle =>
+      'Preview movement lines and notes before creating a sketch.';
 }

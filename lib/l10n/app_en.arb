@@ -1836,5 +1836,8 @@
   "trainingSketchTemplateWingCombinationMethod": "Winger-fullback overlap into a cutback",
   "trainingSketchTemplateTransitionAttackLabel": "Transition attack",
   "trainingSketchTemplateTransitionAttackDescription": "Quick attack right after the regain",
-  "trainingSketchTemplateTransitionAttackMethod": "Attack forward within six seconds of the regain"
+  "trainingSketchTemplateTransitionAttackMethod": "Attack forward within six seconds of the regain",
+  "trainingSketchTemplateGalleryAction": "View templates",
+  "trainingSketchTemplateGalleryTitle": "Training template gallery",
+  "trainingSketchTemplateGallerySubtitle": "Preview movement lines and notes before creating a sketch."
 }

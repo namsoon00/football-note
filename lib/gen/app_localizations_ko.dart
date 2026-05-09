@@ -4327,4 +4327,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchTemplateTransitionAttackMethod => '볼 탈취 후 6초 안에 전진';
+
+  @override
+  String get trainingSketchTemplateGalleryAction => '템플릿 보기';
+
+  @override
+  String get trainingSketchTemplateGalleryTitle => '훈련 템플릿 갤러리';
+
+  @override
+  String get trainingSketchTemplateGallerySubtitle =>
+      '스케치를 만들기 전에 이동선과 메모 구성을 미리 확인하세요.';
 }

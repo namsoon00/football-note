@@ -985,6 +985,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       reminderMinutesBefore: _lastPlanReminderMinutes(),
       repeatWeekdays: const <int>[],
       alarmLoopEnabled: false,
+      location: '',
       note: isKo ? '빠른 추가' : 'Quick add',
     );
     setState(() {
@@ -1113,6 +1114,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       availableCategories.add(category);
     }
     final categoryItems = availableCategories.toList(growable: false);
+    var location = editingPlan?.location ?? '';
     var time = TimeOfDay(
       hour: (editingPlan?.scheduledAt.hour ?? 18),
       minute: (editingPlan?.scheduledAt.minute ?? 0),
@@ -1501,6 +1503,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             ],
                             const SizedBox(height: 8),
                             TextFormField(
+                              initialValue: location,
+                              onChanged: (value) => location = value,
+                              maxLength: 40,
+                              decoration: InputDecoration(
+                                labelText: l10n.location,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextFormField(
                               initialValue: noteText,
                               onChanged: (value) => noteText = value,
                               maxLength: 60,
@@ -1545,8 +1556,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               time.hour,
                               time.minute,
                             );
-                            final occurrenceDates =
-                                !useRepeatRangeForSave
+                            final occurrenceDates = !useRepeatRangeForSave
                                 ? <DateTime>[scheduledAt]
                                 : TrainingPlanSeriesBuilder.buildOccurrenceDates(
                                     startDate: planDay,
@@ -1625,6 +1635,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         reminderMinutesBefore: reminderBefore,
                                         repeatWeekdays: repeatWeekdays.toList(),
                                         alarmLoopEnabled: alarmLoopEnabled,
+                                        location: location.trim(),
                                         note: noteText.trim(),
                                         isRecurring: isRecurring,
                                         seriesStartDate: planDay,
@@ -1641,6 +1652,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           repeatWeekdays:
                                               editingPlan.repeatWeekdays,
                                           alarmLoopEnabled: alarmLoopEnabled,
+                                          location: location.trim(),
                                           note: noteText.trim(),
                                           seriesId: editingPlan.seriesId,
                                           seriesStartDate:
@@ -1656,6 +1668,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         reminderMinutesBefore: reminderBefore,
                                         repeatWeekdays: repeatWeekdays.toList(),
                                         alarmLoopEnabled: alarmLoopEnabled,
+                                        location: location.trim(),
                                         note: noteText.trim(),
                                         isRecurring: isRecurring,
                                         seriesStartDate: planDay,
@@ -1709,6 +1722,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
       _plans = [..._plans]
         ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     });
+    for (final plan in saved.plans) {
+      final trimmedLocation = plan.location.trim();
+      if (trimmedLocation.isNotEmpty) {
+        await _storePlanLocation(trimmedLocation);
+      }
+    }
     await _savePlans();
     await _requestReminderPermissionIfNeeded();
     await _syncPlanReminders();
@@ -2103,6 +2122,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
     await widget.optionRepository.saveOptions('match_locations', updated);
   }
 
+  Future<void> _storePlanLocation(String location) async {
+    final l10n = AppLocalizations.of(context)!;
+    final localizedDefaults = [
+      l10n.defaultLocation1,
+      l10n.defaultLocation2,
+      l10n.defaultLocation3,
+    ];
+    final stored = widget.optionRepository.getOptions('locations', []);
+    final normalized = LocalizedOptionDefaults.normalizeOptions(
+      key: 'locations',
+      stored: stored,
+      localizedDefaults: localizedDefaults,
+    );
+    final updated = _dedupeAutocompleteValues([...normalized, location]);
+    await widget.optionRepository.saveOptions('locations', updated);
+  }
+
   List<String> _dedupeAutocompleteValues(Iterable<String> values) {
     final unique = <String>{};
     for (final value in values) {
@@ -2268,6 +2304,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     required int reminderMinutesBefore,
     required List<int> repeatWeekdays,
     required bool alarmLoopEnabled,
+    required String location,
     required String note,
     required bool isRecurring,
     required DateTime seriesStartDate,
@@ -2291,6 +2328,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             reminderMinutesBefore: reminderMinutesBefore,
             repeatWeekdays: isRecurring ? normalizedWeekdays : const <int>[],
             alarmLoopEnabled: alarmLoopEnabled,
+            location: location,
             note: note,
             seriesId: seriesId,
             seriesStartDate: isRecurring
@@ -3172,6 +3210,7 @@ class _PlanTile extends StatelessWidget {
         ),
         subtitle: Text(
           '$repeatText · ${_formatDurationText(plan.durationMinutes, isKo: isKo)} · $reminderText'
+          '${plan.location.trim().isEmpty ? '' : ' · ${plan.location.trim()}'}'
           '${plan.note.isEmpty ? '' : ' · ${plan.note}'}',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -3662,6 +3701,7 @@ class _TrainingPlan {
   final int reminderMinutesBefore;
   final List<int> repeatWeekdays;
   final bool alarmLoopEnabled;
+  final String location;
   final String note;
   final String? seriesId;
   final DateTime? seriesStartDate;
@@ -3675,6 +3715,7 @@ class _TrainingPlan {
     required this.reminderMinutesBefore,
     required this.repeatWeekdays,
     required this.alarmLoopEnabled,
+    required this.location,
     required this.note,
     this.seriesId,
     this.seriesStartDate,
@@ -3689,6 +3730,7 @@ class _TrainingPlan {
     int? reminderMinutesBefore,
     List<int>? repeatWeekdays,
     bool? alarmLoopEnabled,
+    String? location,
     String? note,
     String? seriesId,
     DateTime? seriesStartDate,
@@ -3703,6 +3745,7 @@ class _TrainingPlan {
           reminderMinutesBefore ?? this.reminderMinutesBefore,
       repeatWeekdays: repeatWeekdays ?? this.repeatWeekdays,
       alarmLoopEnabled: alarmLoopEnabled ?? this.alarmLoopEnabled,
+      location: location ?? this.location,
       note: note ?? this.note,
       seriesId: seriesId ?? this.seriesId,
       seriesStartDate: seriesStartDate ?? this.seriesStartDate,
@@ -3719,6 +3762,7 @@ class _TrainingPlan {
       'reminderMinutesBefore': reminderMinutesBefore,
       'repeatWeekdays': repeatWeekdays,
       'alarmLoopEnabled': alarmLoopEnabled,
+      'location': location,
       'note': note,
       'seriesId': seriesId,
       'seriesStartDate': seriesStartDate?.toIso8601String(),
@@ -3745,6 +3789,7 @@ class _TrainingPlan {
               .toList(growable: false)
             ..sort(),
       alarmLoopEnabled: (map['alarmLoopEnabled'] as bool?) ?? true,
+      location: map['location']?.toString() ?? '',
       note: map['note']?.toString() ?? '',
       seriesId: map['seriesId']?.toString(),
       seriesStartDate: DateTime.tryParse(

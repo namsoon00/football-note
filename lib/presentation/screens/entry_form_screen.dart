@@ -42,12 +42,14 @@ class EntryFormInitialPlanContext {
   final DateTime scheduledAt;
   final String program;
   final int durationMinutes;
+  final String location;
   final String note;
 
   const EntryFormInitialPlanContext({
     required this.scheduledAt,
     this.program = '',
     this.durationMinutes = 0,
+    this.location = '',
     this.note = '',
   });
 }
@@ -381,6 +383,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             'durations',
             _durationOptions,
             planContext.durationMinutes,
+          );
+        }
+        if (planContext.location.trim().isNotEmpty) {
+          _location = _initSelection(
+            'locations',
+            _locationOptions,
+            planContext.location.trim(),
           );
         }
       }
@@ -2164,6 +2173,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
     }
     parts.add(DateFormat('HH:mm').format(plan.scheduledAt));
+    final location = plan.location.trim();
+    if (location.isNotEmpty) {
+      parts.add(location);
+    }
     final note = plan.note.trim();
     if (note.isNotEmpty) {
       parts.add(note);

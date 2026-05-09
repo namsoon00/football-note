@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/locale_service.dart';
+import 'package:football_note/application/news_read_state.dart';
 import 'package:football_note/application/news_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
@@ -177,6 +178,51 @@ void main() {
       expect(find.text('국내 기사'), findsOneWidget);
     },
   );
+
+  testWidgets('unread news is shown before read news', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+    const readArticle = NewsArticle(
+      title: '이미 읽은 기사',
+      link: 'https://example.com/read-news',
+      source: '테스트',
+      channelId: 'issue272_domestic_soccer_ko',
+    );
+    const unreadArticle = NewsArticle(
+      title: '안 읽은 기사',
+      link: 'https://example.com/unread-news',
+      source: '테스트',
+      channelId: 'issue272_domestic_soccer_ko',
+    );
+    await repository.saveOptions(NewsReadState.readArticleKeysKey, [
+      NewsReadState.articleKey(readArticle),
+    ]);
+    final newsRepository = _FakeNewsRepository(
+      channels: const [
+        NewsChannel(
+          id: 'issue272_domestic_soccer_ko',
+          name: '테스트 · 국내축구',
+          isDomestic: true,
+        ),
+      ],
+      articlesByChannelId: const <String, List<NewsArticle>>{
+        'issue272_domestic_soccer_ko': [readArticle, unreadArticle],
+      },
+    );
+
+    await tester.pumpWidget(
+      _buildNewsApp(
+        optionRepository: repository,
+        newsService: NewsService(newsRepository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final unreadTop = tester.getTopLeft(find.text('안 읽은 기사')).dy;
+    final readTop = tester.getTopLeft(find.text('이미 읽은 기사')).dy;
+    expect(unreadTop, lessThan(readTop));
+  });
 }
 
 Widget _buildNewsApp({
@@ -212,7 +258,10 @@ class _FakeNewsRepository implements NewsRepository {
   List<NewsChannel> channels() => _channels;
 
   @override
-  Future<List<NewsArticle>> fetchLatest(String channelId) async {
+  Future<List<NewsArticle>> fetchLatest(
+    String channelId, {
+    bool forceRefresh = false,
+  }) async {
     calls.add(channelId);
     return _articlesByChannelId[channelId] ?? const <NewsArticle>[];
   }

@@ -978,19 +978,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
       if (picked == null || !mounted) return;
       if (kIsWeb) {
-        // Keep immediate preview even if bytes conversion fails.
         setState(() => _photoPath = picked.path);
-        final bytes = await picked.readAsBytes();
-        final mime = picked.mimeType ?? 'image/jpeg';
-        final dataUrl = 'data:$mime;base64,${base64Encode(bytes)}';
-        if (!mounted) return;
-        setState(() => _photoPath = dataUrl);
-        _scheduleAutoSave();
-        return;
       }
-      final storedPath = await _storeProfilePhoto(File(picked.path));
+      final previousSource = _photoPath;
+      final dataUrl = await _readProfilePhotoDataUrl(
+        path: picked.path,
+        mimeType: picked.mimeType,
+      );
       if (!mounted) return;
-      setState(() => _photoPath = storedPath);
+      setState(() => _photoPath = dataUrl);
+      await _deleteManagedProfilePhotoIfNeeded(source: previousSource);
       _scheduleAutoSave();
     } catch (_) {
       if (!mounted) return;
@@ -1012,29 +1009,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (source.isEmpty || source.startsWith('data:image/')) return;
     final file = File(source);
     if (!file.existsSync()) return;
-    if (await _isManagedProfilePhotoPath(source)) return;
     try {
-      final storedPath = await _storeProfilePhoto(file);
+      final dataUrl = await _readProfilePhotoDataUrl(path: file.path);
       if (!mounted) return;
-      setState(() => _photoPath = storedPath);
+      setState(() => _photoPath = dataUrl);
       await _saveLatestNow();
+      await _deleteManagedProfilePhotoIfNeeded(source: source);
     } catch (_) {
       // Keep the existing path if migration fails.
     }
   }
 
-  Future<String> _storeProfilePhoto(File sourceFile) async {
-    final directory = await _profilePhotoDirectory();
-    final extension = _normalizedImageExtension(sourceFile.path);
-    final destination = File('${directory.path}/profile_photo$extension');
-    if (destination.path != sourceFile.path) {
-      if (destination.existsSync()) {
-        await destination.delete();
-      }
-      await sourceFile.copy(destination.path);
+  Future<String> _readProfilePhotoDataUrl({
+    required String path,
+    String? mimeType,
+  }) async {
+    final bytes = await File(path).readAsBytes();
+    final resolvedMimeType = mimeType ?? _imageMimeType(path);
+    return 'data:$resolvedMimeType;base64,${base64Encode(bytes)}';
+  }
+
+  String _imageMimeType(String path) {
+    final normalized = path.toLowerCase();
+    if (normalized.endsWith('.png')) {
+      return 'image/png';
     }
-    await _deleteManagedProfilePhotoIfNeeded(exceptPath: destination.path);
-    return destination.path;
+    if (normalized.endsWith('.webp')) {
+      return 'image/webp';
+    }
+    if (normalized.endsWith('.gif')) {
+      return 'image/gif';
+    }
+    if (normalized.endsWith('.heic')) {
+      return 'image/heic';
+    }
+    if (normalized.endsWith('.heif')) {
+      return 'image/heif';
+    }
+    return 'image/jpeg';
   }
 
   Future<Directory> _profilePhotoDirectory() async {
@@ -1044,14 +1056,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await directory.create(recursive: true);
     }
     return directory;
-  }
-
-  String _normalizedImageExtension(String path) {
-    final normalized = path.toLowerCase();
-    for (final extension in const ['.png', '.webp', '.gif', '.heic', '.heif']) {
-      if (normalized.endsWith(extension)) return extension;
-    }
-    return '.jpg';
   }
 
   Future<bool> _isManagedProfilePhotoPath(String path) async {

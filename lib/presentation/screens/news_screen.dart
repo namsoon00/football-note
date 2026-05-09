@@ -91,6 +91,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   late final List<NewsChannel> _channels;
   final TextEditingController _searchController = TextEditingController();
   late Set<String> _selectedChannelIds;
+  late Set<String> _readArticleKeys;
   late Set<String> _scrappedLinks;
   late Map<String, _ScrappedNewsItem> _scrappedItemsByLink;
   late Map<String, int> _sourceOpenCounts;
@@ -133,6 +134,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     _positionHint =
         _profileService.load().positionTestResult.trim().toLowerCase();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
+    _readArticleKeys = NewsReadState.loadReadKeys(widget.optionRepository);
     _scrappedLinks = widget.optionRepository
         .getOptions(_scrappedLinksKey, const [])
         .map((value) => value.trim())
@@ -144,7 +146,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     }
     _sourceOpenCounts = _loadSourceOpenCounts();
     _applyCacheIfValid();
-    unawaited(_markVisibleArticlesRead());
     _loadProgressive();
   }
 
@@ -606,6 +607,10 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
           }).toList(growable: true);
     if (_regionFilter == _NewsRegionFilter.domestic) {
       filtered.sort((a, b) {
+        final readCompare = _compareReadPriority(a, b);
+        if (readCompare != 0) {
+          return readCompare;
+        }
         final thumbCompare = (_hasUsableThumbnail(b) ? 1 : 0).compareTo(
           _hasUsableThumbnail(a) ? 1 : 0,
         );
@@ -859,8 +864,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final primarySucceeded = await _loadChannels(
       token: token,
       channelIds: primaryIds,
+      forceRefresh: force,
     );
-    await _markVisibleArticlesRead();
     if (!mounted || token != _loadToken) return;
 
     if (secondaryIds.isEmpty) {
@@ -878,10 +883,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       _hadError = !primarySucceeded && _articles.isEmpty;
     });
     unawaited(
-      _loadChannels(token: token, channelIds: secondaryIds).then((
-        secondarySucceeded,
-      ) async {
-        await _markVisibleArticlesRead();
+      _loadChannels(
+        token: token,
+        channelIds: secondaryIds,
+        forceRefresh: force,
+      ).then((secondarySucceeded) async {
         if (!mounted || token != _loadToken) return;
         setState(() {
           _isBackgroundLoading = false;
@@ -934,12 +940,16 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   Future<bool> _loadChannels({
     required int token,
     required List<String> channelIds,
+    required bool forceRefresh,
   }) async {
     if (channelIds.isEmpty) return false;
     var loadedAny = false;
     final tasks = channelIds.map((id) async {
       try {
-        final chunk = await _newsService.latest(id);
+        final chunk = await _newsService.latest(
+          id,
+          forceRefresh: forceRefresh,
+        );
         if (!mounted || token != _loadToken || chunk.isEmpty) return;
         loadedAny = true;
         setState(() {
@@ -960,12 +970,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     _cachedArticles
       ..clear()
       ..addAll(_articles);
-  }
-
-  Future<void> _markVisibleArticlesRead() async {
-    if (_articles.isEmpty) return;
-    await NewsReadState.markRead(widget.optionRepository, _articles);
-    await NewsBadgeService.refresh(widget.optionRepository);
   }
 
   bool _hasSameChannels(Set<String> a, Set<String> b) =>
@@ -1001,7 +1005,24 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   void _resortArticles() {
-    _articles.sort((a, b) => _scoreArticle(b).compareTo(_scoreArticle(a)));
+    _articles.sort((a, b) {
+      final readCompare = _compareReadPriority(a, b);
+      if (readCompare != 0) {
+        return readCompare;
+      }
+      return _scoreArticle(b).compareTo(_scoreArticle(a));
+    });
+  }
+
+  int _compareReadPriority(NewsArticle a, NewsArticle b) {
+    final aRead = _isReadArticle(a) ? 1 : 0;
+    final bRead = _isReadArticle(b) ? 1 : 0;
+    return aRead.compareTo(bRead);
+  }
+
+  bool _isReadArticle(NewsArticle article) {
+    final key = NewsReadState.articleKey(article);
+    return key.isNotEmpty && _readArticleKeys.contains(key);
   }
 
   double _scoreArticle(NewsArticle article) {
@@ -1327,10 +1348,16 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _recordOpenedArticle(NewsArticle article) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    await NewsReadState.markRead(widget.optionRepository, [article]);
+    _readArticleKeys = NewsReadState.loadReadKeys(widget.optionRepository);
+    await NewsBadgeService.refresh(widget.optionRepository);
+    if (mounted) {
+      setState(_resortArticles);
+    }
     final link = article.link.trim();
     if (link.isEmpty) return;
     final openedAt = DateTime.now();
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final rawTitle = article.title.trim();
     var titleKo = _translatedTitlesByLink[link]?.trim() ?? '';
     if (isKo &&

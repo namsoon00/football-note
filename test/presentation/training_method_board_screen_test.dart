@@ -19,6 +19,39 @@ void main() {
     expect(routes[1].points, hasLength(2));
   });
 
+  testWidgets('training sketch auto saves after memo edit', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '자동 저장',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(name: '자동 저장', items: <TrainingMethodItem>[]),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: true,
+      itemKey: 'training-topbar-menu-notes',
+    );
+    await tester.enterText(find.byType(TextField).first, '메모 자동 저장');
+    await tester.pump(const Duration(milliseconds: 900));
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    expect(saved.pages.single.methodText, '메모 자동 저장');
+  });
+
   testWidgets('player routes are capped by available players', (
     WidgetTester tester,
   ) async {

@@ -7795,6 +7795,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attack forward within six seconds of the regain'**
   String get trainingSketchTemplateTransitionAttackMethod;
+
+  /// No description provided for @trainingSketchTemplateGalleryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View templates'**
+  String get trainingSketchTemplateGalleryAction;
+
+  /// No description provided for @trainingSketchTemplateGalleryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training template gallery'**
+  String get trainingSketchTemplateGalleryTitle;
+
+  /// No description provided for @trainingSketchTemplateGallerySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview movement lines and notes before creating a sketch.'**
+  String get trainingSketchTemplateGallerySubtitle;
 }
 
 class _AppLocalizationsDelegate
