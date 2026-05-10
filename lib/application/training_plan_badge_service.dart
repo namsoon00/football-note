@@ -1,12 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_app_badger/flutter_app_badger.dart';
+import 'package:flutter/services.dart';
 
 import '../domain/repositories/option_repository.dart';
 import 'training_plan_reminder_service.dart';
 
 class TrainingPlanBadgeService {
+  static const MethodChannel _badgeChannel = MethodChannel(
+    'football_note/app_badge',
+  );
+
   final OptionRepository _options;
 
   TrainingPlanBadgeService(this._options);
@@ -32,22 +36,22 @@ class TrainingPlanBadgeService {
       final count = xpUnread;
 
       if (count <= 0) {
-        await FlutterAppBadger.removeBadge();
+        await _setBadgeCount(0);
       } else {
-        await FlutterAppBadger.updateBadgeCount(count);
+        await _setBadgeCount(count);
       }
     } catch (_) {
       // Fallback to legacy stored plans if unread data is unavailable.
       final raw = _options
           .getValue<String>(TrainingPlanReminderService.plansStorageKey);
       if (raw == null || raw.trim().isEmpty) {
-        await FlutterAppBadger.removeBadge();
+        await _setBadgeCount(0);
         return;
       }
       try {
         final decoded = jsonDecode(raw);
         if (decoded is! List) {
-          await FlutterAppBadger.removeBadge();
+          await _setBadgeCount(0);
           return;
         }
         final today = DateTime.now();
@@ -65,12 +69,12 @@ class TrainingPlanBadgeService {
           count++;
         }
         if (count <= 0) {
-          await FlutterAppBadger.removeBadge();
+          await _setBadgeCount(0);
         } else {
-          await FlutterAppBadger.updateBadgeCount(count);
+          await _setBadgeCount(count);
         }
       } catch (_) {
-        await FlutterAppBadger.removeBadge();
+        await _setBadgeCount(0);
       }
     }
   }
@@ -78,9 +82,20 @@ class TrainingPlanBadgeService {
   Future<void> clearBadge() async {
     if (!_supportsAppIconBadge) return;
     try {
-      await FlutterAppBadger.removeBadge();
+      await _setBadgeCount(0);
     } catch (_) {
       // Ignore badge clearing failures.
+    }
+  }
+
+  Future<void> _setBadgeCount(int count) async {
+    if (!_supportsAppIconBadge) return;
+    try {
+      await _badgeChannel.invokeMethod<void>('setBadgeCount', {
+        'count': count < 0 ? 0 : count,
+      });
+    } catch (_) {
+      // Badge updates should never block the app flow.
     }
   }
 

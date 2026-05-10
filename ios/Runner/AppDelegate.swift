@@ -7,6 +7,8 @@ import GoogleSignIn
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var runningPoseAnalysisChannels: [RunningPoseAnalysisChannel] = []
   private var runningPoseAnalysisChannelMessengers = Set<ObjectIdentifier>()
+  private var appBadgeChannels: [FlutterMethodChannel] = []
+  private var appBadgeChannelMessengers = Set<ObjectIdentifier>()
 
   override func application(
     _ application: UIApplication,
@@ -37,6 +39,7 @@ import GoogleSignIn
     let didFinish = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     if let controller = window?.rootViewController as? FlutterViewController {
       registerRunningPoseAnalysisChannel(binaryMessenger: controller.binaryMessenger)
+      registerAppBadgeChannel(binaryMessenger: controller.binaryMessenger)
     }
     return didFinish
   }
@@ -47,6 +50,9 @@ import GoogleSignIn
     }
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     registerRunningPoseAnalysisChannel(
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    registerAppBadgeChannel(
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
   }
@@ -61,5 +67,43 @@ import GoogleSignIn
       RunningPoseAnalysisChannel(binaryMessenger: binaryMessenger)
     )
     runningPoseAnalysisChannelMessengers.insert(messengerKey)
+  }
+
+  private func registerAppBadgeChannel(binaryMessenger: FlutterBinaryMessenger) {
+    let messengerKey = ObjectIdentifier(binaryMessenger as AnyObject)
+    guard !appBadgeChannelMessengers.contains(messengerKey) else {
+      return
+    }
+
+    let channel = FlutterMethodChannel(
+      name: "football_note/app_badge",
+      binaryMessenger: binaryMessenger
+    )
+    channel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "setBadgeCount":
+        guard let arguments = call.arguments as? [String: Any],
+              let count = arguments["count"] as? Int else {
+          result(
+            FlutterError(
+              code: "invalid_arguments",
+              message: "setBadgeCount requires an integer count.",
+              details: nil
+            )
+          )
+          return
+        }
+
+        DispatchQueue.main.async {
+          UIApplication.shared.applicationIconBadgeNumber = max(0, count)
+          result(nil)
+        }
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+
+    appBadgeChannels.append(channel)
+    appBadgeChannelMessengers.insert(messengerKey)
   }
 }
