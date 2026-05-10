@@ -836,8 +836,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   child: Text(
                     isKo ? '빠른 계획 추가' : 'Quick plan add',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
@@ -2125,7 +2125,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ...storedLocations,
       ...entries
           .where((entry) => entry.isMatch)
-        .map((entry) => entry.effectiveMatchLocation),
+          .map((entry) => entry.effectiveMatchLocation),
     ]);
   }
 
@@ -2734,11 +2734,7 @@ class _CalendarStatusDayCell extends StatelessWidget {
         : (isHoliday ? Colors.red.shade500 : colorScheme.onSurface);
     final borderColor = isSelected
         ? colorScheme.primary
-        : (isHoliday
-              ? Colors.red.shade400.withAlpha(170)
-              : (isToday
-                    ? colorScheme.primary.withAlpha(150)
-                    : Colors.transparent));
+        : (isToday ? colorScheme.primary.withAlpha(150) : Colors.transparent);
     final backgroundColor = isSelected
         ? colorScheme.primary.withAlpha(28)
         : (isToday ? colorScheme.primary.withAlpha(14) : Colors.transparent);
@@ -3215,7 +3211,7 @@ class _PlanTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final timeText = DateFormat('HH:mm').format(plan.scheduledAt);
+    final timeText = _formatPlanTime(plan.scheduledAt, isKo: isKo);
     final repeatText = _planScheduleText(plan, isKo: isKo);
     final reminderText = plan.alarmLoopEnabled
         ? (isKo ? '시작 시각에도 노티' : 'also notify at start time')
@@ -3289,6 +3285,12 @@ String _planScheduleText(_TrainingPlan plan, {required bool isKo}) {
   final rangeText =
       '${DateFormat('M/d').format(plan.seriesStartDate!)}-${DateFormat('M/d').format(plan.seriesEndDate!)}';
   return '$weekdayText · $rangeText';
+}
+
+String _formatPlanTime(DateTime value, {required bool isKo}) {
+  return isKo
+      ? DateFormat('a h:mm', 'ko').format(value)
+      : DateFormat('h:mm a', 'en').format(value);
 }
 
 class _EntryTile extends StatelessWidget {

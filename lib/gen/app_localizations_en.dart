@@ -136,6 +136,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose a plan to turn into a training log';
 
   @override
+  String get homeNextTrainingTitle => 'Next training';
+
+  @override
+  String get homeNextTrainingToday => 'Today';
+
+  @override
+  String get homeNextTrainingTomorrow => 'Tomorrow';
+
+  @override
+  String homeNextTrainingInDays(int count) {
+    return 'In $count days';
+  }
+
+  @override
+  String homeNextTrainingCount(int count) {
+    return '$count planned';
+  }
+
+  @override
   String get profileTestsActionLabel => 'Profile tests';
 
   @override

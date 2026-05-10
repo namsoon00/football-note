@@ -344,6 +344,36 @@ abstract class AppLocalizations {
   /// **'Choose a plan to turn into a training log'**
   String get homeTodayPlanSelectForLogTitle;
 
+  /// No description provided for @homeNextTrainingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next training'**
+  String get homeNextTrainingTitle;
+
+  /// No description provided for @homeNextTrainingToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get homeNextTrainingToday;
+
+  /// No description provided for @homeNextTrainingTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get homeNextTrainingTomorrow;
+
+  /// No description provided for @homeNextTrainingInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'In {count} days'**
+  String homeNextTrainingInDays(int count);
+
+  /// No description provided for @homeNextTrainingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} planned'**
+  String homeNextTrainingCount(int count);
+
   /// No description provided for @profileTestsActionLabel.
   ///
   /// In en, this message translates to:

@@ -47,6 +47,25 @@
   },
   "homeTodayPlanOpenAction": "Open plans",
   "homeTodayPlanSelectForLogTitle": "Choose a plan to turn into a training log",
+  "homeNextTrainingTitle": "Next training",
+  "homeNextTrainingToday": "Today",
+  "homeNextTrainingTomorrow": "Tomorrow",
+  "homeNextTrainingInDays": "In {count} days",
+  "@homeNextTrainingInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeNextTrainingCount": "{count} planned",
+  "@homeNextTrainingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "profileTestsActionLabel": "Profile tests",
   "entryStartedFromPlanSummary": "Started from today’s plan: {summary}",
   "@entryStartedFromPlanSummary": {

@@ -47,6 +47,25 @@
   },
   "homeTodayPlanOpenAction": "계획 보기",
   "homeTodayPlanSelectForLogTitle": "훈련기록으로 만들 계획을 선택하세요",
+  "homeNextTrainingTitle": "다음 훈련",
+  "homeNextTrainingToday": "오늘",
+  "homeNextTrainingTomorrow": "내일",
+  "homeNextTrainingInDays": "{count}일 뒤",
+  "@homeNextTrainingInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeNextTrainingCount": "{count}개 예정",
+  "@homeNextTrainingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "profileTestsActionLabel": "성향 테스트",
   "entryStartedFromPlanSummary": "오늘 계획 반영: {summary}",
   "@entryStartedFromPlanSummary": {
