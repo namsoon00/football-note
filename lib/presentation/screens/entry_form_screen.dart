@@ -2172,7 +2172,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         isKo ? '${plan.durationMinutes}분' : '${plan.durationMinutes} min',
       );
     }
-    parts.add(DateFormat('HH:mm').format(plan.scheduledAt));
+    parts.add(
+      isKo
+          ? DateFormat('a h:mm', 'ko').format(plan.scheduledAt)
+          : DateFormat('h:mm a', 'en').format(plan.scheduledAt),
+    );
     final location = plan.location.trim();
     if (location.isNotEmpty) {
       parts.add(location);

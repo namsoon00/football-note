@@ -229,7 +229,87 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('오늘의 훈련 계획'), findsNothing);
+    expect(find.text('다음 훈련'), findsNothing);
     expect(find.byKey(const ValueKey('today-plan-log-action')), findsNothing);
+  });
+
+  testWidgets('next training card opens the calendar on the planned day', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final today = DateTime.now().copyWith(
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+      microsecond: 0,
+    );
+    final nextPlanAt = today.add(const Duration(days: 2, hours: 9));
+    DateTime? openedPlanDay;
+
+    await optionRepository.setValue(
+      'training_plans_v1',
+      jsonEncode([
+        <String, dynamic>{
+          'id': 'plan-issue-274-next',
+          'scheduledAt': nextPlanAt.toIso8601String(),
+          'category': '슈팅 훈련',
+          'durationMinutes': 60,
+          'location': '메인 구장',
+          'reminderMinutesBefore': 20,
+          'repeatWeekdays': <int>[nextPlanAt.weekday],
+          'alarmLoopEnabled': false,
+          'note': '',
+        },
+      ]),
+    );
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeHubScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          onCreate: () {},
+          onQuickPlan: () {},
+          onQuickMatch: () {},
+          onQuickQuiz: () {},
+          onQuickMeal: () {},
+          onQuickBoard: () {},
+          onOpenPlans: () {},
+          onOpenPlansForDay: (day) => openedPlanDay = day,
+          onOpenLogs: () {},
+          onOpenDiary: () {},
+          onOpenWeeklyStats: () {},
+          onEdit: (_) {},
+          onEditTrainingBoard: (_) {},
+          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('다음 훈련'), findsOneWidget);
+    final summary = tester.widget<Text>(
+      find.byKey(const ValueKey('next-plan-summary-text')),
+    );
+    expect(summary.data, contains('오전 9:00'));
+    expect(summary.data, contains('슈팅 훈련'));
+
+    await tester.tap(find.byKey(const ValueKey('next-plan-card')));
+    await tester.pump();
+
+    expect(
+      openedPlanDay,
+      DateTime(nextPlanAt.year, nextPlanAt.month, nextPlanAt.day),
+    );
   });
 
   testWidgets('today task sketch opens today saved board before entry editor', (

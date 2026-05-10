@@ -134,6 +134,25 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeTodayPlanSelectForLogTitle => '훈련기록으로 만들 계획을 선택하세요';
 
   @override
+  String get homeNextTrainingTitle => '다음 훈련';
+
+  @override
+  String get homeNextTrainingToday => '오늘';
+
+  @override
+  String get homeNextTrainingTomorrow => '내일';
+
+  @override
+  String homeNextTrainingInDays(int count) {
+    return '$count일 뒤';
+  }
+
+  @override
+  String homeNextTrainingCount(int count) {
+    return '$count개 예정';
+  }
+
+  @override
   String get profileTestsActionLabel => '성향 테스트';
 
   @override

@@ -85,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onQuickMeal: () => _openMealLog(initialDate: DateTime.now()),
         onQuickBoard: _openTrainingBoards,
         onOpenPlans: _openPlans,
+        onOpenPlansForDay: _openPlansForDay,
         onOpenLogs: () => _onDestinationSelected(1),
         onOpenDiary: _openTodayDiary,
         onOpenWeeklyStats: _openWeeklyStatsForCurrentWeek,
@@ -368,9 +369,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openPlans() {
-    final today = DateTime.now();
+    _openPlansForDay(DateTime.now());
+  }
+
+  void _openPlansForDay(DateTime day) {
     setState(() {
-      _calendarSelectedDay = DateTime(today.year, today.month, today.day);
+      _calendarSelectedDay = DateTime(day.year, day.month, day.day);
       _index = 2;
     });
     unawaited(_showTabGuideIfNeeded(2));
