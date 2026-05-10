@@ -170,7 +170,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final selectedDay = _selectedDay ?? _focusedDay;
     switch (action) {
       case CalendarQuickCreateAction.plan:
-        await _openPlanSheet(day: selectedDay);
+        final entries = await widget.trainingService.allEntries();
+        if (!mounted) return;
+        await _openPlanSheet(day: selectedDay, entries: entries);
         break;
       case CalendarQuickCreateAction.match:
         final entries = await widget.trainingService.allEntries();
@@ -743,6 +745,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             _openPlanSheet(
                               day: plan.scheduledAt,
                               editingPlan: plan,
+                              entries: entries,
                             );
                           },
                           onEditMealEntry: (entry) => unawaited(
@@ -797,90 +800,95 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final action = await _showModalBottomSheetSafely<_CalendarCreateAction>(
       showDragHandle: true,
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.note_add_outlined),
-              title: Text(isKo ? '훈련 노트' : 'Training note'),
-              onTap: () =>
-                  Navigator.of(context).pop(_CalendarCreateAction.entry),
-            ),
-            ListTile(
-              leading: const Icon(Icons.rice_bowl_outlined),
-              title: Text(l10n.mealLogScreenTitle),
-              onTap: () =>
-                  Navigator.of(context).pop(_CalendarCreateAction.meal),
-            ),
-            ListTile(
-              leading: const Icon(Icons.add_alarm_outlined),
-              title: Text(isKo ? '훈련 계획' : 'Training Plan'),
-              onTap: () =>
-                  Navigator.of(context).pop(_CalendarCreateAction.plan),
-            ),
-            ListTile(
-              leading: const Icon(Icons.sports_soccer_outlined),
-              title: Text(isKo ? '시합' : 'Match'),
-              onTap: () =>
-                  Navigator.of(context).pop(_CalendarCreateAction.match),
-            ),
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  isKo ? '빠른 계획 추가' : 'Quick plan add',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.add_alarm_outlined),
+                title: Text(l10n.drawerTrainingPlan),
+                onTap: () =>
+                    Navigator.of(context).pop(_CalendarCreateAction.plan),
+              ),
+              ListTile(
+                leading: const Icon(Icons.note_add_outlined),
+                title: Text(isKo ? '훈련 노트' : 'Training note'),
+                onTap: () =>
+                    Navigator.of(context).pop(_CalendarCreateAction.entry),
+              ),
+              ListTile(
+                leading: const Icon(Icons.rice_bowl_outlined),
+                title: Text(l10n.mealLogScreenTitle),
+                onTap: () =>
+                    Navigator.of(context).pop(_CalendarCreateAction.meal),
+              ),
+              ListTile(
+                leading: const Icon(Icons.sports_soccer_outlined),
+                title: Text(isKo ? '시합' : 'Match'),
+                onTap: () =>
+                    Navigator.of(context).pop(_CalendarCreateAction.match),
+              ),
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    isKo ? '빠른 계획 추가' : 'Quick plan add',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
                 ),
               ),
-            ),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ActionChip(
-                  avatar: const Icon(Icons.self_improvement_outlined, size: 16),
-                  label: Text(isKo ? '회복 30분' : 'Recovery 30m'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _createQuickTemplatePlan(
-                      day: selectedDay,
-                      category: isKo ? '회복 훈련' : 'Recovery',
-                      durationMinutes: 30,
-                    );
-                  },
-                ),
-                ActionChip(
-                  avatar: const Icon(Icons.sports_outlined, size: 16),
-                  label: Text(isKo ? '기술 60분' : 'Skill 60m'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _createQuickTemplatePlan(
-                      day: selectedDay,
-                      category: isKo ? '기술 훈련' : 'Skill',
-                      durationMinutes: 60,
-                    );
-                  },
-                ),
-                ActionChip(
-                  avatar: const Icon(Icons.sports_soccer_outlined, size: 16),
-                  label: Text(isKo ? '게임 90분' : 'Game 90m'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _createQuickTemplatePlan(
-                      day: selectedDay,
-                      category: isKo ? '게임 훈련' : 'Game',
-                      durationMinutes: 90,
-                    );
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-          ],
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ActionChip(
+                    avatar: const Icon(
+                      Icons.self_improvement_outlined,
+                      size: 16,
+                    ),
+                    label: Text(isKo ? '회복 30분' : 'Recovery 30m'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _createQuickTemplatePlan(
+                        day: selectedDay,
+                        category: isKo ? '회복 훈련' : 'Recovery',
+                        durationMinutes: 30,
+                      );
+                    },
+                  ),
+                  ActionChip(
+                    avatar: const Icon(Icons.sports_outlined, size: 16),
+                    label: Text(isKo ? '기술 60분' : 'Skill 60m'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _createQuickTemplatePlan(
+                        day: selectedDay,
+                        category: isKo ? '기술 훈련' : 'Skill',
+                        durationMinutes: 60,
+                      );
+                    },
+                  ),
+                  ActionChip(
+                    avatar: const Icon(Icons.sports_soccer_outlined, size: 16),
+                    label: Text(isKo ? '게임 90분' : 'Game 90m'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _createQuickTemplatePlan(
+                        day: selectedDay,
+                        category: isKo ? '게임 훈련' : 'Game',
+                        durationMinutes: 90,
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
       ),
     );
@@ -893,7 +901,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         await _openMealLog(day: selectedDay);
         break;
       case _CalendarCreateAction.plan:
-        await _openPlanSheet(day: selectedDay);
+        await _openPlanSheet(day: selectedDay, entries: entries);
         break;
       case _CalendarCreateAction.match:
         await _openMatchSheet(day: selectedDay, entries: entries);
@@ -1056,6 +1064,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _openPlanSheet({
     required DateTime day,
     _TrainingPlan? editingPlan,
+    List<TrainingEntry>? entries,
   }) async {
     final readOnly = _isParentMode && editingPlan != null;
     if (_isParentMode && !readOnly) {
@@ -1068,6 +1077,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (!mounted) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
+    final locationEntries =
+        entries ?? await widget.trainingService.allEntries();
+    if (!mounted) return;
+    final locationOptions = _planLocationOptions(locationEntries);
     final rawCategories = widget.optionRepository.getOptions('programs', [
       l10n.defaultProgram1,
       l10n.defaultProgram2,
@@ -1189,6 +1202,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 if (value == null) return;
                                 setSheetState(() => category = value);
                               },
+                            ),
+                            const SizedBox(height: 8),
+                            _CalendarAutocompleteField(
+                              initialValue: location,
+                              options: locationOptions,
+                              onChanged: (value) => location = value,
+                              textInputAction: TextInputAction.next,
+                              labelText: l10n.location,
+                              maxLength: 40,
+                              enabled: !readOnly,
                             ),
                             const SizedBox(height: 8),
                             Row(
@@ -1501,16 +1524,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 }),
                               ),
                             ],
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              initialValue: location,
-                              onChanged: (value) => location = value,
-                              maxLength: 40,
-                              decoration: InputDecoration(
-                                labelText: l10n.location,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
                             TextFormField(
                               initialValue: noteText,
                               onChanged: (value) => noteText = value,
@@ -1861,7 +1874,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            _MatchAutocompleteField(
+                            _CalendarAutocompleteField(
                               initialValue: opponent,
                               options: opponentOptions,
                               onChanged: (value) => opponent = value,
@@ -1871,7 +1884,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               enabled: !readOnly,
                             ),
                             const SizedBox(height: 8),
-                            _MatchAutocompleteField(
+                            _CalendarAutocompleteField(
                               initialValue: location,
                               options: locationOptions,
                               onChanged: (value) => location = value,
@@ -2112,7 +2125,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ...storedLocations,
       ...entries
           .where((entry) => entry.isMatch)
-          .map((entry) => entry.effectiveMatchLocation),
+        .map((entry) => entry.effectiveMatchLocation),
+    ]);
+  }
+
+  List<String> _planLocationOptions(List<TrainingEntry> entries) {
+    final l10n = AppLocalizations.of(context)!;
+    final localizedDefaults = [
+      l10n.defaultLocation1,
+      l10n.defaultLocation2,
+      l10n.defaultLocation3,
+    ];
+    final stored = widget.optionRepository.getOptions('locations', []);
+    final normalized = LocalizedOptionDefaults.normalizeOptions(
+      key: 'locations',
+      stored: stored,
+      localizedDefaults: localizedDefaults,
+    );
+    return _dedupeAutocompleteValues([
+      ...normalized,
+      ...entries
+          .where((entry) => !entry.isMatch)
+          .map((entry) => entry.location),
     ]);
   }
 
@@ -3576,22 +3610,24 @@ class _StatusIcon extends StatelessWidget {
   }
 }
 
-class _MatchAutocompleteField extends StatelessWidget {
+class _CalendarAutocompleteField extends StatelessWidget {
   final String initialValue;
   final List<String> options;
   final ValueChanged<String> onChanged;
   final String labelText;
   final String hintText;
   final TextInputAction textInputAction;
+  final int? maxLength;
   final bool enabled;
 
-  const _MatchAutocompleteField({
+  const _CalendarAutocompleteField({
     required this.initialValue,
     required this.options,
     required this.onChanged,
     required this.labelText,
-    required this.hintText,
     required this.textInputAction,
+    this.hintText = '',
+    this.maxLength,
     this.enabled = true,
   });
 
@@ -3624,11 +3660,12 @@ class _MatchAutocompleteField extends StatelessWidget {
               focusNode: focusNode,
               enabled: enabled,
               textInputAction: textInputAction,
+              maxLength: maxLength,
               onChanged: onChanged,
               onSubmitted: (_) => onFieldSubmitted(),
               decoration: InputDecoration(
                 labelText: labelText,
-                hintText: hintText,
+                hintText: hintText.isEmpty ? null : hintText,
               ),
             );
           },

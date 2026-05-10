@@ -268,7 +268,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                               );
                               return _TodayPlanHighlightCard(
                                 l10n: AppLocalizations.of(context)!,
-                                isKo: isKo,
                                 plans: data.todayPlans,
                                 count: data.todayPlanCount,
                                 onOpenPlans: widget.onOpenPlans,
@@ -1336,7 +1335,6 @@ bool _hasCompletedJumpRope(TrainingEntry entry) {
 
 class _TodayPlanHighlightCard extends StatelessWidget {
   final AppLocalizations l10n;
-  final bool isKo;
   final List<_DashboardPlan> plans;
   final int count;
   final VoidCallback onOpenPlans;
@@ -1344,7 +1342,6 @@ class _TodayPlanHighlightCard extends StatelessWidget {
 
   const _TodayPlanHighlightCard({
     required this.l10n,
-    required this.isKo,
     required this.plans,
     required this.count,
     required this.onOpenPlans,
@@ -1357,13 +1354,15 @@ class _TodayPlanHighlightCard extends StatelessWidget {
     final showLogAction =
         firstPlan != null && DateTime.now().isAfter(firstPlan.endsAt);
     final location = firstPlan?.location.trim() ?? '';
-    final summary = firstPlan == null
-        ? l10n.homeTodayPlanCardSummary(count)
-        : firstPlan.category.trim().isEmpty
-            ? l10n.homeTodayPlanCardSummary(count)
-            : isKo
-                ? '${l10n.homeTodayPlanCardSummary(count)} · ${firstPlan.category.trim()}${location.isEmpty ? '' : ' · $location'}'
-                : '${l10n.homeTodayPlanCardSummary(count)} · ${firstPlan.category.trim()}${location.isEmpty ? '' : ' · $location'}';
+    final category = firstPlan?.category.trim() ?? '';
+    final detailText = [
+      if (category.isNotEmpty) category,
+      if (location.isNotEmpty) location,
+    ].join(' · ');
+    final summary = [
+      l10n.homeTodayPlanCardSummary(count),
+      if (detailText.isNotEmpty) detailText,
+    ].join(' · ');
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1414,15 +1413,26 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                           ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      summary,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          summary,
+                          key: const ValueKey('today-plan-summary-text'),
+                          maxLines: 1,
+                          softWrap: false,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                                height: 1.12,
+                              ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
