@@ -37,7 +37,7 @@
   "newsMatchResultDraw": "Draw",
   "newsMatchResultLoss": "Loss",
   "homeTodayPlanCardTitle": "Today training plan",
-  "homeTodayPlanCardSummary": "Open your {count} saved plans for today.",
+  "homeTodayPlanCardSummary": "Today: {count} plan(s)",
   "@homeTodayPlanCardSummary": {
     "placeholders": {
       "count": {
@@ -691,9 +691,9 @@
   "mealCoachBodyTwoMealsLight": "Two meals are logged, but volume is light. Start by anchoring the next meal at one bowl.",
   "mealCoachBodyOneMeal": "Only one meal is recorded. Add another meal before worrying about training quality today.",
   "mealCoachBodyZeroMeal": "Start by checking off the three meals. Missing fewer meals matters more than detailed math.",
-  "mealXpFull": "3 meals complete +15 XP",
-  "mealXpFullBonus": "3 meals complete + 5+ rice bowls +20 XP",
-  "mealXpPartial": "2+ meals +5 XP",
+  "mealXpFull": "3 meals complete +8 XP",
+  "mealXpFullBonus": "3 meals complete + 5+ rice bowls +10 XP",
+  "mealXpPartial": "2+ meals +3 XP",
   "mealXpNeutral": "One meal or less gives no bonus",
   "homeMealCoachTitle": "Meal coach",
   "homeMealCoachRecordAction": "Log meals today",

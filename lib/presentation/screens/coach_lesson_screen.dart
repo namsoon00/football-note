@@ -45,6 +45,7 @@ import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'skill_quiz_screen.dart';
 import 'notification_center_screen.dart';
+import 'weather_detail_screen.dart';
 
 class CoachLessonScreen extends StatefulWidget {
   static const String todayViewedDiaryDayKey = 'coach_diary_completed_day_v2';
@@ -1177,6 +1178,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     }
   }
 
+  Future<void> _openWeatherSticker(_DiaryRecordStickerViewData sticker) async {
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) =>
+            WeatherDetailScreen(initialSummary: sticker.summary.trim()),
+      ),
+    );
+  }
+
   VoidCallback? _recordStickerTapHandler(
     _DiaryDayData day,
     _DiaryRecordStickerViewData sticker,
@@ -1184,7 +1194,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (sticker.kind == _DiaryRecordStickerKind.news) {
       return () => unawaited(_openNewsSticker(sticker));
     }
-    if (_isParentReadOnlyMode) return null;
     switch (sticker.kind) {
       case _DiaryRecordStickerKind.training:
       case _DiaryRecordStickerKind.match:
@@ -1198,9 +1207,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       case _DiaryRecordStickerKind.injury:
         return () => unawaited(_openEditableRecordSticker(day, sticker));
       case _DiaryRecordStickerKind.news:
+        return () => unawaited(_openNewsSticker(sticker));
       case _DiaryRecordStickerKind.weather:
+        return () => unawaited(_openWeatherSticker(sticker));
       case _DiaryRecordStickerKind.quiz:
-        return null;
+        return () => unawaited(_openQuiz());
     }
   }
 

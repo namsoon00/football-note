@@ -10,6 +10,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'domain/entities/training_entry.dart';
 import 'domain/repositories/option_repository.dart';
+import 'infrastructure/auto_backup_option_repository.dart';
 import 'infrastructure/hive_option_repository.dart';
 import 'infrastructure/hive_training_repository.dart';
 import 'application/training_service.dart';
@@ -44,12 +45,7 @@ Future<void> main() async {
   final optionBox = await Hive.openBox('options');
   await initializeDateFormatting('ko_KR');
   final trainingRepository = HiveTrainingRepository(trainingBox);
-  final optionRepository = HiveOptionRepository(optionBox);
-  final localeService = LocaleService(optionRepository);
-  localeService.load();
-  final settingsService = SettingsService(optionRepository);
-  settingsService.load();
-  final mealLogService = MealLogService(optionRepository);
+  final baseOptionRepository = HiveOptionRepository(optionBox);
   const webClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
   final driveBackupRepository = DriveBackupService(
     trainingBox,
@@ -57,6 +53,15 @@ Future<void> main() async {
     webClientId: webClientId,
   );
   final backupService = BackupService(driveBackupRepository);
+  final optionRepository = AutoBackupOptionRepository(
+    baseOptionRepository,
+    backupService,
+  );
+  final localeService = LocaleService(optionRepository);
+  localeService.load();
+  final settingsService = SettingsService(optionRepository);
+  settingsService.load();
+  final mealLogService = MealLogService(optionRepository);
   final trainingService = TrainingService(
     trainingRepository,
     backupService: backupService,

@@ -122,6 +122,38 @@ void main() {
     expect(optionBox.get('type_options'), ['technique', 'tactics']);
   });
 
+  test('auto backup defaults to daily and on-save enabled', () {
+    expect(service.isAutoDailyEnabled(), isTrue);
+    expect(service.isAutoOnSaveEnabled(), isTrue);
+  });
+
+  test(
+    'backs up option-backed app records used outside training entries',
+    () async {
+      await optionBox.putAll({
+        'training_plans_v1': '[{"id":"plan-1"}]',
+        'meal_logs_v1': '[{"id":"meal-1"}]',
+        'training_boards_v1': '[{"id":"board-1"}]',
+        'family_parent_training_feedback_v1': '{"items":[]}',
+        'skill_quiz_history_v1': '[{"id":"quiz-1"}]',
+        'news_opened_items_v1': '[{"id":"news-1"}]',
+      });
+
+      final backup = service.buildBackupForTesting();
+      final backupOptions = backup['options'] as Map<String, dynamic>;
+
+      expect(backupOptions['training_plans_v1'], '[{"id":"plan-1"}]');
+      expect(backupOptions['meal_logs_v1'], '[{"id":"meal-1"}]');
+      expect(backupOptions['training_boards_v1'], '[{"id":"board-1"}]');
+      expect(
+        backupOptions['family_parent_training_feedback_v1'],
+        '{"items":[]}',
+      );
+      expect(backupOptions['skill_quiz_history_v1'], '[{"id":"quiz-1"}]');
+      expect(backupOptions['news_opened_items_v1'], '[{"id":"news-1"}]');
+    },
+  );
+
   test('restore keeps local backup metadata unchanged', () async {
     await optionBox.put('drive_last_backup', '2026-02-01T08:00:00.000');
     final backup = <String, dynamic>{

@@ -124,7 +124,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String homeTodayPlanCardSummary(int count) {
-    return '등록된 계획 $count개를 바로 확인하세요.';
+    return '오늘 계획 $count개';
   }
 
   @override
@@ -1747,13 +1747,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '세 끼 체크부터 다시 시작하세요. 계산보다 끼니를 놓치지 않는 루틴이 우선입니다.';
 
   @override
-  String get mealXpFull => '세 끼 완료 +15 XP';
+  String get mealXpFull => '세 끼 완료 +8 XP';
 
   @override
-  String get mealXpFullBonus => '세 끼 완료 + 공기밥 5공기 이상 +20 XP';
+  String get mealXpFullBonus => '세 끼 완료 + 공기밥 5공기 이상 +10 XP';
 
   @override
-  String get mealXpPartial => '두 끼 이상 +5 XP';
+  String get mealXpPartial => '두 끼 이상 +3 XP';
 
   @override
   String get mealXpNeutral => '한 끼 이하 기록은 보너스 없음';

@@ -20,28 +20,29 @@ class PlayerLevelService {
   static const String customRewardNamesKey = 'player_custom_reward_names_v1';
   static const String plansStorageKey = 'training_plans_v1';
   static const int dailyPositiveXpCap = 65;
+  static const int maxLevelMasterySpan = 500;
 
   static const List<int> _levelThresholds = <int>[
     0,
-    35,
-    95,
-    190,
-    330,
-    520,
-    770,
-    1090,
-    1490,
-    1980,
-    2570,
-    3270,
-    4090,
-    5040,
-    6130,
-    7370,
-    8770,
-    10340,
-    12090,
-    14030,
+    25,
+    70,
+    140,
+    240,
+    380,
+    560,
+    790,
+    1080,
+    1430,
+    1850,
+    2340,
+    2910,
+    3560,
+    4300,
+    5140,
+    6080,
+    7130,
+    8300,
+    9600,
   ];
 
   static List<int> get levelThresholds =>
@@ -256,8 +257,10 @@ class PlayerLevelService {
       previousEntry,
       previousMealXp,
     );
-    final updatedRoutineComplete =
-        _isRoutineComplete(updatedEntry, updatedMealXp);
+    final updatedRoutineComplete = _isRoutineComplete(
+      updatedEntry,
+      updatedMealXp,
+    );
     if (!previousRoutineComplete &&
         updatedRoutineComplete &&
         awardedRoutineDays.add(dayToken)) {
@@ -972,6 +975,10 @@ class PlayerLevelState {
   final int xpIntoLevel;
   final int xpToNextLevel;
   final double progress;
+  final bool isMaxLevel;
+  final int maxLevelExtraXp;
+  final int masteryStars;
+  final int xpToNextMasteryStar;
 
   const PlayerLevelState({
     required this.totalXp,
@@ -980,6 +987,10 @@ class PlayerLevelState {
     required this.xpIntoLevel,
     required this.xpToNextLevel,
     required this.progress,
+    required this.isMaxLevel,
+    required this.maxLevelExtraXp,
+    required this.masteryStars,
+    required this.xpToNextMasteryStar,
   });
 
   factory PlayerLevelState.fromXp(int totalXp) {
@@ -997,6 +1008,26 @@ class PlayerLevelState {
       0,
       PlayerLevelService._levelThresholds.length - 1,
     )];
+    final isMaxLevel = level >= PlayerLevelService._levelThresholds.length;
+    if (isMaxLevel) {
+      final extraXp = (totalXp - currentLevelXp).clamp(0, 1000000).toInt();
+      const masterySpan = PlayerLevelService.maxLevelMasterySpan;
+      final masteryStars = extraXp ~/ masterySpan;
+      final masteryRemainder = extraXp % masterySpan;
+      final xpToNextMasteryStar = masterySpan - masteryRemainder;
+      return PlayerLevelState(
+        totalXp: totalXp,
+        level: level,
+        currentLevelXp: currentLevelXp,
+        xpIntoLevel: extraXp,
+        xpToNextLevel: xpToNextMasteryStar,
+        progress: (masteryRemainder / masterySpan).clamp(0.0, 1.0),
+        isMaxLevel: true,
+        maxLevelExtraXp: extraXp,
+        masteryStars: masteryStars,
+        xpToNextMasteryStar: xpToNextMasteryStar,
+      );
+    }
     final nextLevelXp = level >= PlayerLevelService._levelThresholds.length
         ? currentLevelXp + 2100
         : PlayerLevelService._levelThresholds[level];
@@ -1009,6 +1040,10 @@ class PlayerLevelState {
       xpIntoLevel: totalXp - currentLevelXp,
       xpToNextLevel: nextLevelXp - totalXp,
       progress: progress,
+      isMaxLevel: false,
+      maxLevelExtraXp: 0,
+      masteryStars: 0,
+      xpToNextMasteryStar: 0,
     );
   }
 }
