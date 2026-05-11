@@ -125,7 +125,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeTodayPlanCardSummary(int count) {
-    return 'Open your $count saved plans for today.';
+    return 'Today: $count plan(s)';
   }
 
   @override
@@ -1796,13 +1796,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start by checking off the three meals. Missing fewer meals matters more than detailed math.';
 
   @override
-  String get mealXpFull => '3 meals complete +15 XP';
+  String get mealXpFull => '3 meals complete +8 XP';
 
   @override
-  String get mealXpFullBonus => '3 meals complete + 5+ rice bowls +20 XP';
+  String get mealXpFullBonus => '3 meals complete + 5+ rice bowls +10 XP';
 
   @override
-  String get mealXpPartial => '2+ meals +5 XP';
+  String get mealXpPartial => '2+ meals +3 XP';
 
   @override
   String get mealXpNeutral => 'One meal or less gives no bonus';

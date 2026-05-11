@@ -23,47 +23,46 @@ class PlayerXpGuideScreen extends StatelessWidget {
           _XpGuideItem(
             icon: Icons.edit_note_outlined,
             title: isKo ? '훈련 기록 저장' : 'Training log saved',
-            xpLabel: '+20 XP',
+            xpLabel: '+15 XP',
           ),
           _XpGuideItem(
             icon: Icons.wb_sunny_outlined,
             title: isKo ? '하루 첫 훈련 기록' : 'First log of the day',
-            xpLabel: '+10 XP',
+            xpLabel: '+5 XP',
           ),
           _XpGuideItem(
             icon: Icons.event_available_outlined,
             title: isKo ? '계획한 날 훈련 완료' : 'Complete a planned day',
-            xpLabel: '+25 XP',
+            xpLabel: '+12 XP',
           ),
           _XpGuideItem(
             icon: Icons.sports_soccer_outlined,
             title: isKo ? '리프팅 기록 추가' : 'Lifting recorded',
-            xpLabel: '+10 XP',
+            xpLabel: '+6 XP',
           ),
           _XpGuideItem(
             icon: Icons.fitness_center_outlined,
             title: isKo ? '줄넘기 기록 추가' : 'Jump rope recorded',
-            xpLabel: '+10 XP',
+            xpLabel: '+6 XP',
           ),
           _XpGuideItem(
             icon: Icons.remove_circle_outline,
             title: isKo
                 ? '리프팅/줄넘기 없이 저장하면 감점'
                 : 'Missing lifting or jump rope costs XP',
-            xpLabel: isKo ? '-10 XP씩' : '-10 XP each',
+            xpLabel: isKo ? '-5 XP씩' : '-5 XP each',
           ),
           _XpGuideItem(
             icon: Icons.rice_bowl_outlined,
             title: isKo ? '식사 기록 저장' : 'Meal log saved',
-            xpLabel:
-                isKo ? '+5 XP / +15 XP / +20 XP' : '+5 XP / +15 XP / +20 XP',
+            xpLabel: '+3 XP / +8 XP / +10 XP',
           ),
           _XpGuideItem(
             icon: Icons.task_alt_outlined,
             title: isKo
                 ? '하루 루틴 완주 (리프팅+줄넘기+식사)'
                 : 'Daily routine complete (lifting+jump rope+meal)',
-            xpLabel: '+20 XP',
+            xpLabel: '+6 XP',
           ),
         ],
       ),
@@ -76,23 +75,24 @@ class PlayerXpGuideScreen extends StatelessWidget {
           _XpGuideItem(
             icon: Icons.quiz_outlined,
             title: isKo ? '퀴즈 완료' : 'Quiz completion',
-            xpLabel: '+15 XP',
+            xpLabel: '+8 XP',
           ),
           _XpGuideItem(
             icon: Icons.auto_stories_outlined,
             title: isKo ? '오늘 다이어리 작성' : 'Today diary created',
-            xpLabel: '+5 XP',
+            xpLabel: '+3 XP',
           ),
           _XpGuideItem(
             icon: Icons.event_note_outlined,
             title: isKo ? '훈련 계획 생성' : 'Training plan created',
-            xpLabel: '+10 XP',
+            xpLabel: '+6 XP',
           ),
           _XpGuideItem(
             icon: Icons.repeat_outlined,
             title: isKo ? '묶음 계획 생성 보너스' : 'Plan series bonus',
-            xpLabel:
-                isKo ? '+5 XP씩 추가 (최대 +20 XP)' : '+5 XP each (up to +20 XP)',
+            xpLabel: isKo
+                ? '+3 XP씩 추가 (최대 +12 XP)'
+                : '+3 XP each (up to +12 XP)',
           ),
         ],
       ),
@@ -105,12 +105,12 @@ class PlayerXpGuideScreen extends StatelessWidget {
           _XpGuideItem(
             icon: Icons.developer_board_outlined,
             title: isKo ? '새 훈련 스케치 생성' : 'Training sketch created',
-            xpLabel: '+12 XP',
+            xpLabel: '+5 XP',
           ),
           _XpGuideItem(
             icon: Icons.save_outlined,
             title: isKo ? '훈련 스케치 저장' : 'Training sketch saved',
-            xpLabel: '+8 XP',
+            xpLabel: '+2 XP',
           ),
         ],
       ),
@@ -123,18 +123,17 @@ class PlayerXpGuideScreen extends StatelessWidget {
           _XpGuideItem(
             icon: Icons.local_fire_department_outlined,
             title: isKo ? '3일 연속 기록 / 7일 연속 기록' : '3-day / 7-day streak',
-            xpLabel: isKo ? '+25 XP / +60 XP' : '+25 XP / +60 XP',
+            xpLabel: '+12 XP / +25 XP',
           ),
           _XpGuideItem(
             icon: Icons.bolt_outlined,
             title: isKo ? '연속 기록 데일리 보너스' : 'Daily bonus from streak logging',
-            xpLabel:
-                isKo ? '+5 XP / +10 XP / +15 XP' : '+5 XP / +10 XP / +15 XP',
+            xpLabel: '+3 XP / +6 XP / +10 XP',
           ),
           _XpGuideItem(
             icon: Icons.bar_chart_outlined,
             title: isKo ? '주간 3회 기록 / 5회 기록' : '3 logs / 5 logs in a week',
-            xpLabel: isKo ? '+40 XP / +70 XP' : '+40 XP / +70 XP',
+            xpLabel: '+18 XP / +30 XP',
           ),
         ],
       ),
@@ -197,7 +196,11 @@ class _XpGuideHeroCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             isKo
-                ? '어떤 행동이 경험치를 주는지 한 화면에서 이해할 수 있게 정리했습니다. 다음 레벨까지 ${levelState.xpToNextLevel} XP 남았어요.'
+                ? levelState.isMaxLevel
+                      ? 'Lv.20 이후에는 ${PlayerLevelService.maxLevelMasterySpan} XP마다 마스터리 별을 얻어요. 다음 별까지 ${levelState.xpToNextMasteryStar} XP 남았어요.'
+                      : '어떤 행동이 경험치를 주는지 한 화면에서 이해할 수 있게 정리했습니다. 다음 레벨까지 ${levelState.xpToNextLevel} XP 남았어요.'
+                : levelState.isMaxLevel
+                ? 'After Lv.20, every ${PlayerLevelService.maxLevelMasterySpan} XP earns a mastery star. ${levelState.xpToNextMasteryStar} XP remains until the next star.'
                 : 'This page groups every XP source clearly. ${levelState.xpToNextLevel} XP remains until the next level.',
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,

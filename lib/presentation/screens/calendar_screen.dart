@@ -106,6 +106,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   late final TrainingPlanReminderService _reminderService;
   late final TrainingPlanBadgeService _badgeService;
   List<_TrainingPlan> _plans = const <_TrainingPlan>[];
+  String _plansStorageRaw = '';
   bool _quickCreateHandled = false;
   bool _overlayOpenInFlight = false;
 
@@ -117,7 +118,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       widget.settingsService,
     );
     _badgeService = TrainingPlanBadgeService(widget.optionRepository);
-    _plans = _loadPlans();
+    _reloadPlansFromStorage();
     NewsBadgeService.refresh(widget.optionRepository);
     _calendarExpanded =
         widget.optionRepository.getValue<bool>(_calendarExpandedKey) ?? true;
@@ -253,6 +254,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final isParentMode = FamilyAccessService(
       widget.optionRepository,
     ).loadState().isParentMode;
+    _refreshPlansFromStorageIfChanged();
     return Scaffold(
       drawer: AppDrawer(
         trainingService: widget.trainingService,
@@ -2543,9 +2545,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return false;
   }
 
-  List<_TrainingPlan> _loadPlans() {
+  void _reloadPlansFromStorage() {
     final raw = widget.optionRepository.getValue<String>(_plansStorageKey);
-    if (raw == null || raw.isEmpty) return const <_TrainingPlan>[];
+    _plansStorageRaw = raw ?? '';
+    _plans = _decodePlans(_plansStorageRaw);
+  }
+
+  void _refreshPlansFromStorageIfChanged() {
+    final raw =
+        widget.optionRepository.getValue<String>(_plansStorageKey) ?? '';
+    if (raw == _plansStorageRaw) return;
+    _plansStorageRaw = raw;
+    _plans = _decodePlans(raw);
+    unawaited(_badgeService.syncFromStorage());
+    unawaited(_syncPlanReminders());
+  }
+
+  List<_TrainingPlan> _decodePlans(String raw) {
+    if (raw.isEmpty) return const <_TrainingPlan>[];
     try {
       final list = jsonDecode(raw);
       if (list is! List) return const <_TrainingPlan>[];
@@ -2567,6 +2584,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
     final raw = jsonEncode(_plans.map((plan) => plan.toMap()).toList());
     await widget.optionRepository.setValue(_plansStorageKey, raw);
+    _plansStorageRaw = raw;
     await _badgeService.syncFromStorage();
   }
 

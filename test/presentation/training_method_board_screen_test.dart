@@ -19,6 +19,33 @@ void main() {
     expect(routes[1].points, hasLength(2));
   });
 
+  test('training sketch routes preserve draw timing segments', () {
+    final encoded = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Timed route',
+          items: <TrainingMethodItem>[],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'timed-player',
+              kind: TrainingMethodRouteKind.player,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.2),
+                TrainingMethodPoint(x: 0.4, y: 0.3),
+                TrainingMethodPoint(x: 0.8, y: 0.7),
+              ],
+              segmentDurationsMs: <int>[80, 460],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    final decoded = TrainingMethodLayout.decode(encoded);
+
+    expect(decoded.pages.single.routes.single.segmentDurationsMs, [80, 460]);
+  });
+
   testWidgets('training sketch auto saves after memo edit', (
     WidgetTester tester,
   ) async {

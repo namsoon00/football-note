@@ -74,16 +74,14 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
             children: [
               _LevelGuideSummaryCard(
                 isKo: isKo,
-                currentLevel: currentState.level,
-                totalXp: currentState.totalXp,
-                xpToNextLevel: currentState.xpToNextLevel,
+                levelState: currentState,
                 roleLabel: familyState.isParentMode
                     ? l10n.levelGuideParentModeLabel
                     : l10n.levelGuideChildModeLabel,
                 syncStatusLabel:
                     familyState.isParentMode && _syncingRewardLevel != null
-                        ? l10n.parentSharedSyncInProgress
-                        : null,
+                    ? l10n.parentSharedSyncInProgress
+                    : null,
                 modeInfoTooltip: l10n.levelGuideModeInfoTooltip,
                 onModeInfoPressed: () => _showModeInfoDialog(
                   context,
@@ -95,9 +93,11 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                       : l10n.levelGuideChildModeDescription,
                 ),
               ),
-              for (var levelIndex = 0;
-                  levelIndex < thresholds.length;
-                  levelIndex++) ...[
+              for (
+                var levelIndex = 0;
+                levelIndex < thresholds.length;
+                levelIndex++
+              ) ...[
                 const SizedBox(height: 12),
                 _LevelGuideCard(
                   level: levelIndex + 1,
@@ -113,14 +113,15 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                   canClaimReward: familyState.isChildMode,
                   claimDisabledLabel: l10n.levelGuideClaimChildOnly,
                   onClaimReward: () => _claimReward(levelIndex + 1),
-                  onEditRewardName: rewardByLevel[levelIndex + 1] == null ||
+                  onEditRewardName:
+                      rewardByLevel[levelIndex + 1] == null ||
                           !familyState.isParentMode ||
                           _syncingRewardLevel == levelIndex + 1
                       ? null
                       : () => _editRewardName(
-                            context,
-                            rewardByLevel[levelIndex + 1]!,
-                          ),
+                          context,
+                          rewardByLevel[levelIndex + 1]!,
+                        ),
                 ),
               ],
             ],
@@ -187,10 +188,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
     ).loadState();
     if (familyState.isParentMode && mounted) {
       setState(() => _syncingRewardLevel = status.reward.level);
-      AppFeedback.showMessage(
-        context,
-        text: l10n.parentSharedSyncInProgress,
-      );
+      AppFeedback.showMessage(context, text: l10n.parentSharedSyncInProgress);
     }
     final didSync = await _syncSharedBackupIfPossible();
     if (mounted && _syncingRewardLevel == status.reward.level) {
@@ -203,9 +201,8 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
     final baseMessage = saved.trim().isEmpty
         ? l10n.levelGuideRewardCleared
         : l10n.levelGuideRewardSaved;
-    final syncMessage = FamilyAccessService(widget.optionRepository)
-            .loadState()
-            .isParentMode
+    final syncMessage =
+        FamilyAccessService(widget.optionRepository).loadState().isParentMode
         ? (didSync ? l10n.parentSharedSyncDone : l10n.parentSharedSyncPending)
         : '';
     AppFeedback.showSuccess(
@@ -252,9 +249,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
 
 class _LevelGuideSummaryCard extends StatelessWidget {
   final bool isKo;
-  final int currentLevel;
-  final int totalXp;
-  final int xpToNextLevel;
+  final PlayerLevelState levelState;
   final String roleLabel;
   final String? syncStatusLabel;
   final String modeInfoTooltip;
@@ -262,9 +257,7 @@ class _LevelGuideSummaryCard extends StatelessWidget {
 
   const _LevelGuideSummaryCard({
     required this.isKo,
-    required this.currentLevel,
-    required this.totalXp,
-    required this.xpToNextLevel,
+    required this.levelState,
     required this.roleLabel,
     required this.syncStatusLabel,
     required this.modeInfoTooltip,
@@ -286,15 +279,15 @@ class _LevelGuideSummaryCard extends StatelessWidget {
           Text(
             isKo ? '현재 진행 상태' : 'Current progress',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.w900,
-                ),
+              color: scheme.primary,
+              fontWeight: FontWeight.w900,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
             isKo
-                ? 'Lv.$currentLevel · 총 $totalXp XP'
-                : 'Lv.$currentLevel · $totalXp XP total',
+                ? 'Lv.${levelState.level} · 총 ${levelState.totalXp} XP'
+                : 'Lv.${levelState.level} · ${levelState.totalXp} XP total',
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
@@ -302,8 +295,12 @@ class _LevelGuideSummaryCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             isKo
-                ? '다음 레벨까지 $xpToNextLevel XP 남았습니다. 우측 상단에서 경험치 가이드와 히스토리를 바로 열 수 있어요.'
-                : '$xpToNextLevel XP left until the next level. Use the top-right actions for the XP guide and history.',
+                ? levelState.isMaxLevel
+                      ? '마스터리 별 ${levelState.masteryStars}개 · 다음 별까지 ${levelState.xpToNextMasteryStar} XP 남았습니다.'
+                      : '다음 레벨까지 ${levelState.xpToNextLevel} XP 남았습니다. 우측 상단에서 경험치 가이드와 히스토리를 바로 열 수 있어요.'
+                : levelState.isMaxLevel
+                ? '${levelState.masteryStars} mastery star(s) · ${levelState.xpToNextMasteryStar} XP left until the next star.'
+                : '${levelState.xpToNextLevel} XP left until the next level. Use the top-right actions for the XP guide and history.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 10),
@@ -322,9 +319,9 @@ class _LevelGuideSummaryCard extends StatelessWidget {
                       child: Text(
                         roleLabel,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.w900,
-                            ),
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
                     IconButton(
@@ -545,8 +542,8 @@ class _LevelGuideCard extends StatelessWidget {
                   maxXp == null
                       ? (isKo ? '$minXp XP 이상' : '$minXp XP+')
                       : (isKo
-                          ? '$minXp XP ~ $maxXp XP'
-                          : '$minXp XP to $maxXp XP'),
+                            ? '$minXp XP ~ $maxXp XP'
+                            : '$minXp XP to $maxXp XP'),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.88),
                     fontWeight: FontWeight.w600,
@@ -588,11 +585,11 @@ class _LevelGuideCard extends StatelessWidget {
                                   Expanded(
                                     child: Text(
                                       isKo ? '레벨 선물' : 'Level reward',
-                                      style:
-                                          theme.textTheme.labelLarge?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w900,
-                                      ),
+                                      style: theme.textTheme.labelLarge
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900,
+                                          ),
                                     ),
                                   ),
                                   if (onEditRewardName != null)
@@ -670,8 +667,9 @@ class _LevelGuideCard extends StatelessWidget {
                     _WhitePill(label: claimDisabledLabel)
                   else
                     _WhitePill(
-                      label:
-                          isKo ? 'Lv.$level 달성 시 수령 가능' : 'Claim at Lv.$level',
+                      label: isKo
+                          ? 'Lv.$level 달성 시 수령 가능'
+                          : 'Claim at Lv.$level',
                     ),
                 ],
               ],
@@ -705,9 +703,9 @@ class _WhitePill extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-            ),
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }

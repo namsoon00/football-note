@@ -83,17 +83,17 @@ class TrainingMethodPage {
     final rawItems = map['items'];
     final items = rawItems is List
         ? rawItems
-            .whereType<Map>()
-            .toList(growable: false)
-            .asMap()
-            .entries
-            .map(
-              (entry) => TrainingMethodItem.fromMap(
-                entry.value.cast<String, dynamic>(),
-                fallbackId: 'item_${entry.key + 1}',
-              ),
-            )
-            .toList(growable: false)
+              .whereType<Map>()
+              .toList(growable: false)
+              .asMap()
+              .entries
+              .map(
+                (entry) => TrainingMethodItem.fromMap(
+                  entry.value.cast<String, dynamic>(),
+                  fallbackId: 'item_${entry.key + 1}',
+                ),
+              )
+              .toList(growable: false)
         : const <TrainingMethodItem>[];
     final routes = _decodeRoutes(map);
     return TrainingMethodPage(
@@ -104,23 +104,22 @@ class TrainingMethodPage {
       items: items,
       strokes: (map['strokes'] is List)
           ? (map['strokes'] as List)
-              .whereType<Map>()
-              .map(
-                (e) => TrainingMethodStroke.fromMap(e.cast<String, dynamic>()),
-              )
-              .toList(growable: false)
+                .whereType<Map>()
+                .map(
+                  (e) =>
+                      TrainingMethodStroke.fromMap(e.cast<String, dynamic>()),
+                )
+                .toList(growable: false)
           : const <TrainingMethodStroke>[],
       routes: routes,
     );
   }
 
-  List<TrainingMethodPoint> get playerPath => _legacyPathFor(
-        TrainingMethodRouteKind.player,
-      );
+  List<TrainingMethodPoint> get playerPath =>
+      _legacyPathFor(TrainingMethodRouteKind.player);
 
-  List<TrainingMethodPoint> get ballPath => _legacyPathFor(
-        TrainingMethodRouteKind.ball,
-      );
+  List<TrainingMethodPoint> get ballPath =>
+      _legacyPathFor(TrainingMethodRouteKind.ball);
 
   List<TrainingMethodPoint> _legacyPathFor(TrainingMethodRouteKind kind) {
     final route = routes.firstWhere(
@@ -135,14 +134,14 @@ class TrainingMethodPage {
   }
 
   Map<String, dynamic> toMap() => {
-        'name': name,
-        'methodText': methodText,
-        'items': items.map((e) => e.toMap()).toList(growable: false),
-        'strokes': strokes.map((e) => e.toMap()).toList(growable: false),
-        'routes': routes.map((e) => e.toMap()).toList(growable: false),
-        'playerPath': playerPath.map((e) => e.toMap()).toList(growable: false),
-        'ballPath': ballPath.map((e) => e.toMap()).toList(growable: false),
-      };
+    'name': name,
+    'methodText': methodText,
+    'items': items.map((e) => e.toMap()).toList(growable: false),
+    'strokes': strokes.map((e) => e.toMap()).toList(growable: false),
+    'routes': routes.map((e) => e.toMap()).toList(growable: false),
+    'playerPath': playerPath.map((e) => e.toMap()).toList(growable: false),
+    'ballPath': ballPath.map((e) => e.toMap()).toList(growable: false),
+  };
 }
 
 class TrainingMethodItem {
@@ -187,14 +186,14 @@ class TrainingMethodItem {
   }
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'type': type,
-        'x': x,
-        'y': y,
-        'size': size,
-        'rotationDeg': rotationDeg,
-        'colorValue': colorValue,
-      };
+    'id': id,
+    'type': type,
+    'x': x,
+    'y': y,
+    'size': size,
+    'rotationDeg': rotationDeg,
+    'colorValue': colorValue,
+  };
 }
 
 class TrainingMethodStroke {
@@ -212,11 +211,11 @@ class TrainingMethodStroke {
     final rawPoints = map['points'];
     final parsedPoints = rawPoints is List
         ? rawPoints
-            .whereType<Map>()
-            .map(
-              (e) => TrainingMethodPoint.fromMap(e.cast<String, dynamic>()),
-            )
-            .toList(growable: false)
+              .whereType<Map>()
+              .map(
+                (e) => TrainingMethodPoint.fromMap(e.cast<String, dynamic>()),
+              )
+              .toList(growable: false)
         : const <TrainingMethodPoint>[];
     return TrainingMethodStroke(
       points: parsedPoints,
@@ -226,10 +225,10 @@ class TrainingMethodStroke {
   }
 
   Map<String, dynamic> toMap() => {
-        'points': points.map((e) => e.toMap()).toList(growable: false),
-        'colorValue': colorValue,
-        'width': width,
-      };
+    'points': points.map((e) => e.toMap()).toList(growable: false),
+    'colorValue': colorValue,
+    'width': width,
+  };
 }
 
 enum TrainingMethodRouteKind { player, ball }
@@ -239,6 +238,7 @@ class TrainingMethodRoute {
   final TrainingMethodRouteKind kind;
   final String? linkedItemId;
   final List<TrainingMethodPoint> points;
+  final List<int> segmentDurationsMs;
   final int colorValue;
   final double width;
 
@@ -246,6 +246,7 @@ class TrainingMethodRoute {
     this.id = '',
     required this.kind,
     required this.points,
+    this.segmentDurationsMs = const <int>[],
     this.linkedItemId,
     this.colorValue = 0xFF80D8FF,
     this.width = 4.0,
@@ -263,28 +264,37 @@ class TrainingMethodRoute {
           : (map['linkedItemId'] as String?),
       points: (map['points'] is List)
           ? (map['points'] as List)
-              .whereType<Map>()
-              .map(
-                (e) => TrainingMethodPoint.fromMap(e.cast<String, dynamic>()),
-              )
-              .toList(growable: false)
+                .whereType<Map>()
+                .map(
+                  (e) => TrainingMethodPoint.fromMap(e.cast<String, dynamic>()),
+                )
+                .toList(growable: false)
           : const <TrainingMethodPoint>[],
-      colorValue: (map['colorValue'] as num?)?.toInt() ??
+      segmentDurationsMs: (map['segmentDurationsMs'] is List)
+          ? (map['segmentDurationsMs'] as List)
+                .map((value) => value is num ? value.toInt() : 0)
+                .where((value) => value > 0)
+                .toList(growable: false)
+          : const <int>[],
+      colorValue:
+          (map['colorValue'] as num?)?.toInt() ??
           _defaultColorForRouteKind(fallbackKind),
-      width: ((map['width'] as num?)?.toDouble() ??
-              _defaultWidthForRouteKind(fallbackKind))
-          .clamp(1.0, 12.0),
+      width:
+          ((map['width'] as num?)?.toDouble() ??
+                  _defaultWidthForRouteKind(fallbackKind))
+              .clamp(1.0, 12.0),
     );
   }
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'kind': kind.name,
-        if (linkedItemId != null) 'linkedItemId': linkedItemId,
-        'points': points.map((e) => e.toMap()).toList(growable: false),
-        'colorValue': colorValue,
-        'width': width,
-      };
+    'id': id,
+    'kind': kind.name,
+    if (linkedItemId != null) 'linkedItemId': linkedItemId,
+    'points': points.map((e) => e.toMap()).toList(growable: false),
+    if (segmentDurationsMs.isNotEmpty) 'segmentDurationsMs': segmentDurationsMs,
+    'colorValue': colorValue,
+    'width': width,
+  };
 }
 
 class TrainingMethodPoint {

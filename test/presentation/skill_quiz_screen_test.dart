@@ -100,6 +100,33 @@ void main() {
     expect(find.textContaining('디로드'), findsWidgets);
   });
 
+  testWidgets('quiz library includes formation questions', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byTooltip('전체 문제 보기'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '4-2-3-1');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('4-2-3-1'), findsWidgets);
+
+    await tester.enterText(find.byType(TextField), '윙백');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('윙백'), findsWidgets);
+  });
+
   testWidgets('skill quiz restores saved general football question session', (
     WidgetTester tester,
   ) async {

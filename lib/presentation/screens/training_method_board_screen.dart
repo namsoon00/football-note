@@ -61,6 +61,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   Color _penColor = const Color(0xFF000000);
   List<Offset>? _activeStroke;
   List<Offset>? _activeRoutePoints;
+  List<int>? _activeRouteSegmentDurationsMs;
+  DateTime? _activeRouteLastPointAt;
   late final AnimationController _playController;
   List<_PlaybackTrack> _playbackTracks = const <_PlaybackTrack>[];
   _PathDrawMode _pathDrawMode = _PathDrawMode.player;
@@ -195,6 +197,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 points: route.points
                     .map((point) => Offset(point.x, point.y))
                     .toList(growable: true),
+                segmentDurationsMs: route.segmentDurationsMs.toList(
+                  growable: true,
+                ),
                 color: Color(route.colorValue),
                 width: route.width,
               ),
@@ -285,6 +290,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 points: route.points
                     .map((point) => Offset(point.x, point.y))
                     .toList(growable: true),
+                segmentDurationsMs: route.segmentDurationsMs.toList(
+                  growable: true,
+                ),
                 color: Color(route.colorValue),
                 width: route.width,
               ),
@@ -301,6 +309,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _pathMode = false;
     _activeStroke = null;
     _activeRoutePoints = null;
+    _activeRouteSegmentDurationsMs = null;
+    _activeRouteLastPointAt = null;
     _routeReplaceMode = false;
     _playbackTracks = const <_PlaybackTrack>[];
     _methodController.text = _currentPage.methodText;
@@ -489,6 +499,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                             TrainingMethodPoint(x: point.dx, y: point.dy),
                       )
                       .toList(growable: false),
+                  segmentDurationsMs: route.segmentDurationsMs.toList(
+                    growable: false,
+                  ),
                   colorValue: route.color.toARGB32(),
                   width: route.width,
                 ),
@@ -828,13 +841,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       if (item == null || !assignedItemIds.add(item.id)) continue;
       final totalDistanceMeters = _pathDistanceMeters(route.points);
       if (totalDistanceMeters <= 0.01) continue;
+      final speedMetersPerSecond = _playbackSpeedMetersPerSecond(route.kind);
       tracks.add(
         _PlaybackTrack(
           item: item,
           route: route,
           startPosition: Offset(item.x, item.y),
-          totalDistanceMeters: totalDistanceMeters,
-          speedMetersPerSecond: _playbackSpeedMetersPerSecond(route.kind),
+          segments: _playbackSegmentsForRoute(
+            route,
+            totalDistanceMeters: totalDistanceMeters,
+            speedMetersPerSecond: speedMetersPerSecond,
+          ),
         ),
       );
     }
@@ -1223,6 +1240,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               points: route.points
                   .map((point) => Offset(point.x, point.y))
                   .toList(growable: true),
+              segmentDurationsMs: route.segmentDurationsMs.toList(
+                growable: true,
+              ),
               color: Color(route.colorValue),
               width: route.width,
             ),
@@ -1250,6 +1270,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _pathMode = false;
       _methodController.text = _currentPage.methodText;
       _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
       _routeReplaceMode = false;
       _playbackTracks = const <_PlaybackTrack>[];
     });
@@ -1534,6 +1556,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final y = (localPosition.dy / height).clamp(0.0, 1.0);
     setState(() {
       _activeRoutePoints = <Offset>[Offset(x, y)];
+      _activeRouteSegmentDurationsMs = <int>[];
+      _activeRouteLastPointAt = DateTime.now();
     });
   }
 
@@ -1542,8 +1566,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (points == null) return;
     final x = (localPosition.dx / width).clamp(0.0, 1.0);
     final y = (localPosition.dy / height).clamp(0.0, 1.0);
+    final now = DateTime.now();
+    final lastPointAt = _activeRouteLastPointAt ?? now;
+    final segmentMs = now
+        .difference(lastPointAt)
+        .inMilliseconds
+        .clamp(16, 4000)
+        .toInt();
     setState(() {
       points.add(Offset(x, y));
+      _activeRouteSegmentDurationsMs?.add(segmentMs);
+      _activeRouteLastPointAt = now;
     });
   }
 
@@ -1552,10 +1585,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (points == null || points.length < 2) {
       setState(() {
         _activeRoutePoints = null;
+        _activeRouteSegmentDurationsMs = null;
+        _activeRouteLastPointAt = null;
         _routeReplaceMode = false;
       });
       return;
     }
+    final segmentDurationsMs = _normalizedRouteSegmentDurations(
+      pointCount: points.length,
+      rawDurationsMs: _activeRouteSegmentDurationsMs,
+    );
     final replacementRoute = _routeToUpdateForPath(_pathDrawMode);
     final selectedItem = _selectedItem;
     final preferredItemId =
@@ -1574,6 +1613,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (resolvedLinkedItem == null) {
       setState(() {
         _activeRoutePoints = null;
+        _activeRouteSegmentDurationsMs = null;
+        _activeRouteLastPointAt = null;
         _routeReplaceMode = false;
       });
       _showRouteCapacitySnackBar(_pathDrawMode);
@@ -1585,6 +1626,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         replacementRoute.points
           ..clear()
           ..addAll(points);
+        replacementRoute.segmentDurationsMs
+          ..clear()
+          ..addAll(segmentDurationsMs);
         replacementRoute.linkedItemId = nextLinkedItemId;
         replacementRoute.color = _routeColorFor(
           kind: _pathDrawMode,
@@ -1597,6 +1641,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           kind: _pathDrawMode,
           linkedItemId: nextLinkedItemId,
           points: List<Offset>.from(points),
+          segmentDurationsMs: List<int>.from(segmentDurationsMs),
           color: _routeColorFor(
             kind: _pathDrawMode,
             linkedItemId: nextLinkedItemId,
@@ -1607,6 +1652,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _selectedRouteId = route.id;
       }
       _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
       _routeReplaceMode = false;
     });
     _scheduleAutoSave();
@@ -1638,6 +1685,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       }
       _activeStroke = null;
       _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
       _routeReplaceMode = false;
     });
   }
@@ -1650,6 +1699,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _pathMode = true;
       _penMode = false;
       _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
       if (route.linkedItemId != null) {
         _selectedItemId = route.linkedItemId;
       }
@@ -1670,6 +1721,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _selectedRouteId = null;
       _routeReplaceMode = false;
       _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
     });
     _scheduleAutoSave();
   }
@@ -1680,6 +1733,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _currentPage.routes.clear();
       _selectedRouteId = null;
       _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
       _routeReplaceMode = false;
     });
     _scheduleAutoSave();
@@ -1714,6 +1769,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _routeReplaceMode = false;
       _activeStroke = null;
       _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
     });
   }
 
@@ -1810,15 +1867,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final elapsedSeconds =
         (duration.inMicroseconds * _playController.value) /
         Duration.microsecondsPerSecond;
+    final routeElapsedSeconds =
+        elapsedSeconds * _playSpeed.clamp(0.75, 1.5).toDouble();
     setState(() {
       for (final track in _playbackTracks) {
-        if (track.route.points.length < 2) continue;
-        final position = _samplePathPointAtDistanceMeters(
-          track.route.points,
-          math.min(
-            track.totalDistanceMeters,
-            elapsedSeconds * track.speedMetersPerSecond,
-          ),
+        if (track.segments.isEmpty) continue;
+        final position = _samplePlaybackSegments(
+          track.segments,
+          routeElapsedSeconds,
         );
         track.item.x = position.dx.clamp(0.03, 0.97);
         track.item.y = position.dy.clamp(0.03, 0.97);
@@ -1979,11 +2035,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     final slowestTrackMs = tracks.fold<int>(
       0,
-      (currentMax, track) => math.max(
-        currentMax,
-        ((track.totalDistanceMeters / track.speedMetersPerSecond) * 1000)
-            .round(),
-      ),
+      (currentMax, track) =>
+          math.max(currentMax, (track.durationSeconds * 1000).round()),
     );
     final adjustedMs = (slowestTrackMs / _playSpeed.clamp(0.75, 1.5).toDouble())
         .round();
@@ -1999,31 +2052,74 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     };
   }
 
-  Offset _samplePathPointAtDistanceMeters(
-    List<Offset> points,
-    double distance,
-  ) {
-    if (points.isEmpty) return const Offset(0.5, 0.5);
-    if (points.length == 1) return points.first;
-    final lengths = <double>[];
-    var total = 0.0;
+  List<int> _normalizedRouteSegmentDurations({
+    required int pointCount,
+    required List<int>? rawDurationsMs,
+  }) {
+    final segmentCount = math.max(0, pointCount - 1);
+    if (segmentCount == 0) return const <int>[];
+    final source = rawDurationsMs ?? const <int>[];
+    return List<int>.generate(segmentCount, (index) {
+      if (index >= source.length) return 120;
+      return source[index].clamp(16, 4000).toInt();
+    }, growable: false);
+  }
+
+  List<_PlaybackSegment> _playbackSegmentsForRoute(
+    _BoardRoute route, {
+    required double totalDistanceMeters,
+    required double speedMetersPerSecond,
+  }) {
+    final points = route.points;
+    if (points.length < 2 || totalDistanceMeters <= 0) {
+      return const <_PlaybackSegment>[];
+    }
+    final segmentDistances = <double>[];
     for (var i = 0; i < points.length - 1; i++) {
-      final segment = _segmentDistanceMeters(points[i], points[i + 1]);
-      lengths.add(segment);
-      total += segment;
+      segmentDistances.add(_segmentDistanceMeters(points[i], points[i + 1]));
     }
-    if (total <= 0.0001) return points.last;
-    final target = distance.clamp(0.0, total).toDouble();
-    var walked = 0.0;
-    for (var i = 0; i < lengths.length; i++) {
-      final len = lengths[i];
-      if (walked + len >= target) {
-        final localT = ((target - walked) / len).clamp(0.0, 1.0);
-        return Offset.lerp(points[i], points[i + 1], localT) ?? points[i];
+    final baseDurationSeconds = totalDistanceMeters / speedMetersPerSecond;
+    final drawDurations = _normalizedRouteSegmentDurations(
+      pointCount: points.length,
+      rawDurationsMs: route.segmentDurationsMs,
+    );
+    final hasDrawTiming =
+        drawDurations.length == segmentDistances.length &&
+        drawDurations.any((duration) => duration > 0);
+    final drawDurationTotal = drawDurations.fold<int>(
+      0,
+      (sum, duration) => sum + duration,
+    );
+    return List<_PlaybackSegment>.generate(segmentDistances.length, (index) {
+      final durationSeconds = hasDrawTiming && drawDurationTotal > 0
+          ? baseDurationSeconds * (drawDurations[index] / drawDurationTotal)
+          : segmentDistances[index] / speedMetersPerSecond;
+      return _PlaybackSegment(
+        start: points[index],
+        end: points[index + 1],
+        durationSeconds: durationSeconds.clamp(0.04, 8.0).toDouble(),
+      );
+    }, growable: false);
+  }
+
+  Offset _samplePlaybackSegments(
+    List<_PlaybackSegment> segments,
+    double elapsedSeconds,
+  ) {
+    if (segments.isEmpty) return const Offset(0.5, 0.5);
+    final target = elapsedSeconds.clamp(0.0, 1000000.0).toDouble();
+    var walkedSeconds = 0.0;
+    for (final segment in segments) {
+      final next = walkedSeconds + segment.durationSeconds;
+      if (next >= target) {
+        final localT = ((target - walkedSeconds) / segment.durationSeconds)
+            .clamp(0.0, 1.0)
+            .toDouble();
+        return Offset.lerp(segment.start, segment.end, localT) ?? segment.start;
       }
-      walked += len;
+      walkedSeconds = next;
     }
-    return points.last;
+    return segments.last.end;
   }
 
   double _pathDistanceMeters(List<Offset> points) {
@@ -2811,6 +2907,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             _pathMode = false;
           }
           _activeRoutePoints = null;
+          _activeRouteSegmentDurationsMs = null;
+          _activeRouteLastPointAt = null;
           _routeReplaceMode = false;
         }),
         icon: Icon(_penMode ? Icons.draw : Icons.edit_note_outlined),
@@ -2850,6 +2948,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             _currentPage.routes.clear();
             _activeStroke = null;
             _activeRoutePoints = null;
+            _activeRouteSegmentDurationsMs = null;
+            _activeRouteLastPointAt = null;
             _selectedItemId = null;
             _selectedRouteId = null;
             _routeReplaceMode = false;
@@ -3258,6 +3358,7 @@ class _BoardRoute {
   final _PathDrawMode kind;
   String? linkedItemId;
   final List<Offset> points;
+  final List<int> segmentDurationsMs;
   Color color;
   final double width;
 
@@ -3265,6 +3366,7 @@ class _BoardRoute {
     required this.id,
     required this.kind,
     required this.points,
+    required this.segmentDurationsMs,
     required this.color,
     required this.width,
     this.linkedItemId,
@@ -3294,15 +3396,28 @@ class _PlaybackTrack {
   final _BoardItem item;
   final _BoardRoute route;
   final Offset startPosition;
-  final double totalDistanceMeters;
-  final double speedMetersPerSecond;
+  final List<_PlaybackSegment> segments;
 
   const _PlaybackTrack({
     required this.item,
     required this.route,
     required this.startPosition,
-    required this.totalDistanceMeters,
-    required this.speedMetersPerSecond,
+    required this.segments,
+  });
+
+  double get durationSeconds =>
+      segments.fold<double>(0, (sum, segment) => sum + segment.durationSeconds);
+}
+
+class _PlaybackSegment {
+  final Offset start;
+  final Offset end;
+  final double durationSeconds;
+
+  const _PlaybackSegment({
+    required this.start,
+    required this.end,
+    required this.durationSeconds,
   });
 }
 

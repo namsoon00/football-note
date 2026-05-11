@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeTodayPlanCardSummary.
   ///
   /// In en, this message translates to:
-  /// **'Open your {count} saved plans for today.'**
+  /// **'Today: {count} plan(s)'**
   String homeTodayPlanCardSummary(int count);
 
   /// No description provided for @homeTodayPlanOpenAction.
@@ -3371,19 +3371,19 @@ abstract class AppLocalizations {
   /// No description provided for @mealXpFull.
   ///
   /// In en, this message translates to:
-  /// **'3 meals complete +15 XP'**
+  /// **'3 meals complete +8 XP'**
   String get mealXpFull;
 
   /// No description provided for @mealXpFullBonus.
   ///
   /// In en, this message translates to:
-  /// **'3 meals complete + 5+ rice bowls +20 XP'**
+  /// **'3 meals complete + 5+ rice bowls +10 XP'**
   String get mealXpFullBonus;
 
   /// No description provided for @mealXpPartial.
   ///
   /// In en, this message translates to:
-  /// **'2+ meals +5 XP'**
+  /// **'2+ meals +3 XP'**
   String get mealXpPartial;
 
   /// No description provided for @mealXpNeutral.

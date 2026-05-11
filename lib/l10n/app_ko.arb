@@ -37,7 +37,7 @@
   "newsMatchResultDraw": "무",
   "newsMatchResultLoss": "패",
   "homeTodayPlanCardTitle": "오늘의 훈련 계획",
-  "homeTodayPlanCardSummary": "등록된 계획 {count}개를 바로 확인하세요.",
+  "homeTodayPlanCardSummary": "오늘 계획 {count}개",
   "@homeTodayPlanCardSummary": {
     "placeholders": {
       "count": {
@@ -691,9 +691,9 @@
   "mealCoachBodyTwoMealsLight": "두 끼를 먹었지만 양이 얇습니다. 다음 식사 한 끼는 한 그릇 기준부터 세워보세요.",
   "mealCoachBodyOneMeal": "한 끼만 기록됐습니다. 오늘은 훈련 강도보다 끼니 수를 늘리는 것이 먼저입니다.",
   "mealCoachBodyZeroMeal": "세 끼 체크부터 다시 시작하세요. 계산보다 끼니를 놓치지 않는 루틴이 우선입니다.",
-  "mealXpFull": "세 끼 완료 +15 XP",
-  "mealXpFullBonus": "세 끼 완료 + 공기밥 5공기 이상 +20 XP",
-  "mealXpPartial": "두 끼 이상 +5 XP",
+  "mealXpFull": "세 끼 완료 +8 XP",
+  "mealXpFullBonus": "세 끼 완료 + 공기밥 5공기 이상 +10 XP",
+  "mealXpPartial": "두 끼 이상 +3 XP",
   "mealXpNeutral": "한 끼 이하 기록은 보너스 없음",
   "homeMealCoachTitle": "식사 코치",
   "homeMealCoachRecordAction": "오늘 식사 기록",

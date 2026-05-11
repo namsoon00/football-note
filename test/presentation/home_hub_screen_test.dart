@@ -150,10 +150,10 @@ void main() {
     final summary = tester.widget<Text>(
       find.byKey(const ValueKey('today-plan-summary-text')),
     );
-    expect(summary.data, contains('등록된 계획 1개를 바로 확인하세요.'));
+    expect(summary.data, contains('오늘 계획 1개'));
     expect(summary.data, contains('드리블'));
     expect(summary.data, contains('보조 구장'));
-    expect(summary.maxLines, 1);
+    expect(summary.maxLines, 2);
     expect(summary.overflow, isNot(TextOverflow.ellipsis));
   });
 

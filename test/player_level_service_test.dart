@@ -63,7 +63,19 @@ void main() {
 
   test('level thresholds now support up to level 20', () {
     expect(PlayerLevelService.levelThresholds, hasLength(20));
+    expect(PlayerLevelState.fromXp(9600).level, 20);
     expect(PlayerLevelState.fromXp(15000).level, 20);
+  });
+
+  test('max level continues with mastery stars', () {
+    final state = PlayerLevelState.fromXp(10650);
+
+    expect(state.level, 20);
+    expect(state.isMaxLevel, isTrue);
+    expect(state.maxLevelExtraXp, 1050);
+    expect(state.masteryStars, 2);
+    expect(state.xpToNextMasteryStar, 450);
+    expect(state.xpToNextLevel, 450);
   });
 
   test('illustration labels are unique through level 20', () {
