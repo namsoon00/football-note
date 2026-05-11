@@ -804,10 +804,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get webLoginNotAvailable => 'Google login is not available on web.';
 
   @override
-  String get backupToDrive => 'Backup to Google Drive';
+  String get backupToDrive => 'Back up data';
 
   @override
-  String get restoreFromDrive => 'Import data from Google Drive';
+  String get restoreFromDrive => 'Import latest data';
 
   @override
   String get backupConfirm => 'Create a new backup on Google Drive?';
@@ -3701,17 +3701,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'In support role mode, only training feedback and reward names sync automatically. Back up and restore player records from player mode.';
 
   @override
-  String get familyChildDriveConnectionTitle => 'Connect player Google Drive';
+  String get familyChildDriveConnectionTitle => 'Connect shared backup Drive';
 
   @override
   String get familyChildDriveConnectionDescription =>
-      'In support role mode, connect the same Google Drive account the player uses so both roles can share the same player backup file.';
+      'In support role mode, connect the Google Drive account that holds the player\'s source data so both roles can share the same backup file.';
 
   @override
-  String get familyConnectChildDrive => 'Connect player Drive';
+  String get familyConnectChildDrive => 'Connect shared Drive';
 
   @override
-  String get familyDisconnectChildDrive => 'Disconnect player Drive';
+  String get familyDisconnectChildDrive => 'Disconnect shared Drive';
 
   @override
   String get familyRoleChild => 'Player';
@@ -3749,22 +3749,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDriveConnectionPlayerSummary =>
-      'Check which Google Drive account stores and restores the player\'s records.';
+      'Check which Google Drive account stores and imports this device\'s records.';
 
   @override
   String get settingsDriveConnectionSupportSummary =>
-      'Check which Google Drive account should connect to the player\'s backup.';
+      'Check the shared Drive account that stores the player\'s source data.';
 
   @override
   String get settingsDataSyncTitle => 'Data sync';
 
   @override
   String get settingsDataSyncPlayerSummary =>
-      'Manage backup, auto-backup, and restore in one place.';
+      'Run the main Drive actions from one simple row.';
 
   @override
   String get settingsDataSyncSupportSummary =>
-      'Check player imports and shared feedback sync status here.';
+      'Import from the player backup file and push shared changes back to it.';
+
+  @override
+  String get settingsDriveConnectAction => 'Connect Google Drive';
+
+  @override
+  String get settingsDriveDisconnectAction => 'Disconnect Google Drive';
+
+  @override
+  String get settingsRestoreLatestActionTitle => 'Import latest data';
+
+  @override
+  String get settingsBackupDataActionTitle => 'Back up data';
 
   @override
   String get settingsRoleAccountSummary => 'Choose this device role first.';
@@ -3801,22 +3813,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSupportActionSummary =>
-      'Support roles do not create new player backups here. Instead, they import player data or roll back to the state saved before the last import.';
+      'Support roles do not create new source backups here. Instead, they import player data or roll back to the state saved before the last import.';
 
   @override
-  String get settingsPlayerAccountTitle => 'Player Google Drive account';
+  String get settingsPlayerAccountTitle => 'Record backup Drive account';
 
   @override
   String get settingsPlayerAccountDescription =>
-      'Connect the player\'s Google Drive to back up and restore training records from this device.';
+      'Connect the Google Drive account used to back up and import this device\'s training records.';
 
   @override
   String get settingsPlayerBackupActionBody =>
       'Save the current device records as the latest Google Drive backup. Use this first when protecting new entries.';
 
   @override
-  String get settingsPlayerRestoreDriveActionTitle =>
-      'Import latest data from Google Drive';
+  String get settingsPlayerRestoreDriveActionTitle => 'Import latest data';
 
   @override
   String get settingsPlayerRestoreDriveActionBody =>
@@ -3843,6 +3854,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsSupportRestoreLocalActionBody =>
       'Revert the latest imported player-data changes on this device to the previous state.';
+
+  @override
+  String get settingsSupportBackupConfirm =>
+      'Back up the support-role feedback and level reward names into the player\'s source Drive backup?';
+
+  @override
+  String get settingsSupportBackupSuccess =>
+      'Shared changes were backed up to the player\'s source Drive.';
+
+  @override
+  String get settingsSupportBackupFailed =>
+      'Could not back up shared changes. Check that this Drive account already has a player-mode backup.';
 
   @override
   String get settingsRestoreRollbackTitle => 'Import rollback';
@@ -3910,10 +3933,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No Google Drive account is connected yet.';
 
   @override
-  String get driveSavedPlayerAccount => 'Saved player mode Drive';
+  String get driveSavedPlayerAccount => 'Player-mode backup Drive';
 
   @override
-  String get driveReconnectSavedPlayer => 'Reconnect saved player Drive';
+  String get driveReconnectSavedPlayer => 'Reconnect player-mode Drive';
 
   @override
   String get driveReconnectSavedPlayerHint =>
@@ -3938,31 +3961,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please reconnect with the saved support-role Drive account.';
 
   @override
-  String get driveSharedChildAccount => 'Player backup Drive';
+  String get driveSharedChildAccount => 'Player source-data Drive';
 
   @override
   String get driveSharedChildAccountEmpty =>
-      'No player Drive account is known yet. Create at least one backup in player mode first.';
+      'No source Drive is known yet. Create at least one backup in player mode first.';
 
   @override
   String get driveSharedChildAccountRemoteBackup =>
-      'A remote player backup was found. Connect the same Google Drive account used in player mode.';
+      'A remote backup was found. Connect the same Google Drive account used in player mode.';
 
   @override
   String get familyChildDriveConnectionSummary =>
-      'Use the same Google Drive account as the player.';
+      'Use the Google Drive account that holds the source backup.';
 
   @override
   String get familyParentUsesChildDriveSummary =>
-      'Use the player\'s Drive account here.';
+      'Use the source backup Drive account here.';
 
   @override
   String get familyParentUsesChildDriveHint =>
-      'In support role mode, sign in with the player\'s Google Drive account to sync training feedback and reward names into the same player backup file.';
+      'In support role mode, sign in with the Google Drive account that holds the player\'s source data to sync training feedback and reward names into the same backup file.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      'Support role mode should connect to the player\'s Google Drive account to sync training feedback and reward names safely into the same player backup file.';
+      'Support role mode should connect to the Google Drive account that holds the player\'s source data so training feedback and reward names sync safely into the same backup file.';
 
   @override
   String get familySharedSyncTitle => 'Player data sync';
