@@ -1589,13 +1589,13 @@ abstract class AppLocalizations {
   /// No description provided for @backupToDrive.
   ///
   /// In en, this message translates to:
-  /// **'Backup to Google Drive'**
+  /// **'Back up data'**
   String get backupToDrive;
 
   /// No description provided for @restoreFromDrive.
   ///
   /// In en, this message translates to:
-  /// **'Import data from Google Drive'**
+  /// **'Import latest data'**
   String get restoreFromDrive;
 
   /// No description provided for @backupConfirm.
@@ -6431,25 +6431,25 @@ abstract class AppLocalizations {
   /// No description provided for @familyChildDriveConnectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Connect player Google Drive'**
+  /// **'Connect shared backup Drive'**
   String get familyChildDriveConnectionTitle;
 
   /// No description provided for @familyChildDriveConnectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'In support role mode, connect the same Google Drive account the player uses so both roles can share the same player backup file.'**
+  /// **'In support role mode, connect the Google Drive account that holds the player\'s source data so both roles can share the same backup file.'**
   String get familyChildDriveConnectionDescription;
 
   /// No description provided for @familyConnectChildDrive.
   ///
   /// In en, this message translates to:
-  /// **'Connect player Drive'**
+  /// **'Connect shared Drive'**
   String get familyConnectChildDrive;
 
   /// No description provided for @familyDisconnectChildDrive.
   ///
   /// In en, this message translates to:
-  /// **'Disconnect player Drive'**
+  /// **'Disconnect shared Drive'**
   String get familyDisconnectChildDrive;
 
   /// No description provided for @familyRoleChild.
@@ -6521,13 +6521,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDriveConnectionPlayerSummary.
   ///
   /// In en, this message translates to:
-  /// **'Check which Google Drive account stores and restores the player\'s records.'**
+  /// **'Check which Google Drive account stores and imports this device\'s records.'**
   String get settingsDriveConnectionPlayerSummary;
 
   /// No description provided for @settingsDriveConnectionSupportSummary.
   ///
   /// In en, this message translates to:
-  /// **'Check which Google Drive account should connect to the player\'s backup.'**
+  /// **'Check the shared Drive account that stores the player\'s source data.'**
   String get settingsDriveConnectionSupportSummary;
 
   /// No description provided for @settingsDataSyncTitle.
@@ -6539,14 +6539,38 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDataSyncPlayerSummary.
   ///
   /// In en, this message translates to:
-  /// **'Manage backup, auto-backup, and restore in one place.'**
+  /// **'Run the main Drive actions from one simple row.'**
   String get settingsDataSyncPlayerSummary;
 
   /// No description provided for @settingsDataSyncSupportSummary.
   ///
   /// In en, this message translates to:
-  /// **'Check player imports and shared feedback sync status here.'**
+  /// **'Import from the player backup file and push shared changes back to it.'**
   String get settingsDataSyncSupportSummary;
+
+  /// No description provided for @settingsDriveConnectAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Google Drive'**
+  String get settingsDriveConnectAction;
+
+  /// No description provided for @settingsDriveDisconnectAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect Google Drive'**
+  String get settingsDriveDisconnectAction;
+
+  /// No description provided for @settingsRestoreLatestActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import latest data'**
+  String get settingsRestoreLatestActionTitle;
+
+  /// No description provided for @settingsBackupDataActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up data'**
+  String get settingsBackupDataActionTitle;
 
   /// No description provided for @settingsRoleAccountSummary.
   ///
@@ -6605,19 +6629,19 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSupportActionSummary.
   ///
   /// In en, this message translates to:
-  /// **'Support roles do not create new player backups here. Instead, they import player data or roll back to the state saved before the last import.'**
+  /// **'Support roles do not create new source backups here. Instead, they import player data or roll back to the state saved before the last import.'**
   String get settingsSupportActionSummary;
 
   /// No description provided for @settingsPlayerAccountTitle.
   ///
   /// In en, this message translates to:
-  /// **'Player Google Drive account'**
+  /// **'Record backup Drive account'**
   String get settingsPlayerAccountTitle;
 
   /// No description provided for @settingsPlayerAccountDescription.
   ///
   /// In en, this message translates to:
-  /// **'Connect the player\'s Google Drive to back up and restore training records from this device.'**
+  /// **'Connect the Google Drive account used to back up and import this device\'s training records.'**
   String get settingsPlayerAccountDescription;
 
   /// No description provided for @settingsPlayerBackupActionBody.
@@ -6629,7 +6653,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPlayerRestoreDriveActionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Import latest data from Google Drive'**
+  /// **'Import latest data'**
   String get settingsPlayerRestoreDriveActionTitle;
 
   /// No description provided for @settingsPlayerRestoreDriveActionBody.
@@ -6673,6 +6697,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Revert the latest imported player-data changes on this device to the previous state.'**
   String get settingsSupportRestoreLocalActionBody;
+
+  /// No description provided for @settingsSupportBackupConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up the support-role feedback and level reward names into the player\'s source Drive backup?'**
+  String get settingsSupportBackupConfirm;
+
+  /// No description provided for @settingsSupportBackupSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared changes were backed up to the player\'s source Drive.'**
+  String get settingsSupportBackupSuccess;
+
+  /// No description provided for @settingsSupportBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not back up shared changes. Check that this Drive account already has a player-mode backup.'**
+  String get settingsSupportBackupFailed;
 
   /// No description provided for @settingsRestoreRollbackTitle.
   ///
@@ -6791,13 +6833,13 @@ abstract class AppLocalizations {
   /// No description provided for @driveSavedPlayerAccount.
   ///
   /// In en, this message translates to:
-  /// **'Saved player mode Drive'**
+  /// **'Player-mode backup Drive'**
   String get driveSavedPlayerAccount;
 
   /// No description provided for @driveReconnectSavedPlayer.
   ///
   /// In en, this message translates to:
-  /// **'Reconnect saved player Drive'**
+  /// **'Reconnect player-mode Drive'**
   String get driveReconnectSavedPlayer;
 
   /// No description provided for @driveReconnectSavedPlayerHint.
@@ -6839,43 +6881,43 @@ abstract class AppLocalizations {
   /// No description provided for @driveSharedChildAccount.
   ///
   /// In en, this message translates to:
-  /// **'Player backup Drive'**
+  /// **'Player source-data Drive'**
   String get driveSharedChildAccount;
 
   /// No description provided for @driveSharedChildAccountEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No player Drive account is known yet. Create at least one backup in player mode first.'**
+  /// **'No source Drive is known yet. Create at least one backup in player mode first.'**
   String get driveSharedChildAccountEmpty;
 
   /// No description provided for @driveSharedChildAccountRemoteBackup.
   ///
   /// In en, this message translates to:
-  /// **'A remote player backup was found. Connect the same Google Drive account used in player mode.'**
+  /// **'A remote backup was found. Connect the same Google Drive account used in player mode.'**
   String get driveSharedChildAccountRemoteBackup;
 
   /// No description provided for @familyChildDriveConnectionSummary.
   ///
   /// In en, this message translates to:
-  /// **'Use the same Google Drive account as the player.'**
+  /// **'Use the Google Drive account that holds the source backup.'**
   String get familyChildDriveConnectionSummary;
 
   /// No description provided for @familyParentUsesChildDriveSummary.
   ///
   /// In en, this message translates to:
-  /// **'Use the player\'s Drive account here.'**
+  /// **'Use the source backup Drive account here.'**
   String get familyParentUsesChildDriveSummary;
 
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
-  /// **'In support role mode, sign in with the player\'s Google Drive account to sync training feedback and reward names into the same player backup file.'**
+  /// **'In support role mode, sign in with the Google Drive account that holds the player\'s source data to sync training feedback and reward names into the same backup file.'**
   String get familyParentUsesChildDriveHint;
 
   /// No description provided for @familyParentUsesChildDriveWarning.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode should connect to the player\'s Google Drive account to sync training feedback and reward names safely into the same player backup file.'**
+  /// **'Support role mode should connect to the Google Drive account that holds the player\'s source data so training feedback and reward names sync safely into the same backup file.'**
   String get familyParentUsesChildDriveWarning;
 
   /// No description provided for @familySharedSyncTitle.

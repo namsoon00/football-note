@@ -760,6 +760,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     return _buildPrimarySettingsCard(
       title: l10n.settingsDriveConnectionTitle,
       icon: Icons.cloud_done_outlined,
+      summary: familyState.isChildMode
+          ? l10n.settingsDriveConnectionPlayerSummary
+          : l10n.settingsDriveConnectionSupportSummary,
       compact: compact,
       children: familyState.isChildMode
           ? _buildPlayerDriveConnectionChildren(
@@ -808,10 +811,6 @@ class _SettingsScreenState extends State<SettingsScreen>
           label: Text(l10n.driveReconnectSavedPlayer),
           style: _outlinedActionStyle(),
         ),
-      _buildDriveAuthButton(
-        l10n: l10n,
-        label: _signedIn ? l10n.signOut : l10n.signInWithGoogle,
-      ),
     ];
   }
 
@@ -848,12 +847,6 @@ class _SettingsScreenState extends State<SettingsScreen>
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
-      _buildDriveAuthButton(
-        l10n: l10n,
-        label: _signedIn
-            ? l10n.familyDisconnectChildDrive
-            : l10n.familyConnectChildDrive,
-      ),
     ];
   }
 
@@ -865,17 +858,28 @@ class _SettingsScreenState extends State<SettingsScreen>
     return _buildPrimarySettingsCard(
       title: l10n.settingsDataSyncTitle,
       icon: Icons.sync_alt_rounded,
+      summary: familyState.isChildMode
+          ? l10n.settingsDataSyncPlayerSummary
+          : l10n.settingsDataSyncSupportSummary,
       compact: compact,
       children: familyState.isChildMode
-          ? _buildPlayerSyncChildren(l10n)
-          : _buildSupportSyncChildren(l10n),
+          ? _buildPlayerSyncChildren(l10n, familyState)
+          : _buildSupportSyncChildren(l10n, familyState),
     );
   }
 
-  List<Widget> _buildPlayerSyncChildren(AppLocalizations l10n) {
+  List<Widget> _buildPlayerSyncChildren(
+    AppLocalizations l10n,
+    FamilyAccessState familyState,
+  ) {
     final driveBackupService = widget.driveBackupService!;
     final localRestoreAvailable = driveBackupService.hasLocalPreRestoreBackup();
     return [
+      _buildDriveQuickActions(
+        l10n: l10n,
+        familyState: familyState,
+        localRestoreAvailable: localRestoreAvailable,
+      ),
       _BackupHealthCard(
         isKo: Localizations.localeOf(context).languageCode == 'ko',
         signedIn: _signedIn,
@@ -904,71 +908,143 @@ class _SettingsScreenState extends State<SettingsScreen>
           await driveBackupService.setAutoOnSaveEnabled(value);
         },
       ),
-      _buildActionCard(
-        title: l10n.backupToDrive,
-        icon: Icons.cloud_upload_outlined,
-        primary: true,
-        onPressed: (_backupBusy || _restoreBusy)
-            ? null
-            : () => _backupToDrive(l10n),
-      ),
-      _buildActionCard(
-        title: l10n.settingsPlayerRestoreDriveActionTitle,
-        icon: Icons.cloud_download_outlined,
-        onPressed: _restoreBusy
-            ? null
-            : () => _restoreFromDrive(
-                l10n,
-                title: l10n.settingsPlayerRestoreDriveActionTitle,
-              ),
-      ),
-      if (localRestoreAvailable)
-        _buildSubtleLocalRestoreCard(
-          title: l10n.settingsPlayerRestoreLocalActionTitle,
-          onPressed: _restoreBusy
-              ? null
-              : () => _restoreLocalBackup(
-                  l10n,
-                  title: l10n.settingsPlayerRestoreLocalActionTitle,
-                ),
-        ),
     ];
   }
 
-  List<Widget> _buildSupportSyncChildren(AppLocalizations l10n) {
+  List<Widget> _buildSupportSyncChildren(
+    AppLocalizations l10n,
+    FamilyAccessState familyState,
+  ) {
     final driveBackupService = widget.driveBackupService!;
     final localRestoreAvailable = driveBackupService.hasLocalPreRestoreBackup();
     return [
+      _buildDriveQuickActions(
+        l10n: l10n,
+        familyState: familyState,
+        localRestoreAvailable: localRestoreAvailable,
+      ),
       _buildDriveBackupLocationCard(),
-      _buildActionCard(
-        title: l10n.settingsSupportRestoreDriveActionTitle,
+      _buildParentFamilySyncCard(l10n),
+    ];
+  }
+
+  Widget _buildDriveQuickActions({
+    required AppLocalizations l10n,
+    required FamilyAccessState familyState,
+    required bool localRestoreAvailable,
+  }) {
+    final isSupportMode = familyState.isSupportMode;
+    final actions = <Widget>[
+      _buildDriveQuickActionButton(
+        icon: _signedIn ? Icons.link_off_outlined : Icons.link_outlined,
+        label: _signedIn
+            ? l10n.settingsDriveDisconnectAction
+            : l10n.settingsDriveConnectAction,
+        onPressed: _signInBusy ? null : () => _toggleDriveSignIn(l10n),
+      ),
+      _buildDriveQuickActionButton(
         icon: Icons.cloud_download_outlined,
-        primary: true,
-        onPressed: _restoreBusy
+        label: l10n.settingsRestoreLatestActionTitle,
+        onPressed: (_backupBusy || _restoreBusy)
             ? null
             : () => _restoreFromDrive(
                 l10n,
-                title: l10n.settingsSupportRestoreDriveActionTitle,
-                message: l10n.familySharedRestoreConfirm,
-                successMessage: l10n.familySharedRestoreSuccess,
-                failedMessage: l10n.familySharedRestoreFailed,
+                title: l10n.settingsRestoreLatestActionTitle,
+                message: isSupportMode ? l10n.familySharedRestoreConfirm : null,
+                successMessage: isSupportMode
+                    ? l10n.familySharedRestoreSuccess
+                    : null,
+                failedMessage: isSupportMode
+                    ? l10n.familySharedRestoreFailed
+                    : null,
               ),
       ),
-      if (localRestoreAvailable)
-        _buildSubtleLocalRestoreCard(
-          title: l10n.settingsSupportRestoreLocalActionTitle,
-          onPressed: _restoreBusy
-              ? null
-              : () => _restoreLocalBackup(
-                  l10n,
-                  title: l10n.settingsSupportRestoreLocalActionTitle,
-                  message: l10n.familySharedRestoreLocalConfirm,
-                  successMessage: l10n.familySharedRestoreLocalSuccess,
-                  failedMessage: l10n.familySharedRestoreLocalFailed,
-                ),
-        ),
-      _buildParentFamilySyncCard(l10n),
+      _buildDriveQuickActionButton(
+        icon: Icons.cloud_upload_outlined,
+        label: l10n.settingsBackupDataActionTitle,
+        onPressed: (_backupBusy || _restoreBusy)
+            ? null
+            : () => _backupToDrive(
+                l10n,
+                title: l10n.settingsBackupDataActionTitle,
+                message: isSupportMode
+                    ? l10n.settingsSupportBackupConfirm
+                    : null,
+                successMessage: isSupportMode
+                    ? l10n.settingsSupportBackupSuccess
+                    : null,
+                failedMessage: isSupportMode
+                    ? l10n.settingsSupportBackupFailed
+                    : null,
+              ),
+      ),
+      _buildDriveQuickActionButton(
+        icon: Icons.undo_rounded,
+        label: l10n.restoreLocalBackup,
+        destructive: true,
+        onPressed: (!localRestoreAvailable || _backupBusy || _restoreBusy)
+            ? null
+            : () => _restoreLocalBackup(
+                l10n,
+                title: l10n.restoreLocalBackup,
+                message: isSupportMode
+                    ? l10n.familySharedRestoreLocalConfirm
+                    : null,
+                successMessage: isSupportMode
+                    ? l10n.familySharedRestoreLocalSuccess
+                    : null,
+                failedMessage: isSupportMode
+                    ? l10n.familySharedRestoreLocalFailed
+                    : null,
+              ),
+      ),
     ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 8.0;
+        if (constraints.maxWidth >= 680) {
+          return Row(
+            children: [
+              for (var i = 0; i < actions.length; i++) ...[
+                Expanded(child: actions[i]),
+                if (i != actions.length - 1) const SizedBox(width: gap),
+              ],
+            ],
+          );
+        }
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (var i = 0; i < actions.length; i++) ...[
+                SizedBox(width: 168, child: actions[i]),
+                if (i != actions.length - 1) const SizedBox(width: gap),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDriveQuickActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onPressed,
+    bool destructive = false,
+  }) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(
+        label,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+      ),
+      style: _quickActionButtonStyle(destructive: destructive),
+    );
   }
 
   Widget _buildDriveBackupLocationCard() {
@@ -1021,45 +1097,6 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSubtleLocalRestoreCard({
-    required String title,
-    required VoidCallback? onPressed,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: const Icon(Icons.undo_rounded),
-        label: Text(title),
-        style: _destructiveOutlinedActionStyle(),
-      ),
-    );
-  }
-
-  Widget _buildActionCard({
-    required String title,
-    required IconData icon,
-    required VoidCallback? onPressed,
-    bool primary = false,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      child: primary
-          ? ElevatedButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon),
-              label: Text(title),
-              style: _elevatedActionStyle(),
-            )
-          : OutlinedButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon),
-              label: Text(title),
-              style: _outlinedActionStyle(),
-            ),
     );
   }
 
@@ -1788,46 +1825,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     ];
   }
 
-  ButtonStyle _elevatedActionStyle() {
-    return ButtonStyle(
-      minimumSize: WidgetStateProperty.all(const Size.fromHeight(56)),
-      padding: WidgetStateProperty.all(
-        const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      ),
-      textStyle: WidgetStateProperty.all(
-        const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
-      shape: WidgetStateProperty.all(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-      elevation: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.pressed)) return 1;
-        if (states.contains(WidgetState.hovered)) return 7;
-        return 5;
-      }),
-      overlayColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.pressed)) {
-          return Colors.black.withAlpha(20);
-        }
-        return null;
-      }),
-      shadowColor: WidgetStateProperty.all(Colors.black.withAlpha(70)),
-      splashFactory: InkRipple.splashFactory,
-    );
-  }
-
-  Widget _buildDriveAuthButton({
-    required AppLocalizations l10n,
-    required String label,
-  }) {
-    return ElevatedButton.icon(
-      onPressed: _signInBusy ? null : () => _toggleDriveSignIn(l10n),
-      icon: Icon(_signedIn ? Icons.logout : Icons.login),
-      label: Text(label),
-      style: _elevatedActionStyle(),
-    );
-  }
-
   Widget _buildDriveAccountTile({
     required IconData icon,
     required String title,
@@ -1942,38 +1939,65 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  ButtonStyle _destructiveOutlinedActionStyle() {
+  ButtonStyle _quickActionButtonStyle({bool destructive = false}) {
     final scheme = Theme.of(context).colorScheme;
-    return _outlinedActionStyle().copyWith(
-      foregroundColor: WidgetStateProperty.all(scheme.error),
-      side: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.pressed)) {
-          return BorderSide(color: scheme.error, width: 2);
+    final color = destructive ? scheme.error : WatchCartConstants.primaryColor;
+    return ButtonStyle(
+      minimumSize: WidgetStateProperty.all(const Size(0, 54)),
+      padding: WidgetStateProperty.all(
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      ),
+      textStyle: WidgetStateProperty.all(
+        const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+      ),
+      shape: WidgetStateProperty.all(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      foregroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return scheme.onSurface.withValues(alpha: 0.38);
         }
-        return BorderSide(
-          color: scheme.error.withValues(alpha: 0.72),
-          width: 1.4,
-        );
+        return color;
+      }),
+      side: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return BorderSide(
+            color: scheme.onSurface.withValues(alpha: 0.12),
+            width: 1.2,
+          );
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return BorderSide(color: color, width: 1.8);
+        }
+        return BorderSide(color: color.withValues(alpha: 0.58), width: 1.2);
       }),
       backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return scheme.surfaceContainerLowest;
+        }
         if (states.contains(WidgetState.pressed)) {
-          return scheme.errorContainer.withValues(alpha: 0.32);
+          return color.withValues(alpha: 0.10);
         }
         return null;
       }),
-      overlayColor: WidgetStateProperty.all(
-        scheme.error.withValues(alpha: 0.08),
-      ),
+      overlayColor: WidgetStateProperty.all(color.withValues(alpha: 0.08)),
+      splashFactory: InkRipple.splashFactory,
     );
   }
 
-  Future<void> _backupToDrive(AppLocalizations l10n) async {
+  Future<void> _backupToDrive(
+    AppLocalizations l10n, {
+    String? title,
+    String? message,
+    String? successMessage,
+    String? failedMessage,
+  }) async {
     if (widget.driveBackupService == null) return;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.backupToDrive),
-        content: Text(l10n.backupConfirm),
+        title: Text(title ?? l10n.backupToDrive),
+        content: Text(message ?? l10n.backupConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -1992,9 +2016,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       await widget.driveBackupService!.backup();
       await _refreshSignInState();
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.backupSuccess)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(successMessage ?? l10n.backupSuccess)),
+      );
     } catch (e, st) {
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
@@ -2004,7 +2028,11 @@ class _SettingsScreenState extends State<SettingsScreen>
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
-          : _driveFailureMessage(l10n, e, fallback: l10n.backupFailed);
+          : _driveFailureMessage(
+              l10n,
+              e,
+              fallback: failedMessage ?? l10n.backupFailed,
+            );
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));

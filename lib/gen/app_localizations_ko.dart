@@ -786,10 +786,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get webLoginNotAvailable => '웹에서는 Google 로그인을 사용할 수 없어요.';
 
   @override
-  String get backupToDrive => 'Google Drive 백업';
+  String get backupToDrive => '데이터 백업하기';
 
   @override
-  String get restoreFromDrive => 'Google Drive 데이터 가져오기';
+  String get restoreFromDrive => '최근 데이터 가져오기';
 
   @override
   String get backupConfirm => 'Google Drive에 새 백업을 만들까요?';
@@ -3580,17 +3580,17 @@ class AppLocalizationsKo extends AppLocalizations {
       '공유 역할에서는 훈련 피드백과 레벨 선물 이름만 자동 동기화합니다. 선수 기록 백업과 복원은 선수 모드에서 진행해 주세요.';
 
   @override
-  String get familyChildDriveConnectionTitle => '선수 Google Drive 연결';
+  String get familyChildDriveConnectionTitle => '공유 백업 Drive 연결';
 
   @override
   String get familyChildDriveConnectionDescription =>
-      '공유 역할에서는 선수가 쓰는 Google Drive 계정으로 연결해야 같은 선수 백업 파일을 함께 사용할 수 있어요.';
+      '공유 역할에서는 선수 데이터 원본이 있는 Google Drive 계정으로 연결해야 같은 백업 파일을 함께 사용할 수 있어요.';
 
   @override
-  String get familyConnectChildDrive => '선수 Drive 연결';
+  String get familyConnectChildDrive => '공유 Drive 연결';
 
   @override
-  String get familyDisconnectChildDrive => '선수 Drive 연결 해제';
+  String get familyDisconnectChildDrive => '공유 Drive 연결 해제';
 
   @override
   String get familyRoleChild => '선수';
@@ -3628,21 +3628,33 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsDriveConnectionPlayerSummary =>
-      '선수 기록을 저장하거나 복원할 Google Drive 계정을 확인하세요.';
+      '이 기기 기록을 저장하거나 가져올 Google Drive 계정을 확인하세요.';
 
   @override
   String get settingsDriveConnectionSupportSummary =>
-      '선수 백업과 연결할 Google Drive 계정을 확인하세요.';
+      '선수 데이터 원본이 저장된 공유 Drive 계정을 확인하세요.';
 
   @override
   String get settingsDataSyncTitle => '데이터 동기화';
 
   @override
-  String get settingsDataSyncPlayerSummary => '백업, 자동 백업, 복원을 한 곳에서 관리합니다.';
+  String get settingsDataSyncPlayerSummary => '주요 Drive 작업은 아래 한 줄에서 바로 실행합니다.';
 
   @override
   String get settingsDataSyncSupportSummary =>
-      '선수 데이터 가져오기와 공유 피드백 반영 상태를 확인합니다.';
+      '선수 백업 파일에서 가져오고, 공유 변경은 같은 파일에 반영합니다.';
+
+  @override
+  String get settingsDriveConnectAction => 'Google Drive 연결';
+
+  @override
+  String get settingsDriveDisconnectAction => 'Google Drive 연결 해제';
+
+  @override
+  String get settingsRestoreLatestActionTitle => '최근 데이터 가져오기';
+
+  @override
+  String get settingsBackupDataActionTitle => '데이터 백업하기';
 
   @override
   String get settingsRoleAccountSummary => '먼저 이 기기 역할을 고르세요.';
@@ -3679,22 +3691,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsSupportActionSummary =>
-      '공유 역할에서는 새 백업을 만들지 않고, 선수 모드에서 만든 데이터를 가져오거나 이전 가져오기 전 상태로 되돌립니다.';
+      '공유 역할에서는 새 원본 백업을 만들지 않고, 선수 모드에서 만든 데이터를 가져오거나 이전 가져오기 전 상태로 되돌립니다.';
 
   @override
-  String get settingsPlayerAccountTitle => '선수 Google Drive 계정';
+  String get settingsPlayerAccountTitle => '기록 백업 Drive 계정';
 
   @override
   String get settingsPlayerAccountDescription =>
-      '이 기기에서 선수 훈련 기록을 백업하고 복원할 Google Drive를 연결합니다.';
+      '이 기기에서 훈련 기록을 백업하고 가져올 Google Drive를 연결합니다.';
 
   @override
   String get settingsPlayerBackupActionBody =>
       '현재 기기 기록을 Google Drive 최신본으로 저장합니다. 새 기록을 보호할 때 먼저 사용하세요.';
 
   @override
-  String get settingsPlayerRestoreDriveActionTitle =>
-      'Google Drive 최신 데이터 가져오기';
+  String get settingsPlayerRestoreDriveActionTitle => '최근 데이터 가져오기';
 
   @override
   String get settingsPlayerRestoreDriveActionBody =>
@@ -3708,7 +3719,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 기기에서 마지막 가져오기로 바뀐 내용을 직전 상태로 되돌립니다.';
 
   @override
-  String get settingsSupportRestoreDriveActionTitle => '선수 최신 데이터 가져오기';
+  String get settingsSupportRestoreDriveActionTitle => '최근 선수 데이터 가져오기';
 
   @override
   String get settingsSupportRestoreDriveActionBody =>
@@ -3720,6 +3731,17 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get settingsSupportRestoreLocalActionBody =>
       '이 기기에서 마지막으로 가져온 선수 데이터 변경을 직전 상태로 되돌립니다.';
+
+  @override
+  String get settingsSupportBackupConfirm =>
+      '공유 역할에서 저장한 피드백과 레벨 선물 이름을 선수 데이터 원본 Drive에 반영할까요?';
+
+  @override
+  String get settingsSupportBackupSuccess => '공유 변경사항을 선수 데이터 원본 Drive에 반영했어요.';
+
+  @override
+  String get settingsSupportBackupFailed =>
+      '공유 변경사항 반영에 실패했어요. 선수 모드 백업이 있는 Drive 계정인지 확인해 주세요.';
 
   @override
   String get settingsRestoreRollbackTitle => '가져오기 되돌리기';
@@ -3786,10 +3808,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get driveConnectedAccountEmpty => '아직 Google Drive 계정이 연결되지 않았어요.';
 
   @override
-  String get driveSavedPlayerAccount => '저장된 선수 모드 Drive';
+  String get driveSavedPlayerAccount => '선수 모드 백업 Drive';
 
   @override
-  String get driveReconnectSavedPlayer => '저장된 선수 Drive 연결';
+  String get driveReconnectSavedPlayer => '선수 모드 Drive 다시 연결';
 
   @override
   String get driveReconnectSavedPlayerHint =>
@@ -3814,30 +3836,30 @@ class AppLocalizationsKo extends AppLocalizations {
       '저장된 공유 역할 Drive 계정으로 다시 연결해 주세요.';
 
   @override
-  String get driveSharedChildAccount => '선수 백업 Drive';
+  String get driveSharedChildAccount => '선수 데이터 원본 Drive';
 
   @override
   String get driveSharedChildAccountEmpty =>
-      '아직 선수 Drive 정보가 없어요. 선수 모드에서 먼저 한 번 백업해 주세요.';
+      '아직 원본 Drive 정보가 없어요. 선수 모드에서 먼저 한 번 백업해 주세요.';
 
   @override
   String get driveSharedChildAccountRemoteBackup =>
-      '원격 선수 백업은 확인됐어요. 선수 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.';
+      '원격 백업은 확인됐어요. 선수 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.';
 
   @override
   String get familyChildDriveConnectionSummary =>
-      '선수와 같은 Google Drive 계정으로 연결해요.';
+      '원본 백업이 있는 Google Drive 계정으로 연결해요.';
 
   @override
-  String get familyParentUsesChildDriveSummary => '여기서는 선수 Drive 계정을 사용해요.';
+  String get familyParentUsesChildDriveSummary => '여기서는 원본 백업 Drive 계정을 사용해요.';
 
   @override
   String get familyParentUsesChildDriveHint =>
-      '공유 역할에서는 선수 Google Drive 계정으로 로그인하면 같은 선수 백업 파일에 훈련 피드백과 선물 이름을 동기화할 수 있어요.';
+      '공유 역할에서는 선수 데이터 원본이 있는 Google Drive 계정으로 로그인하면 훈련 피드백과 선물 이름을 같은 백업 파일에 동기화할 수 있어요.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      '공유 역할에서는 선수 Google Drive 계정으로 연결해야 같은 선수 백업 파일에 훈련 피드백과 선물 이름을 안전하게 동기화할 수 있어요.';
+      '공유 역할에서는 선수 데이터 원본이 있는 Google Drive 계정으로 연결해야 같은 백업 파일에 훈련 피드백과 선물 이름을 안전하게 동기화할 수 있어요.';
 
   @override
   String get familySharedSyncTitle => '선수 데이터 동기화';
