@@ -568,7 +568,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
 
     expect(find.byType(TrainingMethodBoardScreen), findsOneWidget);
-    expect(find.text('공유 역할에서는 훈련 스케치를 수정할 수 없어요.'), findsOneWidget);
+    expect(find.text('보호자 모드에서는 훈련 스케치를 수정할 수 없어요.'), findsOneWidget);
   });
 }
 

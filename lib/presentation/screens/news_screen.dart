@@ -11,6 +11,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../application/news_read_state.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/news_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
@@ -122,6 +123,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   bool _isBackgroundLoading = false;
   int _loadToken = 0;
   DateTime? _lastLoadedAt;
+
+  bool get _isParentMode =>
+      FamilyAccessService(widget.optionRepository).loadState().isParentMode;
 
   @override
   void initState() {
@@ -328,6 +332,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     required AppLocalizations l10n,
     required bool isKo,
   }) {
+    final isParentMode = _isParentMode;
     return Align(
       alignment: Alignment.centerRight,
       child: Wrap(
@@ -344,23 +349,24 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             icon: const Icon(Icons.rss_feed, size: 18),
             label: Text(l10n.newsChannelsAction),
           ),
-          _buildQuickToggleAction(
-            buttonKey: _scrapToggleActionKey,
-            label: _showScrappedOnly
-                ? l10n.newsShowAllNewsAction
-                : l10n.newsShowScrappedOnlyAction,
-            icon: _showScrappedOnly ? Icons.bookmark : Icons.bookmark_border,
-            selected: _showScrappedOnly,
-            showLabel: false,
-            tooltip: _showScrappedOnly
-                ? l10n.newsShowAllNewsAction
-                : l10n.newsShowScrappedOnlyAction,
-            onPressed: () {
-              setState(() {
-                _showScrappedOnly = !_showScrappedOnly;
-              });
-            },
-          ),
+          if (!isParentMode)
+            _buildQuickToggleAction(
+              buttonKey: _scrapToggleActionKey,
+              label: _showScrappedOnly
+                  ? l10n.newsShowAllNewsAction
+                  : l10n.newsShowScrappedOnlyAction,
+              icon: _showScrappedOnly ? Icons.bookmark : Icons.bookmark_border,
+              selected: _showScrappedOnly,
+              showLabel: false,
+              tooltip: _showScrappedOnly
+                  ? l10n.newsShowAllNewsAction
+                  : l10n.newsShowScrappedOnlyAction,
+              onPressed: () {
+                setState(() {
+                  _showScrappedOnly = !_showScrappedOnly;
+                });
+              },
+            ),
           if (isKo)
             Tooltip(
               message: _titleTranslateEnabled
@@ -468,6 +474,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   Widget _buildNewsBody(bool isKo) {
     final visibleArticles = _filteredArticles();
+    final showScrappedOnly = _showScrappedOnly && !_isParentMode;
     if (_isLoading && _articles.isEmpty) {
       return ListView(
         children: const [
@@ -494,7 +501,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     } else if (visibleArticles.isEmpty) {
       items.add(
         _buildMessageCard(
-          _showScrappedOnly
+          showScrappedOnly
               ? (isKo ? '스크랩한 소식이 없습니다.' : 'No scrapped news yet.')
               : (isKo ? '검색 결과가 없습니다.' : 'No results found.'),
         ),
@@ -530,6 +537,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   Widget _buildArticleCard(NewsArticle article) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final isParentMode = _isParentMode;
     final pub = article.publishedAt;
     final dateText = pub == null
         ? article.source
@@ -564,18 +572,21 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                   ],
                 ),
               ),
-              IconButton(
-                tooltip: _isScrapped(article)
-                    ? (isKo ? '스크랩 해제' : 'Remove scrap')
-                    : (isKo ? '스크랩' : 'Scrap'),
-                onPressed: () => _toggleScrap(article),
-                icon: Icon(
-                  _isScrapped(article) ? Icons.bookmark : Icons.bookmark_border,
-                  color: _isScrapped(article)
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
+              if (!isParentMode)
+                IconButton(
+                  tooltip: _isScrapped(article)
+                      ? (isKo ? '스크랩 해제' : 'Remove scrap')
+                      : (isKo ? '스크랩' : 'Scrap'),
+                  onPressed: () => _toggleScrap(article),
+                  icon: Icon(
+                    _isScrapped(article)
+                        ? Icons.bookmark
+                        : Icons.bookmark_border,
+                    color: _isScrapped(article)
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                  ),
                 ),
-              ),
               const Icon(Icons.chevron_right),
             ],
           ),
@@ -586,15 +597,18 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   List<NewsArticle> _filteredArticles() {
     final query = _searchController.text.trim().toLowerCase();
-    final scrappedBase = _showScrappedOnly
+    final showScrappedOnly = _showScrappedOnly && !_isParentMode;
+    final scrappedBase = showScrappedOnly
         ? _scrappedItemsByLink.values.toList(growable: false)
         : <_ScrappedNewsItem>[];
-    if (_showScrappedOnly) {
+    if (showScrappedOnly) {
       scrappedBase.sort((a, b) => b.scrappedAt.compareTo(a.scrappedAt));
     }
-    final base = _showScrappedOnly
+    final base = showScrappedOnly
         ? scrappedBase.map((item) => item.article).toList(growable: false)
-        : List<NewsArticle>.unmodifiable(_articles);
+        : _articles
+              .where((article) => !_isReadArticle(article))
+              .toList(growable: false);
     final regionBase = base.where(_matchesRegionFilter).toList(growable: true);
     final filtered = query.isEmpty
         ? regionBase
@@ -643,6 +657,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       _scrappedLinks.contains(_scrapKeyForArticle(article));
 
   Future<void> _toggleScrap(NewsArticle article) async {
+    if (_isParentMode) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final link = _scrapKeyForArticle(article);
     final next = Set<String>.from(_scrappedLinks);
@@ -1361,6 +1376,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     await NewsReadState.markRead(widget.optionRepository, [article]);
     await NewsBadgeService.refresh(widget.optionRepository);
+    final readKey = NewsReadState.articleKey(article);
+    if (readKey.isNotEmpty && mounted) {
+      setState(() {
+        _readArticleKeys = {..._readArticleKeys, readKey};
+      });
+    }
     final link = article.link.trim();
     if (link.isEmpty) return;
     final openedAt = DateTime.now();

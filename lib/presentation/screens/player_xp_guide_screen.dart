@@ -206,6 +206,18 @@ class _XpGuideHeroCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              minHeight: 8,
+              value: levelState.progress,
+              backgroundColor: theme.colorScheme.surface.withValues(
+                alpha: 0.35,
+              ),
+              color: theme.colorScheme.primary,
+            ),
+          ),
         ],
       ),
     );
@@ -221,28 +233,30 @@ class _XpGuideSectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(22),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: true,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          title: Text(
             section.title,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(section.subtitle, style: theme.textTheme.bodySmall),
-          const SizedBox(height: 12),
-          for (final item in section.items) ...[
-            _XpGuideRow(item: item),
-            if (item != section.items.last) const SizedBox(height: 10),
+          subtitle: Text(section.subtitle, style: theme.textTheme.bodySmall),
+          children: [
+            for (final item in section.items) ...[
+              _XpGuideRow(item: item),
+              if (item != section.items.last) const SizedBox(height: 10),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

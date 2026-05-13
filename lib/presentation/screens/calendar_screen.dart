@@ -15,6 +15,7 @@ import '../../application/localized_option_defaults.dart';
 import '../../application/locale_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
+import '../../application/parent_shared_feedback_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_plan_badge_service.dart';
@@ -280,6 +281,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   );
                   final mealEntryMap = _groupMealEntriesByDay(mealEntries);
                   final entryMap = _groupByDay(entries);
+                  final parentFeedbackByEntryId = ParentSharedFeedbackService(
+                    widget.optionRepository,
+                  ).loadAll();
                   final planMap = _groupPlansByDay(_plans);
                   final holidayMap = isKo
                       ? _buildKoreanHolidayMap(DateTime(2022), DateTime(2032))
@@ -728,6 +732,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           holidayName: selectedHolidayName,
                           dayPlans: dayPlans,
                           dayEntries: dayEntries,
+                          parentFeedbackByEntryId: parentFeedbackByEntryId,
                           dayMealEntry: dayMealEntry,
                           isReadOnly: isParentMode,
                           onEditEntry: (entry) {
@@ -2949,6 +2954,7 @@ class _DayTimeline extends StatelessWidget {
   final String? holidayName;
   final List<_TrainingPlan> dayPlans;
   final List<TrainingEntry> dayEntries;
+  final Map<String, ParentTrainingFeedback> parentFeedbackByEntryId;
   final MealEntry? dayMealEntry;
   final bool isReadOnly;
   final ValueChanged<TrainingEntry> onEditEntry;
@@ -2965,6 +2971,7 @@ class _DayTimeline extends StatelessWidget {
     this.holidayName,
     required this.dayPlans,
     required this.dayEntries,
+    required this.parentFeedbackByEntryId,
     required this.dayMealEntry,
     required this.isReadOnly,
     required this.onEditEntry,
@@ -3104,7 +3111,11 @@ class _DayTimeline extends StatelessWidget {
               (entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: isReadOnly
-                    ? _EntryTile(entry: entry, onTap: () => onEditEntry(entry))
+                    ? _EntryTile(
+                        entry: entry,
+                        parentFeedbackMessage: _parentFeedbackFor(entry),
+                        onTap: () => onEditEntry(entry),
+                      )
                     : Dismissible(
                         key: ValueKey(
                           'match-entry-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
@@ -3127,6 +3138,7 @@ class _DayTimeline extends StatelessWidget {
                         ),
                         child: _EntryTile(
                           entry: entry,
+                          parentFeedbackMessage: _parentFeedbackFor(entry),
                           onTap: () => onEditEntry(entry),
                         ),
                       ),
@@ -3144,7 +3156,11 @@ class _DayTimeline extends StatelessWidget {
               (entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: isReadOnly
-                    ? _EntryTile(entry: entry, onTap: () => onEditEntry(entry))
+                    ? _EntryTile(
+                        entry: entry,
+                        parentFeedbackMessage: _parentFeedbackFor(entry),
+                        onTap: () => onEditEntry(entry),
+                      )
                     : Dismissible(
                         key: ValueKey(
                           'entry-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
@@ -3167,6 +3183,7 @@ class _DayTimeline extends StatelessWidget {
                         ),
                         child: _EntryTile(
                           entry: entry,
+                          parentFeedbackMessage: _parentFeedbackFor(entry),
                           onTap: () => onEditEntry(entry),
                         ),
                       ),
@@ -3215,6 +3232,15 @@ class _DayTimeline extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _parentFeedbackFor(TrainingEntry entry) {
+    return parentFeedbackByEntryId[ParentSharedFeedbackService.entryIdFor(
+              entry,
+            )]
+            ?.message
+            .trim() ??
+        '';
   }
 }
 
@@ -3313,9 +3339,14 @@ String _formatPlanTime(DateTime value, {required bool isKo}) {
 
 class _EntryTile extends StatelessWidget {
   final TrainingEntry entry;
+  final String parentFeedbackMessage;
   final VoidCallback? onTap;
 
-  const _EntryTile({required this.entry, this.onTap});
+  const _EntryTile({
+    required this.entry,
+    this.parentFeedbackMessage = '',
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -3377,6 +3408,8 @@ class _EntryTile extends StatelessWidget {
                   context,
                 )?.copyWith(color: focusTextColor),
               ),
+            if (parentFeedbackMessage.trim().isNotEmpty)
+              _CalendarParentFeedbackPreview(message: parentFeedbackMessage),
           ],
         ),
         trailing: onTap == null ? null : const Icon(Icons.chevron_right),
@@ -3471,6 +3504,37 @@ class _EntryTile extends StatelessWidget {
       );
     }
     return parts.join(' · ');
+  }
+}
+
+class _CalendarParentFeedbackPreview extends StatelessWidget {
+  final String message;
+
+  const _CalendarParentFeedbackPreview({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        children: [
+          Icon(Icons.rate_review_outlined, size: 14, color: scheme.tertiary),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              '${l10n.parentFeedbackSectionTitle}: ${message.trim()}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _calendarTimelineSubtitleStyle(
+                context,
+              )?.copyWith(color: scheme.tertiary, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

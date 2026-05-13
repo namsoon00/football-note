@@ -9,6 +9,7 @@ import '../../application/locale_service.dart';
 import '../../application/meal_coaching_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/family_access_service.dart';
+import '../../application/parent_shared_feedback_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/watch_cart/home_options.dart';
@@ -203,6 +204,9 @@ class _LogsScreenState extends State<LogsScreen> {
                 widget.optionRepository,
               );
               final boardsById = boardService.boardMap();
+              final parentFeedbackByEntryId = ParentSharedFeedbackService(
+                widget.optionRepository,
+              ).loadAll();
               final reminderUnreadCount = TrainingPlanReminderService(
                 widget.optionRepository,
                 widget.settingsService,
@@ -363,6 +367,11 @@ class _LogsScreenState extends State<LogsScreen> {
                                       entry: entry,
                                       mealCoachingService: _mealCoachingService,
                                       boardsById: boardsById,
+                                      parentFeedbackMessage:
+                                          _parentFeedbackMessage(
+                                            entry,
+                                            parentFeedbackByEntryId,
+                                          ),
                                       onEdit: () => _onEntryTap(entry),
                                     ),
                                   );
@@ -395,6 +404,11 @@ class _LogsScreenState extends State<LogsScreen> {
                                     child: _EntryListItem(
                                       entry: entry,
                                       mealCoachingService: _mealCoachingService,
+                                      parentFeedbackMessage:
+                                          _parentFeedbackMessage(
+                                            entry,
+                                            parentFeedbackByEntryId,
+                                          ),
                                       onEdit: () => _onEntryTap(entry),
                                     ),
                                   );
@@ -908,6 +922,16 @@ class _LogsScreenState extends State<LogsScreen> {
         entry.jumpRopeNote.trim().isNotEmpty;
   }
 
+  String _parentFeedbackMessage(
+    TrainingEntry entry,
+    Map<String, ParentTrainingFeedback> feedbackByEntryId,
+  ) {
+    return feedbackByEntryId[ParentSharedFeedbackService.entryIdFor(entry)]
+            ?.message
+            .trim() ??
+        '';
+  }
+
   Widget _buildEntryRow({
     required BuildContext context,
     required TrainingEntry entry,
@@ -1144,12 +1168,14 @@ class _EntryCard extends StatelessWidget {
   final TrainingEntry entry;
   final MealCoachingService mealCoachingService;
   final Map<String, TrainingBoard> boardsById;
+  final String parentFeedbackMessage;
   final VoidCallback onEdit;
 
   const _EntryCard({
     required this.entry,
     required this.mealCoachingService,
     required this.boardsById,
+    required this.parentFeedbackMessage,
     required this.onEdit,
   });
 
@@ -1235,6 +1261,10 @@ class _EntryCard extends StatelessWidget {
                   style: TextStyle(color: focusTextColor),
                 ),
               ],
+              if (parentFeedbackMessage.trim().isNotEmpty) ...[
+                const SizedBox(height: 6),
+                _ParentFeedbackPreview(message: parentFeedbackMessage),
+              ],
             ],
           ),
         ),
@@ -1246,11 +1276,13 @@ class _EntryCard extends StatelessWidget {
 class _EntryListItem extends StatelessWidget {
   final TrainingEntry entry;
   final MealCoachingService mealCoachingService;
+  final String parentFeedbackMessage;
   final VoidCallback onEdit;
 
   const _EntryListItem({
     required this.entry,
     required this.mealCoachingService,
+    required this.parentFeedbackMessage,
     required this.onEdit,
   });
 
@@ -1297,10 +1329,53 @@ class _EntryListItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: focusTextColor),
               ),
+            if (parentFeedbackMessage.trim().isNotEmpty)
+              _ParentFeedbackPreview(message: parentFeedbackMessage),
           ],
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: onEdit,
+      ),
+    );
+  }
+}
+
+class _ParentFeedbackPreview extends StatelessWidget {
+  final String message;
+
+  const _ParentFeedbackPreview({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer.withValues(alpha: 0.50),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.rate_review_outlined,
+            size: 14,
+            color: scheme.onTertiaryContainer,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              '${l10n.parentFeedbackSectionTitle}: ${message.trim()}',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: scheme.onTertiaryContainer,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

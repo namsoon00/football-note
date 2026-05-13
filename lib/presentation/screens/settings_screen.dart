@@ -553,6 +553,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     required String title,
     required IconData icon,
     String? summary,
+    String? detailsMessage,
+    String? detailsTooltip,
     required List<Widget> children,
     bool compact = false,
   }) {
@@ -588,22 +590,38 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            if (summary?.trim().isNotEmpty == true) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                summary!,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                      if (summary?.trim().isNotEmpty == true) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          summary!,
-                          style: Theme.of(context).textTheme.bodySmall,
+                      if (detailsMessage?.trim().isNotEmpty == true)
+                        IconButton(
+                          onPressed: () => _showSettingsInfoDialog(
+                            title: title,
+                            message: detailsMessage!,
+                          ),
+                          icon: const Icon(Icons.info_outline, size: 18),
+                          tooltip: detailsTooltip,
+                          visualDensity: VisualDensity.compact,
                         ),
-                      ],
                     ],
                   ),
                 ),
@@ -672,12 +690,11 @@ class _SettingsScreenState extends State<SettingsScreen>
     required FamilyAccessState familyState,
     bool compact = false,
   }) {
-    final supportRole = familyState.isSupportMode
-        ? familyState.currentRole
-        : familyState.activeSupportRole;
     return _buildPrimarySettingsCard(
       title: l10n.settingsUsageModeTitle,
       icon: Icons.manage_accounts_outlined,
+      detailsMessage: l10n.familyRoleSelectionDescription,
+      detailsTooltip: l10n.settingsInfoTooltip,
       compact: compact,
       children: [
         Wrap(
@@ -694,42 +711,16 @@ class _SettingsScreenState extends State<SettingsScreen>
               },
             ),
             ChoiceChip(
-              avatar: Icon(_familyRoleIcon(supportRole), size: 18),
+              avatar: Icon(_familyRoleIcon(FamilyRole.parent), size: 18),
               label: Text(l10n.settingsSupportModeLabel),
               selected: familyState.isSupportMode,
               onSelected: (_) {
                 if (familyState.isSupportMode) return;
-                unawaited(_updateFamilyRole(supportRole));
+                unawaited(_updateFamilyRole(FamilyRole.parent));
               },
             ),
           ],
         ),
-        if (familyState.isSupportMode) ...[
-          Text(
-            l10n.settingsSupportRoleTitle,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [FamilyRole.parent, FamilyRole.coach]
-                .map((role) {
-                  final selected = familyState.currentRole == role;
-                  return ChoiceChip(
-                    avatar: Icon(_familyRoleIcon(role), size: 18),
-                    label: Text(_familyRoleLabel(l10n, role)),
-                    selected: selected,
-                    onSelected: (_) {
-                      if (selected) return;
-                      unawaited(_updateFamilyRole(role));
-                    },
-                  );
-                })
-                .toList(growable: false),
-          ),
-        ],
       ],
     );
   }
@@ -760,9 +751,10 @@ class _SettingsScreenState extends State<SettingsScreen>
     return _buildPrimarySettingsCard(
       title: l10n.settingsDriveConnectionTitle,
       icon: Icons.cloud_done_outlined,
-      summary: familyState.isChildMode
+      detailsMessage: familyState.isChildMode
           ? l10n.settingsDriveConnectionPlayerSummary
           : l10n.settingsDriveConnectionSupportSummary,
+      detailsTooltip: l10n.settingsInfoTooltip,
       compact: compact,
       children: familyState.isChildMode
           ? _buildPlayerDriveConnectionChildren(
@@ -858,9 +850,10 @@ class _SettingsScreenState extends State<SettingsScreen>
     return _buildPrimarySettingsCard(
       title: l10n.settingsDataSyncTitle,
       icon: Icons.sync_alt_rounded,
-      summary: familyState.isChildMode
+      detailsMessage: familyState.isChildMode
           ? l10n.settingsDataSyncPlayerSummary
           : l10n.settingsDataSyncSupportSummary,
+      detailsTooltip: l10n.settingsInfoTooltip,
       compact: compact,
       children: familyState.isChildMode
           ? _buildPlayerSyncChildren(l10n, familyState)
@@ -1000,31 +993,14 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const gap = 8.0;
-        if (constraints.maxWidth >= 680) {
-          return Row(
-            children: [
-              for (var i = 0; i < actions.length; i++) ...[
-                Expanded(child: actions[i]),
-                if (i != actions.length - 1) const SizedBox(width: gap),
-              ],
-            ],
-          );
-        }
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (var i = 0; i < actions.length; i++) ...[
-                SizedBox(width: 168, child: actions[i]),
-                if (i != actions.length - 1) const SizedBox(width: gap),
-              ],
-            ],
-          ),
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < actions.length; i++) ...[
+          actions[i],
+          if (i != actions.length - 1) const SizedBox(height: 8),
+        ],
+      ],
     );
   }
 
@@ -1757,20 +1733,44 @@ class _SettingsScreenState extends State<SettingsScreen>
     return result?.trim();
   }
 
+  Future<void> _showSettingsInfoDialog({
+    required String title,
+    required String message,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _updateFamilyRole(FamilyRole role) async {
+    final targetRole = FamilyAccessService.isSupportRole(role)
+        ? FamilyRole.parent
+        : FamilyRole.child;
     final familyService = FamilyAccessService(widget.optionRepository);
     final currentState = familyService.loadState();
     if (widget.driveBackupService != null && _signedIn) {
-      if (currentState.isChildMode && FamilyAccessService.isSupportRole(role)) {
+      if (currentState.isChildMode &&
+          FamilyAccessService.isSupportRole(targetRole)) {
         await widget.driveBackupService!.rememberRecordDriveConnection();
-      } else if (currentState.isSupportMode && role == FamilyRole.child) {
+      } else if (currentState.isSupportMode && targetRole == FamilyRole.child) {
         await widget.driveBackupService!.rememberParentDriveConnection();
         await widget.driveBackupService!.signOut();
       }
     }
-    await familyService.setCurrentRole(role);
+    await familyService.setCurrentRole(targetRole);
     if (widget.driveBackupService != null &&
-        FamilyAccessService.isSupportRole(role)) {
+        FamilyAccessService.isSupportRole(targetRole)) {
       await _refreshParentSharedDataIfNeeded();
     }
     await _refreshSignInState();
@@ -1780,7 +1780,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(l10n.familyRoleActivated(_familyRoleLabel(l10n, role))),
+        content: Text(
+          l10n.familyRoleActivated(_familyRoleLabel(l10n, targetRole)),
+        ),
       ),
     );
   }
@@ -1788,8 +1790,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   String _familyRoleLabel(AppLocalizations l10n, FamilyRole role) {
     return switch (role) {
       FamilyRole.child => l10n.familyRolePlayer,
-      FamilyRole.parent => l10n.familyRoleParent,
-      FamilyRole.coach => l10n.familyRoleCoach,
+      FamilyRole.parent || FamilyRole.coach => l10n.settingsSupportModeLabel,
     };
   }
 

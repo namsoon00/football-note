@@ -129,7 +129,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('공유 역할 읽기 전용'), findsNothing);
+    expect(find.text('보호자 모드 읽기 전용'), findsNothing);
     expect(find.text('퍼스트 터치가 안정적이었다.'), findsOneWidget);
     expect(find.text('압박 회피가 늦었다.'), findsOneWidget);
     expect(find.text('턴 동작을 더 빠르게 가져간다.'), findsOneWidget);
@@ -174,13 +174,13 @@ void main() {
 
     expect(find.text('기존 훈련기록을 열어 피드백을 남겨주세요.'), findsOneWidget);
     expect(
-      find.textContaining('이미 저장된 훈련기록에만 보호자/코치 피드백을 저장할 수 있어요.'),
+      find.textContaining('이미 저장된 훈련기록에만 보호자 피드백을 저장할 수 있어요.'),
       findsNothing,
     );
     await tester.tap(find.byTooltip('자세히 보기'));
     await tester.pumpAndSettle();
     expect(
-      find.textContaining('이미 저장된 훈련기록에만 보호자/코치 피드백을 저장할 수 있어요.'),
+      find.textContaining('이미 저장된 훈련기록에만 보호자 피드백을 저장할 수 있어요.'),
       findsOneWidget,
     );
     expect(find.byType(TextField), findsNothing);

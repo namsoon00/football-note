@@ -221,6 +221,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   formatMillimeter: _formatMillimeter,
                   formatWind: _formatWind,
                   formatFineDust: _formatAirMetricValue,
+                  pm10LevelForValue: (value) => _pm10Level(l10n, value).level,
+                  pm25LevelForValue: (value) => _pm25Level(l10n, value).level,
                   iconForCode: _weatherIcon,
                 ),
               ],
@@ -2960,6 +2962,8 @@ class _WeeklyForecastCard extends StatelessWidget {
   final String Function(double?) formatMillimeter;
   final String Function(double?) formatWind;
   final String Function(double?) formatFineDust;
+  final _AirQualityLevel Function(double?) pm10LevelForValue;
+  final _AirQualityLevel Function(double?) pm25LevelForValue;
   final IconData Function(int?) iconForCode;
 
   const _WeeklyForecastCard({
@@ -2973,6 +2977,8 @@ class _WeeklyForecastCard extends StatelessWidget {
     required this.formatMillimeter,
     required this.formatWind,
     required this.formatFineDust,
+    required this.pm10LevelForValue,
+    required this.pm25LevelForValue,
     required this.iconForCode,
   });
 
@@ -3037,9 +3043,15 @@ class _WeeklyForecastCard extends StatelessWidget {
               fineDust: forecast.pm10 == null
                   ? null
                   : formatFineDust(forecast.pm10),
+              fineDustLevel: forecast.pm10 == null
+                  ? null
+                  : pm10LevelForValue(forecast.pm10),
               ultraFineDust: forecast.pm25 == null
                   ? null
                   : formatFineDust(forecast.pm25),
+              ultraFineDustLevel: forecast.pm25 == null
+                  ? null
+                  : pm25LevelForValue(forecast.pm25),
               icon: iconForCode(forecast.weatherCode),
             ),
             if (!identical(forecast, forecasts.last))
@@ -3061,7 +3073,9 @@ class _WeeklyForecastRow extends StatelessWidget {
   final String precipitation;
   final String wind;
   final String? fineDust;
+  final _AirQualityLevel? fineDustLevel;
   final String? ultraFineDust;
+  final _AirQualityLevel? ultraFineDustLevel;
   final IconData icon;
 
   const _WeeklyForecastRow({
@@ -3074,7 +3088,9 @@ class _WeeklyForecastRow extends StatelessWidget {
     required this.precipitation,
     required this.wind,
     required this.fineDust,
+    required this.fineDustLevel,
     required this.ultraFineDust,
+    required this.ultraFineDustLevel,
     required this.icon,
   });
 
@@ -3227,7 +3243,7 @@ class _WeeklyForecastRow extends StatelessWidget {
                                 icon: Icons.blur_on_rounded,
                                 label: fineDustLabel,
                                 value: fineDust!,
-                                showLabel: false,
+                                airLevel: fineDustLevel,
                               ),
                             ),
                           if (fineDust != null && ultraFineDust != null)
@@ -3238,7 +3254,7 @@ class _WeeklyForecastRow extends StatelessWidget {
                                 icon: Icons.blur_circular_rounded,
                                 label: ultraFineDustLabel,
                                 value: ultraFineDust!,
-                                showLabel: false,
+                                airLevel: ultraFineDustLevel,
                               ),
                             ),
                         ],
@@ -3260,32 +3276,43 @@ class _ForecastStatPill extends StatelessWidget {
   final String label;
   final String value;
   final bool showLabel;
+  final _AirQualityLevel? airLevel;
 
   const _ForecastStatPill({
     required this.icon,
     required this.label,
     required this.value,
     this.showLabel = true,
+    this.airLevel,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = airLevel == null
+        ? null
+        : _airQualityPalette(theme, airLevel!);
     final visibleText = showLabel ? '$label $value' : value;
     return Semantics(
       label: '$label $value',
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
+          color: palette?.background ?? theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.32),
+            color:
+                palette?.border ??
+                theme.colorScheme.outlineVariant.withValues(alpha: 0.32),
           ),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 16, color: theme.colorScheme.primary),
+            Icon(
+              icon,
+              size: 16,
+              color: palette?.foreground ?? theme.colorScheme.primary,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -3293,7 +3320,8 @@ class _ForecastStatPill extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color:
+                      palette?.foreground ?? theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w800,
                 ),
               ),

@@ -117,9 +117,8 @@ void main() {
     expect(find.text('번역'), findsNothing);
 
     final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
-    final translateX = tester
-        .getTopLeft(find.byKey(_translateToggleActionKey))
-        .dx;
+    final translateX =
+        tester.getTopLeft(find.byKey(_translateToggleActionKey)).dx;
     final fifaX = tester.getTopLeft(find.byKey(_fifaHubActionKey)).dx;
 
     expect(scrapX, lessThan(translateX));
@@ -179,7 +178,7 @@ void main() {
     },
   );
 
-  testWidgets('unread news is shown before read news', (
+  testWidgets('read news is hidden from the feed', (
     WidgetTester tester,
   ) async {
     final repository = _MemoryOptionRepository();
@@ -219,9 +218,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final unreadTop = tester.getTopLeft(find.text('안 읽은 기사')).dy;
-    final readTop = tester.getTopLeft(find.text('이미 읽은 기사')).dy;
-    expect(unreadTop, lessThan(readTop));
+    expect(find.text('안 읽은 기사'), findsOneWidget);
+    expect(find.text('이미 읽은 기사'), findsNothing);
   });
 }
 
@@ -251,8 +249,8 @@ class _FakeNewsRepository implements NewsRepository {
   _FakeNewsRepository({
     required List<NewsChannel> channels,
     required Map<String, List<NewsArticle>> articlesByChannelId,
-  }) : _channels = channels,
-       _articlesByChannelId = articlesByChannelId;
+  })  : _channels = channels,
+        _articlesByChannelId = articlesByChannelId;
 
   @override
   List<NewsChannel> channels() => _channels;

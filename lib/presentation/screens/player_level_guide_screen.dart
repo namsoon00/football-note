@@ -108,6 +108,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                   isCurrent: levelIndex + 1 == widget.currentLevel,
                   rewardStatus: rewardByLevel[levelIndex + 1],
                   isKo: isKo,
+                  l10n: l10n,
                   spec: PlayerLevelVisualSpec.fromLevel(levelIndex + 1),
                   isSyncing: _syncingRewardLevel == levelIndex + 1,
                   canClaimReward: familyState.isChildMode,
@@ -450,6 +451,7 @@ class _LevelGuideCard extends StatelessWidget {
   final bool isCurrent;
   final PlayerLevelRewardStatus? rewardStatus;
   final bool isKo;
+  final AppLocalizations l10n;
   final PlayerLevelVisualSpec spec;
   final bool isSyncing;
   final bool canClaimReward;
@@ -464,6 +466,7 @@ class _LevelGuideCard extends StatelessWidget {
     required this.isCurrent,
     required this.rewardStatus,
     required this.isKo,
+    required this.l10n,
     required this.spec,
     required this.isSyncing,
     required this.canClaimReward,
@@ -540,7 +543,7 @@ class _LevelGuideCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   maxXp == null
-                      ? (isKo ? '$minXp XP 이상' : '$minXp XP+')
+                      ? l10n.levelGuideMaxLevelRangeLabel(minXp)
                       : (isKo
                             ? '$minXp XP ~ $maxXp XP'
                             : '$minXp XP to $maxXp XP'),
@@ -549,6 +552,18 @@ class _LevelGuideCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+                if (maxXp == null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.levelGuideMaxLevelMasteryHint(
+                      PlayerLevelService.maxLevelMasterySpan,
+                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.88),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
                 if (reward != null) ...[
                   const SizedBox(height: 12),
                   Container(

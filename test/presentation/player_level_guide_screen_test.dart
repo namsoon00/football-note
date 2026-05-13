@@ -124,19 +124,19 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('공유 역할 모드'), findsOneWidget);
+    expect(find.text('보호자 모드'), findsOneWidget);
     expect(find.byTooltip('모드 설명 보기'), findsOneWidget);
     expect(find.textContaining('선물 이름만 저장할 수 있고'), findsNothing);
     expect(find.text('선물 받기'), findsNothing);
     expect(find.text('입력').first, findsOneWidget);
-    expect(find.text('선수 모드에서 수령'), findsOneWidget);
+    expect(find.text('아이 모드에서 수령'), findsOneWidget);
 
     await tester.tap(find.byTooltip('모드 설명 보기'));
     await tester.pumpAndSettle();
 
     expect(
       find.text(
-        '공유 역할에서는 레벨 선물 이름만 저장할 수 있고, 저장한 선물 이름은 선수 Drive 공유에도 반영됩니다. 선물 수령은 선수 모드에서 진행합니다.',
+        '보호자 모드에서는 레벨 선물 이름만 저장할 수 있고, 저장한 선물 이름은 아이 Drive 공유에도 반영됩니다. 선물 수령 표시는 아이 모드에서 진행합니다.',
       ),
       findsOneWidget,
     );
@@ -175,7 +175,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('동기화 중...'), findsOneWidget);
-    expect(find.text('선수 Drive로 동기화 중이에요...'), findsWidgets);
+    expect(find.text('아이 Drive로 동기화 중이에요...'), findsWidgets);
 
     completer.complete(true);
     await tester.pumpAndSettle();
