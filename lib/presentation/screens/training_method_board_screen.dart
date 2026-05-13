@@ -2471,7 +2471,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 CustomPaint(
                   size: Size(width, height),
                   painter: _PlayerPathPainter(
-                    routes: _currentPage.routes,
+                    routes: _playController.isAnimating
+                        ? const <_BoardRoute>[]
+                        : _currentPage.routes,
                     selectedRouteId: _selectedRouteId,
                     activeRoutePoints: _activeRoutePoints,
                     activeRouteColor: _activeRoutePreviewColor(),

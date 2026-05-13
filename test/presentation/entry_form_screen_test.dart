@@ -323,7 +323,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('공유 역할 읽기 전용'), findsNothing);
+      expect(find.text('보호자 모드 읽기 전용'), findsNothing);
       expect(find.text('퍼스트 터치가 안정적이었다.'), findsOneWidget);
       expect(find.text('압박 회피가 늦었다.'), findsOneWidget);
       expect(find.text('턴 동작을 더 빠르게 가져간다.'), findsOneWidget);
@@ -386,12 +386,11 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, '피드백 입력'));
     await tester.pumpAndSettle();
 
-    expect(find.text('보호자/코치 피드백'), findsWidgets);
+    expect(find.text('보호자 피드백'), findsWidgets);
 
     final feedbackField = find.byWidgetPredicate(
       (widget) =>
-          widget is TextField &&
-          widget.decoration?.labelText == '보호자/코치 피드백 입력',
+          widget is TextField && widget.decoration?.labelText == '보호자 피드백 입력',
     );
     expect(feedbackField, findsOneWidget);
 
@@ -436,7 +435,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('보호자/코치 피드백'), findsOneWidget);
+    expect(find.text('보호자 피드백'), findsOneWidget);
     expect(find.text('턴 타이밍이 좋아졌고 시야가 더 넓어졌어요.'), findsOneWidget);
   });
 
@@ -588,6 +587,6 @@ void main() {
 
     expect(find.byType(TrainingMethodBoardScreen), findsOneWidget);
     expect(find.text('패스 패턴'), findsWidgets);
-    expect(find.text('공유 역할에서는 훈련 스케치를 수정할 수 없어요.'), findsOneWidget);
+    expect(find.text('보호자 모드에서는 훈련 스케치를 수정할 수 없어요.'), findsOneWidget);
   });
 }

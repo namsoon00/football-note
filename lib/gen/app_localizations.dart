@@ -3404,6 +3404,18 @@ abstract class AppLocalizations {
   /// **'Log meals today'**
   String get homeMealCoachRecordAction;
 
+  /// No description provided for @homeParentWelcomeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'In parent mode, review records and manage feedback or reward names only.'**
+  String get homeParentWelcomeMessage;
+
+  /// No description provided for @homeParentWelcomeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View logs'**
+  String get homeParentWelcomeAction;
+
   /// No description provided for @homeMealCoachOtherSuggestions.
   ///
   /// In en, this message translates to:
@@ -6407,13 +6419,13 @@ abstract class AppLocalizations {
   /// No description provided for @familySharing.
   ///
   /// In en, this message translates to:
-  /// **'Support role/player sharing'**
+  /// **'Parent mode/child sharing'**
   String get familySharing;
 
   /// No description provided for @familySharedBackupDescription.
   ///
   /// In en, this message translates to:
-  /// **'Use one shared Drive backup without a server. Player mode manages core records directly, while support role mode syncs only the shared layer.'**
+  /// **'Use one shared Drive backup without a server. Child mode manages core records directly, while parent mode syncs only feedback and reward names.'**
   String get familySharedBackupDescription;
 
   /// No description provided for @familyBackupIncludesMedia.
@@ -6425,7 +6437,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentAutoSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'In support role mode, only training feedback and reward names sync automatically. Back up and restore player records from player mode.'**
+  /// **'In parent mode, only training feedback and reward names sync automatically. Back up and restore child records from child mode.'**
   String get familyParentAutoSyncDescription;
 
   /// No description provided for @familyChildDriveConnectionTitle.
@@ -6437,7 +6449,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyChildDriveConnectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'In support role mode, connect the Google Drive account that holds the player\'s source data so both roles can share the same backup file.'**
+  /// **'In parent mode, connect the Google Drive account that holds the child\'s source data so both modes can share the same backup file.'**
   String get familyChildDriveConnectionDescription;
 
   /// No description provided for @familyConnectChildDrive.
@@ -6455,13 +6467,13 @@ abstract class AppLocalizations {
   /// No description provided for @familyRoleChild.
   ///
   /// In en, this message translates to:
-  /// **'Player'**
+  /// **'Child'**
   String get familyRoleChild;
 
   /// No description provided for @familyRolePlayer.
   ///
   /// In en, this message translates to:
-  /// **'Player'**
+  /// **'Child'**
   String get familyRolePlayer;
 
   /// No description provided for @familyRoleParent.
@@ -6473,19 +6485,19 @@ abstract class AppLocalizations {
   /// No description provided for @familyRoleCoach.
   ///
   /// In en, this message translates to:
-  /// **'Coach'**
+  /// **'Parent'**
   String get familyRoleCoach;
 
   /// No description provided for @familyRoleSelectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Role selection'**
+  /// **'Usage mode selection'**
   String get familyRoleSelectionTitle;
 
   /// No description provided for @familyRoleSelectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'Choose whether this device is used by the player directly or by a parent/coach for review first.'**
+  /// **'Choose whether this device is used by the child directly or by a parent for review first.'**
   String get familyRoleSelectionDescription;
 
   /// No description provided for @settingsUsageModeTitle.
@@ -6497,19 +6509,25 @@ abstract class AppLocalizations {
   /// No description provided for @settingsRoleAndSyncTitle.
   ///
   /// In en, this message translates to:
-  /// **'Role & sync'**
+  /// **'Usage & sync'**
   String get settingsRoleAndSyncTitle;
+
+  /// No description provided for @settingsInfoTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Show description'**
+  String get settingsInfoTooltip;
 
   /// No description provided for @settingsSupportModeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Parent / coach'**
+  /// **'Parent mode'**
   String get settingsSupportModeLabel;
 
   /// No description provided for @settingsSupportRoleTitle.
   ///
   /// In en, this message translates to:
-  /// **'Support role'**
+  /// **'Parent mode details'**
   String get settingsSupportRoleTitle;
 
   /// No description provided for @settingsDriveConnectionTitle.
@@ -6527,7 +6545,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDriveConnectionSupportSummary.
   ///
   /// In en, this message translates to:
-  /// **'Check the shared Drive account that stores the player\'s source data.'**
+  /// **'Check the shared Drive account that stores the child\'s source data.'**
   String get settingsDriveConnectionSupportSummary;
 
   /// No description provided for @settingsDataSyncTitle.
@@ -6545,7 +6563,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDataSyncSupportSummary.
   ///
   /// In en, this message translates to:
-  /// **'Import from the player backup file and push shared changes back to it.'**
+  /// **'Import from the child backup file and push feedback or reward names back to it.'**
   String get settingsDataSyncSupportSummary;
 
   /// No description provided for @settingsDriveConnectAction.
@@ -6575,19 +6593,19 @@ abstract class AppLocalizations {
   /// No description provided for @settingsRoleAccountSummary.
   ///
   /// In en, this message translates to:
-  /// **'Choose this device role first.'**
+  /// **'Choose this device usage mode first.'**
   String get settingsRoleAccountSummary;
 
   /// No description provided for @settingsRoleAccountTitle.
   ///
   /// In en, this message translates to:
-  /// **'Role and account'**
+  /// **'Usage mode and account'**
   String get settingsRoleAccountTitle;
 
   /// No description provided for @settingsRoleAccountDescription.
   ///
   /// In en, this message translates to:
-  /// **'Choose how this device will be used first. The account connection below changes to match that role.'**
+  /// **'Choose how this device will be used first. The account connection below changes to match that mode.'**
   String get settingsRoleAccountDescription;
 
   /// No description provided for @settingsRoleAccountUnavailable.
@@ -6599,37 +6617,37 @@ abstract class AppLocalizations {
   /// No description provided for @settingsRolePlayerDescription.
   ///
   /// In en, this message translates to:
-  /// **'Record training, meals, sketches, XP, and backups as the player.'**
+  /// **'Record training, meals, sketches, XP, and backups in child mode.'**
   String get settingsRolePlayerDescription;
 
   /// No description provided for @settingsRoleParentDescription.
   ///
   /// In en, this message translates to:
-  /// **'Read player records and manage feedback or reward names without editing core records.'**
+  /// **'Read child records and manage feedback or reward names without editing core records.'**
   String get settingsRoleParentDescription;
 
   /// No description provided for @settingsRoleCoachDescription.
   ///
   /// In en, this message translates to:
-  /// **'Review player records and sketches as a coach, with shared feedback focused on training.'**
+  /// **'Review child records and sketches in parent mode, with shared feedback focused on training.'**
   String get settingsRoleCoachDescription;
 
   /// No description provided for @settingsRoleActionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Role-based actions'**
+  /// **'Mode-based actions'**
   String get settingsRoleActionTitle;
 
   /// No description provided for @settingsPlayerActionSummary.
   ///
   /// In en, this message translates to:
-  /// **'In player mode, use backup first to protect new records, and use the import actions below only when you need to restore older data.'**
+  /// **'In child mode, use backup first to protect new records, and use the import actions below only when you need to restore older data.'**
   String get settingsPlayerActionSummary;
 
   /// No description provided for @settingsSupportActionSummary.
   ///
   /// In en, this message translates to:
-  /// **'Support roles do not create new source backups here. Instead, they import player data or roll back to the state saved before the last import.'**
+  /// **'Parent mode does not create new source backups here. Instead, it imports child data or rolls back to the state saved before the last import.'**
   String get settingsSupportActionSummary;
 
   /// No description provided for @settingsPlayerAccountTitle.
@@ -6677,13 +6695,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSupportRestoreDriveActionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Import latest player data'**
+  /// **'Import latest child data'**
   String get settingsSupportRestoreDriveActionTitle;
 
   /// No description provided for @settingsSupportRestoreDriveActionBody.
   ///
   /// In en, this message translates to:
-  /// **'Pull the latest Google Drive backup that was saved in player mode onto this device.'**
+  /// **'Pull the latest Google Drive backup that was saved in child mode onto this device.'**
   String get settingsSupportRestoreDriveActionBody;
 
   /// No description provided for @settingsSupportRestoreLocalActionTitle.
@@ -6695,25 +6713,25 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSupportRestoreLocalActionBody.
   ///
   /// In en, this message translates to:
-  /// **'Revert the latest imported player-data changes on this device to the previous state.'**
+  /// **'Revert the latest imported child-data changes on this device to the previous state.'**
   String get settingsSupportRestoreLocalActionBody;
 
   /// No description provided for @settingsSupportBackupConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Back up the support-role feedback and level reward names into the player\'s source Drive backup?'**
+  /// **'Back up parent-mode feedback and level reward names into the child\'s source Drive backup?'**
   String get settingsSupportBackupConfirm;
 
   /// No description provided for @settingsSupportBackupSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Shared changes were backed up to the player\'s source Drive.'**
+  /// **'Shared changes were backed up to the child\'s source Drive.'**
   String get settingsSupportBackupSuccess;
 
   /// No description provided for @settingsSupportBackupFailed.
   ///
   /// In en, this message translates to:
-  /// **'Could not back up shared changes. Check that this Drive account already has a player-mode backup.'**
+  /// **'Could not back up shared changes. Check that this Drive account already has a child-mode backup.'**
   String get settingsSupportBackupFailed;
 
   /// No description provided for @settingsRestoreRollbackTitle.
@@ -6737,37 +6755,37 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentModeEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Enable support role mode'**
+  /// **'Enable parent mode'**
   String get familyParentModeEnabled;
 
   /// No description provided for @familyParentModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Turn this on for support role mode. Turn it off to return to player mode.'**
+  /// **'Turn this on for parent mode. Turn it off to return to child mode.'**
   String get familyParentModeDescription;
 
   /// No description provided for @familyChildName.
   ///
   /// In en, this message translates to:
-  /// **'Player name'**
+  /// **'Child name'**
   String get familyChildName;
 
   /// No description provided for @familyParentName.
   ///
   /// In en, this message translates to:
-  /// **'Parent/coach name'**
+  /// **'Parent name'**
   String get familyParentName;
 
   /// No description provided for @familyChildNameEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Set the player name'**
+  /// **'Set the child name'**
   String get familyChildNameEmpty;
 
   /// No description provided for @familyParentNameEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Set the parent or coach name'**
+  /// **'Set the parent name'**
   String get familyParentNameEmpty;
 
   /// No description provided for @familyEditNames.
@@ -6779,31 +6797,31 @@ abstract class AppLocalizations {
   /// No description provided for @familyPolicyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Support role/player sharing policy'**
+  /// **'Parent mode/child sharing policy'**
   String get familyPolicyTitle;
 
   /// No description provided for @familyPolicyChildOwnsData.
   ///
   /// In en, this message translates to:
-  /// **'Player mode backs up training, profile, diary, meals, and plans as the source of truth.'**
+  /// **'Child mode backs up training, profile, diary, meals, and plans as the source of truth.'**
   String get familyPolicyChildOwnsData;
 
   /// No description provided for @familyPolicyParentWritesOnly.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode can save training feedback and level reward names only.'**
+  /// **'Parent mode can save training feedback and level reward names only.'**
   String get familyPolicyParentWritesOnly;
 
   /// No description provided for @familyPolicyParentSeedRequired.
   ///
   /// In en, this message translates to:
-  /// **'Connect the support-role device after at least one player backup already exists.'**
+  /// **'Connect the parent device after at least one child backup already exists.'**
   String get familyPolicyParentSeedRequired;
 
   /// No description provided for @familyRoleChildActivated.
   ///
   /// In en, this message translates to:
-  /// **'Player mode activated.'**
+  /// **'Child mode activated.'**
   String get familyRoleChildActivated;
 
   /// No description provided for @familyRoleParentActivated.
@@ -6833,67 +6851,67 @@ abstract class AppLocalizations {
   /// No description provided for @driveSavedPlayerAccount.
   ///
   /// In en, this message translates to:
-  /// **'Player-mode backup Drive'**
+  /// **'Child-mode backup Drive'**
   String get driveSavedPlayerAccount;
 
   /// No description provided for @driveReconnectSavedPlayer.
   ///
   /// In en, this message translates to:
-  /// **'Reconnect player-mode Drive'**
+  /// **'Reconnect child-mode Drive'**
   String get driveReconnectSavedPlayer;
 
   /// No description provided for @driveReconnectSavedPlayerHint.
   ///
   /// In en, this message translates to:
-  /// **'After leaving parent mode, reconnect the saved player mode Drive account here.'**
+  /// **'After leaving parent mode, reconnect the saved child-mode Drive account here.'**
   String get driveReconnectSavedPlayerHint;
 
   /// No description provided for @driveReconnectSavedPlayerMismatch.
   ///
   /// In en, this message translates to:
-  /// **'Please reconnect with the saved player mode Drive account.'**
+  /// **'Please reconnect with the saved child-mode Drive account.'**
   String get driveReconnectSavedPlayerMismatch;
 
   /// No description provided for @driveSavedParentAccount.
   ///
   /// In en, this message translates to:
-  /// **'Saved support-role Drive'**
+  /// **'Saved parent-mode Drive'**
   String get driveSavedParentAccount;
 
   /// No description provided for @driveReconnectSavedParent.
   ///
   /// In en, this message translates to:
-  /// **'Reconnect saved support-role Drive'**
+  /// **'Reconnect saved parent-mode Drive'**
   String get driveReconnectSavedParent;
 
   /// No description provided for @driveReconnectSavedParentHint.
   ///
   /// In en, this message translates to:
-  /// **'Reconnect the Drive account that was used most recently in support role mode.'**
+  /// **'Reconnect the Drive account that was used most recently in parent mode.'**
   String get driveReconnectSavedParentHint;
 
   /// No description provided for @driveReconnectSavedParentMismatch.
   ///
   /// In en, this message translates to:
-  /// **'Please reconnect with the saved support-role Drive account.'**
+  /// **'Please reconnect with the saved parent-mode Drive account.'**
   String get driveReconnectSavedParentMismatch;
 
   /// No description provided for @driveSharedChildAccount.
   ///
   /// In en, this message translates to:
-  /// **'Player source-data Drive'**
+  /// **'Child source-data Drive'**
   String get driveSharedChildAccount;
 
   /// No description provided for @driveSharedChildAccountEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No source Drive is known yet. Create at least one backup in player mode first.'**
+  /// **'No source Drive is known yet. Create at least one backup in child mode first.'**
   String get driveSharedChildAccountEmpty;
 
   /// No description provided for @driveSharedChildAccountRemoteBackup.
   ///
   /// In en, this message translates to:
-  /// **'A remote backup was found. Connect the same Google Drive account used in player mode.'**
+  /// **'A remote backup was found. Connect the same Google Drive account used in child mode.'**
   String get driveSharedChildAccountRemoteBackup;
 
   /// No description provided for @familyChildDriveConnectionSummary.
@@ -6911,31 +6929,31 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
-  /// **'In support role mode, sign in with the Google Drive account that holds the player\'s source data to sync training feedback and reward names into the same backup file.'**
+  /// **'In parent mode, sign in with the Google Drive account that holds the child\'s source data to sync training feedback and reward names into the same backup file.'**
   String get familyParentUsesChildDriveHint;
 
   /// No description provided for @familyParentUsesChildDriveWarning.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode should connect to the Google Drive account that holds the player\'s source data so training feedback and reward names sync safely into the same backup file.'**
+  /// **'Parent mode should connect to the Google Drive account that holds the child\'s source data so training feedback and reward names sync safely into the same backup file.'**
   String get familyParentUsesChildDriveWarning;
 
   /// No description provided for @familySharedSyncTitle.
   ///
   /// In en, this message translates to:
-  /// **'Player data sync'**
+  /// **'Child data sync'**
   String get familySharedSyncTitle;
 
   /// No description provided for @familySharedSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Parent feedback and level reward names are written automatically into the same player backup file.'**
+  /// **'Parent feedback and level reward names are written automatically into the same child backup file.'**
   String get familySharedSyncDescription;
 
   /// No description provided for @familySharedLastSync.
   ///
   /// In en, this message translates to:
-  /// **'Last support role/player sync'**
+  /// **'Last parent/child sync'**
   String get familySharedLastSync;
 
   /// No description provided for @familySharedLastPush.
@@ -6953,7 +6971,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedAutoRefreshDescription.
   ///
   /// In en, this message translates to:
-  /// **'When support role mode opens or the app resumes, the latest state is checked automatically. Auto checks pause when local changes are still waiting to be pushed to Drive.'**
+  /// **'When parent mode opens or the app resumes, the latest state is checked automatically. Auto checks pause when local changes are still waiting to be pushed to Drive.'**
   String get familySharedAutoRefreshDescription;
 
   /// No description provided for @familySharedPendingLocalChanges.
@@ -6965,37 +6983,37 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedRestore.
   ///
   /// In en, this message translates to:
-  /// **'Import player data'**
+  /// **'Import child data'**
   String get familySharedRestore;
 
   /// No description provided for @familySharedRestoreConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Import the latest player data from Google Drive? This replaces the player records and shared data shown on this device.'**
+  /// **'Import the latest child data from Google Drive? This replaces the child records and shared data shown on this device.'**
   String get familySharedRestoreConfirm;
 
   /// No description provided for @familySharedRestoreSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Player data imported.'**
+  /// **'Child data imported.'**
   String get familySharedRestoreSuccess;
 
   /// No description provided for @familySharedRestoreFailed.
   ///
   /// In en, this message translates to:
-  /// **'Failed to import player data. Please try again.'**
+  /// **'Failed to import child data. Please try again.'**
   String get familySharedRestoreFailed;
 
   /// No description provided for @familySharedRestoreLocal.
   ///
   /// In en, this message translates to:
-  /// **'Import previous player data'**
+  /// **'Import previous child data'**
   String get familySharedRestoreLocal;
 
   /// No description provided for @familySharedRestoreLocalConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Undo the latest imported player-data changes on this device? This replaces the player records and shared data shown on this device.'**
+  /// **'Undo the latest imported child-data changes on this device? This replaces the child records and shared data shown on this device.'**
   String get familySharedRestoreLocalConfirm;
 
   /// No description provided for @familySharedRestoreLocalSuccess.
@@ -7025,7 +7043,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentFamilyMismatch.
   ///
   /// In en, this message translates to:
-  /// **'The connected Drive backup does not match this support role/player sharing data.'**
+  /// **'The connected Drive backup does not match this parent/child sharing data.'**
   String get familyParentFamilyMismatch;
 
   /// No description provided for @moreInfoAction.
@@ -7043,19 +7061,19 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyProfileDescription.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.'**
+  /// **'Parent mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.'**
   String get parentReadOnlyProfileDescription;
 
   /// No description provided for @parentReadOnlyEntryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode cannot edit training notes.'**
+  /// **'Parent mode cannot edit training notes.'**
   String get parentReadOnlyEntryTitle;
 
   /// No description provided for @parentReadOnlyEntryBody.
   ///
   /// In en, this message translates to:
-  /// **'Core records like training, meals, and diary stay in player mode. Support role mode leaves the original record untouched and stores only feedback and reward naming separately.'**
+  /// **'Core records like training, meals, and diary stay in child mode. Parent mode leaves the original record untouched and stores only feedback and reward naming separately.'**
   String get parentReadOnlyEntryBody;
 
   /// No description provided for @parentReadOnlyLogsSummary.
@@ -7067,13 +7085,13 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyLogsBanner.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode does not delete training logs. Open a record to leave feedback instead.'**
+  /// **'Parent mode does not delete training logs. Open a record to leave feedback instead.'**
   String get parentReadOnlyLogsBanner;
 
   /// No description provided for @parentReadOnlyLogsMessage.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode cannot delete training logs.'**
+  /// **'Parent mode cannot delete training logs.'**
   String get parentReadOnlyLogsMessage;
 
   /// No description provided for @parentReadOnlyMealLogSummary.
@@ -7085,19 +7103,19 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyMealLog.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode cannot edit meal logs. Update meals in player mode.'**
+  /// **'Parent mode cannot edit meal logs. Update meals in child mode.'**
   String get parentReadOnlyMealLog;
 
   /// No description provided for @parentReadOnlyQuiz.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode does not run the quiz. Quiz history and XP stay in player mode.'**
+  /// **'Parent mode does not run the quiz. Quiz history and XP stay in child mode.'**
   String get parentReadOnlyQuiz;
 
   /// No description provided for @parentReadOnlyDrawerMessage.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode keeps core records read-only. Use shared data and reward naming instead.'**
+  /// **'Parent mode keeps core records read-only. Use shared data and reward naming instead.'**
   String get parentReadOnlyDrawerMessage;
 
   /// No description provided for @parentReadOnlyCalendarSummary.
@@ -7109,31 +7127,31 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyCalendarBanner.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode keeps the calendar read-only. Update plans, matches, and meals in player mode.'**
+  /// **'Parent mode keeps the calendar read-only. Update plans, matches, and meals in child mode.'**
   String get parentReadOnlyCalendarBanner;
 
   /// No description provided for @parentReadOnlyCalendarMessage.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode cannot edit the calendar.'**
+  /// **'Parent mode cannot edit the calendar.'**
   String get parentReadOnlyCalendarMessage;
 
   /// No description provided for @parentReadOnlyDiaryMessage.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode cannot edit the diary.'**
+  /// **'Parent mode cannot edit the diary.'**
   String get parentReadOnlyDiaryMessage;
 
   /// No description provided for @parentReadOnlyDiaryBadge.
   ///
   /// In en, this message translates to:
-  /// **'Support role read-only'**
+  /// **'Parent mode read-only'**
   String get parentReadOnlyDiaryBadge;
 
   /// No description provided for @parentReadOnlySketchMessage.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode cannot edit training sketches.'**
+  /// **'Parent mode cannot edit training sketches.'**
   String get parentReadOnlySketchMessage;
 
   /// No description provided for @parentReadOnlyFortuneEmpty.
@@ -7145,31 +7163,31 @@ abstract class AppLocalizations {
   /// No description provided for @parentFeedbackSectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Parent/coach feedback'**
+  /// **'Parent feedback'**
   String get parentFeedbackSectionTitle;
 
   /// No description provided for @parentFeedbackHelper.
   ///
   /// In en, this message translates to:
-  /// **'Keep the original training record untouched and store only the parent or coach feedback for this session separately.'**
+  /// **'Keep the original training record untouched and store only the parent feedback for this session separately.'**
   String get parentFeedbackHelper;
 
   /// No description provided for @parentFeedbackReadOnlyHint.
   ///
   /// In en, this message translates to:
-  /// **'Feedback left on this training log by a parent or coach.'**
+  /// **'Feedback left on this training log by a parent.'**
   String get parentFeedbackReadOnlyHint;
 
   /// No description provided for @parentFeedbackInputLabel.
   ///
   /// In en, this message translates to:
-  /// **'Parent/coach feedback'**
+  /// **'Parent feedback'**
   String get parentFeedbackInputLabel;
 
   /// No description provided for @parentFeedbackInputHint.
   ///
   /// In en, this message translates to:
-  /// **'Write what a parent or coach wants to praise or what to watch next time.'**
+  /// **'Write what a parent wants to praise or what to watch next time.'**
   String get parentFeedbackInputHint;
 
   /// No description provided for @parentFeedbackSave.
@@ -7253,49 +7271,49 @@ abstract class AppLocalizations {
   /// No description provided for @parentFeedbackOpenExistingEntryBody.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode does not create new training logs. Parent or coach feedback can only be saved on an existing training log after the player records it first.'**
+  /// **'Parent mode does not create new training logs. Parent feedback can only be saved on an existing training log after the child records it first.'**
   String get parentFeedbackOpenExistingEntryBody;
 
   /// No description provided for @parentSharedSyncInProgress.
   ///
   /// In en, this message translates to:
-  /// **'Syncing to the player\'s Drive...'**
+  /// **'Syncing to the child\'s Drive...'**
   String get parentSharedSyncInProgress;
 
   /// No description provided for @parentSharedSyncDone.
   ///
   /// In en, this message translates to:
-  /// **'Synced to the player\'s Drive too.'**
+  /// **'Synced to the child\'s Drive too.'**
   String get parentSharedSyncDone;
 
   /// No description provided for @parentSharedSyncPending.
   ///
   /// In en, this message translates to:
-  /// **'It will sync into the same player backup file after Drive is connected.'**
+  /// **'It will sync into the same child backup file after Drive is connected.'**
   String get parentSharedSyncPending;
 
   /// No description provided for @levelGuideParentModeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode'**
+  /// **'Parent mode'**
   String get levelGuideParentModeLabel;
 
   /// No description provided for @levelGuideChildModeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Player mode'**
+  /// **'Child mode'**
   String get levelGuideChildModeLabel;
 
   /// No description provided for @levelGuideParentModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Support role mode can save reward names only, and saved reward names also sync into the shared player Drive backup. Reward claims stay in player mode.'**
+  /// **'Parent mode can save reward names only, and saved reward names also sync into the shared child Drive backup. Reward received marks stay in child mode.'**
   String get levelGuideParentModeDescription;
 
   /// No description provided for @levelGuideChildModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Player mode can claim rewards. Reward naming stays in support role mode.'**
+  /// **'Child mode can mark received level rewards. Reward naming stays in parent mode.'**
   String get levelGuideChildModeDescription;
 
   /// No description provided for @levelGuideModeInfoTooltip.
@@ -7307,7 +7325,7 @@ abstract class AppLocalizations {
   /// No description provided for @levelGuideClaimChildOnly.
   ///
   /// In en, this message translates to:
-  /// **'Claim in player mode'**
+  /// **'Claim in child mode'**
   String get levelGuideClaimChildOnly;
 
   /// No description provided for @levelGuideRewardFallbackName.
@@ -7333,6 +7351,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reward cleared.'**
   String get levelGuideRewardCleared;
+
+  /// No description provided for @levelGuideMaxLevelRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{minXp} XP+ · max level'**
+  String levelGuideMaxLevelRangeLabel(Object minXp);
+
+  /// No description provided for @levelGuideMaxLevelMasteryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no next level. Keep earning a mastery star every {masterySpan} XP.'**
+  String levelGuideMaxLevelMasteryHint(Object masterySpan);
 
   /// No description provided for @trainingPlanAddTitle.
   ///

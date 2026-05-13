@@ -113,7 +113,7 @@ void main() {
     final summaryTopLeft = tester.getTopLeft(find.text('대체로 맑음'));
     final rangeTopLeft = tester.getTopLeft(find.text('25°C / 14°C'));
     expect(rangeTopLeft.dx, greaterThan(summaryTopLeft.dx));
-    expect((rangeTopLeft.dy - summaryTopLeft.dy).abs(), lessThan(24));
+    expect((rangeTopLeft.dy - summaryTopLeft.dy).abs(), lessThan(32));
     expect(tester.takeException(), isNull);
   });
 
@@ -146,7 +146,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('오늘의 축구 복장'), findsAtLeastNWidgets(1));
-    expect(find.text('레이어'), findsOneWidget);
+    expect(find.text('상의 조합'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

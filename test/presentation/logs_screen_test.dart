@@ -390,7 +390,7 @@ void main() {
 
       expect(find.text('빠른 시작 가이드'), findsNothing);
       expect(find.byType(FloatingActionButton), findsNothing);
-      expect(find.textContaining('공유 역할에서는 새 훈련기록을 만들지 않고'), findsOneWidget);
+      expect(find.textContaining('보호자 모드에서는 새 훈련기록을 만들지 않고'), findsOneWidget);
     },
   );
 }

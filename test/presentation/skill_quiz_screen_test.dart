@@ -197,9 +197,8 @@ void main() {
             'questionId': 'ox_offside_own_half_0_0_t',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt': now
-                .subtract(const Duration(days: 2))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(days: 2)).toIso8601String(),
           },
         ]),
       );
@@ -217,14 +216,12 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds =
-        (jsonDecode(
-                  repository.getValue<String>(
-                    SkillQuizScreen.dailyQuestionsKey,
-                  )!,
-                )
-                as List<dynamic>)
-            .cast<String>();
+    final savedIds = (jsonDecode(
+      repository.getValue<String>(
+        SkillQuizScreen.dailyQuestionsKey,
+      )!,
+    ) as List<dynamic>)
+        .cast<String>();
     expect(savedIds, hasLength(10));
   });
 
@@ -240,17 +237,15 @@ void main() {
             'questionId': 'ox_support_angle_15',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt': now
-                .subtract(const Duration(days: 2))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(days: 2)).toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'mcq_support_angle_best_10',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt': now
-                .subtract(const Duration(days: 2))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(days: 2)).toIso8601String(),
           },
         ]),
       );
@@ -268,14 +263,12 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds =
-        (jsonDecode(
-                  repository.getValue<String>(
-                    SkillQuizScreen.dailyQuestionsKey,
-                  )!,
-                )
-                as List<dynamic>)
-            .cast<String>();
+    final savedIds = (jsonDecode(
+      repository.getValue<String>(
+        SkillQuizScreen.dailyQuestionsKey,
+      )!,
+    ) as List<dynamic>)
+        .cast<String>();
 
     final duplicateConceptIds = savedIds
         .where((id) => id.contains('support_angle'))
@@ -295,25 +288,22 @@ void main() {
             'questionId': 'ox_support_angle_15',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt': now
-                .subtract(const Duration(days: 2))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(days: 2)).toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'mcq_support_angle_best_10',
             'dueAt': now.subtract(const Duration(hours: 12)).toIso8601String(),
             'wrongCount': 2,
-            'lastWrongAt': now
-                .subtract(const Duration(hours: 18))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(hours: 18)).toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'missing_question',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt': now
-                .subtract(const Duration(days: 3))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(days: 3)).toIso8601String(),
           },
         ]),
       );
@@ -354,9 +344,8 @@ void main() {
             'conceptKey': 'support_angle',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt': now
-                .subtract(const Duration(days: 2))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(days: 2)).toIso8601String(),
           },
         ]),
       );
@@ -666,7 +655,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('공유 역할에서는 퀴즈를 진행하지 않아요. 퀴즈 기록과 경험치는 선수 모드에서만 쌓입니다.'),
+      find.text('보호자 모드에서는 퀴즈를 진행하지 않아요. 퀴즈 기록과 경험치는 아이 모드에서만 쌓입니다.'),
       findsOneWidget,
     );
     expect(find.text('오늘의 문제'), findsOneWidget);
