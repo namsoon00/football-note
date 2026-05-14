@@ -8,6 +8,7 @@ import '../../application/settings_service.dart';
 import '../../application/training_plan_badge_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../../gen/app_localizations.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -30,6 +31,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       'notification_show_inactivity_section_v1';
   static const _showXpSectionKey = 'notification_show_xp_section_v1';
   static const _showPlanSectionKey = 'notification_show_plan_section_v1';
+  static const _showFamilySectionKey = 'notification_show_family_section_v1';
 
   late final TrainingPlanReminderService _reminderService;
   bool _permissionGranted = true;
@@ -38,8 +40,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   bool _showInactivitySection = true;
   bool _showXpSection = true;
   bool _showPlanSection = true;
+  bool _showFamilySection = true;
   List<_PlanAlarmRow> _planRows = const [];
   List<_XpMessageRow> _xpRows = const [];
+  List<_FamilyMessageRow> _familyRows = const [];
   String? _lastTrainingLogAt;
 
   @override
@@ -63,6 +67,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     _showPlanSection =
         widget.optionRepository.getValue<bool>(_showPlanSectionKey) ??
         _showPlanSection;
+    _showFamilySection =
+        widget.optionRepository.getValue<bool>(_showFamilySectionKey) ??
+        _showFamilySection;
   }
 
   void _toggleSection({
@@ -83,6 +90,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       final muted = await _reminderService.isAlarmMutedNow();
       final planRows = _loadPlanRows();
       final xpRows = _loadXpRows(seenXpIds);
+      final familyRows = _loadFamilyRows();
       final lastTrainingLogAt = widget.optionRepository.getValue<String>(
         TrainingPlanReminderService.lastTrainingLogAtKey,
       );
@@ -93,6 +101,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         _mutedNow = muted;
         _planRows = planRows;
         _xpRows = xpRows;
+        _familyRows = familyRows;
         _lastTrainingLogAt = lastTrainingLogAt;
         _loading = false;
       });
@@ -102,6 +111,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       setState(() {
         _planRows = _loadPlanRows();
         _xpRows = _loadXpRows(const <String>{});
+        _familyRows = _loadFamilyRows();
         _loading = false;
       });
     }
@@ -150,6 +160,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         .toList(growable: false);
   }
 
+  List<_FamilyMessageRow> _loadFamilyRows() {
+    final logs = _reminderService.loadFamilyMessageLogSync();
+    return logs.map(_FamilyMessageRow.fromMap).toList(growable: false);
+  }
+
   Future<void> _deleteMessage(_PlanAlarmRow row) async {
     await _reminderService.dismissMessageKey(row.messageKey);
     await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
@@ -167,6 +182,17 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     if (!mounted) return;
     setState(() {
       _xpRows = _xpRows
+          .where((item) => item.id != row.id)
+          .toList(growable: false);
+    });
+  }
+
+  Future<void> _deleteFamilyMessage(_FamilyMessageRow row) async {
+    await _reminderService.deleteFamilyMessage(row.id);
+    await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
+    if (!mounted) return;
+    setState(() {
+      _familyRows = _familyRows
           .where((item) => item.id != row.id)
           .toList(growable: false);
     });
@@ -190,6 +216,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final xpNewCount = _xpRows.where((row) => row.isNew).length;
     return Scaffold(
       appBar: AppBar(
@@ -350,6 +377,73 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                 ),
                 const SizedBox(height: 8),
                 _NotificationSectionCard(
+                  title: l10n.notificationFamilySectionTitle(
+                    _familyRows.length,
+                  ),
+                  icon: Icons.family_restroom_outlined,
+                  expanded: _showFamilySection,
+                  onTap: () => _toggleSection(
+                    storageKey: _showFamilySectionKey,
+                    currentValue: _showFamilySection,
+                    apply: (next) => _showFamilySection = next,
+                  ),
+                  child: _familyRows.isEmpty
+                      ? ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.family_restroom_outlined),
+                          title: Text(l10n.notificationFamilyEmpty),
+                        )
+                      : Column(
+                          children: _familyRows
+                              .map(
+                                (item) => Dismissible(
+                                  key: ValueKey('family-msg-${item.id}'),
+                                  direction: DismissDirection.endToStart,
+                                  background: Container(
+                                    alignment: Alignment.centerRight,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.errorContainer,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.delete_outline,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onErrorContainer,
+                                    ),
+                                  ),
+                                  onDismissed: (_) =>
+                                      _deleteFamilyMessage(item),
+                                  child: Card(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: ListTile(
+                                      leading: const Icon(
+                                        Icons.sync_alt_rounded,
+                                      ),
+                                      title: Text(item.title),
+                                      subtitle: Text(
+                                        '${item.body}\n${DateFormat(isKo ? 'M/d HH:mm' : 'MMM d HH:mm').format(item.createdAt)}',
+                                      ),
+                                      trailing: IconButton(
+                                        tooltip: l10n.delete,
+                                        onPressed: () =>
+                                            _deleteFamilyMessage(item),
+                                        icon: const Icon(Icons.delete_outline),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(growable: false),
+                        ),
+                ),
+                const SizedBox(height: 8),
+                _NotificationSectionCard(
                   title: isKo
                       ? '훈련 알림 ${_planRows.length}개'
                       : '${_planRows.length} training alerts',
@@ -470,6 +564,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _openNotificationSettingsSheet() async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -622,6 +717,19 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                             ? (value) async {
                                 await widget.settingsService
                                     .setLevelUpAlertEnabled(value);
+                                await refreshSheet();
+                              }
+                            : null,
+                      ),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(l10n.notificationFamilySettingsTitle),
+                        subtitle: Text(l10n.notificationFamilySettingsSubtitle),
+                        value: widget.settingsService.familySyncAlertEnabled,
+                        onChanged: widget.settingsService.reminderEnabled
+                            ? (value) async {
+                                await widget.settingsService
+                                    .setFamilySyncAlertEnabled(value);
                                 await refreshSheet();
                               }
                             : null,
@@ -882,6 +990,31 @@ class _XpMessageRow {
       totalXp: (map['totalXp'] as num?)?.toInt() ?? 0,
       label: map['label']?.toString() ?? '',
       isNew: !seenIds.contains(id),
+    );
+  }
+}
+
+class _FamilyMessageRow {
+  final String id;
+  final DateTime createdAt;
+  final String title;
+  final String body;
+
+  const _FamilyMessageRow({
+    required this.id,
+    required this.createdAt,
+    required this.title,
+    required this.body,
+  });
+
+  factory _FamilyMessageRow.fromMap(Map<String, dynamic> map) {
+    return _FamilyMessageRow(
+      id: map['id']?.toString() ?? '',
+      createdAt:
+          DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
+          DateTime.now(),
+      title: map['title']?.toString() ?? '',
+      body: map['body']?.toString() ?? '',
     );
   }
 }

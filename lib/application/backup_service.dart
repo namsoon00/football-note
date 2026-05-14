@@ -1,6 +1,7 @@
 import '../domain/repositories/backup_repository.dart';
 import 'drive_connection_info.dart';
 import 'drive_backup_service.dart';
+import 'family_access_service.dart';
 
 class BackupService {
   final BackupRepository _repository;
@@ -235,5 +236,12 @@ class BackupService {
       return drive.refreshParentSharedDataIfNeeded();
     }
     return false;
+  }
+
+  Future<FamilySharedSyncResult> refreshFamilySharedDataIfNeeded() async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.refreshFamilySharedDataIfNeeded();
+    }
+    return const FamilySharedSyncResult.none(role: FamilyRole.child);
   }
 }

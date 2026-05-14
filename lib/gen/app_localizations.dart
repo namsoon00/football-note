@@ -344,6 +344,108 @@ abstract class AppLocalizations {
   /// **'Choose a plan to turn into a training log'**
   String get homeTodayPlanSelectForLogTitle;
 
+  /// No description provided for @homeHubTitleShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get homeHubTitleShort;
+
+  /// No description provided for @homeDailyCheckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get homeDailyCheckTitle;
+
+  /// No description provided for @homeTodoTrainingLogShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get homeTodoTrainingLogShort;
+
+  /// No description provided for @homeTodoBoardSketchShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sketch'**
+  String get homeTodoBoardSketchShort;
+
+  /// No description provided for @homePriorityCheckPlansMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check remaining plans.'**
+  String get homePriorityCheckPlansMessage;
+
+  /// No description provided for @homePriorityPlansAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans'**
+  String get homePriorityPlansAction;
+
+  /// No description provided for @homePriorityReviewWeekMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the week.'**
+  String get homePriorityReviewWeekMessage;
+
+  /// No description provided for @homePriorityStatsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get homePriorityStatsAction;
+
+  /// No description provided for @homePrioritySketchNextMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sketch the next session.'**
+  String get homePrioritySketchNextMessage;
+
+  /// No description provided for @homePriorityBoardAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get homePriorityBoardAction;
+
+  /// No description provided for @homePriorityConditionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check condition trends.'**
+  String get homePriorityConditionMessage;
+
+  /// No description provided for @homePriorityRewardsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check level rewards.'**
+  String get homePriorityRewardsMessage;
+
+  /// No description provided for @homePriorityLevelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get homePriorityLevelAction;
+
+  /// No description provided for @homeMealSuggestionDoneShort.
+  ///
+  /// In en, this message translates to:
+  /// **'All meals logged. Good rhythm.'**
+  String get homeMealSuggestionDoneShort;
+
+  /// No description provided for @homeMealSuggestionTwoShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Log one more meal.'**
+  String get homeMealSuggestionTwoShort;
+
+  /// No description provided for @homeMealSuggestionOneShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Log two more meals.'**
+  String get homeMealSuggestionOneShort;
+
+  /// No description provided for @homeMealSuggestionNoneShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Log the first meal.'**
+  String get homeMealSuggestionNoneShort;
+
   /// No description provided for @homeNextTrainingTitle.
   ///
   /// In en, this message translates to:
@@ -1910,6 +2012,30 @@ abstract class AppLocalizations {
   /// **'Notifications'**
   String get notifications;
 
+  /// No description provided for @notificationFamilySectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} family sync alert(s)'**
+  String notificationFamilySectionTitle(int count);
+
+  /// No description provided for @notificationFamilyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No family sync alerts yet.'**
+  String get notificationFamilyEmpty;
+
+  /// No description provided for @notificationFamilySettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family sync alerts'**
+  String get notificationFamilySettingsTitle;
+
+  /// No description provided for @notificationFamilySettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify when child logs or parent feedback/rewards sync.'**
+  String get notificationFamilySettingsSubtitle;
+
   /// No description provided for @reminderEnabled.
   ///
   /// In en, this message translates to:
@@ -2960,6 +3086,12 @@ abstract class AppLocalizations {
   /// **'Weather'**
   String get diaryStickerWeather;
 
+  /// No description provided for @diaryStickerParentFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent feedback'**
+  String get diaryStickerParentFeedback;
+
   /// No description provided for @diaryInjuryNoDetails.
   ///
   /// In en, this message translates to:
@@ -2983,6 +3115,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Write the question or concept you want to keep from the quiz run.'**
   String get diaryQuizStorySentence;
+
+  /// No description provided for @diaryParentFeedbackStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent feedback: {message}'**
+  String diaryParentFeedbackStorySentence(String message);
 
   /// No description provided for @diaryQuizSummaryPerfect.
   ///
@@ -6950,6 +7088,36 @@ abstract class AppLocalizations {
   /// **'Parent feedback and level reward names are written automatically into the same child backup file.'**
   String get familySharedSyncDescription;
 
+  /// No description provided for @familySyncAlertTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family sync'**
+  String get familySyncAlertTitle;
+
+  /// No description provided for @familySyncParentTrainingAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} new child training log(s) synced.'**
+  String familySyncParentTrainingAdded(int count);
+
+  /// No description provided for @familySyncChildFeedbackAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} parent feedback update(s) synced.'**
+  String familySyncChildFeedbackAdded(int count);
+
+  /// No description provided for @familySyncChildRewardUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Level reward names synced.'**
+  String get familySyncChildRewardUpdated;
+
+  /// No description provided for @familySyncChildFeedbackAndReward.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} parent feedback update(s) and reward names synced.'**
+  String familySyncChildFeedbackAndReward(int count);
+
   /// No description provided for @familySharedLastSync.
   ///
   /// In en, this message translates to:
@@ -7063,6 +7231,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parent mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.'**
   String get parentReadOnlyProfileDescription;
+
+  /// No description provided for @benchmarkReferenceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.'**
+  String get benchmarkReferenceNote;
 
   /// No description provided for @parentReadOnlyEntryTitle.
   ///

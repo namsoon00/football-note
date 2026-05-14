@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/benchmark_service.dart';
 import '../../domain/entities/training_entry.dart';
+import '../../gen/app_localizations.dart';
 import '../widgets/app_background.dart';
 
 class AverageBenchmarkScreen extends StatelessWidget {
@@ -22,6 +23,7 @@ class AverageBenchmarkScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final sources = benchmarkSources();
     final syncedAt = benchmarkService.lastSyncedAt();
 
@@ -41,6 +43,7 @@ class AverageBenchmarkScreen extends StatelessWidget {
                     sources: sources,
                     syncedAt: syncedAt,
                     isKo: isKo,
+                    referenceNote: l10n.benchmarkReferenceNote,
                   ),
                 ],
               ),
@@ -57,12 +60,14 @@ class _SourceSection extends StatelessWidget {
   final List<BenchmarkSource> sources;
   final DateTime? syncedAt;
   final bool isKo;
+  final String referenceNote;
 
   const _SourceSection({
     required this.title,
     required this.sources,
     required this.syncedAt,
     required this.isKo,
+    required this.referenceNote,
   });
 
   @override
@@ -81,6 +86,8 @@ class _SourceSection extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 6),
+        Text(referenceNote, style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: 8),
         ...sources.map(
           (source) => Align(
             alignment: Alignment.centerLeft,

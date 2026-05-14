@@ -134,6 +134,57 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeTodayPlanSelectForLogTitle => '훈련기록으로 만들 계획을 선택하세요';
 
   @override
+  String get homeHubTitleShort => '홈';
+
+  @override
+  String get homeDailyCheckTitle => '오늘 체크';
+
+  @override
+  String get homeTodoTrainingLogShort => '기록';
+
+  @override
+  String get homeTodoBoardSketchShort => '스케치';
+
+  @override
+  String get homePriorityCheckPlansMessage => '남은 계획을 확인하세요.';
+
+  @override
+  String get homePriorityPlansAction => '계획';
+
+  @override
+  String get homePriorityReviewWeekMessage => '주간 흐름을 확인하세요.';
+
+  @override
+  String get homePriorityStatsAction => '통계';
+
+  @override
+  String get homePrioritySketchNextMessage => '다음 훈련을 그려두세요.';
+
+  @override
+  String get homePriorityBoardAction => '보드';
+
+  @override
+  String get homePriorityConditionMessage => '컨디션 흐름을 보세요.';
+
+  @override
+  String get homePriorityRewardsMessage => '레벨 선물을 확인하세요.';
+
+  @override
+  String get homePriorityLevelAction => '레벨';
+
+  @override
+  String get homeMealSuggestionDoneShort => '세 끼 완료. 리듬이 좋아요.';
+
+  @override
+  String get homeMealSuggestionTwoShort => '한 끼만 더 기록하세요.';
+
+  @override
+  String get homeMealSuggestionOneShort => '두 끼를 더 기록하세요.';
+
+  @override
+  String get homeMealSuggestionNoneShort => '첫 끼를 기록하세요.';
+
+  @override
   String get homeNextTrainingTitle => '다음 훈련';
 
   @override
@@ -955,6 +1006,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notifications => '알림';
 
   @override
+  String notificationFamilySectionTitle(int count) {
+    return '가족 동기화 알림 $count개';
+  }
+
+  @override
+  String get notificationFamilyEmpty => '아직 가족 동기화 알림이 없어요.';
+
+  @override
+  String get notificationFamilySettingsTitle => '가족 동기화 알림';
+
+  @override
+  String get notificationFamilySettingsSubtitle =>
+      '아이 기록 또는 보호자 피드백/선물이 동기화되면 알림을 보냅니다.';
+
+  @override
   String get reminderEnabled => '일일 알림 사용';
 
   @override
@@ -1516,6 +1582,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryStickerWeather => '날씨';
 
   @override
+  String get diaryStickerParentFeedback => '보호자 피드백';
+
+  @override
   String get diaryInjuryNoDetails => '남긴 부상 메모가 없어요.';
 
   @override
@@ -1526,6 +1595,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get diaryQuizStorySentence => '퀴즈를 풀며 기억에 남은 문제나 다시 보고 싶은 개념을 적어 보세요.';
+
+  @override
+  String diaryParentFeedbackStorySentence(String message) {
+    return '보호자 피드백: $message';
+  }
 
   @override
   String diaryQuizSummaryPerfect(int score, int total) {
@@ -3878,6 +3952,27 @@ class AppLocalizationsKo extends AppLocalizations {
       '보호자 피드백과 레벨 선물 이름은 같은 아이 백업 파일로 자동 반영됩니다.';
 
   @override
+  String get familySyncAlertTitle => '가족 동기화';
+
+  @override
+  String familySyncParentTrainingAdded(int count) {
+    return '아이 훈련기록 $count개가 새로 동기화됐어요.';
+  }
+
+  @override
+  String familySyncChildFeedbackAdded(int count) {
+    return '보호자 피드백 $count개가 동기화됐어요.';
+  }
+
+  @override
+  String get familySyncChildRewardUpdated => '레벨 선물 이름이 동기화됐어요.';
+
+  @override
+  String familySyncChildFeedbackAndReward(int count) {
+    return '보호자 피드백 $count개와 레벨 선물 이름이 동기화됐어요.';
+  }
+
+  @override
   String get familySharedLastSync => '최근 보호자/아이 공유 동기화';
 
   @override
@@ -3939,6 +4034,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get parentReadOnlyProfileDescription =>
       '보호자 모드에서는 프로필이 읽기 전용입니다. 훈련 피드백은 훈련기록에서, 레벨 선물 입력은 레벨 가이드에서 진행해 주세요.';
+
+  @override
+  String get benchmarkReferenceNote =>
+      '키와 체중은 CDC 성장 차트 중앙값, 활동 시간은 WHO 청소년 신체활동 권고를 기준으로 합니다. 리프팅 범위는 축구 훈련 참고값이며 의학 기준은 아닙니다.';
 
   @override
   String get parentReadOnlyEntryTitle => '보호자 모드에서는 훈련 노트를 수정할 수 없어요.';

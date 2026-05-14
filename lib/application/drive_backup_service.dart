@@ -16,6 +16,8 @@ import '../domain/entities/training_entry.dart';
 import '../domain/repositories/backup_repository.dart';
 import '../infrastructure/hive_option_repository.dart';
 import 'family_access_service.dart';
+import 'parent_shared_feedback_service.dart';
+import 'player_level_service.dart';
 
 class DriveBackupService implements BackupRepository {
   DriveBackupService(
@@ -57,6 +59,8 @@ class DriveBackupService implements BackupRepository {
   StreamSubscription<User?>? _firebaseAuthSubscription;
   DriveConnectionInfo? _recentDriveConnection;
   DateTime? _recentDriveConnectionExpiresAt;
+  GoogleSignInAccount? _lastSilentSignInAccount;
+  DateTime? _lastSilentSignInAt;
 
   static FirebaseAuth? _safeFirebaseAuth() {
     if (kIsWeb) {
@@ -115,7 +119,8 @@ class DriveBackupService implements BackupRepository {
   static const parentModeDriveMismatchErrorCode = 'parent_mode_drive_mismatch';
   static const invalidBackupPayloadErrorCode = 'invalid_backup_payload';
   static const unsupportedBackupVersionErrorCode = 'unsupported_backup_version';
-  static const _recentDriveConnectionTtl = Duration(seconds: 10);
+  static const _recentDriveConnectionTtl = Duration(minutes: 5);
+  static const _silentSignInTtl = Duration(minutes: 5);
   static const Set<String> _excludedOptionKeys = {
     _lastBackupKey,
     _lastRecordBackupKey,
@@ -202,7 +207,7 @@ class DriveBackupService implements BackupRepository {
       if (google == null) {
         return false;
       }
-      final account = await google.signInSilently();
+      final account = await _signInSilentlyThrottled();
       if (account == null) {
         return false;
       }
@@ -425,6 +430,8 @@ class DriveBackupService implements BackupRepository {
       return;
     }
     final account = await _ensureSignedIn(requireInteractive: true);
+    _lastSilentSignInAccount = account;
+    _lastSilentSignInAt = DateTime.now();
     _cacheRecentDriveConnection(
       DriveConnectionInfo(
         email: account.email.trim(),
@@ -451,7 +458,7 @@ class DriveBackupService implements BackupRepository {
     final google = _googleSignIn;
     if (google == null) return false;
     var account = google.currentUser;
-    account ??= await google.signInSilently();
+    account ??= await _signInSilentlyThrottled();
     if (account != null) {
       _cacheRecentDriveConnection(
         DriveConnectionInfo(
@@ -473,6 +480,8 @@ class DriveBackupService implements BackupRepository {
   Future<void> signOut() async {
     _webAccessToken = null;
     _clearRecentDriveConnection();
+    _lastSilentSignInAccount = null;
+    _lastSilentSignInAt = null;
     if (kIsWeb) {
       await _firebaseAuth?.signOut();
       await _clearConnectedDriveAccountCache();
@@ -568,21 +577,38 @@ class DriveBackupService implements BackupRepository {
     if (!state.isSupportMode) {
       return false;
     }
+    final result = await _refreshSupportFamilyDataIfNeeded(state);
+    return result.refreshed;
+  }
+
+  Future<FamilySharedSyncResult> refreshFamilySharedDataIfNeeded() async {
+    final state = _familyService.loadState();
+    if (state.isSupportMode) {
+      return _refreshSupportFamilyDataIfNeeded(state);
+    }
+    return _refreshChildSharedLayerIfNeeded(state);
+  }
+
+  Future<FamilySharedSyncResult> _refreshSupportFamilyDataIfNeeded(
+    FamilyAccessState state,
+  ) async {
     try {
       final driveApi = await _driveApi(requireInteractive: false);
       final folderId = await _findFolderId(driveApi);
       if (folderId == null) {
-        return false;
+        return FamilySharedSyncResult.none(role: state.currentRole);
       }
       final file = await _findBackupFile(driveApi, folderId);
       if (file == null) {
-        return false;
+        return FamilySharedSyncResult.none(role: state.currentRole);
       }
       if (!_shouldRefreshParentSharedData(
         remoteModifiedAt: file.modifiedTime,
       )) {
-        return false;
+        return FamilySharedSyncResult.none(role: state.currentRole);
       }
+      final hadKnownRemoteSnapshot = _getLastFamilyRemoteSnapshot() != null;
+      final beforeTrainingIds = _trainingEntryIds();
       await _saveLocalPreRestore();
       await _restoreBackupFileWithApi(driveApi, file);
       await _recordFamilySyncPull(
@@ -590,14 +616,68 @@ class DriveBackupService implements BackupRepository {
         remoteModifiedAt: file.modifiedTime ?? DateTime.now(),
       );
       await _setParentSharedDataDirty(false);
-      return true;
+      final newTrainingCount = hadKnownRemoteSnapshot
+          ? _trainingEntryIds().difference(beforeTrainingIds).length
+          : 0;
+      return FamilySharedSyncResult(
+        refreshed: true,
+        role: state.currentRole,
+        newTrainingEntryCount: newTrainingCount,
+      );
     } catch (e, st) {
       if (_isAuthError(e)) {
-        return false;
+        return FamilySharedSyncResult.none(role: state.currentRole);
       }
       debugPrint('Parent shared refresh skipped: $e');
       debugPrintStack(stackTrace: st);
-      return false;
+      return FamilySharedSyncResult.none(role: state.currentRole);
+    }
+  }
+
+  Future<FamilySharedSyncResult> _refreshChildSharedLayerIfNeeded(
+    FamilyAccessState state,
+  ) async {
+    try {
+      final driveApi = await _driveApi(requireInteractive: false);
+      final folderId = await _findFolderId(driveApi);
+      if (folderId == null) {
+        return FamilySharedSyncResult.none(role: state.currentRole);
+      }
+      final file = await _findBackupFile(driveApi, folderId);
+      if (file == null) {
+        return FamilySharedSyncResult.none(role: state.currentRole);
+      }
+      if (!_shouldRefreshChildSharedLayer(
+        remoteModifiedAt: file.modifiedTime,
+      )) {
+        return FamilySharedSyncResult.none(role: state.currentRole);
+      }
+      final beforeFeedback = _loadParentFeedbackFingerprints();
+      final beforeRewards = _loadRewardNames();
+      final remote = await _downloadBackupMap(driveApi, file.id!);
+      await _restoreSharedOptionsFromMap(remote);
+      await _recordFamilySyncPull(
+        DateTime.now(),
+        remoteModifiedAt: file.modifiedTime ?? DateTime.now(),
+      );
+      final afterFeedback = _loadParentFeedbackFingerprints();
+      final afterRewards = _loadRewardNames();
+      return FamilySharedSyncResult(
+        refreshed: true,
+        role: state.currentRole,
+        newParentFeedbackCount: _countChangedFeedback(
+          before: beforeFeedback,
+          after: afterFeedback,
+        ),
+        rewardNamesChanged: !_sameStringMap(beforeRewards, afterRewards),
+      );
+    } catch (e, st) {
+      if (_isAuthError(e)) {
+        return FamilySharedSyncResult.none(role: state.currentRole);
+      }
+      debugPrint('Child shared layer refresh skipped: $e');
+      debugPrintStack(stackTrace: st);
+      return FamilySharedSyncResult.none(role: state.currentRole);
     }
   }
 
@@ -622,6 +702,8 @@ class DriveBackupService implements BackupRepository {
     if (account == null) {
       throw StateError('Google sign-in cancelled.');
     }
+    _lastSilentSignInAccount = account;
+    _lastSilentSignInAt = DateTime.now();
     _cacheRecentDriveConnection(
       DriveConnectionInfo(
         email: account.email.trim(),
@@ -681,7 +763,7 @@ class DriveBackupService implements BackupRepository {
       throw StateError('Google sign-in required.');
     }
     var account = google.currentUser;
-    account ??= await google.signInSilently();
+    account ??= await _signInSilentlyThrottled();
     if (account == null && requireInteractive) {
       account = await google.signIn();
     }
@@ -691,6 +773,26 @@ class DriveBackupService implements BackupRepository {
     if (requireInteractive) {
       await _ensureDriveScopeGranted();
     }
+    return account;
+  }
+
+  Future<GoogleSignInAccount?> _signInSilentlyThrottled() async {
+    final google = _googleSignIn;
+    if (google == null) return null;
+    final current = google.currentUser;
+    if (current != null) {
+      _lastSilentSignInAccount = current;
+      _lastSilentSignInAt = DateTime.now();
+      return current;
+    }
+    final lastAttempt = _lastSilentSignInAt;
+    if (lastAttempt != null &&
+        DateTime.now().difference(lastAttempt) < _silentSignInTtl) {
+      return _lastSilentSignInAccount;
+    }
+    final account = await google.signInSilently();
+    _lastSilentSignInAccount = account;
+    _lastSilentSignInAt = DateTime.now();
     return account;
   }
 
@@ -876,6 +978,8 @@ class DriveBackupService implements BackupRepository {
         }
       } else if (_googleSignIn?.currentUser == null) {
         _clearRecentDriveConnection();
+        _lastSilentSignInAccount = null;
+        _lastSilentSignInAt = null;
       }
       await _syncConnectedDriveAccountCache();
     } catch (e, st) {
@@ -928,7 +1032,7 @@ class DriveBackupService implements BackupRepository {
     final google = _googleSignIn;
     if (google == null) return null;
     var account = google.currentUser;
-    account ??= await google.signInSilently();
+    account ??= await _signInSilentlyThrottled();
     if (account == null) return _loadRecentDriveConnection();
     final info = DriveConnectionInfo(
       email: account.email.trim(),
@@ -1584,11 +1688,50 @@ class DriveBackupService implements BackupRepository {
     return remoteModifiedAt.isAfter(knownRemoteAt);
   }
 
+  bool _shouldRefreshChildSharedLayer({required DateTime? remoteModifiedAt}) {
+    if (_familyService.loadState().isSupportMode) {
+      return false;
+    }
+    if (remoteModifiedAt == null) {
+      return _getLastFamilyRemoteSnapshot() == null;
+    }
+    final knownRemoteAt = _getLastFamilyRemoteSnapshot();
+    if (knownRemoteAt == null) {
+      return true;
+    }
+    return remoteModifiedAt.isAfter(knownRemoteAt);
+  }
+
   @visibleForTesting
   bool shouldRefreshParentSharedDataForTesting({
     required DateTime? remoteModifiedAt,
   }) {
     return _shouldRefreshParentSharedData(remoteModifiedAt: remoteModifiedAt);
+  }
+
+  @visibleForTesting
+  Future<FamilySharedSyncResult> restoreSharedOptionsFromMapForTesting(
+    Map<String, dynamic> data, {
+    DateTime? remoteModifiedAt,
+  }) async {
+    final beforeFeedback = _loadParentFeedbackFingerprints();
+    final beforeRewards = _loadRewardNames();
+    await _restoreSharedOptionsFromMap(_validatedBackupData(data));
+    await _recordFamilySyncPull(
+      DateTime.now(),
+      remoteModifiedAt: remoteModifiedAt ?? DateTime.now(),
+    );
+    final afterFeedback = _loadParentFeedbackFingerprints();
+    final afterRewards = _loadRewardNames();
+    return FamilySharedSyncResult(
+      refreshed: true,
+      role: _familyService.loadState().currentRole,
+      newParentFeedbackCount: _countChangedFeedback(
+        before: beforeFeedback,
+        after: afterFeedback,
+      ),
+      rewardNamesChanged: !_sameStringMap(beforeRewards, afterRewards),
+    );
   }
 
   Future<void> _rememberDriveConnection({
@@ -1715,6 +1858,95 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> _setParentSharedDataDirty(bool value) async {
     await _optionBox.put(_parentSharedDataDirtyKey, value);
+  }
+
+  Set<String> _trainingEntryIds() {
+    return _trainingBox.values
+        .map(ParentSharedFeedbackService.entryIdFor)
+        .toSet();
+  }
+
+  Map<String, String> _loadParentFeedbackFingerprints() {
+    final feedback = ParentSharedFeedbackService(
+      HiveOptionRepository(_optionBox),
+    ).loadAll();
+    return feedback.map(
+      (key, value) => MapEntry(
+        key,
+        '${value.message.trim()}\n${value.updatedAt?.toIso8601String() ?? ''}',
+      ),
+    );
+  }
+
+  Map<String, String> _loadRewardNames() {
+    final raw = _optionBox.get(PlayerLevelService.customRewardNamesKey);
+    if (raw is! Map) {
+      return <String, String>{};
+    }
+    final result = <String, String>{};
+    raw.forEach((key, value) {
+      final normalizedKey = key.toString().trim();
+      final normalizedValue = value?.toString().trim() ?? '';
+      if (normalizedKey.isNotEmpty && normalizedValue.isNotEmpty) {
+        result[normalizedKey] = normalizedValue;
+      }
+    });
+    return result;
+  }
+
+  int _countChangedFeedback({
+    required Map<String, String> before,
+    required Map<String, String> after,
+  }) {
+    var count = 0;
+    after.forEach((key, value) {
+      if (value.trim().isNotEmpty && before[key] != value) {
+        count += 1;
+      }
+    });
+    return count;
+  }
+
+  bool _sameStringMap(Map<String, String> a, Map<String, String> b) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (b[entry.key] != entry.value) return false;
+    }
+    return true;
+  }
+
+  Future<void> _restoreSharedOptionsFromMap(Map<String, dynamic> data) async {
+    final sharedOptions = _extractSharedOptions(data);
+    for (final key in FamilyAccessService.sharedBackupOptionKeys) {
+      if (!sharedOptions.containsKey(key)) {
+        continue;
+      }
+      final value = sharedOptions[key];
+      if (value == null) {
+        await _optionBox.delete(key);
+      } else {
+        await _optionBox.put(key, value);
+      }
+    }
+  }
+
+  Map<String, dynamic> _extractSharedOptions(Map<String, dynamic> backup) {
+    final version = (backup['version'] as num?)?.toInt() ?? 1;
+    final shared = <String, dynamic>{};
+    final options = _copyStringOptions(backup);
+    for (final key in FamilyAccessService.sharedBackupOptionKeys) {
+      if (options.containsKey(key)) {
+        shared[key] = _fromBackupValue(options[key], version: version);
+      }
+    }
+    for (final record in _extractOptionRecords(backup)) {
+      final key = _fromBackupValue(record['key'], version: version);
+      if (key is! String || !FamilyAccessService.isSharedBackupOptionKey(key)) {
+        continue;
+      }
+      shared[key] = _fromBackupValue(record['value'], version: version);
+    }
+    return shared;
   }
 
   bool _isSameDay(DateTime a, DateTime b) {

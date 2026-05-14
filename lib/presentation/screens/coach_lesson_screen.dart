@@ -14,6 +14,7 @@ import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
+import '../../application/parent_shared_feedback_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
@@ -1196,6 +1197,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     }
     switch (sticker.kind) {
       case _DiaryRecordStickerKind.training:
+      case _DiaryRecordStickerKind.parentFeedback:
       case _DiaryRecordStickerKind.match:
       case _DiaryRecordStickerKind.plan:
       case _DiaryRecordStickerKind.fortune:
@@ -1221,6 +1223,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   ) async {
     switch (sticker.kind) {
       case _DiaryRecordStickerKind.training:
+      case _DiaryRecordStickerKind.parentFeedback:
       case _DiaryRecordStickerKind.fortune:
         final entry = _findTrainingEntryForSticker(day, sticker);
         if (entry != null) {
@@ -1546,6 +1549,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Color _recordStickerTint(_DiaryRecordStickerKind kind) {
     return switch (kind) {
       _DiaryRecordStickerKind.training => const Color(0xFF2F8F6A),
+      _DiaryRecordStickerKind.parentFeedback => const Color(0xFF4F6DB8),
       _DiaryRecordStickerKind.match => const Color(0xFF2E6ECF),
       _DiaryRecordStickerKind.plan => const Color(0xFF97754A),
       _DiaryRecordStickerKind.fortune => const Color(0xFF9B51E0),
@@ -2195,6 +2199,40 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           tint: _recordStickerTint(_DiaryRecordStickerKind.training),
           focusItems: _trainingFocusItems(entry),
         );
+      case _DiaryRecordStickerKind.parentFeedback:
+        final entry = day.trainingEntries.cast<TrainingEntry?>().firstWhere(
+          (item) =>
+              '${item?.createdAt.millisecondsSinceEpoch}' == sticker.refId,
+          orElse: () => null,
+        );
+        if (entry == null) return null;
+        final feedback = ParentSharedFeedbackService(
+          widget.optionRepository,
+        ).feedbackForEntry(entry);
+        final message = feedback?.message.trim() ?? '';
+        if (message.isEmpty) return null;
+        final updatedAt = feedback?.updatedAt;
+        final label = entry.program.trim().isNotEmpty
+            ? entry.program.trim()
+            : (entry.type.trim().isEmpty
+                  ? _l10n.diaryStickerTraining
+                  : entry.type.trim());
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.parentFeedback,
+          title: _l10n.diaryStickerParentFeedback,
+          summary: message,
+          metaLabels: [
+            label,
+            if (updatedAt != null)
+              DateFormat(
+                _isKo ? 'M.d HH:mm' : 'MMM d HH:mm',
+                _isKo ? 'ko' : 'en',
+              ).format(updatedAt),
+          ],
+          icon: Icons.rate_review_outlined,
+          tint: _recordStickerTint(_DiaryRecordStickerKind.parentFeedback),
+        );
       case _DiaryRecordStickerKind.match:
         final entry = day.matchEntries.cast<TrainingEntry?>().firstWhere(
           (item) =>
@@ -2698,6 +2736,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ...day.plans.map(_planTodoSeed),
       ...day.trainingEntries.map(_trainingTodoSeed),
       ...day.trainingEntries
+          .map(_parentFeedbackTodoSeed)
+          .whereType<_DiaryTodoSeed>(),
+      ...day.trainingEntries
           .where((entry) => entry.fortuneComment.trim().isNotEmpty)
           .map(_fortuneTodoSeed),
       ...day.matchEntries.map(_matchTodoSeed),
@@ -2763,6 +2804,32 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       sectionBody: summaryText,
       icon: statusVisual.icon,
       recordKind: _DiaryRecordStickerKind.training,
+      recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
+    );
+  }
+
+  _DiaryTodoSeed? _parentFeedbackTodoSeed(TrainingEntry entry) {
+    final feedback = ParentSharedFeedbackService(
+      widget.optionRepository,
+    ).feedbackForEntry(entry);
+    final message = feedback?.message.trim() ?? '';
+    if (message.isEmpty) return null;
+    final label = entry.program.trim().isNotEmpty
+        ? entry.program.trim()
+        : (entry.type.trim().isEmpty
+              ? _l10n.diaryStickerTraining
+              : entry.type.trim());
+    return _DiaryTodoSeed(
+      id: 'parent-feedback-${entry.createdAt.millisecondsSinceEpoch}',
+      title: _l10n.diaryStickerParentFeedback,
+      summary: message,
+      storySentence: _l10n.diaryParentFeedbackStorySentence(message),
+      sectionTitle: _isKo
+          ? '${_l10n.diaryStickerParentFeedback} · $label'
+          : '${_l10n.diaryStickerParentFeedback} · $label',
+      sectionBody: message,
+      icon: Icons.rate_review_outlined,
+      recordKind: _DiaryRecordStickerKind.parentFeedback,
       recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
     );
   }
@@ -5082,6 +5149,7 @@ enum _DiaryRecordStickerKind {
   lifting,
   injury,
   quiz,
+  parentFeedback,
 }
 
 class _DiaryRecordStickerData {

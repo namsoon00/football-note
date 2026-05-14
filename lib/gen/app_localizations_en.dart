@@ -136,6 +136,57 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose a plan to turn into a training log';
 
   @override
+  String get homeHubTitleShort => 'Home';
+
+  @override
+  String get homeDailyCheckTitle => 'Today';
+
+  @override
+  String get homeTodoTrainingLogShort => 'Log';
+
+  @override
+  String get homeTodoBoardSketchShort => 'Sketch';
+
+  @override
+  String get homePriorityCheckPlansMessage => 'Check remaining plans.';
+
+  @override
+  String get homePriorityPlansAction => 'Plans';
+
+  @override
+  String get homePriorityReviewWeekMessage => 'Review the week.';
+
+  @override
+  String get homePriorityStatsAction => 'Stats';
+
+  @override
+  String get homePrioritySketchNextMessage => 'Sketch the next session.';
+
+  @override
+  String get homePriorityBoardAction => 'Board';
+
+  @override
+  String get homePriorityConditionMessage => 'Check condition trends.';
+
+  @override
+  String get homePriorityRewardsMessage => 'Check level rewards.';
+
+  @override
+  String get homePriorityLevelAction => 'Level';
+
+  @override
+  String get homeMealSuggestionDoneShort => 'All meals logged. Good rhythm.';
+
+  @override
+  String get homeMealSuggestionTwoShort => 'Log one more meal.';
+
+  @override
+  String get homeMealSuggestionOneShort => 'Log two more meals.';
+
+  @override
+  String get homeMealSuggestionNoneShort => 'Log the first meal.';
+
+  @override
   String get homeNextTrainingTitle => 'Next training';
 
   @override
@@ -977,6 +1028,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifications => 'Notifications';
 
   @override
+  String notificationFamilySectionTitle(int count) {
+    return '$count family sync alert(s)';
+  }
+
+  @override
+  String get notificationFamilyEmpty => 'No family sync alerts yet.';
+
+  @override
+  String get notificationFamilySettingsTitle => 'Family sync alerts';
+
+  @override
+  String get notificationFamilySettingsSubtitle =>
+      'Notify when child logs or parent feedback/rewards sync.';
+
+  @override
   String get reminderEnabled => 'Enable daily reminder';
 
   @override
@@ -1559,6 +1625,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryStickerWeather => 'Weather';
 
   @override
+  String get diaryStickerParentFeedback => 'Parent feedback';
+
+  @override
   String get diaryInjuryNoDetails => 'No injury note was saved.';
 
   @override
@@ -1571,6 +1640,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diaryQuizStorySentence =>
       'Write the question or concept you want to keep from the quiz run.';
+
+  @override
+  String diaryParentFeedbackStorySentence(String message) {
+    return 'Parent feedback: $message';
+  }
 
   @override
   String diaryQuizSummaryPerfect(int score, int total) {
@@ -4006,6 +4080,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent feedback and level reward names are written automatically into the same child backup file.';
 
   @override
+  String get familySyncAlertTitle => 'Family sync';
+
+  @override
+  String familySyncParentTrainingAdded(int count) {
+    return '$count new child training log(s) synced.';
+  }
+
+  @override
+  String familySyncChildFeedbackAdded(int count) {
+    return '$count parent feedback update(s) synced.';
+  }
+
+  @override
+  String get familySyncChildRewardUpdated => 'Level reward names synced.';
+
+  @override
+  String familySyncChildFeedbackAndReward(int count) {
+    return '$count parent feedback update(s) and reward names synced.';
+  }
+
+  @override
   String get familySharedLastSync => 'Last parent/child sync';
 
   @override
@@ -4070,6 +4165,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get parentReadOnlyProfileDescription =>
       'Parent mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.';
+
+  @override
+  String get benchmarkReferenceNote =>
+      'Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.';
 
   @override
   String get parentReadOnlyEntryTitle =>

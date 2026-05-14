@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../../application/training_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
+import '../../application/training_plan_reminder_service.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'calendar_screen.dart';
 import 'logs_screen.dart';
@@ -46,7 +48,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  static const Duration _familySyncInterval = Duration(minutes: 15);
   late int _index;
   DateTime? _calendarSelectedDay;
   DateTimeRange? _statsInitialRange;
@@ -55,14 +58,96 @@ class _HomeScreenState extends State<HomeScreen> {
   CalendarQuickCreateAction? _pendingCalendarQuickCreateAction;
   final Set<int> _guideCheckedInSession = <int>{};
   bool _routePushInFlight = false;
+  Timer? _familySyncTimer;
+  bool _familySyncInFlight = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _index = widget.initialIndex;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_showTabGuideIfNeeded(_index));
+      unawaited(_syncFamilySharedDataIfNeeded());
     });
+    _familySyncTimer = Timer.periodic(
+      _familySyncInterval,
+      (_) => unawaited(_syncFamilySharedDataIfNeeded()),
+    );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _familySyncTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_syncFamilySharedDataIfNeeded());
+    }
+  }
+
+  Future<void> _syncFamilySharedDataIfNeeded() async {
+    final backup = widget.driveBackupService;
+    if (backup == null || _familySyncInFlight) return;
+    _familySyncInFlight = true;
+    try {
+      final result = await backup.refreshFamilySharedDataIfNeeded();
+      if (!mounted) return;
+      if (result.refreshed) {
+        widget.localeService.load();
+        widget.settingsService.load();
+        setState(() {});
+      }
+      if (!result.hasUserVisibleChanges) return;
+      final l10n = AppLocalizations.of(context)!;
+      final title = l10n.familySyncAlertTitle;
+      final body = _familySyncAlertBody(result, l10n);
+      if (body.trim().isEmpty) return;
+      await TrainingPlanReminderService(
+        widget.optionRepository,
+        widget.settingsService,
+      ).showFamilySyncAlert(
+        title: title,
+        body: body,
+        payload:
+            'family-sync:${result.role.name}:${DateTime.now().toIso8601String()}',
+      );
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (_) {
+      // Shared sync can retry on the next timer tick or resume.
+    } finally {
+      _familySyncInFlight = false;
+    }
+  }
+
+  String _familySyncAlertBody(
+    FamilySharedSyncResult result,
+    AppLocalizations l10n,
+  ) {
+    if (result.role == FamilyRole.child) {
+      if (result.newParentFeedbackCount > 0 && result.rewardNamesChanged) {
+        return l10n.familySyncChildFeedbackAndReward(
+          result.newParentFeedbackCount,
+        );
+      }
+      if (result.newParentFeedbackCount > 0) {
+        return l10n.familySyncChildFeedbackAdded(result.newParentFeedbackCount);
+      }
+      if (result.rewardNamesChanged) {
+        return l10n.familySyncChildRewardUpdated;
+      }
+      return '';
+    }
+    if (result.newTrainingEntryCount > 0) {
+      return l10n.familySyncParentTrainingAdded(result.newTrainingEntryCount);
+    }
+    return '';
   }
 
   @override
