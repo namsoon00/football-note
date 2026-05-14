@@ -332,7 +332,7 @@ void main() {
     },
   );
 
-  testWidgets('parent feedback saves separately and is visible in child mode', (
+  testWidgets('parent feedback saves separately and is visible in player mode', (
     WidgetTester tester,
   ) async {
     final original = TrainingEntry(
