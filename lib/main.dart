@@ -108,9 +108,9 @@ Future<void> _warmStartupServices({
     // Ignore startup backup failures and keep app entry responsive.
   }
   try {
-    await backupService.refreshParentSharedDataIfNeeded();
+    await backupService.refreshFamilySharedDataIfNeeded();
   } catch (_) {
-    // Parent shared refresh can recover on later app resumes.
+    // Family shared refresh can recover on later app resumes.
   }
   try {
     await reminderService.initialize();

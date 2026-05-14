@@ -47,6 +47,23 @@
   },
   "homeTodayPlanOpenAction": "Open plans",
   "homeTodayPlanSelectForLogTitle": "Choose a plan to turn into a training log",
+  "homeHubTitleShort": "Home",
+  "homeDailyCheckTitle": "Today",
+  "homeTodoTrainingLogShort": "Log",
+  "homeTodoBoardSketchShort": "Sketch",
+  "homePriorityCheckPlansMessage": "Check remaining plans.",
+  "homePriorityPlansAction": "Plans",
+  "homePriorityReviewWeekMessage": "Review the week.",
+  "homePriorityStatsAction": "Stats",
+  "homePrioritySketchNextMessage": "Sketch the next session.",
+  "homePriorityBoardAction": "Board",
+  "homePriorityConditionMessage": "Check condition trends.",
+  "homePriorityRewardsMessage": "Check level rewards.",
+  "homePriorityLevelAction": "Level",
+  "homeMealSuggestionDoneShort": "All meals logged. Good rhythm.",
+  "homeMealSuggestionTwoShort": "Log one more meal.",
+  "homeMealSuggestionOneShort": "Log two more meals.",
+  "homeMealSuggestionNoneShort": "Log the first meal.",
   "homeNextTrainingTitle": "Next training",
   "homeNextTrainingToday": "Today",
   "homeNextTrainingTomorrow": "Tomorrow",
@@ -371,6 +388,17 @@
   "defaultLocation": "Default Location",
   "defaultProgram": "Default Program",
   "notifications": "Notifications",
+  "notificationFamilySectionTitle": "{count} family sync alert(s)",
+  "@notificationFamilySectionTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationFamilyEmpty": "No family sync alerts yet.",
+  "notificationFamilySettingsTitle": "Family sync alerts",
+  "notificationFamilySettingsSubtitle": "Notify when child logs or parent feedback/rewards sync.",
   "reminderEnabled": "Enable daily reminder",
   "reminderTime": "Reminder time",
   "photo": "Photo",
@@ -553,10 +581,19 @@
   "diaryStickerInjury": "Injury",
   "diaryStickerQuiz": "Quiz",
   "diaryStickerWeather": "Weather",
+  "diaryStickerParentFeedback": "Parent feedback",
   "diaryInjuryNoDetails": "No injury note was saved.",
   "diaryInjuryRehab": "Rehab",
   "diaryInjuryStorySentence": "Write the moment pain showed up and what needs recovery next.",
   "diaryQuizStorySentence": "Write the question or concept you want to keep from the quiz run.",
+  "diaryParentFeedbackStorySentence": "Parent feedback: {message}",
+  "@diaryParentFeedbackStorySentence": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "diaryQuizSummaryPerfect": "{score}/{total} correct · no misses",
   "@diaryQuizSummaryPerfect": {
     "placeholders": {
@@ -1691,6 +1728,32 @@
   "familyParentUsesChildDriveWarning": "Parent mode should connect to the Google Drive account that holds the child's source data so training feedback and reward names sync safely into the same backup file.",
   "familySharedSyncTitle": "Child data sync",
   "familySharedSyncDescription": "Parent feedback and level reward names are written automatically into the same child backup file.",
+  "familySyncAlertTitle": "Family sync",
+  "familySyncParentTrainingAdded": "{count} new child training log(s) synced.",
+  "@familySyncParentTrainingAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "familySyncChildFeedbackAdded": "{count} parent feedback update(s) synced.",
+  "@familySyncChildFeedbackAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "familySyncChildRewardUpdated": "Level reward names synced.",
+  "familySyncChildFeedbackAndReward": "{count} parent feedback update(s) and reward names synced.",
+  "@familySyncChildFeedbackAndReward": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "familySharedLastSync": "Last parent/child sync",
   "familySharedLastPush": "Last push",
   "familySharedLastRefresh": "Last import check",
@@ -1710,6 +1773,7 @@
   "moreInfoAction": "More info",
   "parentReadOnlyProfileSummary": "Profile is view only here.",
   "parentReadOnlyProfileDescription": "Parent mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.",
+  "benchmarkReferenceNote": "Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.",
   "parentReadOnlyEntryTitle": "Parent mode cannot edit training notes.",
   "parentReadOnlyEntryBody": "Core records like training, meals, and diary stay in child mode. Parent mode leaves the original record untouched and stores only feedback and reward naming separately.",
   "parentReadOnlyLogsSummary": "View training logs and leave feedback only.",

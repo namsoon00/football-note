@@ -67,6 +67,7 @@ class AutoBackupOptionRepository implements OptionRepository {
   bool _shouldSkipAutoBackup(String key) {
     return _localOnlyKeys.contains(key) ||
         key.startsWith('drive_') ||
+        key.startsWith('family_sync_message_') ||
         key.startsWith('local_pre_restore_');
   }
 

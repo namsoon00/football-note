@@ -1351,28 +1351,43 @@ class _ParentFeedbackPreview extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: scheme.tertiaryContainer.withValues(alpha: 0.50),
-        borderRadius: BorderRadius.circular(10),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
-            Icons.rate_review_outlined,
-            size: 14,
-            color: scheme.onTertiaryContainer,
+            Icons.chat_bubble_outline_rounded,
+            size: 16,
+            color: scheme.primary,
           ),
           const SizedBox(width: 6),
           Expanded(
-            child: Text(
-              '${l10n.parentFeedbackSectionTitle}: ${message.trim()}',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: scheme.onTertiaryContainer,
-                fontWeight: FontWeight.w700,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.parentFeedbackSectionTitle,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  message.trim(),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurface,
+                    height: 1.35,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

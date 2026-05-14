@@ -3514,25 +3514,39 @@ class _CalendarParentFeedbackPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(top: 2),
-      child: Row(
-        children: [
-          Icon(Icons.rate_review_outlined, size: 14, color: scheme.tertiary),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              '${l10n.parentFeedbackSectionTitle}: ${message.trim()}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: _calendarTimelineSubtitleStyle(
-                context,
-              )?.copyWith(color: scheme.tertiary, fontWeight: FontWeight.w700),
-            ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest.withValues(alpha: 0.70),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: scheme.outlineVariant.withValues(alpha: 0.55),
           ),
-        ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.chat_bubble_outline_rounded,
+              size: 14,
+              color: scheme.primary,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                message.trim(),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: _calendarTimelineSubtitleStyle(
+                  context,
+                )?.copyWith(color: scheme.onSurface, height: 1.35),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

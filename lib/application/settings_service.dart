@@ -11,6 +11,7 @@ class SettingsService extends ChangeNotifier {
   bool _levelUpAlertEnabled = true;
   bool _xpAlertEnabled = true;
   bool _inactivityAlertEnabled = true;
+  bool _familySyncAlertEnabled = true;
   int _inactivityAlertDays = 3;
 
   SettingsService(this._repository);
@@ -22,6 +23,7 @@ class SettingsService extends ChangeNotifier {
   bool get levelUpAlertEnabled => _levelUpAlertEnabled;
   bool get xpAlertEnabled => _xpAlertEnabled;
   bool get inactivityAlertEnabled => _inactivityAlertEnabled;
+  bool get familySyncAlertEnabled => _familySyncAlertEnabled;
   int get inactivityAlertDays => _inactivityAlertDays;
 
   void load() {
@@ -34,12 +36,15 @@ class SettingsService extends ChangeNotifier {
     _reminderTime = _parseTime(time) ?? _reminderTime;
     _levelUpAlertEnabled =
         _repository.getValue<bool>('level_up_alert_enabled') ??
-            _levelUpAlertEnabled;
+        _levelUpAlertEnabled;
     _xpAlertEnabled =
         _repository.getValue<bool>('xp_alert_enabled') ?? _xpAlertEnabled;
     _inactivityAlertEnabled =
         _repository.getValue<bool>('inactivity_alert_enabled') ??
-            _inactivityAlertEnabled;
+        _inactivityAlertEnabled;
+    _familySyncAlertEnabled =
+        _repository.getValue<bool>('family_sync_alert_enabled') ??
+        _familySyncAlertEnabled;
     _inactivityAlertDays = _clampInt(
       _repository.getValue<num>('inactivity_alert_days')?.toInt(),
       fallback: _inactivityAlertDays,
@@ -88,6 +93,12 @@ class SettingsService extends ChangeNotifier {
   Future<void> setInactivityAlertEnabled(bool enabled) async {
     _inactivityAlertEnabled = enabled;
     await _repository.setValue('inactivity_alert_enabled', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setFamilySyncAlertEnabled(bool enabled) async {
+    _familySyncAlertEnabled = enabled;
+    await _repository.setValue('family_sync_alert_enabled', enabled);
     notifyListeners();
   }
 

@@ -57,6 +57,30 @@ class FamilyAccessState {
       parentName.trim().isNotEmpty;
 }
 
+class FamilySharedSyncResult {
+  final bool refreshed;
+  final FamilyRole role;
+  final int newTrainingEntryCount;
+  final int newParentFeedbackCount;
+  final bool rewardNamesChanged;
+
+  const FamilySharedSyncResult({
+    required this.refreshed,
+    required this.role,
+    this.newTrainingEntryCount = 0,
+    this.newParentFeedbackCount = 0,
+    this.rewardNamesChanged = false,
+  });
+
+  const FamilySharedSyncResult.none({required FamilyRole role})
+    : this(refreshed: false, role: role);
+
+  bool get hasUserVisibleChanges =>
+      newTrainingEntryCount > 0 ||
+      newParentFeedbackCount > 0 ||
+      rewardNamesChanged;
+}
+
 class FamilyAccessService {
   static const String currentRoleLocalKey = 'family_current_role_local_v1';
   static const String linkedRoleKey = 'family_shared_role_v1';

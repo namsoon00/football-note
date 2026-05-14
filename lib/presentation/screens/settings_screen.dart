@@ -103,13 +103,9 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Future<void> _refreshParentSharedDataIfNeeded() async {
     if (widget.driveBackupService == null) return;
-    final familyState = FamilyAccessService(
-      widget.optionRepository,
-    ).loadState();
-    if (!familyState.isParentMode) return;
-    final refreshed = await widget.driveBackupService!
-        .refreshParentSharedDataIfNeeded();
-    if (refreshed) {
+    final result = await widget.driveBackupService!
+        .refreshFamilySharedDataIfNeeded();
+    if (result.refreshed) {
       widget.localeService.load();
       widget.settingsService.load();
     }
