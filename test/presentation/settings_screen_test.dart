@@ -121,7 +121,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(ChoiceChip, '아이'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, '선수'), findsOneWidget);
     expect(
       find.widgetWithText(OutlinedButton, '데이터 백업하기'),
       findsOneWidget,
@@ -129,7 +129,7 @@ void main() {
     expect(find.text('데이터 백업하기'), findsOneWidget);
     expect(find.text('최근 데이터 가져오기'), findsOneWidget);
     expect(
-      find.text('이 기기가 직접 기록하는 아이용인지, 보호자가 확인하는 기기인지 먼저 고르세요.'),
+      find.text('이 기기가 직접 기록하는 선수용인지, 보호자가 확인하는 기기인지 먼저 고르세요.'),
       findsNothing,
     );
     expect(
@@ -181,14 +181,14 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('아이 데이터 원본 Drive'),
+        find.text('선수 데이터 원본 Drive'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
       expect(find.text('Google Drive 연결'), findsOneWidget);
-      expect(find.text('아이 데이터 원본 Drive'), findsOneWidget);
+      expect(find.text('선수 데이터 원본 Drive'), findsOneWidget);
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
       expect(find.text('Google Drive 연결 해제'), findsOneWidget);
       expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
@@ -294,8 +294,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('아이 모드 백업 Drive'), findsOneWidget);
-    expect(find.text('아이 모드 Drive 다시 연결'), findsOneWidget);
+    expect(find.text('선수 모드 백업 Drive'), findsOneWidget);
+    expect(find.text('선수 모드 Drive 다시 연결'), findsOneWidget);
   });
 
   testWidgets('player mode keeps rollback action subtler than drive actions', (
@@ -399,8 +399,8 @@ void main() {
 
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
       expect(find.text('민수 · player@example.com'), findsWidgets);
-      expect(find.text('아이 모드 백업 Drive'), findsNothing);
-      expect(find.text('아이 모드 Drive 다시 연결'), findsNothing);
+      expect(find.text('선수 모드 백업 Drive'), findsNothing);
+      expect(find.text('선수 모드 Drive 다시 연결'), findsNothing);
     },
   );
 
@@ -442,7 +442,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('아이 데이터 원본 Drive'),
+        find.text('선수 데이터 원본 Drive'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
@@ -451,7 +451,7 @@ void main() {
       expect(find.text('저장된 공유 역할 Drive'), findsNothing);
       expect(find.text('아빠 · parent@example.com'), findsNothing);
       expect(find.text('저장된 공유 역할 Drive 연결'), findsNothing);
-      expect(find.text('아이 데이터 원본 Drive'), findsOneWidget);
+      expect(find.text('선수 데이터 원본 Drive'), findsOneWidget);
       expect(find.text('민수 · child@example.com'), findsOneWidget);
       expect(find.text('최근 반영'), findsOneWidget);
       expect(find.text('최근 가져오기 확인'), findsOneWidget);
@@ -507,7 +507,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(ChoiceChip, '아이'));
+      await tester.tap(find.widgetWithText(ChoiceChip, '선수'));
       await tester.pumpAndSettle();
 
       expect(backupService.signOutCalled, isTrue);
@@ -515,8 +515,8 @@ void main() {
         backupService.getSavedParentDriveEmail(),
         'parent-mode@example.com',
       );
-      expect(find.text('아이 모드 백업 Drive'), findsOneWidget);
-      expect(find.text('아이 모드 Drive 다시 연결'), findsOneWidget);
+      expect(find.text('선수 모드 백업 Drive'), findsOneWidget);
+      expect(find.text('선수 모드 Drive 다시 연결'), findsOneWidget);
     },
   );
 
@@ -666,19 +666,19 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('아이 데이터 원본 Drive'),
+        find.text('선수 데이터 원본 Drive'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('아이 데이터 원본 Drive'), findsOneWidget);
+      expect(find.text('선수 데이터 원본 Drive'), findsOneWidget);
       expect(
-        find.text('원격 백업은 확인됐어요. 아이 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.'),
+        find.text('원격 백업은 확인됐어요. 선수 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.'),
         findsOneWidget,
       );
       expect(
-        find.text('아직 원본 Drive 정보가 없어요. 아이 모드에서 먼저 한 번 백업해 주세요.'),
+        find.text('아직 원본 Drive 정보가 없어요. 선수 모드에서 먼저 한 번 백업해 주세요.'),
         findsNothing,
       );
     },
