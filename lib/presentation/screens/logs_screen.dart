@@ -155,13 +155,13 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
     _jumpRopeOnly =
@@ -185,9 +185,10 @@ class _LogsScreenState extends State<LogsScreen> {
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
               final sourceEntries = snapshot.data ?? const <TrainingEntry>[];
-              final allEntries =
-                  sourceEntries.where((entry) => !entry.isMatch).toList()
-                    ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries = sourceEntries
+                  .where((entry) => !entry.isMatch)
+                  .toList()
+                ..sort(TrainingEntry.compareByRecentCreated);
               if (allEntries.isEmpty) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (!mounted) return;
@@ -245,9 +246,9 @@ class _LogsScreenState extends State<LogsScreen> {
                             notificationBadgeCount: reminderUnreadCount,
                             profilePhotoSource:
                                 widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
+                                      'profile_photo_url',
+                                    ) ??
+                                    '',
                             onProfileTap: () => _openProfile(context),
                             onSettingsTap: () => _openSettings(context),
                             title:
@@ -262,12 +263,12 @@ class _LogsScreenState extends State<LogsScreen> {
                         boardListIcon: Icons.edit_note_outlined,
                         boardListLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                            ? '훈련 스케치 리스트'
-                            : 'Training sketch list',
+                                ? '훈련 스케치 리스트'
+                                : 'Training sketch list',
                         boardListTitle:
                             Localizations.localeOf(context).languageCode == 'ko'
-                            ? '훈련 스케치'
-                            : 'Sketches',
+                                ? '훈련 스케치'
+                                : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
@@ -293,137 +294,141 @@ class _LogsScreenState extends State<LogsScreen> {
                                   subtitle: isParentMode
                                       ? l10n.parentFeedbackOpenExistingEntryBody
                                       : (Localizations.localeOf(
-                                                  context,
-                                                ).languageCode ==
-                                                'ko'
-                                            ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
-                                            : 'Create your first training note to start the flow.'),
+                                                context,
+                                              ).languageCode ==
+                                              'ko'
+                                          ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
+                                          : 'Create your first training note to start the flow.'),
                                   actionLabel: isParentMode
                                       ? null
                                       : (Localizations.localeOf(
-                                                  context,
-                                                ).languageCode ==
-                                                'ko'
-                                            ? '기록 추가'
-                                            : 'Add entry'),
-                                  onPressed: isParentMode
-                                      ? null
-                                      : widget.onCreate,
+                                                context,
+                                              ).languageCode ==
+                                              'ko'
+                                          ? '기록 추가'
+                                          : 'Add entry'),
+                                  onPressed:
+                                      isParentMode ? null : widget.onCreate,
                                 ),
                               )
                             : visibleEntries.isEmpty
-                            ? Padding(
-                                key: const ValueKey('logs-empty-filtered'),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 24,
-                                ),
-                                child: _buildEmptyState(
-                                  title: l10n.noResults,
-                                  subtitle:
-                                      Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '필터를 초기화하면 더 많은 기록을 볼 수 있어요.'
-                                      : 'Reset filters to see more entries.',
-                                  actionLabel: l10n.filterReset,
-                                  onPressed: () async {
-                                    const reset = _LogFilters(
-                                      status: _allFilterValue,
-                                      location: _allFilterValue,
-                                      program: _allFilterValue,
-                                      injuryOnly: false,
-                                      jumpRopeOnly: false,
-                                    );
-                                    setState(() {
-                                      _statusFilter = reset.status;
-                                      _locationFilter = reset.location;
-                                      _programFilter = reset.program;
-                                      _injuryOnly = reset.injuryOnly;
-                                      _jumpRopeOnly = reset.jumpRopeOnly;
-                                      _resetPagination();
-                                    });
-                                    await _persistFilters(reset);
-                                  },
-                                ),
-                              )
-                            : _layout == _LogsLayout.card
-                            ? MasonryGridView.count(
-                                key: const ValueKey('logs-card-view'),
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 8,
-                                crossAxisSpacing: 8,
-                                itemCount: visibleEntries.length,
-                                itemBuilder: (context, index) {
-                                  final entry = visibleEntries[index];
-                                  final row = _buildEntryRow(
-                                    context: context,
-                                    entry: entry,
-                                    deleteKeyPrefix: 'logs-card',
-                                    deletable: !isParentMode,
-                                    child: _EntryCard(
-                                      entry: entry,
-                                      mealCoachingService: _mealCoachingService,
-                                      boardsById: boardsById,
-                                      parentFeedbackMessage:
-                                          _parentFeedbackMessage(
-                                            entry,
-                                            parentFeedbackByEntryId,
-                                          ),
-                                      onEdit: () => _onEntryTap(entry),
+                                ? Padding(
+                                    key: const ValueKey('logs-empty-filtered'),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 24,
                                     ),
-                                  );
-                                  if (AppMotion.reduceMotion(context)) {
-                                    return row;
-                                  }
-                                  return FadeInUp(
-                                    delay: Duration(
-                                      milliseconds: (index * 24).clamp(0, 240),
+                                    child: _buildEmptyState(
+                                      title: l10n.noResults,
+                                      subtitle: Localizations.localeOf(
+                                                context,
+                                              ).languageCode ==
+                                              'ko'
+                                          ? '필터를 초기화하면 더 많은 기록을 볼 수 있어요.'
+                                          : 'Reset filters to see more entries.',
+                                      actionLabel: l10n.filterReset,
+                                      onPressed: () async {
+                                        const reset = _LogFilters(
+                                          status: _allFilterValue,
+                                          location: _allFilterValue,
+                                          program: _allFilterValue,
+                                          injuryOnly: false,
+                                          jumpRopeOnly: false,
+                                        );
+                                        setState(() {
+                                          _statusFilter = reset.status;
+                                          _locationFilter = reset.location;
+                                          _programFilter = reset.program;
+                                          _injuryOnly = reset.injuryOnly;
+                                          _jumpRopeOnly = reset.jumpRopeOnly;
+                                          _resetPagination();
+                                        });
+                                        await _persistFilters(reset);
+                                      },
                                     ),
-                                    duration: AppMotion.base(context),
-                                    child: row,
-                                  );
-                                },
-                              )
-                            : ListView.separated(
-                                key: const ValueKey('logs-list-view'),
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: visibleEntries.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 8),
-                                itemBuilder: (context, index) {
-                                  final entry = visibleEntries[index];
-                                  final row = _buildEntryRow(
-                                    context: context,
-                                    entry: entry,
-                                    deleteKeyPrefix: 'logs-list',
-                                    deletable: !isParentMode,
-                                    child: _EntryListItem(
-                                      entry: entry,
-                                      mealCoachingService: _mealCoachingService,
-                                      parentFeedbackMessage:
-                                          _parentFeedbackMessage(
-                                            entry,
-                                            parentFeedbackByEntryId,
-                                          ),
-                                      onEdit: () => _onEntryTap(entry),
-                                    ),
-                                  );
-                                  if (AppMotion.reduceMotion(context)) {
-                                    return row;
-                                  }
-                                  return FadeInUp(
-                                    delay: Duration(
-                                      milliseconds: (index * 20).clamp(0, 220),
-                                    ),
-                                    duration: AppMotion.base(context),
-                                    child: row,
-                                  );
-                                },
-                              ),
+                                  )
+                                : _layout == _LogsLayout.card
+                                    ? MasonryGridView.count(
+                                        key: const ValueKey('logs-card-view'),
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        crossAxisCount: 2,
+                                        mainAxisSpacing: 8,
+                                        crossAxisSpacing: 8,
+                                        itemCount: visibleEntries.length,
+                                        itemBuilder: (context, index) {
+                                          final entry = visibleEntries[index];
+                                          final row = _buildEntryRow(
+                                            context: context,
+                                            entry: entry,
+                                            deleteKeyPrefix: 'logs-card',
+                                            deletable: !isParentMode,
+                                            child: _EntryCard(
+                                              entry: entry,
+                                              mealCoachingService:
+                                                  _mealCoachingService,
+                                              boardsById: boardsById,
+                                              parentFeedbackMessage:
+                                                  _parentFeedbackMessage(
+                                                entry,
+                                                parentFeedbackByEntryId,
+                                              ),
+                                              onEdit: () => _onEntryTap(entry),
+                                            ),
+                                          );
+                                          if (AppMotion.reduceMotion(context)) {
+                                            return row;
+                                          }
+                                          return FadeInUp(
+                                            delay: Duration(
+                                              milliseconds:
+                                                  (index * 24).clamp(0, 240),
+                                            ),
+                                            duration: AppMotion.base(context),
+                                            child: row,
+                                          );
+                                        },
+                                      )
+                                    : ListView.separated(
+                                        key: const ValueKey('logs-list-view'),
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemCount: visibleEntries.length,
+                                        separatorBuilder: (_, __) =>
+                                            const SizedBox(height: 8),
+                                        itemBuilder: (context, index) {
+                                          final entry = visibleEntries[index];
+                                          final row = _buildEntryRow(
+                                            context: context,
+                                            entry: entry,
+                                            deleteKeyPrefix: 'logs-list',
+                                            deletable: !isParentMode,
+                                            child: _EntryListItem(
+                                              entry: entry,
+                                              mealCoachingService:
+                                                  _mealCoachingService,
+                                              parentFeedbackMessage:
+                                                  _parentFeedbackMessage(
+                                                entry,
+                                                parentFeedbackByEntryId,
+                                              ),
+                                              onEdit: () => _onEntryTap(entry),
+                                            ),
+                                          );
+                                          if (AppMotion.reduceMotion(context)) {
+                                            return row;
+                                          }
+                                          return FadeInUp(
+                                            delay: Duration(
+                                              milliseconds:
+                                                  (index * 20).clamp(0, 220),
+                                            ),
+                                            duration: AppMotion.base(context),
+                                            child: row,
+                                          );
+                                        },
+                                      ),
                       ),
                       if (visibleEntries.length < entries.length)
                         Padding(
@@ -800,9 +805,8 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -1206,11 +1210,9 @@ class _EntryCard extends StatelessWidget {
         .map((id) => boardsById[id])
         .whereType<TrainingBoard>()
         .toList(growable: false);
-    final legacyLayout = linkedBoards.isEmpty
-        ? TrainingMethodLayout.decode(entry.drills)
-        : null;
-    final hasTrainingBoard =
-        linkedBoards.isNotEmpty ||
+    final legacyLayout =
+        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
+    final hasTrainingBoard = linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
 
@@ -1263,7 +1265,7 @@ class _EntryCard extends StatelessWidget {
               ],
               if (parentFeedbackMessage.trim().isNotEmpty) ...[
                 const SizedBox(height: 6),
-                _ParentFeedbackPreview(message: parentFeedbackMessage),
+                const _ParentFeedbackPreview(),
               ],
             ],
           ),
@@ -1330,7 +1332,7 @@ class _EntryListItem extends StatelessWidget {
                 style: TextStyle(color: focusTextColor),
               ),
             if (parentFeedbackMessage.trim().isNotEmpty)
-              _ParentFeedbackPreview(message: parentFeedbackMessage),
+              const _ParentFeedbackPreview(),
           ],
         ),
         trailing: const Icon(Icons.chevron_right),
@@ -1341,9 +1343,7 @@ class _EntryListItem extends StatelessWidget {
 }
 
 class _ParentFeedbackPreview extends StatelessWidget {
-  final String message;
-
-  const _ParentFeedbackPreview({required this.message});
+  const _ParentFeedbackPreview();
 
   @override
   Widget build(BuildContext context) {
@@ -1367,27 +1367,14 @@ class _ParentFeedbackPreview extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.parentFeedbackSectionTitle,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            child: Text(
+              l10n.parentFeedbackSectionTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: scheme.primary,
                     fontWeight: FontWeight.w800,
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  message.trim(),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurface,
-                    height: 1.35,
-                  ),
-                ),
-              ],
             ),
           ),
         ],
