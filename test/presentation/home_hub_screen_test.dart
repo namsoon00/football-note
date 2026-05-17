@@ -369,7 +369,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    final sketchChip = find.text('훈련스케치');
+    final sketchChip = find.text('스케치');
     await tester.scrollUntilVisible(
       sketchChip,
       200,

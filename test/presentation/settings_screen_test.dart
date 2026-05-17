@@ -39,26 +39,26 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
-      find.text('백업 상태'),
+      find.text('데이터 동기화 상태'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('백업 상태'), findsOneWidget);
-    expect(find.textContaining('마지막 클라우드 백업:'), findsNothing);
+    expect(find.text('데이터 동기화 상태'), findsOneWidget);
+    expect(find.textContaining('백업된 데이터:'), findsNothing);
 
     await tester.scrollUntilVisible(
-      find.text('자세한 상태 보기'),
+      find.text('상세 보기'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('자세한 상태 보기'));
+    await tester.tap(find.text('상세 보기'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('마지막 클라우드 백업:'), findsOneWidget);
+    expect(find.textContaining('백업된 데이터:'), findsOneWidget);
   });
 
   testWidgets('role and sync section can collapse together', (
@@ -87,12 +87,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('사용 방식 및 동기화'), findsOneWidget);
-    expect(find.text('Google Drive 연결'), findsWidgets);
+    expect(find.text('데이터 동기화'), findsOneWidget);
 
     await tester.tap(find.text('사용 방식 및 동기화'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Google Drive 연결'), findsNothing);
     expect(find.text('데이터 동기화'), findsNothing);
   });
 
@@ -181,14 +180,14 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('선수 데이터 원본 Drive'),
+        find.text('백업 데이터'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Google Drive 연결'), findsOneWidget);
-      expect(find.text('선수 데이터 원본 Drive'), findsOneWidget);
+      expect(find.text('데이터 동기화'), findsOneWidget);
+      expect(find.text('백업 데이터'), findsOneWidget);
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
       expect(find.text('Google Drive 연결 해제'), findsOneWidget);
       expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
@@ -196,7 +195,8 @@ void main() {
         find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
         findsOneWidget,
       );
-      expect(find.widgetWithText(OutlinedButton, '최근 가져오기 취소'), findsOneWidget);
+      expect(find.widgetWithText(OutlinedButton, '데이터 백업하기'), findsNothing);
+      expect(find.widgetWithText(OutlinedButton, '최근 가져오기 취소'), findsNothing);
       expect(find.text('최근 반영'), findsOneWidget);
       expect(find.text('최근 가져오기 확인'), findsOneWidget);
       expect(find.text('가족 공간 열기'), findsNothing);
@@ -245,10 +245,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ChoiceChip, '보호자 모드'));
+    await tester.tap(find.widgetWithText(ChoiceChip, '보호자'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.text('Google Drive 연결'),
+      find.text('데이터 동기화'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
@@ -257,13 +257,13 @@ void main() {
     expect(backupService.signOutCalled, isFalse);
     expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
     expect(backupService.getSavedRecordDriveEmail(), 'player@example.com');
-    expect(find.text('Google Drive 연결'), findsOneWidget);
+    expect(find.text('데이터 동기화'), findsOneWidget);
     expect(find.text('Google Drive 연결 해제'), findsOneWidget);
     expect(find.text('민수 · player@example.com'), findsWidgets);
     expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsNothing);
   });
 
-  testWidgets('player mode shows saved player drive reconnect action', (
+  testWidgets('player mode shows only current Drive account in sync card', (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
@@ -294,11 +294,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('선수 모드 백업 Drive'), findsOneWidget);
-    expect(find.text('선수 모드 Drive 다시 연결'), findsOneWidget);
+    expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
+    expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsOneWidget);
+    expect(find.text('선수 모드 백업 Drive'), findsNothing);
+    expect(find.text('선수 모드 Drive 다시 연결'), findsNothing);
   });
 
-  testWidgets('player mode keeps rollback action subtler than drive actions', (
+  testWidgets('player mode omits local import rollback action', (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
@@ -351,14 +353,10 @@ void main() {
 
     expect(backupButton, findsOneWidget);
     expect(remoteRestoreButton, findsOneWidget);
-    expect(localRestoreButton, findsOneWidget);
+    expect(localRestoreButton, findsNothing);
     expect(
       tester.getTopLeft(remoteRestoreButton).dy,
       lessThan(tester.getTopLeft(backupButton).dy),
-    );
-    expect(
-      tester.getTopLeft(backupButton).dy,
-      lessThan(tester.getTopLeft(localRestoreButton).dy),
     );
   });
 
@@ -442,7 +440,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('선수 데이터 원본 Drive'),
+        find.text('백업 데이터'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
@@ -451,7 +449,7 @@ void main() {
       expect(find.text('저장된 공유 역할 Drive'), findsNothing);
       expect(find.text('아빠 · parent@example.com'), findsNothing);
       expect(find.text('저장된 공유 역할 Drive 연결'), findsNothing);
-      expect(find.text('선수 데이터 원본 Drive'), findsOneWidget);
+      expect(find.text('백업 데이터'), findsOneWidget);
       expect(find.text('민수 · child@example.com'), findsOneWidget);
       expect(find.text('최근 반영'), findsOneWidget);
       expect(find.text('최근 가져오기 확인'), findsOneWidget);
@@ -515,8 +513,9 @@ void main() {
         backupService.getSavedParentDriveEmail(),
         'parent-mode@example.com',
       );
-      expect(find.text('선수 모드 백업 Drive'), findsOneWidget);
-      expect(find.text('선수 모드 Drive 다시 연결'), findsOneWidget);
+      expect(find.text('선수 모드 백업 Drive'), findsNothing);
+      expect(find.text('선수 모드 Drive 다시 연결'), findsNothing);
+      expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
     },
   );
 
@@ -666,19 +665,19 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('선수 데이터 원본 Drive'),
+        find.text('백업 데이터'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('선수 데이터 원본 Drive'), findsOneWidget);
+      expect(find.text('백업 데이터'), findsOneWidget);
       expect(
-        find.text('원격 백업은 확인됐어요. 선수 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.'),
+        find.text('원격 백업은 확인됐어요. 같은 Google Drive 계정으로 연결해 주세요.'),
         findsOneWidget,
       );
       expect(
-        find.text('아직 원본 Drive 정보가 없어요. 선수 모드에서 먼저 한 번 백업해 주세요.'),
+        find.text('아직 백업 원본 정보가 없어요. 먼저 한 번 백업해 주세요.'),
         findsNothing,
       );
     },
@@ -910,6 +909,12 @@ class _FakeDriveBackupService extends BackupService {
   Future<bool> refreshParentSharedDataIfNeeded() async {
     refreshParentSharedDataIfNeededCalled = true;
     return false;
+  }
+
+  @override
+  Future<FamilySharedSyncResult> refreshFamilySharedDataIfNeeded() async {
+    refreshParentSharedDataIfNeededCalled = true;
+    return const FamilySharedSyncResult.none(role: FamilyRole.parent);
   }
 
   @override

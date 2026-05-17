@@ -8,6 +8,29 @@
   "tabNews": "Today News",
   "newsFifaHubButton": "FIFA Rank",
   "newsKLeagueStandingsButton": "K League",
+  "newsMoreActionsTooltip": "More",
+  "newsMoreActionsTitle": "More",
+  "newsLeagueStandingsAction": "League standings",
+  "newsLeagueStandingsTitle": "League Standings",
+  "newsPremierLeagueStandingsTitle": "Premier League",
+  "newsChampionsLeagueStandingsTitle": "Champions League",
+  "newsLeagueStandingsUpdated": "Updated {date}",
+  "@newsLeagueStandingsUpdated": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "newsLeagueStandingsOpenSource": "Open source table",
+  "newsLeagueStandingsEmpty": "No standings are available right now.",
+  "newsLeagueStandingsError": "Could not load standings.",
+  "newsLeagueStandingsRetry": "Retry",
+  "newsLeagueStandingsTeamColumn": "Team",
+  "newsLeagueStandingsPlayedColumn": "P",
+  "newsLeagueStandingsWinsColumn": "W",
+  "newsLeagueStandingsDrawsColumn": "D",
+  "newsLeagueStandingsLossesColumn": "L",
+  "newsLeagueStandingsGoalDifferenceColumn": "GD",
+  "newsLeagueStandingsPointsColumn": "Pts",
   "newsSearchAction": "Search news",
   "newsChannelsAction": "Channels",
   "newsShowAllNewsAction": "Show all news",
@@ -51,14 +74,14 @@
   "homeDailyCheckTitle": "Today",
   "homeTodoTrainingLogShort": "Log",
   "homeTodoBoardSketchShort": "Sketch",
-  "homePriorityCheckPlansMessage": "Check remaining plans.",
+  "homePriorityCheckPlansMessage": "Check plans.",
   "homePriorityPlansAction": "Plans",
-  "homePriorityReviewWeekMessage": "Review the week.",
+  "homePriorityReviewWeekMessage": "Review week.",
   "homePriorityStatsAction": "Stats",
-  "homePrioritySketchNextMessage": "Sketch the next session.",
+  "homePrioritySketchNextMessage": "Sketch next.",
   "homePriorityBoardAction": "Board",
-  "homePriorityConditionMessage": "Check condition trends.",
-  "homePriorityRewardsMessage": "Check level rewards.",
+  "homePriorityConditionMessage": "Check condition.",
+  "homePriorityRewardsMessage": "Check rewards.",
   "homePriorityLevelAction": "Level",
   "homeMealSuggestionDoneShort": "All meals logged. Good rhythm.",
   "homeMealSuggestionTwoShort": "Log one more meal.",
@@ -733,9 +756,9 @@
   "mealXpPartial": "2+ meals +3 XP",
   "mealXpNeutral": "One meal or less gives no bonus",
   "homeMealCoachTitle": "Meal coach",
-  "homeMealCoachRecordAction": "Log meals today",
-  "homeParentWelcomeMessage": "In parent mode, review records and manage feedback or reward names only.",
-  "homeParentWelcomeAction": "View logs",
+  "homeMealCoachRecordAction": "Meals",
+  "homeParentWelcomeMessage": "Review records and feedback only.",
+  "homeParentWelcomeAction": "Logs",
   "homeMealCoachOtherSuggestions": "Show other suggestions",
   "homeMealCoachHeadlinePerfect": "Complete",
   "homeMealCoachHeadlineAlmost": "Almost there",
@@ -1419,7 +1442,7 @@
   "homeWeatherNeedsLocationSubtitle": "Turn location on",
   "homeStreakBadgeActive": "Momentum",
   "homeStreakBadgeResume": "Restart",
-  "homeStreakActiveTodayTitle": "{count} straight days are alive",
+  "homeStreakActiveTodayTitle": "{count} straight days",
   "@homeStreakActiveTodayTitle": {
     "placeholders": {
       "count": {
@@ -1427,7 +1450,7 @@
       }
     }
   },
-  "homeStreakActiveYesterdayTitle": "You logged {count} straight days through yesterday",
+  "homeStreakActiveYesterdayTitle": "{count} days through yesterday",
   "@homeStreakActiveYesterdayTitle": {
     "placeholders": {
       "count": {
@@ -1435,7 +1458,7 @@
       }
     }
   },
-  "homeStreakPausedTitle": "Your {count}-day streak paused for a moment",
+  "homeStreakPausedTitle": "{count}-day streak paused",
   "@homeStreakPausedTitle": {
     "placeholders": {
       "count": {
@@ -1468,7 +1491,7 @@
     }
   },
   "homeStreakActionContinue": "Log today",
-  "homeStreakActionReview": "Weekly flow",
+  "homeStreakActionReview": "Week",
   "educationScreenTitle": "The World Cup Story Dad Tells Taeo",
   "educationStoryIntroBody": "Taeo, tonight I do not want you to flip through the World Cup like a workbook. I want you to read it like one long story. It lasts much longer when you remember not only the names of the champions, but also the smell, the noise, and the expressions each tournament left behind. I want you to grow into the kind of player who looks at the faces and the air of an era as carefully as the scoreline.\n\nThat is why this screen no longer chops the story into little pages. You can read it in one long stretch now. Instead of turning chapters with your thumb, just keep moving slowly through the years. I want Uruguay 1930 and the still-unopened page of North America 2026 to feel connected in one line.",
   "educationStoryOriginsTitle": "1930-1938, the first World Cup arrived by ship",
@@ -1651,14 +1674,55 @@
   "settingsUsageModeTitle": "Usage mode",
   "settingsRoleAndSyncTitle": "Usage & sync",
   "settingsInfoTooltip": "Show description",
-  "settingsSupportModeLabel": "Parent mode",
+  "settingsSupportModeLabel": "Parent",
   "settingsSupportRoleTitle": "Parent mode details",
   "settingsDriveConnectionTitle": "Google Drive connection",
   "settingsDriveConnectionPlayerSummary": "Check which Google Drive account stores and imports this device's records.",
-  "settingsDriveConnectionSupportSummary": "Check the shared Drive account that stores the player's source data.",
+  "settingsDriveConnectionSupportSummary": "Check the currently connected Google Drive account.",
   "settingsDataSyncTitle": "Data sync",
-  "settingsDataSyncPlayerSummary": "Run the main Drive actions from one simple row.",
-  "settingsDataSyncSupportSummary": "Import from the player backup file and push feedback or reward names back to it.",
+  "settingsDataSyncPlayerSummary": "Check freshness between current data and Drive backup, then run Drive actions.",
+  "settingsDataSyncSupportSummary": "Import the latest backup and write shared changes back to the same file.",
+  "settingsSyncSourceStatusTitle": "Backup data",
+  "settingsSyncStatusTitle": "Data sync status",
+  "settingsSyncShowDetails": "Show details",
+  "settingsSyncHideDetails": "Hide details",
+  "settingsSyncGoogleConnected": "Google connected",
+  "settingsSyncGoogleDisconnected": "Google disconnected",
+  "settingsSyncDailyOn": "Daily backup on",
+  "settingsSyncDailyOff": "Daily backup off",
+  "settingsSyncOnSaveOn": "Backup on save on",
+  "settingsSyncOnSaveOff": "Backup on save off",
+  "settingsSyncBackedUpDataTime": "Backed-up data: {time}",
+  "@settingsSyncBackedUpDataTime": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsSyncCurrentDataSnapshot": "Current data snapshot: {time}",
+  "@settingsSyncCurrentDataSnapshot": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsSyncStatusSignInNeeded": "Connect",
+  "settingsSyncStatusNoBackup": "No backup",
+  "settingsSyncStatusCurrent": "Current",
+  "settingsSyncStatusReview": "Review",
+  "settingsSyncStatusStale": "Stale",
+  "settingsSyncSummarySignInNeeded": "Connect an account to compare current data with the Drive backup.",
+  "settingsSyncSummaryNoBackup": "No backed-up data exists yet. Create the first backup when ready.",
+  "settingsSyncSummaryCurrent": "Backed-up data is from {time}, close to the current device data.",
+  "@settingsSyncSummaryCurrent": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsSyncSummaryStale": "Backed-up data is from {time}. Back up again if recent changes matter.",
+  "@settingsSyncSummaryStale": {
+    "placeholders": {
+      "time": {}
+    }
+  },
   "settingsDriveConnectAction": "Connect Google Drive",
   "settingsDriveDisconnectAction": "Disconnect Google Drive",
   "settingsRestoreLatestActionTitle": "Import latest data",
@@ -1719,14 +1783,14 @@
   "driveReconnectSavedParent": "Reconnect saved parent-mode Drive",
   "driveReconnectSavedParentHint": "Reconnect the Drive account that was used most recently in parent mode.",
   "driveReconnectSavedParentMismatch": "Please reconnect with the saved parent-mode Drive account.",
-  "driveSharedChildAccount": "Player source-data Drive",
-  "driveSharedChildAccountEmpty": "No source Drive is known yet. Create at least one backup in player mode first.",
-  "driveSharedChildAccountRemoteBackup": "A remote backup was found. Connect the same Google Drive account used in player mode.",
+  "driveSharedChildAccount": "Source backup Drive",
+  "driveSharedChildAccountEmpty": "No source backup is known yet. Create at least one backup first.",
+  "driveSharedChildAccountRemoteBackup": "A remote backup was found. Connect the same Google Drive account.",
   "familyChildDriveConnectionSummary": "Use the Google Drive account that holds the source backup.",
   "familyParentUsesChildDriveSummary": "Use the source backup Drive account here.",
   "familyParentUsesChildDriveHint": "In parent mode, sign in with the Google Drive account that holds the player's source data to sync training feedback and reward names into the same backup file.",
   "familyParentUsesChildDriveWarning": "Parent mode should connect to the Google Drive account that holds the player's source data so training feedback and reward names sync safely into the same backup file.",
-  "familySharedSyncTitle": "Player data sync",
+  "familySharedSyncTitle": "Data sync status",
   "familySharedSyncDescription": "Parent feedback and level reward names are written automatically into the same player backup file.",
   "familySyncAlertTitle": "Family sync",
   "familySyncParentTrainingAdded": "{count} new player training log(s) synced.",

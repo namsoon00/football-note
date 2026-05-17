@@ -152,6 +152,114 @@ abstract class AppLocalizations {
   /// **'K League'**
   String get newsKLeagueStandingsButton;
 
+  /// No description provided for @newsMoreActionsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get newsMoreActionsTooltip;
+
+  /// No description provided for @newsMoreActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get newsMoreActionsTitle;
+
+  /// No description provided for @newsLeagueStandingsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'League standings'**
+  String get newsLeagueStandingsAction;
+
+  /// No description provided for @newsLeagueStandingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'League Standings'**
+  String get newsLeagueStandingsTitle;
+
+  /// No description provided for @newsPremierLeagueStandingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Premier League'**
+  String get newsPremierLeagueStandingsTitle;
+
+  /// No description provided for @newsChampionsLeagueStandingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Champions League'**
+  String get newsChampionsLeagueStandingsTitle;
+
+  /// No description provided for @newsLeagueStandingsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {date}'**
+  String newsLeagueStandingsUpdated(Object date);
+
+  /// No description provided for @newsLeagueStandingsOpenSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Open source table'**
+  String get newsLeagueStandingsOpenSource;
+
+  /// No description provided for @newsLeagueStandingsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No standings are available right now.'**
+  String get newsLeagueStandingsEmpty;
+
+  /// No description provided for @newsLeagueStandingsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load standings.'**
+  String get newsLeagueStandingsError;
+
+  /// No description provided for @newsLeagueStandingsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get newsLeagueStandingsRetry;
+
+  /// No description provided for @newsLeagueStandingsTeamColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get newsLeagueStandingsTeamColumn;
+
+  /// No description provided for @newsLeagueStandingsPlayedColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'P'**
+  String get newsLeagueStandingsPlayedColumn;
+
+  /// No description provided for @newsLeagueStandingsWinsColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'W'**
+  String get newsLeagueStandingsWinsColumn;
+
+  /// No description provided for @newsLeagueStandingsDrawsColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'D'**
+  String get newsLeagueStandingsDrawsColumn;
+
+  /// No description provided for @newsLeagueStandingsLossesColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get newsLeagueStandingsLossesColumn;
+
+  /// No description provided for @newsLeagueStandingsGoalDifferenceColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'GD'**
+  String get newsLeagueStandingsGoalDifferenceColumn;
+
+  /// No description provided for @newsLeagueStandingsPointsColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Pts'**
+  String get newsLeagueStandingsPointsColumn;
+
   /// No description provided for @newsSearchAction.
   ///
   /// In en, this message translates to:
@@ -371,7 +479,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePriorityCheckPlansMessage.
   ///
   /// In en, this message translates to:
-  /// **'Check remaining plans.'**
+  /// **'Check plans.'**
   String get homePriorityCheckPlansMessage;
 
   /// No description provided for @homePriorityPlansAction.
@@ -383,7 +491,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePriorityReviewWeekMessage.
   ///
   /// In en, this message translates to:
-  /// **'Review the week.'**
+  /// **'Review week.'**
   String get homePriorityReviewWeekMessage;
 
   /// No description provided for @homePriorityStatsAction.
@@ -395,7 +503,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePrioritySketchNextMessage.
   ///
   /// In en, this message translates to:
-  /// **'Sketch the next session.'**
+  /// **'Sketch next.'**
   String get homePrioritySketchNextMessage;
 
   /// No description provided for @homePriorityBoardAction.
@@ -407,13 +515,13 @@ abstract class AppLocalizations {
   /// No description provided for @homePriorityConditionMessage.
   ///
   /// In en, this message translates to:
-  /// **'Check condition trends.'**
+  /// **'Check condition.'**
   String get homePriorityConditionMessage;
 
   /// No description provided for @homePriorityRewardsMessage.
   ///
   /// In en, this message translates to:
-  /// **'Check level rewards.'**
+  /// **'Check rewards.'**
   String get homePriorityRewardsMessage;
 
   /// No description provided for @homePriorityLevelAction.
@@ -3539,19 +3647,19 @@ abstract class AppLocalizations {
   /// No description provided for @homeMealCoachRecordAction.
   ///
   /// In en, this message translates to:
-  /// **'Log meals today'**
+  /// **'Meals'**
   String get homeMealCoachRecordAction;
 
   /// No description provided for @homeParentWelcomeMessage.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, review records and manage feedback or reward names only.'**
+  /// **'Review records and feedback only.'**
   String get homeParentWelcomeMessage;
 
   /// No description provided for @homeParentWelcomeAction.
   ///
   /// In en, this message translates to:
-  /// **'View logs'**
+  /// **'Logs'**
   String get homeParentWelcomeAction;
 
   /// No description provided for @homeMealCoachOtherSuggestions.
@@ -5567,19 +5675,19 @@ abstract class AppLocalizations {
   /// No description provided for @homeStreakActiveTodayTitle.
   ///
   /// In en, this message translates to:
-  /// **'{count} straight days are alive'**
+  /// **'{count} straight days'**
   String homeStreakActiveTodayTitle(int count);
 
   /// No description provided for @homeStreakActiveYesterdayTitle.
   ///
   /// In en, this message translates to:
-  /// **'You logged {count} straight days through yesterday'**
+  /// **'{count} days through yesterday'**
   String homeStreakActiveYesterdayTitle(int count);
 
   /// No description provided for @homeStreakPausedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your {count}-day streak paused for a moment'**
+  /// **'{count}-day streak paused'**
   String homeStreakPausedTitle(int count);
 
   /// No description provided for @homeStreakActiveTodayBody.
@@ -5621,7 +5729,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeStreakActionReview.
   ///
   /// In en, this message translates to:
-  /// **'Weekly flow'**
+  /// **'Week'**
   String get homeStreakActionReview;
 
   /// No description provided for @educationScreenTitle.
@@ -6659,7 +6767,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSupportModeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode'**
+  /// **'Parent'**
   String get settingsSupportModeLabel;
 
   /// No description provided for @settingsSupportRoleTitle.
@@ -6683,7 +6791,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDriveConnectionSupportSummary.
   ///
   /// In en, this message translates to:
-  /// **'Check the shared Drive account that stores the player\'s source data.'**
+  /// **'Check the currently connected Google Drive account.'**
   String get settingsDriveConnectionSupportSummary;
 
   /// No description provided for @settingsDataSyncTitle.
@@ -6695,14 +6803,140 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDataSyncPlayerSummary.
   ///
   /// In en, this message translates to:
-  /// **'Run the main Drive actions from one simple row.'**
+  /// **'Check freshness between current data and Drive backup, then run Drive actions.'**
   String get settingsDataSyncPlayerSummary;
 
   /// No description provided for @settingsDataSyncSupportSummary.
   ///
   /// In en, this message translates to:
-  /// **'Import from the player backup file and push feedback or reward names back to it.'**
+  /// **'Import the latest backup and write shared changes back to the same file.'**
   String get settingsDataSyncSupportSummary;
+
+  /// No description provided for @settingsSyncSourceStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup data'**
+  String get settingsSyncSourceStatusTitle;
+
+  /// No description provided for @settingsSyncStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data sync status'**
+  String get settingsSyncStatusTitle;
+
+  /// No description provided for @settingsSyncShowDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Show details'**
+  String get settingsSyncShowDetails;
+
+  /// No description provided for @settingsSyncHideDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide details'**
+  String get settingsSyncHideDetails;
+
+  /// No description provided for @settingsSyncGoogleConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Google connected'**
+  String get settingsSyncGoogleConnected;
+
+  /// No description provided for @settingsSyncGoogleDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Google disconnected'**
+  String get settingsSyncGoogleDisconnected;
+
+  /// No description provided for @settingsSyncDailyOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily backup on'**
+  String get settingsSyncDailyOn;
+
+  /// No description provided for @settingsSyncDailyOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily backup off'**
+  String get settingsSyncDailyOff;
+
+  /// No description provided for @settingsSyncOnSaveOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup on save on'**
+  String get settingsSyncOnSaveOn;
+
+  /// No description provided for @settingsSyncOnSaveOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup on save off'**
+  String get settingsSyncOnSaveOff;
+
+  /// No description provided for @settingsSyncBackedUpDataTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Backed-up data: {time}'**
+  String settingsSyncBackedUpDataTime(Object time);
+
+  /// No description provided for @settingsSyncCurrentDataSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Current data snapshot: {time}'**
+  String settingsSyncCurrentDataSnapshot(Object time);
+
+  /// No description provided for @settingsSyncStatusSignInNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get settingsSyncStatusSignInNeeded;
+
+  /// No description provided for @settingsSyncStatusNoBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup'**
+  String get settingsSyncStatusNoBackup;
+
+  /// No description provided for @settingsSyncStatusCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get settingsSyncStatusCurrent;
+
+  /// No description provided for @settingsSyncStatusReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get settingsSyncStatusReview;
+
+  /// No description provided for @settingsSyncStatusStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Stale'**
+  String get settingsSyncStatusStale;
+
+  /// No description provided for @settingsSyncSummarySignInNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect an account to compare current data with the Drive backup.'**
+  String get settingsSyncSummarySignInNeeded;
+
+  /// No description provided for @settingsSyncSummaryNoBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'No backed-up data exists yet. Create the first backup when ready.'**
+  String get settingsSyncSummaryNoBackup;
+
+  /// No description provided for @settingsSyncSummaryCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Backed-up data is from {time}, close to the current device data.'**
+  String settingsSyncSummaryCurrent(Object time);
+
+  /// No description provided for @settingsSyncSummaryStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Backed-up data is from {time}. Back up again if recent changes matter.'**
+  String settingsSyncSummaryStale(Object time);
 
   /// No description provided for @settingsDriveConnectAction.
   ///
@@ -7037,19 +7271,19 @@ abstract class AppLocalizations {
   /// No description provided for @driveSharedChildAccount.
   ///
   /// In en, this message translates to:
-  /// **'Player source-data Drive'**
+  /// **'Source backup Drive'**
   String get driveSharedChildAccount;
 
   /// No description provided for @driveSharedChildAccountEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No source Drive is known yet. Create at least one backup in player mode first.'**
+  /// **'No source backup is known yet. Create at least one backup first.'**
   String get driveSharedChildAccountEmpty;
 
   /// No description provided for @driveSharedChildAccountRemoteBackup.
   ///
   /// In en, this message translates to:
-  /// **'A remote backup was found. Connect the same Google Drive account used in player mode.'**
+  /// **'A remote backup was found. Connect the same Google Drive account.'**
   String get driveSharedChildAccountRemoteBackup;
 
   /// No description provided for @familyChildDriveConnectionSummary.
@@ -7079,7 +7313,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedSyncTitle.
   ///
   /// In en, this message translates to:
-  /// **'Player data sync'**
+  /// **'Data sync status'**
   String get familySharedSyncTitle;
 
   /// No description provided for @familySharedSyncDescription.

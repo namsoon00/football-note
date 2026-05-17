@@ -8,6 +8,29 @@
   "tabNews": "오늘의 소식",
   "newsFifaHubButton": "FIFA 랭킹",
   "newsKLeagueStandingsButton": "K리그",
+  "newsMoreActionsTooltip": "더보기",
+  "newsMoreActionsTitle": "더보기",
+  "newsLeagueStandingsAction": "해외 리그 순위",
+  "newsLeagueStandingsTitle": "리그 순위",
+  "newsPremierLeagueStandingsTitle": "프리미어리그",
+  "newsChampionsLeagueStandingsTitle": "챔피언스리그",
+  "newsLeagueStandingsUpdated": "업데이트 {date}",
+  "@newsLeagueStandingsUpdated": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "newsLeagueStandingsOpenSource": "원문 순위 열기",
+  "newsLeagueStandingsEmpty": "표시할 순위가 없어요.",
+  "newsLeagueStandingsError": "순위를 불러오지 못했어요.",
+  "newsLeagueStandingsRetry": "다시 시도",
+  "newsLeagueStandingsTeamColumn": "팀",
+  "newsLeagueStandingsPlayedColumn": "경기",
+  "newsLeagueStandingsWinsColumn": "승",
+  "newsLeagueStandingsDrawsColumn": "무",
+  "newsLeagueStandingsLossesColumn": "패",
+  "newsLeagueStandingsGoalDifferenceColumn": "득실",
+  "newsLeagueStandingsPointsColumn": "승점",
   "newsSearchAction": "기사 검색",
   "newsChannelsAction": "채널 선택",
   "newsShowAllNewsAction": "전체 소식 보기",
@@ -51,14 +74,14 @@
   "homeDailyCheckTitle": "오늘 체크",
   "homeTodoTrainingLogShort": "기록",
   "homeTodoBoardSketchShort": "스케치",
-  "homePriorityCheckPlansMessage": "남은 계획을 확인하세요.",
+  "homePriorityCheckPlansMessage": "남은 계획 확인.",
   "homePriorityPlansAction": "계획",
-  "homePriorityReviewWeekMessage": "주간 흐름을 확인하세요.",
+  "homePriorityReviewWeekMessage": "주간 흐름 보기.",
   "homePriorityStatsAction": "통계",
-  "homePrioritySketchNextMessage": "다음 훈련을 그려두세요.",
+  "homePrioritySketchNextMessage": "다음 훈련 스케치.",
   "homePriorityBoardAction": "보드",
-  "homePriorityConditionMessage": "컨디션 흐름을 보세요.",
-  "homePriorityRewardsMessage": "레벨 선물을 확인하세요.",
+  "homePriorityConditionMessage": "컨디션 확인.",
+  "homePriorityRewardsMessage": "레벨 선물 확인.",
   "homePriorityLevelAction": "레벨",
   "homeMealSuggestionDoneShort": "세 끼 완료. 리듬이 좋아요.",
   "homeMealSuggestionTwoShort": "한 끼만 더 기록하세요.",
@@ -733,9 +756,9 @@
   "mealXpPartial": "두 끼 이상 +3 XP",
   "mealXpNeutral": "한 끼 이하 기록은 보너스 없음",
   "homeMealCoachTitle": "식사 코치",
-  "homeMealCoachRecordAction": "오늘 식사 기록",
-  "homeParentWelcomeMessage": "보호자 모드에서는 기록을 살펴보고 피드백과 선물 이름만 관리합니다.",
-  "homeParentWelcomeAction": "훈련기록 보기",
+  "homeMealCoachRecordAction": "식사",
+  "homeParentWelcomeMessage": "기록 확인과 피드백만 관리합니다.",
+  "homeParentWelcomeAction": "기록 보기",
   "homeMealCoachOtherSuggestions": "다른 제안 보기",
   "homeMealCoachHeadlinePerfect": "완료",
   "homeMealCoachHeadlineAlmost": "거의 완료",
@@ -1419,7 +1442,7 @@
   "homeWeatherNeedsLocationSubtitle": "위치 켜고 확인",
   "homeStreakBadgeActive": "연속 중",
   "homeStreakBadgeResume": "다시 시작",
-  "homeStreakActiveTodayTitle": "{count}일 연속 흐름을 이어가고 있어요",
+  "homeStreakActiveTodayTitle": "오늘까지 {count}일 연속",
   "@homeStreakActiveTodayTitle": {
     "placeholders": {
       "count": {
@@ -1427,7 +1450,7 @@
       }
     }
   },
-  "homeStreakActiveYesterdayTitle": "어제까지 {count}일 연속으로 기록했어요",
+  "homeStreakActiveYesterdayTitle": "어제까지 {count}일 연속",
   "@homeStreakActiveYesterdayTitle": {
     "placeholders": {
       "count": {
@@ -1435,7 +1458,7 @@
       }
     }
   },
-  "homeStreakPausedTitle": "{count}일 연속 흐름이 잠시 멈췄어요",
+  "homeStreakPausedTitle": "{count}일 연속 잠시 멈춤",
   "@homeStreakPausedTitle": {
     "placeholders": {
       "count": {
@@ -1468,7 +1491,7 @@
     }
   },
   "homeStreakActionContinue": "오늘 기록",
-  "homeStreakActionReview": "주간 흐름",
+  "homeStreakActionReview": "주간",
   "educationScreenTitle": "아빠가 태오에게 들려주는 월드컵 이야기",
   "educationStoryIntroBody": "태오야, 오늘은 월드컵을 문제집처럼 넘기지 말고 긴 이야기처럼 읽어 보자. 우승국 이름만 줄줄 외우는 것보다, 그 대회가 어떤 냄새와 소리와 표정을 남겼는지 같이 기억하는 편이 훨씬 오래 간다. 아빠는 네가 축구 역사를 볼 때 스코어 옆에 사람들의 얼굴과 시대의 공기까지 함께 보는 선수가 되었으면 좋겠어.\n\n그래서 이 화면도 책장을 열었다 닫았다 하는 식보다 한 번에 길게 읽을 수 있게 바꿔 두었다. 손가락으로 장을 넘기는 대신, 네가 직접 긴 시간을 천천히 걸어 내려가듯 읽으면 된다. 1930년 우루과이에서 시작한 이야기와 2026년 북중미를 바라보는 마음이 한 줄로 이어지는 느낌을 받았으면 한다.",
   "educationStoryOriginsTitle": "1930-1938, 배를 타고 도착한 첫 번째 월드컵",
@@ -1651,14 +1674,55 @@
   "settingsUsageModeTitle": "사용 방식",
   "settingsRoleAndSyncTitle": "사용 방식 및 동기화",
   "settingsInfoTooltip": "설명 보기",
-  "settingsSupportModeLabel": "보호자 모드",
+  "settingsSupportModeLabel": "보호자",
   "settingsSupportRoleTitle": "보호자 모드 안내",
   "settingsDriveConnectionTitle": "Google Drive 연결",
   "settingsDriveConnectionPlayerSummary": "이 기기 기록을 저장하거나 가져올 Google Drive 계정을 확인하세요.",
-  "settingsDriveConnectionSupportSummary": "선수 데이터 원본이 저장된 공유 Drive 계정을 확인하세요.",
+  "settingsDriveConnectionSupportSummary": "현재 연결된 Google Drive 계정을 확인하세요.",
   "settingsDataSyncTitle": "데이터 동기화",
-  "settingsDataSyncPlayerSummary": "주요 Drive 작업은 아래 한 줄에서 바로 실행합니다.",
-  "settingsDataSyncSupportSummary": "선수 백업 파일에서 가져오고, 피드백과 선물 이름은 같은 파일에 반영합니다.",
+  "settingsDataSyncPlayerSummary": "현재 데이터와 백업 데이터의 최신성을 확인하고 Drive 작업을 실행합니다.",
+  "settingsDataSyncSupportSummary": "최신 백업을 가져오고 공유 변경은 같은 파일에 반영합니다.",
+  "settingsSyncSourceStatusTitle": "백업 데이터",
+  "settingsSyncStatusTitle": "데이터 동기화 상태",
+  "settingsSyncShowDetails": "상세 보기",
+  "settingsSyncHideDetails": "상세 숨기기",
+  "settingsSyncGoogleConnected": "Google 연결됨",
+  "settingsSyncGoogleDisconnected": "Google 미연결",
+  "settingsSyncDailyOn": "일일 자동 백업 켜짐",
+  "settingsSyncDailyOff": "일일 자동 백업 꺼짐",
+  "settingsSyncOnSaveOn": "저장 시 자동 백업 켜짐",
+  "settingsSyncOnSaveOff": "저장 시 자동 백업 꺼짐",
+  "settingsSyncBackedUpDataTime": "백업된 데이터: {time}",
+  "@settingsSyncBackedUpDataTime": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsSyncCurrentDataSnapshot": "현재 데이터 보관본: {time}",
+  "@settingsSyncCurrentDataSnapshot": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsSyncStatusSignInNeeded": "연결 필요",
+  "settingsSyncStatusNoBackup": "백업 없음",
+  "settingsSyncStatusCurrent": "최신",
+  "settingsSyncStatusReview": "확인",
+  "settingsSyncStatusStale": "오래됨",
+  "settingsSyncSummarySignInNeeded": "계정을 연결하면 현재 데이터와 Drive 백업 상태를 비교할 수 있어요.",
+  "settingsSyncSummaryNoBackup": "아직 백업된 데이터가 없어요. 먼저 백업을 만들어 주세요.",
+  "settingsSyncSummaryCurrent": "백업된 데이터가 {time} 기준이라 현재 데이터와 가깝습니다.",
+  "@settingsSyncSummaryCurrent": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsSyncSummaryStale": "백업된 데이터 기준이 {time}입니다. 최근 변경이 있다면 다시 백업해 주세요.",
+  "@settingsSyncSummaryStale": {
+    "placeholders": {
+      "time": {}
+    }
+  },
   "settingsDriveConnectAction": "Google Drive 연결",
   "settingsDriveDisconnectAction": "Google Drive 연결 해제",
   "settingsRestoreLatestActionTitle": "최근 데이터 가져오기",
@@ -1719,14 +1783,14 @@
   "driveReconnectSavedParent": "저장된 보호자 모드 Drive 연결",
   "driveReconnectSavedParentHint": "보호자 모드에서 마지막으로 사용한 Drive 계정으로 다시 연결할 수 있어요.",
   "driveReconnectSavedParentMismatch": "저장된 보호자 모드 Drive 계정으로 다시 연결해 주세요.",
-  "driveSharedChildAccount": "선수 데이터 원본 Drive",
-  "driveSharedChildAccountEmpty": "아직 원본 Drive 정보가 없어요. 선수 모드에서 먼저 한 번 백업해 주세요.",
-  "driveSharedChildAccountRemoteBackup": "원격 백업은 확인됐어요. 선수 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.",
+  "driveSharedChildAccount": "백업 원본 Drive",
+  "driveSharedChildAccountEmpty": "아직 백업 원본 정보가 없어요. 먼저 한 번 백업해 주세요.",
+  "driveSharedChildAccountRemoteBackup": "원격 백업은 확인됐어요. 같은 Google Drive 계정으로 연결해 주세요.",
   "familyChildDriveConnectionSummary": "원본 백업이 있는 Google Drive 계정으로 연결해요.",
   "familyParentUsesChildDriveSummary": "여기서는 원본 백업 Drive 계정을 사용해요.",
   "familyParentUsesChildDriveHint": "보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 로그인하면 훈련 피드백과 선물 이름을 같은 백업 파일에 동기화할 수 있어요.",
   "familyParentUsesChildDriveWarning": "보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 연결해야 같은 백업 파일에 훈련 피드백과 선물 이름을 안전하게 동기화할 수 있어요.",
-  "familySharedSyncTitle": "선수 데이터 동기화",
+  "familySharedSyncTitle": "데이터 동기화 상태",
   "familySharedSyncDescription": "보호자 피드백과 레벨 선물 이름은 같은 선수 백업 파일로 자동 반영됩니다.",
   "familySyncAlertTitle": "가족 동기화",
   "familySyncParentTrainingAdded": "선수 훈련기록 {count}개가 새로 동기화됐어요.",

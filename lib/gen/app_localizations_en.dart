@@ -36,6 +36,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsKLeagueStandingsButton => 'K League';
 
   @override
+  String get newsMoreActionsTooltip => 'More';
+
+  @override
+  String get newsMoreActionsTitle => 'More';
+
+  @override
+  String get newsLeagueStandingsAction => 'League standings';
+
+  @override
+  String get newsLeagueStandingsTitle => 'League Standings';
+
+  @override
+  String get newsPremierLeagueStandingsTitle => 'Premier League';
+
+  @override
+  String get newsChampionsLeagueStandingsTitle => 'Champions League';
+
+  @override
+  String newsLeagueStandingsUpdated(Object date) {
+    return 'Updated $date';
+  }
+
+  @override
+  String get newsLeagueStandingsOpenSource => 'Open source table';
+
+  @override
+  String get newsLeagueStandingsEmpty =>
+      'No standings are available right now.';
+
+  @override
+  String get newsLeagueStandingsError => 'Could not load standings.';
+
+  @override
+  String get newsLeagueStandingsRetry => 'Retry';
+
+  @override
+  String get newsLeagueStandingsTeamColumn => 'Team';
+
+  @override
+  String get newsLeagueStandingsPlayedColumn => 'P';
+
+  @override
+  String get newsLeagueStandingsWinsColumn => 'W';
+
+  @override
+  String get newsLeagueStandingsDrawsColumn => 'D';
+
+  @override
+  String get newsLeagueStandingsLossesColumn => 'L';
+
+  @override
+  String get newsLeagueStandingsGoalDifferenceColumn => 'GD';
+
+  @override
+  String get newsLeagueStandingsPointsColumn => 'Pts';
+
+  @override
   String get newsSearchAction => 'Search news';
 
   @override
@@ -148,28 +205,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTodoBoardSketchShort => 'Sketch';
 
   @override
-  String get homePriorityCheckPlansMessage => 'Check remaining plans.';
+  String get homePriorityCheckPlansMessage => 'Check plans.';
 
   @override
   String get homePriorityPlansAction => 'Plans';
 
   @override
-  String get homePriorityReviewWeekMessage => 'Review the week.';
+  String get homePriorityReviewWeekMessage => 'Review week.';
 
   @override
   String get homePriorityStatsAction => 'Stats';
 
   @override
-  String get homePrioritySketchNextMessage => 'Sketch the next session.';
+  String get homePrioritySketchNextMessage => 'Sketch next.';
 
   @override
   String get homePriorityBoardAction => 'Board';
 
   @override
-  String get homePriorityConditionMessage => 'Check condition trends.';
+  String get homePriorityConditionMessage => 'Check condition.';
 
   @override
-  String get homePriorityRewardsMessage => 'Check level rewards.';
+  String get homePriorityRewardsMessage => 'Check rewards.';
 
   @override
   String get homePriorityLevelAction => 'Level';
@@ -1885,14 +1942,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeMealCoachTitle => 'Meal coach';
 
   @override
-  String get homeMealCoachRecordAction => 'Log meals today';
+  String get homeMealCoachRecordAction => 'Meals';
 
   @override
-  String get homeParentWelcomeMessage =>
-      'In parent mode, review records and manage feedback or reward names only.';
+  String get homeParentWelcomeMessage => 'Review records and feedback only.';
 
   @override
-  String get homeParentWelcomeAction => 'View logs';
+  String get homeParentWelcomeAction => 'Logs';
 
   @override
   String get homeMealCoachOtherSuggestions => 'Show other suggestions';
@@ -3151,17 +3207,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeStreakActiveTodayTitle(int count) {
-    return '$count straight days are alive';
+    return '$count straight days';
   }
 
   @override
   String homeStreakActiveYesterdayTitle(int count) {
-    return 'You logged $count straight days through yesterday';
+    return '$count days through yesterday';
   }
 
   @override
   String homeStreakPausedTitle(int count) {
-    return 'Your $count-day streak paused for a moment';
+    return '$count-day streak paused';
   }
 
   @override
@@ -3191,7 +3247,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeStreakActionContinue => 'Log today';
 
   @override
-  String get homeStreakActionReview => 'Weekly flow';
+  String get homeStreakActionReview => 'Week';
 
   @override
   String get educationScreenTitle => 'The World Cup Story Dad Tells Taeo';
@@ -3823,7 +3879,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsInfoTooltip => 'Show description';
 
   @override
-  String get settingsSupportModeLabel => 'Parent mode';
+  String get settingsSupportModeLabel => 'Parent';
 
   @override
   String get settingsSupportRoleTitle => 'Parent mode details';
@@ -3837,18 +3893,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDriveConnectionSupportSummary =>
-      'Check the shared Drive account that stores the player\'s source data.';
+      'Check the currently connected Google Drive account.';
 
   @override
   String get settingsDataSyncTitle => 'Data sync';
 
   @override
   String get settingsDataSyncPlayerSummary =>
-      'Run the main Drive actions from one simple row.';
+      'Check freshness between current data and Drive backup, then run Drive actions.';
 
   @override
   String get settingsDataSyncSupportSummary =>
-      'Import from the player backup file and push feedback or reward names back to it.';
+      'Import the latest backup and write shared changes back to the same file.';
+
+  @override
+  String get settingsSyncSourceStatusTitle => 'Backup data';
+
+  @override
+  String get settingsSyncStatusTitle => 'Data sync status';
+
+  @override
+  String get settingsSyncShowDetails => 'Show details';
+
+  @override
+  String get settingsSyncHideDetails => 'Hide details';
+
+  @override
+  String get settingsSyncGoogleConnected => 'Google connected';
+
+  @override
+  String get settingsSyncGoogleDisconnected => 'Google disconnected';
+
+  @override
+  String get settingsSyncDailyOn => 'Daily backup on';
+
+  @override
+  String get settingsSyncDailyOff => 'Daily backup off';
+
+  @override
+  String get settingsSyncOnSaveOn => 'Backup on save on';
+
+  @override
+  String get settingsSyncOnSaveOff => 'Backup on save off';
+
+  @override
+  String settingsSyncBackedUpDataTime(Object time) {
+    return 'Backed-up data: $time';
+  }
+
+  @override
+  String settingsSyncCurrentDataSnapshot(Object time) {
+    return 'Current data snapshot: $time';
+  }
+
+  @override
+  String get settingsSyncStatusSignInNeeded => 'Connect';
+
+  @override
+  String get settingsSyncStatusNoBackup => 'No backup';
+
+  @override
+  String get settingsSyncStatusCurrent => 'Current';
+
+  @override
+  String get settingsSyncStatusReview => 'Review';
+
+  @override
+  String get settingsSyncStatusStale => 'Stale';
+
+  @override
+  String get settingsSyncSummarySignInNeeded =>
+      'Connect an account to compare current data with the Drive backup.';
+
+  @override
+  String get settingsSyncSummaryNoBackup =>
+      'No backed-up data exists yet. Create the first backup when ready.';
+
+  @override
+  String settingsSyncSummaryCurrent(Object time) {
+    return 'Backed-up data is from $time, close to the current device data.';
+  }
+
+  @override
+  String settingsSyncSummaryStale(Object time) {
+    return 'Backed-up data is from $time. Back up again if recent changes matter.';
+  }
 
   @override
   String get settingsDriveConnectAction => 'Connect Google Drive';
@@ -4046,15 +4175,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please reconnect with the saved parent-mode Drive account.';
 
   @override
-  String get driveSharedChildAccount => 'Player source-data Drive';
+  String get driveSharedChildAccount => 'Source backup Drive';
 
   @override
   String get driveSharedChildAccountEmpty =>
-      'No source Drive is known yet. Create at least one backup in player mode first.';
+      'No source backup is known yet. Create at least one backup first.';
 
   @override
   String get driveSharedChildAccountRemoteBackup =>
-      'A remote backup was found. Connect the same Google Drive account used in player mode.';
+      'A remote backup was found. Connect the same Google Drive account.';
 
   @override
   String get familyChildDriveConnectionSummary =>
@@ -4073,7 +4202,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent mode should connect to the Google Drive account that holds the player\'s source data so training feedback and reward names sync safely into the same backup file.';
 
   @override
-  String get familySharedSyncTitle => 'Player data sync';
+  String get familySharedSyncTitle => 'Data sync status';
 
   @override
   String get familySharedSyncDescription =>
