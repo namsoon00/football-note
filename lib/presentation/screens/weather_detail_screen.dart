@@ -149,15 +149,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                         ),
                       ]
                     : const <_CompactMetricData>[],
-                footer: _todayHourlyPrecipitations.isEmpty
-                    ? null
-                    : _HourlyPrecipitationSection(
-                        title: l10n.homeWeatherHourlyPrecipitation,
-                        entries: _todayHourlyPrecipitations,
-                        formatTime: _formatHourlyTime,
-                        formatPrecipitation: _formatCompactMillimeter,
-                        accentStyle: true,
-                      ),
+                footer: _buildTodayHourlyWeatherFooter(l10n),
               ),
               if (hasWeather) ...[
                 const SizedBox(height: 16),
@@ -281,6 +273,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 8),
         ),
       );
       final placeFuture = _resolvePlaceName(
@@ -288,7 +281,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         longitude: position.longitude,
         isKo: isKo,
         koreaLabel: l10n.homeWeatherCountryKorea,
-      );
+      ).timeout(const Duration(seconds: 5)).catchError((_) => '');
       final weatherFuture =
           _fetchWeatherSnapshot(
                 latitude: position.latitude,
@@ -441,6 +434,17 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                     precipitation: forecast.eveningForecast!.precipitation,
                     windSpeed: forecast.eveningForecast!.windSpeed,
                   ),
+            hourlyForecasts: forecast.hourlyForecasts
+                .map(
+                  (entry) => _ForecastMomentPreview(
+                    time: entry.time,
+                    temperature: entry.temperature,
+                    weatherCode: entry.weatherCode,
+                    precipitation: entry.precipitation,
+                    windSpeed: entry.windSpeed,
+                  ),
+                )
+                .toList(growable: false),
             hourlyPrecipitations: forecast.hourlyPrecipitations
                 .map(
                   (entry) => _HourlyPrecipitationEntry(
@@ -663,6 +667,44 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   List<_HourlyPrecipitationEntry> get _todayHourlyPrecipitations {
     if (_dailyForecasts.isEmpty) return const <_HourlyPrecipitationEntry>[];
     return _dailyForecasts.first.hourlyPrecipitations;
+  }
+
+  List<_ForecastMomentPreview> get _todayHourlyForecasts {
+    if (_dailyForecasts.isEmpty) return const <_ForecastMomentPreview>[];
+    return _dailyForecasts.first.hourlyForecasts
+        .where((forecast) => forecast.temperature != null)
+        .toList(growable: false);
+  }
+
+  Widget? _buildTodayHourlyWeatherFooter(AppLocalizations l10n) {
+    final temperatureEntries = _todayHourlyForecasts;
+    final precipitationEntries = _todayHourlyPrecipitations;
+    if (temperatureEntries.isEmpty && precipitationEntries.isEmpty) {
+      return null;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (temperatureEntries.isNotEmpty)
+          _HourlyTemperatureSection(
+            title: l10n.homeWeatherHourlyTemperature,
+            entries: temperatureEntries,
+            formatTime: _formatHourlyTime,
+            formatTemperature: _formatCompactTemperature,
+            accentStyle: true,
+          ),
+        if (temperatureEntries.isNotEmpty && precipitationEntries.isNotEmpty)
+          const SizedBox(height: 10),
+        if (precipitationEntries.isNotEmpty)
+          _HourlyPrecipitationSection(
+            title: l10n.homeWeatherHourlyPrecipitation,
+            entries: precipitationEntries,
+            formatTime: _formatHourlyTime,
+            formatPrecipitation: _formatCompactMillimeter,
+            accentStyle: true,
+          ),
+      ],
+    );
   }
 
   double? get _currentOutfitTemperature =>
@@ -3424,6 +3466,120 @@ class _HourlyPrecipitationSection extends StatelessWidget {
   }
 }
 
+class _HourlyTemperatureSection extends StatelessWidget {
+  final String title;
+  final List<_ForecastMomentPreview> entries;
+  final String Function(DateTime) formatTime;
+  final String Function(double?) formatTemperature;
+  final bool accentStyle;
+
+  const _HourlyTemperatureSection({
+    required this.title,
+    required this.entries,
+    required this.formatTime,
+    required this.formatTemperature,
+    this.accentStyle = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final sortedEntries = [...entries]
+      ..sort((left, right) => left.time.compareTo(right.time));
+    final background = accentStyle
+        ? theme.colorScheme.surface.withValues(alpha: 0.16)
+        : theme.colorScheme.surfaceContainerLow;
+    final borderColor = accentStyle
+        ? theme.colorScheme.surface.withValues(alpha: 0.16)
+        : theme.colorScheme.outlineVariant.withValues(alpha: 0.5);
+    final titleColor = accentStyle
+        ? theme.colorScheme.onPrimaryContainer
+        : theme.colorScheme.onSurface;
+    final chipColor = accentStyle
+        ? theme.colorScheme.surface.withValues(alpha: 0.22)
+        : theme.colorScheme.secondaryContainer.withValues(alpha: 0.75);
+    final chipTextColor = accentStyle
+        ? theme.colorScheme.onPrimaryContainer
+        : theme.colorScheme.onSecondaryContainer;
+    final timeTextColor = accentStyle
+        ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.72)
+        : theme.colorScheme.onSurfaceVariant;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: titleColor,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final entry in sortedEntries) ...[
+                  Container(
+                    width: 72,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: chipColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          formatTime(entry.time),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: timeTextColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Icon(
+                          Icons.thermostat_outlined,
+                          size: 17,
+                          color: chipTextColor,
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          formatTemperature(entry.temperature),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: chipTextColor,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (entry != sortedEntries.last) const SizedBox(width: 6),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _HourlyPrecipitationTimelineItem extends StatelessWidget {
   final String timeLabel;
   final String precipitationLabel;
@@ -3747,6 +3903,7 @@ class _DailyWeatherForecast {
   final double? uvIndexMax;
   final _ForecastMomentPreview? morningForecast;
   final _ForecastMomentPreview? eveningForecast;
+  final List<_ForecastMomentPreview> hourlyForecasts;
   final List<_HourlyPrecipitationEntry> hourlyPrecipitations;
 
   const _DailyWeatherForecast({
@@ -3764,6 +3921,7 @@ class _DailyWeatherForecast {
     this.uvIndexMax,
     this.morningForecast,
     this.eveningForecast,
+    this.hourlyForecasts = const <_ForecastMomentPreview>[],
     this.hourlyPrecipitations = const <_HourlyPrecipitationEntry>[],
   });
 }

@@ -1,4 +1,4 @@
-enum LeagueStandingsType { premierLeague, championsLeague }
+enum LeagueStandingsType { premierLeague, championsLeague, laLiga, bundesliga }
 
 class LeagueStandingsSnapshot {
   final LeagueStandingsType type;

@@ -42,7 +42,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsMoreActionsTitle => 'More';
 
   @override
-  String get newsLeagueStandingsAction => 'League standings';
+  String get newsLeagueStandingsAction => 'View standings';
 
   @override
   String get newsLeagueStandingsTitle => 'League Standings';
@@ -52,6 +52,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsChampionsLeagueStandingsTitle => 'Champions League';
+
+  @override
+  String get newsLaLigaStandingsTitle => 'LaLiga';
+
+  @override
+  String get newsBundesligaStandingsTitle => 'Bundesliga';
 
   @override
   String newsLeagueStandingsUpdated(Object date) {
@@ -196,7 +202,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeHubTitleShort => 'Home';
 
   @override
-  String get homeDailyCheckTitle => 'Today';
+  String get homeDailyCheckTitle => 'Today\'s tasks';
 
   @override
   String get homeTodoTrainingLogShort => 'Log';
@@ -1386,6 +1392,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherHourlyPrecipitation => 'Hourly precipitation';
+
+  @override
+  String get homeWeatherHourlyTemperature => 'Hourly temperature';
 
   @override
   String get homeWeatherWindSpeed => 'Wind';
@@ -3947,6 +3956,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settingsSyncStatusChecking => 'Checking';
+
+  @override
+  String get settingsSyncBackupDataReady => 'Backup data found.';
+
+  @override
   String get settingsSyncStatusSignInNeeded => 'Connect';
 
   @override
@@ -3960,6 +3975,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSyncStatusStale => 'Stale';
+
+  @override
+  String get settingsSyncSummaryChecking => 'Checking the Drive backup status.';
 
   @override
   String get settingsSyncSummarySignInNeeded =>

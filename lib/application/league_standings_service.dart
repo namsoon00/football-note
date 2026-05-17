@@ -15,6 +15,8 @@ class LeagueStandingsService {
   static const Map<LeagueStandingsType, String> _espnLeagueIds = {
     LeagueStandingsType.premierLeague: 'eng.1',
     LeagueStandingsType.championsLeague: 'uefa.champions',
+    LeagueStandingsType.laLiga: 'esp.1',
+    LeagueStandingsType.bundesliga: 'ger.1',
   };
 
   Future<LeagueStandingsSnapshot> fetch(LeagueStandingsType type) async {
@@ -183,6 +185,8 @@ class LeagueStandingsService {
     return switch (type) {
       LeagueStandingsType.premierLeague => 'Premier League',
       LeagueStandingsType.championsLeague => 'UEFA Champions League',
+      LeagueStandingsType.laLiga => 'LaLiga',
+      LeagueStandingsType.bundesliga => 'Bundesliga',
     };
   }
 }
