@@ -36,6 +36,62 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsKLeagueStandingsButton => 'K리그';
 
   @override
+  String get newsMoreActionsTooltip => '더보기';
+
+  @override
+  String get newsMoreActionsTitle => '더보기';
+
+  @override
+  String get newsLeagueStandingsAction => '해외 리그 순위';
+
+  @override
+  String get newsLeagueStandingsTitle => '리그 순위';
+
+  @override
+  String get newsPremierLeagueStandingsTitle => '프리미어리그';
+
+  @override
+  String get newsChampionsLeagueStandingsTitle => '챔피언스리그';
+
+  @override
+  String newsLeagueStandingsUpdated(Object date) {
+    return '업데이트 $date';
+  }
+
+  @override
+  String get newsLeagueStandingsOpenSource => '원문 순위 열기';
+
+  @override
+  String get newsLeagueStandingsEmpty => '표시할 순위가 없어요.';
+
+  @override
+  String get newsLeagueStandingsError => '순위를 불러오지 못했어요.';
+
+  @override
+  String get newsLeagueStandingsRetry => '다시 시도';
+
+  @override
+  String get newsLeagueStandingsTeamColumn => '팀';
+
+  @override
+  String get newsLeagueStandingsPlayedColumn => '경기';
+
+  @override
+  String get newsLeagueStandingsWinsColumn => '승';
+
+  @override
+  String get newsLeagueStandingsDrawsColumn => '무';
+
+  @override
+  String get newsLeagueStandingsLossesColumn => '패';
+
+  @override
+  String get newsLeagueStandingsGoalDifferenceColumn => '득실';
+
+  @override
+  String get newsLeagueStandingsPointsColumn => '승점';
+
+  @override
   String get newsSearchAction => '기사 검색';
 
   @override
@@ -146,28 +202,28 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeTodoBoardSketchShort => '스케치';
 
   @override
-  String get homePriorityCheckPlansMessage => '남은 계획을 확인하세요.';
+  String get homePriorityCheckPlansMessage => '남은 계획 확인.';
 
   @override
   String get homePriorityPlansAction => '계획';
 
   @override
-  String get homePriorityReviewWeekMessage => '주간 흐름을 확인하세요.';
+  String get homePriorityReviewWeekMessage => '주간 흐름 보기.';
 
   @override
   String get homePriorityStatsAction => '통계';
 
   @override
-  String get homePrioritySketchNextMessage => '다음 훈련을 그려두세요.';
+  String get homePrioritySketchNextMessage => '다음 훈련 스케치.';
 
   @override
   String get homePriorityBoardAction => '보드';
 
   @override
-  String get homePriorityConditionMessage => '컨디션 흐름을 보세요.';
+  String get homePriorityConditionMessage => '컨디션 확인.';
 
   @override
-  String get homePriorityRewardsMessage => '레벨 선물을 확인하세요.';
+  String get homePriorityRewardsMessage => '레벨 선물 확인.';
 
   @override
   String get homePriorityLevelAction => '레벨';
@@ -1836,14 +1892,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeMealCoachTitle => '식사 코치';
 
   @override
-  String get homeMealCoachRecordAction => '오늘 식사 기록';
+  String get homeMealCoachRecordAction => '식사';
 
   @override
-  String get homeParentWelcomeMessage =>
-      '보호자 모드에서는 기록을 살펴보고 피드백과 선물 이름만 관리합니다.';
+  String get homeParentWelcomeMessage => '기록 확인과 피드백만 관리합니다.';
 
   @override
-  String get homeParentWelcomeAction => '훈련기록 보기';
+  String get homeParentWelcomeAction => '기록 보기';
 
   @override
   String get homeMealCoachOtherSuggestions => '다른 제안 보기';
@@ -3067,17 +3122,17 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String homeStreakActiveTodayTitle(int count) {
-    return '$count일 연속 흐름을 이어가고 있어요';
+    return '오늘까지 $count일 연속';
   }
 
   @override
   String homeStreakActiveYesterdayTitle(int count) {
-    return '어제까지 $count일 연속으로 기록했어요';
+    return '어제까지 $count일 연속';
   }
 
   @override
   String homeStreakPausedTitle(int count) {
-    return '$count일 연속 흐름이 잠시 멈췄어요';
+    return '$count일 연속 잠시 멈춤';
   }
 
   @override
@@ -3107,7 +3162,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeStreakActionContinue => '오늘 기록';
 
   @override
-  String get homeStreakActionReview => '주간 흐름';
+  String get homeStreakActionReview => '주간';
 
   @override
   String get educationScreenTitle => '아빠가 태오에게 들려주는 월드컵 이야기';
@@ -3702,7 +3757,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsInfoTooltip => '설명 보기';
 
   @override
-  String get settingsSupportModeLabel => '보호자 모드';
+  String get settingsSupportModeLabel => '보호자';
 
   @override
   String get settingsSupportRoleTitle => '보호자 모드 안내';
@@ -3716,17 +3771,90 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsDriveConnectionSupportSummary =>
-      '선수 데이터 원본이 저장된 공유 Drive 계정을 확인하세요.';
+      '현재 연결된 Google Drive 계정을 확인하세요.';
 
   @override
   String get settingsDataSyncTitle => '데이터 동기화';
 
   @override
-  String get settingsDataSyncPlayerSummary => '주요 Drive 작업은 아래 한 줄에서 바로 실행합니다.';
+  String get settingsDataSyncPlayerSummary =>
+      '현재 데이터와 백업 데이터의 최신성을 확인하고 Drive 작업을 실행합니다.';
 
   @override
   String get settingsDataSyncSupportSummary =>
-      '선수 백업 파일에서 가져오고, 피드백과 선물 이름은 같은 파일에 반영합니다.';
+      '최신 백업을 가져오고 공유 변경은 같은 파일에 반영합니다.';
+
+  @override
+  String get settingsSyncSourceStatusTitle => '백업 데이터';
+
+  @override
+  String get settingsSyncStatusTitle => '데이터 동기화 상태';
+
+  @override
+  String get settingsSyncShowDetails => '상세 보기';
+
+  @override
+  String get settingsSyncHideDetails => '상세 숨기기';
+
+  @override
+  String get settingsSyncGoogleConnected => 'Google 연결됨';
+
+  @override
+  String get settingsSyncGoogleDisconnected => 'Google 미연결';
+
+  @override
+  String get settingsSyncDailyOn => '일일 자동 백업 켜짐';
+
+  @override
+  String get settingsSyncDailyOff => '일일 자동 백업 꺼짐';
+
+  @override
+  String get settingsSyncOnSaveOn => '저장 시 자동 백업 켜짐';
+
+  @override
+  String get settingsSyncOnSaveOff => '저장 시 자동 백업 꺼짐';
+
+  @override
+  String settingsSyncBackedUpDataTime(Object time) {
+    return '백업된 데이터: $time';
+  }
+
+  @override
+  String settingsSyncCurrentDataSnapshot(Object time) {
+    return '현재 데이터 보관본: $time';
+  }
+
+  @override
+  String get settingsSyncStatusSignInNeeded => '연결 필요';
+
+  @override
+  String get settingsSyncStatusNoBackup => '백업 없음';
+
+  @override
+  String get settingsSyncStatusCurrent => '최신';
+
+  @override
+  String get settingsSyncStatusReview => '확인';
+
+  @override
+  String get settingsSyncStatusStale => '오래됨';
+
+  @override
+  String get settingsSyncSummarySignInNeeded =>
+      '계정을 연결하면 현재 데이터와 Drive 백업 상태를 비교할 수 있어요.';
+
+  @override
+  String get settingsSyncSummaryNoBackup => '아직 백업된 데이터가 없어요. 먼저 백업을 만들어 주세요.';
+
+  @override
+  String settingsSyncSummaryCurrent(Object time) {
+    return '백업된 데이터가 $time 기준이라 현재 데이터와 가깝습니다.';
+  }
+
+  @override
+  String settingsSyncSummaryStale(Object time) {
+    return '백업된 데이터 기준이 $time입니다. 최근 변경이 있다면 다시 백업해 주세요.';
+  }
 
   @override
   String get settingsDriveConnectAction => 'Google Drive 연결';
@@ -3919,15 +4047,15 @@ class AppLocalizationsKo extends AppLocalizations {
       '저장된 보호자 모드 Drive 계정으로 다시 연결해 주세요.';
 
   @override
-  String get driveSharedChildAccount => '선수 데이터 원본 Drive';
+  String get driveSharedChildAccount => '백업 원본 Drive';
 
   @override
   String get driveSharedChildAccountEmpty =>
-      '아직 원본 Drive 정보가 없어요. 선수 모드에서 먼저 한 번 백업해 주세요.';
+      '아직 백업 원본 정보가 없어요. 먼저 한 번 백업해 주세요.';
 
   @override
   String get driveSharedChildAccountRemoteBackup =>
-      '원격 백업은 확인됐어요. 선수 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.';
+      '원격 백업은 확인됐어요. 같은 Google Drive 계정으로 연결해 주세요.';
 
   @override
   String get familyChildDriveConnectionSummary =>
@@ -3945,7 +4073,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 연결해야 같은 백업 파일에 훈련 피드백과 선물 이름을 안전하게 동기화할 수 있어요.';
 
   @override
-  String get familySharedSyncTitle => '선수 데이터 동기화';
+  String get familySharedSyncTitle => '데이터 동기화 상태';
 
   @override
   String get familySharedSyncDescription =>

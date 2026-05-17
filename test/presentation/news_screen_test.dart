@@ -20,13 +20,18 @@ const _scrapToggleActionKey = ValueKey<String>(
 const _translateToggleActionKey = ValueKey<String>(
   'news_quick_action_translate_toggle',
 );
+const _searchActionKey = ValueKey<String>('news_quick_action_search');
+const _moreActionsKey = ValueKey<String>('news_more_actions');
+const _leagueStandingsActionKey = ValueKey<String>(
+  'news_quick_action_league_standings',
+);
 const _fifaHubActionKey = ValueKey<String>('news_quick_action_fifa_hub');
 const _kLeagueActionKey = ValueKey<String>(
   'news_quick_action_kleague_standings',
 );
 
 void main() {
-  testWidgets('news header actions show fixed text buttons without icons', (
+  testWidgets('news more menu exposes standings actions', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -61,15 +66,22 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.byKey(_moreActionsKey), findsOneWidget);
+    expect(find.byKey(_kLeagueActionKey), findsNothing);
+    expect(find.byKey(_fifaHubActionKey), findsNothing);
+
+    await tester.tap(find.byKey(_moreActionsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(_leagueStandingsActionKey), findsOneWidget);
     expect(find.byKey(_kLeagueActionKey), findsOneWidget);
     expect(find.byKey(_fifaHubActionKey), findsOneWidget);
+    expect(find.text('해외 리그 순위'), findsOneWidget);
     expect(find.text('K리그'), findsOneWidget);
     expect(find.text('FIFA 랭킹'), findsOneWidget);
-    expect(find.byIcon(Icons.table_chart_outlined), findsNothing);
-    expect(find.byIcon(Icons.leaderboard_outlined), findsNothing);
   });
 
-  testWidgets('news quick actions keep scrap, translate, FIFA order', (
+  testWidgets('news quick actions keep scrap, translate, search order', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(1400, 900));
@@ -117,12 +129,13 @@ void main() {
     expect(find.text('번역'), findsNothing);
 
     final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
-    final translateX =
-        tester.getTopLeft(find.byKey(_translateToggleActionKey)).dx;
-    final fifaX = tester.getTopLeft(find.byKey(_fifaHubActionKey)).dx;
+    final translateX = tester
+        .getTopLeft(find.byKey(_translateToggleActionKey))
+        .dx;
+    final searchX = tester.getTopLeft(find.byKey(_searchActionKey)).dx;
 
     expect(scrapX, lessThan(translateX));
-    expect(translateX, lessThan(fifaX));
+    expect(translateX, lessThan(searchX));
   });
 
   testWidgets(
@@ -178,9 +191,7 @@ void main() {
     },
   );
 
-  testWidgets('read news is hidden from the feed', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('read news is hidden from the feed', (WidgetTester tester) async {
     final repository = _MemoryOptionRepository();
     const readArticle = NewsArticle(
       title: '이미 읽은 기사',
@@ -249,8 +260,8 @@ class _FakeNewsRepository implements NewsRepository {
   _FakeNewsRepository({
     required List<NewsChannel> channels,
     required Map<String, List<NewsArticle>> articlesByChannelId,
-  })  : _channels = channels,
-        _articlesByChannelId = articlesByChannelId;
+  }) : _channels = channels,
+       _articlesByChannelId = articlesByChannelId;
 
   @override
   List<NewsChannel> channels() => _channels;

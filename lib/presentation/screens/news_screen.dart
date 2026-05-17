@@ -25,6 +25,7 @@ import '../widgets/app_page_route.dart';
 import '../widgets/app_background.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'fifa_ranking_screen.dart';
+import 'league_standings_screen.dart';
 
 class NewsScreen extends StatefulWidget {
   static const String openedItemsKey = 'news_opened_items_v1';
@@ -54,6 +55,8 @@ class NewsScreen extends StatefulWidget {
 
 enum _NewsRegionFilter { all, domestic, international }
 
+enum _NewsMoreAction { leagueStandings, kLeague, fifaRanking }
+
 class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _titleTranslateEnabledKey =
       'news_title_translate_enabled';
@@ -77,6 +80,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   );
   static const ValueKey<String> _kLeagueStandingsActionKey = ValueKey<String>(
     'news_quick_action_kleague_standings',
+  );
+  static const ValueKey<String> _leagueStandingsActionKey = ValueKey<String>(
+    'news_quick_action_league_standings',
+  );
+  static const ValueKey<String> _moreActionsKey = ValueKey<String>(
+    'news_more_actions',
   );
   static const ValueKey<String> _searchActionKey = ValueKey<String>(
     'news_quick_action_search',
@@ -222,39 +231,20 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: SizedBox(
-                            width: isKo ? 196 : 108,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (isKo) ...[
-                                  Expanded(
-                                    child: _buildHeaderActionButton(
-                                      key: _kLeagueStandingsActionKey,
-                                      label: l10n.newsKLeagueStandingsButton,
-                                      onPressed: _openKLeagueStandings,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                ],
-                                Expanded(
-                                  child: _buildHeaderActionButton(
-                                    key: _fifaHubActionKey,
-                                    label: l10n.newsFifaHubButton,
-                                    onPressed: _openFifaRankingHub,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        IconButton(
+                          key: _moreActionsKey,
+                          onPressed: _openMoreActions,
+                          tooltip: l10n.newsMoreActionsTooltip,
+                          icon: const Icon(Icons.more_horiz_rounded),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    _buildQuickActions(l10n: l10n, isKo: isKo),
+                    _buildQuickActions(
+                      l10n: l10n,
+                      isKo:
+                          Localizations.localeOf(context).languageCode == 'ko',
+                    ),
                     const SizedBox(height: 8),
                     _buildRegionFilter(l10n),
                   ],
@@ -389,32 +379,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildHeaderActionButton({
-    required Key key,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return OutlinedButton(
-      key: key,
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-        minimumSize: const Size(0, 40),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-        foregroundColor: colorScheme.onSurface,
-        backgroundColor:
-            (isDark ? colorScheme.surfaceContainerHigh : colorScheme.surface)
-                .withValues(alpha: isDark ? 0.88 : 0.96),
-        side: BorderSide(color: colorScheme.outlineVariant),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
     );
   }
 
@@ -1327,6 +1291,70 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     await Navigator.of(
       context,
     ).push<void>(AppPageRoute(builder: (_) => const FifaRankingScreen()));
+  }
+
+  Future<void> _openLeagueStandings() async {
+    await Navigator.of(
+      context,
+    ).push<void>(AppPageRoute(builder: (_) => const LeagueStandingsScreen()));
+  }
+
+  Future<void> _openMoreActions() async {
+    final l10n = AppLocalizations.of(context)!;
+    final selected = await showModalBottomSheet<_NewsMoreAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(
+                  l10n.newsMoreActionsTitle,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+              ),
+              ListTile(
+                key: _leagueStandingsActionKey,
+                leading: const Icon(Icons.table_chart_outlined),
+                title: Text(l10n.newsLeagueStandingsAction),
+                onTap: () =>
+                    Navigator.of(context).pop(_NewsMoreAction.leagueStandings),
+              ),
+              ListTile(
+                key: _kLeagueStandingsActionKey,
+                leading: const Icon(Icons.leaderboard_outlined),
+                title: Text(l10n.newsKLeagueStandingsButton),
+                onTap: () => Navigator.of(context).pop(_NewsMoreAction.kLeague),
+              ),
+              ListTile(
+                key: _fifaHubActionKey,
+                leading: const Icon(Icons.public),
+                title: Text(l10n.newsFifaHubButton),
+                onTap: () =>
+                    Navigator.of(context).pop(_NewsMoreAction.fifaRanking),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+    if (!mounted || selected == null) return;
+    switch (selected) {
+      case _NewsMoreAction.leagueStandings:
+        await _openLeagueStandings();
+        break;
+      case _NewsMoreAction.kLeague:
+        await _openKLeagueStandings();
+        break;
+      case _NewsMoreAction.fifaRanking:
+        await _openFifaRankingHub();
+        break;
+    }
   }
 
   Future<void> _openKLeagueStandings() async {
