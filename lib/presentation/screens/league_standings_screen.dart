@@ -100,8 +100,8 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: SizedBox(
-                  width: double.infinity,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   child: SegmentedButton<LeagueStandingsType>(
                     segments: [
                       ButtonSegment<LeagueStandingsType>(
@@ -113,6 +113,16 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                         value: LeagueStandingsType.championsLeague,
                         icon: const Icon(Icons.emoji_events_outlined, size: 18),
                         label: Text(l10n.newsChampionsLeagueStandingsTitle),
+                      ),
+                      ButtonSegment<LeagueStandingsType>(
+                        value: LeagueStandingsType.laLiga,
+                        icon: const Icon(Icons.sports_soccer, size: 18),
+                        label: Text(l10n.newsLaLigaStandingsTitle),
+                      ),
+                      ButtonSegment<LeagueStandingsType>(
+                        value: LeagueStandingsType.bundesliga,
+                        icon: const Icon(Icons.shield, size: 18),
+                        label: Text(l10n.newsBundesligaStandingsTitle),
                       ),
                     ],
                     selected: {_selectedType},
@@ -292,8 +302,8 @@ class _StandingTeamRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
@@ -322,10 +332,10 @@ class _TeamLogo extends StatelessWidget {
     final initials = entry.teamShortName.trim().isNotEmpty
         ? entry.teamShortName.trim()
         : compactName.isEmpty
-            ? '?'
-            : compactName
-                .substring(0, compactName.length < 2 ? compactName.length : 2)
-                .toUpperCase();
+        ? '?'
+        : compactName
+              .substring(0, compactName.length < 2 ? compactName.length : 2)
+              .toUpperCase();
     final logoUrl = entry.logoUrl.trim();
     return Container(
       width: 28,
@@ -398,12 +408,15 @@ Widget _cell(
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
-      style: (header
-              ? Theme.of(context).textTheme.labelMedium
-              : Theme.of(context).textTheme.bodyMedium)
-          ?.copyWith(
-        fontWeight: header || strong ? FontWeight.w900 : FontWeight.w600,
-      ),
+      style:
+          (header
+                  ? Theme.of(context).textTheme.labelMedium
+                  : Theme.of(context).textTheme.bodyMedium)
+              ?.copyWith(
+                fontWeight: header || strong
+                    ? FontWeight.w900
+                    : FontWeight.w600,
+              ),
     ),
   );
 }

@@ -1213,6 +1213,7 @@ class _EntryCard extends StatelessWidget {
         linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
+    final hasParentFeedback = parentFeedbackMessage.trim().isNotEmpty;
 
     return Material(
       color: Colors.transparent,
@@ -1221,53 +1222,62 @@ class _EntryCard extends StatelessWidget {
         onTap: onEdit,
         child: WatchCartCard(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
             children: [
-              Text(
-                dateText,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontSize: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(right: hasParentFeedback ? 30 : 0),
+                    child: Text(
+                      dateText,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleSmall?.copyWith(fontSize: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Center(child: _EntryImage(entry: entry)),
+                  const SizedBox(height: 4),
+                  Text(
+                    titleText,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _buildSummaryLine(l10n, entry),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  if (hasTrainingBoard) ...[
+                    const SizedBox(height: 6),
+                    _TrainingBoardThumb(
+                      layout: legacyLayout,
+                      boards: linkedBoards,
+                    ),
+                  ],
+                  if (focusText.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      focusText,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: focusTextColor),
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(height: 4),
-              Center(child: _EntryImage(entry: entry)),
-              const SizedBox(height: 4),
-              Text(
-                titleText,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
+              if (hasParentFeedback)
+                const Positioned(
+                  top: 0,
+                  right: 0,
+                  child: _ParentFeedbackCornerMark(),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                _buildSummaryLine(l10n, entry),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12),
-              ),
-              if (hasTrainingBoard) ...[
-                const SizedBox(height: 6),
-                _TrainingBoardThumb(layout: legacyLayout, boards: linkedBoards),
-              ],
-              if (focusText.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  focusText,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: focusTextColor),
-                ),
-              ],
-              if (parentFeedbackMessage.trim().isNotEmpty) ...[
-                const SizedBox(height: 6),
-                const Align(
-                  alignment: Alignment.centerRight,
-                  child: _ParentFeedbackPreview(),
-                ),
-              ],
             ],
           ),
         ),
@@ -1309,42 +1319,56 @@ class _EntryListItem extends StatelessWidget {
       durationText,
       _entrySecondaryText(entry, isKo: isKo),
     ].where((part) => part.trim().isNotEmpty).join(' · ');
+    final hasParentFeedback = parentFeedbackMessage.trim().isNotEmpty;
 
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        leading: _StatusIcon(status: entry.status),
-        title: Text(titleText),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood} · $dateText',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+      child: Stack(
+        children: [
+          ListTile(
+            contentPadding: EdgeInsets.fromLTRB(
+              6,
+              2,
+              hasParentFeedback ? 30 : 6,
+              2,
             ),
-            if (focusText.isNotEmpty)
-              Text(
-                focusText,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: focusTextColor),
-              ),
-            if (parentFeedbackMessage.trim().isNotEmpty)
-              const _ParentFeedbackPreview(),
-          ],
-        ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onEdit,
+            leading: _StatusIcon(status: entry.status),
+            title: Text(titleText),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood} · $dateText',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (focusText.isNotEmpty)
+                  Text(
+                    focusText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: focusTextColor),
+                  ),
+              ],
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: onEdit,
+          ),
+          if (hasParentFeedback)
+            const Positioned(
+              top: 2,
+              right: 2,
+              child: _ParentFeedbackCornerMark(),
+            ),
+        ],
       ),
     );
   }
 }
 
-class _ParentFeedbackPreview extends StatelessWidget {
-  const _ParentFeedbackPreview();
+class _ParentFeedbackCornerMark extends StatelessWidget {
+  const _ParentFeedbackCornerMark();
 
   @override
   Widget build(BuildContext context) {
@@ -1353,10 +1377,12 @@ class _ParentFeedbackPreview extends StatelessWidget {
     return Tooltip(
       message: l10n.parentFeedbackSectionTitle,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        width: 26,
+        height: 26,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: scheme.primaryContainer.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(999),
+          shape: BoxShape.circle,
           border: Border.all(color: scheme.primary.withValues(alpha: 0.28)),
         ),
         child: Icon(

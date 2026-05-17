@@ -42,7 +42,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsMoreActionsTitle => '더보기';
 
   @override
-  String get newsLeagueStandingsAction => '해외 리그 순위';
+  String get newsLeagueStandingsAction => '순위 보기';
 
   @override
   String get newsLeagueStandingsTitle => '리그 순위';
@@ -52,6 +52,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get newsChampionsLeagueStandingsTitle => '챔피언스리그';
+
+  @override
+  String get newsLaLigaStandingsTitle => '라리가';
+
+  @override
+  String get newsBundesligaStandingsTitle => '분데스리가';
 
   @override
   String newsLeagueStandingsUpdated(Object date) {
@@ -193,7 +199,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeHubTitleShort => '홈';
 
   @override
-  String get homeDailyCheckTitle => '오늘 체크';
+  String get homeDailyCheckTitle => '오늘 할일';
 
   @override
   String get homeTodoTrainingLogShort => '기록';
@@ -1353,6 +1359,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherHourlyPrecipitation => '시간별 강수량';
+
+  @override
+  String get homeWeatherHourlyTemperature => '시간대별 기온';
 
   @override
   String get homeWeatherWindSpeed => '풍속';
@@ -3825,6 +3834,12 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get settingsSyncStatusChecking => '확인 중';
+
+  @override
+  String get settingsSyncBackupDataReady => '백업 데이터를 찾았어요.';
+
+  @override
   String get settingsSyncStatusSignInNeeded => '연결 필요';
 
   @override
@@ -3838,6 +3853,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsSyncStatusStale => '오래됨';
+
+  @override
+  String get settingsSyncSummaryChecking => 'Drive 백업 상태를 확인하는 중입니다.';
 
   @override
   String get settingsSyncSummarySignInNeeded =>

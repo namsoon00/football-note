@@ -455,6 +455,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 8),
         ),
       );
       final placeFuture = _resolvePlaceName(
@@ -462,7 +463,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         longitude: position.longitude,
         isKo: isKo,
         koreaLabel: l10n.homeWeatherCountryKorea,
-      );
+      ).timeout(const Duration(seconds: 5)).catchError((_) => '');
       final weatherFuture =
           WeatherSharedResource.fetchForCoordinates(
                 latitude: position.latitude,

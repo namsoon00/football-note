@@ -167,7 +167,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsLeagueStandingsAction.
   ///
   /// In en, this message translates to:
-  /// **'League standings'**
+  /// **'View standings'**
   String get newsLeagueStandingsAction;
 
   /// No description provided for @newsLeagueStandingsTitle.
@@ -187,6 +187,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Champions League'**
   String get newsChampionsLeagueStandingsTitle;
+
+  /// No description provided for @newsLaLigaStandingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'LaLiga'**
+  String get newsLaLigaStandingsTitle;
+
+  /// No description provided for @newsBundesligaStandingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundesliga'**
+  String get newsBundesligaStandingsTitle;
 
   /// No description provided for @newsLeagueStandingsUpdated.
   ///
@@ -461,7 +473,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeDailyCheckTitle.
   ///
   /// In en, this message translates to:
-  /// **'Today'**
+  /// **'Today\'s tasks'**
   String get homeDailyCheckTitle;
 
   /// No description provided for @homeTodoTrainingLogShort.
@@ -2659,6 +2671,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hourly precipitation'**
   String get homeWeatherHourlyPrecipitation;
+
+  /// No description provided for @homeWeatherHourlyTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Hourly temperature'**
+  String get homeWeatherHourlyTemperature;
 
   /// No description provided for @homeWeatherWindSpeed.
   ///
@@ -6884,6 +6902,18 @@ abstract class AppLocalizations {
   /// **'Current data snapshot: {time}'**
   String settingsSyncCurrentDataSnapshot(Object time);
 
+  /// No description provided for @settingsSyncStatusChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking'**
+  String get settingsSyncStatusChecking;
+
+  /// No description provided for @settingsSyncBackupDataReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup data found.'**
+  String get settingsSyncBackupDataReady;
+
   /// No description provided for @settingsSyncStatusSignInNeeded.
   ///
   /// In en, this message translates to:
@@ -6913,6 +6943,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stale'**
   String get settingsSyncStatusStale;
+
+  /// No description provided for @settingsSyncSummaryChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the Drive backup status.'**
+  String get settingsSyncSummaryChecking;
 
   /// No description provided for @settingsSyncSummarySignInNeeded.
   ///

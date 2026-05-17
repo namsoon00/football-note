@@ -48,6 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   String _sharedChildDriveLabel = '';
   String _sharedChildDriveEmail = '';
   bool _hasRemotePlayerBackup = false;
+  bool _driveStatusLoading = true;
   StreamSubscription<void>? _driveAccountStateSubscription;
 
   late List<int> _durationOptions;
@@ -93,16 +94,33 @@ class _SettingsScreenState extends State<SettingsScreen>
     bool allowCachedConnection = false,
     bool refreshParentSharedData = false,
   }) async {
-    if (refreshParentSharedData) {
-      await _refreshParentSharedDataIfNeeded();
+    if (widget.driveBackupService != null && mounted) {
+      setState(() => _driveStatusLoading = true);
     }
-    await _refreshSignInState(allowCachedConnection: allowCachedConnection);
+    try {
+      if (refreshParentSharedData) {
+        try {
+          await _refreshParentSharedDataIfNeeded();
+        } catch (e, st) {
+          debugPrint('Drive family shared data refresh failed: $e');
+          debugPrintStack(stackTrace: st);
+        }
+      }
+      await _refreshSignInState(allowCachedConnection: allowCachedConnection);
+    } catch (e, st) {
+      debugPrint('Drive UI refresh failed: $e');
+      debugPrintStack(stackTrace: st);
+    } finally {
+      if (widget.driveBackupService != null && mounted) {
+        setState(() => _driveStatusLoading = false);
+      }
+    }
   }
 
   Future<void> _refreshParentSharedDataIfNeeded() async {
     if (widget.driveBackupService == null) return;
-    final result = await widget.driveBackupService!
-        .refreshFamilySharedDataIfNeeded();
+    final result =
+        await widget.driveBackupService!.refreshFamilySharedDataIfNeeded();
     if (result.refreshed) {
       widget.localeService.load();
       widget.settingsService.load();
@@ -149,14 +167,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     DriveConnectionInfo? sharedChildConnection;
     var hasRemotePlayerBackup = false;
     try {
-      sharedChildConnection = await widget.driveBackupService!
-          .getSharedChildDriveConnectionInfo(
-            allowRemoteLookup: familyState.isParentMode,
-          );
+      sharedChildConnection =
+          await widget.driveBackupService!.getSharedChildDriveConnectionInfo(
+        allowRemoteLookup: familyState.isParentMode,
+      );
       if (familyState.isParentMode &&
           (sharedChildConnection == null || sharedChildConnection.isEmpty)) {
-        hasRemotePlayerBackup = await widget.driveBackupService!
-            .hasRemotePlayerBackup();
+        hasRemotePlayerBackup =
+            await widget.driveBackupService!.hasRemotePlayerBackup();
       }
     } catch (e, st) {
       debugPrint('Shared child Drive lookup failed: $e');
@@ -176,8 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     final cachedConnectedDriveLabel = _cachedConnectedDriveLabel();
     if (!mounted) return;
     setState(() {
-      _signedIn =
-          signedIn ||
+      _signedIn = signedIn ||
           (connection != null && !connection.isEmpty) ||
           (allowCachedConnection && cachedConnectedDriveLabel.isNotEmpty);
       _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
@@ -190,13 +207,11 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   String _cachedConnectedDriveLabel() {
-    final cachedLabel =
-        widget.optionRepository
+    final cachedLabel = widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveLabelLocalKey)
             ?.trim() ??
         '';
-    final cachedEmail =
-        widget.optionRepository
+    final cachedEmail = widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveEmailLocalKey)
             ?.trim() ??
         '';
@@ -229,13 +244,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     final expectedChildDriveLabel = _sharedChildDriveLabel.trim().isNotEmpty
         ? _sharedChildDriveLabel.trim()
         : _sharedChildDriveEmail.trim();
-    final sharedChildDriveSubtitle = expectedChildDriveLabel.isNotEmpty
-        ? expectedChildDriveLabel
-        : (_hasRemotePlayerBackup
-              ? l10n.driveSharedChildAccountRemoteBackup
-              : l10n.driveSharedChildAccountEmpty);
-    final driveMatchesExpected =
-        expectedChildDriveLabel.isEmpty ||
+    final sharedChildDriveSubtitle = _driveStatusLoading
+        ? l10n.settingsSyncStatusChecking
+        : (expectedChildDriveLabel.isNotEmpty || _hasRemotePlayerBackup
+            ? l10n.settingsSyncBackupDataReady
+            : l10n.driveSharedChildAccountEmpty);
+    final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _driveLabelMatchesEmail(_connectedDriveLabel, _sharedChildDriveEmail);
 
@@ -312,7 +326,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-        _durationOptions.first;
+            _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
@@ -573,7 +587,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                           children: [
                             Text(
                               title,
-                              style: Theme.of(context).textTheme.titleSmall
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
                                   ?.copyWith(fontWeight: FontWeight.w800),
                             ),
                             if (summary?.trim().isNotEmpty == true) ...[
@@ -736,6 +752,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       _buildDriveQuickActions(l10n: l10n, familyState: familyState),
       _BackupHealthCard(
         l10n: l10n,
+        loading: _driveStatusLoading,
         signedIn: _signedIn,
         autoDaily: _autoDaily,
         autoOnSave: _autoOnSave,
@@ -771,10 +788,28 @@ class _SettingsScreenState extends State<SettingsScreen>
     required String sharedChildDriveSubtitle,
     required bool driveMatchesExpected,
   }) {
+    final driveBackupService = widget.driveBackupService!;
+    final hasKnownBackupData = _hasRemotePlayerBackup ||
+        _sharedChildDriveLabel.trim().isNotEmpty ||
+        _sharedChildDriveEmail.trim().isNotEmpty;
     return [
       _buildCurrentDriveAccountTile(l10n),
       _buildSupportSyncSourceStatus(l10n, sharedChildDriveSubtitle),
-      if (!driveMatchesExpected) _buildDriveMismatchWarning(l10n),
+      if (!_driveStatusLoading && !driveMatchesExpected)
+        _buildDriveMismatchWarning(l10n),
+      _BackupHealthCard(
+        l10n: l10n,
+        loading: _driveStatusLoading,
+        signedIn: _signedIn,
+        autoDaily: _autoDaily,
+        autoOnSave: _autoOnSave,
+        lastBackupAt: driveBackupService.getLastFamilySyncPush() ??
+            driveBackupService.getLastFamilyRefresh() ??
+            driveBackupService.getLastBackup(),
+        localRestoreAt: driveBackupService.getLocalPreRestoreTime(),
+        backupKnown: hasKnownBackupData,
+        formatBackupTime: _formatBackupTime,
+      ),
       _buildDriveQuickActions(l10n: l10n, familyState: familyState),
       _buildDriveBackupLocationCard(),
       _buildParentFamilySyncCard(l10n),
@@ -800,16 +835,15 @@ class _SettingsScreenState extends State<SettingsScreen>
         onPressed: (_backupBusy || _restoreBusy)
             ? null
             : () => _restoreFromDrive(
-                l10n,
-                title: l10n.settingsRestoreLatestActionTitle,
-                message: isSupportMode ? l10n.familySharedRestoreConfirm : null,
-                successMessage: isSupportMode
-                    ? l10n.familySharedRestoreSuccess
-                    : null,
-                failedMessage: isSupportMode
-                    ? l10n.familySharedRestoreFailed
-                    : null,
-              ),
+                  l10n,
+                  title: l10n.settingsRestoreLatestActionTitle,
+                  message:
+                      isSupportMode ? l10n.familySharedRestoreConfirm : null,
+                  successMessage:
+                      isSupportMode ? l10n.familySharedRestoreSuccess : null,
+                  failedMessage:
+                      isSupportMode ? l10n.familySharedRestoreFailed : null,
+                ),
       ),
     ];
     if (!isSupportMode) {
@@ -820,9 +854,9 @@ class _SettingsScreenState extends State<SettingsScreen>
           onPressed: (_backupBusy || _restoreBusy)
               ? null
               : () => _backupToDrive(
-                  l10n,
-                  title: l10n.settingsBackupDataActionTitle,
-                ),
+                    l10n,
+                    title: l10n.settingsBackupDataActionTitle,
+                  ),
         ),
       );
     }
@@ -842,9 +876,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     return _buildDriveAccountTile(
       icon: Icons.cloud_done_outlined,
       title: l10n.driveConnectedAccount,
-      subtitle: _connectedDriveLabel.trim().isEmpty
-          ? l10n.driveConnectedAccountEmpty
-          : _connectedDriveLabel.trim(),
+      subtitle: _driveStatusLoading
+          ? l10n.settingsSyncStatusChecking
+          : _connectedDriveLabel.trim().isEmpty
+              ? l10n.driveConnectedAccountEmpty
+              : _connectedDriveLabel.trim(),
+      loading: _driveStatusLoading,
     );
   }
 
@@ -856,6 +893,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       icon: Icons.sync_alt_rounded,
       title: l10n.settingsSyncSourceStatusTitle,
       subtitle: sharedChildDriveSubtitle,
+      loading: _driveStatusLoading,
     );
   }
 
@@ -968,9 +1006,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -1031,9 +1068,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
-    final defaultDurationText = _defaultDuration <= 0
-        ? l10n.notSet
-        : l10n.minutes(_defaultDuration);
+    final defaultDurationText =
+        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1438,9 +1474,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized = sanitize == null
-                            ? added
-                            : sanitize(added);
+                        final normalized =
+                            sanitize == null ? added : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -1702,10 +1737,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     required IconData icon,
     required String title,
     required String subtitle,
+    bool loading = false,
   }) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, size: 20),
+      leading: loading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(icon, size: 20),
       title: Text(title),
       subtitle: Text(subtitle),
     );
@@ -1896,8 +1938,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -1995,8 +2036,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -2158,20 +2198,24 @@ class _SettingsScreenState extends State<SettingsScreen>
 
 class _BackupHealthCard extends StatefulWidget {
   final AppLocalizations l10n;
+  final bool loading;
   final bool signedIn;
   final bool autoDaily;
   final bool autoOnSave;
   final DateTime? lastBackupAt;
   final DateTime? localRestoreAt;
+  final bool backupKnown;
   final String Function(DateTime value) formatBackupTime;
 
   const _BackupHealthCard({
     required this.l10n,
+    this.loading = false,
     required this.signedIn,
     required this.autoDaily,
     required this.autoOnSave,
     required this.lastBackupAt,
     required this.localRestoreAt,
+    this.backupKnown = false,
     required this.formatBackupTime,
   });
 
@@ -2199,7 +2243,20 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
         children: [
           Row(
             children: [
-              Icon(Icons.verified_user_outlined, color: healthColor, size: 20),
+              widget.loading
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: healthColor,
+                      ),
+                    )
+                  : Icon(
+                      Icons.verified_user_outlined,
+                      color: healthColor,
+                      size: 20,
+                    ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -2285,11 +2342,17 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
   }
 
   String _healthLabel() {
+    if (widget.loading) {
+      return widget.l10n.settingsSyncStatusChecking;
+    }
     if (!widget.signedIn) {
       return widget.l10n.settingsSyncStatusSignInNeeded;
     }
-    if (widget.lastBackupAt == null) {
+    if (!_hasKnownBackup) {
       return widget.l10n.settingsSyncStatusNoBackup;
+    }
+    if (widget.lastBackupAt == null) {
+      return widget.l10n.settingsSyncStatusReview;
     }
     final age = DateTime.now().difference(widget.lastBackupAt!);
     if (age <= const Duration(hours: 24)) {
@@ -2302,8 +2365,14 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
   }
 
   Color _healthColor(ThemeData theme) {
-    if (!widget.signedIn || widget.lastBackupAt == null) {
+    if (widget.loading) {
+      return theme.colorScheme.primary;
+    }
+    if (!widget.signedIn || !_hasKnownBackup) {
       return theme.colorScheme.error;
+    }
+    if (widget.lastBackupAt == null) {
+      return Colors.orange.shade700;
     }
     final age = DateTime.now().difference(widget.lastBackupAt!);
     if (age <= const Duration(hours: 24)) {
@@ -2316,11 +2385,17 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
   }
 
   String _summary() {
+    if (widget.loading) {
+      return widget.l10n.settingsSyncSummaryChecking;
+    }
     if (!widget.signedIn) {
       return widget.l10n.settingsSyncSummarySignInNeeded;
     }
-    if (widget.lastBackupAt == null) {
+    if (!_hasKnownBackup) {
       return widget.l10n.settingsSyncSummaryNoBackup;
+    }
+    if (widget.lastBackupAt == null) {
+      return widget.l10n.settingsSyncBackupDataReady;
     }
     final age = DateTime.now().difference(widget.lastBackupAt!);
     if (age <= const Duration(hours: 24)) {
@@ -2332,6 +2407,8 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
       widget.formatBackupTime(widget.lastBackupAt!),
     );
   }
+
+  bool get _hasKnownBackup => widget.lastBackupAt != null || widget.backupKnown;
 }
 
 class _InfoPill extends StatelessWidget {
