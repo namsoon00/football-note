@@ -125,6 +125,19 @@
     }
   },
   "dailyTasksXpDialogAction": "Keep going",
+  "trainingXpDialogTitle": "Training log saved",
+  "trainingXpDialogMessage": "Your saved training log added XP. Confirm to return to the home screen.",
+  "trainingXpDialogXp": "+{count} XP",
+  "@trainingXpDialogXp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingXpDialogAction": "OK",
+  "trainingXpSourceTrainingLog": "Training log",
+  "trainingXpSourceTrainingUpdate": "Training update",
   "levelUpDialogTitle": "Level up!",
   "levelUpDialogLevelLabel": "Lv.{level} {levelName}",
   "@levelUpDialogLevelLabel": {
@@ -162,19 +175,19 @@
     }
   },
   "xpGuideDailyTasksCompleteTitle": "All today tasks complete",
-  "homePriorityCheckPlansMessage": "Check plans.",
+  "homePriorityCheckPlansMessage": "Review the remaining training plans before you start.",
   "homePriorityPlansAction": "Plans",
-  "homePriorityReviewWeekMessage": "Review week.",
+  "homePriorityReviewWeekMessage": "Review this week's training flow and choose the next target.",
   "homePriorityStatsAction": "Stats",
-  "homePrioritySketchNextMessage": "Sketch next.",
+  "homePrioritySketchNextMessage": "Sketch the movement you want to try in your next session.",
   "homePriorityBoardAction": "Board",
-  "homePriorityConditionMessage": "Check condition.",
-  "homePriorityRewardsMessage": "Check rewards.",
+  "homePriorityConditionMessage": "Check your recent condition trend and adjust recovery.",
+  "homePriorityRewardsMessage": "Review level rewards and the next growth target.",
   "homePriorityLevelAction": "Level",
-  "homeMealSuggestionDoneShort": "All meals logged. Good rhythm.",
-  "homeMealSuggestionTwoShort": "Log one more meal.",
-  "homeMealSuggestionOneShort": "Log two more meals.",
-  "homeMealSuggestionNoneShort": "Log the first meal.",
+  "homeMealSuggestionDoneShort": "All three meals are logged. Keep the rhythm going.",
+  "homeMealSuggestionTwoShort": "Please log one more meal.",
+  "homeMealSuggestionOneShort": "Please log two more meals.",
+  "homeMealSuggestionNoneShort": "Please start with the first meal today.",
   "homeNextTrainingTitle": "Next training",
   "homeNextTrainingToday": "Today",
   "homeNextTrainingTomorrow": "Tomorrow",

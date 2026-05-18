@@ -125,6 +125,19 @@
     }
   },
   "dailyTasksXpDialogAction": "계속하기",
+  "trainingXpDialogTitle": "훈련 기록 완료",
+  "trainingXpDialogMessage": "저장한 훈련 기록으로 경험치가 추가됐어요. 확인하면 홈 화면으로 돌아갑니다.",
+  "trainingXpDialogXp": "+{count} XP",
+  "@trainingXpDialogXp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingXpDialogAction": "확인",
+  "trainingXpSourceTrainingLog": "훈련 기록",
+  "trainingXpSourceTrainingUpdate": "훈련 기록 수정",
   "levelUpDialogTitle": "레벨 업!",
   "levelUpDialogLevelLabel": "Lv.{level} {levelName}",
   "@levelUpDialogLevelLabel": {
@@ -162,19 +175,19 @@
     }
   },
   "xpGuideDailyTasksCompleteTitle": "오늘 할일 모두 완료",
-  "homePriorityCheckPlansMessage": "남은 계획 확인.",
+  "homePriorityCheckPlansMessage": "남은 훈련 계획을 먼저 확인해 주세요.",
   "homePriorityPlansAction": "계획",
-  "homePriorityReviewWeekMessage": "주간 흐름 보기.",
+  "homePriorityReviewWeekMessage": "이번 주 훈련 흐름을 확인하고 다음 목표를 정해 보세요.",
   "homePriorityStatsAction": "통계",
-  "homePrioritySketchNextMessage": "다음 훈련 스케치.",
+  "homePrioritySketchNextMessage": "다음 훈련에서 해볼 움직임을 보드에 스케치해 보세요.",
   "homePriorityBoardAction": "보드",
-  "homePriorityConditionMessage": "컨디션 확인.",
-  "homePriorityRewardsMessage": "레벨 선물 확인.",
+  "homePriorityConditionMessage": "최근 컨디션 흐름을 확인하고 회복 계획을 조정해 보세요.",
+  "homePriorityRewardsMessage": "레벨 보상과 다음 성장 목표를 확인해 보세요.",
   "homePriorityLevelAction": "레벨",
-  "homeMealSuggestionDoneShort": "세 끼 완료. 리듬이 좋아요.",
-  "homeMealSuggestionTwoShort": "한 끼만 더 기록하세요.",
-  "homeMealSuggestionOneShort": "두 끼를 더 기록하세요.",
-  "homeMealSuggestionNoneShort": "첫 끼를 기록하세요.",
+  "homeMealSuggestionDoneShort": "세 끼를 모두 기록하셨습니다. 좋은 리듬을 이어가세요.",
+  "homeMealSuggestionTwoShort": "한 끼만 더 기록해 주세요.",
+  "homeMealSuggestionOneShort": "두 끼를 더 기록해 주세요.",
+  "homeMealSuggestionNoneShort": "오늘 첫 끼부터 기록해 주세요.",
   "homeNextTrainingTitle": "다음 훈련",
   "homeNextTrainingToday": "오늘",
   "homeNextTrainingTomorrow": "내일",

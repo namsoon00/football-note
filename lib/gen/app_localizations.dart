@@ -560,6 +560,42 @@ abstract class AppLocalizations {
   /// **'Keep going'**
   String get dailyTasksXpDialogAction;
 
+  /// No description provided for @trainingXpDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training log saved'**
+  String get trainingXpDialogTitle;
+
+  /// No description provided for @trainingXpDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your saved training log added XP. Confirm to return to the home screen.'**
+  String get trainingXpDialogMessage;
+
+  /// No description provided for @trainingXpDialogXp.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} XP'**
+  String trainingXpDialogXp(int count);
+
+  /// No description provided for @trainingXpDialogAction.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get trainingXpDialogAction;
+
+  /// No description provided for @trainingXpSourceTrainingLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Training log'**
+  String get trainingXpSourceTrainingLog;
+
+  /// No description provided for @trainingXpSourceTrainingUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Training update'**
+  String get trainingXpSourceTrainingUpdate;
+
   /// No description provided for @levelUpDialogTitle.
   ///
   /// In en, this message translates to:
@@ -629,7 +665,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePriorityCheckPlansMessage.
   ///
   /// In en, this message translates to:
-  /// **'Check plans.'**
+  /// **'Review the remaining training plans before you start.'**
   String get homePriorityCheckPlansMessage;
 
   /// No description provided for @homePriorityPlansAction.
@@ -641,7 +677,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePriorityReviewWeekMessage.
   ///
   /// In en, this message translates to:
-  /// **'Review week.'**
+  /// **'Review this week\'s training flow and choose the next target.'**
   String get homePriorityReviewWeekMessage;
 
   /// No description provided for @homePriorityStatsAction.
@@ -653,7 +689,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePrioritySketchNextMessage.
   ///
   /// In en, this message translates to:
-  /// **'Sketch next.'**
+  /// **'Sketch the movement you want to try in your next session.'**
   String get homePrioritySketchNextMessage;
 
   /// No description provided for @homePriorityBoardAction.
@@ -665,13 +701,13 @@ abstract class AppLocalizations {
   /// No description provided for @homePriorityConditionMessage.
   ///
   /// In en, this message translates to:
-  /// **'Check condition.'**
+  /// **'Check your recent condition trend and adjust recovery.'**
   String get homePriorityConditionMessage;
 
   /// No description provided for @homePriorityRewardsMessage.
   ///
   /// In en, this message translates to:
-  /// **'Check rewards.'**
+  /// **'Review level rewards and the next growth target.'**
   String get homePriorityRewardsMessage;
 
   /// No description provided for @homePriorityLevelAction.
@@ -683,25 +719,25 @@ abstract class AppLocalizations {
   /// No description provided for @homeMealSuggestionDoneShort.
   ///
   /// In en, this message translates to:
-  /// **'All meals logged. Good rhythm.'**
+  /// **'All three meals are logged. Keep the rhythm going.'**
   String get homeMealSuggestionDoneShort;
 
   /// No description provided for @homeMealSuggestionTwoShort.
   ///
   /// In en, this message translates to:
-  /// **'Log one more meal.'**
+  /// **'Please log one more meal.'**
   String get homeMealSuggestionTwoShort;
 
   /// No description provided for @homeMealSuggestionOneShort.
   ///
   /// In en, this message translates to:
-  /// **'Log two more meals.'**
+  /// **'Please log two more meals.'**
   String get homeMealSuggestionOneShort;
 
   /// No description provided for @homeMealSuggestionNoneShort.
   ///
   /// In en, this message translates to:
-  /// **'Log the first meal.'**
+  /// **'Please start with the first meal today.'**
   String get homeMealSuggestionNoneShort;
 
   /// No description provided for @homeNextTrainingTitle.
