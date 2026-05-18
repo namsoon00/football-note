@@ -107,10 +107,14 @@ class DriveBackupService implements BackupRepository {
   static const sharedChildDriveLabelKey = 'drive_child_label_v1';
   static const backupFolderName = 'Football Note';
   static const backupFileName = 'football_note_backup.json';
+  static const previousBackupFileName = 'football_note_backup_previous.json';
   static String get backupDisplayPath =>
       'Google Drive > $backupFolderName > $backupFileName';
+  static String get previousBackupDisplayPath =>
+      'Google Drive > $backupFolderName > $previousBackupFileName';
   static const _folderName = backupFolderName;
   static const _fileName = backupFileName;
+  static const _previousFileName = previousBackupFileName;
   static const _driveScope = 'https://www.googleapis.com/auth/drive.file';
   static const parentDriveMismatchErrorCode = 'parent_drive_mismatch';
   static const parentFamilyMismatchErrorCode = 'parent_family_mismatch';
@@ -386,6 +390,25 @@ class DriveBackupService implements BackupRepository {
       await _reauthenticateForDriveScope();
       final retriedApi = await _driveApi(requireInteractive: false);
       await _restoreLatestWithApi(retriedApi);
+      await _rememberCurrentRoleDriveConnectionAfterRestore();
+    }
+  }
+
+  Future<void> restorePreviousBackup() async {
+    await _saveLocalPreRestore();
+    try {
+      final driveApi = await _driveApi(requireInteractive: kIsWeb);
+      await _restorePreviousWithApi(driveApi);
+      await _rememberCurrentRoleDriveConnectionAfterRestore();
+    } catch (e, st) {
+      if (!_isAuthError(e)) rethrow;
+      debugPrint(
+        'Drive sign-in/scope missing. Reauthenticating and retrying previous restore.',
+      );
+      debugPrintStack(stackTrace: st);
+      await _reauthenticateForDriveScope();
+      final retriedApi = await _driveApi(requireInteractive: false);
+      await _restorePreviousWithApi(retriedApi);
       await _rememberCurrentRoleDriveConnectionAfterRestore();
     }
   }
@@ -1115,8 +1138,23 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi api,
     String folderId,
   ) async {
+    return _findBackupFileByName(api, folderId, _fileName);
+  }
+
+  Future<drive.File?> _findPreviousBackupFile(
+    drive.DriveApi api,
+    String folderId,
+  ) async {
+    return _findBackupFileByName(api, folderId, _previousFileName);
+  }
+
+  Future<drive.File?> _findBackupFileByName(
+    drive.DriveApi api,
+    String folderId,
+    String fileName,
+  ) async {
     final result = await api.files.list(
-      q: "'$folderId' in parents and name='$_fileName' and trashed=false",
+      q: "'$folderId' in parents and name='$fileName' and trashed=false",
       spaces: 'drive',
       orderBy: 'modifiedTime desc',
       $fields: 'files(id,name,modifiedTime)',
@@ -1129,8 +1167,30 @@ class DriveBackupService implements BackupRepository {
     String folderId,
     String keepId,
   ) async {
+    await _cleanupDuplicateBackupFiles(api, folderId, _fileName, keepId);
+  }
+
+  Future<void> _cleanupDuplicatePreviousBackups(
+    drive.DriveApi api,
+    String folderId,
+    String keepId,
+  ) async {
+    await _cleanupDuplicateBackupFiles(
+      api,
+      folderId,
+      _previousFileName,
+      keepId,
+    );
+  }
+
+  Future<void> _cleanupDuplicateBackupFiles(
+    drive.DriveApi api,
+    String folderId,
+    String fileName,
+    String keepId,
+  ) async {
     final result = await api.files.list(
-      q: "'$folderId' in parents and name='$_fileName' and trashed=false",
+      q: "'$folderId' in parents and name='$fileName' and trashed=false",
       spaces: 'drive',
       orderBy: 'modifiedTime desc',
       $fields: 'files(id,name,modifiedTime)',
@@ -1159,6 +1219,7 @@ class DriveBackupService implements BackupRepository {
     final media = drive.Media(Stream.value(bytes), bytes.length);
     late final DateTime syncedAt;
     if (existing != null) {
+      await _preservePreviousRemoteBackup(driveApi, folderId, existing);
       final updated = await driveApi.files.update(
         drive.File(name: _fileName),
         existing.id!,
@@ -1186,6 +1247,39 @@ class DriveBackupService implements BackupRepository {
     }
   }
 
+  Future<void> _preservePreviousRemoteBackup(
+    drive.DriveApi driveApi,
+    String folderId,
+    drive.File existing,
+  ) async {
+    final existingId = existing.id;
+    if (existingId == null || existingId.isEmpty) return;
+    final content = await _downloadFileContent(driveApi, existingId);
+    final bytes = utf8.encode(content);
+    final media = drive.Media(Stream.value(bytes), bytes.length);
+    final previous = await _findPreviousBackupFile(driveApi, folderId);
+    if (previous != null && previous.id != null) {
+      final updated = await driveApi.files.update(
+        drive.File(name: _previousFileName),
+        previous.id!,
+        uploadMedia: media,
+        $fields: 'id,modifiedTime',
+      );
+      if (updated.id != null) {
+        await _cleanupDuplicatePreviousBackups(driveApi, folderId, updated.id!);
+      }
+      return;
+    }
+    final created = await driveApi.files.create(
+      drive.File(name: _previousFileName, parents: [folderId]),
+      uploadMedia: media,
+      $fields: 'id,modifiedTime',
+    );
+    if (created.id != null) {
+      await _cleanupDuplicatePreviousBackups(driveApi, folderId, created.id!);
+    }
+  }
+
   Future<void> _restoreLatestWithApi(drive.DriveApi driveApi) async {
     final folderId = await _findFolderId(driveApi);
     if (folderId == null) {
@@ -1194,6 +1288,25 @@ class DriveBackupService implements BackupRepository {
     final file = await _findBackupFile(driveApi, folderId);
     if (file == null) {
       throw StateError('No backup file found.');
+    }
+    await _restoreBackupFileWithApi(driveApi, file);
+    if (_familyService.loadState().isSupportMode) {
+      await _recordFamilySyncPull(
+        DateTime.now(),
+        remoteModifiedAt: file.modifiedTime ?? DateTime.now(),
+      );
+      await _setParentSharedDataDirty(false);
+    }
+  }
+
+  Future<void> _restorePreviousWithApi(drive.DriveApi driveApi) async {
+    final folderId = await _findFolderId(driveApi);
+    if (folderId == null) {
+      throw StateError('No previous backup file found.');
+    }
+    final file = await _findPreviousBackupFile(driveApi, folderId);
+    if (file == null) {
+      throw StateError('No previous backup file found.');
     }
     await _restoreBackupFileWithApi(driveApi, file);
     if (_familyService.loadState().isSupportMode) {
@@ -2088,14 +2201,21 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi driveApi,
     String fileId,
   ) async {
+    final content = await _downloadFileContent(driveApi, fileId);
+    return _decodeBackupPayload(content);
+  }
+
+  Future<String> _downloadFileContent(
+    drive.DriveApi driveApi,
+    String fileId,
+  ) async {
     final media =
         await driveApi.files.get(
               fileId,
               downloadOptions: drive.DownloadOptions.fullMedia,
             )
             as drive.Media;
-    final content = await utf8.decoder.bind(media.stream).join();
-    return _decodeBackupPayload(content);
+    return utf8.decoder.bind(media.stream).join();
   }
 
   Map<String, dynamic> _decodeBackupPayload(String content) {

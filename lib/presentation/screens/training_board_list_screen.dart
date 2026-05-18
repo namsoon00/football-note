@@ -17,6 +17,7 @@ import '../models/training_board_link_codec.dart';
 import '../models/training_board_templates.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
+import '../widgets/level_up_dialog.dart';
 import '../theme/app_motion.dart';
 import 'training_method_board_screen.dart';
 
@@ -63,6 +64,56 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _presentBoardXpAward(
+    PlayerLevelAward award, {
+    required bool isKo,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    final reminderService = TrainingPlanReminderService(
+      widget.optionRepository,
+      SettingsService(widget.optionRepository)..load(),
+    );
+    await reminderService.showXpGainAlert(
+      gainedXp: award.gainedXp,
+      totalXp: award.after.totalXp,
+      isKo: isKo,
+      sourceLabel: l10n.trainingXpSourceTrainingSketch,
+    );
+    if (award.didLevelUp) {
+      await reminderService.showLevelUpAlert(
+        level: award.after.level,
+        isKo: isKo,
+      );
+    }
+    if (!mounted || award.gainedXp <= 0) return;
+    if (award.didLevelUp) {
+      final levelService = PlayerLevelService(widget.optionRepository);
+      await showLevelUpCelebrationDialog(
+        context,
+        award: award,
+        isKo: isKo,
+        customRewardName: levelService.customRewardNameForLevel(
+          award.after.level,
+        ),
+        onClaimReward: () async {
+          final claim = await PlayerLevelService(
+            widget.optionRepository,
+          ).claimRewardForLevel(award.after.level);
+          if (!mounted || claim == null) return;
+          final rewardName = claim.customRewardName.trim().isNotEmpty
+              ? claim.customRewardName
+              : (isKo ? claim.reward.nameKo : claim.reward.nameEn);
+          AppFeedback.showSuccess(
+            context,
+            text: l10n.levelUpRewardClaimed(rewardName),
+          );
+        },
+      );
+      if (!mounted) return;
+    }
+    await showTrainingXpRewardDialog(context, award: award);
   }
 
   void _toggleSearch() {
@@ -208,15 +259,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
           savedAt: created.updatedAt,
           created: true,
         );
-    await TrainingPlanReminderService(
-      widget.optionRepository,
-      SettingsService(widget.optionRepository)..load(),
-    ).showXpGainAlert(
-      gainedXp: award.gainedXp,
-      totalXp: award.after.totalXp,
-      isKo: isKo,
-      sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
-    );
+    await _presentBoardXpAward(award, isKo: isKo);
     if (!mounted) return;
     AppFeedback.showSuccess(
       context,
@@ -285,15 +328,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
           savedAt: created.updatedAt,
           created: true,
         );
-    await TrainingPlanReminderService(
-      widget.optionRepository,
-      SettingsService(widget.optionRepository)..load(),
-    ).showXpGainAlert(
-      gainedXp: award.gainedXp,
-      totalXp: award.after.totalXp,
-      isKo: isKo,
-      sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
-    );
+    await _presentBoardXpAward(award, isKo: isKo);
     if (!mounted) return;
     AppFeedback.showSuccess(
       context,
@@ -716,15 +751,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
           savedAt: created.updatedAt,
           created: true,
         );
-    await TrainingPlanReminderService(
-      widget.optionRepository,
-      SettingsService(widget.optionRepository)..load(),
-    ).showXpGainAlert(
-      gainedXp: award.gainedXp,
-      totalXp: award.after.totalXp,
-      isKo: isKo,
-      sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
-    );
+    await _presentBoardXpAward(award, isKo: isKo);
     if (!mounted) return;
     AppFeedback.showSuccess(
       context,

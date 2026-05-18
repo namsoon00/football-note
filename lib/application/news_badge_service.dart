@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 
 import '../domain/entities/news_article.dart';
@@ -7,6 +9,8 @@ import 'news_read_state.dart';
 import 'news_service.dart';
 
 class NewsBadgeService {
+  static const String seenArticleKeysKey = 'news_badge_seen_article_keys_v1';
+  static const int _maxStoredKeys = 500;
   static final ValueNotifier<int> _unreadCountNotifier = ValueNotifier<int>(0);
 
   static ValueListenable<int> listenable(OptionRepository optionRepository) {
@@ -35,7 +39,7 @@ class NewsBadgeService {
       }),
     );
 
-    return NewsReadState.unreadCount(optionRepository, articles);
+    return _unreadCount(optionRepository, articles);
   }
 
   static Future<void> refresh(OptionRepository optionRepository) async {
@@ -43,6 +47,53 @@ class NewsBadgeService {
     if (_unreadCountNotifier.value != count) {
       _unreadCountNotifier.value = count;
     }
+  }
+
+  static void clearUnreadCount() {
+    if (_unreadCountNotifier.value != 0) {
+      _unreadCountNotifier.value = 0;
+    }
+  }
+
+  static Future<void> markSeen(
+    OptionRepository optionRepository,
+    Iterable<NewsArticle> articles,
+  ) async {
+    final merged = LinkedHashSet<String>.from(
+      optionRepository
+          .getOptions(seenArticleKeysKey, const <String>[])
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty),
+    );
+    for (final article in articles) {
+      final key = NewsReadState.articleKey(article);
+      if (key.isEmpty) continue;
+      merged.remove(key);
+      merged.add(key);
+    }
+    while (merged.length > _maxStoredKeys) {
+      merged.remove(merged.first);
+    }
+    await optionRepository.saveOptions(seenArticleKeysKey, merged.toList());
+  }
+
+  static int _unreadCount(
+    OptionRepository optionRepository,
+    Iterable<NewsArticle> articles,
+  ) {
+    final seenKeys = {
+      ...optionRepository
+          .getOptions(seenArticleKeysKey, const <String>[])
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty),
+      ...NewsReadState.loadReadKeys(optionRepository),
+    };
+    final articleKeys = <String>{};
+    for (final article in articles) {
+      final key = NewsReadState.articleKey(article);
+      if (key.isEmpty || !articleKeys.add(key)) continue;
+    }
+    return articleKeys.where((key) => !seenKeys.contains(key)).length;
   }
 
   static String _articleKey(NewsArticle article) {

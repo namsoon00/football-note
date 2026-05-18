@@ -388,6 +388,57 @@ void main() {
     );
   });
 
+  testWidgets('player backup is disabled when Google account changes', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: true,
+      connectionInfo: const DriveConnectionInfo(
+        email: 'new-player@example.com',
+        displayName: '민수',
+        subjectId: 'subject-new',
+      ),
+      sharedChildDriveLabel: '',
+      sharedChildDriveEmail: '',
+      savedRecordDriveLabel: '민수 · player@example.com',
+      savedRecordDriveEmail: 'player@example.com',
+      lastBackupAt: DateTime(2026, 3, 22, 10),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.widgetWithText(OutlinedButton, '데이터 백업하기'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    final backupButtonFinder = find.widgetWithText(OutlinedButton, '데이터 백업하기');
+    final backupButton = tester.widget<OutlinedButton>(backupButtonFinder);
+    expect(backupButton.onPressed, isNull);
+    expect(
+      find.text('Google 계정이 바뀌었어요. 최근 데이터 가져오기를 완료한 뒤 이 계정으로 백업할 수 있어요.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets(
     'player mode hides saved player drive when current account matches it',
     (WidgetTester tester) async {
@@ -732,6 +783,7 @@ class _FakeDriveBackupService extends BackupService {
   bool throwNextIsSignedIn;
   final bool throwIsSignedInAfterSignInOnce;
   bool signOutCalled;
+  bool restorePreviousBackupCalled;
   bool refreshParentSharedDataIfNeededCalled;
   final StreamController<void> _driveAccountStateController =
       StreamController<void>.broadcast();
@@ -756,6 +808,7 @@ class _FakeDriveBackupService extends BackupService {
     DateTime? lastBackupAt,
   }) : _signedIn = signedIn,
        signOutCalled = false,
+       restorePreviousBackupCalled = false,
        refreshParentSharedDataIfNeededCalled = false,
        throwNextIsSignedIn = false,
        _connectionInfo = connectionInfo,
@@ -945,6 +998,11 @@ class _FakeDriveBackupService extends BackupService {
   Future<FamilySharedSyncResult> refreshFamilySharedDataIfNeeded() async {
     refreshParentSharedDataIfNeededCalled = true;
     return const FamilySharedSyncResult.none(role: FamilyRole.parent);
+  }
+
+  @override
+  Future<void> restorePreviousBackup() async {
+    restorePreviousBackupCalled = true;
   }
 
   @override

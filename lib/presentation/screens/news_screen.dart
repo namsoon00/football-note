@@ -90,6 +90,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const ValueKey<String> _searchActionKey = ValueKey<String>(
     'news_quick_action_search',
   );
+  static const ValueKey<String> _viewedHistoryActionKey = ValueKey<String>(
+    'news_quick_action_viewed_history',
+  );
   static final Uri _kLeagueStandingsUri = Uri.parse(
     'https://www.kleague.com/record/team.do',
   );
@@ -379,6 +382,15 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             showLabel: false,
             tooltip: l10n.newsSearchAction,
             onPressed: _toggleSearch,
+          ),
+          _buildQuickToggleAction(
+            buttonKey: _viewedHistoryActionKey,
+            label: l10n.newsViewedHistoryAction,
+            icon: Icons.history,
+            selected: false,
+            showLabel: false,
+            tooltip: l10n.newsViewedHistoryAction,
+            onPressed: _openViewedNewsHistory,
           ),
         ],
       ),
@@ -855,6 +867,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       forceRefresh: force,
     );
     if (!mounted || token != _loadToken) return;
+    await _markLoadedArticlesSeenForBadge();
+    if (!mounted || token != _loadToken) return;
 
     if (secondaryIds.isEmpty) {
       setState(() {
@@ -876,6 +890,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         channelIds: secondaryIds,
         forceRefresh: force,
       ).then((secondarySucceeded) async {
+        if (!mounted || token != _loadToken) return;
+        await _markLoadedArticlesSeenForBadge();
         if (!mounted || token != _loadToken) return;
         setState(() {
           _isBackgroundLoading = false;
@@ -923,6 +939,27 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             .where((v) => v.isNotEmpty),
       );
     _lastLoadedAt = cachedAt;
+    unawaited(_markLoadedArticlesSeenForBadge());
+  }
+
+  Future<void> _markLoadedArticlesSeenForBadge() async {
+    final newlySeenArticles = <NewsArticle>[];
+    final seenKeys = widget.optionRepository
+        .getOptions(NewsBadgeService.seenArticleKeysKey, const <String>[])
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    for (final article in _articles) {
+      final key = NewsReadState.articleKey(article);
+      if (key.isEmpty || seenKeys.contains(key)) continue;
+      newlySeenArticles.add(article);
+    }
+    if (newlySeenArticles.isEmpty) {
+      NewsBadgeService.clearUnreadCount();
+      return;
+    }
+    await NewsBadgeService.markSeen(widget.optionRepository, newlySeenArticles);
+    NewsBadgeService.clearUnreadCount();
   }
 
   Future<bool> _loadChannels({
@@ -1368,6 +1405,101 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     );
   }
 
+  Future<void> _openViewedNewsHistory() async {
+    final l10n = AppLocalizations.of(context)!;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final openedItems = _loadOpenedNewsItems();
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: FractionallySizedBox(
+            heightFactor: 0.72,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: Text(
+                    l10n.newsViewedHistoryTitle,
+                    style: Theme.of(sheetContext)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w900),
+                  ),
+                ),
+                if (openedItems.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        l10n.newsViewedHistoryEmpty,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                      itemCount: openedItems.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final item = openedItems[index];
+                        return ListTile(
+                          leading: const Icon(Icons.article_outlined),
+                          title: Text(
+                            item.displayTitle(isKo),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(item.subtitle),
+                          trailing: const Icon(Icons.open_in_new),
+                          onTap: () {
+                            Navigator.of(sheetContext).pop();
+                            unawaited(_openViewedNewsItem(item));
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  List<_OpenedNewsItem> _loadOpenedNewsItems() {
+    final raw = widget.optionRepository.getValue<String>(
+      NewsScreen.openedItemsKey,
+    );
+    if (raw == null || raw.trim().isEmpty) return const <_OpenedNewsItem>[];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const <_OpenedNewsItem>[];
+      return decoded
+          .whereType<Map>()
+          .map((item) => _OpenedNewsItem.fromMap(item.cast<String, dynamic>()))
+          .where((item) => item.link.trim().isNotEmpty)
+          .toList(growable: false);
+    } catch (_) {
+      return const <_OpenedNewsItem>[];
+    }
+  }
+
+  Future<void> _openViewedNewsItem(_OpenedNewsItem item) async {
+    final uri = Uri.tryParse(item.link);
+    if (uri == null || !uri.hasScheme) return;
+    await launchUrl(
+      uri,
+      mode: LaunchMode.inAppBrowserView,
+      browserConfiguration: const BrowserConfiguration(showTitle: true),
+    );
+  }
+
   bool _hasUsableThumbnail(NewsArticle article) {
     final url = article.imageUrl.trim();
     return url.startsWith('http://') || url.startsWith('https://');
@@ -1569,6 +1701,46 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     } catch (_) {
       return <String, _ScrappedNewsItem>{};
     }
+  }
+}
+
+class _OpenedNewsItem {
+  final String title;
+  final String titleKo;
+  final String link;
+  final String source;
+  final DateTime? openedAt;
+
+  const _OpenedNewsItem({
+    required this.title,
+    required this.titleKo,
+    required this.link,
+    required this.source,
+    required this.openedAt,
+  });
+
+  factory _OpenedNewsItem.fromMap(Map<String, dynamic> map) {
+    return _OpenedNewsItem(
+      title: map['title']?.toString().trim() ?? '',
+      titleKo: map['titleKo']?.toString().trim() ?? '',
+      link: map['link']?.toString().trim() ?? '',
+      source: map['source']?.toString().trim() ?? '',
+      openedAt: DateTime.tryParse(map['openedAt']?.toString() ?? ''),
+    );
+  }
+
+  String displayTitle(bool isKo) {
+    if (isKo && titleKo.trim().isNotEmpty) return titleKo.trim();
+    if (title.trim().isNotEmpty) return title.trim();
+    return link.trim();
+  }
+
+  String get subtitle {
+    final date = openedAt;
+    if (date == null) return source;
+    final dateText = DateFormat('yyyy.MM.dd HH:mm').format(date.toLocal());
+    if (source.trim().isEmpty) return dateText;
+    return '$source · $dateText';
   }
 }
 

@@ -3089,7 +3089,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             gainedXp: levelAward.gainedXp,
             totalXp: levelAward.after.totalXp,
             isKo: isKo,
-            sourceLabel: l10n.trainingXpSourceTrainingUpdate,
+            sourceLabel: _trainingUpdateXpSourceLabel(l10n, levelAward),
           );
           if (levelAward.didLevelUp) {
             await reminderService.showLevelUpAlert(
@@ -3181,6 +3181,19 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     return isKo
         ? '$base $xpText · Lv.${levelAward.after.level} $levelName 달성'
         : '$base $xpText · Reached Lv.${levelAward.after.level} $levelName';
+  }
+
+  String _trainingUpdateXpSourceLabel(
+    AppLocalizations l10n,
+    PlayerLevelAward award,
+  ) {
+    final parts = <String>[
+      if (award.reasons.contains('lifting_added')) l10n.trainingXpSourceLifting,
+      if (award.reasons.contains('jump_rope_added'))
+        l10n.trainingXpSourceJumpRope,
+    ];
+    if (parts.isEmpty) return l10n.trainingXpSourceTrainingUpdate;
+    return parts.join(', ');
   }
 
   Future<void> _showFortuneRevealDialog(String fortuneComment) async {

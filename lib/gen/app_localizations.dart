@@ -302,6 +302,24 @@ abstract class AppLocalizations {
   /// **'Show scrapped only'**
   String get newsShowScrappedOnlyAction;
 
+  /// No description provided for @newsViewedHistoryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewed news'**
+  String get newsViewedHistoryAction;
+
+  /// No description provided for @newsViewedHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewed news'**
+  String get newsViewedHistoryTitle;
+
+  /// No description provided for @newsViewedHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No viewed news yet.'**
+  String get newsViewedHistoryEmpty;
+
   /// No description provided for @newsTitleTranslateEnabledTooltip.
   ///
   /// In en, this message translates to:
@@ -595,6 +613,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Training update'**
   String get trainingXpSourceTrainingUpdate;
+
+  /// No description provided for @trainingXpSourceLifting.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting'**
+  String get trainingXpSourceLifting;
+
+  /// No description provided for @trainingXpSourceJumpRope.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope'**
+  String get trainingXpSourceJumpRope;
+
+  /// No description provided for @trainingXpSourceTrainingSketch.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sketch'**
+  String get trainingXpSourceTrainingSketch;
+
+  /// No description provided for @trainingXpSourceDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary'**
+  String get trainingXpSourceDiary;
 
   /// No description provided for @levelUpDialogTitle.
   ///
@@ -1994,6 +2036,12 @@ abstract class AppLocalizations {
   /// **'Import latest data'**
   String get restoreFromDrive;
 
+  /// No description provided for @restorePreviousBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Import previous backup'**
+  String get restorePreviousBackup;
+
   /// No description provided for @backupConfirm.
   ///
   /// In en, this message translates to:
@@ -2005,6 +2053,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import the latest data from Google Drive? This will replace current data.'**
   String get restoreConfirm;
+
+  /// No description provided for @restorePreviousConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Import the previous Google Drive backup? Current data will be replaced.'**
+  String get restorePreviousConfirm;
 
   /// No description provided for @backupSuccess.
   ///
@@ -2029,6 +2083,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to import data. Please try again.'**
   String get restoreFailed;
+
+  /// No description provided for @restorePreviousSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous backup imported.'**
+  String get restorePreviousSuccess;
+
+  /// No description provided for @restorePreviousFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to import the previous backup. Please try again.'**
+  String get restorePreviousFailed;
 
   /// No description provided for @backupInProgress.
   ///
@@ -2125,6 +2191,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Local safety backup'**
   String get localBackup;
+
+  /// No description provided for @driveBackupLockedAccountChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The Google account changed. Import the latest data before backing up with this account.'**
+  String get driveBackupLockedAccountChanged;
 
   /// No description provided for @backupVersionUnsupported.
   ///

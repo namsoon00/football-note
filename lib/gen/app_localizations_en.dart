@@ -114,6 +114,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsShowScrappedOnlyAction => 'Show scrapped only';
 
   @override
+  String get newsViewedHistoryAction => 'Viewed news';
+
+  @override
+  String get newsViewedHistoryTitle => 'Viewed news';
+
+  @override
+  String get newsViewedHistoryEmpty => 'No viewed news yet.';
+
+  @override
   String get newsTitleTranslateEnabledTooltip => 'Title translation on';
 
   @override
@@ -275,6 +284,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingXpSourceTrainingUpdate => 'Training update';
+
+  @override
+  String get trainingXpSourceLifting => 'Lifting';
+
+  @override
+  String get trainingXpSourceJumpRope => 'Jump rope';
+
+  @override
+  String get trainingXpSourceTrainingSketch => 'Training sketch';
+
+  @override
+  String get trainingXpSourceDiary => 'Diary';
 
   @override
   String get levelUpDialogTitle => 'Level up!';
@@ -1039,11 +1060,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restoreFromDrive => 'Import latest data';
 
   @override
+  String get restorePreviousBackup => 'Import previous backup';
+
+  @override
   String get backupConfirm => 'Create a new backup on Google Drive?';
 
   @override
   String get restoreConfirm =>
       'Import the latest data from Google Drive? This will replace current data.';
+
+  @override
+  String get restorePreviousConfirm =>
+      'Import the previous Google Drive backup? Current data will be replaced.';
 
   @override
   String get backupSuccess => 'Backup completed.';
@@ -1056,6 +1084,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreFailed => 'Failed to import data. Please try again.';
+
+  @override
+  String get restorePreviousSuccess => 'Previous backup imported.';
+
+  @override
+  String get restorePreviousFailed =>
+      'Failed to import the previous backup. Please try again.';
 
   @override
   String get backupInProgress => 'Backing up...';
@@ -1111,6 +1146,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get localBackup => 'Local safety backup';
+
+  @override
+  String get driveBackupLockedAccountChanged =>
+      'The Google account changed. Import the latest data before backing up with this account.';
 
   @override
   String get backupVersionUnsupported =>

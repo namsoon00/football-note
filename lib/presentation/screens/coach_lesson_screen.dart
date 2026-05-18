@@ -36,6 +36,7 @@ import '../widgets/rice_bowl_summary.dart';
 import '../widgets/fortune_card.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/status_style.dart';
+import '../widgets/level_up_dialog.dart';
 import '../widgets/training_board_sketch.dart';
 import 'calendar_screen.dart';
 import 'entry_form_screen.dart';
@@ -536,6 +537,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final award = await PlayerLevelService(
       widget.optionRepository,
     ).awardForDiaryCreated(createdAt: date);
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     final settingsService = widget.settingsService ??
         (SettingsService(widget.optionRepository)..load());
     await TrainingPlanReminderService(
@@ -545,9 +548,42 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       gainedXp: award.gainedXp,
       totalXp: award.after.totalXp,
       isKo: _isKo,
-      sourceLabel: _isKo ? '다이어리' : 'Diary',
+      sourceLabel: l10n.trainingXpSourceDiary,
     );
+    if (award.didLevelUp) {
+      await TrainingPlanReminderService(
+        widget.optionRepository,
+        settingsService,
+      ).showLevelUpAlert(level: award.after.level, isKo: _isKo);
+    }
     if (!mounted || award.gainedXp <= 0) return;
+    if (award.didLevelUp) {
+      final levelService = PlayerLevelService(widget.optionRepository);
+      await showLevelUpCelebrationDialog(
+        context,
+        award: award,
+        isKo: _isKo,
+        customRewardName: levelService.customRewardNameForLevel(
+          award.after.level,
+        ),
+        onClaimReward: () async {
+          final claim = await PlayerLevelService(
+            widget.optionRepository,
+          ).claimRewardForLevel(award.after.level);
+          if (!mounted || claim == null) return;
+          final rewardName = claim.customRewardName.trim().isNotEmpty
+              ? claim.customRewardName
+              : (_isKo ? claim.reward.nameKo : claim.reward.nameEn);
+          AppFeedback.showSuccess(
+            context,
+            text: l10n.levelUpRewardClaimed(rewardName),
+          );
+        },
+      );
+      if (!mounted) return;
+    }
+    await showTrainingXpRewardDialog(context, award: award);
+    if (!mounted) return;
     AppFeedback.showSuccess(
       context,
       text: _isKo
@@ -4254,12 +4290,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return showModalBottomSheet<DateTime>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             final theme = Theme.of(context);
-            final dayTextStyle = theme.textTheme.bodySmall?.copyWith(
+            const calendarDayNumberFontSize = 17.0;
+            final dayTextStyle = TextStyle(
+              fontSize: calendarDayNumberFontSize,
               fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurface,
             );
             return SafeArea(
               child: Center(
@@ -4274,60 +4314,48 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       lastDay: lastDay,
                       focusedDay: focusedDay,
                       calendarFormat: CalendarFormat.month,
-                      rowHeight: 32,
-                      daysOfWeekHeight: 14,
+                      rowHeight: 44,
+                      daysOfWeekHeight: 20,
                       availableGestures: AvailableGestures.horizontalSwipe,
                       startingDayOfWeek: StartingDayOfWeek.sunday,
                       headerStyle: const HeaderStyle(
                         formatButtonVisible: false,
                         titleCentered: true,
                         titleTextStyle: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
                         ),
-                        headerPadding: EdgeInsets.only(bottom: 2),
+                        headerPadding: EdgeInsets.fromLTRB(0, 0, 0, 6),
                         leftChevronPadding: EdgeInsets.zero,
                         rightChevronPadding: EdgeInsets.zero,
                       ),
                       daysOfWeekStyle: DaysOfWeekStyle(
-                        weekdayStyle: theme.textTheme.labelSmall ??
-                            const TextStyle(fontSize: 11),
-                        weekendStyle: theme.textTheme.labelSmall ??
-                            const TextStyle(fontSize: 11),
+                        weekdayStyle: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ) ??
+                            const TextStyle(fontWeight: FontWeight.w700),
+                        weekendStyle: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ) ??
+                            const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       calendarStyle: CalendarStyle(
                         outsideDaysVisible: false,
-                        defaultTextStyle:
-                            dayTextStyle ?? const TextStyle(fontSize: 13),
-                        weekendTextStyle:
-                            dayTextStyle ?? const TextStyle(fontSize: 13),
-                        disabledTextStyle: dayTextStyle?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.28,
-                              ),
-                            ) ??
-                            TextStyle(
-                              fontSize: 13,
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.28,
-                              ),
-                            ),
-                        todayTextStyle: dayTextStyle?.copyWith(
-                              color: theme.colorScheme.onPrimary,
-                              fontWeight: FontWeight.w900,
-                            ) ??
-                            TextStyle(
-                              fontSize: 13,
-                              color: theme.colorScheme.onPrimary,
-                            ),
-                        selectedTextStyle: dayTextStyle?.copyWith(
-                              color: theme.colorScheme.onPrimary,
-                              fontWeight: FontWeight.w900,
-                            ) ??
-                            TextStyle(
-                              fontSize: 13,
-                              color: theme.colorScheme.onPrimary,
-                            ),
+                        defaultTextStyle: dayTextStyle,
+                        weekendTextStyle: dayTextStyle,
+                        disabledTextStyle: dayTextStyle.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.28,
+                          ),
+                        ),
+                        todayTextStyle: dayTextStyle.copyWith(
+                          color: theme.colorScheme.onPrimary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                        selectedTextStyle: dayTextStyle.copyWith(
+                          color: theme.colorScheme.onPrimary,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       selectedDayPredicate: (day) =>
                           selectedDay != null && isSameDay(day, selectedDay),
