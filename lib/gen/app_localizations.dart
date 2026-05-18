@@ -155,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsMoreActionsTooltip.
   ///
   /// In en, this message translates to:
-  /// **'More'**
+  /// **'Rankings'**
   String get newsMoreActionsTooltip;
 
   /// No description provided for @newsMoreActionsTitle.
@@ -164,10 +164,16 @@ abstract class AppLocalizations {
   /// **'More'**
   String get newsMoreActionsTitle;
 
+  /// No description provided for @newsRankingMoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Rankings'**
+  String get newsRankingMoreButton;
+
   /// No description provided for @newsLeagueStandingsAction.
   ///
   /// In en, this message translates to:
-  /// **'View standings'**
+  /// **'Overseas league standings'**
   String get newsLeagueStandingsAction;
 
   /// No description provided for @newsLeagueStandingsTitle.
@@ -476,17 +482,149 @@ abstract class AppLocalizations {
   /// **'Today\'s tasks'**
   String get homeDailyCheckTitle;
 
+  /// No description provided for @homeDailyCheckCompletedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed}/{total} done'**
+  String homeDailyCheckCompletedCount(int completed, int total);
+
   /// No description provided for @homeTodoTrainingLogShort.
   ///
   /// In en, this message translates to:
   /// **'Log'**
   String get homeTodoTrainingLogShort;
 
+  /// No description provided for @homeTodoLiftingShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting'**
+  String get homeTodoLiftingShort;
+
+  /// No description provided for @homeTodoJumpRopeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump'**
+  String get homeTodoJumpRopeShort;
+
+  /// No description provided for @homeTodoQuizShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz'**
+  String get homeTodoQuizShort;
+
+  /// No description provided for @homeTodoDiaryShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary'**
+  String get homeTodoDiaryShort;
+
   /// No description provided for @homeTodoBoardSketchShort.
   ///
   /// In en, this message translates to:
   /// **'Sketch'**
   String get homeTodoBoardSketchShort;
+
+  /// No description provided for @dailyTasksXpDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s tasks complete'**
+  String get dailyTasksXpDialogTitle;
+
+  /// No description provided for @dailyTasksXpDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole routine is checked off. That consistency turned into growth gems.'**
+  String get dailyTasksXpDialogMessage;
+
+  /// No description provided for @dailyTasksXpDialogGems.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} gems'**
+  String dailyTasksXpDialogGems(int count);
+
+  /// No description provided for @dailyTasksXpDialogProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {totalXp} XP · {remainingXp} XP to next level'**
+  String dailyTasksXpDialogProgress(int totalXp, int remainingXp);
+
+  /// No description provided for @dailyTasksXpDialogMaxProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {totalXp} XP · {remainingXp} XP to next mastery star'**
+  String dailyTasksXpDialogMaxProgress(int totalXp, int remainingXp);
+
+  /// No description provided for @dailyTasksXpDialogAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going'**
+  String get dailyTasksXpDialogAction;
+
+  /// No description provided for @levelUpDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Level up!'**
+  String get levelUpDialogTitle;
+
+  /// No description provided for @levelUpDialogLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv.{level} {levelName}'**
+  String levelUpDialogLevelLabel(int level, Object levelName);
+
+  /// No description provided for @levelUpDialogEncouragement.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s effort became bright growth. Keep this rhythm for the next session.'**
+  String get levelUpDialogEncouragement;
+
+  /// No description provided for @levelUpDialogEncouragementWithReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s effort became bright growth, and {rewardName} is ready too.'**
+  String levelUpDialogEncouragementWithReward(Object rewardName);
+
+  /// No description provided for @levelUpDialogProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'+{xp} gems earned · now in {stageName}'**
+  String levelUpDialogProgress(int xp, Object stageName);
+
+  /// No description provided for @levelUpDialogRewardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward'**
+  String get levelUpDialogRewardTitle;
+
+  /// No description provided for @levelUpDialogLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get levelUpDialogLater;
+
+  /// No description provided for @levelUpDialogClaimReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim reward'**
+  String get levelUpDialogClaimReward;
+
+  /// No description provided for @levelUpDialogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Great'**
+  String get levelUpDialogConfirm;
+
+  /// No description provided for @levelUpRewardClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Claimed {rewardName}.'**
+  String levelUpRewardClaimed(Object rewardName);
+
+  /// No description provided for @xpGuideDailyTasksCompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All today tasks complete'**
+  String get xpGuideDailyTasksCompleteTitle;
 
   /// No description provided for @homePriorityCheckPlansMessage.
   ///

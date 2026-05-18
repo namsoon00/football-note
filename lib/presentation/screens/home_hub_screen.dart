@@ -27,6 +27,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
+import '../widgets/level_up_dialog.dart';
 import '../widgets/player_level_visuals.dart';
 import '../widgets/rice_bowl_summary.dart';
 import '../widgets/shared_tab_header.dart';
@@ -101,6 +102,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   String _weatherLocation = '';
   String _weatherSummary = '';
   int? _weatherCode;
+  bool _dailyTaskAwardInFlight = false;
+  String? _lastDailyTaskAwardToken;
 
   bool get _isParentMode =>
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
@@ -170,6 +173,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     ),
                     openedNewsToday: _openedNewsToday(),
                   );
+                  _scheduleDailyTaskCompletionAwardIfNeeded(data);
                   final priorityFocusSignal = _resolvePriorityFocusSignal(data);
                   final reminderUnreadCount = TrainingPlanReminderService(
                     widget.optionRepository,
@@ -329,7 +333,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         const SizedBox(height: 12),
                         _DailyFlowCard(
                           data: data,
-                          isKo: isKo,
                           l10n: l10n,
                           onLog: _trackedAction(
                             'daily_flow_log',
@@ -548,6 +551,72 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   Future<void> _openWeatherOutfitGuide() => _openWeatherDetails(
     initialAction: WeatherDetailInitialAction.outfitGuide,
   );
+
+  void _scheduleDailyTaskCompletionAwardIfNeeded(_HomeHubData data) {
+    if (_isParentMode || !data.completedDailyTasks) return;
+    final token = CoachLessonScreen.todayViewedDayToken(DateTime.now());
+    if (_lastDailyTaskAwardToken == token || _dailyTaskAwardInFlight) return;
+    _lastDailyTaskAwardToken = token;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_awardDailyTaskCompletion());
+    });
+  }
+
+  Future<void> _awardDailyTaskCompletion() async {
+    if (_dailyTaskAwardInFlight || !mounted) return;
+    _dailyTaskAwardInFlight = true;
+    try {
+      final l10n = AppLocalizations.of(context)!;
+      final isKo = Localizations.localeOf(context).languageCode == 'ko';
+      final levelService = PlayerLevelService(widget.optionRepository);
+      final award = await levelService.awardForDailyTasksCompleted();
+      if (!mounted || award.gainedXp <= 0) return;
+      final reminderService = TrainingPlanReminderService(
+        widget.optionRepository,
+        widget.settingsService,
+      );
+      await reminderService.showXpGainAlert(
+        gainedXp: award.gainedXp,
+        totalXp: award.after.totalXp,
+        isKo: isKo,
+        sourceLabel: l10n.homeDailyCheckTitle,
+      );
+      if (award.didLevelUp) {
+        await reminderService.showLevelUpAlert(
+          level: award.after.level,
+          isKo: isKo,
+        );
+      }
+      if (!mounted) return;
+      await showXpGemRewardDialog(context, award: award);
+      if (!mounted || !award.didLevelUp) return;
+      final customRewardName = levelService.customRewardNameForLevel(
+        award.after.level,
+      );
+      await showLevelUpCelebrationDialog(
+        context,
+        award: award,
+        isKo: isKo,
+        customRewardName: customRewardName,
+        onClaimReward: () async {
+          final claim = await PlayerLevelService(
+            widget.optionRepository,
+          ).claimRewardForLevel(award.after.level);
+          if (!mounted || claim == null) return;
+          final rewardName = claim.customRewardName.trim().isNotEmpty
+              ? claim.customRewardName
+              : (isKo ? claim.reward.nameKo : claim.reward.nameEn);
+          AppFeedback.showSuccess(
+            context,
+            text: l10n.levelUpRewardClaimed(rewardName),
+          );
+        },
+      );
+    } finally {
+      _dailyTaskAwardInFlight = false;
+    }
+  }
 
   static List<_DashboardPlan> _loadPlans(OptionRepository optionRepository) {
     final raw = optionRepository.getValue<String>('training_plans_v1');
@@ -1054,6 +1123,22 @@ class _HomeHubData {
 
   bool get streakIsActive =>
       latestTrainingGapDays != null && latestTrainingGapDays! <= 1;
+
+  int get dailyTaskTotalCount => 8;
+
+  int get dailyTaskCompletedCount => <bool>[
+    loggedTrainingToday,
+    loggedLiftingToday,
+    loggedJumpRopeToday,
+    loggedMealsToday,
+    openedNewsToday,
+    quizCompletedToday,
+    reviewedTodayDiary,
+    loggedBoardToday,
+  ].where((done) => done).length;
+
+  bool get completedDailyTasks =>
+      dailyTaskCompletedCount >= dailyTaskTotalCount;
 
   factory _HomeHubData.build({
     required List<TrainingEntry> entries,
@@ -1624,7 +1709,6 @@ class _LevelHeroCard extends StatelessWidget {
 
 class _DailyFlowCard extends StatelessWidget {
   final _HomeHubData data;
-  final bool isKo;
   final AppLocalizations l10n;
   final VoidCallback? onLog;
   final VoidCallback? onLifting;
@@ -1637,7 +1721,6 @@ class _DailyFlowCard extends StatelessWidget {
 
   const _DailyFlowCard({
     required this.data,
-    required this.isKo,
     required this.l10n,
     required this.onLog,
     required this.onLifting,
@@ -1651,17 +1734,9 @@ class _DailyFlowCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final completedCount = <bool>[
-      data.loggedTrainingToday,
-      data.loggedLiftingToday,
-      data.loggedJumpRopeToday,
-      data.loggedMealsToday,
-      data.openedNewsToday,
-      data.quizCompletedToday,
-      data.reviewedTodayDiary,
-      data.loggedBoardToday,
-    ].where((done) => done).length;
-    final progress = completedCount / 8;
+    final completedCount = data.dailyTaskCompletedCount;
+    final totalCount = data.dailyTaskTotalCount;
+    final progress = completedCount / totalCount;
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1677,7 +1752,7 @@ class _DailyFlowCard extends StatelessWidget {
                 ),
               ),
               Text(
-                isKo ? '$completedCount/8 완료' : '$completedCount/8 done',
+                l10n.homeDailyCheckCompletedCount(completedCount, totalCount),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w900,
@@ -1709,13 +1784,13 @@ class _DailyFlowCard extends StatelessWidget {
               _TodoChip(
                 done: data.loggedLiftingToday,
                 icon: Icons.fitness_center_rounded,
-                label: isKo ? '리프팅' : 'Lifting',
+                label: l10n.homeTodoLiftingShort,
                 onTap: onLifting,
               ),
               _TodoChip(
                 done: data.loggedJumpRopeToday,
                 icon: Icons.sports_gymnastics_rounded,
-                label: isKo ? '줄넘기' : 'Jump',
+                label: l10n.homeTodoJumpRopeShort,
                 onTap: onJumpRope,
               ),
               _TodoChip(
@@ -1727,7 +1802,7 @@ class _DailyFlowCard extends StatelessWidget {
               _TodoChip(
                 done: data.quizCompletedToday,
                 icon: Icons.quiz_rounded,
-                label: isKo ? '퀴즈' : 'Quiz',
+                label: l10n.homeTodoQuizShort,
                 onTap: onQuiz,
               ),
               _TodoChip(
@@ -1739,7 +1814,7 @@ class _DailyFlowCard extends StatelessWidget {
               _TodoChip(
                 done: data.reviewedTodayDiary,
                 icon: Icons.auto_stories_rounded,
-                label: isKo ? '다이어리' : 'Diary',
+                label: l10n.homeTodoDiaryShort,
                 onTap: onReview,
               ),
               _TodoChip(

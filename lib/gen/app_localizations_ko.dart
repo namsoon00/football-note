@@ -36,13 +36,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsKLeagueStandingsButton => 'K리그';
 
   @override
-  String get newsMoreActionsTooltip => '더보기';
+  String get newsMoreActionsTooltip => '랭킹보기';
 
   @override
   String get newsMoreActionsTitle => '더보기';
 
   @override
-  String get newsLeagueStandingsAction => '순위 보기';
+  String get newsRankingMoreButton => '랭킹보기';
+
+  @override
+  String get newsLeagueStandingsAction => '해외 리그 순위';
 
   @override
   String get newsLeagueStandingsTitle => '리그 순위';
@@ -202,10 +205,93 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeDailyCheckTitle => '오늘 할일';
 
   @override
+  String homeDailyCheckCompletedCount(int completed, int total) {
+    return '$completed/$total 완료';
+  }
+
+  @override
   String get homeTodoTrainingLogShort => '기록';
 
   @override
+  String get homeTodoLiftingShort => '리프팅';
+
+  @override
+  String get homeTodoJumpRopeShort => '줄넘기';
+
+  @override
+  String get homeTodoQuizShort => '퀴즈';
+
+  @override
+  String get homeTodoDiaryShort => '다이어리';
+
+  @override
   String get homeTodoBoardSketchShort => '스케치';
+
+  @override
+  String get dailyTasksXpDialogTitle => '오늘 할일 완주';
+
+  @override
+  String get dailyTasksXpDialogMessage => '하루 루틴을 모두 맞췄어요. 꾸준함이 성장 보석으로 쌓였습니다.';
+
+  @override
+  String dailyTasksXpDialogGems(int count) {
+    return '+$count 보석';
+  }
+
+  @override
+  String dailyTasksXpDialogProgress(int totalXp, int remainingXp) {
+    return '누적 $totalXp XP · 다음 레벨까지 $remainingXp XP';
+  }
+
+  @override
+  String dailyTasksXpDialogMaxProgress(int totalXp, int remainingXp) {
+    return '누적 $totalXp XP · 다음 마스터리 별까지 $remainingXp XP';
+  }
+
+  @override
+  String get dailyTasksXpDialogAction => '계속하기';
+
+  @override
+  String get levelUpDialogTitle => '레벨 업!';
+
+  @override
+  String levelUpDialogLevelLabel(int level, Object levelName) {
+    return 'Lv.$level $levelName';
+  }
+
+  @override
+  String get levelUpDialogEncouragement =>
+      '오늘의 노력이 반짝 성장으로 쌓였어요. 다음 훈련도 이 리듬으로 가면 됩니다.';
+
+  @override
+  String levelUpDialogEncouragementWithReward(Object rewardName) {
+    return '오늘의 노력이 반짝 성장으로 쌓였고, $rewardName 선물도 준비됐어요.';
+  }
+
+  @override
+  String levelUpDialogProgress(int xp, Object stageName) {
+    return '+$xp 보석 획득 · 이제 $stageName 단계예요';
+  }
+
+  @override
+  String get levelUpDialogRewardTitle => '선물 받기';
+
+  @override
+  String get levelUpDialogLater => '나중에 볼래';
+
+  @override
+  String get levelUpDialogClaimReward => '선물 받기';
+
+  @override
+  String get levelUpDialogConfirm => '좋아요';
+
+  @override
+  String levelUpRewardClaimed(Object rewardName) {
+    return '$rewardName 선물을 받았어요.';
+  }
+
+  @override
+  String get xpGuideDailyTasksCompleteTitle => '오늘 할일 모두 완료';
 
   @override
   String get homePriorityCheckPlansMessage => '남은 계획 확인.';

@@ -336,6 +336,32 @@ void main() {
     expect(history.last.awardedAt.day, 24);
   });
 
+  test('daily task completion awards xp once per day', () async {
+    final repository = _MemoryOptionRepository();
+    final service = PlayerLevelService(repository);
+
+    final award = await service.awardForDailyTasksCompleted(
+      completedAt: DateTime(2026, 3, 24, 20),
+    );
+    final duplicate = await service.awardForDailyTasksCompleted(
+      completedAt: DateTime(2026, 3, 24, 21),
+    );
+    final nextDay = await service.awardForDailyTasksCompleted(
+      completedAt: DateTime(2026, 3, 25, 8),
+    );
+
+    expect(award.gainedXp, PlayerLevelService.dailyTaskCompletionXp);
+    expect(duplicate.gainedXp, 0);
+    expect(nextDay.gainedXp, PlayerLevelService.dailyTaskCompletionXp);
+    expect(service.loadState().totalXp, 20);
+
+    final history = service.loadXpHistory();
+    expect(history, hasLength(2));
+    expect(history.first.category, PlayerXpHistoryCategory.dailyTasks);
+    expect(history.first.reasons, contains('daily_tasks_completed'));
+    expect(history.last.awardedAt.day, 24);
+  });
+
   test('grouped training plan creation awards bonus xp once', () async {
     final repository = _MemoryOptionRepository();
     final service = PlayerLevelService(repository);
