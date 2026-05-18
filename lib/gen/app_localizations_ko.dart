@@ -252,6 +252,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String get dailyTasksXpDialogAction => '계속하기';
 
   @override
+  String get trainingXpDialogTitle => '훈련 기록 완료';
+
+  @override
+  String get trainingXpDialogMessage =>
+      '저장한 훈련 기록으로 경험치가 추가됐어요. 확인하면 홈 화면으로 돌아갑니다.';
+
+  @override
+  String trainingXpDialogXp(int count) {
+    return '+$count XP';
+  }
+
+  @override
+  String get trainingXpDialogAction => '확인';
+
+  @override
+  String get trainingXpSourceTrainingLog => '훈련 기록';
+
+  @override
+  String get trainingXpSourceTrainingUpdate => '훈련 기록 수정';
+
+  @override
   String get levelUpDialogTitle => '레벨 업!';
 
   @override
@@ -294,43 +315,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String get xpGuideDailyTasksCompleteTitle => '오늘 할일 모두 완료';
 
   @override
-  String get homePriorityCheckPlansMessage => '남은 계획 확인.';
+  String get homePriorityCheckPlansMessage => '남은 훈련 계획을 먼저 확인해 주세요.';
 
   @override
   String get homePriorityPlansAction => '계획';
 
   @override
-  String get homePriorityReviewWeekMessage => '주간 흐름 보기.';
+  String get homePriorityReviewWeekMessage => '이번 주 훈련 흐름을 확인하고 다음 목표를 정해 보세요.';
 
   @override
   String get homePriorityStatsAction => '통계';
 
   @override
-  String get homePrioritySketchNextMessage => '다음 훈련 스케치.';
+  String get homePrioritySketchNextMessage => '다음 훈련에서 해볼 움직임을 보드에 스케치해 보세요.';
 
   @override
   String get homePriorityBoardAction => '보드';
 
   @override
-  String get homePriorityConditionMessage => '컨디션 확인.';
+  String get homePriorityConditionMessage => '최근 컨디션 흐름을 확인하고 회복 계획을 조정해 보세요.';
 
   @override
-  String get homePriorityRewardsMessage => '레벨 선물 확인.';
+  String get homePriorityRewardsMessage => '레벨 보상과 다음 성장 목표를 확인해 보세요.';
 
   @override
   String get homePriorityLevelAction => '레벨';
 
   @override
-  String get homeMealSuggestionDoneShort => '세 끼 완료. 리듬이 좋아요.';
+  String get homeMealSuggestionDoneShort => '세 끼를 모두 기록하셨습니다. 좋은 리듬을 이어가세요.';
 
   @override
-  String get homeMealSuggestionTwoShort => '한 끼만 더 기록하세요.';
+  String get homeMealSuggestionTwoShort => '한 끼만 더 기록해 주세요.';
 
   @override
-  String get homeMealSuggestionOneShort => '두 끼를 더 기록하세요.';
+  String get homeMealSuggestionOneShort => '두 끼를 더 기록해 주세요.';
 
   @override
-  String get homeMealSuggestionNoneShort => '첫 끼를 기록하세요.';
+  String get homeMealSuggestionNoneShort => '오늘 첫 끼부터 기록해 주세요.';
 
   @override
   String get homeNextTrainingTitle => '다음 훈련';

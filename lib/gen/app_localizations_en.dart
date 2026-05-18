@@ -256,6 +256,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dailyTasksXpDialogAction => 'Keep going';
 
   @override
+  String get trainingXpDialogTitle => 'Training log saved';
+
+  @override
+  String get trainingXpDialogMessage =>
+      'Your saved training log added XP. Confirm to return to the home screen.';
+
+  @override
+  String trainingXpDialogXp(int count) {
+    return '+$count XP';
+  }
+
+  @override
+  String get trainingXpDialogAction => 'OK';
+
+  @override
+  String get trainingXpSourceTrainingLog => 'Training log';
+
+  @override
+  String get trainingXpSourceTrainingUpdate => 'Training update';
+
+  @override
   String get levelUpDialogTitle => 'Level up!';
 
   @override
@@ -298,43 +319,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get xpGuideDailyTasksCompleteTitle => 'All today tasks complete';
 
   @override
-  String get homePriorityCheckPlansMessage => 'Check plans.';
+  String get homePriorityCheckPlansMessage =>
+      'Review the remaining training plans before you start.';
 
   @override
   String get homePriorityPlansAction => 'Plans';
 
   @override
-  String get homePriorityReviewWeekMessage => 'Review week.';
+  String get homePriorityReviewWeekMessage =>
+      'Review this week\'s training flow and choose the next target.';
 
   @override
   String get homePriorityStatsAction => 'Stats';
 
   @override
-  String get homePrioritySketchNextMessage => 'Sketch next.';
+  String get homePrioritySketchNextMessage =>
+      'Sketch the movement you want to try in your next session.';
 
   @override
   String get homePriorityBoardAction => 'Board';
 
   @override
-  String get homePriorityConditionMessage => 'Check condition.';
+  String get homePriorityConditionMessage =>
+      'Check your recent condition trend and adjust recovery.';
 
   @override
-  String get homePriorityRewardsMessage => 'Check rewards.';
+  String get homePriorityRewardsMessage =>
+      'Review level rewards and the next growth target.';
 
   @override
   String get homePriorityLevelAction => 'Level';
 
   @override
-  String get homeMealSuggestionDoneShort => 'All meals logged. Good rhythm.';
+  String get homeMealSuggestionDoneShort =>
+      'All three meals are logged. Keep the rhythm going.';
 
   @override
-  String get homeMealSuggestionTwoShort => 'Log one more meal.';
+  String get homeMealSuggestionTwoShort => 'Please log one more meal.';
 
   @override
-  String get homeMealSuggestionOneShort => 'Log two more meals.';
+  String get homeMealSuggestionOneShort => 'Please log two more meals.';
 
   @override
-  String get homeMealSuggestionNoneShort => 'Log the first meal.';
+  String get homeMealSuggestionNoneShort =>
+      'Please start with the first meal today.';
 
   @override
   String get homeNextTrainingTitle => 'Next training';

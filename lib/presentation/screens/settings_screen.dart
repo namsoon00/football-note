@@ -246,9 +246,11 @@ class _SettingsScreenState extends State<SettingsScreen>
         : _sharedChildDriveEmail.trim();
     final sharedChildDriveSubtitle = _driveStatusLoading
         ? l10n.settingsSyncStatusChecking
-        : (expectedChildDriveLabel.isNotEmpty || _hasRemotePlayerBackup
+        : expectedChildDriveLabel.isNotEmpty
             ? l10n.settingsSyncBackupDataReady
-            : l10n.driveSharedChildAccountEmpty);
+            : _hasRemotePlayerBackup
+                ? l10n.driveSharedChildAccountRemoteBackup
+                : l10n.driveSharedChildAccountEmpty;
     final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _driveLabelMatchesEmail(_connectedDriveLabel, _sharedChildDriveEmail);
@@ -747,9 +749,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     FamilyAccessState familyState,
   ) {
     final driveBackupService = widget.driveBackupService!;
-    return [
+    final children = <Widget>[
       _buildCurrentDriveAccountTile(l10n),
       _buildDriveQuickActions(l10n: l10n, familyState: familyState),
+    ];
+    if (!_signedIn) {
+      return children;
+    }
+    children.addAll([
       _BackupHealthCard(
         l10n: l10n,
         loading: _driveStatusLoading,
@@ -779,7 +786,8 @@ class _SettingsScreenState extends State<SettingsScreen>
           await driveBackupService.setAutoOnSaveEnabled(value);
         },
       ),
-    ];
+    ]);
+    return children;
   }
 
   List<Widget> _buildSupportSyncChildren(
@@ -792,8 +800,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     final hasKnownBackupData = _hasRemotePlayerBackup ||
         _sharedChildDriveLabel.trim().isNotEmpty ||
         _sharedChildDriveEmail.trim().isNotEmpty;
-    return [
+    final children = <Widget>[
       _buildCurrentDriveAccountTile(l10n),
+      _buildDriveQuickActions(l10n: l10n, familyState: familyState),
+    ];
+    if (!_signedIn) {
+      return children;
+    }
+    children.addAll([
       _buildSupportSyncSourceStatus(l10n, sharedChildDriveSubtitle),
       if (!_driveStatusLoading && !driveMatchesExpected)
         _buildDriveMismatchWarning(l10n),
@@ -810,10 +824,10 @@ class _SettingsScreenState extends State<SettingsScreen>
         backupKnown: hasKnownBackupData,
         formatBackupTime: _formatBackupTime,
       ),
-      _buildDriveQuickActions(l10n: l10n, familyState: familyState),
       _buildDriveBackupLocationCard(),
       _buildParentFamilySyncCard(l10n),
-    ];
+    ]);
+    return children;
   }
 
   Widget _buildDriveQuickActions({
@@ -829,24 +843,28 @@ class _SettingsScreenState extends State<SettingsScreen>
             : l10n.settingsDriveConnectAction,
         onPressed: _signInBusy ? null : () => _toggleDriveSignIn(l10n),
       ),
-      _buildDriveQuickActionButton(
-        icon: Icons.cloud_download_outlined,
-        label: l10n.settingsRestoreLatestActionTitle,
-        onPressed: (_backupBusy || _restoreBusy)
-            ? null
-            : () => _restoreFromDrive(
-                  l10n,
-                  title: l10n.settingsRestoreLatestActionTitle,
-                  message:
-                      isSupportMode ? l10n.familySharedRestoreConfirm : null,
-                  successMessage:
-                      isSupportMode ? l10n.familySharedRestoreSuccess : null,
-                  failedMessage:
-                      isSupportMode ? l10n.familySharedRestoreFailed : null,
-                ),
-      ),
     ];
-    if (!isSupportMode) {
+    if (_signedIn) {
+      actions.add(
+        _buildDriveQuickActionButton(
+          icon: Icons.cloud_download_outlined,
+          label: l10n.settingsRestoreLatestActionTitle,
+          onPressed: (_backupBusy || _restoreBusy)
+              ? null
+              : () => _restoreFromDrive(
+                    l10n,
+                    title: l10n.settingsRestoreLatestActionTitle,
+                    message:
+                        isSupportMode ? l10n.familySharedRestoreConfirm : null,
+                    successMessage:
+                        isSupportMode ? l10n.familySharedRestoreSuccess : null,
+                    failedMessage:
+                        isSupportMode ? l10n.familySharedRestoreFailed : null,
+                  ),
+        ),
+      );
+    }
+    if (_signedIn && !isSupportMode) {
       actions.add(
         _buildDriveQuickActionButton(
           icon: Icons.cloud_upload_outlined,

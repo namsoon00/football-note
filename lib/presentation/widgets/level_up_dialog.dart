@@ -108,6 +108,112 @@ Future<void> showXpGemRewardDialog(
   );
 }
 
+Future<void> showTrainingXpRewardDialog(
+  BuildContext context, {
+  required PlayerLevelAward award,
+}) async {
+  if (award.gainedXp <= 0) return;
+  final l10n = AppLocalizations.of(context)!;
+  final theme = Theme.of(context);
+  final scheme = theme.colorScheme;
+  final progressText = award.after.isMaxLevel
+      ? l10n.dailyTasksXpDialogMaxProgress(
+          award.after.totalXp,
+          award.after.xpToNextMasteryStar,
+        )
+      : l10n.dailyTasksXpDialogProgress(
+          award.after.totalXp,
+          award.after.xpToNextLevel,
+        );
+  await _showCelebrationDialog(
+    context,
+    child: Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: scheme.tertiary.withValues(alpha: 0.18)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x26000000),
+            blurRadius: 28,
+            offset: Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _GemCluster(color: scheme.tertiary),
+          const SizedBox(height: 14),
+          Text(
+            l10n.trainingXpDialogTitle,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.trainingXpDialogMessage,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: scheme.tertiaryContainer,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  l10n.trainingXpDialogXp(award.gainedXp),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: scheme.onTertiaryContainer,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _LevelProgressStrip(
+                  progress: award.after.progress,
+                  foreground: scheme.onTertiaryContainer,
+                  background: scheme.onTertiaryContainer.withValues(
+                    alpha: 0.18,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  progressText,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: scheme.onTertiaryContainer,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.trainingXpDialogAction),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 Future<void> showLevelUpCelebrationDialog(
   BuildContext context, {
   required PlayerLevelAward award,
