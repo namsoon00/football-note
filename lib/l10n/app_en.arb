@@ -8,9 +8,10 @@
   "tabNews": "Today News",
   "newsFifaHubButton": "FIFA Rank",
   "newsKLeagueStandingsButton": "K League",
-  "newsMoreActionsTooltip": "More",
+  "newsMoreActionsTooltip": "Rankings",
   "newsMoreActionsTitle": "More",
-  "newsLeagueStandingsAction": "View standings",
+  "newsRankingMoreButton": "Rankings",
+  "newsLeagueStandingsAction": "Overseas league standings",
   "newsLeagueStandingsTitle": "League Standings",
   "newsPremierLeagueStandingsTitle": "Premier League",
   "newsChampionsLeagueStandingsTitle": "Champions League",
@@ -74,8 +75,93 @@
   "homeTodayPlanSelectForLogTitle": "Choose a plan to turn into a training log",
   "homeHubTitleShort": "Home",
   "homeDailyCheckTitle": "Today's tasks",
+  "homeDailyCheckCompletedCount": "{completed}/{total} done",
+  "@homeDailyCheckCompletedCount": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "homeTodoTrainingLogShort": "Log",
+  "homeTodoLiftingShort": "Lifting",
+  "homeTodoJumpRopeShort": "Jump",
+  "homeTodoQuizShort": "Quiz",
+  "homeTodoDiaryShort": "Diary",
   "homeTodoBoardSketchShort": "Sketch",
+  "dailyTasksXpDialogTitle": "Today's tasks complete",
+  "dailyTasksXpDialogMessage": "The whole routine is checked off. That consistency turned into growth gems.",
+  "dailyTasksXpDialogGems": "+{count} gems",
+  "@dailyTasksXpDialogGems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyTasksXpDialogProgress": "Total {totalXp} XP · {remainingXp} XP to next level",
+  "@dailyTasksXpDialogProgress": {
+    "placeholders": {
+      "totalXp": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyTasksXpDialogMaxProgress": "Total {totalXp} XP · {remainingXp} XP to next mastery star",
+  "@dailyTasksXpDialogMaxProgress": {
+    "placeholders": {
+      "totalXp": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyTasksXpDialogAction": "Keep going",
+  "levelUpDialogTitle": "Level up!",
+  "levelUpDialogLevelLabel": "Lv.{level} {levelName}",
+  "@levelUpDialogLevelLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "levelName": {}
+    }
+  },
+  "levelUpDialogEncouragement": "Today's effort became bright growth. Keep this rhythm for the next session.",
+  "levelUpDialogEncouragementWithReward": "Today's effort became bright growth, and {rewardName} is ready too.",
+  "@levelUpDialogEncouragementWithReward": {
+    "placeholders": {
+      "rewardName": {}
+    }
+  },
+  "levelUpDialogProgress": "+{xp} gems earned · now in {stageName}",
+  "@levelUpDialogProgress": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      },
+      "stageName": {}
+    }
+  },
+  "levelUpDialogRewardTitle": "Reward",
+  "levelUpDialogLater": "Later",
+  "levelUpDialogClaimReward": "Claim reward",
+  "levelUpDialogConfirm": "Great",
+  "levelUpRewardClaimed": "Claimed {rewardName}.",
+  "@levelUpRewardClaimed": {
+    "placeholders": {
+      "rewardName": {}
+    }
+  },
+  "xpGuideDailyTasksCompleteTitle": "All today tasks complete",
   "homePriorityCheckPlansMessage": "Check plans.",
   "homePriorityPlansAction": "Plans",
   "homePriorityReviewWeekMessage": "Review week.",

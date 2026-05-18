@@ -36,13 +36,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsKLeagueStandingsButton => 'K League';
 
   @override
-  String get newsMoreActionsTooltip => 'More';
+  String get newsMoreActionsTooltip => 'Rankings';
 
   @override
   String get newsMoreActionsTitle => 'More';
 
   @override
-  String get newsLeagueStandingsAction => 'View standings';
+  String get newsRankingMoreButton => 'Rankings';
+
+  @override
+  String get newsLeagueStandingsAction => 'Overseas league standings';
 
   @override
   String get newsLeagueStandingsTitle => 'League Standings';
@@ -205,10 +208,94 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeDailyCheckTitle => 'Today\'s tasks';
 
   @override
+  String homeDailyCheckCompletedCount(int completed, int total) {
+    return '$completed/$total done';
+  }
+
+  @override
   String get homeTodoTrainingLogShort => 'Log';
 
   @override
+  String get homeTodoLiftingShort => 'Lifting';
+
+  @override
+  String get homeTodoJumpRopeShort => 'Jump';
+
+  @override
+  String get homeTodoQuizShort => 'Quiz';
+
+  @override
+  String get homeTodoDiaryShort => 'Diary';
+
+  @override
   String get homeTodoBoardSketchShort => 'Sketch';
+
+  @override
+  String get dailyTasksXpDialogTitle => 'Today\'s tasks complete';
+
+  @override
+  String get dailyTasksXpDialogMessage =>
+      'The whole routine is checked off. That consistency turned into growth gems.';
+
+  @override
+  String dailyTasksXpDialogGems(int count) {
+    return '+$count gems';
+  }
+
+  @override
+  String dailyTasksXpDialogProgress(int totalXp, int remainingXp) {
+    return 'Total $totalXp XP · $remainingXp XP to next level';
+  }
+
+  @override
+  String dailyTasksXpDialogMaxProgress(int totalXp, int remainingXp) {
+    return 'Total $totalXp XP · $remainingXp XP to next mastery star';
+  }
+
+  @override
+  String get dailyTasksXpDialogAction => 'Keep going';
+
+  @override
+  String get levelUpDialogTitle => 'Level up!';
+
+  @override
+  String levelUpDialogLevelLabel(int level, Object levelName) {
+    return 'Lv.$level $levelName';
+  }
+
+  @override
+  String get levelUpDialogEncouragement =>
+      'Today\'s effort became bright growth. Keep this rhythm for the next session.';
+
+  @override
+  String levelUpDialogEncouragementWithReward(Object rewardName) {
+    return 'Today\'s effort became bright growth, and $rewardName is ready too.';
+  }
+
+  @override
+  String levelUpDialogProgress(int xp, Object stageName) {
+    return '+$xp gems earned · now in $stageName';
+  }
+
+  @override
+  String get levelUpDialogRewardTitle => 'Reward';
+
+  @override
+  String get levelUpDialogLater => 'Later';
+
+  @override
+  String get levelUpDialogClaimReward => 'Claim reward';
+
+  @override
+  String get levelUpDialogConfirm => 'Great';
+
+  @override
+  String levelUpRewardClaimed(Object rewardName) {
+    return 'Claimed $rewardName.';
+  }
+
+  @override
+  String get xpGuideDailyTasksCompleteTitle => 'All today tasks complete';
 
   @override
   String get homePriorityCheckPlansMessage => 'Check plans.';

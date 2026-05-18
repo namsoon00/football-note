@@ -3365,55 +3365,73 @@ class _EntryTile extends StatelessWidget {
             ),
             entry.location.trim().isNotEmpty ? entry.location.trim() : '-',
           ];
+    final hasParentFeedback = parentFeedbackMessage.trim().isNotEmpty;
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        leading: entry.isMatch
-            ? _MatchResultIcon(entry: entry)
-            : _StatusIcon(status: entry.status),
-        title: Text(
-          titleParts.join(' · '),
-          style: _calendarTimelineTitleStyle(context),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (entry.isMatch) ...[
-              if (_matchPersonalRecord(
-                entry,
-                l10n: l10n,
-                isKo: isKo,
-              ).isNotEmpty)
-                Text(
-                  _matchPersonalRecord(entry, l10n: l10n, isKo: isKo),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: _calendarTimelineSubtitleStyle(context),
-                ),
-            ] else
-              Text(
-                '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: _calendarTimelineSubtitleStyle(context),
-              ),
-            if (focusText.isNotEmpty)
-              Text(
-                focusText,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: _calendarTimelineSubtitleStyle(
-                  context,
-                )?.copyWith(color: focusTextColor),
-              ),
-            if (parentFeedbackMessage.trim().isNotEmpty)
-              _CalendarParentFeedbackPreview(message: parentFeedbackMessage),
-          ],
-        ),
-        trailing: onTap == null ? null : const Icon(Icons.chevron_right),
-        onTap: onTap,
+      child: Stack(
+        children: [
+          ListTile(
+            contentPadding: EdgeInsets.fromLTRB(
+              6,
+              2,
+              hasParentFeedback ? 34 : 6,
+              2,
+            ),
+            leading: entry.isMatch
+                ? _MatchResultIcon(entry: entry)
+                : _StatusIcon(status: entry.status),
+            title: Text(
+              titleParts.join(' · '),
+              style: _calendarTimelineTitleStyle(context),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (entry.isMatch) ...[
+                  if (_matchPersonalRecord(
+                    entry,
+                    l10n: l10n,
+                    isKo: isKo,
+                  ).isNotEmpty)
+                    Text(
+                      _matchPersonalRecord(entry, l10n: l10n, isKo: isKo),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _calendarTimelineSubtitleStyle(context),
+                    ),
+                ] else
+                  Text(
+                    '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _calendarTimelineSubtitleStyle(context),
+                  ),
+                if (focusText.isNotEmpty)
+                  Text(
+                    focusText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _calendarTimelineSubtitleStyle(
+                      context,
+                    )?.copyWith(color: focusTextColor),
+                  ),
+                if (hasParentFeedback)
+                  _CalendarParentFeedbackPreview(
+                    message: parentFeedbackMessage,
+                  ),
+              ],
+            ),
+            trailing: onTap == null ? null : const Icon(Icons.chevron_right),
+            onTap: onTap,
+          ),
+          if (hasParentFeedback)
+            const Positioned(
+              top: 2,
+              right: 2,
+              child: _CalendarParentFeedbackCornerMark(),
+            ),
+        ],
       ),
     );
   }
@@ -3504,6 +3522,34 @@ class _EntryTile extends StatelessWidget {
       );
     }
     return parts.join(' · ');
+  }
+}
+
+class _CalendarParentFeedbackCornerMark extends StatelessWidget {
+  const _CalendarParentFeedbackCornerMark();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: l10n.parentFeedbackSectionTitle,
+      child: Container(
+        width: 26,
+        height: 26,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: scheme.primaryContainer.withValues(alpha: 0.72),
+          shape: BoxShape.circle,
+          border: Border.all(color: scheme.primary.withValues(alpha: 0.28)),
+        ),
+        child: Icon(
+          Icons.chat_bubble_outline_rounded,
+          size: 15,
+          color: scheme.onPrimaryContainer,
+        ),
+      ),
+    );
   }
 }
 

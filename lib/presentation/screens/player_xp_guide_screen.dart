@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:football_note/gen/app_localizations.dart';
 
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -12,6 +13,7 @@ class PlayerXpGuideScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final levelState = PlayerLevelService(optionRepository).loadState();
     final sections = <_XpGuideSection>[
       _XpGuideSection(
@@ -81,6 +83,11 @@ class PlayerXpGuideScreen extends StatelessWidget {
             icon: Icons.auto_stories_outlined,
             title: isKo ? '오늘 다이어리 작성' : 'Today diary created',
             xpLabel: '+3 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.verified_outlined,
+            title: l10n.xpGuideDailyTasksCompleteTitle,
+            xpLabel: '+${PlayerLevelService.dailyTaskCompletionXp} XP',
           ),
           _XpGuideItem(
             icon: Icons.event_note_outlined,
