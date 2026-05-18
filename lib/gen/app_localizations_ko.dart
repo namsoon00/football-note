@@ -113,6 +113,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsShowScrappedOnlyAction => '스크랩한 소식만 보기';
 
   @override
+  String get newsViewedHistoryAction => '본 소식';
+
+  @override
+  String get newsViewedHistoryTitle => '본 소식';
+
+  @override
+  String get newsViewedHistoryEmpty => '아직 본 소식이 없어요.';
+
+  @override
   String get newsTitleTranslateEnabledTooltip => '제목 번역 켜짐';
 
   @override
@@ -271,6 +280,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingXpSourceTrainingUpdate => '훈련 기록 수정';
+
+  @override
+  String get trainingXpSourceLifting => '리프팅';
+
+  @override
+  String get trainingXpSourceJumpRope => '줄넘기';
+
+  @override
+  String get trainingXpSourceTrainingSketch => '훈련 스케치';
+
+  @override
+  String get trainingXpSourceDiary => '다이어리';
 
   @override
   String get levelUpDialogTitle => '레벨 업!';
@@ -1012,10 +1033,17 @@ class AppLocalizationsKo extends AppLocalizations {
   String get restoreFromDrive => '최근 데이터 가져오기';
 
   @override
+  String get restorePreviousBackup => '이전 백업 가져오기';
+
+  @override
   String get backupConfirm => 'Google Drive에 새 백업을 만들까요?';
 
   @override
   String get restoreConfirm => 'Google Drive의 최신 데이터를 가져올까요? 현재 데이터가 교체됩니다.';
+
+  @override
+  String get restorePreviousConfirm =>
+      'Google Drive의 이전 백업을 가져올까요? 현재 데이터가 교체됩니다.';
 
   @override
   String get backupSuccess => '백업이 완료되었습니다.';
@@ -1028,6 +1056,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get restoreFailed => '데이터 가져오기에 실패했어요. 다시 시도해 주세요.';
+
+  @override
+  String get restorePreviousSuccess => '이전 백업을 가져왔어요.';
+
+  @override
+  String get restorePreviousFailed => '이전 백업 가져오기에 실패했어요. 다시 시도해 주세요.';
 
   @override
   String get backupInProgress => '백업 중...';
@@ -1081,6 +1115,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get localBackup => '로컬 안전 백업';
+
+  @override
+  String get driveBackupLockedAccountChanged =>
+      'Google 계정이 바뀌었어요. 최근 데이터 가져오기를 완료한 뒤 이 계정으로 백업할 수 있어요.';
 
   @override
   String get backupVersionUnsupported =>

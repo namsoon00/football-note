@@ -45,6 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _autoDaily = true;
   bool _autoOnSave = true;
   String _connectedDriveLabel = '';
+  String _connectedDriveEmail = '';
   String _sharedChildDriveLabel = '';
   String _sharedChildDriveEmail = '';
   bool _hasRemotePlayerBackup = false;
@@ -192,6 +193,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       }
     }
     final cachedConnectedDriveLabel = _cachedConnectedDriveLabel();
+    final cachedConnectedDriveEmail = _cachedConnectedDriveEmail();
     if (!mounted) return;
     setState(() {
       _signedIn = signedIn ||
@@ -200,6 +202,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
           ? connection!.label.trim()
           : cachedConnectedDriveLabel;
+      _connectedDriveEmail = connection?.email.trim().isNotEmpty == true
+          ? connection!.email.trim()
+          : cachedConnectedDriveEmail;
       _sharedChildDriveLabel = sharedChildConnection?.label.trim() ?? '';
       _sharedChildDriveEmail = sharedChildConnection?.email.trim() ?? '';
       _hasRemotePlayerBackup = hasRemotePlayerBackup;
@@ -225,12 +230,28 @@ class _SettingsScreenState extends State<SettingsScreen>
     return '$cachedLabel · $cachedEmail';
   }
 
+  String _cachedConnectedDriveEmail() {
+    return widget.optionRepository
+            .getValue<String>(DriveBackupService.connectedDriveEmailLocalKey)
+            ?.trim() ??
+        '';
+  }
+
   bool _driveLabelMatchesEmail(String label, String email) {
     final normalizedEmail = email.trim().toLowerCase();
     if (normalizedEmail.isEmpty || label.trim().isEmpty) {
       return false;
     }
     return label.toLowerCase().contains(normalizedEmail);
+  }
+
+  bool _backupLockedByChangedPlayerDrive(FamilyAccessState familyState) {
+    if (!familyState.isChildMode || !_signedIn) return false;
+    final savedEmail =
+        widget.driveBackupService?.getSavedRecordDriveEmail().trim() ?? '';
+    final connectedEmail = _connectedDriveEmail.trim();
+    if (savedEmail.isEmpty || connectedEmail.isEmpty) return false;
+    return savedEmail.toLowerCase() != connectedEmail.toLowerCase();
   }
 
   @override
@@ -753,6 +774,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       _buildCurrentDriveAccountTile(l10n),
       _buildDriveQuickActions(l10n: l10n, familyState: familyState),
     ];
+    if (_backupLockedByChangedPlayerDrive(familyState)) {
+      children.add(_buildDriveBackupLockedWarning(l10n));
+    }
     if (!_signedIn) {
       return children;
     }
@@ -835,6 +859,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     required FamilyAccessState familyState,
   }) {
     final isSupportMode = familyState.isSupportMode;
+    final backupLocked = _backupLockedByChangedPlayerDrive(familyState);
     final actions = <Widget>[
       _buildDriveQuickActionButton(
         icon: _signedIn ? Icons.link_off_outlined : Icons.link_outlined,
@@ -863,13 +888,30 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
         ),
       );
+      actions.add(
+        _buildDriveQuickActionButton(
+          icon: Icons.settings_backup_restore_outlined,
+          label: l10n.restorePreviousBackup,
+          onPressed: (_backupBusy || _restoreBusy)
+              ? null
+              : () => _restoreFromDrive(
+                    l10n,
+                    title: l10n.restorePreviousBackup,
+                    message: l10n.restorePreviousConfirm,
+                    successMessage: l10n.restorePreviousSuccess,
+                    failedMessage: l10n.restorePreviousFailed,
+                    restoreAction:
+                        widget.driveBackupService!.restorePreviousBackup,
+                  ),
+        ),
+      );
     }
     if (_signedIn && !isSupportMode) {
       actions.add(
         _buildDriveQuickActionButton(
           icon: Icons.cloud_upload_outlined,
           label: l10n.settingsBackupDataActionTitle,
-          onPressed: (_backupBusy || _restoreBusy)
+          onPressed: (_backupBusy || _restoreBusy || backupLocked)
               ? null
               : () => _backupToDrive(
                     l10n,
@@ -927,6 +969,23 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
       child: Text(
         l10n.familyParentUsesChildDriveWarning,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+    );
+  }
+
+  Widget _buildDriveBackupLockedWarning(AppLocalizations l10n) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.errorContainer.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        l10n.driveBackupLockedAccountChanged,
         style: Theme.of(context).textTheme.bodySmall,
       ),
     );
@@ -2031,6 +2090,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     String? message,
     String? successMessage,
     String? failedMessage,
+    Future<void> Function()? restoreAction,
   }) async {
     if (widget.driveBackupService == null) return;
     final confirm = await _confirmRestoreAction(
@@ -2041,7 +2101,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (confirm != true) return;
     setState(() => _restoreBusy = true);
     try {
-      await widget.driveBackupService!.restoreLatest();
+      final action = restoreAction ?? widget.driveBackupService!.restoreLatest;
+      await action();
       widget.localeService.load();
       widget.settingsService.load();
       await _refreshSignInState();

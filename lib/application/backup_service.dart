@@ -12,6 +12,14 @@ class BackupService {
 
   Future<void> restoreLatest() => _repository.restoreLatest();
 
+  Future<void> restorePreviousBackup() async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.restorePreviousBackup();
+      return;
+    }
+    throw StateError('Previous backup restore is not available.');
+  }
+
   Future<void> autoBackupDaily() => _repository.autoBackupDaily();
 
   Future<bool> backupIfSignedIn({bool requireAutoOnSave = false}) =>

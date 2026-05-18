@@ -497,7 +497,7 @@ class _XpHistoryCard extends StatelessWidget {
   static String _title(PlayerXpHistoryEntry item, bool isKo) {
     switch (item.category) {
       case PlayerXpHistoryCategory.training:
-        final label = item.label.trim();
+        final label = _trainingTitleLabel(item, isKo);
         if (label.isEmpty) return isKo ? '훈련 기록 저장' : 'Training log';
         return isKo ? '훈련 기록 · $label' : 'Training log · $label';
       case PlayerXpHistoryCategory.meal:
@@ -515,6 +515,20 @@ class _XpHistoryCard extends StatelessWidget {
       case PlayerXpHistoryCategory.dailyTasks:
         return isKo ? '오늘 할일 완주' : 'Today tasks complete';
     }
+  }
+
+  static String _trainingTitleLabel(PlayerXpHistoryEntry item, bool isKo) {
+    final addedParts = <String>[];
+    if (item.reasons.contains('lifting_added')) {
+      addedParts.add(isKo ? '리프팅' : 'Lifting');
+    }
+    if (item.reasons.contains('jump_rope_added')) {
+      addedParts.add(isKo ? '줄넘기' : 'Jump rope');
+    }
+    if (addedParts.isNotEmpty) {
+      return addedParts.join(isKo ? ', ' : ', ');
+    }
+    return item.label.trim();
   }
 
   static String _timestamp(DateTime value, bool isKo) {

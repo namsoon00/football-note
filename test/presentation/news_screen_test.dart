@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/locale_service.dart';
+import 'package:football_note/application/news_badge_service.dart';
 import 'package:football_note/application/news_read_state.dart';
 import 'package:football_note/application/news_service.dart';
 import 'package:football_note/application/settings_service.dart';
@@ -21,6 +24,9 @@ const _translateToggleActionKey = ValueKey<String>(
   'news_quick_action_translate_toggle',
 );
 const _searchActionKey = ValueKey<String>('news_quick_action_search');
+const _viewedHistoryActionKey = ValueKey<String>(
+  'news_quick_action_viewed_history',
+);
 const _moreActionsKey = ValueKey<String>('news_more_actions');
 const _leagueStandingsActionKey = ValueKey<String>(
   'news_quick_action_league_standings',
@@ -129,9 +135,8 @@ void main() {
     expect(find.text('번역'), findsNothing);
 
     final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
-    final translateX = tester
-        .getTopLeft(find.byKey(_translateToggleActionKey))
-        .dx;
+    final translateX =
+        tester.getTopLeft(find.byKey(_translateToggleActionKey)).dx;
     final searchX = tester.getTopLeft(find.byKey(_searchActionKey)).dx;
 
     expect(scrapX, lessThan(translateX));
@@ -232,6 +237,93 @@ void main() {
     expect(find.text('안 읽은 기사'), findsOneWidget);
     expect(find.text('이미 읽은 기사'), findsNothing);
   });
+
+  testWidgets(
+    'opening news marks loaded articles seen but keeps them visible',
+    (WidgetTester tester) async {
+      final repository = _MemoryOptionRepository();
+      const article = NewsArticle(
+        title: '새 기사',
+        link: 'https://example.com/new-news',
+        source: '테스트',
+        channelId: 'issue284_seen_domestic_soccer_ko',
+      );
+      final newsRepository = _FakeNewsRepository(
+        channels: const [
+          NewsChannel(
+            id: 'issue284_seen_domestic_soccer_ko',
+            name: '테스트 · 국내축구',
+            isDomestic: true,
+          ),
+        ],
+        articlesByChannelId: const <String, List<NewsArticle>>{
+          'issue284_seen_domestic_soccer_ko': [article],
+        },
+      );
+
+      await tester.pumpWidget(
+        _buildNewsApp(
+          optionRepository: repository,
+          newsService: NewsService(newsRepository),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('새 기사'), findsOneWidget);
+      expect(
+        repository.getOptions(NewsBadgeService.seenArticleKeysKey, const []),
+        contains(NewsReadState.articleKey(article)),
+      );
+      expect(
+        repository.getOptions(NewsReadState.readArticleKeysKey, const []),
+        isNot(contains(NewsReadState.articleKey(article))),
+      );
+    },
+  );
+
+  testWidgets('viewed news history shows opened articles', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+    await repository.setValue(
+      NewsScreen.openedItemsKey,
+      jsonEncode([
+        {
+          'title': 'Viewed article',
+          'titleKo': '본 기사',
+          'link': 'https://example.com/viewed-news',
+          'source': '테스트',
+          'openedAt': DateTime(2026, 5, 19, 10, 30).toIso8601String(),
+        },
+      ]),
+    );
+    final newsRepository = _FakeNewsRepository(
+      channels: const [
+        NewsChannel(
+          id: 'issue284_history_domestic_soccer_ko',
+          name: '테스트 · 국내축구',
+          isDomestic: true,
+        ),
+      ],
+      articlesByChannelId: const <String, List<NewsArticle>>{
+        'issue284_history_domestic_soccer_ko': [],
+      },
+    );
+
+    await tester.pumpWidget(
+      _buildNewsApp(
+        optionRepository: repository,
+        newsService: NewsService(newsRepository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(_viewedHistoryActionKey));
+    await tester.pumpAndSettle();
+
+    expect(find.text('본 소식'), findsOneWidget);
+    expect(find.text('본 기사'), findsOneWidget);
+  });
 }
 
 Widget _buildNewsApp({
@@ -260,8 +352,8 @@ class _FakeNewsRepository implements NewsRepository {
   _FakeNewsRepository({
     required List<NewsChannel> channels,
     required Map<String, List<NewsArticle>> articlesByChannelId,
-  }) : _channels = channels,
-       _articlesByChannelId = articlesByChannelId;
+  })  : _channels = channels,
+        _articlesByChannelId = articlesByChannelId;
 
   @override
   List<NewsChannel> channels() => _channels;
