@@ -171,6 +171,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   String _cachedFortuneRecommendation = '';
   String _cachedFortuneRecommendedProgram = '';
   String _savedParentFeedback = '';
+  String _savedParentFeedbackReaction = '';
   DateTime? _savedParentFeedbackUpdatedAt;
 
   @override
@@ -326,6 +327,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         entry,
       );
       _savedParentFeedback = parentFeedback?.message ?? '';
+      _savedParentFeedbackReaction = parentFeedback?.reaction ?? '';
       _savedParentFeedbackUpdatedAt = parentFeedback?.updatedAt;
       if (_linkedBoardIds.isEmpty && entry.drills.trim().isNotEmpty) {
         unawaited(_migrateLegacyTrainingBoard(entry));
@@ -363,6 +365,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _cachedFortuneRecommendedProgram = '';
       _weatherSummary = '';
       _savedParentFeedback = '';
+      _savedParentFeedbackReaction = '';
       _savedParentFeedbackUpdatedAt = null;
       final planContext = widget.initialPlanContext;
       if (planContext != null) {
@@ -709,6 +712,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     }
     setState(() {
       _savedParentFeedback = result.feedback?.message ?? '';
+      _savedParentFeedbackReaction = result.feedback?.reaction ?? '';
       _savedParentFeedbackUpdatedAt = result.feedback?.updatedAt;
     });
     final l10n = AppLocalizations.of(context)!;
@@ -738,6 +742,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     }
     final canEdit = _canEditParentFeedback;
     final feedbackText = _savedParentFeedback.trim();
+    final reactionIcon = _parentFeedbackReactionIcon(
+      _savedParentFeedbackReaction,
+    );
     if (!canEdit && feedbackText.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -769,9 +776,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 tooltip: _parentFeedbackActionLabel(l10n),
                 onPressed: _openParentFeedbackScreen,
                 icon: Icon(
-                  canEdit
-                      ? Icons.edit_note_outlined
-                      : Icons.visibility_outlined,
+                  reactionIcon ??
+                      (canEdit
+                          ? Icons.edit_note_outlined
+                          : Icons.visibility_outlined),
                 ),
               ),
             ],
@@ -791,6 +799,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         ],
       ),
     );
+  }
+
+  IconData? _parentFeedbackReactionIcon(String reaction) {
+    return switch (reaction.trim()) {
+      'thanks' => Icons.favorite_rounded,
+      'proud' => Icons.emoji_events_rounded,
+      'review' => Icons.visibility_rounded,
+      'try' => Icons.directions_run_rounded,
+      _ => null,
+    };
   }
 
   Widget _buildStatusRow(AppLocalizations l10n) {
@@ -3136,6 +3154,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       if (popAfterSave && levelAward.gainedXp > 0) {
         await showTrainingXpRewardDialog(context, award: levelAward);
+        if (!mounted) return;
+      }
+      if (popAfterSave) {
+        await showTrainingStreakCheerDialog(context, award: levelAward);
         if (!mounted) return;
       }
       if (popAfterSave) {

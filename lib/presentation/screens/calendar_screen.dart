@@ -3416,10 +3416,6 @@ class _EntryTile extends StatelessWidget {
                       context,
                     )?.copyWith(color: focusTextColor),
                   ),
-                if (hasParentFeedback)
-                  _CalendarParentFeedbackPreview(
-                    message: parentFeedbackMessage,
-                  ),
               ],
             ),
             trailing: onTap == null ? null : const Icon(Icons.chevron_right),
@@ -3445,7 +3441,6 @@ class _EntryTile extends StatelessWidget {
     if (entry.goodPoints.trim().isNotEmpty) return entry.goodPoints.trim();
     if (entry.improvements.trim().isNotEmpty) return entry.improvements.trim();
     if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
-    if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
     final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
     if (notesWithoutWeather.isNotEmpty) return notesWithoutWeather;
     return '';
@@ -3547,51 +3542,6 @@ class _CalendarParentFeedbackCornerMark extends StatelessWidget {
           Icons.chat_bubble_outline_rounded,
           size: 15,
           color: scheme.onPrimaryContainer,
-        ),
-      ),
-    );
-  }
-}
-
-class _CalendarParentFeedbackPreview extends StatelessWidget {
-  final String message;
-
-  const _CalendarParentFeedbackPreview({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 2),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest.withValues(alpha: 0.70),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: scheme.outlineVariant.withValues(alpha: 0.55),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.chat_bubble_outline_rounded,
-              size: 14,
-              color: scheme.primary,
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                message.trim(),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: _calendarTimelineSubtitleStyle(
-                  context,
-                )?.copyWith(color: scheme.onSurface, height: 1.35),
-              ),
-            ),
-          ],
         ),
       ),
     );

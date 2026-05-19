@@ -40,6 +40,7 @@ import 'notification_center_screen.dart';
 import 'coach_lesson_screen.dart';
 import 'entry_form_screen.dart';
 import 'player_level_guide_screen.dart';
+import 'running_coach_screen.dart';
 import 'training_method_board_screen.dart';
 import 'weather_detail_screen.dart';
 
@@ -376,6 +377,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         _QuickActionGrid(
                           isKo: isKo,
                           weatherOutfitLabel: l10n.homeWeatherOutfitButton,
+                          runningCoachLabel: l10n.drawerRunningCoach,
                           onQuickMatch: _trackedAction(
                             'quick_create_match',
                             widget.onQuickMatch,
@@ -387,6 +389,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           onQuickWeatherOutfit: _trackedAction(
                             'quick_weather_outfit',
                             _openWeatherOutfitGuide,
+                          ),
+                          onQuickRunningCoach: _trackedAction(
+                            'quick_running_coach',
+                            _openRunningCoach,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -676,6 +682,15 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
     if (!mounted) return;
     await NewsBadgeService.refresh(widget.optionRepository);
+  }
+
+  Future<void> _openRunningCoach() async {
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) =>
+            RunningCoachScreen(optionRepository: widget.optionRepository),
+      ),
+    );
   }
 
   Future<void> _openQuizShortcut() async {
@@ -2645,16 +2660,20 @@ String _formatPlanTime(DateTime value, {required bool isKo}) {
 class _QuickActionGrid extends StatelessWidget {
   final bool isKo;
   final String weatherOutfitLabel;
+  final String runningCoachLabel;
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickPlan;
   final VoidCallback? onQuickWeatherOutfit;
+  final VoidCallback? onQuickRunningCoach;
 
   const _QuickActionGrid({
     required this.isKo,
     required this.weatherOutfitLabel,
+    required this.runningCoachLabel,
     required this.onQuickMatch,
     required this.onQuickPlan,
     required this.onQuickWeatherOutfit,
+    required this.onQuickRunningCoach,
   });
 
   @override
@@ -2674,6 +2693,11 @@ class _QuickActionGrid extends StatelessWidget {
         icon: Icons.checkroom_outlined,
         title: weatherOutfitLabel,
         onTap: onQuickWeatherOutfit,
+      ),
+      _QuickActionItem(
+        icon: Icons.directions_run_outlined,
+        title: runningCoachLabel,
+        onTap: onQuickRunningCoach,
       ),
     ];
     return Column(

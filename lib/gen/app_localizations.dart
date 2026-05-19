@@ -137,7 +137,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabNews.
   ///
   /// In en, this message translates to:
-  /// **'Today News'**
+  /// **'News'**
   String get tabNews;
 
   /// No description provided for @newsFifaHubButton.
@@ -590,6 +590,42 @@ abstract class AppLocalizations {
   /// **'Your saved training log added XP. Confirm to return to the home screen.'**
   String get trainingXpDialogMessage;
 
+  /// No description provided for @trainingXpDialogJumpRopeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope rhythm saved'**
+  String get trainingXpDialogJumpRopeTitle;
+
+  /// No description provided for @trainingXpDialogJumpRopeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The added jump rope work became quick-foot growth gems.'**
+  String get trainingXpDialogJumpRopeMessage;
+
+  /// No description provided for @trainingXpDialogLiftingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting effort saved'**
+  String get trainingXpDialogLiftingTitle;
+
+  /// No description provided for @trainingXpDialogLiftingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The added lifting work became stronger-body growth gems.'**
+  String get trainingXpDialogLiftingMessage;
+
+  /// No description provided for @trainingXpDialogMealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery routine saved'**
+  String get trainingXpDialogMealTitle;
+
+  /// No description provided for @trainingXpDialogMealMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The meal and recovery record added steady growth gems.'**
+  String get trainingXpDialogMealMessage;
+
   /// No description provided for @trainingXpDialogXp.
   ///
   /// In en, this message translates to:
@@ -637,6 +673,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diary'**
   String get trainingXpSourceDiary;
+
+  /// No description provided for @trainingStreakCheerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}-day training streak'**
+  String trainingStreakCheerTitle(int count);
+
+  /// No description provided for @trainingStreakCheerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Day-by-day training notes are connecting into a real routine. Keep the next session simple and repeatable.'**
+  String get trainingStreakCheerMessage;
+
+  /// No description provided for @trainingStreakCheerAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going'**
+  String get trainingStreakCheerAction;
 
   /// No description provided for @levelUpDialogTitle.
   ///
@@ -3725,7 +3779,7 @@ abstract class AppLocalizations {
   /// No description provided for @diaryRecordStickerPin.
   ///
   /// In en, this message translates to:
-  /// **'Pin as sticker'**
+  /// **'Add sticker'**
   String get diaryRecordStickerPin;
 
   /// No description provided for @diaryMealStorySentence.
@@ -4399,6 +4453,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.'**
   String get runningCoachTipSteadyCamera;
+
+  /// No description provided for @runningCoachUploadGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload-focused analysis'**
+  String get runningCoachUploadGuideTitle;
+
+  /// No description provided for @runningCoachUploadGuideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a saved video so the app can sample clear frames and compare the same movement points consistently.'**
+  String get runningCoachUploadGuideBody;
+
+  /// No description provided for @runningCoachUploadGuideStepSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Stand square to the running lane and film the runner moving left-to-right or right-to-left.'**
+  String get runningCoachUploadGuideStepSide;
+
+  /// No description provided for @runningCoachUploadGuideStepDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave space in front and behind the runner so every step keeps the whole body visible.'**
+  String get runningCoachUploadGuideStepDistance;
+
+  /// No description provided for @runningCoachUploadGuideStepDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a 5-15 second clip with 3 or more clean strides, then trim away walking setup time.'**
+  String get runningCoachUploadGuideStepDuration;
+
+  /// No description provided for @runningCoachUploadGuideStepLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Record in bright, even light and avoid other people crossing behind the runner.'**
+  String get runningCoachUploadGuideStepLight;
+
+  /// No description provided for @runningCoachSampleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample video analysis'**
+  String get runningCoachSampleTitle;
+
+  /// No description provided for @runningCoachSampleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is how a side-view sample is scored before you upload your own clip.'**
+  String get runningCoachSampleBody;
 
   /// No description provided for @runningCoachLiveCardTitle.
   ///
@@ -5082,6 +5184,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overall running score {score}/100'**
   String runningCoachOverallSummary(int score);
+
+  /// No description provided for @runningCoachOverallScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall score'**
+  String get runningCoachOverallScoreLabel;
 
   /// No description provided for @runningCoachDurationLabel.
   ///
@@ -7220,6 +7328,24 @@ abstract class AppLocalizations {
   /// **'Backed-up data is from {time}. Back up again if recent changes matter.'**
   String settingsSyncSummaryStale(Object time);
 
+  /// No description provided for @settingsDriveActionFilePath.
+  ///
+  /// In en, this message translates to:
+  /// **'File path: {path}'**
+  String settingsDriveActionFilePath(Object path);
+
+  /// No description provided for @settingsDriveActionBackupTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved at: {time}'**
+  String settingsDriveActionBackupTime(Object time);
+
+  /// No description provided for @settingsDriveActionBackupTimeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved time: not available on this device yet.'**
+  String get settingsDriveActionBackupTimeUnknown;
+
   /// No description provided for @settingsDriveConnectAction.
   ///
   /// In en, this message translates to:
@@ -7951,6 +8077,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'There is no feedback yet.'**
   String get parentFeedbackEmpty;
+
+  /// No description provided for @parentFeedbackReactionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reaction'**
+  String get parentFeedbackReactionLabel;
+
+  /// No description provided for @parentFeedbackReactionNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get parentFeedbackReactionNone;
+
+  /// No description provided for @parentFeedbackReactionThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks'**
+  String get parentFeedbackReactionThanks;
+
+  /// No description provided for @parentFeedbackReactionProud.
+  ///
+  /// In en, this message translates to:
+  /// **'Proud'**
+  String get parentFeedbackReactionProud;
+
+  /// No description provided for @parentFeedbackReactionReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get parentFeedbackReactionReview;
+
+  /// No description provided for @parentFeedbackReactionTry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try next'**
+  String get parentFeedbackReactionTry;
 
   /// No description provided for @parentFeedbackOpenExistingEntryTitle.
   ///

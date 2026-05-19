@@ -42,6 +42,8 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   late final ParentSharedFeedbackService _feedbackService;
   late final TextEditingController _controller;
   String _savedMessage = '';
+  String _savedReaction = '';
+  String _selectedReaction = '';
   DateTime? _savedUpdatedAt;
   bool _isSaving = false;
 
@@ -52,7 +54,13 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   }
 
   bool get _hasChanges {
-    return _controller.text.trim() != _savedMessage.trim();
+    return _controller.text.trim() != _savedMessage.trim() ||
+        _selectedReaction.trim() != _savedReaction.trim();
+  }
+
+  bool get _canReact {
+    return _savedMessage.trim().isNotEmpty ||
+        _controller.text.trim().isNotEmpty;
   }
 
   bool get _canClear {
@@ -66,6 +74,8 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     _feedbackService = ParentSharedFeedbackService(widget.optionRepository);
     final feedback = _feedbackService.feedbackForEntry(widget.entry);
     _savedMessage = feedback?.message ?? '';
+    _savedReaction = feedback?.reaction ?? '';
+    _selectedReaction = _savedReaction;
     _savedUpdatedAt = feedback?.updatedAt;
     _controller = TextEditingController(text: _savedMessage)
       ..addListener(_handleControllerChanged);
@@ -111,14 +121,15 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   }
 
   Future<void> _saveFeedback() async {
-    if (!_canEdit || !_hasChanges || _isSaving) {
+    if ((!_canEdit && !_canReact) || !_hasChanges || _isSaving) {
       return;
     }
     setState(() => _isSaving = true);
     try {
       final saved = await _feedbackService.saveFeedbackForEntry(
         widget.entry,
-        _controller.text,
+        _canEdit ? _controller.text : _savedMessage,
+        _selectedReaction,
       );
       final didSync = await _syncParentSharedDataIfPossible();
       if (!mounted) {
@@ -143,12 +154,15 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
 
   Future<bool> _syncParentSharedDataIfPossible() async {
     final backup = widget.driveBackupService;
-    if (backup == null || !_canEdit) {
+    if (backup == null) {
       return false;
     }
     try {
-      await backup.markParentSharedDataDirty();
-      return await backup.backupIfSignedIn();
+      if (_canEdit) {
+        await backup.markParentSharedDataDirty();
+        return await backup.backupIfSignedIn();
+      }
+      return await backup.backupIfSignedIn(requireAutoOnSave: true);
     } catch (_) {
       return false;
     }
@@ -254,6 +268,16 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                           previewText,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
+                      if (_canReact) ...[
+                        const SizedBox(height: 16),
+                        _ParentFeedbackReactionPicker(
+                          selectedReaction: _selectedReaction,
+                          canEdit: !_isSaving,
+                          onChanged: (value) {
+                            setState(() => _selectedReaction = value);
+                          },
+                        ),
+                      ],
                       if (_isSaving) ...[
                         const SizedBox(height: 16),
                         const LinearProgressIndicator(),
@@ -270,7 +294,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: !_canEdit
+        bottomNavigationBar: (!_canEdit && !_canReact)
             ? null
             : SafeArea(
                 top: false,
@@ -278,10 +302,13 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Row(
                     children: [
-                      TextButton(
-                        onPressed: _canClear ? () => _controller.clear() : null,
-                        child: Text(l10n.parentFeedbackClear),
-                      ),
+                      if (_canEdit)
+                        TextButton(
+                          onPressed: _canClear
+                              ? () => _controller.clear()
+                              : null,
+                          child: Text(l10n.parentFeedbackClear),
+                        ),
                       const Spacer(),
                       FilledButton.icon(
                         onPressed: (_isSaving || !_hasChanges)
@@ -297,4 +324,89 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
       ),
     );
   }
+}
+
+class _ParentFeedbackReactionPicker extends StatelessWidget {
+  final String selectedReaction;
+  final bool canEdit;
+  final ValueChanged<String> onChanged;
+
+  const _ParentFeedbackReactionPicker({
+    required this.selectedReaction,
+    required this.canEdit,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final options = <_ParentFeedbackReactionOption>[
+      _ParentFeedbackReactionOption(
+        id: '',
+        icon: Icons.radio_button_unchecked_rounded,
+        label: l10n.parentFeedbackReactionNone,
+      ),
+      _ParentFeedbackReactionOption(
+        id: 'thanks',
+        icon: Icons.favorite_rounded,
+        label: l10n.parentFeedbackReactionThanks,
+      ),
+      _ParentFeedbackReactionOption(
+        id: 'proud',
+        icon: Icons.emoji_events_rounded,
+        label: l10n.parentFeedbackReactionProud,
+      ),
+      _ParentFeedbackReactionOption(
+        id: 'review',
+        icon: Icons.visibility_rounded,
+        label: l10n.parentFeedbackReactionReview,
+      ),
+      _ParentFeedbackReactionOption(
+        id: 'try',
+        icon: Icons.directions_run_rounded,
+        label: l10n.parentFeedbackReactionTry,
+      ),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.parentFeedbackReactionLabel,
+          style: Theme.of(
+            context,
+          ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final option in options)
+              ChoiceChip(
+                avatar: Icon(option.icon, size: 18),
+                label: Text(option.label),
+                selected: selectedReaction == option.id,
+                onSelected: !canEdit
+                    ? null
+                    : (_) => onChanged(
+                        selectedReaction == option.id ? '' : option.id,
+                      ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ParentFeedbackReactionOption {
+  final String id;
+  final IconData icon;
+  final String label;
+
+  const _ParentFeedbackReactionOption({
+    required this.id,
+    required this.icon,
+    required this.label,
+  });
 }

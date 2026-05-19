@@ -116,6 +116,7 @@ Future<void> showTrainingXpRewardDialog(
   final l10n = AppLocalizations.of(context)!;
   final theme = Theme.of(context);
   final scheme = theme.colorScheme;
+  final spec = _TrainingXpDialogSpec.fromAward(l10n, scheme, award);
   final progressText = award.after.isMaxLevel
       ? l10n.dailyTasksXpDialogMaxProgress(
           award.after.totalXp,
@@ -132,7 +133,7 @@ Future<void> showTrainingXpRewardDialog(
       decoration: BoxDecoration(
         color: scheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: scheme.tertiary.withValues(alpha: 0.18)),
+        border: Border.all(color: spec.color.withValues(alpha: 0.18)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x26000000),
@@ -144,10 +145,10 @@ Future<void> showTrainingXpRewardDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _GemCluster(color: scheme.tertiary),
+          _GemCluster(color: spec.color, symbol: spec.icon),
           const SizedBox(height: 14),
           Text(
-            l10n.trainingXpDialogTitle,
+            spec.title,
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w900,
@@ -155,7 +156,7 @@ Future<void> showTrainingXpRewardDialog(
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.trainingXpDialogMessage,
+            spec.message,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
@@ -206,6 +207,69 @@ Future<void> showTrainingXpRewardDialog(
             child: FilledButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(l10n.trainingXpDialogAction),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Future<void> showTrainingStreakCheerDialog(
+  BuildContext context, {
+  required PlayerLevelAward award,
+}) async {
+  final streakDays = _trainingStreakDays(award);
+  if (streakDays < 2) return;
+  final l10n = AppLocalizations.of(context)!;
+  final theme = Theme.of(context);
+  final scheme = theme.colorScheme;
+  await _showCelebrationDialog(
+    context,
+    child: Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.18)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x26000000),
+            blurRadius: 28,
+            offset: Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _GemCluster(
+            color: scheme.primary,
+            symbol: Icons.local_fire_department_rounded,
+          ),
+          const SizedBox(height: 14),
+          Text(
+            l10n.trainingStreakCheerTitle(streakDays),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.trainingStreakCheerMessage,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.trainingStreakCheerAction),
             ),
           ),
         ],
@@ -403,6 +467,77 @@ Future<void> showLevelUpCelebrationDialog(
   );
 }
 
+class _TrainingXpDialogSpec {
+  final String title;
+  final String message;
+  final Color color;
+  final IconData icon;
+
+  const _TrainingXpDialogSpec({
+    required this.title,
+    required this.message,
+    required this.color,
+    required this.icon,
+  });
+
+  factory _TrainingXpDialogSpec.fromAward(
+    AppLocalizations l10n,
+    ColorScheme scheme,
+    PlayerLevelAward award,
+  ) {
+    final reasons = award.reasons.toSet();
+    final hasJumpRopeGain =
+        reasons.contains('jump_rope_added') ||
+        (!reasons.contains('jump_rope_missed') &&
+            reasons.any((reason) => reason.contains('jump_rope')));
+    final hasLiftingGain =
+        reasons.contains('lifting_added') ||
+        (!reasons.contains('lifting_missed') &&
+            reasons.any((reason) => reason.contains('lifting')));
+    if (hasJumpRopeGain) {
+      return _TrainingXpDialogSpec(
+        title: l10n.trainingXpDialogJumpRopeTitle,
+        message: l10n.trainingXpDialogJumpRopeMessage,
+        color: scheme.primary,
+        icon: Icons.sports_gymnastics_rounded,
+      );
+    }
+    if (hasLiftingGain) {
+      return _TrainingXpDialogSpec(
+        title: l10n.trainingXpDialogLiftingTitle,
+        message: l10n.trainingXpDialogLiftingMessage,
+        color: scheme.secondary,
+        icon: Icons.fitness_center_rounded,
+      );
+    }
+    if (reasons.any((reason) => reason.startsWith('meal_'))) {
+      return _TrainingXpDialogSpec(
+        title: l10n.trainingXpDialogMealTitle,
+        message: l10n.trainingXpDialogMealMessage,
+        color: const Color(0xFFB45309),
+        icon: Icons.rice_bowl_outlined,
+      );
+    }
+    return _TrainingXpDialogSpec(
+      title: l10n.trainingXpDialogTitle,
+      message: l10n.trainingXpDialogMessage,
+      color: scheme.tertiary,
+      icon: Icons.menu_book_rounded,
+    );
+  }
+}
+
+int _trainingStreakDays(PlayerLevelAward award) {
+  final reasons = award.reasons.toSet();
+  if (reasons.contains('streak_7') || reasons.contains('streak_daily_7_plus')) {
+    return 7;
+  }
+  if (reasons.contains('streak_daily_4_6')) return 4;
+  if (reasons.contains('streak_3')) return 3;
+  if (reasons.contains('streak_daily_2_3')) return 2;
+  return 0;
+}
+
 Future<void> _showCelebrationDialog(
   BuildContext context, {
   required Widget child,
@@ -437,8 +572,9 @@ Future<void> _showCelebrationDialog(
 
 class _GemCluster extends StatelessWidget {
   final Color color;
+  final IconData? symbol;
 
-  const _GemCluster({required this.color});
+  const _GemCluster({required this.color, this.symbol});
 
   @override
   Widget build(BuildContext context) {
@@ -462,6 +598,7 @@ class _GemCluster extends StatelessWidget {
               ),
             ],
           ),
+          if (symbol != null) Icon(symbol, color: Colors.white, size: 28),
           Positioned(
             top: 2,
             left: 38,

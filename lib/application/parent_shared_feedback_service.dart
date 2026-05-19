@@ -5,17 +5,20 @@ import 'family_access_service.dart';
 class ParentTrainingFeedback {
   final String entryId;
   final String message;
+  final String reaction;
   final DateTime? updatedAt;
 
   const ParentTrainingFeedback({
     required this.entryId,
     required this.message,
+    this.reaction = '',
     this.updatedAt,
   });
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'message': message,
+      if (reaction.trim().isNotEmpty) 'reaction': reaction.trim(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
     };
   }
@@ -36,6 +39,7 @@ class ParentTrainingFeedback {
     return ParentTrainingFeedback(
       entryId: entryId,
       message: message,
+      reaction: raw['reaction']?.toString().trim() ?? '',
       updatedAt: DateTime.tryParse(raw['updatedAt']?.toString() ?? ''),
     );
   }
@@ -72,8 +76,9 @@ class ParentSharedFeedbackService {
 
   Future<ParentTrainingFeedback?> saveFeedbackForEntry(
     TrainingEntry entry,
-    String message,
-  ) async {
+    String message, [
+    String reaction = '',
+  ]) async {
     final next = _loadRawMap();
     final entryId = entryIdFor(entry);
     final trimmed = message.trim();
@@ -88,6 +93,7 @@ class ParentSharedFeedbackService {
     final feedback = ParentTrainingFeedback(
       entryId: entryId,
       message: trimmed,
+      reaction: reaction.trim(),
       updatedAt: DateTime.now(),
     );
     next[entryId] = feedback.toMap();

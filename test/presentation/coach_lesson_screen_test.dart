@@ -686,8 +686,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('기록 스티커로 붙이기').first);
-      await tester.tap(find.text('기록 스티커로 붙이기').first);
+      await tester.ensureVisible(find.text('스티커 추가').first);
+      await tester.tap(find.text('스티커 추가').first);
       await tester.pump();
       await tester.ensureVisible(
         find.byKey(const ValueKey('diary-save-button')),

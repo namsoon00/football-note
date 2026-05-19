@@ -69,7 +69,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       _maybeHandleInitialAction();
       final shouldRequestPermission =
           widget.initialAction == WeatherDetailInitialAction.outfitGuide &&
-          _summary.isEmpty;
+              _summary.isEmpty;
       unawaited(
         _loadWeather(
           requestPermission: shouldRequestPermission,
@@ -88,9 +88,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final pm25Level = _pm25Level(l10n, _pm25);
     final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo, l10n);
     final trainingGuide = _buildTrainingGuide(isKo, l10n);
-    final tomorrowForecast = _dailyForecasts.length > 1
-        ? _dailyForecasts[1]
-        : null;
+    final tomorrowForecast =
+        _dailyForecasts.length > 1 ? _dailyForecasts[1] : null;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.homeWeatherDetailsTitle)),
       body: AppBackground(
@@ -107,10 +106,10 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 onRefresh: _loading
                     ? null
                     : () => _loadWeather(
-                        requestPermission: true,
-                        showFailureFeedback: true,
-                        forceRefresh: true,
-                      ),
+                          requestPermission: true,
+                          showFailureFeedback: true,
+                          forceRefresh: true,
+                        ),
                 metrics: hasWeather
                     ? [
                         _CompactMetricData(
@@ -283,16 +282,15 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         isKo: isKo,
         koreaLabel: l10n.homeWeatherCountryKorea,
       ).timeout(const Duration(seconds: 5)).catchError((_) => '');
-      final weatherFuture =
-          _fetchWeatherSnapshot(
-                latitude: position.latitude,
-                longitude: position.longitude,
-                location: '',
-                l10n: l10n,
-                locale: locale,
-              )
-              .then<WeatherSharedSnapshot?>((snapshot) => snapshot)
-              .catchError((_) => null);
+      final weatherFuture = _fetchWeatherSnapshot(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        location: '',
+        l10n: l10n,
+        locale: locale,
+      )
+          .then<WeatherSharedSnapshot?>((snapshot) => snapshot)
+          .catchError((_) => null);
       final results = await Future.wait<Object?>([placeFuture, weatherFuture]);
       final place = results[0] as String;
       if (!mounted) return;
@@ -332,12 +330,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) => WeatherLocationService.resolvePlaceName(
-    latitude: latitude,
-    longitude: longitude,
-    isKo: isKo,
-    koreaLabel: koreaLabel,
-  );
+  }) =>
+      WeatherLocationService.resolvePlaceName(
+        latitude: latitude,
+        longitude: longitude,
+        isKo: isKo,
+        koreaLabel: koreaLabel,
+      );
 
   Future<WeatherSharedSnapshot> _fetchWeatherSnapshot({
     required double latitude,
@@ -345,20 +344,21 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required String location,
     required AppLocalizations l10n,
     required Locale locale,
-  }) => location.trim().isEmpty
-      ? WeatherSharedResource.fetchForCoordinates(
-          latitude: latitude,
-          longitude: longitude,
-          l10n: l10n,
-          locale: locale,
-        )
-      : WeatherSharedResource.fetchForLocation(
-          latitude: latitude,
-          longitude: longitude,
-          location: location,
-          l10n: l10n,
-          locale: locale,
-        );
+  }) =>
+      location.trim().isEmpty
+          ? WeatherSharedResource.fetchForCoordinates(
+              latitude: latitude,
+              longitude: longitude,
+              l10n: l10n,
+              locale: locale,
+            )
+          : WeatherSharedResource.fetchForLocation(
+              latitude: latitude,
+              longitude: longitude,
+              location: location,
+              l10n: l10n,
+              locale: locale,
+            );
 
   String _headerLocationLabel(AppLocalizations l10n) {
     if (_location.isNotEmpty) return _location;
@@ -460,12 +460,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   }
 
   String _formatForecastDate(DateTime date) => DateFormat.MMMd(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(date);
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   String _formatForecastWeekday(DateTime date) => DateFormat.E(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(date);
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   _AirLevelLabel _aqiLevel(
     AppLocalizations l10n,
@@ -771,41 +771,38 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   _DetailedOutfitGuide _buildDetailedOutfitGuide(
     bool isKo,
     AppLocalizations l10n,
-  ) => _buildOutfitGuide(
-    isKo: isKo,
-    l10n: l10n,
-    apparentTemperature: _currentOutfitTemperature,
-    precipitationMm: _todayPrecipitation,
-    windSpeed: _windSpeed ?? 0,
-    weatherCode: _weatherCode,
-    airLevel: _worstAirQualityLevel(),
-  );
+  ) =>
+      _buildOutfitGuide(
+        isKo: isKo,
+        l10n: l10n,
+        apparentTemperature: _currentOutfitTemperature,
+        precipitationMm: _todayPrecipitation,
+        windSpeed: _windSpeed ?? 0,
+        weatherCode: _weatherCode,
+        airLevel: _worstAirQualityLevel(),
+      );
 
   List<_OutfitMomentPreviewData> _buildForecastOutfitPreviews({
     required _DailyWeatherForecast forecast,
     required bool isKo,
     required AppLocalizations l10n,
   }) {
-    final slots =
-        <
-          ({
-            String label,
-            _ForecastMomentPreview? preview,
-            double? fallbackTemperature,
-          })
-        >[
-          (
-            label: l10n.homeWeatherMorningLabel,
-            preview: forecast.morningForecast,
-            fallbackTemperature: forecast.temperatureMin,
-          ),
-          (
-            label: l10n.homeWeatherEveningLabel,
-            preview: forecast.eveningForecast,
-            fallbackTemperature:
-                forecast.temperatureMin ?? forecast.temperatureMax,
-          ),
-        ];
+    final slots = <({
+      String label,
+      _ForecastMomentPreview? preview,
+      double? fallbackTemperature,
+    })>[
+      (
+        label: l10n.homeWeatherMorningLabel,
+        preview: forecast.morningForecast,
+        fallbackTemperature: forecast.temperatureMin,
+      ),
+      (
+        label: l10n.homeWeatherEveningLabel,
+        preview: forecast.eveningForecast,
+        fallbackTemperature: forecast.temperatureMin ?? forecast.temperatureMax,
+      ),
+    ];
     return slots
         .map((slot) {
           final preview = slot.preview;
@@ -854,8 +851,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         weatherCode != null && <int>{95, 96, 99}.contains(weatherCode);
     final hasPrecipitation = (precipitationMm ?? 0) >= 1;
     final hasHeavyPrecipitation = (precipitationMm ?? 0) >= 8;
-    final isRainy =
-        weatherCode != null &&
+    final isRainy = weatherCode != null &&
             <int>{
               51,
               53,
@@ -875,8 +871,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               99,
             }.contains(weatherCode) ||
         hasPrecipitation;
-    final isSnowy =
-        weatherCode != null &&
+    final isSnowy = weatherCode != null &&
         <int>{71, 73, 75, 77, 85, 86}.contains(weatherCode);
     final isWindy = windSpeed >= 20;
     final isVeryWindy = windSpeed >= 28;
@@ -891,13 +886,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         icon: apparentTemperature != null && apparentTemperature >= 24
             ? Icons.wb_sunny_outlined
             : apparentTemperature != null && apparentTemperature <= 8
-            ? Icons.ac_unit_rounded
-            : Icons.tune_rounded,
+                ? Icons.ac_unit_rounded
+                : Icons.tune_rounded,
         text: apparentTemperature != null && apparentTemperature >= 24
             ? l10n.homeWeatherOutfitBaseHot
             : apparentTemperature != null && apparentTemperature <= 8
-            ? l10n.homeWeatherOutfitBaseCold
-            : l10n.homeWeatherOutfitBaseMild,
+                ? l10n.homeWeatherOutfitBaseCold
+                : l10n.homeWeatherOutfitBaseMild,
       ),
     ];
 
@@ -907,9 +902,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '기본 반바지' : 'Standard shorts';
       accessories = isKo ? '여벌 양말, 물통' : 'Spare socks and water bottle';
     } else if (apparentTemperature >= 30) {
-      layers = isKo
-          ? '민소매/반팔 + 쿨 이너'
-          : 'Sleeveless/short-sleeve + cooling base';
+      layers =
+          isKo ? '민소매/반팔 + 쿨 이너' : 'Sleeveless/short-sleeve + cooling base';
       outer = isKo ? '겉옷 없음' : 'No outerwear';
       bottom = isKo ? '통풍 반바지' : 'Breathable shorts';
       accessories = isKo ? '쿨타월, 얼음물, 챙 모자' : 'Cool towel, iced water, cap';
@@ -935,16 +929,14 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           : 'Thermal base + long-sleeve + midlayer';
       outer = isKo ? '방풍 자켓 또는 경량 패딩 조끼' : 'Windproof jacket or padded vest';
       bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
-      accessories = isKo
-          ? '방한 장갑, 넥워머, 귀마개'
-          : 'Winter gloves, neck warmer, ear cover';
+      accessories =
+          isKo ? '방한 장갑, 넥워머, 귀마개' : 'Winter gloves, neck warmer, ear cover';
     } else {
       layers = isKo ? '발열 이너 + 두꺼운 긴팔 상의' : 'Heat base layer + thick midlayer';
       outer = isKo ? '경량 패딩/훈련용 패딩' : 'Light puffer/training padded jacket';
       bottom = isKo ? '방한 팬츠' : 'Thermal training pants';
-      accessories = isKo
-          ? '방한 장갑, 넥워머, 비니'
-          : 'Insulated gloves, neck warmer, beanie';
+      accessories =
+          isKo ? '방한 장갑, 넥워머, 비니' : 'Insulated gloves, neck warmer, beanie';
       notes.add(
         isKo
             ? '실내 워밍업 후 짧은 세트로 진행'
@@ -969,8 +961,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       outer = isStormy || hasHeavyPrecipitation || isVeryWindy
           ? (isKo ? '방수 방풍 자켓' : 'Waterproof windproof jacket')
           : (isKo
-                ? '생활방수 자켓 + 얇은 긴팔 상의'
-                : 'Water-resistant jacket + light midlayer');
+              ? '생활방수 자켓 + 얇은 긴팔 상의'
+              : 'Water-resistant jacket + light midlayer');
       accessories = isKo
           ? '$accessories, 방수 양말 또는 여벌 양말'
           : '$accessories, waterproof or spare socks';
@@ -1023,8 +1015,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       callouts: callouts.skip(1).toList(growable: false),
       caution: notes.isEmpty
           ? (isKo
-                ? '현재 조건에서 일반 강도 훈련 가능'
-                : 'Normal intensity is fine in current conditions')
+              ? '현재 조건에서 일반 강도 훈련 가능'
+              : 'Normal intensity is fine in current conditions')
           : notes.join(isKo ? ' · ' : ' · '),
     );
   }
@@ -1172,11 +1164,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
             subtitle: _location.isEmpty
                 ? (isKo
-                      ? '지금 날씨에서 효율적인 훈련 방향입니다.'
-                      : 'Best focus for the current weather.')
+                    ? '지금 날씨에서 효율적인 훈련 방향입니다.'
+                    : 'Best focus for the current weather.')
                 : (isKo
-                      ? '$_location 날씨에 맞춘 훈련 방향입니다.'
-                      : 'Tailored to $_location weather.'),
+                    ? '$_location 날씨에 맞춘 훈련 방향입니다.'
+                    : 'Tailored to $_location weather.'),
             focusLabel: isKo ? '오늘 집중' : 'Focus',
             cautionLabel: isKo ? '운영 팁' : 'Execution tip',
             recoveryLabel: isKo ? '회복 체크' : 'Recovery check',
@@ -1543,8 +1535,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                       children: [
                         for (var index = 0; index < metrics.length; index++)
                           SizedBox(
-                            width:
-                                metrics.length.isOdd &&
+                            width: metrics.length.isOdd &&
                                     index == metrics.length - 1
                                 ? constraints.maxWidth
                                 : halfWidth,
@@ -3083,15 +3074,13 @@ class _WeeklyForecastCard extends StatelessWidget {
               ),
               precipitation: formatMillimeter(forecast.precipitationSum),
               wind: formatWind(forecast.windSpeedMax),
-              fineDust: forecast.pm10 == null
-                  ? null
-                  : formatFineDust(forecast.pm10),
+              fineDust:
+                  forecast.pm10 == null ? null : formatFineDust(forecast.pm10),
               fineDustLevel: forecast.pm10 == null
                   ? null
                   : pm10LevelForValue(forecast.pm10),
-              ultraFineDust: forecast.pm25 == null
-                  ? null
-                  : formatFineDust(forecast.pm25),
+              ultraFineDust:
+                  forecast.pm25 == null ? null : formatFineDust(forecast.pm25),
               ultraFineDustLevel: forecast.pm25 == null
                   ? null
                   : pm25LevelForValue(forecast.pm25),
@@ -3332,9 +3321,8 @@ class _ForecastStatPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final palette = airLevel == null
-        ? null
-        : _airQualityPalette(theme, airLevel!);
+    final palette =
+        airLevel == null ? null : _airQualityPalette(theme, airLevel!);
     final visibleText = showLabel ? '$label $value' : value;
     return Semantics(
       label: '$label $value',
@@ -3344,8 +3332,7 @@ class _ForecastStatPill extends StatelessWidget {
           color: palette?.background ?? theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color:
-                palette?.border ??
+            color: palette?.border ??
                 theme.colorScheme.outlineVariant.withValues(alpha: 0.32),
           ),
         ),
@@ -3511,15 +3498,15 @@ class _HourlyTemperatureSection extends StatelessWidget {
     final minTemperature = temperatureEntries
         .map((entry) => entry.temperature!)
         .fold<double?>(null, (current, value) {
-          if (current == null) return value;
-          return math.min(current, value);
-        });
+      if (current == null) return value;
+      return math.min(current, value);
+    });
     final maxTemperature = temperatureEntries
         .map((entry) => entry.temperature!)
         .fold<double?>(null, (current, value) {
-          if (current == null) return value;
-          return math.max(current, value);
-        });
+      if (current == null) return value;
+      return math.max(current, value);
+    });
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -3563,34 +3550,19 @@ class _HourlyTemperatureSection extends StatelessWidget {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (
-                    var index = 0;
-                    index < temperatureEntries.length;
-                    index++
-                  ) ...[
-                    _HourlyTemperatureTimelineItem(
-                      timeLabel: formatTime(temperatureEntries[index].time),
-                      temperatureLabel: formatTemperature(
-                        temperatureEntries[index].temperature,
-                      ),
-                      accentColor: chartLineColor,
-                      cardColor: accentStyle
-                          ? theme.colorScheme.surface.withValues(alpha: 0.22)
-                          : theme.colorScheme.secondaryContainer.withValues(
-                              alpha: 0.75,
-                            ),
-                      textColor: accentStyle
-                          ? theme.colorScheme.onPrimaryContainer
-                          : theme.colorScheme.onSecondaryContainer,
-                      mutedTextColor: timeTextColor,
-                    ),
-                    if (index < temperatureEntries.length - 1)
-                      const SizedBox(width: 8),
-                  ],
-                ],
+              child: _HourlyTemperatureChart(
+                entries: temperatureEntries,
+                formatTime: formatTime,
+                formatTemperature: formatTemperature,
+                lineColor: chartLineColor,
+                barColor: chartLineColor.withValues(alpha: 0.24),
+                pointFillColor: accentStyle
+                    ? theme.colorScheme.primaryContainer
+                    : theme.colorScheme.surface,
+                labelColor: accentStyle
+                    ? theme.colorScheme.onPrimaryContainer
+                    : theme.colorScheme.onSecondaryContainer,
+                mutedLabelColor: timeTextColor,
               ),
             ),
           ),
@@ -3600,72 +3572,163 @@ class _HourlyTemperatureSection extends StatelessWidget {
   }
 }
 
-class _HourlyTemperatureTimelineItem extends StatelessWidget {
-  final String timeLabel;
-  final String temperatureLabel;
-  final Color accentColor;
-  final Color cardColor;
-  final Color textColor;
-  final Color mutedTextColor;
+class _HourlyTemperatureChart extends StatelessWidget {
+  final List<_ForecastMomentPreview> entries;
+  final String Function(DateTime) formatTime;
+  final String Function(double?) formatTemperature;
+  final Color lineColor;
+  final Color barColor;
+  final Color pointFillColor;
+  final Color labelColor;
+  final Color mutedLabelColor;
 
-  const _HourlyTemperatureTimelineItem({
-    required this.timeLabel,
-    required this.temperatureLabel,
-    required this.accentColor,
-    required this.cardColor,
-    required this.textColor,
-    required this.mutedTextColor,
+  const _HourlyTemperatureChart({
+    required this.entries,
+    required this.formatTime,
+    required this.formatTemperature,
+    required this.lineColor,
+    required this.barColor,
+    required this.pointFillColor,
+    required this.labelColor,
+    required this.mutedLabelColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    if (entries.isEmpty) return const SizedBox.shrink();
+    final width = math.max(320.0, entries.length * 58.0);
+    const chartHeight = 96.0;
     return SizedBox(
-      width: 70,
+      width: width,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            timeLabel,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: mutedTextColor,
-              fontWeight: FontWeight.w800,
+          SizedBox(
+            height: chartHeight,
+            child: CustomPaint(
+              size: Size(width, chartHeight),
+              painter: _HourlyTemperatureChartPainter(
+                entries: entries,
+                lineColor: lineColor,
+                barColor: barColor,
+                pointFillColor: pointFillColor,
+              ),
             ),
           ),
-          const SizedBox(height: 6),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: accentColor.withValues(alpha: 0.18)),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.device_thermostat_outlined,
-                  size: 17,
-                  color: accentColor,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  temperatureLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w900,
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              for (final entry in entries)
+                SizedBox(
+                  width: width / entries.length,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        formatTemperature(entry.temperature),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: labelColor,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        formatTime(entry.time),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: mutedLabelColor,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
         ],
       ),
     );
+  }
+}
+
+class _HourlyTemperatureChartPainter extends CustomPainter {
+  final List<_ForecastMomentPreview> entries;
+  final Color lineColor;
+  final Color barColor;
+  final Color pointFillColor;
+
+  const _HourlyTemperatureChartPainter({
+    required this.entries,
+    required this.lineColor,
+    required this.barColor,
+    required this.pointFillColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final temperatures = entries
+        .map((entry) => entry.temperature)
+        .whereType<double>()
+        .toList(growable: false);
+    if (temperatures.isEmpty) return;
+    final minTemperature = temperatures.reduce(math.min);
+    final maxTemperature = temperatures.reduce(math.max);
+    final spread = math.max(1.0, maxTemperature - minTemperature);
+    const topPadding = 12.0;
+    const bottomPadding = 14.0;
+    final usableHeight = size.height - topPadding - bottomPadding;
+    final step = entries.length <= 1 ? size.width : size.width / entries.length;
+    final points = <Offset>[];
+    for (var index = 0; index < entries.length; index++) {
+      final temperature = entries[index].temperature;
+      if (temperature == null) continue;
+      final x = (step * index) + (step / 2);
+      final normalized = (temperature - minTemperature) / spread;
+      final y = topPadding + ((1 - normalized) * usableHeight);
+      points.add(Offset(x, y));
+      final barPaint = Paint()
+        ..color = barColor
+        ..strokeWidth = 10
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(
+        Offset(x, size.height - bottomPadding),
+        Offset(x, y),
+        barPaint,
+      );
+    }
+    if (points.length >= 2) {
+      final path = Path()..moveTo(points.first.dx, points.first.dy);
+      for (var index = 1; index < points.length; index++) {
+        path.lineTo(points[index].dx, points[index].dy);
+      }
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = lineColor
+          ..strokeWidth = 3
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..style = PaintingStyle.stroke,
+      );
+    }
+    final pointBorderPaint = Paint()..color = lineColor;
+    final pointFillPaint = Paint()..color = pointFillColor;
+    for (final point in points) {
+      canvas.drawCircle(point, 5.5, pointBorderPaint);
+      canvas.drawCircle(point, 3.2, pointFillPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _HourlyTemperatureChartPainter oldDelegate) {
+    return oldDelegate.entries != entries ||
+        oldDelegate.lineColor != lineColor ||
+        oldDelegate.barColor != barColor ||
+        oldDelegate.pointFillColor != pointFillColor;
   }
 }
 
