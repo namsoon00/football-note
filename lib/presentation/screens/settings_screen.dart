@@ -120,8 +120,8 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Future<void> _refreshParentSharedDataIfNeeded() async {
     if (widget.driveBackupService == null) return;
-    final result =
-        await widget.driveBackupService!.refreshFamilySharedDataIfNeeded();
+    final result = await widget.driveBackupService!
+        .refreshFamilySharedDataIfNeeded();
     if (result.refreshed) {
       widget.localeService.load();
       widget.settingsService.load();
@@ -168,14 +168,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     DriveConnectionInfo? sharedChildConnection;
     var hasRemotePlayerBackup = false;
     try {
-      sharedChildConnection =
-          await widget.driveBackupService!.getSharedChildDriveConnectionInfo(
-        allowRemoteLookup: familyState.isParentMode,
-      );
+      sharedChildConnection = await widget.driveBackupService!
+          .getSharedChildDriveConnectionInfo(
+            allowRemoteLookup: familyState.isParentMode,
+          );
       if (familyState.isParentMode &&
           (sharedChildConnection == null || sharedChildConnection.isEmpty)) {
-        hasRemotePlayerBackup =
-            await widget.driveBackupService!.hasRemotePlayerBackup();
+        hasRemotePlayerBackup = await widget.driveBackupService!
+            .hasRemotePlayerBackup();
       }
     } catch (e, st) {
       debugPrint('Shared child Drive lookup failed: $e');
@@ -196,7 +196,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     final cachedConnectedDriveEmail = _cachedConnectedDriveEmail();
     if (!mounted) return;
     setState(() {
-      _signedIn = signedIn ||
+      _signedIn =
+          signedIn ||
           (connection != null && !connection.isEmpty) ||
           (allowCachedConnection && cachedConnectedDriveLabel.isNotEmpty);
       _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
@@ -212,11 +213,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   String _cachedConnectedDriveLabel() {
-    final cachedLabel = widget.optionRepository
+    final cachedLabel =
+        widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveLabelLocalKey)
             ?.trim() ??
         '';
-    final cachedEmail = widget.optionRepository
+    final cachedEmail =
+        widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveEmailLocalKey)
             ?.trim() ??
         '';
@@ -268,11 +271,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     final sharedChildDriveSubtitle = _driveStatusLoading
         ? l10n.settingsSyncStatusChecking
         : expectedChildDriveLabel.isNotEmpty
-            ? l10n.settingsSyncBackupDataReady
-            : _hasRemotePlayerBackup
-                ? l10n.driveSharedChildAccountRemoteBackup
-                : l10n.driveSharedChildAccountEmpty;
-    final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
+        ? l10n.settingsSyncBackupDataReady
+        : _hasRemotePlayerBackup
+        ? l10n.driveSharedChildAccountRemoteBackup
+        : l10n.driveSharedChildAccountEmpty;
+    final driveMatchesExpected =
+        expectedChildDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _driveLabelMatchesEmail(_connectedDriveLabel, _sharedChildDriveEmail);
 
@@ -349,7 +353,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-            _durationOptions.first;
+        _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
@@ -610,9 +614,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                           children: [
                             Text(
                               title,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(fontWeight: FontWeight.w800),
                             ),
                             if (summary?.trim().isNotEmpty == true) ...[
@@ -791,7 +793,6 @@ class _SettingsScreenState extends State<SettingsScreen>
         localRestoreAt: driveBackupService.getLocalPreRestoreTime(),
         formatBackupTime: _formatBackupTime,
       ),
-      _buildDriveBackupLocationCard(),
       SwitchListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(l10n.backupDailyEnabled),
@@ -821,7 +822,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     required bool driveMatchesExpected,
   }) {
     final driveBackupService = widget.driveBackupService!;
-    final hasKnownBackupData = _hasRemotePlayerBackup ||
+    final hasKnownBackupData =
+        _hasRemotePlayerBackup ||
         _sharedChildDriveLabel.trim().isNotEmpty ||
         _sharedChildDriveEmail.trim().isNotEmpty;
     final children = <Widget>[
@@ -841,14 +843,14 @@ class _SettingsScreenState extends State<SettingsScreen>
         signedIn: _signedIn,
         autoDaily: _autoDaily,
         autoOnSave: _autoOnSave,
-        lastBackupAt: driveBackupService.getLastFamilySyncPush() ??
+        lastBackupAt:
+            driveBackupService.getLastFamilySyncPush() ??
             driveBackupService.getLastFamilyRefresh() ??
             driveBackupService.getLastBackup(),
         localRestoreAt: driveBackupService.getLocalPreRestoreTime(),
         backupKnown: hasKnownBackupData,
         formatBackupTime: _formatBackupTime,
       ),
-      _buildDriveBackupLocationCard(),
       _buildParentFamilySyncCard(l10n),
     ]);
     return children;
@@ -877,32 +879,41 @@ class _SettingsScreenState extends State<SettingsScreen>
           onPressed: (_backupBusy || _restoreBusy)
               ? null
               : () => _restoreFromDrive(
-                    l10n,
-                    title: l10n.settingsRestoreLatestActionTitle,
-                    message:
-                        isSupportMode ? l10n.familySharedRestoreConfirm : null,
-                    successMessage:
-                        isSupportMode ? l10n.familySharedRestoreSuccess : null,
-                    failedMessage:
-                        isSupportMode ? l10n.familySharedRestoreFailed : null,
-                  ),
+                  l10n,
+                  title: l10n.settingsRestoreLatestActionTitle,
+                  filePath: DriveBackupService.backupDisplayPath,
+                  backupCreatedAt: widget.driveBackupService!.getLastBackup(),
+                  message: isSupportMode
+                      ? l10n.familySharedRestoreConfirm
+                      : null,
+                  successMessage: isSupportMode
+                      ? l10n.familySharedRestoreSuccess
+                      : null,
+                  failedMessage: isSupportMode
+                      ? l10n.familySharedRestoreFailed
+                      : null,
+                ),
         ),
       );
       actions.add(
         _buildDriveQuickActionButton(
           icon: Icons.settings_backup_restore_outlined,
           label: l10n.restorePreviousBackup,
+          destructive: true,
           onPressed: (_backupBusy || _restoreBusy)
               ? null
               : () => _restoreFromDrive(
-                    l10n,
-                    title: l10n.restorePreviousBackup,
-                    message: l10n.restorePreviousConfirm,
-                    successMessage: l10n.restorePreviousSuccess,
-                    failedMessage: l10n.restorePreviousFailed,
-                    restoreAction:
-                        widget.driveBackupService!.restorePreviousBackup,
-                  ),
+                  l10n,
+                  title: l10n.restorePreviousBackup,
+                  filePath: DriveBackupService.previousBackupDisplayPath,
+                  backupCreatedAt: widget.driveBackupService!
+                      .getPreviousBackupCreatedAt(),
+                  message: l10n.restorePreviousConfirm,
+                  successMessage: l10n.restorePreviousSuccess,
+                  failedMessage: l10n.restorePreviousFailed,
+                  restoreAction:
+                      widget.driveBackupService!.restorePreviousBackup,
+                ),
         ),
       );
     }
@@ -914,9 +925,10 @@ class _SettingsScreenState extends State<SettingsScreen>
           onPressed: (_backupBusy || _restoreBusy || backupLocked)
               ? null
               : () => _backupToDrive(
-                    l10n,
-                    title: l10n.settingsBackupDataActionTitle,
-                  ),
+                  l10n,
+                  title: l10n.settingsBackupDataActionTitle,
+                  filePath: DriveBackupService.backupDisplayPath,
+                ),
         ),
       );
     }
@@ -939,8 +951,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       subtitle: _driveStatusLoading
           ? l10n.settingsSyncStatusChecking
           : _connectedDriveLabel.trim().isEmpty
-              ? l10n.driveConnectedAccountEmpty
-              : _connectedDriveLabel.trim(),
+          ? l10n.driveConnectedAccountEmpty
+          : _connectedDriveLabel.trim(),
       loading: _driveStatusLoading,
     );
   }
@@ -1010,59 +1022,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Widget _buildDriveBackupLocationCard() {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.12)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.folder_copy_outlined,
-            size: 20,
-            color: scheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isKo ? 'Google Drive 저장 위치' : 'Google Drive location',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isKo
-                      ? '백업 파일은 아래 위치에 저장됩니다. 폴더가 없으면 자동으로 만듭니다.'
-                      : 'The backup file is stored here. The folder is created automatically if needed.',
-                  style: theme.textTheme.bodySmall,
-                ),
-                const SizedBox(height: 8),
-                SelectableText(
-                  DriveBackupService.backupDisplayPath,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   bool _sameStringList(List<String> a, List<String> b) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
@@ -1083,8 +1042,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -1145,8 +1105,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
-    final defaultDurationText =
-        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
+    final defaultDurationText = _defaultDuration <= 0
+        ? l10n.notSet
+        : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1551,8 +1512,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized =
-                            sanitize == null ? added : sanitize(added);
+                        final normalized = sanitize == null
+                            ? added
+                            : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -1983,13 +1945,21 @@ class _SettingsScreenState extends State<SettingsScreen>
     String? message,
     String? successMessage,
     String? failedMessage,
+    String? filePath,
   }) async {
     if (widget.driveBackupService == null) return;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title ?? l10n.backupToDrive),
-        content: Text(message ?? l10n.backupConfirm),
+        content: Text(
+          _driveActionDialogMessage(
+            l10n: l10n,
+            message: message ?? l10n.backupConfirm,
+            filePath: filePath,
+            includeBackupTime: false,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -2015,7 +1985,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message = e.toString().contains('sign-in') ||
+      final message =
+          e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -2091,12 +2062,20 @@ class _SettingsScreenState extends State<SettingsScreen>
     String? successMessage,
     String? failedMessage,
     Future<void> Function()? restoreAction,
+    String? filePath,
+    DateTime? backupCreatedAt,
   }) async {
     if (widget.driveBackupService == null) return;
     final confirm = await _confirmRestoreAction(
       l10n: l10n,
       title: title ?? l10n.restoreFromDrive,
-      message: message ?? l10n.restoreConfirm,
+      message: _driveActionDialogMessage(
+        l10n: l10n,
+        message: message ?? l10n.restoreConfirm,
+        filePath: filePath,
+        backupCreatedAt: backupCreatedAt,
+        includeBackupTime: true,
+      ),
     );
     if (confirm != true) return;
     setState(() => _restoreBusy = true);
@@ -2115,7 +2094,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message = e.toString().contains('sign-in') ||
+      final message =
+          e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -2153,6 +2133,35 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     final locale = Localizations.localeOf(context).toString();
     return DateFormat.yMMMd(locale).format(date);
+  }
+
+  String _formatBackupTimestamp(DateTime date) {
+    final locale = Localizations.localeOf(context).toString();
+    return DateFormat.yMMMd(locale).add_Hm().format(date.toLocal());
+  }
+
+  String _driveActionDialogMessage({
+    required AppLocalizations l10n,
+    required String message,
+    String? filePath,
+    DateTime? backupCreatedAt,
+    bool includeBackupTime = false,
+  }) {
+    final lines = <String>[message];
+    final path = filePath?.trim();
+    if (path != null && path.isNotEmpty) {
+      lines.add(l10n.settingsDriveActionFilePath(path));
+    }
+    if (backupCreatedAt != null) {
+      lines.add(
+        l10n.settingsDriveActionBackupTime(
+          _formatBackupTimestamp(backupCreatedAt),
+        ),
+      );
+    } else if (includeBackupTime) {
+      lines.add(l10n.settingsDriveActionBackupTimeUnknown);
+    }
+    return lines.join('\n\n');
   }
 
   String _driveFailureMessage(

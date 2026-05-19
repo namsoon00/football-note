@@ -893,6 +893,21 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       : (isKo
                           ? '정답을 고르면 여기에서 바로 설명을 볼 수 있어요.'
                           : 'The explanation will appear here right after you answer.'),
+                  answerInsightLabel: (_answered || _retryUsed)
+                      ? (isKo ? '정답 포인트' : 'Answer insight')
+                      : '',
+                  answerLine: (_answered &&
+                          (_answerRevealed ||
+                              question.style == _QuestionStyle.shortAnswer))
+                      ? (isKo
+                          ? '정답: ${_primaryAnswerLabel(question)}'
+                          : 'Answer: ${_primaryAnswerLabel(question)}')
+                      : '',
+                  nextFocusLine: (_answered || _retryUsed)
+                      ? (isKo
+                          ? '다음에 볼 포인트: ${question.nextPoint(true)}'
+                          : 'Next focus: ${question.nextPoint(false)}')
+                      : '',
                 ),
                 const SizedBox(height: 12),
                 if (question.style == _QuestionStyle.shortAnswer)
@@ -1078,58 +1093,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           fontWeight: FontWeight.w700,
                         ),
                   ),
-                if (_answered) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isKo ? '정답 포인트' : 'Answer insight',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge
-                              ?.copyWith(fontWeight: FontWeight.w900),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          question.explainText(isKo),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        if (_answerRevealed ||
-                            question.style == _QuestionStyle.shortAnswer) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            isKo
-                                ? '정답: ${_primaryAnswerLabel(question)}'
-                                : 'Answer: ${_primaryAnswerLabel(question)}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                        ],
-                        const SizedBox(height: 8),
-                        Text(
-                          isKo
-                              ? '다음에 볼 포인트: ${question.nextPoint(true)}'
-                              : 'Next focus: ${question.nextPoint(false)}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -1766,6 +1729,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 
   Widget _buildEntryHub(bool isKo) {
+    final l10n = AppLocalizations.of(context)!;
     final personalization = _buildPersonalization();
     final history = _loadQuizHistory();
     final actions = <_QuizEntryCardData>[
@@ -1891,6 +1855,26 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           ),
         ),
         const SizedBox(height: 14),
+        if (_isParentMode) ...[
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+            ),
+            child: Text(
+              l10n.parentReadOnlyQuiz,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
         ...actions.map(
           (item) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -2613,12 +2597,18 @@ class _QuestionHeroCard extends StatelessWidget {
   final bool isKo;
   final _QuizHeroOverlayData overlay;
   final String explanationText;
+  final String answerInsightLabel;
+  final String answerLine;
+  final String nextFocusLine;
 
   const _QuestionHeroCard({
     required this.question,
     required this.isKo,
     required this.overlay,
     required this.explanationText,
+    this.answerInsightLabel = '',
+    this.answerLine = '',
+    this.nextFocusLine = '',
   });
 
   @override
@@ -2723,11 +2713,46 @@ class _QuestionHeroCard extends StatelessWidget {
                 Icon(Icons.lightbulb_outline, color: accent),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    explanationText,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (answerInsightLabel.isNotEmpty) ...[
+                        Text(
+                          answerInsightLabel,
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge
+                              ?.copyWith(fontWeight: FontWeight.w900),
                         ),
+                        const SizedBox(height: 6),
+                      ],
+                      Text(
+                        explanationText,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                      if (answerLine.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          answerLine,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                      if (nextFocusLine.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          nextFocusLine,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],

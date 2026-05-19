@@ -5,7 +5,7 @@
   "tabCalendar": "캘린더",
   "tabStats": "통계",
   "tabDiary": "다이어리",
-  "tabNews": "오늘의 소식",
+  "tabNews": "소식",
   "newsFifaHubButton": "FIFA 랭킹",
   "newsKLeagueStandingsButton": "K리그",
   "newsMoreActionsTooltip": "랭킹보기",
@@ -130,6 +130,12 @@
   "dailyTasksXpDialogAction": "계속하기",
   "trainingXpDialogTitle": "훈련 기록 완료",
   "trainingXpDialogMessage": "저장한 훈련 기록으로 경험치가 추가됐어요. 확인하면 홈 화면으로 돌아갑니다.",
+  "trainingXpDialogJumpRopeTitle": "줄넘기 리듬 저장",
+  "trainingXpDialogJumpRopeMessage": "추가한 줄넘기 기록이 빠른 발 성장 보석으로 쌓였어요.",
+  "trainingXpDialogLiftingTitle": "리프팅 노력 저장",
+  "trainingXpDialogLiftingMessage": "추가한 리프팅 기록이 더 강한 몸 성장 보석으로 쌓였어요.",
+  "trainingXpDialogMealTitle": "회복 루틴 저장",
+  "trainingXpDialogMealMessage": "식사와 회복 기록이 꾸준한 성장 보석으로 이어졌어요.",
   "trainingXpDialogXp": "+{count} XP",
   "@trainingXpDialogXp": {
     "placeholders": {
@@ -145,6 +151,16 @@
   "trainingXpSourceJumpRope": "줄넘기",
   "trainingXpSourceTrainingSketch": "훈련 스케치",
   "trainingXpSourceDiary": "다이어리",
+  "trainingStreakCheerTitle": "{count}일 연속 훈련",
+  "@trainingStreakCheerTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingStreakCheerMessage": "하루 단위 훈련 노트가 진짜 루틴으로 이어지고 있어요. 다음 훈련도 단순하게 반복해 보세요.",
+  "trainingStreakCheerAction": "계속하기",
   "levelUpDialogTitle": "레벨 업!",
   "levelUpDialogLevelLabel": "Lv.{level} {levelName}",
   "@levelUpDialogLevelLabel": {
@@ -832,7 +848,7 @@
   "diaryRecordStickerReorder": "순서 변경",
   "diaryRecordStickerRemove": "스티커 제거",
   "diaryRecordStickerPinned": "스티커 추가됨",
-  "diaryRecordStickerPin": "기록 스티커로 붙이기",
+  "diaryRecordStickerPin": "스티커 추가",
   "diaryMealStorySentence": "오늘 먹은 흐름을 돌아보며 식사량이 몸 상태와 어떻게 이어졌는지 적어 본다.",
   "diaryMealSectionTitle": "오늘 식사 메모",
   "diaryMealSectionBody": "세 끼와 밥 양, 몸 느낌의 연결을 간단히 남긴다.",
@@ -1032,6 +1048,14 @@
   "runningCoachTipWholeBody": "머리부터 발목까지 전신이 들어오고, 팔꿈치와 발도 계속 보이게 촬영해 주세요.",
   "runningCoachTipSideView": "러너가 화면을 가로지르도록 측면에서 촬영해 주세요.",
   "runningCoachTipSteadyCamera": "카메라는 흔들리지 않게 두고 5~15초 정도의 짧은 달리기 장면을 사용해 주세요.",
+  "runningCoachUploadGuideTitle": "동영상 업로드 분석",
+  "runningCoachUploadGuideBody": "저장된 영상을 사용하면 선명한 프레임을 골라 같은 움직임 기준을 더 안정적으로 비교할 수 있어요.",
+  "runningCoachUploadGuideStepSide": "달리는 라인과 카메라를 나란히 두고, 러너가 좌우로 지나가게 촬영해 주세요.",
+  "runningCoachUploadGuideStepDistance": "러너 앞뒤에 여유 공간을 두어 모든 스텝에서 전신이 계속 보이게 해 주세요.",
+  "runningCoachUploadGuideStepDuration": "깨끗한 보폭이 3번 이상 들어간 5~15초 영상을 쓰고, 준비하며 걷는 구간은 잘라 주세요.",
+  "runningCoachUploadGuideStepLight": "밝고 고른 빛에서 촬영하고, 러너 뒤로 다른 사람이 지나가지 않게 해 주세요.",
+  "runningCoachSampleTitle": "샘플 영상 분석",
+  "runningCoachSampleBody": "내 영상을 올리기 전에 측면 샘플이 어떤 식으로 점수화되는지 볼 수 있어요.",
   "runningCoachLiveCardTitle": "실시간 코치",
   "runningCoachLiveCardBody": "러너 윤곽과 자세 선을 실시간으로 보고, 필요하면 바로 스프린트 전용 피드백으로 넘어가 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형까지 확인할 수 있어요.",
   "runningCoachLiveAction": "실시간 코치 시작",
@@ -1305,6 +1329,7 @@
       }
     }
   },
+  "runningCoachOverallScoreLabel": "종합 점수",
   "runningCoachDurationLabel": "영상 길이",
   "runningCoachFramesAnalyzedLabel": "분석 프레임",
   "runningCoachCoverageLabel": "추적 비율",
@@ -1840,6 +1865,19 @@
       "time": {}
     }
   },
+  "settingsDriveActionFilePath": "파일 경로: {path}",
+  "@settingsDriveActionFilePath": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "settingsDriveActionBackupTime": "백업 저장 시각: {time}",
+  "@settingsDriveActionBackupTime": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsDriveActionBackupTimeUnknown": "백업 저장 시각: 이 기기에서는 아직 확인할 수 없어요.",
   "settingsDriveConnectAction": "Google Drive 연결",
   "settingsDriveDisconnectAction": "Google Drive 연결 해제",
   "settingsRestoreLatestActionTitle": "최근 데이터 가져오기",
@@ -1988,6 +2026,12 @@
   "parentFeedbackSaveFailed": "피드백 저장에 실패했어요. 다시 시도해 주세요.",
   "parentFeedbackCleared": "피드백을 지웠어요.",
   "parentFeedbackEmpty": "아직 피드백이 없어요.",
+  "parentFeedbackReactionLabel": "리액션",
+  "parentFeedbackReactionNone": "없음",
+  "parentFeedbackReactionThanks": "고마워요",
+  "parentFeedbackReactionProud": "뿌듯해요",
+  "parentFeedbackReactionReview": "다시 볼게요",
+  "parentFeedbackReactionTry": "다음에 해볼게요",
   "parentFeedbackOpenExistingEntryTitle": "기존 훈련기록을 열어 피드백을 남겨주세요.",
   "parentFeedbackOpenExistingEntryBody": "보호자 모드에서는 새 훈련기록을 만들지 않고, 이미 저장된 훈련기록에만 보호자 피드백을 저장할 수 있어요. 선수 모드에서 먼저 기록을 남긴 뒤 해당 기록을 열어 주세요.",
   "parentSharedSyncInProgress": "선수 Drive로 동기화 중이에요...",

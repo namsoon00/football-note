@@ -4302,7 +4302,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               color: theme.colorScheme.onSurface,
             );
             return SafeArea(
-              child: Center(
+              child: Align(
+                alignment: Alignment.bottomCenter,
                 heightFactor: 1,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
@@ -4314,7 +4315,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       lastDay: lastDay,
                       focusedDay: focusedDay,
                       calendarFormat: CalendarFormat.month,
-                      rowHeight: 44,
+                      sixWeekMonthsEnforced: false,
+                      shouldFillViewport: false,
+                      rowHeight: 40,
                       daysOfWeekHeight: 20,
                       availableGestures: AvailableGestures.horizontalSwipe,
                       startingDayOfWeek: StartingDayOfWeek.sunday,
@@ -4381,27 +4384,32 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           if (markerList.isEmpty) {
                             return const SizedBox.shrink();
                           }
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: markerList
-                                .take(4)
-                                .map(
-                                  (marker) => Container(
-                                    key: ValueKey(
-                                      'diary-calendar-marker-${_dayStorageToken(day)}-${marker.name}',
+                          return PositionedDirectional(
+                            start: 0,
+                            end: 0,
+                            bottom: 4,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: markerList
+                                  .take(4)
+                                  .map(
+                                    (marker) => Container(
+                                      key: ValueKey(
+                                        'diary-calendar-marker-${_dayStorageToken(day)}-${marker.name}',
+                                      ),
+                                      width: 5,
+                                      height: 5,
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 1.2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: marker.color,
+                                        shape: BoxShape.circle,
+                                      ),
                                     ),
-                                    width: 5,
-                                    height: 5,
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 1.2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: marker.color,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                )
-                                .toList(growable: false),
+                                  )
+                                  .toList(growable: false),
+                            ),
                           );
                         },
                       ),

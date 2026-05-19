@@ -27,7 +27,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tabDiary => '다이어리';
 
   @override
-  String get tabNews => '오늘의 소식';
+  String get tabNews => '소식';
 
   @override
   String get newsFifaHubButton => 'FIFA 랭킹';
@@ -268,6 +268,26 @@ class AppLocalizationsKo extends AppLocalizations {
       '저장한 훈련 기록으로 경험치가 추가됐어요. 확인하면 홈 화면으로 돌아갑니다.';
 
   @override
+  String get trainingXpDialogJumpRopeTitle => '줄넘기 리듬 저장';
+
+  @override
+  String get trainingXpDialogJumpRopeMessage =>
+      '추가한 줄넘기 기록이 빠른 발 성장 보석으로 쌓였어요.';
+
+  @override
+  String get trainingXpDialogLiftingTitle => '리프팅 노력 저장';
+
+  @override
+  String get trainingXpDialogLiftingMessage =>
+      '추가한 리프팅 기록이 더 강한 몸 성장 보석으로 쌓였어요.';
+
+  @override
+  String get trainingXpDialogMealTitle => '회복 루틴 저장';
+
+  @override
+  String get trainingXpDialogMealMessage => '식사와 회복 기록이 꾸준한 성장 보석으로 이어졌어요.';
+
+  @override
   String trainingXpDialogXp(int count) {
     return '+$count XP';
   }
@@ -292,6 +312,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingXpSourceDiary => '다이어리';
+
+  @override
+  String trainingStreakCheerTitle(int count) {
+    return '$count일 연속 훈련';
+  }
+
+  @override
+  String get trainingStreakCheerMessage =>
+      '하루 단위 훈련 노트가 진짜 루틴으로 이어지고 있어요. 다음 훈련도 단순하게 반복해 보세요.';
+
+  @override
+  String get trainingStreakCheerAction => '계속하기';
 
   @override
   String get levelUpDialogTitle => '레벨 업!';
@@ -1944,7 +1976,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryRecordStickerPinned => '스티커 추가됨';
 
   @override
-  String get diaryRecordStickerPin => '기록 스티커로 붙이기';
+  String get diaryRecordStickerPin => '스티커 추가';
 
   @override
   String get diaryMealStorySentence =>
@@ -2331,6 +2363,36 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachTipSteadyCamera =>
       '카메라는 흔들리지 않게 두고 5~15초 정도의 짧은 달리기 장면을 사용해 주세요.';
+
+  @override
+  String get runningCoachUploadGuideTitle => '동영상 업로드 분석';
+
+  @override
+  String get runningCoachUploadGuideBody =>
+      '저장된 영상을 사용하면 선명한 프레임을 골라 같은 움직임 기준을 더 안정적으로 비교할 수 있어요.';
+
+  @override
+  String get runningCoachUploadGuideStepSide =>
+      '달리는 라인과 카메라를 나란히 두고, 러너가 좌우로 지나가게 촬영해 주세요.';
+
+  @override
+  String get runningCoachUploadGuideStepDistance =>
+      '러너 앞뒤에 여유 공간을 두어 모든 스텝에서 전신이 계속 보이게 해 주세요.';
+
+  @override
+  String get runningCoachUploadGuideStepDuration =>
+      '깨끗한 보폭이 3번 이상 들어간 5~15초 영상을 쓰고, 준비하며 걷는 구간은 잘라 주세요.';
+
+  @override
+  String get runningCoachUploadGuideStepLight =>
+      '밝고 고른 빛에서 촬영하고, 러너 뒤로 다른 사람이 지나가지 않게 해 주세요.';
+
+  @override
+  String get runningCoachSampleTitle => '샘플 영상 분석';
+
+  @override
+  String get runningCoachSampleBody =>
+      '내 영상을 올리기 전에 측면 샘플이 어떤 식으로 점수화되는지 볼 수 있어요.';
 
   @override
   String get runningCoachLiveCardTitle => '실시간 코치';
@@ -2740,6 +2802,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String runningCoachOverallSummary(int score) {
     return '전체 달리기 점수 $score/100';
   }
+
+  @override
+  String get runningCoachOverallScoreLabel => '종합 점수';
 
   @override
   String get runningCoachDurationLabel => '영상 길이';
@@ -4020,6 +4085,20 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String settingsDriveActionFilePath(Object path) {
+    return '파일 경로: $path';
+  }
+
+  @override
+  String settingsDriveActionBackupTime(Object time) {
+    return '백업 저장 시각: $time';
+  }
+
+  @override
+  String get settingsDriveActionBackupTimeUnknown =>
+      '백업 저장 시각: 이 기기에서는 아직 확인할 수 없어요.';
+
+  @override
   String get settingsDriveConnectAction => 'Google Drive 연결';
 
   @override
@@ -4435,6 +4514,24 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get parentFeedbackEmpty => '아직 피드백이 없어요.';
+
+  @override
+  String get parentFeedbackReactionLabel => '리액션';
+
+  @override
+  String get parentFeedbackReactionNone => '없음';
+
+  @override
+  String get parentFeedbackReactionThanks => '고마워요';
+
+  @override
+  String get parentFeedbackReactionProud => '뿌듯해요';
+
+  @override
+  String get parentFeedbackReactionReview => '다시 볼게요';
+
+  @override
+  String get parentFeedbackReactionTry => '다음에 해볼게요';
 
   @override
   String get parentFeedbackOpenExistingEntryTitle => '기존 훈련기록을 열어 피드백을 남겨주세요.';

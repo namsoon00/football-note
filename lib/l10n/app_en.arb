@@ -5,7 +5,7 @@
   "tabCalendar": "Calendar",
   "tabStats": "Stats",
   "tabDiary": "Diary",
-  "tabNews": "Today News",
+  "tabNews": "News",
   "newsFifaHubButton": "FIFA Rank",
   "newsKLeagueStandingsButton": "K League",
   "newsMoreActionsTooltip": "Rankings",
@@ -130,6 +130,12 @@
   "dailyTasksXpDialogAction": "Keep going",
   "trainingXpDialogTitle": "Training log saved",
   "trainingXpDialogMessage": "Your saved training log added XP. Confirm to return to the home screen.",
+  "trainingXpDialogJumpRopeTitle": "Jump rope rhythm saved",
+  "trainingXpDialogJumpRopeMessage": "The added jump rope work became quick-foot growth gems.",
+  "trainingXpDialogLiftingTitle": "Lifting effort saved",
+  "trainingXpDialogLiftingMessage": "The added lifting work became stronger-body growth gems.",
+  "trainingXpDialogMealTitle": "Recovery routine saved",
+  "trainingXpDialogMealMessage": "The meal and recovery record added steady growth gems.",
   "trainingXpDialogXp": "+{count} XP",
   "@trainingXpDialogXp": {
     "placeholders": {
@@ -145,6 +151,16 @@
   "trainingXpSourceJumpRope": "Jump rope",
   "trainingXpSourceTrainingSketch": "Training sketch",
   "trainingXpSourceDiary": "Diary",
+  "trainingStreakCheerTitle": "{count}-day training streak",
+  "@trainingStreakCheerTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingStreakCheerMessage": "Day-by-day training notes are connecting into a real routine. Keep the next session simple and repeatable.",
+  "trainingStreakCheerAction": "Keep going",
   "levelUpDialogTitle": "Level up!",
   "levelUpDialogLevelLabel": "Lv.{level} {levelName}",
   "@levelUpDialogLevelLabel": {
@@ -832,7 +848,7 @@
   "diaryRecordStickerReorder": "Reorder sticker",
   "diaryRecordStickerRemove": "Remove sticker",
   "diaryRecordStickerPinned": "Sticker added",
-  "diaryRecordStickerPin": "Pin as sticker",
+  "diaryRecordStickerPin": "Add sticker",
   "diaryMealStorySentence": "Look back on what you ate today and note how the meal volume connected to body condition.",
   "diaryMealSectionTitle": "Meal note",
   "diaryMealSectionBody": "Keep the three meals, rice amount, and body feel in one short note.",
@@ -1032,6 +1048,14 @@
   "runningCoachTipWholeBody": "Keep the full body in frame from head to ankle, with elbows and feet visible for the whole clip.",
   "runningCoachTipSideView": "Record from the side while the runner moves across the frame.",
   "runningCoachTipSteadyCamera": "Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.",
+  "runningCoachUploadGuideTitle": "Upload-focused analysis",
+  "runningCoachUploadGuideBody": "Use a saved video so the app can sample clear frames and compare the same movement points consistently.",
+  "runningCoachUploadGuideStepSide": "Stand square to the running lane and film the runner moving left-to-right or right-to-left.",
+  "runningCoachUploadGuideStepDistance": "Leave space in front and behind the runner so every step keeps the whole body visible.",
+  "runningCoachUploadGuideStepDuration": "Use a 5-15 second clip with 3 or more clean strides, then trim away walking setup time.",
+  "runningCoachUploadGuideStepLight": "Record in bright, even light and avoid other people crossing behind the runner.",
+  "runningCoachSampleTitle": "Sample video analysis",
+  "runningCoachSampleBody": "This is how a side-view sample is scored before you upload your own clip.",
   "runningCoachLiveCardTitle": "Live coach",
   "runningCoachLiveCardBody": "Track the runner outline and pose line live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.",
   "runningCoachLiveAction": "Start live coach",
@@ -1305,6 +1329,7 @@
       }
     }
   },
+  "runningCoachOverallScoreLabel": "Overall score",
   "runningCoachDurationLabel": "Clip",
   "runningCoachFramesAnalyzedLabel": "Frames",
   "runningCoachCoverageLabel": "Coverage",
@@ -1840,6 +1865,19 @@
       "time": {}
     }
   },
+  "settingsDriveActionFilePath": "File path: {path}",
+  "@settingsDriveActionFilePath": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "settingsDriveActionBackupTime": "Backup saved at: {time}",
+  "@settingsDriveActionBackupTime": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsDriveActionBackupTimeUnknown": "Backup saved time: not available on this device yet.",
   "settingsDriveConnectAction": "Connect Google Drive",
   "settingsDriveDisconnectAction": "Disconnect Google Drive",
   "settingsRestoreLatestActionTitle": "Import latest data",
@@ -1988,6 +2026,12 @@
   "parentFeedbackSaveFailed": "Could not save feedback. Try again.",
   "parentFeedbackCleared": "Feedback cleared.",
   "parentFeedbackEmpty": "There is no feedback yet.",
+  "parentFeedbackReactionLabel": "Reaction",
+  "parentFeedbackReactionNone": "None",
+  "parentFeedbackReactionThanks": "Thanks",
+  "parentFeedbackReactionProud": "Proud",
+  "parentFeedbackReactionReview": "Review",
+  "parentFeedbackReactionTry": "Try next",
   "parentFeedbackOpenExistingEntryTitle": "Open an existing training log to leave feedback.",
   "parentFeedbackOpenExistingEntryBody": "Parent mode does not create new training logs. Parent feedback can only be saved on an existing training log after the player records it first.",
   "parentSharedSyncInProgress": "Syncing to the player's Drive...",

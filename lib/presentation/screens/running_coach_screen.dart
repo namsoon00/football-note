@@ -9,9 +9,6 @@ import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
 import 'running_coach_insight_copy.dart';
-import 'running_live_coach_guide_screen.dart';
-import 'running_live_coach_screen.dart';
-import 'sprint_live_coaching_screen.dart';
 import '../widgets/app_feedback.dart';
 
 class RunningCoachScreen extends StatefulWidget {
@@ -54,6 +51,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     final insightSections = _coachingReport == null
         ? const <_InsightRegionSection>[]
         : _buildInsightSections(l10n, _coachingReport!);
+    final sampleResult = _sampleAnalysisResult();
+    final sampleReport = _coachingService.buildReport(sampleResult);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.runningCoachScreenTitle)),
       body: ListView(
@@ -73,30 +72,22 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          _CoachIntentCard(
-            icon: Icons.motion_photos_on_rounded,
-            title: l10n.runningCoachLiveCardTitle,
-            body: l10n.runningCoachLiveCardBody,
-            actions: [
-              _CoachIntentAction(
-                label: l10n.runningCoachLiveAction,
-                icon: Icons.play_arrow_rounded,
-                onPressed: _openLiveCoach,
-                tone: _CoachIntentActionTone.filled,
-              ),
-              _CoachIntentAction(
-                label: l10n.runningCoachSprintLiveAction,
-                icon: Icons.directions_run_rounded,
-                onPressed: _openSprintLiveCoach,
-                tone: _CoachIntentActionTone.tonal,
-              ),
-              _CoachIntentAction(
-                label: l10n.runningCoachLiveGuideAction,
-                icon: Icons.info_outline_rounded,
-                onPressed: _openCombinedLiveGuide,
-                tone: _CoachIntentActionTone.outlined,
-              ),
+          _RunningCoachUploadGuideCard(
+            title: l10n.runningCoachUploadGuideTitle,
+            body: l10n.runningCoachUploadGuideBody,
+            steps: [
+              l10n.runningCoachUploadGuideStepSide,
+              l10n.runningCoachUploadGuideStepDistance,
+              l10n.runningCoachUploadGuideStepDuration,
+              l10n.runningCoachUploadGuideStepLight,
             ],
+          ),
+          const SizedBox(height: 12),
+          _RunningCoachSampleCard(
+            title: l10n.runningCoachSampleTitle,
+            body: l10n.runningCoachSampleBody,
+            result: sampleResult,
+            report: sampleReport,
           ),
           const SizedBox(height: 12),
           _VideoAnalysisIntentCard(
@@ -143,31 +134,40 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
 
-  void _openLiveCoach() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const RunningLiveCoachScreen()));
-  }
-
-  void _openCombinedLiveGuide() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => RunningLiveCoachGuideScreen(
-          onStart: _openLiveCoach,
-          secondaryStart: _openSprintLiveCoach,
-          secondaryStartLabel: AppLocalizations.of(
-            context,
-          )!.runningCoachSprintLiveAction,
-          secondaryStartIcon: Icons.directions_run_rounded,
+  RunningVideoAnalysisResult _sampleAnalysisResult() {
+    return const RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 8),
+      sampledFrames: 16,
+      validFrames: 14,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 4.5,
+      verticalBounceRatio: 0.085,
+      footStrikeDistanceRatio: 0.18,
+      stanceKneeAngleDegrees: 168,
+      elbowAngleDegrees: 108,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 0.88,
+          sampleCount: 14,
         ),
-      ),
+        RunningCoachMetric.bounce: RunningMetricQuality(
+          confidence: 0.84,
+          sampleCount: 14,
+        ),
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 0.82,
+          sampleCount: 13,
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 0.80,
+          sampleCount: 12,
+        ),
+        RunningCoachMetric.armCarriage: RunningMetricQuality(
+          confidence: 0.78,
+          sampleCount: 12,
+        ),
+      },
     );
-  }
-
-  void _openSprintLiveCoach() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const SprintLiveCoachingScreen()));
   }
 
   Future<void> _pickVideo() async {
@@ -281,17 +281,15 @@ class _InsightRegionSection {
   const _InsightRegionSection({required this.title, required this.insights});
 }
 
-class _CoachIntentCard extends StatelessWidget {
-  final IconData icon;
+class _RunningCoachUploadGuideCard extends StatelessWidget {
   final String title;
   final String body;
-  final List<_CoachIntentAction> actions;
+  final List<String> steps;
 
-  const _CoachIntentCard({
-    required this.icon,
+  const _RunningCoachUploadGuideCard({
     required this.title,
     required this.body,
-    required this.actions,
+    required this.steps,
   });
 
   @override
@@ -313,7 +311,10 @@ class _CoachIntentCard extends StatelessWidget {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(10),
-                    child: Icon(icon, color: scheme.onPrimaryContainer),
+                    child: Icon(
+                      Icons.video_camera_back_outlined,
+                      color: scheme.onPrimaryContainer,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -333,30 +334,205 @@ class _CoachIntentCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
+            for (var index = 0; index < steps.length; index += 1) ...[
+              _NumberedGuideStep(number: index + 1, text: steps[index]),
+              if (index != steps.length - 1) const SizedBox(height: 8),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NumberedGuideStep extends StatelessWidget {
+  final int number;
+  final String text;
+
+  const _NumberedGuideStep({required this.number, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 12,
+          backgroundColor: scheme.primary.withValues(alpha: 0.12),
+          child: Text(
+            '$number',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(text, style: Theme.of(context).textTheme.bodySmall),
+        ),
+      ],
+    );
+  }
+}
+
+String _formatRunningDuration(Duration duration) {
+  final minutes = duration.inMinutes;
+  final seconds = duration.inSeconds % 60;
+  if (minutes == 0) return '${seconds}s';
+  return '${minutes}m ${seconds}s';
+}
+
+class _RunningCoachSampleCard extends StatelessWidget {
+  final String title;
+  final String body;
+  final RunningVideoAnalysisResult result;
+  final RunningCoachingReport report;
+
+  const _RunningCoachSampleCard({
+    required this.title,
+    required this.body,
+    required this.result,
+    required this.report,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final primaryFocus = report.primaryFocus;
+    final focusCopy = primaryFocus == null
+        ? null
+        : RunningCoachInsightCopy.fromInsight(primaryFocus, l10n);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: scheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Icon(
+                      Icons.analytics_outlined,
+                      color: scheme.onSecondaryContainer,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(body, style: Theme.of(context).textTheme.bodyMedium),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _SampleVideoFrame(score: report.overallScore),
+            const SizedBox(height: 12),
             Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: actions
-                  .map((action) {
-                    return switch (action.tone) {
-                      _CoachIntentActionTone.filled => FilledButton.icon(
-                        onPressed: action.onPressed,
-                        icon: Icon(action.icon),
-                        label: Text(action.label),
-                      ),
-                      _CoachIntentActionTone.tonal => FilledButton.tonalIcon(
-                        onPressed: action.onPressed,
-                        icon: Icon(action.icon),
-                        label: Text(action.label),
-                      ),
-                      _CoachIntentActionTone.outlined => OutlinedButton.icon(
-                        onPressed: action.onPressed,
-                        icon: Icon(action.icon),
-                        label: Text(action.label),
-                      ),
-                    };
-                  })
-                  .toList(growable: false),
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _StatChip(
+                  label: l10n.runningCoachDurationLabel,
+                  value: _formatRunningDuration(result.videoDuration),
+                ),
+                _StatChip(
+                  label: l10n.runningCoachFramesAnalyzedLabel,
+                  value: '${result.validFrames}/${result.sampledFrames}',
+                ),
+                _StatChip(
+                  label: l10n.runningCoachOverallScoreLabel,
+                  value: '${report.overallScore}',
+                ),
+              ],
+            ),
+            if (focusCopy != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                focusCopy.title,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                focusCopy.summary,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SampleVideoFrame extends StatelessWidget {
+  final int score;
+
+  const _SampleVideoFrame({required this.score});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return AspectRatio(
+      aspectRatio: 16 / 7,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _SampleRunnerPainter(
+                  lineColor: scheme.primary,
+                  trackColor: scheme.outlineVariant,
+                ),
+              ),
+            ),
+            Positioned(
+              right: 12,
+              top: 12,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  child: Text(
+                    '$score',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: scheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -365,20 +541,59 @@ class _CoachIntentCard extends StatelessWidget {
   }
 }
 
-enum _CoachIntentActionTone { filled, tonal, outlined }
+class _SampleRunnerPainter extends CustomPainter {
+  final Color lineColor;
+  final Color trackColor;
 
-class _CoachIntentAction {
-  final String label;
-  final IconData icon;
-  final VoidCallback onPressed;
-  final _CoachIntentActionTone tone;
-
-  const _CoachIntentAction({
-    required this.label,
-    required this.icon,
-    required this.onPressed,
-    required this.tone,
+  const _SampleRunnerPainter({
+    required this.lineColor,
+    required this.trackColor,
   });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..strokeWidth = 2;
+    canvas.drawLine(
+      Offset(size.width * 0.08, size.height * 0.78),
+      Offset(size.width * 0.92, size.height * 0.78),
+      trackPaint,
+    );
+
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+    final hip = Offset(size.width * 0.48, size.height * 0.42);
+    final shoulder = Offset(size.width * 0.44, size.height * 0.24);
+    final head = Offset(size.width * 0.41, size.height * 0.16);
+    final leftKnee = Offset(size.width * 0.38, size.height * 0.56);
+    final leftFoot = Offset(size.width * 0.30, size.height * 0.76);
+    final rightKnee = Offset(size.width * 0.62, size.height * 0.54);
+    final rightFoot = Offset(size.width * 0.72, size.height * 0.74);
+    final leftElbow = Offset(size.width * 0.35, size.height * 0.34);
+    final rightElbow = Offset(size.width * 0.56, size.height * 0.32);
+    canvas.drawCircle(head, 8, paint);
+    for (final segment in <List<Offset>>[
+      [head, shoulder],
+      [shoulder, hip],
+      [hip, leftKnee],
+      [leftKnee, leftFoot],
+      [hip, rightKnee],
+      [rightKnee, rightFoot],
+      [shoulder, leftElbow],
+      [shoulder, rightElbow],
+    ]) {
+      canvas.drawLine(segment.first, segment.last, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SampleRunnerPainter oldDelegate) {
+    return oldDelegate.lineColor != lineColor ||
+        oldDelegate.trackColor != trackColor;
+  }
 }
 
 class _VideoAnalysisIntentCard extends StatelessWidget {

@@ -83,6 +83,8 @@ class DriveBackupService implements BackupRepository {
   static const _autoOnSaveKey = 'drive_auto_on_save';
   static const _lastBackupKey = 'drive_last_backup';
   static const _lastRecordBackupKey = 'drive_last_record_backup_v1';
+  static const _previousBackupCreatedAtKey =
+      'drive_previous_backup_created_at_v1';
   static const _lastFamilySyncPushAtKey = 'drive_last_family_sync_push_v1';
   static const _lastFamilySyncPullAtKey = 'drive_last_family_sync_pull_v1';
   static const _lastFamilyRemoteSnapshotAtKey =
@@ -128,6 +130,7 @@ class DriveBackupService implements BackupRepository {
   static const Set<String> _excludedOptionKeys = {
     _lastBackupKey,
     _lastRecordBackupKey,
+    _previousBackupCreatedAtKey,
     _lastFamilySyncPushAtKey,
     _lastFamilySyncPullAtKey,
     _lastFamilyRemoteSnapshotAtKey,
@@ -277,6 +280,9 @@ class DriveBackupService implements BackupRepository {
   DateTime? getLastRecordBackup() =>
       _getDateTimeOption(_lastRecordBackupKey) ??
       _getDateTimeOption(_lastBackupKey);
+
+  DateTime? getPreviousBackupCreatedAt() =>
+      _getDateTimeOption(_previousBackupCreatedAtKey);
 
   DateTime? getLastFamilySyncPush() =>
       _getDateTimeOption(_lastFamilySyncPushAtKey);
@@ -1255,6 +1261,11 @@ class DriveBackupService implements BackupRepository {
     final existingId = existing.id;
     if (existingId == null || existingId.isEmpty) return;
     final content = await _downloadFileContent(driveApi, existingId);
+    final previousCreatedAt =
+        _createdAtFromBackupContent(content) ?? existing.modifiedTime;
+    if (previousCreatedAt != null) {
+      await _setDateTimeOption(_previousBackupCreatedAtKey, previousCreatedAt);
+    }
     final bytes = utf8.encode(content);
     final media = drive.Media(Stream.value(bytes), bytes.length);
     final previous = await _findPreviousBackupFile(driveApi, folderId);
@@ -1277,6 +1288,16 @@ class DriveBackupService implements BackupRepository {
     );
     if (created.id != null) {
       await _cleanupDuplicatePreviousBackups(driveApi, folderId, created.id!);
+    }
+  }
+
+  DateTime? _createdAtFromBackupContent(String content) {
+    try {
+      final decoded = jsonDecode(content);
+      if (decoded is! Map) return null;
+      return DateTime.tryParse(decoded['createdAt']?.toString() ?? '');
+    } catch (_) {
+      return null;
     }
   }
 
@@ -1986,7 +2007,7 @@ class DriveBackupService implements BackupRepository {
     return feedback.map(
       (key, value) => MapEntry(
         key,
-        '${value.message.trim()}\n${value.updatedAt?.toIso8601String() ?? ''}',
+        '${value.message.trim()}\n${value.reaction.trim()}\n${value.updatedAt?.toIso8601String() ?? ''}',
       ),
     );
   }

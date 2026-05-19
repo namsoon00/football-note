@@ -44,6 +44,13 @@ class BackupService {
     return _repository.getLastBackup();
   }
 
+  DateTime? getPreviousBackupCreatedAt() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getPreviousBackupCreatedAt();
+    }
+    return null;
+  }
+
   DateTime? getLastFamilySyncPush() {
     if (_repository case final DriveBackupService drive) {
       return drive.getLastFamilySyncPush();

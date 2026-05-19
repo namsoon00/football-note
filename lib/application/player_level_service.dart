@@ -78,16 +78,6 @@ class PlayerLevelService {
     required TrainingEntry entry,
     required List<TrainingEntry> existingEntries,
   }) async {
-    // Only award XP for entries registered for today.
-    final today = _normalizeDay(DateTime.now());
-    if (_normalizeDay(entry.date) != today) {
-      return PlayerLevelAward(
-        gainedXp: 0,
-        before: loadState(),
-        after: loadState(),
-        reasons: const <String>[],
-      );
-    }
     final before = loadState();
     final reasons = <String>[];
     var gainedXp = 0;
@@ -220,16 +210,6 @@ class PlayerLevelService {
     required TrainingEntry previousEntry,
     required TrainingEntry updatedEntry,
   }) async {
-    // Only award XP for entries registered for today.
-    final today = _normalizeDay(DateTime.now());
-    if (_normalizeDay(updatedEntry.date) != today) {
-      return PlayerLevelAward(
-        gainedXp: 0,
-        before: loadState(),
-        after: loadState(),
-        reasons: const <String>[],
-      );
-    }
     final before = loadState();
     final reasons = <String>[];
     var gainedXp = 0;
@@ -323,16 +303,6 @@ class PlayerLevelService {
     MealEntry? previousEntry,
     required MealEntry updatedEntry,
   }) async {
-    // Only award XP for records registered for today.
-    final today = _normalizeDay(DateTime.now());
-    if (_normalizeDay(updatedEntry.date) != today) {
-      return PlayerLevelAward(
-        gainedXp: 0,
-        before: loadState(),
-        after: loadState(),
-        reasons: const <String>[],
-      );
-    }
     final before = loadState();
     final previousMealXp = previousEntry == null
         ? 0
@@ -557,18 +527,8 @@ class PlayerLevelService {
 
   Future<PlayerLevelAward> awardForDiaryCreated({DateTime? createdAt}) async {
     final before = loadState();
-    final now = DateTime.now();
-    final target = createdAt ?? now;
+    final target = createdAt ?? DateTime.now();
     final day = _normalizeDay(target);
-    // Only award when creating today's diary.
-    if (day != _normalizeDay(now)) {
-      return PlayerLevelAward(
-        gainedXp: 0,
-        before: before,
-        after: before,
-        reasons: const <String>[],
-      );
-    }
     final token = _dayKey(day);
     if ((_options.getValue<String>(diaryCreatedDayKey) ?? '') == token) {
       return PlayerLevelAward(

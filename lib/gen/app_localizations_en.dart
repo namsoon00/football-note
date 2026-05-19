@@ -27,7 +27,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabDiary => 'Diary';
 
   @override
-  String get tabNews => 'Today News';
+  String get tabNews => 'News';
 
   @override
   String get newsFifaHubButton => 'FIFA Rank';
@@ -272,6 +272,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your saved training log added XP. Confirm to return to the home screen.';
 
   @override
+  String get trainingXpDialogJumpRopeTitle => 'Jump rope rhythm saved';
+
+  @override
+  String get trainingXpDialogJumpRopeMessage =>
+      'The added jump rope work became quick-foot growth gems.';
+
+  @override
+  String get trainingXpDialogLiftingTitle => 'Lifting effort saved';
+
+  @override
+  String get trainingXpDialogLiftingMessage =>
+      'The added lifting work became stronger-body growth gems.';
+
+  @override
+  String get trainingXpDialogMealTitle => 'Recovery routine saved';
+
+  @override
+  String get trainingXpDialogMealMessage =>
+      'The meal and recovery record added steady growth gems.';
+
+  @override
   String trainingXpDialogXp(int count) {
     return '+$count XP';
   }
@@ -296,6 +317,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingXpSourceDiary => 'Diary';
+
+  @override
+  String trainingStreakCheerTitle(int count) {
+    return '$count-day training streak';
+  }
+
+  @override
+  String get trainingStreakCheerMessage =>
+      'Day-by-day training notes are connecting into a real routine. Keep the next session simple and repeatable.';
+
+  @override
+  String get trainingStreakCheerAction => 'Keep going';
 
   @override
   String get levelUpDialogTitle => 'Level up!';
@@ -2000,7 +2033,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryRecordStickerPinned => 'Sticker added';
 
   @override
-  String get diaryRecordStickerPin => 'Pin as sticker';
+  String get diaryRecordStickerPin => 'Add sticker';
 
   @override
   String get diaryMealStorySentence =>
@@ -2396,6 +2429,36 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachTipSteadyCamera =>
       'Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.';
+
+  @override
+  String get runningCoachUploadGuideTitle => 'Upload-focused analysis';
+
+  @override
+  String get runningCoachUploadGuideBody =>
+      'Use a saved video so the app can sample clear frames and compare the same movement points consistently.';
+
+  @override
+  String get runningCoachUploadGuideStepSide =>
+      'Stand square to the running lane and film the runner moving left-to-right or right-to-left.';
+
+  @override
+  String get runningCoachUploadGuideStepDistance =>
+      'Leave space in front and behind the runner so every step keeps the whole body visible.';
+
+  @override
+  String get runningCoachUploadGuideStepDuration =>
+      'Use a 5-15 second clip with 3 or more clean strides, then trim away walking setup time.';
+
+  @override
+  String get runningCoachUploadGuideStepLight =>
+      'Record in bright, even light and avoid other people crossing behind the runner.';
+
+  @override
+  String get runningCoachSampleTitle => 'Sample video analysis';
+
+  @override
+  String get runningCoachSampleBody =>
+      'This is how a side-view sample is scored before you upload your own clip.';
 
   @override
   String get runningCoachLiveCardTitle => 'Live coach';
@@ -2822,6 +2885,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String runningCoachOverallSummary(int score) {
     return 'Overall running score $score/100';
   }
+
+  @override
+  String get runningCoachOverallScoreLabel => 'Overall score';
 
   @override
   String get runningCoachDurationLabel => 'Clip';
@@ -4152,6 +4218,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settingsDriveActionFilePath(Object path) {
+    return 'File path: $path';
+  }
+
+  @override
+  String settingsDriveActionBackupTime(Object time) {
+    return 'Backup saved at: $time';
+  }
+
+  @override
+  String get settingsDriveActionBackupTimeUnknown =>
+      'Backup saved time: not available on this device yet.';
+
+  @override
   String get settingsDriveConnectAction => 'Connect Google Drive';
 
   @override
@@ -4584,6 +4664,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parentFeedbackEmpty => 'There is no feedback yet.';
+
+  @override
+  String get parentFeedbackReactionLabel => 'Reaction';
+
+  @override
+  String get parentFeedbackReactionNone => 'None';
+
+  @override
+  String get parentFeedbackReactionThanks => 'Thanks';
+
+  @override
+  String get parentFeedbackReactionProud => 'Proud';
+
+  @override
+  String get parentFeedbackReactionReview => 'Review';
+
+  @override
+  String get parentFeedbackReactionTry => 'Try next';
 
   @override
   String get parentFeedbackOpenExistingEntryTitle =>
