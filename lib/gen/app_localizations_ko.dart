@@ -288,6 +288,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingXpDialogMealMessage => '식사와 회복 기록이 꾸준한 성장 보석으로 이어졌어요.';
 
   @override
+  String get diaryXpDialogTitle => '다이어리 사파이어';
+
+  @override
+  String get diaryXpDialogMessage => '오늘을 돌아본 다이어리가 차분한 사파이어 경험치로 쌓였어요.';
+
+  @override
+  String get trainingSketchXpDialogTitle => '스케치 골드';
+
+  @override
+  String get trainingSketchXpDialogMessage =>
+      '훈련 아이디어를 그린 스케치가 빛나는 골드 경험치로 쌓였어요.';
+
+  @override
   String trainingXpDialogXp(int count) {
     return '+$count XP';
   }
@@ -372,6 +385,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homePriorityPlansAction => '계획';
+
+  @override
+  String get homePriorityPlanNextMessage =>
+      '오늘이나 내일 훈련 계획이 비어 있어요. 짧은 계획부터 추가해 보세요.';
+
+  @override
+  String get homePriorityPlanNextAction => '계획 추가';
 
   @override
   String get homePriorityReviewWeekMessage => '이번 주 훈련 흐름을 확인하고 다음 목표를 정해 보세요.';
@@ -1066,6 +1086,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get restorePreviousBackup => '이전 백업 가져오기';
+
+  @override
+  String get restorePreviousBackupInfo =>
+      '이전 백업은 최근 가져오기를 되돌리거나 예전 상태를 확인할 때만 사용하는 복구 기능입니다. 실행하기 전에 현재 데이터가 이전 백업으로 교체되는 점을 확인해 주세요.';
 
   @override
   String get backupConfirm => 'Google Drive에 새 백업을 만들까요?';
@@ -2348,7 +2372,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachHeroBody =>
-      '짧은 측면 달리기 영상을 올리면 상체 자세, 바운스, 발 착지, 무릎 굴곡, 팔 각도까지 더 엄격하게 코칭해 줍니다.';
+      '짧은 측면 달리기 영상을 올리면 상체 자세, 바운스, 발 착지, 무릎 굴곡, 팔 각도까지 엄격하게 코칭해 줍니다.';
+
+  @override
+  String get runningCoachAnalyzeBody =>
+      '영상을 고르면 자세 점수와 가장 먼저 고칠 항목을 바로 정리해 줍니다.';
 
   @override
   String get runningCoachTipsTitle => '촬영 팁';
@@ -2392,7 +2420,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleBody =>
-      '내 영상을 올리기 전에 측면 샘플이 어떤 식으로 점수화되는지 볼 수 있어요.';
+      '예: 8초 측면 영상에서 14/16프레임을 읽고, 상체 기울기 4.5도와 착지 거리 0.18을 기준으로 우선 과제를 보여줍니다.';
 
   @override
   String get runningCoachLiveCardTitle => '실시간 코치';
@@ -4047,7 +4075,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsSyncStatusChecking => '확인 중';
 
   @override
-  String get settingsSyncBackupDataReady => '백업 데이터를 찾았어요.';
+  String get settingsSyncBackupDataReady => '가져올 백업 원본을 확인했어요.';
 
   @override
   String get settingsSyncStatusSignInNeeded => '연결 필요';
@@ -4056,32 +4084,33 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsSyncStatusNoBackup => '백업 없음';
 
   @override
-  String get settingsSyncStatusCurrent => '최신';
+  String get settingsSyncStatusCurrent => '최근 백업';
 
   @override
-  String get settingsSyncStatusReview => '확인';
+  String get settingsSyncStatusReview => '백업 확인';
 
   @override
-  String get settingsSyncStatusStale => '오래됨';
+  String get settingsSyncStatusStale => '백업 오래됨';
 
   @override
   String get settingsSyncSummaryChecking => 'Drive 백업 상태를 확인하는 중입니다.';
 
   @override
   String get settingsSyncSummarySignInNeeded =>
-      '계정을 연결하면 현재 데이터와 Drive 백업 상태를 비교할 수 있어요.';
+      '계정을 연결하면 현재 기기 데이터와 Drive 백업을 비교하고 가져오기/백업을 실행할 수 있어요.';
 
   @override
-  String get settingsSyncSummaryNoBackup => '아직 백업된 데이터가 없어요. 먼저 백업을 만들어 주세요.';
+  String get settingsSyncSummaryNoBackup =>
+      'Drive에 아직 백업 파일이 없어요. 데이터 백업하기로 현재 데이터를 먼저 저장해 주세요.';
 
   @override
   String settingsSyncSummaryCurrent(Object time) {
-    return '백업된 데이터가 $time 기준이라 현재 데이터와 가깝습니다.';
+    return 'Drive 백업이 $time 기준으로 만들어졌어요. 최근 변경을 잃지 않으려면 백업 시간을 확인하세요.';
   }
 
   @override
   String settingsSyncSummaryStale(Object time) {
-    return '백업된 데이터 기준이 $time입니다. 최근 변경이 있다면 다시 백업해 주세요.';
+    return 'Drive 백업 기준이 $time입니다. 그 뒤에 바꾼 내용은 아직 백업되지 않았을 수 있어요.';
   }
 
   @override
@@ -4330,6 +4359,17 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String familySyncParentRewardClaimed(int count) {
+    return '선수가 받은 선물 $count개가 동기화됐어요.';
+  }
+
+  @override
+  String familySyncParentTrainingAndRewardClaimed(
+      int trainingCount, int rewardCount) {
+    return '선수 훈련기록 $trainingCount개와 선물 수령 $rewardCount개가 동기화됐어요.';
+  }
+
+  @override
   String familySyncChildFeedbackAdded(int count) {
     return '보호자 피드백 $count개가 동기화됐어요.';
   }
@@ -4514,6 +4554,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get parentFeedbackEmpty => '아직 피드백이 없어요.';
+
+  @override
+  String get parentFeedbackReactionOnly => '보호자가 리액션을 남겼어요.';
 
   @override
   String get parentFeedbackReactionLabel => '리액션';

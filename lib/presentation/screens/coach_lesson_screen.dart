@@ -582,7 +582,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       );
       if (!mounted) return;
     }
-    await showTrainingXpRewardDialog(context, award: award);
+    await showDiaryXpRewardDialog(context, award: award);
     if (!mounted) return;
     AppFeedback.showSuccess(
       context,
@@ -2142,7 +2142,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           widget.optionRepository,
         ).feedbackForEntry(entry);
         final message = feedback?.message.trim() ?? '';
-        if (message.isEmpty) return null;
+        final reaction = feedback?.reaction.trim() ?? '';
+        if (message.isEmpty && reaction.isEmpty) return null;
+        final summary =
+            message.isEmpty ? _l10n.parentFeedbackReactionOnly : message;
         final updatedAt = feedback?.updatedAt;
         final label = entry.program.trim().isNotEmpty
             ? entry.program.trim()
@@ -2153,7 +2156,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.parentFeedback,
           title: _l10n.diaryStickerParentFeedback,
-          summary: message,
+          summary: summary,
           metaLabels: [
             label,
             if (updatedAt != null)
@@ -2740,7 +2743,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       widget.optionRepository,
     ).feedbackForEntry(entry);
     final message = feedback?.message.trim() ?? '';
-    if (message.isEmpty) return null;
+    final reaction = feedback?.reaction.trim() ?? '';
+    if (message.isEmpty && reaction.isEmpty) return null;
+    final summary =
+        message.isEmpty ? _l10n.parentFeedbackReactionOnly : message;
     final label = entry.program.trim().isNotEmpty
         ? entry.program.trim()
         : (entry.type.trim().isEmpty
@@ -2749,12 +2755,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return _DiaryTodoSeed(
       id: 'parent-feedback-${entry.createdAt.millisecondsSinceEpoch}',
       title: _l10n.diaryStickerParentFeedback,
-      summary: message,
-      storySentence: _l10n.diaryParentFeedbackStorySentence(message),
+      summary: summary,
+      storySentence: _l10n.diaryParentFeedbackStorySentence(summary),
       sectionTitle: _isKo
           ? '${_l10n.diaryStickerParentFeedback} · $label'
           : '${_l10n.diaryStickerParentFeedback} · $label',
-      sectionBody: message,
+      sectionBody: summary,
       icon: Icons.rate_review_outlined,
       recordKind: _DiaryRecordStickerKind.parentFeedback,
       recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
@@ -3279,9 +3285,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .map((sticker) => sticker.storageId)
         .where(selectableRecordStorageIds.contains)
         .toList(growable: false);
-    final selectedRecordStickerOrder = <String>[
-      ...initialSelectedRecordStickerOrder,
-    ];
+    final selectedRecordStickerOrder = initialData.hasContent
+        ? <String>[...initialSelectedRecordStickerOrder]
+        : todoSeeds
+            .map(recordStorageIdFromSeed)
+            .whereType<String>()
+            .toList(growable: true);
     var isClosingFlowRunning = false;
     Timer? autoSaveTimer;
     var autoSaveInFlight = false;
@@ -4302,11 +4311,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               color: theme.colorScheme.onSurface,
             );
             return SafeArea(
-              child: Align(
-                alignment: Alignment.bottomCenter,
+              child: Center(
                 heightFactor: 1,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
+                  constraints: const BoxConstraints(
+                    maxWidth: 420,
+                    maxHeight: 430,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
                     child: TableCalendar<_DiaryMarkerType>(

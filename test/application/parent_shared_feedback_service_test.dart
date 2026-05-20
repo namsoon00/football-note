@@ -44,6 +44,30 @@ void main() {
     );
     expect(cleared, isEmpty);
   });
+
+  test('stores reaction-only parent feedback', () async {
+    final repository = _MemoryOptionRepository();
+    final service = ParentSharedFeedbackService(repository);
+    final entry = TrainingEntry(
+      date: DateTime(2026, 4, 22),
+      createdAt: DateTime(2026, 4, 22, 18, 30),
+      durationMinutes: 60,
+      intensity: 4,
+      type: '드리블',
+      mood: 4,
+      injury: false,
+      notes: '',
+      location: '메인 구장',
+    );
+
+    final saved = await service.saveFeedbackForEntry(entry, '', 'proud');
+
+    expect(saved, isNotNull);
+    expect(saved!.message, isEmpty);
+    expect(saved.reaction, 'proud');
+    expect(service.feedbackForEntry(entry)?.reaction, 'proud');
+    expect(service.loadAll(), hasLength(1));
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {

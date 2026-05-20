@@ -63,31 +63,15 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
             body: l10n.runningCoachHeroBody,
           ),
           const SizedBox(height: 12),
-          _TipsCard(
-            title: l10n.runningCoachTipsTitle,
-            tips: [
-              l10n.runningCoachTipWholeBody,
-              l10n.runningCoachTipSideView,
-              l10n.runningCoachTipSteadyCamera,
-            ],
-          ),
-          const SizedBox(height: 12),
           _RunningCoachUploadGuideCard(
             title: l10n.runningCoachUploadGuideTitle,
             body: l10n.runningCoachUploadGuideBody,
-            steps: [
-              l10n.runningCoachUploadGuideStepSide,
-              l10n.runningCoachUploadGuideStepDistance,
-              l10n.runningCoachUploadGuideStepDuration,
-              l10n.runningCoachUploadGuideStepLight,
-            ],
-          ),
-          const SizedBox(height: 12),
-          _RunningCoachSampleCard(
-            title: l10n.runningCoachSampleTitle,
-            body: l10n.runningCoachSampleBody,
-            result: sampleResult,
-            report: sampleReport,
+            onShowGuide: () => _showRecordingGuide(l10n),
+            onShowSample: () => _showSampleAnalysis(
+              l10n,
+              result: sampleResult,
+              report: sampleReport,
+            ),
           ),
           const SizedBox(height: 12),
           _VideoAnalysisIntentCard(
@@ -133,6 +117,55 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   }
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
+
+  Future<void> _showRecordingGuide(AppLocalizations l10n) {
+    return showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          child: _RunningCoachGuideSheet(
+            title: l10n.runningCoachTipsTitle,
+            tips: [
+              l10n.runningCoachTipWholeBody,
+              l10n.runningCoachTipSideView,
+              l10n.runningCoachTipSteadyCamera,
+            ],
+            steps: [
+              l10n.runningCoachUploadGuideStepSide,
+              l10n.runningCoachUploadGuideStepDistance,
+              l10n.runningCoachUploadGuideStepDuration,
+              l10n.runningCoachUploadGuideStepLight,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showSampleAnalysis(
+    AppLocalizations l10n, {
+    required RunningVideoAnalysisResult result,
+    required RunningCoachingReport report,
+  }) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          child: _RunningCoachSampleCard(
+            title: l10n.runningCoachSampleTitle,
+            body: l10n.runningCoachSampleBody,
+            result: result,
+            report: report,
+          ),
+        ),
+      ),
+    );
+  }
 
   RunningVideoAnalysisResult _sampleAnalysisResult() {
     return const RunningVideoAnalysisResult(
@@ -284,17 +317,20 @@ class _InsightRegionSection {
 class _RunningCoachUploadGuideCard extends StatelessWidget {
   final String title;
   final String body;
-  final List<String> steps;
+  final VoidCallback onShowGuide;
+  final VoidCallback onShowSample;
 
   const _RunningCoachUploadGuideCard({
     required this.title,
     required this.body,
-    required this.steps,
+    required this.onShowGuide,
+    required this.onShowSample,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -331,16 +367,64 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                IconButton(
+                  tooltip: l10n.runningCoachTipsTitle,
+                  onPressed: onShowGuide,
+                  icon: const Icon(Icons.info_outline),
+                ),
+                IconButton(
+                  tooltip: l10n.runningCoachSampleTitle,
+                  onPressed: onShowSample,
+                  icon: const Icon(Icons.analytics_outlined),
+                ),
               ],
             ),
-            const SizedBox(height: 14),
-            for (var index = 0; index < steps.length; index += 1) ...[
-              _NumberedGuideStep(number: index + 1, text: steps[index]),
-              if (index != steps.length - 1) const SizedBox(height: 8),
-            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RunningCoachGuideSheet extends StatelessWidget {
+  final String title;
+  final List<String> tips;
+  final List<String> steps;
+
+  const _RunningCoachGuideSheet({
+    required this.title,
+    required this.tips,
+    required this.steps,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 14),
+        for (final tip in tips) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 2),
+                child: Icon(Icons.check_circle_outline, size: 18),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text(tip)),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
+        const SizedBox(height: 8),
+        for (var index = 0; index < steps.length; index += 1) ...[
+          _NumberedGuideStep(number: index + 1, text: steps[index]),
+          if (index != steps.length - 1) const SizedBox(height: 8),
+        ],
+      ],
     );
   }
 }
@@ -648,7 +732,7 @@ class _VideoAnalysisIntentCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        l10n.runningCoachHeroBody,
+                        l10n.runningCoachAnalyzeBody,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
@@ -884,48 +968,6 @@ class _HeroCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TipsCard extends StatelessWidget {
-  final String title;
-  final List<String> tips;
-
-  const _TipsCard({required this.title, required this.tips});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            for (final tip in tips) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2),
-                    child: Icon(Icons.check_circle_outline, size: 18),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      tip,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-          ],
         ),
       ),
     );

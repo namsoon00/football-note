@@ -62,6 +62,7 @@ class FamilySharedSyncResult {
   final FamilyRole role;
   final int newTrainingEntryCount;
   final int newParentFeedbackCount;
+  final int newRewardClaimCount;
   final bool rewardNamesChanged;
 
   const FamilySharedSyncResult({
@@ -69,6 +70,7 @@ class FamilySharedSyncResult {
     required this.role,
     this.newTrainingEntryCount = 0,
     this.newParentFeedbackCount = 0,
+    this.newRewardClaimCount = 0,
     this.rewardNamesChanged = false,
   });
 
@@ -78,6 +80,7 @@ class FamilySharedSyncResult {
   bool get hasUserVisibleChanges =>
       newTrainingEntryCount > 0 ||
       newParentFeedbackCount > 0 ||
+      newRewardClaimCount > 0 ||
       rewardNamesChanged;
 }
 

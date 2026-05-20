@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/family_access_service.dart';
+import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 
 void main() {
@@ -64,6 +65,12 @@ void main() {
       expect(
         FamilyAccessService.isSharedBackupOptionKey(
           FamilyAccessService.messagesKey,
+        ),
+        isFalse,
+      );
+      expect(
+        FamilyAccessService.isSharedBackupOptionKey(
+          PlayerLevelService.rewardClaimMessagesKey,
         ),
         isFalse,
       );

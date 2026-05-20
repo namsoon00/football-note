@@ -1373,7 +1373,7 @@ class WeatherCurrentService {
     List<WeatherForecastMoment> forecasts,
   ) {
     return forecasts
-        .where((forecast) => (forecast.precipitation ?? 0) > 0)
+        .where((forecast) => forecast.precipitation != null)
         .map(
           (forecast) => WeatherHourlyPrecipitation(
             time: forecast.time,
@@ -1743,14 +1743,12 @@ class _KmaDailyAccumulator {
     if (precipitation != null) {
       precipitationSum += precipitation;
       hasPrecipitationValue = true;
-      if (precipitation > 0) {
-        hourlyPrecipitations.add(
-          WeatherHourlyPrecipitation(
-            time: forecastAt,
-            precipitation: precipitation,
-          ),
-        );
-      }
+      hourlyPrecipitations.add(
+        WeatherHourlyPrecipitation(
+          time: forecastAt,
+          precipitation: precipitation,
+        ),
+      );
     }
 
     final windSpeed = WeatherCurrentService._parseKmaDouble(values['WSD']);

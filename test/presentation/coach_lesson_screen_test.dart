@@ -178,8 +178,7 @@ void main() {
     expect(find.textContaining('패스 감각 정리.'), findsOneWidget);
   });
 
-  testWidgets(
-      'coach lesson screen quiz sticker hides wrong answers and expands', (
+  testWidgets('coach lesson screen quiz sticker hides wrong answers and expands', (
     WidgetTester tester,
   ) async {
     final optionRepository = _FakeOptionRepository()
@@ -1073,25 +1072,6 @@ void main() {
         lessThan(tester.getTopLeft(trainingSeed).dy),
       );
 
-      await tester.ensureVisible(
-        find.byKey(ValueKey('diary-record-sticker-meal-$todayToken')),
-      );
-      await tester.tap(
-        find.byKey(ValueKey('diary-record-sticker-meal-$todayToken')),
-      );
-      await tester.pump();
-      await tester.ensureVisible(
-        find.byKey(
-          ValueKey('diary-record-sticker-training-$trainingCreatedAt'),
-        ),
-      );
-      await tester.tap(
-        find.byKey(
-          ValueKey('diary-record-sticker-training-$trainingCreatedAt'),
-        ),
-      );
-      await tester.pumpAndSettle();
-
       final selectedTraining = find.byKey(
         ValueKey('diary-selected-record-sticker-training-$trainingCreatedAt'),
       );
@@ -1203,8 +1183,7 @@ void main() {
     expect(raw, contains('자동 저장된 본문'));
   });
 
-  testWidgets(
-      'coach lesson screen keeps news sticker reorder in rendered order', (
+  testWidgets('coach lesson screen keeps news sticker reorder in rendered order', (
     WidgetTester tester,
   ) async {
     final day = DateTime(2026, 3, 15);

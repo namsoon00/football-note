@@ -10,23 +10,17 @@ class HiveTrainingRepository implements TrainingRepository {
 
   @override
   Stream<List<TrainingEntry>> watchAll() {
-    late StreamController<List<TrainingEntry>> controller;
+    return Stream<List<TrainingEntry>>.multi((controller) {
+      void emit() {
+        if (!controller.isClosed) {
+          controller.add(_box.values.toList());
+        }
+      }
 
-    void emit() {
-      controller.add(_box.values.toList());
-    }
-
-    controller = StreamController<List<TrainingEntry>>.broadcast(
-      onListen: emit,
-    );
-    final sub = _box.watch().listen((_) => emit());
-
-    controller.onCancel = () async {
-      await sub.cancel();
-      await controller.close();
-    };
-
-    return controller.stream;
+      emit();
+      final sub = _box.watch().listen((_) => emit());
+      controller.onCancel = sub.cancel;
+    }, isBroadcast: true);
   }
 
   @override

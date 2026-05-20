@@ -59,13 +59,17 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   }
 
   bool get _canReact {
-    return _savedMessage.trim().isNotEmpty ||
+    return _canEdit ||
+        _savedMessage.trim().isNotEmpty ||
+        _savedReaction.trim().isNotEmpty ||
         _controller.text.trim().isNotEmpty;
   }
 
   bool get _canClear {
     return !_isSaving &&
-        (_controller.text.trim().isNotEmpty || _savedMessage.trim().isNotEmpty);
+        (_controller.text.trim().isNotEmpty ||
+            _savedMessage.trim().isNotEmpty ||
+            _selectedReaction.trim().isNotEmpty);
   }
 
   @override
@@ -173,7 +177,9 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     final l10n = AppLocalizations.of(context)!;
     final localeTag = Localizations.localeOf(context).toString();
     final previewText = _savedMessage.trim().isEmpty
-        ? l10n.parentFeedbackEmpty
+        ? (_savedReaction.trim().isEmpty
+              ? l10n.parentFeedbackEmpty
+              : l10n.parentFeedbackReactionOnly)
         : _savedMessage.trim();
     final updatedLabel = _savedUpdatedAt == null
         ? ''
@@ -305,7 +311,10 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                       if (_canEdit)
                         TextButton(
                           onPressed: _canClear
-                              ? () => _controller.clear()
+                              ? () {
+                                  _controller.clear();
+                                  setState(() => _selectedReaction = '');
+                                }
                               : null,
                           child: Text(l10n.parentFeedbackClear),
                         ),

@@ -113,7 +113,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       );
       if (!mounted) return;
     }
-    await showTrainingXpRewardDialog(context, award: award);
+    await showTrainingSketchXpRewardDialog(context, award: award);
   }
 
   void _toggleSearch() {

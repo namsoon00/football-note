@@ -10,11 +10,13 @@ import 'news_service.dart';
 
 class NewsBadgeService {
   static const String seenArticleKeysKey = 'news_badge_seen_article_keys_v1';
+  static const String lastOpenedAtKey = 'news_badge_last_opened_at_v1';
+  static const String lastRefreshAtKey = 'news_badge_last_refresh_at_v1';
   static const int _maxStoredKeys = 500;
+  static const Duration _refreshInterval = Duration(hours: 3);
   static final ValueNotifier<int> _unreadCountNotifier = ValueNotifier<int>(0);
 
   static ValueListenable<int> listenable(OptionRepository optionRepository) {
-    refresh(optionRepository);
     return _unreadCountNotifier;
   }
 
@@ -42,8 +44,18 @@ class NewsBadgeService {
     return _unreadCount(optionRepository, articles);
   }
 
-  static Future<void> refresh(OptionRepository optionRepository) async {
+  static Future<void> refresh(
+    OptionRepository optionRepository, {
+    bool force = false,
+  }) async {
+    if (!force && !_shouldRefresh(optionRepository)) {
+      return;
+    }
     final count = await unreadCount(optionRepository);
+    await optionRepository.setValue(
+      lastRefreshAtKey,
+      DateTime.now().toIso8601String(),
+    );
     if (_unreadCountNotifier.value != count) {
       _unreadCountNotifier.value = count;
     }
@@ -53,6 +65,14 @@ class NewsBadgeService {
     if (_unreadCountNotifier.value != 0) {
       _unreadCountNotifier.value = 0;
     }
+  }
+
+  static Future<void> markFeedOpened(OptionRepository optionRepository) async {
+    await optionRepository.setValue(
+      lastOpenedAtKey,
+      DateTime.now().toIso8601String(),
+    );
+    clearUnreadCount();
   }
 
   static Future<void> markSeen(
@@ -81,6 +101,9 @@ class NewsBadgeService {
     OptionRepository optionRepository,
     Iterable<NewsArticle> articles,
   ) {
+    final lastOpenedAt = DateTime.tryParse(
+      optionRepository.getValue<String>(lastOpenedAtKey) ?? '',
+    );
     final seenKeys = {
       ...optionRepository
           .getOptions(seenArticleKeysKey, const <String>[])
@@ -90,10 +113,24 @@ class NewsBadgeService {
     };
     final articleKeys = <String>{};
     for (final article in articles) {
+      final publishedAt = article.publishedAt;
+      if (lastOpenedAt != null &&
+          publishedAt != null &&
+          !publishedAt.isAfter(lastOpenedAt)) {
+        continue;
+      }
       final key = NewsReadState.articleKey(article);
       if (key.isEmpty || !articleKeys.add(key)) continue;
     }
     return articleKeys.where((key) => !seenKeys.contains(key)).length;
+  }
+
+  static bool _shouldRefresh(OptionRepository optionRepository) {
+    final lastRefreshAt = DateTime.tryParse(
+      optionRepository.getValue<String>(lastRefreshAtKey) ?? '',
+    );
+    if (lastRefreshAt == null) return true;
+    return DateTime.now().difference(lastRefreshAt) >= _refreshInterval;
   }
 
   static String _articleKey(NewsArticle article) {

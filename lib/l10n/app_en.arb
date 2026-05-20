@@ -136,6 +136,10 @@
   "trainingXpDialogLiftingMessage": "The added lifting work became stronger-body growth gems.",
   "trainingXpDialogMealTitle": "Recovery routine saved",
   "trainingXpDialogMealMessage": "The meal and recovery record added steady growth gems.",
+  "diaryXpDialogTitle": "Diary sapphire",
+  "diaryXpDialogMessage": "Your reflection turned into calm sapphire XP.",
+  "trainingSketchXpDialogTitle": "Sketch gold",
+  "trainingSketchXpDialogMessage": "Your training idea sketch turned into bright gold XP.",
   "trainingXpDialogXp": "+{count} XP",
   "@trainingXpDialogXp": {
     "placeholders": {
@@ -200,6 +204,8 @@
   "xpGuideDailyTasksCompleteTitle": "All today tasks complete",
   "homePriorityCheckPlansMessage": "Review the remaining training plans before you start.",
   "homePriorityPlansAction": "Plans",
+  "homePriorityPlanNextMessage": "No training plan is set for today or tomorrow. Add a short plan first.",
+  "homePriorityPlanNextAction": "Add plan",
   "homePriorityReviewWeekMessage": "Review this week's training flow and choose the next target.",
   "homePriorityStatsAction": "Stats",
   "homePrioritySketchNextMessage": "Sketch the movement you want to try in your next session.",
@@ -470,6 +476,7 @@
   "backupToDrive": "Back up data",
   "restoreFromDrive": "Import latest data",
   "restorePreviousBackup": "Import previous backup",
+  "restorePreviousBackupInfo": "Previous backup import is a recovery tool for undoing a recent import or checking an older state. Confirm that current data will be replaced by the previous backup before running it.",
   "backupConfirm": "Create a new backup on Google Drive?",
   "restoreConfirm": "Import the latest data from Google Drive? This will replace current data.",
   "restorePreviousConfirm": "Import the previous Google Drive backup? Current data will be replaced.",
@@ -1043,7 +1050,8 @@
   "drawerRunningCoach": "Running Coach",
   "runningCoachScreenTitle": "Running Coach",
   "runningCoachHeroTitle": "Side-view running form coach",
-  "runningCoachHeroBody": "Upload a short side-view running clip and get stricter feedback on posture, bounce, foot strike, knee flexion, and arm carriage.",
+  "runningCoachHeroBody": "Upload a short side-view running clip and get strict feedback on posture, bounce, foot strike, knee flexion, and arm carriage.",
+  "runningCoachAnalyzeBody": "Choose a clip to get a form score and the first movement issue to fix.",
   "runningCoachTipsTitle": "How to record",
   "runningCoachTipWholeBody": "Keep the full body in frame from head to ankle, with elbows and feet visible for the whole clip.",
   "runningCoachTipSideView": "Record from the side while the runner moves across the frame.",
@@ -1055,7 +1063,7 @@
   "runningCoachUploadGuideStepDuration": "Use a 5-15 second clip with 3 or more clean strides, then trim away walking setup time.",
   "runningCoachUploadGuideStepLight": "Record in bright, even light and avoid other people crossing behind the runner.",
   "runningCoachSampleTitle": "Sample video analysis",
-  "runningCoachSampleBody": "This is how a side-view sample is scored before you upload your own clip.",
+  "runningCoachSampleBody": "Example: an 8-second side-view clip reads 14/16 frames and uses 4.5° torso lean plus 0.18 foot-strike distance to choose the first priority.",
   "runningCoachLiveCardTitle": "Live coach",
   "runningCoachLiveCardBody": "Track the runner outline and pose line live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.",
   "runningCoachLiveAction": "Start live coach",
@@ -1844,22 +1852,22 @@
     }
   },
   "settingsSyncStatusChecking": "Checking",
-  "settingsSyncBackupDataReady": "Backup data found.",
+  "settingsSyncBackupDataReady": "Backup source found.",
   "settingsSyncStatusSignInNeeded": "Connect",
   "settingsSyncStatusNoBackup": "No backup",
-  "settingsSyncStatusCurrent": "Current",
-  "settingsSyncStatusReview": "Review",
-  "settingsSyncStatusStale": "Stale",
+  "settingsSyncStatusCurrent": "Recent backup",
+  "settingsSyncStatusReview": "Check backup",
+  "settingsSyncStatusStale": "Backup stale",
   "settingsSyncSummaryChecking": "Checking the Drive backup status.",
-  "settingsSyncSummarySignInNeeded": "Connect an account to compare current data with the Drive backup.",
-  "settingsSyncSummaryNoBackup": "No backed-up data exists yet. Create the first backup when ready.",
-  "settingsSyncSummaryCurrent": "Backed-up data is from {time}, close to the current device data.",
+  "settingsSyncSummarySignInNeeded": "Connect an account to compare this device with Drive backup and run import or backup actions.",
+  "settingsSyncSummaryNoBackup": "No Drive backup file exists yet. Use Back up data to store the current data first.",
+  "settingsSyncSummaryCurrent": "The Drive backup was created around {time}. Check this time before replacing or overwriting data.",
   "@settingsSyncSummaryCurrent": {
     "placeholders": {
       "time": {}
     }
   },
-  "settingsSyncSummaryStale": "Backed-up data is from {time}. Back up again if recent changes matter.",
+  "settingsSyncSummaryStale": "The Drive backup is from {time}. Changes made after that may not be backed up yet.",
   "@settingsSyncSummaryStale": {
     "placeholders": {
       "time": {}
@@ -1956,6 +1964,25 @@
       }
     }
   },
+  "familySyncParentRewardClaimed": "{count} player reward claim(s) synced.",
+  "@familySyncParentRewardClaimed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "familySyncParentTrainingAndRewardClaimed": "{trainingCount} new player training log(s) and {rewardCount} reward claim(s) synced.",
+  "@familySyncParentTrainingAndRewardClaimed": {
+    "placeholders": {
+      "trainingCount": {
+        "type": "int"
+      },
+      "rewardCount": {
+        "type": "int"
+      }
+    }
+  },
   "familySyncChildFeedbackAdded": "{count} parent feedback update(s) synced.",
   "@familySyncChildFeedbackAdded": {
     "placeholders": {
@@ -2026,6 +2053,7 @@
   "parentFeedbackSaveFailed": "Could not save feedback. Try again.",
   "parentFeedbackCleared": "Feedback cleared.",
   "parentFeedbackEmpty": "There is no feedback yet.",
+  "parentFeedbackReactionOnly": "A parent reaction was saved.",
   "parentFeedbackReactionLabel": "Reaction",
   "parentFeedbackReactionNone": "None",
   "parentFeedbackReactionThanks": "Thanks",

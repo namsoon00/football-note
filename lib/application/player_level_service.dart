@@ -20,6 +20,8 @@ class PlayerLevelService {
   static const String claimedRewardLevelsKey =
       'player_claimed_reward_levels_v1';
   static const String customRewardNamesKey = 'player_custom_reward_names_v1';
+  static const String rewardClaimMessagesKey =
+      'player_reward_claim_messages_v1';
   static const String plansStorageKey = 'training_plans_v1';
   static const int dailyTaskCompletionXp = 10;
   static const int dailyPositiveXpCap = 65;
@@ -123,7 +125,7 @@ class PlayerLevelService {
     }
 
     final updatedEntries = <TrainingEntry>[...existingTrainingEntries, entry];
-    final streak = _calculateTrainingStreak(updatedEntries);
+    final streak = _calculateTrainingStreakEndingAt(updatedEntries, entryDay);
     final awardedStreaks = _getStringSet(awardedStreaksKey);
     final awardedRoutineDays = _getStringSet(awardedRoutineDaysKey);
     final dayToken = _dayKey(entryDay);
@@ -774,6 +776,11 @@ class PlayerLevelService {
       claimedRewardLevelsKey,
       claimedLevels.toList()..sort(),
     );
+    await _appendRewardClaimMessage(
+      level: level,
+      rewardName: customRewardName,
+      claimedAt: DateTime.now(),
+    );
     return PlayerLevelRewardClaim(
       reward: reward,
       state: state,
@@ -884,21 +891,17 @@ class PlayerLevelService {
     }
   }
 
-  int _calculateTrainingStreak(List<TrainingEntry> entries) {
+  int _calculateTrainingStreakEndingAt(
+    List<TrainingEntry> entries,
+    DateTime targetDay,
+  ) {
     if (entries.isEmpty) return 0;
-    final days =
-        entries
-            .map((entry) => _normalizeDay(entry.date))
-            .toSet()
-            .toList(growable: false)
-          ..sort((a, b) => b.compareTo(a));
+    final days = entries.map((entry) => _normalizeDay(entry.date)).toSet();
     var streak = 0;
-    var cursor = days.first;
-    for (final day in days) {
-      if (day == cursor) {
-        streak++;
-        cursor = cursor.subtract(const Duration(days: 1));
-      }
+    var cursor = _normalizeDay(targetDay);
+    while (days.contains(cursor)) {
+      streak++;
+      cursor = cursor.subtract(const Duration(days: 1));
     }
     return streak;
   }
@@ -968,6 +971,28 @@ class PlayerLevelService {
     final history = loadXpHistory().take(199).toList(growable: true);
     history.insert(0, entry);
     await _saveXpHistory(history);
+  }
+
+  Future<void> _appendRewardClaimMessage({
+    required int level,
+    required String rewardName,
+    required DateTime claimedAt,
+  }) async {
+    final raw = _options.getValue<List>(rewardClaimMessagesKey) ?? const [];
+    final messages = raw
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList(growable: true);
+    messages.insert(0, <String, dynamic>{
+      'id': 'reward-$level-${claimedAt.toUtc().microsecondsSinceEpoch}',
+      'level': level,
+      'rewardName': rewardName.trim(),
+      'claimedAt': claimedAt.toIso8601String(),
+    });
+    if (messages.length > 200) {
+      messages.removeRange(200, messages.length);
+    }
+    await _options.setValue(rewardClaimMessagesKey, messages);
   }
 
   Future<void> _saveXpHistory(List<PlayerXpHistoryEntry> history) async {

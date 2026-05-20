@@ -16,6 +16,8 @@ import '../../domain/repositories/option_repository.dart';
 import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 
+enum _DriveQuickActionTone { neutral, connect, disconnect, restore, backup }
+
 class SettingsScreen extends StatefulWidget {
   final LocaleService localeService;
   final SettingsService settingsService;
@@ -570,6 +572,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     String? summary,
     String? detailsMessage,
     String? detailsTooltip,
+    List<Widget> headerActions = const <Widget>[],
     required List<Widget> children,
     bool compact = false,
   }) {
@@ -637,6 +640,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                           tooltip: detailsTooltip,
                           visualDensity: VisualDensity.compact,
                         ),
+                      ...headerActions,
                     ],
                   ),
                 ),
@@ -755,6 +759,17 @@ class _SettingsScreenState extends State<SettingsScreen>
           ? l10n.settingsDataSyncPlayerSummary
           : l10n.settingsDataSyncSupportSummary,
       detailsTooltip: l10n.settingsInfoTooltip,
+      headerActions: [
+        if (_signedIn)
+          IconButton(
+            onPressed: (_backupBusy || _restoreBusy)
+                ? null
+                : () => _showPreviousBackupRestoreInfo(l10n),
+            icon: const Icon(Icons.history_rounded, size: 18),
+            tooltip: l10n.restorePreviousBackup,
+            visualDensity: VisualDensity.compact,
+          ),
+      ],
       compact: compact,
       children: familyState.isChildMode
           ? _buildPlayerSyncChildren(l10n, familyState)
@@ -868,6 +883,9 @@ class _SettingsScreenState extends State<SettingsScreen>
         label: _signedIn
             ? l10n.settingsDriveDisconnectAction
             : l10n.settingsDriveConnectAction,
+        tone: _signedIn
+            ? _DriveQuickActionTone.disconnect
+            : _DriveQuickActionTone.connect,
         onPressed: _signInBusy ? null : () => _toggleDriveSignIn(l10n),
       ),
     ];
@@ -876,6 +894,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         _buildDriveQuickActionButton(
           icon: Icons.cloud_download_outlined,
           label: l10n.settingsRestoreLatestActionTitle,
+          tone: _DriveQuickActionTone.restore,
           onPressed: (_backupBusy || _restoreBusy)
               ? null
               : () => _restoreFromDrive(
@@ -895,33 +914,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
         ),
       );
-      actions.add(
-        _buildDriveQuickActionButton(
-          icon: Icons.settings_backup_restore_outlined,
-          label: l10n.restorePreviousBackup,
-          destructive: true,
-          onPressed: (_backupBusy || _restoreBusy)
-              ? null
-              : () => _restoreFromDrive(
-                  l10n,
-                  title: l10n.restorePreviousBackup,
-                  filePath: DriveBackupService.previousBackupDisplayPath,
-                  backupCreatedAt: widget.driveBackupService!
-                      .getPreviousBackupCreatedAt(),
-                  message: l10n.restorePreviousConfirm,
-                  successMessage: l10n.restorePreviousSuccess,
-                  failedMessage: l10n.restorePreviousFailed,
-                  restoreAction:
-                      widget.driveBackupService!.restorePreviousBackup,
-                ),
-        ),
-      );
     }
     if (_signedIn && !isSupportMode) {
       actions.add(
         _buildDriveQuickActionButton(
           icon: Icons.cloud_upload_outlined,
           label: l10n.settingsBackupDataActionTitle,
+          tone: _DriveQuickActionTone.backup,
           onPressed: (_backupBusy || _restoreBusy || backupLocked)
               ? null
               : () => _backupToDrive(
@@ -1007,7 +1006,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     required IconData icon,
     required String label,
     required VoidCallback? onPressed,
-    bool destructive = false,
+    _DriveQuickActionTone tone = _DriveQuickActionTone.neutral,
   }) {
     return OutlinedButton.icon(
       onPressed: onPressed,
@@ -1018,7 +1017,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.center,
       ),
-      style: _quickActionButtonStyle(destructive: destructive),
+      style: _quickActionButtonStyle(tone: tone),
     );
   }
 
@@ -1893,9 +1892,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  ButtonStyle _quickActionButtonStyle({bool destructive = false}) {
+  ButtonStyle _quickActionButtonStyle({
+    _DriveQuickActionTone tone = _DriveQuickActionTone.neutral,
+  }) {
     final scheme = Theme.of(context).colorScheme;
-    final color = destructive ? scheme.error : WatchCartConstants.primaryColor;
+    final color = switch (tone) {
+      _DriveQuickActionTone.disconnect => scheme.error,
+      _DriveQuickActionTone.connect => Colors.green.shade700,
+      _DriveQuickActionTone.restore => scheme.primary,
+      _DriveQuickActionTone.backup => scheme.tertiary,
+      _DriveQuickActionTone.neutral => WatchCartConstants.primaryColor,
+    };
     return ButtonStyle(
       minimumSize: WidgetStateProperty.all(const Size(0, 54)),
       padding: WidgetStateProperty.all(
@@ -2112,6 +2119,38 @@ class _SettingsScreenState extends State<SettingsScreen>
         setState(() => _restoreBusy = false);
       }
     }
+  }
+
+  Future<void> _showPreviousBackupRestoreInfo(AppLocalizations l10n) async {
+    final runRestore = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.restorePreviousBackup),
+        content: Text(l10n.restorePreviousBackupInfo),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).pop(true),
+            icon: const Icon(Icons.settings_backup_restore_outlined),
+            label: Text(l10n.restorePreviousBackup),
+          ),
+        ],
+      ),
+    );
+    if (runRestore != true || !mounted) return;
+    await _restoreFromDrive(
+      l10n,
+      title: l10n.restorePreviousBackup,
+      filePath: DriveBackupService.previousBackupDisplayPath,
+      backupCreatedAt: widget.driveBackupService!.getPreviousBackupCreatedAt(),
+      message: l10n.restorePreviousConfirm,
+      successMessage: l10n.restorePreviousSuccess,
+      failedMessage: l10n.restorePreviousFailed,
+      restoreAction: widget.driveBackupService!.restorePreviousBackup,
+    );
   }
 
   String _formatBackupTime(DateTime date) {
