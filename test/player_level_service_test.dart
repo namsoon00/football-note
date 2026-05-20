@@ -33,6 +33,13 @@ void main() {
       repository.getValue<List>(PlayerLevelService.claimedRewardLevelsKey),
       contains(2),
     );
+    final claimMessages = repository.getValue<List>(
+      PlayerLevelService.rewardClaimMessagesKey,
+    );
+    expect(claimMessages, isNotNull);
+    expect(claimMessages, hasLength(1));
+    expect((claimMessages!.single as Map)['level'], 2);
+    expect((claimMessages.single as Map)['rewardName'], '새 축구 양말');
   });
 
   test('custom reward name is stored and returned on claim', () async {
@@ -149,6 +156,57 @@ void main() {
     expect(history.first.totalXp, 120);
     expect(history.first.reasons, contains('log'));
   });
+
+  test(
+    'older training entry does not inherit streak from later records',
+    () async {
+      final repository = _MemoryOptionRepository()
+        ..seed(PlayerLevelService.totalXpKey, 100);
+      final service = PlayerLevelService(repository);
+      final oldDay = today.subtract(const Duration(days: 2));
+      final existingEntries = <TrainingEntry>[
+        TrainingEntry(
+          date: today,
+          durationMinutes: 45,
+          intensity: 4,
+          type: '패스',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+        ),
+        TrainingEntry(
+          date: today.subtract(const Duration(days: 1)),
+          durationMinutes: 45,
+          intensity: 4,
+          type: '드리블',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+        ),
+      ];
+
+      final award = await service.awardForTrainingLog(
+        entry: TrainingEntry(
+          date: oldDay,
+          durationMinutes: 45,
+          intensity: 4,
+          type: '슈팅',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+        ),
+        existingEntries: existingEntries,
+      );
+
+      expect(
+        award.reasons.where((reason) => reason.startsWith('streak')),
+        isEmpty,
+      );
+    },
+  );
 
   test('meal logging adds training xp bonus', () async {
     final repository = _MemoryOptionRepository()

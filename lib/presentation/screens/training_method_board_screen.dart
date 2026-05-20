@@ -139,7 +139,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
       if (!mounted) return;
     }
-    await showTrainingXpRewardDialog(context, award: award);
+    await showTrainingSketchXpRewardDialog(context, award: award);
   }
 
   T? _firstWhereOrNull<T>(Iterable<T> items, bool Function(T) test) {

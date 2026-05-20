@@ -237,7 +237,7 @@ void main() {
         expect(snapshot.dailyForecasts, hasLength(2));
         expect(
           snapshot.dailyForecasts.first.hourlyPrecipitations,
-          hasLength(2),
+          hasLength(3),
         );
         expect(
           snapshot.dailyForecasts.first.morningForecast?.temperature,
@@ -252,16 +252,20 @@ void main() {
         expect(snapshot.dailyForecasts[1].eveningForecast?.temperature, 18.4);
         expect(
           snapshot.dailyForecasts.first.hourlyPrecipitations.first.time,
-          DateTime(2026, 4, 18, 12),
+          DateTime(2026, 4, 18, 9),
         );
         expect(
           snapshot
-              .dailyForecasts.first.hourlyPrecipitations.first.precipitation,
-          1.2,
+              .dailyForecasts
+              .first
+              .hourlyPrecipitations
+              .first
+              .precipitation,
+          0,
         );
-        expect(snapshot.dailyForecasts[1].hourlyPrecipitations, hasLength(1));
+        expect(snapshot.dailyForecasts[1].hourlyPrecipitations, hasLength(2));
         expect(
-          snapshot.dailyForecasts[1].hourlyPrecipitations.single.precipitation,
+          snapshot.dailyForecasts[1].hourlyPrecipitations.first.precipitation,
           0.7,
         );
       },
@@ -723,15 +727,14 @@ void main() {
         expect(snapshot.dailyForecasts.first.precipitationSum, 3);
         expect(
           snapshot.dailyForecasts.first.hourlyPrecipitations,
-          hasLength(1),
+          hasLength(3),
         );
         expect(
-          snapshot.dailyForecasts.first.hourlyPrecipitations.single.time,
+          snapshot.dailyForecasts.first.hourlyPrecipitations.last.time,
           DateTime(2026, 4, 18, 18),
         );
         expect(
-          snapshot
-              .dailyForecasts.first.hourlyPrecipitations.single.precipitation,
+          snapshot.dailyForecasts.first.hourlyPrecipitations.last.precipitation,
           3,
         );
         expect(snapshot.dailyForecasts.first.windSpeedMax, 5);

@@ -63,7 +63,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _scrappedLinksKey = 'news_scrapped_links';
   static const String _scrappedItemsKey = 'news_scrapped_items_v1';
   static const String _sourceOpenCountsKey = 'news_source_open_counts_v1';
-  static const Duration _autoRefreshInterval = Duration(hours: 1);
+  static const Duration _autoRefreshInterval = Duration(hours: 3);
   static const int _defaultPrimaryChannelLoadCount = 3;
   static const int _domesticPrimaryChannelLoadCount = 2;
   static const ValueKey<String> _channelsActionKey = ValueKey<String>(
@@ -166,7 +166,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       _scrappedLinks = {..._scrappedLinks, ..._scrappedItemsByLink.keys};
     }
     _sourceOpenCounts = _loadSourceOpenCounts();
-    NewsBadgeService.clearUnreadCount();
+    unawaited(NewsBadgeService.markFeedOpened(widget.optionRepository));
     _applyCacheIfValid();
     _loadProgressive();
   }
@@ -1530,8 +1530,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         );
       }
     }
-    await _recordSourceOpen(article);
-    await _recordOpenedArticle(article);
+    unawaited(
+      Future.wait<void>([
+        _recordSourceOpen(article),
+        _recordOpenedArticle(article),
+      ]).catchError((_) => const <void>[]),
+    );
     await launchUrl(
       uri,
       mode: LaunchMode.inAppBrowserView,
@@ -1542,7 +1546,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   Future<void> _recordOpenedArticle(NewsArticle article) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     await NewsReadState.markRead(widget.optionRepository, [article]);
-    await NewsBadgeService.refresh(widget.optionRepository);
+    NewsBadgeService.clearUnreadCount();
     final readKey = NewsReadState.articleKey(article);
     if (readKey.isNotEmpty && mounted) {
       setState(() {
@@ -1559,7 +1563,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         rawTitle.isNotEmpty &&
         titleKo.isEmpty &&
         !RegExp(r'[가-힣]').hasMatch(rawTitle)) {
-      titleKo = await _translateToKorean(rawTitle);
+      unawaited(_cacheOpenedArticleTitleTranslation(link, rawTitle));
     }
     final items = <Map<String, dynamic>>[];
     final raw = widget.optionRepository.getValue<String>(
@@ -1598,6 +1602,43 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       NewsScreen.openedItemsKey,
       jsonEncode(next),
     );
+  }
+
+  Future<void> _cacheOpenedArticleTitleTranslation(
+    String link,
+    String rawTitle,
+  ) async {
+    final titleKo = (await _translateToKorean(rawTitle)).trim();
+    if (titleKo.isEmpty || titleKo == rawTitle) return;
+    final raw = widget.optionRepository.getValue<String>(
+      NewsScreen.openedItemsKey,
+    );
+    if (raw == null || raw.trim().isEmpty) return;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return;
+      final updated = decoded
+          .map((item) {
+            final map = item is Map<String, dynamic>
+                ? Map<String, dynamic>.from(item)
+                : item is Map
+                ? Map<String, dynamic>.from(item.cast<String, dynamic>())
+                : null;
+            if (map == null) return item;
+            if (map['link']?.toString().trim() == link &&
+                (map['titleKo']?.toString().trim().isEmpty ?? true)) {
+              map['titleKo'] = titleKo;
+            }
+            return map;
+          })
+          .toList(growable: false);
+      await widget.optionRepository.setValue(
+        NewsScreen.openedItemsKey,
+        jsonEncode(updated),
+      );
+    } catch (_) {
+      // Translation history can be filled on a later open.
+    }
   }
 
   String _openedNewsId(String link, DateTime openedAt) =>

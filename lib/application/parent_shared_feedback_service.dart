@@ -33,13 +33,14 @@ class ParentTrainingFeedback {
       return null;
     }
     final message = raw['message']?.toString().trim() ?? '';
-    if (message.isEmpty) {
+    final reaction = raw['reaction']?.toString().trim() ?? '';
+    if (message.isEmpty && reaction.isEmpty) {
       return null;
     }
     return ParentTrainingFeedback(
       entryId: entryId,
       message: message,
-      reaction: raw['reaction']?.toString().trim() ?? '',
+      reaction: reaction,
       updatedAt: DateTime.tryParse(raw['updatedAt']?.toString() ?? ''),
     );
   }
@@ -82,7 +83,8 @@ class ParentSharedFeedbackService {
     final next = _loadRawMap();
     final entryId = entryIdFor(entry);
     final trimmed = message.trim();
-    if (trimmed.isEmpty) {
+    final trimmedReaction = reaction.trim();
+    if (trimmed.isEmpty && trimmedReaction.isEmpty) {
       next.remove(entryId);
       await _optionRepository.setValue(
         FamilyAccessService.parentTrainingFeedbackKey,
@@ -93,7 +95,7 @@ class ParentSharedFeedbackService {
     final feedback = ParentTrainingFeedback(
       entryId: entryId,
       message: trimmed,
-      reaction: reaction.trim(),
+      reaction: trimmedReaction,
       updatedAt: DateTime.now(),
     );
     next[entryId] = feedback.toMap();

@@ -117,6 +117,53 @@ Future<void> showTrainingXpRewardDialog(
   final theme = Theme.of(context);
   final scheme = theme.colorScheme;
   final spec = _TrainingXpDialogSpec.fromAward(l10n, scheme, award);
+  await _showTrainingXpRewardDialog(context, award: award, spec: spec);
+}
+
+Future<void> showDiaryXpRewardDialog(
+  BuildContext context, {
+  required PlayerLevelAward award,
+}) async {
+  if (award.gainedXp <= 0) return;
+  final l10n = AppLocalizations.of(context)!;
+  await _showTrainingXpRewardDialog(
+    context,
+    award: award,
+    spec: _TrainingXpDialogSpec(
+      title: l10n.diaryXpDialogTitle,
+      message: l10n.diaryXpDialogMessage,
+      color: const Color(0xFF0F52BA),
+      icon: Icons.edit_note_rounded,
+    ),
+  );
+}
+
+Future<void> showTrainingSketchXpRewardDialog(
+  BuildContext context, {
+  required PlayerLevelAward award,
+}) async {
+  if (award.gainedXp <= 0) return;
+  final l10n = AppLocalizations.of(context)!;
+  await _showTrainingXpRewardDialog(
+    context,
+    award: award,
+    spec: _TrainingXpDialogSpec(
+      title: l10n.trainingSketchXpDialogTitle,
+      message: l10n.trainingSketchXpDialogMessage,
+      color: const Color(0xFFD6A11E),
+      icon: Icons.draw_outlined,
+    ),
+  );
+}
+
+Future<void> _showTrainingXpRewardDialog(
+  BuildContext context, {
+  required PlayerLevelAward award,
+  required _TrainingXpDialogSpec spec,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  final theme = Theme.of(context);
+  final scheme = theme.colorScheme;
   final progressText = award.after.isMaxLevel
       ? l10n.dailyTasksXpDialogMaxProgress(
           award.after.totalXp,
@@ -243,10 +290,7 @@ Future<void> showTrainingStreakCheerDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _GemCluster(
-            color: scheme.primary,
-            symbol: Icons.local_fire_department_rounded,
-          ),
+          const _FlameBurst(color: Color(0xFFF97316)),
           const SizedBox(height: 14),
           Text(
             l10n.trainingStreakCheerTitle(streakDays),
@@ -486,12 +530,10 @@ class _TrainingXpDialogSpec {
     PlayerLevelAward award,
   ) {
     final reasons = award.reasons.toSet();
-    final hasJumpRopeGain =
-        reasons.contains('jump_rope_added') ||
+    final hasJumpRopeGain = reasons.contains('jump_rope_added') ||
         (!reasons.contains('jump_rope_missed') &&
             reasons.any((reason) => reason.contains('jump_rope')));
-    final hasLiftingGain =
-        reasons.contains('lifting_added') ||
+    final hasLiftingGain = reasons.contains('lifting_added') ||
         (!reasons.contains('lifting_missed') &&
             reasons.any((reason) => reason.contains('lifting')));
     if (hasJumpRopeGain) {
@@ -568,6 +610,73 @@ Future<void> _showCelebrationDialog(
       );
     },
   );
+}
+
+class _FlameBurst extends StatelessWidget {
+  final Color color;
+
+  const _FlameBurst({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 144,
+      height: 78,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: 18,
+            bottom: 10,
+            child: Icon(
+              Icons.local_fire_department_rounded,
+              size: 42,
+              color: color.withValues(alpha: 0.32),
+            ),
+          ),
+          Positioned(
+            right: 16,
+            top: 8,
+            child: Icon(
+              Icons.local_fire_department_rounded,
+              size: 34,
+              color: color.withValues(alpha: 0.24),
+            ),
+          ),
+          Icon(
+            Icons.local_fire_department_rounded,
+            size: 68,
+            color: color,
+            shadows: const [
+              Shadow(
+                color: Color(0x22000000),
+                blurRadius: 12,
+                offset: Offset(0, 5),
+              ),
+            ],
+          ),
+          Positioned(
+            top: 2,
+            left: 36,
+            child: Icon(
+              Icons.whatshot_rounded,
+              color: color.withValues(alpha: 0.72),
+              size: 18,
+            ),
+          ),
+          Positioned(
+            bottom: 6,
+            right: 38,
+            child: Icon(
+              Icons.whatshot_rounded,
+              color: color.withValues(alpha: 0.56),
+              size: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _GemCluster extends StatelessWidget {

@@ -293,6 +293,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'The meal and recovery record added steady growth gems.';
 
   @override
+  String get diaryXpDialogTitle => 'Diary sapphire';
+
+  @override
+  String get diaryXpDialogMessage =>
+      'Your reflection turned into calm sapphire XP.';
+
+  @override
+  String get trainingSketchXpDialogTitle => 'Sketch gold';
+
+  @override
+  String get trainingSketchXpDialogMessage =>
+      'Your training idea sketch turned into bright gold XP.';
+
+  @override
   String trainingXpDialogXp(int count) {
     return '+$count XP';
   }
@@ -378,6 +392,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homePriorityPlansAction => 'Plans';
+
+  @override
+  String get homePriorityPlanNextMessage =>
+      'No training plan is set for today or tomorrow. Add a short plan first.';
+
+  @override
+  String get homePriorityPlanNextAction => 'Add plan';
 
   @override
   String get homePriorityReviewWeekMessage =>
@@ -1094,6 +1115,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restorePreviousBackup => 'Import previous backup';
+
+  @override
+  String get restorePreviousBackupInfo =>
+      'Previous backup import is a recovery tool for undoing a recent import or checking an older state. Confirm that current data will be replaced by the previous backup before running it.';
 
   @override
   String get backupConfirm => 'Create a new backup on Google Drive?';
@@ -2413,7 +2438,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachHeroBody =>
-      'Upload a short side-view running clip and get stricter feedback on posture, bounce, foot strike, knee flexion, and arm carriage.';
+      'Upload a short side-view running clip and get strict feedback on posture, bounce, foot strike, knee flexion, and arm carriage.';
+
+  @override
+  String get runningCoachAnalyzeBody =>
+      'Choose a clip to get a form score and the first movement issue to fix.';
 
   @override
   String get runningCoachTipsTitle => 'How to record';
@@ -2458,7 +2487,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleBody =>
-      'This is how a side-view sample is scored before you upload your own clip.';
+      'Example: an 8-second side-view clip reads 14/16 frames and uses 4.5° torso lean plus 0.18 foot-strike distance to choose the first priority.';
 
   @override
   String get runningCoachLiveCardTitle => 'Live coach';
@@ -4179,7 +4208,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSyncStatusChecking => 'Checking';
 
   @override
-  String get settingsSyncBackupDataReady => 'Backup data found.';
+  String get settingsSyncBackupDataReady => 'Backup source found.';
 
   @override
   String get settingsSyncStatusSignInNeeded => 'Connect';
@@ -4188,33 +4217,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSyncStatusNoBackup => 'No backup';
 
   @override
-  String get settingsSyncStatusCurrent => 'Current';
+  String get settingsSyncStatusCurrent => 'Recent backup';
 
   @override
-  String get settingsSyncStatusReview => 'Review';
+  String get settingsSyncStatusReview => 'Check backup';
 
   @override
-  String get settingsSyncStatusStale => 'Stale';
+  String get settingsSyncStatusStale => 'Backup stale';
 
   @override
   String get settingsSyncSummaryChecking => 'Checking the Drive backup status.';
 
   @override
   String get settingsSyncSummarySignInNeeded =>
-      'Connect an account to compare current data with the Drive backup.';
+      'Connect an account to compare this device with Drive backup and run import or backup actions.';
 
   @override
   String get settingsSyncSummaryNoBackup =>
-      'No backed-up data exists yet. Create the first backup when ready.';
+      'No Drive backup file exists yet. Use Back up data to store the current data first.';
 
   @override
   String settingsSyncSummaryCurrent(Object time) {
-    return 'Backed-up data is from $time, close to the current device data.';
+    return 'The Drive backup was created around $time. Check this time before replacing or overwriting data.';
   }
 
   @override
   String settingsSyncSummaryStale(Object time) {
-    return 'Backed-up data is from $time. Back up again if recent changes matter.';
+    return 'The Drive backup is from $time. Changes made after that may not be backed up yet.';
   }
 
   @override
@@ -4469,6 +4498,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String familySyncParentRewardClaimed(int count) {
+    return '$count player reward claim(s) synced.';
+  }
+
+  @override
+  String familySyncParentTrainingAndRewardClaimed(
+      int trainingCount, int rewardCount) {
+    return '$trainingCount new player training log(s) and $rewardCount reward claim(s) synced.';
+  }
+
+  @override
   String familySyncChildFeedbackAdded(int count) {
     return '$count parent feedback update(s) synced.';
   }
@@ -4664,6 +4704,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parentFeedbackEmpty => 'There is no feedback yet.';
+
+  @override
+  String get parentFeedbackReactionOnly => 'A parent reaction was saved.';
 
   @override
   String get parentFeedbackReactionLabel => 'Reaction';

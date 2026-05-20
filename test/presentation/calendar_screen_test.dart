@@ -62,6 +62,10 @@ void main() {
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    });
   }
 
   setUpAll(() async {
@@ -80,6 +84,10 @@ void main() {
     mealLogService = MealLogService(optionRepository);
     localeService = LocaleService(optionRepository)..load();
     settingsService = SettingsService(optionRepository)..load();
+  });
+
+  tearDown(() async {
+    await mealLogService.dispose();
   });
 
   tearDownAll(() async {

@@ -144,8 +144,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       return '';
     }
+    if (result.newTrainingEntryCount > 0 && result.newRewardClaimCount > 0) {
+      return l10n.familySyncParentTrainingAndRewardClaimed(
+        result.newTrainingEntryCount,
+        result.newRewardClaimCount,
+      );
+    }
     if (result.newTrainingEntryCount > 0) {
       return l10n.familySyncParentTrainingAdded(result.newTrainingEntryCount);
+    }
+    if (result.newRewardClaimCount > 0) {
+      return l10n.familySyncParentRewardClaimed(result.newRewardClaimCount);
     }
     return '';
   }

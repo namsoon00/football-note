@@ -136,6 +136,10 @@
   "trainingXpDialogLiftingMessage": "추가한 리프팅 기록이 더 강한 몸 성장 보석으로 쌓였어요.",
   "trainingXpDialogMealTitle": "회복 루틴 저장",
   "trainingXpDialogMealMessage": "식사와 회복 기록이 꾸준한 성장 보석으로 이어졌어요.",
+  "diaryXpDialogTitle": "다이어리 사파이어",
+  "diaryXpDialogMessage": "오늘을 돌아본 다이어리가 차분한 사파이어 경험치로 쌓였어요.",
+  "trainingSketchXpDialogTitle": "스케치 골드",
+  "trainingSketchXpDialogMessage": "훈련 아이디어를 그린 스케치가 빛나는 골드 경험치로 쌓였어요.",
   "trainingXpDialogXp": "+{count} XP",
   "@trainingXpDialogXp": {
     "placeholders": {
@@ -200,6 +204,8 @@
   "xpGuideDailyTasksCompleteTitle": "오늘 할일 모두 완료",
   "homePriorityCheckPlansMessage": "남은 훈련 계획을 먼저 확인해 주세요.",
   "homePriorityPlansAction": "계획",
+  "homePriorityPlanNextMessage": "오늘이나 내일 훈련 계획이 비어 있어요. 짧은 계획부터 추가해 보세요.",
+  "homePriorityPlanNextAction": "계획 추가",
   "homePriorityReviewWeekMessage": "이번 주 훈련 흐름을 확인하고 다음 목표를 정해 보세요.",
   "homePriorityStatsAction": "통계",
   "homePrioritySketchNextMessage": "다음 훈련에서 해볼 움직임을 보드에 스케치해 보세요.",
@@ -470,6 +476,7 @@
   "backupToDrive": "데이터 백업하기",
   "restoreFromDrive": "최근 데이터 가져오기",
   "restorePreviousBackup": "이전 백업 가져오기",
+  "restorePreviousBackupInfo": "이전 백업은 최근 가져오기를 되돌리거나 예전 상태를 확인할 때만 사용하는 복구 기능입니다. 실행하기 전에 현재 데이터가 이전 백업으로 교체되는 점을 확인해 주세요.",
   "backupConfirm": "Google Drive에 새 백업을 만들까요?",
   "restoreConfirm": "Google Drive의 최신 데이터를 가져올까요? 현재 데이터가 교체됩니다.",
   "restorePreviousConfirm": "Google Drive의 이전 백업을 가져올까요? 현재 데이터가 교체됩니다.",
@@ -1043,7 +1050,8 @@
   "drawerRunningCoach": "달리기 코치",
   "runningCoachScreenTitle": "달리기 코치",
   "runningCoachHeroTitle": "측면 달리기 자세 코칭",
-  "runningCoachHeroBody": "짧은 측면 달리기 영상을 올리면 상체 자세, 바운스, 발 착지, 무릎 굴곡, 팔 각도까지 더 엄격하게 코칭해 줍니다.",
+  "runningCoachHeroBody": "짧은 측면 달리기 영상을 올리면 상체 자세, 바운스, 발 착지, 무릎 굴곡, 팔 각도까지 엄격하게 코칭해 줍니다.",
+  "runningCoachAnalyzeBody": "영상을 고르면 자세 점수와 가장 먼저 고칠 항목을 바로 정리해 줍니다.",
   "runningCoachTipsTitle": "촬영 팁",
   "runningCoachTipWholeBody": "머리부터 발목까지 전신이 들어오고, 팔꿈치와 발도 계속 보이게 촬영해 주세요.",
   "runningCoachTipSideView": "러너가 화면을 가로지르도록 측면에서 촬영해 주세요.",
@@ -1055,7 +1063,7 @@
   "runningCoachUploadGuideStepDuration": "깨끗한 보폭이 3번 이상 들어간 5~15초 영상을 쓰고, 준비하며 걷는 구간은 잘라 주세요.",
   "runningCoachUploadGuideStepLight": "밝고 고른 빛에서 촬영하고, 러너 뒤로 다른 사람이 지나가지 않게 해 주세요.",
   "runningCoachSampleTitle": "샘플 영상 분석",
-  "runningCoachSampleBody": "내 영상을 올리기 전에 측면 샘플이 어떤 식으로 점수화되는지 볼 수 있어요.",
+  "runningCoachSampleBody": "예: 8초 측면 영상에서 14/16프레임을 읽고, 상체 기울기 4.5도와 착지 거리 0.18을 기준으로 우선 과제를 보여줍니다.",
   "runningCoachLiveCardTitle": "실시간 코치",
   "runningCoachLiveCardBody": "러너 윤곽과 자세 선을 실시간으로 보고, 필요하면 바로 스프린트 전용 피드백으로 넘어가 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형까지 확인할 수 있어요.",
   "runningCoachLiveAction": "실시간 코치 시작",
@@ -1844,22 +1852,22 @@
     }
   },
   "settingsSyncStatusChecking": "확인 중",
-  "settingsSyncBackupDataReady": "백업 데이터를 찾았어요.",
+  "settingsSyncBackupDataReady": "가져올 백업 원본을 확인했어요.",
   "settingsSyncStatusSignInNeeded": "연결 필요",
   "settingsSyncStatusNoBackup": "백업 없음",
-  "settingsSyncStatusCurrent": "최신",
-  "settingsSyncStatusReview": "확인",
-  "settingsSyncStatusStale": "오래됨",
+  "settingsSyncStatusCurrent": "최근 백업",
+  "settingsSyncStatusReview": "백업 확인",
+  "settingsSyncStatusStale": "백업 오래됨",
   "settingsSyncSummaryChecking": "Drive 백업 상태를 확인하는 중입니다.",
-  "settingsSyncSummarySignInNeeded": "계정을 연결하면 현재 데이터와 Drive 백업 상태를 비교할 수 있어요.",
-  "settingsSyncSummaryNoBackup": "아직 백업된 데이터가 없어요. 먼저 백업을 만들어 주세요.",
-  "settingsSyncSummaryCurrent": "백업된 데이터가 {time} 기준이라 현재 데이터와 가깝습니다.",
+  "settingsSyncSummarySignInNeeded": "계정을 연결하면 현재 기기 데이터와 Drive 백업을 비교하고 가져오기/백업을 실행할 수 있어요.",
+  "settingsSyncSummaryNoBackup": "Drive에 아직 백업 파일이 없어요. 데이터 백업하기로 현재 데이터를 먼저 저장해 주세요.",
+  "settingsSyncSummaryCurrent": "Drive 백업이 {time} 기준으로 만들어졌어요. 최근 변경을 잃지 않으려면 백업 시간을 확인하세요.",
   "@settingsSyncSummaryCurrent": {
     "placeholders": {
       "time": {}
     }
   },
-  "settingsSyncSummaryStale": "백업된 데이터 기준이 {time}입니다. 최근 변경이 있다면 다시 백업해 주세요.",
+  "settingsSyncSummaryStale": "Drive 백업 기준이 {time}입니다. 그 뒤에 바꾼 내용은 아직 백업되지 않았을 수 있어요.",
   "@settingsSyncSummaryStale": {
     "placeholders": {
       "time": {}
@@ -1956,6 +1964,25 @@
       }
     }
   },
+  "familySyncParentRewardClaimed": "선수가 받은 선물 {count}개가 동기화됐어요.",
+  "@familySyncParentRewardClaimed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "familySyncParentTrainingAndRewardClaimed": "선수 훈련기록 {trainingCount}개와 선물 수령 {rewardCount}개가 동기화됐어요.",
+  "@familySyncParentTrainingAndRewardClaimed": {
+    "placeholders": {
+      "trainingCount": {
+        "type": "int"
+      },
+      "rewardCount": {
+        "type": "int"
+      }
+    }
+  },
   "familySyncChildFeedbackAdded": "보호자 피드백 {count}개가 동기화됐어요.",
   "@familySyncChildFeedbackAdded": {
     "placeholders": {
@@ -2026,6 +2053,7 @@
   "parentFeedbackSaveFailed": "피드백 저장에 실패했어요. 다시 시도해 주세요.",
   "parentFeedbackCleared": "피드백을 지웠어요.",
   "parentFeedbackEmpty": "아직 피드백이 없어요.",
+  "parentFeedbackReactionOnly": "보호자가 리액션을 남겼어요.",
   "parentFeedbackReactionLabel": "리액션",
   "parentFeedbackReactionNone": "없음",
   "parentFeedbackReactionThanks": "고마워요",

@@ -626,6 +626,30 @@ abstract class AppLocalizations {
   /// **'The meal and recovery record added steady growth gems.'**
   String get trainingXpDialogMealMessage;
 
+  /// No description provided for @diaryXpDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary sapphire'**
+  String get diaryXpDialogTitle;
+
+  /// No description provided for @diaryXpDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reflection turned into calm sapphire XP.'**
+  String get diaryXpDialogMessage;
+
+  /// No description provided for @trainingSketchXpDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sketch gold'**
+  String get trainingSketchXpDialogTitle;
+
+  /// No description provided for @trainingSketchXpDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your training idea sketch turned into bright gold XP.'**
+  String get trainingSketchXpDialogMessage;
+
   /// No description provided for @trainingXpDialogXp.
   ///
   /// In en, this message translates to:
@@ -769,6 +793,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plans'**
   String get homePriorityPlansAction;
+
+  /// No description provided for @homePriorityPlanNextMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No training plan is set for today or tomorrow. Add a short plan first.'**
+  String get homePriorityPlanNextMessage;
+
+  /// No description provided for @homePriorityPlanNextAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add plan'**
+  String get homePriorityPlanNextAction;
 
   /// No description provided for @homePriorityReviewWeekMessage.
   ///
@@ -2095,6 +2131,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import previous backup'**
   String get restorePreviousBackup;
+
+  /// No description provided for @restorePreviousBackupInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous backup import is a recovery tool for undoing a recent import or checking an older state. Confirm that current data will be replaced by the previous backup before running it.'**
+  String get restorePreviousBackupInfo;
 
   /// No description provided for @backupConfirm.
   ///
@@ -4427,8 +4469,14 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Upload a short side-view running clip and get stricter feedback on posture, bounce, foot strike, knee flexion, and arm carriage.'**
+  /// **'Upload a short side-view running clip and get strict feedback on posture, bounce, foot strike, knee flexion, and arm carriage.'**
   String get runningCoachHeroBody;
+
+  /// No description provided for @runningCoachAnalyzeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a clip to get a form score and the first movement issue to fix.'**
+  String get runningCoachAnalyzeBody;
 
   /// No description provided for @runningCoachTipsTitle.
   ///
@@ -4499,7 +4547,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleBody.
   ///
   /// In en, this message translates to:
-  /// **'This is how a side-view sample is scored before you upload your own clip.'**
+  /// **'Example: an 8-second side-view clip reads 14/16 frames and uses 4.5° torso lean plus 0.18 foot-strike distance to choose the first priority.'**
   String get runningCoachSampleBody;
 
   /// No description provided for @runningCoachLiveCardTitle.
@@ -7265,7 +7313,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSyncBackupDataReady.
   ///
   /// In en, this message translates to:
-  /// **'Backup data found.'**
+  /// **'Backup source found.'**
   String get settingsSyncBackupDataReady;
 
   /// No description provided for @settingsSyncStatusSignInNeeded.
@@ -7283,19 +7331,19 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSyncStatusCurrent.
   ///
   /// In en, this message translates to:
-  /// **'Current'**
+  /// **'Recent backup'**
   String get settingsSyncStatusCurrent;
 
   /// No description provided for @settingsSyncStatusReview.
   ///
   /// In en, this message translates to:
-  /// **'Review'**
+  /// **'Check backup'**
   String get settingsSyncStatusReview;
 
   /// No description provided for @settingsSyncStatusStale.
   ///
   /// In en, this message translates to:
-  /// **'Stale'**
+  /// **'Backup stale'**
   String get settingsSyncStatusStale;
 
   /// No description provided for @settingsSyncSummaryChecking.
@@ -7307,25 +7355,25 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSyncSummarySignInNeeded.
   ///
   /// In en, this message translates to:
-  /// **'Connect an account to compare current data with the Drive backup.'**
+  /// **'Connect an account to compare this device with Drive backup and run import or backup actions.'**
   String get settingsSyncSummarySignInNeeded;
 
   /// No description provided for @settingsSyncSummaryNoBackup.
   ///
   /// In en, this message translates to:
-  /// **'No backed-up data exists yet. Create the first backup when ready.'**
+  /// **'No Drive backup file exists yet. Use Back up data to store the current data first.'**
   String get settingsSyncSummaryNoBackup;
 
   /// No description provided for @settingsSyncSummaryCurrent.
   ///
   /// In en, this message translates to:
-  /// **'Backed-up data is from {time}, close to the current device data.'**
+  /// **'The Drive backup was created around {time}. Check this time before replacing or overwriting data.'**
   String settingsSyncSummaryCurrent(Object time);
 
   /// No description provided for @settingsSyncSummaryStale.
   ///
   /// In en, this message translates to:
-  /// **'Backed-up data is from {time}. Back up again if recent changes matter.'**
+  /// **'The Drive backup is from {time}. Changes made after that may not be backed up yet.'**
   String settingsSyncSummaryStale(Object time);
 
   /// No description provided for @settingsDriveActionFilePath.
@@ -7742,6 +7790,19 @@ abstract class AppLocalizations {
   /// **'{count} new player training log(s) synced.'**
   String familySyncParentTrainingAdded(int count);
 
+  /// No description provided for @familySyncParentRewardClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} player reward claim(s) synced.'**
+  String familySyncParentRewardClaimed(int count);
+
+  /// No description provided for @familySyncParentTrainingAndRewardClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'{trainingCount} new player training log(s) and {rewardCount} reward claim(s) synced.'**
+  String familySyncParentTrainingAndRewardClaimed(
+      int trainingCount, int rewardCount);
+
   /// No description provided for @familySyncChildFeedbackAdded.
   ///
   /// In en, this message translates to:
@@ -8077,6 +8138,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'There is no feedback yet.'**
   String get parentFeedbackEmpty;
+
+  /// No description provided for @parentFeedbackReactionOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'A parent reaction was saved.'**
+  String get parentFeedbackReactionOnly;
 
   /// No description provided for @parentFeedbackReactionLabel.
   ///

@@ -742,10 +742,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     }
     final canEdit = _canEditParentFeedback;
     final feedbackText = _savedParentFeedback.trim();
+    final reaction = _savedParentFeedbackReaction.trim();
     final reactionIcon = _parentFeedbackReactionIcon(
       _savedParentFeedbackReaction,
     );
-    if (!canEdit && feedbackText.isEmpty) {
+    if (!canEdit && feedbackText.isEmpty && reaction.isEmpty) {
       return const SizedBox.shrink();
     }
     final updatedAt = _savedParentFeedbackUpdatedAt;
@@ -791,7 +792,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           ],
           const SizedBox(height: 12),
           Text(
-            feedbackText.isEmpty ? l10n.parentFeedbackEmpty : feedbackText,
+            feedbackText.isEmpty
+                ? (reaction.isEmpty
+                      ? l10n.parentFeedbackEmpty
+                      : l10n.parentFeedbackReactionOnly)
+                : feedbackText,
             maxLines: canEdit ? 3 : 5,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium,

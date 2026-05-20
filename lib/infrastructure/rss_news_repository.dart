@@ -16,7 +16,7 @@ class RssNewsRepository implements NewsRepository {
   RssNewsRepository([this._optionRepository]);
 
   static const String _channelCacheKey = 'news_channel_cache_v1';
-  static const Duration _channelCacheTtl = Duration(hours: 1);
+  static const Duration _channelCacheTtl = Duration(hours: 3);
 
   static const List<String> _blockedSourceKeywords = [
     '카지노',

@@ -318,7 +318,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                 )
                               : _trackedPriorityAction(
                                   priorityFocusSignal,
-                                  priorityFocusSignal == 'log_today'
+                                  priorityFocusSignal == 'plan_next'
+                                      ? (widget.onQuickPlan ??
+                                            widget.onOpenPlans)
+                                      : priorityFocusSignal == 'log_today'
                                       ? widget.onOpenPlans
                                       : priorityFocusSignal == 'add_session'
                                       ? widget.onOpenWeeklyStats
@@ -763,6 +766,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     final ordered = <String>[
       data.focusSignal,
       if (data.focusSignal != 'log_today') 'log_today',
+      if (!data.hasTrainingPlanTodayOrTomorrow &&
+          data.focusSignal != 'plan_next')
+        'plan_next',
       if (data.loggedMealsToday == false && data.focusSignal != 'meal_routine')
         'meal_routine',
       if (data.focusSignal != 'add_session') 'add_session',
@@ -1086,6 +1092,7 @@ class _HomeHubData {
   final TrainingBoard? latestBoard;
   final int todayPlanCount;
   final List<_DashboardPlan> todayPlans;
+  final bool hasTrainingPlanTodayOrTomorrow;
   final List<_PlanDaySummary> upcomingPlanDays;
   final String strongestSignal;
   final String focusSignal;
@@ -1114,6 +1121,7 @@ class _HomeHubData {
     required this.latestBoard,
     required this.todayPlanCount,
     required this.todayPlans,
+    required this.hasTrainingPlanTodayOrTomorrow,
     required this.upcomingPlanDays,
     required this.strongestSignal,
     required this.focusSignal,
@@ -1272,6 +1280,15 @@ class _HomeHubData {
         .where((plan) => !_isPlanCoveredByTrainingEntry(plan, entries))
         .toList(growable: false);
     final todayPlanCount = remainingTodayPlans.length;
+    final tomorrow = today.add(const Duration(days: 1));
+    final hasTrainingPlanTodayOrTomorrow = plans.any((plan) {
+      final day = DateTime(
+        plan.scheduledAt.year,
+        plan.scheduledAt.month,
+        plan.scheduledAt.day,
+      );
+      return day == today || day == tomorrow;
+    });
     final planDayCount = <DateTime, int>{};
     final firstPlanByDay = <DateTime, _DashboardPlan>{};
     for (final plan in plans) {
@@ -1322,7 +1339,9 @@ class _HomeHubData {
       strongest = 'restart';
     }
 
-    if (weeklyEntries.isEmpty) {
+    if (!hasTrainingPlanTodayOrTomorrow) {
+      focus = 'plan_next';
+    } else if (weeklyEntries.isEmpty) {
       focus = 'log_today';
     } else if (!loggedMealsToday) {
       focus = 'meal_routine';
@@ -1361,6 +1380,7 @@ class _HomeHubData {
       latestBoard: boards.isEmpty ? null : boards.first,
       todayPlanCount: todayPlanCount,
       todayPlans: remainingTodayPlans,
+      hasTrainingPlanTodayOrTomorrow: hasTrainingPlanTodayOrTomorrow,
       upcomingPlanDays: upcomingPlanDaySummaries,
       strongestSignal: strongest,
       focusSignal: focus,
@@ -1948,6 +1968,12 @@ class _PriorityActionCard extends StatelessWidget {
         ? null
         : mealCoachingService.statusForMealEntry(todayMealEntry!);
     switch (focusSignal) {
+      case 'plan_next':
+        return (
+          l10n.homePriorityPlanNextMessage,
+          l10n.homePriorityPlanNextAction,
+          Icons.add_alarm_outlined,
+        );
       case 'log_today':
         return (
           l10n.homePriorityCheckPlansMessage,

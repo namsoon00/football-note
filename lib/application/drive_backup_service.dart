@@ -638,6 +638,7 @@ class DriveBackupService implements BackupRepository {
       }
       final hadKnownRemoteSnapshot = _getLastFamilyRemoteSnapshot() != null;
       final beforeTrainingIds = _trainingEntryIds();
+      final beforeRewardClaims = _loadRewardClaimFingerprints();
       await _saveLocalPreRestore();
       await _restoreBackupFileWithApi(driveApi, file);
       await _recordFamilySyncPull(
@@ -648,10 +649,17 @@ class DriveBackupService implements BackupRepository {
       final newTrainingCount = hadKnownRemoteSnapshot
           ? _trainingEntryIds().difference(beforeTrainingIds).length
           : 0;
+      final newRewardClaimCount = hadKnownRemoteSnapshot
+          ? _countChangedStringMap(
+              before: beforeRewardClaims,
+              after: _loadRewardClaimFingerprints(),
+            )
+          : 0;
       return FamilySharedSyncResult(
         refreshed: true,
         role: state.currentRole,
         newTrainingEntryCount: newTrainingCount,
+        newRewardClaimCount: newRewardClaimCount,
       );
     } catch (e, st) {
       if (_isAuthError(e)) {
@@ -2028,7 +2036,30 @@ class DriveBackupService implements BackupRepository {
     return result;
   }
 
+  Map<String, String> _loadRewardClaimFingerprints() {
+    final raw = _optionBox.get(PlayerLevelService.rewardClaimMessagesKey);
+    if (raw is! List) {
+      return <String, String>{};
+    }
+    final result = <String, String>{};
+    for (final item in raw) {
+      if (item is! Map) continue;
+      final id = item['id']?.toString().trim() ?? '';
+      if (id.isEmpty) continue;
+      result[id] =
+          '${item['level'] ?? ''}\n${item['rewardName'] ?? ''}\n${item['claimedAt'] ?? ''}';
+    }
+    return result;
+  }
+
   int _countChangedFeedback({
+    required Map<String, String> before,
+    required Map<String, String> after,
+  }) {
+    return _countChangedStringMap(before: before, after: after);
+  }
+
+  int _countChangedStringMap({
     required Map<String, String> before,
     required Map<String, String> after,
   }) {
