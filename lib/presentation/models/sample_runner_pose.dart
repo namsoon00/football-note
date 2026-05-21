@@ -72,28 +72,30 @@ SampleRunnerPose buildSampleRunnerPose({
 }) {
   final phase = progress * 2 * math.pi;
   final stride = math.sin(phase);
+  final counterStride = math.sin(phase + math.pi);
   final drive = (stride + 1) / 2;
-  final recovery = 1 - drive;
+  final recovery = (counterStride + 1) / 2;
   final scale = size.height;
-  final bob = math.cos(phase * 2) * scale * 0.010;
+  final flightLift = (1 - math.cos(phase * 2)) * scale * 0.011;
+  final bob = math.cos(phase * 2) * scale * 0.006 - flightLift;
   final groundY = scale * 0.78;
   final hip = Offset(
-    size.width * (0.17 + progress * 0.60),
+    (size.width * 0.54) + (stride * scale * 0.018),
     groundY - scale * 0.30 + bob,
   );
-  final chest = Offset(hip.dx - scale * 0.10, hip.dy - scale * 0.19);
-  final neck = Offset(chest.dx - scale * 0.025, chest.dy - scale * 0.064);
-  final head = Offset(neck.dx - scale * 0.034, neck.dy - scale * 0.052);
+  final chest = Offset(hip.dx + scale * 0.082, hip.dy - scale * 0.195);
+  final neck = Offset(chest.dx + scale * 0.030, chest.dy - scale * 0.064);
+  final head = Offset(neck.dx + scale * 0.040, neck.dy - scale * 0.050);
   final shoulderFront = Offset(
-    chest.dx + scale * 0.090,
-    chest.dy + scale * 0.006,
+    chest.dx + scale * 0.080,
+    chest.dy + scale * 0.002,
   );
   final shoulderRear = Offset(
-    chest.dx - scale * 0.074,
-    chest.dy + scale * 0.018,
+    chest.dx - scale * 0.086,
+    chest.dy + scale * 0.020,
   );
-  final hipFront = Offset(hip.dx + scale * 0.064, hip.dy);
-  final hipRear = Offset(hip.dx - scale * 0.064, hip.dy + scale * 0.006);
+  final hipFront = Offset(hip.dx + scale * 0.062, hip.dy - scale * 0.002);
+  final hipRear = Offset(hip.dx - scale * 0.062, hip.dy + scale * 0.006);
 
   return SampleRunnerPose(
     groundY: groundY,
@@ -141,12 +143,12 @@ SampleRunnerLegPose _legPose({
   final upperLegLength = scale * 0.190;
   final lowerLegLength = scale * 0.215;
   final ankleTarget = Offset(
-    anchor.dx + scale * _mix(-0.210, 0.180, amount),
-    groundY - scale * _mix(0.014, 0.128, amount),
+    anchor.dx + scale * _mix(-0.255, 0.232, amount),
+    groundY - scale * _mix(0.006, 0.176, amount),
   );
   final kneeHint = Offset(
-    anchor.dx + scale * _mix(-0.035, 0.185, amount),
-    anchor.dy + scale * _mix(0.168, 0.072, amount),
+    anchor.dx + scale * _mix(-0.076, 0.224, amount),
+    anchor.dy + scale * _mix(0.180, -0.004, amount),
   );
   final limb = _resolveTwoBoneLimb(
     start: anchor,
@@ -172,12 +174,12 @@ SampleRunnerArmPose _armPose({
   final upperArmLength = scale * 0.105;
   final forearmLength = scale * 0.098;
   final wristTarget = Offset(
-    anchor.dx + direction * scale * _mix(0.045, 0.165, amount),
-    anchor.dy + scale * _mix(0.154, 0.068, amount),
+    anchor.dx + direction * scale * _mix(0.074, 0.210, amount),
+    anchor.dy + scale * _mix(0.168, 0.044, amount),
   );
   final elbowHint = Offset(
-    anchor.dx + direction * scale * _mix(0.088, 0.132, amount),
-    anchor.dy + scale * _mix(0.070, 0.124, 1 - amount),
+    anchor.dx + direction * scale * _mix(0.108, 0.150, amount),
+    anchor.dy + scale * _mix(0.058, 0.136, 1 - amount),
   );
   final limb = _resolveTwoBoneLimb(
     start: anchor,
@@ -231,8 +233,8 @@ SampleRunnerArmPose _armPose({
 
 Offset _fixedFootVector(double amount, double scale) {
   final rawDirection = Offset(
-    _mix(-0.78, 0.88, amount),
-    _mix(0.23, 0.14, amount),
+    _mix(-0.90, 0.96, amount),
+    _mix(0.20, 0.10, amount),
   );
   return rawDirection / rawDirection.distance * (scale * 0.060);
 }

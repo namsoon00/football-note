@@ -2540,7 +2540,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleBody =>
-      '예: 8초 측면 영상에서 14/16프레임을 읽고, 상체 기울기 4.5도와 착지 거리 0.18을 기준으로 우선 과제를 보여줍니다.';
+      '예: 6초 측면 영상에서 24/24프레임을 읽고, 상체 기울기 10도, 착지 거리 0.08, 팔 각도 90도로 100점 샘플을 보여줍니다.';
 
   @override
   String runningCoachSampleFrameLabel(int current, int total) {
@@ -2552,7 +2552,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleFrameGuideBody =>
-      '샘플 루프는 러너를 같은 분석 프레임 안에 유지해 자세, 착지, 팔 타이밍을 한눈에 비교할 수 있게 보여줘요.';
+      '샘플 루프는 앞으로 밀고 나가는 러너를 분석 프레임 중앙에 유지해 자세, 착지, 팔 타이밍을 한눈에 비교할 수 있게 보여줘요.';
 
   @override
   String get runningCoachSampleCueLean => '발목부터 어깨까지 가벼운 전경사';

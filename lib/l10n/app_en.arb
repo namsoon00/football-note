@@ -1107,7 +1107,7 @@
   "runningCoachUploadGuideStepDuration": "Use a 5-15 second clip with 3 or more clean strides, then trim away walking setup time.",
   "runningCoachUploadGuideStepLight": "Record in bright, even light and avoid other people crossing behind the runner.",
   "runningCoachSampleTitle": "Sample video analysis",
-  "runningCoachSampleBody": "Example: an 8-second side-view clip reads 14/16 frames and uses 4.5° torso lean plus 0.18 foot-strike distance to choose the first priority.",
+  "runningCoachSampleBody": "Example: a 6-second side-view clip reads 24/24 frames and uses 10° torso lean, 0.08 foot-strike distance, and compact 90° arms for a 100-point sample.",
   "runningCoachSampleFrameLabel": "Frame {current}/{total}",
   "@runningCoachSampleFrameLabel": {
     "placeholders": {
@@ -1120,7 +1120,7 @@
     }
   },
   "runningCoachSampleFrameGuideTitle": "Good side-view frame",
-  "runningCoachSampleFrameGuideBody": "The sample loop keeps the runner inside the same analysis frame so posture, landing, and arm timing are easy to compare.",
+  "runningCoachSampleFrameGuideBody": "The sample loop keeps a forward-driving runner centered in the analysis frame so posture, landing, and arm timing are easy to compare.",
   "runningCoachSampleCueLean": "Light forward lean from ankle to shoulder",
   "runningCoachSampleCueFrame": "Whole runner stays inside the frame",
   "runningCoachSampleCueFoot": "Foot lands close under the hip",
