@@ -709,97 +709,103 @@ class _SampleRunnerPainter extends CustomPainter {
     final stride = math.sin(phase);
     final drive = (stride + 1) / 2;
     final recovery = 1 - drive;
-    final bob = math.cos(phase) * size.height * 0.012;
+    final bob = math.cos(phase * 2) * size.height * 0.010;
     final isGhost = strokeWidth < 4;
-    final limbPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final jointPaint = Paint()
-      ..color = color.withValues(alpha: isGhost ? 0.22 : 0.90)
-      ..style = PaintingStyle.fill;
-    final fillPaint = Paint()
-      ..color = color.withValues(alpha: isGhost ? 0.08 : 0.18)
-      ..style = PaintingStyle.fill;
-    final highlightPaint = Paint()
-      ..color = Colors.white.withValues(alpha: isGhost ? 0.08 : 0.38)
-      ..strokeWidth = math.max(1.0, strokeWidth * 0.36)
-      ..strokeCap = StrokeCap.round;
-    final shoePaint = Paint()
-      ..color = color.withValues(alpha: isGhost ? 0.18 : 0.88)
-      ..style = PaintingStyle.fill;
+    final baseAlpha = isGhost ? 0.18 : 0.96;
+    final kitColor = color.withValues(alpha: baseAlpha);
+    final shortsColor = Color.lerp(
+      color,
+      Colors.black,
+      0.34,
+    )!.withValues(alpha: baseAlpha);
+    final skinColor = isGhost
+        ? color.withValues(alpha: 0.16)
+        : const Color(0xFFE8B98E);
+    final hairColor = isGhost
+        ? color.withValues(alpha: 0.12)
+        : const Color(0xFF3A2A24);
+    final outlineColor = isGhost
+        ? color.withValues(alpha: 0.10)
+        : Color.lerp(color, Colors.black, 0.20)!.withValues(alpha: 0.72);
     final groundY = size.height * 0.78;
-    final x = size.width * (0.16 + progress * 0.62);
-    final hip = Offset(x, groundY - size.height * 0.26 + bob);
+    final x = size.width * (0.17 + progress * 0.60);
+    final hip = Offset(x, groundY - size.height * 0.28 + bob);
     final chest = Offset(
-      hip.dx - size.width * 0.052,
-      hip.dy - size.height * 0.17,
+      hip.dx - size.width * 0.044,
+      hip.dy - size.height * 0.18,
     );
     final neck = Offset(
-      chest.dx - size.width * 0.012,
-      chest.dy - size.height * 0.055,
+      chest.dx - size.width * 0.010,
+      chest.dy - size.height * 0.064,
     );
     final head = Offset(
-      neck.dx - size.width * 0.014,
-      neck.dy - size.height * 0.05,
+      neck.dx - size.width * 0.016,
+      neck.dy - size.height * 0.044,
     );
     final shoulderFront = Offset(
-      chest.dx + size.width * 0.036,
-      chest.dy + size.height * 0.004,
+      chest.dx + size.width * 0.040,
+      chest.dy + size.height * 0.006,
     );
     final shoulderRear = Offset(
-      chest.dx - size.width * 0.038,
-      chest.dy + size.height * 0.014,
+      chest.dx - size.width * 0.036,
+      chest.dy + size.height * 0.018,
     );
-    final hipFront = Offset(hip.dx + size.width * 0.026, hip.dy);
+    final hipFront = Offset(hip.dx + size.width * 0.032, hip.dy);
     final hipRear = Offset(
-      hip.dx - size.width * 0.026,
+      hip.dx - size.width * 0.032,
       hip.dy + size.height * 0.006,
     );
 
-    final driveKnee = Offset(
-      hipFront.dx + size.width * (0.080 + drive * 0.070),
-      hipFront.dy + size.height * (0.132 - drive * 0.052),
-    );
-    final driveAnkle = Offset(
-      hipFront.dx + size.width * (0.145 + drive * 0.055),
-      hipFront.dy + size.height * (0.248 - drive * 0.078),
-    );
-    final driveFoot = Offset(
-      driveAnkle.dx + size.width * 0.044,
-      math.min(
-        groundY - size.height * 0.012,
-        driveAnkle.dy + size.height * 0.038,
-      ),
-    );
-    final pushKnee = Offset(
-      hipRear.dx - size.width * (0.078 + recovery * 0.050),
-      hipRear.dy + size.height * (0.144 + drive * 0.018),
-    );
-    final pushAnkle = Offset(
-      hipRear.dx - size.width * (0.166 + recovery * 0.066),
-      groundY - size.height * (0.014 + drive * 0.022),
-    );
-    final pushFoot = Offset(pushAnkle.dx - size.width * 0.052, groundY);
+    double mix(double a, double b, double t) => a + (b - a) * t;
 
-    final frontElbow = Offset(
-      shoulderFront.dx - size.width * (0.028 + drive * 0.084),
-      shoulderFront.dy + size.height * (0.078 + drive * 0.050),
+    ({Offset knee, Offset ankle, Offset toe}) legPose(
+      Offset anchor,
+      double amount,
+    ) {
+      final knee = Offset(
+        anchor.dx + size.width * mix(-0.088, 0.135, amount),
+        anchor.dy + size.height * mix(0.152, 0.074, amount),
+      );
+      final ankle = Offset(
+        anchor.dx + size.width * mix(-0.205, 0.154, amount),
+        groundY - size.height * mix(0.004, 0.118, amount),
+      );
+      final toe = Offset(
+        ankle.dx + size.width * mix(-0.058, 0.074, amount),
+        groundY - size.height * mix(0.000, 0.038, amount),
+      );
+      return (knee: knee, ankle: ankle, toe: toe);
+    }
+
+    ({Offset elbow, Offset wrist}) armPose(
+      Offset anchor,
+      double amount,
+      double direction,
+    ) {
+      final elbow = Offset(
+        anchor.dx + direction * size.width * mix(0.045, 0.122, amount),
+        anchor.dy + size.height * mix(0.074, 0.128, 1 - amount),
+      );
+      final wrist = Offset(
+        elbow.dx - direction * size.width * mix(0.052, 0.020, amount),
+        elbow.dy + size.height * mix(0.078, 0.032, amount),
+      );
+      return (elbow: elbow, wrist: wrist);
+    }
+
+    final frontLeg = legPose(hipFront, drive);
+    final rearLeg = legPose(hipRear, recovery);
+    final frontArm = armPose(shoulderFront, recovery, -1);
+    final rearArm = armPose(shoulderRear, drive, 1);
+    final upperLimbWidth = math.max(
+      7.0,
+      size.height * (isGhost ? 0.030 : 0.045),
     );
-    final frontWrist = Offset(
-      frontElbow.dx + size.width * (0.022 + recovery * 0.040),
-      frontElbow.dy + size.height * (0.080 - drive * 0.018),
+    final lowerLimbWidth = math.max(
+      6.0,
+      size.height * (isGhost ? 0.026 : 0.038),
     );
-    final rearElbow = Offset(
-      shoulderRear.dx + size.width * (0.060 + drive * 0.090),
-      shoulderRear.dy + size.height * (0.074 + recovery * 0.026),
-    );
-    final rearWrist = Offset(
-      rearElbow.dx + size.width * (0.058 + recovery * 0.034),
-      rearElbow.dy + size.height * (0.042 + drive * 0.025),
-    );
+    final footWidth = math.max(5.0, size.height * (isGhost ? 0.026 : 0.034));
 
     canvas.drawOval(
       Rect.fromCenter(
@@ -828,9 +834,31 @@ class _SampleRunnerPainter extends CustomPainter {
       );
     }
 
-    _drawLimb(canvas, limbPaint, shoulderRear, rearElbow, rearWrist);
-    _drawLimb(canvas, limbPaint, hipRear, pushKnee, pushAnkle);
-    _drawShoe(canvas, pushAnkle, pushFoot, shoePaint);
+    final rearSkin = isGhost
+        ? color.withValues(alpha: 0.11)
+        : skinColor.withValues(alpha: 0.56);
+    final rearShoe = isGhost
+        ? color.withValues(alpha: 0.12)
+        : outlineColor.withValues(alpha: 0.62);
+    _drawLimb(
+      canvas,
+      color: rearSkin,
+      a: shoulderRear,
+      b: rearArm.elbow,
+      c: rearArm.wrist,
+      upperWidth: upperLimbWidth * 0.82,
+      lowerWidth: lowerLimbWidth * 0.78,
+    );
+    _drawLimb(
+      canvas,
+      color: rearSkin,
+      a: hipRear,
+      b: rearLeg.knee,
+      c: rearLeg.ankle,
+      upperWidth: upperLimbWidth,
+      lowerWidth: lowerLimbWidth,
+    );
+    _drawShoe(canvas, rearLeg.ankle, rearLeg.toe, rearShoe, footWidth);
 
     final torso = Path()
       ..moveTo(shoulderRear.dx, shoulderRear.dy)
@@ -838,61 +866,147 @@ class _SampleRunnerPainter extends CustomPainter {
       ..lineTo(hipFront.dx, hipFront.dy)
       ..lineTo(hipRear.dx, hipRear.dy)
       ..close();
-    canvas.drawPath(torso, fillPaint);
-    canvas.drawPath(torso, limbPaint);
-    canvas.drawLine(
-      Offset(chest.dx - size.width * 0.010, chest.dy + size.height * 0.030),
-      Offset(hip.dx + size.width * 0.006, hip.dy - size.height * 0.018),
-      highlightPaint,
+    canvas.drawPath(
+      torso,
+      Paint()
+        ..color = kitColor
+        ..style = PaintingStyle.fill,
     );
-    canvas.drawLine(neck, chest, limbPaint);
+    canvas.drawPath(
+      torso,
+      Paint()
+        ..color = outlineColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.2, strokeWidth * 0.42)
+        ..strokeJoin = StrokeJoin.round,
+    );
+    canvas.drawPath(
+      Path()
+        ..moveTo(
+          hipRear.dx - size.width * 0.004,
+          hipRear.dy - size.height * 0.006,
+        )
+        ..lineTo(
+          hipFront.dx + size.width * 0.008,
+          hipFront.dy - size.height * 0.002,
+        )
+        ..lineTo(
+          hipFront.dx + size.width * 0.030,
+          hipFront.dy + size.height * 0.064,
+        )
+        ..lineTo(hip.dx + size.width * 0.002, hip.dy + size.height * 0.044)
+        ..lineTo(
+          hipRear.dx - size.width * 0.034,
+          hipRear.dy + size.height * 0.068,
+        )
+        ..close(),
+      Paint()..color = shortsColor,
+    );
+    _drawSegment(
+      canvas,
+      neck,
+      chest,
+      skinColor.withValues(alpha: isGhost ? 0.12 : 0.86),
+      math.max(5.0, size.height * (isGhost ? 0.020 : 0.030)),
+    );
     canvas.drawCircle(
       head,
-      strokeWidth * (isGhost ? 2.4 : 2.8),
-      fillPaint..color = color.withValues(alpha: isGhost ? 0.10 : 0.22),
-    );
-    canvas.drawCircle(head, strokeWidth * (isGhost ? 1.6 : 1.9), limbPaint);
-    canvas.drawLine(
-      Offset(head.dx + size.width * 0.008, head.dy - size.height * 0.004),
-      Offset(head.dx + size.width * 0.030, head.dy + size.height * 0.004),
-      highlightPaint,
+      size.height * (isGhost ? 0.045 : 0.054),
+      Paint()
+        ..color = skinColor.withValues(alpha: isGhost ? 0.12 : 0.96)
+        ..style = PaintingStyle.fill,
     );
     canvas.drawCircle(
-      Offset(head.dx - size.width * 0.010, head.dy - size.height * 0.012),
-      math.max(1.5, strokeWidth * 0.55),
-      jointPaint,
+      Offset(head.dx - size.width * 0.006, head.dy - size.height * 0.014),
+      size.height * (isGhost ? 0.030 : 0.036),
+      Paint()..color = hairColor,
+    );
+    canvas.drawCircle(
+      Offset(head.dx + size.width * 0.020, head.dy - size.height * 0.006),
+      math.max(1.5, size.height * 0.006),
+      Paint()..color = outlineColor,
     );
 
-    _drawLimb(canvas, limbPaint, hipFront, driveKnee, driveAnkle);
-    _drawShoe(canvas, driveAnkle, driveFoot, shoePaint);
-    _drawLimb(canvas, limbPaint, shoulderFront, frontElbow, frontWrist);
-
-    for (final point in <Offset>[
-      shoulderFront,
-      shoulderRear,
-      hipFront,
-      hipRear,
-      driveKnee,
-      pushKnee,
-      frontElbow,
-      rearElbow,
-    ]) {
-      canvas.drawCircle(point, math.max(2.0, strokeWidth * 0.58), jointPaint);
-    }
-  }
-
-  void _drawLimb(Canvas canvas, Paint paint, Offset a, Offset b, Offset c) {
-    canvas.drawLine(a, b, paint);
-    canvas.drawLine(b, c, paint);
-  }
-
-  void _drawShoe(Canvas canvas, Offset ankle, Offset toe, Paint paint) {
-    final rect = Rect.fromCenter(
-      center: Offset((ankle.dx + toe.dx) / 2, (ankle.dy + toe.dy) / 2),
-      width: (toe.dx - ankle.dx).abs() + 14,
-      height: 7,
+    _drawLimb(
+      canvas,
+      color: skinColor.withValues(alpha: isGhost ? 0.15 : 0.94),
+      a: hipFront,
+      b: frontLeg.knee,
+      c: frontLeg.ankle,
+      upperWidth: upperLimbWidth * 1.06,
+      lowerWidth: lowerLimbWidth * 1.02,
     );
-    canvas.drawOval(rect, paint);
+    _drawShoe(
+      canvas,
+      frontLeg.ankle,
+      frontLeg.toe,
+      isGhost ? color.withValues(alpha: 0.15) : outlineColor,
+      footWidth * 1.08,
+    );
+    _drawLimb(
+      canvas,
+      color: skinColor.withValues(alpha: isGhost ? 0.15 : 0.94),
+      a: shoulderFront,
+      b: frontArm.elbow,
+      c: frontArm.wrist,
+      upperWidth: upperLimbWidth * 0.86,
+      lowerWidth: lowerLimbWidth * 0.82,
+    );
+
+    _drawSegment(
+      canvas,
+      Offset(chest.dx - size.width * 0.010, chest.dy + size.height * 0.030),
+      Offset(hip.dx + size.width * 0.006, hip.dy - size.height * 0.018),
+      Colors.white.withValues(alpha: isGhost ? 0.04 : 0.28),
+      math.max(1.0, strokeWidth * 0.34),
+    );
+  }
+
+  void _drawLimb(
+    Canvas canvas, {
+    required Color color,
+    required Offset a,
+    required Offset b,
+    required Offset c,
+    required double upperWidth,
+    required double lowerWidth,
+  }) {
+    _drawSegment(canvas, a, b, color, upperWidth);
+    _drawSegment(canvas, b, c, color, lowerWidth);
+    canvas.drawCircle(
+      b,
+      math.max(2.2, lowerWidth * 0.42),
+      Paint()..color = color,
+    );
+  }
+
+  void _drawSegment(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Color color,
+    double width,
+  ) {
+    canvas.drawLine(
+      start,
+      end,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  void _drawShoe(
+    Canvas canvas,
+    Offset ankle,
+    Offset toe,
+    Color color,
+    double width,
+  ) {
+    _drawSegment(canvas, ankle, toe, color, width);
   }
 
   @override

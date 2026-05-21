@@ -178,7 +178,8 @@ void main() {
     expect(find.textContaining('패스 감각 정리.'), findsOneWidget);
   });
 
-  testWidgets('coach lesson screen quiz sticker hides wrong answers and expands', (
+  testWidgets(
+      'coach lesson screen quiz sticker hides wrong answers and expands', (
     WidgetTester tester,
   ) async {
     final optionRepository = _FakeOptionRepository()
@@ -593,8 +594,9 @@ void main() {
         ),
       ),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const ValueKey('diary-save-button')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('diary-save-button')));
     await tester.pumpAndSettle();
 
@@ -1065,12 +1067,8 @@ void main() {
       final trainingSeed = find.byKey(
         ValueKey('diary-todo-seed-training-$trainingCreatedAt'),
       );
-      expect(mealSeed, findsOneWidget);
-      expect(trainingSeed, findsOneWidget);
-      expect(
-        tester.getTopLeft(mealSeed).dy,
-        lessThan(tester.getTopLeft(trainingSeed).dy),
-      );
+      expect(mealSeed, findsNothing);
+      expect(trainingSeed, findsNothing);
 
       final selectedTraining = find.byKey(
         ValueKey('diary-selected-record-sticker-training-$trainingCreatedAt'),
@@ -1097,14 +1095,25 @@ void main() {
       );
       expect(
         find.byKey(ValueKey('diary-record-sticker-drag-meal-$todayToken')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('diary-record-sticker-reorder-toggle')),
         findsNothing,
       );
 
-      await tester.tap(
-        find.byKey(const ValueKey('diary-record-sticker-reorder-toggle')),
+      final removeBoardSticker = find.byKey(
+        const ValueKey('diary-record-sticker-remove-board-board-1'),
       );
+      await tester.ensureVisible(removeBoardSticker);
+      await tester.pumpAndSettle();
+      await tester.tap(removeBoardSticker);
       await tester.pumpAndSettle();
 
+      expect(
+        find.byKey(const ValueKey('diary-todo-seed-board-board-1')),
+        findsOneWidget,
+      );
       expect(
         find.byKey(ValueKey('diary-record-sticker-drag-meal-$todayToken')),
         findsOneWidget,
@@ -1197,7 +1206,8 @@ void main() {
     expect(raw, contains('자동 저장된 본문'));
   });
 
-  testWidgets('coach lesson screen keeps news sticker reorder in rendered order', (
+  testWidgets(
+      'coach lesson screen keeps news sticker reorder in rendered order', (
     WidgetTester tester,
   ) async {
     final day = DateTime(2026, 3, 15);

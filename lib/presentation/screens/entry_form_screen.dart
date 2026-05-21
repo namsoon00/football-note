@@ -3124,6 +3124,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       _initialSnapshot = _formSnapshot();
       if (!mounted) return;
+      if (popAfterSave && levelAward.gainedXp > 0) {
+        await showTrainingXpRewardDialog(context, award: levelAward);
+        if (!mounted) return;
+      }
       final fortuneToShow = shouldShowFortuneOnSave
           ? _cachedFortuneComment
           : '';
@@ -3155,10 +3159,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             );
           },
         );
-        if (!mounted) return;
-      }
-      if (popAfterSave && levelAward.gainedXp > 0) {
-        await showTrainingXpRewardDialog(context, award: levelAward);
         if (!mounted) return;
       }
       if (popAfterSave) {

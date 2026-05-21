@@ -3989,7 +3989,7 @@ abstract class AppLocalizations {
   /// No description provided for @diarySelectedRecordStickersHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap Reorder sticker, then drag the handle to change the order.'**
+  /// **'Drag the handle to reorder, or use remove to take a sticker out.'**
   String get diarySelectedRecordStickersHint;
 
   /// No description provided for @diaryRecordStickerSectionTitle.
