@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
@@ -133,7 +135,6 @@ Future<void> showDiaryXpRewardDialog(
       title: l10n.diaryXpDialogTitle,
       message: l10n.diaryXpDialogMessage,
       color: const Color(0xFF0F52BA),
-      icon: Icons.edit_note_rounded,
     ),
   );
 }
@@ -151,7 +152,6 @@ Future<void> showTrainingSketchXpRewardDialog(
       title: l10n.trainingSketchXpDialogTitle,
       message: l10n.trainingSketchXpDialogMessage,
       color: const Color(0xFFD6A11E),
-      icon: Icons.draw_outlined,
     ),
   );
 }
@@ -192,7 +192,7 @@ Future<void> _showTrainingXpRewardDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _GemCluster(color: spec.color, symbol: spec.icon),
+          _GemCluster(color: spec.color),
           const SizedBox(height: 14),
           Text(
             spec.title,
@@ -515,13 +515,11 @@ class _TrainingXpDialogSpec {
   final String title;
   final String message;
   final Color color;
-  final IconData icon;
 
   const _TrainingXpDialogSpec({
     required this.title,
     required this.message,
     required this.color,
-    required this.icon,
   });
 
   factory _TrainingXpDialogSpec.fromAward(
@@ -530,10 +528,12 @@ class _TrainingXpDialogSpec {
     PlayerLevelAward award,
   ) {
     final reasons = award.reasons.toSet();
-    final hasJumpRopeGain = reasons.contains('jump_rope_added') ||
+    final hasJumpRopeGain =
+        reasons.contains('jump_rope_added') ||
         (!reasons.contains('jump_rope_missed') &&
             reasons.any((reason) => reason.contains('jump_rope')));
-    final hasLiftingGain = reasons.contains('lifting_added') ||
+    final hasLiftingGain =
+        reasons.contains('lifting_added') ||
         (!reasons.contains('lifting_missed') &&
             reasons.any((reason) => reason.contains('lifting')));
     if (hasJumpRopeGain) {
@@ -541,7 +541,6 @@ class _TrainingXpDialogSpec {
         title: l10n.trainingXpDialogJumpRopeTitle,
         message: l10n.trainingXpDialogJumpRopeMessage,
         color: scheme.primary,
-        icon: Icons.sports_gymnastics_rounded,
       );
     }
     if (hasLiftingGain) {
@@ -549,7 +548,6 @@ class _TrainingXpDialogSpec {
         title: l10n.trainingXpDialogLiftingTitle,
         message: l10n.trainingXpDialogLiftingMessage,
         color: scheme.secondary,
-        icon: Icons.fitness_center_rounded,
       );
     }
     if (reasons.any((reason) => reason.startsWith('meal_'))) {
@@ -557,14 +555,12 @@ class _TrainingXpDialogSpec {
         title: l10n.trainingXpDialogMealTitle,
         message: l10n.trainingXpDialogMealMessage,
         color: const Color(0xFFB45309),
-        icon: Icons.rice_bowl_outlined,
       );
     }
     return _TrainingXpDialogSpec(
       title: l10n.trainingXpDialogTitle,
       message: l10n.trainingXpDialogMessage,
       color: scheme.tertiary,
-      icon: Icons.menu_book_rounded,
     );
   }
 }
@@ -679,54 +675,130 @@ class _FlameBurst extends StatelessWidget {
   }
 }
 
-class _GemCluster extends StatelessWidget {
+class _GemCluster extends StatefulWidget {
   final Color color;
-  final IconData? symbol;
 
-  const _GemCluster({required this.color, this.symbol});
+  const _GemCluster({required this.color});
+
+  @override
+  State<_GemCluster> createState() => _GemClusterState();
+}
+
+class _GemClusterState extends State<_GemCluster>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 144,
       height: 78,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          _GemIcon(left: 10, bottom: 12, color: color.withValues(alpha: 0.50)),
-          _GemIcon(right: 8, top: 10, color: color.withValues(alpha: 0.42)),
-          Icon(
-            Icons.diamond_rounded,
-            size: 64,
-            color: color,
-            shadows: const [
-              Shadow(
-                color: Color(0x22000000),
-                blurRadius: 12,
-                offset: Offset(0, 5),
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final progress = _controller.value;
+          final pulse = 1 + (math.sin(progress * math.pi * 2) * 0.045);
+          final glint = (math.sin((progress * math.pi * 2) + 0.8) + 1) / 2;
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _GemAuraPainter(
+                    color: widget.color,
+                    progress: progress,
+                  ),
+                ),
+              ),
+              _GemIcon(
+                left: 10,
+                bottom: 12 + (math.sin(progress * math.pi * 2) * 2),
+                color: widget.color.withValues(alpha: 0.50),
+              ),
+              _GemIcon(
+                right: 8,
+                top: 10 + (math.cos(progress * math.pi * 2) * 2),
+                color: widget.color.withValues(alpha: 0.42),
+              ),
+              Transform.scale(
+                scale: pulse,
+                child: Icon(
+                  Icons.diamond_rounded,
+                  size: 64,
+                  color: widget.color,
+                  shadows: [
+                    Shadow(
+                      color: widget.color.withValues(alpha: 0.42),
+                      blurRadius: 20 + (glint * 10),
+                    ),
+                    const Shadow(
+                      color: Color(0x22000000),
+                      blurRadius: 12,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 22 + (math.sin(progress * math.pi * 2) * 4),
+                left: 47 + (progress * 22),
+                child: Transform.rotate(
+                  angle: -0.68,
+                  child: Opacity(
+                    opacity: 0.30 + (glint * 0.36),
+                    child: Container(
+                      width: 30,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 2,
+                left: 38,
+                child: Opacity(
+                  opacity: 0.42 + (glint * 0.36),
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
+                    color: widget.color,
+                    size: 20 + (glint * 3),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 6,
+                right: 38,
+                child: Opacity(
+                  opacity: 0.34 + ((1 - glint) * 0.32),
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
+                    color: widget.color,
+                    size: 18 + ((1 - glint) * 3),
+                  ),
+                ),
               ),
             ],
-          ),
-          if (symbol != null) Icon(symbol, color: Colors.white, size: 28),
-          Positioned(
-            top: 2,
-            left: 38,
-            child: Icon(
-              Icons.auto_awesome_rounded,
-              color: color.withValues(alpha: 0.78),
-              size: 20,
-            ),
-          ),
-          Positioned(
-            bottom: 6,
-            right: 38,
-            child: Icon(
-              Icons.auto_awesome_rounded,
-              color: color.withValues(alpha: 0.62),
-              size: 18,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -756,6 +828,74 @@ class _GemIcon extends StatelessWidget {
       bottom: bottom,
       child: Icon(Icons.diamond_rounded, size: 28, color: color),
     );
+  }
+}
+
+class _GemAuraPainter extends CustomPainter {
+  final Color color;
+  final double progress;
+
+  const _GemAuraPainter({required this.color, required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width * 0.5, size.height * 0.5);
+    final radius = size.width * 0.31;
+    final glowRect = Rect.fromCircle(center: center, radius: radius * 1.45);
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: <Color>[
+          color.withValues(alpha: 0.24),
+          color.withValues(alpha: 0.10),
+          Colors.transparent,
+        ],
+        stops: const <double>[0, 0.56, 1],
+      ).createShader(glowRect);
+    canvas.drawCircle(center, radius * 1.45, glowPaint);
+
+    final rayPaint = Paint()
+      ..color = color.withValues(alpha: 0.22)
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+    for (var index = 0; index < 8; index++) {
+      final angle = (progress * math.pi * 2) + (index * math.pi / 4);
+      final start = Offset(
+        center.dx + math.cos(angle) * radius * 0.72,
+        center.dy + math.sin(angle) * radius * 0.44,
+      );
+      final end = Offset(
+        center.dx + math.cos(angle) * radius * 1.24,
+        center.dy + math.sin(angle) * radius * 0.78,
+      );
+      canvas.drawLine(start, end, rayPaint);
+    }
+
+    final orbitPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..shader = SweepGradient(
+        transform: GradientRotation(progress * math.pi * 2),
+        colors: <Color>[
+          Colors.transparent,
+          Colors.white.withValues(alpha: 0.64),
+          color.withValues(alpha: 0.18),
+          Colors.transparent,
+        ],
+        stops: const <double>[0, 0.16, 0.38, 1],
+      ).createShader(glowRect);
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: center,
+        width: size.width * 0.78,
+        height: size.height * 0.82,
+      ),
+      orbitPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _GemAuraPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.progress != progress;
   }
 }
 

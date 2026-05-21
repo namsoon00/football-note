@@ -867,7 +867,7 @@
   "diaryTrainingNeedsWorkLabel": "아쉬운 점",
   "diaryTrainingNextGoalLabel": "다음 목표",
   "diarySelectedRecordStickersTitle": "선택한 기록 스티커",
-  "diarySelectedRecordStickersHint": "드래그해서 순서를 바꿀 수 있어요.",
+  "diarySelectedRecordStickersHint": "순서 변경을 누른 뒤 손잡이를 드래그해서 순서를 바꿀 수 있어요.",
   "diaryRecordStickerSectionTitle": "기록 스티커 구성",
   "diaryRecordStickerSectionSubtitle": "오늘 기록에서 바로 고르고, 위쪽 선택 순서에서 흐름을 정리하세요.",
   "diaryRecordStickerSourceTitle": "오늘 기록에서 가져오기",

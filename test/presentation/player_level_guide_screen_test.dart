@@ -82,9 +82,7 @@ void main() {
     expect(find.textContaining('누적 130 XP'), findsOneWidget);
   });
 
-  testWidgets('xp guide lists lifting jump rope and plan series bonus', (
-    tester,
-  ) async {
+  testWidgets('xp guide keeps training record XP sources only', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko', 'KR'),
@@ -98,7 +96,13 @@ void main() {
     expect(find.text('리프팅 기록 추가'), findsOneWidget);
     expect(find.text('줄넘기 기록 추가'), findsOneWidget);
     expect(find.text('리프팅/줄넘기 없이 저장하면 감점'), findsOneWidget);
-    expect(find.text('묶음 계획 생성 보너스', skipOffstage: false), findsOneWidget);
+    expect(
+      find.text('3일 연속 기록 / 7일 연속 기록', skipOffstage: false),
+      findsOneWidget,
+    );
+    expect(find.text('퀴즈 완료', skipOffstage: false), findsNothing);
+    expect(find.text('오늘 다이어리 작성', skipOffstage: false), findsNothing);
+    expect(find.text('묶음 계획 생성 보너스', skipOffstage: false), findsNothing);
   });
 
   testWidgets('parent mode hides reward claim action and keeps reward edit', (

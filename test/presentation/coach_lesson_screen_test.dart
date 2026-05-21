@@ -1095,6 +1095,20 @@ void main() {
         tester.getTopLeft(selectedMeal).dy,
         lessThan(tester.getTopLeft(selectedTraining).dy),
       );
+      expect(
+        find.byKey(ValueKey('diary-record-sticker-drag-meal-$todayToken')),
+        findsNothing,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('diary-record-sticker-reorder-toggle')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(ValueKey('diary-record-sticker-drag-meal-$todayToken')),
+        findsOneWidget,
+      );
 
       final reorderableList = tester.widget<ReorderableListView>(
         find.byType(ReorderableListView),

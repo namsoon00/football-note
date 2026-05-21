@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:football_note/gen/app_localizations.dart';
 
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -13,7 +12,6 @@ class PlayerXpGuideScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final l10n = AppLocalizations.of(context)!;
     final levelState = PlayerLevelService(optionRepository).loadState();
     final sections = <_XpGuideSection>[
       _XpGuideSection(
@@ -53,71 +51,6 @@ class PlayerXpGuideScreen extends StatelessWidget {
                 ? '리프팅/줄넘기 없이 저장하면 감점'
                 : 'Missing lifting or jump rope costs XP',
             xpLabel: isKo ? '-5 XP씩' : '-5 XP each',
-          ),
-          _XpGuideItem(
-            icon: Icons.rice_bowl_outlined,
-            title: isKo ? '식사 기록 저장' : 'Meal log saved',
-            xpLabel: '+3 XP / +8 XP / +10 XP',
-          ),
-          _XpGuideItem(
-            icon: Icons.task_alt_outlined,
-            title: isKo
-                ? '하루 루틴 완주 (리프팅+줄넘기+식사)'
-                : 'Daily routine complete (lifting+jump rope+meal)',
-            xpLabel: '+6 XP',
-          ),
-        ],
-      ),
-      _XpGuideSection(
-        title: isKo ? '가벼운 루틴 보너스' : 'Light routine bonuses',
-        subtitle: isKo
-            ? '짧은 행동도 꾸준히 쌓이면 레벨 차이가 납니다.'
-            : 'Small routine actions still move the level over time.',
-        items: [
-          _XpGuideItem(
-            icon: Icons.quiz_outlined,
-            title: isKo ? '퀴즈 완료' : 'Quiz completion',
-            xpLabel: '+8 XP',
-          ),
-          _XpGuideItem(
-            icon: Icons.auto_stories_outlined,
-            title: isKo ? '오늘 다이어리 작성' : 'Today diary created',
-            xpLabel: '+3 XP',
-          ),
-          _XpGuideItem(
-            icon: Icons.verified_outlined,
-            title: l10n.xpGuideDailyTasksCompleteTitle,
-            xpLabel: '+${PlayerLevelService.dailyTaskCompletionXp} XP',
-          ),
-          _XpGuideItem(
-            icon: Icons.event_note_outlined,
-            title: isKo ? '훈련 계획 생성' : 'Training plan created',
-            xpLabel: '+6 XP',
-          ),
-          _XpGuideItem(
-            icon: Icons.repeat_outlined,
-            title: isKo ? '묶음 계획 생성 보너스' : 'Plan series bonus',
-            xpLabel: isKo
-                ? '+3 XP씩 추가 (최대 +12 XP)'
-                : '+3 XP each (up to +12 XP)',
-          ),
-        ],
-      ),
-      _XpGuideSection(
-        title: isKo ? '훈련판 활용 보너스' : 'Training board bonuses',
-        subtitle: isKo
-            ? '다음 세션을 설계할수록 추가 경험치를 받을 수 있어요.'
-            : 'Designing the next session also earns extra XP.',
-        items: [
-          _XpGuideItem(
-            icon: Icons.developer_board_outlined,
-            title: isKo ? '새 훈련 스케치 생성' : 'Training sketch created',
-            xpLabel: '+5 XP',
-          ),
-          _XpGuideItem(
-            icon: Icons.save_outlined,
-            title: isKo ? '훈련 스케치 저장' : 'Training sketch saved',
-            xpLabel: '+2 XP',
           ),
         ],
       ),
