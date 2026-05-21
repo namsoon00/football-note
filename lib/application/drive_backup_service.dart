@@ -16,6 +16,7 @@ import '../domain/entities/training_entry.dart';
 import '../domain/repositories/backup_repository.dart';
 import '../infrastructure/hive_option_repository.dart';
 import 'family_access_service.dart';
+import 'meal_log_service.dart';
 import 'parent_shared_feedback_service.dart';
 import 'player_level_service.dart';
 
@@ -159,6 +160,39 @@ class DriveBackupService implements BackupRepository {
   static const _profilePhotoOptionKey = 'profile_photo_url';
   static const _backupFormatKey = 'format';
   static const _backupFormatValue = 'football_note_backup';
+  static const Set<String> _supportImportPreserveWhenMissingKeys = {
+    'profile_name',
+    _profilePhotoOptionKey,
+    'profile_birth_date',
+    'profile_soccer_start_date',
+    'profile_height_cm',
+    'profile_weight_kg',
+    'profile_gender',
+    'profile_mbti_result',
+    'profile_position_test_result',
+    'profile_mbti_answers',
+    'profile_position_test_answers',
+    PlayerLevelService.totalXpKey,
+    PlayerLevelService.xpHistoryKey,
+    PlayerLevelService.quizRewardDayKey,
+    PlayerLevelService.awardedPlanIdsKey,
+    PlayerLevelService.awardedStreaksKey,
+    PlayerLevelService.awardedBoardSaveTokensKey,
+    PlayerLevelService.awardedRoutineDaysKey,
+    PlayerLevelService.awardedDailyTaskCompletionDaysKey,
+    PlayerLevelService.diaryCreatedDayKey,
+    PlayerLevelService.claimedRewardLevelsKey,
+    PlayerLevelService.customRewardNamesKey,
+    PlayerLevelService.rewardClaimMessagesKey,
+    PlayerLevelService.plansStorageKey,
+    MealLogService.storageKey,
+    'training_boards_v1',
+    'custom_diary_entries_v3',
+    'coach_diary_completed_day_v2',
+    'diary_theme_v1',
+    'running_coach_sessions_v1',
+    'skill_quiz_history_v1',
+  };
 
   Stream<void> driveAccountStateChanges() =>
       _driveAccountStateController.stream;
@@ -1458,6 +1492,8 @@ class DriveBackupService implements BackupRepository {
     final optionRecords = (data[_optionRecordsKey] as List?) ?? const [];
     final options = (data['options'] as Map?) ?? const {};
     final assetRecords = _extractAssetRecords(data);
+    final supportModeMissingOptionFallbacks =
+        _supportImportMissingOptionFallbacks(data, version: version);
     final lastBackupRaw = _optionBox.get(_lastBackupKey);
     final lastRecordBackupRaw = _optionBox.get(_lastRecordBackupKey);
     final lastFamilySyncPushRaw = _optionBox.get(_lastFamilySyncPushAtKey);
@@ -1527,6 +1563,11 @@ class DriveBackupService implements BackupRepository {
     if (localPreRestoreAtRaw is String) {
       await _optionBox.put(_localPreRestoreAtKey, localPreRestoreAtRaw);
     }
+    for (final entry in supportModeMissingOptionFallbacks.entries) {
+      if (!_optionBox.containsKey(entry.key)) {
+        await _optionBox.put(entry.key, entry.value);
+      }
+    }
     if (lastBackupRaw is String) {
       await _optionBox.put(_lastBackupKey, lastBackupRaw);
     }
@@ -1535,6 +1576,53 @@ class DriveBackupService implements BackupRepository {
         await _optionBox.put(entry.key, entry.value);
       }
     }
+  }
+
+  Map<String, dynamic> _supportImportMissingOptionFallbacks(
+    Map<String, dynamic> data, {
+    required int version,
+  }) {
+    if (!_familyService.loadState().isSupportMode) {
+      return const <String, dynamic>{};
+    }
+    final remoteKeys = _restorableStringOptionKeys(data, version: version);
+    final preserved = <String, dynamic>{};
+    for (final key in _supportImportPreserveWhenMissingKeys) {
+      if (_excludedOptionKeys.contains(key) || remoteKeys.contains(key)) {
+        continue;
+      }
+      if (_optionBox.containsKey(key)) {
+        preserved[key] = _optionBox.get(key);
+      }
+    }
+    return preserved;
+  }
+
+  Set<String> _restorableStringOptionKeys(
+    Map<String, dynamic> data, {
+    required int version,
+  }) {
+    final keys = <String>{};
+    final options = data['options'];
+    if (options is Map) {
+      for (final key in options.keys) {
+        final normalized = key.toString();
+        if (!_excludedOptionKeys.contains(normalized)) {
+          keys.add(normalized);
+        }
+      }
+    }
+    final optionRecords = data[_optionRecordsKey];
+    if (optionRecords is List) {
+      for (final raw in optionRecords) {
+        if (raw is! Map) continue;
+        final key = _fromBackupValue(raw['key'], version: version);
+        if (key is String && !_excludedOptionKeys.contains(key)) {
+          keys.add(key);
+        }
+      }
+    }
+    return keys;
   }
 
   dynamic _encodeOptionValueForBackup({

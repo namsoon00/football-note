@@ -6,6 +6,8 @@ import 'package:football_note/application/backup_asset_store_types.dart';
 import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/drive_backup_service.dart';
 import 'package:football_note/application/family_access_service.dart';
+import 'package:football_note/application/meal_log_service.dart';
+import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -460,6 +462,86 @@ void main() {
       );
     },
   );
+
+  test(
+    'parent restore preserves critical child options when remote omits them',
+    () async {
+      await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+      await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
+      await optionBox.put('profile_name', 'Local child profile');
+      await optionBox.put(PlayerLevelService.totalXpKey, 240);
+      await optionBox.put(
+        PlayerLevelService.xpHistoryKey,
+        <Map<String, Object>>[
+          <String, Object>{'deltaXp': 15, 'totalXp': 240},
+        ],
+      );
+      await optionBox.put(PlayerLevelService.diaryCreatedDayKey, '2026-04-18');
+      await optionBox.put(MealLogService.storageKey, '[{"id":"meal-local"}]');
+      await optionBox.put(
+        'custom_diary_entries_v3',
+        '{"2026-04-18":{"body":"local diary"}}',
+      );
+
+      await service.restoreFromMapForTesting(<String, dynamic>{
+        'version': 5,
+        'createdAt': '2026-04-19T10:00:00.000',
+        'entries': const <Map<String, dynamic>>[],
+        'options': <String, dynamic>{
+          FamilyAccessService.familyIdKey: 'family-1',
+          FamilyAccessService.childNameKey: 'Remote player',
+        },
+        'family': const <String, dynamic>{
+          'familyId': 'family-1',
+          'updatedByRole': 'child',
+          'familyLayerOnly': false,
+        },
+      });
+
+      expect(optionBox.get('profile_name'), 'Local child profile');
+      expect(optionBox.get(PlayerLevelService.totalXpKey), 240);
+      expect(
+        (optionBox.get(PlayerLevelService.xpHistoryKey) as List).single,
+        containsPair('totalXp', 240),
+      );
+      expect(
+        optionBox.get(PlayerLevelService.diaryCreatedDayKey),
+        '2026-04-18',
+      );
+      expect(optionBox.get(MealLogService.storageKey), '[{"id":"meal-local"}]');
+      expect(
+        optionBox.get('custom_diary_entries_v3'),
+        '{"2026-04-18":{"body":"local diary"}}',
+      );
+      expect(optionBox.get(FamilyAccessService.childNameKey), 'Remote player');
+    },
+  );
+
+  test('parent restore uses remote critical options when present', () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
+    await optionBox.put(PlayerLevelService.totalXpKey, 240);
+    await optionBox.put(MealLogService.storageKey, '[{"id":"meal-local"}]');
+
+    await service.restoreFromMapForTesting(<String, dynamic>{
+      'version': 5,
+      'createdAt': '2026-04-19T10:00:00.000',
+      'entries': const <Map<String, dynamic>>[],
+      'options': <String, dynamic>{
+        FamilyAccessService.familyIdKey: 'family-1',
+        PlayerLevelService.totalXpKey: 0,
+        MealLogService.storageKey: '[]',
+      },
+      'family': const <String, dynamic>{
+        'familyId': 'family-1',
+        'updatedByRole': 'child',
+        'familyLayerOnly': false,
+      },
+    });
+
+    expect(optionBox.get(PlayerLevelService.totalXpKey), 0);
+    expect(optionBox.get(MealLogService.storageKey), '[]');
+  });
 
   test('stores record mode drive account separately', () async {
     service = DriveBackupService(

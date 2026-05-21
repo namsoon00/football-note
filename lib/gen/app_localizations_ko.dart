@@ -30,6 +30,125 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tabNews => '소식';
 
   @override
+  String tabGuideTitle(Object tabName) {
+    return '$tabName 가이드';
+  }
+
+  @override
+  String get welcomeGuideTitle => '훈련 기록 흐름에 오신 걸 환영해요';
+
+  @override
+  String get welcomeGuideIntro => '강조된 버튼을 순서대로 따라가면 첫 기록부터 복기까지 빠르게 이어집니다.';
+
+  @override
+  String get welcomeGuidePrimaryAction => '훈련 기록 시작';
+
+  @override
+  String get welcomeGuideSectionFlow => '순서대로 해보기';
+
+  @override
+  String get welcomeGuideNextTabHint => '위 탭을 바꾸면 다른 화면의 버튼 흐름을 볼 수 있어요.';
+
+  @override
+  String get guideActionToday => '오늘';
+
+  @override
+  String get guideActionMeal => '식사';
+
+  @override
+  String get guideActionCardList => '카드/리스트';
+
+  @override
+  String get guideActionSelectDate => '날짜 선택';
+
+  @override
+  String get guideActionPlus => '+';
+
+  @override
+  String get guideActionPeriod => '기간';
+
+  @override
+  String get guideActionBenchmark => '평균';
+
+  @override
+  String get guideActionWeakPoint => '목표';
+
+  @override
+  String get guideActionOpenToday => '오늘 다이어리';
+
+  @override
+  String get guideActionRecordSticker => '스티커';
+
+  @override
+  String get guideActionSaveDiary => '다이어리 저장';
+
+  @override
+  String get welcomeHomeOverview => '홈은 지금 가장 먼저 할 일을 고르는 시작 화면입니다.';
+
+  @override
+  String get welcomeHomeStepToday => '오늘 계획, 빠른 실행, 아직 남은 루틴을 먼저 확인해요.';
+
+  @override
+  String get welcomeHomeStepMeal => '하루가 끝나기 전에 식사 버튼으로 회복 기록을 채워요.';
+
+  @override
+  String get welcomeHomeStepStats => '기록 후 주간 통계를 열어 이번 주 흐름이 균형 잡혔는지 봐요.';
+
+  @override
+  String get welcomeLogsOverview => '훈련기록은 실제 훈련 노트를 만들고 다시 찾는 화면입니다.';
+
+  @override
+  String get welcomeLogsStepAdd => '기록 추가를 눌러 기본 정보부터 입력하고 첫 노트를 저장해요.';
+
+  @override
+  String get welcomeLogsStepBoard => '훈련 모양이나 움직임 경로가 중요하면 노트 안에서 보드를 열어요.';
+
+  @override
+  String get welcomeLogsStepReview => '카드/리스트와 필터를 바꿔 최근 기록을 빠르게 찾아요.';
+
+  @override
+  String get welcomeCalendarOverview => '캘린더는 날짜별 계획, 시합, 식사, 노트를 함께 보는 화면입니다.';
+
+  @override
+  String get welcomeCalendarStepDate => '먼저 날짜를 선택해 새 기록이 올바른 날에 붙게 해요.';
+
+  @override
+  String get welcomeCalendarStepPlus => '+ 버튼으로 선택한 날짜에 계획, 시합, 훈련 노트를 추가해요.';
+
+  @override
+  String get welcomeCalendarStepMeal => '같은 날짜의 식사 기록도 함께 남겨 회복 흐름을 맞춰요.';
+
+  @override
+  String get welcomeStatsOverview => '통계는 기록이 쌓인 뒤 다음 훈련 목표를 정하는 화면입니다.';
+
+  @override
+  String get welcomeStatsStepPeriod => '기간을 바꿔 이번 주, 지난주, 원하는 범위를 비교해요.';
+
+  @override
+  String get welcomeStatsStepAverage => '평균 비교를 열어 앞선 지표와 뒤처진 지표를 구분해요.';
+
+  @override
+  String get welcomeStatsStepFocus => '가장 약한 신호를 다음 계획이나 노트 목표로 바꿔요.';
+
+  @override
+  String get welcomeDiaryOverview => '다이어리는 훈련, 식사, 스티커를 하루 이야기로 묶는 화면입니다.';
+
+  @override
+  String get welcomeDiaryStepToday => '홈이나 다이어리 탭에서 오늘 다이어리를 열어요.';
+
+  @override
+  String get welcomeDiaryStepSticker => '오늘 기록 스티커를 불러와 읽는 순서를 정리해요.';
+
+  @override
+  String get welcomeDiaryStepSave => '제목, 이야기, 스티커 중 하나라도 준비되면 다이어리를 저장해요.';
+
+  @override
+  String get logsQuickGuideTitle => '빠른 시작 가이드';
+
+  @override
+  String get logsQuickGuideIntro => '첫 기록은 이 순서로 만들고, 저장 후 이 화면에서 다시 확인하세요.';
+
+  @override
   String get newsFifaHubButton => 'FIFA 랭킹';
 
   @override
