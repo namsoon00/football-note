@@ -4781,7 +4781,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleBody.
   ///
   /// In en, this message translates to:
-  /// **'Example: an 8-second side-view clip reads 14/16 frames and uses 4.5° torso lean plus 0.18 foot-strike distance to choose the first priority.'**
+  /// **'Example: a 6-second side-view clip reads 24/24 frames and uses 10° torso lean, 0.08 foot-strike distance, and compact 90° arms for a 100-point sample.'**
   String get runningCoachSampleBody;
 
   /// No description provided for @runningCoachSampleFrameLabel.
@@ -4799,7 +4799,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleFrameGuideBody.
   ///
   /// In en, this message translates to:
-  /// **'The sample loop keeps the runner inside the same analysis frame so posture, landing, and arm timing are easy to compare.'**
+  /// **'The sample loop keeps a forward-driving runner centered in the analysis frame so posture, landing, and arm timing are easy to compare.'**
   String get runningCoachSampleFrameGuideBody;
 
   /// No description provided for @runningCoachSampleCueLean.

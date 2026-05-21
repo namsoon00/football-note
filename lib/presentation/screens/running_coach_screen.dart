@@ -172,35 +172,35 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   RunningVideoAnalysisResult _sampleAnalysisResult() {
     return const RunningVideoAnalysisResult(
-      videoDuration: Duration(seconds: 8),
-      sampledFrames: 16,
-      validFrames: 14,
+      videoDuration: Duration(seconds: 6),
+      sampledFrames: 24,
+      validFrames: 24,
       direction: RunningDirection.leftToRight,
-      forwardLeanDegrees: 4.5,
-      verticalBounceRatio: 0.085,
-      footStrikeDistanceRatio: 0.18,
-      stanceKneeAngleDegrees: 168,
-      elbowAngleDegrees: 108,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.08,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 90,
       metricQualities: <RunningCoachMetric, RunningMetricQuality>{
         RunningCoachMetric.posture: RunningMetricQuality(
-          confidence: 0.88,
-          sampleCount: 14,
+          confidence: 1,
+          sampleCount: 24,
         ),
         RunningCoachMetric.bounce: RunningMetricQuality(
-          confidence: 0.84,
-          sampleCount: 14,
+          confidence: 1,
+          sampleCount: 24,
         ),
         RunningCoachMetric.footStrike: RunningMetricQuality(
-          confidence: 0.82,
-          sampleCount: 13,
+          confidence: 1,
+          sampleCount: 24,
         ),
         RunningCoachMetric.kneeFlexion: RunningMetricQuality(
-          confidence: 0.80,
-          sampleCount: 12,
+          confidence: 1,
+          sampleCount: 24,
         ),
         RunningCoachMetric.armCarriage: RunningMetricQuality(
-          confidence: 0.78,
-          sampleCount: 12,
+          confidence: 1,
+          sampleCount: 24,
         ),
       },
     );
@@ -471,8 +471,8 @@ String _formatRunningDuration(Duration duration) {
   return '${minutes}m ${seconds}s';
 }
 
-const int _sampleTimelineFrameCount = 16;
-const Duration _sampleVideoLoopDuration = Duration(milliseconds: 5200);
+const int _sampleTimelineFrameCount = 24;
+const Duration _sampleVideoLoopDuration = Duration(milliseconds: 2200);
 
 class _RunningCoachSampleCard extends StatelessWidget {
   final String title;
@@ -850,7 +850,7 @@ class _SampleRunnerPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    _drawTrackEnvironment(canvas, size);
+    _drawTrackEnvironment(canvas, size, progress);
 
     for (final offset in const <double>[0.72, 0.54, 0.36, 0.18]) {
       final ghostProgress = (progress - offset) % 1.0;
@@ -871,7 +871,7 @@ class _SampleRunnerPainter extends CustomPainter {
     );
   }
 
-  void _drawTrackEnvironment(Canvas canvas, Size size) {
+  void _drawTrackEnvironment(Canvas canvas, Size size, double progress) {
     final rect = Offset.zero & size;
     final skyTop = Color.lerp(trackColor, Colors.white, 0.86)!;
     final skyBottom = Color.lerp(trackColor, lineColor, 0.20)!;
@@ -899,6 +899,24 @@ class _SampleRunnerPainter extends CustomPainter {
           ..strokeWidth = math.max(1.0, size.height * 0.006),
       );
     }
+    final laneDashPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.44)
+      ..strokeWidth = math.max(1.2, size.height * 0.008)
+      ..strokeCap = StrokeCap.round;
+    final dashWidth = size.width * 0.13;
+    final dashGap = size.width * 0.11;
+    final dashCycle = dashWidth + dashGap;
+    final dashOffset = (progress * dashCycle * 5) % dashCycle;
+    for (final yFactor in const <double>[0.805, 0.925]) {
+      for (var index = -1; index < 7; index += 1) {
+        final startX = (index * dashCycle) - dashOffset;
+        canvas.drawLine(
+          Offset(startX, size.height * yFactor),
+          Offset(startX + dashWidth, size.height * yFactor),
+          laneDashPaint,
+        );
+      }
+    }
 
     final safeFrame = RRect.fromRectAndRadius(
       Rect.fromLTWH(
@@ -923,6 +941,20 @@ class _SampleRunnerPainter extends CustomPainter {
         Paint()
           ..color = frameColor.withValues(alpha: 0.14)
           ..strokeWidth = 1,
+      );
+    }
+    for (final yFactor in const <double>[0.22, 0.34, 0.48]) {
+      final start = Offset(
+        size.width * (0.15 - progress * 0.10),
+        size.height * yFactor,
+      );
+      canvas.drawLine(
+        start,
+        Offset(start.dx - size.width * 0.12, start.dy + size.height * 0.018),
+        Paint()
+          ..color = lineColor.withValues(alpha: 0.08)
+          ..strokeWidth = math.max(1.0, size.height * 0.006)
+          ..strokeCap = StrokeCap.round,
       );
     }
   }
@@ -1182,9 +1214,9 @@ class _SampleRunnerPainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(
-          head.dx - size.height * 0.150,
+          hip.dx - size.height * 0.270,
           head.dy - size.height * 0.060,
-          size.height * 0.330,
+          size.height * 0.600,
           groundY - head.dy + size.height * 0.030,
         ),
         const Radius.circular(18),
