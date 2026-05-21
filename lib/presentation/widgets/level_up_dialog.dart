@@ -593,19 +593,129 @@ Future<void> _showCelebrationDialog(
         curve: Curves.easeOutCubic,
         reverseCurve: Curves.easeInCubic,
       );
+      final availableWidth = MediaQuery.sizeOf(context).width - 32;
+      final dialogWidth = math.max(280.0, math.min(availableWidth, 520.0));
       return FadeTransition(
         opacity: curved,
-        child: ScaleTransition(
-          scale: Tween<double>(begin: 0.92, end: 1).animate(curved),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-            child: child,
-          ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            IgnorePointer(
+              child: _FallingGemBackdrop(
+                color: Theme.of(context).colorScheme.tertiary,
+              ),
+            ),
+            Center(
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.92, end: 1).animate(curved),
+                child: Dialog(
+                  backgroundColor: Colors.transparent,
+                  insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(width: dialogWidth, child: child),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     },
   );
+}
+
+class _FallingGemBackdrop extends StatefulWidget {
+  final Color color;
+
+  const _FallingGemBackdrop({required this.color});
+
+  @override
+  State<_FallingGemBackdrop> createState() => _FallingGemBackdropState();
+}
+
+class _FallingGemBackdropState extends State<_FallingGemBackdrop>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2600),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return CustomPaint(
+          painter: _FallingGemPainter(
+            progress: _controller.value,
+            colors: <Color>[
+              widget.color,
+              scheme.primary,
+              scheme.secondary,
+              const Color(0xFF38BDF8),
+              const Color(0xFFFBBF24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _FallingGemPainter extends CustomPainter {
+  final double progress;
+  final List<Color> colors;
+
+  const _FallingGemPainter({required this.progress, required this.colors});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    for (var index = 0; index < 18; index++) {
+      final seed = ((index * 37) % 100) / 100.0;
+      final fall = (progress + seed * 1.37) % 1.0;
+      final sway = math.sin((progress * math.pi * 2) + index) * 24;
+      final x = ((seed * size.width) + sway).clamp(8.0, size.width - 8);
+      final y = (fall * (size.height + 140)) - 70;
+      final gemSize = 10.0 + ((index % 4) * 4);
+      final color = colors[index % colors.length];
+      final opacity = 0.12 + ((index % 5) * 0.035);
+      final center = Offset(x.toDouble(), y);
+      final halfWidth = gemSize * 0.58;
+      final halfHeight = gemSize * 0.82;
+      final path = Path()
+        ..moveTo(center.dx, center.dy - halfHeight)
+        ..lineTo(center.dx + halfWidth, center.dy)
+        ..lineTo(center.dx, center.dy + halfHeight)
+        ..lineTo(center.dx - halfWidth, center.dy)
+        ..close();
+      canvas.drawPath(path, Paint()..color = color.withValues(alpha: opacity));
+      canvas.drawLine(
+        Offset(center.dx - halfWidth * 0.45, center.dy - halfHeight * 0.12),
+        Offset(center.dx + halfWidth * 0.35, center.dy - halfHeight * 0.48),
+        Paint()
+          ..color = Colors.white.withValues(alpha: opacity * 1.6)
+          ..strokeWidth = 1.2
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FallingGemPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.colors != colors;
+  }
 }
 
 class _FlameBurst extends StatelessWidget {

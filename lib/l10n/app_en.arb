@@ -173,7 +173,7 @@
   },
   "dailyTasksXpDialogAction": "Keep going",
   "trainingXpDialogTitle": "Training log saved",
-  "trainingXpDialogMessage": "Your saved training log added XP. Confirm to return to the home screen.",
+  "trainingXpDialogMessage": "Your saved training log added XP and growth gems.",
   "trainingXpDialogJumpRopeTitle": "Jump rope rhythm saved",
   "trainingXpDialogJumpRopeMessage": "The added jump rope work became quick-foot growth gems.",
   "trainingXpDialogLiftingTitle": "Lifting effort saved",
@@ -199,6 +199,14 @@
   "trainingXpSourceJumpRope": "Jump rope",
   "trainingXpSourceTrainingSketch": "Training sketch",
   "trainingXpSourceDiary": "Diary",
+  "diarySavedWithXpFeedback": "Diary saved +{count} XP",
+  "@diarySavedWithXpFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trainingStreakCheerTitle": "{count}-day training streak",
   "@trainingStreakCheerTitle": {
     "placeholders": {
@@ -246,6 +254,67 @@
     }
   },
   "xpGuideDailyTasksCompleteTitle": "All today tasks complete",
+  "quizXpSourceLabel": "Football quiz",
+  "quizXpSavedFeedback": "Quiz complete +{count} XP",
+  "@quizXpSavedFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideTitle": "How XP goes up",
+  "playerXpGuideHeroLevel": "You are Lv.{level}",
+  "@playerXpGuideHeroLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideHeroBody": "This page groups every XP source clearly. {remainingXp} XP remains until the next level.",
+  "@playerXpGuideHeroBody": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideHeroMax": "After Lv.20, every {masterySpan} XP earns a mastery star. {remainingXp} XP remains until the next star.",
+  "@playerXpGuideHeroMax": {
+    "placeholders": {
+      "masterySpan": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideLoggingTitle": "XP from training logs",
+  "playerXpGuideLoggingSubtitle": "Core growth comes from saving consistent training logs.",
+  "playerXpGuideTrainingLogSaved": "Training log saved",
+  "playerXpGuideFirstDailyLog": "First log of the day",
+  "playerXpGuidePlannedDayComplete": "Complete a planned day",
+  "playerXpGuideLiftingRecorded": "Lifting recorded",
+  "playerXpGuideJumpRopeRecorded": "Jump rope recorded",
+  "playerXpGuideMissingConditioning": "Missing lifting or jump rope costs XP",
+  "playerXpGuideMissingConditioningXp": "-5 XP each",
+  "playerXpGuideStreakTitle": "Streak and weekly bonuses",
+  "playerXpGuideStreakSubtitle": "Larger bonuses unlock once repetition becomes consistent.",
+  "playerXpGuideStreakMilestones": "3-day / 7-day streak",
+  "playerXpGuideStreakDailyBonus": "Daily bonus from streak logging",
+  "playerXpGuideWeeklyBonus": "3 logs / 5 logs in a week",
+  "playerXpGuideActivityTitle": "Other activity XP",
+  "playerXpGuideActivitySubtitle": "Plans, sketches, meals, diary, quiz, and daily completion also add XP when saved.",
+  "playerXpGuidePlanCreated": "Training plan created",
+  "playerXpGuideTrainingSketchSaved": "Training sketch saved",
+  "playerXpGuideDiaryCreated": "Diary created",
+  "playerXpGuideQuizComplete": "Quiz completed",
+  "playerXpGuideMealTwoPlus": "Two or more meals logged",
+  "playerXpGuideMealFull": "Three meals / three meals with 5+ rice bowls",
+  "playerXpGuideDailyTasksComplete": "All daily home tasks completed",
+  "playerXpGuideDailyCap": "Daily positive XP cap",
   "homePriorityCheckPlansMessage": "Review the remaining training plans before you start.",
   "homePriorityPlansAction": "Plans",
   "homePriorityPlanNextMessage": "No training plan is set for today or tomorrow. Add a short plan first.",
@@ -1021,6 +1090,14 @@
   "mealDeleteAction": "Delete meal log",
   "mealDeleteConfirmBody": "Delete this day's meal log?",
   "mealSavedFeedback": "Meal log saved.",
+  "mealSavedWithXpFeedback": "Meal log saved +{count} XP",
+  "@mealSavedWithXpFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mealDeletedFeedback": "Meal log deleted.",
   "mealLogXpSourceLabel": "Meal log",
   "mealAverageExpectedValue": "Expected average {value} bowl(s)",

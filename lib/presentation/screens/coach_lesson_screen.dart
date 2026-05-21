@@ -565,6 +565,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ).showLevelUpAlert(level: award.after.level, isKo: _isKo);
     }
     if (!mounted || award.gainedXp <= 0) return;
+    await showDiaryXpRewardDialog(context, award: award);
+    if (!mounted) return;
     if (award.didLevelUp) {
       final levelService = PlayerLevelService(widget.optionRepository);
       await showLevelUpCelebrationDialog(
@@ -592,9 +594,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     }
     AppFeedback.showSuccess(
       context,
-      text: _isKo
-          ? '오늘 다이어리 작성 +${award.gainedXp} XP'
-          : 'Today diary created +${award.gainedXp} XP',
+      text: l10n.diarySavedWithXpFeedback(award.gainedXp),
     );
   }
 

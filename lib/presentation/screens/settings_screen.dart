@@ -96,28 +96,44 @@ class _SettingsScreenState extends State<SettingsScreen>
   Future<void> _refreshDriveUi({
     bool allowCachedConnection = false,
     bool refreshParentSharedData = false,
+    bool allowRemoteStatusLookup = false,
+    bool showLoading = true,
   }) async {
-    if (widget.driveBackupService != null && mounted) {
+    if (showLoading && widget.driveBackupService != null && mounted) {
       setState(() => _driveStatusLoading = true);
     }
     try {
+      await _refreshSignInState(
+        allowCachedConnection: allowCachedConnection,
+        allowRemoteSharedLookup: allowRemoteStatusLookup,
+        checkRemotePlayerBackup: allowRemoteStatusLookup,
+      );
       if (refreshParentSharedData) {
-        try {
-          await _refreshParentSharedDataIfNeeded();
-        } catch (e, st) {
-          debugPrint('Drive family shared data refresh failed: $e');
-          debugPrintStack(stackTrace: st);
-        }
+        unawaited(_refreshParentSharedDataInBackground());
       }
-      await _refreshSignInState(allowCachedConnection: allowCachedConnection);
     } catch (e, st) {
       debugPrint('Drive UI refresh failed: $e');
       debugPrintStack(stackTrace: st);
     } finally {
-      if (widget.driveBackupService != null && mounted) {
+      if (showLoading && widget.driveBackupService != null && mounted) {
         setState(() => _driveStatusLoading = false);
       }
     }
+  }
+
+  Future<void> _refreshParentSharedDataInBackground() async {
+    try {
+      await _refreshParentSharedDataIfNeeded();
+    } catch (e, st) {
+      debugPrint('Drive family shared data refresh failed: $e');
+      debugPrintStack(stackTrace: st);
+    }
+    if (!mounted) return;
+    await _refreshDriveUi(
+      allowCachedConnection: true,
+      allowRemoteStatusLookup: true,
+      showLoading: false,
+    );
   }
 
   Future<void> _refreshParentSharedDataIfNeeded() async {
@@ -148,7 +164,11 @@ class _SettingsScreenState extends State<SettingsScreen>
     });
   }
 
-  Future<void> _refreshSignInState({bool allowCachedConnection = false}) async {
+  Future<void> _refreshSignInState({
+    bool allowCachedConnection = false,
+    bool allowRemoteSharedLookup = false,
+    bool checkRemotePlayerBackup = false,
+  }) async {
     if (widget.driveBackupService == null) return;
     var signedIn = false;
     DriveConnectionInfo? connection;
@@ -168,13 +188,15 @@ class _SettingsScreenState extends State<SettingsScreen>
       widget.optionRepository,
     ).loadState();
     DriveConnectionInfo? sharedChildConnection;
-    var hasRemotePlayerBackup = false;
+    var hasRemotePlayerBackup = _hasRemotePlayerBackup;
     try {
       sharedChildConnection = await widget.driveBackupService!
           .getSharedChildDriveConnectionInfo(
-            allowRemoteLookup: familyState.isParentMode,
+            allowRemoteLookup:
+                allowRemoteSharedLookup && familyState.isParentMode,
           );
-      if (familyState.isParentMode &&
+      if (checkRemotePlayerBackup &&
+          familyState.isParentMode &&
           (sharedChildConnection == null || sharedChildConnection.isEmpty)) {
         hasRemotePlayerBackup = await widget.driveBackupService!
             .hasRemotePlayerBackup();
@@ -1707,21 +1729,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         : FamilyRole.child;
     final familyService = FamilyAccessService(widget.optionRepository);
     final currentState = familyService.loadState();
-    if (widget.driveBackupService != null && _signedIn) {
-      if (currentState.isChildMode &&
-          FamilyAccessService.isSupportRole(targetRole)) {
-        await widget.driveBackupService!.rememberRecordDriveConnection();
-      } else if (currentState.isSupportMode && targetRole == FamilyRole.child) {
-        await widget.driveBackupService!.rememberParentDriveConnection();
-        await widget.driveBackupService!.signOut();
-      }
-    }
     await familyService.setCurrentRole(targetRole);
-    if (widget.driveBackupService != null &&
-        FamilyAccessService.isSupportRole(targetRole)) {
-      await _refreshParentSharedDataIfNeeded();
-    }
-    await _refreshSignInState();
     if (!mounted) return;
     _scrollToTopAfterLayout();
     setState(() {});
@@ -1733,6 +1741,43 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       ),
     );
+    unawaited(
+      _completeFamilyRoleSwitchSideEffects(
+        previousState: currentState,
+        targetRole: targetRole,
+      ),
+    );
+  }
+
+  Future<void> _completeFamilyRoleSwitchSideEffects({
+    required FamilyAccessState previousState,
+    required FamilyRole targetRole,
+  }) async {
+    try {
+      if (widget.driveBackupService != null && _signedIn) {
+        if (previousState.isChildMode &&
+            FamilyAccessService.isSupportRole(targetRole)) {
+          await widget.driveBackupService!.rememberRecordDriveConnection();
+        } else if (previousState.isSupportMode &&
+            targetRole == FamilyRole.child) {
+          await widget.driveBackupService!.rememberParentDriveConnection();
+          await widget.driveBackupService!.signOut();
+        }
+      }
+      if (widget.driveBackupService != null &&
+          FamilyAccessService.isSupportRole(targetRole)) {
+        await _refreshParentSharedDataIfNeeded();
+      }
+      if (!mounted) return;
+      await _refreshDriveUi(
+        allowCachedConnection: true,
+        allowRemoteStatusLookup: FamilyAccessService.isSupportRole(targetRole),
+        showLoading: false,
+      );
+    } catch (e, st) {
+      debugPrint('Family role side effects failed: $e');
+      debugPrintStack(stackTrace: st);
+    }
   }
 
   String _familyRoleLabel(AppLocalizations l10n, FamilyRole role) {

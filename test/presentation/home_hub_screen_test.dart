@@ -233,7 +233,7 @@ void main() {
     expect(find.byKey(const ValueKey('today-plan-log-action')), findsNothing);
   });
 
-  testWidgets('next training card opens the calendar on the planned day', (
+  testWidgets('next training card is hidden when today plan section exists', (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
@@ -296,20 +296,10 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('다음 훈련'), findsOneWidget);
-    final summary = tester.widget<Text>(
-      find.byKey(const ValueKey('next-plan-summary-text')),
-    );
-    expect(summary.data, contains('오전 9:00'));
-    expect(summary.data, contains('슈팅 훈련'));
-
-    await tester.tap(find.byKey(const ValueKey('next-plan-card')));
-    await tester.pump();
-
-    expect(
-      openedPlanDay,
-      DateTime(nextPlanAt.year, nextPlanAt.month, nextPlanAt.day),
-    );
+    expect(find.text('다음 훈련'), findsNothing);
+    expect(find.byKey(const ValueKey('next-plan-summary-text')), findsNothing);
+    expect(find.byKey(const ValueKey('next-plan-card')), findsNothing);
+    expect(openedPlanDay, isNull);
   });
 
   testWidgets('today task sketch opens today saved board before entry editor', (

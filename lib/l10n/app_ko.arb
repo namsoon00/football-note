@@ -173,7 +173,7 @@
   },
   "dailyTasksXpDialogAction": "계속하기",
   "trainingXpDialogTitle": "훈련 기록 완료",
-  "trainingXpDialogMessage": "저장한 훈련 기록으로 경험치가 추가됐어요. 확인하면 홈 화면으로 돌아갑니다.",
+  "trainingXpDialogMessage": "저장한 훈련 기록이 경험치와 성장 보석으로 쌓였어요.",
   "trainingXpDialogJumpRopeTitle": "줄넘기 리듬 저장",
   "trainingXpDialogJumpRopeMessage": "추가한 줄넘기 기록이 빠른 발 성장 보석으로 쌓였어요.",
   "trainingXpDialogLiftingTitle": "리프팅 노력 저장",
@@ -199,6 +199,14 @@
   "trainingXpSourceJumpRope": "줄넘기",
   "trainingXpSourceTrainingSketch": "훈련 스케치",
   "trainingXpSourceDiary": "다이어리",
+  "diarySavedWithXpFeedback": "다이어리 저장 +{count} XP",
+  "@diarySavedWithXpFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trainingStreakCheerTitle": "{count}일 연속 훈련",
   "@trainingStreakCheerTitle": {
     "placeholders": {
@@ -246,6 +254,67 @@
     }
   },
   "xpGuideDailyTasksCompleteTitle": "오늘 할일 모두 완료",
+  "quizXpSourceLabel": "축구 퀴즈",
+  "quizXpSavedFeedback": "퀴즈 완료 +{count} XP",
+  "@quizXpSavedFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideTitle": "경험치가 오르는 방법",
+  "playerXpGuideHeroLevel": "지금 Lv.{level}",
+  "@playerXpGuideHeroLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideHeroBody": "모든 경험치 획득 경로를 한눈에 정리했어요. 다음 레벨까지 {remainingXp} XP 남았습니다.",
+  "@playerXpGuideHeroBody": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideHeroMax": "Lv.20 이후에는 {masterySpan} XP마다 마스터리 별을 얻어요. 다음 별까지 {remainingXp} XP 남았습니다.",
+  "@playerXpGuideHeroMax": {
+    "placeholders": {
+      "masterySpan": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideLoggingTitle": "훈련 기록 경험치",
+  "playerXpGuideLoggingSubtitle": "꾸준히 훈련 기록을 저장하면 가장 기본 성장 경험치가 쌓입니다.",
+  "playerXpGuideTrainingLogSaved": "훈련 기록 저장",
+  "playerXpGuideFirstDailyLog": "하루 첫 훈련 기록",
+  "playerXpGuidePlannedDayComplete": "계획한 날 훈련 완료",
+  "playerXpGuideLiftingRecorded": "리프팅 기록 추가",
+  "playerXpGuideJumpRopeRecorded": "줄넘기 기록 추가",
+  "playerXpGuideMissingConditioning": "리프팅/줄넘기 없이 저장하면 감점",
+  "playerXpGuideMissingConditioningXp": "각 -5 XP",
+  "playerXpGuideStreakTitle": "연속 기록과 주간 보너스",
+  "playerXpGuideStreakSubtitle": "반복이 루틴이 될수록 더 큰 보너스가 열립니다.",
+  "playerXpGuideStreakMilestones": "3일 연속 기록 / 7일 연속 기록",
+  "playerXpGuideStreakDailyBonus": "연속 기록 일일 보너스",
+  "playerXpGuideWeeklyBonus": "주 3회 기록 / 주 5회 기록",
+  "playerXpGuideActivityTitle": "다른 활동 경험치",
+  "playerXpGuideActivitySubtitle": "계획, 스케치, 식사, 다이어리, 퀴즈, 오늘 할일 완료도 저장하면 경험치가 쌓입니다.",
+  "playerXpGuidePlanCreated": "훈련 계획 생성",
+  "playerXpGuideTrainingSketchSaved": "훈련 스케치 저장",
+  "playerXpGuideDiaryCreated": "다이어리 작성",
+  "playerXpGuideQuizComplete": "퀴즈 완료",
+  "playerXpGuideMealTwoPlus": "식사 두 끼 이상 기록",
+  "playerXpGuideMealFull": "세 끼 기록 / 세 끼 모두 공기밥 5개 이상",
+  "playerXpGuideDailyTasksComplete": "홈 오늘 할일 모두 완료",
+  "playerXpGuideDailyCap": "하루 긍정 경험치 상한",
   "homePriorityCheckPlansMessage": "남은 훈련 계획을 먼저 확인해 주세요.",
   "homePriorityPlansAction": "계획",
   "homePriorityPlanNextMessage": "오늘이나 내일 훈련 계획이 비어 있어요. 짧은 계획부터 추가해 보세요.",
@@ -1021,6 +1090,14 @@
   "mealDeleteAction": "식사 기록 삭제",
   "mealDeleteConfirmBody": "이 날짜의 식사 기록을 삭제할까요?",
   "mealSavedFeedback": "식사 기록을 저장했어요.",
+  "mealSavedWithXpFeedback": "식사 기록 저장 +{count} XP",
+  "@mealSavedWithXpFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mealDeletedFeedback": "식사 기록을 삭제했어요.",
   "mealLogXpSourceLabel": "식사 기록",
   "mealAverageExpectedValue": "평균 기대치 {value}공기",

@@ -3124,15 +3124,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       _initialSnapshot = _formSnapshot();
       if (!mounted) return;
-      if (popAfterSave && levelAward.gainedXp > 0) {
-        await showTrainingXpRewardDialog(context, award: levelAward);
-        if (!mounted) return;
-      }
       final fortuneToShow = shouldShowFortuneOnSave
           ? _cachedFortuneComment
           : '';
       if (fortuneToShow.trim().isNotEmpty && popAfterSave) {
         await _showFortuneRevealDialog(fortuneToShow);
+        if (!mounted) return;
+      }
+      if (popAfterSave && levelAward.gainedXp > 0) {
+        await showTrainingXpRewardDialog(context, award: levelAward);
         if (!mounted) return;
       }
       if (popAfterSave && widget.entry == null && levelAward.didLevelUp) {
