@@ -470,6 +470,9 @@ String _formatRunningDuration(Duration duration) {
   return '${minutes}m ${seconds}s';
 }
 
+const int _sampleTimelineFrameCount = 16;
+const Duration _sampleVideoLoopDuration = Duration(milliseconds: 5200);
+
 class _RunningCoachSampleCard extends StatelessWidget {
   final String title;
   final String body;
@@ -532,6 +535,29 @@ class _RunningCoachSampleCard extends StatelessWidget {
             const SizedBox(height: 14),
             _SampleVideoFrame(score: report.overallScore),
             const SizedBox(height: 12),
+            _SampleFrameCuePanel(
+              title: l10n.runningCoachSampleFrameGuideTitle,
+              body: l10n.runningCoachSampleFrameGuideBody,
+              cues: [
+                _SampleFrameCue(
+                  icon: Icons.show_chart_rounded,
+                  text: l10n.runningCoachSampleCueLean,
+                ),
+                _SampleFrameCue(
+                  icon: Icons.center_focus_strong_rounded,
+                  text: l10n.runningCoachSampleCueFrame,
+                ),
+                _SampleFrameCue(
+                  icon: Icons.directions_run_rounded,
+                  text: l10n.runningCoachSampleCueFoot,
+                ),
+                _SampleFrameCue(
+                  icon: Icons.sync_alt_rounded,
+                  text: l10n.runningCoachSampleCueArms,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -571,6 +597,102 @@ class _RunningCoachSampleCard extends StatelessWidget {
   }
 }
 
+class _SampleFrameCue {
+  final IconData icon;
+  final String text;
+
+  const _SampleFrameCue({required this.icon, required this.text});
+}
+
+class _SampleFrameCuePanel extends StatelessWidget {
+  final String title;
+  final String body;
+  final List<_SampleFrameCue> cues;
+
+  const _SampleFrameCuePanel({
+    required this.title,
+    required this.body,
+    required this.cues,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-sample-frame-guide'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer.withAlpha(120),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.secondary.withValues(alpha: 0.22)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          Text(body, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [for (final cue in cues) _SampleFrameCueChip(cue: cue)],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SampleFrameCueChip extends StatelessWidget {
+  final _SampleFrameCue cue;
+
+  const _SampleFrameCueChip({required this.cue});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final maxChipWidth = math.max(
+      160.0,
+      math.min(320.0, MediaQuery.sizeOf(context).width - 72),
+    );
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxChipWidth),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(cue.icon, size: 16, color: scheme.secondary),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  cue.text,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SampleVideoFrame extends StatefulWidget {
   final int score;
 
@@ -589,7 +711,7 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: _sampleVideoLoopDuration,
     )..repeat();
   }
 
@@ -601,54 +723,107 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     return AspectRatio(
+      key: const ValueKey('running-coach-sample-video-frame'),
       aspectRatio: 16 / 7,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: scheme.outlineVariant),
-        ),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) => CustomPaint(
-                  painter: _SampleRunnerPainter(
-                    progress: _controller.value,
-                    lineColor: scheme.primary,
-                    trackColor: scheme.outlineVariant,
-                    ghostColor: scheme.primary.withValues(alpha: 0.18),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              right: 12,
-              top: 12,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  child: Text(
-                    '${widget.score}',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: scheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w900,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest,
+            border: Border.all(color: scheme.outlineVariant),
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) => CustomPaint(
+                    painter: _SampleRunnerPainter(
+                      progress: _controller.value,
+                      lineColor: scheme.primary,
+                      trackColor: scheme.outlineVariant,
+                      ghostColor: scheme.primary.withValues(alpha: 0.18),
+                      frameColor: scheme.tertiary,
+                      markerColor: scheme.secondary,
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+              Positioned(
+                left: 12,
+                top: 12,
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) {
+                    final frameNumber =
+                        ((_controller.value * _sampleTimelineFrameCount)
+                                .floor() %
+                            _sampleTimelineFrameCount) +
+                        1;
+                    return _VideoOverlayPill(
+                      text: l10n.runningCoachSampleFrameLabel(
+                        frameNumber,
+                        _sampleTimelineFrameCount,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Positioned(
+                right: 12,
+                top: 12,
+                child: _VideoOverlayPill(text: '${widget.score}'),
+              ),
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 10,
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) => ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: _controller.value,
+                      minHeight: 4,
+                      backgroundColor: Colors.white.withValues(alpha: 0.20),
+                      color: scheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VideoOverlayPill extends StatelessWidget {
+  final String text;
+
+  const _VideoOverlayPill({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.32)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: scheme.onSurface,
+            fontWeight: FontWeight.w900,
+          ),
         ),
       ),
     );
@@ -660,26 +835,23 @@ class _SampleRunnerPainter extends CustomPainter {
   final Color lineColor;
   final Color trackColor;
   final Color ghostColor;
+  final Color frameColor;
+  final Color markerColor;
 
   const _SampleRunnerPainter({
     required this.progress,
     required this.lineColor,
     required this.trackColor,
     required this.ghostColor,
+    required this.frameColor,
+    required this.markerColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final trackPaint = Paint()
-      ..color = trackColor
-      ..strokeWidth = 2;
-    canvas.drawLine(
-      Offset(size.width * 0.08, size.height * 0.78),
-      Offset(size.width * 0.92, size.height * 0.78),
-      trackPaint,
-    );
+    _drawTrackEnvironment(canvas, size);
 
-    for (final offset in const <double>[0.66, 0.33]) {
+    for (final offset in const <double>[0.72, 0.54, 0.36, 0.18]) {
       final ghostProgress = (progress - offset) % 1.0;
       _drawRunner(
         canvas,
@@ -696,6 +868,62 @@ class _SampleRunnerPainter extends CustomPainter {
       color: lineColor,
       strokeWidth: 4,
     );
+  }
+
+  void _drawTrackEnvironment(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final skyTop = Color.lerp(trackColor, Colors.white, 0.86)!;
+    final skyBottom = Color.lerp(trackColor, lineColor, 0.20)!;
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [skyTop, skyBottom],
+        ).createShader(rect),
+    );
+
+    final laneTop = size.height * 0.70;
+    canvas.drawRect(
+      Rect.fromLTWH(0, laneTop, size.width, size.height - laneTop),
+      Paint()..color = Color.lerp(trackColor, Colors.black, 0.10)!,
+    );
+    for (final yFactor in const <double>[0.76, 0.86]) {
+      canvas.drawLine(
+        Offset(size.width * 0.04, size.height * yFactor),
+        Offset(size.width * 0.96, size.height * yFactor),
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.30)
+          ..strokeWidth = math.max(1.0, size.height * 0.006),
+      );
+    }
+
+    final safeFrame = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.16,
+        size.height * 0.10,
+        size.width * 0.68,
+        size.height * 0.64,
+      ),
+      const Radius.circular(18),
+    );
+    canvas.drawRRect(
+      safeFrame,
+      Paint()
+        ..color = frameColor.withValues(alpha: 0.33)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.4, size.height * 0.010),
+    );
+    for (final xFactor in const <double>[0.33, 0.50, 0.67]) {
+      canvas.drawLine(
+        Offset(size.width * xFactor, size.height * 0.12),
+        Offset(size.width * xFactor, size.height * 0.72),
+        Paint()
+          ..color = frameColor.withValues(alpha: 0.14)
+          ..strokeWidth = 1,
+      );
+    }
   }
 
   void _drawRunner(
@@ -960,6 +1188,95 @@ class _SampleRunnerPainter extends CustomPainter {
       Colors.white.withValues(alpha: isGhost ? 0.04 : 0.28),
       math.max(1.0, strokeWidth * 0.34),
     );
+
+    if (!isGhost) {
+      _drawPoseGuides(
+        canvas,
+        size,
+        head: head,
+        neck: neck,
+        chest: chest,
+        hip: hip,
+        groundY: groundY,
+        joints: [
+          shoulderFront,
+          shoulderRear,
+          hipFront,
+          hipRear,
+          frontArm.elbow,
+          frontArm.wrist,
+          frontLeg.knee,
+          frontLeg.ankle,
+          rearLeg.knee,
+          rearLeg.ankle,
+        ],
+      );
+    }
+  }
+
+  void _drawPoseGuides(
+    Canvas canvas,
+    Size size, {
+    required Offset head,
+    required Offset neck,
+    required Offset chest,
+    required Offset hip,
+    required double groundY,
+    required List<Offset> joints,
+  }) {
+    final guidePaint = Paint()
+      ..color = markerColor.withValues(alpha: 0.74)
+      ..strokeWidth = math.max(1.2, size.height * 0.010)
+      ..strokeCap = StrokeCap.round;
+    final subtleGuidePaint = Paint()
+      ..color = markerColor.withValues(alpha: 0.26)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.0, size.height * 0.008);
+
+    canvas.drawLine(neck, hip, guidePaint);
+    canvas.drawLine(
+      Offset(hip.dx, hip.dy + size.height * 0.018),
+      Offset(hip.dx + size.width * 0.026, groundY),
+      subtleGuidePaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          head.dx - size.width * 0.070,
+          head.dy - size.height * 0.060,
+          size.width * 0.190,
+          groundY - head.dy + size.height * 0.030,
+        ),
+        const Radius.circular(18),
+      ),
+      Paint()
+        ..color = markerColor.withValues(alpha: 0.34)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, size.height * 0.007),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(
+          hip.dx + size.width * 0.030,
+          groundY - size.height * 0.030,
+        ),
+        width: size.width * 0.120,
+        height: size.height * 0.090,
+      ),
+      subtleGuidePaint,
+    );
+    for (final joint in joints) {
+      canvas.drawCircle(
+        joint,
+        math.max(2.4, size.height * 0.010),
+        Paint()..color = Colors.white.withValues(alpha: 0.76),
+      );
+      canvas.drawCircle(
+        joint,
+        math.max(1.5, size.height * 0.006),
+        Paint()..color = markerColor.withValues(alpha: 0.92),
+      );
+    }
   }
 
   void _drawLimb(
@@ -1014,7 +1331,9 @@ class _SampleRunnerPainter extends CustomPainter {
     return oldDelegate.progress != progress ||
         oldDelegate.lineColor != lineColor ||
         oldDelegate.trackColor != trackColor ||
-        oldDelegate.ghostColor != ghostColor;
+        oldDelegate.ghostColor != ghostColor ||
+        oldDelegate.frameColor != frameColor ||
+        oldDelegate.markerColor != markerColor;
   }
 }
 

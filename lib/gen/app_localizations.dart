@@ -4784,6 +4784,48 @@ abstract class AppLocalizations {
   /// **'Example: an 8-second side-view clip reads 14/16 frames and uses 4.5° torso lean plus 0.18 foot-strike distance to choose the first priority.'**
   String get runningCoachSampleBody;
 
+  /// No description provided for @runningCoachSampleFrameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame {current}/{total}'**
+  String runningCoachSampleFrameLabel(int current, int total);
+
+  /// No description provided for @runningCoachSampleFrameGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Good side-view frame'**
+  String get runningCoachSampleFrameGuideTitle;
+
+  /// No description provided for @runningCoachSampleFrameGuideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The sample loop keeps the runner inside the same analysis frame so posture, landing, and arm timing are easy to compare.'**
+  String get runningCoachSampleFrameGuideBody;
+
+  /// No description provided for @runningCoachSampleCueLean.
+  ///
+  /// In en, this message translates to:
+  /// **'Light forward lean from ankle to shoulder'**
+  String get runningCoachSampleCueLean;
+
+  /// No description provided for @runningCoachSampleCueFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole runner stays inside the frame'**
+  String get runningCoachSampleCueFrame;
+
+  /// No description provided for @runningCoachSampleCueFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Foot lands close under the hip'**
+  String get runningCoachSampleCueFoot;
+
+  /// No description provided for @runningCoachSampleCueArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arms swing compactly against the legs'**
+  String get runningCoachSampleCueArms;
+
   /// No description provided for @runningCoachLiveCardTitle.
   ///
   /// In en, this message translates to:
