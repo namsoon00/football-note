@@ -383,8 +383,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingXpDialogTitle => '훈련 기록 완료';
 
   @override
-  String get trainingXpDialogMessage =>
-      '저장한 훈련 기록으로 경험치가 추가됐어요. 확인하면 홈 화면으로 돌아갑니다.';
+  String get trainingXpDialogMessage => '저장한 훈련 기록이 경험치와 성장 보석으로 쌓였어요.';
 
   @override
   String get trainingXpDialogJumpRopeTitle => '줄넘기 리듬 저장';
@@ -446,6 +445,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingXpSourceDiary => '다이어리';
 
   @override
+  String diarySavedWithXpFeedback(int count) {
+    return '다이어리 저장 +$count XP';
+  }
+
+  @override
   String trainingStreakCheerTitle(int count) {
     return '$count일 연속 훈련';
   }
@@ -498,6 +502,106 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get xpGuideDailyTasksCompleteTitle => '오늘 할일 모두 완료';
+
+  @override
+  String get quizXpSourceLabel => '축구 퀴즈';
+
+  @override
+  String quizXpSavedFeedback(int count) {
+    return '퀴즈 완료 +$count XP';
+  }
+
+  @override
+  String get playerXpGuideTitle => '경험치가 오르는 방법';
+
+  @override
+  String playerXpGuideHeroLevel(int level) {
+    return '지금 Lv.$level';
+  }
+
+  @override
+  String playerXpGuideHeroBody(int remainingXp) {
+    return '모든 경험치 획득 경로를 한눈에 정리했어요. 다음 레벨까지 $remainingXp XP 남았습니다.';
+  }
+
+  @override
+  String playerXpGuideHeroMax(int masterySpan, int remainingXp) {
+    return 'Lv.20 이후에는 $masterySpan XP마다 마스터리 별을 얻어요. 다음 별까지 $remainingXp XP 남았습니다.';
+  }
+
+  @override
+  String get playerXpGuideLoggingTitle => '훈련 기록 경험치';
+
+  @override
+  String get playerXpGuideLoggingSubtitle =>
+      '꾸준히 훈련 기록을 저장하면 가장 기본 성장 경험치가 쌓입니다.';
+
+  @override
+  String get playerXpGuideTrainingLogSaved => '훈련 기록 저장';
+
+  @override
+  String get playerXpGuideFirstDailyLog => '하루 첫 훈련 기록';
+
+  @override
+  String get playerXpGuidePlannedDayComplete => '계획한 날 훈련 완료';
+
+  @override
+  String get playerXpGuideLiftingRecorded => '리프팅 기록 추가';
+
+  @override
+  String get playerXpGuideJumpRopeRecorded => '줄넘기 기록 추가';
+
+  @override
+  String get playerXpGuideMissingConditioning => '리프팅/줄넘기 없이 저장하면 감점';
+
+  @override
+  String get playerXpGuideMissingConditioningXp => '각 -5 XP';
+
+  @override
+  String get playerXpGuideStreakTitle => '연속 기록과 주간 보너스';
+
+  @override
+  String get playerXpGuideStreakSubtitle => '반복이 루틴이 될수록 더 큰 보너스가 열립니다.';
+
+  @override
+  String get playerXpGuideStreakMilestones => '3일 연속 기록 / 7일 연속 기록';
+
+  @override
+  String get playerXpGuideStreakDailyBonus => '연속 기록 일일 보너스';
+
+  @override
+  String get playerXpGuideWeeklyBonus => '주 3회 기록 / 주 5회 기록';
+
+  @override
+  String get playerXpGuideActivityTitle => '다른 활동 경험치';
+
+  @override
+  String get playerXpGuideActivitySubtitle =>
+      '계획, 스케치, 식사, 다이어리, 퀴즈, 오늘 할일 완료도 저장하면 경험치가 쌓입니다.';
+
+  @override
+  String get playerXpGuidePlanCreated => '훈련 계획 생성';
+
+  @override
+  String get playerXpGuideTrainingSketchSaved => '훈련 스케치 저장';
+
+  @override
+  String get playerXpGuideDiaryCreated => '다이어리 작성';
+
+  @override
+  String get playerXpGuideQuizComplete => '퀴즈 완료';
+
+  @override
+  String get playerXpGuideMealTwoPlus => '식사 두 끼 이상 기록';
+
+  @override
+  String get playerXpGuideMealFull => '세 끼 기록 / 세 끼 모두 공기밥 5개 이상';
+
+  @override
+  String get playerXpGuideDailyTasksComplete => '홈 오늘 할일 모두 완료';
+
+  @override
+  String get playerXpGuideDailyCap => '하루 긍정 경험치 상한';
 
   @override
   String get homePriorityCheckPlansMessage => '남은 훈련 계획을 먼저 확인해 주세요.';
@@ -2365,6 +2469,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mealSavedFeedback => '식사 기록을 저장했어요.';
+
+  @override
+  String mealSavedWithXpFeedback(int count) {
+    return '식사 기록 저장 +$count XP';
+  }
 
   @override
   String get mealDeletedFeedback => '식사 기록을 삭제했어요.';

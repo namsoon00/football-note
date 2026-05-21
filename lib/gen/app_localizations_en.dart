@@ -411,7 +411,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingXpDialogMessage =>
-      'Your saved training log added XP. Confirm to return to the home screen.';
+      'Your saved training log added XP and growth gems.';
 
   @override
   String get trainingXpDialogJumpRopeTitle => 'Jump rope rhythm saved';
@@ -475,6 +475,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingXpSourceDiary => 'Diary';
 
   @override
+  String diarySavedWithXpFeedback(int count) {
+    return 'Diary saved +$count XP';
+  }
+
+  @override
   String trainingStreakCheerTitle(int count) {
     return '$count-day training streak';
   }
@@ -527,6 +532,110 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get xpGuideDailyTasksCompleteTitle => 'All today tasks complete';
+
+  @override
+  String get quizXpSourceLabel => 'Football quiz';
+
+  @override
+  String quizXpSavedFeedback(int count) {
+    return 'Quiz complete +$count XP';
+  }
+
+  @override
+  String get playerXpGuideTitle => 'How XP goes up';
+
+  @override
+  String playerXpGuideHeroLevel(int level) {
+    return 'You are Lv.$level';
+  }
+
+  @override
+  String playerXpGuideHeroBody(int remainingXp) {
+    return 'This page groups every XP source clearly. $remainingXp XP remains until the next level.';
+  }
+
+  @override
+  String playerXpGuideHeroMax(int masterySpan, int remainingXp) {
+    return 'After Lv.20, every $masterySpan XP earns a mastery star. $remainingXp XP remains until the next star.';
+  }
+
+  @override
+  String get playerXpGuideLoggingTitle => 'XP from training logs';
+
+  @override
+  String get playerXpGuideLoggingSubtitle =>
+      'Core growth comes from saving consistent training logs.';
+
+  @override
+  String get playerXpGuideTrainingLogSaved => 'Training log saved';
+
+  @override
+  String get playerXpGuideFirstDailyLog => 'First log of the day';
+
+  @override
+  String get playerXpGuidePlannedDayComplete => 'Complete a planned day';
+
+  @override
+  String get playerXpGuideLiftingRecorded => 'Lifting recorded';
+
+  @override
+  String get playerXpGuideJumpRopeRecorded => 'Jump rope recorded';
+
+  @override
+  String get playerXpGuideMissingConditioning =>
+      'Missing lifting or jump rope costs XP';
+
+  @override
+  String get playerXpGuideMissingConditioningXp => '-5 XP each';
+
+  @override
+  String get playerXpGuideStreakTitle => 'Streak and weekly bonuses';
+
+  @override
+  String get playerXpGuideStreakSubtitle =>
+      'Larger bonuses unlock once repetition becomes consistent.';
+
+  @override
+  String get playerXpGuideStreakMilestones => '3-day / 7-day streak';
+
+  @override
+  String get playerXpGuideStreakDailyBonus => 'Daily bonus from streak logging';
+
+  @override
+  String get playerXpGuideWeeklyBonus => '3 logs / 5 logs in a week';
+
+  @override
+  String get playerXpGuideActivityTitle => 'Other activity XP';
+
+  @override
+  String get playerXpGuideActivitySubtitle =>
+      'Plans, sketches, meals, diary, quiz, and daily completion also add XP when saved.';
+
+  @override
+  String get playerXpGuidePlanCreated => 'Training plan created';
+
+  @override
+  String get playerXpGuideTrainingSketchSaved => 'Training sketch saved';
+
+  @override
+  String get playerXpGuideDiaryCreated => 'Diary created';
+
+  @override
+  String get playerXpGuideQuizComplete => 'Quiz completed';
+
+  @override
+  String get playerXpGuideMealTwoPlus => 'Two or more meals logged';
+
+  @override
+  String get playerXpGuideMealFull =>
+      'Three meals / three meals with 5+ rice bowls';
+
+  @override
+  String get playerXpGuideDailyTasksComplete =>
+      'All daily home tasks completed';
+
+  @override
+  String get playerXpGuideDailyCap => 'Daily positive XP cap';
 
   @override
   String get homePriorityCheckPlansMessage =>
@@ -2451,6 +2560,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealSavedFeedback => 'Meal log saved.';
+
+  @override
+  String mealSavedWithXpFeedback(int count) {
+    return 'Meal log saved +$count XP';
+  }
 
   @override
   String get mealDeletedFeedback => 'Meal log deleted.';

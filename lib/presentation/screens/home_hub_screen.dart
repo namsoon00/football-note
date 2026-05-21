@@ -288,22 +288,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                             },
                           ),
                         ],
-                        if (data.upcomingPlanDays.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          _PlanDaysCard(
-                            l10n: l10n,
-                            days: data.upcomingPlanDays,
-                            onTap: () {
-                              final day = data.upcomingPlanDays.first.day;
-                              final openDay = widget.onOpenPlansForDay;
-                              if (openDay == null) {
-                                widget.onOpenPlans();
-                                return;
-                              }
-                              openDay(day);
-                            },
-                          ),
-                        ],
                         const SizedBox(height: 12),
                         _PriorityActionCard(
                           focusSignal: priorityFocusSignal,
@@ -1091,7 +1075,6 @@ class _HomeHubData {
   final int todayPlanCount;
   final List<_DashboardPlan> todayPlans;
   final bool hasTrainingPlanTodayOrTomorrow;
-  final List<_PlanDaySummary> upcomingPlanDays;
   final String strongestSignal;
   final String focusSignal;
   final TrainingEntry? latestTrainingEntry;
@@ -1120,7 +1103,6 @@ class _HomeHubData {
     required this.todayPlanCount,
     required this.todayPlans,
     required this.hasTrainingPlanTodayOrTomorrow,
-    required this.upcomingPlanDays,
     required this.strongestSignal,
     required this.focusSignal,
     required this.latestTrainingEntry,
@@ -1287,36 +1269,6 @@ class _HomeHubData {
       );
       return day == today || day == tomorrow;
     });
-    final planDayCount = <DateTime, int>{};
-    final firstPlanByDay = <DateTime, _DashboardPlan>{};
-    for (final plan in plans) {
-      if (!plan.scheduledAt.isAfter(now)) continue;
-      if (_isPlanCoveredByTrainingEntry(plan, entries)) continue;
-      final day = DateTime(
-        plan.scheduledAt.year,
-        plan.scheduledAt.month,
-        plan.scheduledAt.day,
-      );
-      planDayCount[day] = (planDayCount[day] ?? 0) + 1;
-      final currentFirstPlan = firstPlanByDay[day];
-      if (currentFirstPlan == null ||
-          plan.scheduledAt.isBefore(currentFirstPlan.scheduledAt)) {
-        firstPlanByDay[day] = plan;
-      }
-    }
-    final upcomingPlanDays = planDayCount.entries.toList(growable: false)
-      ..sort((a, b) => a.key.compareTo(b.key));
-    final upcomingPlanDaySummaries = upcomingPlanDays
-        .where((entry) => firstPlanByDay.containsKey(entry.key))
-        .take(7)
-        .map(
-          (entry) => _PlanDaySummary(
-            day: entry.key,
-            count: entry.value,
-            firstPlan: firstPlanByDay[entry.key]!,
-          ),
-        )
-        .toList(growable: false);
     final totalMood = weeklyEntries.fold<int>(
       0,
       (sum, entry) => sum + entry.mood,
@@ -1379,7 +1331,6 @@ class _HomeHubData {
       todayPlanCount: todayPlanCount,
       todayPlans: remainingTodayPlans,
       hasTrainingPlanTodayOrTomorrow: hasTrainingPlanTodayOrTomorrow,
-      upcomingPlanDays: upcomingPlanDaySummaries,
       strongestSignal: strongest,
       focusSignal: focus,
       latestTrainingEntry: latestTrainingEntry,
@@ -1471,18 +1422,6 @@ class _DashboardPlan {
       note: map['note']?.toString() ?? '',
     );
   }
-}
-
-class _PlanDaySummary {
-  final DateTime day;
-  final int count;
-  final _DashboardPlan firstPlan;
-
-  const _PlanDaySummary({
-    required this.day,
-    required this.count,
-    required this.firstPlan,
-  });
 }
 
 class _RecentTrainingMarker {
@@ -2560,119 +2499,6 @@ class _WeatherHeroPalette {
     required this.surface,
     required this.outline,
   });
-}
-
-class _PlanDaysCard extends StatelessWidget {
-  final AppLocalizations l10n;
-  final List<_PlanDaySummary> days;
-  final VoidCallback? onTap;
-
-  const _PlanDaysCard({
-    required this.l10n,
-    required this.days,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final next = days.first;
-    final nextPlan = next.firstPlan;
-    final today = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
-    );
-    final remainingDays = next.day.difference(today).inDays;
-    final whenText = remainingDays <= 0
-        ? l10n.homeNextTrainingToday
-        : remainingDays == 1
-        ? l10n.homeNextTrainingTomorrow
-        : l10n.homeNextTrainingInDays(remainingDays);
-    final timeText = _formatPlanTime(nextPlan.scheduledAt, isKo: isKo);
-    final category = nextPlan.category.trim();
-    final detailParts = <String>[
-      whenText,
-      timeText,
-      category.isEmpty ? l10n.drawerTrainingPlan : category,
-      if (next.count > 1) l10n.homeNextTrainingCount(next.count),
-    ];
-    final detailText = detailParts.join(' · ');
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        key: const ValueKey('next-plan-card'),
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.primary.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.22),
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.event_note_outlined,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.homeNextTrainingTitle,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      detailText,
-                      key: const ValueKey('next-plan-summary-text'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (onTap != null)
-                Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 String _formatPlanTime(DateTime value, {required bool isKo}) {

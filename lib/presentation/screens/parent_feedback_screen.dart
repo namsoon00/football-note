@@ -54,22 +54,25 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   }
 
   bool get _hasChanges {
-    return _controller.text.trim() != _savedMessage.trim() ||
-        _selectedReaction.trim() != _savedReaction.trim();
+    if (_canEdit) {
+      return _controller.text.trim() != _savedMessage.trim();
+    }
+    return _selectedReaction.trim() != _savedReaction.trim();
   }
 
   bool get _canReact {
-    return _canEdit ||
-        _savedMessage.trim().isNotEmpty ||
-        _savedReaction.trim().isNotEmpty ||
-        _controller.text.trim().isNotEmpty;
+    return !_canEdit &&
+        (_savedMessage.trim().isNotEmpty || _savedReaction.trim().isNotEmpty);
   }
 
   bool get _canClear {
-    return !_isSaving &&
-        (_controller.text.trim().isNotEmpty ||
-            _savedMessage.trim().isNotEmpty ||
-            _selectedReaction.trim().isNotEmpty);
+    if (_isSaving) return false;
+    if (_canEdit) {
+      return _controller.text.trim().isNotEmpty ||
+          _savedMessage.trim().isNotEmpty;
+    }
+    return _selectedReaction.trim().isNotEmpty ||
+        _savedReaction.trim().isNotEmpty;
   }
 
   @override
@@ -133,7 +136,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
       final saved = await _feedbackService.saveFeedbackForEntry(
         widget.entry,
         _canEdit ? _controller.text : _savedMessage,
-        _selectedReaction,
+        _canEdit ? _savedReaction : _selectedReaction,
       );
       final didSync = await _syncParentSharedDataIfPossible();
       if (!mounted) {

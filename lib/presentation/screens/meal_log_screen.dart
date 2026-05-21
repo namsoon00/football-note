@@ -254,6 +254,12 @@ class _MealLogScreenState extends State<MealLogScreen> {
             isKo: isKo,
           );
         }
+        if (mounted) {
+          AppFeedback.showSuccess(
+            context,
+            text: l10n.mealSavedWithXpFeedback(award.gainedXp),
+          );
+        }
       }
     } finally {
       _saveInProgress = false;

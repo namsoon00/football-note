@@ -114,6 +114,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
     }
     if (!mounted || award.gainedXp <= 0) return;
+    await showTrainingSketchXpRewardDialog(context, award: award);
+    if (!mounted) return;
     if (award.didLevelUp) {
       final levelService = PlayerLevelService(optionRepository);
       await showLevelUpCelebrationDialog(

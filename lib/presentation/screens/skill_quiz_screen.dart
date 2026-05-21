@@ -10,7 +10,10 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../application/family_access_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
+import '../../application/settings_service.dart';
+import '../../application/training_plan_reminder_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../widgets/app_feedback.dart';
 
 class SkillQuizScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -757,6 +760,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Future<void> _completeSession() async {
     final completedAt = DateTime.now();
+    final l10n = AppLocalizations.of(context)!;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final wrongQuestions = _questions
         .where((question) => _wrongIds.contains(question.id))
         .toList(growable: false);
@@ -766,9 +771,34 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     await _recordCategoryPerformance();
     await _appendQuizHistory(completedAt);
     await _trackMetric('football_quiz_session_completed');
-    await PlayerLevelService(
+    final levelAward = await PlayerLevelService(
       widget.optionRepository,
     ).awardForQuizCompletion(completedAt: completedAt);
+    if (levelAward.gainedXp > 0) {
+      final settingsService = SettingsService(widget.optionRepository)..load();
+      final reminderService = TrainingPlanReminderService(
+        widget.optionRepository,
+        settingsService,
+      );
+      await reminderService.showXpGainAlert(
+        gainedXp: levelAward.gainedXp,
+        totalXp: levelAward.after.totalXp,
+        isKo: isKo,
+        sourceLabel: l10n.quizXpSourceLabel,
+      );
+      if (levelAward.didLevelUp) {
+        await reminderService.showLevelUpAlert(
+          level: levelAward.after.level,
+          isKo: isKo,
+        );
+      }
+      if (mounted) {
+        AppFeedback.showSuccess(
+          context,
+          text: l10n.quizXpSavedFeedback(levelAward.gainedXp),
+        );
+      }
+    }
 
     await widget.optionRepository.setValue(
       SkillQuizScreen.completionKey,

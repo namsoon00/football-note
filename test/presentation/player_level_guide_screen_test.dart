@@ -82,7 +82,9 @@ void main() {
     expect(find.textContaining('누적 130 XP'), findsOneWidget);
   });
 
-  testWidgets('xp guide keeps training record XP sources only', (tester) async {
+  testWidgets('xp guide includes training and activity XP sources', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko', 'KR'),
@@ -100,9 +102,12 @@ void main() {
       find.text('3일 연속 기록 / 7일 연속 기록', skipOffstage: false),
       findsOneWidget,
     );
-    expect(find.text('퀴즈 완료', skipOffstage: false), findsNothing);
-    expect(find.text('오늘 다이어리 작성', skipOffstage: false), findsNothing);
-    expect(find.text('묶음 계획 생성 보너스', skipOffstage: false), findsNothing);
+    expect(find.text('훈련 계획 생성', skipOffstage: false), findsOneWidget);
+    expect(find.text('훈련 스케치 저장', skipOffstage: false), findsOneWidget);
+    expect(find.text('다이어리 작성', skipOffstage: false), findsOneWidget);
+    expect(find.text('퀴즈 완료', skipOffstage: false), findsOneWidget);
+    expect(find.text('식사 두 끼 이상 기록', skipOffstage: false), findsOneWidget);
+    expect(find.text('홈 오늘 할일 모두 완료', skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('parent mode hides reward claim action and keeps reward edit', (

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
-import 'package:animate_do/animate_do.dart';
 import 'package:intl/intl.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
@@ -90,7 +89,7 @@ class _LogsScreenState extends State<LogsScreen> {
   bool _quickGuideOpened = false;
   List<String> _locationOptions = [];
   List<String> _programOptions = [];
-  static const int _pageSize = 20;
+  static const int _pageSize = 12;
   int _visibleCount = _pageSize;
   final MealCoachingService _mealCoachingService = const MealCoachingService();
 
@@ -375,16 +374,7 @@ class _LogsScreenState extends State<LogsScreen> {
                                       onEdit: () => _onEntryTap(entry),
                                     ),
                                   );
-                                  if (AppMotion.reduceMotion(context)) {
-                                    return row;
-                                  }
-                                  return FadeInUp(
-                                    delay: Duration(
-                                      milliseconds: (index * 24).clamp(0, 240),
-                                    ),
-                                    duration: AppMotion.base(context),
-                                    child: row,
-                                  );
+                                  return row;
                                 },
                               )
                             : ListView.separated(
@@ -412,16 +402,7 @@ class _LogsScreenState extends State<LogsScreen> {
                                       onEdit: () => _onEntryTap(entry),
                                     ),
                                   );
-                                  if (AppMotion.reduceMotion(context)) {
-                                    return row;
-                                  }
-                                  return FadeInUp(
-                                    delay: Duration(
-                                      milliseconds: (index * 20).clamp(0, 220),
-                                    ),
-                                    duration: AppMotion.base(context),
-                                    child: row,
-                                  );
+                                  return row;
                                 },
                               ),
                       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:football_note/gen/app_localizations.dart';
 
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -11,82 +12,122 @@ class PlayerXpGuideScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final levelState = PlayerLevelService(optionRepository).loadState();
     final sections = <_XpGuideSection>[
       _XpGuideSection(
-        title: isKo ? '기록으로 오르는 경험치' : 'XP from logging',
-        subtitle: isKo
-            ? '훈련을 남길수록 기본 성장치가 안정적으로 쌓입니다.'
-            : 'Core growth comes from saving consistent training logs.',
+        title: l10n.playerXpGuideLoggingTitle,
+        subtitle: l10n.playerXpGuideLoggingSubtitle,
         items: [
           _XpGuideItem(
             icon: Icons.edit_note_outlined,
-            title: isKo ? '훈련 기록 저장' : 'Training log saved',
+            title: l10n.playerXpGuideTrainingLogSaved,
             xpLabel: '+15 XP',
           ),
           _XpGuideItem(
             icon: Icons.wb_sunny_outlined,
-            title: isKo ? '하루 첫 훈련 기록' : 'First log of the day',
+            title: l10n.playerXpGuideFirstDailyLog,
             xpLabel: '+5 XP',
           ),
           _XpGuideItem(
             icon: Icons.event_available_outlined,
-            title: isKo ? '계획한 날 훈련 완료' : 'Complete a planned day',
+            title: l10n.playerXpGuidePlannedDayComplete,
             xpLabel: '+12 XP',
           ),
           _XpGuideItem(
             icon: Icons.sports_soccer_outlined,
-            title: isKo ? '리프팅 기록 추가' : 'Lifting recorded',
+            title: l10n.playerXpGuideLiftingRecorded,
             xpLabel: '+6 XP',
           ),
           _XpGuideItem(
             icon: Icons.fitness_center_outlined,
-            title: isKo ? '줄넘기 기록 추가' : 'Jump rope recorded',
+            title: l10n.playerXpGuideJumpRopeRecorded,
             xpLabel: '+6 XP',
           ),
           _XpGuideItem(
             icon: Icons.remove_circle_outline,
-            title: isKo
-                ? '리프팅/줄넘기 없이 저장하면 감점'
-                : 'Missing lifting or jump rope costs XP',
-            xpLabel: isKo ? '-5 XP씩' : '-5 XP each',
+            title: l10n.playerXpGuideMissingConditioning,
+            xpLabel: l10n.playerXpGuideMissingConditioningXp,
           ),
         ],
       ),
       _XpGuideSection(
-        title: isKo ? '연속성과 주간 보너스' : 'Streak and weekly bonuses',
-        subtitle: isKo
-            ? '반복이 붙기 시작하면 큰 보너스가 들어옵니다.'
-            : 'Larger bonuses unlock once repetition becomes consistent.',
+        title: l10n.playerXpGuideStreakTitle,
+        subtitle: l10n.playerXpGuideStreakSubtitle,
         items: [
           _XpGuideItem(
             icon: Icons.local_fire_department_outlined,
-            title: isKo ? '3일 연속 기록 / 7일 연속 기록' : '3-day / 7-day streak',
+            title: l10n.playerXpGuideStreakMilestones,
             xpLabel: '+12 XP / +25 XP',
           ),
           _XpGuideItem(
             icon: Icons.bolt_outlined,
-            title: isKo ? '연속 기록 데일리 보너스' : 'Daily bonus from streak logging',
+            title: l10n.playerXpGuideStreakDailyBonus,
             xpLabel: '+3 XP / +6 XP / +10 XP',
           ),
           _XpGuideItem(
             icon: Icons.bar_chart_outlined,
-            title: isKo ? '주간 3회 기록 / 5회 기록' : '3 logs / 5 logs in a week',
+            title: l10n.playerXpGuideWeeklyBonus,
             xpLabel: '+18 XP / +30 XP',
+          ),
+        ],
+      ),
+      _XpGuideSection(
+        title: l10n.playerXpGuideActivityTitle,
+        subtitle: l10n.playerXpGuideActivitySubtitle,
+        items: [
+          _XpGuideItem(
+            icon: Icons.event_note_outlined,
+            title: l10n.playerXpGuidePlanCreated,
+            xpLabel: '+6 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.draw_outlined,
+            title: l10n.playerXpGuideTrainingSketchSaved,
+            xpLabel: '+5 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.menu_book_outlined,
+            title: l10n.playerXpGuideDiaryCreated,
+            xpLabel: '+3 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.quiz_outlined,
+            title: l10n.playerXpGuideQuizComplete,
+            xpLabel: '+8 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.rice_bowl_outlined,
+            title: l10n.playerXpGuideMealTwoPlus,
+            xpLabel: '+3 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.restaurant_outlined,
+            title: l10n.playerXpGuideMealFull,
+            xpLabel: '+8 XP / +10 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.task_alt_outlined,
+            title: l10n.playerXpGuideDailyTasksComplete,
+            xpLabel: '+${PlayerLevelService.dailyTaskCompletionXp} XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.speed_outlined,
+            title: l10n.playerXpGuideDailyCap,
+            xpLabel: '${PlayerLevelService.dailyPositiveXpCap} XP',
           ),
         ],
       ),
     ];
 
     return Scaffold(
-      appBar: AppBar(title: Text(isKo ? '경험치 오르는 방법' : 'How XP goes up')),
+      appBar: AppBar(title: Text(l10n.playerXpGuideTitle)),
       body: AppBackground(
         child: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             children: [
-              _XpGuideHeroCard(isKo: isKo, levelState: levelState),
+              _XpGuideHeroCard(l10n: l10n, levelState: levelState),
               const SizedBox(height: 12),
               for (final section in sections) ...[
                 _XpGuideSectionCard(section: section),
@@ -101,10 +142,10 @@ class PlayerXpGuideScreen extends StatelessWidget {
 }
 
 class _XpGuideHeroCard extends StatelessWidget {
-  final bool isKo;
+  final AppLocalizations l10n;
   final PlayerLevelState levelState;
 
-  const _XpGuideHeroCard({required this.isKo, required this.levelState});
+  const _XpGuideHeroCard({required this.l10n, required this.levelState});
 
   @override
   Widget build(BuildContext context) {
@@ -126,22 +167,19 @@ class _XpGuideHeroCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isKo
-                ? '지금은 Lv.${levelState.level}'
-                : 'You are Lv.${levelState.level}',
+            l10n.playerXpGuideHeroLevel(levelState.level),
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            isKo
-                ? levelState.isMaxLevel
-                      ? 'Lv.20 이후에는 ${PlayerLevelService.maxLevelMasterySpan} XP마다 마스터리 별을 얻어요. 다음 별까지 ${levelState.xpToNextMasteryStar} XP 남았어요.'
-                      : '어떤 행동이 경험치를 주는지 한 화면에서 이해할 수 있게 정리했습니다. 다음 레벨까지 ${levelState.xpToNextLevel} XP 남았어요.'
-                : levelState.isMaxLevel
-                ? 'After Lv.20, every ${PlayerLevelService.maxLevelMasterySpan} XP earns a mastery star. ${levelState.xpToNextMasteryStar} XP remains until the next star.'
-                : 'This page groups every XP source clearly. ${levelState.xpToNextLevel} XP remains until the next level.',
+            levelState.isMaxLevel
+                ? l10n.playerXpGuideHeroMax(
+                    PlayerLevelService.maxLevelMasterySpan,
+                    levelState.xpToNextMasteryStar,
+                  )
+                : l10n.playerXpGuideHeroBody(levelState.xpToNextLevel),
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),

@@ -821,7 +821,7 @@ abstract class AppLocalizations {
   /// No description provided for @trainingXpDialogMessage.
   ///
   /// In en, this message translates to:
-  /// **'Your saved training log added XP. Confirm to return to the home screen.'**
+  /// **'Your saved training log added XP and growth gems.'**
   String get trainingXpDialogMessage;
 
   /// No description provided for @trainingXpDialogJumpRopeTitle.
@@ -932,6 +932,12 @@ abstract class AppLocalizations {
   /// **'Diary'**
   String get trainingXpSourceDiary;
 
+  /// No description provided for @diarySavedWithXpFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary saved +{count} XP'**
+  String diarySavedWithXpFeedback(int count);
+
   /// No description provided for @trainingStreakCheerTitle.
   ///
   /// In en, this message translates to:
@@ -1015,6 +1021,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All today tasks complete'**
   String get xpGuideDailyTasksCompleteTitle;
+
+  /// No description provided for @quizXpSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Football quiz'**
+  String get quizXpSourceLabel;
+
+  /// No description provided for @quizXpSavedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz complete +{count} XP'**
+  String quizXpSavedFeedback(int count);
+
+  /// No description provided for @playerXpGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How XP goes up'**
+  String get playerXpGuideTitle;
+
+  /// No description provided for @playerXpGuideHeroLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'You are Lv.{level}'**
+  String playerXpGuideHeroLevel(int level);
+
+  /// No description provided for @playerXpGuideHeroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This page groups every XP source clearly. {remainingXp} XP remains until the next level.'**
+  String playerXpGuideHeroBody(int remainingXp);
+
+  /// No description provided for @playerXpGuideHeroMax.
+  ///
+  /// In en, this message translates to:
+  /// **'After Lv.20, every {masterySpan} XP earns a mastery star. {remainingXp} XP remains until the next star.'**
+  String playerXpGuideHeroMax(int masterySpan, int remainingXp);
+
+  /// No description provided for @playerXpGuideLoggingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'XP from training logs'**
+  String get playerXpGuideLoggingTitle;
+
+  /// No description provided for @playerXpGuideLoggingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Core growth comes from saving consistent training logs.'**
+  String get playerXpGuideLoggingSubtitle;
+
+  /// No description provided for @playerXpGuideTrainingLogSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Training log saved'**
+  String get playerXpGuideTrainingLogSaved;
+
+  /// No description provided for @playerXpGuideFirstDailyLog.
+  ///
+  /// In en, this message translates to:
+  /// **'First log of the day'**
+  String get playerXpGuideFirstDailyLog;
+
+  /// No description provided for @playerXpGuidePlannedDayComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete a planned day'**
+  String get playerXpGuidePlannedDayComplete;
+
+  /// No description provided for @playerXpGuideLiftingRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting recorded'**
+  String get playerXpGuideLiftingRecorded;
+
+  /// No description provided for @playerXpGuideJumpRopeRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope recorded'**
+  String get playerXpGuideJumpRopeRecorded;
+
+  /// No description provided for @playerXpGuideMissingConditioning.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing lifting or jump rope costs XP'**
+  String get playerXpGuideMissingConditioning;
+
+  /// No description provided for @playerXpGuideMissingConditioningXp.
+  ///
+  /// In en, this message translates to:
+  /// **'-5 XP each'**
+  String get playerXpGuideMissingConditioningXp;
+
+  /// No description provided for @playerXpGuideStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak and weekly bonuses'**
+  String get playerXpGuideStreakTitle;
+
+  /// No description provided for @playerXpGuideStreakSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger bonuses unlock once repetition becomes consistent.'**
+  String get playerXpGuideStreakSubtitle;
+
+  /// No description provided for @playerXpGuideStreakMilestones.
+  ///
+  /// In en, this message translates to:
+  /// **'3-day / 7-day streak'**
+  String get playerXpGuideStreakMilestones;
+
+  /// No description provided for @playerXpGuideStreakDailyBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily bonus from streak logging'**
+  String get playerXpGuideStreakDailyBonus;
+
+  /// No description provided for @playerXpGuideWeeklyBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'3 logs / 5 logs in a week'**
+  String get playerXpGuideWeeklyBonus;
+
+  /// No description provided for @playerXpGuideActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Other activity XP'**
+  String get playerXpGuideActivityTitle;
+
+  /// No description provided for @playerXpGuideActivitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans, sketches, meals, diary, quiz, and daily completion also add XP when saved.'**
+  String get playerXpGuideActivitySubtitle;
+
+  /// No description provided for @playerXpGuidePlanCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan created'**
+  String get playerXpGuidePlanCreated;
+
+  /// No description provided for @playerXpGuideTrainingSketchSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sketch saved'**
+  String get playerXpGuideTrainingSketchSaved;
+
+  /// No description provided for @playerXpGuideDiaryCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary created'**
+  String get playerXpGuideDiaryCreated;
+
+  /// No description provided for @playerXpGuideQuizComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz completed'**
+  String get playerXpGuideQuizComplete;
+
+  /// No description provided for @playerXpGuideMealTwoPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Two or more meals logged'**
+  String get playerXpGuideMealTwoPlus;
+
+  /// No description provided for @playerXpGuideMealFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Three meals / three meals with 5+ rice bowls'**
+  String get playerXpGuideMealFull;
+
+  /// No description provided for @playerXpGuideDailyTasksComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'All daily home tasks completed'**
+  String get playerXpGuideDailyTasksComplete;
+
+  /// No description provided for @playerXpGuideDailyCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily positive XP cap'**
+  String get playerXpGuideDailyCap;
 
   /// No description provided for @homePriorityCheckPlansMessage.
   ///
@@ -4471,6 +4657,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Meal log saved.'**
   String get mealSavedFeedback;
+
+  /// No description provided for @mealSavedWithXpFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal log saved +{count} XP'**
+  String mealSavedWithXpFeedback(int count);
 
   /// No description provided for @mealDeletedFeedback.
   ///
