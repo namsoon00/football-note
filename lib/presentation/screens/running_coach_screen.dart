@@ -99,9 +99,11 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            for (var sectionIndex = 0;
-                sectionIndex < insightSections.length;
-                sectionIndex += 1) ...[
+            for (
+              var sectionIndex = 0;
+              sectionIndex < insightSections.length;
+              sectionIndex += 1
+            ) ...[
               _InsightRegionSectionCard(
                 title: insightSections[sectionIndex].title,
                 insights: insightSections[sectionIndex].insights,
@@ -447,9 +449,9 @@ class _NumberedGuideStep extends StatelessWidget {
           child: Text(
             '$number',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.w900,
-                ),
+              color: scheme.primary,
+              fontWeight: FontWeight.w900,
+            ),
           ),
         ),
         const SizedBox(width: 10),
@@ -639,9 +641,9 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                   child: Text(
                     '${widget.score}',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: scheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      color: scheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
               ),
@@ -703,57 +705,194 @@ class _SampleRunnerPainter extends CustomPainter {
     required Color color,
     required double strokeWidth,
   }) {
-    final stride = math.sin(progress * 2 * math.pi);
-    final leanPulse = math.cos(progress * 2 * math.pi);
-    final paint = Paint()
+    final phase = progress * 2 * math.pi;
+    final stride = math.sin(phase);
+    final drive = (stride + 1) / 2;
+    final recovery = 1 - drive;
+    final bob = math.cos(phase) * size.height * 0.012;
+    final isGhost = strokeWidth < 4;
+    final limbPaint = Paint()
       ..color = color
+      ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final jointPaint = Paint()
+      ..color = color.withValues(alpha: isGhost ? 0.22 : 0.90)
+      ..style = PaintingStyle.fill;
+    final fillPaint = Paint()
+      ..color = color.withValues(alpha: isGhost ? 0.08 : 0.18)
+      ..style = PaintingStyle.fill;
+    final highlightPaint = Paint()
+      ..color = Colors.white.withValues(alpha: isGhost ? 0.08 : 0.38)
+      ..strokeWidth = math.max(1.0, strokeWidth * 0.36)
       ..strokeCap = StrokeCap.round;
-    final x = size.width * (0.22 + progress * 0.48);
-    final y = size.height * (0.40 + leanPulse * 0.015);
-    final hip = Offset(x, y);
-    final shoulder = Offset(x - size.width * 0.04, y - size.height * 0.18);
+    final shoePaint = Paint()
+      ..color = color.withValues(alpha: isGhost ? 0.18 : 0.88)
+      ..style = PaintingStyle.fill;
+    final groundY = size.height * 0.78;
+    final x = size.width * (0.16 + progress * 0.62);
+    final hip = Offset(x, groundY - size.height * 0.26 + bob);
+    final chest = Offset(
+      hip.dx - size.width * 0.052,
+      hip.dy - size.height * 0.17,
+    );
+    final neck = Offset(
+      chest.dx - size.width * 0.012,
+      chest.dy - size.height * 0.055,
+    );
     final head = Offset(
-      shoulder.dx - size.width * 0.025,
-      shoulder.dy - size.height * 0.08,
+      neck.dx - size.width * 0.014,
+      neck.dy - size.height * 0.05,
     );
-    final frontKnee = Offset(
-      hip.dx + size.width * (0.10 + stride * 0.025),
-      hip.dy + size.height * (0.15 - stride.abs() * 0.025),
+    final shoulderFront = Offset(
+      chest.dx + size.width * 0.036,
+      chest.dy + size.height * 0.004,
     );
-    final frontFoot = Offset(
-      hip.dx + size.width * (0.18 + stride * 0.04),
-      size.height * 0.76,
+    final shoulderRear = Offset(
+      chest.dx - size.width * 0.038,
+      chest.dy + size.height * 0.014,
     );
-    final rearKnee = Offset(
-      hip.dx - size.width * (0.10 + stride * 0.018),
-      hip.dy + size.height * (0.17 + stride.abs() * 0.018),
+    final hipFront = Offset(hip.dx + size.width * 0.026, hip.dy);
+    final hipRear = Offset(
+      hip.dx - size.width * 0.026,
+      hip.dy + size.height * 0.006,
     );
-    final rearFoot = Offset(
-      hip.dx - size.width * (0.18 + stride * 0.035),
-      size.height * 0.76,
+
+    final driveKnee = Offset(
+      hipFront.dx + size.width * (0.080 + drive * 0.070),
+      hipFront.dy + size.height * (0.132 - drive * 0.052),
     );
+    final driveAnkle = Offset(
+      hipFront.dx + size.width * (0.145 + drive * 0.055),
+      hipFront.dy + size.height * (0.248 - drive * 0.078),
+    );
+    final driveFoot = Offset(
+      driveAnkle.dx + size.width * 0.044,
+      math.min(
+        groundY - size.height * 0.012,
+        driveAnkle.dy + size.height * 0.038,
+      ),
+    );
+    final pushKnee = Offset(
+      hipRear.dx - size.width * (0.078 + recovery * 0.050),
+      hipRear.dy + size.height * (0.144 + drive * 0.018),
+    );
+    final pushAnkle = Offset(
+      hipRear.dx - size.width * (0.166 + recovery * 0.066),
+      groundY - size.height * (0.014 + drive * 0.022),
+    );
+    final pushFoot = Offset(pushAnkle.dx - size.width * 0.052, groundY);
+
     final frontElbow = Offset(
-      shoulder.dx + size.width * (0.10 - stride * 0.025),
-      shoulder.dy + size.height * 0.09,
+      shoulderFront.dx - size.width * (0.028 + drive * 0.084),
+      shoulderFront.dy + size.height * (0.078 + drive * 0.050),
+    );
+    final frontWrist = Offset(
+      frontElbow.dx + size.width * (0.022 + recovery * 0.040),
+      frontElbow.dy + size.height * (0.080 - drive * 0.018),
     );
     final rearElbow = Offset(
-      shoulder.dx - size.width * (0.10 - stride * 0.025),
-      shoulder.dy + size.height * 0.10,
+      shoulderRear.dx + size.width * (0.060 + drive * 0.090),
+      shoulderRear.dy + size.height * (0.074 + recovery * 0.026),
     );
-    canvas.drawCircle(head, strokeWidth * 2, paint);
-    for (final segment in <List<Offset>>[
-      [head, shoulder],
-      [shoulder, hip],
-      [hip, frontKnee],
-      [frontKnee, frontFoot],
-      [hip, rearKnee],
-      [rearKnee, rearFoot],
-      [shoulder, frontElbow],
-      [shoulder, rearElbow],
-    ]) {
-      canvas.drawLine(segment.first, segment.last, paint);
+    final rearWrist = Offset(
+      rearElbow.dx + size.width * (0.058 + recovery * 0.034),
+      rearElbow.dy + size.height * (0.042 + drive * 0.025),
+    );
+
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(
+          hip.dx + size.width * 0.02,
+          groundY + size.height * 0.025,
+        ),
+        width: size.width * 0.30,
+        height: size.height * 0.08,
+      ),
+      Paint()..color = color.withValues(alpha: isGhost ? 0.04 : 0.10),
+    );
+
+    for (final line in <double>[0.0, 0.045, 0.09]) {
+      final start = Offset(
+        hip.dx - size.width * (0.20 + line),
+        hip.dy + size.height * (0.02 + line),
+      );
+      canvas.drawLine(
+        start,
+        Offset(start.dx - size.width * 0.10, start.dy + size.height * 0.012),
+        Paint()
+          ..color = color.withValues(alpha: isGhost ? 0.05 : 0.16)
+          ..strokeWidth = math.max(1.0, strokeWidth * 0.32)
+          ..strokeCap = StrokeCap.round,
+      );
     }
+
+    _drawLimb(canvas, limbPaint, shoulderRear, rearElbow, rearWrist);
+    _drawLimb(canvas, limbPaint, hipRear, pushKnee, pushAnkle);
+    _drawShoe(canvas, pushAnkle, pushFoot, shoePaint);
+
+    final torso = Path()
+      ..moveTo(shoulderRear.dx, shoulderRear.dy)
+      ..lineTo(shoulderFront.dx, shoulderFront.dy)
+      ..lineTo(hipFront.dx, hipFront.dy)
+      ..lineTo(hipRear.dx, hipRear.dy)
+      ..close();
+    canvas.drawPath(torso, fillPaint);
+    canvas.drawPath(torso, limbPaint);
+    canvas.drawLine(
+      Offset(chest.dx - size.width * 0.010, chest.dy + size.height * 0.030),
+      Offset(hip.dx + size.width * 0.006, hip.dy - size.height * 0.018),
+      highlightPaint,
+    );
+    canvas.drawLine(neck, chest, limbPaint);
+    canvas.drawCircle(
+      head,
+      strokeWidth * (isGhost ? 2.4 : 2.8),
+      fillPaint..color = color.withValues(alpha: isGhost ? 0.10 : 0.22),
+    );
+    canvas.drawCircle(head, strokeWidth * (isGhost ? 1.6 : 1.9), limbPaint);
+    canvas.drawLine(
+      Offset(head.dx + size.width * 0.008, head.dy - size.height * 0.004),
+      Offset(head.dx + size.width * 0.030, head.dy + size.height * 0.004),
+      highlightPaint,
+    );
+    canvas.drawCircle(
+      Offset(head.dx - size.width * 0.010, head.dy - size.height * 0.012),
+      math.max(1.5, strokeWidth * 0.55),
+      jointPaint,
+    );
+
+    _drawLimb(canvas, limbPaint, hipFront, driveKnee, driveAnkle);
+    _drawShoe(canvas, driveAnkle, driveFoot, shoePaint);
+    _drawLimb(canvas, limbPaint, shoulderFront, frontElbow, frontWrist);
+
+    for (final point in <Offset>[
+      shoulderFront,
+      shoulderRear,
+      hipFront,
+      hipRear,
+      driveKnee,
+      pushKnee,
+      frontElbow,
+      rearElbow,
+    ]) {
+      canvas.drawCircle(point, math.max(2.0, strokeWidth * 0.58), jointPaint);
+    }
+  }
+
+  void _drawLimb(Canvas canvas, Paint paint, Offset a, Offset b, Offset c) {
+    canvas.drawLine(a, b, paint);
+    canvas.drawLine(b, c, paint);
+  }
+
+  void _drawShoe(Canvas canvas, Offset ankle, Offset toe, Paint paint) {
+    final rect = Rect.fromCenter(
+      center: Offset((ankle.dx + toe.dx) / 2, (ankle.dy + toe.dy) / 2),
+      width: (toe.dx - ankle.dx).abs() + 14,
+      height: 7,
+    );
+    canvas.drawOval(rect, paint);
   }
 
   @override
@@ -1040,9 +1179,9 @@ class _HeroCard extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: scheme.onPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: scheme.onPrimary,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -1075,8 +1214,8 @@ class _ResultsSummaryCard extends StatelessWidget {
     final headline = score >= 85
         ? l10n.runningCoachOverallHeadlineStrong
         : score >= 70
-            ? l10n.runningCoachOverallHeadlineSolid
-            : l10n.runningCoachOverallHeadlineNeedsWork;
+        ? l10n.runningCoachOverallHeadlineSolid
+        : l10n.runningCoachOverallHeadlineNeedsWork;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1119,9 +1258,11 @@ class _ResultsSummaryCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
-            for (var index = 0;
-                index < prioritizedInsights.length;
-                index += 1) ...[
+            for (
+              var index = 0;
+              index < prioritizedInsights.length;
+              index += 1
+            ) ...[
               _MetricScoreRow(
                 insight: prioritizedInsights[index],
                 priority: focusPriorities[prioritizedInsights[index].metric],
@@ -1279,9 +1420,9 @@ class _InsightCard extends StatelessWidget {
                     child: Text(
                       copy.statusLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: badgeTextColor,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: badgeTextColor,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
@@ -1297,9 +1438,9 @@ class _InsightCard extends StatelessWidget {
               Text(
                 _qualityReasonText(context, insight.quality),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.error,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
             const SizedBox(height: 12),
@@ -1446,18 +1587,16 @@ class _PrimaryFocusCard extends StatelessWidget {
                             ? l10n.runningCoachFocusTitle
                             : l10n.runningCoachMaintainTitle,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: isFix
-                                  ? scheme.onPrimaryContainer
-                                  : scheme.onTertiaryContainer,
-                              fontWeight: FontWeight.w800,
-                            ),
+                          color: isFix
+                              ? scheme.onPrimaryContainer
+                              : scheme.onTertiaryContainer,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         copy.title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ],
@@ -1483,9 +1622,9 @@ class _PrimaryFocusCard extends StatelessWidget {
               Text(
                 _qualityReasonText(context, insight.quality),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.error,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: scheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ],
@@ -1570,9 +1709,9 @@ class _QualityBadge extends StatelessWidget {
         child: Text(
           '${_confidenceLabel(context)} ${quality.confidencePercent}%',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: isLow ? scheme.onErrorContainer : null,
-                fontWeight: FontWeight.w700,
-              ),
+            color: isLow ? scheme.onErrorContainer : null,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
@@ -1598,9 +1737,9 @@ class _PriorityBadge extends StatelessWidget {
         child: Text(
           l10n.runningCoachPriorityLabel(priority),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: scheme.onPrimaryContainer,
-                fontWeight: FontWeight.w700,
-              ),
+            color: scheme.onPrimaryContainer,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
@@ -1616,18 +1755,22 @@ String _confidenceLabel(BuildContext context) {
 String _qualityReasonText(BuildContext context, RunningMetricQuality quality) {
   final isKorean = Localizations.localeOf(context).languageCode == 'ko';
   return switch (quality.reason) {
-    'low_coverage' => isKorean
-        ? '추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.'
-        : 'Tracking coverage is low, so treat this metric conservatively.',
-    'limited_samples' => isKorean
-        ? '안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.'
-        : 'Only a small set of stable frames was read; confirm once more from the same angle.',
-    'contact_phase_proxy' => isKorean
-        ? '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.'
-        : 'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.',
-    _ => isKorean
-        ? '촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.'
-        : 'Capture quality is low; confirm again from the same angle.',
+    'low_coverage' =>
+      isKorean
+          ? '추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.'
+          : 'Tracking coverage is low, so treat this metric conservatively.',
+    'limited_samples' =>
+      isKorean
+          ? '안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.'
+          : 'Only a small set of stable frames was read; confirm once more from the same angle.',
+    'contact_phase_proxy' =>
+      isKorean
+          ? '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.'
+          : 'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.',
+    _ =>
+      isKorean
+          ? '촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.'
+          : 'Capture quality is low; confirm again from the same angle.',
   };
 }
 

@@ -597,8 +597,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           isKo: isKo,
         );
       }
-      if (!mounted) return;
-      await showXpGemRewardDialog(context, award: award);
       if (!mounted || !award.didLevelUp) return;
       final customRewardName = levelService.customRewardNameForLevel(
         award.after.level,

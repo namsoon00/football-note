@@ -2159,7 +2159,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diarySelectedRecordStickersTitle => 'Selected record stickers';
 
   @override
-  String get diarySelectedRecordStickersHint => 'Drag to reorder them.';
+  String get diarySelectedRecordStickersHint =>
+      'Tap Reorder sticker, then drag the handle to change the order.';
 
   @override
   String get diaryRecordStickerSectionTitle => 'Record sticker layout';

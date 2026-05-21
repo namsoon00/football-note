@@ -27,8 +27,12 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final history = _levelService.loadXpHistory()
-      ..sort((a, b) => b.awardedAt.compareTo(a.awardedAt));
+    final history =
+        _levelService
+            .loadXpHistory()
+            .where((item) => item.category == PlayerXpHistoryCategory.training)
+            .toList()
+          ..sort((a, b) => b.awardedAt.compareTo(a.awardedAt));
     final groupedHistory = _groupByDay(history);
 
     return Scaffold(
