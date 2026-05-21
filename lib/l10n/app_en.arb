@@ -1108,6 +1108,23 @@
   "runningCoachUploadGuideStepLight": "Record in bright, even light and avoid other people crossing behind the runner.",
   "runningCoachSampleTitle": "Sample video analysis",
   "runningCoachSampleBody": "Example: an 8-second side-view clip reads 14/16 frames and uses 4.5° torso lean plus 0.18 foot-strike distance to choose the first priority.",
+  "runningCoachSampleFrameLabel": "Frame {current}/{total}",
+  "@runningCoachSampleFrameLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSampleFrameGuideTitle": "Good side-view frame",
+  "runningCoachSampleFrameGuideBody": "The sample loop keeps the runner inside the same analysis frame so posture, landing, and arm timing are easy to compare.",
+  "runningCoachSampleCueLean": "Light forward lean from ankle to shoulder",
+  "runningCoachSampleCueFrame": "Whole runner stays inside the frame",
+  "runningCoachSampleCueFoot": "Foot lands close under the hip",
+  "runningCoachSampleCueArms": "Arms swing compactly against the legs",
   "runningCoachLiveCardTitle": "Live coach",
   "runningCoachLiveCardBody": "Track the runner outline and pose line live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.",
   "runningCoachLiveAction": "Start live coach",

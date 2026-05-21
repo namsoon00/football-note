@@ -2543,6 +2543,30 @@ class AppLocalizationsKo extends AppLocalizations {
       '예: 8초 측면 영상에서 14/16프레임을 읽고, 상체 기울기 4.5도와 착지 거리 0.18을 기준으로 우선 과제를 보여줍니다.';
 
   @override
+  String runningCoachSampleFrameLabel(int current, int total) {
+    return '프레임 $current/$total';
+  }
+
+  @override
+  String get runningCoachSampleFrameGuideTitle => '좋은 측면 프레임';
+
+  @override
+  String get runningCoachSampleFrameGuideBody =>
+      '샘플 루프는 러너를 같은 분석 프레임 안에 유지해 자세, 착지, 팔 타이밍을 한눈에 비교할 수 있게 보여줘요.';
+
+  @override
+  String get runningCoachSampleCueLean => '발목부터 어깨까지 가벼운 전경사';
+
+  @override
+  String get runningCoachSampleCueFrame => '전신이 프레임 안에 계속 들어옴';
+
+  @override
+  String get runningCoachSampleCueFoot => '발이 엉덩이 아래 가까이에 착지';
+
+  @override
+  String get runningCoachSampleCueArms => '팔은 다리와 반대로 작고 빠르게 스윙';
+
+  @override
   String get runningCoachLiveCardTitle => '실시간 코치';
 
   @override

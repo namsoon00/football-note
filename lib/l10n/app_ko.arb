@@ -1108,6 +1108,23 @@
   "runningCoachUploadGuideStepLight": "밝고 고른 빛에서 촬영하고, 러너 뒤로 다른 사람이 지나가지 않게 해 주세요.",
   "runningCoachSampleTitle": "샘플 영상 분석",
   "runningCoachSampleBody": "예: 8초 측면 영상에서 14/16프레임을 읽고, 상체 기울기 4.5도와 착지 거리 0.18을 기준으로 우선 과제를 보여줍니다.",
+  "runningCoachSampleFrameLabel": "프레임 {current}/{total}",
+  "@runningCoachSampleFrameLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSampleFrameGuideTitle": "좋은 측면 프레임",
+  "runningCoachSampleFrameGuideBody": "샘플 루프는 러너를 같은 분석 프레임 안에 유지해 자세, 착지, 팔 타이밍을 한눈에 비교할 수 있게 보여줘요.",
+  "runningCoachSampleCueLean": "발목부터 어깨까지 가벼운 전경사",
+  "runningCoachSampleCueFrame": "전신이 프레임 안에 계속 들어옴",
+  "runningCoachSampleCueFoot": "발이 엉덩이 아래 가까이에 착지",
+  "runningCoachSampleCueArms": "팔은 다리와 반대로 작고 빠르게 스윙",
   "runningCoachLiveCardTitle": "실시간 코치",
   "runningCoachLiveCardBody": "러너 윤곽과 자세 선을 실시간으로 보고, 필요하면 바로 스프린트 전용 피드백으로 넘어가 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형까지 확인할 수 있어요.",
   "runningCoachLiveAction": "실시간 코치 시작",

@@ -2633,6 +2633,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'Example: an 8-second side-view clip reads 14/16 frames and uses 4.5° torso lean plus 0.18 foot-strike distance to choose the first priority.';
 
   @override
+  String runningCoachSampleFrameLabel(int current, int total) {
+    return 'Frame $current/$total';
+  }
+
+  @override
+  String get runningCoachSampleFrameGuideTitle => 'Good side-view frame';
+
+  @override
+  String get runningCoachSampleFrameGuideBody =>
+      'The sample loop keeps the runner inside the same analysis frame so posture, landing, and arm timing are easy to compare.';
+
+  @override
+  String get runningCoachSampleCueLean =>
+      'Light forward lean from ankle to shoulder';
+
+  @override
+  String get runningCoachSampleCueFrame =>
+      'Whole runner stays inside the frame';
+
+  @override
+  String get runningCoachSampleCueFoot => 'Foot lands close under the hip';
+
+  @override
+  String get runningCoachSampleCueArms =>
+      'Arms swing compactly against the legs';
+
+  @override
   String get runningCoachLiveCardTitle => 'Live coach';
 
   @override
