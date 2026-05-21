@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:football_note/gen/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {
   final VoidCallback onStart;
@@ -14,8 +15,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final sections = _buildSections(isKo);
+    final l10n = AppLocalizations.of(context)!;
+    final sections = _buildSections(l10n);
     final selected = sections[_selectedIndex];
 
     return Scaffold(
@@ -26,16 +27,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isKo ? '환영합니다! 앱 화면 안내' : 'Welcome! App Walkthrough',
+                l10n.welcomeGuideTitle,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
-                isKo
-                    ? '아래 탭 버튼을 누르면 설명 화면이 전환됩니다. 각 탭이 무엇을 하는지 먼저 확인해보세요.'
-                    : 'Tap a tab button below to switch the guide panel and preview each screen.',
+                l10n.welcomeGuideIntro,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(height: 1.45),
@@ -69,7 +68,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   child: _WelcomeSectionCard(
                     key: ValueKey(selected.id),
                     section: selected,
-                    isKo: isKo,
+                    l10n: l10n,
                   ),
                 ),
               ),
@@ -82,7 +81,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(52),
                   ),
-                  label: Text(isKo ? '앱 시작하기' : 'Start App'),
+                  label: Text(l10n.welcomeGuidePrimaryAction),
                 ),
               ),
             ],
@@ -95,17 +94,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
 class _WelcomeSectionCard extends StatelessWidget {
   final _WelcomeSection section;
-  final bool isKo;
+  final AppLocalizations l10n;
 
   const _WelcomeSectionCard({
     super.key,
     required this.section,
-    required this.isKo,
+    required this.l10n,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
@@ -124,9 +124,9 @@ class _WelcomeSectionCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   section.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],
@@ -134,35 +134,30 @@ class _WelcomeSectionCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             section.overview,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(height: 1.45),
+            style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Text(
-            isKo ? '화면에서 할 수 있는 것' : 'What you can do on this screen',
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 6),
-          ...section.details.map(
-            (line) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 3),
-                    child: Icon(Icons.check_circle, size: 14),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(line)),
-                ],
-              ),
+            l10n.welcomeGuideSectionFlow,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView.separated(
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: section.steps.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                return _WelcomeStepTile(
+                  number: index + 1,
+                  step: section.steps[index],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 10),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -171,15 +166,103 @@ class _WelcomeSectionCard extends StatelessWidget {
               color: scheme.primary.withValues(alpha: 0.10),
             ),
             child: Text(
-              isKo
-                  ? '탭 버튼을 누르면 안내 카드가 즉시 바뀝니다.'
-                  : 'Tap another tab button to switch this guide card instantly.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+              l10n.welcomeGuideNextTabHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _WelcomeStepTile extends StatelessWidget {
+  final int number;
+  final _WelcomeStep step;
+
+  const _WelcomeStepTile({required this.number, required this.step});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(alpha: 0.58),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 13,
+            backgroundColor: scheme.primary,
+            child: Text(
+              '$number',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: scheme.onPrimary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _HighlightedButtonLabel(step: step),
+                const SizedBox(height: 6),
+                Text(
+                  step.description,
+                  style: theme.textTheme.bodySmall?.copyWith(height: 1.35),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HighlightedButtonLabel extends StatelessWidget {
+  final _WelcomeStep step;
+
+  const _HighlightedButtonLabel({required this.step});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.26)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(step.icon, size: 15, color: scheme.onPrimaryContainer),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                step.actionLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: scheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -190,137 +273,144 @@ class _WelcomeSection {
   final IconData icon;
   final String title;
   final String overview;
-  final List<String> details;
+  final List<_WelcomeStep> steps;
 
   const _WelcomeSection({
     required this.id,
     required this.icon,
     required this.title,
     required this.overview,
-    required this.details,
+    required this.steps,
   });
 }
 
-List<_WelcomeSection> _buildSections(bool isKo) {
-  if (isKo) {
-    return const <_WelcomeSection>[
-      _WelcomeSection(
-        id: 'logs',
-        icon: Icons.list_alt_outlined,
-        title: '훈련기록',
-        overview: '훈련 노트를 빠르게 기록하고, 카드/리스트 뷰로 과거 기록을 확인하는 화면입니다.',
-        details: [
-          '훈련 강도, 컨디션, 메모, 훈련 스케치 정보까지 한 번에 입력/수정할 수 있습니다.',
-          '카드형/리스트형 전환으로 원하는 방식으로 기록을 탐색할 수 있습니다.',
-          '정렬은 최신 작성/등록 우선으로 관리되어 최근 기록을 먼저 확인할 수 있습니다.',
-        ],
-      ),
-      _WelcomeSection(
-        id: 'calendar',
-        icon: Icons.calendar_month_outlined,
-        title: '캘린더',
-        overview: '날짜 중심으로 훈련 기록과 계획을 한눈에 확인하고 일정 흐름을 관리하는 화면입니다.',
-        details: [
-          '날짜를 선택하면 해당일의 훈련 기록과 계획이 함께 표시됩니다.',
-          '오늘 이동, 계획 추가, 알림 연동을 통해 실전 루틴을 만들 수 있습니다.',
-          '월 단위 흐름을 보면서 훈련 공백/집중 구간을 쉽게 파악할 수 있습니다.',
-        ],
-      ),
-      _WelcomeSection(
-        id: 'stats',
-        icon: Icons.bar_chart_outlined,
-        title: '성장 통계',
-        overview: '선택한 기간의 성장 추이를 그래프와 지표로 확인해 훈련 방향을 조정하는 화면입니다.',
-        details: [
-          '성장 그래프, 평균 비교, 리프팅/줄넘기 통계 등 핵심 지표를 볼 수 있습니다.',
-          '기간 변경으로 최근 1주일/사용자 지정 기간을 비교할 수 있습니다.',
-          '오른 지표와 약한 지표를 분리해 다음 훈련 목표 설정에 활용할 수 있습니다.',
-        ],
-      ),
-      _WelcomeSection(
-        id: 'news',
-        icon: Icons.newspaper_outlined,
-        title: '오늘의 소식',
-        overview: '선택한 채널의 축구 뉴스를 모아보고, 필요한 정보만 빠르게 확인하는 화면입니다.',
-        details: [
-          '채널 선택으로 관심 있는 소식만 필터링해서 볼 수 있습니다.',
-          '한국어 환경에서는 제목 번역 토글로 읽기 편의성을 높일 수 있습니다.',
-          '당겨서 새로고침으로 최신 뉴스를 즉시 반영할 수 있습니다.',
-        ],
-      ),
-      _WelcomeSection(
-        id: 'game',
-        icon: Icons.sports_esports_outlined,
-        title: '게임/퀴즈',
-        overview: '패스 게임과 실전 퀴즈를 통해 훈련 판단력을 재미있게 반복 학습하는 화면입니다.',
-        details: [
-          '게임 가이드/랭킹/퀴즈 버튼으로 학습과 플레이를 빠르게 전환할 수 있습니다.',
-          '퀴즈는 유형별 문제풀과 오답 다시풀기로 학습 강화를 지원합니다.',
-          '게임 결과는 골/선방/실패를 확인한 뒤 다음 단계로 넘어가도록 구성되어 있습니다.',
-        ],
-      ),
-    ];
-  }
+class _WelcomeStep {
+  final IconData icon;
+  final String actionLabel;
+  final String description;
 
-  return const <_WelcomeSection>[
+  const _WelcomeStep({
+    required this.icon,
+    required this.actionLabel,
+    required this.description,
+  });
+}
+
+List<_WelcomeSection> _buildSections(AppLocalizations l10n) {
+  return <_WelcomeSection>[
+    _WelcomeSection(
+      id: 'home',
+      icon: Icons.home_outlined,
+      title: l10n.tabHome,
+      overview: l10n.welcomeHomeOverview,
+      steps: [
+        _WelcomeStep(
+          icon: Icons.today_outlined,
+          actionLabel: l10n.guideActionToday,
+          description: l10n.welcomeHomeStepToday,
+        ),
+        _WelcomeStep(
+          icon: Icons.rice_bowl_outlined,
+          actionLabel: l10n.guideActionMeal,
+          description: l10n.welcomeHomeStepMeal,
+        ),
+        _WelcomeStep(
+          icon: Icons.bar_chart_outlined,
+          actionLabel: l10n.homePriorityStatsAction,
+          description: l10n.welcomeHomeStepStats,
+        ),
+      ],
+    ),
     _WelcomeSection(
       id: 'logs',
       icon: Icons.list_alt_outlined,
-      title: 'Logs',
-      overview:
-          'Create and review training notes with card/list views and recent-first browsing.',
-      details: [
-        'Record intensity, condition, memo, and training-board details in one flow.',
-        'Switch between card and list layouts based on your preference.',
-        'Recent entries stay at the top so you can review the latest work first.',
+      title: l10n.tabLogs,
+      overview: l10n.welcomeLogsOverview,
+      steps: [
+        _WelcomeStep(
+          icon: Icons.add_circle_outline,
+          actionLabel: l10n.addEntry,
+          description: l10n.welcomeLogsStepAdd,
+        ),
+        _WelcomeStep(
+          icon: Icons.developer_board_outlined,
+          actionLabel: l10n.homePriorityBoardAction,
+          description: l10n.welcomeLogsStepBoard,
+        ),
+        _WelcomeStep(
+          icon: Icons.view_agenda_outlined,
+          actionLabel: l10n.guideActionCardList,
+          description: l10n.welcomeLogsStepReview,
+        ),
       ],
     ),
     _WelcomeSection(
       id: 'calendar',
       icon: Icons.calendar_month_outlined,
-      title: 'Calendar',
-      overview:
-          'Manage your schedule by date with training logs and plans shown together.',
-      details: [
-        'Tap a date to review that day’s logs and plans at once.',
-        'Use today-jump and plan add actions to maintain your routine.',
-        'Track monthly flow to spot gaps and high-focus periods quickly.',
+      title: l10n.tabCalendar,
+      overview: l10n.welcomeCalendarOverview,
+      steps: [
+        _WelcomeStep(
+          icon: Icons.touch_app_outlined,
+          actionLabel: l10n.guideActionSelectDate,
+          description: l10n.welcomeCalendarStepDate,
+        ),
+        _WelcomeStep(
+          icon: Icons.add,
+          actionLabel: l10n.guideActionPlus,
+          description: l10n.welcomeCalendarStepPlus,
+        ),
+        _WelcomeStep(
+          icon: Icons.rice_bowl_outlined,
+          actionLabel: l10n.guideActionMeal,
+          description: l10n.welcomeCalendarStepMeal,
+        ),
       ],
     ),
     _WelcomeSection(
       id: 'stats',
       icon: Icons.bar_chart_outlined,
-      title: 'Growth Stats',
-      overview:
-          'Analyze growth trends with charts and key metrics over your selected period.',
-      details: [
-        'Review growth chart, averages, lifting and jump-rope statistics.',
-        'Compare last 7 days vs custom ranges to evaluate progress.',
-        'Use strong/weak signals to set your next training focus.',
+      title: l10n.tabStats,
+      overview: l10n.welcomeStatsOverview,
+      steps: [
+        _WelcomeStep(
+          icon: Icons.date_range_outlined,
+          actionLabel: l10n.guideActionPeriod,
+          description: l10n.welcomeStatsStepPeriod,
+        ),
+        _WelcomeStep(
+          icon: Icons.stacked_line_chart,
+          actionLabel: l10n.guideActionBenchmark,
+          description: l10n.welcomeStatsStepAverage,
+        ),
+        _WelcomeStep(
+          icon: Icons.flag_outlined,
+          actionLabel: l10n.guideActionWeakPoint,
+          description: l10n.welcomeStatsStepFocus,
+        ),
       ],
     ),
     _WelcomeSection(
-      id: 'news',
-      icon: Icons.newspaper_outlined,
-      title: 'News',
-      overview:
-          'Read football headlines from selected channels and focus on relevant updates.',
-      details: [
-        'Pick channels so only useful sources appear in your feed.',
-        'Use title translation toggle in Korean locale for readability.',
-        'Pull to refresh to fetch the latest updates instantly.',
-      ],
-    ),
-    _WelcomeSection(
-      id: 'game',
-      icon: Icons.sports_esports_outlined,
-      title: 'Game / Quiz',
-      overview:
-          'Train decision making with pass game and categorized skill quizzes.',
-      details: [
-        'Use Guide/Quiz/Ranking actions to move between learning and play quickly.',
-        'Quiz supports per-type pools and wrong-answer retry for reinforcement.',
-        'Shot results are shown clearly before the match flow continues.',
+      id: 'diary',
+      icon: Icons.auto_stories_outlined,
+      title: l10n.tabDiary,
+      overview: l10n.welcomeDiaryOverview,
+      steps: [
+        _WelcomeStep(
+          icon: Icons.today_outlined,
+          actionLabel: l10n.guideActionOpenToday,
+          description: l10n.welcomeDiaryStepToday,
+        ),
+        _WelcomeStep(
+          icon: Icons.sticky_note_2_outlined,
+          actionLabel: l10n.guideActionRecordSticker,
+          description: l10n.welcomeDiaryStepSticker,
+        ),
+        _WelcomeStep(
+          icon: Icons.save_outlined,
+          actionLabel: l10n.guideActionSaveDiary,
+          description: l10n.welcomeDiaryStepSave,
+        ),
       ],
     ),
   ];

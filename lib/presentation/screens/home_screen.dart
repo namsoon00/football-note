@@ -346,62 +346,141 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (alreadySeen) return;
     await widget.optionRepository.setValue(key, true);
     if (!mounted) return;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final (title, body) = _tabGuideCopy(tabIndex, isKo);
+    final l10n = AppLocalizations.of(context)!;
+    final guide = _tabGuideData(tabIndex, l10n);
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(body),
+        title: Text(guide.title),
+        content: _TabGuideDialogContent(guide: guide),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(isKo ? '확인' : 'OK'),
+            child: Text(MaterialLocalizations.of(context).okButtonLabel),
           ),
         ],
       ),
     );
   }
 
-  (String, String) _tabGuideCopy(int tabIndex, bool isKo) {
+  _TabGuideData _tabGuideData(int tabIndex, AppLocalizations l10n) {
     switch (tabIndex) {
       case 0:
-        return (
-          isKo ? '홈 가이드' : 'Home Guide',
-          isKo
-              ? '오늘 해야 할 일, 빠른 실행, 오늘의 훈련 계획과 주간 훈련 현황을 한 번에 확인할 수 있어요.'
-              : 'See today’s priorities, quick actions, training plans, and weekly activity in one place.',
+        return _TabGuideData(
+          title: l10n.tabGuideTitle(l10n.tabHome),
+          intro: l10n.welcomeHomeOverview,
+          steps: [
+            _TabGuideStep(
+              icon: Icons.today_outlined,
+              actionLabel: l10n.guideActionToday,
+              description: l10n.welcomeHomeStepToday,
+            ),
+            _TabGuideStep(
+              icon: Icons.rice_bowl_outlined,
+              actionLabel: l10n.guideActionMeal,
+              description: l10n.welcomeHomeStepMeal,
+            ),
+            _TabGuideStep(
+              icon: Icons.bar_chart_outlined,
+              actionLabel: l10n.homePriorityStatsAction,
+              description: l10n.welcomeHomeStepStats,
+            ),
+          ],
         );
       case 1:
-        return (
-          isKo ? '훈련기록 가이드' : 'Logs Guide',
-          isKo
-              ? '기록추가에서 훈련 노트를 만들고, 카드/리스트로 과거 기록을 빠르게 확인할 수 있어요.'
-              : 'Create training notes from Add, then review past records in card/list views.',
+        return _TabGuideData(
+          title: l10n.tabGuideTitle(l10n.tabLogs),
+          intro: l10n.welcomeLogsOverview,
+          steps: [
+            _TabGuideStep(
+              icon: Icons.add_circle_outline,
+              actionLabel: l10n.addEntry,
+              description: l10n.welcomeLogsStepAdd,
+            ),
+            _TabGuideStep(
+              icon: Icons.developer_board_outlined,
+              actionLabel: l10n.homePriorityBoardAction,
+              description: l10n.welcomeLogsStepBoard,
+            ),
+            _TabGuideStep(
+              icon: Icons.view_agenda_outlined,
+              actionLabel: l10n.guideActionCardList,
+              description: l10n.welcomeLogsStepReview,
+            ),
+          ],
         );
       case 2:
-        return (
-          isKo ? '캘린더 가이드' : 'Calendar Guide',
-          isKo
-              ? '날짜를 누르면 해당일 기록과 계획을 함께 볼 수 있어요. + 버튼으로 계획/시합/노트를 추가하세요.'
-              : 'Tap a date to view that day’s notes and plans. Use + to add plan/match/note.',
+        return _TabGuideData(
+          title: l10n.tabGuideTitle(l10n.tabCalendar),
+          intro: l10n.welcomeCalendarOverview,
+          steps: [
+            _TabGuideStep(
+              icon: Icons.touch_app_outlined,
+              actionLabel: l10n.guideActionSelectDate,
+              description: l10n.welcomeCalendarStepDate,
+            ),
+            _TabGuideStep(
+              icon: Icons.add,
+              actionLabel: l10n.guideActionPlus,
+              description: l10n.welcomeCalendarStepPlus,
+            ),
+            _TabGuideStep(
+              icon: Icons.rice_bowl_outlined,
+              actionLabel: l10n.guideActionMeal,
+              description: l10n.welcomeCalendarStepMeal,
+            ),
+          ],
         );
       case 3:
-        return (
-          isKo ? '통계 가이드' : 'Stats Guide',
-          isKo
-              ? '기간을 바꿔 성장 추이를 비교하고, 약한 지표를 다음 훈련 목표로 연결해보세요.'
-              : 'Change period to compare trends and turn weak metrics into next training goals.',
+        return _TabGuideData(
+          title: l10n.tabGuideTitle(l10n.tabStats),
+          intro: l10n.welcomeStatsOverview,
+          steps: [
+            _TabGuideStep(
+              icon: Icons.date_range_outlined,
+              actionLabel: l10n.guideActionPeriod,
+              description: l10n.welcomeStatsStepPeriod,
+            ),
+            _TabGuideStep(
+              icon: Icons.stacked_line_chart,
+              actionLabel: l10n.guideActionBenchmark,
+              description: l10n.welcomeStatsStepAverage,
+            ),
+            _TabGuideStep(
+              icon: Icons.flag_outlined,
+              actionLabel: l10n.guideActionWeakPoint,
+              description: l10n.welcomeStatsStepFocus,
+            ),
+          ],
         );
       case 4:
-        return (
-          isKo ? '다이어리 가이드' : 'Diary Guide',
-          isKo
-              ? '훈련, 시합, 계획, 회복 기록을 날짜별로 모아 하루 흐름을 한 번에 돌아볼 수 있어요.'
-              : 'Review training, match, plan, and recovery notes together by day in one diary flow.',
+        return _TabGuideData(
+          title: l10n.tabGuideTitle(l10n.tabDiary),
+          intro: l10n.welcomeDiaryOverview,
+          steps: [
+            _TabGuideStep(
+              icon: Icons.today_outlined,
+              actionLabel: l10n.guideActionOpenToday,
+              description: l10n.welcomeDiaryStepToday,
+            ),
+            _TabGuideStep(
+              icon: Icons.sticky_note_2_outlined,
+              actionLabel: l10n.guideActionRecordSticker,
+              description: l10n.welcomeDiaryStepSticker,
+            ),
+            _TabGuideStep(
+              icon: Icons.save_outlined,
+              actionLabel: l10n.guideActionSaveDiary,
+              description: l10n.welcomeDiaryStepSave,
+            ),
+          ],
         );
       default:
-        return ('Guide', 'Quick guide');
+        return _TabGuideData(
+          title: l10n.tabGuideTitle(l10n.tabHome),
+          intro: l10n.welcomeHomeOverview,
+          steps: const [],
+        );
     }
   }
 
@@ -523,6 +602,139 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       initialDate: initialDate,
       initialOpenTrainingBoardEditor: true,
       closeAfterInitialTrainingBoardEditor: true,
+    );
+  }
+}
+
+class _TabGuideData {
+  final String title;
+  final String intro;
+  final List<_TabGuideStep> steps;
+
+  const _TabGuideData({
+    required this.title,
+    required this.intro,
+    required this.steps,
+  });
+}
+
+class _TabGuideStep {
+  final IconData icon;
+  final String actionLabel;
+  final String description;
+
+  const _TabGuideStep({
+    required this.icon,
+    required this.actionLabel,
+    required this.description,
+  });
+}
+
+class _TabGuideDialogContent extends StatelessWidget {
+  final _TabGuideData guide;
+
+  const _TabGuideDialogContent({required this.guide});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 360),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(guide.intro, style: theme.textTheme.bodyMedium),
+          const SizedBox(height: 14),
+          for (var index = 0; index < guide.steps.length; index += 1) ...[
+            _TabGuideStepTile(number: index + 1, step: guide.steps[index]),
+            if (index != guide.steps.length - 1) const SizedBox(height: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TabGuideStepTile extends StatelessWidget {
+  final int number;
+  final _TabGuideStep step;
+
+  const _TabGuideStepTile({required this.number, required this.step});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 12,
+            backgroundColor: scheme.primary,
+            child: Text(
+              '$number',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: scheme.onPrimary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: scheme.surface,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: scheme.primary.withValues(alpha: 0.24),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(step.icon, size: 15, color: scheme.primary),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            step.actionLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  step.description,
+                  style: theme.textTheme.bodySmall?.copyWith(height: 1.35),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

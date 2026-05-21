@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -97,11 +99,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            for (
-              var sectionIndex = 0;
-              sectionIndex < insightSections.length;
-              sectionIndex += 1
-            ) ...[
+            for (var sectionIndex = 0;
+                sectionIndex < insightSections.length;
+                sectionIndex += 1) ...[
               _InsightRegionSectionCard(
                 title: insightSections[sectionIndex].title,
                 insights: insightSections[sectionIndex].insights,
@@ -447,9 +447,9 @@ class _NumberedGuideStep extends StatelessWidget {
           child: Text(
             '$number',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-            ),
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
         ),
         const SizedBox(width: 10),
@@ -569,10 +569,33 @@ class _RunningCoachSampleCard extends StatelessWidget {
   }
 }
 
-class _SampleVideoFrame extends StatelessWidget {
+class _SampleVideoFrame extends StatefulWidget {
   final int score;
 
   const _SampleVideoFrame({required this.score});
+
+  @override
+  State<_SampleVideoFrame> createState() => _SampleVideoFrameState();
+}
+
+class _SampleVideoFrameState extends State<_SampleVideoFrame>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -588,10 +611,15 @@ class _SampleVideoFrame extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: CustomPaint(
-                painter: _SampleRunnerPainter(
-                  lineColor: scheme.primary,
-                  trackColor: scheme.outlineVariant,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) => CustomPaint(
+                  painter: _SampleRunnerPainter(
+                    progress: _controller.value,
+                    lineColor: scheme.primary,
+                    trackColor: scheme.outlineVariant,
+                    ghostColor: scheme.primary.withValues(alpha: 0.18),
+                  ),
                 ),
               ),
             ),
@@ -609,11 +637,11 @@ class _SampleVideoFrame extends StatelessWidget {
                     vertical: 6,
                   ),
                   child: Text(
-                    '$score',
+                    '${widget.score}',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: scheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w900,
-                    ),
+                          color: scheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w900,
+                        ),
                   ),
                 ),
               ),
@@ -626,12 +654,16 @@ class _SampleVideoFrame extends StatelessWidget {
 }
 
 class _SampleRunnerPainter extends CustomPainter {
+  final double progress;
   final Color lineColor;
   final Color trackColor;
+  final Color ghostColor;
 
   const _SampleRunnerPainter({
+    required this.progress,
     required this.lineColor,
     required this.trackColor,
+    required this.ghostColor,
   });
 
   @override
@@ -645,29 +677,80 @@ class _SampleRunnerPainter extends CustomPainter {
       trackPaint,
     );
 
+    for (final offset in const <double>[0.66, 0.33]) {
+      final ghostProgress = (progress - offset) % 1.0;
+      _drawRunner(
+        canvas,
+        size,
+        progress: ghostProgress,
+        color: ghostColor,
+        strokeWidth: 3,
+      );
+    }
+    _drawRunner(
+      canvas,
+      size,
+      progress: progress,
+      color: lineColor,
+      strokeWidth: 4,
+    );
+  }
+
+  void _drawRunner(
+    Canvas canvas,
+    Size size, {
+    required double progress,
+    required Color color,
+    required double strokeWidth,
+  }) {
+    final stride = math.sin(progress * 2 * math.pi);
+    final leanPulse = math.cos(progress * 2 * math.pi);
     final paint = Paint()
-      ..color = lineColor
-      ..strokeWidth = 4
+      ..color = color
+      ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
-    final hip = Offset(size.width * 0.48, size.height * 0.42);
-    final shoulder = Offset(size.width * 0.44, size.height * 0.24);
-    final head = Offset(size.width * 0.41, size.height * 0.16);
-    final leftKnee = Offset(size.width * 0.38, size.height * 0.56);
-    final leftFoot = Offset(size.width * 0.30, size.height * 0.76);
-    final rightKnee = Offset(size.width * 0.62, size.height * 0.54);
-    final rightFoot = Offset(size.width * 0.72, size.height * 0.74);
-    final leftElbow = Offset(size.width * 0.35, size.height * 0.34);
-    final rightElbow = Offset(size.width * 0.56, size.height * 0.32);
-    canvas.drawCircle(head, 8, paint);
+    final x = size.width * (0.22 + progress * 0.48);
+    final y = size.height * (0.40 + leanPulse * 0.015);
+    final hip = Offset(x, y);
+    final shoulder = Offset(x - size.width * 0.04, y - size.height * 0.18);
+    final head = Offset(
+      shoulder.dx - size.width * 0.025,
+      shoulder.dy - size.height * 0.08,
+    );
+    final frontKnee = Offset(
+      hip.dx + size.width * (0.10 + stride * 0.025),
+      hip.dy + size.height * (0.15 - stride.abs() * 0.025),
+    );
+    final frontFoot = Offset(
+      hip.dx + size.width * (0.18 + stride * 0.04),
+      size.height * 0.76,
+    );
+    final rearKnee = Offset(
+      hip.dx - size.width * (0.10 + stride * 0.018),
+      hip.dy + size.height * (0.17 + stride.abs() * 0.018),
+    );
+    final rearFoot = Offset(
+      hip.dx - size.width * (0.18 + stride * 0.035),
+      size.height * 0.76,
+    );
+    final frontElbow = Offset(
+      shoulder.dx + size.width * (0.10 - stride * 0.025),
+      shoulder.dy + size.height * 0.09,
+    );
+    final rearElbow = Offset(
+      shoulder.dx - size.width * (0.10 - stride * 0.025),
+      shoulder.dy + size.height * 0.10,
+    );
+    canvas.drawCircle(head, strokeWidth * 2, paint);
     for (final segment in <List<Offset>>[
       [head, shoulder],
       [shoulder, hip],
-      [hip, leftKnee],
-      [leftKnee, leftFoot],
-      [hip, rightKnee],
-      [rightKnee, rightFoot],
-      [shoulder, leftElbow],
-      [shoulder, rightElbow],
+      [hip, frontKnee],
+      [frontKnee, frontFoot],
+      [hip, rearKnee],
+      [rearKnee, rearFoot],
+      [shoulder, frontElbow],
+      [shoulder, rearElbow],
     ]) {
       canvas.drawLine(segment.first, segment.last, paint);
     }
@@ -675,8 +758,10 @@ class _SampleRunnerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SampleRunnerPainter oldDelegate) {
-    return oldDelegate.lineColor != lineColor ||
-        oldDelegate.trackColor != trackColor;
+    return oldDelegate.progress != progress ||
+        oldDelegate.lineColor != lineColor ||
+        oldDelegate.trackColor != trackColor ||
+        oldDelegate.ghostColor != ghostColor;
   }
 }
 
@@ -955,9 +1040,9 @@ class _HeroCard extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: scheme.onPrimary,
-                  fontWeight: FontWeight.w800,
-                ),
+                      color: scheme.onPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -990,8 +1075,8 @@ class _ResultsSummaryCard extends StatelessWidget {
     final headline = score >= 85
         ? l10n.runningCoachOverallHeadlineStrong
         : score >= 70
-        ? l10n.runningCoachOverallHeadlineSolid
-        : l10n.runningCoachOverallHeadlineNeedsWork;
+            ? l10n.runningCoachOverallHeadlineSolid
+            : l10n.runningCoachOverallHeadlineNeedsWork;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1034,11 +1119,9 @@ class _ResultsSummaryCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
-            for (
-              var index = 0;
-              index < prioritizedInsights.length;
-              index += 1
-            ) ...[
+            for (var index = 0;
+                index < prioritizedInsights.length;
+                index += 1) ...[
               _MetricScoreRow(
                 insight: prioritizedInsights[index],
                 priority: focusPriorities[prioritizedInsights[index].metric],
@@ -1196,9 +1279,9 @@ class _InsightCard extends StatelessWidget {
                     child: Text(
                       copy.statusLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: badgeTextColor,
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: badgeTextColor,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                   ),
                 ),
@@ -1214,9 +1297,9 @@ class _InsightCard extends StatelessWidget {
               Text(
                 _qualityReasonText(context, insight.quality),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: Theme.of(context).colorScheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
             const SizedBox(height: 12),
@@ -1363,16 +1446,18 @@ class _PrimaryFocusCard extends StatelessWidget {
                             ? l10n.runningCoachFocusTitle
                             : l10n.runningCoachMaintainTitle,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: isFix
-                              ? scheme.onPrimaryContainer
-                              : scheme.onTertiaryContainer,
-                          fontWeight: FontWeight.w800,
-                        ),
+                              color: isFix
+                                  ? scheme.onPrimaryContainer
+                                  : scheme.onTertiaryContainer,
+                              fontWeight: FontWeight.w800,
+                            ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         copy.title,
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ],
@@ -1398,9 +1483,9 @@ class _PrimaryFocusCard extends StatelessWidget {
               Text(
                 _qualityReasonText(context, insight.quality),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: scheme.error,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: scheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
           ],
@@ -1485,9 +1570,9 @@ class _QualityBadge extends StatelessWidget {
         child: Text(
           '${_confidenceLabel(context)} ${quality.confidencePercent}%',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: isLow ? scheme.onErrorContainer : null,
-            fontWeight: FontWeight.w700,
-          ),
+                color: isLow ? scheme.onErrorContainer : null,
+                fontWeight: FontWeight.w700,
+              ),
         ),
       ),
     );
@@ -1513,9 +1598,9 @@ class _PriorityBadge extends StatelessWidget {
         child: Text(
           l10n.runningCoachPriorityLabel(priority),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: scheme.onPrimaryContainer,
-            fontWeight: FontWeight.w700,
-          ),
+                color: scheme.onPrimaryContainer,
+                fontWeight: FontWeight.w700,
+              ),
         ),
       ),
     );
@@ -1531,22 +1616,18 @@ String _confidenceLabel(BuildContext context) {
 String _qualityReasonText(BuildContext context, RunningMetricQuality quality) {
   final isKorean = Localizations.localeOf(context).languageCode == 'ko';
   return switch (quality.reason) {
-    'low_coverage' =>
-      isKorean
-          ? '추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.'
-          : 'Tracking coverage is low, so treat this metric conservatively.',
-    'limited_samples' =>
-      isKorean
-          ? '안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.'
-          : 'Only a small set of stable frames was read; confirm once more from the same angle.',
-    'contact_phase_proxy' =>
-      isKorean
-          ? '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.'
-          : 'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.',
-    _ =>
-      isKorean
-          ? '촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.'
-          : 'Capture quality is low; confirm again from the same angle.',
+    'low_coverage' => isKorean
+        ? '추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.'
+        : 'Tracking coverage is low, so treat this metric conservatively.',
+    'limited_samples' => isKorean
+        ? '안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.'
+        : 'Only a small set of stable frames was read; confirm once more from the same angle.',
+    'contact_phase_proxy' => isKorean
+        ? '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.'
+        : 'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.',
+    _ => isKorean
+        ? '촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.'
+        : 'Capture quality is low; confirm again from the same angle.',
   };
 }
 

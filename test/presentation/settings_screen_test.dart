@@ -160,6 +160,50 @@ void main() {
   });
 
   testWidgets(
+    'Drive action buttons are hidden while account check is loading',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: false,
+        connectionInfo: null,
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+
+      expect(find.text('확인 중'), findsWidgets);
+      expect(
+        find.widgetWithText(OutlinedButton, 'Google Drive 연결'),
+        findsNothing,
+      );
+      expect(find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'), findsNothing);
+
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(OutlinedButton, 'Google Drive 연결'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
     'parent mode keeps player Drive connection and player restore in parent/player sharing section',
     (WidgetTester tester) async {
       final optionRepository = _MemoryOptionRepository();

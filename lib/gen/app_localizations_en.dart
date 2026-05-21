@@ -30,6 +30,148 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabNews => 'News';
 
   @override
+  String tabGuideTitle(Object tabName) {
+    return '$tabName guide';
+  }
+
+  @override
+  String get welcomeGuideTitle => 'Welcome to your training flow';
+
+  @override
+  String get welcomeGuideIntro =>
+      'Follow the highlighted actions in order. Each tab starts with the button you are most likely to need.';
+
+  @override
+  String get welcomeGuidePrimaryAction => 'Start training log';
+
+  @override
+  String get welcomeGuideSectionFlow => 'Step-by-step flow';
+
+  @override
+  String get welcomeGuideNextTabHint =>
+      'Pick another tab above to preview its buttons.';
+
+  @override
+  String get guideActionToday => 'Today';
+
+  @override
+  String get guideActionMeal => 'Meals';
+
+  @override
+  String get guideActionCardList => 'Cards/List';
+
+  @override
+  String get guideActionSelectDate => 'Select date';
+
+  @override
+  String get guideActionPlus => '+';
+
+  @override
+  String get guideActionPeriod => 'Period';
+
+  @override
+  String get guideActionBenchmark => 'Average';
+
+  @override
+  String get guideActionWeakPoint => 'Focus';
+
+  @override
+  String get guideActionOpenToday => 'Today diary';
+
+  @override
+  String get guideActionRecordSticker => 'Stickers';
+
+  @override
+  String get guideActionSaveDiary => 'Save diary';
+
+  @override
+  String get welcomeHomeOverview =>
+      'Start on Home when you want the app to decide the next useful action.';
+
+  @override
+  String get welcomeHomeStepToday =>
+      'Check today\'s plan, quick actions, and the next unfinished routine first.';
+
+  @override
+  String get welcomeHomeStepMeal =>
+      'Add meals from the meal button before the day ends so recovery records stay complete.';
+
+  @override
+  String get welcomeHomeStepStats =>
+      'Open weekly stats from Home after logging to see whether the week is balanced.';
+
+  @override
+  String get welcomeLogsOverview =>
+      'Use Logs when you are creating or reviewing the actual training note.';
+
+  @override
+  String get welcomeLogsStepAdd =>
+      'Tap Add Entry, fill the session basics, then save the first note.';
+
+  @override
+  String get welcomeLogsStepBoard =>
+      'Open Board inside the note when the drill shape or movement path matters.';
+
+  @override
+  String get welcomeLogsStepReview =>
+      'Switch cards/list and filters to find recent records without reading every note.';
+
+  @override
+  String get welcomeCalendarOverview =>
+      'Use Calendar when the date matters: plans, matches, meals, and notes stay together.';
+
+  @override
+  String get welcomeCalendarStepDate =>
+      'Select a date first so every create action starts on the right day.';
+
+  @override
+  String get welcomeCalendarStepPlus =>
+      'Use + to add a plan, match, or training note from the selected date.';
+
+  @override
+  String get welcomeCalendarStepMeal =>
+      'Add a meal record from the same date when recovery is part of the day.';
+
+  @override
+  String get welcomeStatsOverview =>
+      'Use Stats after several records exist and you want the next training target.';
+
+  @override
+  String get welcomeStatsStepPeriod =>
+      'Change the period to compare this week, last week, or a custom range.';
+
+  @override
+  String get welcomeStatsStepAverage =>
+      'Open average comparison to see which metric is ahead or behind.';
+
+  @override
+  String get welcomeStatsStepFocus =>
+      'Turn the weakest signal into the next plan or note goal.';
+
+  @override
+  String get welcomeDiaryOverview =>
+      'Use Diary to turn the day into one readable story with training, meals, and stickers.';
+
+  @override
+  String get welcomeDiaryStepToday =>
+      'Open today\'s diary from Home or the Diary tab after recording.';
+
+  @override
+  String get welcomeDiaryStepSticker =>
+      'Pull in today\'s record stickers and arrange the reading order.';
+
+  @override
+  String get welcomeDiaryStepSave =>
+      'Save the diary once the title, story, or sticker selection is ready.';
+
+  @override
+  String get logsQuickGuideTitle => 'Quick start guide';
+
+  @override
+  String get logsQuickGuideIntro =>
+      'Create your first record in this order, then return here to review it.';
+
+  @override
   String get newsFifaHubButton => 'FIFA Rank';
 
   @override

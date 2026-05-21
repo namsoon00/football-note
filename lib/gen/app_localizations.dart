@@ -140,6 +140,240 @@ abstract class AppLocalizations {
   /// **'News'**
   String get tabNews;
 
+  /// No description provided for @tabGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{tabName} guide'**
+  String tabGuideTitle(Object tabName);
+
+  /// No description provided for @welcomeGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your training flow'**
+  String get welcomeGuideTitle;
+
+  /// No description provided for @welcomeGuideIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the highlighted actions in order. Each tab starts with the button you are most likely to need.'**
+  String get welcomeGuideIntro;
+
+  /// No description provided for @welcomeGuidePrimaryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start training log'**
+  String get welcomeGuidePrimaryAction;
+
+  /// No description provided for @welcomeGuideSectionFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Step-by-step flow'**
+  String get welcomeGuideSectionFlow;
+
+  /// No description provided for @welcomeGuideNextTabHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick another tab above to preview its buttons.'**
+  String get welcomeGuideNextTabHint;
+
+  /// No description provided for @guideActionToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get guideActionToday;
+
+  /// No description provided for @guideActionMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals'**
+  String get guideActionMeal;
+
+  /// No description provided for @guideActionCardList.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards/List'**
+  String get guideActionCardList;
+
+  /// No description provided for @guideActionSelectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date'**
+  String get guideActionSelectDate;
+
+  /// No description provided for @guideActionPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'+'**
+  String get guideActionPlus;
+
+  /// No description provided for @guideActionPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get guideActionPeriod;
+
+  /// No description provided for @guideActionBenchmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get guideActionBenchmark;
+
+  /// No description provided for @guideActionWeakPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get guideActionWeakPoint;
+
+  /// No description provided for @guideActionOpenToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today diary'**
+  String get guideActionOpenToday;
+
+  /// No description provided for @guideActionRecordSticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Stickers'**
+  String get guideActionRecordSticker;
+
+  /// No description provided for @guideActionSaveDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Save diary'**
+  String get guideActionSaveDiary;
+
+  /// No description provided for @welcomeHomeOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Start on Home when you want the app to decide the next useful action.'**
+  String get welcomeHomeOverview;
+
+  /// No description provided for @welcomeHomeStepToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Check today\'s plan, quick actions, and the next unfinished routine first.'**
+  String get welcomeHomeStepToday;
+
+  /// No description provided for @welcomeHomeStepMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Add meals from the meal button before the day ends so recovery records stay complete.'**
+  String get welcomeHomeStepMeal;
+
+  /// No description provided for @welcomeHomeStepStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Open weekly stats from Home after logging to see whether the week is balanced.'**
+  String get welcomeHomeStepStats;
+
+  /// No description provided for @welcomeLogsOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Logs when you are creating or reviewing the actual training note.'**
+  String get welcomeLogsOverview;
+
+  /// No description provided for @welcomeLogsStepAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Add Entry, fill the session basics, then save the first note.'**
+  String get welcomeLogsStepAdd;
+
+  /// No description provided for @welcomeLogsStepBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Board inside the note when the drill shape or movement path matters.'**
+  String get welcomeLogsStepBoard;
+
+  /// No description provided for @welcomeLogsStepReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch cards/list and filters to find recent records without reading every note.'**
+  String get welcomeLogsStepReview;
+
+  /// No description provided for @welcomeCalendarOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Calendar when the date matters: plans, matches, meals, and notes stay together.'**
+  String get welcomeCalendarOverview;
+
+  /// No description provided for @welcomeCalendarStepDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a date first so every create action starts on the right day.'**
+  String get welcomeCalendarStepDate;
+
+  /// No description provided for @welcomeCalendarStepPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Use + to add a plan, match, or training note from the selected date.'**
+  String get welcomeCalendarStepPlus;
+
+  /// No description provided for @welcomeCalendarStepMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a meal record from the same date when recovery is part of the day.'**
+  String get welcomeCalendarStepMeal;
+
+  /// No description provided for @welcomeStatsOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Stats after several records exist and you want the next training target.'**
+  String get welcomeStatsOverview;
+
+  /// No description provided for @welcomeStatsStepPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the period to compare this week, last week, or a custom range.'**
+  String get welcomeStatsStepPeriod;
+
+  /// No description provided for @welcomeStatsStepAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Open average comparison to see which metric is ahead or behind.'**
+  String get welcomeStatsStepAverage;
+
+  /// No description provided for @welcomeStatsStepFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn the weakest signal into the next plan or note goal.'**
+  String get welcomeStatsStepFocus;
+
+  /// No description provided for @welcomeDiaryOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Diary to turn the day into one readable story with training, meals, and stickers.'**
+  String get welcomeDiaryOverview;
+
+  /// No description provided for @welcomeDiaryStepToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Open today\'s diary from Home or the Diary tab after recording.'**
+  String get welcomeDiaryStepToday;
+
+  /// No description provided for @welcomeDiaryStepSticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull in today\'s record stickers and arrange the reading order.'**
+  String get welcomeDiaryStepSticker;
+
+  /// No description provided for @welcomeDiaryStepSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the diary once the title, story, or sticker selection is ready.'**
+  String get welcomeDiaryStepSave;
+
+  /// No description provided for @logsQuickGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick start guide'**
+  String get logsQuickGuideTitle;
+
+  /// No description provided for @logsQuickGuideIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first record in this order, then return here to review it.'**
+  String get logsQuickGuideIntro;
+
   /// No description provided for @newsFifaHubButton.
   ///
   /// In en, this message translates to:

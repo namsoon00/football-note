@@ -875,6 +875,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     required AppLocalizations l10n,
     required FamilyAccessState familyState,
   }) {
+    if (_driveStatusLoading) {
+      return const SizedBox.shrink();
+    }
     final isSupportMode = familyState.isSupportMode;
     final backupLocked = _backupLockedByChangedPlayerDrive(familyState);
     final actions = <Widget>[
