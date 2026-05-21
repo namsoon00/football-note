@@ -10,6 +10,7 @@ import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
+import '../models/sample_runner_pose.dart';
 import 'running_coach_insight_copy.dart';
 import '../widgets/app_feedback.dart';
 
@@ -933,11 +934,8 @@ class _SampleRunnerPainter extends CustomPainter {
     required Color color,
     required double strokeWidth,
   }) {
-    final phase = progress * 2 * math.pi;
-    final stride = math.sin(phase);
-    final drive = (stride + 1) / 2;
-    final recovery = 1 - drive;
-    final bob = math.cos(phase * 2) * size.height * 0.010;
+    final pose = buildSampleRunnerPose(progress: progress, size: size);
+    final scale = size.height;
     final isGhost = strokeWidth < 4;
     final baseAlpha = isGhost ? 0.18 : 0.96;
     final kitColor = color.withValues(alpha: baseAlpha);
@@ -955,106 +953,41 @@ class _SampleRunnerPainter extends CustomPainter {
     final outlineColor = isGhost
         ? color.withValues(alpha: 0.10)
         : Color.lerp(color, Colors.black, 0.20)!.withValues(alpha: 0.72);
-    final groundY = size.height * 0.78;
-    final x = size.width * (0.17 + progress * 0.60);
-    final hip = Offset(x, groundY - size.height * 0.28 + bob);
-    final chest = Offset(
-      hip.dx - size.width * 0.044,
-      hip.dy - size.height * 0.18,
-    );
-    final neck = Offset(
-      chest.dx - size.width * 0.010,
-      chest.dy - size.height * 0.064,
-    );
-    final head = Offset(
-      neck.dx - size.width * 0.016,
-      neck.dy - size.height * 0.044,
-    );
-    final shoulderFront = Offset(
-      chest.dx + size.width * 0.040,
-      chest.dy + size.height * 0.006,
-    );
-    final shoulderRear = Offset(
-      chest.dx - size.width * 0.036,
-      chest.dy + size.height * 0.018,
-    );
-    final hipFront = Offset(hip.dx + size.width * 0.032, hip.dy);
-    final hipRear = Offset(
-      hip.dx - size.width * 0.032,
-      hip.dy + size.height * 0.006,
-    );
-
-    double mix(double a, double b, double t) => a + (b - a) * t;
-
-    ({Offset knee, Offset ankle, Offset toe}) legPose(
-      Offset anchor,
-      double amount,
-    ) {
-      final knee = Offset(
-        anchor.dx + size.width * mix(-0.088, 0.135, amount),
-        anchor.dy + size.height * mix(0.152, 0.074, amount),
-      );
-      final ankle = Offset(
-        anchor.dx + size.width * mix(-0.205, 0.154, amount),
-        groundY - size.height * mix(0.004, 0.118, amount),
-      );
-      final toe = Offset(
-        ankle.dx + size.width * mix(-0.058, 0.074, amount),
-        groundY - size.height * mix(0.000, 0.038, amount),
-      );
-      return (knee: knee, ankle: ankle, toe: toe);
-    }
-
-    ({Offset elbow, Offset wrist}) armPose(
-      Offset anchor,
-      double amount,
-      double direction,
-    ) {
-      final elbow = Offset(
-        anchor.dx + direction * size.width * mix(0.045, 0.122, amount),
-        anchor.dy + size.height * mix(0.074, 0.128, 1 - amount),
-      );
-      final wrist = Offset(
-        elbow.dx - direction * size.width * mix(0.052, 0.020, amount),
-        elbow.dy + size.height * mix(0.078, 0.032, amount),
-      );
-      return (elbow: elbow, wrist: wrist);
-    }
-
-    final frontLeg = legPose(hipFront, drive);
-    final rearLeg = legPose(hipRear, recovery);
-    final frontArm = armPose(shoulderFront, recovery, -1);
-    final rearArm = armPose(shoulderRear, drive, 1);
-    final upperLimbWidth = math.max(
-      7.0,
-      size.height * (isGhost ? 0.030 : 0.045),
-    );
-    final lowerLimbWidth = math.max(
-      6.0,
-      size.height * (isGhost ? 0.026 : 0.038),
-    );
-    final footWidth = math.max(5.0, size.height * (isGhost ? 0.026 : 0.034));
+    final groundY = pose.groundY;
+    final hip = pose.hip;
+    final chest = pose.chest;
+    final neck = pose.neck;
+    final head = pose.head;
+    final shoulderFront = pose.shoulderFront;
+    final shoulderRear = pose.shoulderRear;
+    final hipFront = pose.hipFront;
+    final hipRear = pose.hipRear;
+    final frontLeg = pose.frontLeg;
+    final rearLeg = pose.rearLeg;
+    final frontArm = pose.frontArm;
+    final rearArm = pose.rearArm;
+    final upperLimbWidth = math.max(7.0, scale * (isGhost ? 0.030 : 0.045));
+    final lowerLimbWidth = math.max(6.0, scale * (isGhost ? 0.026 : 0.038));
+    final footWidth = math.max(5.0, scale * (isGhost ? 0.026 : 0.034));
+    final handRadius = math.max(3.6, scale * (isGhost ? 0.014 : 0.021));
 
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(
-          hip.dx + size.width * 0.02,
-          groundY + size.height * 0.025,
-        ),
-        width: size.width * 0.30,
-        height: size.height * 0.08,
+        center: Offset(hip.dx + scale * 0.04, groundY + scale * 0.025),
+        width: scale * 0.52,
+        height: scale * 0.08,
       ),
       Paint()..color = color.withValues(alpha: isGhost ? 0.04 : 0.10),
     );
 
     for (final line in <double>[0.0, 0.045, 0.09]) {
       final start = Offset(
-        hip.dx - size.width * (0.20 + line),
-        hip.dy + size.height * (0.02 + line),
+        hip.dx - scale * (0.34 + line),
+        hip.dy + scale * (0.02 + line),
       );
       canvas.drawLine(
         start,
-        Offset(start.dx - size.width * 0.10, start.dy + size.height * 0.012),
+        Offset(start.dx - scale * 0.18, start.dy + scale * 0.012),
         Paint()
           ..color = color.withValues(alpha: isGhost ? 0.05 : 0.16)
           ..strokeWidth = math.max(1.0, strokeWidth * 0.32)
@@ -1077,6 +1010,7 @@ class _SampleRunnerPainter extends CustomPainter {
       upperWidth: upperLimbWidth * 0.82,
       lowerWidth: lowerLimbWidth * 0.78,
     );
+    _drawHand(canvas, rearArm.wrist, rearSkin, handRadius * 0.84);
     _drawLimb(
       canvas,
       color: rearSkin,
@@ -1110,23 +1044,11 @@ class _SampleRunnerPainter extends CustomPainter {
     );
     canvas.drawPath(
       Path()
-        ..moveTo(
-          hipRear.dx - size.width * 0.004,
-          hipRear.dy - size.height * 0.006,
-        )
-        ..lineTo(
-          hipFront.dx + size.width * 0.008,
-          hipFront.dy - size.height * 0.002,
-        )
-        ..lineTo(
-          hipFront.dx + size.width * 0.030,
-          hipFront.dy + size.height * 0.064,
-        )
-        ..lineTo(hip.dx + size.width * 0.002, hip.dy + size.height * 0.044)
-        ..lineTo(
-          hipRear.dx - size.width * 0.034,
-          hipRear.dy + size.height * 0.068,
-        )
+        ..moveTo(hipRear.dx - scale * 0.010, hipRear.dy - scale * 0.006)
+        ..lineTo(hipFront.dx + scale * 0.018, hipFront.dy - scale * 0.002)
+        ..lineTo(hipFront.dx + scale * 0.062, hipFront.dy + scale * 0.064)
+        ..lineTo(hip.dx + scale * 0.004, hip.dy + scale * 0.044)
+        ..lineTo(hipRear.dx - scale * 0.066, hipRear.dy + scale * 0.068)
         ..close(),
       Paint()..color = shortsColor,
     );
@@ -1135,24 +1057,36 @@ class _SampleRunnerPainter extends CustomPainter {
       neck,
       chest,
       skinColor.withValues(alpha: isGhost ? 0.12 : 0.86),
-      math.max(5.0, size.height * (isGhost ? 0.020 : 0.030)),
+      math.max(5.0, scale * (isGhost ? 0.020 : 0.030)),
     );
     canvas.drawCircle(
       head,
-      size.height * (isGhost ? 0.045 : 0.054),
+      scale * (isGhost ? 0.045 : 0.054),
       Paint()
         ..color = skinColor.withValues(alpha: isGhost ? 0.12 : 0.96)
         ..style = PaintingStyle.fill,
     );
     canvas.drawCircle(
-      Offset(head.dx - size.width * 0.006, head.dy - size.height * 0.014),
-      size.height * (isGhost ? 0.030 : 0.036),
+      Offset(head.dx - scale * 0.032, head.dy + scale * 0.002),
+      math.max(1.8, scale * 0.012),
+      Paint()..color = skinColor.withValues(alpha: isGhost ? 0.08 : 0.76),
+    );
+    canvas.drawCircle(
+      Offset(head.dx - scale * 0.018, head.dy - scale * 0.014),
+      scale * (isGhost ? 0.030 : 0.036),
       Paint()..color = hairColor,
     );
     canvas.drawCircle(
-      Offset(head.dx + size.width * 0.020, head.dy - size.height * 0.006),
-      math.max(1.5, size.height * 0.006),
+      Offset(head.dx + scale * 0.032, head.dy - scale * 0.006),
+      math.max(1.5, scale * 0.006),
       Paint()..color = outlineColor,
+    );
+    _drawSegment(
+      canvas,
+      Offset(head.dx + scale * 0.036, head.dy + scale * 0.006),
+      Offset(head.dx + scale * 0.052, head.dy + scale * 0.010),
+      outlineColor.withValues(alpha: isGhost ? 0.06 : 0.46),
+      math.max(1.0, strokeWidth * 0.22),
     );
 
     _drawLimb(
@@ -1180,11 +1114,17 @@ class _SampleRunnerPainter extends CustomPainter {
       upperWidth: upperLimbWidth * 0.86,
       lowerWidth: lowerLimbWidth * 0.82,
     );
+    _drawHand(
+      canvas,
+      frontArm.wrist,
+      skinColor.withValues(alpha: isGhost ? 0.15 : 0.94),
+      handRadius,
+    );
 
     _drawSegment(
       canvas,
-      Offset(chest.dx - size.width * 0.010, chest.dy + size.height * 0.030),
-      Offset(hip.dx + size.width * 0.006, hip.dy - size.height * 0.018),
+      Offset(chest.dx - scale * 0.018, chest.dy + scale * 0.030),
+      Offset(hip.dx + scale * 0.012, hip.dy - scale * 0.018),
       Colors.white.withValues(alpha: isGhost ? 0.04 : 0.28),
       math.max(1.0, strokeWidth * 0.34),
     );
@@ -1236,15 +1176,15 @@ class _SampleRunnerPainter extends CustomPainter {
     canvas.drawLine(neck, hip, guidePaint);
     canvas.drawLine(
       Offset(hip.dx, hip.dy + size.height * 0.018),
-      Offset(hip.dx + size.width * 0.026, groundY),
+      Offset(hip.dx + size.height * 0.058, groundY),
       subtleGuidePaint,
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(
-          head.dx - size.width * 0.070,
+          head.dx - size.height * 0.150,
           head.dy - size.height * 0.060,
-          size.width * 0.190,
+          size.height * 0.330,
           groundY - head.dy + size.height * 0.030,
         ),
         const Radius.circular(18),
@@ -1257,10 +1197,10 @@ class _SampleRunnerPainter extends CustomPainter {
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(
-          hip.dx + size.width * 0.030,
+          hip.dx + size.height * 0.068,
           groundY - size.height * 0.030,
         ),
-        width: size.width * 0.120,
+        width: size.height * 0.250,
         height: size.height * 0.090,
       ),
       subtleGuidePaint,
@@ -1277,6 +1217,16 @@ class _SampleRunnerPainter extends CustomPainter {
         Paint()..color = markerColor.withValues(alpha: 0.92),
       );
     }
+  }
+
+  void _drawHand(Canvas canvas, Offset center, Color color, double radius) {
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.fill,
+    );
   }
 
   void _drawLimb(
