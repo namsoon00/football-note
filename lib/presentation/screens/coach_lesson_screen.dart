@@ -3318,7 +3318,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               .map(recordStorageIdFromSeed)
               .whereType<String>()
               .toList(growable: true);
-    var recordStickerReorderMode = false;
     var isClosingFlowRunning = false;
     Timer? autoSaveTimer;
     var autoSaveInFlight = false;
@@ -3468,6 +3467,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         final bottomInset = MediaQuery.of(context).viewInsets.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final availableRecordStickerSeeds = todoSeeds
+                .where((seed) {
+                  final recordStorageId = recordStorageIdFromSeed(seed);
+                  return recordStorageId == null ||
+                      !selectedRecordStickerOrder.contains(recordStorageId);
+                })
+                .toList(growable: false);
+
             Future<bool> ensureSpeechInitialized() async {
               if (speechInitialized) return speechAvailable;
               speechInitialized = true;
@@ -3746,34 +3753,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   ),
                                 ],
                               ),
-                              if (selectedRecordStickerOrder.length > 1) ...[
-                                const SizedBox(height: 8),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: TextButton.icon(
-                                    key: const ValueKey(
-                                      'diary-record-sticker-reorder-toggle',
-                                    ),
-                                    onPressed: () {
-                                      setModalState(() {
-                                        recordStickerReorderMode =
-                                            !recordStickerReorderMode;
-                                      });
-                                    },
-                                    icon: Icon(
-                                      recordStickerReorderMode
-                                          ? Icons.check_rounded
-                                          : Icons.swap_vert_rounded,
-                                      size: 18,
-                                    ),
-                                    label: Text(
-                                      recordStickerReorderMode
-                                          ? _l10n.confirm
-                                          : _l10n.diaryRecordStickerReorder,
-                                    ),
-                                  ),
-                                ),
-                              ],
                               const SizedBox(height: 10),
                               Text(
                                 _l10n.diarySelectedRecordStickersHint,
@@ -3941,7 +3920,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                               Icons.close_rounded,
                                             ),
                                           ),
-                                          if (recordStickerReorderMode)
+                                          if (selectedRecordStickerOrder
+                                                  .length >
+                                              1)
                                             ReorderableDragStartListener(
                                               key: ValueKey(
                                                 'diary-record-sticker-drag-${seed.id}',
@@ -3981,274 +3962,291 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                     );
                                   },
                                 ),
-                              Text(
-                                _l10n.diaryRecordStickerSourceTitle,
-                                style: _theme.textTheme.labelLarge?.copyWith(
-                                  color: _headlineInk,
-                                  fontWeight: FontWeight.w800,
+                              if (availableRecordStickerSeeds.isNotEmpty) ...[
+                                Text(
+                                  _l10n.diaryRecordStickerSourceTitle,
+                                  style: _theme.textTheme.labelLarge?.copyWith(
+                                    color: _headlineInk,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              ...todoSeeds.map(
-                                (seed) => Builder(
-                                  builder: (context) {
-                                    final recordStorageId =
-                                        recordStorageIdFromSeed(seed);
-                                    final isSelected =
-                                        recordStorageId != null &&
-                                        selectedRecordStickerOrder.contains(
-                                          recordStorageId,
-                                        );
-                                    final orderIndex = recordStorageId == null
-                                        ? -1
-                                        : selectedRecordStickerOrder.indexOf(
+                                const SizedBox(height: 10),
+                                ...availableRecordStickerSeeds.map(
+                                  (seed) => Builder(
+                                    builder: (context) {
+                                      final recordStorageId =
+                                          recordStorageIdFromSeed(seed);
+                                      final isSelected =
+                                          recordStorageId != null &&
+                                          selectedRecordStickerOrder.contains(
                                             recordStorageId,
                                           );
-                                    return Container(
-                                      key: ValueKey(
-                                        'diary-todo-seed-${seed.id}',
-                                      ),
-                                      margin: const EdgeInsets.only(bottom: 10),
-                                      padding: const EdgeInsets.fromLTRB(
-                                        12,
-                                        12,
-                                        12,
-                                        12,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? _accentInk.withValues(alpha: 0.08)
-                                            : _composerIdleSurface(),
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
+                                      final orderIndex = recordStorageId == null
+                                          ? -1
+                                          : selectedRecordStickerOrder.indexOf(
+                                              recordStorageId,
+                                            );
+                                      return Container(
+                                        key: ValueKey(
+                                          'diary-todo-seed-${seed.id}',
+                                        ),
+                                        margin: const EdgeInsets.only(
+                                          bottom: 10,
+                                        ),
+                                        padding: const EdgeInsets.fromLTRB(
+                                          12,
+                                          12,
+                                          12,
+                                          12,
+                                        ),
+                                        decoration: BoxDecoration(
                                           color: isSelected
                                               ? _accentInk.withValues(
-                                                  alpha: 0.28,
+                                                  alpha: 0.08,
                                                 )
-                                              : _composerIdleBorder().color,
-                                        ),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Container(
-                                                width: 36,
-                                                height: 36,
-                                                decoration: BoxDecoration(
-                                                  color: _accentInk.withValues(
-                                                    alpha: 0.12,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: Icon(
-                                                  seed.icon,
-                                                  size: 18,
-                                                  color: _accentInk,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Expanded(
-                                                child: Row(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Expanded(
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            seed.title,
-                                                            maxLines:
-                                                                seed.recordKind ==
-                                                                    _DiaryRecordStickerKind
-                                                                        .news
-                                                                ? 2
-                                                                : null,
-                                                            overflow:
-                                                                seed.recordKind ==
-                                                                    _DiaryRecordStickerKind
-                                                                        .news
-                                                                ? TextOverflow
-                                                                      .ellipsis
-                                                                : null,
-                                                            style: _theme
-                                                                .textTheme
-                                                                .labelLarge
-                                                                ?.copyWith(
-                                                                  color:
-                                                                      _headlineInk,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w800,
-                                                                ),
-                                                          ),
-                                                          const SizedBox(
-                                                            height: 6,
-                                                          ),
-                                                          Text(
-                                                            seed.summary,
-                                                            maxLines:
-                                                                seed.recordKind ==
-                                                                    _DiaryRecordStickerKind
-                                                                        .news
-                                                                ? 2
-                                                                : null,
-                                                            overflow:
-                                                                seed.recordKind ==
-                                                                    _DiaryRecordStickerKind
-                                                                        .news
-                                                                ? TextOverflow
-                                                                      .ellipsis
-                                                                : null,
-                                                            style: _theme
-                                                                .textTheme
-                                                                .bodySmall
-                                                                ?.copyWith(
-                                                                  color:
-                                                                      _bodyInk,
-                                                                  height: 1.45,
-                                                                ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    if (seed.trailingIcon !=
-                                                        null) ...[
-                                                      const SizedBox(width: 8),
-                                                      Tooltip(
-                                                        message:
-                                                            seed.trailingIconTooltip ??
-                                                            '',
-                                                        child: Container(
-                                                          width: 28,
-                                                          height: 28,
-                                                          decoration: BoxDecoration(
-                                                            color:
-                                                                (seed.trailingIconColor ??
-                                                                        _accentInk)
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.14,
-                                                                    ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  999,
-                                                                ),
-                                                          ),
-                                                          child: Icon(
-                                                            seed.trailingIcon,
-                                                            size: 16,
-                                                            color:
-                                                                seed.trailingIconColor ??
-                                                                _accentInk,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
+                                              : _composerIdleSurface(),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
                                           ),
-                                          if (recordStorageId != null) ...[
-                                            const SizedBox(height: 10),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? _accentInk.withValues(
+                                                    alpha: 0.28,
+                                                  )
+                                                : _composerIdleBorder().color,
+                                          ),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
                                             Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                FilterChip(
-                                                  key: ValueKey(
-                                                    'diary-record-sticker-${seed.id}',
+                                                Container(
+                                                  width: 36,
+                                                  height: 36,
+                                                  decoration: BoxDecoration(
+                                                    color: _accentInk
+                                                        .withValues(
+                                                          alpha: 0.12,
+                                                        ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
                                                   ),
-                                                  label: Text(
-                                                    isSelected
-                                                        ? _l10n
-                                                              .diaryRecordStickerPinned
-                                                        : _l10n
-                                                              .diaryRecordStickerPin,
-                                                  ),
-                                                  avatar: Icon(
-                                                    isSelected
-                                                        ? Icons
-                                                              .check_circle_outline
-                                                        : Icons
-                                                              .push_pin_outlined,
+                                                  child: Icon(
+                                                    seed.icon,
                                                     size: 18,
                                                     color: _accentInk,
                                                   ),
-                                                  selected: isSelected,
-                                                  backgroundColor:
-                                                      _composerIdleSurface(),
-                                                  selectedColor: _accentInk
-                                                      .withValues(alpha: 0.12),
-                                                  side: isSelected
-                                                      ? BorderSide(
-                                                          color: _accentInk
-                                                              .withValues(
-                                                                alpha: 0.4,
-                                                              ),
-                                                        )
-                                                      : _composerIdleBorder(),
-                                                  onSelected: (selected) {
-                                                    setModalState(() {
-                                                      if (selected) {
-                                                        if (!selectedRecordStickerOrder
-                                                            .contains(
-                                                              recordStorageId,
-                                                            )) {
-                                                          selectedRecordStickerOrder
-                                                              .add(
-                                                                recordStorageId,
-                                                              );
-                                                        }
-                                                      } else {
-                                                        selectedRecordStickerOrder
-                                                            .remove(
-                                                              recordStorageId,
-                                                            );
-                                                      }
-                                                    });
-                                                    scheduleAutoSave();
-                                                  },
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Visibility(
-                                                  visible:
-                                                      isSelected &&
-                                                      orderIndex >= 0,
-                                                  maintainSize: true,
-                                                  maintainState: true,
-                                                  maintainAnimation: true,
-                                                  child: Text(
-                                                    _l10n
-                                                        .diaryRecordStickerSelectedOrder(
-                                                          orderIndex + 1,
+                                                const SizedBox(width: 10),
+                                                Expanded(
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              seed.title,
+                                                              maxLines:
+                                                                  seed.recordKind ==
+                                                                      _DiaryRecordStickerKind
+                                                                          .news
+                                                                  ? 2
+                                                                  : null,
+                                                              overflow:
+                                                                  seed.recordKind ==
+                                                                      _DiaryRecordStickerKind
+                                                                          .news
+                                                                  ? TextOverflow
+                                                                        .ellipsis
+                                                                  : null,
+                                                              style: _theme
+                                                                  .textTheme
+                                                                  .labelLarge
+                                                                  ?.copyWith(
+                                                                    color:
+                                                                        _headlineInk,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w800,
+                                                                  ),
+                                                            ),
+                                                            const SizedBox(
+                                                              height: 6,
+                                                            ),
+                                                            Text(
+                                                              seed.summary,
+                                                              maxLines:
+                                                                  seed.recordKind ==
+                                                                      _DiaryRecordStickerKind
+                                                                          .news
+                                                                  ? 2
+                                                                  : null,
+                                                              overflow:
+                                                                  seed.recordKind ==
+                                                                      _DiaryRecordStickerKind
+                                                                          .news
+                                                                  ? TextOverflow
+                                                                        .ellipsis
+                                                                  : null,
+                                                              style: _theme
+                                                                  .textTheme
+                                                                  .bodySmall
+                                                                  ?.copyWith(
+                                                                    color:
+                                                                        _bodyInk,
+                                                                    height:
+                                                                        1.45,
+                                                                  ),
+                                                            ),
+                                                          ],
                                                         ),
-                                                    style: _theme
-                                                        .textTheme
-                                                        .labelSmall
-                                                        ?.copyWith(
-                                                          color: _accentInk,
-                                                          fontWeight:
-                                                              FontWeight.w900,
+                                                      ),
+                                                      if (seed.trailingIcon !=
+                                                          null) ...[
+                                                        const SizedBox(
+                                                          width: 8,
                                                         ),
+                                                        Tooltip(
+                                                          message:
+                                                              seed.trailingIconTooltip ??
+                                                              '',
+                                                          child: Container(
+                                                            width: 28,
+                                                            height: 28,
+                                                            decoration: BoxDecoration(
+                                                              color:
+                                                                  (seed.trailingIconColor ??
+                                                                          _accentInk)
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.14,
+                                                                      ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    999,
+                                                                  ),
+                                                            ),
+                                                            child: Icon(
+                                                              seed.trailingIcon,
+                                                              size: 16,
+                                                              color:
+                                                                  seed.trailingIconColor ??
+                                                                  _accentInk,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
                                                   ),
                                                 ),
                                               ],
                                             ),
+                                            if (recordStorageId != null) ...[
+                                              const SizedBox(height: 10),
+                                              Row(
+                                                children: [
+                                                  FilterChip(
+                                                    key: ValueKey(
+                                                      'diary-record-sticker-${seed.id}',
+                                                    ),
+                                                    label: Text(
+                                                      isSelected
+                                                          ? _l10n
+                                                                .diaryRecordStickerPinned
+                                                          : _l10n
+                                                                .diaryRecordStickerPin,
+                                                    ),
+                                                    avatar: Icon(
+                                                      isSelected
+                                                          ? Icons
+                                                                .check_circle_outline
+                                                          : Icons
+                                                                .push_pin_outlined,
+                                                      size: 18,
+                                                      color: _accentInk,
+                                                    ),
+                                                    selected: isSelected,
+                                                    backgroundColor:
+                                                        _composerIdleSurface(),
+                                                    selectedColor: _accentInk
+                                                        .withValues(
+                                                          alpha: 0.12,
+                                                        ),
+                                                    side: isSelected
+                                                        ? BorderSide(
+                                                            color: _accentInk
+                                                                .withValues(
+                                                                  alpha: 0.4,
+                                                                ),
+                                                          )
+                                                        : _composerIdleBorder(),
+                                                    onSelected: (selected) {
+                                                      setModalState(() {
+                                                        if (selected) {
+                                                          if (!selectedRecordStickerOrder
+                                                              .contains(
+                                                                recordStorageId,
+                                                              )) {
+                                                            selectedRecordStickerOrder
+                                                                .add(
+                                                                  recordStorageId,
+                                                                );
+                                                          }
+                                                        } else {
+                                                          selectedRecordStickerOrder
+                                                              .remove(
+                                                                recordStorageId,
+                                                              );
+                                                        }
+                                                      });
+                                                      scheduleAutoSave();
+                                                    },
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Visibility(
+                                                    visible:
+                                                        isSelected &&
+                                                        orderIndex >= 0,
+                                                    maintainSize: true,
+                                                    maintainState: true,
+                                                    maintainAnimation: true,
+                                                    child: Text(
+                                                      _l10n
+                                                          .diaryRecordStickerSelectedOrder(
+                                                            orderIndex + 1,
+                                                          ),
+                                                      style: _theme
+                                                          .textTheme
+                                                          .labelSmall
+                                                          ?.copyWith(
+                                                            color: _accentInk,
+                                                            fontWeight:
+                                                                FontWeight.w900,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ],
-                                        ],
-                                      ),
-                                    );
-                                  },
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),

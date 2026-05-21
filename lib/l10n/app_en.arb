@@ -867,7 +867,7 @@
   "diaryTrainingNeedsWorkLabel": "Needs work",
   "diaryTrainingNextGoalLabel": "Next goal",
   "diarySelectedRecordStickersTitle": "Selected record stickers",
-  "diarySelectedRecordStickersHint": "Tap Reorder sticker, then drag the handle to change the order.",
+  "diarySelectedRecordStickersHint": "Drag the handle to reorder, or use remove to take a sticker out.",
   "diaryRecordStickerSectionTitle": "Record sticker layout",
   "diaryRecordStickerSectionSubtitle": "Pick from today's records and organize the reading order above.",
   "diaryRecordStickerSourceTitle": "Pull from today records",

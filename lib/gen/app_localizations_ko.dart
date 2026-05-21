@@ -2079,7 +2079,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get diarySelectedRecordStickersHint =>
-      '순서 변경을 누른 뒤 손잡이를 드래그해서 순서를 바꿀 수 있어요.';
+      '손잡이를 드래그해서 순서를 바꾸고, 삭제 버튼으로 스티커를 뺄 수 있어요.';
 
   @override
   String get diaryRecordStickerSectionTitle => '기록 스티커 구성';
