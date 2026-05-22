@@ -4949,13 +4949,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachUploadGuideTitle.
   ///
   /// In en, this message translates to:
-  /// **'Upload-focused analysis'**
+  /// **'Video upload guide'**
   String get runningCoachUploadGuideTitle;
 
   /// No description provided for @runningCoachUploadGuideBody.
   ///
   /// In en, this message translates to:
-  /// **'Use a saved video so the app can sample clear frames and compare the same movement points consistently.'**
+  /// **'Open the sample guide to see the recording setup, frame cues, and movement readouts on one sample video screen.'**
   String get runningCoachUploadGuideBody;
 
   /// No description provided for @runningCoachUploadGuideStepSide.
@@ -4985,14 +4985,20 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sample video analysis'**
+  /// **'Sample video guide'**
   String get runningCoachSampleTitle;
 
   /// No description provided for @runningCoachSampleBody.
   ///
   /// In en, this message translates to:
-  /// **'Example: a 6-second side-view clip reads 24/24 frames and uses 10° torso lean, 0.08 foot-strike distance, and compact 90° arms for a 100-point sample.'**
+  /// **'Use this loop as the reference: the video, posture readouts, and recording checks stay together so each cue is easier to match to the runner.'**
   String get runningCoachSampleBody;
+
+  /// No description provided for @runningCoachSampleGuideAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open sample video guide'**
+  String get runningCoachSampleGuideAction;
 
   /// No description provided for @runningCoachSampleFrameLabel.
   ///
@@ -5003,38 +5009,68 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleFrameGuideTitle.
   ///
   /// In en, this message translates to:
-  /// **'Good side-view frame'**
+  /// **'What to compare in the video'**
   String get runningCoachSampleFrameGuideTitle;
 
   /// No description provided for @runningCoachSampleFrameGuideBody.
   ///
   /// In en, this message translates to:
-  /// **'The sample loop keeps a forward-driving runner centered in the analysis frame so posture, landing, and arm timing are easy to compare.'**
+  /// **'Read the overlays with the runner: posture, landing, arm timing, and frame coverage are shown on top of the sample instead of only as a text list.'**
   String get runningCoachSampleFrameGuideBody;
 
   /// No description provided for @runningCoachSampleCueLean.
   ///
   /// In en, this message translates to:
-  /// **'Light forward lean from ankle to shoulder'**
+  /// **'Ankle-to-shoulder lean without folding at the waist'**
   String get runningCoachSampleCueLean;
 
   /// No description provided for @runningCoachSampleCueFrame.
   ///
   /// In en, this message translates to:
-  /// **'Whole runner stays inside the frame'**
+  /// **'Head, hips, knees, and feet stay visible'**
   String get runningCoachSampleCueFrame;
 
   /// No description provided for @runningCoachSampleCueFoot.
   ///
   /// In en, this message translates to:
-  /// **'Foot lands close under the hip'**
+  /// **'Foot lands under the hip with toes forward'**
   String get runningCoachSampleCueFoot;
 
   /// No description provided for @runningCoachSampleCueArms.
   ///
   /// In en, this message translates to:
-  /// **'Arms swing compactly against the legs'**
+  /// **'Elbows stay bent and swing opposite the legs'**
   String get runningCoachSampleCueArms;
+
+  /// No description provided for @runningCoachSampleRecordingGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record like the sample'**
+  String get runningCoachSampleRecordingGuideTitle;
+
+  /// No description provided for @runningCoachSampleOverlayPosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Lean 10°'**
+  String get runningCoachSampleOverlayPosture;
+
+  /// No description provided for @runningCoachSampleOverlayArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arms 90°'**
+  String get runningCoachSampleOverlayArms;
+
+  /// No description provided for @runningCoachSampleOverlayFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing 0.08'**
+  String get runningCoachSampleOverlayFoot;
+
+  /// No description provided for @runningCoachSampleOverlayFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'24/24 frames'**
+  String get runningCoachSampleOverlayFrames;
 
   /// No description provided for @runningCoachLiveCardTitle.
   ///
