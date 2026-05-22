@@ -220,6 +220,7 @@ class WeatherSharedResource {
     required Locale locale,
     http.Client? client,
     DateTime? now,
+    bool allowRetry = true,
   }) async {
     return _fetchSnapshot(
       latitude: latitude,
@@ -230,6 +231,7 @@ class WeatherSharedResource {
       client: client,
       now: now,
       cacheSnapshot: true,
+      allowRetry: allowRetry,
     );
   }
 
@@ -240,6 +242,7 @@ class WeatherSharedResource {
     required Locale locale,
     http.Client? client,
     DateTime? now,
+    bool allowRetry = true,
   }) async {
     return _fetchSnapshot(
       latitude: latitude,
@@ -250,6 +253,7 @@ class WeatherSharedResource {
       client: client,
       now: now,
       cacheSnapshot: false,
+      allowRetry: allowRetry,
     );
   }
 
@@ -260,6 +264,7 @@ class WeatherSharedResource {
     required AppLocalizations l10n,
     required Locale locale,
     required bool cacheSnapshot,
+    required bool allowRetry,
     http.Client? client,
     DateTime? now,
   }) async {
@@ -277,6 +282,7 @@ class WeatherSharedResource {
           fallback: const WeatherDetailsSnapshot(
             provider: WeatherDataProvider.openMeteo,
           ),
+          allowRetry: allowRetry,
         ),
         _withTimeoutRetry<AirQualitySnapshot>(
           () => _fetchAirQualitySnapshot(
@@ -285,6 +291,7 @@ class WeatherSharedResource {
             client: localClient,
           ),
           fallback: const AirQualitySnapshot(),
+          allowRetry: allowRetry,
         ),
         _withTimeoutRetry<List<WeatherSharedDailyAirQuality>>(
           () => _fetchDailyAirQualityForecasts(
@@ -293,6 +300,7 @@ class WeatherSharedResource {
             client: localClient,
           ),
           fallback: const <WeatherSharedDailyAirQuality>[],
+          allowRetry: allowRetry,
         ),
         _withTimeoutRetry<double?>(
           () => _fetchYesterdayTemperatureAtSameHour(
@@ -302,6 +310,7 @@ class WeatherSharedResource {
             client: localClient,
           ),
           fallback: null,
+          allowRetry: allowRetry,
         ),
       ]);
       final snapshot = composeSnapshot(
@@ -329,12 +338,14 @@ class WeatherSharedResource {
   static Future<T> _withTimeoutRetry<T>(
     Future<T> Function() request, {
     required T fallback,
+    required bool allowRetry,
   }) async {
-    for (var attempt = 0; attempt < _maxFetchAttempts; attempt++) {
+    final maxAttempts = allowRetry ? _maxFetchAttempts : 1;
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         return await request().timeout(_fetchTimeout);
       } catch (_) {
-        if (attempt == _maxFetchAttempts - 1) {
+        if (attempt == maxAttempts - 1) {
           return fallback;
         }
         await Future<void>.delayed(_retryDelay);

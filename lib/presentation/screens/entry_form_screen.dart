@@ -586,6 +586,39 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     return _formSnapshot() != _initialSnapshot;
   }
 
+  int? _resolveEditingKey(List<TrainingEntry> allEntries) {
+    final currentKey = widget.entry?.key;
+    if (currentKey is int) return currentKey;
+    final source = widget.entry;
+    if (source == null) return null;
+
+    final candidates = allEntries
+        .where((entry) {
+          final key = entry.key;
+          return key is int &&
+              entry.createdAt == source.createdAt &&
+              entry.date == source.date &&
+              entry.isMatch == source.isMatch;
+        })
+        .toList(growable: false);
+    if (candidates.length == 1) {
+      return candidates.single.key as int;
+    }
+
+    final strictCandidates = candidates
+        .where((entry) {
+          return entry.durationMinutes == source.durationMinutes &&
+              entry.type == source.type &&
+              entry.program == source.program &&
+              entry.location == source.location;
+        })
+        .toList(growable: false);
+    if (strictCandidates.length == 1) {
+      return strictCandidates.single.key as int;
+    }
+    return null;
+  }
+
   bool get _isReadOnlyMode {
     return FamilyAccessService(
       widget.optionRepository,
@@ -3081,7 +3114,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           );
         }
       } else {
-        final editingKey = _editingKey;
+        final editingKey = _editingKey ?? _resolveEditingKey(allEntries);
         if (editingKey == null) {
           if (!silent && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -3096,6 +3129,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           }
           return;
         }
+        _editingKey = editingKey;
         await widget.trainingService.update(editingKey, entry);
         final previousEntryForXp = _persistedEntryForXp ?? widget.entry!;
         levelAward = await playerLevelService.awardForTrainingLogUpdate(

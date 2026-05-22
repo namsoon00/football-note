@@ -586,6 +586,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get playerXpGuideTrainingSketchSaved => '훈련 스케치 저장';
 
   @override
+  String get playerXpGuideTrainingSketchSavedXp => '+5 XP / +2 XP';
+
+  @override
   String get playerXpGuideDiaryCreated => '다이어리 작성';
 
   @override
@@ -1729,6 +1732,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherLoadFailed => '현재 위치 날씨를 불러오지 못했어요.';
+
+  @override
+  String get homeWeatherRetryTitle => '날씨 다시 시도';
+
+  @override
+  String get homeWeatherRetrySubtitle => '눌러서 불러오기';
 
   @override
   String get homeWeatherLocationUnknown => '현재 위치';

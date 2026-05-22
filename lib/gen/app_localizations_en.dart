@@ -618,6 +618,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerXpGuideTrainingSketchSaved => 'Training sketch saved';
 
   @override
+  String get playerXpGuideTrainingSketchSavedXp => '+5 XP / +2 XP';
+
+  @override
   String get playerXpGuideDiaryCreated => 'Diary created';
 
   @override
@@ -1797,6 +1800,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherLoadFailed => 'Failed to load local weather.';
+
+  @override
+  String get homeWeatherRetryTitle => 'Retry weather';
+
+  @override
+  String get homeWeatherRetrySubtitle => 'Tap to load';
 
   @override
   String get homeWeatherLocationUnknown => 'Current location';

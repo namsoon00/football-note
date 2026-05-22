@@ -128,6 +128,97 @@ void main() {
     expect(find.text('open'), findsOneWidget);
   });
 
+  testWidgets('entry edit save resolves missing Hive key from stored entry', (
+    WidgetTester tester,
+  ) async {
+    final original = TrainingEntry(
+      date: DateTime(2026, 3, 16, 18),
+      createdAt: DateTime(2026, 3, 16, 18),
+      durationMinutes: 65,
+      intensity: 3,
+      type: '패스',
+      mood: 4,
+      injury: false,
+      notes: '기존 아쉬운 점',
+      location: '학교 운동장',
+      program: '패스',
+      goodPoints: '시야가 좋았다.',
+      improvements: '기존 아쉬운 점',
+      nextGoal: '압박 전 고개 들기',
+    );
+    await trainingService.add(original);
+    final detachedEntry = TrainingEntry(
+      date: original.date,
+      createdAt: original.createdAt,
+      durationMinutes: original.durationMinutes,
+      intensity: original.intensity,
+      type: original.type,
+      mood: original.mood,
+      injury: original.injury,
+      notes: original.notes,
+      location: original.location,
+      program: original.program,
+      goodPoints: original.goodPoints,
+      improvements: original.improvements,
+      nextGoal: original.nextGoal,
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => EntryFormScreen(
+                          trainingService: trainingService,
+                          optionRepository: optionRepository,
+                          localeService: localeService,
+                          settingsService: settingsService,
+                          entry: detachedEntry,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('open-detached'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-detached'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final improvementsField = find.ancestor(
+      of: find.text('아쉬운 점'),
+      matching: find.byType(TextFormField),
+    );
+    await tester.ensureVisible(improvementsField);
+    await tester.enterText(improvementsField, '압박이 오기 전에 선택지를 더 빨리 봤다.');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    expect(trainingBox.length, 1);
+    expect(trainingBox.values.single.improvements, '압박이 오기 전에 선택지를 더 빨리 봤다.');
+    expect(find.text('open-detached'), findsOneWidget);
+  });
+
   testWidgets(
     'initial training sketch flow returns to previous screen after back',
     (WidgetTester tester) async {
@@ -332,112 +423,113 @@ void main() {
     },
   );
 
-  testWidgets('parent feedback saves separately and is visible in player mode', (
-    WidgetTester tester,
-  ) async {
-    final original = TrainingEntry(
-      date: DateTime(2026, 4, 22, 18),
-      createdAt: DateTime(2026, 4, 22, 18),
-      durationMinutes: 70,
-      intensity: 4,
-      type: '드리블',
-      mood: 4,
-      injury: false,
-      notes: '기존 메모',
-      goodPoints: '터치가 안정적이었다.',
-      improvements: '압박 회피가 늦었다.',
-      nextGoal: '고개를 더 들고 시작한다.',
-      location: '학교 운동장',
-      program: '볼터치',
-    );
-    await trainingService.add(original);
-    final storedEntry = (await trainingService.allEntries()).single;
-    await optionRepository.setValue(
-      FamilyAccessService.currentRoleLocalKey,
-      FamilyRole.parent.name,
-    );
+  testWidgets(
+    'parent feedback saves separately and is visible in player mode',
+    (WidgetTester tester) async {
+      final original = TrainingEntry(
+        date: DateTime(2026, 4, 22, 18),
+        createdAt: DateTime(2026, 4, 22, 18),
+        durationMinutes: 70,
+        intensity: 4,
+        type: '드리블',
+        mood: 4,
+        injury: false,
+        notes: '기존 메모',
+        goodPoints: '터치가 안정적이었다.',
+        improvements: '압박 회피가 늦었다.',
+        nextGoal: '고개를 더 들고 시작한다.',
+        location: '학교 운동장',
+        program: '볼터치',
+      );
+      await trainingService.add(original);
+      final storedEntry = (await trainingService.allEntries()).single;
+      await optionRepository.setValue(
+        FamilyAccessService.currentRoleLocalKey,
+        FamilyRole.parent.name,
+      );
 
-    await tester.pumpWidget(
-      DefaultAssetBundle(
-        bundle: TestAssetBundle(),
-        child: MaterialApp(
-          locale: const Locale('ko', 'KR'),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
-          home: EntryFormScreen(
-            trainingService: trainingService,
-            optionRepository: optionRepository,
-            localeService: localeService,
-            settingsService: settingsService,
-            entry: storedEntry,
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: EntryFormScreen(
+              trainingService: trainingService,
+              optionRepository: optionRepository,
+              localeService: localeService,
+              settingsService: settingsService,
+              entry: storedEntry,
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(FilledButton, '피드백 입력'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, '피드백 입력'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, '피드백 입력'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, '피드백 입력'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('보호자 피드백'), findsWidgets);
+      expect(find.text('보호자 피드백'), findsWidgets);
 
-    final feedbackField = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == '보호자 피드백 입력',
-    );
-    expect(feedbackField, findsOneWidget);
+      final feedbackField = find.byWidgetPredicate(
+        (widget) =>
+            widget is TextField && widget.decoration?.labelText == '보호자 피드백 입력',
+      );
+      expect(feedbackField, findsOneWidget);
 
-    await tester.enterText(feedbackField, '턴 타이밍이 좋아졌고 시야가 더 넓어졌어요.');
-    await tester.pump();
-    await tester.tap(find.widgetWithText(FilledButton, '피드백 저장'));
-    await tester.pumpAndSettle();
+      await tester.enterText(feedbackField, '턴 타이밍이 좋아졌고 시야가 더 넓어졌어요.');
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, '피드백 저장'));
+      await tester.pumpAndSettle();
 
-    final raw = optionBox.get(FamilyAccessService.parentTrainingFeedbackKey);
-    expect(raw, isA<Map>());
-    expect(
-      ((raw as Map).values.single as Map)['message'],
-      '턴 타이밍이 좋아졌고 시야가 더 넓어졌어요.',
-    );
+      final raw = optionBox.get(FamilyAccessService.parentTrainingFeedbackKey);
+      expect(raw, isA<Map>());
+      expect(
+        ((raw as Map).values.single as Map)['message'],
+        '턴 타이밍이 좋아졌고 시야가 더 넓어졌어요.',
+      );
 
-    await optionRepository.setValue(
-      FamilyAccessService.currentRoleLocalKey,
-      FamilyRole.child.name,
-    );
+      await optionRepository.setValue(
+        FamilyAccessService.currentRoleLocalKey,
+        FamilyRole.child.name,
+      );
 
-    await tester.pumpWidget(
-      DefaultAssetBundle(
-        bundle: TestAssetBundle(),
-        child: MaterialApp(
-          locale: const Locale('ko', 'KR'),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
-          home: EntryFormScreen(
-            trainingService: trainingService,
-            optionRepository: optionRepository,
-            localeService: localeService,
-            settingsService: settingsService,
-            entry: storedEntry,
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: EntryFormScreen(
+              trainingService: trainingService,
+              optionRepository: optionRepository,
+              localeService: localeService,
+              settingsService: settingsService,
+              entry: storedEntry,
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('보호자 피드백'), findsOneWidget);
-    expect(find.text('턴 타이밍이 좋아졌고 시야가 더 넓어졌어요.'), findsOneWidget);
-  });
+      expect(find.text('보호자 피드백'), findsOneWidget);
+      expect(find.text('턴 타이밍이 좋아졌고 시야가 더 넓어졌어요.'), findsOneWidget);
+    },
+  );
 
   testWidgets('parent mode can open saved fortune dialog', (
     WidgetTester tester,

@@ -84,7 +84,7 @@ class PlayerXpGuideScreen extends StatelessWidget {
           _XpGuideItem(
             icon: Icons.draw_outlined,
             title: l10n.playerXpGuideTrainingSketchSaved,
-            xpLabel: '+5 XP',
+            xpLabel: l10n.playerXpGuideTrainingSketchSavedXp,
           ),
           _XpGuideItem(
             icon: Icons.menu_book_outlined,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/player_level_service.dart';
+import 'package:football_note/application/training_board_service.dart';
+import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/models/training_method_layout.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
@@ -77,6 +80,44 @@ void main() {
 
     final saved = TrainingMethodLayout.decode(savedLayout ?? '');
     expect(saved.pages.single.methodText, '메모 자동 저장');
+  });
+
+  testWidgets('managed training sketch auto save awards daily sketch xp', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    final optionRepository = _MemoryOptionRepository();
+    final board = await TrainingBoardService(optionRepository).createBoard(
+      title: '자동 저장 XP',
+      layoutJson: const TrainingMethodLayout(
+        pages: <TrainingMethodPage>[
+          TrainingMethodPage(name: '자동 저장 XP', items: <TrainingMethodItem>[]),
+        ],
+      ).encode(),
+    );
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: board.title,
+          initialLayoutJson: board.layoutJson,
+          optionRepository: optionRepository,
+          initialSelectedBoardIds: <String>[board.id],
+          initialBoardId: board.id,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: true,
+      itemKey: 'training-topbar-menu-notes',
+    );
+    await tester.enterText(find.byType(TextField).first, '자동 저장도 XP');
+    await tester.pump(const Duration(milliseconds: 900));
+
+    expect(PlayerLevelService(optionRepository).loadState().totalXp, 2);
   });
 
   testWidgets('player routes are capped by available players', (
@@ -1000,4 +1041,45 @@ void _setPortraitSurface(
   Size size = const Size(430, 900),
 }) {
   _setLandscapeSurface(tester, size: size);
+}
+
+class _MemoryOptionRepository implements OptionRepository {
+  final Map<String, dynamic> _values = <String, dynamic>{};
+
+  @override
+  List<String> getOptions(String key, List<String> defaults) {
+    final stored = _values[key];
+    if (stored is List) {
+      return stored.map((item) => item.toString()).toList();
+    }
+    _values[key] = List<String>.from(defaults);
+    return List<String>.from(defaults);
+  }
+
+  @override
+  List<int> getIntOptions(String key, List<int> defaults) {
+    final stored = _values[key];
+    if (stored is List) {
+      return stored.map((item) => int.tryParse(item.toString()) ?? 0).toList();
+    }
+    _values[key] = List<int>.from(defaults);
+    return List<int>.from(defaults);
+  }
+
+  @override
+  T? getValue<T>(String key) {
+    final value = _values[key];
+    if (value is T) return value;
+    return null;
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    _values[key] = value;
+  }
+
+  @override
+  Future<void> saveOptions(String key, List<dynamic> options) async {
+    _values[key] = List<dynamic>.from(options);
+  }
 }
