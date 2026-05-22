@@ -171,7 +171,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       final isKo = mounted
           ? Localizations.localeOf(context).languageCode == 'ko'
           : false;
-      await _saveBoard(isKo, showFeedback: false, awardXp: false);
+      await _saveBoard(
+        isKo,
+        showFeedback: false,
+        awardXp: true,
+        showAwardFeedback: false,
+      );
     } finally {
       _autoSaveInProgress = false;
       if (mounted && _hasUnsavedChanges) {
@@ -1026,6 +1031,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     bool isKo, {
     bool showFeedback = true,
     bool awardXp = true,
+    bool showAwardFeedback = true,
   }) async {
     if (widget.readOnly) return false;
     if (_playbackTracks.isNotEmpty) {
@@ -1057,7 +1063,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         boardAward = await PlayerLevelService(
           widget.optionRepository!,
         ).awardForBoardSaved(boardId: updated.id, boardTitle: title);
-        await _presentBoardXpAward(boardAward, isKo: isKo);
+        if (showAwardFeedback) {
+          await _presentBoardXpAward(boardAward, isKo: isKo);
+        }
       }
     } else {
       widget.onSaved?.call(serialized);

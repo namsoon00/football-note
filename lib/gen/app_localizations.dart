@@ -1166,6 +1166,12 @@ abstract class AppLocalizations {
   /// **'Training sketch saved'**
   String get playerXpGuideTrainingSketchSaved;
 
+  /// No description provided for @playerXpGuideTrainingSketchSavedXp.
+  ///
+  /// In en, this message translates to:
+  /// **'+5 XP / +2 XP'**
+  String get playerXpGuideTrainingSketchSavedXp;
+
   /// No description provided for @playerXpGuideDiaryCreated.
   ///
   /// In en, this message translates to:
@@ -3325,6 +3331,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load local weather.'**
   String get homeWeatherLoadFailed;
+
+  /// No description provided for @homeWeatherRetryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry weather'**
+  String get homeWeatherRetryTitle;
+
+  /// No description provided for @homeWeatherRetrySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to load'**
+  String get homeWeatherRetrySubtitle;
 
   /// No description provided for @homeWeatherLocationUnknown.
   ///

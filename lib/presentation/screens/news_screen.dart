@@ -977,7 +977,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     required bool forceRefresh,
   }) async {
     if (channelIds.isEmpty) return false;
-    var loadedAny = false;
+    final loadedChunks = <List<NewsArticle>>[];
     final tasks = channelIds
         .map((id) async {
           try {
@@ -985,18 +985,24 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
               id,
               forceRefresh: forceRefresh,
             );
-            if (!mounted || token != _loadToken || chunk.isEmpty) return;
-            loadedAny = true;
-            setState(() {
-              _mergeChunk(chunk);
-            });
+            if (chunk.isNotEmpty) {
+              loadedChunks.add(chunk);
+            }
           } catch (_) {
             // Keep loading remaining channels even if one feed fails.
           }
         })
         .toList(growable: false);
     await Future.wait(tasks);
-    return loadedAny;
+    if (!mounted || token != _loadToken || loadedChunks.isEmpty) {
+      return false;
+    }
+    setState(() {
+      for (final chunk in loadedChunks) {
+        _mergeChunk(chunk);
+      }
+    });
+    return true;
   }
 
   void _updateNewsCache() {

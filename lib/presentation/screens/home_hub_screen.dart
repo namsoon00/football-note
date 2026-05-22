@@ -100,6 +100,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   final MealCoachingService _mealCoachingService = const MealCoachingService();
   bool _weatherLoading = false;
   bool _weatherNeedsLocation = true;
+  bool _weatherLoadFailed = false;
   String _weatherLocation = '';
   String _weatherSummary = '';
   int? _weatherCode;
@@ -112,9 +113,13 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   @override
   void initState() {
     super.initState();
-    NewsBadgeService.refresh(widget.optionRepository);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _applyCachedHomeWeather();
       unawaited(_loadHomeWeather(requestPermission: false));
+      _queueHomeActionSideEffect(
+        () => NewsBadgeService.refresh(widget.optionRepository),
+      );
     });
   }
 
@@ -256,9 +261,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                               l10n: l10n,
                               weatherLoading: _weatherLoading,
                               weatherNeedsLocation: _weatherNeedsLocation,
+                              weatherLoadFailed: _weatherLoadFailed,
                               weatherSummary: _weatherSummary.trim(),
                               weatherCode: _weatherCode,
-                              onTap: _openWeatherDetails,
+                              onTap: _weatherBadgeTapAction(),
                             ),
                           ],
                         ),
@@ -407,18 +413,52 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
   }
 
+  void _applyCachedHomeWeather() {
+    final cachedSnapshot = WeatherSharedResource.cachedSnapshot(
+      locale: Localizations.localeOf(context),
+    );
+    if (cachedSnapshot == null) return;
+    if (cachedSnapshot.summary.trim().isEmpty &&
+        cachedSnapshot.weatherCode == null) {
+      return;
+    }
+    setState(() {
+      _weatherNeedsLocation = cachedSnapshot.location.trim().isEmpty;
+      _weatherLoadFailed = false;
+      _weatherLocation = cachedSnapshot.location;
+      _weatherCode = cachedSnapshot.weatherCode;
+      _weatherSummary = cachedSnapshot.summary;
+    });
+  }
+
+  VoidCallback _weatherBadgeTapAction() {
+    final needsUserLoad =
+        _weatherLoadFailed ||
+        (_weatherNeedsLocation && _weatherSummary.trim().isEmpty);
+    if (!needsUserLoad) {
+      return _openWeatherDetails;
+    }
+    return () => unawaited(_loadHomeWeather(requestPermission: true));
+  }
+
   Future<void> _loadHomeWeather({required bool requestPermission}) async {
     if (_weatherLoading || !mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    setState(() => _weatherLoading = true);
+    setState(() {
+      _weatherLoading = true;
+      if (requestPermission) {
+        _weatherLoadFailed = false;
+      }
+    });
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (!mounted) return;
         setState(() {
           _weatherNeedsLocation = true;
+          _weatherLoadFailed = false;
           _weatherLocation = '';
           _weatherCode = null;
           _weatherSummary = '';
@@ -435,6 +475,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         if (mounted) {
           setState(() {
             _weatherNeedsLocation = true;
+            _weatherLoadFailed = false;
             _weatherLocation = '';
             _weatherCode = null;
             _weatherSummary = '';
@@ -466,17 +507,12 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                 longitude: position.longitude,
                 l10n: l10n,
                 locale: locale,
+                allowRetry: false,
               )
               .then<WeatherSharedSnapshot?>((snapshot) => snapshot)
               .catchError((_) => null);
       final results = await Future.wait<Object?>([placeFuture, weatherFuture]);
       final place = results[0] as String;
-      if (!mounted) return;
-      setState(() {
-        _weatherNeedsLocation = place.trim().isEmpty;
-        _weatherLocation = place;
-      });
-
       if (!mounted) return;
       final resolvedWeather = (results[1] as WeatherSharedSnapshot?)?.copyWith(
         location: place,
@@ -488,18 +524,33 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           (resolvedWeather.summary.trim().isNotEmpty ||
               resolvedWeather.weatherCode != null)) {
         setState(() {
+          _weatherNeedsLocation = place.trim().isEmpty;
+          _weatherLoadFailed = false;
+          _weatherLocation = place;
           _weatherCode = resolvedWeather.weatherCode;
           _weatherSummary = resolvedWeather.summary;
         });
+      } else {
+        setState(() {
+          _weatherNeedsLocation = place.trim().isEmpty;
+          _weatherLoadFailed = true;
+          _weatherLocation = place;
+          _weatherCode = null;
+          _weatherSummary = '';
+        });
+        if (requestPermission && mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.homeWeatherLoadFailed)));
+        }
       }
     } catch (_) {
       if (mounted) {
-        final shouldNeedLocation = _weatherLocation.trim().isEmpty;
         setState(() {
-          _weatherNeedsLocation = shouldNeedLocation;
-          if (shouldNeedLocation) {
-            _weatherLocation = '';
-          }
+          _weatherNeedsLocation = false;
+          _weatherLoadFailed = true;
+          _weatherCode = null;
+          _weatherSummary = '';
         });
       }
       if (requestPermission && mounted) {
@@ -718,9 +769,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   VoidCallback? _trackedAction(String key, VoidCallback? action) {
     if (action == null) return null;
     return () {
-      unawaited(_trackHomeActionTap(key));
       action();
+      _queueHomeActionSideEffect(() => _trackHomeActionTap(key));
     };
+  }
+
+  void _queueHomeActionSideEffect(Future<void> Function() task) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(task());
+    });
   }
 
   Future<void> _trackHomeActionTap(String key) async {
@@ -767,9 +825,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   ) {
     if (action == null) return null;
     return () {
-      unawaited(_trackHomeActionTap('priority_action'));
-      unawaited(_advancePriorityFocusSignal(focusSignal));
       action();
+      _queueHomeActionSideEffect(() async {
+        await _trackHomeActionTap('priority_action');
+        await _advancePriorityFocusSignal(focusSignal);
+      });
     };
   }
 
@@ -2203,6 +2263,7 @@ class _TodayWeatherButton extends StatelessWidget {
   final AppLocalizations l10n;
   final bool weatherLoading;
   final bool weatherNeedsLocation;
+  final bool weatherLoadFailed;
   final String weatherSummary;
   final int? weatherCode;
   final VoidCallback onTap;
@@ -2211,6 +2272,7 @@ class _TodayWeatherButton extends StatelessWidget {
     required this.l10n,
     required this.weatherLoading,
     required this.weatherNeedsLocation,
+    required this.weatherLoadFailed,
     required this.weatherSummary,
     required this.weatherCode,
     required this.onTap,
@@ -2258,7 +2320,7 @@ class _TodayWeatherButton extends StatelessWidget {
   }
 
   _WeatherHeroPalette _palette(ThemeData theme) {
-    if (weatherNeedsLocation && weatherSummary.isEmpty) {
+    if ((weatherNeedsLocation || weatherLoadFailed) && weatherSummary.isEmpty) {
       return _WeatherHeroPalette(
         gradientColors: [
           Color.lerp(
@@ -2368,10 +2430,14 @@ class _TodayWeatherButton extends StatelessWidget {
     final parts = hasWeather
         ? _HomeWeatherBadgeParts.parse(weatherSummary)
         : _HomeWeatherBadgeParts(
-            primary: weatherNeedsLocation
+            primary: weatherLoadFailed
+                ? l10n.homeWeatherRetryTitle
+                : weatherNeedsLocation
                 ? l10n.homeWeatherNeedsLocationTitle
                 : l10n.homeWeatherTitle,
-            secondary: weatherNeedsLocation
+            secondary: weatherLoadFailed
+                ? l10n.homeWeatherRetrySubtitle
+                : weatherNeedsLocation
                 ? l10n.homeWeatherNeedsLocationSubtitle
                 : null,
           );
@@ -2414,6 +2480,8 @@ class _TodayWeatherButton extends StatelessWidget {
                       : Icon(
                           hasWeather
                               ? _weatherIcon(weatherCode)
+                              : weatherLoadFailed
+                              ? Icons.refresh_rounded
                               : weatherNeedsLocation
                               ? Icons.location_searching_rounded
                               : Icons.cloud_off_outlined,
