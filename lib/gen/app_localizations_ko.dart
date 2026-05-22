@@ -2631,11 +2631,11 @@ class AppLocalizationsKo extends AppLocalizations {
       '카메라는 흔들리지 않게 두고 5~15초 정도의 짧은 달리기 장면을 사용해 주세요.';
 
   @override
-  String get runningCoachUploadGuideTitle => '동영상 업로드 분석';
+  String get runningCoachUploadGuideTitle => '동영상 업로드 가이드';
 
   @override
   String get runningCoachUploadGuideBody =>
-      '저장된 영상을 사용하면 선명한 프레임을 골라 같은 움직임 기준을 더 안정적으로 비교할 수 있어요.';
+      '샘플 영상 가이드에서 촬영 세팅, 프레임 기준, 움직임 판독을 한 화면에서 같이 확인해요.';
 
   @override
   String get runningCoachUploadGuideStepSide =>
@@ -2654,11 +2654,14 @@ class AppLocalizationsKo extends AppLocalizations {
       '밝고 고른 빛에서 촬영하고, 러너 뒤로 다른 사람이 지나가지 않게 해 주세요.';
 
   @override
-  String get runningCoachSampleTitle => '샘플 영상 분석';
+  String get runningCoachSampleTitle => '샘플 영상 가이드';
 
   @override
   String get runningCoachSampleBody =>
-      '예: 6초 측면 영상에서 24/24프레임을 읽고, 상체 기울기 10도, 착지 거리 0.08, 팔 각도 90도로 100점 샘플을 보여줍니다.';
+      '이 루프를 기준으로 보세요. 영상, 자세 수치, 촬영 체크가 한 화면에 있어 각 코칭 포인트를 러너 움직임과 바로 맞춰 볼 수 있어요.';
+
+  @override
+  String get runningCoachSampleGuideAction => '샘플 영상 가이드 보기';
 
   @override
   String runningCoachSampleFrameLabel(int current, int total) {
@@ -2666,23 +2669,38 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSampleFrameGuideTitle => '좋은 측면 프레임';
+  String get runningCoachSampleFrameGuideTitle => '영상에서 같이 볼 기준';
 
   @override
   String get runningCoachSampleFrameGuideBody =>
-      '샘플 루프는 앞으로 밀고 나가는 러너를 분석 프레임 중앙에 유지해 자세, 착지, 팔 타이밍을 한눈에 비교할 수 있게 보여줘요.';
+      '텍스트만 나열하지 않고 샘플 러너 위에 자세, 착지, 팔 타이밍, 프레임 판독을 같이 표시해 비교하기 쉽게 했어요.';
 
   @override
-  String get runningCoachSampleCueLean => '발목부터 어깨까지 가벼운 전경사';
+  String get runningCoachSampleCueLean => '발목부터 어깨까지, 허리 꺾임 없는 전경사';
 
   @override
-  String get runningCoachSampleCueFrame => '전신이 프레임 안에 계속 들어옴';
+  String get runningCoachSampleCueFrame => '머리, 엉덩이, 무릎, 발이 계속 보임';
 
   @override
-  String get runningCoachSampleCueFoot => '발이 엉덩이 아래 가까이에 착지';
+  String get runningCoachSampleCueFoot => '발끝이 앞으로 향하고 엉덩이 아래 착지';
 
   @override
-  String get runningCoachSampleCueArms => '팔은 다리와 반대로 작고 빠르게 스윙';
+  String get runningCoachSampleCueArms => '팔꿈치를 접고 다리와 반대로 스윙';
+
+  @override
+  String get runningCoachSampleRecordingGuideTitle => '샘플처럼 촬영하기';
+
+  @override
+  String get runningCoachSampleOverlayPosture => '전경사 10도';
+
+  @override
+  String get runningCoachSampleOverlayArms => '팔 90도';
+
+  @override
+  String get runningCoachSampleOverlayFoot => '착지 0.08';
+
+  @override
+  String get runningCoachSampleOverlayFrames => '24/24프레임';
 
   @override
   String get runningCoachLiveCardTitle => '실시간 코치';

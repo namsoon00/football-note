@@ -2726,11 +2726,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.';
 
   @override
-  String get runningCoachUploadGuideTitle => 'Upload-focused analysis';
+  String get runningCoachUploadGuideTitle => 'Video upload guide';
 
   @override
   String get runningCoachUploadGuideBody =>
-      'Use a saved video so the app can sample clear frames and compare the same movement points consistently.';
+      'Open the sample guide to see the recording setup, frame cues, and movement readouts on one sample video screen.';
 
   @override
   String get runningCoachUploadGuideStepSide =>
@@ -2749,11 +2749,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Record in bright, even light and avoid other people crossing behind the runner.';
 
   @override
-  String get runningCoachSampleTitle => 'Sample video analysis';
+  String get runningCoachSampleTitle => 'Sample video guide';
 
   @override
   String get runningCoachSampleBody =>
-      'Example: a 6-second side-view clip reads 24/24 frames and uses 10° torso lean, 0.08 foot-strike distance, and compact 90° arms for a 100-point sample.';
+      'Use this loop as the reference: the video, posture readouts, and recording checks stay together so each cue is easier to match to the runner.';
+
+  @override
+  String get runningCoachSampleGuideAction => 'Open sample video guide';
 
   @override
   String runningCoachSampleFrameLabel(int current, int total) {
@@ -2761,26 +2764,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSampleFrameGuideTitle => 'Good side-view frame';
+  String get runningCoachSampleFrameGuideTitle =>
+      'What to compare in the video';
 
   @override
   String get runningCoachSampleFrameGuideBody =>
-      'The sample loop keeps a forward-driving runner centered in the analysis frame so posture, landing, and arm timing are easy to compare.';
+      'Read the overlays with the runner: posture, landing, arm timing, and frame coverage are shown on top of the sample instead of only as a text list.';
 
   @override
   String get runningCoachSampleCueLean =>
-      'Light forward lean from ankle to shoulder';
+      'Ankle-to-shoulder lean without folding at the waist';
 
   @override
   String get runningCoachSampleCueFrame =>
-      'Whole runner stays inside the frame';
+      'Head, hips, knees, and feet stay visible';
 
   @override
-  String get runningCoachSampleCueFoot => 'Foot lands close under the hip';
+  String get runningCoachSampleCueFoot =>
+      'Foot lands under the hip with toes forward';
 
   @override
   String get runningCoachSampleCueArms =>
-      'Arms swing compactly against the legs';
+      'Elbows stay bent and swing opposite the legs';
+
+  @override
+  String get runningCoachSampleRecordingGuideTitle => 'Record like the sample';
+
+  @override
+  String get runningCoachSampleOverlayPosture => 'Lean 10°';
+
+  @override
+  String get runningCoachSampleOverlayArms => 'Arms 90°';
+
+  @override
+  String get runningCoachSampleOverlayFoot => 'Landing 0.08';
+
+  @override
+  String get runningCoachSampleOverlayFrames => '24/24 frames';
 
   @override
   String get runningCoachLiveCardTitle => 'Live coach';

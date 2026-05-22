@@ -69,8 +69,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           _RunningCoachUploadGuideCard(
             title: l10n.runningCoachUploadGuideTitle,
             body: l10n.runningCoachUploadGuideBody,
-            onShowGuide: () => _showRecordingGuide(l10n),
-            onShowSample: () => _showSampleAnalysis(
+            onShowSampleGuide: () => _showSampleAnalysis(
               l10n,
               result: sampleResult,
               report: sampleReport,
@@ -121,32 +120,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
 
-  Future<void> _showRecordingGuide(AppLocalizations l10n) {
-    return showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-          child: _RunningCoachGuideSheet(
-            title: l10n.runningCoachTipsTitle,
-            tips: [
-              l10n.runningCoachTipWholeBody,
-              l10n.runningCoachTipSideView,
-              l10n.runningCoachTipSteadyCamera,
-            ],
-            steps: [
-              l10n.runningCoachUploadGuideStepSide,
-              l10n.runningCoachUploadGuideStepDistance,
-              l10n.runningCoachUploadGuideStepDuration,
-              l10n.runningCoachUploadGuideStepLight,
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _showSampleAnalysis(
     AppLocalizations l10n, {
     required RunningVideoAnalysisResult result,
@@ -162,6 +135,17 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           child: _RunningCoachSampleCard(
             title: l10n.runningCoachSampleTitle,
             body: l10n.runningCoachSampleBody,
+            tips: [
+              l10n.runningCoachTipWholeBody,
+              l10n.runningCoachTipSideView,
+              l10n.runningCoachTipSteadyCamera,
+            ],
+            steps: [
+              l10n.runningCoachUploadGuideStepSide,
+              l10n.runningCoachUploadGuideStepDistance,
+              l10n.runningCoachUploadGuideStepDuration,
+              l10n.runningCoachUploadGuideStepLight,
+            ],
             result: result,
             report: report,
           ),
@@ -320,19 +304,16 @@ class _InsightRegionSection {
 class _RunningCoachUploadGuideCard extends StatelessWidget {
   final String title;
   final String body;
-  final VoidCallback onShowGuide;
-  final VoidCallback onShowSample;
+  final VoidCallback onShowSampleGuide;
 
   const _RunningCoachUploadGuideCard({
     required this.title,
     required this.body,
-    required this.onShowGuide,
-    required this.onShowSample,
+    required this.onShowSampleGuide,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
@@ -340,126 +321,20 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Icon(
-                      Icons.video_camera_back_outlined,
-                      color: scheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(body, style: Theme.of(context).textTheme.bodyMedium),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.runningCoachTipsTitle,
-                  onPressed: onShowGuide,
-                  icon: const Icon(Icons.info_outline),
-                ),
-                IconButton(
-                  tooltip: l10n.runningCoachSampleTitle,
-                  onPressed: onShowSample,
-                  icon: const Icon(Icons.analytics_outlined),
-                ),
-              ],
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            Text(body, style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: onShowSampleGuide,
+                child: Text(l10n.runningCoachSampleGuideAction),
+              ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _RunningCoachGuideSheet extends StatelessWidget {
-  final String title;
-  final List<String> tips;
-  final List<String> steps;
-
-  const _RunningCoachGuideSheet({
-    required this.title,
-    required this.tips,
-    required this.steps,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 14),
-        for (final tip in tips) ...[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 2),
-                child: Icon(Icons.check_circle_outline, size: 18),
-              ),
-              const SizedBox(width: 8),
-              Expanded(child: Text(tip)),
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
-        const SizedBox(height: 8),
-        for (var index = 0; index < steps.length; index += 1) ...[
-          _NumberedGuideStep(number: index + 1, text: steps[index]),
-          if (index != steps.length - 1) const SizedBox(height: 8),
-        ],
-      ],
-    );
-  }
-}
-
-class _NumberedGuideStep extends StatelessWidget {
-  final int number;
-  final String text;
-
-  const _NumberedGuideStep({required this.number, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CircleAvatar(
-          radius: 12,
-          backgroundColor: scheme.primary.withValues(alpha: 0.12),
-          child: Text(
-            '$number',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(text, style: Theme.of(context).textTheme.bodySmall),
-        ),
-      ],
     );
   }
 }
@@ -477,12 +352,16 @@ const Duration _sampleVideoLoopDuration = Duration(milliseconds: 2200);
 class _RunningCoachSampleCard extends StatelessWidget {
   final String title;
   final String body;
+  final List<String> tips;
+  final List<String> steps;
   final RunningVideoAnalysisResult result;
   final RunningCoachingReport report;
 
   const _RunningCoachSampleCard({
     required this.title,
     required this.body,
+    required this.tips,
+    required this.steps,
     required this.result,
     required this.report,
   });
@@ -490,7 +369,6 @@ class _RunningCoachSampleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
     final primaryFocus = report.primaryFocus;
     final focusCopy = primaryFocus == null
         ? null
@@ -501,38 +379,9 @@ class _RunningCoachSampleCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: scheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Icon(
-                      Icons.analytics_outlined,
-                      color: scheme.onSecondaryContainer,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(body, style: Theme.of(context).textTheme.bodyMedium),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            Text(body, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 14),
             _SampleVideoFrame(score: report.overallScore),
             const SizedBox(height: 12),
@@ -557,6 +406,12 @@ class _RunningCoachSampleCard extends StatelessWidget {
                   text: l10n.runningCoachSampleCueArms,
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            _SampleRecordingGuidePanel(
+              title: l10n.runningCoachSampleRecordingGuideTitle,
+              tips: tips,
+              steps: steps,
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -647,6 +502,112 @@ class _SampleFrameCuePanel extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SampleRecordingGuidePanel extends StatelessWidget {
+  final String title;
+  final List<String> tips;
+  final List<String> steps;
+
+  const _SampleRecordingGuidePanel({
+    required this.title,
+    required this.tips,
+    required this.steps,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-sample-recording-guide'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 10),
+          for (final tip in tips) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(
+                    Icons.check_circle_outline,
+                    size: 17,
+                    color: scheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    tip,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+          const SizedBox(height: 2),
+          for (var index = 0; index < steps.length; index += 1) ...[
+            _SampleGuideStep(number: index + 1, text: steps[index]),
+            if (index != steps.length - 1) const SizedBox(height: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SampleGuideStep extends StatelessWidget {
+  final int number;
+  final String text;
+
+  const _SampleGuideStep({required this.number, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox.square(
+          dimension: 22,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: scheme.primary.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '$number',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(text, style: Theme.of(context).textTheme.bodySmall),
+        ),
+      ],
     );
   }
 }
@@ -780,6 +741,38 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
               ),
               Positioned(
                 left: 12,
+                top: 48,
+                child: _VideoOverlayLabel(
+                  text: l10n.runningCoachSampleOverlayPosture,
+                  color: scheme.primary,
+                ),
+              ),
+              Positioned(
+                right: 12,
+                top: 48,
+                child: _VideoOverlayLabel(
+                  text: l10n.runningCoachSampleOverlayArms,
+                  color: scheme.secondary,
+                ),
+              ),
+              Positioned(
+                left: 12,
+                bottom: 24,
+                child: _VideoOverlayLabel(
+                  text: l10n.runningCoachSampleOverlayFoot,
+                  color: scheme.tertiary,
+                ),
+              ),
+              Positioned(
+                right: 12,
+                bottom: 24,
+                child: _VideoOverlayLabel(
+                  text: l10n.runningCoachSampleOverlayFrames,
+                  color: scheme.primary,
+                ),
+              ),
+              Positioned(
+                left: 12,
                 right: 12,
                 bottom: 10,
                 child: AnimatedBuilder(
@@ -796,6 +789,35 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VideoOverlayLabel extends StatelessWidget {
+  final String text;
+  final Color color;
+
+  const _VideoOverlayLabel({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.50)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: scheme.onSurface,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ),
@@ -985,6 +1007,9 @@ class _SampleRunnerPainter extends CustomPainter {
     final outlineColor = isGhost
         ? color.withValues(alpha: 0.10)
         : Color.lerp(color, Colors.black, 0.20)!.withValues(alpha: 0.72);
+    final tankTrimColor = isGhost
+        ? Colors.white.withValues(alpha: 0.05)
+        : Colors.white.withValues(alpha: 0.58);
     final groundY = pose.groundY;
     final hip = pose.hip;
     final chest = pose.chest;
@@ -1054,11 +1079,35 @@ class _SampleRunnerPainter extends CustomPainter {
     );
     _drawShoe(canvas, rearLeg.ankle, rearLeg.toe, rearShoe, footWidth);
 
+    final waistFront = Offset(
+      hipFront.dx + scale * 0.010,
+      hipFront.dy + scale * 0.014,
+    );
+    final waistRear = Offset(
+      hipRear.dx - scale * 0.006,
+      hipRear.dy + scale * 0.018,
+    );
     final torso = Path()
-      ..moveTo(shoulderRear.dx, shoulderRear.dy)
-      ..lineTo(shoulderFront.dx, shoulderFront.dy)
-      ..lineTo(hipFront.dx, hipFront.dy)
-      ..lineTo(hipRear.dx, hipRear.dy)
+      ..moveTo(shoulderRear.dx + scale * 0.012, shoulderRear.dy)
+      ..quadraticBezierTo(
+        chest.dx - scale * 0.048,
+        chest.dy + scale * 0.040,
+        waistRear.dx,
+        waistRear.dy,
+      )
+      ..lineTo(waistFront.dx, waistFront.dy)
+      ..quadraticBezierTo(
+        chest.dx + scale * 0.086,
+        chest.dy + scale * 0.040,
+        shoulderFront.dx - scale * 0.012,
+        shoulderFront.dy,
+      )
+      ..quadraticBezierTo(
+        chest.dx + scale * 0.026,
+        chest.dy - scale * 0.026,
+        shoulderRear.dx + scale * 0.012,
+        shoulderRear.dy,
+      )
       ..close();
     canvas.drawPath(
       torso,
@@ -1074,15 +1123,71 @@ class _SampleRunnerPainter extends CustomPainter {
         ..strokeWidth = math.max(1.2, strokeWidth * 0.42)
         ..strokeJoin = StrokeJoin.round,
     );
+    final neckline = Path()
+      ..moveTo(shoulderRear.dx + scale * 0.036, shoulderRear.dy + scale * 0.002)
+      ..quadraticBezierTo(
+        chest.dx + scale * 0.010,
+        chest.dy + scale * 0.036,
+        shoulderFront.dx - scale * 0.040,
+        shoulderFront.dy + scale * 0.002,
+      );
+    canvas.drawPath(
+      neckline,
+      Paint()
+        ..color = tankTrimColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, strokeWidth * 0.28)
+        ..strokeCap = StrokeCap.round,
+    );
+    _drawSegment(
+      canvas,
+      Offset(
+        shoulderFront.dx - scale * 0.010,
+        shoulderFront.dy + scale * 0.006,
+      ),
+      Offset(waistFront.dx - scale * 0.002, waistFront.dy - scale * 0.004),
+      tankTrimColor,
+      math.max(1.0, strokeWidth * 0.22),
+    );
+    _drawSegment(
+      canvas,
+      Offset(shoulderRear.dx + scale * 0.010, shoulderRear.dy + scale * 0.008),
+      Offset(waistRear.dx + scale * 0.006, waistRear.dy - scale * 0.004),
+      tankTrimColor.withValues(alpha: isGhost ? 0.04 : 0.36),
+      math.max(1.0, strokeWidth * 0.18),
+    );
     canvas.drawPath(
       Path()
-        ..moveTo(hipRear.dx - scale * 0.010, hipRear.dy - scale * 0.006)
-        ..lineTo(hipFront.dx + scale * 0.018, hipFront.dy - scale * 0.002)
-        ..lineTo(hipFront.dx + scale * 0.062, hipFront.dy + scale * 0.064)
-        ..lineTo(hip.dx + scale * 0.004, hip.dy + scale * 0.044)
-        ..lineTo(hipRear.dx - scale * 0.066, hipRear.dy + scale * 0.068)
+        ..moveTo(waistRear.dx - scale * 0.012, waistRear.dy - scale * 0.004)
+        ..lineTo(waistFront.dx + scale * 0.016, waistFront.dy - scale * 0.004)
+        ..quadraticBezierTo(
+          hipFront.dx + scale * 0.070,
+          hipFront.dy + scale * 0.046,
+          hip.dx + scale * 0.014,
+          hip.dy + scale * 0.058,
+        )
+        ..quadraticBezierTo(
+          hipRear.dx - scale * 0.048,
+          hipRear.dy + scale * 0.058,
+          waistRear.dx - scale * 0.012,
+          waistRear.dy - scale * 0.004,
+        )
         ..close(),
       Paint()..color = shortsColor,
+    );
+    _drawSegment(
+      canvas,
+      waistRear,
+      waistFront,
+      outlineColor.withValues(alpha: isGhost ? 0.05 : 0.50),
+      math.max(1.0, strokeWidth * 0.30),
+    );
+    _drawSegment(
+      canvas,
+      Offset(hip.dx - scale * 0.018, hip.dy + scale * 0.050),
+      Offset(hip.dx + scale * 0.044, hip.dy + scale * 0.050),
+      tankTrimColor.withValues(alpha: isGhost ? 0.04 : 0.30),
+      math.max(1.0, strokeWidth * 0.18),
     );
     _drawSegment(
       canvas,
@@ -1091,34 +1196,15 @@ class _SampleRunnerPainter extends CustomPainter {
       skinColor.withValues(alpha: isGhost ? 0.12 : 0.86),
       math.max(5.0, scale * (isGhost ? 0.020 : 0.030)),
     );
-    canvas.drawCircle(
-      head,
-      scale * (isGhost ? 0.045 : 0.054),
-      Paint()
-        ..color = skinColor.withValues(alpha: isGhost ? 0.12 : 0.96)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawCircle(
-      Offset(head.dx - scale * 0.032, head.dy + scale * 0.002),
-      math.max(1.8, scale * 0.012),
-      Paint()..color = skinColor.withValues(alpha: isGhost ? 0.08 : 0.76),
-    );
-    canvas.drawCircle(
-      Offset(head.dx - scale * 0.018, head.dy - scale * 0.014),
-      scale * (isGhost ? 0.030 : 0.036),
-      Paint()..color = hairColor,
-    );
-    canvas.drawCircle(
-      Offset(head.dx + scale * 0.032, head.dy - scale * 0.006),
-      math.max(1.5, scale * 0.006),
-      Paint()..color = outlineColor,
-    );
-    _drawSegment(
+    _drawHead(
       canvas,
-      Offset(head.dx + scale * 0.036, head.dy + scale * 0.006),
-      Offset(head.dx + scale * 0.052, head.dy + scale * 0.010),
-      outlineColor.withValues(alpha: isGhost ? 0.06 : 0.46),
-      math.max(1.0, strokeWidth * 0.22),
+      head: head,
+      scale: scale,
+      skinColor: skinColor,
+      hairColor: hairColor,
+      outlineColor: outlineColor,
+      isGhost: isGhost,
+      strokeWidth: strokeWidth,
     );
 
     _drawLimb(
@@ -1184,6 +1270,65 @@ class _SampleRunnerPainter extends CustomPainter {
         ],
       );
     }
+  }
+
+  void _drawHead(
+    Canvas canvas, {
+    required Offset head,
+    required double scale,
+    required Color skinColor,
+    required Color hairColor,
+    required Color outlineColor,
+    required bool isGhost,
+    required double strokeWidth,
+  }) {
+    final faceRect = Rect.fromCenter(
+      center: head,
+      width: scale * (isGhost ? 0.076 : 0.090),
+      height: scale * (isGhost ? 0.092 : 0.108),
+    );
+    canvas.drawOval(
+      faceRect,
+      Paint()
+        ..color = skinColor.withValues(alpha: isGhost ? 0.12 : 0.96)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(head.dx - scale * 0.034, head.dy + scale * 0.004),
+        width: scale * 0.020,
+        height: scale * 0.028,
+      ),
+      Paint()..color = skinColor.withValues(alpha: isGhost ? 0.08 : 0.74),
+    );
+    final hair = Path()
+      ..moveTo(head.dx - scale * 0.044, head.dy - scale * 0.018)
+      ..quadraticBezierTo(
+        head.dx - scale * 0.010,
+        head.dy - scale * 0.070,
+        head.dx + scale * 0.046,
+        head.dy - scale * 0.026,
+      )
+      ..quadraticBezierTo(
+        head.dx + scale * 0.020,
+        head.dy - scale * 0.050,
+        head.dx - scale * 0.034,
+        head.dy - scale * 0.044,
+      )
+      ..close();
+    canvas.drawPath(hair, Paint()..color = hairColor);
+    canvas.drawCircle(
+      Offset(head.dx + scale * 0.030, head.dy - scale * 0.008),
+      math.max(1.4, scale * 0.006),
+      Paint()..color = outlineColor,
+    );
+    _drawSegment(
+      canvas,
+      Offset(head.dx + scale * 0.038, head.dy + scale * 0.006),
+      Offset(head.dx + scale * 0.054, head.dy + scale * 0.010),
+      outlineColor.withValues(alpha: isGhost ? 0.06 : 0.46),
+      math.max(1.0, strokeWidth * 0.22),
+    );
   }
 
   void _drawPoseGuides(

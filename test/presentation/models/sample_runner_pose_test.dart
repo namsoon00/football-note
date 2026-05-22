@@ -100,4 +100,17 @@ void main() {
       greaterThan(size.height * 0.34),
     );
   });
+
+  test('keeps sample runner feet pointing forward through the stride', () {
+    const size = Size(360, 157.5);
+
+    for (final progress in <double>[0, 0.125, 0.25, 0.375, 0.5, 0.75]) {
+      final pose = buildSampleRunnerPose(progress: progress, size: size);
+
+      expect(pose.frontLeg.toe.dx, greaterThan(pose.frontLeg.ankle.dx));
+      expect(pose.rearLeg.toe.dx, greaterThan(pose.rearLeg.ankle.dx));
+      expect(pose.frontLeg.footLength, closeTo(size.height * 0.060, 0.0001));
+      expect(pose.rearLeg.footLength, closeTo(size.height * 0.060, 0.0001));
+    }
+  });
 }

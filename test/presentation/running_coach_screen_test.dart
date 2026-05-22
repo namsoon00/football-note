@@ -22,7 +22,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byTooltip('Sample video analysis'));
+    await tester.tap(find.text('Open sample video guide'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -34,8 +34,16 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-frame-guide')),
       findsOneWidget,
     );
-    expect(find.text('Good side-view frame'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-recording-guide')),
+      findsOneWidget,
+    );
+    expect(find.text('What to compare in the video'), findsOneWidget);
     expect(find.textContaining('Frame '), findsOneWidget);
-    expect(find.text('Foot lands close under the hip'), findsOneWidget);
+    expect(find.text('Landing 0.08'), findsOneWidget);
+    expect(
+      find.text('Foot lands under the hip with toes forward'),
+      findsOneWidget,
+    );
   });
 }
