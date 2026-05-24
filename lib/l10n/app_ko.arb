@@ -352,6 +352,7 @@
   "playerXpGuideActivityTitle": "다른 활동 경험치",
   "playerXpGuideActivitySubtitle": "계획, 스케치, 식사, 다이어리, 퀴즈, 오늘 할일 완료도 저장하면 경험치가 쌓입니다.",
   "playerXpGuidePlanCreated": "훈련 계획 생성",
+  "playerXpGuideMatchLogged": "시합 기록 저장",
   "playerXpGuideTrainingSketchSaved": "훈련 스케치 저장",
   "playerXpGuideTrainingSketchSavedXp": "+5 XP / +2 XP",
   "playerXpGuideDiaryCreated": "다이어리 작성",
@@ -2300,6 +2301,15 @@
   "matchNoteOptionalLabel": "메모(선택)",
   "matchShotsOnTargetLabel": "유효 슈팅",
   "matchBallsWonLabel": "공을 뺏은 횟수",
+  "calendarMatchXpSourceLabel": "시합 기록",
+  "matchSavedWithXpFeedback": "시합 저장 +{count} XP",
+  "@matchSavedWithXpFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchControlsPanel": "도구와 선택",
   "trainingSketchPlayTooltip": "플레이",
   "trainingSketchPlaybackSpeedTooltip": "재생 속도",

@@ -90,6 +90,12 @@ class PlayerXpGuideScreen extends StatelessWidget {
             xpLabel: '+6 XP',
           ),
           _XpGuideItem(
+            icon: Icons.sports_soccer_outlined,
+            title: l10n.playerXpGuideMatchLogged,
+            xpLabel:
+                '+${PlayerLevelService.matchLogSavedXp} XP / +${PlayerLevelService.matchDetailRecordedXp} XP',
+          ),
+          _XpGuideItem(
             icon: Icons.draw_outlined,
             title: l10n.playerXpGuideTrainingSketchSaved,
             xpLabel: l10n.playerXpGuideTrainingSketchSavedXp,

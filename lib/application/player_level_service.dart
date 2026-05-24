@@ -10,6 +10,8 @@ class PlayerLevelService {
   static const String xpHistoryKey = 'player_xp_history_v1';
   static const String quizRewardDayKey = 'player_quiz_reward_day_v1';
   static const String awardedPlanIdsKey = 'player_awarded_plan_ids_v1';
+  static const String awardedMatchLogTokensKey =
+      'player_awarded_match_log_tokens_v1';
   static const String awardedStreaksKey = 'player_awarded_streaks_v1';
   static const String awardedBoardSaveTokensKey =
       'player_awarded_board_save_tokens_v1';
@@ -26,6 +28,8 @@ class PlayerLevelService {
   static const int trainingLogSavedXp = 15;
   static const int firstDailyTrainingLogXp = 5;
   static const int plannedTrainingDayXp = 12;
+  static const int matchLogSavedXp = 10;
+  static const int matchDetailRecordedXp = 4;
   static const int conditioningRecordedXp = 6;
   static const int missingConditioningPenaltyXp = 5;
   static const int routineCompleteXp = 6;
@@ -488,6 +492,100 @@ class PlayerLevelService {
     );
   }
 
+  Future<PlayerLevelAward> awardForMatchLog({
+    TrainingEntry? previousEntry,
+    required TrainingEntry updatedEntry,
+  }) async {
+    final before = loadState();
+    if (!updatedEntry.isMatch) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+
+    final awardedTokens = _getStringSet(awardedMatchLogTokensKey);
+    final token = _matchAwardToken(updatedEntry);
+    final reasons = <String>[];
+    var gainedXp = 0;
+
+    if (previousEntry == null && !awardedTokens.add(token)) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+
+    if (previousEntry == null) {
+      gainedXp += matchLogSavedXp;
+      reasons.add('match_logged');
+    } else {
+      awardedTokens.add(token);
+    }
+
+    final previousHasResult =
+        previousEntry != null && _hasMatchResult(previousEntry);
+    final updatedHasResult = _hasMatchResult(updatedEntry);
+    if (!previousHasResult && updatedHasResult) {
+      gainedXp += matchDetailRecordedXp;
+      reasons.add('match_result_recorded');
+    }
+
+    final previousHasContribution =
+        previousEntry != null && _hasMatchContribution(previousEntry);
+    final updatedHasContribution = _hasMatchContribution(updatedEntry);
+    if (!previousHasContribution && updatedHasContribution) {
+      gainedXp += matchDetailRecordedXp;
+      reasons.add('match_contribution_recorded');
+    }
+
+    gainedXp = _applyDailyPositiveXpCap(
+      requestedXp: gainedXp,
+      awardedAt: updatedEntry.createdAt,
+      reasons: reasons,
+    );
+    await _options.setValue(
+      awardedMatchLogTokensKey,
+      awardedTokens.toList()..sort(),
+    );
+    if (gainedXp <= 0) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: reasons,
+      );
+    }
+
+    final nextTotal = before.totalXp + gainedXp;
+    await _options.setValue(totalXpKey, nextTotal);
+    final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: updatedEntry.createdAt,
+        deltaXp: gainedXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: PlayerXpHistoryCategory.match,
+        label: updatedEntry.opponentTeam.trim().isNotEmpty
+            ? updatedEntry.opponentTeam.trim()
+            : updatedEntry.club.trim(),
+        reasons: reasons,
+      ),
+    );
+    return PlayerLevelAward(
+      gainedXp: gainedXp,
+      before: before,
+      after: after,
+      reasons: reasons,
+    );
+  }
+
   Future<PlayerLevelAward> awardForBoardSaved({
     required String boardId,
     required String boardTitle,
@@ -942,6 +1040,31 @@ class PlayerLevelService {
         entry.jumpRopeNote.trim().isNotEmpty;
   }
 
+  bool _hasMatchResult(TrainingEntry entry) {
+    return entry.scoredGoals != null || entry.concededGoals != null;
+  }
+
+  bool _hasMatchContribution(TrainingEntry entry) {
+    return entry.playerGoals != null ||
+        entry.playerAssists != null ||
+        entry.shotsOnTarget != null ||
+        entry.ballsWon != null ||
+        entry.minutesPlayed != null;
+  }
+
+  String _matchAwardToken(TrainingEntry entry) {
+    final key = entry.key;
+    if (key is int) return 'key:$key';
+    final opponent = entry.opponentTeam.trim().isNotEmpty
+        ? entry.opponentTeam.trim()
+        : entry.club.trim();
+    return [
+      _dayKey(_normalizeDay(entry.date)),
+      entry.createdAt.microsecondsSinceEpoch.toString(),
+      opponent,
+    ].join(':');
+  }
+
   bool _isRoutineComplete(TrainingEntry entry, int mealXp) {
     return _hasLiftingRecord(entry) && _hasJumpRopeRecord(entry) && mealXp >= 5;
   }
@@ -1175,6 +1298,7 @@ class PlayerLevelRewardClaim {
 
 enum PlayerXpHistoryCategory {
   training,
+  match,
   meal,
   quiz,
   plan,

@@ -504,6 +504,10 @@ class _XpHistoryCard extends StatelessWidget {
         final label = _trainingTitleLabel(item, isKo);
         if (label.isEmpty) return isKo ? '훈련 기록 저장' : 'Training log';
         return isKo ? '훈련 기록 · $label' : 'Training log · $label';
+      case PlayerXpHistoryCategory.match:
+        final label = item.label.trim();
+        if (label.isEmpty) return isKo ? '시합 기록 저장' : 'Match log saved';
+        return isKo ? '시합 기록 · $label' : 'Match log · $label';
       case PlayerXpHistoryCategory.meal:
         return isKo ? '식사 기록 저장' : 'Meal log saved';
       case PlayerXpHistoryCategory.quiz:

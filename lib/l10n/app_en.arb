@@ -352,6 +352,7 @@
   "playerXpGuideActivityTitle": "Other activity XP",
   "playerXpGuideActivitySubtitle": "Plans, sketches, meals, diary, quiz, and daily completion also add XP when saved.",
   "playerXpGuidePlanCreated": "Training plan created",
+  "playerXpGuideMatchLogged": "Match log saved",
   "playerXpGuideTrainingSketchSaved": "Training sketch saved",
   "playerXpGuideTrainingSketchSavedXp": "+5 XP / +2 XP",
   "playerXpGuideDiaryCreated": "Diary created",
@@ -2300,6 +2301,15 @@
   "matchNoteOptionalLabel": "Note (optional)",
   "matchShotsOnTargetLabel": "Shots on target",
   "matchBallsWonLabel": "Balls won",
+  "calendarMatchXpSourceLabel": "Match record",
+  "matchSavedWithXpFeedback": "Match saved +{count} XP",
+  "@matchSavedWithXpFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchControlsPanel": "Tools and selection",
   "trainingSketchPlayTooltip": "Play",
   "trainingSketchPlaybackSpeedTooltip": "Playback speed",
