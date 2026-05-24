@@ -1263,6 +1263,12 @@ abstract class AppLocalizations {
   /// **'Training plan created'**
   String get playerXpGuidePlanCreated;
 
+  /// No description provided for @playerXpGuideMatchLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Match log saved'**
+  String get playerXpGuideMatchLogged;
+
   /// No description provided for @playerXpGuideTrainingSketchSaved.
   ///
   /// In en, this message translates to:
@@ -9009,6 +9015,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Balls won'**
   String get matchBallsWonLabel;
+
+  /// No description provided for @calendarMatchXpSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Match record'**
+  String get calendarMatchXpSourceLabel;
+
+  /// No description provided for @matchSavedWithXpFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Match saved +{count} XP'**
+  String matchSavedWithXpFeedback(int count);
 
   /// No description provided for @trainingSketchControlsPanel.
   ///

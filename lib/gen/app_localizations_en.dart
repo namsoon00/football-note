@@ -676,6 +676,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerXpGuidePlanCreated => 'Training plan created';
 
   @override
+  String get playerXpGuideMatchLogged => 'Match log saved';
+
+  @override
   String get playerXpGuideTrainingSketchSaved => 'Training sketch saved';
 
   @override
@@ -5212,6 +5215,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchBallsWonLabel => 'Balls won';
+
+  @override
+  String get calendarMatchXpSourceLabel => 'Match record';
+
+  @override
+  String matchSavedWithXpFeedback(int count) {
+    return 'Match saved +$count XP';
+  }
 
   @override
   String get trainingSketchControlsPanel => 'Tools and selection';

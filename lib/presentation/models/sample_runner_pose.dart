@@ -183,11 +183,15 @@ SampleRunnerArmPose _armPose({
     upperLength: upperArmLength,
     lowerLength: forearmLength,
   );
-  return SampleRunnerArmPose(
+  final wrist = _constrainElbowAngle(
     shoulder: anchor,
     elbow: limb.joint,
     wrist: limb.end,
+    forearmLength: forearmLength,
+    minAngle: math.pi * 0.42,
+    maxAngle: math.pi * 0.64,
   );
+  return SampleRunnerArmPose(shoulder: anchor, elbow: limb.joint, wrist: wrist);
 }
 
 class _LegGaitKey {
@@ -388,6 +392,51 @@ double _smoothStep(double value) {
       ? firstJoint
       : secondJoint;
   return (joint: joint, end: end);
+}
+
+Offset _constrainElbowAngle({
+  required Offset shoulder,
+  required Offset elbow,
+  required Offset wrist,
+  required double forearmLength,
+  required double minAngle,
+  required double maxAngle,
+}) {
+  final toShoulder = shoulder - elbow;
+  final toWrist = wrist - elbow;
+  if (toShoulder.distance <= 0.001 || toWrist.distance <= 0.001) {
+    return wrist;
+  }
+  final currentAngle = _includedAngle(toShoulder, toWrist);
+  final targetAngle = currentAngle.clamp(minAngle, maxAngle).toDouble();
+  if ((targetAngle - currentAngle).abs() <= 0.001) {
+    return elbow + (toWrist / toWrist.distance) * forearmLength;
+  }
+
+  final shoulderAngle = math.atan2(toShoulder.dy, toShoulder.dx);
+  final currentForearmAngle = math.atan2(toWrist.dy, toWrist.dx);
+  final candidateA = shoulderAngle + targetAngle;
+  final candidateB = shoulderAngle - targetAngle;
+  final resolvedAngle =
+      _angleDistance(candidateA, currentForearmAngle) <
+          _angleDistance(candidateB, currentForearmAngle)
+      ? candidateA
+      : candidateB;
+  return elbow +
+      Offset(math.cos(resolvedAngle), math.sin(resolvedAngle)) * forearmLength;
+}
+
+double _includedAngle(Offset a, Offset b) {
+  final dot = (a.dx * b.dx) + (a.dy * b.dy);
+  final lengthProduct = a.distance * b.distance;
+  if (lengthProduct <= 0.001) return 0;
+  final cosine = (dot / lengthProduct).clamp(-1.0, 1.0).toDouble();
+  return math.acos(cosine);
+}
+
+double _angleDistance(double a, double b) {
+  final diff = ((a - b + math.pi) % (math.pi * 2)) - math.pi;
+  return diff.abs();
 }
 
 Offset _fixedFootVector(double cycle, double scale) {

@@ -641,6 +641,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get playerXpGuidePlanCreated => '훈련 계획 생성';
 
   @override
+  String get playerXpGuideMatchLogged => '시합 기록 저장';
+
+  @override
   String get playerXpGuideTrainingSketchSaved => '훈련 스케치 저장';
 
   @override
@@ -5024,6 +5027,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchBallsWonLabel => '공을 뺏은 횟수';
+
+  @override
+  String get calendarMatchXpSourceLabel => '시합 기록';
+
+  @override
+  String matchSavedWithXpFeedback(int count) {
+    return '시합 저장 +$count XP';
+  }
 
   @override
   String get trainingSketchControlsPanel => '도구와 선택';

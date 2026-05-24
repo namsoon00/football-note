@@ -57,7 +57,14 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     final sampleResult = _sampleAnalysisResult();
     final sampleReport = _coachingService.buildReport(sampleResult);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.runningCoachScreenTitle)),
+      appBar: AppBar(
+        leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        title: Text(l10n.runningCoachScreenTitle),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

@@ -188,9 +188,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
     widget.onQuickCreateHandled?.call();
   }
 
-  Future<void> _setCalendarExpanded(bool expanded) async {
+  Future<void> _setCalendarExpanded(
+    bool expanded, {
+    bool persist = true,
+  }) async {
     if (_calendarExpanded == expanded) return;
     setState(() => _calendarExpanded = expanded);
+    if (!persist) return;
     await widget.optionRepository.setValue(_calendarExpandedKey, expanded);
   }
 
@@ -767,12 +771,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           onDeletePlan: _confirmDeletePlan,
                           onListScrollUp: () {
                             if (hasDaySchedule && isCalendarExpanded) {
-                              _setCalendarExpanded(false);
+                              _setCalendarExpanded(false, persist: false);
                             }
                           },
                           onListReachedBottom: () {
                             if (hasDaySchedule && !isCalendarExpanded) {
-                              _setCalendarExpanded(true);
+                              _setCalendarExpanded(true, persist: false);
                             }
                           },
                         ),
@@ -1574,8 +1578,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               initialValue: noteText,
                               onChanged: (value) => noteText = value,
                               maxLength: 60,
-                              decoration: InputDecoration(
-                                labelText: isKo ? '메모(선택)' : 'Note (optional)',
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) =>
+                                  FocusScope.of(context).unfocus(),
+                              decoration: _calendarInputDecorationWithDone(
+                                context,
+                                InputDecoration(
+                                  labelText: isKo
+                                      ? '메모(선택)'
+                                      : 'Note (optional)',
+                                ),
                               ),
                             ),
                           ],
@@ -1954,12 +1966,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     readOnly: readOnly,
                                     onChanged: (value) => ourScoreText = value,
                                     keyboardType: TextInputType.number,
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (_) =>
+                                        FocusScope.of(context).unfocus(),
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly,
                                     ],
-                                    decoration: InputDecoration(
-                                      labelText: l10n.matchOurScoreLabel,
-                                    ),
+                                    decoration:
+                                        _calendarInputDecorationWithDone(
+                                          context,
+                                          InputDecoration(
+                                            labelText: l10n.matchOurScoreLabel,
+                                          ),
+                                          enabled: !readOnly,
+                                        ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -1970,12 +1990,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     onChanged: (value) =>
                                         opponentScoreText = value,
                                     keyboardType: TextInputType.number,
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (_) =>
+                                        FocusScope.of(context).unfocus(),
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly,
                                     ],
-                                    decoration: InputDecoration(
-                                      labelText: l10n.matchOpponentScoreLabel,
-                                    ),
+                                    decoration:
+                                        _calendarInputDecorationWithDone(
+                                          context,
+                                          InputDecoration(
+                                            labelText:
+                                                l10n.matchOpponentScoreLabel,
+                                          ),
+                                          enabled: !readOnly,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -1990,12 +2019,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     onChanged: (value) =>
                                         playerGoalsText = value,
                                     keyboardType: TextInputType.number,
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (_) =>
+                                        FocusScope.of(context).unfocus(),
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly,
                                     ],
-                                    decoration: InputDecoration(
-                                      labelText: l10n.matchGoalsLabel,
-                                    ),
+                                    decoration:
+                                        _calendarInputDecorationWithDone(
+                                          context,
+                                          InputDecoration(
+                                            labelText: l10n.matchGoalsLabel,
+                                          ),
+                                          enabled: !readOnly,
+                                        ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -2006,12 +2043,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     onChanged: (value) =>
                                         playerAssistsText = value,
                                     keyboardType: TextInputType.number,
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (_) =>
+                                        FocusScope.of(context).unfocus(),
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly,
                                     ],
-                                    decoration: InputDecoration(
-                                      labelText: l10n.matchAssistsLabel,
-                                    ),
+                                    decoration:
+                                        _calendarInputDecorationWithDone(
+                                          context,
+                                          InputDecoration(
+                                            labelText: l10n.matchAssistsLabel,
+                                          ),
+                                          enabled: !readOnly,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -2026,12 +2071,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     onChanged: (value) =>
                                         shotsOnTargetText = value,
                                     keyboardType: TextInputType.number,
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (_) =>
+                                        FocusScope.of(context).unfocus(),
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly,
                                     ],
-                                    decoration: InputDecoration(
-                                      labelText: l10n.matchShotsOnTargetLabel,
-                                    ),
+                                    decoration:
+                                        _calendarInputDecorationWithDone(
+                                          context,
+                                          InputDecoration(
+                                            labelText:
+                                                l10n.matchShotsOnTargetLabel,
+                                          ),
+                                          enabled: !readOnly,
+                                        ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -2041,12 +2095,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     readOnly: readOnly,
                                     onChanged: (value) => ballsWonText = value,
                                     keyboardType: TextInputType.number,
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (_) =>
+                                        FocusScope.of(context).unfocus(),
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly,
                                     ],
-                                    decoration: InputDecoration(
-                                      labelText: l10n.matchBallsWonLabel,
-                                    ),
+                                    decoration:
+                                        _calendarInputDecorationWithDone(
+                                          context,
+                                          InputDecoration(
+                                            labelText: l10n.matchBallsWonLabel,
+                                          ),
+                                          enabled: !readOnly,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -2057,12 +2119,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               readOnly: readOnly,
                               onChanged: (value) => minutesPlayedText = value,
                               keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) =>
+                                  FocusScope.of(context).unfocus(),
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
-                              decoration: InputDecoration(
-                                labelText: l10n.matchMinutesPlayedLabel,
-                                hintText: l10n.matchMinutesPlayedHint,
+                              decoration: _calendarInputDecorationWithDone(
+                                context,
+                                InputDecoration(
+                                  labelText: l10n.matchMinutesPlayedLabel,
+                                  hintText: l10n.matchMinutesPlayedHint,
+                                ),
+                                enabled: !readOnly,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -2071,8 +2140,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               readOnly: readOnly,
                               onChanged: (value) => memoText = value,
                               maxLength: 60,
-                              decoration: InputDecoration(
-                                labelText: l10n.matchNoteOptionalLabel,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) =>
+                                  FocusScope.of(context).unfocus(),
+                              decoration: _calendarInputDecorationWithDone(
+                                context,
+                                InputDecoration(
+                                  labelText: l10n.matchNoteOptionalLabel,
+                                ),
+                                enabled: !readOnly,
                               ),
                             ),
                           ],
@@ -2149,11 +2225,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (trimmedMatchLocation.isNotEmpty) {
       await _storeMatchLocation(trimmedMatchLocation);
     }
+    final previousEntry = editingEntry;
     if (editingEntry?.key is int) {
       await widget.trainingService.update(editingEntry!.key as int, saved);
-      return;
+    } else {
+      await widget.trainingService.add(saved);
     }
-    await widget.trainingService.add(saved);
+    final award = await PlayerLevelService(
+      widget.optionRepository,
+    ).awardForMatchLog(previousEntry: previousEntry, updatedEntry: saved);
+    if (!mounted || award.gainedXp <= 0) return;
+    final reminderService = TrainingPlanReminderService(
+      widget.optionRepository,
+      widget.settingsService,
+    );
+    await reminderService.showXpGainAlert(
+      gainedXp: award.gainedXp,
+      totalXp: award.after.totalXp,
+      isKo: isKo,
+      sourceLabel: l10n.calendarMatchXpSourceLabel,
+    );
+    if (award.didLevelUp) {
+      await reminderService.showLevelUpAlert(
+        level: award.after.level,
+        isKo: isKo,
+      );
+    }
+    if (!mounted) return;
+    AppFeedback.showSuccess(
+      context,
+      text: l10n.matchSavedWithXpFeedback(award.gainedXp),
+    );
   }
 
   List<String> _matchOpponentOptions(List<TrainingEntry> entries) {
@@ -2824,15 +2926,18 @@ class _CalendarStatusDayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final todayColor = colorScheme.tertiary;
     final dayTextColor = isSelected
         ? colorScheme.primary
-        : (isHoliday ? Colors.red.shade500 : colorScheme.onSurface);
+        : (isToday
+              ? todayColor
+              : (isHoliday ? Colors.red.shade500 : colorScheme.onSurface));
     final borderColor = isSelected
         ? colorScheme.primary
-        : (isToday ? colorScheme.primary.withAlpha(150) : Colors.transparent);
+        : (isToday ? todayColor.withAlpha(210) : Colors.transparent);
     final backgroundColor = isSelected
         ? colorScheme.primary.withAlpha(28)
-        : (isToday ? colorScheme.primary.withAlpha(14) : Colors.transparent);
+        : (isToday ? todayColor.withAlpha(24) : Colors.transparent);
 
     return Center(
       child: AnimatedContainer(
@@ -3842,10 +3947,19 @@ class _CalendarAutocompleteField extends StatelessWidget {
               textInputAction: textInputAction,
               maxLength: maxLength,
               onChanged: onChanged,
-              onSubmitted: (_) => onFieldSubmitted(),
-              decoration: InputDecoration(
-                labelText: labelText,
-                hintText: hintText.isEmpty ? null : hintText,
+              onSubmitted: (_) {
+                onFieldSubmitted();
+                if (textInputAction == TextInputAction.done) {
+                  FocusScope.of(context).unfocus();
+                }
+              },
+              decoration: _calendarInputDecorationWithDone(
+                context,
+                InputDecoration(
+                  labelText: labelText,
+                  hintText: hintText.isEmpty ? null : hintText,
+                ),
+                enabled: enabled,
               ),
             );
           },
@@ -3881,6 +3995,21 @@ class _CalendarAutocompleteField extends StatelessWidget {
       },
     );
   }
+}
+
+InputDecoration _calendarInputDecorationWithDone(
+  BuildContext context,
+  InputDecoration decoration, {
+  bool enabled = true,
+}) {
+  if (!enabled) return decoration;
+  return decoration.copyWith(
+    suffixIcon: IconButton(
+      tooltip: AppLocalizations.of(context)!.hideKeyboard,
+      icon: const Icon(Icons.check_rounded),
+      onPressed: () => FocusScope.of(context).unfocus(),
+    ),
+  );
 }
 
 String _formatDurationText(

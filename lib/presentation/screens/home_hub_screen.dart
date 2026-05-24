@@ -100,6 +100,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   bool _weatherLoading = false;
   bool _weatherNeedsLocation = true;
   bool _weatherLoadFailed = false;
+  bool _weatherFetchInFlight = false;
   String _weatherLocation = '';
   String _weatherSummary = '';
   int? _weatherCode;
@@ -115,7 +116,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _applyCachedHomeWeather();
-      unawaited(_loadHomeWeather(requestPermission: false));
+      _scheduleInitialWeatherLoad();
       _queueHomeActionSideEffect(
         () => NewsBadgeService.refresh(widget.optionRepository),
       );
@@ -440,17 +441,34 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     return () => unawaited(_loadHomeWeather(requestPermission: true));
   }
 
-  Future<void> _loadHomeWeather({required bool requestPermission}) async {
-    if (_weatherLoading || !mounted) return;
+  void _scheduleInitialWeatherLoad() {
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 650), () async {
+        if (!mounted) return;
+        await _loadHomeWeather(requestPermission: false, showLoading: false);
+      }),
+    );
+  }
+
+  Future<void> _loadHomeWeather({
+    required bool requestPermission,
+    bool showLoading = true,
+  }) async {
+    if (_weatherFetchInFlight || !mounted) return;
+    _weatherFetchInFlight = true;
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    setState(() {
-      _weatherLoading = true;
-      if (requestPermission) {
-        _weatherLoadFailed = false;
-      }
-    });
+    if (showLoading) {
+      setState(() {
+        _weatherLoading = true;
+        if (requestPermission) {
+          _weatherLoadFailed = false;
+        }
+      });
+    } else if (requestPermission) {
+      setState(() => _weatherLoadFailed = false);
+    }
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -488,10 +506,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         return;
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 8),
+      Position? position;
+      if (!requestPermission) {
+        position = await Geolocator.getLastKnownPosition();
+      }
+      position ??= await Geolocator.getCurrentPosition(
+        locationSettings: LocationSettings(
+          accuracy: requestPermission
+              ? LocationAccuracy.high
+              : LocationAccuracy.low,
+          timeLimit: Duration(seconds: requestPermission ? 8 : 5),
         ),
       );
       final placeFuture = _resolvePlaceName(
@@ -558,7 +582,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         ).showSnackBar(SnackBar(content: Text(l10n.homeWeatherLoadFailed)));
       }
     } finally {
-      if (mounted) {
+      _weatherFetchInFlight = false;
+      if (mounted && showLoading) {
         setState(() => _weatherLoading = false);
       }
     }
