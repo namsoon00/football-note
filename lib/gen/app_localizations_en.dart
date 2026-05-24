@@ -475,6 +475,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingXpSourceDiary => 'Diary';
 
   @override
+  String get trainingSaveToastPlain => 'Training note saved.';
+
+  @override
+  String trainingSaveToastWithXp(int gainedXp, Object details) {
+    return 'Training note saved. +$gainedXp XP · $details';
+  }
+
+  @override
+  String trainingSaveToastLevelUp(
+      int gainedXp, Object details, int level, Object levelName) {
+    return 'Training note saved. +$gainedXp XP · $details · Reached Lv.$level $levelName';
+  }
+
+  @override
+  String get trainingXpToastReasonLiftingMissed => 'Lifting missed';
+
+  @override
+  String get trainingXpToastReasonJumpRopeMissed => 'Jump rope missed';
+
+  @override
+  String get trainingXpToastReasonMealFullBonus =>
+      'Three meals + 5+ rice bowls';
+
+  @override
+  String get trainingXpToastReasonRoutineComplete =>
+      'Training routine complete';
+
+  @override
+  String get trainingXpToastReasonStreakDaily2 => '2-3 day streak bonus';
+
+  @override
+  String get trainingXpToastReasonStreakDaily4 => '4-6 day streak bonus';
+
+  @override
+  String get trainingXpToastReasonStreakDaily7 => '7+ day streak bonus';
+
+  @override
+  String get trainingXpToastReasonStreak3 => '3-day streak';
+
+  @override
+  String get trainingXpToastReasonStreak7 => '7-day streak';
+
+  @override
+  String get trainingXpToastReasonWeekly3 => '3 logs this week';
+
+  @override
+  String get trainingXpToastReasonWeekly5 => '5 logs this week';
+
+  @override
+  String get trainingXpToastReasonDailyCap => 'Daily cap applied';
+
+  @override
+  String trainingXpToastMoreReasons(int count) {
+    return '$count more';
+  }
+
+  @override
   String diarySavedWithXpFeedback(int count) {
     return 'Diary saved +$count XP';
   }
@@ -580,6 +637,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerXpGuideJumpRopeRecorded => 'Jump rope recorded';
+
+  @override
+  String get playerXpGuideTrainingRoutineComplete =>
+      'Complete lifting + jump rope + recovery';
 
   @override
   String get playerXpGuideMissingConditioning =>

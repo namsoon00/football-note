@@ -199,6 +199,49 @@
   "trainingXpSourceJumpRope": "Jump rope",
   "trainingXpSourceTrainingSketch": "Training sketch",
   "trainingXpSourceDiary": "Diary",
+  "trainingSaveToastPlain": "Training note saved.",
+  "trainingSaveToastWithXp": "Training note saved. +{gainedXp} XP · {details}",
+  "@trainingSaveToastWithXp": {
+    "placeholders": {
+      "gainedXp": {
+        "type": "int"
+      },
+      "details": {}
+    }
+  },
+  "trainingSaveToastLevelUp": "Training note saved. +{gainedXp} XP · {details} · Reached Lv.{level} {levelName}",
+  "@trainingSaveToastLevelUp": {
+    "placeholders": {
+      "gainedXp": {
+        "type": "int"
+      },
+      "details": {},
+      "level": {
+        "type": "int"
+      },
+      "levelName": {}
+    }
+  },
+  "trainingXpToastReasonLiftingMissed": "Lifting missed",
+  "trainingXpToastReasonJumpRopeMissed": "Jump rope missed",
+  "trainingXpToastReasonMealFullBonus": "Three meals + 5+ rice bowls",
+  "trainingXpToastReasonRoutineComplete": "Training routine complete",
+  "trainingXpToastReasonStreakDaily2": "2-3 day streak bonus",
+  "trainingXpToastReasonStreakDaily4": "4-6 day streak bonus",
+  "trainingXpToastReasonStreakDaily7": "7+ day streak bonus",
+  "trainingXpToastReasonStreak3": "3-day streak",
+  "trainingXpToastReasonStreak7": "7-day streak",
+  "trainingXpToastReasonWeekly3": "3 logs this week",
+  "trainingXpToastReasonWeekly5": "5 logs this week",
+  "trainingXpToastReasonDailyCap": "Daily cap applied",
+  "trainingXpToastMoreReasons": "{count} more",
+  "@trainingXpToastMoreReasons": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diarySavedWithXpFeedback": "Diary saved +{count} XP",
   "@diarySavedWithXpFeedback": {
     "placeholders": {
@@ -298,6 +341,7 @@
   "playerXpGuidePlannedDayComplete": "Complete a planned day",
   "playerXpGuideLiftingRecorded": "Lifting recorded",
   "playerXpGuideJumpRopeRecorded": "Jump rope recorded",
+  "playerXpGuideTrainingRoutineComplete": "Complete lifting + jump rope + recovery",
   "playerXpGuideMissingConditioning": "Missing lifting or jump rope costs XP",
   "playerXpGuideMissingConditioningXp": "-5 XP each",
   "playerXpGuideStreakTitle": "Streak and weekly bonuses",

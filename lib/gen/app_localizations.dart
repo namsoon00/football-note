@@ -932,6 +932,103 @@ abstract class AppLocalizations {
   /// **'Diary'**
   String get trainingXpSourceDiary;
 
+  /// No description provided for @trainingSaveToastPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Training note saved.'**
+  String get trainingSaveToastPlain;
+
+  /// No description provided for @trainingSaveToastWithXp.
+  ///
+  /// In en, this message translates to:
+  /// **'Training note saved. +{gainedXp} XP · {details}'**
+  String trainingSaveToastWithXp(int gainedXp, Object details);
+
+  /// No description provided for @trainingSaveToastLevelUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Training note saved. +{gainedXp} XP · {details} · Reached Lv.{level} {levelName}'**
+  String trainingSaveToastLevelUp(
+      int gainedXp, Object details, int level, Object levelName);
+
+  /// No description provided for @trainingXpToastReasonLiftingMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting missed'**
+  String get trainingXpToastReasonLiftingMissed;
+
+  /// No description provided for @trainingXpToastReasonJumpRopeMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope missed'**
+  String get trainingXpToastReasonJumpRopeMissed;
+
+  /// No description provided for @trainingXpToastReasonMealFullBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Three meals + 5+ rice bowls'**
+  String get trainingXpToastReasonMealFullBonus;
+
+  /// No description provided for @trainingXpToastReasonRoutineComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Training routine complete'**
+  String get trainingXpToastReasonRoutineComplete;
+
+  /// No description provided for @trainingXpToastReasonStreakDaily2.
+  ///
+  /// In en, this message translates to:
+  /// **'2-3 day streak bonus'**
+  String get trainingXpToastReasonStreakDaily2;
+
+  /// No description provided for @trainingXpToastReasonStreakDaily4.
+  ///
+  /// In en, this message translates to:
+  /// **'4-6 day streak bonus'**
+  String get trainingXpToastReasonStreakDaily4;
+
+  /// No description provided for @trainingXpToastReasonStreakDaily7.
+  ///
+  /// In en, this message translates to:
+  /// **'7+ day streak bonus'**
+  String get trainingXpToastReasonStreakDaily7;
+
+  /// No description provided for @trainingXpToastReasonStreak3.
+  ///
+  /// In en, this message translates to:
+  /// **'3-day streak'**
+  String get trainingXpToastReasonStreak3;
+
+  /// No description provided for @trainingXpToastReasonStreak7.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day streak'**
+  String get trainingXpToastReasonStreak7;
+
+  /// No description provided for @trainingXpToastReasonWeekly3.
+  ///
+  /// In en, this message translates to:
+  /// **'3 logs this week'**
+  String get trainingXpToastReasonWeekly3;
+
+  /// No description provided for @trainingXpToastReasonWeekly5.
+  ///
+  /// In en, this message translates to:
+  /// **'5 logs this week'**
+  String get trainingXpToastReasonWeekly5;
+
+  /// No description provided for @trainingXpToastReasonDailyCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily cap applied'**
+  String get trainingXpToastReasonDailyCap;
+
+  /// No description provided for @trainingXpToastMoreReasons.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more'**
+  String trainingXpToastMoreReasons(int count);
+
   /// No description provided for @diarySavedWithXpFeedback.
   ///
   /// In en, this message translates to:
@@ -1099,6 +1196,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Jump rope recorded'**
   String get playerXpGuideJumpRopeRecorded;
+
+  /// No description provided for @playerXpGuideTrainingRoutineComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete lifting + jump rope + recovery'**
+  String get playerXpGuideTrainingRoutineComplete;
 
   /// No description provided for @playerXpGuideMissingConditioning.
   ///

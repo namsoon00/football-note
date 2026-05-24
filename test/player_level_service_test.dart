@@ -153,8 +153,11 @@ void main() {
     expect(history, hasLength(1));
     expect(history.first.category, PlayerXpHistoryCategory.training);
     expect(history.first.label, '원터치 패스');
-    expect(history.first.totalXp, 120);
-    expect(history.first.reasons, contains('log'));
+    expect(history.first.totalXp, 132);
+    expect(
+      history.first.reasons,
+      containsAll(<String>['log', 'lifting_recorded', 'jump_rope_recorded']),
+    );
   });
 
   test(
@@ -236,9 +239,9 @@ void main() {
       existingEntries: const [],
     );
 
-    expect(award.gainedXp, 34);
+    expect(award.gainedXp, 46);
     expect(award.reasons, contains('meal_full_day'));
-    expect(service.loadState().totalXp, 134);
+    expect(service.loadState().totalXp, 146);
   });
 
   test(

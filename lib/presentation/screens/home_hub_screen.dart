@@ -27,7 +27,6 @@ import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
-import '../widgets/level_up_dialog.dart';
 import '../widgets/player_level_visuals.dart';
 import '../widgets/rice_bowl_summary.dart';
 import '../widgets/shared_tab_header.dart';
@@ -632,29 +631,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           isKo: isKo,
         );
       }
-      if (!mounted || !award.didLevelUp) return;
-      final customRewardName = levelService.customRewardNameForLevel(
-        award.after.level,
-      );
-      await showLevelUpCelebrationDialog(
-        context,
-        award: award,
-        isKo: isKo,
-        customRewardName: customRewardName,
-        onClaimReward: () async {
-          final claim = await PlayerLevelService(
-            widget.optionRepository,
-          ).claimRewardForLevel(award.after.level);
-          if (!mounted || claim == null) return;
-          final rewardName = claim.customRewardName.trim().isNotEmpty
-              ? claim.customRewardName
-              : (isKo ? claim.reward.nameKo : claim.reward.nameEn);
-          AppFeedback.showSuccess(
-            context,
-            text: l10n.levelUpRewardClaimed(rewardName),
-          );
-        },
-      );
     } finally {
       _dailyTaskAwardInFlight = false;
     }

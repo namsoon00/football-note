@@ -97,11 +97,18 @@ void main() {
 
     expect(find.text('리프팅 기록 추가'), findsOneWidget);
     expect(find.text('줄넘기 기록 추가'), findsOneWidget);
+    expect(find.text('리프팅+줄넘기+회복 루틴 완성'), findsOneWidget);
     expect(find.text('리프팅/줄넘기 없이 저장하면 감점'), findsOneWidget);
     expect(
       find.text('3일 연속 기록 / 7일 연속 기록', skipOffstage: false),
       findsOneWidget,
     );
+    await tester.scrollUntilVisible(
+      find.text('훈련 계획 생성'),
+      240,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.text('훈련 계획 생성', skipOffstage: false), findsOneWidget);
     expect(find.text('훈련 스케치 저장', skipOffstage: false), findsOneWidget);
     expect(find.text('다이어리 작성', skipOffstage: false), findsOneWidget);
