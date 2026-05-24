@@ -95,9 +95,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (backup == null || _familySyncInFlight) return;
     _familySyncInFlight = true;
     try {
+      final pushedPending = backup.hasPendingParentSharedChanges()
+          ? await backup.backupIfSignedIn()
+          : false;
       final result = await backup.refreshFamilySharedDataIfNeeded();
       if (!mounted) return;
-      if (result.refreshed) {
+      if (pushedPending || result.refreshed) {
         widget.localeService.load();
         widget.settingsService.load();
         setState(() {});

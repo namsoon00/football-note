@@ -223,6 +223,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsLeagueStandingsRetry => 'Retry';
 
   @override
+  String get newsLeagueFixturesTitle => 'Fixtures and results';
+
+  @override
+  String get newsLeagueFixturesSubtitle =>
+      'Upcoming fixtures and recent results, including Champions League knockout pairings when available.';
+
+  @override
+  String get newsLeagueFixturesEmpty =>
+      'No fixtures are available in the current schedule window.';
+
+  @override
+  String get newsLeagueFixtureScheduled => 'Fixture';
+
+  @override
+  String get newsLeagueFixtureLive => 'Live';
+
+  @override
+  String get newsLeagueFixtureFullTime => 'FT';
+
+  @override
   String get newsLeagueStandingsTeamColumn => 'Team';
 
   @override

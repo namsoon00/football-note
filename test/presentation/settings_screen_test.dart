@@ -1033,6 +1033,12 @@ class _FakeDriveBackupService extends BackupService {
   }
 
   @override
+  Future<bool> backupIfSignedIn({bool requireAutoOnSave = false}) async {
+    _pendingParentSharedChanges = false;
+    return true;
+  }
+
+  @override
   Future<bool> refreshParentSharedDataIfNeeded() async {
     refreshParentSharedDataIfNeededCalled = true;
     return false;

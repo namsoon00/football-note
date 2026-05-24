@@ -25,8 +25,8 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   late final LeagueStandingsService _service;
   late final bool _ownsService;
   late LeagueStandingsType _selectedType;
-  final Map<LeagueStandingsType, LeagueStandingsSnapshot> _cache = {};
-  Future<LeagueStandingsSnapshot>? _future;
+  final Map<LeagueStandingsType, _LeagueOverviewSnapshot> _cache = {};
+  Future<_LeagueOverviewSnapshot>? _future;
 
   @override
   void initState() {
@@ -45,7 +45,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     super.dispose();
   }
 
-  Future<LeagueStandingsSnapshot> _load(
+  Future<_LeagueOverviewSnapshot> _load(
     LeagueStandingsType type, {
     bool refresh = false,
   }) async {
@@ -53,7 +53,13 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
       final cached = _cache[type];
       if (cached != null) return cached;
     }
-    final snapshot = await _service.fetch(type);
+    final standingsFuture = _service.fetch(type);
+    final fixturesFuture = _service.fetchFixtures(type);
+    final values = await Future.wait<Object>([standingsFuture, fixturesFuture]);
+    final snapshot = _LeagueOverviewSnapshot(
+      standings: values[0] as LeagueStandingsSnapshot,
+      fixtures: values[1] as LeagueFixtureSnapshot,
+    );
     _cache[type] = snapshot;
     return snapshot;
   }
@@ -79,10 +85,10 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
       appBar: AppBar(
         title: Text(l10n.newsLeagueStandingsTitle),
         actions: [
-          FutureBuilder<LeagueStandingsSnapshot>(
+          FutureBuilder<_LeagueOverviewSnapshot>(
             future: _future,
             builder: (context, snapshot) {
-              final sourceUrl = snapshot.data?.sourceUrl.trim() ?? '';
+              final sourceUrl = snapshot.data?.standings.sourceUrl.trim() ?? '';
               if (sourceUrl.isEmpty) return const SizedBox.shrink();
               return IconButton(
                 tooltip: l10n.newsLeagueStandingsOpenSource,
@@ -135,7 +141,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                 ),
               ),
               Expanded(
-                child: FutureBuilder<LeagueStandingsSnapshot>(
+                child: FutureBuilder<_LeagueOverviewSnapshot>(
                   future: _future,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting &&
@@ -150,7 +156,9 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                       );
                     }
                     final data = snapshot.data;
-                    if (data == null || data.entries.isEmpty) {
+                    if (data == null ||
+                        (data.standings.entries.isEmpty &&
+                            data.fixtures.entries.isEmpty)) {
                       return _MessageState(
                         icon: Icons.table_chart_outlined,
                         title: l10n.newsLeagueStandingsEmpty,
@@ -159,7 +167,10 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                     }
                     return RefreshIndicator(
                       onRefresh: _refresh,
-                      child: _StandingsTable(snapshot: data),
+                      child: _StandingsTable(
+                        snapshot: data.standings,
+                        fixtures: data.fixtures,
+                      ),
                     );
                   },
                 ),
@@ -182,10 +193,21 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   }
 }
 
+class _LeagueOverviewSnapshot {
+  final LeagueStandingsSnapshot standings;
+  final LeagueFixtureSnapshot fixtures;
+
+  const _LeagueOverviewSnapshot({
+    required this.standings,
+    required this.fixtures,
+  });
+}
+
 class _StandingsTable extends StatelessWidget {
   final LeagueStandingsSnapshot snapshot;
+  final LeagueFixtureSnapshot fixtures;
 
-  const _StandingsTable({required this.snapshot});
+  const _StandingsTable({required this.snapshot, required this.fixtures});
 
   @override
   Widget build(BuildContext context) {
@@ -212,18 +234,252 @@ class _StandingsTable extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Column(
+        _FixtureSection(snapshot: fixtures),
+        if (snapshot.entries.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Column(
+              children: [
+                _StandingsHeaderRow(),
+                ...snapshot.entries.map(
+                  (entry) => _StandingTeamRow(entry: entry),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _FixtureSection extends StatelessWidget {
+  final LeagueFixtureSnapshot snapshot;
+
+  const _FixtureSection({required this.snapshot});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.newsLeagueFixturesTitle,
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l10n.newsLeagueFixturesSubtitle,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 10),
+        if (snapshot.entries.isEmpty)
+          Text(
+            l10n.newsLeagueFixturesEmpty,
+            style: Theme.of(context).textTheme.bodyMedium,
+          )
+        else
+          Column(
             children: [
-              _StandingsHeaderRow(),
-              ...snapshot.entries.map(
-                (entry) => _StandingTeamRow(entry: entry),
+              for (var index = 0; index < snapshot.entries.length; index++) ...[
+                _FixtureRow(entry: snapshot.entries[index]),
+                if (index != snapshot.entries.length - 1)
+                  const SizedBox(height: 8),
+              ],
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _FixtureRow extends StatelessWidget {
+  final LeagueFixtureEntry entry;
+
+  const _FixtureRow({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final locale = Localizations.localeOf(context).toString();
+    final kickoffText = DateFormat.MMMd(
+      locale,
+    ).add_Hm().format(entry.kickoffAt.toLocal());
+    final statusColor = _statusColor(theme);
+    final detailParts = <String>[
+      if (entry.stage.trim().isNotEmpty) entry.stage.trim(),
+      if (entry.leg.trim().isNotEmpty) entry.leg.trim(),
+      if (entry.note.trim().isNotEmpty) entry.note.trim(),
+      if (entry.venue.trim().isNotEmpty) entry.venue.trim(),
+      if (entry.city.trim().isNotEmpty) entry.city.trim(),
+    ];
+    return Material(
+      color: theme.colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: entry.sourceUrl.trim().isEmpty
+            ? null
+            : () => _openSource(entry.sourceUrl),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _StatusChip(label: _statusLabel(context), color: statusColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      kickoffText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.right,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _FixtureTeam(
+                      name: entry.homeTeamName,
+                      shortName: entry.homeTeamShortName,
+                      logoUrl: entry.homeLogoUrl,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Text(
+                      entry.hasScore
+                          ? '${entry.homeScore} - ${entry.awayScore}'
+                          : kickoffText,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: _FixtureTeam(
+                      name: entry.awayTeamName,
+                      shortName: entry.awayTeamShortName,
+                      logoUrl: entry.awayLogoUrl,
+                      alignEnd: true,
+                    ),
+                  ),
+                ],
+              ),
+              if (detailParts.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  detailParts.join(' · '),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
             ],
           ),
         ),
-      ],
+      ),
+    );
+  }
+
+  Future<void> _openSource(String sourceUrl) async {
+    final uri = Uri.tryParse(sourceUrl);
+    if (uri == null) return;
+    await launchUrl(
+      uri,
+      mode: LaunchMode.inAppBrowserView,
+      browserConfiguration: const BrowserConfiguration(showTitle: true),
+    );
+  }
+
+  String _statusLabel(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (entry.status) {
+      LeagueFixtureStatus.scheduled => l10n.newsLeagueFixtureScheduled,
+      LeagueFixtureStatus.live => l10n.newsLeagueFixtureLive,
+      LeagueFixtureStatus.finished => l10n.newsLeagueFixtureFullTime,
+    };
+  }
+
+  Color _statusColor(ThemeData theme) {
+    return switch (entry.status) {
+      LeagueFixtureStatus.scheduled => theme.colorScheme.primary,
+      LeagueFixtureStatus.live => Colors.orange.shade700,
+      LeagueFixtureStatus.finished => Colors.green.shade700,
+    };
+  }
+}
+
+class _FixtureTeam extends StatelessWidget {
+  final String name;
+  final String shortName;
+  final String logoUrl;
+  final bool alignEnd;
+
+  const _FixtureTeam({
+    required this.name,
+    required this.shortName,
+    required this.logoUrl,
+    this.alignEnd = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final logo =
+        _LogoCircle(name: name, shortName: shortName, logoUrl: logoUrl);
+    final text = Expanded(
+      child: Text(
+        name,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
+      ),
+    );
+    return Row(
+      children: alignEnd
+          ? [text, const SizedBox(width: 8), logo]
+          : [logo, const SizedBox(width: 8), text],
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _StatusChip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
+      ),
     );
   }
 }
@@ -302,8 +558,8 @@ class _StandingTeamRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
                 ),
               ],
@@ -328,15 +584,36 @@ class _TeamLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final compactName = entry.teamName.trim();
-    final initials = entry.teamShortName.trim().isNotEmpty
-        ? entry.teamShortName.trim()
+    return _LogoCircle(
+      name: entry.teamName,
+      shortName: entry.teamShortName,
+      logoUrl: entry.logoUrl,
+    );
+  }
+}
+
+class _LogoCircle extends StatelessWidget {
+  final String name;
+  final String shortName;
+  final String logoUrl;
+
+  const _LogoCircle({
+    required this.name,
+    required this.shortName,
+    required this.logoUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final compactName = name.trim();
+    final initials = shortName.trim().isNotEmpty
+        ? shortName.trim()
         : compactName.isEmpty
-        ? '?'
-        : compactName
-              .substring(0, compactName.length < 2 ? compactName.length : 2)
-              .toUpperCase();
-    final logoUrl = entry.logoUrl.trim();
+            ? '?'
+            : compactName
+                .substring(0, compactName.length < 2 ? compactName.length : 2)
+                .toUpperCase();
+    final trimmedLogoUrl = logoUrl.trim();
     return Container(
       width: 28,
       height: 28,
@@ -345,7 +622,7 @@ class _TeamLogo extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       clipBehavior: Clip.antiAlias,
-      child: logoUrl.isEmpty
+      child: trimmedLogoUrl.isEmpty
           ? Center(
               child: Text(
                 initials,
@@ -353,7 +630,7 @@ class _TeamLogo extends StatelessWidget {
               ),
             )
           : Image.network(
-              logoUrl,
+              trimmedLogoUrl,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Center(
                 child: Text(
@@ -408,15 +685,12 @@ Widget _cell(
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
-      style:
-          (header
-                  ? Theme.of(context).textTheme.labelMedium
-                  : Theme.of(context).textTheme.bodyMedium)
-              ?.copyWith(
-                fontWeight: header || strong
-                    ? FontWeight.w900
-                    : FontWeight.w600,
-              ),
+      style: (header
+              ? Theme.of(context).textTheme.labelMedium
+              : Theme.of(context).textTheme.bodyMedium)
+          ?.copyWith(
+        fontWeight: header || strong ? FontWeight.w900 : FontWeight.w600,
+      ),
     ),
   );
 }

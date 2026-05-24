@@ -199,6 +199,25 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsLeagueStandingsRetry => '다시 시도';
 
   @override
+  String get newsLeagueFixturesTitle => '경기 일정과 결과';
+
+  @override
+  String get newsLeagueFixturesSubtitle =>
+      '예정 경기와 최근 결과를 보여주며, 챔피언스리그 토너먼트 대진도 가능한 경우 함께 표시합니다.';
+
+  @override
+  String get newsLeagueFixturesEmpty => '현재 일정 구간에 표시할 경기가 없어요.';
+
+  @override
+  String get newsLeagueFixtureScheduled => '예정';
+
+  @override
+  String get newsLeagueFixtureLive => '진행 중';
+
+  @override
+  String get newsLeagueFixtureFullTime => '종료';
+
+  @override
   String get newsLeagueStandingsTeamColumn => '팀';
 
   @override

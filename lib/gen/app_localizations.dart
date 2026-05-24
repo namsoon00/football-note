@@ -470,6 +470,42 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get newsLeagueStandingsRetry;
 
+  /// No description provided for @newsLeagueFixturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixtures and results'**
+  String get newsLeagueFixturesTitle;
+
+  /// No description provided for @newsLeagueFixturesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming fixtures and recent results, including Champions League knockout pairings when available.'**
+  String get newsLeagueFixturesSubtitle;
+
+  /// No description provided for @newsLeagueFixturesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No fixtures are available in the current schedule window.'**
+  String get newsLeagueFixturesEmpty;
+
+  /// No description provided for @newsLeagueFixtureScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixture'**
+  String get newsLeagueFixtureScheduled;
+
+  /// No description provided for @newsLeagueFixtureLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get newsLeagueFixtureLive;
+
+  /// No description provided for @newsLeagueFixtureFullTime.
+  ///
+  /// In en, this message translates to:
+  /// **'FT'**
+  String get newsLeagueFixtureFullTime;
+
   /// No description provided for @newsLeagueStandingsTeamColumn.
   ///
   /// In en, this message translates to:
