@@ -108,6 +108,9 @@ Future<void> _warmStartupServices({
     // Ignore startup backup failures and keep app entry responsive.
   }
   try {
+    if (backupService.hasPendingParentSharedChanges()) {
+      await backupService.backupIfSignedIn();
+    }
     await backupService.refreshFamilySharedDataIfNeeded();
   } catch (_) {
     // Family shared refresh can recover on later app resumes.

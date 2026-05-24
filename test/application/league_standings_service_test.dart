@@ -55,4 +55,118 @@ void main() {
     expect(snapshot.entries.single.goalDifference, '+42');
     expect(snapshot.entries.single.points, '79');
   });
+
+  test('parses ESPN fixture payload with Champions League bracket notes', () {
+    final snapshot = LeagueStandingsService.parseFixtureSnapshotForTesting(
+      type: LeagueStandingsType.championsLeague,
+      fetchedAt: DateTime(2026, 5, 24, 12),
+      payload: {
+        'leagues': [
+          {
+            'name': 'UEFA Champions League',
+            'season': {'displayName': '2025-26 UEFA Champions League'},
+            'links': [
+              {
+                'href':
+                    'https://www.espn.com/soccer/fixtures/_/league/uefa.champions',
+              },
+            ],
+          },
+        ],
+        'events': [
+          {
+            'id': 'semi-2',
+            'date': '2026-05-05T19:00Z',
+            'season': {'slug': 'semifinals'},
+            'links': [
+              {'href': 'https://www.espn.com/soccer/match/_/gameId/semi-2'},
+            ],
+            'competitions': [
+              {
+                'id': 'semi-2',
+                'date': '2026-05-05T19:00Z',
+                'status': {
+                  'type': {'state': 'post', 'completed': true},
+                },
+                'venue': {
+                  'fullName': 'Emirates Stadium',
+                  'address': {'city': 'London'},
+                },
+                'leg': {'displayValue': '2nd Leg'},
+                'series': {'title': 'Semifinals'},
+                'notes': [
+                  {'headline': '2nd Leg - Arsenal advance 2-1 on aggregate'},
+                ],
+                'competitors': [
+                  {
+                    'homeAway': 'home',
+                    'score': '1',
+                    'team': {
+                      'displayName': 'Arsenal',
+                      'shortDisplayName': 'Arsenal',
+                      'logos': [
+                        {'href': 'https://example.com/arsenal.png'},
+                      ],
+                    },
+                  },
+                  {
+                    'homeAway': 'away',
+                    'score': '0',
+                    'team': {
+                      'displayName': 'Atlético Madrid',
+                      'shortDisplayName': 'Atleti',
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            'id': 'final',
+            'date': '2026-05-30T19:00Z',
+            'season': {'slug': 'final'},
+            'competitions': [
+              {
+                'id': 'final',
+                'date': '2026-05-30T19:00Z',
+                'status': {
+                  'type': {'state': 'pre', 'completed': false},
+                },
+                'series': {'title': 'Final'},
+                'competitors': [
+                  {
+                    'homeAway': 'home',
+                    'team': {
+                      'displayName': 'Arsenal',
+                      'shortDisplayName': 'Arsenal',
+                    },
+                  },
+                  {
+                    'homeAway': 'away',
+                    'team': {
+                      'displayName': 'Barcelona',
+                      'shortDisplayName': 'Barca',
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    expect(snapshot.leagueName, 'UEFA Champions League');
+    expect(snapshot.seasonName, '2025-26 UEFA Champions League');
+    expect(snapshot.sourceUrl, contains('espn.com'));
+    expect(snapshot.entries, hasLength(2));
+    expect(snapshot.entries.first.id, 'final');
+    expect(snapshot.entries.first.status, LeagueFixtureStatus.scheduled);
+    expect(snapshot.entries.first.stage, 'Final');
+    expect(snapshot.entries.last.status, LeagueFixtureStatus.finished);
+    expect(snapshot.entries.last.leg, '2nd Leg');
+    expect(snapshot.entries.last.note, contains('aggregate'));
+    expect(snapshot.entries.last.homeScore, 1);
+    expect(snapshot.entries.last.awayTeamName, 'Atlético Madrid');
+  });
 }

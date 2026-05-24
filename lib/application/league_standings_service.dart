@@ -18,6 +18,8 @@ class LeagueStandingsService {
     LeagueStandingsType.laLiga: 'esp.1',
     LeagueStandingsType.bundesliga: 'ger.1',
   };
+  static const int _fixtureLookBackDays = 14;
+  static const int _fixtureLookAheadDays = 90;
 
   Future<LeagueStandingsSnapshot> fetch(LeagueStandingsType type) async {
     final leagueId = _espnLeagueIds[type]!;
@@ -36,6 +38,37 @@ class LeagueStandingsService {
       throw StateError('Invalid standings payload.');
     }
     return parseSnapshotForTesting(type: type, payload: decoded);
+  }
+
+  Future<LeagueFixtureSnapshot> fetchFixtures(
+    LeagueStandingsType type, {
+    DateTime? now,
+  }) async {
+    final leagueId = _espnLeagueIds[type]!;
+    final reference = now ?? DateTime.now();
+    final start = reference.subtract(
+      const Duration(days: _fixtureLookBackDays),
+    );
+    final end = reference.add(const Duration(days: _fixtureLookAheadDays));
+    final uri = Uri.https(
+      'site.api.espn.com',
+      '/apis/site/v2/sports/soccer/$leagueId/scoreboard',
+      {
+        'dates': '${_formatEspnDate(start)}-${_formatEspnDate(end)}',
+        'limit': '100',
+      },
+    );
+    final response = await _client
+        .get(uri)
+        .timeout(const Duration(seconds: 10));
+    if (response.statusCode != 200) {
+      throw StateError('Fixtures request failed: ${response.statusCode}');
+    }
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw StateError('Invalid fixtures payload.');
+    }
+    return parseFixtureSnapshotForTesting(type: type, payload: decoded);
   }
 
   void dispose() {
@@ -84,6 +117,147 @@ class LeagueStandingsService {
       fetchedAt: DateTime.now(),
       entries: entries,
     );
+  }
+
+  static LeagueFixtureSnapshot parseFixtureSnapshotForTesting({
+    required LeagueStandingsType type,
+    required Map<String, dynamic> payload,
+    DateTime? fetchedAt,
+  }) {
+    final league = _firstMap(payload['leagues']);
+    final season = _asMap(league['season']);
+    final eventsRaw = payload['events'];
+    final entries = <LeagueFixtureEntry>[];
+    if (eventsRaw is List) {
+      for (final raw in eventsRaw) {
+        if (raw is! Map) continue;
+        final entry = _parseFixtureEntry(raw.cast<String, dynamic>());
+        if (entry != null) {
+          entries.add(entry);
+        }
+      }
+    }
+    entries.sort(_compareFixtureEntries);
+    return LeagueFixtureSnapshot(
+      type: type,
+      leagueName: league['name']?.toString().trim().isNotEmpty == true
+          ? league['name'].toString().trim()
+          : _fallbackLeagueName(type),
+      seasonName: season['displayName']?.toString().trim() ?? '',
+      sourceUrl: _fixtureSourceUrl(payload),
+      fetchedAt: fetchedAt ?? DateTime.now(),
+      entries: entries,
+    );
+  }
+
+  static LeagueFixtureEntry? _parseFixtureEntry(Map<String, dynamic> raw) {
+    final competition = _firstMap(raw['competitions']);
+    final competitorsRaw = competition['competitors'];
+    if (competitorsRaw is! List) return null;
+    Map<String, dynamic>? home;
+    Map<String, dynamic>? away;
+    for (final rawCompetitor in competitorsRaw) {
+      if (rawCompetitor is! Map) continue;
+      final competitor = rawCompetitor.cast<String, dynamic>();
+      final homeAway = competitor['homeAway']?.toString().trim();
+      if (homeAway == 'home') {
+        home = competitor;
+      } else if (homeAway == 'away') {
+        away = competitor;
+      }
+    }
+    final mappedCompetitors = competitorsRaw
+        .whereType<Map>()
+        .map((item) => item.cast<String, dynamic>())
+        .toList(growable: false);
+    if (home == null && mappedCompetitors.isNotEmpty) {
+      home = mappedCompetitors.first;
+    }
+    if (away == null && mappedCompetitors.length > 1) {
+      away = mappedCompetitors[1];
+    }
+    if (home == null || away == null) return null;
+    final kickoffAt = DateTime.tryParse(
+      competition['date']?.toString() ?? raw['date']?.toString() ?? '',
+    );
+    final id =
+        raw['id']?.toString().trim() ?? competition['id']?.toString() ?? '';
+    final homeTeam = _asMap(home['team']);
+    final awayTeam = _asMap(away['team']);
+    final homeName = _teamName(homeTeam);
+    final awayName = _teamName(awayTeam);
+    if (kickoffAt == null ||
+        id.isEmpty ||
+        homeName.isEmpty ||
+        awayName.isEmpty) {
+      return null;
+    }
+    final venue = _asMap(competition['venue']);
+    final address = _asMap(venue['address']);
+    final status = _fixtureStatus(competition['status']);
+    final series = _asMap(competition['series']);
+    final leg = _asMap(competition['leg']);
+    return LeagueFixtureEntry(
+      id: id,
+      kickoffAt: kickoffAt,
+      stage: _firstNonEmpty([
+        series['title']?.toString().trim() ?? '',
+        raw['season'] is Map ? _seasonSlugLabel(raw['season']) : '',
+      ]),
+      leg: leg['displayValue']?.toString().trim() ?? '',
+      note: _fixtureNote(competition),
+      venue: venue['fullName']?.toString().trim() ?? '',
+      city: address['city']?.toString().trim() ?? '',
+      homeTeamName: homeName,
+      homeTeamShortName: homeTeam['shortDisplayName']?.toString().trim() ?? '',
+      homeLogoUrl: _teamLogo(homeTeam),
+      awayTeamName: awayName,
+      awayTeamShortName: awayTeam['shortDisplayName']?.toString().trim() ?? '',
+      awayLogoUrl: _teamLogo(awayTeam),
+      homeScore: _asInt(home['score']),
+      awayScore: _asInt(away['score']),
+      status: status,
+      sourceUrl: _sourceUrl(raw),
+    );
+  }
+
+  static LeagueFixtureStatus _fixtureStatus(dynamic rawStatus) {
+    final status = _asMap(rawStatus);
+    final type = _asMap(status['type']);
+    if (type['completed'] == true) {
+      return LeagueFixtureStatus.finished;
+    }
+    final state = type['state']?.toString().trim().toLowerCase() ?? '';
+    if (state == 'in') {
+      return LeagueFixtureStatus.live;
+    }
+    return LeagueFixtureStatus.scheduled;
+  }
+
+  static String _fixtureNote(Map<String, dynamic> competition) {
+    final notes = competition['notes'];
+    if (notes is! List) return '';
+    for (final raw in notes) {
+      if (raw is! Map) continue;
+      final note = raw.cast<String, dynamic>();
+      final headline = note['headline']?.toString().trim() ?? '';
+      if (headline.isNotEmpty) return headline;
+      final text = note['text']?.toString().trim() ?? '';
+      if (text.isNotEmpty) return text;
+    }
+    return '';
+  }
+
+  static String _fixtureSourceUrl(Map<String, dynamic> payload) {
+    final leagues = payload['leagues'];
+    if (leagues is List) {
+      for (final raw in leagues) {
+        if (raw is! Map) continue;
+        final url = _sourceUrl(raw.cast<String, dynamic>());
+        if (url.isNotEmpty) return url;
+      }
+    }
+    return '';
   }
 
   static LeagueStandingEntry _parseEntry(Map<String, dynamic> raw, int index) {
@@ -155,6 +329,38 @@ class LeagueStandingsService {
     return '';
   }
 
+  static Map<String, dynamic> _firstMap(dynamic raw) {
+    if (raw is List) {
+      for (final item in raw) {
+        if (item is Map) return item.cast<String, dynamic>();
+      }
+    }
+    return <String, dynamic>{};
+  }
+
+  static Map<String, dynamic> _asMap(dynamic raw) {
+    return raw is Map ? raw.cast<String, dynamic>() : <String, dynamic>{};
+  }
+
+  static String _firstNonEmpty(Iterable<String> values) {
+    for (final value in values) {
+      final trimmed = value.trim();
+      if (trimmed.isNotEmpty) return trimmed;
+    }
+    return '';
+  }
+
+  static String _seasonSlugLabel(dynamic rawSeason) {
+    if (rawSeason is! Map) return '';
+    final slug = rawSeason['slug']?.toString().trim() ?? '';
+    if (slug.isEmpty) return '';
+    return slug
+        .split('-')
+        .where((part) => part.trim().isNotEmpty)
+        .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+        .join(' ');
+  }
+
   static String _statDisplay(
     Map<String, Map<String, dynamic>> statByType,
     String type,
@@ -179,6 +385,32 @@ class LeagueStandingsService {
     final value = stat['value'];
     if (value is num) return value.toInt();
     return int.tryParse(stat['displayValue']?.toString() ?? '');
+  }
+
+  static int? _asInt(dynamic value) {
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString().trim() ?? '');
+  }
+
+  static int _compareFixtureEntries(
+    LeagueFixtureEntry a,
+    LeagueFixtureEntry b,
+  ) {
+    final aDone = a.status == LeagueFixtureStatus.finished;
+    final bDone = b.status == LeagueFixtureStatus.finished;
+    if (aDone != bDone) {
+      return aDone ? 1 : -1;
+    }
+    return aDone
+        ? b.kickoffAt.compareTo(a.kickoffAt)
+        : a.kickoffAt.compareTo(b.kickoffAt);
+  }
+
+  static String _formatEspnDate(DateTime date) {
+    final local = date.toLocal();
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+    return '${local.year}$month$day';
   }
 
   static String _fallbackLeagueName(LeagueStandingsType type) {

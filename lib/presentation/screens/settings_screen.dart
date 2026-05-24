@@ -137,10 +137,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> _refreshParentSharedDataIfNeeded() async {
-    if (widget.driveBackupService == null) return;
-    final result = await widget.driveBackupService!
-        .refreshFamilySharedDataIfNeeded();
-    if (result.refreshed) {
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    final pushedPending = backup.hasPendingParentSharedChanges()
+        ? await backup.backupIfSignedIn()
+        : false;
+    final result = await backup.refreshFamilySharedDataIfNeeded();
+    if (pushedPending || result.refreshed) {
       widget.localeService.load();
       widget.settingsService.load();
     }
@@ -1867,6 +1870,13 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.settingsDriveActionFilePath(
+              DriveBackupService.backupDisplayPath,
+            ),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
           if (hasPendingChanges) ...[
             const SizedBox(height: 8),
             Container(
@@ -2491,6 +2501,13 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
                       : widget.l10n.settingsSyncOnSaveOff,
                 ),
               ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              widget.l10n.settingsDriveActionFilePath(
+                DriveBackupService.backupDisplayPath,
+              ),
+              style: theme.textTheme.bodySmall,
             ),
             if (widget.lastBackupAt != null) ...[
               const SizedBox(height: 10),
