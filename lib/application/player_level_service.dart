@@ -23,6 +23,19 @@ class PlayerLevelService {
   static const String rewardClaimMessagesKey =
       'player_reward_claim_messages_v1';
   static const String plansStorageKey = 'training_plans_v1';
+  static const int trainingLogSavedXp = 15;
+  static const int firstDailyTrainingLogXp = 5;
+  static const int plannedTrainingDayXp = 12;
+  static const int conditioningRecordedXp = 6;
+  static const int missingConditioningPenaltyXp = 5;
+  static const int routineCompleteXp = 6;
+  static const int streakDaily2To3Xp = 3;
+  static const int streakDaily4To6Xp = 6;
+  static const int streakDaily7PlusXp = 10;
+  static const int streak3DaysXp = 12;
+  static const int streak7DaysXp = 25;
+  static const int weekly3LogsXp = 18;
+  static const int weekly5LogsXp = 30;
   static const int dailyTaskCompletionXp = 10;
   static const int dailyPositiveXpCap = 65;
   static const int maxLevelMasterySpan = 500;
@@ -84,37 +97,41 @@ class PlayerLevelService {
     final reasons = <String>[];
     var gainedXp = 0;
     final entryDay = _normalizeDay(entry.date);
-    final existingTrainingEntries = existingEntries
-        .where((item) => !item.isMatch)
-        .toList(growable: false);
+    final existingTrainingEntries =
+        existingEntries.where((item) => !item.isMatch).toList(growable: false);
     final sameDayEntries = existingTrainingEntries
         .where((item) => _normalizeDay(item.date) == entryDay)
         .toList(growable: false);
 
-    gainedXp += 15;
+    gainedXp += trainingLogSavedXp;
     reasons.add('log');
 
     if (sameDayEntries.isEmpty) {
-      gainedXp += 5;
+      gainedXp += firstDailyTrainingLogXp;
       reasons.add('first_daily_log');
     }
 
     if (_hasPlanOnDay(entryDay) && sameDayEntries.isEmpty) {
-      gainedXp += 12;
+      gainedXp += plannedTrainingDayXp;
       reasons.add('plan_completed');
     }
 
     final liftingDone = entry.liftingByPart.values.any((count) => count > 0);
-    if (!liftingDone) {
-      gainedXp -= 5;
+    if (liftingDone) {
+      gainedXp += conditioningRecordedXp;
+      reasons.add('lifting_recorded');
+    } else {
+      gainedXp -= missingConditioningPenaltyXp;
       reasons.add('lifting_missed');
     }
-    final jumpRopeDone =
-        entry.jumpRopeCount > 0 ||
+    final jumpRopeDone = entry.jumpRopeCount > 0 ||
         entry.jumpRopeMinutes > 0 ||
         entry.jumpRopeNote.trim().isNotEmpty;
-    if (!jumpRopeDone) {
-      gainedXp -= 5;
+    if (jumpRopeDone) {
+      gainedXp += conditioningRecordedXp;
+      reasons.add('jump_rope_recorded');
+    } else {
+      gainedXp -= missingConditioningPenaltyXp;
       reasons.add('jump_rope_missed');
     }
     final mealXp = _mealCoachingService.xpValueForEntry(entry);
@@ -132,43 +149,42 @@ class PlayerLevelService {
 
     if (sameDayEntries.isEmpty) {
       if (streak >= 7) {
-        gainedXp += 10;
+        gainedXp += streakDaily7PlusXp;
         reasons.add('streak_daily_7_plus');
       } else if (streak >= 4) {
-        gainedXp += 6;
+        gainedXp += streakDaily4To6Xp;
         reasons.add('streak_daily_4_6');
       } else if (streak >= 2) {
-        gainedXp += 3;
+        gainedXp += streakDaily2To3Xp;
         reasons.add('streak_daily_2_3');
       }
     }
 
     if (_isRoutineComplete(entry, mealXp) && awardedRoutineDays.add(dayToken)) {
-      gainedXp += 6;
+      gainedXp += routineCompleteXp;
       reasons.add('routine_complete_day');
     }
 
     if (streak >= 3 && awardedStreaks.add('$dayToken:3')) {
-      gainedXp += 12;
+      gainedXp += streak3DaysXp;
       reasons.add('streak_3');
     }
     if (streak >= 7 && awardedStreaks.add('$dayToken:7')) {
-      gainedXp += 25;
+      gainedXp += streak7DaysXp;
       reasons.add('streak_7');
     }
 
     final beforeWeeklyCount = existingTrainingEntries
         .where((item) => _isSameWeek(item.date, entryDay))
         .length;
-    final afterWeeklyCount = updatedEntries
-        .where((item) => _isSameWeek(item.date, entryDay))
-        .length;
+    final afterWeeklyCount =
+        updatedEntries.where((item) => _isSameWeek(item.date, entryDay)).length;
     if (beforeWeeklyCount < 3 && afterWeeklyCount >= 3) {
-      gainedXp += 18;
+      gainedXp += weekly3LogsXp;
       reasons.add('weekly_3');
     }
     if (beforeWeeklyCount < 5 && afterWeeklyCount >= 5) {
-      gainedXp += 30;
+      gainedXp += weekly5LogsXp;
       reasons.add('weekly_5');
     }
 
@@ -194,9 +210,8 @@ class PlayerLevelService {
         beforeLevel: before.level,
         afterLevel: after.level,
         category: PlayerXpHistoryCategory.training,
-        label: entry.program.trim().isNotEmpty
-            ? entry.program.trim()
-            : entry.type,
+        label:
+            entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type,
         reasons: reasons,
       ),
     );
@@ -219,14 +234,14 @@ class PlayerLevelService {
     final previousLiftingDone = _hasLiftingRecord(previousEntry);
     final updatedLiftingDone = _hasLiftingRecord(updatedEntry);
     if (!previousLiftingDone && updatedLiftingDone) {
-      gainedXp += 6;
+      gainedXp += conditioningRecordedXp;
       reasons.add('lifting_added');
     }
 
     final previousJumpRopeDone = _hasJumpRopeRecord(previousEntry);
     final updatedJumpRopeDone = _hasJumpRopeRecord(updatedEntry);
     if (!previousJumpRopeDone && updatedJumpRopeDone) {
-      gainedXp += 6;
+      gainedXp += conditioningRecordedXp;
       reasons.add('jump_rope_added');
     }
     final previousMealXp = _mealCoachingService.xpValueForEntry(previousEntry);
@@ -253,7 +268,7 @@ class PlayerLevelService {
     if (!previousRoutineComplete &&
         updatedRoutineComplete &&
         awardedRoutineDays.add(dayToken)) {
-      gainedXp += 6;
+      gainedXp += routineCompleteXp;
       reasons.add('routine_complete_day');
     }
 
@@ -1047,11 +1062,9 @@ class PlayerLevelState {
 
   factory PlayerLevelState.fromXp(int totalXp) {
     var level = 1;
-    for (
-      var index = 0;
-      index < PlayerLevelService._levelThresholds.length;
-      index++
-    ) {
+    for (var index = 0;
+        index < PlayerLevelService._levelThresholds.length;
+        index++) {
       final threshold = PlayerLevelService._levelThresholds[index];
       if (totalXp >= threshold) {
         level = index + 1;
@@ -1059,9 +1072,9 @@ class PlayerLevelState {
     }
     final currentLevelXp =
         PlayerLevelService._levelThresholds[(level - 1).clamp(
-          0,
-          PlayerLevelService._levelThresholds.length - 1,
-        )];
+      0,
+      PlayerLevelService._levelThresholds.length - 1,
+    )];
     final isMaxLevel = level >= PlayerLevelService._levelThresholds.length;
     if (isMaxLevel) {
       final extraXp = (totalXp - currentLevelXp).clamp(0, 1000000).toInt();
@@ -1193,8 +1206,7 @@ class PlayerXpHistoryEntry {
 
   factory PlayerXpHistoryEntry.fromMap(Map<String, dynamic> map) {
     return PlayerXpHistoryEntry(
-      awardedAt:
-          DateTime.tryParse(map['awardedAt']?.toString() ?? '') ??
+      awardedAt: DateTime.tryParse(map['awardedAt']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
       deltaXp: (map['deltaXp'] as num?)?.toInt() ?? 0,
       totalXp: (map['totalXp'] as num?)?.toInt() ?? 0,
@@ -1205,8 +1217,7 @@ class PlayerXpHistoryEntry {
         orElse: () => PlayerXpHistoryCategory.training,
       ),
       label: map['label']?.toString() ?? '',
-      reasons:
-          (map['reasons'] as List?)
+      reasons: (map['reasons'] as List?)
               ?.map((item) => item.toString())
               .toList(growable: false) ??
           const <String>[],

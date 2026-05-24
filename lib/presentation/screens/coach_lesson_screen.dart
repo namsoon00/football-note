@@ -36,7 +36,6 @@ import '../widgets/rice_bowl_summary.dart';
 import '../widgets/fortune_card.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/status_style.dart';
-import '../widgets/level_up_dialog.dart';
 import '../widgets/training_board_sketch.dart';
 import 'calendar_screen.dart';
 import 'entry_form_screen.dart';
@@ -565,33 +564,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ).showLevelUpAlert(level: award.after.level, isKo: _isKo);
     }
     if (!mounted || award.gainedXp <= 0) return;
-    await showDiaryXpRewardDialog(context, award: award);
-    if (!mounted) return;
-    if (award.didLevelUp) {
-      final levelService = PlayerLevelService(widget.optionRepository);
-      await showLevelUpCelebrationDialog(
-        context,
-        award: award,
-        isKo: _isKo,
-        customRewardName: levelService.customRewardNameForLevel(
-          award.after.level,
-        ),
-        onClaimReward: () async {
-          final claim = await PlayerLevelService(
-            widget.optionRepository,
-          ).claimRewardForLevel(award.after.level);
-          if (!mounted || claim == null) return;
-          final rewardName = claim.customRewardName.trim().isNotEmpty
-              ? claim.customRewardName
-              : (_isKo ? claim.reward.nameKo : claim.reward.nameEn);
-          AppFeedback.showSuccess(
-            context,
-            text: l10n.levelUpRewardClaimed(rewardName),
-          );
-        },
-      );
-      if (!mounted) return;
-    }
     AppFeedback.showSuccess(
       context,
       text: l10n.diarySavedWithXpFeedback(award.gainedXp),

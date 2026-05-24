@@ -17,7 +17,6 @@ import '../models/training_board_link_codec.dart';
 import '../models/training_board_templates.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
-import '../widgets/level_up_dialog.dart';
 import '../theme/app_motion.dart';
 import 'training_method_board_screen.dart';
 
@@ -86,32 +85,6 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
         level: award.after.level,
         isKo: isKo,
       );
-    }
-    if (!mounted || award.gainedXp <= 0) return;
-    if (award.didLevelUp) {
-      final levelService = PlayerLevelService(widget.optionRepository);
-      await showLevelUpCelebrationDialog(
-        context,
-        award: award,
-        isKo: isKo,
-        customRewardName: levelService.customRewardNameForLevel(
-          award.after.level,
-        ),
-        onClaimReward: () async {
-          final claim = await PlayerLevelService(
-            widget.optionRepository,
-          ).claimRewardForLevel(award.after.level);
-          if (!mounted || claim == null) return;
-          final rewardName = claim.customRewardName.trim().isNotEmpty
-              ? claim.customRewardName
-              : (isKo ? claim.reward.nameKo : claim.reward.nameEn);
-          AppFeedback.showSuccess(
-            context,
-            text: l10n.levelUpRewardClaimed(rewardName),
-          );
-        },
-      );
-      if (!mounted) return;
     }
   }
 

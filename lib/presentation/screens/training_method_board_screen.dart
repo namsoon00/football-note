@@ -14,9 +14,7 @@ import '../../domain/entities/training_board.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_templates.dart';
-import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
-import '../widgets/level_up_dialog.dart';
 import 'training_board_template_gallery_screen.dart';
 
 class TrainingMethodBoardScreen extends StatefulWidget {
@@ -112,34 +110,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         level: award.after.level,
         isKo: isKo,
       );
-    }
-    if (!mounted || award.gainedXp <= 0) return;
-    await showTrainingSketchXpRewardDialog(context, award: award);
-    if (!mounted) return;
-    if (award.didLevelUp) {
-      final levelService = PlayerLevelService(optionRepository);
-      await showLevelUpCelebrationDialog(
-        context,
-        award: award,
-        isKo: isKo,
-        customRewardName: levelService.customRewardNameForLevel(
-          award.after.level,
-        ),
-        onClaimReward: () async {
-          final claim = await PlayerLevelService(
-            optionRepository,
-          ).claimRewardForLevel(award.after.level);
-          if (!mounted || claim == null) return;
-          final rewardName = claim.customRewardName.trim().isNotEmpty
-              ? claim.customRewardName
-              : (isKo ? claim.reward.nameKo : claim.reward.nameEn);
-          AppFeedback.showSuccess(
-            context,
-            text: _l10n.levelUpRewardClaimed(rewardName),
-          );
-        },
-      );
-      if (!mounted) return;
     }
   }
 

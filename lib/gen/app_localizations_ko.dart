@@ -445,6 +445,61 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingXpSourceDiary => '다이어리';
 
   @override
+  String get trainingSaveToastPlain => '훈련노트를 저장했어요.';
+
+  @override
+  String trainingSaveToastWithXp(int gainedXp, Object details) {
+    return '훈련노트를 저장했어요. +$gainedXp XP · $details';
+  }
+
+  @override
+  String trainingSaveToastLevelUp(
+      int gainedXp, Object details, int level, Object levelName) {
+    return '훈련노트를 저장했어요. +$gainedXp XP · $details · Lv.$level $levelName 달성';
+  }
+
+  @override
+  String get trainingXpToastReasonLiftingMissed => '리프팅 누락';
+
+  @override
+  String get trainingXpToastReasonJumpRopeMissed => '줄넘기 누락';
+
+  @override
+  String get trainingXpToastReasonMealFullBonus => '세 끼+밥 5개 이상';
+
+  @override
+  String get trainingXpToastReasonRoutineComplete => '훈련 루틴 완성';
+
+  @override
+  String get trainingXpToastReasonStreakDaily2 => '2~3일 연속 보너스';
+
+  @override
+  String get trainingXpToastReasonStreakDaily4 => '4~6일 연속 보너스';
+
+  @override
+  String get trainingXpToastReasonStreakDaily7 => '7일 이상 연속 보너스';
+
+  @override
+  String get trainingXpToastReasonStreak3 => '3일 연속 기록';
+
+  @override
+  String get trainingXpToastReasonStreak7 => '7일 연속 기록';
+
+  @override
+  String get trainingXpToastReasonWeekly3 => '주 3회 기록';
+
+  @override
+  String get trainingXpToastReasonWeekly5 => '주 5회 기록';
+
+  @override
+  String get trainingXpToastReasonDailyCap => '하루 상한 적용';
+
+  @override
+  String trainingXpToastMoreReasons(int count) {
+    return '외 $count개';
+  }
+
+  @override
   String diarySavedWithXpFeedback(int count) {
     return '다이어리 저장 +$count XP';
   }
@@ -550,6 +605,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get playerXpGuideJumpRopeRecorded => '줄넘기 기록 추가';
+
+  @override
+  String get playerXpGuideTrainingRoutineComplete => '리프팅+줄넘기+회복 루틴 완성';
 
   @override
   String get playerXpGuideMissingConditioning => '리프팅/줄넘기 없이 저장하면 감점';

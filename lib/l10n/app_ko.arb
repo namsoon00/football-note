@@ -199,6 +199,49 @@
   "trainingXpSourceJumpRope": "줄넘기",
   "trainingXpSourceTrainingSketch": "훈련 스케치",
   "trainingXpSourceDiary": "다이어리",
+  "trainingSaveToastPlain": "훈련노트를 저장했어요.",
+  "trainingSaveToastWithXp": "훈련노트를 저장했어요. +{gainedXp} XP · {details}",
+  "@trainingSaveToastWithXp": {
+    "placeholders": {
+      "gainedXp": {
+        "type": "int"
+      },
+      "details": {}
+    }
+  },
+  "trainingSaveToastLevelUp": "훈련노트를 저장했어요. +{gainedXp} XP · {details} · Lv.{level} {levelName} 달성",
+  "@trainingSaveToastLevelUp": {
+    "placeholders": {
+      "gainedXp": {
+        "type": "int"
+      },
+      "details": {},
+      "level": {
+        "type": "int"
+      },
+      "levelName": {}
+    }
+  },
+  "trainingXpToastReasonLiftingMissed": "리프팅 누락",
+  "trainingXpToastReasonJumpRopeMissed": "줄넘기 누락",
+  "trainingXpToastReasonMealFullBonus": "세 끼+밥 5개 이상",
+  "trainingXpToastReasonRoutineComplete": "훈련 루틴 완성",
+  "trainingXpToastReasonStreakDaily2": "2~3일 연속 보너스",
+  "trainingXpToastReasonStreakDaily4": "4~6일 연속 보너스",
+  "trainingXpToastReasonStreakDaily7": "7일 이상 연속 보너스",
+  "trainingXpToastReasonStreak3": "3일 연속 기록",
+  "trainingXpToastReasonStreak7": "7일 연속 기록",
+  "trainingXpToastReasonWeekly3": "주 3회 기록",
+  "trainingXpToastReasonWeekly5": "주 5회 기록",
+  "trainingXpToastReasonDailyCap": "하루 상한 적용",
+  "trainingXpToastMoreReasons": "외 {count}개",
+  "@trainingXpToastMoreReasons": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diarySavedWithXpFeedback": "다이어리 저장 +{count} XP",
   "@diarySavedWithXpFeedback": {
     "placeholders": {
@@ -298,6 +341,7 @@
   "playerXpGuidePlannedDayComplete": "계획한 날 훈련 완료",
   "playerXpGuideLiftingRecorded": "리프팅 기록 추가",
   "playerXpGuideJumpRopeRecorded": "줄넘기 기록 추가",
+  "playerXpGuideTrainingRoutineComplete": "리프팅+줄넘기+회복 루틴 완성",
   "playerXpGuideMissingConditioning": "리프팅/줄넘기 없이 저장하면 감점",
   "playerXpGuideMissingConditioningXp": "각 -5 XP",
   "playerXpGuideStreakTitle": "연속 기록과 주간 보너스",

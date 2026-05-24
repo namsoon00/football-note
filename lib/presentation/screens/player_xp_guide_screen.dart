@@ -22,27 +22,32 @@ class PlayerXpGuideScreen extends StatelessWidget {
           _XpGuideItem(
             icon: Icons.edit_note_outlined,
             title: l10n.playerXpGuideTrainingLogSaved,
-            xpLabel: '+15 XP',
+            xpLabel: '+${PlayerLevelService.trainingLogSavedXp} XP',
           ),
           _XpGuideItem(
             icon: Icons.wb_sunny_outlined,
             title: l10n.playerXpGuideFirstDailyLog,
-            xpLabel: '+5 XP',
+            xpLabel: '+${PlayerLevelService.firstDailyTrainingLogXp} XP',
           ),
           _XpGuideItem(
             icon: Icons.event_available_outlined,
             title: l10n.playerXpGuidePlannedDayComplete,
-            xpLabel: '+12 XP',
+            xpLabel: '+${PlayerLevelService.plannedTrainingDayXp} XP',
           ),
           _XpGuideItem(
             icon: Icons.sports_soccer_outlined,
             title: l10n.playerXpGuideLiftingRecorded,
-            xpLabel: '+6 XP',
+            xpLabel: '+${PlayerLevelService.conditioningRecordedXp} XP',
           ),
           _XpGuideItem(
             icon: Icons.fitness_center_outlined,
             title: l10n.playerXpGuideJumpRopeRecorded,
-            xpLabel: '+6 XP',
+            xpLabel: '+${PlayerLevelService.conditioningRecordedXp} XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.task_alt_outlined,
+            title: l10n.playerXpGuideTrainingRoutineComplete,
+            xpLabel: '+${PlayerLevelService.routineCompleteXp} XP',
           ),
           _XpGuideItem(
             icon: Icons.remove_circle_outline,
@@ -58,17 +63,20 @@ class PlayerXpGuideScreen extends StatelessWidget {
           _XpGuideItem(
             icon: Icons.local_fire_department_outlined,
             title: l10n.playerXpGuideStreakMilestones,
-            xpLabel: '+12 XP / +25 XP',
+            xpLabel:
+                '+${PlayerLevelService.streak3DaysXp} XP / +${PlayerLevelService.streak7DaysXp} XP',
           ),
           _XpGuideItem(
             icon: Icons.bolt_outlined,
             title: l10n.playerXpGuideStreakDailyBonus,
-            xpLabel: '+3 XP / +6 XP / +10 XP',
+            xpLabel:
+                '+${PlayerLevelService.streakDaily2To3Xp} XP / +${PlayerLevelService.streakDaily4To6Xp} XP / +${PlayerLevelService.streakDaily7PlusXp} XP',
           ),
           _XpGuideItem(
             icon: Icons.bar_chart_outlined,
             title: l10n.playerXpGuideWeeklyBonus,
-            xpLabel: '+18 XP / +30 XP',
+            xpLabel:
+                '+${PlayerLevelService.weekly3LogsXp} XP / +${PlayerLevelService.weekly5LogsXp} XP',
           ),
         ],
       ),
