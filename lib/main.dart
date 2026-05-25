@@ -19,6 +19,7 @@ import 'application/settings_service.dart';
 import 'application/backup_service.dart';
 import 'application/drive_backup_service.dart';
 import 'application/meal_log_service.dart';
+import 'application/league_fixture_reminder_service.dart';
 import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
@@ -70,9 +71,16 @@ Future<void> main() async {
     optionRepository,
     settingsService,
   );
+  final leagueFixtureReminderService = LeagueFixtureReminderService(
+    optionRepository,
+    settingsService,
+  );
   final badgeService = TrainingPlanBadgeService(optionRepository);
   settingsService.addListener(() {
     unawaited(reminderService.syncSettingsDrivenReminders());
+    if (!settingsService.reminderEnabled) {
+      unawaited(leagueFixtureReminderService.clearAllReminders());
+    }
   });
 
   runApp(

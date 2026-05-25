@@ -52,15 +52,17 @@
   "logsQuickGuideIntro": "Create your first record in this order, then return here to review it.",
   "newsFifaHubButton": "FIFA Rank",
   "newsKLeagueStandingsButton": "K League",
-  "newsMoreActionsTooltip": "Rankings",
+  "newsMoreActionsTooltip": "League view",
   "newsMoreActionsTitle": "More",
-  "newsRankingMoreButton": "Rankings",
-  "newsLeagueStandingsAction": "Overseas league standings",
-  "newsLeagueStandingsTitle": "League Standings",
+  "newsRankingMoreButton": "League view",
+  "newsLeagueStandingsAction": "Overseas league view",
+  "newsLeagueStandingsTitle": "League View",
   "newsPremierLeagueStandingsTitle": "Premier League",
   "newsChampionsLeagueStandingsTitle": "Champions League",
   "newsLaLigaStandingsTitle": "LaLiga",
   "newsBundesligaStandingsTitle": "Bundesliga",
+  "newsMajorLeagueSoccerStandingsTitle": "MLS",
+  "newsSaudiProLeagueStandingsTitle": "Saudi Pro League",
   "newsLeagueStandingsUpdated": "Updated {date}",
   "@newsLeagueStandingsUpdated": {
     "placeholders": {
@@ -74,9 +76,37 @@
   "newsLeagueFixturesTitle": "Fixtures and results",
   "newsLeagueFixturesSubtitle": "Upcoming fixtures and recent results, including Champions League knockout pairings when available.",
   "newsLeagueFixturesEmpty": "No fixtures are available in the current schedule window.",
+  "newsLeagueFixturesShowAll": "Show all fixtures",
+  "newsLeagueFixturesCollapse": "Collapse fixtures",
   "newsLeagueFixtureScheduled": "Fixture",
   "newsLeagueFixtureLive": "Live",
   "newsLeagueFixtureFullTime": "FT",
+  "newsLeagueFavoriteTeamTitle": "Fixture alert teams",
+  "newsLeagueFavoriteTeamSubtitle": "Choose preferred teams to receive alerts for their loaded fixtures.",
+  "newsLeagueFavoriteTeamSelect": "Select teams",
+  "newsLeagueFavoriteTeamClear": "Clear",
+  "newsLeagueFavoriteTeamNone": "No team selected",
+  "newsLeagueFavoriteTeamSheetTitle": "Select teams for alerts",
+  "newsLeagueFavoriteTeamSaved": "Fixture alert teams saved.",
+  "newsLeagueFavoriteTeamNoUpcoming": "No match alerts are scheduled.",
+  "newsLeagueFavoriteTeamReminderCount": "{count} match alerts scheduled",
+  "@newsLeagueFavoriteTeamReminderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsLeagueFavoriteTeamNotificationBody": "{team} fixture alert: vs {opponent} at {kickoff}",
+  "@newsLeagueFavoriteTeamNotificationBody": {
+    "placeholders": {
+      "team": {},
+      "opponent": {},
+      "kickoff": {}
+    }
+  },
+  "newsLeagueFixtureNotificationChannelName": "League Fixture Alerts",
+  "newsLeagueFixtureNotificationChannelDescription": "Fixture alerts for preferred overseas league teams",
   "newsLeagueStandingsTeamColumn": "Team",
   "newsLeagueStandingsPlayedColumn": "P",
   "newsLeagueStandingsWinsColumn": "W",

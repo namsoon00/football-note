@@ -117,6 +117,133 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Hourly precipitation is hidden when rain is not forecast', (
+    WidgetTester tester,
+  ) async {
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: DateTime.now(),
+        summary: '맑음',
+        weatherCode: 0,
+        temperature: 21,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: DateTime(2026, 5, 5),
+            summary: '맑음',
+            weatherCode: 0,
+            precipitationSum: 0,
+            hourlyPrecipitations: [
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 9),
+                precipitation: 0,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 10),
+                precipitation: 0,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '맑음 21°C',
+            initialWeatherCode: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('시간별 강수량'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Hourly precipitation starts at the first rainy hour', (
+    WidgetTester tester,
+  ) async {
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: DateTime.now(),
+        summary: '비',
+        weatherCode: 61,
+        temperature: 18,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: DateTime(2026, 5, 5),
+            summary: '비',
+            weatherCode: 61,
+            precipitationSum: 0.5,
+            hourlyPrecipitations: [
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 9),
+                precipitation: 0,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 10),
+                precipitation: 0,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 11),
+                precipitation: 0.5,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 12),
+                precipitation: 0,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '비 18°C',
+            initialWeatherCode: 61,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('시간별 강수량'), findsOneWidget);
+    expect(find.text('09:00'), findsNothing);
+    expect(find.text('10:00'), findsNothing);
+    expect(find.text('11:00'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Initial outfit action opens outfit sheet', (
     WidgetTester tester,
   ) async {

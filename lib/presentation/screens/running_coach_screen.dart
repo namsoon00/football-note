@@ -328,7 +328,23 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                IconButton(
+                  key: const ValueKey('running-coach-sample-back-button'),
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => Navigator.of(context).maybePop(),
+                ),
+              ],
+            ),
             const SizedBox(height: 6),
             Text(body, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 14),

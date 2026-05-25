@@ -389,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsMoreActionsTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Rankings'**
+  /// **'League view'**
   String get newsMoreActionsTooltip;
 
   /// No description provided for @newsMoreActionsTitle.
@@ -401,19 +401,19 @@ abstract class AppLocalizations {
   /// No description provided for @newsRankingMoreButton.
   ///
   /// In en, this message translates to:
-  /// **'Rankings'**
+  /// **'League view'**
   String get newsRankingMoreButton;
 
   /// No description provided for @newsLeagueStandingsAction.
   ///
   /// In en, this message translates to:
-  /// **'Overseas league standings'**
+  /// **'Overseas league view'**
   String get newsLeagueStandingsAction;
 
   /// No description provided for @newsLeagueStandingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'League Standings'**
+  /// **'League View'**
   String get newsLeagueStandingsTitle;
 
   /// No description provided for @newsPremierLeagueStandingsTitle.
@@ -439,6 +439,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bundesliga'**
   String get newsBundesligaStandingsTitle;
+
+  /// No description provided for @newsMajorLeagueSoccerStandingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MLS'**
+  String get newsMajorLeagueSoccerStandingsTitle;
+
+  /// No description provided for @newsSaudiProLeagueStandingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saudi Pro League'**
+  String get newsSaudiProLeagueStandingsTitle;
 
   /// No description provided for @newsLeagueStandingsUpdated.
   ///
@@ -488,6 +500,18 @@ abstract class AppLocalizations {
   /// **'No fixtures are available in the current schedule window.'**
   String get newsLeagueFixturesEmpty;
 
+  /// No description provided for @newsLeagueFixturesShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all fixtures'**
+  String get newsLeagueFixturesShowAll;
+
+  /// No description provided for @newsLeagueFixturesCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse fixtures'**
+  String get newsLeagueFixturesCollapse;
+
   /// No description provided for @newsLeagueFixtureScheduled.
   ///
   /// In en, this message translates to:
@@ -505,6 +529,79 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'FT'**
   String get newsLeagueFixtureFullTime;
+
+  /// No description provided for @newsLeagueFavoriteTeamTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixture alert teams'**
+  String get newsLeagueFavoriteTeamTitle;
+
+  /// No description provided for @newsLeagueFavoriteTeamSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose preferred teams to receive alerts for their loaded fixtures.'**
+  String get newsLeagueFavoriteTeamSubtitle;
+
+  /// No description provided for @newsLeagueFavoriteTeamSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select teams'**
+  String get newsLeagueFavoriteTeamSelect;
+
+  /// No description provided for @newsLeagueFavoriteTeamClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get newsLeagueFavoriteTeamClear;
+
+  /// No description provided for @newsLeagueFavoriteTeamNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No team selected'**
+  String get newsLeagueFavoriteTeamNone;
+
+  /// No description provided for @newsLeagueFavoriteTeamSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select teams for alerts'**
+  String get newsLeagueFavoriteTeamSheetTitle;
+
+  /// No description provided for @newsLeagueFavoriteTeamSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixture alert teams saved.'**
+  String get newsLeagueFavoriteTeamSaved;
+
+  /// No description provided for @newsLeagueFavoriteTeamNoUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'No match alerts are scheduled.'**
+  String get newsLeagueFavoriteTeamNoUpcoming;
+
+  /// No description provided for @newsLeagueFavoriteTeamReminderCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} match alerts scheduled'**
+  String newsLeagueFavoriteTeamReminderCount(int count);
+
+  /// No description provided for @newsLeagueFavoriteTeamNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{team} fixture alert: vs {opponent} at {kickoff}'**
+  String newsLeagueFavoriteTeamNotificationBody(
+      Object team, Object opponent, Object kickoff);
+
+  /// No description provided for @newsLeagueFixtureNotificationChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'League Fixture Alerts'**
+  String get newsLeagueFixtureNotificationChannelName;
+
+  /// No description provided for @newsLeagueFixtureNotificationChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixture alerts for preferred overseas league teams'**
+  String get newsLeagueFixtureNotificationChannelDescription;
 
   /// No description provided for @newsLeagueStandingsTeamColumn.
   ///

@@ -82,7 +82,7 @@ void main() {
     expect(find.byKey(_leagueStandingsActionKey), findsOneWidget);
     expect(find.byKey(_kLeagueActionKey), findsOneWidget);
     expect(find.byKey(_fifaHubActionKey), findsOneWidget);
-    expect(find.text('해외 리그 순위'), findsOneWidget);
+    expect(find.text('해외 리그 보기'), findsOneWidget);
     expect(find.text('K리그'), findsOneWidget);
     expect(find.text('FIFA 랭킹'), findsOneWidget);
   });
@@ -135,8 +135,9 @@ void main() {
     expect(find.text('번역'), findsNothing);
 
     final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
-    final translateX =
-        tester.getTopLeft(find.byKey(_translateToggleActionKey)).dx;
+    final translateX = tester
+        .getTopLeft(find.byKey(_translateToggleActionKey))
+        .dx;
     final searchX = tester.getTopLeft(find.byKey(_searchActionKey)).dx;
 
     expect(scrapX, lessThan(translateX));
@@ -352,8 +353,8 @@ class _FakeNewsRepository implements NewsRepository {
   _FakeNewsRepository({
     required List<NewsChannel> channels,
     required Map<String, List<NewsArticle>> articlesByChannelId,
-  })  : _channels = channels,
-        _articlesByChannelId = articlesByChannelId;
+  }) : _channels = channels,
+       _articlesByChannelId = articlesByChannelId;
 
   @override
   List<NewsChannel> channels() => _channels;

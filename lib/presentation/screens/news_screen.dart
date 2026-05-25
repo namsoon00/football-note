@@ -1352,9 +1352,14 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _openLeagueStandings() async {
-    await Navigator.of(
-      context,
-    ).push<void>(AppPageRoute(builder: (_) => const LeagueStandingsScreen()));
+    await Navigator.of(context).push<void>(
+      AppPageRoute(
+        builder: (_) => LeagueStandingsScreen(
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+        ),
+      ),
+    );
   }
 
   Future<void> _openMoreActions() async {
@@ -1377,7 +1382,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
               ),
               ListTile(
                 key: _leagueStandingsActionKey,
-                leading: const Icon(Icons.table_chart_outlined),
+                leading: const Icon(Icons.sports_soccer_outlined),
                 title: Text(l10n.newsLeagueStandingsAction),
                 onTap: () =>
                     Navigator.of(context).pop(_NewsMoreAction.leagueStandings),
