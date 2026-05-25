@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
+import 'package:football_note/gen/app_localizations_ko.dart';
+import 'package:football_note/presentation/localization/player_progression_localizations.dart';
 
 void main() {
   final now = DateTime.now();
@@ -86,9 +88,10 @@ void main() {
   });
 
   test('illustration labels are unique through level 20', () {
+    final l10n = AppLocalizationsKo();
     final labels = <String>{
       for (var level = 1; level <= 20; level++)
-        PlayerLevelService.illustrationLabel(level, true),
+        l10n.playerLevelIllustrationLabel(level),
     };
 
     expect(labels, hasLength(20));

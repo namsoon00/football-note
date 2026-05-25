@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../localization/player_progression_localizations.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 
@@ -26,6 +28,7 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final history =
         _levelService
@@ -37,12 +40,12 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isKo ? '경험치 히스토리' : 'XP history'),
+        title: Text(l10n.xpHistoryTitle),
         actions: [
           if (history.isNotEmpty)
             TextButton(
-              onPressed: () => _confirmClearHistory(isKo),
-              child: Text(isKo ? '전체 삭제' : 'Clear all'),
+              onPressed: () => _confirmClearHistory(l10n),
+              child: Text(l10n.xpHistoryClearAllAction),
             ),
         ],
       ),
@@ -53,7 +56,7 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      isKo ? '아직 쌓인 경험치 기록이 없습니다.' : 'No XP history yet.',
+                      l10n.xpHistoryEmpty,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
@@ -68,7 +71,7 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
                       return Column(
                         children: [
                           _XpHistorySummaryCard(
-                            isKo: isKo,
+                            l10n: l10n,
                             count: history.length,
                             latest: history.first,
                           ),
@@ -78,9 +81,10 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
                     final section = groupedHistory[index - 1];
                     return _XpHistoryDaySection(
                       isKo: isKo,
+                      l10n: l10n,
                       day: section.day,
                       items: section.items,
-                      onDelete: (item) => _deleteHistoryItem(item, isKo),
+                      onDelete: (item) => _deleteHistoryItem(item, l10n),
                     );
                   },
                 ),
@@ -89,32 +93,30 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
     );
   }
 
-  Future<void> _deleteHistoryItem(PlayerXpHistoryEntry item, bool isKo) async {
+  Future<void> _deleteHistoryItem(
+    PlayerXpHistoryEntry item,
+    AppLocalizations l10n,
+  ) async {
     await _levelService.deleteXpHistoryEntry(item);
     if (!mounted) return;
     setState(() {});
-    AppFeedback.showSuccess(
-      context,
-      text: isKo ? '경험치 메세지를 삭제했어요.' : 'XP message deleted.',
-    );
+    AppFeedback.showSuccess(context, text: l10n.xpHistoryMessageDeleted);
   }
 
-  Future<void> _confirmClearHistory(bool isKo) async {
+  Future<void> _confirmClearHistory(AppLocalizations l10n) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '경험치 메세지 삭제' : 'Delete XP messages'),
-        content: Text(
-          isKo ? '쌓인 경험치 메세지를 모두 삭제할까요?' : 'Delete all saved XP messages?',
-        ),
+        title: Text(l10n.xpHistoryDeleteDialogTitle),
+        content: Text(l10n.xpHistoryDeleteDialogBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(isKo ? '취소' : 'Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(isKo ? '전체 삭제' : 'Clear all'),
+            child: Text(l10n.xpHistoryClearAllAction),
           ),
         ],
       ),
@@ -123,10 +125,7 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
     await _levelService.clearXpHistory();
     if (!mounted) return;
     setState(() {});
-    AppFeedback.showSuccess(
-      context,
-      text: isKo ? '경험치 메세지를 모두 삭제했어요.' : 'All XP messages deleted.',
-    );
+    AppFeedback.showSuccess(context, text: l10n.xpHistoryAllDeleted);
   }
 
   List<_XpHistoryDaySectionData> _groupByDay(
@@ -150,12 +149,12 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
 }
 
 class _XpHistorySummaryCard extends StatelessWidget {
-  final bool isKo;
+  final AppLocalizations l10n;
   final int count;
   final PlayerXpHistoryEntry latest;
 
   const _XpHistorySummaryCard({
-    required this.isKo,
+    required this.l10n,
     required this.count,
     required this.latest,
   });
@@ -173,7 +172,7 @@ class _XpHistorySummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isKo ? '최근 경험치 흐름' : 'Recent XP flow',
+            l10n.xpHistoryRecentFlow,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: scheme.primary,
               fontWeight: FontWeight.w900,
@@ -181,18 +180,14 @@ class _XpHistorySummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            isKo
-                ? '총 $count개의 기록이 저장되어 있습니다.'
-                : '$count history items are saved.',
+            l10n.xpHistorySummaryCount(count),
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 4),
           Text(
-            isKo
-                ? '아래에서 날짜와 시간 순서대로 바로 내려가며 확인할 수 있어요. 최근 기록은 ${_XpHistoryCard._title(latest, isKo)} 입니다.'
-                : 'Below, entries are arranged in date and time order. Latest entry: ${_XpHistoryCard._title(latest, isKo)}.',
+            l10n.xpHistorySummaryLatest(l10n.xpHistoryTitleFor(latest)),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
@@ -203,12 +198,14 @@ class _XpHistorySummaryCard extends StatelessWidget {
 
 class _XpHistoryDaySection extends StatelessWidget {
   final bool isKo;
+  final AppLocalizations l10n;
   final DateTime day;
   final List<PlayerXpHistoryEntry> items;
   final ValueChanged<PlayerXpHistoryEntry> onDelete;
 
   const _XpHistoryDaySection({
     required this.isKo,
+    required this.l10n,
     required this.day,
     required this.items,
     required this.onDelete,
@@ -234,7 +231,7 @@ class _XpHistoryDaySection extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            isKo ? '${items.length}개의 경험치 변동' : '${items.length} XP events',
+            l10n.xpHistoryDayEventCount(items.length),
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: 14),
@@ -242,6 +239,7 @@ class _XpHistoryDaySection extends StatelessWidget {
             _XpHistoryTimelineRow(
               item: items[index],
               isKo: isKo,
+              l10n: l10n,
               showConnector: index != items.length - 1,
               onDelete: () => onDelete(items[index]),
             ),
@@ -262,12 +260,14 @@ class _XpHistoryDaySection extends StatelessWidget {
 class _XpHistoryTimelineRow extends StatelessWidget {
   final PlayerXpHistoryEntry item;
   final bool isKo;
+  final AppLocalizations l10n;
   final bool showConnector;
   final VoidCallback onDelete;
 
   const _XpHistoryTimelineRow({
     required this.item,
     required this.isKo,
+    required this.l10n,
     required this.showConnector,
     required this.onDelete,
   });
@@ -323,14 +323,14 @@ class _XpHistoryTimelineRow extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _XpHistoryCard._title(item, isKo),
+                            l10n.xpHistoryTitleFor(item),
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w900,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _XpHistoryCard._timestamp(item.awardedAt, isKo),
+                            _formatXpHistoryTimestamp(item.awardedAt, isKo),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -347,7 +347,7 @@ class _XpHistoryTimelineRow extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: isKo ? '메세지 삭제' : 'Delete message',
+                      tooltip: l10n.xpHistoryDeleteMessageTooltip,
                       onPressed: onDelete,
                       icon: const Icon(Icons.delete_outline),
                     ),
@@ -358,17 +358,11 @@ class _XpHistoryTimelineRow extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _HistoryPill(
-                      label: isKo
-                          ? '누적 ${item.totalXp} XP'
-                          : '${item.totalXp} XP total',
-                    ),
+                    _HistoryPill(label: l10n.xpHistoryTotalXp(item.totalXp)),
                     _HistoryPill(
                       label: item.leveledUp
                           ? 'Lv.${item.beforeLevel} -> Lv.${item.afterLevel}'
-                          : (isKo
-                                ? 'Lv.${item.afterLevel} 유지'
-                                : 'Stayed at Lv.${item.afterLevel}'),
+                          : l10n.xpHistoryStayedAtLevel(item.afterLevel),
                     ),
                   ],
                 ),
@@ -380,7 +374,7 @@ class _XpHistoryTimelineRow extends StatelessWidget {
                     children: [
                       for (final reason in item.reasons)
                         _HistoryReasonChip(
-                          label: _XpHistoryCard._reasonLabel(reason, isKo),
+                          label: l10n.xpHistoryReasonLabel(reason),
                         ),
                     ],
                   ),
@@ -394,213 +388,10 @@ class _XpHistoryTimelineRow extends StatelessWidget {
   }
 }
 
-class _XpHistoryCard extends StatelessWidget {
-  final PlayerXpHistoryEntry item;
-  final bool isKo;
-  final VoidCallback onDelete;
-
-  const _XpHistoryCard({
-    required this.item,
-    required this.isKo,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final positive = item.deltaXp >= 0;
-    final deltaText = positive ? '+${item.deltaXp} XP' : '${item.deltaXp} XP';
-    final accent = positive
-        ? theme.colorScheme.primary
-        : theme.colorScheme.error;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _title(item, isKo),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _timestamp(item.awardedAt, isKo),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                tooltip: isKo ? '메세지 삭제' : 'Delete message',
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                deltaText,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _HistoryPill(
-                label: isKo
-                    ? '누적 ${item.totalXp} XP'
-                    : '${item.totalXp} XP total',
-              ),
-              _HistoryPill(
-                label: item.leveledUp
-                    ? (isKo
-                          ? 'Lv.${item.beforeLevel} -> Lv.${item.afterLevel}'
-                          : 'Lv.${item.beforeLevel} -> Lv.${item.afterLevel}')
-                    : (isKo
-                          ? 'Lv.${item.afterLevel} 유지'
-                          : 'Stayed at Lv.${item.afterLevel}'),
-              ),
-            ],
-          ),
-          if (item.reasons.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final reason in item.reasons)
-                  _HistoryReasonChip(label: _reasonLabel(reason, isKo)),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  static String _title(PlayerXpHistoryEntry item, bool isKo) {
-    switch (item.category) {
-      case PlayerXpHistoryCategory.training:
-        final label = _trainingTitleLabel(item, isKo);
-        if (label.isEmpty) return isKo ? '훈련 기록 저장' : 'Training log';
-        return isKo ? '훈련 기록 · $label' : 'Training log · $label';
-      case PlayerXpHistoryCategory.match:
-        final label = item.label.trim();
-        if (label.isEmpty) return isKo ? '시합 기록 저장' : 'Match log saved';
-        return isKo ? '시합 기록 · $label' : 'Match log · $label';
-      case PlayerXpHistoryCategory.meal:
-        return isKo ? '식사 기록 저장' : 'Meal log saved';
-      case PlayerXpHistoryCategory.quiz:
-        return isKo ? '퀴즈 완료' : 'Quiz completion';
-      case PlayerXpHistoryCategory.plan:
-        return isKo ? '훈련 계획 생성' : 'Training plan created';
-      case PlayerXpHistoryCategory.board:
-        final label = item.label.trim();
-        if (label.isEmpty) return isKo ? '훈련 스케치 저장' : 'Training sketch saved';
-        return isKo ? '훈련 스케치 · $label' : 'Training sketch · $label';
-      case PlayerXpHistoryCategory.diary:
-        return isKo ? '오늘 다이어리 작성' : 'Today diary created';
-      case PlayerXpHistoryCategory.dailyTasks:
-        return isKo ? '오늘 할일 완주' : 'Today tasks complete';
-    }
-  }
-
-  static String _trainingTitleLabel(PlayerXpHistoryEntry item, bool isKo) {
-    final addedParts = <String>[];
-    if (item.reasons.contains('lifting_added')) {
-      addedParts.add(isKo ? '리프팅' : 'Lifting');
-    }
-    if (item.reasons.contains('jump_rope_added')) {
-      addedParts.add(isKo ? '줄넘기' : 'Jump rope');
-    }
-    if (addedParts.isNotEmpty) {
-      return addedParts.join(isKo ? ', ' : ', ');
-    }
-    return item.label.trim();
-  }
-
-  static String _timestamp(DateTime value, bool isKo) {
-    return isKo
-        ? DateFormat('M월 d일 a h:mm', 'ko').format(value)
-        : DateFormat('MMM d, h:mm a', 'en').format(value);
-  }
-
-  static String _reasonLabel(String reason, bool isKo) {
-    switch (reason) {
-      case 'log':
-        return isKo ? '기본 기록' : 'base log';
-      case 'first_daily_log':
-        return isKo ? '하루 첫 기록' : 'first of day';
-      case 'plan_completed':
-        return isKo ? '계획 수행' : 'planned day';
-      case 'lifting_missed':
-        return isKo ? '리프팅 미기록' : 'no lifting';
-      case 'jump_rope_missed':
-        return isKo ? '줄넘기 미기록' : 'no jump rope';
-      case 'lifting_added':
-        return isKo ? '리프팅 추가 기록' : 'lifting added';
-      case 'jump_rope_added':
-        return isKo ? '줄넘기 추가 기록' : 'jump rope added';
-      case 'meal_two_plus':
-        return isKo ? '두 끼 이상' : '2+ meals';
-      case 'meal_full_day':
-        return isKo ? '세 끼 완료' : '3 meals complete';
-      case 'streak_3':
-        return isKo ? '3일 연속' : '3-day streak';
-      case 'streak_7':
-        return isKo ? '7일 연속' : '7-day streak';
-      case 'streak_daily_2_3':
-        return isKo ? '연속 기록 데일리(2~3일)' : 'daily streak (2-3 days)';
-      case 'streak_daily_4_6':
-        return isKo ? '연속 기록 데일리(4~6일)' : 'daily streak (4-6 days)';
-      case 'streak_daily_7_plus':
-        return isKo ? '연속 기록 데일리(7일+)' : 'daily streak (7+ days)';
-      case 'routine_complete_day':
-        return isKo ? '하루 루틴 완주' : 'daily routine complete';
-      case 'weekly_3':
-        return isKo ? '주간 3회' : '3 this week';
-      case 'weekly_5':
-        return isKo ? '주간 5회' : '5 this week';
-      case 'quiz_complete':
-        return isKo ? '퀴즈 완료' : 'quiz complete';
-      case 'plan_created':
-        return isKo ? '계획 생성' : 'plan created';
-      case 'board_created':
-        return isKo ? '보드 생성' : 'board created';
-      case 'board_saved':
-        return isKo ? '보드 저장' : 'board saved';
-      case 'diary_created':
-        return isKo ? '다이어리 작성' : 'diary created';
-      case 'daily_tasks_completed':
-        return isKo ? '오늘 할일 완주' : 'today tasks complete';
-      default:
-        if (reason.startsWith('plan_group_created:')) {
-          final count = int.tryParse(reason.split(':').last) ?? 0;
-          return isKo ? '묶음 계획 $count개' : '$count-plan series';
-        }
-        return reason;
-    }
-  }
+String _formatXpHistoryTimestamp(DateTime value, bool isKo) {
+  return isKo
+      ? DateFormat('M월 d일 a h:mm', 'ko').format(value)
+      : DateFormat('MMM d, h:mm a', 'en').format(value);
 }
 
 class _XpHistoryDaySectionData {

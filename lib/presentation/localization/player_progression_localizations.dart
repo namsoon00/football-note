@@ -1,0 +1,219 @@
+import '../../application/player_level_service.dart';
+import '../../gen/app_localizations.dart';
+
+extension PlayerProgressionLocalizations on AppLocalizations {
+  String playerLevelName(int level) {
+    switch (level.clamp(1, 20)) {
+      case 1:
+        return playerLevelName1;
+      case 2:
+        return playerLevelName2;
+      case 3:
+        return playerLevelName3;
+      case 4:
+        return playerLevelName4;
+      case 5:
+        return playerLevelName5;
+      case 6:
+        return playerLevelName6;
+      case 7:
+        return playerLevelName7;
+      case 8:
+        return playerLevelName8;
+      case 9:
+        return playerLevelName9;
+      case 10:
+        return playerLevelName10;
+      case 11:
+        return playerLevelName11;
+      case 12:
+        return playerLevelName12;
+      case 13:
+        return playerLevelName13;
+      case 14:
+        return playerLevelName14;
+      case 15:
+        return playerLevelName15;
+      case 16:
+        return playerLevelName16;
+      case 17:
+        return playerLevelName17;
+      case 18:
+        return playerLevelName18;
+      case 19:
+        return playerLevelName19;
+      default:
+        return playerLevelName20;
+    }
+  }
+
+  String playerLevelStageName(int level) {
+    if (level <= 2) return playerLevelStage1;
+    if (level <= 4) return playerLevelStage2;
+    if (level <= 6) return playerLevelStage3;
+    if (level <= 8) return playerLevelStage4;
+    if (level <= 12) return playerLevelStage5;
+    if (level <= 16) return playerLevelStage6;
+    return playerLevelStage7;
+  }
+
+  String playerLevelIllustrationLabel(int level) {
+    switch (level.clamp(1, 20)) {
+      case 1:
+        return playerLevelIllustration1;
+      case 2:
+        return playerLevelIllustration2;
+      case 3:
+        return playerLevelIllustration3;
+      case 4:
+        return playerLevelIllustration4;
+      case 5:
+        return playerLevelIllustration5;
+      case 6:
+        return playerLevelIllustration6;
+      case 7:
+        return playerLevelIllustration7;
+      case 8:
+        return playerLevelIllustration8;
+      case 9:
+        return playerLevelIllustration9;
+      case 10:
+        return playerLevelIllustration10;
+      case 11:
+        return playerLevelIllustration11;
+      case 12:
+        return playerLevelIllustration12;
+      case 13:
+        return playerLevelIllustration13;
+      case 14:
+        return playerLevelIllustration14;
+      case 15:
+        return playerLevelIllustration15;
+      case 16:
+        return playerLevelIllustration16;
+      case 17:
+        return playerLevelIllustration17;
+      case 18:
+        return playerLevelIllustration18;
+      case 19:
+        return playerLevelIllustration19;
+      default:
+        return playerLevelIllustration20;
+    }
+  }
+
+  String xpHistoryTitleFor(PlayerXpHistoryEntry item) {
+    switch (item.category) {
+      case PlayerXpHistoryCategory.training:
+        final label = xpHistoryTrainingTitleLabel(item);
+        return label.isEmpty
+            ? xpHistoryTrainingLog
+            : xpHistoryTrainingLogWithLabel(label);
+      case PlayerXpHistoryCategory.match:
+        final label = item.label.trim();
+        return label.isEmpty
+            ? xpHistoryMatchLog
+            : xpHistoryMatchLogWithLabel(label);
+      case PlayerXpHistoryCategory.meal:
+        return xpHistoryMealLog;
+      case PlayerXpHistoryCategory.quiz:
+        return xpHistoryQuizCompletion;
+      case PlayerXpHistoryCategory.plan:
+        return xpHistoryPlanCreated;
+      case PlayerXpHistoryCategory.board:
+        final label = item.label.trim();
+        return label.isEmpty
+            ? xpHistoryBoardSaved
+            : xpHistoryBoardSavedWithLabel(label);
+      case PlayerXpHistoryCategory.diary:
+        return xpHistoryDiaryCreated;
+      case PlayerXpHistoryCategory.dailyTasks:
+        return xpHistoryDailyTasksComplete;
+    }
+  }
+
+  String xpHistoryTrainingTitleLabel(PlayerXpHistoryEntry item) {
+    final addedParts = <String>[];
+    if (item.reasons.contains('lifting_added')) {
+      addedParts.add(xpHistoryTrainingLabelLifting);
+    }
+    if (item.reasons.contains('jump_rope_added')) {
+      addedParts.add(xpHistoryTrainingLabelJumpRope);
+    }
+    if (addedParts.isNotEmpty) {
+      return addedParts.join(', ');
+    }
+    return item.label.trim();
+  }
+
+  String xpHistoryReasonLabel(String reason) {
+    switch (reason) {
+      case 'log':
+        return xpHistoryReasonLog;
+      case 'first_daily_log':
+        return xpHistoryReasonFirstDailyLog;
+      case 'plan_completed':
+        return xpHistoryReasonPlanCompleted;
+      case 'lifting_recorded':
+        return xpHistoryReasonLiftingRecorded;
+      case 'jump_rope_recorded':
+        return xpHistoryReasonJumpRopeRecorded;
+      case 'lifting_missed':
+        return xpHistoryReasonLiftingMissed;
+      case 'jump_rope_missed':
+        return xpHistoryReasonJumpRopeMissed;
+      case 'lifting_added':
+        return xpHistoryReasonLiftingAdded;
+      case 'jump_rope_added':
+        return xpHistoryReasonJumpRopeAdded;
+      case 'meal_two_plus':
+        return xpHistoryReasonMealTwoPlus;
+      case 'meal_full_day':
+        return xpHistoryReasonMealFullDay;
+      case 'meal_full_day_bonus':
+        return xpHistoryReasonMealFullDayBonus;
+      case 'streak_3':
+        return xpHistoryReasonStreak3;
+      case 'streak_7':
+        return xpHistoryReasonStreak7;
+      case 'streak_daily_2_3':
+        return xpHistoryReasonStreakDaily2;
+      case 'streak_daily_4_6':
+        return xpHistoryReasonStreakDaily4;
+      case 'streak_daily_7_plus':
+        return xpHistoryReasonStreakDaily7;
+      case 'routine_complete_day':
+        return xpHistoryReasonRoutineComplete;
+      case 'weekly_3':
+        return xpHistoryReasonWeekly3;
+      case 'weekly_5':
+        return xpHistoryReasonWeekly5;
+      case 'quiz_complete':
+        return xpHistoryReasonQuizComplete;
+      case 'plan_created':
+        return xpHistoryReasonPlanCreated;
+      case 'match_logged':
+        return xpHistoryReasonMatchLogged;
+      case 'match_result_recorded':
+        return xpHistoryReasonMatchResultRecorded;
+      case 'match_contribution_recorded':
+        return xpHistoryReasonMatchContributionRecorded;
+      case 'board_created':
+        return xpHistoryReasonBoardCreated;
+      case 'board_saved':
+        return xpHistoryReasonBoardSaved;
+      case 'diary_created':
+        return xpHistoryReasonDiaryCreated;
+      case 'daily_tasks_completed':
+        return xpHistoryReasonDailyTasksCompleted;
+      case 'daily_xp_cap':
+        return xpHistoryReasonDailyCap;
+      default:
+        if (reason.startsWith('plan_group_created:')) {
+          final count = int.tryParse(reason.split(':').last) ?? 0;
+          return xpHistoryReasonPlanGroupCreated(count);
+        }
+        return reason;
+    }
+  }
+}

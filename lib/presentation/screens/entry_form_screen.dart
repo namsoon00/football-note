@@ -26,6 +26,7 @@ import '../widgets/status_style.dart';
 import '../models/training_program_emoji.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
+import '../localization/player_progression_localizations.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/app_pressable_scale.dart';
@@ -3257,10 +3258,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (!levelAward.didLevelUp) {
       return l10n.trainingSaveToastWithXp(levelAward.gainedXp, details);
     }
-    final levelName = PlayerLevelService.levelName(
-      levelAward.after.level,
-      Localizations.localeOf(context).languageCode == 'ko',
-    );
+    final levelName = l10n.playerLevelName(levelAward.after.level);
     return l10n.trainingSaveToastLevelUp(
       levelAward.gainedXp,
       details,

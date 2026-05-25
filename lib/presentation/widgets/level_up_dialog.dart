@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 import '../../application/player_level_service.dart';
+import '../localization/player_progression_localizations.dart';
 import 'player_level_visuals.dart';
 
 Future<void> showXpGemRewardDialog(
@@ -343,8 +344,8 @@ Future<void> showLevelUpCelebrationDialog(
   ];
   const foreground = Colors.white;
   final softForeground = Colors.white.withValues(alpha: 0.86);
-  final stageName = PlayerLevelService.stageName(award.after.level, isKo);
-  final levelName = PlayerLevelService.levelName(award.after.level, isKo);
+  final stageName = l10n.playerLevelStageName(award.after.level);
+  final levelName = l10n.playerLevelName(award.after.level);
 
   await _showCelebrationDialog(
     context,
