@@ -27,7 +27,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabDiary => 'Diary';
 
   @override
-  String get tabNews => 'News';
+  String get tabNews => 'Today\'s News';
 
   @override
   String tabGuideTitle(Object tabName) {
@@ -175,7 +175,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsFifaHubButton => 'FIFA Rank';
 
   @override
-  String get newsKLeagueStandingsButton => 'K League';
+  String get newsKLeagueStandingsButton => 'Domestic';
 
   @override
   String get newsMoreActionsTooltip => 'League view';
@@ -187,7 +187,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsRankingMoreButton => 'League view';
 
   @override
-  String get newsLeagueStandingsAction => 'Overseas league view';
+  String get newsLeagueStandingsAction => 'Overseas';
 
   @override
   String get newsLeagueStandingsTitle => 'League View';
@@ -255,11 +255,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsLeagueFixtureFullTime => 'FT';
 
   @override
-  String get newsLeagueFavoriteTeamTitle => 'Fixture alert teams';
+  String get newsLeagueFavoriteTeamTitle => 'Favorite teams';
+
+  @override
+  String get newsLeagueFavoriteTeamManage => 'Select favorite teams';
 
   @override
   String get newsLeagueFavoriteTeamSubtitle =>
-      'Choose preferred teams to receive alerts for their loaded fixtures.';
+      'Choose favorite teams to receive alerts for their loaded fixtures.';
 
   @override
   String get newsLeagueFavoriteTeamSelect => 'Select teams';
@@ -271,10 +274,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsLeagueFavoriteTeamNone => 'No team selected';
 
   @override
-  String get newsLeagueFavoriteTeamSheetTitle => 'Select teams for alerts';
+  String get newsLeagueFavoriteTeamSheetTitle => 'Select favorite teams';
 
   @override
-  String get newsLeagueFavoriteTeamSaved => 'Fixture alert teams saved.';
+  String get newsLeagueFavoriteTeamSaveAction => 'Save';
+
+  @override
+  String get newsLeagueFavoriteTeamLoadError => 'Could not load the team list.';
+
+  @override
+  String get newsLeagueFavoriteTeamEmpty => 'No teams are available.';
+
+  @override
+  String newsLeagueFavoriteTeamSelectedCount(int count) {
+    return '$count team(s) selected';
+  }
+
+  @override
+  String get newsLeagueFavoriteTeamSaved => 'Favorite teams saved.';
 
   @override
   String get newsLeagueFavoriteTeamNoUpcoming =>
