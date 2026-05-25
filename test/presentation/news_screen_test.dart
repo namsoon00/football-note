@@ -27,7 +27,6 @@ const _searchActionKey = ValueKey<String>('news_quick_action_search');
 const _viewedHistoryActionKey = ValueKey<String>(
   'news_quick_action_viewed_history',
 );
-const _moreActionsKey = ValueKey<String>('news_more_actions');
 const _leagueStandingsActionKey = ValueKey<String>(
   'news_quick_action_league_standings',
 );
@@ -37,7 +36,7 @@ const _kLeagueActionKey = ValueKey<String>(
 );
 
 void main() {
-  testWidgets('news more menu exposes standings actions', (
+  testWidgets('news header exposes standings actions', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -72,19 +71,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byKey(_moreActionsKey), findsOneWidget);
-    expect(find.byKey(_kLeagueActionKey), findsNothing);
-    expect(find.byKey(_fifaHubActionKey), findsNothing);
-
-    await tester.tap(find.byKey(_moreActionsKey));
-    await tester.pumpAndSettle();
-
+    expect(find.text('오늘의 소식'), findsOneWidget);
     expect(find.byKey(_leagueStandingsActionKey), findsOneWidget);
     expect(find.byKey(_kLeagueActionKey), findsOneWidget);
     expect(find.byKey(_fifaHubActionKey), findsOneWidget);
-    expect(find.text('해외 리그 보기'), findsOneWidget);
-    expect(find.text('K리그'), findsOneWidget);
-    expect(find.text('FIFA 랭킹'), findsOneWidget);
+    expect(find.text('해외리그'), findsOneWidget);
+    expect(find.text('국내리그'), findsOneWidget);
+    expect(find.text('피파랭킹'), findsOneWidget);
   });
 
   testWidgets('news quick actions keep scrap, translate, search order', (

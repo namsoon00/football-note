@@ -137,7 +137,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabNews.
   ///
   /// In en, this message translates to:
-  /// **'News'**
+  /// **'Today\'s News'**
   String get tabNews;
 
   /// No description provided for @tabGuideTitle.
@@ -383,7 +383,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsKLeagueStandingsButton.
   ///
   /// In en, this message translates to:
-  /// **'K League'**
+  /// **'Domestic'**
   String get newsKLeagueStandingsButton;
 
   /// No description provided for @newsMoreActionsTooltip.
@@ -407,7 +407,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsLeagueStandingsAction.
   ///
   /// In en, this message translates to:
-  /// **'Overseas league view'**
+  /// **'Overseas'**
   String get newsLeagueStandingsAction;
 
   /// No description provided for @newsLeagueStandingsTitle.
@@ -533,13 +533,19 @@ abstract class AppLocalizations {
   /// No description provided for @newsLeagueFavoriteTeamTitle.
   ///
   /// In en, this message translates to:
-  /// **'Fixture alert teams'**
+  /// **'Favorite teams'**
   String get newsLeagueFavoriteTeamTitle;
+
+  /// No description provided for @newsLeagueFavoriteTeamManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select favorite teams'**
+  String get newsLeagueFavoriteTeamManage;
 
   /// No description provided for @newsLeagueFavoriteTeamSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose preferred teams to receive alerts for their loaded fixtures.'**
+  /// **'Choose favorite teams to receive alerts for their loaded fixtures.'**
   String get newsLeagueFavoriteTeamSubtitle;
 
   /// No description provided for @newsLeagueFavoriteTeamSelect.
@@ -563,13 +569,37 @@ abstract class AppLocalizations {
   /// No description provided for @newsLeagueFavoriteTeamSheetTitle.
   ///
   /// In en, this message translates to:
-  /// **'Select teams for alerts'**
+  /// **'Select favorite teams'**
   String get newsLeagueFavoriteTeamSheetTitle;
+
+  /// No description provided for @newsLeagueFavoriteTeamSaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get newsLeagueFavoriteTeamSaveAction;
+
+  /// No description provided for @newsLeagueFavoriteTeamLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the team list.'**
+  String get newsLeagueFavoriteTeamLoadError;
+
+  /// No description provided for @newsLeagueFavoriteTeamEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No teams are available.'**
+  String get newsLeagueFavoriteTeamEmpty;
+
+  /// No description provided for @newsLeagueFavoriteTeamSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} team(s) selected'**
+  String newsLeagueFavoriteTeamSelectedCount(int count);
 
   /// No description provided for @newsLeagueFavoriteTeamSaved.
   ///
   /// In en, this message translates to:
-  /// **'Fixture alert teams saved.'**
+  /// **'Favorite teams saved.'**
   String get newsLeagueFavoriteTeamSaved;
 
   /// No description provided for @newsLeagueFavoriteTeamNoUpcoming.

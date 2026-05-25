@@ -5,7 +5,7 @@
   "tabCalendar": "캘린더",
   "tabStats": "통계",
   "tabDiary": "다이어리",
-  "tabNews": "소식",
+  "tabNews": "오늘의 소식",
   "tabGuideTitle": "{tabName} 가이드",
   "@tabGuideTitle": {
     "placeholders": {
@@ -50,12 +50,12 @@
   "welcomeDiaryStepSave": "제목, 이야기, 스티커 중 하나라도 준비되면 다이어리를 저장해요.",
   "logsQuickGuideTitle": "빠른 시작 가이드",
   "logsQuickGuideIntro": "첫 기록은 이 순서로 만들고, 저장 후 이 화면에서 다시 확인하세요.",
-  "newsFifaHubButton": "FIFA 랭킹",
-  "newsKLeagueStandingsButton": "K리그",
+  "newsFifaHubButton": "피파랭킹",
+  "newsKLeagueStandingsButton": "국내리그",
   "newsMoreActionsTooltip": "리그보기",
   "newsMoreActionsTitle": "더보기",
   "newsRankingMoreButton": "리그보기",
-  "newsLeagueStandingsAction": "해외 리그 보기",
+  "newsLeagueStandingsAction": "해외리그",
   "newsLeagueStandingsTitle": "리그 보기",
   "newsPremierLeagueStandingsTitle": "프리미어리그",
   "newsChampionsLeagueStandingsTitle": "챔피언스리그",
@@ -81,13 +81,25 @@
   "newsLeagueFixtureScheduled": "예정",
   "newsLeagueFixtureLive": "진행 중",
   "newsLeagueFixtureFullTime": "종료",
-  "newsLeagueFavoriteTeamTitle": "일정 알림 팀",
-  "newsLeagueFavoriteTeamSubtitle": "선호 팀을 선택하면 불러온 일정 중 해당 팀 경기 알림을 받을 수 있어요.",
+  "newsLeagueFavoriteTeamTitle": "좋아하는 팀",
+  "newsLeagueFavoriteTeamManage": "좋아하는 팀 선택",
+  "newsLeagueFavoriteTeamSubtitle": "좋아하는 팀을 선택하면 불러온 일정 중 해당 팀 경기 알림을 받을 수 있어요.",
   "newsLeagueFavoriteTeamSelect": "팀 선택",
   "newsLeagueFavoriteTeamClear": "해제",
   "newsLeagueFavoriteTeamNone": "선택된 팀 없음",
-  "newsLeagueFavoriteTeamSheetTitle": "알림 받을 팀 선택",
-  "newsLeagueFavoriteTeamSaved": "일정 알림 팀을 저장했어요.",
+  "newsLeagueFavoriteTeamSheetTitle": "좋아하는 팀 선택",
+  "newsLeagueFavoriteTeamSaveAction": "저장",
+  "newsLeagueFavoriteTeamLoadError": "팀 목록을 불러오지 못했어요.",
+  "newsLeagueFavoriteTeamEmpty": "선택할 팀이 없어요.",
+  "newsLeagueFavoriteTeamSelectedCount": "{count}개 팀 선택됨",
+  "@newsLeagueFavoriteTeamSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsLeagueFavoriteTeamSaved": "좋아하는 팀을 저장했어요.",
   "newsLeagueFavoriteTeamNoUpcoming": "예약된 경기 알림이 없어요.",
   "newsLeagueFavoriteTeamReminderCount": "{count}개 경기 알림 예약됨",
   "@newsLeagueFavoriteTeamReminderCount": {

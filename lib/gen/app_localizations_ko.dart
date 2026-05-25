@@ -27,7 +27,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tabDiary => '다이어리';
 
   @override
-  String get tabNews => '소식';
+  String get tabNews => '오늘의 소식';
 
   @override
   String tabGuideTitle(Object tabName) {
@@ -149,10 +149,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get logsQuickGuideIntro => '첫 기록은 이 순서로 만들고, 저장 후 이 화면에서 다시 확인하세요.';
 
   @override
-  String get newsFifaHubButton => 'FIFA 랭킹';
+  String get newsFifaHubButton => '피파랭킹';
 
   @override
-  String get newsKLeagueStandingsButton => 'K리그';
+  String get newsKLeagueStandingsButton => '국내리그';
 
   @override
   String get newsMoreActionsTooltip => '리그보기';
@@ -164,7 +164,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsRankingMoreButton => '리그보기';
 
   @override
-  String get newsLeagueStandingsAction => '해외 리그 보기';
+  String get newsLeagueStandingsAction => '해외리그';
 
   @override
   String get newsLeagueStandingsTitle => '리그 보기';
@@ -230,11 +230,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsLeagueFixtureFullTime => '종료';
 
   @override
-  String get newsLeagueFavoriteTeamTitle => '일정 알림 팀';
+  String get newsLeagueFavoriteTeamTitle => '좋아하는 팀';
+
+  @override
+  String get newsLeagueFavoriteTeamManage => '좋아하는 팀 선택';
 
   @override
   String get newsLeagueFavoriteTeamSubtitle =>
-      '선호 팀을 선택하면 불러온 일정 중 해당 팀 경기 알림을 받을 수 있어요.';
+      '좋아하는 팀을 선택하면 불러온 일정 중 해당 팀 경기 알림을 받을 수 있어요.';
 
   @override
   String get newsLeagueFavoriteTeamSelect => '팀 선택';
@@ -246,10 +249,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsLeagueFavoriteTeamNone => '선택된 팀 없음';
 
   @override
-  String get newsLeagueFavoriteTeamSheetTitle => '알림 받을 팀 선택';
+  String get newsLeagueFavoriteTeamSheetTitle => '좋아하는 팀 선택';
 
   @override
-  String get newsLeagueFavoriteTeamSaved => '일정 알림 팀을 저장했어요.';
+  String get newsLeagueFavoriteTeamSaveAction => '저장';
+
+  @override
+  String get newsLeagueFavoriteTeamLoadError => '팀 목록을 불러오지 못했어요.';
+
+  @override
+  String get newsLeagueFavoriteTeamEmpty => '선택할 팀이 없어요.';
+
+  @override
+  String newsLeagueFavoriteTeamSelectedCount(int count) {
+    return '$count개 팀 선택됨';
+  }
+
+  @override
+  String get newsLeagueFavoriteTeamSaved => '좋아하는 팀을 저장했어요.';
 
   @override
   String get newsLeagueFavoriteTeamNoUpcoming => '예약된 경기 알림이 없어요.';

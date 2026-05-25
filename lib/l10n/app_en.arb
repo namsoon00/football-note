@@ -5,7 +5,7 @@
   "tabCalendar": "Calendar",
   "tabStats": "Stats",
   "tabDiary": "Diary",
-  "tabNews": "News",
+  "tabNews": "Today's News",
   "tabGuideTitle": "{tabName} guide",
   "@tabGuideTitle": {
     "placeholders": {
@@ -51,11 +51,11 @@
   "logsQuickGuideTitle": "Quick start guide",
   "logsQuickGuideIntro": "Create your first record in this order, then return here to review it.",
   "newsFifaHubButton": "FIFA Rank",
-  "newsKLeagueStandingsButton": "K League",
+  "newsKLeagueStandingsButton": "Domestic",
   "newsMoreActionsTooltip": "League view",
   "newsMoreActionsTitle": "More",
   "newsRankingMoreButton": "League view",
-  "newsLeagueStandingsAction": "Overseas league view",
+  "newsLeagueStandingsAction": "Overseas",
   "newsLeagueStandingsTitle": "League View",
   "newsPremierLeagueStandingsTitle": "Premier League",
   "newsChampionsLeagueStandingsTitle": "Champions League",
@@ -81,13 +81,25 @@
   "newsLeagueFixtureScheduled": "Fixture",
   "newsLeagueFixtureLive": "Live",
   "newsLeagueFixtureFullTime": "FT",
-  "newsLeagueFavoriteTeamTitle": "Fixture alert teams",
-  "newsLeagueFavoriteTeamSubtitle": "Choose preferred teams to receive alerts for their loaded fixtures.",
+  "newsLeagueFavoriteTeamTitle": "Favorite teams",
+  "newsLeagueFavoriteTeamManage": "Select favorite teams",
+  "newsLeagueFavoriteTeamSubtitle": "Choose favorite teams to receive alerts for their loaded fixtures.",
   "newsLeagueFavoriteTeamSelect": "Select teams",
   "newsLeagueFavoriteTeamClear": "Clear",
   "newsLeagueFavoriteTeamNone": "No team selected",
-  "newsLeagueFavoriteTeamSheetTitle": "Select teams for alerts",
-  "newsLeagueFavoriteTeamSaved": "Fixture alert teams saved.",
+  "newsLeagueFavoriteTeamSheetTitle": "Select favorite teams",
+  "newsLeagueFavoriteTeamSaveAction": "Save",
+  "newsLeagueFavoriteTeamLoadError": "Could not load the team list.",
+  "newsLeagueFavoriteTeamEmpty": "No teams are available.",
+  "newsLeagueFavoriteTeamSelectedCount": "{count} team(s) selected",
+  "@newsLeagueFavoriteTeamSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsLeagueFavoriteTeamSaved": "Favorite teams saved.",
   "newsLeagueFavoriteTeamNoUpcoming": "No match alerts are scheduled.",
   "newsLeagueFavoriteTeamReminderCount": "{count} match alerts scheduled",
   "@newsLeagueFavoriteTeamReminderCount": {
