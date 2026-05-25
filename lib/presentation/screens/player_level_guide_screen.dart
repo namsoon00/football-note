@@ -5,6 +5,7 @@ import '../../application/backup_service.dart';
 import '../../application/family_access_service.dart';
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../localization/player_progression_localizations.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/player_level_visuals.dart';
@@ -39,7 +40,6 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     final thresholds = PlayerLevelService.levelThresholds;
     final currentState = _levelService.loadState();
@@ -53,16 +53,16 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isKo ? '레벨 가이드' : 'Level guide'),
+        title: Text(l10n.levelGuideTitle),
         actions: [
           IconButton(
-            tooltip: isKo ? '경험치 가이드 열기' : 'Open XP guide',
+            tooltip: l10n.levelGuideOpenXpGuideTooltip,
             onPressed: () => _openXpGuide(context),
             icon: const Icon(Icons.menu_book_outlined),
           ),
           IconButton(
-            tooltip: isKo ? '경험치 히스토리' : 'XP history',
-            onPressed: () => _openXpHistory(context, isKo),
+            tooltip: l10n.levelGuideXpHistoryTooltip,
+            onPressed: () => _openXpHistory(context),
             icon: const Icon(Icons.schedule_outlined),
           ),
         ],
@@ -73,7 +73,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             children: [
               _LevelGuideSummaryCard(
-                isKo: isKo,
+                l10n: l10n,
                 levelState: currentState,
                 roleLabel: familyState.isParentMode
                     ? l10n.levelGuideParentModeLabel
@@ -107,7 +107,6 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                       : null,
                   isCurrent: levelIndex + 1 == widget.currentLevel,
                   rewardStatus: rewardByLevel[levelIndex + 1],
-                  isKo: isKo,
                   l10n: l10n,
                   spec: PlayerLevelVisualSpec.fromLevel(levelIndex + 1),
                   isSyncing: _syncingRewardLevel == levelIndex + 1,
@@ -177,7 +176,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
       context: context,
       builder: (dialogContext) => _RewardNameDialog(
         initialValue: status.customRewardName,
-        isKo: Localizations.localeOf(context).languageCode == 'ko',
+        l10n: AppLocalizations.of(context)!,
       ),
     );
     if (saved == null) return;
@@ -212,7 +211,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
     );
   }
 
-  Future<void> _openXpHistory(BuildContext context, bool isKo) async {
+  Future<void> _openXpHistory(BuildContext context) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) =>
@@ -249,7 +248,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
 }
 
 class _LevelGuideSummaryCard extends StatelessWidget {
-  final bool isKo;
+  final AppLocalizations l10n;
   final PlayerLevelState levelState;
   final String roleLabel;
   final String? syncStatusLabel;
@@ -257,7 +256,7 @@ class _LevelGuideSummaryCard extends StatelessWidget {
   final VoidCallback onModeInfoPressed;
 
   const _LevelGuideSummaryCard({
-    required this.isKo,
+    required this.l10n,
     required this.levelState,
     required this.roleLabel,
     required this.syncStatusLabel,
@@ -278,7 +277,7 @@ class _LevelGuideSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isKo ? '현재 진행 상태' : 'Current progress',
+            l10n.levelGuideCurrentProgressTitle,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: scheme.primary,
               fontWeight: FontWeight.w900,
@@ -286,22 +285,22 @@ class _LevelGuideSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            isKo
-                ? 'Lv.${levelState.level} · 총 ${levelState.totalXp} XP'
-                : 'Lv.${levelState.level} · ${levelState.totalXp} XP total',
+            l10n.levelGuideCurrentProgressTotal(
+              levelState.level,
+              levelState.totalXp,
+            ),
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 4),
           Text(
-            isKo
-                ? levelState.isMaxLevel
-                      ? '마스터리 별 ${levelState.masteryStars}개 · 다음 별까지 ${levelState.xpToNextMasteryStar} XP 남았습니다.'
-                      : '다음 레벨까지 ${levelState.xpToNextLevel} XP 남았습니다. 우측 상단에서 경험치 가이드와 히스토리를 바로 열 수 있어요.'
-                : levelState.isMaxLevel
-                ? '${levelState.masteryStars} mastery star(s) · ${levelState.xpToNextMasteryStar} XP left until the next star.'
-                : '${levelState.xpToNextLevel} XP left until the next level. Use the top-right actions for the XP guide and history.',
+            levelState.isMaxLevel
+                ? l10n.levelGuideCurrentProgressMax(
+                    levelState.masteryStars,
+                    levelState.xpToNextMasteryStar,
+                  )
+                : l10n.levelGuideCurrentProgressNext(levelState.xpToNextLevel),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 10),
@@ -366,9 +365,9 @@ class _LevelGuideSummaryCard extends StatelessWidget {
 
 class _RewardNameDialog extends StatefulWidget {
   final String initialValue;
-  final bool isKo;
+  final AppLocalizations l10n;
 
-  const _RewardNameDialog({required this.initialValue, required this.isKo});
+  const _RewardNameDialog({required this.initialValue, required this.l10n});
 
   @override
   State<_RewardNameDialog> createState() => _RewardNameDialogState();
@@ -391,9 +390,8 @@ class _RewardNameDialogState extends State<_RewardNameDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isKo = widget.isKo;
     return AlertDialog(
-      title: Text(isKo ? '레벨 선물 입력' : 'Set level reward'),
+      title: Text(widget.l10n.levelGuideSetRewardTitle),
       content: SizedBox(
         width: 360,
         child: Column(
@@ -404,8 +402,8 @@ class _RewardNameDialogState extends State<_RewardNameDialog> {
               autofocus: true,
               maxLength: 30,
               decoration: InputDecoration(
-                labelText: isKo ? '선물 이름' : 'Reward name',
-                hintText: isKo ? '예) 새 축구 양말' : 'e.g. New football socks',
+                labelText: widget.l10n.levelGuideRewardNameLabel,
+                hintText: widget.l10n.levelGuideRewardNameHint,
                 border: const OutlineInputBorder(),
               ),
               textInputAction: TextInputAction.done,
@@ -417,14 +415,14 @@ class _RewardNameDialogState extends State<_RewardNameDialog> {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text(isKo ? '취소' : 'Cancel'),
+                    child: Text(widget.l10n.cancel),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(''),
-                    child: Text(isKo ? '삭제' : 'Clear'),
+                    child: Text(widget.l10n.levelGuideClearRewardAction),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -432,7 +430,7 @@ class _RewardNameDialogState extends State<_RewardNameDialog> {
                   child: FilledButton(
                     onPressed: () =>
                         Navigator.of(context).pop(_controller.text.trim()),
-                    child: Text(isKo ? '저장' : 'Save'),
+                    child: Text(widget.l10n.save),
                   ),
                 ),
               ],
@@ -450,7 +448,6 @@ class _LevelGuideCard extends StatelessWidget {
   final int? maxXp;
   final bool isCurrent;
   final PlayerLevelRewardStatus? rewardStatus;
-  final bool isKo;
   final AppLocalizations l10n;
   final PlayerLevelVisualSpec spec;
   final bool isSyncing;
@@ -465,7 +462,6 @@ class _LevelGuideCard extends StatelessWidget {
     required this.maxXp,
     required this.isCurrent,
     required this.rewardStatus,
-    required this.isKo,
     required this.l10n,
     required this.spec,
     required this.isSyncing,
@@ -514,19 +510,19 @@ class _LevelGuideCard extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
-                      'Lv.$level ${PlayerLevelService.levelName(level, isKo)}',
+                      'Lv.$level ${l10n.playerLevelName(level)}',
                       style: theme.textTheme.titleLarge?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                     if (isCurrent)
-                      _WhitePill(label: isKo ? '지금 여기' : 'Current'),
+                      _WhitePill(label: l10n.levelGuideCurrentBadge),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  PlayerLevelService.stageName(level, isKo),
+                  l10n.playerLevelStageName(level),
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: Colors.white.withValues(alpha: 0.92),
                     fontWeight: FontWeight.w700,
@@ -534,7 +530,7 @@ class _LevelGuideCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  PlayerLevelService.illustrationLabel(level, isKo),
+                  l10n.playerLevelIllustrationLabel(level),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -544,9 +540,7 @@ class _LevelGuideCard extends StatelessWidget {
                 Text(
                   maxXp == null
                       ? l10n.levelGuideMaxLevelRangeLabel(minXp)
-                      : (isKo
-                            ? '$minXp XP ~ $maxXp XP'
-                            : '$minXp XP to $maxXp XP'),
+                      : l10n.levelGuideXpRangeLabel(minXp, maxXp!),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.88),
                     fontWeight: FontWeight.w600,
@@ -599,7 +593,7 @@ class _LevelGuideCard extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      isKo ? '레벨 선물' : 'Level reward',
+                                      l10n.levelGuideRewardTitle,
                                       style: theme.textTheme.labelLarge
                                           ?.copyWith(
                                             color: Colors.white,
@@ -619,14 +613,14 @@ class _LevelGuideCard extends StatelessWidget {
                                         tapTargetSize:
                                             MaterialTapTargetSize.shrinkWrap,
                                       ),
-                                      child: Text(isKo ? '입력' : 'Edit'),
+                                      child: Text(l10n.levelGuideEditReward),
                                     ),
                                 ],
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 customRewardName.isEmpty
-                                    ? (isKo ? '미정' : 'Not set')
+                                    ? l10n.levelGuideRewardNotSet
                                     : customRewardName,
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: Colors.white,
@@ -653,7 +647,7 @@ class _LevelGuideCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          isKo ? '동기화 중...' : 'Syncing...',
+                          l10n.levelGuideSyncing,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
@@ -664,11 +658,9 @@ class _LevelGuideCard extends StatelessWidget {
                     const SizedBox(height: 8),
                   ],
                   if (customRewardName.isEmpty)
-                    _WhitePill(
-                      label: isKo ? '선물 입력 후 수령 가능' : 'Add reward to claim',
-                    )
+                    _WhitePill(label: l10n.levelGuideRewardNeedsName)
                   else if (rewardStatus!.isClaimed)
-                    _WhitePill(label: isKo ? '이미 받음' : 'Already claimed')
+                    _WhitePill(label: l10n.levelGuideRewardAlreadyClaimed)
                   else if (rewardStatus!.isAvailable && canClaimReward)
                     FilledButton.tonal(
                       onPressed: onClaimReward,
@@ -676,16 +668,12 @@ class _LevelGuideCard extends StatelessWidget {
                         backgroundColor: Colors.white.withValues(alpha: 0.92),
                         foregroundColor: spec.colors.first,
                       ),
-                      child: Text(isKo ? '선물 받기' : 'Claim reward'),
+                      child: Text(l10n.levelGuideClaimReward),
                     )
                   else if (rewardStatus!.isAvailable)
                     _WhitePill(label: claimDisabledLabel)
                   else
-                    _WhitePill(
-                      label: isKo
-                          ? 'Lv.$level 달성 시 수령 가능'
-                          : 'Claim at Lv.$level',
-                    ),
+                    _WhitePill(label: l10n.levelGuideRewardLocked(level)),
                 ],
               ],
             ),

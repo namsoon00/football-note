@@ -23,6 +23,7 @@ import '../../domain/entities/training_board.dart';
 import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../localization/player_progression_localizations.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
@@ -223,7 +224,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         const SizedBox(height: 12),
                         _LevelHeroCard(
                           levelState: levelState,
-                          isKo: isKo,
                           onTap: _openLevelGuide,
                         ),
                         if (data.showStreakHighlight) ...[
@@ -1610,25 +1610,20 @@ class _TodayPlanHighlightCard extends StatelessWidget {
 
 class _LevelHeroCard extends StatelessWidget {
   final PlayerLevelState levelState;
-  final bool isKo;
   final VoidCallback onTap;
 
-  const _LevelHeroCard({
-    required this.levelState,
-    required this.isKo,
-    required this.onTap,
-  });
+  const _LevelHeroCard({required this.levelState, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final spec = PlayerLevelVisualSpec.fromLevel(levelState.level);
     final progressLabel = levelState.isMaxLevel
-        ? (isKo
-              ? '별 ${levelState.masteryStars}개 · 다음 별 ${levelState.xpToNextMasteryStar}XP'
-              : '${levelState.masteryStars} star(s) · ${levelState.xpToNextMasteryStar} XP left')
-        : (isKo
-              ? '다음까지 ${levelState.xpToNextLevel}XP'
-              : '${levelState.xpToNextLevel} XP left');
+        ? l10n.homeLevelProgressMax(
+            levelState.masteryStars,
+            levelState.xpToNextMasteryStar,
+          )
+        : l10n.homeLevelProgressNext(levelState.xpToNextLevel);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1688,10 +1683,7 @@ class _LevelHeroCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                PlayerLevelService.levelName(
-                                  levelState.level,
-                                  isKo,
-                                ),
+                                l10n.playerLevelName(levelState.level),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context).textTheme.titleMedium
@@ -1721,7 +1713,7 @@ class _LevelHeroCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  _HomeLevelIllustration(isKo: isKo, level: levelState.level),
+                  _HomeLevelIllustration(level: levelState.level),
                 ],
               ),
               const SizedBox(height: 8),
@@ -2935,13 +2927,13 @@ class _QuickActionButton extends StatelessWidget {
 }
 
 class _HomeLevelIllustration extends StatelessWidget {
-  final bool isKo;
   final int level;
 
-  const _HomeLevelIllustration({required this.isKo, required this.level});
+  const _HomeLevelIllustration({required this.level});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       width: 64,
       height: 64,
@@ -2978,7 +2970,7 @@ class _HomeLevelIllustration extends StatelessWidget {
                 border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
               ),
               child: Text(
-                PlayerLevelService.illustrationLabel(level, isKo),
+                l10n.playerLevelIllustrationLabel(level),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,

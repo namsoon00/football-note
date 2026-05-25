@@ -1353,6 +1353,822 @@ abstract class AppLocalizations {
   /// **'Daily positive XP cap'**
   String get playerXpGuideDailyCap;
 
+  /// No description provided for @playerLevelName1.
+  ///
+  /// In en, this message translates to:
+  /// **'Kickoff'**
+  String get playerLevelName1;
+
+  /// No description provided for @playerLevelName2.
+  ///
+  /// In en, this message translates to:
+  /// **'Rookie'**
+  String get playerLevelName2;
+
+  /// No description provided for @playerLevelName3.
+  ///
+  /// In en, this message translates to:
+  /// **'Starter'**
+  String get playerLevelName3;
+
+  /// No description provided for @playerLevelName4.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenger'**
+  String get playerLevelName4;
+
+  /// No description provided for @playerLevelName5.
+  ///
+  /// In en, this message translates to:
+  /// **'Playmaker'**
+  String get playerLevelName5;
+
+  /// No description provided for @playerLevelName6.
+  ///
+  /// In en, this message translates to:
+  /// **'Engine'**
+  String get playerLevelName6;
+
+  /// No description provided for @playerLevelName7.
+  ///
+  /// In en, this message translates to:
+  /// **'Captain'**
+  String get playerLevelName7;
+
+  /// No description provided for @playerLevelName8.
+  ///
+  /// In en, this message translates to:
+  /// **'Elite'**
+  String get playerLevelName8;
+
+  /// No description provided for @playerLevelName9.
+  ///
+  /// In en, this message translates to:
+  /// **'Match Leader'**
+  String get playerLevelName9;
+
+  /// No description provided for @playerLevelName10.
+  ///
+  /// In en, this message translates to:
+  /// **'High Performer'**
+  String get playerLevelName10;
+
+  /// No description provided for @playerLevelName11.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver'**
+  String get playerLevelName11;
+
+  /// No description provided for @playerLevelName12.
+  ///
+  /// In en, this message translates to:
+  /// **'Field Maker'**
+  String get playerLevelName12;
+
+  /// No description provided for @playerLevelName13.
+  ///
+  /// In en, this message translates to:
+  /// **'Control Tower'**
+  String get playerLevelName13;
+
+  /// No description provided for @playerLevelName14.
+  ///
+  /// In en, this message translates to:
+  /// **'Iron Captain'**
+  String get playerLevelName14;
+
+  /// No description provided for @playerLevelName15.
+  ///
+  /// In en, this message translates to:
+  /// **'Game Changer'**
+  String get playerLevelName15;
+
+  /// No description provided for @playerLevelName16.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Master'**
+  String get playerLevelName16;
+
+  /// No description provided for @playerLevelName17.
+  ///
+  /// In en, this message translates to:
+  /// **'Ace Core'**
+  String get playerLevelName17;
+
+  /// No description provided for @playerLevelName18.
+  ///
+  /// In en, this message translates to:
+  /// **'Pitch Artist'**
+  String get playerLevelName18;
+
+  /// No description provided for @playerLevelName19.
+  ///
+  /// In en, this message translates to:
+  /// **'Stadium Icon'**
+  String get playerLevelName19;
+
+  /// No description provided for @playerLevelName20.
+  ///
+  /// In en, this message translates to:
+  /// **'Football Gift Master'**
+  String get playerLevelName20;
+
+  /// No description provided for @playerLevelStage1.
+  ///
+  /// In en, this message translates to:
+  /// **'New Ground'**
+  String get playerLevelStage1;
+
+  /// No description provided for @playerLevelStage2.
+  ///
+  /// In en, this message translates to:
+  /// **'Training Rookie'**
+  String get playerLevelStage2;
+
+  /// No description provided for @playerLevelStage3.
+  ///
+  /// In en, this message translates to:
+  /// **'First Team Rise'**
+  String get playerLevelStage3;
+
+  /// No description provided for @playerLevelStage4.
+  ///
+  /// In en, this message translates to:
+  /// **'Match Leader'**
+  String get playerLevelStage4;
+
+  /// No description provided for @playerLevelStage5.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper Tier'**
+  String get playerLevelStage5;
+
+  /// No description provided for @playerLevelStage6.
+  ///
+  /// In en, this message translates to:
+  /// **'Core Ace'**
+  String get playerLevelStage6;
+
+  /// No description provided for @playerLevelStage7.
+  ///
+  /// In en, this message translates to:
+  /// **'Elite Track'**
+  String get playerLevelStage7;
+
+  /// No description provided for @playerLevelIllustration1.
+  ///
+  /// In en, this message translates to:
+  /// **'Starter whistle'**
+  String get playerLevelIllustration1;
+
+  /// No description provided for @playerLevelIllustration2.
+  ///
+  /// In en, this message translates to:
+  /// **'First football'**
+  String get playerLevelIllustration2;
+
+  /// No description provided for @playerLevelIllustration3.
+  ///
+  /// In en, this message translates to:
+  /// **'Training cone'**
+  String get playerLevelIllustration3;
+
+  /// No description provided for @playerLevelIllustration4.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed boots'**
+  String get playerLevelIllustration4;
+
+  /// No description provided for @playerLevelIllustration5.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump-rope rhythm'**
+  String get playerLevelIllustration5;
+
+  /// No description provided for @playerLevelIllustration6.
+  ///
+  /// In en, this message translates to:
+  /// **'Power dumbbell'**
+  String get playerLevelIllustration6;
+
+  /// No description provided for @playerLevelIllustration7.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactics board'**
+  String get playerLevelIllustration7;
+
+  /// No description provided for @playerLevelIllustration8.
+  ///
+  /// In en, this message translates to:
+  /// **'Captain crown'**
+  String get playerLevelIllustration8;
+
+  /// No description provided for @playerLevelIllustration9.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner trophy'**
+  String get playerLevelIllustration9;
+
+  /// No description provided for @playerLevelIllustration10.
+  ///
+  /// In en, this message translates to:
+  /// **'Celebration fireworks'**
+  String get playerLevelIllustration10;
+
+  /// No description provided for @playerLevelIllustration11.
+  ///
+  /// In en, this message translates to:
+  /// **'Defense shield'**
+  String get playerLevelIllustration11;
+
+  /// No description provided for @playerLevelIllustration12.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeper gloves'**
+  String get playerLevelIllustration12;
+
+  /// No description provided for @playerLevelIllustration13.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactics radar'**
+  String get playerLevelIllustration13;
+
+  /// No description provided for @playerLevelIllustration14.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprint lightning'**
+  String get playerLevelIllustration14;
+
+  /// No description provided for @playerLevelIllustration15.
+  ///
+  /// In en, this message translates to:
+  /// **'Victory medal'**
+  String get playerLevelIllustration15;
+
+  /// No description provided for @playerLevelIllustration16.
+  ///
+  /// In en, this message translates to:
+  /// **'Home stadium'**
+  String get playerLevelIllustration16;
+
+  /// No description provided for @playerLevelIllustration17.
+  ///
+  /// In en, this message translates to:
+  /// **'Ace rocket'**
+  String get playerLevelIllustration17;
+
+  /// No description provided for @playerLevelIllustration18.
+  ///
+  /// In en, this message translates to:
+  /// **'Pitch star'**
+  String get playerLevelIllustration18;
+
+  /// No description provided for @playerLevelIllustration19.
+  ///
+  /// In en, this message translates to:
+  /// **'Stadium gift box'**
+  String get playerLevelIllustration19;
+
+  /// No description provided for @playerLevelIllustration20.
+  ///
+  /// In en, this message translates to:
+  /// **'Legend galaxy'**
+  String get playerLevelIllustration20;
+
+  /// No description provided for @levelGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Level guide'**
+  String get levelGuideTitle;
+
+  /// No description provided for @levelGuideOpenXpGuideTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open XP guide'**
+  String get levelGuideOpenXpGuideTooltip;
+
+  /// No description provided for @levelGuideXpHistoryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'XP history'**
+  String get levelGuideXpHistoryTooltip;
+
+  /// No description provided for @levelGuideCurrentProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current progress'**
+  String get levelGuideCurrentProgressTitle;
+
+  /// No description provided for @levelGuideCurrentProgressTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv.{level} · {totalXp} XP total'**
+  String levelGuideCurrentProgressTotal(int level, int totalXp);
+
+  /// No description provided for @levelGuideCurrentProgressMax.
+  ///
+  /// In en, this message translates to:
+  /// **'{stars} mastery star(s) · {remainingXp} XP left until the next star.'**
+  String levelGuideCurrentProgressMax(int stars, int remainingXp);
+
+  /// No description provided for @levelGuideCurrentProgressNext.
+  ///
+  /// In en, this message translates to:
+  /// **'{remainingXp} XP left until the next level. Use the top-right actions for the XP guide and history.'**
+  String levelGuideCurrentProgressNext(int remainingXp);
+
+  /// No description provided for @levelGuideSetRewardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set level reward'**
+  String get levelGuideSetRewardTitle;
+
+  /// No description provided for @levelGuideRewardNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward name'**
+  String get levelGuideRewardNameLabel;
+
+  /// No description provided for @levelGuideRewardNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. New football socks'**
+  String get levelGuideRewardNameHint;
+
+  /// No description provided for @levelGuideClearRewardAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get levelGuideClearRewardAction;
+
+  /// No description provided for @levelGuideCurrentBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get levelGuideCurrentBadge;
+
+  /// No description provided for @levelGuideXpRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{minXp} XP to {maxXp} XP'**
+  String levelGuideXpRangeLabel(int minXp, int maxXp);
+
+  /// No description provided for @levelGuideRewardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Level reward'**
+  String get levelGuideRewardTitle;
+
+  /// No description provided for @levelGuideEditReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get levelGuideEditReward;
+
+  /// No description provided for @levelGuideRewardNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get levelGuideRewardNotSet;
+
+  /// No description provided for @levelGuideSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get levelGuideSyncing;
+
+  /// No description provided for @levelGuideRewardNeedsName.
+  ///
+  /// In en, this message translates to:
+  /// **'Add reward to claim'**
+  String get levelGuideRewardNeedsName;
+
+  /// No description provided for @levelGuideRewardAlreadyClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Already claimed'**
+  String get levelGuideRewardAlreadyClaimed;
+
+  /// No description provided for @levelGuideClaimReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim reward'**
+  String get levelGuideClaimReward;
+
+  /// No description provided for @levelGuideRewardLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim at Lv.{level}'**
+  String levelGuideRewardLocked(int level);
+
+  /// No description provided for @xpHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'XP history'**
+  String get xpHistoryTitle;
+
+  /// No description provided for @xpHistoryClearAllAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get xpHistoryClearAllAction;
+
+  /// No description provided for @xpHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No XP history yet.'**
+  String get xpHistoryEmpty;
+
+  /// No description provided for @xpHistoryMessageDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'XP message deleted.'**
+  String get xpHistoryMessageDeleted;
+
+  /// No description provided for @xpHistoryDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete XP messages'**
+  String get xpHistoryDeleteDialogTitle;
+
+  /// No description provided for @xpHistoryDeleteDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all saved XP messages?'**
+  String get xpHistoryDeleteDialogBody;
+
+  /// No description provided for @xpHistoryAllDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'All XP messages deleted.'**
+  String get xpHistoryAllDeleted;
+
+  /// No description provided for @xpHistoryRecentFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent XP flow'**
+  String get xpHistoryRecentFlow;
+
+  /// No description provided for @xpHistorySummaryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} history items are saved.'**
+  String xpHistorySummaryCount(int count);
+
+  /// No description provided for @xpHistorySummaryLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Below, entries are arranged in date and time order. Latest entry: {title}.'**
+  String xpHistorySummaryLatest(Object title);
+
+  /// No description provided for @xpHistoryDayEventCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} XP events'**
+  String xpHistoryDayEventCount(int count);
+
+  /// No description provided for @xpHistoryDeleteMessageTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message'**
+  String get xpHistoryDeleteMessageTooltip;
+
+  /// No description provided for @xpHistoryTotalXp.
+  ///
+  /// In en, this message translates to:
+  /// **'{totalXp} XP total'**
+  String xpHistoryTotalXp(int totalXp);
+
+  /// No description provided for @xpHistoryStayedAtLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stayed at Lv.{level}'**
+  String xpHistoryStayedAtLevel(int level);
+
+  /// No description provided for @xpHistoryTrainingLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Training log'**
+  String get xpHistoryTrainingLog;
+
+  /// No description provided for @xpHistoryTrainingLogWithLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Training log · {label}'**
+  String xpHistoryTrainingLogWithLabel(Object label);
+
+  /// No description provided for @xpHistoryMatchLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Match log saved'**
+  String get xpHistoryMatchLog;
+
+  /// No description provided for @xpHistoryMatchLogWithLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Match log · {label}'**
+  String xpHistoryMatchLogWithLabel(Object label);
+
+  /// No description provided for @xpHistoryMealLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal log saved'**
+  String get xpHistoryMealLog;
+
+  /// No description provided for @xpHistoryQuizCompletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz completion'**
+  String get xpHistoryQuizCompletion;
+
+  /// No description provided for @xpHistoryPlanCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan created'**
+  String get xpHistoryPlanCreated;
+
+  /// No description provided for @xpHistoryBoardSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sketch saved'**
+  String get xpHistoryBoardSaved;
+
+  /// No description provided for @xpHistoryBoardSavedWithLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sketch · {label}'**
+  String xpHistoryBoardSavedWithLabel(Object label);
+
+  /// No description provided for @xpHistoryDiaryCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Today diary created'**
+  String get xpHistoryDiaryCreated;
+
+  /// No description provided for @xpHistoryDailyTasksComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Today tasks complete'**
+  String get xpHistoryDailyTasksComplete;
+
+  /// No description provided for @xpHistoryTrainingLabelLifting.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting'**
+  String get xpHistoryTrainingLabelLifting;
+
+  /// No description provided for @xpHistoryTrainingLabelJumpRope.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope'**
+  String get xpHistoryTrainingLabelJumpRope;
+
+  /// No description provided for @xpHistoryReasonLog.
+  ///
+  /// In en, this message translates to:
+  /// **'base log'**
+  String get xpHistoryReasonLog;
+
+  /// No description provided for @xpHistoryReasonFirstDailyLog.
+  ///
+  /// In en, this message translates to:
+  /// **'first of day'**
+  String get xpHistoryReasonFirstDailyLog;
+
+  /// No description provided for @xpHistoryReasonPlanCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'planned day'**
+  String get xpHistoryReasonPlanCompleted;
+
+  /// No description provided for @xpHistoryReasonLiftingRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'lifting recorded'**
+  String get xpHistoryReasonLiftingRecorded;
+
+  /// No description provided for @xpHistoryReasonJumpRopeRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'jump rope recorded'**
+  String get xpHistoryReasonJumpRopeRecorded;
+
+  /// No description provided for @xpHistoryReasonLiftingMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'no lifting'**
+  String get xpHistoryReasonLiftingMissed;
+
+  /// No description provided for @xpHistoryReasonJumpRopeMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'no jump rope'**
+  String get xpHistoryReasonJumpRopeMissed;
+
+  /// No description provided for @xpHistoryReasonLiftingAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'lifting added'**
+  String get xpHistoryReasonLiftingAdded;
+
+  /// No description provided for @xpHistoryReasonJumpRopeAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'jump rope added'**
+  String get xpHistoryReasonJumpRopeAdded;
+
+  /// No description provided for @xpHistoryReasonMealTwoPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'2+ meals'**
+  String get xpHistoryReasonMealTwoPlus;
+
+  /// No description provided for @xpHistoryReasonMealFullDay.
+  ///
+  /// In en, this message translates to:
+  /// **'3 meals complete'**
+  String get xpHistoryReasonMealFullDay;
+
+  /// No description provided for @xpHistoryReasonMealFullDayBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'3 meals + 5+ rice bowls'**
+  String get xpHistoryReasonMealFullDayBonus;
+
+  /// No description provided for @xpHistoryReasonStreak3.
+  ///
+  /// In en, this message translates to:
+  /// **'3-day streak'**
+  String get xpHistoryReasonStreak3;
+
+  /// No description provided for @xpHistoryReasonStreak7.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day streak'**
+  String get xpHistoryReasonStreak7;
+
+  /// No description provided for @xpHistoryReasonStreakDaily2.
+  ///
+  /// In en, this message translates to:
+  /// **'daily streak (2-3 days)'**
+  String get xpHistoryReasonStreakDaily2;
+
+  /// No description provided for @xpHistoryReasonStreakDaily4.
+  ///
+  /// In en, this message translates to:
+  /// **'daily streak (4-6 days)'**
+  String get xpHistoryReasonStreakDaily4;
+
+  /// No description provided for @xpHistoryReasonStreakDaily7.
+  ///
+  /// In en, this message translates to:
+  /// **'daily streak (7+ days)'**
+  String get xpHistoryReasonStreakDaily7;
+
+  /// No description provided for @xpHistoryReasonRoutineComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'daily routine complete'**
+  String get xpHistoryReasonRoutineComplete;
+
+  /// No description provided for @xpHistoryReasonWeekly3.
+  ///
+  /// In en, this message translates to:
+  /// **'3 this week'**
+  String get xpHistoryReasonWeekly3;
+
+  /// No description provided for @xpHistoryReasonWeekly5.
+  ///
+  /// In en, this message translates to:
+  /// **'5 this week'**
+  String get xpHistoryReasonWeekly5;
+
+  /// No description provided for @xpHistoryReasonQuizComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'quiz complete'**
+  String get xpHistoryReasonQuizComplete;
+
+  /// No description provided for @xpHistoryReasonPlanCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'plan created'**
+  String get xpHistoryReasonPlanCreated;
+
+  /// No description provided for @xpHistoryReasonPlanGroupCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}-plan series'**
+  String xpHistoryReasonPlanGroupCreated(int count);
+
+  /// No description provided for @xpHistoryReasonMatchLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'match logged'**
+  String get xpHistoryReasonMatchLogged;
+
+  /// No description provided for @xpHistoryReasonMatchResultRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'result recorded'**
+  String get xpHistoryReasonMatchResultRecorded;
+
+  /// No description provided for @xpHistoryReasonMatchContributionRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'contribution recorded'**
+  String get xpHistoryReasonMatchContributionRecorded;
+
+  /// No description provided for @xpHistoryReasonBoardCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'board created'**
+  String get xpHistoryReasonBoardCreated;
+
+  /// No description provided for @xpHistoryReasonBoardSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'board saved'**
+  String get xpHistoryReasonBoardSaved;
+
+  /// No description provided for @xpHistoryReasonDiaryCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'diary created'**
+  String get xpHistoryReasonDiaryCreated;
+
+  /// No description provided for @xpHistoryReasonDailyTasksCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'today tasks complete'**
+  String get xpHistoryReasonDailyTasksCompleted;
+
+  /// No description provided for @xpHistoryReasonDailyCap.
+  ///
+  /// In en, this message translates to:
+  /// **'daily cap'**
+  String get xpHistoryReasonDailyCap;
+
+  /// No description provided for @profilePlayerLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Player level'**
+  String get profilePlayerLevelLabel;
+
+  /// No description provided for @profileVisualGrowthTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Visual growth tier'**
+  String get profileVisualGrowthTier;
+
+  /// No description provided for @profileRewardReadySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} rewards ready'**
+  String profileRewardReadySummary(int count);
+
+  /// No description provided for @profileNoNextReward.
+  ///
+  /// In en, this message translates to:
+  /// **'No next reward yet'**
+  String get profileNoNextReward;
+
+  /// No description provided for @profileRewardNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward now: {rewardName}'**
+  String profileRewardNow(Object rewardName);
+
+  /// No description provided for @profileNextReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Next reward Lv.{level} {rewardName}'**
+  String profileNextReward(int level, Object rewardName);
+
+  /// No description provided for @profileLevelProgressMax.
+  ///
+  /// In en, this message translates to:
+  /// **'{stars} mastery star(s) · {remainingXp} XP left'**
+  String profileLevelProgressMax(int stars, int remainingXp);
+
+  /// No description provided for @profileLevelProgressNext.
+  ///
+  /// In en, this message translates to:
+  /// **'{remainingXp} XP to next level · {totalXp} XP total'**
+  String profileLevelProgressNext(int remainingXp, int totalXp);
+
+  /// No description provided for @homeLevelProgressMax.
+  ///
+  /// In en, this message translates to:
+  /// **'{stars} star(s) · {remainingXp} XP left'**
+  String homeLevelProgressMax(int stars, int remainingXp);
+
+  /// No description provided for @homeLevelProgressNext.
+  ///
+  /// In en, this message translates to:
+  /// **'{remainingXp} XP left'**
+  String homeLevelProgressNext(int remainingXp);
+
   /// No description provided for @homePriorityCheckPlansMessage.
   ///
   /// In en, this message translates to:

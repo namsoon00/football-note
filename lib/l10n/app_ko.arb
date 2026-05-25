@@ -367,6 +367,298 @@
   "playerXpGuideMealFull": "세 끼 기록 / 세 끼 모두 공기밥 5개 이상",
   "playerXpGuideDailyTasksComplete": "홈 오늘 할일 모두 완료",
   "playerXpGuideDailyCap": "하루 긍정 경험치 상한",
+  "playerLevelName1": "킥오프",
+  "playerLevelName2": "루키",
+  "playerLevelName3": "스타터",
+  "playerLevelName4": "챌린저",
+  "playerLevelName5": "플레이메이커",
+  "playerLevelName6": "엔진",
+  "playerLevelName7": "캡틴",
+  "playerLevelName8": "엘리트",
+  "playerLevelName9": "매치 리더",
+  "playerLevelName10": "하이 퍼포머",
+  "playerLevelName11": "드라이버",
+  "playerLevelName12": "필드 메이커",
+  "playerLevelName13": "컨트롤 타워",
+  "playerLevelName14": "아이언 캡틴",
+  "playerLevelName15": "게임 체인저",
+  "playerLevelName16": "세션 마스터",
+  "playerLevelName17": "에이스 코어",
+  "playerLevelName18": "피치 아티스트",
+  "playerLevelName19": "스타디움 아이콘",
+  "playerLevelName20": "풋볼 선물왕",
+  "playerLevelStage1": "입문 선수",
+  "playerLevelStage2": "훈련 루키",
+  "playerLevelStage3": "주전 성장기",
+  "playerLevelStage4": "경기 리더",
+  "playerLevelStage5": "상위 경쟁자",
+  "playerLevelStage6": "핵심 에이스",
+  "playerLevelStage7": "엘리트 트랙",
+  "playerLevelIllustration1": "시작 호루라기",
+  "playerLevelIllustration2": "첫 축구공",
+  "playerLevelIllustration3": "훈련 콘",
+  "playerLevelIllustration4": "스피드 축구화",
+  "playerLevelIllustration5": "줄넘기 리듬",
+  "playerLevelIllustration6": "힘쎈 아령",
+  "playerLevelIllustration7": "작전 보드",
+  "playerLevelIllustration8": "주장 왕관",
+  "playerLevelIllustration9": "우승 트로피",
+  "playerLevelIllustration10": "축하 불꽃",
+  "playerLevelIllustration11": "수비 방패",
+  "playerLevelIllustration12": "골키퍼 장갑",
+  "playerLevelIllustration13": "전술 레이더",
+  "playerLevelIllustration14": "질주 번개",
+  "playerLevelIllustration15": "승리 메달",
+  "playerLevelIllustration16": "홈 경기장",
+  "playerLevelIllustration17": "에이스 로켓",
+  "playerLevelIllustration18": "피치 스타",
+  "playerLevelIllustration19": "스타디움 선물상자",
+  "playerLevelIllustration20": "레전드 은하",
+  "levelGuideTitle": "레벨 가이드",
+  "levelGuideOpenXpGuideTooltip": "경험치 가이드 열기",
+  "levelGuideXpHistoryTooltip": "경험치 히스토리",
+  "levelGuideCurrentProgressTitle": "현재 진행 상태",
+  "levelGuideCurrentProgressTotal": "Lv.{level} · 총 {totalXp} XP",
+  "@levelGuideCurrentProgressTotal": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideCurrentProgressMax": "마스터리 별 {stars}개 · 다음 별까지 {remainingXp} XP 남았습니다.",
+  "@levelGuideCurrentProgressMax": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideCurrentProgressNext": "다음 레벨까지 {remainingXp} XP 남았습니다. 우측 상단에서 경험치 가이드와 히스토리를 바로 열 수 있어요.",
+  "@levelGuideCurrentProgressNext": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideSetRewardTitle": "레벨 선물 입력",
+  "levelGuideRewardNameLabel": "선물 이름",
+  "levelGuideRewardNameHint": "예) 새 축구 양말",
+  "levelGuideClearRewardAction": "삭제",
+  "levelGuideCurrentBadge": "지금 여기",
+  "levelGuideXpRangeLabel": "{minXp} XP ~ {maxXp} XP",
+  "@levelGuideXpRangeLabel": {
+    "placeholders": {
+      "minXp": {
+        "type": "int"
+      },
+      "maxXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideRewardTitle": "레벨 선물",
+  "levelGuideEditReward": "입력",
+  "levelGuideRewardNotSet": "미정",
+  "levelGuideSyncing": "동기화 중...",
+  "levelGuideRewardNeedsName": "선물 입력 후 수령 가능",
+  "levelGuideRewardAlreadyClaimed": "이미 받음",
+  "levelGuideClaimReward": "선물 받기",
+  "levelGuideRewardLocked": "Lv.{level} 달성 시 수령 가능",
+  "@levelGuideRewardLocked": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryTitle": "경험치 히스토리",
+  "xpHistoryClearAllAction": "전체 삭제",
+  "xpHistoryEmpty": "아직 쌓인 경험치 기록이 없습니다.",
+  "xpHistoryMessageDeleted": "경험치 메세지를 삭제했어요.",
+  "xpHistoryDeleteDialogTitle": "경험치 메세지 삭제",
+  "xpHistoryDeleteDialogBody": "쌓인 경험치 메세지를 모두 삭제할까요?",
+  "xpHistoryAllDeleted": "경험치 메세지를 모두 삭제했어요.",
+  "xpHistoryRecentFlow": "최근 경험치 흐름",
+  "xpHistorySummaryCount": "총 {count}개의 기록이 저장되어 있습니다.",
+  "@xpHistorySummaryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistorySummaryLatest": "아래에서 날짜와 시간 순서대로 바로 내려가며 확인할 수 있어요. 최근 기록은 {title} 입니다.",
+  "@xpHistorySummaryLatest": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "xpHistoryDayEventCount": "{count}개의 경험치 변동",
+  "@xpHistoryDayEventCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryDeleteMessageTooltip": "메세지 삭제",
+  "xpHistoryTotalXp": "누적 {totalXp} XP",
+  "@xpHistoryTotalXp": {
+    "placeholders": {
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryStayedAtLevel": "Lv.{level} 유지",
+  "@xpHistoryStayedAtLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryTrainingLog": "훈련 기록 저장",
+  "xpHistoryTrainingLogWithLabel": "훈련 기록 · {label}",
+  "@xpHistoryTrainingLogWithLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryMatchLog": "시합 기록 저장",
+  "xpHistoryMatchLogWithLabel": "시합 기록 · {label}",
+  "@xpHistoryMatchLogWithLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryMealLog": "식사 기록 저장",
+  "xpHistoryQuizCompletion": "퀴즈 완료",
+  "xpHistoryPlanCreated": "훈련 계획 생성",
+  "xpHistoryBoardSaved": "훈련 스케치 저장",
+  "xpHistoryBoardSavedWithLabel": "훈련 스케치 · {label}",
+  "@xpHistoryBoardSavedWithLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryDiaryCreated": "오늘 다이어리 작성",
+  "xpHistoryDailyTasksComplete": "오늘 할일 완주",
+  "xpHistoryTrainingLabelLifting": "리프팅",
+  "xpHistoryTrainingLabelJumpRope": "줄넘기",
+  "xpHistoryReasonLog": "기본 기록",
+  "xpHistoryReasonFirstDailyLog": "하루 첫 기록",
+  "xpHistoryReasonPlanCompleted": "계획 수행",
+  "xpHistoryReasonLiftingRecorded": "리프팅 기록",
+  "xpHistoryReasonJumpRopeRecorded": "줄넘기 기록",
+  "xpHistoryReasonLiftingMissed": "리프팅 미기록",
+  "xpHistoryReasonJumpRopeMissed": "줄넘기 미기록",
+  "xpHistoryReasonLiftingAdded": "리프팅 추가 기록",
+  "xpHistoryReasonJumpRopeAdded": "줄넘기 추가 기록",
+  "xpHistoryReasonMealTwoPlus": "두 끼 이상",
+  "xpHistoryReasonMealFullDay": "세 끼 완료",
+  "xpHistoryReasonMealFullDayBonus": "세 끼+밥 5개 이상",
+  "xpHistoryReasonStreak3": "3일 연속",
+  "xpHistoryReasonStreak7": "7일 연속",
+  "xpHistoryReasonStreakDaily2": "연속 기록 데일리(2~3일)",
+  "xpHistoryReasonStreakDaily4": "연속 기록 데일리(4~6일)",
+  "xpHistoryReasonStreakDaily7": "연속 기록 데일리(7일+)",
+  "xpHistoryReasonRoutineComplete": "하루 루틴 완주",
+  "xpHistoryReasonWeekly3": "주간 3회",
+  "xpHistoryReasonWeekly5": "주간 5회",
+  "xpHistoryReasonQuizComplete": "퀴즈 완료",
+  "xpHistoryReasonPlanCreated": "계획 생성",
+  "xpHistoryReasonPlanGroupCreated": "묶음 계획 {count}개",
+  "@xpHistoryReasonPlanGroupCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryReasonMatchLogged": "시합 기록",
+  "xpHistoryReasonMatchResultRecorded": "시합 결과 기록",
+  "xpHistoryReasonMatchContributionRecorded": "시합 기여 기록",
+  "xpHistoryReasonBoardCreated": "보드 생성",
+  "xpHistoryReasonBoardSaved": "보드 저장",
+  "xpHistoryReasonDiaryCreated": "다이어리 작성",
+  "xpHistoryReasonDailyTasksCompleted": "오늘 할일 완주",
+  "xpHistoryReasonDailyCap": "하루 상한",
+  "profilePlayerLevelLabel": "선수 레벨",
+  "profileVisualGrowthTier": "비주얼 성장 단계",
+  "profileRewardReadySummary": "지금 받을 선물 {count}개",
+  "@profileRewardReadySummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileNoNextReward": "다음 선물이 아직 없어요",
+  "profileRewardNow": "지금 선물: {rewardName}",
+  "@profileRewardNow": {
+    "placeholders": {
+      "rewardName": {}
+    }
+  },
+  "profileNextReward": "다음 선물 Lv.{level} {rewardName}",
+  "@profileNextReward": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "rewardName": {}
+    }
+  },
+  "profileLevelProgressMax": "마스터리 별 {stars}개 · 다음 {remainingXp} XP",
+  "@profileLevelProgressMax": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "profileLevelProgressNext": "다음 {remainingXp} XP · 총 {totalXp} XP",
+  "@profileLevelProgressNext": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      },
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLevelProgressMax": "별 {stars}개 · 다음 별 {remainingXp}XP",
+  "@homeLevelProgressMax": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLevelProgressNext": "다음까지 {remainingXp}XP",
+  "@homeLevelProgressNext": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
   "homePriorityCheckPlansMessage": "남은 훈련 계획을 먼저 확인해 주세요.",
   "homePriorityPlansAction": "계획",
   "homePriorityPlanNextMessage": "오늘이나 내일 훈련 계획이 비어 있어요. 짧은 계획부터 추가해 보세요.",

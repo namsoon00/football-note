@@ -367,6 +367,298 @@
   "playerXpGuideMealFull": "Three meals / three meals with 5+ rice bowls",
   "playerXpGuideDailyTasksComplete": "All daily home tasks completed",
   "playerXpGuideDailyCap": "Daily positive XP cap",
+  "playerLevelName1": "Kickoff",
+  "playerLevelName2": "Rookie",
+  "playerLevelName3": "Starter",
+  "playerLevelName4": "Challenger",
+  "playerLevelName5": "Playmaker",
+  "playerLevelName6": "Engine",
+  "playerLevelName7": "Captain",
+  "playerLevelName8": "Elite",
+  "playerLevelName9": "Match Leader",
+  "playerLevelName10": "High Performer",
+  "playerLevelName11": "Driver",
+  "playerLevelName12": "Field Maker",
+  "playerLevelName13": "Control Tower",
+  "playerLevelName14": "Iron Captain",
+  "playerLevelName15": "Game Changer",
+  "playerLevelName16": "Session Master",
+  "playerLevelName17": "Ace Core",
+  "playerLevelName18": "Pitch Artist",
+  "playerLevelName19": "Stadium Icon",
+  "playerLevelName20": "Football Gift Master",
+  "playerLevelStage1": "New Ground",
+  "playerLevelStage2": "Training Rookie",
+  "playerLevelStage3": "First Team Rise",
+  "playerLevelStage4": "Match Leader",
+  "playerLevelStage5": "Upper Tier",
+  "playerLevelStage6": "Core Ace",
+  "playerLevelStage7": "Elite Track",
+  "playerLevelIllustration1": "Starter whistle",
+  "playerLevelIllustration2": "First football",
+  "playerLevelIllustration3": "Training cone",
+  "playerLevelIllustration4": "Speed boots",
+  "playerLevelIllustration5": "Jump-rope rhythm",
+  "playerLevelIllustration6": "Power dumbbell",
+  "playerLevelIllustration7": "Tactics board",
+  "playerLevelIllustration8": "Captain crown",
+  "playerLevelIllustration9": "Winner trophy",
+  "playerLevelIllustration10": "Celebration fireworks",
+  "playerLevelIllustration11": "Defense shield",
+  "playerLevelIllustration12": "Keeper gloves",
+  "playerLevelIllustration13": "Tactics radar",
+  "playerLevelIllustration14": "Sprint lightning",
+  "playerLevelIllustration15": "Victory medal",
+  "playerLevelIllustration16": "Home stadium",
+  "playerLevelIllustration17": "Ace rocket",
+  "playerLevelIllustration18": "Pitch star",
+  "playerLevelIllustration19": "Stadium gift box",
+  "playerLevelIllustration20": "Legend galaxy",
+  "levelGuideTitle": "Level guide",
+  "levelGuideOpenXpGuideTooltip": "Open XP guide",
+  "levelGuideXpHistoryTooltip": "XP history",
+  "levelGuideCurrentProgressTitle": "Current progress",
+  "levelGuideCurrentProgressTotal": "Lv.{level} · {totalXp} XP total",
+  "@levelGuideCurrentProgressTotal": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideCurrentProgressMax": "{stars} mastery star(s) · {remainingXp} XP left until the next star.",
+  "@levelGuideCurrentProgressMax": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideCurrentProgressNext": "{remainingXp} XP left until the next level. Use the top-right actions for the XP guide and history.",
+  "@levelGuideCurrentProgressNext": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideSetRewardTitle": "Set level reward",
+  "levelGuideRewardNameLabel": "Reward name",
+  "levelGuideRewardNameHint": "e.g. New football socks",
+  "levelGuideClearRewardAction": "Clear",
+  "levelGuideCurrentBadge": "Current",
+  "levelGuideXpRangeLabel": "{minXp} XP to {maxXp} XP",
+  "@levelGuideXpRangeLabel": {
+    "placeholders": {
+      "minXp": {
+        "type": "int"
+      },
+      "maxXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideRewardTitle": "Level reward",
+  "levelGuideEditReward": "Edit",
+  "levelGuideRewardNotSet": "Not set",
+  "levelGuideSyncing": "Syncing...",
+  "levelGuideRewardNeedsName": "Add reward to claim",
+  "levelGuideRewardAlreadyClaimed": "Already claimed",
+  "levelGuideClaimReward": "Claim reward",
+  "levelGuideRewardLocked": "Claim at Lv.{level}",
+  "@levelGuideRewardLocked": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryTitle": "XP history",
+  "xpHistoryClearAllAction": "Clear all",
+  "xpHistoryEmpty": "No XP history yet.",
+  "xpHistoryMessageDeleted": "XP message deleted.",
+  "xpHistoryDeleteDialogTitle": "Delete XP messages",
+  "xpHistoryDeleteDialogBody": "Delete all saved XP messages?",
+  "xpHistoryAllDeleted": "All XP messages deleted.",
+  "xpHistoryRecentFlow": "Recent XP flow",
+  "xpHistorySummaryCount": "{count} history items are saved.",
+  "@xpHistorySummaryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistorySummaryLatest": "Below, entries are arranged in date and time order. Latest entry: {title}.",
+  "@xpHistorySummaryLatest": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "xpHistoryDayEventCount": "{count} XP events",
+  "@xpHistoryDayEventCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryDeleteMessageTooltip": "Delete message",
+  "xpHistoryTotalXp": "{totalXp} XP total",
+  "@xpHistoryTotalXp": {
+    "placeholders": {
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryStayedAtLevel": "Stayed at Lv.{level}",
+  "@xpHistoryStayedAtLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryTrainingLog": "Training log",
+  "xpHistoryTrainingLogWithLabel": "Training log · {label}",
+  "@xpHistoryTrainingLogWithLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryMatchLog": "Match log saved",
+  "xpHistoryMatchLogWithLabel": "Match log · {label}",
+  "@xpHistoryMatchLogWithLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryMealLog": "Meal log saved",
+  "xpHistoryQuizCompletion": "Quiz completion",
+  "xpHistoryPlanCreated": "Training plan created",
+  "xpHistoryBoardSaved": "Training sketch saved",
+  "xpHistoryBoardSavedWithLabel": "Training sketch · {label}",
+  "@xpHistoryBoardSavedWithLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryDiaryCreated": "Today diary created",
+  "xpHistoryDailyTasksComplete": "Today tasks complete",
+  "xpHistoryTrainingLabelLifting": "Lifting",
+  "xpHistoryTrainingLabelJumpRope": "Jump rope",
+  "xpHistoryReasonLog": "base log",
+  "xpHistoryReasonFirstDailyLog": "first of day",
+  "xpHistoryReasonPlanCompleted": "planned day",
+  "xpHistoryReasonLiftingRecorded": "lifting recorded",
+  "xpHistoryReasonJumpRopeRecorded": "jump rope recorded",
+  "xpHistoryReasonLiftingMissed": "no lifting",
+  "xpHistoryReasonJumpRopeMissed": "no jump rope",
+  "xpHistoryReasonLiftingAdded": "lifting added",
+  "xpHistoryReasonJumpRopeAdded": "jump rope added",
+  "xpHistoryReasonMealTwoPlus": "2+ meals",
+  "xpHistoryReasonMealFullDay": "3 meals complete",
+  "xpHistoryReasonMealFullDayBonus": "3 meals + 5+ rice bowls",
+  "xpHistoryReasonStreak3": "3-day streak",
+  "xpHistoryReasonStreak7": "7-day streak",
+  "xpHistoryReasonStreakDaily2": "daily streak (2-3 days)",
+  "xpHistoryReasonStreakDaily4": "daily streak (4-6 days)",
+  "xpHistoryReasonStreakDaily7": "daily streak (7+ days)",
+  "xpHistoryReasonRoutineComplete": "daily routine complete",
+  "xpHistoryReasonWeekly3": "3 this week",
+  "xpHistoryReasonWeekly5": "5 this week",
+  "xpHistoryReasonQuizComplete": "quiz complete",
+  "xpHistoryReasonPlanCreated": "plan created",
+  "xpHistoryReasonPlanGroupCreated": "{count}-plan series",
+  "@xpHistoryReasonPlanGroupCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryReasonMatchLogged": "match logged",
+  "xpHistoryReasonMatchResultRecorded": "result recorded",
+  "xpHistoryReasonMatchContributionRecorded": "contribution recorded",
+  "xpHistoryReasonBoardCreated": "board created",
+  "xpHistoryReasonBoardSaved": "board saved",
+  "xpHistoryReasonDiaryCreated": "diary created",
+  "xpHistoryReasonDailyTasksCompleted": "today tasks complete",
+  "xpHistoryReasonDailyCap": "daily cap",
+  "profilePlayerLevelLabel": "Player level",
+  "profileVisualGrowthTier": "Visual growth tier",
+  "profileRewardReadySummary": "{count} rewards ready",
+  "@profileRewardReadySummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileNoNextReward": "No next reward yet",
+  "profileRewardNow": "Reward now: {rewardName}",
+  "@profileRewardNow": {
+    "placeholders": {
+      "rewardName": {}
+    }
+  },
+  "profileNextReward": "Next reward Lv.{level} {rewardName}",
+  "@profileNextReward": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "rewardName": {}
+    }
+  },
+  "profileLevelProgressMax": "{stars} mastery star(s) · {remainingXp} XP left",
+  "@profileLevelProgressMax": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "profileLevelProgressNext": "{remainingXp} XP to next level · {totalXp} XP total",
+  "@profileLevelProgressNext": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      },
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLevelProgressMax": "{stars} star(s) · {remainingXp} XP left",
+  "@homeLevelProgressMax": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLevelProgressNext": "{remainingXp} XP left",
+  "@homeLevelProgressNext": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
   "homePriorityCheckPlansMessage": "Review the remaining training plans before you start.",
   "homePriorityPlansAction": "Plans",
   "homePriorityPlanNextMessage": "No training plan is set for today or tomorrow. Add a short plan first.",

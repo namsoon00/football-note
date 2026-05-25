@@ -687,6 +687,456 @@ class AppLocalizationsKo extends AppLocalizations {
   String get playerXpGuideDailyCap => '하루 긍정 경험치 상한';
 
   @override
+  String get playerLevelName1 => '킥오프';
+
+  @override
+  String get playerLevelName2 => '루키';
+
+  @override
+  String get playerLevelName3 => '스타터';
+
+  @override
+  String get playerLevelName4 => '챌린저';
+
+  @override
+  String get playerLevelName5 => '플레이메이커';
+
+  @override
+  String get playerLevelName6 => '엔진';
+
+  @override
+  String get playerLevelName7 => '캡틴';
+
+  @override
+  String get playerLevelName8 => '엘리트';
+
+  @override
+  String get playerLevelName9 => '매치 리더';
+
+  @override
+  String get playerLevelName10 => '하이 퍼포머';
+
+  @override
+  String get playerLevelName11 => '드라이버';
+
+  @override
+  String get playerLevelName12 => '필드 메이커';
+
+  @override
+  String get playerLevelName13 => '컨트롤 타워';
+
+  @override
+  String get playerLevelName14 => '아이언 캡틴';
+
+  @override
+  String get playerLevelName15 => '게임 체인저';
+
+  @override
+  String get playerLevelName16 => '세션 마스터';
+
+  @override
+  String get playerLevelName17 => '에이스 코어';
+
+  @override
+  String get playerLevelName18 => '피치 아티스트';
+
+  @override
+  String get playerLevelName19 => '스타디움 아이콘';
+
+  @override
+  String get playerLevelName20 => '풋볼 선물왕';
+
+  @override
+  String get playerLevelStage1 => '입문 선수';
+
+  @override
+  String get playerLevelStage2 => '훈련 루키';
+
+  @override
+  String get playerLevelStage3 => '주전 성장기';
+
+  @override
+  String get playerLevelStage4 => '경기 리더';
+
+  @override
+  String get playerLevelStage5 => '상위 경쟁자';
+
+  @override
+  String get playerLevelStage6 => '핵심 에이스';
+
+  @override
+  String get playerLevelStage7 => '엘리트 트랙';
+
+  @override
+  String get playerLevelIllustration1 => '시작 호루라기';
+
+  @override
+  String get playerLevelIllustration2 => '첫 축구공';
+
+  @override
+  String get playerLevelIllustration3 => '훈련 콘';
+
+  @override
+  String get playerLevelIllustration4 => '스피드 축구화';
+
+  @override
+  String get playerLevelIllustration5 => '줄넘기 리듬';
+
+  @override
+  String get playerLevelIllustration6 => '힘쎈 아령';
+
+  @override
+  String get playerLevelIllustration7 => '작전 보드';
+
+  @override
+  String get playerLevelIllustration8 => '주장 왕관';
+
+  @override
+  String get playerLevelIllustration9 => '우승 트로피';
+
+  @override
+  String get playerLevelIllustration10 => '축하 불꽃';
+
+  @override
+  String get playerLevelIllustration11 => '수비 방패';
+
+  @override
+  String get playerLevelIllustration12 => '골키퍼 장갑';
+
+  @override
+  String get playerLevelIllustration13 => '전술 레이더';
+
+  @override
+  String get playerLevelIllustration14 => '질주 번개';
+
+  @override
+  String get playerLevelIllustration15 => '승리 메달';
+
+  @override
+  String get playerLevelIllustration16 => '홈 경기장';
+
+  @override
+  String get playerLevelIllustration17 => '에이스 로켓';
+
+  @override
+  String get playerLevelIllustration18 => '피치 스타';
+
+  @override
+  String get playerLevelIllustration19 => '스타디움 선물상자';
+
+  @override
+  String get playerLevelIllustration20 => '레전드 은하';
+
+  @override
+  String get levelGuideTitle => '레벨 가이드';
+
+  @override
+  String get levelGuideOpenXpGuideTooltip => '경험치 가이드 열기';
+
+  @override
+  String get levelGuideXpHistoryTooltip => '경험치 히스토리';
+
+  @override
+  String get levelGuideCurrentProgressTitle => '현재 진행 상태';
+
+  @override
+  String levelGuideCurrentProgressTotal(int level, int totalXp) {
+    return 'Lv.$level · 총 $totalXp XP';
+  }
+
+  @override
+  String levelGuideCurrentProgressMax(int stars, int remainingXp) {
+    return '마스터리 별 $stars개 · 다음 별까지 $remainingXp XP 남았습니다.';
+  }
+
+  @override
+  String levelGuideCurrentProgressNext(int remainingXp) {
+    return '다음 레벨까지 $remainingXp XP 남았습니다. 우측 상단에서 경험치 가이드와 히스토리를 바로 열 수 있어요.';
+  }
+
+  @override
+  String get levelGuideSetRewardTitle => '레벨 선물 입력';
+
+  @override
+  String get levelGuideRewardNameLabel => '선물 이름';
+
+  @override
+  String get levelGuideRewardNameHint => '예) 새 축구 양말';
+
+  @override
+  String get levelGuideClearRewardAction => '삭제';
+
+  @override
+  String get levelGuideCurrentBadge => '지금 여기';
+
+  @override
+  String levelGuideXpRangeLabel(int minXp, int maxXp) {
+    return '$minXp XP ~ $maxXp XP';
+  }
+
+  @override
+  String get levelGuideRewardTitle => '레벨 선물';
+
+  @override
+  String get levelGuideEditReward => '입력';
+
+  @override
+  String get levelGuideRewardNotSet => '미정';
+
+  @override
+  String get levelGuideSyncing => '동기화 중...';
+
+  @override
+  String get levelGuideRewardNeedsName => '선물 입력 후 수령 가능';
+
+  @override
+  String get levelGuideRewardAlreadyClaimed => '이미 받음';
+
+  @override
+  String get levelGuideClaimReward => '선물 받기';
+
+  @override
+  String levelGuideRewardLocked(int level) {
+    return 'Lv.$level 달성 시 수령 가능';
+  }
+
+  @override
+  String get xpHistoryTitle => '경험치 히스토리';
+
+  @override
+  String get xpHistoryClearAllAction => '전체 삭제';
+
+  @override
+  String get xpHistoryEmpty => '아직 쌓인 경험치 기록이 없습니다.';
+
+  @override
+  String get xpHistoryMessageDeleted => '경험치 메세지를 삭제했어요.';
+
+  @override
+  String get xpHistoryDeleteDialogTitle => '경험치 메세지 삭제';
+
+  @override
+  String get xpHistoryDeleteDialogBody => '쌓인 경험치 메세지를 모두 삭제할까요?';
+
+  @override
+  String get xpHistoryAllDeleted => '경험치 메세지를 모두 삭제했어요.';
+
+  @override
+  String get xpHistoryRecentFlow => '최근 경험치 흐름';
+
+  @override
+  String xpHistorySummaryCount(int count) {
+    return '총 $count개의 기록이 저장되어 있습니다.';
+  }
+
+  @override
+  String xpHistorySummaryLatest(Object title) {
+    return '아래에서 날짜와 시간 순서대로 바로 내려가며 확인할 수 있어요. 최근 기록은 $title 입니다.';
+  }
+
+  @override
+  String xpHistoryDayEventCount(int count) {
+    return '$count개의 경험치 변동';
+  }
+
+  @override
+  String get xpHistoryDeleteMessageTooltip => '메세지 삭제';
+
+  @override
+  String xpHistoryTotalXp(int totalXp) {
+    return '누적 $totalXp XP';
+  }
+
+  @override
+  String xpHistoryStayedAtLevel(int level) {
+    return 'Lv.$level 유지';
+  }
+
+  @override
+  String get xpHistoryTrainingLog => '훈련 기록 저장';
+
+  @override
+  String xpHistoryTrainingLogWithLabel(Object label) {
+    return '훈련 기록 · $label';
+  }
+
+  @override
+  String get xpHistoryMatchLog => '시합 기록 저장';
+
+  @override
+  String xpHistoryMatchLogWithLabel(Object label) {
+    return '시합 기록 · $label';
+  }
+
+  @override
+  String get xpHistoryMealLog => '식사 기록 저장';
+
+  @override
+  String get xpHistoryQuizCompletion => '퀴즈 완료';
+
+  @override
+  String get xpHistoryPlanCreated => '훈련 계획 생성';
+
+  @override
+  String get xpHistoryBoardSaved => '훈련 스케치 저장';
+
+  @override
+  String xpHistoryBoardSavedWithLabel(Object label) {
+    return '훈련 스케치 · $label';
+  }
+
+  @override
+  String get xpHistoryDiaryCreated => '오늘 다이어리 작성';
+
+  @override
+  String get xpHistoryDailyTasksComplete => '오늘 할일 완주';
+
+  @override
+  String get xpHistoryTrainingLabelLifting => '리프팅';
+
+  @override
+  String get xpHistoryTrainingLabelJumpRope => '줄넘기';
+
+  @override
+  String get xpHistoryReasonLog => '기본 기록';
+
+  @override
+  String get xpHistoryReasonFirstDailyLog => '하루 첫 기록';
+
+  @override
+  String get xpHistoryReasonPlanCompleted => '계획 수행';
+
+  @override
+  String get xpHistoryReasonLiftingRecorded => '리프팅 기록';
+
+  @override
+  String get xpHistoryReasonJumpRopeRecorded => '줄넘기 기록';
+
+  @override
+  String get xpHistoryReasonLiftingMissed => '리프팅 미기록';
+
+  @override
+  String get xpHistoryReasonJumpRopeMissed => '줄넘기 미기록';
+
+  @override
+  String get xpHistoryReasonLiftingAdded => '리프팅 추가 기록';
+
+  @override
+  String get xpHistoryReasonJumpRopeAdded => '줄넘기 추가 기록';
+
+  @override
+  String get xpHistoryReasonMealTwoPlus => '두 끼 이상';
+
+  @override
+  String get xpHistoryReasonMealFullDay => '세 끼 완료';
+
+  @override
+  String get xpHistoryReasonMealFullDayBonus => '세 끼+밥 5개 이상';
+
+  @override
+  String get xpHistoryReasonStreak3 => '3일 연속';
+
+  @override
+  String get xpHistoryReasonStreak7 => '7일 연속';
+
+  @override
+  String get xpHistoryReasonStreakDaily2 => '연속 기록 데일리(2~3일)';
+
+  @override
+  String get xpHistoryReasonStreakDaily4 => '연속 기록 데일리(4~6일)';
+
+  @override
+  String get xpHistoryReasonStreakDaily7 => '연속 기록 데일리(7일+)';
+
+  @override
+  String get xpHistoryReasonRoutineComplete => '하루 루틴 완주';
+
+  @override
+  String get xpHistoryReasonWeekly3 => '주간 3회';
+
+  @override
+  String get xpHistoryReasonWeekly5 => '주간 5회';
+
+  @override
+  String get xpHistoryReasonQuizComplete => '퀴즈 완료';
+
+  @override
+  String get xpHistoryReasonPlanCreated => '계획 생성';
+
+  @override
+  String xpHistoryReasonPlanGroupCreated(int count) {
+    return '묶음 계획 $count개';
+  }
+
+  @override
+  String get xpHistoryReasonMatchLogged => '시합 기록';
+
+  @override
+  String get xpHistoryReasonMatchResultRecorded => '시합 결과 기록';
+
+  @override
+  String get xpHistoryReasonMatchContributionRecorded => '시합 기여 기록';
+
+  @override
+  String get xpHistoryReasonBoardCreated => '보드 생성';
+
+  @override
+  String get xpHistoryReasonBoardSaved => '보드 저장';
+
+  @override
+  String get xpHistoryReasonDiaryCreated => '다이어리 작성';
+
+  @override
+  String get xpHistoryReasonDailyTasksCompleted => '오늘 할일 완주';
+
+  @override
+  String get xpHistoryReasonDailyCap => '하루 상한';
+
+  @override
+  String get profilePlayerLevelLabel => '선수 레벨';
+
+  @override
+  String get profileVisualGrowthTier => '비주얼 성장 단계';
+
+  @override
+  String profileRewardReadySummary(int count) {
+    return '지금 받을 선물 $count개';
+  }
+
+  @override
+  String get profileNoNextReward => '다음 선물이 아직 없어요';
+
+  @override
+  String profileRewardNow(Object rewardName) {
+    return '지금 선물: $rewardName';
+  }
+
+  @override
+  String profileNextReward(int level, Object rewardName) {
+    return '다음 선물 Lv.$level $rewardName';
+  }
+
+  @override
+  String profileLevelProgressMax(int stars, int remainingXp) {
+    return '마스터리 별 $stars개 · 다음 $remainingXp XP';
+  }
+
+  @override
+  String profileLevelProgressNext(int remainingXp, int totalXp) {
+    return '다음 $remainingXp XP · 총 $totalXp XP';
+  }
+
+  @override
+  String homeLevelProgressMax(int stars, int remainingXp) {
+    return '별 $stars개 · 다음 별 ${remainingXp}XP';
+  }
+
+  @override
+  String homeLevelProgressNext(int remainingXp) {
+    return '다음까지 ${remainingXp}XP';
+  }
+
+  @override
   String get homePriorityCheckPlansMessage => '남은 훈련 계획을 먼저 확인해 주세요.';
 
   @override

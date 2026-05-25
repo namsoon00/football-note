@@ -725,6 +725,457 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerXpGuideDailyCap => 'Daily positive XP cap';
 
   @override
+  String get playerLevelName1 => 'Kickoff';
+
+  @override
+  String get playerLevelName2 => 'Rookie';
+
+  @override
+  String get playerLevelName3 => 'Starter';
+
+  @override
+  String get playerLevelName4 => 'Challenger';
+
+  @override
+  String get playerLevelName5 => 'Playmaker';
+
+  @override
+  String get playerLevelName6 => 'Engine';
+
+  @override
+  String get playerLevelName7 => 'Captain';
+
+  @override
+  String get playerLevelName8 => 'Elite';
+
+  @override
+  String get playerLevelName9 => 'Match Leader';
+
+  @override
+  String get playerLevelName10 => 'High Performer';
+
+  @override
+  String get playerLevelName11 => 'Driver';
+
+  @override
+  String get playerLevelName12 => 'Field Maker';
+
+  @override
+  String get playerLevelName13 => 'Control Tower';
+
+  @override
+  String get playerLevelName14 => 'Iron Captain';
+
+  @override
+  String get playerLevelName15 => 'Game Changer';
+
+  @override
+  String get playerLevelName16 => 'Session Master';
+
+  @override
+  String get playerLevelName17 => 'Ace Core';
+
+  @override
+  String get playerLevelName18 => 'Pitch Artist';
+
+  @override
+  String get playerLevelName19 => 'Stadium Icon';
+
+  @override
+  String get playerLevelName20 => 'Football Gift Master';
+
+  @override
+  String get playerLevelStage1 => 'New Ground';
+
+  @override
+  String get playerLevelStage2 => 'Training Rookie';
+
+  @override
+  String get playerLevelStage3 => 'First Team Rise';
+
+  @override
+  String get playerLevelStage4 => 'Match Leader';
+
+  @override
+  String get playerLevelStage5 => 'Upper Tier';
+
+  @override
+  String get playerLevelStage6 => 'Core Ace';
+
+  @override
+  String get playerLevelStage7 => 'Elite Track';
+
+  @override
+  String get playerLevelIllustration1 => 'Starter whistle';
+
+  @override
+  String get playerLevelIllustration2 => 'First football';
+
+  @override
+  String get playerLevelIllustration3 => 'Training cone';
+
+  @override
+  String get playerLevelIllustration4 => 'Speed boots';
+
+  @override
+  String get playerLevelIllustration5 => 'Jump-rope rhythm';
+
+  @override
+  String get playerLevelIllustration6 => 'Power dumbbell';
+
+  @override
+  String get playerLevelIllustration7 => 'Tactics board';
+
+  @override
+  String get playerLevelIllustration8 => 'Captain crown';
+
+  @override
+  String get playerLevelIllustration9 => 'Winner trophy';
+
+  @override
+  String get playerLevelIllustration10 => 'Celebration fireworks';
+
+  @override
+  String get playerLevelIllustration11 => 'Defense shield';
+
+  @override
+  String get playerLevelIllustration12 => 'Keeper gloves';
+
+  @override
+  String get playerLevelIllustration13 => 'Tactics radar';
+
+  @override
+  String get playerLevelIllustration14 => 'Sprint lightning';
+
+  @override
+  String get playerLevelIllustration15 => 'Victory medal';
+
+  @override
+  String get playerLevelIllustration16 => 'Home stadium';
+
+  @override
+  String get playerLevelIllustration17 => 'Ace rocket';
+
+  @override
+  String get playerLevelIllustration18 => 'Pitch star';
+
+  @override
+  String get playerLevelIllustration19 => 'Stadium gift box';
+
+  @override
+  String get playerLevelIllustration20 => 'Legend galaxy';
+
+  @override
+  String get levelGuideTitle => 'Level guide';
+
+  @override
+  String get levelGuideOpenXpGuideTooltip => 'Open XP guide';
+
+  @override
+  String get levelGuideXpHistoryTooltip => 'XP history';
+
+  @override
+  String get levelGuideCurrentProgressTitle => 'Current progress';
+
+  @override
+  String levelGuideCurrentProgressTotal(int level, int totalXp) {
+    return 'Lv.$level · $totalXp XP total';
+  }
+
+  @override
+  String levelGuideCurrentProgressMax(int stars, int remainingXp) {
+    return '$stars mastery star(s) · $remainingXp XP left until the next star.';
+  }
+
+  @override
+  String levelGuideCurrentProgressNext(int remainingXp) {
+    return '$remainingXp XP left until the next level. Use the top-right actions for the XP guide and history.';
+  }
+
+  @override
+  String get levelGuideSetRewardTitle => 'Set level reward';
+
+  @override
+  String get levelGuideRewardNameLabel => 'Reward name';
+
+  @override
+  String get levelGuideRewardNameHint => 'e.g. New football socks';
+
+  @override
+  String get levelGuideClearRewardAction => 'Clear';
+
+  @override
+  String get levelGuideCurrentBadge => 'Current';
+
+  @override
+  String levelGuideXpRangeLabel(int minXp, int maxXp) {
+    return '$minXp XP to $maxXp XP';
+  }
+
+  @override
+  String get levelGuideRewardTitle => 'Level reward';
+
+  @override
+  String get levelGuideEditReward => 'Edit';
+
+  @override
+  String get levelGuideRewardNotSet => 'Not set';
+
+  @override
+  String get levelGuideSyncing => 'Syncing...';
+
+  @override
+  String get levelGuideRewardNeedsName => 'Add reward to claim';
+
+  @override
+  String get levelGuideRewardAlreadyClaimed => 'Already claimed';
+
+  @override
+  String get levelGuideClaimReward => 'Claim reward';
+
+  @override
+  String levelGuideRewardLocked(int level) {
+    return 'Claim at Lv.$level';
+  }
+
+  @override
+  String get xpHistoryTitle => 'XP history';
+
+  @override
+  String get xpHistoryClearAllAction => 'Clear all';
+
+  @override
+  String get xpHistoryEmpty => 'No XP history yet.';
+
+  @override
+  String get xpHistoryMessageDeleted => 'XP message deleted.';
+
+  @override
+  String get xpHistoryDeleteDialogTitle => 'Delete XP messages';
+
+  @override
+  String get xpHistoryDeleteDialogBody => 'Delete all saved XP messages?';
+
+  @override
+  String get xpHistoryAllDeleted => 'All XP messages deleted.';
+
+  @override
+  String get xpHistoryRecentFlow => 'Recent XP flow';
+
+  @override
+  String xpHistorySummaryCount(int count) {
+    return '$count history items are saved.';
+  }
+
+  @override
+  String xpHistorySummaryLatest(Object title) {
+    return 'Below, entries are arranged in date and time order. Latest entry: $title.';
+  }
+
+  @override
+  String xpHistoryDayEventCount(int count) {
+    return '$count XP events';
+  }
+
+  @override
+  String get xpHistoryDeleteMessageTooltip => 'Delete message';
+
+  @override
+  String xpHistoryTotalXp(int totalXp) {
+    return '$totalXp XP total';
+  }
+
+  @override
+  String xpHistoryStayedAtLevel(int level) {
+    return 'Stayed at Lv.$level';
+  }
+
+  @override
+  String get xpHistoryTrainingLog => 'Training log';
+
+  @override
+  String xpHistoryTrainingLogWithLabel(Object label) {
+    return 'Training log · $label';
+  }
+
+  @override
+  String get xpHistoryMatchLog => 'Match log saved';
+
+  @override
+  String xpHistoryMatchLogWithLabel(Object label) {
+    return 'Match log · $label';
+  }
+
+  @override
+  String get xpHistoryMealLog => 'Meal log saved';
+
+  @override
+  String get xpHistoryQuizCompletion => 'Quiz completion';
+
+  @override
+  String get xpHistoryPlanCreated => 'Training plan created';
+
+  @override
+  String get xpHistoryBoardSaved => 'Training sketch saved';
+
+  @override
+  String xpHistoryBoardSavedWithLabel(Object label) {
+    return 'Training sketch · $label';
+  }
+
+  @override
+  String get xpHistoryDiaryCreated => 'Today diary created';
+
+  @override
+  String get xpHistoryDailyTasksComplete => 'Today tasks complete';
+
+  @override
+  String get xpHistoryTrainingLabelLifting => 'Lifting';
+
+  @override
+  String get xpHistoryTrainingLabelJumpRope => 'Jump rope';
+
+  @override
+  String get xpHistoryReasonLog => 'base log';
+
+  @override
+  String get xpHistoryReasonFirstDailyLog => 'first of day';
+
+  @override
+  String get xpHistoryReasonPlanCompleted => 'planned day';
+
+  @override
+  String get xpHistoryReasonLiftingRecorded => 'lifting recorded';
+
+  @override
+  String get xpHistoryReasonJumpRopeRecorded => 'jump rope recorded';
+
+  @override
+  String get xpHistoryReasonLiftingMissed => 'no lifting';
+
+  @override
+  String get xpHistoryReasonJumpRopeMissed => 'no jump rope';
+
+  @override
+  String get xpHistoryReasonLiftingAdded => 'lifting added';
+
+  @override
+  String get xpHistoryReasonJumpRopeAdded => 'jump rope added';
+
+  @override
+  String get xpHistoryReasonMealTwoPlus => '2+ meals';
+
+  @override
+  String get xpHistoryReasonMealFullDay => '3 meals complete';
+
+  @override
+  String get xpHistoryReasonMealFullDayBonus => '3 meals + 5+ rice bowls';
+
+  @override
+  String get xpHistoryReasonStreak3 => '3-day streak';
+
+  @override
+  String get xpHistoryReasonStreak7 => '7-day streak';
+
+  @override
+  String get xpHistoryReasonStreakDaily2 => 'daily streak (2-3 days)';
+
+  @override
+  String get xpHistoryReasonStreakDaily4 => 'daily streak (4-6 days)';
+
+  @override
+  String get xpHistoryReasonStreakDaily7 => 'daily streak (7+ days)';
+
+  @override
+  String get xpHistoryReasonRoutineComplete => 'daily routine complete';
+
+  @override
+  String get xpHistoryReasonWeekly3 => '3 this week';
+
+  @override
+  String get xpHistoryReasonWeekly5 => '5 this week';
+
+  @override
+  String get xpHistoryReasonQuizComplete => 'quiz complete';
+
+  @override
+  String get xpHistoryReasonPlanCreated => 'plan created';
+
+  @override
+  String xpHistoryReasonPlanGroupCreated(int count) {
+    return '$count-plan series';
+  }
+
+  @override
+  String get xpHistoryReasonMatchLogged => 'match logged';
+
+  @override
+  String get xpHistoryReasonMatchResultRecorded => 'result recorded';
+
+  @override
+  String get xpHistoryReasonMatchContributionRecorded =>
+      'contribution recorded';
+
+  @override
+  String get xpHistoryReasonBoardCreated => 'board created';
+
+  @override
+  String get xpHistoryReasonBoardSaved => 'board saved';
+
+  @override
+  String get xpHistoryReasonDiaryCreated => 'diary created';
+
+  @override
+  String get xpHistoryReasonDailyTasksCompleted => 'today tasks complete';
+
+  @override
+  String get xpHistoryReasonDailyCap => 'daily cap';
+
+  @override
+  String get profilePlayerLevelLabel => 'Player level';
+
+  @override
+  String get profileVisualGrowthTier => 'Visual growth tier';
+
+  @override
+  String profileRewardReadySummary(int count) {
+    return '$count rewards ready';
+  }
+
+  @override
+  String get profileNoNextReward => 'No next reward yet';
+
+  @override
+  String profileRewardNow(Object rewardName) {
+    return 'Reward now: $rewardName';
+  }
+
+  @override
+  String profileNextReward(int level, Object rewardName) {
+    return 'Next reward Lv.$level $rewardName';
+  }
+
+  @override
+  String profileLevelProgressMax(int stars, int remainingXp) {
+    return '$stars mastery star(s) · $remainingXp XP left';
+  }
+
+  @override
+  String profileLevelProgressNext(int remainingXp, int totalXp) {
+    return '$remainingXp XP to next level · $totalXp XP total';
+  }
+
+  @override
+  String homeLevelProgressMax(int stars, int remainingXp) {
+    return '$stars star(s) · $remainingXp XP left';
+  }
+
+  @override
+  String homeLevelProgressNext(int remainingXp) {
+    return '$remainingXp XP left';
+  }
+
+  @override
   String get homePriorityCheckPlansMessage =>
       'Review the remaining training plans before you start.';
 
