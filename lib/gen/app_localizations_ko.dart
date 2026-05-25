@@ -155,19 +155,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsKLeagueStandingsButton => 'K리그';
 
   @override
-  String get newsMoreActionsTooltip => '랭킹보기';
+  String get newsMoreActionsTooltip => '리그보기';
 
   @override
   String get newsMoreActionsTitle => '더보기';
 
   @override
-  String get newsRankingMoreButton => '랭킹보기';
+  String get newsRankingMoreButton => '리그보기';
 
   @override
-  String get newsLeagueStandingsAction => '해외 리그 순위';
+  String get newsLeagueStandingsAction => '해외 리그 보기';
 
   @override
-  String get newsLeagueStandingsTitle => '리그 순위';
+  String get newsLeagueStandingsTitle => '리그 보기';
 
   @override
   String get newsPremierLeagueStandingsTitle => '프리미어리그';
@@ -180,6 +180,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get newsBundesligaStandingsTitle => '분데스리가';
+
+  @override
+  String get newsMajorLeagueSoccerStandingsTitle => '미국 MLS';
+
+  @override
+  String get newsSaudiProLeagueStandingsTitle => '사우디 프로리그';
 
   @override
   String newsLeagueStandingsUpdated(Object date) {
@@ -209,6 +215,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsLeagueFixturesEmpty => '현재 일정 구간에 표시할 경기가 없어요.';
 
   @override
+  String get newsLeagueFixturesShowAll => '일정 전체 보기';
+
+  @override
+  String get newsLeagueFixturesCollapse => '일정 접기';
+
+  @override
   String get newsLeagueFixtureScheduled => '예정';
 
   @override
@@ -216,6 +228,49 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get newsLeagueFixtureFullTime => '종료';
+
+  @override
+  String get newsLeagueFavoriteTeamTitle => '일정 알림 팀';
+
+  @override
+  String get newsLeagueFavoriteTeamSubtitle =>
+      '선호 팀을 선택하면 불러온 일정 중 해당 팀 경기 알림을 받을 수 있어요.';
+
+  @override
+  String get newsLeagueFavoriteTeamSelect => '팀 선택';
+
+  @override
+  String get newsLeagueFavoriteTeamClear => '해제';
+
+  @override
+  String get newsLeagueFavoriteTeamNone => '선택된 팀 없음';
+
+  @override
+  String get newsLeagueFavoriteTeamSheetTitle => '알림 받을 팀 선택';
+
+  @override
+  String get newsLeagueFavoriteTeamSaved => '일정 알림 팀을 저장했어요.';
+
+  @override
+  String get newsLeagueFavoriteTeamNoUpcoming => '예약된 경기 알림이 없어요.';
+
+  @override
+  String newsLeagueFavoriteTeamReminderCount(int count) {
+    return '$count개 경기 알림 예약됨';
+  }
+
+  @override
+  String newsLeagueFavoriteTeamNotificationBody(
+      Object team, Object opponent, Object kickoff) {
+    return '$team 경기 알림: $opponent전 $kickoff';
+  }
+
+  @override
+  String get newsLeagueFixtureNotificationChannelName => '리그 경기 알림';
+
+  @override
+  String get newsLeagueFixtureNotificationChannelDescription =>
+      '선호 팀의 해외 리그 일정 알림';
 
   @override
   String get newsLeagueStandingsTeamColumn => '팀';

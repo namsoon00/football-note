@@ -667,7 +667,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   List<_HourlyPrecipitationEntry> get _todayHourlyPrecipitations {
     if (_dailyForecasts.isEmpty) return const <_HourlyPrecipitationEntry>[];
-    return _dailyForecasts.first.hourlyPrecipitations;
+    return _visibleHourlyPrecipitationEntries(
+      _dailyForecasts.first.hourlyPrecipitations,
+    );
   }
 
   List<_ForecastMomentPreview> get _todayHourlyForecasts {
@@ -2977,11 +2979,15 @@ class _TomorrowWeatherCard extends StatelessWidget {
                           );
                         },
                       ),
-                    if (forecast.hourlyPrecipitations.isNotEmpty) ...[
+                    if (_visibleHourlyPrecipitationEntries(
+                      forecast.hourlyPrecipitations,
+                    ).isNotEmpty) ...[
                       const SizedBox(height: 12),
                       _HourlyPrecipitationSection(
                         title: hourlyPrecipitationLabel,
-                        entries: forecast.hourlyPrecipitations,
+                        entries: _visibleHourlyPrecipitationEntries(
+                          forecast.hourlyPrecipitations,
+                        ),
                         formatTime: formatTime,
                         formatPrecipitation: formatCompactMillimeter,
                       ),
@@ -3376,6 +3382,18 @@ class _ForecastStatPill extends StatelessWidget {
   }
 }
 
+List<_HourlyPrecipitationEntry> _visibleHourlyPrecipitationEntries(
+  List<_HourlyPrecipitationEntry> entries,
+) {
+  final sortedEntries = [...entries]
+    ..sort((left, right) => left.time.compareTo(right.time));
+  final firstRainIndex = sortedEntries.indexWhere(
+    (entry) => entry.precipitation > 0,
+  );
+  if (firstRainIndex < 0) return const <_HourlyPrecipitationEntry>[];
+  return sortedEntries.skip(firstRainIndex).toList(growable: false);
+}
+
 class _HourlyPrecipitationSection extends StatelessWidget {
   final String title;
   final List<_HourlyPrecipitationEntry> entries;
@@ -3394,8 +3412,8 @@ class _HourlyPrecipitationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final sortedEntries = [...entries]
-      ..sort((left, right) => left.time.compareTo(right.time));
+    final sortedEntries = _visibleHourlyPrecipitationEntries(entries);
+    if (sortedEntries.isEmpty) return const SizedBox.shrink();
     final background = accentStyle
         ? theme.colorScheme.surface.withValues(alpha: 0.16)
         : theme.colorScheme.surfaceContainerLow;

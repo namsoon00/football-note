@@ -178,19 +178,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsKLeagueStandingsButton => 'K League';
 
   @override
-  String get newsMoreActionsTooltip => 'Rankings';
+  String get newsMoreActionsTooltip => 'League view';
 
   @override
   String get newsMoreActionsTitle => 'More';
 
   @override
-  String get newsRankingMoreButton => 'Rankings';
+  String get newsRankingMoreButton => 'League view';
 
   @override
-  String get newsLeagueStandingsAction => 'Overseas league standings';
+  String get newsLeagueStandingsAction => 'Overseas league view';
 
   @override
-  String get newsLeagueStandingsTitle => 'League Standings';
+  String get newsLeagueStandingsTitle => 'League View';
 
   @override
   String get newsPremierLeagueStandingsTitle => 'Premier League';
@@ -203,6 +203,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsBundesligaStandingsTitle => 'Bundesliga';
+
+  @override
+  String get newsMajorLeagueSoccerStandingsTitle => 'MLS';
+
+  @override
+  String get newsSaudiProLeagueStandingsTitle => 'Saudi Pro League';
 
   @override
   String newsLeagueStandingsUpdated(Object date) {
@@ -234,6 +240,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'No fixtures are available in the current schedule window.';
 
   @override
+  String get newsLeagueFixturesShowAll => 'Show all fixtures';
+
+  @override
+  String get newsLeagueFixturesCollapse => 'Collapse fixtures';
+
+  @override
   String get newsLeagueFixtureScheduled => 'Fixture';
 
   @override
@@ -241,6 +253,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsLeagueFixtureFullTime => 'FT';
+
+  @override
+  String get newsLeagueFavoriteTeamTitle => 'Fixture alert teams';
+
+  @override
+  String get newsLeagueFavoriteTeamSubtitle =>
+      'Choose preferred teams to receive alerts for their loaded fixtures.';
+
+  @override
+  String get newsLeagueFavoriteTeamSelect => 'Select teams';
+
+  @override
+  String get newsLeagueFavoriteTeamClear => 'Clear';
+
+  @override
+  String get newsLeagueFavoriteTeamNone => 'No team selected';
+
+  @override
+  String get newsLeagueFavoriteTeamSheetTitle => 'Select teams for alerts';
+
+  @override
+  String get newsLeagueFavoriteTeamSaved => 'Fixture alert teams saved.';
+
+  @override
+  String get newsLeagueFavoriteTeamNoUpcoming =>
+      'No match alerts are scheduled.';
+
+  @override
+  String newsLeagueFavoriteTeamReminderCount(int count) {
+    return '$count match alerts scheduled';
+  }
+
+  @override
+  String newsLeagueFavoriteTeamNotificationBody(
+      Object team, Object opponent, Object kickoff) {
+    return '$team fixture alert: vs $opponent at $kickoff';
+  }
+
+  @override
+  String get newsLeagueFixtureNotificationChannelName =>
+      'League Fixture Alerts';
+
+  @override
+  String get newsLeagueFixtureNotificationChannelDescription =>
+      'Fixture alerts for preferred overseas league teams';
 
   @override
   String get newsLeagueStandingsTeamColumn => 'Team';

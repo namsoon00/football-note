@@ -17,6 +17,8 @@ class LeagueStandingsService {
     LeagueStandingsType.championsLeague: 'uefa.champions',
     LeagueStandingsType.laLiga: 'esp.1',
     LeagueStandingsType.bundesliga: 'ger.1',
+    LeagueStandingsType.majorLeagueSoccer: 'usa.1',
+    LeagueStandingsType.saudiProLeague: 'ksa.1',
   };
   static const int _fixtureLookBackDays = 14;
   static const int _fixtureLookAheadDays = 90;
@@ -419,6 +421,8 @@ class LeagueStandingsService {
       LeagueStandingsType.championsLeague => 'UEFA Champions League',
       LeagueStandingsType.laLiga => 'LaLiga',
       LeagueStandingsType.bundesliga => 'Bundesliga',
+      LeagueStandingsType.majorLeagueSoccer => 'MLS',
+      LeagueStandingsType.saudiProLeague => 'Saudi Pro League',
     };
   }
 }

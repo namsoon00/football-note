@@ -1,4 +1,11 @@
-enum LeagueStandingsType { premierLeague, championsLeague, laLiga, bundesliga }
+enum LeagueStandingsType {
+  premierLeague,
+  championsLeague,
+  laLiga,
+  bundesliga,
+  majorLeagueSoccer,
+  saudiProLeague,
+}
 
 enum LeagueFixtureStatus { scheduled, live, finished }
 

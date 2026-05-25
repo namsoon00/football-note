@@ -38,6 +38,10 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-recording-guide')),
       findsOneWidget,
     );
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-back-button')),
+      findsOneWidget,
+    );
     expect(find.text('What to compare in the video'), findsOneWidget);
     expect(find.textContaining('Frame '), findsOneWidget);
     expect(find.text('Landing 0.08'), findsOneWidget);
