@@ -2038,7 +2038,22 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     );
     if (confirm != true) return;
+    if (!mounted) return;
     setState(() => _backupBusy = true);
+    unawaited(
+      _runBackupToDrive(
+        l10n,
+        successMessage: successMessage,
+        failedMessage: failedMessage,
+      ),
+    );
+  }
+
+  Future<void> _runBackupToDrive(
+    AppLocalizations l10n, {
+    String? successMessage,
+    String? failedMessage,
+  }) async {
     try {
       await widget.driveBackupService!.backup();
       await _refreshSignInState();
@@ -2143,10 +2158,27 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     );
     if (confirm != true) return;
+    if (!mounted) return;
     setState(() => _restoreBusy = true);
+    final action = restoreAction ?? widget.driveBackupService!.restoreLatest;
+    unawaited(
+      _runRestoreFromDrive(
+        l10n,
+        restoreAction: action,
+        successMessage: successMessage,
+        failedMessage: failedMessage,
+      ),
+    );
+  }
+
+  Future<void> _runRestoreFromDrive(
+    AppLocalizations l10n, {
+    required Future<void> Function() restoreAction,
+    String? successMessage,
+    String? failedMessage,
+  }) async {
     try {
-      final action = restoreAction ?? widget.driveBackupService!.restoreLatest;
-      await action();
+      await restoreAction();
       widget.localeService.load();
       widget.settingsService.load();
       await _refreshSignInState();

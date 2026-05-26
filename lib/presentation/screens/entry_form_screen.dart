@@ -842,7 +842,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   IconData? _parentFeedbackReactionIcon(String reaction) {
-    return switch (reaction.trim()) {
+    final primaryReaction = reaction
+        .split(',')
+        .map((item) => item.trim())
+        .firstWhere((item) => item.isNotEmpty, orElse: () => '');
+    return switch (primaryReaction) {
       'thanks' => Icons.favorite_rounded,
       'proud' => Icons.emoji_events_rounded,
       'review' => Icons.visibility_rounded,

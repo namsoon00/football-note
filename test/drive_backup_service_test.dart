@@ -464,7 +464,7 @@ void main() {
   );
 
   test(
-    'parent restore preserves critical child options when remote omits them',
+    'parent restore replaces option-backed child data when remote omits it',
     () async {
       await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
       await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
@@ -498,21 +498,12 @@ void main() {
         },
       });
 
-      expect(optionBox.get('profile_name'), 'Local child profile');
-      expect(optionBox.get(PlayerLevelService.totalXpKey), 240);
-      expect(
-        (optionBox.get(PlayerLevelService.xpHistoryKey) as List).single,
-        containsPair('totalXp', 240),
-      );
-      expect(
-        optionBox.get(PlayerLevelService.diaryCreatedDayKey),
-        '2026-04-18',
-      );
-      expect(optionBox.get(MealLogService.storageKey), '[{"id":"meal-local"}]');
-      expect(
-        optionBox.get('custom_diary_entries_v3'),
-        '{"2026-04-18":{"body":"local diary"}}',
-      );
+      expect(optionBox.get('profile_name'), isNull);
+      expect(optionBox.get(PlayerLevelService.totalXpKey), isNull);
+      expect(optionBox.get(PlayerLevelService.xpHistoryKey), isNull);
+      expect(optionBox.get(PlayerLevelService.diaryCreatedDayKey), isNull);
+      expect(optionBox.get(MealLogService.storageKey), isNull);
+      expect(optionBox.get('custom_diary_entries_v3'), isNull);
       expect(optionBox.get(FamilyAccessService.childNameKey), 'Remote player');
     },
   );
@@ -909,6 +900,61 @@ void main() {
     },
   );
 
+  test('restore keeps existing data when staged asset restore fails', () async {
+    await trainingBox.add(
+      TrainingEntry(
+        date: DateTime(2026, 1, 5),
+        createdAt: DateTime(2026, 1, 5, 10),
+        durationMinutes: 50,
+        intensity: 3,
+        type: 'dribble',
+        mood: 4,
+        injury: false,
+        notes: 'remote media backup',
+        location: 'remote ground',
+        imagePath: '/tmp/remote_training_photo.jpg',
+        imagePaths: const ['/tmp/remote_training_photo.jpg'],
+      ),
+    );
+    assetStore.seedRead(
+      '/tmp/remote_training_photo.jpg',
+      fileName: 'remote_training_photo.jpg',
+      bytes: Uint8List.fromList(<int>[7, 8, 9]),
+      restoredPath: '/restored/remote_training_photo.jpg',
+    );
+    final backup = service.buildBackupForTesting();
+    final entry = (backup['entries'] as List).single as Map<String, dynamic>;
+    final imageRef = entry['imagePath'] as String;
+    final failingAssetId = imageRef.replaceFirst('backup_asset://', '');
+
+    await trainingBox.clear();
+    await optionBox.clear();
+    await trainingBox.add(
+      TrainingEntry(
+        date: DateTime(2026, 1, 4),
+        createdAt: DateTime(2026, 1, 4, 10),
+        durationMinutes: 30,
+        intensity: 2,
+        type: 'passing',
+        mood: 3,
+        injury: false,
+        notes: 'old local data',
+        location: 'old ground',
+      ),
+    );
+    await optionBox.put('profile_name', 'Old local player');
+    assetStore.throwOnRestore(failingAssetId);
+
+    await expectLater(
+      service.restoreFromMapForTesting(backup),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(trainingBox.length, 1);
+    expect(trainingBox.values.single.notes, 'old local data');
+    expect(optionBox.get('profile_name'), 'Old local player');
+  });
+
   test('parent merge is blocked when family id differs', () async {
     await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
     await optionBox.put(FamilyAccessService.familyIdKey, 'family-local');
@@ -1129,6 +1175,7 @@ void main() {
 class _FakeBackupAssetFileStore implements BackupAssetFileStore {
   final Map<String, _SeededAsset> _seededByPath = <String, _SeededAsset>{};
   final Map<String, String> _restoredByAssetId = <String, String>{};
+  final Set<String> _throwOnRestoreAssetIds = <String>{};
 
   void seedRead(
     String sourcePath, {
@@ -1141,6 +1188,10 @@ class _FakeBackupAssetFileStore implements BackupAssetFileStore {
       bytesBase64: base64Encode(bytes),
       restoredPath: restoredPath,
     );
+  }
+
+  void throwOnRestore(String assetId) {
+    _throwOnRestoreAssetIds.add(assetId);
   }
 
   @override
@@ -1163,6 +1214,9 @@ class _FakeBackupAssetFileStore implements BackupAssetFileStore {
 
   @override
   Future<String?> restoreFile(BackupAssetRecord record) async {
+    if (_throwOnRestoreAssetIds.contains(record.assetId)) {
+      throw StateError('restore failed for ${record.assetId}');
+    }
     return _restoredByAssetId[record.assetId];
   }
 }

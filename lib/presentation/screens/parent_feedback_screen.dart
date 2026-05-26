@@ -42,8 +42,8 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   late final ParentSharedFeedbackService _feedbackService;
   late final TextEditingController _controller;
   String _savedMessage = '';
-  String _savedReaction = '';
-  String _selectedReaction = '';
+  List<String> _savedReactions = const <String>[];
+  Set<String> _selectedReactions = <String>{};
   DateTime? _savedUpdatedAt;
   bool _isSaving = false;
 
@@ -57,12 +57,12 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     if (_canEdit) {
       return _controller.text.trim() != _savedMessage.trim();
     }
-    return _selectedReaction.trim() != _savedReaction.trim();
+    return !_sameReactionSet(_selectedReactions, _savedReactions.toSet());
   }
 
   bool get _canReact {
     return !_canEdit &&
-        (_savedMessage.trim().isNotEmpty || _savedReaction.trim().isNotEmpty);
+        (_savedMessage.trim().isNotEmpty || _savedReactions.isNotEmpty);
   }
 
   bool get _canClear {
@@ -71,8 +71,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
       return _controller.text.trim().isNotEmpty ||
           _savedMessage.trim().isNotEmpty;
     }
-    return _selectedReaction.trim().isNotEmpty ||
-        _savedReaction.trim().isNotEmpty;
+    return _selectedReactions.isNotEmpty || _savedReactions.isNotEmpty;
   }
 
   @override
@@ -81,8 +80,8 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     _feedbackService = ParentSharedFeedbackService(widget.optionRepository);
     final feedback = _feedbackService.feedbackForEntry(widget.entry);
     _savedMessage = feedback?.message ?? '';
-    _savedReaction = feedback?.reaction ?? '';
-    _selectedReaction = _savedReaction;
+    _savedReactions = feedback?.reactions ?? const <String>[];
+    _selectedReactions = _savedReactions.toSet();
     _savedUpdatedAt = feedback?.updatedAt;
     _controller = TextEditingController(text: _savedMessage)
       ..addListener(_handleControllerChanged);
@@ -136,7 +135,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
       final saved = await _feedbackService.saveFeedbackForEntry(
         widget.entry,
         _canEdit ? _controller.text : _savedMessage,
-        _canEdit ? _savedReaction : _selectedReaction,
+        _canEdit ? _savedReactions : _selectedReactions.toList(),
       );
       final didSync = await _syncParentSharedDataIfPossible();
       if (!mounted) {
@@ -180,7 +179,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     final l10n = AppLocalizations.of(context)!;
     final localeTag = Localizations.localeOf(context).toString();
     final previewText = _savedMessage.trim().isEmpty
-        ? (_savedReaction.trim().isEmpty
+        ? (_savedReactions.isEmpty
               ? l10n.parentFeedbackEmpty
               : l10n.parentFeedbackReactionOnly)
         : _savedMessage.trim();
@@ -280,10 +279,10 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                       if (_canReact) ...[
                         const SizedBox(height: 16),
                         _ParentFeedbackReactionPicker(
-                          selectedReaction: _selectedReaction,
+                          selectedReactions: _selectedReactions,
                           canEdit: !_isSaving,
                           onChanged: (value) {
-                            setState(() => _selectedReaction = value);
+                            setState(() => _selectedReactions = value);
                           },
                         ),
                       ],
@@ -316,7 +315,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                           onPressed: _canClear
                               ? () {
                                   _controller.clear();
-                                  setState(() => _selectedReaction = '');
+                                  setState(() => _selectedReactions.clear());
                                 }
                               : null,
                           child: Text(l10n.parentFeedbackClear),
@@ -336,15 +335,19 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
       ),
     );
   }
+
+  bool _sameReactionSet(Set<String> a, Set<String> b) {
+    return a.length == b.length && a.containsAll(b);
+  }
 }
 
 class _ParentFeedbackReactionPicker extends StatelessWidget {
-  final String selectedReaction;
+  final Set<String> selectedReactions;
   final bool canEdit;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<Set<String>> onChanged;
 
   const _ParentFeedbackReactionPicker({
-    required this.selectedReaction,
+    required this.selectedReactions,
     required this.canEdit,
     required this.onChanged,
   });
@@ -353,11 +356,6 @@ class _ParentFeedbackReactionPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final options = <_ParentFeedbackReactionOption>[
-      _ParentFeedbackReactionOption(
-        id: '',
-        icon: Icons.radio_button_unchecked_rounded,
-        label: l10n.parentFeedbackReactionNone,
-      ),
       _ParentFeedbackReactionOption(
         id: 'thanks',
         icon: Icons.favorite_rounded,
@@ -393,16 +391,31 @@ class _ParentFeedbackReactionPicker extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
+            ChoiceChip(
+              avatar: const Icon(
+                Icons.radio_button_unchecked_rounded,
+                size: 18,
+              ),
+              label: Text(l10n.parentFeedbackReactionNone),
+              selected: selectedReactions.isEmpty,
+              onSelected: !canEdit ? null : (_) => onChanged(<String>{}),
+            ),
             for (final option in options)
-              ChoiceChip(
+              FilterChip(
                 avatar: Icon(option.icon, size: 18),
                 label: Text(option.label),
-                selected: selectedReaction == option.id,
+                selected: selectedReactions.contains(option.id),
                 onSelected: !canEdit
                     ? null
-                    : (_) => onChanged(
-                        selectedReaction == option.id ? '' : option.id,
-                      ),
+                    : (selected) {
+                        final next = Set<String>.of(selectedReactions);
+                        if (selected) {
+                          next.add(option.id);
+                        } else {
+                          next.remove(option.id);
+                        }
+                        onChanged(next);
+                      },
               ),
           ],
         ),

@@ -518,6 +518,18 @@ abstract class AppLocalizations {
   /// **'Collapse fixtures'**
   String get newsLeagueFixturesCollapse;
 
+  /// No description provided for @newsLeagueFixturesSelectedTeamsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected teams only'**
+  String get newsLeagueFixturesSelectedTeamsOnly;
+
+  /// No description provided for @newsLeagueFixturesSelectedTeamsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No selected-team fixtures are available in this league schedule.'**
+  String get newsLeagueFixturesSelectedTeamsEmpty;
+
   /// No description provided for @newsLeagueFixtureScheduled.
   ///
   /// In en, this message translates to:

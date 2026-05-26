@@ -5,20 +5,28 @@ import 'family_access_service.dart';
 class ParentTrainingFeedback {
   final String entryId;
   final String message;
-  final String reaction;
+  final List<String> reactions;
   final DateTime? updatedAt;
 
-  const ParentTrainingFeedback({
+  ParentTrainingFeedback({
     required this.entryId,
     required this.message,
-    this.reaction = '',
+    String reaction = '',
+    List<String> reactions = const <String>[],
     this.updatedAt,
-  });
+  }) : reactions = _normalizeReactions(
+         reactions.isEmpty ? _splitReactionIds(reaction) : reactions,
+       );
+
+  String get reaction => reactions.join(',');
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'message': message,
-      if (reaction.trim().isNotEmpty) 'reaction': reaction.trim(),
+      if (reactions.isNotEmpty) ...{
+        'reaction': reactions.first,
+        'reactions': reactions,
+      },
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
     };
   }
@@ -33,16 +41,39 @@ class ParentTrainingFeedback {
       return null;
     }
     final message = raw['message']?.toString().trim() ?? '';
-    final reaction = raw['reaction']?.toString().trim() ?? '';
-    if (message.isEmpty && reaction.isEmpty) {
+    final reactions = _normalizeReactions([
+      if (raw['reactions'] is List)
+        ...(raw['reactions'] as List).map((item) => item.toString()),
+      ..._splitReactionIds(raw['reaction']?.toString() ?? ''),
+    ]);
+    if (message.isEmpty && reactions.isEmpty) {
       return null;
     }
     return ParentTrainingFeedback(
       entryId: entryId,
       message: message,
-      reaction: reaction,
+      reactions: reactions,
       updatedAt: DateTime.tryParse(raw['updatedAt']?.toString() ?? ''),
     );
+  }
+
+  static List<String> _splitReactionIds(String raw) {
+    return raw
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  static List<String> _normalizeReactions(Iterable<String> raw) {
+    final seen = <String>{};
+    final normalized = <String>[];
+    for (final item in raw) {
+      final trimmed = item.trim();
+      if (trimmed.isEmpty || !seen.add(trimmed)) continue;
+      normalized.add(trimmed);
+    }
+    return List<String>.unmodifiable(normalized);
   }
 }
 
@@ -78,13 +109,13 @@ class ParentSharedFeedbackService {
   Future<ParentTrainingFeedback?> saveFeedbackForEntry(
     TrainingEntry entry,
     String message, [
-    String reaction = '',
+    Object reactions = const <String>[],
   ]) async {
     final next = _loadRawMap();
     final entryId = entryIdFor(entry);
     final trimmed = message.trim();
-    final trimmedReaction = reaction.trim();
-    if (trimmed.isEmpty && trimmedReaction.isEmpty) {
+    final normalizedReactions = _normalizeReactionArgument(reactions);
+    if (trimmed.isEmpty && normalizedReactions.isEmpty) {
       next.remove(entryId);
       await _optionRepository.setValue(
         FamilyAccessService.parentTrainingFeedbackKey,
@@ -95,7 +126,7 @@ class ParentSharedFeedbackService {
     final feedback = ParentTrainingFeedback(
       entryId: entryId,
       message: trimmed,
-      reaction: trimmedReaction,
+      reactions: normalizedReactions,
       updatedAt: DateTime.now(),
     );
     next[entryId] = feedback.toMap();
@@ -114,5 +145,19 @@ class ParentSharedFeedbackService {
       return <String, dynamic>{};
     }
     return raw.map((key, value) => MapEntry(key.toString(), value));
+  }
+
+  List<String> _normalizeReactionArgument(Object raw) {
+    if (raw is String) {
+      return ParentTrainingFeedback._normalizeReactions(
+        ParentTrainingFeedback._splitReactionIds(raw),
+      );
+    }
+    if (raw is Iterable) {
+      return ParentTrainingFeedback._normalizeReactions(
+        raw.map((item) => item.toString()),
+      );
+    }
+    return const <String>[];
   }
 }

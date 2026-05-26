@@ -38,6 +38,7 @@ class LeagueStandingsService {
       'https://www.kleague.com/schedule.do?leagueId=1';
   static const int _fixtureLookBackDays = 14;
   static const int _fixtureLookAheadDays = 90;
+  static const int _kLeagueFixtureLookAheadDays = 14;
 
   Future<LeagueStandingsSnapshot> fetch(LeagueStandingsType type) async {
     if (type == LeagueStandingsType.kLeague1) {
@@ -73,7 +74,9 @@ class LeagueStandingsService {
     final start = reference.subtract(
       const Duration(days: _fixtureLookBackDays),
     );
-    final end = reference.add(const Duration(days: _fixtureLookAheadDays));
+    final end = reference.add(
+      const Duration(days: _kLeagueFixtureLookAheadDays),
+    );
     final uri = Uri.https(
       'site.api.espn.com',
       '/apis/site/v2/sports/soccer/$leagueId/scoreboard',
@@ -322,7 +325,7 @@ class LeagueStandingsService {
       rank: _asInt(raw['rank']) ?? index + 1,
       teamName: raw['teamName']?.toString().trim() ?? '',
       teamShortName: raw['teamName']?.toString().trim() ?? '',
-      logoUrl: '',
+      logoUrl: _kLeagueLogoUrl(raw['teamId']),
       played: _asDisplay(raw['gameCount']),
       wins: _asDisplay(raw['winCnt']),
       draws: _asDisplay(raw['tieCnt']),
@@ -370,10 +373,10 @@ class LeagueStandingsService {
       city: raw['fieldName']?.toString().trim() ?? '',
       homeTeamName: homeTeamName,
       homeTeamShortName: homeTeamName,
-      homeLogoUrl: '',
+      homeLogoUrl: _kLeagueLogoUrl(raw['homeTeam']),
       awayTeamName: awayTeamName,
       awayTeamShortName: awayTeamName,
-      awayLogoUrl: '',
+      awayLogoUrl: _kLeagueLogoUrl(raw['awayTeam']),
       homeScore: status == LeagueFixtureStatus.scheduled
           ? null
           : _asInt(raw['homeGoal']),
@@ -614,6 +617,17 @@ class LeagueStandingsService {
       'gameId': gameId,
       'meetSeq': meetSeq,
     }).toString();
+  }
+
+  static String _kLeagueLogoUrl(dynamic rawTeamId) {
+    final teamId = rawTeamId?.toString().trim() ?? '';
+    if (!RegExp(r'^K\d+$').hasMatch(teamId)) {
+      return '';
+    }
+    return Uri.https(
+      'www.kleague.com',
+      '/assets/images/emblem/emblem_$teamId.png',
+    ).toString();
   }
 
   static List<DateTime> _monthsBetween(DateTime start, DateTime end) {
