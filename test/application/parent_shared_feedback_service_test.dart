@@ -45,7 +45,7 @@ void main() {
     expect(cleared, isEmpty);
   });
 
-  test('stores reaction-only parent feedback', () async {
+  test('stores multiple reaction-only parent feedback', () async {
     final repository = _MemoryOptionRepository();
     final service = ParentSharedFeedbackService(repository);
     final entry = TrainingEntry(
@@ -60,13 +60,44 @@ void main() {
       location: '메인 구장',
     );
 
-    final saved = await service.saveFeedbackForEntry(entry, '', 'proud');
+    final saved = await service.saveFeedbackForEntry(entry, '', [
+      'proud',
+      'thanks',
+    ]);
 
     expect(saved, isNotNull);
     expect(saved!.message, isEmpty);
-    expect(saved.reaction, 'proud');
-    expect(service.feedbackForEntry(entry)?.reaction, 'proud');
+    expect(saved.reactions, ['proud', 'thanks']);
+    expect(service.feedbackForEntry(entry)?.reactions, ['proud', 'thanks']);
+    expect(service.feedbackForEntry(entry)?.reaction, 'proud,thanks');
     expect(service.loadAll(), hasLength(1));
+  });
+
+  test('reads legacy single reaction parent feedback', () async {
+    final repository = _MemoryOptionRepository();
+    final service = ParentSharedFeedbackService(repository);
+    final entry = TrainingEntry(
+      date: DateTime(2026, 4, 22),
+      createdAt: DateTime(2026, 4, 22, 18, 30),
+      durationMinutes: 60,
+      intensity: 4,
+      type: '드리블',
+      mood: 4,
+      injury: false,
+      notes: '',
+      location: '메인 구장',
+    );
+    await repository.setValue(
+      FamilyAccessService.parentTrainingFeedbackKey,
+      <String, dynamic>{
+        ParentSharedFeedbackService.entryIdFor(entry): <String, dynamic>{
+          'message': '',
+          'reaction': 'review',
+        },
+      },
+    );
+
+    expect(service.feedbackForEntry(entry)?.reactions, ['review']);
   });
 }
 

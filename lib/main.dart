@@ -24,6 +24,7 @@ import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/theme/app_theme.dart';
+import 'presentation/widgets/keyboard_dismiss_overlay.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -173,6 +174,8 @@ class FootballNoteApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
+          builder: (context, child) =>
+              KeyboardDismissOverlay(child: child ?? const SizedBox.shrink()),
           home: _EntryGate(
             trainingService: trainingService,
             mealLogService: mealLogService,

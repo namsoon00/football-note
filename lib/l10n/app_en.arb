@@ -79,6 +79,8 @@
   "newsLeagueFixturesEmpty": "No fixtures are available in the current schedule window.",
   "newsLeagueFixturesShowAll": "Show all fixtures",
   "newsLeagueFixturesCollapse": "Collapse fixtures",
+  "newsLeagueFixturesSelectedTeamsOnly": "Selected teams only",
+  "newsLeagueFixturesSelectedTeamsEmpty": "No selected-team fixtures are available in this league schedule.",
   "newsLeagueFixtureScheduled": "Fixture",
   "newsLeagueFixtureLive": "Live",
   "newsLeagueFixtureFullTime": "FT",

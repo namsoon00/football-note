@@ -16,7 +16,6 @@ import '../domain/entities/training_entry.dart';
 import '../domain/repositories/backup_repository.dart';
 import '../infrastructure/hive_option_repository.dart';
 import 'family_access_service.dart';
-import 'meal_log_service.dart';
 import 'parent_shared_feedback_service.dart';
 import 'player_level_service.dart';
 
@@ -29,21 +28,20 @@ class DriveBackupService implements BackupRepository {
     BackupAssetFileStore? backupAssetFileStore,
     Future<DriveConnectionInfo?> Function()? driveConnectionLoader,
     String? webClientId,
-  }) : _googleSignIn =
-           googleSignIn ??
-           (kIsWeb
-               ? null
-               : GoogleSignIn(
-                   clientId:
-                       webClientId != null && webClientId.trim().isNotEmpty
-                       ? webClientId.trim()
-                       : null,
-                   scopes: const ['email', _driveScope],
-                 )),
-       _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
-       _backupAssetFileStore =
-           backupAssetFileStore ?? createBackupAssetFileStore(),
-       _driveConnectionLoader = driveConnectionLoader {
+  })  : _googleSignIn = googleSignIn ??
+            (kIsWeb
+                ? null
+                : GoogleSignIn(
+                    clientId:
+                        webClientId != null && webClientId.trim().isNotEmpty
+                            ? webClientId.trim()
+                            : null,
+                    scopes: const ['email', _driveScope],
+                  )),
+        _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
+        _backupAssetFileStore =
+            backupAssetFileStore ?? createBackupAssetFileStore(),
+        _driveConnectionLoader = driveConnectionLoader {
     _bindDriveAccountStateChanges();
   }
 
@@ -160,40 +158,6 @@ class DriveBackupService implements BackupRepository {
   static const _profilePhotoOptionKey = 'profile_photo_url';
   static const _backupFormatKey = 'format';
   static const _backupFormatValue = 'football_note_backup';
-  static const Set<String> _supportImportPreserveWhenMissingKeys = {
-    'profile_name',
-    _profilePhotoOptionKey,
-    'profile_birth_date',
-    'profile_soccer_start_date',
-    'profile_height_cm',
-    'profile_weight_kg',
-    'profile_gender',
-    'profile_mbti_result',
-    'profile_position_test_result',
-    'profile_mbti_answers',
-    'profile_position_test_answers',
-    PlayerLevelService.totalXpKey,
-    PlayerLevelService.xpHistoryKey,
-    PlayerLevelService.quizRewardDayKey,
-    PlayerLevelService.awardedPlanIdsKey,
-    PlayerLevelService.awardedStreaksKey,
-    PlayerLevelService.awardedBoardSaveTokensKey,
-    PlayerLevelService.awardedRoutineDaysKey,
-    PlayerLevelService.awardedDailyTaskCompletionDaysKey,
-    PlayerLevelService.diaryCreatedDayKey,
-    PlayerLevelService.claimedRewardLevelsKey,
-    PlayerLevelService.customRewardNamesKey,
-    PlayerLevelService.rewardClaimMessagesKey,
-    PlayerLevelService.plansStorageKey,
-    MealLogService.storageKey,
-    'training_boards_v1',
-    'custom_diary_entries_v3',
-    'coach_diary_completed_day_v2',
-    'diary_theme_v1',
-    'running_coach_sessions_v1',
-    'skill_quiz_history_v1',
-  };
-
   Stream<void> driveAccountStateChanges() =>
       _driveAccountStateController.stream;
 
@@ -1003,7 +967,7 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<DriveConnectionInfo?>
-  _loadLatestRemoteSharedChildDriveConnectionInfo() async {
+      _loadLatestRemoteSharedChildDriveConnectionInfo() async {
     final remote = await _loadLatestRemoteBackupMap();
     if (remote == null) {
       return null;
@@ -1028,8 +992,8 @@ class DriveBackupService implements BackupRepository {
         return;
       }
       _firebaseAuthSubscription = auth.authStateChanges().listen(
-        (_) => unawaited(_handleDriveAccountStateChanged()),
-      );
+            (_) => unawaited(_handleDriveAccountStateChanged()),
+          );
       return;
     }
     final google = _googleSignIn;
@@ -1070,7 +1034,7 @@ class DriveBackupService implements BackupRepository {
         (_optionBox.get(connectedDriveLabelLocalKey) as String?)?.trim() ?? '';
     final subjectId =
         (_optionBox.get(connectedDriveSubjectLocalKey) as String?)?.trim() ??
-        '';
+            '';
     if (email.isEmpty && displayName.isEmpty && subjectId.isEmpty) {
       return null;
     }
@@ -1172,8 +1136,7 @@ class DriveBackupService implements BackupRepository {
 
   Future<String?> _findFolderId(drive.DriveApi api) async {
     final result = await api.files.list(
-      q:
-          "mimeType='application/vnd.google-apps.folder' and "
+      q: "mimeType='application/vnd.google-apps.folder' and "
           "name='$_folderName' and trashed=false",
       spaces: 'drive',
       $fields: 'files(id,name)',
@@ -1385,12 +1348,10 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi driveApi,
     drive.File file,
   ) async {
-    final media =
-        await driveApi.files.get(
-              file.id!,
-              downloadOptions: drive.DownloadOptions.fullMedia,
-            )
-            as drive.Media;
+    final media = await driveApi.files.get(
+      file.id!,
+      downloadOptions: drive.DownloadOptions.fullMedia,
+    ) as drive.Media;
     final content = await utf8.decoder.bind(media.stream).join();
     final data = _decodeBackupPayload(content);
     _validateRestoreBinding(data);
@@ -1460,10 +1421,11 @@ class DriveBackupService implements BackupRepository {
   Map<String, dynamic> buildBackupForTesting({
     FamilyRole updatedByRole = FamilyRole.child,
     bool familyLayerOnly = false,
-  }) => _buildBackup(
-    updatedByRole: updatedByRole,
-    familyLayerOnly: familyLayerOnly,
-  );
+  }) =>
+      _buildBackup(
+        updatedByRole: updatedByRole,
+        familyLayerOnly: familyLayerOnly,
+      );
 
   @visibleForTesting
   Future<void> restoreFromMapForTesting(Map<String, dynamic> data) =>
@@ -1492,8 +1454,6 @@ class DriveBackupService implements BackupRepository {
     final optionRecords = (data[_optionRecordsKey] as List?) ?? const [];
     final options = (data['options'] as Map?) ?? const {};
     final assetRecords = _extractAssetRecords(data);
-    final supportModeMissingOptionFallbacks =
-        _supportImportMissingOptionFallbacks(data, version: version);
     final lastBackupRaw = _optionBox.get(_lastBackupKey);
     final lastRecordBackupRaw = _optionBox.get(_lastRecordBackupKey);
     final lastFamilySyncPushRaw = _optionBox.get(_lastFamilySyncPushAtKey);
@@ -1521,18 +1481,19 @@ class DriveBackupService implements BackupRepository {
       _parentSharedDataDirtyKey: parentSharedDirtyRaw,
     };
 
-    await _trainingBox.clear();
+    final stagedEntries = <TrainingEntry>[];
     for (final raw in entries) {
       if (raw is Map) {
-        final entry = await _restoreEntryAssets(
-          _entryFromMap(raw.cast<String, dynamic>()),
-          assetRecords,
+        stagedEntries.add(
+          await _restoreEntryAssets(
+            _entryFromMap(raw.cast<String, dynamic>()),
+            assetRecords,
+          ),
         );
-        await _trainingBox.add(entry);
       }
     }
 
-    await _optionBox.clear();
+    final stagedOptions = <dynamic, dynamic>{};
     if (optionRecords.isNotEmpty) {
       for (final raw in optionRecords) {
         if (raw is! Map) continue;
@@ -1541,32 +1502,43 @@ class DriveBackupService implements BackupRepository {
           continue;
         }
         if (key == null) continue;
-        await _optionBox.put(
-          key,
-          _fromBackupValue(raw['value'], version: version),
-        );
+        var value = _fromBackupValue(raw['value'], version: version);
+        if (key is String) {
+          value = await _restoreOptionAssetValue(key, value, assetRecords);
+        }
+        stagedOptions[key] = value;
       }
     } else {
       for (final entry in options.entries) {
-        if (entry.key is String && !_excludedOptionKeys.contains(entry.key)) {
-          await _optionBox.put(
-            entry.key,
-            _fromBackupValue(entry.value, version: version),
+        if (entry.key is String && _excludedOptionKeys.contains(entry.key)) {
+          continue;
+        }
+        var value = _fromBackupValue(entry.value, version: version);
+        if (entry.key is String) {
+          value = await _restoreOptionAssetValue(
+            entry.key as String,
+            value,
+            assetRecords,
           );
         }
+        stagedOptions[entry.key] = value;
       }
     }
-    await _restoreOptionAssets(assetRecords);
+
+    await _trainingBox.clear();
+    for (final entry in stagedEntries) {
+      await _trainingBox.add(entry);
+    }
+
+    await _optionBox.clear();
+    for (final entry in stagedOptions.entries) {
+      await _optionBox.put(entry.key, entry.value);
+    }
     if (localPreRestoreRaw is String) {
       await _optionBox.put(_localPreRestoreKey, localPreRestoreRaw);
     }
     if (localPreRestoreAtRaw is String) {
       await _optionBox.put(_localPreRestoreAtKey, localPreRestoreAtRaw);
-    }
-    for (final entry in supportModeMissingOptionFallbacks.entries) {
-      if (!_optionBox.containsKey(entry.key)) {
-        await _optionBox.put(entry.key, entry.value);
-      }
     }
     if (lastBackupRaw is String) {
       await _optionBox.put(_lastBackupKey, lastBackupRaw);
@@ -1576,53 +1548,6 @@ class DriveBackupService implements BackupRepository {
         await _optionBox.put(entry.key, entry.value);
       }
     }
-  }
-
-  Map<String, dynamic> _supportImportMissingOptionFallbacks(
-    Map<String, dynamic> data, {
-    required int version,
-  }) {
-    if (!_familyService.loadState().isSupportMode) {
-      return const <String, dynamic>{};
-    }
-    final remoteKeys = _restorableStringOptionKeys(data, version: version);
-    final preserved = <String, dynamic>{};
-    for (final key in _supportImportPreserveWhenMissingKeys) {
-      if (_excludedOptionKeys.contains(key) || remoteKeys.contains(key)) {
-        continue;
-      }
-      if (_optionBox.containsKey(key)) {
-        preserved[key] = _optionBox.get(key);
-      }
-    }
-    return preserved;
-  }
-
-  Set<String> _restorableStringOptionKeys(
-    Map<String, dynamic> data, {
-    required int version,
-  }) {
-    final keys = <String>{};
-    final options = data['options'];
-    if (options is Map) {
-      for (final key in options.keys) {
-        final normalized = key.toString();
-        if (!_excludedOptionKeys.contains(normalized)) {
-          keys.add(normalized);
-        }
-      }
-    }
-    final optionRecords = data[_optionRecordsKey];
-    if (optionRecords is List) {
-      for (final raw in optionRecords) {
-        if (raw is! Map) continue;
-        final key = _fromBackupValue(raw['key'], version: version);
-        if (key is String && !_excludedOptionKeys.contains(key)) {
-          keys.add(key);
-        }
-      }
-    }
-    return keys;
   }
 
   dynamic _encodeOptionValueForBackup({
@@ -1690,18 +1615,15 @@ class DriveBackupService implements BackupRepository {
     return records;
   }
 
-  Future<void> _restoreOptionAssets(
+  Future<dynamic> _restoreOptionAssetValue(
+    String key,
+    dynamic value,
     Map<String, BackupAssetRecord> assetRecords,
   ) async {
-    final raw = _optionBox.get(_profilePhotoOptionKey);
-    if (raw is! String || !_isAssetReference(raw)) {
-      return;
+    if (key != _profilePhotoOptionKey || value is! String) {
+      return value;
     }
-    final restored = await _restoreAssetReference(raw, assetRecords);
-    if (restored == null) {
-      return;
-    }
-    await _optionBox.put(_profilePhotoOptionKey, restored);
+    return await _restoreAssetReference(value, assetRecords) ?? value;
   }
 
   Future<TrainingEntry> _restoreEntryAssets(
@@ -1716,7 +1638,7 @@ class DriveBackupService implements BackupRepository {
     }
     final restoredPrimary =
         await _restoreAssetReference(entry.imagePath, assetRecords) ??
-        (restoredPaths.isNotEmpty ? restoredPaths.first : entry.imagePath);
+            (restoredPaths.isNotEmpty ? restoredPaths.first : entry.imagePath);
     return TrainingEntry(
       date: entry.date,
       durationMinutes: entry.durationMinutes,
@@ -2349,12 +2271,10 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi driveApi,
     String fileId,
   ) async {
-    final media =
-        await driveApi.files.get(
-              fileId,
-              downloadOptions: drive.DownloadOptions.fullMedia,
-            )
-            as drive.Media;
+    final media = await driveApi.files.get(
+      fileId,
+      downloadOptions: drive.DownloadOptions.fullMedia,
+    ) as drive.Media;
     return utf8.decoder.bind(media.stream).join();
   }
 
@@ -2637,8 +2557,7 @@ class DriveBackupService implements BackupRepository {
       imagePaths:
           (map['imagePaths'] as List?)?.cast<String>() ?? const <String>[],
       status: map['status'] as String? ?? 'normal',
-      liftingByPart:
-          (map['liftingByPart'] as Map?)?.map(
+      liftingByPart: (map['liftingByPart'] as Map?)?.map(
             (key, value) =>
                 MapEntry(key.toString(), (value is num) ? value.toInt() : 0),
           ) ??
@@ -2650,7 +2569,7 @@ class DriveBackupService implements BackupRepository {
           map['fortuneRecommendedProgram'] as String? ?? '',
       goalFocuses:
           (map['goalFocuses'] as List?)?.map((e) => e.toString()).toList() ??
-          const <String>[],
+              const <String>[],
       goodPoints:
           (map['goodPoints'] as String?) ?? (map['feedback'] as String? ?? ''),
       improvements:

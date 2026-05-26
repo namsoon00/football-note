@@ -249,6 +249,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsLeagueFixturesCollapse => 'Collapse fixtures';
 
   @override
+  String get newsLeagueFixturesSelectedTeamsOnly => 'Selected teams only';
+
+  @override
+  String get newsLeagueFixturesSelectedTeamsEmpty =>
+      'No selected-team fixtures are available in this league schedule.';
+
+  @override
   String get newsLeagueFixtureScheduled => 'Fixture';
 
   @override

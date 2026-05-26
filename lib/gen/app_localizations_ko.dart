@@ -224,6 +224,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsLeagueFixturesCollapse => '일정 접기';
 
   @override
+  String get newsLeagueFixturesSelectedTeamsOnly => '선택한 팀 경기만';
+
+  @override
+  String get newsLeagueFixturesSelectedTeamsEmpty => '이 리그 일정에 선택한 팀 경기가 없어요.';
+
+  @override
   String get newsLeagueFixtureScheduled => '예정';
 
   @override

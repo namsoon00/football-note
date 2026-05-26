@@ -359,8 +359,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     required int selectedIndex,
     required String selectedLabel,
   }) {
-    final canGoPrev = selectedIndex < dayCount - 1;
-    final canGoNext = selectedIndex > 0;
+    final canGoNewer = selectedIndex > 0;
+    final canGoOlder = selectedIndex < dayCount - 1;
     return Container(
       decoration: _paperDecoration(),
       child: Padding(
@@ -368,8 +368,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         child: Row(
           children: [
             IconButton(
-              tooltip: _isKo ? '이전 날짜' : 'Previous day',
-              onPressed: canGoPrev ? () => _movePage(selectedIndex + 1) : null,
+              tooltip: _isKo ? '다음 날짜' : 'Next day',
+              onPressed: canGoNewer ? () => _movePage(selectedIndex - 1) : null,
               icon: const Icon(Icons.chevron_left),
             ),
             Expanded(
@@ -409,8 +409,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               ),
             ),
             IconButton(
-              tooltip: _isKo ? '다음 날짜' : 'Next day',
-              onPressed: canGoNext ? () => _movePage(selectedIndex - 1) : null,
+              tooltip: _isKo ? '이전 날짜' : 'Previous day',
+              onPressed: canGoOlder ? () => _movePage(selectedIndex + 1) : null,
               icon: const Icon(Icons.chevron_right),
             ),
           ],
