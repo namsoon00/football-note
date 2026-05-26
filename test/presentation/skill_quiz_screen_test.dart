@@ -23,7 +23,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('축구 퀴즈'), findsOneWidget);
+      expect(find.text('오늘의 퀴즈'), findsOneWidget);
       expect(find.text('오늘의 문제'), findsOneWidget);
       expect(find.byTooltip('퀴즈 모드 선택'), findsNothing);
       expect(find.byTooltip('전체 문제 보기'), findsOneWidget);
@@ -163,7 +163,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('축구 퀴즈'), findsOneWidget);
+    expect(find.text('오늘의 퀴즈'), findsOneWidget);
     expect(find.text('이어하기'), findsOneWidget);
 
     await tester.tap(find.text('이어하기'));

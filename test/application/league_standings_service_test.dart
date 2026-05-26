@@ -169,4 +169,83 @@ void main() {
     expect(snapshot.entries.last.homeScore, 1);
     expect(snapshot.entries.last.awayTeamName, 'Atlético Madrid');
   });
+
+  test('parses K League standings payload', () {
+    final snapshot = LeagueStandingsService.parseKLeagueSnapshotForTesting(
+      fetchedAt: DateTime(2026, 5, 26, 12),
+      payload: {
+        'resultCode': '200',
+        'data': {
+          'teamRank': [
+            {
+              'year': 2026,
+              'teamName': '서울',
+              'rank': 1,
+              'gameCount': 15,
+              'gainPoint': 32,
+              'winCnt': 10,
+              'tieCnt': 2,
+              'lossCnt': 3,
+              'gainGoal': 27,
+              'lossGoal': 12,
+              'gapCnt': 15,
+            },
+          ],
+        },
+      },
+    );
+
+    expect(snapshot.type, LeagueStandingsType.kLeague1);
+    expect(snapshot.leagueName, 'K League 1');
+    expect(snapshot.seasonName, '2026 K League 1');
+    expect(snapshot.sourceUrl, contains('kleague.com'));
+    expect(snapshot.entries.single.teamName, '서울');
+    expect(snapshot.entries.single.points, '32');
+    expect(snapshot.entries.single.goalDifference, '15');
+  });
+
+  test('parses K League fixture payload', () {
+    final snapshot =
+        LeagueStandingsService.parseKLeagueFixtureSnapshotsForTesting(
+          fetchedAt: DateTime(2026, 5, 26, 12),
+          payloads: [
+            {
+              'resultCode': '200',
+              'data': {
+                'scheduleList': [
+                  {
+                    'year': 2026,
+                    'leagueId': 1,
+                    'roundId': 11,
+                    'gameId': 61,
+                    'gameDate': '2026.05.02',
+                    'gameTime': '14:00',
+                    'endYn': 'Y',
+                    'gameStatus': 'FE',
+                    'homeTeamName': '서울',
+                    'awayTeamName': '김천',
+                    'homeGoal': 2,
+                    'awayGoal': 3,
+                    'fieldName': '서울 월드컵',
+                    'fieldNameFull': '서울 월드컵 경기장',
+                    'codeName': '스플릿일반',
+                    'meetSeq': 1,
+                  },
+                ],
+              },
+            },
+          ],
+        );
+
+    expect(snapshot.type, LeagueStandingsType.kLeague1);
+    expect(snapshot.entries, hasLength(1));
+    expect(snapshot.entries.single.id, '2026-1-61-1');
+    expect(snapshot.entries.single.status, LeagueFixtureStatus.finished);
+    expect(snapshot.entries.single.stage, 'R11');
+    expect(snapshot.entries.single.homeTeamName, '서울');
+    expect(snapshot.entries.single.awayTeamName, '김천');
+    expect(snapshot.entries.single.homeScore, 2);
+    expect(snapshot.entries.single.awayScore, 3);
+    expect(snapshot.entries.single.sourceUrl, contains('/match.do'));
+  });
 }

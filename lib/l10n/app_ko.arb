@@ -55,14 +55,15 @@
   "newsMoreActionsTooltip": "리그보기",
   "newsMoreActionsTitle": "더보기",
   "newsRankingMoreButton": "리그보기",
-  "newsLeagueStandingsAction": "해외리그",
+  "newsLeagueStandingsAction": "리그보기",
   "newsLeagueStandingsTitle": "리그 보기",
+  "newsKLeagueStandingsTitle": "K리그1",
   "newsPremierLeagueStandingsTitle": "프리미어리그",
   "newsChampionsLeagueStandingsTitle": "챔피언스리그",
   "newsLaLigaStandingsTitle": "라리가",
   "newsBundesligaStandingsTitle": "분데스리가",
-  "newsMajorLeagueSoccerStandingsTitle": "미국 MLS",
-  "newsSaudiProLeagueStandingsTitle": "사우디 프로리그",
+  "newsMajorLeagueSoccerStandingsTitle": "MLS",
+  "newsSaudiProLeagueStandingsTitle": "Saudi Pro League",
   "newsLeagueStandingsUpdated": "업데이트 {date}",
   "@newsLeagueStandingsUpdated": {
     "placeholders": {
@@ -118,7 +119,7 @@
     }
   },
   "newsLeagueFixtureNotificationChannelName": "리그 경기 알림",
-  "newsLeagueFixtureNotificationChannelDescription": "선호 팀의 해외 리그 일정 알림",
+  "newsLeagueFixtureNotificationChannelDescription": "선호 팀의 리그 일정 알림",
   "newsLeagueStandingsTeamColumn": "팀",
   "newsLeagueStandingsPlayedColumn": "경기",
   "newsLeagueStandingsWinsColumn": "승",
@@ -346,6 +347,7 @@
   },
   "xpGuideDailyTasksCompleteTitle": "오늘 할일 모두 완료",
   "quizXpSourceLabel": "축구 퀴즈",
+  "quizScreenTitle": "오늘의 퀴즈",
   "quizXpSavedFeedback": "퀴즈 완료 +{count} XP",
   "@quizXpSavedFeedback": {
     "placeholders": {

@@ -164,10 +164,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsRankingMoreButton => '리그보기';
 
   @override
-  String get newsLeagueStandingsAction => '해외리그';
+  String get newsLeagueStandingsAction => '리그보기';
 
   @override
   String get newsLeagueStandingsTitle => '리그 보기';
+
+  @override
+  String get newsKLeagueStandingsTitle => 'K리그1';
 
   @override
   String get newsPremierLeagueStandingsTitle => '프리미어리그';
@@ -182,10 +185,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsBundesligaStandingsTitle => '분데스리가';
 
   @override
-  String get newsMajorLeagueSoccerStandingsTitle => '미국 MLS';
+  String get newsMajorLeagueSoccerStandingsTitle => 'MLS';
 
   @override
-  String get newsSaudiProLeagueStandingsTitle => '사우디 프로리그';
+  String get newsSaudiProLeagueStandingsTitle => 'Saudi Pro League';
 
   @override
   String newsLeagueStandingsUpdated(Object date) {
@@ -287,7 +290,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get newsLeagueFixtureNotificationChannelDescription =>
-      '선호 팀의 해외 리그 일정 알림';
+      '선호 팀의 리그 일정 알림';
 
   @override
   String get newsLeagueStandingsTeamColumn => '팀';
@@ -651,6 +654,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get quizXpSourceLabel => '축구 퀴즈';
+
+  @override
+  String get quizScreenTitle => '오늘의 퀴즈';
 
   @override
   String quizXpSavedFeedback(int count) {

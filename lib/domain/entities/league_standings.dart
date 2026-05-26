@@ -1,4 +1,5 @@
 enum LeagueStandingsType {
+  kLeague1,
   premierLeague,
   championsLeague,
   laLiga,

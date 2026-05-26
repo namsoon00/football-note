@@ -407,7 +407,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsLeagueStandingsAction.
   ///
   /// In en, this message translates to:
-  /// **'Overseas'**
+  /// **'League View'**
   String get newsLeagueStandingsAction;
 
   /// No description provided for @newsLeagueStandingsTitle.
@@ -415,6 +415,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'League View'**
   String get newsLeagueStandingsTitle;
+
+  /// No description provided for @newsKLeagueStandingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'K League 1'**
+  String get newsKLeagueStandingsTitle;
 
   /// No description provided for @newsPremierLeagueStandingsTitle.
   ///
@@ -630,7 +636,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsLeagueFixtureNotificationChannelDescription.
   ///
   /// In en, this message translates to:
-  /// **'Fixture alerts for preferred overseas league teams'**
+  /// **'Fixture alerts for preferred league teams'**
   String get newsLeagueFixtureNotificationChannelDescription;
 
   /// No description provided for @newsLeagueStandingsTeamColumn.
@@ -1287,6 +1293,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Football quiz'**
   String get quizXpSourceLabel;
+
+  /// No description provided for @quizScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Quiz'**
+  String get quizScreenTitle;
 
   /// No description provided for @quizXpSavedFeedback.
   ///

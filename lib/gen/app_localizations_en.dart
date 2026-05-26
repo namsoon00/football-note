@@ -187,10 +187,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsRankingMoreButton => 'League view';
 
   @override
-  String get newsLeagueStandingsAction => 'Overseas';
+  String get newsLeagueStandingsAction => 'League View';
 
   @override
   String get newsLeagueStandingsTitle => 'League View';
+
+  @override
+  String get newsKLeagueStandingsTitle => 'K League 1';
 
   @override
   String get newsPremierLeagueStandingsTitle => 'Premier League';
@@ -314,7 +317,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsLeagueFixtureNotificationChannelDescription =>
-      'Fixture alerts for preferred overseas league teams';
+      'Fixture alerts for preferred league teams';
 
   @override
   String get newsLeagueStandingsTeamColumn => 'Team';
@@ -686,6 +689,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quizXpSourceLabel => 'Football quiz';
+
+  @override
+  String get quizScreenTitle => 'Today\'s Quiz';
 
   @override
   String quizXpSavedFeedback(int count) {
