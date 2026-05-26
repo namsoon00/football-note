@@ -31,12 +31,9 @@ const _leagueStandingsActionKey = ValueKey<String>(
   'news_quick_action_league_standings',
 );
 const _fifaHubActionKey = ValueKey<String>('news_quick_action_fifa_hub');
-const _kLeagueActionKey = ValueKey<String>(
-  'news_quick_action_kleague_standings',
-);
 
 void main() {
-  testWidgets('news header exposes standings actions', (
+  testWidgets('news header exposes one league entry point', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -73,10 +70,9 @@ void main() {
 
     expect(find.text('오늘의 소식'), findsOneWidget);
     expect(find.byKey(_leagueStandingsActionKey), findsOneWidget);
-    expect(find.byKey(_kLeagueActionKey), findsOneWidget);
     expect(find.byKey(_fifaHubActionKey), findsOneWidget);
-    expect(find.text('해외리그'), findsOneWidget);
-    expect(find.text('국내리그'), findsOneWidget);
+    expect(find.text('리그보기'), findsOneWidget);
+    expect(find.text('국내리그'), findsNothing);
     expect(find.text('피파랭킹'), findsOneWidget);
   });
 

@@ -76,9 +76,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const ValueKey<String> _fifaHubActionKey = ValueKey<String>(
     'news_quick_action_fifa_hub',
   );
-  static const ValueKey<String> _kLeagueStandingsActionKey = ValueKey<String>(
-    'news_quick_action_kleague_standings',
-  );
   static const ValueKey<String> _leagueStandingsActionKey = ValueKey<String>(
     'news_quick_action_league_standings',
   );
@@ -87,9 +84,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   );
   static const ValueKey<String> _viewedHistoryActionKey = ValueKey<String>(
     'news_quick_action_viewed_history',
-  );
-  static final Uri _kLeagueStandingsUri = Uri.parse(
-    'https://www.kleague.com/record/team.do',
   );
   static DateTime? _cachedLoadedAt;
   static Set<String>? _cachedChannelIds;
@@ -302,13 +296,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                       label: l10n.newsLeagueStandingsAction,
                       icon: Icons.sports_soccer_outlined,
                       onPressed: _openLeagueStandings,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildHeaderLeagueAction(
-                      buttonKey: _kLeagueStandingsActionKey,
-                      label: l10n.newsKLeagueStandingsButton,
-                      icon: Icons.flag_outlined,
-                      onPressed: _openKLeagueStandings,
                     ),
                     const SizedBox(width: 6),
                     _buildHeaderLeagueAction(
@@ -1408,14 +1395,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
           settingsService: widget.settingsService,
         ),
       ),
-    );
-  }
-
-  Future<void> _openKLeagueStandings() async {
-    await launchUrl(
-      _kLeagueStandingsUri,
-      mode: LaunchMode.inAppBrowserView,
-      browserConfiguration: const BrowserConfiguration(showTitle: true),
     );
   }
 

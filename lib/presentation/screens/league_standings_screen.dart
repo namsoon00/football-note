@@ -22,7 +22,7 @@ class LeagueStandingsScreen extends StatefulWidget {
 
   const LeagueStandingsScreen({
     super.key,
-    this.initialType = LeagueStandingsType.premierLeague,
+    this.initialType = LeagueStandingsType.kLeague1,
     this.service,
     this.reminderService,
     this.optionRepository,
@@ -744,6 +744,15 @@ List<ButtonSegment<LeagueStandingsType>> _leagueStandingsSegments(
   Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>? labelKeys,
 }) {
   return [
+    ButtonSegment<LeagueStandingsType>(
+      value: LeagueStandingsType.kLeague1,
+      icon: const Icon(Icons.flag_outlined, size: 18),
+      label: _leagueSegmentLabel(
+        labelKeys,
+        LeagueStandingsType.kLeague1,
+        l10n.newsKLeagueStandingsTitle,
+      ),
+    ),
     ButtonSegment<LeagueStandingsType>(
       value: LeagueStandingsType.premierLeague,
       icon: const Icon(Icons.shield_outlined, size: 18),

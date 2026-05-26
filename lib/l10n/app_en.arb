@@ -55,8 +55,9 @@
   "newsMoreActionsTooltip": "League view",
   "newsMoreActionsTitle": "More",
   "newsRankingMoreButton": "League view",
-  "newsLeagueStandingsAction": "Overseas",
+  "newsLeagueStandingsAction": "League View",
   "newsLeagueStandingsTitle": "League View",
+  "newsKLeagueStandingsTitle": "K League 1",
   "newsPremierLeagueStandingsTitle": "Premier League",
   "newsChampionsLeagueStandingsTitle": "Champions League",
   "newsLaLigaStandingsTitle": "LaLiga",
@@ -118,7 +119,7 @@
     }
   },
   "newsLeagueFixtureNotificationChannelName": "League Fixture Alerts",
-  "newsLeagueFixtureNotificationChannelDescription": "Fixture alerts for preferred overseas league teams",
+  "newsLeagueFixtureNotificationChannelDescription": "Fixture alerts for preferred league teams",
   "newsLeagueStandingsTeamColumn": "Team",
   "newsLeagueStandingsPlayedColumn": "P",
   "newsLeagueStandingsWinsColumn": "W",
@@ -346,6 +347,7 @@
   },
   "xpGuideDailyTasksCompleteTitle": "All today tasks complete",
   "quizXpSourceLabel": "Football quiz",
+  "quizScreenTitle": "Today's Quiz",
   "quizXpSavedFeedback": "Quiz complete +{count} XP",
   "@quizXpSavedFeedback": {
     "placeholders": {

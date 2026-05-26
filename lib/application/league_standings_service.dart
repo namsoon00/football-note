@@ -20,10 +20,29 @@ class LeagueStandingsService {
     LeagueStandingsType.majorLeagueSoccer: 'usa.1',
     LeagueStandingsType.saudiProLeague: 'ksa.1',
   };
+  static final Uri _kLeagueStandingsUri =
+      Uri.https('www.kleague.com', '/record/teamRank.do', {
+        'leagueId': '1',
+        'stadium': 'all',
+        'recordType': 'rank',
+        'sortTargetId': '',
+        'isSort': 'false',
+      });
+  static final Uri _kLeagueFixturesUri = Uri.https(
+    'www.kleague.com',
+    '/getScheduleList.do',
+  );
+  static const String _kLeagueStandingsSourceUrl =
+      'https://www.kleague.com/record/team.do';
+  static const String _kLeagueFixturesSourceUrl =
+      'https://www.kleague.com/schedule.do?leagueId=1';
   static const int _fixtureLookBackDays = 14;
   static const int _fixtureLookAheadDays = 90;
 
   Future<LeagueStandingsSnapshot> fetch(LeagueStandingsType type) async {
+    if (type == LeagueStandingsType.kLeague1) {
+      return _fetchKLeagueStandings();
+    }
     final leagueId = _espnLeagueIds[type]!;
     final uri = Uri.https(
       'site.api.espn.com',
@@ -46,6 +65,9 @@ class LeagueStandingsService {
     LeagueStandingsType type, {
     DateTime? now,
   }) async {
+    if (type == LeagueStandingsType.kLeague1) {
+      return _fetchKLeagueFixtures(now: now);
+    }
     final leagueId = _espnLeagueIds[type]!;
     final reference = now ?? DateTime.now();
     final start = reference.subtract(
@@ -71,6 +93,74 @@ class LeagueStandingsService {
       throw StateError('Invalid fixtures payload.');
     }
     return parseFixtureSnapshotForTesting(type: type, payload: decoded);
+  }
+
+  Future<LeagueStandingsSnapshot> _fetchKLeagueStandings({
+    DateTime? now,
+  }) async {
+    final year = (now ?? DateTime.now()).year.toString();
+    final uri = _kLeagueStandingsUri.replace(
+      queryParameters: {..._kLeagueStandingsUri.queryParameters, 'year': year},
+    );
+    final response = await _client
+        .post(uri)
+        .timeout(const Duration(seconds: 10));
+    if (response.statusCode != 200) {
+      throw StateError(
+        'K League standings request failed: '
+        '${response.statusCode}',
+      );
+    }
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw StateError('Invalid K League standings payload.');
+    }
+    if (decoded['resultCode']?.toString() != '200') {
+      throw StateError('K League standings returned an error.');
+    }
+    return parseKLeagueSnapshotForTesting(payload: decoded);
+  }
+
+  Future<LeagueFixtureSnapshot> _fetchKLeagueFixtures({DateTime? now}) async {
+    final reference = now ?? DateTime.now();
+    final start = reference.subtract(
+      const Duration(days: _fixtureLookBackDays),
+    );
+    final end = reference.add(const Duration(days: _fixtureLookAheadDays));
+    final payloads = <Map<String, dynamic>>[];
+    for (final month in _monthsBetween(start, end)) {
+      final response = await _client
+          .post(
+            _kLeagueFixturesUri,
+            headers: const {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'leagueId': '1',
+              'year': month.year.toString(),
+              'month': month.month.toString().padLeft(2, '0'),
+              'ticketYn': '',
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode != 200) {
+        throw StateError(
+          'K League fixtures request failed: '
+          '${response.statusCode}',
+        );
+      }
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        throw StateError('Invalid K League fixtures payload.');
+      }
+      if (decoded['resultCode']?.toString() != '200') {
+        throw StateError('K League fixtures returned an error.');
+      }
+      payloads.add(decoded);
+    }
+    return parseKLeagueFixtureSnapshotsForTesting(
+      payloads: payloads,
+      start: start,
+      end: end,
+    );
   }
 
   void dispose() {
@@ -149,6 +239,149 @@ class LeagueStandingsService {
       sourceUrl: _fixtureSourceUrl(payload),
       fetchedAt: fetchedAt ?? DateTime.now(),
       entries: entries,
+    );
+  }
+
+  static LeagueStandingsSnapshot parseKLeagueSnapshotForTesting({
+    required Map<String, dynamic> payload,
+    DateTime? fetchedAt,
+  }) {
+    final data = _asMap(payload['data']);
+    final entriesRaw = data['teamRank'];
+    final entries = <LeagueStandingEntry>[];
+    if (entriesRaw is List) {
+      for (var index = 0; index < entriesRaw.length; index++) {
+        final raw = entriesRaw[index];
+        if (raw is! Map) continue;
+        final entry = _parseKLeagueStandingEntry(
+          raw.cast<String, dynamic>(),
+          index,
+        );
+        if (entry.teamName.trim().isNotEmpty) {
+          entries.add(entry);
+        }
+      }
+    }
+    entries.sort((a, b) => a.rank.compareTo(b.rank));
+    final seasonYear = entriesRaw is List && entriesRaw.isNotEmpty
+        ? _asMap(entriesRaw.first)['year']?.toString().trim() ?? ''
+        : '';
+    return LeagueStandingsSnapshot(
+      type: LeagueStandingsType.kLeague1,
+      leagueName: 'K League 1',
+      seasonName: seasonYear.isEmpty ? '' : '$seasonYear K League 1',
+      sourceUrl: _kLeagueStandingsSourceUrl,
+      fetchedAt: fetchedAt ?? DateTime.now(),
+      entries: entries,
+    );
+  }
+
+  static LeagueFixtureSnapshot parseKLeagueFixtureSnapshotsForTesting({
+    required List<Map<String, dynamic>> payloads,
+    DateTime? start,
+    DateTime? end,
+    DateTime? fetchedAt,
+  }) {
+    final entries = <LeagueFixtureEntry>[];
+    String seasonName = '';
+    for (final payload in payloads) {
+      final data = _asMap(payload['data']);
+      final fixturesRaw = data['scheduleList'];
+      if (fixturesRaw is! List) continue;
+      for (final raw in fixturesRaw) {
+        if (raw is! Map) continue;
+        final entry = _parseKLeagueFixtureEntry(raw.cast<String, dynamic>());
+        if (entry == null) continue;
+        if (start != null && entry.kickoffAt.isBefore(start)) continue;
+        if (end != null && entry.kickoffAt.isAfter(end)) continue;
+        entries.add(entry);
+        if (seasonName.isEmpty) {
+          final year = raw['year']?.toString().trim() ?? '';
+          if (year.isNotEmpty) {
+            seasonName = '$year K League 1';
+          }
+        }
+      }
+    }
+    entries.sort(_compareFixtureEntries);
+    return LeagueFixtureSnapshot(
+      type: LeagueStandingsType.kLeague1,
+      leagueName: 'K League 1',
+      seasonName: seasonName,
+      sourceUrl: _kLeagueFixturesSourceUrl,
+      fetchedAt: fetchedAt ?? DateTime.now(),
+      entries: entries,
+    );
+  }
+
+  static LeagueStandingEntry _parseKLeagueStandingEntry(
+    Map<String, dynamic> raw,
+    int index,
+  ) {
+    return LeagueStandingEntry(
+      rank: _asInt(raw['rank']) ?? index + 1,
+      teamName: raw['teamName']?.toString().trim() ?? '',
+      teamShortName: raw['teamName']?.toString().trim() ?? '',
+      logoUrl: '',
+      played: _asDisplay(raw['gameCount']),
+      wins: _asDisplay(raw['winCnt']),
+      draws: _asDisplay(raw['tieCnt']),
+      losses: _asDisplay(raw['lossCnt']),
+      goalsFor: _asDisplay(raw['gainGoal']),
+      goalsAgainst: _asDisplay(raw['lossGoal']),
+      goalDifference: _asDisplay(raw['gapCnt']),
+      points: _asDisplay(raw['gainPoint']),
+      note: '',
+    );
+  }
+
+  static LeagueFixtureEntry? _parseKLeagueFixtureEntry(
+    Map<String, dynamic> raw,
+  ) {
+    final kickoffAt = _parseKLeagueKickoffAt(
+      raw['gameDate']?.toString().trim() ?? '',
+      raw['gameTime']?.toString().trim() ?? '',
+    );
+    final homeTeamName = raw['homeTeamName']?.toString().trim() ?? '';
+    final awayTeamName = raw['awayTeamName']?.toString().trim() ?? '';
+    final gameId = raw['gameId']?.toString().trim() ?? '';
+    if (kickoffAt == null ||
+        gameId.isEmpty ||
+        homeTeamName.isEmpty ||
+        awayTeamName.isEmpty) {
+      return null;
+    }
+    final status = _kLeagueFixtureStatus(raw);
+    final year = raw['year']?.toString().trim() ?? '';
+    final leagueId = raw['leagueId']?.toString().trim() ?? '1';
+    final meetSeq = raw['meetSeq']?.toString().trim() ?? '';
+    final roundId = raw['roundId']?.toString().trim() ?? '';
+    return LeagueFixtureEntry(
+      id: _firstNonEmpty([
+        if (year.isNotEmpty && meetSeq.isNotEmpty)
+          '$year-$leagueId-$gameId-$meetSeq',
+        gameId,
+      ]),
+      kickoffAt: kickoffAt,
+      stage: roundId.isEmpty ? '' : 'R$roundId',
+      leg: '',
+      note: raw['codeName']?.toString().trim() ?? '',
+      venue: raw['fieldNameFull']?.toString().trim() ?? '',
+      city: raw['fieldName']?.toString().trim() ?? '',
+      homeTeamName: homeTeamName,
+      homeTeamShortName: homeTeamName,
+      homeLogoUrl: '',
+      awayTeamName: awayTeamName,
+      awayTeamShortName: awayTeamName,
+      awayLogoUrl: '',
+      homeScore: status == LeagueFixtureStatus.scheduled
+          ? null
+          : _asInt(raw['homeGoal']),
+      awayScore: status == LeagueFixtureStatus.scheduled
+          ? null
+          : _asInt(raw['awayGoal']),
+      status: status,
+      sourceUrl: _kLeagueFixtureSourceUrl(raw),
     );
   }
 
@@ -331,6 +564,69 @@ class LeagueStandingsService {
     return '';
   }
 
+  static DateTime? _parseKLeagueKickoffAt(String rawDate, String rawTime) {
+    final dateMatch = RegExp(
+      r'^(\d{4})[.](\d{1,2})[.](\d{1,2})$',
+    ).firstMatch(rawDate);
+    if (dateMatch == null) return null;
+    final year = int.tryParse(dateMatch.group(1) ?? '');
+    final month = int.tryParse(dateMatch.group(2) ?? '');
+    final day = int.tryParse(dateMatch.group(3) ?? '');
+    if (year == null || month == null || day == null) return null;
+    final timeMatch = RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch(rawTime);
+    final hour = int.tryParse(timeMatch?.group(1) ?? '') ?? 0;
+    final minute = int.tryParse(timeMatch?.group(2) ?? '') ?? 0;
+    return DateTime.utc(
+      year,
+      month,
+      day,
+      hour,
+      minute,
+    ).subtract(const Duration(hours: 9));
+  }
+
+  static LeagueFixtureStatus _kLeagueFixtureStatus(Map<String, dynamic> raw) {
+    final endYn = raw['endYn']?.toString().trim().toUpperCase() ?? '';
+    final gameStatus = raw['gameStatus']?.toString().trim().toUpperCase() ?? '';
+    if (endYn == 'Y' || gameStatus == 'FE') {
+      return LeagueFixtureStatus.finished;
+    }
+    if (gameStatus.isNotEmpty &&
+        gameStatus != 'BE' &&
+        gameStatus != 'P' &&
+        gameStatus != 'PE') {
+      return LeagueFixtureStatus.live;
+    }
+    return LeagueFixtureStatus.scheduled;
+  }
+
+  static String _kLeagueFixtureSourceUrl(Map<String, dynamic> raw) {
+    final year = raw['year']?.toString().trim() ?? '';
+    final leagueId = raw['leagueId']?.toString().trim() ?? '';
+    final gameId = raw['gameId']?.toString().trim() ?? '';
+    final meetSeq = raw['meetSeq']?.toString().trim() ?? '';
+    if (year.isEmpty || leagueId.isEmpty || gameId.isEmpty || meetSeq.isEmpty) {
+      return _kLeagueFixturesSourceUrl;
+    }
+    return Uri.https('www.kleague.com', '/match.do', {
+      'year': year,
+      'leagueId': leagueId,
+      'gameId': gameId,
+      'meetSeq': meetSeq,
+    }).toString();
+  }
+
+  static List<DateTime> _monthsBetween(DateTime start, DateTime end) {
+    final months = <DateTime>[];
+    var cursor = DateTime(start.year, start.month);
+    final last = DateTime(end.year, end.month);
+    while (!cursor.isAfter(last)) {
+      months.add(cursor);
+      cursor = DateTime(cursor.year, cursor.month + 1);
+    }
+    return months;
+  }
+
   static Map<String, dynamic> _firstMap(dynamic raw) {
     if (raw is List) {
       for (final item in raw) {
@@ -394,6 +690,12 @@ class LeagueStandingsService {
     return int.tryParse(value?.toString().trim() ?? '');
   }
 
+  static String _asDisplay(dynamic value) {
+    if (value == null) return '-';
+    final text = value.toString().trim();
+    return text.isEmpty ? '-' : text;
+  }
+
   static int _compareFixtureEntries(
     LeagueFixtureEntry a,
     LeagueFixtureEntry b,
@@ -417,6 +719,7 @@ class LeagueStandingsService {
 
   static String _fallbackLeagueName(LeagueStandingsType type) {
     return switch (type) {
+      LeagueStandingsType.kLeague1 => 'K League 1',
       LeagueStandingsType.premierLeague => 'Premier League',
       LeagueStandingsType.championsLeague => 'UEFA Champions League',
       LeagueStandingsType.laLiga => 'LaLiga',

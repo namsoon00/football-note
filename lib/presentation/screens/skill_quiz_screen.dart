@@ -820,6 +820,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     return PopScope(
       canPop: !_showEntryHubBackButton,
       onPopInvokedWithResult: (didPop, result) {
@@ -835,7 +836,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   icon: const Icon(Icons.arrow_back),
                 )
               : null,
-          title: Text(isKo ? '축구 퀴즈' : 'Football Quiz'),
+          title: Text(l10n.quizScreenTitle),
           actions: _showEntryHubBackButton
               ? null
               : [

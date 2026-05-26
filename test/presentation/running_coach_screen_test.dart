@@ -49,5 +49,16 @@ void main() {
       find.text('Foot lands under the hip with toes forward'),
       findsOneWidget,
     );
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-sample-back-button')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-video-frame')),
+      findsNothing,
+    );
+    expect(find.text('Running Coach'), findsOneWidget);
   });
 }
