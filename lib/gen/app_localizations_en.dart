@@ -2179,6 +2179,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifications => 'Notifications';
 
   @override
+  String get notificationSettingsAction => 'Settings';
+
+  @override
+  String get notificationRefreshAction => 'Refresh';
+
+  @override
   String notificationFamilySectionTitle(int count) {
     return '$count family sync alert(s)';
   }
@@ -2192,6 +2198,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notificationFamilySettingsSubtitle =>
       'Notify when player logs or parent feedback/rewards sync.';
+
+  @override
+  String get notificationLeagueFixtureSettingsTitle =>
+      'Favorite team match alerts';
+
+  @override
+  String get notificationLeagueFixtureSettingsSubtitle =>
+      'Notify before loaded fixtures for selected favorite teams.';
 
   @override
   String get reminderEnabled => 'Enable daily reminder';
@@ -2483,6 +2497,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherPrecipitation => 'Precipitation';
+
+  @override
+  String get weatherPrecipitationNone => 'Almost no rain';
+
+  @override
+  String get weatherPrecipitationTrace => 'The ground may feel a little damp';
+
+  @override
+  String get weatherPrecipitationLight =>
+      'A light rain where an umbrella helps';
+
+  @override
+  String get weatherPrecipitationModerate => 'Enough rain to wet the field';
+
+  @override
+  String get weatherPrecipitationHeavy => 'Puddles can form quickly';
+
+  @override
+  String get weatherPrecipitationVeryHeavy =>
+      'Too much rain for easy outdoor play';
 
   @override
   String get homeWeatherHourlyPrecipitation => 'Hourly precipitation';
@@ -5521,6 +5555,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get parentReadOnlyProfileDescription =>
       'Parent mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.';
+
+  @override
+  String get parentReadOnlySettingsOptions =>
+      'Parent mode cannot edit default values or news filters. Change them in player mode.';
 
   @override
   String get benchmarkReferenceNote =>

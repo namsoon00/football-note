@@ -257,19 +257,32 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                       ),
                       const SizedBox(height: 16),
                       if (_canEdit)
-                        TextField(
-                          controller: _controller,
-                          minLines: 8,
-                          maxLines: 14,
-                          autofocus: true,
-                          enabled: !_isSaving,
-                          keyboardType: TextInputType.multiline,
-                          textInputAction: TextInputAction.newline,
-                          decoration: InputDecoration(
-                            labelText: l10n.parentFeedbackInputLabel,
-                            hintText: l10n.parentFeedbackInputHint,
-                            alignLabelWithHint: true,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            TextField(
+                              controller: _controller,
+                              minLines: 8,
+                              maxLines: 14,
+                              autofocus: true,
+                              enabled: !_isSaving,
+                              keyboardType: TextInputType.multiline,
+                              textInputAction: TextInputAction.newline,
+                              decoration: InputDecoration(
+                                labelText: l10n.parentFeedbackInputLabel,
+                                hintText: l10n.parentFeedbackInputHint,
+                                alignLabelWithHint: true,
+                              ),
+                            ),
+                            if (_savedReactions.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              _ParentFeedbackReactionPicker(
+                                selectedReactions: _savedReactions.toSet(),
+                                canEdit: false,
+                                onChanged: (_) {},
+                              ),
+                            ],
+                          ],
                         )
                       else
                         Text(
@@ -368,7 +381,7 @@ class _ParentFeedbackReactionPicker extends StatelessWidget {
       ),
       _ParentFeedbackReactionOption(
         id: 'review',
-        icon: Icons.visibility_rounded,
+        icon: Icons.rate_review_rounded,
         label: l10n.parentFeedbackReactionReview,
       ),
       _ParentFeedbackReactionOption(

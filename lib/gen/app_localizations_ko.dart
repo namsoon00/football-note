@@ -2109,6 +2109,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notifications => '알림';
 
   @override
+  String get notificationSettingsAction => '설정';
+
+  @override
+  String get notificationRefreshAction => '새로고침';
+
+  @override
   String notificationFamilySectionTitle(int count) {
     return '가족 동기화 알림 $count개';
   }
@@ -2122,6 +2128,13 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get notificationFamilySettingsSubtitle =>
       '선수 기록 또는 보호자 피드백/선물이 동기화되면 알림을 보냅니다.';
+
+  @override
+  String get notificationLeagueFixtureSettingsTitle => '좋아하는 팀 경기 알림';
+
+  @override
+  String get notificationLeagueFixtureSettingsSubtitle =>
+      '선택한 좋아하는 팀의 불러온 경기 일정 전에 알림을 보냅니다.';
 
   @override
   String get reminderEnabled => '일일 알림 사용';
@@ -2403,6 +2416,24 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherPrecipitation => '강수량';
+
+  @override
+  String get weatherPrecipitationNone => '거의 안 와요';
+
+  @override
+  String get weatherPrecipitationTrace => '땅이 살짝 젖는 정도예요';
+
+  @override
+  String get weatherPrecipitationLight => '우산이 있으면 좋아요';
+
+  @override
+  String get weatherPrecipitationModerate => '운동장이 젖을 만큼 와요';
+
+  @override
+  String get weatherPrecipitationHeavy => '물웅덩이가 금방 생겨요';
+
+  @override
+  String get weatherPrecipitationVeryHeavy => '밖에서 놀기 어려울 만큼 와요';
 
   @override
   String get homeWeatherHourlyPrecipitation => '시간별 강수량';
@@ -5338,6 +5369,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get parentReadOnlyProfileDescription =>
       '보호자 모드에서는 프로필이 읽기 전용입니다. 훈련 피드백은 훈련기록에서, 레벨 선물 입력은 레벨 가이드에서 진행해 주세요.';
+
+  @override
+  String get parentReadOnlySettingsOptions =>
+      '보호자 모드에서는 기본값과 뉴스 필터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.';
 
   @override
   String get benchmarkReferenceNote =>

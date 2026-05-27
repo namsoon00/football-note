@@ -907,10 +907,11 @@ class _LogsScreenState extends State<LogsScreen> {
     TrainingEntry entry,
     Map<String, ParentTrainingFeedback> feedbackByEntryId,
   ) {
-    return feedbackByEntryId[ParentSharedFeedbackService.entryIdFor(entry)]
-            ?.message
-            .trim() ??
-        '';
+    final feedback =
+        feedbackByEntryId[ParentSharedFeedbackService.entryIdFor(entry)];
+    final message = feedback?.message.trim() ?? '';
+    if (message.isNotEmpty) return message;
+    return feedback?.reaction.trim() ?? '';
   }
 
   Widget _buildEntryRow({

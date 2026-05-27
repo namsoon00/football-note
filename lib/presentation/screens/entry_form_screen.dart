@@ -836,22 +836,60 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
+          if (reaction.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: _parentFeedbackReactionIds(reaction)
+                  .map(
+                    (id) => Chip(
+                      avatar: Icon(
+                        _parentFeedbackReactionIcon(id) ??
+                            Icons.rate_review_rounded,
+                        size: 16,
+                      ),
+                      label: Text(_parentFeedbackReactionLabel(id, l10n)),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ],
         ],
       ),
     );
   }
 
   IconData? _parentFeedbackReactionIcon(String reaction) {
-    final primaryReaction = reaction
-        .split(',')
-        .map((item) => item.trim())
-        .firstWhere((item) => item.isNotEmpty, orElse: () => '');
+    final reactions = _parentFeedbackReactionIds(reaction);
+    final primaryReaction = reactions.firstWhere(
+      (item) => item != 'review',
+      orElse: () => reactions.isEmpty ? '' : reactions.first,
+    );
     return switch (primaryReaction) {
       'thanks' => Icons.favorite_rounded,
       'proud' => Icons.emoji_events_rounded,
-      'review' => Icons.visibility_rounded,
+      'review' => Icons.rate_review_rounded,
       'try' => Icons.directions_run_rounded,
       _ => null,
+    };
+  }
+
+  List<String> _parentFeedbackReactionIds(String reaction) {
+    return reaction
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  String _parentFeedbackReactionLabel(String reaction, AppLocalizations l10n) {
+    return switch (reaction) {
+      'thanks' => l10n.parentFeedbackReactionThanks,
+      'proud' => l10n.parentFeedbackReactionProud,
+      'review' => l10n.parentFeedbackReactionReview,
+      'try' => l10n.parentFeedbackReactionTry,
+      _ => reaction,
     };
   }
 
@@ -2335,11 +2373,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final resolvedTextInputAction = isMultiline
         ? TextInputAction.newline
         : TextInputAction.done;
-    final hideKeyboardButton = IconButton(
-      tooltip: l10n.hideKeyboard,
-      onPressed: enabled ? () => FocusScope.of(context).unfocus() : null,
-      icon: const Icon(Icons.check_rounded),
-    );
     final micButton = showMic && enabled
         ? IconButton(
             onPressed: () => _toggleListening(controller, l10n),
@@ -2351,11 +2384,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             ),
           )
         : null;
-    final suffixIcon = enabled
-        ? Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [if (micButton != null) micButton, hideKeyboardButton],
-          )
+    final suffixIcon = enabled && micButton != null
+        ? Row(mainAxisSize: MainAxisSize.min, children: [micButton])
         : decoration.suffixIcon;
     final field = TextFormField(
       key: fieldKey,

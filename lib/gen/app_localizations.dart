@@ -4012,6 +4012,18 @@ abstract class AppLocalizations {
   /// **'Notifications'**
   String get notifications;
 
+  /// No description provided for @notificationSettingsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get notificationSettingsAction;
+
+  /// No description provided for @notificationRefreshAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get notificationRefreshAction;
+
   /// No description provided for @notificationFamilySectionTitle.
   ///
   /// In en, this message translates to:
@@ -4035,6 +4047,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notify when player logs or parent feedback/rewards sync.'**
   String get notificationFamilySettingsSubtitle;
+
+  /// No description provided for @notificationLeagueFixtureSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite team match alerts'**
+  String get notificationLeagueFixtureSettingsTitle;
+
+  /// No description provided for @notificationLeagueFixtureSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify before loaded fixtures for selected favorite teams.'**
+  String get notificationLeagueFixtureSettingsSubtitle;
 
   /// No description provided for @reminderEnabled.
   ///
@@ -4557,6 +4581,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Precipitation'**
   String get homeWeatherPrecipitation;
+
+  /// No description provided for @weatherPrecipitationNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost no rain'**
+  String get weatherPrecipitationNone;
+
+  /// No description provided for @weatherPrecipitationTrace.
+  ///
+  /// In en, this message translates to:
+  /// **'The ground may feel a little damp'**
+  String get weatherPrecipitationTrace;
+
+  /// No description provided for @weatherPrecipitationLight.
+  ///
+  /// In en, this message translates to:
+  /// **'A light rain where an umbrella helps'**
+  String get weatherPrecipitationLight;
+
+  /// No description provided for @weatherPrecipitationModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Enough rain to wet the field'**
+  String get weatherPrecipitationModerate;
+
+  /// No description provided for @weatherPrecipitationHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Puddles can form quickly'**
+  String get weatherPrecipitationHeavy;
+
+  /// No description provided for @weatherPrecipitationVeryHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Too much rain for easy outdoor play'**
+  String get weatherPrecipitationVeryHeavy;
 
   /// No description provided for @homeWeatherHourlyPrecipitation.
   ///
@@ -9568,6 +9628,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parent mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.'**
   String get parentReadOnlyProfileDescription;
+
+  /// No description provided for @parentReadOnlySettingsOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode cannot edit default values or news filters. Change them in player mode.'**
+  String get parentReadOnlySettingsOptions;
 
   /// No description provided for @benchmarkReferenceNote.
   ///

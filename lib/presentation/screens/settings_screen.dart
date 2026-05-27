@@ -193,16 +193,15 @@ class _SettingsScreenState extends State<SettingsScreen>
     DriveConnectionInfo? sharedChildConnection;
     var hasRemotePlayerBackup = _hasRemotePlayerBackup;
     try {
-      sharedChildConnection = await widget.driveBackupService!
-          .getSharedChildDriveConnectionInfo(
-            allowRemoteLookup:
-                allowRemoteSharedLookup && familyState.isParentMode,
-          );
+      sharedChildConnection =
+          await widget.driveBackupService!.getSharedChildDriveConnectionInfo(
+        allowRemoteLookup: allowRemoteSharedLookup && familyState.isParentMode,
+      );
       if (checkRemotePlayerBackup &&
           familyState.isParentMode &&
           (sharedChildConnection == null || sharedChildConnection.isEmpty)) {
-        hasRemotePlayerBackup = await widget.driveBackupService!
-            .hasRemotePlayerBackup();
+        hasRemotePlayerBackup =
+            await widget.driveBackupService!.hasRemotePlayerBackup();
       }
     } catch (e, st) {
       debugPrint('Shared child Drive lookup failed: $e');
@@ -223,8 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     final cachedConnectedDriveEmail = _cachedConnectedDriveEmail();
     if (!mounted) return;
     setState(() {
-      _signedIn =
-          signedIn ||
+      _signedIn = signedIn ||
           (connection != null && !connection.isEmpty) ||
           (allowCachedConnection && cachedConnectedDriveLabel.isNotEmpty);
       _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
@@ -240,13 +238,11 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   String _cachedConnectedDriveLabel() {
-    final cachedLabel =
-        widget.optionRepository
+    final cachedLabel = widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveLabelLocalKey)
             ?.trim() ??
         '';
-    final cachedEmail =
-        widget.optionRepository
+    final cachedEmail = widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveEmailLocalKey)
             ?.trim() ??
         '';
@@ -292,18 +288,18 @@ class _SettingsScreenState extends State<SettingsScreen>
     final familyState = FamilyAccessService(
       widget.optionRepository,
     ).loadState();
+    final parentSettingsReadOnly = familyState.isSupportMode;
     final expectedChildDriveLabel = _sharedChildDriveLabel.trim().isNotEmpty
         ? _sharedChildDriveLabel.trim()
         : _sharedChildDriveEmail.trim();
     final sharedChildDriveSubtitle = _driveStatusLoading
         ? l10n.settingsSyncStatusChecking
         : expectedChildDriveLabel.isNotEmpty
-        ? l10n.settingsSyncBackupDataReady
-        : _hasRemotePlayerBackup
-        ? l10n.driveSharedChildAccountRemoteBackup
-        : l10n.driveSharedChildAccountEmpty;
-    final driveMatchesExpected =
-        expectedChildDriveLabel.isEmpty ||
+            ? l10n.settingsSyncBackupDataReady
+            : _hasRemotePlayerBackup
+                ? l10n.driveSharedChildAccountRemoteBackup
+                : l10n.driveSharedChildAccountEmpty;
+    final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _driveLabelMatchesEmail(_connectedDriveLabel, _sharedChildDriveEmail);
 
@@ -380,7 +376,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-        _durationOptions.first;
+            _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
@@ -422,6 +418,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        centerTitle: false,
         title: Text(l10n.settings),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
@@ -530,7 +527,11 @@ class _SettingsScreenState extends State<SettingsScreen>
             icon: Icons.tune_outlined,
             children: [
               const SizedBox(height: 6),
-              _buildDefaultsAndOptionManager(l10n, isKo),
+              _buildDefaultsAndOptionManager(
+                l10n,
+                isKo,
+                readOnly: parentSettingsReadOnly,
+              ),
               const SizedBox(height: 8),
             ],
           ),
@@ -543,23 +544,29 @@ class _SettingsScreenState extends State<SettingsScreen>
                 title: isKo ? '광고 도메인 차단 목록' : 'Blocked ad domains',
                 subtitle:
                     '${_newsBlockedDomains.length}${isKo ? '개 항목' : ' items'}',
-                onTap: () => _manageStringOptions(
-                  key: 'news_blocked_domains',
-                  title: isKo ? '광고 도메인 차단 목록 관리' : 'Manage blocked ad domains',
-                  options: _newsBlockedDomains,
-                  minKeep: 0,
-                  sanitize: _normalizeDomain,
-                  onSaved: (updated) async {
-                    setState(() => _newsBlockedDomains = updated);
-                  },
-                ),
+                onTap: parentSettingsReadOnly
+                    ? null
+                    : () => _manageStringOptions(
+                          key: 'news_blocked_domains',
+                          title: isKo
+                              ? '광고 도메인 차단 목록 관리'
+                              : 'Manage blocked ad domains',
+                          options: _newsBlockedDomains,
+                          minKeep: 0,
+                          sanitize: _normalizeDomain,
+                          onSaved: (updated) async {
+                            setState(() => _newsBlockedDomains = updated);
+                          },
+                        ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Text(
-                  isKo
-                      ? '예시: example.com (프로토콜/경로 없이 도메인만 입력)'
-                      : 'Example: example.com (domain only, no path)',
+                  parentSettingsReadOnly
+                      ? l10n.parentReadOnlySettingsOptions
+                      : isKo
+                          ? '예시: example.com (프로토콜/경로 없이 도메인만 입력)'
+                          : 'Example: example.com (domain only, no path)',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
@@ -633,39 +640,44 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: headerIconSize),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(
-                              title,
-                              style: Theme.of(context).textTheme.titleSmall
-                                  ?.copyWith(fontWeight: FontWeight.w800),
-                            ),
-                            if (summary?.trim().isNotEmpty == true) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                summary!,
-                                style: Theme.of(context).textTheme.bodySmall,
+                            Expanded(
+                              child: Text(
+                                title,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w800),
                               ),
-                            ],
+                            ),
+                            if (detailsMessage?.trim().isNotEmpty == true)
+                              IconButton(
+                                onPressed: () => _showSettingsInfoDialog(
+                                  title: title,
+                                  message: detailsMessage!,
+                                ),
+                                icon: const Icon(Icons.info_outline, size: 18),
+                                tooltip: detailsTooltip,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ...headerActions,
                           ],
                         ),
                       ),
-                      if (detailsMessage?.trim().isNotEmpty == true)
-                        IconButton(
-                          onPressed: () => _showSettingsInfoDialog(
-                            title: title,
-                            message: detailsMessage!,
-                          ),
-                          icon: const Icon(Icons.info_outline, size: 18),
-                          tooltip: detailsTooltip,
-                          visualDensity: VisualDensity.compact,
+                      if (summary?.trim().isNotEmpty == true) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          summary!,
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
-                      ...headerActions,
+                      ],
                     ],
                   ),
                 ),
@@ -862,8 +874,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     required bool driveMatchesExpected,
   }) {
     final driveBackupService = widget.driveBackupService!;
-    final hasKnownBackupData =
-        _hasRemotePlayerBackup ||
+    final hasKnownBackupData = _hasRemotePlayerBackup ||
         _sharedChildDriveLabel.trim().isNotEmpty ||
         _sharedChildDriveEmail.trim().isNotEmpty;
     final children = <Widget>[
@@ -883,15 +894,14 @@ class _SettingsScreenState extends State<SettingsScreen>
         signedIn: _signedIn,
         autoDaily: _autoDaily,
         autoOnSave: _autoOnSave,
-        lastBackupAt:
-            driveBackupService.getLastFamilySyncPush() ??
+        lastBackupAt: driveBackupService.getLastFamilySyncPush() ??
             driveBackupService.getLastFamilyRefresh() ??
             driveBackupService.getLastBackup(),
         localRestoreAt: driveBackupService.getLocalPreRestoreTime(),
         backupKnown: hasKnownBackupData,
         formatBackupTime: _formatBackupTime,
       ),
-      _buildParentFamilySyncCard(l10n),
+      _buildParentFamilySyncDetails(l10n),
     ]);
     return children;
   }
@@ -926,20 +936,17 @@ class _SettingsScreenState extends State<SettingsScreen>
           onPressed: (_backupBusy || _restoreBusy)
               ? null
               : () => _restoreFromDrive(
-                  l10n,
-                  title: l10n.settingsRestoreLatestActionTitle,
-                  filePath: DriveBackupService.backupDisplayPath,
-                  backupCreatedAt: widget.driveBackupService!.getLastBackup(),
-                  message: isSupportMode
-                      ? l10n.familySharedRestoreConfirm
-                      : null,
-                  successMessage: isSupportMode
-                      ? l10n.familySharedRestoreSuccess
-                      : null,
-                  failedMessage: isSupportMode
-                      ? l10n.familySharedRestoreFailed
-                      : null,
-                ),
+                    l10n,
+                    title: l10n.settingsRestoreLatestActionTitle,
+                    filePath: DriveBackupService.backupDisplayPath,
+                    backupCreatedAt: widget.driveBackupService!.getLastBackup(),
+                    message:
+                        isSupportMode ? l10n.familySharedRestoreConfirm : null,
+                    successMessage:
+                        isSupportMode ? l10n.familySharedRestoreSuccess : null,
+                    failedMessage:
+                        isSupportMode ? l10n.familySharedRestoreFailed : null,
+                  ),
         ),
       );
     }
@@ -952,10 +959,10 @@ class _SettingsScreenState extends State<SettingsScreen>
           onPressed: (_backupBusy || _restoreBusy || backupLocked)
               ? null
               : () => _backupToDrive(
-                  l10n,
-                  title: l10n.settingsBackupDataActionTitle,
-                  filePath: DriveBackupService.backupDisplayPath,
-                ),
+                    l10n,
+                    title: l10n.settingsBackupDataActionTitle,
+                    filePath: DriveBackupService.backupDisplayPath,
+                  ),
         ),
       );
     }
@@ -978,8 +985,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       subtitle: _driveStatusLoading
           ? l10n.settingsSyncStatusChecking
           : _connectedDriveLabel.trim().isEmpty
-          ? l10n.driveConnectedAccountEmpty
-          : _connectedDriveLabel.trim(),
+              ? l10n.driveConnectedAccountEmpty
+              : _connectedDriveLabel.trim(),
       loading: _driveStatusLoading,
     );
   }
@@ -1069,9 +1076,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -1131,13 +1137,26 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
-    final defaultDurationText = _defaultDuration <= 0
-        ? l10n.notSet
-        : l10n.minutes(_defaultDuration);
+  Widget _buildDefaultsAndOptionManager(
+    AppLocalizations l10n,
+    bool isKo, {
+    bool readOnly = false,
+  }) {
+    final defaultDurationText =
+        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (readOnly) ...[
+          Text(
+            l10n.parentReadOnlySettingsOptions,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 10),
+        ],
         Text(
           isKo ? '기본값' : 'Default values',
           style: Theme.of(
@@ -1148,74 +1167,111 @@ class _SettingsScreenState extends State<SettingsScreen>
         _buildDefaultTile(
           label: l10n.defaultDuration,
           valueText: defaultDurationText,
-          onEdit: () => _pickDefaultDuration(l10n),
-          onDelete: () async {
-            await widget.optionRepository.setValue('default_duration', null);
-            if (!mounted) return;
-            setState(() => _defaultDuration = _durationOptions.first);
-          },
+          onEdit: readOnly ? null : () => _pickDefaultDuration(l10n),
+          onDelete: readOnly
+              ? null
+              : () async {
+                  await widget.optionRepository.setValue(
+                    'default_duration',
+                    null,
+                  );
+                  if (!mounted) return;
+                  setState(() => _defaultDuration = _durationOptions.first);
+                },
         ),
         _buildDefaultTile(
           label: l10n.defaultIntensity,
           valueText: '$_defaultIntensity / 5',
-          onEdit: () => _pickDefaultRating(
-            key: 'default_intensity',
-            current: _defaultIntensity,
-            onChanged: (value) => setState(() => _defaultIntensity = value),
-            title: l10n.defaultIntensity,
-          ),
-          onDelete: () async {
-            await widget.optionRepository.setValue('default_intensity', null);
-            if (!mounted) return;
-            setState(() => _defaultIntensity = 3);
-          },
+          onEdit: readOnly
+              ? null
+              : () => _pickDefaultRating(
+                    key: 'default_intensity',
+                    current: _defaultIntensity,
+                    onChanged: (value) =>
+                        setState(() => _defaultIntensity = value),
+                    title: l10n.defaultIntensity,
+                  ),
+          onDelete: readOnly
+              ? null
+              : () async {
+                  await widget.optionRepository.setValue(
+                    'default_intensity',
+                    null,
+                  );
+                  if (!mounted) return;
+                  setState(() => _defaultIntensity = 3);
+                },
         ),
         _buildDefaultTile(
           label: l10n.defaultCondition,
           valueText: '$_defaultCondition / 5',
-          onEdit: () => _pickDefaultRating(
-            key: 'default_condition',
-            current: _defaultCondition,
-            onChanged: (value) => setState(() => _defaultCondition = value),
-            title: l10n.defaultCondition,
-          ),
-          onDelete: () async {
-            await widget.optionRepository.setValue('default_condition', null);
-            if (!mounted) return;
-            setState(() => _defaultCondition = 3);
-          },
+          onEdit: readOnly
+              ? null
+              : () => _pickDefaultRating(
+                    key: 'default_condition',
+                    current: _defaultCondition,
+                    onChanged: (value) =>
+                        setState(() => _defaultCondition = value),
+                    title: l10n.defaultCondition,
+                  ),
+          onDelete: readOnly
+              ? null
+              : () async {
+                  await widget.optionRepository.setValue(
+                    'default_condition',
+                    null,
+                  );
+                  if (!mounted) return;
+                  setState(() => _defaultCondition = 3);
+                },
         ),
         _buildDefaultTile(
           label: l10n.defaultLocation,
           valueText: _defaultLocation,
-          onEdit: () => _pickDefaultString(
-            key: 'default_location',
-            current: _defaultLocation,
-            options: _locationOptions,
-            title: l10n.defaultLocation,
-            onChanged: (value) => setState(() => _defaultLocation = value),
-          ),
-          onDelete: () async {
-            await widget.optionRepository.setValue('default_location', null);
-            if (!mounted) return;
-            setState(() => _defaultLocation = _locationOptions.first);
-          },
+          onEdit: readOnly
+              ? null
+              : () => _pickDefaultString(
+                    key: 'default_location',
+                    current: _defaultLocation,
+                    options: _locationOptions,
+                    title: l10n.defaultLocation,
+                    onChanged: (value) =>
+                        setState(() => _defaultLocation = value),
+                  ),
+          onDelete: readOnly
+              ? null
+              : () async {
+                  await widget.optionRepository.setValue(
+                    'default_location',
+                    null,
+                  );
+                  if (!mounted) return;
+                  setState(() => _defaultLocation = _locationOptions.first);
+                },
         ),
         _buildDefaultTile(
           label: l10n.defaultProgram,
           valueText: _defaultProgram,
-          onEdit: () => _pickDefaultString(
-            key: 'default_program',
-            current: _defaultProgram,
-            options: _programOptions,
-            title: l10n.defaultProgram,
-            onChanged: (value) => setState(() => _defaultProgram = value),
-          ),
-          onDelete: () async {
-            await widget.optionRepository.setValue('default_program', null);
-            if (!mounted) return;
-            setState(() => _defaultProgram = _programOptions.first);
-          },
+          onEdit: readOnly
+              ? null
+              : () => _pickDefaultString(
+                    key: 'default_program',
+                    current: _defaultProgram,
+                    options: _programOptions,
+                    title: l10n.defaultProgram,
+                    onChanged: (value) =>
+                        setState(() => _defaultProgram = value),
+                  ),
+          onDelete: readOnly
+              ? null
+              : () async {
+                  await widget.optionRepository.setValue(
+                    'default_program',
+                    null,
+                  );
+                  if (!mounted) return;
+                  setState(() => _defaultProgram = _programOptions.first);
+                },
         ),
         const SizedBox(height: 12),
         const Divider(height: 1),
@@ -1231,96 +1287,107 @@ class _SettingsScreenState extends State<SettingsScreen>
           title: isKo ? '훈련 시간 옵션' : 'Duration options',
           subtitle:
               '${_durationOptions.where((e) => e > 0).length}${isKo ? '개 항목' : ' items'}',
-          onTap: () => _manageIntOptions(
-            key: 'durations',
-            title: isKo ? '훈련 시간 옵션 관리' : 'Manage duration options',
-            options: _durationOptions,
-            minKeep: 1,
-            formatLabel: (value) =>
-                value <= 0 ? l10n.notSet : l10n.minutes(value),
-            onSaved: (updated) async {
-              setState(() => _durationOptions = updated);
-              if (!_durationOptions.contains(_defaultDuration)) {
-                final fallback = _durationOptions.first;
-                await widget.optionRepository.setValue(
-                  'default_duration',
-                  fallback,
-                );
-                if (!mounted) return;
-                setState(() => _defaultDuration = fallback);
-              }
-            },
-          ),
+          onTap: readOnly
+              ? null
+              : () => _manageIntOptions(
+                    key: 'durations',
+                    title: isKo ? '훈련 시간 옵션 관리' : 'Manage duration options',
+                    options: _durationOptions,
+                    minKeep: 1,
+                    formatLabel: (value) =>
+                        value <= 0 ? l10n.notSet : l10n.minutes(value),
+                    onSaved: (updated) async {
+                      setState(() => _durationOptions = updated);
+                      if (!_durationOptions.contains(_defaultDuration)) {
+                        final fallback = _durationOptions.first;
+                        await widget.optionRepository.setValue(
+                          'default_duration',
+                          fallback,
+                        );
+                        if (!mounted) return;
+                        setState(() => _defaultDuration = fallback);
+                      }
+                    },
+                  ),
         ),
         _buildOptionManagerTile(
           title: isKo ? '장소 옵션' : 'Location options',
           subtitle: '${_locationOptions.length}${isKo ? '개 항목' : ' items'}',
-          onTap: () => _manageStringOptions(
-            key: 'locations',
-            title: isKo ? '장소 옵션 관리' : 'Manage location options',
-            options: _locationOptions,
-            minKeep: 1,
-            onSaved: (updated) async {
-              setState(() => _locationOptions = updated);
-              if (!_locationOptions.contains(_defaultLocation)) {
-                final fallback = _locationOptions.first;
-                await widget.optionRepository.setValue(
-                  'default_location',
-                  fallback,
-                );
-                if (!mounted) return;
-                setState(() => _defaultLocation = fallback);
-              }
-            },
-          ),
+          onTap: readOnly
+              ? null
+              : () => _manageStringOptions(
+                    key: 'locations',
+                    title: isKo ? '장소 옵션 관리' : 'Manage location options',
+                    options: _locationOptions,
+                    minKeep: 1,
+                    onSaved: (updated) async {
+                      setState(() => _locationOptions = updated);
+                      if (!_locationOptions.contains(_defaultLocation)) {
+                        final fallback = _locationOptions.first;
+                        await widget.optionRepository.setValue(
+                          'default_location',
+                          fallback,
+                        );
+                        if (!mounted) return;
+                        setState(() => _defaultLocation = fallback);
+                      }
+                    },
+                  ),
         ),
         _buildOptionManagerTile(
           title: isKo ? '프로그램 옵션' : 'Program options',
           subtitle: '${_programOptions.length}${isKo ? '개 항목' : ' items'}',
-          onTap: () => _manageStringOptions(
-            key: 'programs',
-            title: isKo ? '프로그램 옵션 관리' : 'Manage program options',
-            options: _programOptions,
-            minKeep: 1,
-            onSaved: (updated) async {
-              setState(() => _programOptions = updated);
-              if (!_programOptions.contains(_defaultProgram)) {
-                final fallback = _programOptions.first;
-                await widget.optionRepository.setValue(
-                  'default_program',
-                  fallback,
-                );
-                if (!mounted) return;
-                setState(() => _defaultProgram = fallback);
-              }
-            },
-          ),
+          onTap: readOnly
+              ? null
+              : () => _manageStringOptions(
+                    key: 'programs',
+                    title: isKo ? '프로그램 옵션 관리' : 'Manage program options',
+                    options: _programOptions,
+                    minKeep: 1,
+                    onSaved: (updated) async {
+                      setState(() => _programOptions = updated);
+                      if (!_programOptions.contains(_defaultProgram)) {
+                        final fallback = _programOptions.first;
+                        await widget.optionRepository.setValue(
+                          'default_program',
+                          fallback,
+                        );
+                        if (!mounted) return;
+                        setState(() => _defaultProgram = fallback);
+                      }
+                    },
+                  ),
         ),
         _buildOptionManagerTile(
           title: isKo ? '훈련 목표 옵션' : 'Training goal options',
           subtitle: '${_dailyGoalOptions.length}${isKo ? '개 항목' : ' items'}',
-          onTap: () => _manageStringOptions(
-            key: 'daily_goals',
-            title: isKo ? '훈련 목표 옵션 관리' : 'Manage training goal options',
-            options: _dailyGoalOptions,
-            minKeep: 1,
-            onSaved: (updated) async {
-              setState(() => _dailyGoalOptions = updated);
-            },
-          ),
+          onTap: readOnly
+              ? null
+              : () => _manageStringOptions(
+                    key: 'daily_goals',
+                    title:
+                        isKo ? '훈련 목표 옵션 관리' : 'Manage training goal options',
+                    options: _dailyGoalOptions,
+                    minKeep: 1,
+                    onSaved: (updated) async {
+                      setState(() => _dailyGoalOptions = updated);
+                    },
+                  ),
         ),
         _buildOptionManagerTile(
           title: isKo ? '부상 부위 옵션' : 'Injury part options',
           subtitle: '${_injuryPartOptions.length}${isKo ? '개 항목' : ' items'}',
-          onTap: () => _manageStringOptions(
-            key: 'injury_parts',
-            title: isKo ? '부상 부위 옵션 관리' : 'Manage injury part options',
-            options: _injuryPartOptions,
-            minKeep: 1,
-            onSaved: (updated) async {
-              setState(() => _injuryPartOptions = updated);
-            },
-          ),
+          onTap: readOnly
+              ? null
+              : () => _manageStringOptions(
+                    key: 'injury_parts',
+                    title: isKo ? '부상 부위 옵션 관리' : 'Manage injury part options',
+                    options: _injuryPartOptions,
+                    minKeep: 1,
+                    onSaved: (updated) async {
+                      setState(() => _injuryPartOptions = updated);
+                    },
+                  ),
         ),
       ],
     );
@@ -1329,8 +1396,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _buildDefaultTile({
     required String label,
     required String valueText,
-    required Future<void> Function() onEdit,
-    required Future<void> Function() onDelete,
+    required Future<void> Function()? onEdit,
+    required Future<void> Function()? onDelete,
   }) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return ListTile(
@@ -1359,14 +1426,22 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _buildOptionManagerTile({
     required String title,
     required String subtitle,
-    required Future<void> Function() onTap,
+    required Future<void> Function()? onTap,
   }) {
+    final enabled = onTap != null;
+    final scheme = Theme.of(context).colorScheme;
     return ListTile(
+      enabled: enabled,
       dense: true,
       contentPadding: EdgeInsets.zero,
       title: Text(title),
       subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: Icon(
+        Icons.chevron_right,
+        color: enabled
+            ? scheme.onSurfaceVariant
+            : scheme.onSurface.withValues(alpha: 0.32),
+      ),
       onTap: onTap,
     );
   }
@@ -1539,9 +1614,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized = sanitize == null
-                            ? added
-                            : sanitize(added);
+                        final normalized =
+                            sanitize == null ? added : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -1842,74 +1916,53 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Widget _buildParentFamilySyncCard(AppLocalizations l10n) {
+  Widget _buildParentFamilySyncDetails(AppLocalizations l10n) {
     final lastPushAt = widget.driveBackupService?.getLastFamilySyncPush();
     final lastPullAt = widget.driveBackupService?.getLastFamilyRefresh();
     final hasPendingChanges =
         widget.driveBackupService?.hasPendingParentSharedChanges() ?? false;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.familySharedSyncTitle,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-                ),
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildDriveAccountTile(
+          icon: Icons.folder_outlined,
+          title: l10n.settingsDriveActionFilePath(
+            DriveBackupService.backupDisplayPath,
           ),
+          subtitle: l10n.familySharedAutoRefreshDescription,
+        ),
+        if (hasPendingChanges) ...[
           const SizedBox(height: 8),
-          Text(
-            l10n.settingsDriveActionFilePath(
-              DriveBackupService.backupDisplayPath,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(14),
             ),
-            style: Theme.of(context).textTheme.bodySmall,
+            child: Text(
+              l10n.familySharedPendingLocalChanges,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ),
-          if (hasPendingChanges) ...[
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.errorContainer,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Text(
-                l10n.familySharedPendingLocalChanges,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-          ],
-          if (lastPushAt != null) ...[
-            const SizedBox(height: 8),
-            _buildDriveAccountTile(
-              icon: Icons.history,
-              title: l10n.familySharedLastPush,
-              subtitle: _formatBackupTime(lastPushAt),
-            ),
-          ],
-          if (lastPullAt != null) ...[
-            const SizedBox(height: 8),
-            _buildDriveAccountTile(
-              icon: Icons.refresh_outlined,
-              title: l10n.familySharedLastRefresh,
-              subtitle: _formatBackupTime(lastPullAt),
-            ),
-          ],
         ],
-      ),
+        if (lastPushAt != null) ...[
+          const SizedBox(height: 8),
+          _buildDriveAccountTile(
+            icon: Icons.history,
+            title: l10n.familySharedLastPush,
+            subtitle: _formatBackupTime(lastPushAt),
+          ),
+        ],
+        if (lastPullAt != null) ...[
+          const SizedBox(height: 8),
+          _buildDriveAccountTile(
+            icon: Icons.refresh_outlined,
+            title: l10n.familySharedLastRefresh,
+            subtitle: _formatBackupTime(lastPullAt),
+          ),
+        ],
+      ],
     );
   }
 
@@ -2065,8 +2118,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -2191,8 +2243,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
