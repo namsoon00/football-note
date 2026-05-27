@@ -627,11 +627,23 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   String _formatPercent(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(0)}%';
 
-  String _formatMillimeter(double? value) =>
-      value == null ? '--' : '${value.toStringAsFixed(1)} mm';
+  String _formatMillimeter(double? value) {
+    if (value == null) return '--';
+    return '${value.toStringAsFixed(1)} mm · ${_precipitationAmountLabel(value)}';
+  }
 
   String _formatCompactMillimeter(double value) =>
-      '${value.toStringAsFixed(1)} mm';
+      '${value.toStringAsFixed(1)} mm\n${_precipitationAmountLabel(value)}';
+
+  String _precipitationAmountLabel(double value) {
+    final l10n = AppLocalizations.of(context)!;
+    if (value <= 0.05) return l10n.weatherPrecipitationNone;
+    if (value < 1) return l10n.weatherPrecipitationTrace;
+    if (value < 5) return l10n.weatherPrecipitationLight;
+    if (value < 15) return l10n.weatherPrecipitationModerate;
+    if (value < 30) return l10n.weatherPrecipitationHeavy;
+    return l10n.weatherPrecipitationVeryHeavy;
+  }
 
   String _formatHourlyTime(DateTime value) => DateFormat('HH:mm').format(value);
 
@@ -3366,12 +3378,13 @@ class _ForecastStatPill extends StatelessWidget {
             Expanded(
               child: Text(
                 visibleText,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color:
                       palette?.foreground ?? theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w800,
+                  height: 1.12,
                 ),
               ),
             ),
@@ -3519,7 +3532,7 @@ class _HourlyPrecipitationChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
-    final width = math.max(320.0, entries.length * 58.0);
+    final width = math.max(360.0, entries.length * 72.0);
     const chartHeight = 96.0;
     return SizedBox(
       width: width,
@@ -3547,12 +3560,14 @@ class _HourlyPrecipitationChart extends StatelessWidget {
                     children: [
                       Text(
                         formatPrecipitation(entry.precipitation),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
                               color: labelColor,
                               fontWeight: FontWeight.w900,
+                              height: 1.05,
                             ),
                       ),
                       const SizedBox(height: 2),

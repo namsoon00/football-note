@@ -1124,7 +1124,7 @@ void main() {
   );
 
   test(
-    'player account switch is blocked when the new drive has no remote backup',
+    'player account switch without remote backup clears stale local data',
     () async {
       await optionBox.put(
         DriveBackupService.recordDriveEmailLocalKey,
@@ -1147,27 +1147,32 @@ void main() {
           location: 'old field',
         ),
       );
-
-      expect(
-        () => service.syncConnectedPlayerBackupForTesting(
-          connectedAccount: const DriveConnectionInfo(
-            email: 'new@example.com',
-            displayName: 'New Player',
-            subjectId: 'new-subject',
-          ),
-          remoteBackup: null,
-        ),
-        throwsA(
-          isA<StateError>().having(
-            (error) => error.message,
-            'message',
-            DriveBackupService.recordDriveMismatchErrorCode,
-          ),
-        ),
+      await optionBox.put(
+        'custom_diary_entries_v3',
+        '{"2026-04-18":{"body":"old diary"}}',
       );
-      expect(trainingBox.length, 1);
-      expect(trainingBox.values.first.notes, 'old local player data');
-      expect(service.getSavedRecordDriveEmail(), 'old@example.com');
+
+      await service.syncConnectedPlayerBackupForTesting(
+        connectedAccount: const DriveConnectionInfo(
+          email: 'new@example.com',
+          displayName: 'New Player',
+          subjectId: 'new-subject',
+        ),
+        remoteBackup: null,
+      );
+
+      expect(trainingBox.length, 0);
+      expect(optionBox.get('custom_diary_entries_v3'), isNull);
+      expect(service.getSavedRecordDriveEmail(), 'new@example.com');
+      expect(
+        service.getSavedRecordDriveLabel(),
+        'New Player · new@example.com',
+      );
+      expect(
+        optionBox.get(DriveBackupService.sharedChildDriveEmailKey),
+        'new@example.com',
+      );
+      expect(service.hasLocalPreRestoreBackup(), isTrue);
     },
   );
 }

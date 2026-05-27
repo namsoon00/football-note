@@ -59,7 +59,10 @@ class LeagueFixtureReminderService {
   }) async {
     await clearAllReminders();
     final favoriteKeys = favoriteTeamKeysSync();
-    if (favoriteKeys.isEmpty || !_settings.reminderEnabled || kIsWeb) {
+    if (favoriteKeys.isEmpty ||
+        !_settings.reminderEnabled ||
+        !_settings.leagueFixtureAlertEnabled ||
+        kIsWeb) {
       return 0;
     }
 

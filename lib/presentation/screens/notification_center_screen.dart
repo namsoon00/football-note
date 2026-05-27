@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../application/league_fixture_reminder_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_plan_badge_service.dart';
 import '../../application/training_plan_reminder_service.dart';
@@ -220,18 +221,21 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     final xpNewCount = _xpRows.where((row) => row.isNew).length;
     return Scaffold(
       appBar: AppBar(
-        title: Text(isKo ? '알림' : 'Notifications'),
+        centerTitle: false,
+        title: Text(l10n.notifications),
         actions: [
-          IconButton(
+          _buildHeaderAction(
+            label: l10n.notificationSettingsAction,
+            icon: Icons.tune_rounded,
             onPressed: _openNotificationSettingsSheet,
-            icon: const Icon(Icons.tune),
-            tooltip: isKo ? '알림 설정' : 'Alert settings',
           ),
-          IconButton(
+          const SizedBox(width: 6),
+          _buildHeaderAction(
+            label: l10n.notificationRefreshAction,
+            icon: Icons.refresh_rounded,
             onPressed: _load,
-            icon: const Icon(Icons.refresh),
-            tooltip: isKo ? '새로고침' : 'Refresh',
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: _loading
@@ -556,6 +560,24 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     return isKo ? '$base\n마지막 기록: $formatted' : '$base\nLast log: $formatted';
   }
 
+  Widget _buildHeaderAction({
+    required String label,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 40),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
+      icon: Icon(icon, size: 17),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+    );
+  }
+
   Future<void> _syncNotificationSettings() async {
     await _reminderService.syncSettingsDrivenReminders();
     if (!mounted) return;
@@ -730,6 +752,29 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                             ? (value) async {
                                 await widget.settingsService
                                     .setFamilySyncAlertEnabled(value);
+                                await refreshSheet();
+                              }
+                            : null,
+                      ),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          l10n.notificationLeagueFixtureSettingsTitle,
+                        ),
+                        subtitle: Text(
+                          l10n.notificationLeagueFixtureSettingsSubtitle,
+                        ),
+                        value: widget.settingsService.leagueFixtureAlertEnabled,
+                        onChanged: widget.settingsService.reminderEnabled
+                            ? (value) async {
+                                await widget.settingsService
+                                    .setLeagueFixtureAlertEnabled(value);
+                                if (!value) {
+                                  await LeagueFixtureReminderService(
+                                    widget.optionRepository,
+                                    widget.settingsService,
+                                  ).clearAllReminders();
+                                }
                                 await refreshSheet();
                               }
                             : null,

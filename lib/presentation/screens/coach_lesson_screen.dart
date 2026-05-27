@@ -3689,18 +3689,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             : '',
                         alignLabelWithHint: true,
                       ),
-                      if (bottomInset > 0) ...[
-                        const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            onPressed: () =>
-                                FocusManager.instance.primaryFocus?.unfocus(),
-                            icon: const Icon(Icons.keyboard_hide_rounded),
-                            label: Text(_l10n.hideKeyboard),
-                          ),
-                        ),
-                      ],
                       if (todoSeeds.isNotEmpty) ...[
                         const SizedBox(height: 18),
                         Container(

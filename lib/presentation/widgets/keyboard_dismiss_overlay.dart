@@ -31,7 +31,15 @@ class KeyboardDismissOverlay extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: () =>
                         FocusManager.instance.primaryFocus?.unfocus(),
-                    icon: const Icon(Icons.keyboard_hide_rounded),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: const Icon(Icons.keyboard_hide_rounded, size: 18),
                     label: Text(AppLocalizations.of(context)!.hideKeyboard),
                   ),
                 ),

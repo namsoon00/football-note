@@ -4002,14 +4002,7 @@ InputDecoration _calendarInputDecorationWithDone(
   InputDecoration decoration, {
   bool enabled = true,
 }) {
-  if (!enabled) return decoration;
-  return decoration.copyWith(
-    suffixIcon: IconButton(
-      tooltip: AppLocalizations.of(context)!.hideKeyboard,
-      icon: const Icon(Icons.check_rounded),
-      onPressed: () => FocusScope.of(context).unfocus(),
-    ),
-  );
+  return decoration;
 }
 
 String _formatDurationText(

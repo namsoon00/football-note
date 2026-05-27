@@ -12,6 +12,7 @@ class SettingsService extends ChangeNotifier {
   bool _xpAlertEnabled = true;
   bool _inactivityAlertEnabled = true;
   bool _familySyncAlertEnabled = true;
+  bool _leagueFixtureAlertEnabled = true;
   int _inactivityAlertDays = 3;
 
   SettingsService(this._repository);
@@ -24,6 +25,7 @@ class SettingsService extends ChangeNotifier {
   bool get xpAlertEnabled => _xpAlertEnabled;
   bool get inactivityAlertEnabled => _inactivityAlertEnabled;
   bool get familySyncAlertEnabled => _familySyncAlertEnabled;
+  bool get leagueFixtureAlertEnabled => _leagueFixtureAlertEnabled;
   int get inactivityAlertDays => _inactivityAlertDays;
 
   void load() {
@@ -45,6 +47,9 @@ class SettingsService extends ChangeNotifier {
     _familySyncAlertEnabled =
         _repository.getValue<bool>('family_sync_alert_enabled') ??
         _familySyncAlertEnabled;
+    _leagueFixtureAlertEnabled =
+        _repository.getValue<bool>('league_fixture_alert_enabled') ??
+        _leagueFixtureAlertEnabled;
     _inactivityAlertDays = _clampInt(
       _repository.getValue<num>('inactivity_alert_days')?.toInt(),
       fallback: _inactivityAlertDays,
@@ -99,6 +104,12 @@ class SettingsService extends ChangeNotifier {
   Future<void> setFamilySyncAlertEnabled(bool enabled) async {
     _familySyncAlertEnabled = enabled;
     await _repository.setValue('family_sync_alert_enabled', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setLeagueFixtureAlertEnabled(bool enabled) async {
+    _leagueFixtureAlertEnabled = enabled;
+    await _repository.setValue('league_fixture_alert_enabled', enabled);
     notifyListeners();
   }
 

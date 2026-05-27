@@ -30,7 +30,9 @@ class PlayerLevelGuideScreen extends StatefulWidget {
 
 class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   late final PlayerLevelService _levelService;
+  final Map<int, GlobalKey> _levelKeys = <int, GlobalKey>{};
   int? _syncingRewardLevel;
+  bool _scrolledToCurrentLevel = false;
 
   @override
   void initState() {
@@ -50,6 +52,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
       for (final item in _levelService.loadRewardStatuses())
         item.reward.level: item,
     };
+    _scheduleScrollToCurrentLevel();
 
     return Scaffold(
       appBar: AppBar(
@@ -99,29 +102,32 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                 levelIndex++
               ) ...[
                 const SizedBox(height: 12),
-                _LevelGuideCard(
-                  level: levelIndex + 1,
-                  minXp: thresholds[levelIndex],
-                  maxXp: levelIndex + 1 < thresholds.length
-                      ? thresholds[levelIndex + 1] - 1
-                      : null,
-                  isCurrent: levelIndex + 1 == widget.currentLevel,
-                  rewardStatus: rewardByLevel[levelIndex + 1],
-                  l10n: l10n,
-                  spec: PlayerLevelVisualSpec.fromLevel(levelIndex + 1),
-                  isSyncing: _syncingRewardLevel == levelIndex + 1,
-                  canClaimReward: familyState.isChildMode,
-                  claimDisabledLabel: l10n.levelGuideClaimChildOnly,
-                  onClaimReward: () => _claimReward(levelIndex + 1),
-                  onEditRewardName:
-                      rewardByLevel[levelIndex + 1] == null ||
-                          !familyState.isParentMode ||
-                          _syncingRewardLevel == levelIndex + 1
-                      ? null
-                      : () => _editRewardName(
-                          context,
-                          rewardByLevel[levelIndex + 1]!,
-                        ),
+                KeyedSubtree(
+                  key: _levelKey(levelIndex + 1),
+                  child: _LevelGuideCard(
+                    level: levelIndex + 1,
+                    minXp: thresholds[levelIndex],
+                    maxXp: levelIndex + 1 < thresholds.length
+                        ? thresholds[levelIndex + 1] - 1
+                        : null,
+                    isCurrent: levelIndex + 1 == widget.currentLevel,
+                    rewardStatus: rewardByLevel[levelIndex + 1],
+                    l10n: l10n,
+                    spec: PlayerLevelVisualSpec.fromLevel(levelIndex + 1),
+                    isSyncing: _syncingRewardLevel == levelIndex + 1,
+                    canClaimReward: familyState.isChildMode,
+                    claimDisabledLabel: l10n.levelGuideClaimChildOnly,
+                    onClaimReward: () => _claimReward(levelIndex + 1),
+                    onEditRewardName:
+                        rewardByLevel[levelIndex + 1] == null ||
+                            !familyState.isParentMode ||
+                            _syncingRewardLevel == levelIndex + 1
+                        ? null
+                        : () => _editRewardName(
+                            context,
+                            rewardByLevel[levelIndex + 1]!,
+                          ),
+                  ),
                 ),
               ],
             ],
@@ -129,6 +135,26 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
         ),
       ),
     );
+  }
+
+  GlobalKey _levelKey(int level) {
+    return _levelKeys.putIfAbsent(level, GlobalKey.new);
+  }
+
+  void _scheduleScrollToCurrentLevel() {
+    if (_scrolledToCurrentLevel) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _scrolledToCurrentLevel) return;
+      final targetContext = _levelKeys[widget.currentLevel]?.currentContext;
+      if (targetContext == null) return;
+      _scrolledToCurrentLevel = true;
+      Scrollable.ensureVisible(
+        targetContext,
+        duration: const Duration(milliseconds: 360),
+        curve: Curves.easeOutCubic,
+        alignment: 0.08,
+      );
+    });
   }
 
   Future<void> _showModeInfoDialog(

@@ -79,7 +79,8 @@ Future<void> main() async {
   final badgeService = TrainingPlanBadgeService(optionRepository);
   settingsService.addListener(() {
     unawaited(reminderService.syncSettingsDrivenReminders());
-    if (!settingsService.reminderEnabled) {
+    if (!settingsService.reminderEnabled ||
+        !settingsService.leagueFixtureAlertEnabled) {
       unawaited(leagueFixtureReminderService.clearAllReminders());
     }
   });
