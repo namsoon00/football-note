@@ -176,6 +176,36 @@ abstract class AppLocalizations {
   /// **'Pick another tab above to preview its buttons.'**
   String get welcomeGuideNextTabHint;
 
+  /// No description provided for @parentWelcomeGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent Mode Guide'**
+  String get parentWelcomeGuideTitle;
+
+  /// No description provided for @parentWelcomeGuideIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode is for reviewing player records and leaving feedback on existing training logs.'**
+  String get parentWelcomeGuideIntro;
+
+  /// No description provided for @parentWelcomeGuideStepLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the Logs tab first to review records saved by the player.'**
+  String get parentWelcomeGuideStepLogs;
+
+  /// No description provided for @parentWelcomeGuideStepFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave praise and next-time notes as feedback inside an existing record.'**
+  String get parentWelcomeGuideStepFeedback;
+
+  /// No description provided for @parentWelcomeGuideStepSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect the Google Drive account that holds the player backup to keep shared data in sync.'**
+  String get parentWelcomeGuideStepSync;
+
   /// No description provided for @guideActionToday.
   ///
   /// In en, this message translates to:
@@ -2335,7 +2365,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePriorityPlanNextMessage.
   ///
   /// In en, this message translates to:
-  /// **'No training plan is set for today or tomorrow. Add a short plan first.'**
+  /// **'Add a short training plan.'**
   String get homePriorityPlanNextMessage;
 
   /// No description provided for @homePriorityPlanNextAction.
@@ -5623,7 +5653,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeParentWelcomeMessage.
   ///
   /// In en, this message translates to:
-  /// **'Review records and feedback only.'**
+  /// **'Parent mode: review records and feedback only.'**
   String get homeParentWelcomeMessage;
 
   /// No description provided for @homeParentWelcomeAction.

@@ -172,6 +172,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('시간별 강수량'), findsNothing);
+    expect(find.textContaining('거의 안 와요'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

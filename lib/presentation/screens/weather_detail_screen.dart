@@ -629,11 +629,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   String _formatMillimeter(double? value) {
     if (value == null) return '--';
+    if (value <= 0.05) return '${value.toStringAsFixed(1)} mm';
     return '${value.toStringAsFixed(1)} mm · ${_precipitationAmountLabel(value)}';
   }
 
-  String _formatCompactMillimeter(double value) =>
-      '${value.toStringAsFixed(1)} mm\n${_precipitationAmountLabel(value)}';
+  String _formatCompactMillimeter(double value) => value <= 0.05
+      ? '${value.toStringAsFixed(1)} mm'
+      : '${value.toStringAsFixed(1)} mm\n${_precipitationAmountLabel(value)}';
 
   String _precipitationAmountLabel(double value) {
     final l10n = AppLocalizations.of(context)!;

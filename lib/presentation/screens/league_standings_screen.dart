@@ -44,8 +44,10 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   late final LeagueStandingsService _service;
   late final bool _ownsService;
   late final LeagueFixtureReminderService? _reminderService;
+  late final PageController _pageController;
   late LeagueStandingsType _selectedType;
   final Map<LeagueStandingsType, _LeagueOverviewSnapshot> _cache = {};
+  final Map<LeagueStandingsType, Future<_LeagueOverviewSnapshot>> _futures = {};
   final Map<LeagueStandingsType, ScrollController> _scrollControllers = {};
   final Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>
   _leagueTabKeys = {
@@ -75,7 +77,10 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     _favoriteTeamKeys = _reminderService?.favoriteTeamKeysSync() ?? <String>{};
     _restoreFavoriteFixtureFilters();
     _selectedType = _loadInitialType();
-    _future = _load(_selectedType);
+    _pageController = PageController(
+      initialPage: _leagueIndexForType(_selectedType),
+    );
+    _future = _futureFor(_selectedType);
     _scrollLeagueTabIntoView(_selectedType);
   }
 
@@ -84,6 +89,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     for (final controller in _scrollControllers.values) {
       controller.dispose();
     }
+    _pageController.dispose();
     if (_ownsService) {
       _service.dispose();
     }
@@ -141,14 +147,29 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     return snapshot;
   }
 
+  Future<_LeagueOverviewSnapshot> _futureFor(LeagueStandingsType type) {
+    return _futures.putIfAbsent(type, () => _load(type));
+  }
+
+  int _leagueIndexForType(LeagueStandingsType type) {
+    final index = _leagueTypes.indexOf(type);
+    return index < 0 ? 0 : index;
+  }
+
   void _selectType(LeagueStandingsType type) {
     if (type == _selectedType) {
       _scrollLeagueTabIntoView(type);
+      _animateToLeaguePage(type);
       return;
     }
+    _setSelectedType(type);
+    _animateToLeaguePage(type);
+  }
+
+  void _setSelectedType(LeagueStandingsType type) {
     setState(() {
       _selectedType = type;
-      _future = _load(type);
+      _future = _futureFor(type);
     });
     final optionRepository = widget.optionRepository;
     if (optionRepository != null) {
@@ -157,13 +178,25 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     _scrollLeagueTabIntoView(type);
   }
 
-  void _selectAdjacentLeague(int delta) {
-    final currentIndex = _leagueTypes.indexOf(_selectedType);
-    if (currentIndex < 0) return;
-    final nextIndex = (currentIndex + delta) % _leagueTypes.length;
-    _selectType(
-      _leagueTypes[nextIndex < 0 ? nextIndex + _leagueTypes.length : nextIndex],
+  void _animateToLeaguePage(LeagueStandingsType type) {
+    if (!_pageController.hasClients) return;
+    unawaited(
+      _pageController.animateToPage(
+        _leagueIndexForType(type),
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      ),
     );
+  }
+
+  void _handleLeaguePageChanged(int index) {
+    if (index < 0 || index >= _leagueTypes.length) return;
+    final type = _leagueTypes[index];
+    if (type == _selectedType) {
+      _scrollLeagueTabIntoView(type);
+      return;
+    }
+    _setSelectedType(type);
   }
 
   void _scrollLeagueTabIntoView(LeagueStandingsType type) {
@@ -183,6 +216,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
 
   Future<void> _refresh() async {
     final future = _load(_selectedType, refresh: true);
+    _futures[_selectedType] = future;
     setState(() => _future = future);
     await future;
   }
@@ -232,122 +266,12 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
       title: l10n.newsLeagueFavoriteTeamTitle,
       subtitle: l10n.newsLeagueFavoriteTeamSubtitle,
       emptyLabel: l10n.newsLeagueFavoriteTeamNone,
-      selectLabel: l10n.newsLeagueFavoriteTeamSelect,
-      clearLabel: l10n.newsLeagueFavoriteTeamClear,
+      selectLabel: l10n.newsLeagueFavoriteTeamManage,
       reminderCountLabel: leagueReminderCount > 0
           ? l10n.newsLeagueFavoriteTeamReminderCount(leagueReminderCount)
           : l10n.newsLeagueFavoriteTeamNoUpcoming,
       selectedTeamNames: selectedNames,
-      onSelect: options.isEmpty ? null : () => _openFavoriteTeamSheet(data),
-      onClear: selectedNames.isEmpty
-          ? null
-          : () => _saveFavoriteTeamKeysForSelectedLeague(<String>{}),
-    );
-  }
-
-  Future<void> _openFavoriteTeamSheet(_LeagueOverviewSnapshot data) async {
-    final l10n = AppLocalizations.of(context)!;
-    final options = _favoriteTeamOptionsFor(data);
-    if (options.isEmpty) return;
-    final selectedPrefix = '${_selectedType.name}:';
-    final currentSelection = _favoriteTeamKeys
-        .where((key) => key.startsWith(selectedPrefix))
-        .toSet();
-    final selected = await showModalBottomSheet<Set<String>>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        final tempSelection = Set<String>.of(currentSelection);
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            return SafeArea(
-              child: FractionallySizedBox(
-                heightFactor: 0.72,
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: Text(
-                        l10n.newsLeagueFavoriteTeamSheetTitle,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w900),
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: options.length,
-                        itemBuilder: (context, index) {
-                          final option = options[index];
-                          return CheckboxListTile(
-                            value: tempSelection.contains(option.key),
-                            title: Text(option.label),
-                            controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (checked) {
-                              setSheetState(() {
-                                if (checked ?? false) {
-                                  tempSelection.add(option.key);
-                                } else {
-                                  tempSelection.remove(option.key);
-                                }
-                              });
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: Row(
-                        children: [
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.of(sheetContext).pop(<String>{}),
-                            child: Text(l10n.newsLeagueFavoriteTeamClear),
-                          ),
-                          const Spacer(),
-                          FilledButton(
-                            onPressed: () =>
-                                Navigator.of(sheetContext).pop(tempSelection),
-                            child: Text(
-                              MaterialLocalizations.of(context).okButtonLabel,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-    if (!mounted || selected == null) return;
-    await _saveFavoriteTeamKeysForSelectedLeague(selected);
-  }
-
-  Future<void> _saveFavoriteTeamKeysForSelectedLeague(
-    Set<String> selectedKeys,
-  ) async {
-    final reminderService = _reminderService;
-    if (reminderService == null) return;
-    final selectedPrefix = '${_selectedType.name}:';
-    final next =
-        _favoriteTeamKeys
-            .where((key) => !key.startsWith(selectedPrefix))
-            .toSet()
-          ..addAll(selectedKeys);
-    setState(() => _favoriteTeamKeys = next);
-    await reminderService.saveFavoriteTeamKeys(next);
-    await _syncLeagueReminders();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          AppLocalizations.of(context)!.newsLeagueFavoriteTeamSaved,
-        ),
-      ),
+      onSelect: options.isEmpty ? null : _openFavoriteTeamScreen,
     );
   }
 
@@ -468,66 +392,69 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                 ),
               ),
               Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onHorizontalDragEnd: (details) {
-                    final velocity = details.primaryVelocity ?? 0;
-                    if (velocity.abs() < 260) return;
-                    _selectAdjacentLeague(velocity < 0 ? 1 : -1);
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: _leagueTypes.length,
+                  onPageChanged: _handleLeaguePageChanged,
+                  itemBuilder: (context, index) {
+                    final type = _leagueTypes[index];
+                    return FutureBuilder<_LeagueOverviewSnapshot>(
+                      future: _futureFor(type),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                                ConnectionState.waiting &&
+                            !snapshot.hasData) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return _MessageState(
+                            icon: Icons.cloud_off_outlined,
+                            title: l10n.newsLeagueStandingsError,
+                            onRetry: _refresh,
+                          );
+                        }
+                        final data = snapshot.data;
+                        if (data == null ||
+                            (data.standings.entries.isEmpty &&
+                                data.fixtures.entries.isEmpty)) {
+                          return _MessageState(
+                            icon: Icons.table_chart_outlined,
+                            title: l10n.newsLeagueStandingsEmpty,
+                            onRetry: _refresh,
+                          );
+                        }
+                        return RefreshIndicator(
+                          onRefresh: _refresh,
+                          child: _StandingsTable(
+                            snapshot: data.standings,
+                            fixtures: data.fixtures,
+                            scrollController: _scrollControllerFor(
+                              data.standings.type,
+                            ),
+                            fixturesExpanded: _expandedFixtureTypes.contains(
+                              data.standings.type,
+                            ),
+                            onFixturesExpandedChanged: (expanded) =>
+                                _setFixturesExpanded(
+                                  data.standings.type,
+                                  expanded,
+                                ),
+                            favoriteTeamKeys: _favoriteTeamKeys,
+                            filterFavoriteFixtures: _favoriteFixtureFilterTypes
+                                .contains(data.standings.type),
+                            onFilterFavoriteFixturesChanged: (enabled) =>
+                                _setFavoriteFixtureFilter(
+                                  data.standings.type,
+                                  enabled,
+                                ),
+                            reminderPanel: _buildReminderPanel(l10n, data),
+                          ),
+                        );
+                      },
+                    );
                   },
-                  child: FutureBuilder<_LeagueOverviewSnapshot>(
-                    future: _future,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting &&
-                          !snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return _MessageState(
-                          icon: Icons.cloud_off_outlined,
-                          title: l10n.newsLeagueStandingsError,
-                          onRetry: _refresh,
-                        );
-                      }
-                      final data = snapshot.data;
-                      if (data == null ||
-                          (data.standings.entries.isEmpty &&
-                              data.fixtures.entries.isEmpty)) {
-                        return _MessageState(
-                          icon: Icons.table_chart_outlined,
-                          title: l10n.newsLeagueStandingsEmpty,
-                          onRetry: _refresh,
-                        );
-                      }
-                      return RefreshIndicator(
-                        onRefresh: _refresh,
-                        child: _StandingsTable(
-                          snapshot: data.standings,
-                          fixtures: data.fixtures,
-                          scrollController: _scrollControllerFor(
-                            data.standings.type,
-                          ),
-                          fixturesExpanded: _expandedFixtureTypes.contains(
-                            data.standings.type,
-                          ),
-                          onFixturesExpandedChanged: (expanded) =>
-                              _setFixturesExpanded(
-                                data.standings.type,
-                                expanded,
-                              ),
-                          favoriteTeamKeys: _favoriteTeamKeys,
-                          filterFavoriteFixtures: _favoriteFixtureFilterTypes
-                              .contains(data.standings.type),
-                          onFilterFavoriteFixturesChanged: (enabled) =>
-                              _setFavoriteFixtureFilter(
-                                data.standings.type,
-                                enabled,
-                              ),
-                          reminderPanel: _buildReminderPanel(l10n, data),
-                        ),
-                      );
-                    },
-                  ),
                 ),
               ),
             ],
@@ -939,22 +866,18 @@ class _LeagueReminderPanel extends StatelessWidget {
   final String subtitle;
   final String emptyLabel;
   final String selectLabel;
-  final String clearLabel;
   final String reminderCountLabel;
   final List<String> selectedTeamNames;
   final VoidCallback? onSelect;
-  final VoidCallback? onClear;
 
   const _LeagueReminderPanel({
     required this.title,
     required this.subtitle,
     required this.emptyLabel,
     required this.selectLabel,
-    required this.clearLabel,
     required this.reminderCountLabel,
     required this.selectedTeamNames,
     required this.onSelect,
-    required this.onClear,
   });
 
   @override
@@ -1056,16 +979,6 @@ class _LeagueReminderPanel extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                   ),
                 ),
-                const SizedBox(width: 8),
-                if (onClear != null)
-                  TextButton.icon(
-                    onPressed: onClear,
-                    icon: const Icon(Icons.notifications_off_outlined),
-                    label: Text(clearLabel),
-                    style: TextButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
               ],
             ),
           ],
@@ -1646,11 +1559,15 @@ class _LogoCircle extends StatelessWidget {
               .toUpperCase();
     final trimmedLogoUrl = logoUrl.trim();
     return Container(
-      width: 28,
-      height: 28,
+      width: 32,
+      height: 32,
+      padding: trimmedLogoUrl.isEmpty
+          ? EdgeInsets.zero
+          : const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       clipBehavior: Clip.antiAlias,
       child: trimmedLogoUrl.isEmpty
@@ -1662,7 +1579,7 @@ class _LogoCircle extends StatelessWidget {
             )
           : Image.network(
               trimmedLogoUrl,
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
               errorBuilder: (_, __, ___) => Center(
                 child: Text(
                   initials,
