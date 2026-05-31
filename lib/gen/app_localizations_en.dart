@@ -52,6 +52,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Pick another tab above to preview its buttons.';
 
   @override
+  String get parentWelcomeGuideTitle => 'Parent Mode Guide';
+
+  @override
+  String get parentWelcomeGuideIntro =>
+      'Parent mode is for reviewing player records and leaving feedback on existing training logs.';
+
+  @override
+  String get parentWelcomeGuideStepLogs =>
+      'Open the Logs tab first to review records saved by the player.';
+
+  @override
+  String get parentWelcomeGuideStepFeedback =>
+      'Leave praise and next-time notes as feedback inside an existing record.';
+
+  @override
+  String get parentWelcomeGuideStepSync =>
+      'Connect the Google Drive account that holds the player backup to keep shared data in sync.';
+
+  @override
   String get guideActionToday => 'Today';
 
   @override
@@ -1270,8 +1289,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homePriorityPlansAction => 'Plans';
 
   @override
-  String get homePriorityPlanNextMessage =>
-      'No training plan is set for today or tomorrow. Add a short plan first.';
+  String get homePriorityPlanNextMessage => 'Add a short training plan.';
 
   @override
   String get homePriorityPlanNextAction => 'Add plan';
@@ -3083,7 +3101,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeMealCoachRecordAction => 'Meals';
 
   @override
-  String get homeParentWelcomeMessage => 'Review records and feedback only.';
+  String get homeParentWelcomeMessage =>
+      'Parent mode: review records and feedback only.';
 
   @override
   String get homeParentWelcomeAction => 'Logs';

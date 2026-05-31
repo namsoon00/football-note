@@ -50,6 +50,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeGuideNextTabHint => '위 탭을 바꾸면 다른 화면의 버튼 흐름을 볼 수 있어요.';
 
   @override
+  String get parentWelcomeGuideTitle => '보호자 모드 안내';
+
+  @override
+  String get parentWelcomeGuideIntro =>
+      '보호자 모드에서는 선수 기록을 확인하고, 기존 훈련기록에 피드백만 남길 수 있어요.';
+
+  @override
+  String get parentWelcomeGuideStepLogs => '훈련기록 탭에서 선수가 저장한 기록을 먼저 열어보세요.';
+
+  @override
+  String get parentWelcomeGuideStepFeedback =>
+      '기존 기록 안에서 칭찬과 다음에 볼 점을 피드백으로 남겨요.';
+
+  @override
+  String get parentWelcomeGuideStepSync =>
+      '선수 백업이 있는 Google Drive 계정으로 연결해 같은 데이터를 안전하게 동기화하세요.';
+
+  @override
   String get guideActionToday => '오늘';
 
   @override
@@ -1227,8 +1245,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homePriorityPlansAction => '계획';
 
   @override
-  String get homePriorityPlanNextMessage =>
-      '오늘이나 내일 훈련 계획이 비어 있어요. 짧은 계획부터 추가해 보세요.';
+  String get homePriorityPlanNextMessage => '짧은 훈련 계획을 추가해 보세요.';
 
   @override
   String get homePriorityPlanNextAction => '계획 추가';
@@ -2983,7 +3000,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeMealCoachRecordAction => '식사';
 
   @override
-  String get homeParentWelcomeMessage => '기록 확인과 피드백만 관리합니다.';
+  String get homeParentWelcomeMessage => '보호자 모드입니다. 기록 확인과 피드백만 관리해요.';
 
   @override
   String get homeParentWelcomeAction => '기록 보기';

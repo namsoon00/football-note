@@ -344,13 +344,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     if (_guideCheckedInSession.contains(tabIndex)) return;
     _guideCheckedInSession.add(tabIndex);
-    final key = 'tab_quick_guide_seen_v1_$tabIndex';
+    final isParentMode = FamilyAccessService(
+      widget.optionRepository,
+    ).loadState().isParentMode;
+    final key = isParentMode
+        ? 'tab_quick_guide_seen_parent_mode_v1'
+        : 'tab_quick_guide_seen_v1_$tabIndex';
     final alreadySeen = widget.optionRepository.getValue<bool>(key) ?? false;
     if (alreadySeen) return;
     await widget.optionRepository.setValue(key, true);
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
-    final guide = _tabGuideData(tabIndex, l10n);
+    final guide = _tabGuideData(tabIndex, l10n, isParentMode: isParentMode);
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -366,7 +371,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  _TabGuideData _tabGuideData(int tabIndex, AppLocalizations l10n) {
+  _TabGuideData _tabGuideData(
+    int tabIndex,
+    AppLocalizations l10n, {
+    required bool isParentMode,
+  }) {
+    if (isParentMode) {
+      return _TabGuideData(
+        title: l10n.parentWelcomeGuideTitle,
+        intro: l10n.parentWelcomeGuideIntro,
+        steps: [
+          _TabGuideStep(
+            icon: Icons.list_alt_outlined,
+            actionLabel: l10n.tabLogs,
+            description: l10n.parentWelcomeGuideStepLogs,
+          ),
+          _TabGuideStep(
+            icon: Icons.rate_review_outlined,
+            actionLabel: l10n.parentFeedbackWriteAction,
+            description: l10n.parentWelcomeGuideStepFeedback,
+          ),
+          _TabGuideStep(
+            icon: Icons.cloud_sync_outlined,
+            actionLabel: l10n.settingsDriveConnectionTitle,
+            description: l10n.parentWelcomeGuideStepSync,
+          ),
+        ],
+      );
+    }
     switch (tabIndex) {
       case 0:
         return _TabGuideData(

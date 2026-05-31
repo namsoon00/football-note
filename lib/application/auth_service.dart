@@ -3,17 +3,16 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
-  AuthService({
-    FirebaseAuth? auth,
-    GoogleSignIn? googleSignIn,
-  })  : _auth = auth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ??
-            GoogleSignIn(
-              scopes: const [
-                'email',
-                'https://www.googleapis.com/auth/drive.file',
-              ],
-            );
+  AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
+    : _auth = auth ?? FirebaseAuth.instance,
+      _googleSignIn =
+          googleSignIn ??
+          GoogleSignIn(
+            scopes: const [
+              'email',
+              'https://www.googleapis.com/auth/drive.file',
+            ],
+          );
 
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
@@ -22,7 +21,11 @@ class AuthService {
 
   Future<UserCredential?> signInWithGoogle() async {
     if (kIsWeb) {
-      throw UnsupportedError('Google sign-in is not configured for web.');
+      final provider = GoogleAuthProvider()
+        ..addScope('email')
+        ..addScope('https://www.googleapis.com/auth/drive.file')
+        ..setCustomParameters(const {'prompt': 'select_account'});
+      return _auth.signInWithPopup(provider);
     }
     final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) {
@@ -38,6 +41,7 @@ class AuthService {
 
   Future<void> signOut() async {
     await _auth.signOut();
+    if (kIsWeb) return;
     await _googleSignIn.signOut();
   }
 }

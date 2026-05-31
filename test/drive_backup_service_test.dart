@@ -1025,6 +1025,42 @@ void main() {
   );
 
   test(
+    'parent restore is blocked when connected drive is not the child drive',
+    () async {
+      await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+      await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
+      await optionBox.put(
+        DriveBackupService.connectedDriveEmailLocalKey,
+        'parent@example.com',
+      );
+      await optionBox.put(
+        DriveBackupService.sharedChildDriveEmailKey,
+        'child@example.com',
+      );
+
+      expect(
+        () => service.validateRestoreBindingForTesting(<String, dynamic>{
+          'version': 5,
+          'entries': const <dynamic>[],
+          'options': <String, dynamic>{
+            FamilyAccessService.familyIdKey: 'family-1',
+            DriveBackupService.sharedChildDriveEmailKey: 'child@example.com',
+          },
+          'optionRecords': const <dynamic>[],
+          'family': const <String, dynamic>{'familyId': 'family-1'},
+        }),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            DriveBackupService.parentDriveMismatchErrorCode,
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
     'player account switch restores remote backup before adopting the new drive',
     () async {
       await optionBox.put(

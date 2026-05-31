@@ -101,9 +101,29 @@ class LeagueStandingsService {
   Future<LeagueStandingsSnapshot> _fetchKLeagueStandings({
     DateTime? now,
   }) async {
-    final year = (now ?? DateTime.now()).year.toString();
+    final currentYear = (now ?? DateTime.now()).year;
+    StateError? lastStateError;
+    for (final year in <int>[currentYear, currentYear - 1]) {
+      try {
+        final snapshot = await _fetchKLeagueStandingsForYear(year);
+        if (snapshot.entries.isNotEmpty || year == currentYear - 1) {
+          return snapshot;
+        }
+      } on StateError catch (error) {
+        lastStateError = error;
+      }
+    }
+    throw lastStateError ?? StateError('K League standings are unavailable.');
+  }
+
+  Future<LeagueStandingsSnapshot> _fetchKLeagueStandingsForYear(
+    int year,
+  ) async {
     final uri = _kLeagueStandingsUri.replace(
-      queryParameters: {..._kLeagueStandingsUri.queryParameters, 'year': year},
+      queryParameters: {
+        ..._kLeagueStandingsUri.queryParameters,
+        'year': year.toString(),
+      },
     );
     final response = await _client
         .post(uri)

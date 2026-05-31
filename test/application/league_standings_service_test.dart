@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/league_standings_service.dart';
 import 'package:football_note/domain/entities/league_standings.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 void main() {
   test('parses ESPN standings payload', () {
@@ -206,40 +210,91 @@ void main() {
     expect(snapshot.entries.single.goalDifference, '15');
   });
 
+  test(
+    'K League standings falls back to previous season when current is empty',
+    () async {
+      final requestedYears = <String>[];
+      final currentYear = DateTime.now().year;
+      final previousYear = currentYear - 1;
+      final service = LeagueStandingsService(
+        client: MockClient((request) async {
+          requestedYears.add(request.url.queryParameters['year'] ?? '');
+          final year = request.url.queryParameters['year'];
+          return http.Response.bytes(
+            utf8.encode(jsonEncode({
+              'resultCode': '200',
+              'data': {
+                'teamRank': year == previousYear.toString()
+                    ? [
+                        {
+                          'year': previousYear,
+                          'teamId': 'K09',
+                          'teamName': '서울',
+                          'rank': 1,
+                          'gameCount': 33,
+                          'gainPoint': 61,
+                          'winCnt': 18,
+                          'tieCnt': 7,
+                          'lossCnt': 8,
+                          'gainGoal': 52,
+                          'lossGoal': 30,
+                          'gapCnt': 22,
+                        },
+                      ]
+                    : const [],
+              },
+            })),
+            200,
+            headers: const {
+              'content-type': 'application/json; charset=utf-8',
+            },
+          );
+        }),
+      );
+      addTearDown(service.dispose);
+
+      final snapshot = await service.fetch(LeagueStandingsType.kLeague1);
+
+      expect(requestedYears, [currentYear.toString(), previousYear.toString()]);
+      expect(snapshot.seasonName, '$previousYear K League 1');
+      expect(snapshot.entries.single.teamName, '서울');
+    },
+  );
+
   test('parses K League fixture payload', () {
     final snapshot =
         LeagueStandingsService.parseKLeagueFixtureSnapshotsForTesting(
-          fetchedAt: DateTime(2026, 5, 26, 12),
-          payloads: [
-            {
-              'resultCode': '200',
-              'data': {
-                'scheduleList': [
-                  {
-                    'year': 2026,
-                    'leagueId': 1,
-                    'roundId': 11,
-                    'gameId': 61,
-                    'gameDate': '2026.05.02',
-                    'gameTime': '14:00',
-                    'endYn': 'Y',
-                    'gameStatus': 'FE',
-                    'homeTeamName': '서울',
-                    'homeTeam': 'K09',
-                    'awayTeamName': '김천',
-                    'awayTeam': 'K35',
-                    'homeGoal': 2,
-                    'awayGoal': 3,
-                    'fieldName': '서울 월드컵',
-                    'fieldNameFull': '서울 월드컵 경기장',
-                    'codeName': '스플릿일반',
-                    'meetSeq': 1,
-                  },
-                ],
+      fetchedAt: DateTime(2026, 5, 26, 12),
+      payloads: [
+        {
+          'resultCode': '200',
+          'data': {
+            'scheduleList': [
+              {
+                'year': 2026,
+                'leagueId': 1,
+                'roundId': 11,
+                'gameId': 61,
+                'gameDate': '2026.05.02',
+                'gameTime': '14:00',
+                'endYn': 'Y',
+                'gameStatus': 'FE',
+                'homeTeamName': '서울',
+                'homeTeam': 'K09',
+                'awayTeamName': '김천',
+                'awayTeam': 'K35',
+                'homeGoal': 2,
+                'awayGoal': 3,
+                'fieldName': '서울 월드컵',
+                'fieldNameFull': '서울 월드컵 경기장',
+                'codeName': '스플릿일반',
+                'meetSeq': 1,
               },
-            },
-          ],
-        );
+            ],
+          },
+        },
+      ],
+    );
 
     expect(snapshot.type, LeagueStandingsType.kLeague1);
     expect(snapshot.entries, hasLength(1));
@@ -258,64 +313,64 @@ void main() {
   test('filters K League fixtures to the requested schedule window', () {
     final snapshot =
         LeagueStandingsService.parseKLeagueFixtureSnapshotsForTesting(
-          fetchedAt: DateTime(2026, 5, 26, 12),
-          start: DateTime.utc(2026, 5, 12),
-          end: DateTime.utc(2026, 6, 9),
-          payloads: [
-            {
-              'resultCode': '200',
-              'data': {
-                'scheduleList': [
-                  {
-                    'year': 2026,
-                    'leagueId': 1,
-                    'roundId': 10,
-                    'gameId': 50,
-                    'gameDate': '2026.05.01',
-                    'gameTime': '14:00',
-                    'endYn': 'Y',
-                    'gameStatus': 'FE',
-                    'homeTeamName': '서울',
-                    'homeTeam': 'K09',
-                    'awayTeamName': '김천',
-                    'awayTeam': 'K35',
-                    'meetSeq': 1,
-                  },
-                  {
-                    'year': 2026,
-                    'leagueId': 1,
-                    'roundId': 15,
-                    'gameId': 80,
-                    'gameDate': '2026.05.30',
-                    'gameTime': '19:00',
-                    'endYn': 'N',
-                    'gameStatus': 'BE',
-                    'homeTeamName': '서울',
-                    'homeTeam': 'K09',
-                    'awayTeamName': '울산',
-                    'awayTeam': 'K01',
-                    'meetSeq': 1,
-                  },
-                  {
-                    'year': 2026,
-                    'leagueId': 1,
-                    'roundId': 20,
-                    'gameId': 95,
-                    'gameDate': '2026.06.20',
-                    'gameTime': '19:00',
-                    'endYn': 'N',
-                    'gameStatus': 'BE',
-                    'homeTeamName': '서울',
-                    'homeTeam': 'K09',
-                    'awayTeamName': '전북',
-                    'awayTeam': 'K05',
-                    'meetSeq': 1,
-                  },
-                ],
+      fetchedAt: DateTime(2026, 5, 26, 12),
+      start: DateTime.utc(2026, 5, 12),
+      end: DateTime.utc(2026, 6, 9),
+      payloads: [
+        {
+          'resultCode': '200',
+          'data': {
+            'scheduleList': [
+              {
+                'year': 2026,
+                'leagueId': 1,
+                'roundId': 10,
+                'gameId': 50,
+                'gameDate': '2026.05.01',
+                'gameTime': '14:00',
+                'endYn': 'Y',
+                'gameStatus': 'FE',
+                'homeTeamName': '서울',
+                'homeTeam': 'K09',
+                'awayTeamName': '김천',
+                'awayTeam': 'K35',
+                'meetSeq': 1,
               },
-            },
-          ],
-        );
+              {
+                'year': 2026,
+                'leagueId': 1,
+                'roundId': 15,
+                'gameId': 80,
+                'gameDate': '2026.05.30',
+                'gameTime': '19:00',
+                'endYn': 'N',
+                'gameStatus': 'BE',
+                'homeTeamName': '서울',
+                'homeTeam': 'K09',
+                'awayTeamName': '울산',
+                'awayTeam': 'K01',
+                'meetSeq': 1,
+              },
+              {
+                'year': 2026,
+                'leagueId': 1,
+                'roundId': 20,
+                'gameId': 95,
+                'gameDate': '2026.06.20',
+                'gameTime': '19:00',
+                'endYn': 'N',
+                'gameStatus': 'BE',
+                'homeTeamName': '서울',
+                'homeTeam': 'K09',
+                'awayTeamName': '전북',
+                'awayTeam': 'K05',
+                'meetSeq': 1,
+              },
+            ],
+          },
+        },
+      ],
+    );
 
     expect(snapshot.entries, hasLength(1));
     expect(snapshot.entries.single.id, '2026-1-80-1');

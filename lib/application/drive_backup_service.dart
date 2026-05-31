@@ -1358,6 +1358,7 @@ class DriveBackupService implements BackupRepository {
             as drive.Media;
     final content = await utf8.decoder.bind(media.stream).join();
     final data = _decodeBackupPayload(content);
+    await _syncConnectedDriveAccountCache();
     _validateRestoreBinding(data);
     await _restoreFromMap(data);
   }
@@ -1433,6 +1434,11 @@ class DriveBackupService implements BackupRepository {
   @visibleForTesting
   Future<void> restoreFromMapForTesting(Map<String, dynamic> data) =>
       _restoreFromMap(_validatedBackupData(data));
+
+  @visibleForTesting
+  void validateRestoreBindingForTesting(Map<String, dynamic> data) {
+    _validateRestoreBinding(_validatedBackupData(data));
+  }
 
   @visibleForTesting
   Map<String, dynamic> mergeParentBackupForTesting({
@@ -1764,6 +1770,22 @@ class DriveBackupService implements BackupRepository {
         remoteFamilyId.isNotEmpty &&
         localFamilyId != remoteFamilyId) {
       throw StateError(parentFamilyMismatchErrorCode);
+    }
+    if (!state.isSupportMode) {
+      return;
+    }
+    final connectedEmail = _normalizedEmail(
+      _optionBox.get(connectedDriveEmailLocalKey) as String?,
+    );
+    final expectedChildDriveEmail = _normalizedEmail(
+      _extractSharedChildDriveEmail(remote).isNotEmpty
+          ? _extractSharedChildDriveEmail(remote)
+          : _optionBox.get(sharedChildDriveEmailKey) as String?,
+    );
+    if (expectedChildDriveEmail.isNotEmpty &&
+        connectedEmail.isNotEmpty &&
+        expectedChildDriveEmail != connectedEmail) {
+      throw StateError(parentDriveMismatchErrorCode);
     }
   }
 
