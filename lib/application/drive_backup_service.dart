@@ -54,6 +54,8 @@ class DriveBackupService implements BackupRepository {
   final Future<DriveConnectionInfo?> Function()? _driveConnectionLoader;
   final StreamController<void> _driveAccountStateController =
       StreamController<void>.broadcast();
+  final StreamController<void> _dataChangeController =
+      StreamController<void>.broadcast();
   String? _webAccessToken;
   StreamSubscription<GoogleSignInAccount?>? _googleAccountSubscription;
   StreamSubscription<User?>? _firebaseAuthSubscription;
@@ -161,6 +163,8 @@ class DriveBackupService implements BackupRepository {
   static const _backupFormatValue = 'football_note_backup';
   Stream<void> driveAccountStateChanges() =>
       _driveAccountStateController.stream;
+
+  Stream<void> dataChanges() => _dataChangeController.stream;
 
   @override
   Future<void> backup() async {
@@ -1557,6 +1561,7 @@ class DriveBackupService implements BackupRepository {
         await _optionBox.put(entry.key, entry.value);
       }
     }
+    _notifyDataChanged();
   }
 
   dynamic _encodeOptionValueForBackup({
@@ -2162,6 +2167,13 @@ class DriveBackupService implements BackupRepository {
       } else {
         await _optionBox.put(key, value);
       }
+    }
+    _notifyDataChanged();
+  }
+
+  void _notifyDataChanged() {
+    if (!_dataChangeController.isClosed) {
+      _dataChangeController.add(null);
     }
   }
 

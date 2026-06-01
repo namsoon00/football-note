@@ -67,6 +67,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('백업된 데이터:'), findsOneWidget);
+    expect(find.textContaining('파일 경로:'), findsNothing);
   });
 
   testWidgets('role and sync section can collapse together', (
@@ -264,6 +265,7 @@ void main() {
       expect(find.widgetWithText(OutlinedButton, '최근 가져오기 취소'), findsNothing);
       expect(find.text('최근 반영'), findsOneWidget);
       expect(find.text('최근 가져오기 확인'), findsOneWidget);
+      expect(find.textContaining('파일 경로:'), findsNothing);
       expect(find.text('가족 공간 열기'), findsNothing);
       expect(find.text('Google Drive 백업'), findsNothing);
       expect(find.text('로그아웃'), findsNothing);

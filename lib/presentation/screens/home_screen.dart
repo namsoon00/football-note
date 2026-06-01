@@ -60,6 +60,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _routePushInFlight = false;
   Timer? _familySyncTimer;
   bool _familySyncInFlight = false;
+  StreamSubscription<void>? _backupDataChangeSubscription;
+  int _dataRevision = 0;
 
   @override
   void initState() {
@@ -74,12 +76,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _familySyncInterval,
       (_) => unawaited(_syncFamilySharedDataIfNeeded()),
     );
+    _backupDataChangeSubscription = widget.driveBackupService
+        ?.dataChanges()
+        .listen((_) => _handleBackupDataChanged());
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _familySyncTimer?.cancel();
+    unawaited(_backupDataChangeSubscription?.cancel());
     super.dispose();
   }
 
@@ -103,6 +109,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (pushedPending || result.refreshed) {
         widget.localeService.load();
         widget.settingsService.load();
+        widget.mealLogService.reloadFromStorage();
         setState(() {});
       }
       if (!result.hasUserVisibleChanges) return;
@@ -126,6 +133,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // Shared sync can retry on the next timer tick or resume.
     } finally {
       _familySyncInFlight = false;
+    }
+  }
+
+  void _handleBackupDataChanged() {
+    widget.localeService.load();
+    widget.settingsService.load();
+    widget.mealLogService.reloadFromStorage();
+    if (mounted) {
+      setState(() => _dataRevision++);
+    } else {
+      _dataRevision++;
     }
   }
 
@@ -243,6 +261,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         driveBackupService: widget.driveBackupService,
         embeddedInHomeTab: true,
         openTodayDiaryRequestKey: _openTodayDiaryRequestKey,
+        dataRevision: _dataRevision,
       ),
     ];
     final l10n = AppLocalizations.of(context)!;

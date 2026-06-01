@@ -14,14 +14,19 @@ class MealLogService {
       StreamController<List<MealEntry>>.broadcast();
   late final Stream<List<MealEntry>> _entriesStream =
       Stream<List<MealEntry>>.multi((controller) {
-    controller.add(allEntries());
-    final subscription = _controller.stream.listen(controller.add);
-    controller.onCancel = subscription.cancel;
-  }, isBroadcast: true);
+        controller.add(allEntries());
+        final subscription = _controller.stream.listen(controller.add);
+        controller.onCancel = subscription.cancel;
+      }, isBroadcast: true);
 
   MealLogService(this._options);
 
   Stream<List<MealEntry>> watchEntries() => _entriesStream;
+
+  void reloadFromStorage() {
+    if (_controller.isClosed) return;
+    _controller.add(List<MealEntry>.unmodifiable(allEntries()));
+  }
 
   List<MealEntry> allEntries() {
     final raw = _options.getValue<String>(storageKey) ?? '[]';
@@ -77,9 +82,11 @@ class MealLogService {
 
   Future<void> save(MealEntry entry) async {
     final normalizedDay = _normalizeDay(entry.date);
-    final nextEntries = allEntries().where((item) {
-      return _normalizeDay(item.date) != normalizedDay;
-    }).toList(growable: true);
+    final nextEntries = allEntries()
+        .where((item) {
+          return _normalizeDay(item.date) != normalizedDay;
+        })
+        .toList(growable: true);
     if (entry.hasRecords) {
       nextEntries.add(
         entry.copyWith(date: normalizedDay, createdAt: entry.createdAt),
@@ -91,9 +98,11 @@ class MealLogService {
 
   Future<void> deleteDay(DateTime day) async {
     final normalizedDay = _normalizeDay(day);
-    final nextEntries = allEntries().where((item) {
-      return _normalizeDay(item.date) != normalizedDay;
-    }).toList(growable: false);
+    final nextEntries = allEntries()
+        .where((item) {
+          return _normalizeDay(item.date) != normalizedDay;
+        })
+        .toList(growable: false);
     await _persist(nextEntries);
   }
 

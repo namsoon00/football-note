@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive/hive.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
@@ -39,6 +40,12 @@ void main() {
     mealLogService = MealLogService(HiveOptionRepository(optionBox));
     localeService = LocaleService(HiveOptionRepository(optionBox))..load();
     settingsService = SettingsService(HiveOptionRepository(optionBox))..load();
+  });
+
+  setUp(() async {
+    await box.clear();
+    await optionBox.clear();
+    await _markBenchmarksFresh(optionBox);
   });
 
   tearDownAll(() async {
@@ -101,7 +108,6 @@ void main() {
   testWidgets('Growth summary can be expanded from the stats panel', (
     WidgetTester tester,
   ) async {
-    await box.clear();
     await service.add(
       TrainingEntry(
         date: DateTime.now(),
@@ -153,7 +159,6 @@ void main() {
   testWidgets('Stats screen separates match records in match tab', (
     WidgetTester tester,
   ) async {
-    await box.clear();
     await service.add(
       TrainingEntry(
         date: DateTime.now(),
@@ -206,11 +211,92 @@ void main() {
     expect(find.textContaining('라이벌 FC'), findsOneWidget);
   });
 
+  testWidgets('Parent mode stats shows training, match, and meal records', (
+    WidgetTester tester,
+  ) async {
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 50,
+        intensity: 4,
+        type: '드리블',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '학교 운동장',
+        jumpRopeCount: 120,
+        jumpRopeMinutes: 8,
+        jumpRopeEnabled: true,
+        liftingByPart: const <String, int>{'하체': 30},
+      ),
+    );
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 70,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '메인 구장',
+        opponentTeam: '상대 FC',
+        scoredGoals: 2,
+        concededGoals: 1,
+      ),
+    );
+    await mealLogService.save(
+      MealEntry(
+        date: DateTime.now(),
+        breakfastRiceBowls: 1,
+        lunchRiceBowls: 1,
+        dinnerRiceBowls: 1,
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: StatsScreen(
+            trainingService: service,
+            mealLogService: mealLogService,
+            localeService: localeService,
+            onCreate: () {},
+            optionRepository: HiveOptionRepository(optionBox),
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('전체 요약'), findsOneWidget);
+    expect(find.text('줄넘기 통계'), findsOneWidget);
+    expect(find.text('식사 기록'), findsOneWidget);
+
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('시합 요약'), findsOneWidget);
+    expect(find.text('전체 시합 기록'), findsOneWidget);
+  });
+
   testWidgets('Stats screen applies provided initial range label', (
     WidgetTester tester,
   ) async {
-    await box.clear();
-
     await tester.pumpWidget(
       DefaultAssetBundle(
         bundle: TestAssetBundle(),
@@ -246,8 +332,6 @@ void main() {
   testWidgets('Stats screen shows meal averages from standalone logs', (
     WidgetTester tester,
   ) async {
-    await box.clear();
-    await optionBox.clear();
     await service.add(
       TrainingEntry(
         date: DateTime.now(),
@@ -308,4 +392,11 @@ void main() {
     expect(find.text('저녁'), findsWidgets);
     expect(find.text('몸무게(kg)'), findsWidgets);
   });
+}
+
+Future<void> _markBenchmarksFresh(Box optionBox) async {
+  await optionBox.put(
+    'benchmark_synced_at_v2',
+    DateTime.now().toUtc().toIso8601String(),
+  );
 }

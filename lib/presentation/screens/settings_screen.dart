@@ -1939,15 +1939,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildDriveAccountTile(
-          icon: Icons.folder_outlined,
-          title: l10n.settingsDriveActionFilePath(
-            DriveBackupService.backupDisplayPath,
-          ),
-          subtitle: l10n.familySharedAutoRefreshDescription,
-        ),
         if (hasPendingChanges) ...[
-          const SizedBox(height: 8),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
@@ -1962,7 +1954,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
         ],
         if (lastPushAt != null) ...[
-          const SizedBox(height: 8),
+          if (hasPendingChanges) const SizedBox(height: 8),
           _buildDriveAccountTile(
             icon: Icons.history,
             title: l10n.familySharedLastPush,
@@ -1970,7 +1962,8 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
         ],
         if (lastPullAt != null) ...[
-          const SizedBox(height: 8),
+          if (hasPendingChanges || lastPushAt != null)
+            const SizedBox(height: 8),
           _buildDriveAccountTile(
             icon: Icons.refresh_outlined,
             title: l10n.familySharedLastRefresh,
@@ -2603,14 +2596,7 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
               ],
             ),
             const SizedBox(height: 10),
-            Text(
-              widget.l10n.settingsDriveActionFilePath(
-                DriveBackupService.backupDisplayPath,
-              ),
-              style: theme.textTheme.bodySmall,
-            ),
             if (widget.lastBackupAt != null) ...[
-              const SizedBox(height: 10),
               Text(
                 widget.l10n.settingsSyncBackedUpDataTime(
                   widget.formatBackupTime(widget.lastBackupAt!),

@@ -59,6 +59,7 @@ class CoachLessonScreen extends StatefulWidget {
   final BackupService? driveBackupService;
   final bool embeddedInHomeTab;
   final int openTodayDiaryRequestKey;
+  final int dataRevision;
 
   const CoachLessonScreen({
     super.key,
@@ -70,6 +71,7 @@ class CoachLessonScreen extends StatefulWidget {
     this.driveBackupService,
     this.embeddedInHomeTab = false,
     this.openTodayDiaryRequestKey = 0,
+    this.dataRevision = 0,
   });
 
   static String todayViewedDayToken(DateTime date) =>
@@ -130,6 +132,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant CoachLessonScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.dataRevision == oldWidget.dataRevision) {
+      return;
+    }
+    _selectedThemeId =
+        widget.optionRepository.getValue<String>(_diaryThemeKey) ??
+        _DiaryThemePalette.notebook.id;
+    _customDiaryEntries = _loadCustomDiaryEntries();
   }
 
   @override
