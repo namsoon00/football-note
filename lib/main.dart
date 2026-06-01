@@ -169,7 +169,7 @@ class FootballNoteApp extends StatelessWidget {
           darkTheme: AppTheme.dark(),
           themeMode: settingsService.themeMode,
           locale: localeService.locale,
-          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

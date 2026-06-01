@@ -245,6 +245,85 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Tomorrow hot outfit previews do not recommend a vest', (
+    WidgetTester tester,
+  ) async {
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final tomorrow = todayDate.add(const Duration(days: 1));
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: DateTime.now(),
+        summary: '맑음',
+        weatherCode: 0,
+        temperature: 26,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: todayDate,
+            summary: '맑음',
+            weatherCode: 0,
+            temperatureMax: 27,
+            temperatureMin: 21,
+          ),
+          WeatherSharedDailyForecast(
+            date: tomorrow,
+            summary: '더움',
+            weatherCode: 0,
+            temperatureMax: 32,
+            temperatureMin: 25,
+            morningForecast: WeatherSharedForecastMoment(
+              time: tomorrow.add(const Duration(hours: 9)),
+              temperature: 28,
+              weatherCode: 0,
+              windSpeed: 2,
+            ),
+            eveningForecast: WeatherSharedForecastMoment(
+              time: tomorrow.add(const Duration(hours: 18)),
+              temperature: 31,
+              weatherCode: 0,
+              windSpeed: 2,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '맑음 26°C',
+            initialWeatherCode: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.scrollUntilVisible(
+      find.text('내일 추천 복장'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('내일 추천 복장'), findsOneWidget);
+    expect(find.text('겉옷 없음'), findsWidgets);
+    expect(find.text('얇은 조끼(선택)'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Initial outfit action opens outfit sheet', (
     WidgetTester tester,
   ) async {

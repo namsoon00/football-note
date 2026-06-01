@@ -800,10 +800,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       }
     }
 
-    await widget.optionRepository.setValue(
-      SkillQuizScreen.completionKey,
-      completedAt.toIso8601String(),
-    );
+    if (_mode == _QuizMode.daily) {
+      await widget.optionRepository.setValue(
+        SkillQuizScreen.completionKey,
+        completedAt.toIso8601String(),
+      );
+    }
     await widget.optionRepository.setValue(SkillQuizScreen.sessionKey, '');
     _refreshResumeSummary();
 
@@ -832,7 +834,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           leading: _showEntryHubBackButton
               ? IconButton(
                   onPressed: _openEntryHub,
-                  tooltip: isKo ? '퀴즈 홈으로' : 'Back to quiz home',
+                  tooltip: l10n.quizBackHomeTooltip,
                   icon: const Icon(Icons.arrow_back),
                 )
               : null,
@@ -840,15 +842,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           actions: _showEntryHubBackButton
               ? null
               : [
-                  IconButton(
+                  _buildHeaderAction(
                     onPressed: _openQuizLibrary,
-                    tooltip: isKo ? '전체 문제 보기' : 'Browse all questions',
                     icon: const Icon(Icons.library_books_outlined),
+                    label: l10n.quizLibraryAction,
                   ),
-                  IconButton(
+                  _buildHeaderAction(
                     onPressed: _openQuizHistory,
-                    tooltip: isKo ? '퀴즈 히스토리' : 'Quiz history',
                     icon: const Icon(Icons.history_outlined),
+                    label: l10n.quizHistoryAction,
                   ),
                 ],
         ),
@@ -860,6 +862,27 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 : (_finished ? _buildResult(isKo) : _buildQuestion(isKo)),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderAction({
+    required VoidCallback onPressed,
+    required Widget icon,
+    required String label,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(0, 36),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
+        ),
+        icon: icon,
+        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
     );
   }

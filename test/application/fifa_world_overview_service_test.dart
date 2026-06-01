@@ -173,10 +173,9 @@ void main() {
     ];
     raw['BallPossession'] = {'OverallHome': 58.2, 'OverallAway': 41.8};
 
-    final fallback = FifaWorldOverviewService.parseNationalMatches(
-      [raw],
-      gender: FifaRankingGender.men,
-    ).single;
+    final fallback = FifaWorldOverviewService.parseNationalMatches([
+      raw,
+    ], gender: FifaRankingGender.men).single;
     final detail = FifaWorldOverviewService.parseFifaMatchDetail(
       raw,
       fallback: fallback,
@@ -194,6 +193,7 @@ void main() {
   test(
     'fetchOverview combines ranking page, schedules, and worldwide A-matches',
     () async {
+      final liveRanges = <Map<String, String>>[];
       final client = MockClient((request) async {
         if (request.url.host == 'api.fifa.com' &&
             request.url.path.endsWith('/rankings/')) {
@@ -264,6 +264,7 @@ void main() {
 
         if (request.url.host == 'api.fifa.com' &&
             request.url.path.endsWith('/live/football/range')) {
+          liveRanges.add(request.url.queryParameters);
           return http.Response(
             jsonEncode({
               'Results': [
@@ -320,6 +321,30 @@ void main() {
       expect(overview.recentResults.single.matchId, 'recent-result');
       expect(overview.upcomingFixtures, hasLength(1));
       expect(overview.upcomingFixtures.single.matchId, 'upcoming-fixture');
+      expect(
+        liveRanges,
+        contains(
+          predicate<Map<String, String>>(
+            (range) =>
+                range['from'] == '2026-04-17T23:59:59Z' &&
+                range['to'] == '2026-04-23T23:59:59Z',
+          ),
+        ),
+      );
+      expect(
+        liveRanges,
+        contains(
+          predicate<Map<String, String>>(
+            (range) =>
+                range['from'] == '2026-04-23T00:00:00Z' &&
+                range['to'] == '2026-04-29T23:59:59Z',
+          ),
+        ),
+      );
+      expect(
+        liveRanges.any((range) => range['to'] == '2026-06-11T00:00:00Z'),
+        isFalse,
+      );
     },
   );
 
@@ -370,10 +395,7 @@ void main() {
 
       if (request.url.host == 'inside.fifa.com') {
         metadataRequested = true;
-        return http.Response(
-          '"lastUpdateDate":"2026-04-03T00:00:00Z"',
-          200,
-        );
+        return http.Response('"lastUpdateDate":"2026-04-03T00:00:00Z"', 200);
       }
 
       if (request.url.host == 'api.fifa.com' &&
@@ -443,10 +465,7 @@ void main() {
     expect(overview.upcomingFixtures.single.awayTeamName, '체코');
     expect(overview.upcomingFixtures.single.dateLabel, '06-12 금요일');
     expect(overview.upcomingFixtures.single.timeLabel, 'AM 11 : 00');
-    expect(
-      overview.upcomingFixtures.single.status,
-      KfaMatchStatus.scheduled,
-    );
+    expect(overview.upcomingFixtures.single.status, KfaMatchStatus.scheduled);
 
     expect(overview.recentResults, hasLength(1));
     expect(overview.recentResults.single.competition, '2026 축구 국가대표팀 친선경기');

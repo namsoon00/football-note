@@ -174,6 +174,12 @@ Future<void> _showTrainingXpRewardDialog(
           award.after.totalXp,
           award.after.xpToNextLevel,
         );
+  final panelColor = Color.alphaBlend(
+    spec.color.withValues(
+      alpha: theme.brightness == Brightness.dark ? 0.22 : 0.14,
+    ),
+    scheme.surfaceContainerHighest,
+  );
   await _showCelebrationDialog(
     context,
     child: Container(
@@ -216,7 +222,7 @@ Future<void> _showTrainingXpRewardDialog(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: scheme.tertiaryContainer,
+              color: panelColor,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Column(
@@ -225,24 +231,22 @@ Future<void> _showTrainingXpRewardDialog(
                   l10n.trainingXpDialogXp(award.gainedXp),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: scheme.onTertiaryContainer,
+                    color: spec.color,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 8),
                 _LevelProgressStrip(
                   progress: award.after.progress,
-                  foreground: scheme.onTertiaryContainer,
-                  background: scheme.onTertiaryContainer.withValues(
-                    alpha: 0.18,
-                  ),
+                  foreground: spec.color,
+                  background: spec.color.withValues(alpha: 0.18),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   progressText,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.labelLarge?.copyWith(
-                    color: scheme.onTertiaryContainer,
+                    color: scheme.onSurfaceVariant,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -529,12 +533,10 @@ class _TrainingXpDialogSpec {
     PlayerLevelAward award,
   ) {
     final reasons = award.reasons.toSet();
-    final hasJumpRopeGain =
-        reasons.contains('jump_rope_added') ||
+    final hasJumpRopeGain = reasons.contains('jump_rope_added') ||
         (!reasons.contains('jump_rope_missed') &&
             reasons.any((reason) => reason.contains('jump_rope')));
-    final hasLiftingGain =
-        reasons.contains('lifting_added') ||
+    final hasLiftingGain = reasons.contains('lifting_added') ||
         (!reasons.contains('lifting_missed') &&
             reasons.any((reason) => reason.contains('lifting')));
     if (hasJumpRopeGain) {
@@ -561,7 +563,7 @@ class _TrainingXpDialogSpec {
     return _TrainingXpDialogSpec(
       title: l10n.trainingXpDialogTitle,
       message: l10n.trainingXpDialogMessage,
-      color: scheme.tertiary,
+      color: const Color(0xFF2563EB),
     );
   }
 }
@@ -603,7 +605,7 @@ Future<void> _showCelebrationDialog(
           children: [
             IgnorePointer(
               child: _FallingGemBackdrop(
-                color: Theme.of(context).colorScheme.tertiary,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             Center(
@@ -732,70 +734,179 @@ class _FallingGemPainter extends CustomPainter {
   }
 }
 
-class _FlameBurst extends StatelessWidget {
+class _FlameBurst extends StatefulWidget {
   final Color color;
 
   const _FlameBurst({required this.color});
+
+  @override
+  State<_FlameBurst> createState() => _FlameBurstState();
+}
+
+class _FlameBurstState extends State<_FlameBurst>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1350),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 144,
       height: 78,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            left: 18,
-            bottom: 10,
-            child: Icon(
-              Icons.local_fire_department_rounded,
-              size: 42,
-              color: color.withValues(alpha: 0.32),
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final progress = _controller.value;
+          return CustomPaint(
+            painter: _FlameBurstPainter(
+              color: widget.color,
+              progress: progress,
             ),
-          ),
-          Positioned(
-            right: 16,
-            top: 8,
-            child: Icon(
-              Icons.local_fire_department_rounded,
-              size: 34,
-              color: color.withValues(alpha: 0.24),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Transform.translate(
+                  offset: Offset(
+                    math.sin(progress * math.pi * 2) * 1.8,
+                    math.cos(progress * math.pi * 2) * 1.2,
+                  ),
+                  child: Icon(
+                    Icons.local_fire_department_rounded,
+                    size: 70,
+                    color: widget.color.withValues(alpha: 0.92),
+                    shadows: [
+                      Shadow(
+                        color: widget.color.withValues(alpha: 0.38),
+                        blurRadius: 22,
+                      ),
+                      const Shadow(
+                        color: Color(0x22000000),
+                        blurRadius: 12,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 3 + math.sin(progress * math.pi * 2) * 2,
+                  left: 36 + math.cos(progress * math.pi * 2) * 3,
+                  child: Icon(
+                    Icons.whatshot_rounded,
+                    color: const Color(0xFFFFD166).withValues(alpha: 0.78),
+                    size: 19,
+                  ),
+                ),
+              ],
             ),
-          ),
-          Icon(
-            Icons.local_fire_department_rounded,
-            size: 68,
-            color: color,
-            shadows: const [
-              Shadow(
-                color: Color(0x22000000),
-                blurRadius: 12,
-                offset: Offset(0, 5),
-              ),
-            ],
-          ),
-          Positioned(
-            top: 2,
-            left: 36,
-            child: Icon(
-              Icons.whatshot_rounded,
-              color: color.withValues(alpha: 0.72),
-              size: 18,
-            ),
-          ),
-          Positioned(
-            bottom: 6,
-            right: 38,
-            child: Icon(
-              Icons.whatshot_rounded,
-              color: color.withValues(alpha: 0.56),
-              size: 16,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
+  }
+}
+
+class _FlameBurstPainter extends CustomPainter {
+  final Color color;
+  final double progress;
+
+  const _FlameBurstPainter({required this.color, required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final center = Offset(size.width * 0.5, size.height * 0.68);
+    final glow = Paint()
+      ..shader = RadialGradient(
+        colors: <Color>[
+          color.withValues(alpha: 0.34),
+          const Color(0xFFFFB703).withValues(alpha: 0.18),
+          Colors.transparent,
+        ],
+        stops: const <double>[0, 0.45, 1],
+      ).createShader(
+        Rect.fromCircle(center: center, radius: size.width * 0.42),
+      );
+    canvas.drawCircle(center, size.width * 0.42, glow);
+
+    for (var index = 0; index < 9; index++) {
+      final seed = ((index * 23) % 97) / 97.0;
+      final rise = (progress + seed) % 1.0;
+      final x = size.width * (0.22 + seed * 0.56) +
+          math.sin((progress * math.pi * 2) + index) * 7;
+      final y = size.height * (0.90 - rise * 0.76);
+      final radius = 1.5 + (1 - rise) * 3.5;
+      canvas.drawCircle(
+        Offset(x, y),
+        radius,
+        Paint()
+          ..color = Color.lerp(
+            const Color(0xFFFFF3B0),
+            const Color(0xFFFF7A1A),
+            rise,
+          )!
+              .withValues(alpha: (1 - rise).clamp(0.0, 1.0) * 0.78),
+      );
+    }
+
+    final flameColors = <Color>[
+      const Color(0xFFC2410C),
+      color,
+      const Color(0xFFFFD166),
+    ];
+    for (var layer = 0; layer < flameColors.length; layer++) {
+      final inset = layer * 10.0;
+      final height = size.height * (0.62 - layer * 0.10);
+      final width = size.width * (0.34 - layer * 0.055);
+      final phase = (progress * math.pi * 2) + layer;
+      final tip = Offset(
+        size.width * 0.5 + math.sin(phase) * (5 - layer),
+        size.height * 0.12 + inset * 0.30 + math.cos(phase) * 2.5,
+      );
+      final baseY = size.height * 0.88 - inset * 0.10;
+      final path = Path()
+        ..moveTo(size.width * 0.5 - width, baseY)
+        ..cubicTo(
+          size.width * 0.18 + inset,
+          baseY - height * 0.30,
+          tip.dx - width * 0.82,
+          tip.dy + height * 0.34,
+          tip.dx,
+          tip.dy,
+        )
+        ..cubicTo(
+          tip.dx + width * 0.74,
+          tip.dy + height * 0.36,
+          size.width * 0.82 - inset,
+          baseY - height * 0.34,
+          size.width * 0.5 + width,
+          baseY,
+        )
+        ..close();
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = flameColors[layer].withValues(alpha: 0.34 + layer * 0.19),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FlameBurstPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.progress != progress;
   }
 }
 
@@ -1063,8 +1174,8 @@ class _CelebrationBurst extends StatelessWidget {
           _BurstDot(left: 28, top: 10, color: Color(0xFFFFC145)),
           _BurstDot(right: 26, top: 12, color: Color(0xFF57CC99)),
           _BurstDot(right: 8, top: 34, color: Color(0xFF3FA7D6)),
-          _BurstDot(left: 34, bottom: 2, color: Color(0xFFFF8FA3)),
-          _BurstDot(right: 34, bottom: 6, color: Color(0xFF7B61FF)),
+          _BurstDot(left: 34, bottom: 2, color: Color(0xFFF59E0B)),
+          _BurstDot(right: 34, bottom: 6, color: Color(0xFF0EA5E9)),
           Icon(Icons.celebration_rounded, size: 54, color: Colors.white),
         ],
       ),

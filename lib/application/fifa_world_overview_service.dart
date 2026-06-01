@@ -10,7 +10,6 @@ class FifaWorldOverviewService {
   static const int _rankingPageSize = 250;
   static const int _matchPageSize = 100;
   static const int _matchPageLimit = 8;
-  static const int _matchWindowDays = 13;
   static const int _defaultRecentResultLimit = 12;
   static const int _defaultUpcomingFixtureLimit = 12;
 
@@ -18,8 +17,8 @@ class FifaWorldOverviewService {
   final bool _ownsClient;
 
   FifaWorldOverviewService({http.Client? client})
-      : _client = client ?? http.Client(),
-        _ownsClient = client == null;
+    : _client = client ?? http.Client(),
+      _ownsClient = client == null;
 
   void dispose() {
     if (_ownsClient) {
@@ -38,8 +37,6 @@ class FifaWorldOverviewService {
     final matches = await _fetchMatchSnapshot(
       gender: gender,
       referenceNow: referenceNow,
-      recentWindowEnd: snapshot.recentWindowEnd,
-      nextUpdatedAt: snapshot.nextUpdatedAt,
       recentResultLimit: recentResultLimit,
       upcomingFixtureLimit: upcomingFixtureLimit,
     );
@@ -56,8 +53,9 @@ class FifaWorldOverviewService {
 
   Future<KfaMatchOverview> fetchKfaMatchOverview({int limit = 8}) async {
     try {
-      final response =
-          await _client.get(_kfaHomeUri).timeout(const Duration(seconds: 8));
+      final response = await _client
+          .get(_kfaHomeUri)
+          .timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
         return const KfaMatchOverview(
           recentResults: <KfaMatchEntry>[],
@@ -102,8 +100,6 @@ class FifaWorldOverviewService {
     final matches = await _fetchMatchSnapshot(
       gender: gender,
       referenceNow: referenceNow,
-      recentWindowEnd: schedules.firstOrNull?.matchWindowEndDate,
-      nextUpdatedAt: metadata.nextUpdatedAt,
       recentResultLimit: recentResultLimit,
       upcomingFixtureLimit: upcomingFixtureLimit,
     );
@@ -119,16 +115,15 @@ class FifaWorldOverviewService {
     );
   }
 
-  Future<FifaTeamDetail?> fetchTeamDetail({
-    required String teamId,
-  }) async {
+  Future<FifaTeamDetail?> fetchTeamDetail({required String teamId}) async {
     final uri = _baseApiUri.replace(
       path: '${_baseApiUri.path}/teams/$teamId',
       queryParameters: {'language': 'en'},
     );
     try {
-      final response =
-          await _client.get(uri).timeout(const Duration(seconds: 8));
+      final response = await _client
+          .get(uri)
+          .timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
         return null;
       }
@@ -146,8 +141,9 @@ class FifaWorldOverviewService {
       queryParameters: {'language': 'en'},
     );
     try {
-      final response =
-          await _client.get(uri).timeout(const Duration(seconds: 8));
+      final response = await _client
+          .get(uri)
+          .timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
         return null;
       }
@@ -168,7 +164,8 @@ class FifaWorldOverviewService {
     final schedules = await scheduleFuture;
     final metadata = await metadataFuture;
 
-    final lastUpdatedAt = metadata.lastUpdatedAt ??
+    final lastUpdatedAt =
+        metadata.lastUpdatedAt ??
         rankings.firstOrNull?.publishedAt ??
         schedules.firstOrNull?.officialDate;
     final nextUpdatedAt = metadata.nextUpdatedAt;
@@ -184,34 +181,19 @@ class FifaWorldOverviewService {
   Future<_FifaMatchSnapshot> _fetchMatchSnapshot({
     required FifaRankingGender gender,
     required DateTime referenceNow,
-    required DateTime? recentWindowEnd,
-    required DateTime? nextUpdatedAt,
     required int recentResultLimit,
     required int upcomingFixtureLimit,
   }) async {
-    final recentResultsFuture = recentWindowEnd == null
-        ? _scanRecentResults(
-            gender: gender,
-            anchor: referenceNow,
-            limit: recentResultLimit,
-          )
-        : _fetchRecentResultsForWindow(
-            gender: gender,
-            windowEnd: recentWindowEnd,
-            limit: recentResultLimit,
-          );
-
-    final upcomingFixturesFuture = nextUpdatedAt == null
-        ? _scanUpcomingFixtures(
-            gender: gender,
-            anchor: referenceNow,
-            limit: upcomingFixtureLimit,
-          )
-        : _fetchUpcomingFixturesForWindow(
-            gender: gender,
-            windowEnd: nextUpdatedAt,
-            limit: upcomingFixtureLimit,
-          );
+    final recentResultsFuture = _scanRecentResults(
+      gender: gender,
+      anchor: referenceNow,
+      limit: recentResultLimit,
+    );
+    final upcomingFixturesFuture = _scanUpcomingFixtures(
+      gender: gender,
+      anchor: referenceNow,
+      limit: upcomingFixtureLimit,
+    );
 
     return _FifaMatchSnapshot(
       recentResults: await recentResultsFuture,
@@ -231,8 +213,9 @@ class FifaWorldOverviewService {
       },
     );
     try {
-      final response =
-          await _client.get(uri).timeout(const Duration(seconds: 8));
+      final response = await _client
+          .get(uri)
+          .timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
         return const <FifaRankingEntry>[];
       }
@@ -255,8 +238,9 @@ class FifaWorldOverviewService {
       },
     );
     try {
-      final response =
-          await _client.get(uri).timeout(const Duration(seconds: 8));
+      final response = await _client
+          .get(uri)
+          .timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
         return const <_FifaRankingSchedule>[];
       }
@@ -280,44 +264,6 @@ class FifaWorldOverviewService {
     } catch (_) {
       return const _FifaRankingPageMetadata();
     }
-  }
-
-  Future<List<FifaAMatchEntry>> _fetchRecentResultsForWindow({
-    required FifaRankingGender gender,
-    required DateTime windowEnd,
-    required int limit,
-  }) async {
-    final end = _endOfDayUtc(windowEnd);
-    final start = end.subtract(const Duration(days: _matchWindowDays));
-    final matches = await _fetchNationalMatchesWindow(
-      gender: gender,
-      start: start,
-      end: end,
-    );
-    final results = matches
-        .where((match) => match.status == FifaAMatchStatus.finished)
-        .toList(growable: false)
-      ..sort((a, b) => b.kickoffAt.compareTo(a.kickoffAt));
-    return results.take(limit).toList(growable: false);
-  }
-
-  Future<List<FifaAMatchEntry>> _fetchUpcomingFixturesForWindow({
-    required FifaRankingGender gender,
-    required DateTime windowEnd,
-    required int limit,
-  }) async {
-    final end = _endOfDayUtc(windowEnd.toUtc());
-    final start = end.subtract(const Duration(days: _matchWindowDays));
-    final matches = await _fetchNationalMatchesWindow(
-      gender: gender,
-      start: start,
-      end: end,
-    );
-    final fixtures = matches
-        .where((match) => match.status != FifaAMatchStatus.finished)
-        .toList(growable: false)
-      ..sort((a, b) => a.kickoffAt.compareTo(b.kickoffAt));
-    return fixtures.take(limit).toList(growable: false);
   }
 
   Future<List<FifaAMatchEntry>> _scanRecentResults({
@@ -531,10 +477,7 @@ class FifaWorldOverviewService {
     );
   }
 
-  static KfaMatchOverview parseKfaMatchOverview(
-    String html, {
-    int limit = 8,
-  }) {
+  static KfaMatchOverview parseKfaMatchOverview(String html, {int limit = 8}) {
     final upcoming = <KfaMatchEntry>[];
     final upcomingSection = _between(
       html,
@@ -577,10 +520,7 @@ class FifaWorldOverviewService {
       if (recent.length >= limit) break;
     }
 
-    return KfaMatchOverview(
-      recentResults: recent,
-      upcomingFixtures: upcoming,
-    );
+    return KfaMatchOverview(recentResults: recent, upcomingFixtures: upcoming);
   }
 
   static KfaMatchEntry? _parseKfaUpcomingMatch({
@@ -591,7 +531,9 @@ class FifaWorldOverviewService {
     if (!_isSeniorMenKfaMatch(block)) return null;
     final competition = _htmlText(
       _firstGroup(
-          block, RegExp(r'<p class="title">\s*(.*?)\s*</p>', dotAll: true)),
+        block,
+        RegExp(r'<p class="title">\s*(.*?)\s*</p>', dotAll: true),
+      ),
     );
     final venue = _htmlText(
       _firstGroup(
@@ -881,7 +823,8 @@ class FifaWorldOverviewService {
       if (raw is! Map) continue;
       final goal = raw.cast<String, dynamic>();
       final playerId = _asString(goal['IdPlayer']);
-      final playerName = playerNames[playerId] ??
+      final playerName =
+          playerNames[playerId] ??
           _firstNonEmpty([
             _localizedDescription(goal['PlayerName']),
             _localizedDescription(goal['ScorerName']),
@@ -969,8 +912,10 @@ class FifaWorldOverviewService {
   }
 
   static String _htmlText(String html) {
-    final withBreaks =
-        html.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), ' ');
+    final withBreaks = html.replaceAll(
+      RegExp(r'<br\s*/?>', caseSensitive: false),
+      ' ',
+    );
     final withoutTags = withBreaks.replaceAll(RegExp(r'<[^>]+>'), ' ');
     return _decodeHtmlEntities(
       withoutTags,

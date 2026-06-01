@@ -677,7 +677,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   }
 
   static DateTime? _loadQuizCompletedAt(OptionRepository optionRepository) {
-    final raw = optionRepository.getValue<String>('skill_quiz_completed_at');
+    final raw = optionRepository.getValue<String>(
+      SkillQuizScreen.completionKey,
+    );
     if (raw == null || raw.isEmpty) return null;
     return DateTime.tryParse(raw);
   }
@@ -1833,7 +1835,7 @@ class _DailyFlowCard extends StatelessWidget {
               _TodoChip(
                 done: data.openedNewsToday,
                 icon: Icons.article_outlined,
-                label: l10n.tabNews,
+                label: l10n.homeTodoNewsShort,
                 onTap: onNews,
               ),
               _TodoChip(

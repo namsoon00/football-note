@@ -91,7 +91,6 @@ class EntryFormScreen extends StatefulWidget {
 
 class _EntryFormScreenState extends State<EntryFormScreen> {
   static const String _recentBoardIdKey = 'recent_board_id';
-  static const String _weatherAutoEnabledKey = 'entry_weather_auto_enabled';
   final _formKey = GlobalKey<FormState>();
   final _goodPointsController = TextEditingController();
   final _improvementsController = TextEditingController();
@@ -168,7 +167,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _weatherLoading = false;
   String _weatherSummary = '';
   int? _weatherCode;
-  bool _weatherAutoEnabled = false;
   String _cachedFortuneComment = '';
   String _cachedFortuneRecommendation = '';
   String _cachedFortuneRecommendedProgram = '';
@@ -236,8 +234,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         l10n.defaultInjury5,
       ],
     );
-    _weatherAutoEnabled =
-        widget.optionRepository.getValue<bool>(_weatherAutoEnabledKey) ?? false;
     final entry = widget.entry;
     if (entry != null) {
       _persistedEntryForXp = entry;
@@ -413,16 +409,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         );
       });
     }
-    if (widget.entry == null &&
-        _weatherAutoEnabled &&
-        _weatherSummary.trim().isEmpty) {
-      if (!_applyCachedHomeWeather(
+    if (widget.entry == null && _weatherSummary.trim().isEmpty) {
+      _applyCachedHomeWeather(
         WeatherSharedResource.cachedSnapshot(
           locale: Localizations.localeOf(context),
         ),
-      )) {
-        unawaited(_useCurrentLocationWeather(fromAuto: true));
-      }
+      );
     }
   }
 
@@ -1411,12 +1403,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     ).loadState().isParentMode;
     final isReadOnly = isParentMode;
     final weatherStatusText = _weatherLoading
-        ? (isKo ? '날씨 불러오는 중...' : 'Loading weather...')
+        ? l10n.entryWeatherLoading
         : _weatherSummary.trim().isNotEmpty
         ? _weatherSummary.trim()
-        : _weatherAutoEnabled
-        ? (isKo ? '자동으로 날씨 불러오기 대기' : 'Auto weather ready')
-        : (isKo ? '위치 버튼으로 날씨 불러오기' : 'Tap location to load weather');
+        : l10n.entryWeatherHomeMissing;
     final weatherHasValue = _weatherSummary.trim().isNotEmpty;
     final isMatchEntry = widget.entry?.isMatch ?? false;
     if (isReadOnly && widget.entry == null) {
@@ -1749,9 +1739,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                                 minHeight: 30,
                                               ),
                                               padding: EdgeInsets.zero,
-                                              tooltip: isKo
-                                                  ? '현재 위치 날씨'
-                                                  : 'Use location weather',
+                                              tooltip: l10n
+                                                  .entryWeatherUseLocationTooltip,
                                               onPressed: _weatherLoading
                                                   ? null
                                                   : _useCurrentLocationWeather,
@@ -2661,10 +2650,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _weatherSummary = weather.summary.trim();
       });
       _scheduleAutoSave();
-      if (!_weatherAutoEnabled) {
-        _weatherAutoEnabled = true;
-        await widget.optionRepository.setValue(_weatherAutoEnabledKey, true);
-      }
     } catch (_) {
       if (!mounted || _disposing) return;
       if (!fromAuto) {

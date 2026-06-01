@@ -32,7 +32,7 @@ class PlayerLevelVisualSpec {
         );
       case 5:
         return const PlayerLevelVisualSpec(
-          colors: <Color>[Color(0xFF7F00FF), Color(0xFFE100FF)],
+          colors: <Color>[Color(0xFF0F766E), Color(0xFF22D3EE)],
           stage: PlayerLevelIllustrationStage.jumpRope,
         );
       case 6:
@@ -42,12 +42,12 @@ class PlayerLevelVisualSpec {
         );
       case 7:
         return const PlayerLevelVisualSpec(
-          colors: <Color>[Color(0xFFB24592), Color(0xFFF15F79)],
+          colors: <Color>[Color(0xFF14532D), Color(0xFFF59E0B)],
           stage: PlayerLevelIllustrationStage.tactics,
         );
       case 8:
         return const PlayerLevelVisualSpec(
-          colors: <Color>[Color(0xFF6A11CB), Color(0xFF2575FC)],
+          colors: <Color>[Color(0xFF1E3A8A), Color(0xFF38BDF8)],
           stage: PlayerLevelIllustrationStage.crown,
         );
       case 9:
@@ -57,7 +57,7 @@ class PlayerLevelVisualSpec {
         );
       case 10:
         return const PlayerLevelVisualSpec(
-          colors: <Color>[Color(0xFF3A1C71), Color(0xFFFFAF7B)],
+          colors: <Color>[Color(0xFF1D4ED8), Color(0xFFFFAF7B)],
           stage: PlayerLevelIllustrationStage.fireworks,
         );
       case 11:
@@ -82,7 +82,7 @@ class PlayerLevelVisualSpec {
         );
       case 15:
         return const PlayerLevelVisualSpec(
-          colors: <Color>[Color(0xFF614385), Color(0xFF516395)],
+          colors: <Color>[Color(0xFF334155), Color(0xFF2E86DE)],
           stage: PlayerLevelIllustrationStage.medal,
         );
       case 16:
@@ -97,7 +97,7 @@ class PlayerLevelVisualSpec {
         );
       case 18:
         return const PlayerLevelVisualSpec(
-          colors: <Color>[Color(0xFFFF512F), Color(0xFFDD2476)],
+          colors: <Color>[Color(0xFFEA580C), Color(0xFF2563EB)],
           stage: PlayerLevelIllustrationStage.star,
         );
       case 19:
@@ -468,8 +468,10 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
 
     canvas.drawOval(
       Rect.fromCenter(
-        center:
-            Offset(center.dx - (radius * 0.22), center.dy - (radius * 0.34)),
+        center: Offset(
+          center.dx - (radius * 0.22),
+          center.dy - (radius * 0.34),
+        ),
         width: radius * 0.72,
         height: radius * 0.38,
       ),

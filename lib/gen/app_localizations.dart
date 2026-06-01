@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
+import 'app_localizations_ja.dart';
 import 'app_localizations_ko.dart';
 
 // ignore_for_file: type=lint
@@ -95,6 +96,7 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
+    Locale('ja'),
     Locale('ko')
   ];
 
@@ -975,6 +977,12 @@ abstract class AppLocalizations {
   /// **'Quiz'**
   String get homeTodoQuizShort;
 
+  /// No description provided for @homeTodoNewsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get homeTodoNewsShort;
+
   /// No description provided for @homeTodoDiaryShort.
   ///
   /// In en, this message translates to:
@@ -1341,6 +1349,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Today\'s Quiz'**
   String get quizScreenTitle;
+
+  /// No description provided for @quizLibraryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions'**
+  String get quizLibraryAction;
+
+  /// No description provided for @quizHistoryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get quizHistoryAction;
+
+  /// No description provided for @quizBackHomeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to quiz home'**
+  String get quizBackHomeTooltip;
 
   /// No description provided for @quizXpSavedFeedback.
   ///
@@ -3640,11 +3666,23 @@ abstract class AppLocalizations {
   /// **'Korean'**
   String get languageKorean;
 
+  /// No description provided for @languageJapanese.
+  ///
+  /// In en, this message translates to:
+  /// **'Japanese'**
+  String get languageJapanese;
+
   /// No description provided for @settings.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings;
+
+  /// No description provided for @settingsGeneralSection.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get settingsGeneralSection;
 
   /// No description provided for @account.
   ///
@@ -4047,6 +4085,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get notificationSettingsAction;
+
+  /// No description provided for @notificationSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert settings'**
+  String get notificationSettingsTitle;
+
+  /// No description provided for @notificationSettingsCloseTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close alert settings'**
+  String get notificationSettingsCloseTooltip;
 
   /// No description provided for @notificationRefreshAction.
   ///
@@ -4497,6 +4547,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load local weather.'**
   String get homeWeatherLoadFailed;
+
+  /// No description provided for @entryWeatherLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading weather...'**
+  String get entryWeatherLoading;
+
+  /// No description provided for @entryWeatherHomeMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Load weather on Home first.'**
+  String get entryWeatherHomeMissing;
+
+  /// No description provided for @entryWeatherUseLocationTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Use location weather'**
+  String get entryWeatherUseLocationTooltip;
 
   /// No description provided for @homeWeatherRetryTitle.
   ///
@@ -10589,7 +10657,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ko'].contains(locale.languageCode);
+      <String>['en', 'ja', 'ko'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -10600,6 +10668,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return AppLocalizationsEn();
+    case 'ja':
+      return AppLocalizationsJa();
     case 'ko':
       return AppLocalizationsKo();
   }

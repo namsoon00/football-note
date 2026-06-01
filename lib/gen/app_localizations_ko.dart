@@ -468,6 +468,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeTodoQuizShort => '퀴즈';
 
   @override
+  String get homeTodoNewsShort => '소식';
+
+  @override
   String get homeTodoDiaryShort => '다이어리';
 
   @override
@@ -681,6 +684,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get quizScreenTitle => '오늘의 퀴즈';
+
+  @override
+  String get quizLibraryAction => '문제';
+
+  @override
+  String get quizHistoryAction => '기록';
+
+  @override
+  String get quizBackHomeTooltip => '퀴즈 홈으로';
 
   @override
   String quizXpSavedFeedback(int count) {
@@ -1915,7 +1927,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get languageKorean => '한국어';
 
   @override
+  String get languageJapanese => '일본어';
+
+  @override
   String get settings => '설정';
+
+  @override
+  String get settingsGeneralSection => '일반 설정';
 
   @override
   String get account => '계정';
@@ -2127,6 +2145,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get notificationSettingsAction => '설정';
+
+  @override
+  String get notificationSettingsTitle => '알림 설정';
+
+  @override
+  String get notificationSettingsCloseTooltip => '알림 설정 닫기';
 
   @override
   String get notificationRefreshAction => '새로고침';
@@ -2376,6 +2400,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherLoadFailed => '현재 위치 날씨를 불러오지 못했어요.';
+
+  @override
+  String get entryWeatherLoading => '날씨 불러오는 중...';
+
+  @override
+  String get entryWeatherHomeMissing => '홈에서 날씨를 먼저 불러오세요.';
+
+  @override
+  String get entryWeatherUseLocationTooltip => '현재 위치 날씨';
 
   @override
   String get homeWeatherRetryTitle => '날씨 다시 시도';

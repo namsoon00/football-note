@@ -1,0 +1,2773 @@
+{
+  "appTitle": "サッカートレーニングログ",
+  "tabHome": "家",
+  "tabLogs": "ログ",
+  "tabCalendar": "カレンダー",
+  "tabStats": "統計",
+  "tabDiary": "日記",
+  "tabNews": "今日のニュース",
+  "tabGuideTitle": "{tabName} ガイド",
+  "@tabGuideTitle": {
+    "placeholders": {
+      "tabName": {}
+    }
+  },
+  "welcomeGuideTitle": "トレーニング フローへようこそ",
+  "welcomeGuideIntro": "強調表示されたアクションを順番に実行してください。各タブは、必要になる可能性が最も高いボタンから始まります。",
+  "welcomeGuidePrimaryAction": "トレーニング開始ログ",
+  "welcomeGuideSectionFlow": "段階的な流れ",
+  "welcomeGuideNextTabHint": "上の別のタブを選択して、そのボタンをプレビューします。",
+  "parentWelcomeGuideTitle": "保護者モードガイド",
+  "parentWelcomeGuideIntro": "親モードは、プレーヤーの記録を確認し、既存のトレーニング ログにフィードバックを残すためのものです。",
+  "parentWelcomeGuideStepLogs": "まず [ログ] タブを開いて、プレーヤーによって保存されたレコードを確認します。",
+  "parentWelcomeGuideStepFeedback": "既存のレコード内にフィードバックとして賞賛と次回のメモを残します。",
+  "parentWelcomeGuideStepSync": "共有データの同期を維持するには、プレーヤーのバックアップを保持する Google ドライブ アカウントに接続します。",
+  "guideActionToday": "今日",
+  "guideActionMeal": "食事",
+  "guideActionCardList": "カード/リスト",
+  "guideActionSelectDate": "日付を選択してください",
+  "guideActionPlus": "+",
+  "guideActionPeriod": "期間",
+  "guideActionBenchmark": "平均",
+  "guideActionWeakPoint": "集中",
+  "guideActionOpenToday": "今日の日記",
+  "guideActionRecordSticker": "ステッカー",
+  "guideActionSaveDiary": "日記を保存する",
+  "welcomeHomeOverview": "アプリに次の有用なアクションを決定させたい場合は、ホームから開始します。",
+  "welcomeHomeStepToday": "今日の計画、簡単なアクション、次の未完了のルーチンを最初に確認します。",
+  "welcomeHomeStepMeal": "一日が終わる前に食事ボタンから食事を追加すると、回復記録が完全な状態に保たれます。",
+  "welcomeHomeStepStats": "ログイン後にホームから週間統計を開いて、その週のバランスが取れているかどうかを確認します。",
+  "welcomeLogsOverview": "実際のトレーニング ノートを作成または確認する場合は、ログを使用します。",
+  "welcomeLogsStepAdd": "[エントリの追加] をタップし、セッションの基本情報を入力して、最初のメモを保存します。",
+  "welcomeLogsStepBoard": "ドリルの形状や移動パスが重要な場合は、ノート内のボードを開きます。",
+  "welcomeLogsStepReview": "カード/リストとフィルターを切り替えると、メモをすべて読まなくても最近の記録を見つけることができます。",
+  "welcomeCalendarOverview": "日付が重要な場合はカレンダーを使用します。計画、試合、食事、メモをまとめて保存できます。",
+  "welcomeCalendarStepDate": "すべての作成アクションが適切な日に開始されるように、最初に日付を選択します。",
+  "welcomeCalendarStepPlus": "+ を使用して、選択した日付の計画、試合、またはトレーニングのメモを追加します。",
+  "welcomeCalendarStepMeal": "回復が一日の一部である場合は、同じ日付の食事記録を追加します。",
+  "welcomeStatsOverview": "いくつかのレコードが存在し、次のトレーニング ターゲットが必要な場合は、統計を使用します。",
+  "welcomeStatsStepPeriod": "今週、先週、またはカスタム範囲を比較する期間を変更します。",
+  "welcomeStatsStepAverage": "平均比較を開いて、どのメトリクスが進んでいるか遅れているかを確認します。",
+  "welcomeStatsStepFocus": "最も弱いシグナルを次の計画またはメモの目標に変えます。",
+  "welcomeDiaryOverview": "日記を使用すると、トレーニング、食事、ステッカーなどで 1 日を 1 つの読みやすいストーリーに変えることができます。",
+  "welcomeDiaryStepToday": "記録後、ホームまたは日記タブから今日の日記を開きます。",
+  "welcomeDiaryStepSticker": "今日の記録シールを引いて、読む順番を並べます。",
+  "welcomeDiaryStepSave": "タイトル、ストーリー、またはステッカーの選択の準備ができたら、日記を保存します。",
+  "logsQuickGuideTitle": "クイックスタートガイド",
+  "logsQuickGuideIntro": "この順序で最初のレコードを作成し、ここに戻って確認します。",
+  "newsFifaHubButton": "FIFAランク",
+  "newsKLeagueStandingsButton": "国内",
+  "newsMoreActionsTooltip": "リーグビュー",
+  "newsMoreActionsTitle": "もっと",
+  "newsRankingMoreButton": "リーグビュー",
+  "newsLeagueStandingsAction": "リーグビュー",
+  "newsLeagueStandingsTitle": "リーグビュー",
+  "newsKLeagueStandingsTitle": "Kリーグ1",
+  "newsPremierLeagueStandingsTitle": "プレミアリーグ",
+  "newsChampionsLeagueStandingsTitle": "チャンピオンズリーグ",
+  "newsLaLigaStandingsTitle": "ラ・リーガ",
+  "newsBundesligaStandingsTitle": "ブンデスリーガ",
+  "newsMajorLeagueSoccerStandingsTitle": "MLS",
+  "newsSaudiProLeagueStandingsTitle": "サウジプロリーグ",
+  "newsLeagueStandingsUpdated": "{date}を更新しました",
+  "@newsLeagueStandingsUpdated": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "newsLeagueStandingsOpenSource": "オープンソーステーブル",
+  "newsLeagueStandingsEmpty": "現在、順位表はありません。",
+  "newsLeagueStandingsError": "順位表を読み込めませんでした。",
+  "newsLeagueStandingsRetry": "リトライ",
+  "newsLeagueFixturesTitle": "日程と結果",
+  "newsLeagueFixturesSubtitle": "今後の試合日程と最近の結果（利用可能な場合はチャンピオンズ リーグのノックアウトの組み合わせを含む）。",
+  "newsLeagueFixturesEmpty": "現在のスケジュールウィンドウでは利用可能なフィクスチャはありません。",
+  "newsLeagueFixturesShowAll": "すべての備品を表示",
+  "newsLeagueFixturesCollapse": "器具を折りたたむ",
+  "newsLeagueFixturesSelectedTeamsOnly": "選ばれたチームのみ",
+  "newsLeagueFixturesSelectedTeamsEmpty": "このリーグのスケジュールでは、選択チームの試合はありません。",
+  "newsLeagueFixtureScheduled": "治具",
+  "newsLeagueFixtureLive": "ライブ",
+  "newsLeagueFixtureFullTime": "FT",
+  "newsLeagueFavoriteTeamTitle": "好きなチーム",
+  "newsLeagueFavoriteTeamManage": "お気に入りのチームを選択してください",
+  "newsLeagueFavoriteTeamSubtitle": "お気に入りのチームを選択して、ロードされた試合に関するアラートを受け取ります。",
+  "newsLeagueFavoriteTeamSelect": "チームを選択する",
+  "newsLeagueFavoriteTeamClear": "クリア",
+  "newsLeagueFavoriteTeamNone": "チームが選択されていません",
+  "newsLeagueFavoriteTeamSheetTitle": "お気に入りのチームを選択してください",
+  "newsLeagueFavoriteTeamSaveAction": "保存",
+  "newsLeagueFavoriteTeamLoadError": "チームリストを読み込めませんでした。",
+  "newsLeagueFavoriteTeamEmpty": "利用可能なチームはありません。",
+  "newsLeagueFavoriteTeamSelectedCount": "{count} team(s) selected",
+  "@newsLeagueFavoriteTeamSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsLeagueFavoriteTeamSaved": "お気に入りのチームが保存されました。",
+  "newsLeagueFavoriteTeamNoUpcoming": "一致アラートはスケジュールされていません。",
+  "newsLeagueFavoriteTeamReminderCount": "{count} マッチアラートがスケジュールされています",
+  "@newsLeagueFavoriteTeamReminderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsLeagueFavoriteTeamNotificationBody": "{team} 試合に関するアラート: {kickoff} での対 {opponent}",
+  "@newsLeagueFavoriteTeamNotificationBody": {
+    "placeholders": {
+      "team": {},
+      "opponent": {},
+      "kickoff": {}
+    }
+  },
+  "newsLeagueFixtureNotificationChannelName": "リーグの試合速報",
+  "newsLeagueFixtureNotificationChannelDescription": "優先リーグチームの試合日程アラート",
+  "newsLeagueStandingsTeamColumn": "チーム",
+  "newsLeagueStandingsPlayedColumn": "P",
+  "newsLeagueStandingsWinsColumn": "W",
+  "newsLeagueStandingsDrawsColumn": "D",
+  "newsLeagueStandingsLossesColumn": "L",
+  "newsLeagueStandingsGoalDifferenceColumn": "GD",
+  "newsLeagueStandingsPointsColumn": "ポイント",
+  "newsSearchAction": "ニュースを検索",
+  "newsChannelsAction": "チャンネル",
+  "newsShowAllNewsAction": "すべてのニュースを表示",
+  "newsShowScrappedOnlyAction": "スクラップのみを表示",
+  "newsViewedHistoryAction": "閲覧したニュース",
+  "newsViewedHistoryTitle": "閲覧したニュース",
+  "newsViewedHistoryEmpty": "まだ閲覧されたニュースはありません。",
+  "newsTitleTranslateEnabledTooltip": "タイトル翻訳オン",
+  "newsTitleTranslateDisabledTooltip": "タイトル翻訳オフ",
+  "newsTranslateAction": "翻訳する",
+  "newsSelectChannelsTitle": "ニュースチャンネルを選択する",
+  "newsSelectAll": "すべて選択",
+  "newsClearAll": "すべてクリア",
+  "newsDomesticFeedsLabel": "国産飼料",
+  "newsInternationalFeedsLabel": "国際フィード",
+  "newsRegionAllLabel": "全て",
+  "newsRegionDomesticLabel": "国内",
+  "newsRegionInternationalLabel": "世界",
+  "newsNationalSnapshotTitle": "代表チームのスナップショット",
+  "newsNationalSnapshotSubtitle": "韓国男子チーム概要（公式ページより）",
+  "newsFifaRankingTitle": "FIFAランキング",
+  "newsRankingCurrentLabel": "現在のランク",
+  "newsRankingUpdatedLabel": "更新されました",
+  "newsRecentAMatchTitle": "最近のAマッチ",
+  "newsRecentAMatchEmpty": "最近のAマッチ結果は見つかりませんでした。",
+  "newsOpenOfficialSource": "公式ページを開く",
+  "newsOfficialSourceFifa": "FIFA公式",
+  "newsOfficialSourceKfa": "KFA関係者",
+  "newsMatchResultWin": "勝つ",
+  "newsMatchResultDraw": "描く",
+  "newsMatchResultLoss": "損失",
+  "homeTodayPlanCardTitle": "今日のトレーニングプラン",
+  "homeTodayPlanCardSummary": "今日: {count} プラン",
+  "@homeTodayPlanCardSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTodayPlanOpenAction": "オープンプラン",
+  "homeTodayPlanSelectForLogTitle": "トレーニングログにするプランを選択してください",
+  "homeHubTitleShort": "家",
+  "homeDailyCheckTitle": "今日のタスク",
+  "homeDailyCheckCompletedCount": "{completed}/{total}完成しました",
+  "@homeDailyCheckCompletedCount": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTodoTrainingLogShort": "ログ",
+  "homeTodoLiftingShort": "リフティング",
+  "homeTodoJumpRopeShort": "ジャンプ",
+  "homeTodoQuizShort": "クイズ",
+  "homeTodoNewsShort": "ニュース",
+  "homeTodoDiaryShort": "日記",
+  "homeTodoBoardSketchShort": "スケッチ",
+  "dailyTasksXpDialogTitle": "今日のタスクは完了しました",
+  "dailyTasksXpDialogMessage": "ルーチン全体がチェックされます。その一貫性が成長の原動力となりました。",
+  "dailyTasksXpDialogGems": "+{count} ジェム",
+  "@dailyTasksXpDialogGems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyTasksXpDialogProgress": "次のレベルへの合計 {totalXp} XP · {remainingXp} XP",
+  "@dailyTasksXpDialogProgress": {
+    "placeholders": {
+      "totalXp": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyTasksXpDialogMaxProgress": "次のマスタリースターまでの合計 {totalXp} XP · {remainingXp} XP",
+  "@dailyTasksXpDialogMaxProgress": {
+    "placeholders": {
+      "totalXp": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyTasksXpDialogAction": "続けて",
+  "trainingXpDialogTitle": "トレーニングログが保存されました",
+  "trainingXpDialogMessage": "保存されたトレーニング ログにより、XP と成長ジェムが追加されました。",
+  "trainingXpDialogJumpRopeTitle": "縄跳びのリズムが保存されました",
+  "trainingXpDialogJumpRopeMessage": "追加された縄跳びのワークは、足の速い成長の宝石になりました。",
+  "trainingXpDialogLiftingTitle": "持ち上げる労力を節約",
+  "trainingXpDialogLiftingMessage": "追加されたリフティング作業は、より強い体の成長の宝石となりました。",
+  "trainingXpDialogMealTitle": "回復ルーチンが保存されました",
+  "trainingXpDialogMealMessage": "食事と回復の記録により、着実な成長の宝石が追加されました。",
+  "diaryXpDialogTitle": "ダイアリーサファイア",
+  "diaryXpDialogMessage": "あなたの反射は穏やかなサファイア XP に変わりました。",
+  "trainingSketchXpDialogTitle": "スケッチゴールド",
+  "trainingSketchXpDialogMessage": "トレーニングのアイデア スケッチが、明るい金色の XP に変わりました。",
+  "trainingXpDialogXp": "+{count} XP",
+  "@trainingXpDialogXp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingXpDialogAction": "わかりました",
+  "trainingXpSourceTrainingLog": "トレーニングログ",
+  "trainingXpSourceTrainingUpdate": "トレーニングの最新情報",
+  "trainingXpSourceLifting": "リフティング",
+  "trainingXpSourceJumpRope": "縄跳び",
+  "trainingXpSourceTrainingSketch": "トレーニングスケッチ",
+  "trainingXpSourceDiary": "日記",
+  "trainingSaveToastPlain": "トレーニングノートが保存されました。",
+  "trainingSaveToastWithXp": "トレーニングノートが保存されました。 +{gainedXp} XP・{details}",
+  "@trainingSaveToastWithXp": {
+    "placeholders": {
+      "gainedXp": {
+        "type": "int"
+      },
+      "details": {}
+    }
+  },
+  "trainingSaveToastLevelUp": "トレーニングノートが保存されました。 +{gainedXp} XP · {details} · Lv.{level} {levelName}に到達",
+  "@trainingSaveToastLevelUp": {
+    "placeholders": {
+      "gainedXp": {
+        "type": "int"
+      },
+      "details": {},
+      "level": {
+        "type": "int"
+      },
+      "levelName": {}
+    }
+  },
+  "trainingXpToastReasonLiftingMissed": "リフトミス",
+  "trainingXpToastReasonJumpRopeMissed": "縄跳びを失敗した",
+  "trainingXpToastReasonMealFullBonus": "三食+丼5杯以上",
+  "trainingXpToastReasonRoutineComplete": "トレーニングルーチンが完了しました",
+  "trainingXpToastReasonStreakDaily2": "2～3日連続ボーナス",
+  "trainingXpToastReasonStreakDaily4": "4～6日連続ボーナス",
+  "trainingXpToastReasonStreakDaily7": "7日以上連続ボーナス",
+  "trainingXpToastReasonStreak3": "3日連続",
+  "trainingXpToastReasonStreak7": "7日連続",
+  "trainingXpToastReasonWeekly3": "今週は3ログ",
+  "trainingXpToastReasonWeekly5": "今週は5ログ",
+  "trainingXpToastReasonDailyCap": "1 日あたりの上限が適用される",
+  "trainingXpToastMoreReasons": "もっと見る",
+  "@trainingXpToastMoreReasons": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diarySavedWithXpFeedback": "日記が保存されました +{count} XP",
+  "@diarySavedWithXpFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingStreakCheerTitle": "{count} 1 日連続トレーニング",
+  "@trainingStreakCheerTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingStreakCheerMessage": "日々のトレーニングノートが実際のルーチンにつながっています。次のセッションはシンプルで繰り返し可能なものにしてください。",
+  "trainingStreakCheerAction": "続けて",
+  "levelUpDialogTitle": "レベルアップ！",
+  "levelUpDialogLevelLabel": "Lv.{level} {levelName}",
+  "@levelUpDialogLevelLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "levelName": {}
+    }
+  },
+  "levelUpDialogEncouragement": "今日の取り組みが明るい成長となりました。次のセッションでもこのリズムを維持してください。",
+  "levelUpDialogEncouragementWithReward": "今日の努力は輝かしい成長となり、{rewardName}も準備が整いました。",
+  "@levelUpDialogEncouragementWithReward": {
+    "placeholders": {
+      "rewardName": {}
+    }
+  },
+  "levelUpDialogProgress": "+{xp} ジェムを獲得しました · 現在は {stageName} です",
+  "@levelUpDialogProgress": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      },
+      "stageName": {}
+    }
+  },
+  "levelUpDialogRewardTitle": "褒美",
+  "levelUpDialogLater": "後で",
+  "levelUpDialogClaimReward": "報酬を受け取る",
+  "levelUpDialogConfirm": "素晴らしい",
+  "levelUpRewardClaimed": "{rewardName}を主張しました。",
+  "@levelUpRewardClaimed": {
+    "placeholders": {
+      "rewardName": {}
+    }
+  },
+  "xpGuideDailyTasksCompleteTitle": "今日のタスクはすべて完了しました",
+  "quizXpSourceLabel": "サッカークイズ",
+  "quizScreenTitle": "今日のクイズ",
+  "quizLibraryAction": "問題",
+  "quizHistoryAction": "履歴",
+  "quizBackHomeTooltip": "クイズホームに戻る",
+  "quizXpSavedFeedback": "クイズ完了 +{count} XP",
+  "@quizXpSavedFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideTitle": "XPの上がり方",
+  "playerXpGuideHeroLevel": "あなたはLv.{level}です",
+  "@playerXpGuideHeroLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideHeroBody": "このページでは、すべての XP ソースを明確にグループ化します。 {remainingXp} XP は次のレベルまで残ります。",
+  "@playerXpGuideHeroBody": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideHeroMax": "Lv.20以降、{masterySpan} XPごとにマスタリースターを獲得します。 {remainingXp} XP は次のスターまで残ります。",
+  "@playerXpGuideHeroMax": {
+    "placeholders": {
+      "masterySpan": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "playerXpGuideLoggingTitle": "トレーニングログからのXP",
+  "playerXpGuideLoggingSubtitle": "コアの成長は、一貫したトレーニング ログを保存することで実現します。",
+  "playerXpGuideTrainingLogSaved": "トレーニングログが保存されました",
+  "playerXpGuideFirstDailyLog": "その日の最初のログ",
+  "playerXpGuidePlannedDayComplete": "計画された日を完了する",
+  "playerXpGuideLiftingRecorded": "リフティングを記録しました",
+  "playerXpGuideJumpRopeRecorded": "縄跳びを録画しました",
+  "playerXpGuideTrainingRoutineComplete": "リフティング+縄跳び+リカバリーを完了する",
+  "playerXpGuideMissingConditioning": "リフティングや縄跳びを失敗すると XP が消費されます",
+  "playerXpGuideMissingConditioningXp": "各 -5 XP",
+  "playerXpGuideStreakTitle": "連続ボーナスと毎週のボーナス",
+  "playerXpGuideStreakSubtitle": "繰り返しが安定すると、より大きなボーナスがロック解除されます。",
+  "playerXpGuideStreakMilestones": "3日/7日連続",
+  "playerXpGuideStreakDailyBonus": "連続記録による毎日のボーナス",
+  "playerXpGuideWeeklyBonus": "1週間に3ログ/5ログ",
+  "playerXpGuideActivityTitle": "その他のアクティビティ XP",
+  "playerXpGuideActivitySubtitle": "計画、スケッチ、食事、日記、クイズ、毎日の完了も保存時に XP を追加します。",
+  "playerXpGuidePlanCreated": "トレーニング計画を作成しました",
+  "playerXpGuideMatchLogged": "試合ログが保存されました",
+  "playerXpGuideTrainingSketchSaved": "トレーニングスケッチが保存されました",
+  "playerXpGuideTrainingSketchSavedXp": "+5 XP / +2 XP",
+  "playerXpGuideDiaryCreated": "日記が作成されました",
+  "playerXpGuideQuizComplete": "クイズが完了しました",
+  "playerXpGuideMealTwoPlus": "2 回以上の食事が記録されている",
+  "playerXpGuideMealFull": "3食/3食丼5杯以上",
+  "playerXpGuideDailyTasksComplete": "毎日の家事がすべて完了しました",
+  "playerXpGuideDailyCap": "1 日あたりのプラス XP の上限",
+  "playerLevelName1": "キックオフ",
+  "playerLevelName2": "ルーキー",
+  "playerLevelName3": "スターター",
+  "playerLevelName4": "チャレンジャー",
+  "playerLevelName5": "司令塔",
+  "playerLevelName6": "エンジン",
+  "playerLevelName7": "キャプテン",
+  "playerLevelName8": "エリート",
+  "playerLevelName9": "マッチリーダー",
+  "playerLevelName10": "ハイパフォーマー",
+  "playerLevelName11": "ドライバ",
+  "playerLevelName12": "フィールドメーカー",
+  "playerLevelName13": "管制塔",
+  "playerLevelName14": "アイアンキャプテン",
+  "playerLevelName15": "ゲームチェンジャー",
+  "playerLevelName16": "セッションマスター",
+  "playerLevelName17": "エースコア",
+  "playerLevelName18": "ピッチアーティスト",
+  "playerLevelName19": "スタジアムのアイコン",
+  "playerLevelName20": "フットボールギフトマスター",
+  "playerLevelStage1": "新しい境地",
+  "playerLevelStage2": "トレーニングルーキー",
+  "playerLevelStage3": "ファーストチームの立ち上がり",
+  "playerLevelStage4": "マッチリーダー",
+  "playerLevelStage5": "上段",
+  "playerLevelStage6": "コアエース",
+  "playerLevelStage7": "エリートトラック",
+  "playerLevelIllustration1": "スターターホイッスル",
+  "playerLevelIllustration2": "初めてのサッカー",
+  "playerLevelIllustration3": "トレーニングコーン",
+  "playerLevelIllustration4": "スピードブーツ",
+  "playerLevelIllustration5": "縄跳びのリズム",
+  "playerLevelIllustration6": "パワーダンベル",
+  "playerLevelIllustration7": "戦術ボード",
+  "playerLevelIllustration8": "キャプテンクラウン",
+  "playerLevelIllustration9": "優勝トロフィー",
+  "playerLevelIllustration10": "祝賀花火",
+  "playerLevelIllustration11": "Defense shield",
+  "playerLevelIllustration12": "キーパーグローブ",
+  "playerLevelIllustration13": "戦術レーダー",
+  "playerLevelIllustration14": "Sprint lightning",
+  "playerLevelIllustration15": "勝利のメダル",
+  "playerLevelIllustration16": "ホームスタジアム",
+  "playerLevelIllustration17": "エースロケット",
+  "playerLevelIllustration18": "ピッチスター",
+  "playerLevelIllustration19": "スタジアムギフトボックス",
+  "playerLevelIllustration20": "レジェンドギャラクシー",
+  "levelGuideTitle": "レベルガイド",
+  "levelGuideOpenXpGuideTooltip": "XP ガイドを開く",
+  "levelGuideXpHistoryTooltip": "XP 履歴",
+  "levelGuideCurrentProgressTitle": "現在の進捗状況",
+  "levelGuideCurrentProgressTotal": "Lv.{level}・{totalXp} XP合計",
+  "@levelGuideCurrentProgressTotal": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideCurrentProgressMax": "{stars} マスタリー スター · {remainingXp} XP は次のスターまで残ります。",
+  "@levelGuideCurrentProgressMax": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideCurrentProgressNext": "{remainingXp} XP は次のレベルまで残ります。 XP ガイドと履歴については、右上のアクションを使用します。",
+  "@levelGuideCurrentProgressNext": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideSetRewardTitle": "レベル報酬を設定する",
+  "levelGuideRewardNameLabel": "報酬名",
+  "levelGuideRewardNameHint": "例えば新しいサッカーソックス",
+  "levelGuideClearRewardAction": "クリア",
+  "levelGuideCurrentBadge": "現在",
+  "levelGuideXpRangeLabel": "{minXp} XP ～ {maxXp} XP",
+  "@levelGuideXpRangeLabel": {
+    "placeholders": {
+      "minXp": {
+        "type": "int"
+      },
+      "maxXp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelGuideRewardTitle": "レベル報酬",
+  "levelGuideEditReward": "編集",
+  "levelGuideRewardNotSet": "未設定",
+  "levelGuideSyncing": "同期中...",
+  "levelGuideRewardNeedsName": "報酬を請求に追加する",
+  "levelGuideRewardAlreadyClaimed": "すでに主張済み",
+  "levelGuideClaimReward": "報酬を受け取る",
+  "levelGuideRewardLocked": "Lv.{level}で請求",
+  "@levelGuideRewardLocked": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryTitle": "XP 履歴",
+  "xpHistoryClearAllAction": "すべてクリア",
+  "xpHistoryEmpty": "XP 履歴はまだありません。",
+  "xpHistoryMessageDeleted": "XP メッセージが削除されました。",
+  "xpHistoryDeleteDialogTitle": "XP メッセージを削除する",
+  "xpHistoryDeleteDialogBody": "保存されている XP メッセージをすべて削除しますか?",
+  "xpHistoryAllDeleted": "すべての XP メッセージが削除されました。",
+  "xpHistoryRecentFlow": "最近の XP フロー",
+  "xpHistorySummaryCount": "{count}の履歴項目が保存されます。",
+  "@xpHistorySummaryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistorySummaryLatest": "以下に、エントリを日付と時刻の順に並べます。最新エントリー：{title}。",
+  "@xpHistorySummaryLatest": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "xpHistoryDayEventCount": "{count} XP イベント",
+  "@xpHistoryDayEventCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryDeleteMessageTooltip": "メッセージを削除する",
+  "xpHistoryTotalXp": "{totalXp} 合計 XP",
+  "@xpHistoryTotalXp": {
+    "placeholders": {
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryStayedAtLevel": "Lv.{level}に滞在",
+  "@xpHistoryStayedAtLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryTrainingLog": "トレーニングログ",
+  "xpHistoryTrainingLogWithLabel": "トレーニングログ・{label}",
+  "@xpHistoryTrainingLogWithLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryMatchLog": "試合ログが保存されました",
+  "xpHistoryMatchLogWithLabel": "試合ログ・{label}",
+  "@xpHistoryMatchLogWithLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryMealLog": "食事ログが保存されました",
+  "xpHistoryQuizCompletion": "クイズの完了",
+  "xpHistoryPlanCreated": "トレーニング計画を作成しました",
+  "xpHistoryBoardSaved": "トレーニングスケッチが保存されました",
+  "xpHistoryBoardSavedWithLabel": "トレーニングスケッチ・{label}",
+  "@xpHistoryBoardSavedWithLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryDiaryCreated": "今日の日記を作成しました",
+  "xpHistoryDailyTasksComplete": "今日のタスクは完了しました",
+  "xpHistoryTrainingLabelLifting": "リフティング",
+  "xpHistoryTrainingLabelJumpRope": "縄跳び",
+  "xpHistoryReasonLog": "ベースログ",
+  "xpHistoryReasonFirstDailyLog": "一日の始まり",
+  "xpHistoryReasonPlanCompleted": "予定日",
+  "xpHistoryReasonLiftingRecorded": "リフティングが記録されました",
+  "xpHistoryReasonJumpRopeRecorded": "縄跳びを録音しました",
+  "xpHistoryReasonLiftingMissed": "持ち上げなし",
+  "xpHistoryReasonJumpRopeMissed": "縄跳びはありません",
+  "xpHistoryReasonLiftingAdded": "リフティングが追加されました",
+  "xpHistoryReasonJumpRopeAdded": "縄跳びを追加しました",
+  "xpHistoryReasonMealTwoPlus": "2食以上",
+  "xpHistoryReasonMealFullDay": "3食完食",
+  "xpHistoryReasonMealFullDayBonus": "3食+丼5杯以上",
+  "xpHistoryReasonStreak3": "3日連続",
+  "xpHistoryReasonStreak7": "7日連続",
+  "xpHistoryReasonStreakDaily2": "毎日の連続 (2 ～ 3 日)",
+  "xpHistoryReasonStreakDaily4": "毎日の連続 (4 ～ 6 日間)",
+  "xpHistoryReasonStreakDaily7": "毎日の連続記録 (7 日以上)",
+  "xpHistoryReasonRoutineComplete": "日課完了",
+  "xpHistoryReasonWeekly3": "今週は3件",
+  "xpHistoryReasonWeekly5": "今週は5件",
+  "xpHistoryReasonQuizComplete": "クイズ完了",
+  "xpHistoryReasonPlanCreated": "計画が作成されました",
+  "xpHistoryReasonPlanGroupCreated": "{count}-プランシリーズ",
+  "@xpHistoryReasonPlanGroupCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryReasonMatchLogged": "記録された試合",
+  "xpHistoryReasonMatchResultRecorded": "記録された結果",
+  "xpHistoryReasonMatchContributionRecorded": "貢献が記録されました",
+  "xpHistoryReasonBoardCreated": "ボードが作成されました",
+  "xpHistoryReasonBoardSaved": "ボードが保存されました",
+  "xpHistoryReasonDiaryCreated": "日記が作成されました",
+  "xpHistoryReasonDailyTasksCompleted": "今日のタスクは完了しました",
+  "xpHistoryReasonDailyCap": "毎日の上限",
+  "profilePlayerLevelLabel": "プレイヤーレベル",
+  "profileVisualGrowthTier": "ビジュアル成長層",
+  "profileRewardReadySummary": "{count} 報酬準備完了",
+  "@profileRewardReadySummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileNoNextReward": "次の報酬はまだありません",
+  "profileRewardNow": "今すぐ報酬: {rewardName}",
+  "@profileRewardNow": {
+    "placeholders": {
+      "rewardName": {}
+    }
+  },
+  "profileNextReward": "次の報酬 Lv.{level} {rewardName}",
+  "@profileNextReward": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "rewardName": {}
+    }
+  },
+  "profileLevelProgressMax": "{stars} マスタリー スター · {remainingXp} XP が残っています",
+  "@profileLevelProgressMax": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "profileLevelProgressNext": "次のレベルへの {remainingXp} XP · 合計 {totalXp} XP",
+  "@profileLevelProgressNext": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      },
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLevelProgressMax": "{stars} スター · {remainingXp} XP 残り",
+  "@homeLevelProgressMax": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      },
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLevelProgressNext": "{remainingXp} XP 残り",
+  "@homeLevelProgressNext": {
+    "placeholders": {
+      "remainingXp": {
+        "type": "int"
+      }
+    }
+  },
+  "homePriorityCheckPlansMessage": "開始する前に、残りのトレーニング計画を確認してください。",
+  "homePriorityPlansAction": "予定",
+  "homePriorityPlanNextMessage": "短いトレーニング計画を追加します。",
+  "homePriorityPlanNextAction": "プランの追加",
+  "homePriorityReviewWeekMessage": "今週のトレーニングの流れを確認し、次の目標を選択します。",
+  "homePriorityStatsAction": "統計",
+  "homePrioritySketchNextMessage": "次回のセッションで試してみたい動きをスケッチします。",
+  "homePriorityBoardAction": "ボード",
+  "homePriorityConditionMessage": "最近の体調の傾向を確認し、回復を調整します。",
+  "homePriorityRewardsMessage": "レベル報酬と次の成長目標を確認します。",
+  "homePriorityLevelAction": "レベル",
+  "homeMealSuggestionDoneShort": "3回の食事はすべて記録されます。リズムを保ち続けてください。",
+  "homeMealSuggestionTwoShort": "もう 1 回食事を記録してください。",
+  "homeMealSuggestionOneShort": "あと 2 回の食事を記録してください。",
+  "homeMealSuggestionNoneShort": "今日の最初の食事から始めてください。",
+  "homeNextTrainingTitle": "次のトレーニング",
+  "homeNextTrainingToday": "今日",
+  "homeNextTrainingTomorrow": "明日",
+  "homeNextTrainingInDays": "{count} 日以内",
+  "@homeNextTrainingInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeNextTrainingCount": "{count}予定",
+  "@homeNextTrainingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileTestsActionLabel": "プロファイルテスト",
+  "entryStartedFromPlanSummary": "今日の予定からスタート：{summary}",
+  "@entryStartedFromPlanSummary": {
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "fifaHubAppBarTitle": "FIFAランキングハブ",
+  "fifaHubHeroTitle": "世界的な FIFA ランキングと A マッチ トラッカー",
+  "fifaHubHeroSubtitle": "FIFA 公式データから完全なランキング、最近の結果、今後の試合をチェックしてください。",
+  "fifaHubMenLabel": "男性",
+  "fifaHubWomenLabel": "女性",
+  "fifaHubLeaderLabel": "現在のNo.1",
+  "fifaHubRankedTeamsCount": "{count} ランクのチーム",
+  "@fifaHubRankedTeamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubConfederationCount": "{count} 連合",
+  "@fifaHubConfederationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubRecentResultsCount": "{count} 最近の結果",
+  "@fifaHubRecentResultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubUpcomingFixturesCount": "{count} 今後の試合予定",
+  "@fifaHubUpcomingFixturesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubNextUpdateLabel": "次回の更新",
+  "fifaHubDataSourceLabel": "出典: FIFA 公式ランキングとライブ試合フィード",
+  "fifaHubHighlightsTitle": "動きのハイライト",
+  "fifaHubBiggestClimber": "最大の登山者",
+  "fifaHubBiggestFaller": "最大の転倒者",
+  "fifaHubGlobalRankingTitle": "世界ランキング",
+  "fifaHubGlobalRankingSubtitle": "ランキングエリアをスクロールして、すべての代表チームを参照します。",
+  "fifaHubShowAll": "すべて表示",
+  "fifaHubShowLess": "表示を少なくする",
+  "fifaHubRecentResultsTitle": "最近のワールドワイドAマッチ結果",
+  "fifaHubRecentResultsSubtitle": "FIFA マッチフィードからフィルターされたシニア代表チームの試合。",
+  "fifaHubRecentResultsEmpty": "最近のワールドワイド A マッチの結果は見つかりませんでした。",
+  "fifaHubUpcomingFixturesTitle": "今後の世界的な A マッチの試合予定",
+  "fifaHubUpcomingFixturesSubtitle": "最新のFIFAスケジュールウィンドウからの今後のシニア代表チームの試合。",
+  "fifaHubUpcomingFixturesEmpty": "今後のワールドワイド A マッチの試合は見つかりませんでした。",
+  "fifaHubKfaUpcomingFixturesTitle": "KFA韓国試合スケジュール",
+  "fifaHubKfaUpcomingFixturesSubtitle": "大韓サッカー協会公式次試合フィードより。",
+  "fifaHubKfaUpcomingFixturesEmpty": "KFA韓国の試合スケジュールは見つかりませんでした。",
+  "fifaHubKfaRecentResultsTitle": "KFA韓国試合結果",
+  "fifaHubKfaRecentResultsSubtitle": "大韓サッカー協会公式試合結果フィードより。",
+  "fifaHubKfaRecentResultsEmpty": "KFA Koreaの試合結果は見つかりませんでした。",
+  "fifaHubMatchStatusResult": "結果",
+  "fifaHubMatchStatusLive": "ライブ",
+  "fifaHubMatchStatusFixture": "治具",
+  "fifaHubLoadError": "FIFAデータのロードに失敗しました。プルダウンして更新します。",
+  "fifaHubNoData": "現在、FIFA ランキングや A マッチのデータは入手できません。",
+  "fifaMatchDetailTitle": "試合詳細",
+  "fifaMatchDetailResultSummaryTitle": "結果の概要",
+  "fifaMatchDetailFixtureSummaryTitle": "試合概要",
+  "fifaMatchDetailCompetitionLabel": "競争",
+  "fifaMatchDetailKickoffLabel": "キックオフ",
+  "fifaMatchDetailDateLabel": "日付",
+  "fifaMatchDetailStageLabel": "ステージ",
+  "fifaMatchDetailVenueLabel": "会場",
+  "fifaMatchDetailCityLabel": "市",
+  "fifaMatchDetailMatchIdLabel": "一致ID",
+  "fifaMatchDetailScoreUnavailable": "スコアは未確認",
+  "fifaMatchDetailVersusLabel": "対",
+  "fifaMatchDetailHomeTeamLabel": "家",
+  "fifaMatchDetailAwayTeamLabel": "離れて",
+  "fifaMatchDetailScorersTitle": "得点者",
+  "fifaMatchDetailPossessionTitle": "ボールポゼッション",
+  "fifaMatchDetailAdvancedLoading": "詳細な記録を確認しています...",
+  "fifaMatchDetailAdvancedUnavailable": "得点者とボール保持率はソース データには見つかりませんでした。",
+  "fifaMatchDetailScorersUnavailable": "得点者情報が見つかりませんでした。",
+  "fifaMatchDetailPossessionUnavailable": "ボール保持情報が見つかりませんでした。",
+  "fifaMatchDetailUnknownScorer": "プレーヤーが提供されていません",
+  "fifaMatchDetailFifaSourceNote": "FIFA公式試合APIをベースにしています。",
+  "fifaMatchDetailKfaSourceNote": "KFA ホームフィードに基づいています。得点者とボール所有者は情報源から提供されない場合があります。",
+  "fifaMatchDetailOpenSource": "オープンソース",
+  "fifaCountryDetailRankingSummaryTitle": "ランキングまとめ",
+  "fifaCountryDetailTeamProfileTitle": "チームプロフィール",
+  "fifaCountryDetailCurrentRankLabel": "現在のランク",
+  "fifaCountryDetailPreviousRankLabel": "前のランク",
+  "fifaCountryDetailPointsLabel": "ポイント",
+  "fifaCountryDetailPointChangeLabel": "ポイント変更",
+  "fifaCountryDetailConfederationLabel": "連合",
+  "fifaCountryDetailCountryCodeLabel": "国コード",
+  "fifaCountryDetailTeamIdLabel": "FIFAチームID",
+  "fifaCountryDetailAbbreviationLabel": "略語",
+  "fifaCountryDetailFoundationYearLabel": "設立",
+  "fifaCountryDetailCityLabel": "市",
+  "fifaCountryDetailStadiumLabel": "スタジアム",
+  "fifaCountryDetailAddressLabel": "住所",
+  "fifaCountryDetailProfileUnavailable": "現在、追加の FIFA チーム プロフィールはありません。",
+  "fifaCountryDetailProfileSource": "FIFA公式チームAPIからのプロフィールデータ。",
+  "fifaCountryDetailRecentMatchesTitle": "このチームの最近のAマッチ",
+  "fifaCountryDetailUpcomingMatchesTitle": "このチームの今後の A マッチ",
+  "fifaCountryDetailMatchesUnavailable": "読み込まれた FIFA フィードにはこのチームの試合が見つかりませんでした。",
+  "tabGame": "ミニゲーム",
+  "drawerMainScreens": "メイン画面",
+  "drawerQuickAdd": "クイック追加",
+  "drawerToolsContent": "ツールとコンテンツ",
+  "drawerTrainingPlan": "トレーニング計画",
+  "drawerMatch": "マッチ",
+  "drawerAddTrainingSketch": "トレーニングスケッチを追加",
+  "drawerNotifications": "通知",
+  "drawerQuiz": "クイズ",
+  "addEntry": "エントリの追加",
+  "editEntry": "エントリーの編集",
+  "save": "保存",
+  "update": "アップデート",
+  "add": "追加",
+  "edit": "編集",
+  "newItem": "新しいアイテム",
+  "trainingDate": "トレーニング日",
+  "trainingDuration": "トレーニング期間",
+  "minutes": "{value} 分",
+  "times": "{value} 回",
+  "notSet": "未設定",
+  "trainingType": "トレーニングの種類",
+  "status": "トレーニング状況",
+  "statusGreat": "素晴らしい",
+  "statusGood": "良い",
+  "statusNormal": "普通",
+  "statusTough": "厳しい",
+  "statusRecovery": "回復",
+  "typeTechnical": "テクニカル",
+  "typePhysical": "物理的な",
+  "typeTactical": "戦術的",
+  "typeMatch": "マッチ",
+  "typeRecovery": "回復",
+  "intensity": "強度",
+  "condition": "状態",
+  "location": "位置",
+  "program": "プログラム",
+  "drills": "セッションドリル",
+  "injury": "けが",
+  "injuryPart": "損傷部位",
+  "painLevel": "痛みのレベル (1-10)",
+  "rehab": "リハビリ",
+  "goal": "ゴール",
+  "feedback": "フィードバック",
+  "notes": "注意事項",
+  "growth": "成長",
+  "height": "身長(cm)",
+  "weight": "重量(kg)",
+  "calendar": "カレンダー",
+  "calendarFormatMonth": "月",
+  "calendarFormatTwoWeeks": "2週間",
+  "calendarFormatWeek": "週",
+  "noEntries": "まだエントリーはありません。",
+  "noEntriesForDay": "この日のエントリーはありません。",
+  "noResults": "検索に一致するエントリはありません。",
+  "searchHint": "トレーニングログの検索",
+  "filterTitle": "ログのフィルタリング",
+  "filterAll": "全て",
+  "filterInjuryOnly": "怪我のみ",
+  "filterJumpRopeOnly": "縄跳びの日のみ",
+  "filterReset": "リセット",
+  "filterApply": "適用する",
+  "deleteEntry": "エントリの削除",
+  "deleteConfirm": "このエントリを削除しますか?",
+  "cancel": "キャンセル",
+  "delete": "消去",
+  "statsRecent7": "過去 7 日間",
+  "statsRecent30": "過去 30 日間",
+  "statsTotalSessions": "合計セッション数",
+  "statsTotalMinutes": "合計分",
+  "statsAvgIntensity": "平均強度",
+  "statsAvgCondition": "平均的な状態",
+  "statsInjuryCount": "怪我の数",
+  "statsAvgPain": "平均的な痛み",
+  "statsRehabCount": "リハビリカウント",
+  "statsSummary": "まとめ",
+  "statsTypeRatio": "研修プログラム比率",
+  "statsWeeklyMinutes": "毎週の議事録",
+  "growthHistory": "成長の歴史",
+  "level": "レベル{value}",
+  "levelUpRemaining": "{value}さらにレベルアップ",
+  "missionComplete": "ミッション完了！週間目標達成！",
+  "missionKeepGoing": "素晴らしい仕事だ！今週は残り3セッションまであと少し！",
+  "onboard1": "今日のトレーニングを記録する",
+  "onboard2": "成長履歴を追跡する",
+  "onboard3": "目標を持ってレベルアップする",
+  "next": "次",
+  "start": "始める",
+  "heroMessage": "今日は素晴らしい仕事でした！ロギングは成長を早めるのに役立ちます。",
+  "logsHeadline1": "トレーニング",
+  "logsHeadline2": "セッション",
+  "entryHeadline1": "ログ",
+  "entryHeadline2": "あなたのトレーニング",
+  "statsHeadline1": "進捗",
+  "statsHeadline2": "概要",
+  "durationNotSet": "時間がない",
+  "defaultLocation1": "学校のグラウンド",
+  "defaultLocation2": "コミュニティフィールド",
+  "defaultLocation3": "屋内ジム",
+  "defaultProgram1": "基本",
+  "defaultProgram2": "物理的な",
+  "defaultProgram3": "戦術的",
+  "defaultProgram4": "回復",
+  "defaultDrill1": "ロンド 5:2",
+  "defaultDrill2": "1対1のディフェンス",
+  "defaultDrill3": "射撃回数",
+  "defaultDrill4": "スプリント",
+  "defaultInjury1": "ハムストリング",
+  "defaultInjury2": "膝",
+  "defaultInjury3": "足首",
+  "defaultInjury4": "大腿",
+  "defaultInjury5": "カーフ",
+  "languageEnglish": "英語",
+  "languageKorean": "韓国語",
+  "languageJapanese": "日本語",
+  "settings": "設定",
+  "settingsGeneralSection": "一般設定",
+  "account": "アカウント",
+  "signInWithGoogle": "Googleでサインイン",
+  "signInFailed": "サインインに失敗しました。もう一度試してください。",
+  "signedIn": "サインインしました",
+  "signOut": "サインアウト",
+  "webLoginNotAvailable": "Google ログインはウェブ上では利用できません。",
+  "backupToDrive": "データのバックアップ",
+  "restoreFromDrive": "最新データをインポートする",
+  "restorePreviousBackup": "以前のバックアップをインポートする",
+  "restorePreviousBackupInfo": "以前のバックアップ インポートは、最近のインポートを元に戻したり、古い状態を確認したりするための回復ツールです。実行する前に、現在のデータが以前のバックアップによって置き換えられることを確認してください。",
+  "backupConfirm": "Google ドライブに新しいバックアップを作成しますか?",
+  "restoreConfirm": "Google ドライブから最新のデータをインポートしますか?これにより、現在のデータが置き換えられます。",
+  "restorePreviousConfirm": "以前の Google ドライブのバックアップをインポートしますか?現在のデータは置き換えられます。",
+  "backupSuccess": "バックアップが完了しました。",
+  "backupFailed": "バックアップに失敗しました。もう一度試してください。",
+  "restoreSuccess": "データがインポートされました。",
+  "restoreFailed": "データのインポートに失敗しました。もう一度試してください。",
+  "restorePreviousSuccess": "以前のバックアップがインポートされました。",
+  "restorePreviousFailed": "前回のバックアップのインポートに失敗しました。もう一度試してください。",
+  "backupInProgress": "バックアップ中...",
+  "restoreInProgress": "データをインポートしています...",
+  "backupDailyEnabled": "毎日のバックアップが有効になっています",
+  "backupDailyDesc": "アプリを開いたときに 1 日に 1 回バックアップします",
+  "backupAutoOnSave": "保存時の自動バックアップ",
+  "backupAutoOnSaveDesc": "ログを追加または更新するたびにバックアップします",
+  "lastBackup": "最後のバックアップ",
+  "timeJustNow": "ちょうど今",
+  "timeMinutesAgo": "{count} 分前",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursAgo": "{count} 1 時間前",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeYesterday": "昨日",
+  "restoreLocalBackup": "最新のインポートを元に戻す",
+  "restoreLocalConfirm": "このデバイスでの最新のインポートによって加えられた変更を元に戻しますか?これにより、現在のデータが置き換えられます。",
+  "restoreLocalSuccess": "最新のインポートは取り消されました。",
+  "restoreLocalFailed": "最新のインポートを元に戻すことができませんでした。もう一度試してください。",
+  "localBackup": "地域の安全バックアップ",
+  "driveBackupLockedAccountChanged": "Googleアカウントが変わりました。このアカウントでバックアップする前に、最新のデータをインポートしてください。",
+  "backupVersionUnsupported": "このバックアップは新しいバージョンのアプリで作成されたため、まだここにはインポートできません。アプリを更新して、もう一度お試しください。",
+  "backupPayloadInvalid": "バックアップデータの形式を確認できなかったため、インポートを中止しました。別のバックアップを試してください。",
+  "loginRequired": "ドライブのバックアップを使用するには、Google にログインしてください。",
+  "signOutDone": "サインアウトしました。",
+  "voiceNotAvailable": "このデバイスでは音声入力は利用できません。",
+  "liftingRecord": "リフティング記録",
+  "liftingByPart": "リフティング（部位ごとの回数）",
+  "liftingPartInfront": "前に",
+  "liftingPartInside": "内部",
+  "liftingPartOutside": "外",
+  "liftingPartMuple": "膝",
+  "liftingPartHead": "頭",
+  "liftingPartChest": "胸",
+  "liftingByBodyPartTitle": "部位別のリフティング",
+  "liftingNoRecords": "持ち上げ記録はありません。",
+  "legacyLabel": "遺産",
+  "oldLabel": "古い",
+  "confirm": "確認する",
+  "language": "言語",
+  "theme": "テーマ",
+  "themeSystem": "システム",
+  "themeLight": "ライト",
+  "themeDark": "暗い",
+  "defaults": "デフォルト",
+  "defaultDuration": "デフォルトの期間",
+  "defaultIntensity": "デフォルトの強度",
+  "defaultCondition": "デフォルトの状態",
+  "defaultLocation": "デフォルトの場所",
+  "defaultProgram": "デフォルトのプログラム",
+  "notifications": "通知",
+  "notificationSettingsAction": "設定",
+  "notificationSettingsTitle": "通知設定",
+  "notificationSettingsCloseTooltip": "通知設定を閉じる",
+  "notificationRefreshAction": "リフレッシュ",
+  "notificationFamilySectionTitle": "{count} ファミリー同期アラート",
+  "@notificationFamilySectionTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationFamilyEmpty": "ファミリー同期アラートはまだありません。",
+  "notificationFamilySettingsTitle": "ファミリー同期アラート",
+  "notificationFamilySettingsSubtitle": "プレーヤーのログまたは保護者のフィードバック/報酬が同期されたときに通知します。",
+  "notificationLeagueFixtureSettingsTitle": "お気に入りのチームの試合アラート",
+  "notificationLeagueFixtureSettingsSubtitle": "選択したお気に入りチームの試合をロードする前に通知します。",
+  "reminderEnabled": "毎日のリマインダーを有効にする",
+  "reminderTime": "リマインダー時間",
+  "photo": "写真",
+  "addPhoto": "写真を追加",
+  "removePhoto": "取り除く",
+  "noImage": "まだ画像がありません",
+  "imageLoadFailed": "画像のロードに失敗しました",
+  "more": "もっと",
+  "camera": "カメラ",
+  "gallery": "ギャラリー",
+  "crop": "作物",
+  "photoHint": "「保存」の横にあるカメラアイコンをタップして写真を追加します。",
+  "reorderPhotos": "写真を並べ替える",
+  "photoIndex": "写真{value}",
+  "photoLimitReached": "{value} までの写真を追加できます。",
+  "gameGuideTitle": "ゲームガイド",
+  "gameGuideQuickTitle": "現在のゲームの流れ",
+  "gameGuideQuickLine1": "各実行時間は 20 秒で、ライフは 3 つから始まります。失敗した場合は、ライフが残っている間にすぐに再試行できます。",
+  "gameGuideQuickLine2": "パスボタンを使用して方向とパワーを制御し、安全なパス、キラーパス、または危険なパスを選択します。",
+  "gameGuideQuickLine3": "連続成功でコンボを構築します。コンボ 8+ では、フィーバーが 5 秒間始まり、ボーナス ポイントが 2 倍になります。",
+  "gameGuideQuickLine4": "走行中にランダムなイベント (狭い車線、広い車線、追い風) とミッションが変わるため、すぐに適応してください。",
+  "gameGuideRiskTitle": "意思決定戦略",
+  "gameGuideRiskLine1": "安全なパス: 安定性が最も高く、リズムを保ち、安全にミッションをクリアするのに最適です。",
+  "gameGuideRiskLine2": "キラーパス: リスクは中程度ですが、スコアが急速に伸びるための強力な報酬が得られます。",
+  "gameGuideRiskLine3": "リスキーパス: 最も難しいオプションですが、完了すると最大の報酬が得られます。",
+  "gameGuideRiskLine4": "オープンスペースへのパスは追加のボーナスを与えるため、リリース前にディフェンダーのスペースを読んでください。",
+  "gameGuideFailureTitle": "間違いから立ち直る",
+  "gameGuideFailureLine1": "まだライフがある場合、インターセプト、衝突、ミスによってランがすぐに終了することはなくなりました。",
+  "gameGuideFailureLine2": "速すぎる/遅すぎるフィードバックを使用して、次回の試行時にホールド タイミングを調整します。",
+  "gameGuideFailureLine3": "ノーパス 3 が表示された場合は、まず短い安全なパスでテンポをリセットします。",
+  "gameGuideFailureLine4": "ライフが残り少なくなったら、より安全な選択に切り替えて逃げを守りましょう。",
+  "gameGuideRankingTitle": "スコア計算式",
+  "gameGuideRankingLine1": "ランクスコア = (完了したパス x 10) + (レベル x 15) + (ゴール x 60) + ボーナススコア。",
+  "gameGuideRankingLine2": "ボーナススコアソース: パスタイプの報酬、オープンスペースの報酬、リズム報酬、ミッション報酬。",
+  "gameGuideRankingLine3": "フィーバー中はボーナススコアが2倍になり、短い時間で大きなジャンプが可能になります。",
+  "gameGuideRankingLine4": "ハイスコ​​アルート: 安全なパスでリズムを築き、キラー/リスキーなパスで展開し、ミッションとゴールの報酬で終了します。",
+  "gameGuideCharPacTitle": "パックマンアタッカー",
+  "gameGuideCharPacSubtitle": "スタートとリンクのパス",
+  "gameGuideCharPacTag": "攻撃",
+  "gameGuideCharBlueTitle": "ブルーゴースト - ブロック",
+  "gameGuideCharBlueSubtitle": "追い越し車線をブロックする",
+  "gameGuideCharBlueTag": "ブロック",
+  "gameGuideCharOrangeTitle": "オレンジゴースト - プレス",
+  "gameGuideCharOrangeSubtitle": "ボール付近のプレッシャー",
+  "gameGuideCharOrangeTag": "プレス",
+  "gameGuideCharRedTitle": "レッドゴースト - マーク",
+  "gameGuideCharRedSubtitle": "通行人をマークします",
+  "gameGuideCharRedTag": "マーク",
+  "gameGuideCharPinkTitle": "ピンクの幽霊 - 読む",
+  "gameGuideCharPinkSubtitle": "受信ルートを予測します",
+  "gameGuideCharPinkTag": "読む",
+  "hideKeyboard": "キーボードを隠す",
+  "diaryTitlePlaceholder": "タイトルを入力してください",
+  "diaryStoryLabel": "体",
+  "diaryStoryPlaceholder": "本文を入力してください",
+  "diarySaveEmptyMessage": "まだ保存するものはありません。最初にタイトル、ストーリー、またはステッカーを追加します。",
+  "diaryCustomEmotionLabel": "自分自身の感情を創造する",
+  "diaryCustomEmotionHint": "自分の言葉でムードステッカーを追加",
+  "diaryCustomEmotionAdd": "感情を加える",
+  "diaryExpandNewsStickers": "すべてのニュースステッカーを表示 ({count})",
+  "@diaryExpandNewsStickers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryCollapseNewsStickers": "ニュースステッカーを折りたたむ",
+  "homeWeatherTitle": "天気コーチ",
+  "homeWeatherSubtitle": "現地の状況を確認し、トレーニングの焦点を調整します。",
+  "homeWeatherLoad": "地元の天気をロードする",
+  "homeWeatherLoading": "地元の天気を読み込んでいます...",
+  "homeWeatherUnavailable": "位置情報へのアクセスが許可されると、ここで気象情報が準備されます。",
+  "homeWeatherPermissionNeeded": "地元の天気を読み込むための位置情報へのアクセスを許可します。",
+  "homeWeatherLoadFailed": "地元の天気を読み込めませんでした。",
+  "entryWeatherLoading": "天気を読み込み中...",
+  "entryWeatherHomeMissing": "先にホームで天気を読み込んでください。",
+  "entryWeatherUseLocationTooltip": "現在地の天気を使う",
+  "homeWeatherRetryTitle": "天気を再試行",
+  "homeWeatherRetrySubtitle": "タップしてロード",
+  "homeWeatherLocationUnknown": "現在地",
+  "homeWeatherCountryKorea": "韓国",
+  "homeWeatherDetailsTitle": "天気の詳細",
+  "homeWeatherDetailsSubtitle": "現在地の天気と空気の質を確認してください。",
+  "homeWeatherTomorrowTitle": "明日の天気",
+  "homeWeatherWeeklyTitle": "週間天気",
+  "homeWeatherMorningLabel": "朝",
+  "homeWeatherEveningLabel": "夕方",
+  "homeWeatherCacheHint": "最近取得した天気を 10 分間再利用します。",
+  "homeWeatherDailyHighLow": "高/低",
+  "homeWeatherTomorrowFallback": "明日の予報はまだ出ていません。",
+  "homeWeatherTomorrowOutfitTitle": "明日の服装",
+  "homeWeatherTomorrowOutfitFallback": "明日の服装ガイドはまだ準備ができていません。",
+  "homeWeatherTemperatureRange": "高/低",
+  "homeWeatherFeelsLike": "みたいな感じ",
+  "homeWeatherHumidity": "湿度",
+  "homeWeatherPrecipitation": "降水量",
+  "weatherPrecipitationNone": "雨もほとんど降らず",
+  "weatherPrecipitationTrace": "地面が少し湿っているように感じるかもしれません",
+  "weatherPrecipitationLight": "傘があると助かる小雨",
+  "weatherPrecipitationModerate": "畑が濡れるほどの雨が降った",
+  "weatherPrecipitationHeavy": "水たまりがすぐにできる",
+  "weatherPrecipitationVeryHeavy": "雨が多すぎて屋外で遊ぶのは難しい",
+  "homeWeatherHourlyPrecipitation": "時間降水量",
+  "homeWeatherHourlyTemperature": "時間ごとの気温",
+  "homeWeatherWindSpeed": "風",
+  "homeWeatherUvIndex": "紫外線指数",
+  "homeWeatherOutfitTitle": "おすすめのサッカー服装",
+  "homeWeatherOutfitBaseHot": "半袖キット、薄手のショーツ、通気性のあるソックス。",
+  "homeWeatherOutfitBaseCold": "サーマルベースレイヤー、手袋、長い靴下、必要に応じてビーニー帽。",
+  "homeWeatherOutfitBaseMild": "軽いベースレイヤーを備えた標準キットで十分です。",
+  "homeWeatherOutfitRain": "薄い防水シェルと予備の靴下を用意してください。",
+  "homeWeatherOutfitSnow": "暖かいベースレイヤーと厚手の靴下を着用してください。滑りやすい地面に注意してください。",
+  "homeWeatherOutfitWind": "体温を安定させるためにウィンドブレーカーを追加します。",
+  "homeWeatherOutfitAirCaution": "空気の質が悪い場合は、通勤時にマスクを着用し、屋外でのハードな作業を減らしてください。",
+  "homeWeatherOutfitButton": "服装ガイド",
+  "homeWeatherOutfitLayersLabel": "最上層",
+  "homeWeatherOutfitOuterLabel": "外層",
+  "homeWeatherOutfitBottomLabel": "底",
+  "homeWeatherOutfitAccessoriesLabel": "付属品",
+  "homeWeatherOutfitNotesLabel": "注意事項",
+  "homeWeatherOutfitViewAllCases": "すべての衣装ケースを見る",
+  "homeWeatherOutfitAllCasesTitle": "All outfit cases",
+  "homeWeatherOutfitAllCasesSubtitle": "各ウェザーバンドをトップレイヤー、アウターレイヤー、ボトムス、アクセサリーの詳細とともに確認します。",
+  "homeWeatherOutfitCaseHotTitle": "暑い夏",
+  "homeWeatherOutfitCaseHotRange": "体感温度は30℃以上",
+  "homeWeatherOutfitCaseWarmTitle": "暖かいトレーニングの日",
+  "homeWeatherOutfitCaseWarmRange": "体感温度は22～29℃くらい",
+  "homeWeatherOutfitCaseMildTitle": "穏やかな日",
+  "homeWeatherOutfitCaseMildRange": "体感温度は15～21℃くらい",
+  "homeWeatherOutfitCaseCoolTitle": "涼しい日",
+  "homeWeatherOutfitCaseCoolRange": "体感温度は8～14℃くらい",
+  "homeWeatherOutfitCaseColdTitle": "寒い日",
+  "homeWeatherOutfitCaseColdRange": "体感温度は2～7℃くらい",
+  "homeWeatherOutfitCaseWetTitle": "雨や雪の日",
+  "homeWeatherOutfitCaseWetRange": "雨や雪の場合",
+  "homeWeatherAirQualityTitle": "空気の質",
+  "homeWeatherAirQualitySubtitle": "通常、数値が低いほど、屋外で呼吸がしやすいことを意味します。",
+  "homeWeatherAirGuideTitle": "アウトドアアクティビティガイド",
+  "homeWeatherAirGuideUnknown": "空気データを更新して、屋外アクティビティのガイダンスを確認します。",
+  "homeWeatherAirGuideGood": "空気の質は通常の屋外活動やトレーニングに十分安定しています。",
+  "homeWeatherAirGuideModerate": "ほとんどの屋外アクティビティは問題ありませんが、呼吸が敏感な場合は負荷を下げてください。",
+  "homeWeatherAirGuideSensitive": "呼吸が荒くなりやすい場合は、屋外での長時間の作業や激しい運動を減らしてください。",
+  "homeWeatherAirGuideUnhealthy": "屋外での激しい活動は避け、可能であれば屋内でのトレーニングやリカバリーに切り替えてください。",
+  "homeWeatherAirGuideVeryUnhealthy": "屋外での活動を最小限に抑え、屋内での回復や技術的な作業に移ります。",
+  "homeWeatherAirGuideHazardous": "屋外活動を中止し、可能であれば屋内に留まってください。",
+  "homeWeatherComparedYesterday": "対昨日",
+  "homeWeatherPm10": "細かい粉塵",
+  "homeWeatherPm25": "超微細粉塵",
+  "homeWeatherAqi": "アキ",
+  "homeWeatherAqiLabel": "空気の質の指標",
+  "homeWeatherAqiDescription": "AQI は、空気がどの程度きれいだと感じているかを示す単純なスコアです。",
+  "homeWeatherAqiScaleGood": "0-50 良い",
+  "homeWeatherAqiScaleModerate": "51-100 中程度",
+  "homeWeatherAqiScaleSensitive": "101+ 注意",
+  "homeWeatherTomorrowCondition": "状態",
+  "homeWeatherWeeklyDateLabel": "日付",
+  "homeWeatherWeeklyConditionLabel": "予報",
+  "homeWeatherStatusGood": "良い",
+  "homeWeatherStatusModerate": "適度",
+  "homeWeatherStatusSensitive": "呼吸が敏感な場合は注意してください",
+  "homeWeatherStatusUnhealthy": "不健康",
+  "homeWeatherStatusVeryUnhealthy": "非常に不健康",
+  "homeWeatherStatusHazardous": "危険",
+  "homeWeatherSuggestionTitle": "推奨されるトレーニングの焦点",
+  "homeWeatherSuggestionButton": "トレーニングの焦点",
+  "homeWeatherSuggestionClear": "屋外でのファーストタッチワーク、パスのリズム、短いスプリントセットに適した時期です。",
+  "homeWeatherSuggestionCloudy": "戦術的なパターンワークやより長いテンポのドリルには、安定した条件を使用してください。",
+  "homeWeatherSuggestionRain": "インドアタッチ、ウォールパス、バランスやコアワークに移行します。",
+  "homeWeatherSuggestionSnow": "屋内での調整、機動性、軽い技術の繰り返しを優先します。",
+  "homeWeatherSuggestionStorm": "リカバリ、ビデオレビュー、屋内での短時間のアクティベーションにより安全に保ちます。",
+  "homeWeatherSuggestionHot": "ボリュームを減らし、回復時間を延ばし、水分補給をしながらテクニックに集中します。",
+  "homeWeatherSuggestionCold": "ウォーミングアップに余分な時間を費やし、しっかりとしたタッチで徐々に強度を上げてください。",
+  "homeWeatherSuggestionAirCaution": "空気の質が悪いため、屋外の負荷を減らし、可能であれば屋内の技術作業または復旧作業に切り替えてください。",
+  "homeWeatherSuggestionAirWatch": "屋外でトレーニングする場合は、空気の質が完全に安定していないため、ハードなインターバルを短くし、呼吸に注意してください。",
+  "weatherLabelDefault": "天気",
+  "weatherLabelClear": "クリア",
+  "weatherLabelCloudy": "曇り",
+  "weatherLabelFog": "霧",
+  "weatherLabelDrizzle": "霧雨",
+  "weatherLabelRain": "雨",
+  "weatherLabelSnow": "雪",
+  "weatherLabelThunderstorm": "雷雨",
+  "diaryStickerTraining": "トレーニング",
+  "diaryStickerMatch": "マッチ",
+  "diaryStickerPlan": "プラン",
+  "diaryStickerFortune": "運",
+  "diaryStickerBoard": "ボード",
+  "diaryStickerNews": "ニュース",
+  "diaryStickerMeal": "丼もの",
+  "diaryStickerConditioning": "縄跳び・リフティング",
+  "diaryStickerInjury": "けが",
+  "diaryStickerQuiz": "クイズ",
+  "diaryStickerWeather": "天気",
+  "diaryStickerParentFeedback": "保護者からのフィードバック",
+  "diaryInjuryNoDetails": "負傷記録は保存されていなかった。",
+  "diaryInjuryRehab": "リハビリ",
+  "diaryInjuryStorySentence": "痛みが現れた瞬間と、次に何を回復する必要があるかを書きます。",
+  "diaryQuizStorySentence": "クイズの実行から残しておきたい質問やコンセプトを書きます。",
+  "diaryParentFeedbackStorySentence": "保護者からのフィードバック: {message}",
+  "@diaryParentFeedbackStorySentence": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryQuizSummaryPerfect": "{score}/{total} 正解・ミスなし",
+  "@diaryQuizSummaryPerfect": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryQuizSummaryWithMisses": "{score}/{total} は正解ですが、{wrongCount} はミスです",
+  "@diaryQuizSummaryWithMisses": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "wrongCount": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryQuizExpandQuestions": "すべての回答を表示 ({count})",
+  "@diaryQuizExpandQuestions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryQuizCollapseQuestions": "回答を折りたたむ",
+  "diaryQuizQuestionLabel": "質問",
+  "diaryQuizAnswerLabel": "答え",
+  "diaryQuizWrongAnswerLabel": "不正解",
+  "diaryQuizWrongAnswerNone": "間違った答えはありません",
+  "diaryQuizNoMissesLabel": "今回のクイズはミスなく終了しました。",
+  "diaryTrainingStatusLabel": "トレーニング状況",
+  "diaryConditioningJumpRopeLabel": "縄跳び",
+  "diaryConditioningLiftingLabel": "リフティング",
+  "diaryWeatherEmpty": "天気は記録されていませんでした。",
+  "quizWrongAnswerTimeout": "タイムアウトしました",
+  "quizWrongAnswerRevealed": "答えを明らかにした",
+  "quizWrongAnswerSkipped": "回答が選択されていません",
+  "quizWrongAnswerEmpty": "入力なし",
+  "quizShortAnswerHintAction": "ヒントを表示",
+  "quizRevealAnswerAction": "答えを明らかにする",
+  "quizShortAnswerHintUnavailable": "ヒントはまだありません。",
+  "quizShortAnswerHintStartsWith": "「{first}」で始まり、{length}の文字が入っています。",
+  "@quizShortAnswerHintStartsWith": {
+    "placeholders": {
+      "first": {},
+      "length": {}
+    }
+  },
+  "quizShortAnswerHintNumber": "{first}で始まる{length}桁の答えです。",
+  "@quizShortAnswerHintNumber": {
+    "placeholders": {
+      "first": {},
+      "length": {}
+    }
+  },
+  "diaryTrainingSelectedGoalsLabel": "選択された目標",
+  "diaryTrainingStrongPointLabel": "何がうまくいったのか",
+  "diaryTrainingNeedsWorkLabel": "仕事が必要です",
+  "diaryTrainingNextGoalLabel": "次の目標",
+  "diarySelectedRecordStickersTitle": "厳選されたレコードステッカー",
+  "diarySelectedRecordStickersHint": "ハンドルをドラッグして順序を変更するか、削除を使用してステッカーを削除します。",
+  "diaryRecordStickerSectionTitle": "レコードステッカーのレイアウト",
+  "diaryRecordStickerSectionSubtitle": "今日の記録から抜粋して、上記の読む順序を整理します。",
+  "diaryRecordStickerSourceTitle": "今日の記録から抜粋",
+  "diaryRecordStickerAvailableCount": "{count} アイテム",
+  "@diaryRecordStickerAvailableCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryRecordStickerSelectedCount": "{count}が選択されました",
+  "@diaryRecordStickerSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryRecordStickerSelectedOrder": "{order}を注文する",
+  "@diaryRecordStickerSelectedOrder": {
+    "placeholders": {
+      "order": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryRecordStickerEmptyHint": "以下のステッカーを選択して、ここですぐに並べ替えてください。",
+  "diaryRecordStickerReorder": "ステッカーを再注文する",
+  "diaryRecordStickerRemove": "ステッカーを剥がす",
+  "diaryRecordStickerPinned": "ステッカーを追加しました",
+  "diaryRecordStickerPin": "ステッカーを追加する",
+  "diaryMealStorySentence": "今日食べたものを振り返って、食事の量が体の調子にどのように関係しているかに注目してください。",
+  "diaryMealSectionTitle": "食事メモ",
+  "diaryMealSectionBody": "3食の食事、ご飯の量、体の感じを短いメモにまとめます。",
+  "diaryNewsOpenFailed": "記事を開けませんでした。",
+  "mealRoutineTitle": "食べることもトレーニングです",
+  "mealRoutineSubtitle": "カロリーの計算を省略して、ご飯茶わんの数で 3 回の食事を記録するだけです。",
+  "mealBreakfast": "朝食",
+  "mealLunch": "ランチ",
+  "mealDinner": "夕食",
+  "mealShortLabel": "食事",
+  "mealDone": "終わり",
+  "mealSkipped": "スキップされました",
+  "mealRiceNone": "0杯",
+  "mealRiceBowls": "{count} ボウル",
+  "@mealRiceBowls": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mealRiceLabel": "米",
+  "mealCoachHeadlinePerfect": "３食の食事は順調に進んでいます。",
+  "mealCoachHeadlineAlmost": "あと一食でルーチンは終了です。",
+  "mealCoachHeadlineNeedsMore": "食事のルーチンにはもっと構造が必要です。",
+  "mealCoachHeadlineStart": "今日は食事をトレーニングとして捉えてください。",
+  "mealCoachBodySteady": "食事のタイミングとご飯の量は安定しているようです。次のセッションでテンポを保つには良い日です。",
+  "mealCoachBodyThreeMeals": "3 回の食事すべてを記録しました。次のステップは、食事ごとにご飯の量があまりにも多くならないようにすることです。",
+  "mealCoachBodyTwoMealsSolid": "２食しっかりです。回復を安定させるために、不足した食事を一定時間にロックします。",
+  "mealCoachBodyTwoMealsLight": "2食記録されていますが、ボリュームは軽めです。まずは次の食事を1つのボウルに固定することから始めます。",
+  "mealCoachBodyOneMeal": "食事は1食のみ記録されます。今日のトレーニングの質を心配する前に、食事を追加してください。",
+  "mealCoachBodyZeroMeal": "まずは三食のチェックから始めましょう。詳細な計算よりも、欠食を減らすことが重要です。",
+  "mealXpFull": "3 食完了 +8 XP",
+  "mealXpFullBonus": "3食完食 + 丼5杯以上 +10 XP",
+  "mealXpPartial": "2食以上 +3 XP",
+  "mealXpNeutral": "1食以下ではボーナスなし",
+  "homeMealCoachTitle": "食事コーチ",
+  "homeMealCoachRecordAction": "食事",
+  "homeParentWelcomeMessage": "親モード: 記録とフィードバックのみをレビューします。",
+  "homeParentWelcomeAction": "ログ",
+  "homeMealCoachOtherSuggestions": "他の提案を表示する",
+  "homeMealCoachHeadlinePerfect": "完了",
+  "homeMealCoachHeadlineAlmost": "もうすぐそこ",
+  "homeMealCoachHeadlineNeedsMore": "仕事が必要です",
+  "homeMealCoachHeadlineStart": "開始されていません",
+  "homeMealCoachNoEntry": "今日のトレーニングノートはまだありません。まずは食べた食事を記録することから始めましょう。",
+  "homeMealCoachSummary": "{breakfastLabel} {breakfastValue}・{lunchLabel} {lunchValue}・{dinnerLabel} {dinnerValue}",
+  "@homeMealCoachSummary": {
+    "placeholders": {
+      "breakfastLabel": {
+        "type": "String"
+      },
+      "breakfastValue": {
+        "type": "String"
+      },
+      "lunchLabel": {
+        "type": "String"
+      },
+      "lunchValue": {
+        "type": "String"
+      },
+      "dinnerLabel": {
+        "type": "String"
+      },
+      "dinnerValue": {
+        "type": "String"
+      }
+    }
+  },
+  "homeMealCoachSuggestionStart1": "まず、最も頻繁に抜く 1 食を安定させます。",
+  "homeMealCoachSuggestionStart2": "記録を開始すると、カロリーよりも食事回数が重要になります。",
+  "homeMealCoachSuggestionStart3": "今日最初の食事を記録し、明日その時間を繰り返します。",
+  "homeMealCoachSuggestionOne1": "記録されるのは 1 回の食事だけです。次の食事を忘れないように明確な時間に修正してください。",
+  "homeMealCoachSuggestionOne2": "食べたらご飯の量も追加してください。次のコーチングのステップがはるかに簡単になります。",
+  "homeMealCoachSuggestionOne3": "今では、クイズや日記を終えることよりも、食事を追加することが重要です。",
+  "homeMealCoachSuggestionTwoLight1": "2食記録されていますが、ボリュームは軽めです。次の食事では少なくともボウル一杯一杯を目標にしましょう。",
+  "homeMealCoachSuggestionTwoLight2": "不足している食事をランダムなスナックに置き換えないでください。本物の食事スロットとして保管してください。",
+  "homeMealCoachSuggestionTwoLight3": "食事回数は許容範囲内です。再現可能な米ベンチマークも構築しましょう。",
+  "homeMealCoachSuggestionTwoSolid1": "二食のリズムもいいですね。毎日同じ時間枠で不足している食事を修正します。",
+  "homeMealCoachSuggestionTwoSolid2": "今日は食事のリズムもまあまあだったので、トレーニング後の体の調子にも注目。",
+  "homeMealCoachSuggestionTwoSolid3": "2 回の食事が安定している場合、3 回目の食事は主にスケジュールの問題です。",
+  "homeMealCoachSuggestionThree1": "3 回の食事すべてを記録しました。次に、食事ごとの分量の差を減らします。",
+  "homeMealCoachSuggestionThree2": "丸三食の日は、日記と組み合わせて回復ルーチンを完了します。",
+  "homeMealCoachSuggestionThree3": "リズムが安定しているので、動きがどのくらい軽いか重いかを記録します。",
+  "homeMealCoachSuggestionSteady1": "食事のタイミングや量も安定していました。次にトレーニングのテンポを維持することに集中できます。",
+  "homeMealCoachSuggestionSteady2": "今日はエネルギー補給がうまくいったようだ。あなたの体がどのように反応したかについての短いメモを追加してください。",
+  "homeMealCoachSuggestionSteady3": "食事が安定したので、次の提案は睡眠と日記の見直しをリンクさせることです。",
+  "mealCompactSummary": "{label} {count} ボウル",
+  "@mealCompactSummary": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mealCompactSkipped": "{label} スキップされました",
+  "@mealCompactSkipped": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "mealRiceBowlsValue": "{count} ボウル",
+  "@mealRiceBowlsValue": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "mealLogScreenTitle": "食事記録",
+  "mealLogDateLabel": "ログの日付",
+  "mealLogDatePickerHelp": "食事記録の日付を選択してください",
+  "mealSaveAction": "食事記録を保存する",
+  "mealDeleteAction": "食事記録を削除する",
+  "mealDeleteConfirmBody": "この日の食事記録を削除しますか?",
+  "mealSavedFeedback": "食事ログが保存されました。",
+  "mealSavedWithXpFeedback": "食事ログの保存 +{count} XP",
+  "@mealSavedWithXpFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mealDeletedFeedback": "食事記録削除しました。",
+  "mealLogXpSourceLabel": "食事記録",
+  "mealAverageExpectedValue": "予想される平均 {value} ボウル",
+  "@mealAverageExpectedValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "mealAverageActualValue": "{value} ボウル",
+  "@mealAverageActualValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "mealStatsEmpty": "選択した期間に食事のエントリはありません。",
+  "mealStatsSectionTitle": "食事記録",
+  "mealStatsTrendTitle": "食事の流れ",
+  "mealStatsTodayRiceBowlTitle": "最新の丼もの",
+  "mealStatsLoggedDays": "記録された日数",
+  "mealStatsExpectedAverage": "予想される平均値",
+  "mealStatsActualAverage": "実際の平均",
+  "mealStatsBestDay": "最高の一日",
+  "mealIncreaseAction": "ボウルを追加する",
+  "mealDecreaseAction": "ボウルを取り外す",
+  "mealStatsWeightLinkedHint": "体重記録のある日は同じグラフ上でリンクされます。",
+  "homeRiceBowlTitle": "本日の丼もの",
+  "homeRiceBowlSubtitle": "一杯のボウル、半分のボウル、スキップされたボウルが一目でわかります。",
+  "homeRiceBowlFull": "ボウルいっぱい",
+  "homeRiceBowlHalf": "半丼",
+  "homeRiceBowlEmpty": "スキップされました",
+  "fortuneDialogTitle": "今日の運勢",
+  "fortuneDialogSubtitle": "今日のラッキー情報をチェック。",
+  "fortuneDialogOverviewTitle": "フォーチュンの概要",
+  "fortuneDialogOverallFortuneLabel": "全体的な運勢",
+  "fortuneDialogLuckyInfoLabel": "ラッキー情報",
+  "fortuneDialogOverallFortuneCount": "{count} ライン",
+  "@fortuneDialogOverallFortuneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fortuneDialogLuckyInfoCount": "{count} アイテム",
+  "@fortuneDialogLuckyInfoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fortuneDialogLuckyInfoTitle": "ラッキー情報",
+  "fortuneDialogPoolSizeLabel": "フォーチュンプール",
+  "fortuneDialogPoolSizeCount": "{count} ケース",
+  "@fortuneDialogPoolSizeCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "fortuneDialogRecommendedProgramTitle": "おすすめのトレーニング",
+  "fortuneDialogRecommendationTitle": "フォーチュンノート",
+  "fortuneDialogEncouragement": "今日も最高のプレーを応援します。",
+  "fortuneDialogAction": "ニース",
+  "mealStatsNoTrainingOrMealEntries": "選択した期間にトレーニングや食事のエントリーはありません。",
+  "drawerRunningCoach": "ランニングコーチ",
+  "runningCoachScreenTitle": "ランニングコーチ",
+  "runningCoachHeroTitle": "サイドビューランニングフォームコーチ",
+  "runningCoachHeroBody": "短い横から見たランニング クリップをアップロードすると、姿勢、バウンス、足の着地、膝の屈曲、腕の動きに関する厳密なフィードバックが得られます。",
+  "runningCoachAnalyzeBody": "クリップを選択して、フォームスコアと修正すべき最初の動きの問題を取得します。",
+  "runningCoachTipsTitle": "録音方法",
+  "runningCoachTipWholeBody": "クリップ全体で肘と足が見えるように、頭から足首まで全身をフレーム内に収めます。",
+  "runningCoachTipSideView": "ランナーがフレームを横切って移動する間、横から録画します。",
+  "runningCoachTipSteadyCamera": "安定したカメラを使用して、リラックスしたスプリントやランニング フォームを 5 ～ 15 秒間撮影します。",
+  "runningCoachUploadGuideTitle": "動画アップロードガイド",
+  "runningCoachUploadGuideBody": "サンプル ガイドを開いて、1 つのサンプル ビデオ画面で録画セットアップ、フレーム キュー、動きの読み出しを確認します。",
+  "runningCoachUploadGuideStepSide": "走行車線に対して直角に立って、左から右、または右から左に動くランナーを撮影します。",
+  "runningCoachUploadGuideStepDistance": "ランナーの前後にスペースを空けて、一歩ごとに体全体が見えるようにします。",
+  "runningCoachUploadGuideStepDuration": "3 つ以上のきれいなストライドを含む 5 ～ 15 秒のクリップを使用し、ウォーキングの準備時間を短縮します。",
+  "runningCoachUploadGuideStepLight": "明るく均一な光の中で撮影し、ランナーの後ろを他の人が横切ることを避けてください。",
+  "runningCoachSampleTitle": "サンプルビデオガイド",
+  "runningCoachSampleBody": "このループを参照として使用します。ビデオ、姿勢の読み出し、記録チェックが一緒に保たれるため、各キューをランナーに合わせやすくなります。",
+  "runningCoachSampleGuideAction": "サンプルビデオガイドを開く",
+  "runningCoachSampleFrameLabel": "フレーム {current}/{total}",
+  "@runningCoachSampleFrameLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSampleFrameGuideTitle": "動画で比較するもの",
+  "runningCoachSampleFrameGuideBody": "ランナーと一緒にオーバーレイを読み取ります。姿勢、着地、腕のタイミング、フレーム カバレッジが、単なるテキスト リストとしてではなく、サンプルの上に表示されます。",
+  "runningCoachSampleCueLean": "ウエストを折らずに足首から肩まで傾ける",
+  "runningCoachSampleCueFrame": "頭、腰、膝、足は見えたままになります",
+  "runningCoachSampleCueFoot": "足はつま先を前にして腰の下で着地する",
+  "runningCoachSampleCueArms": "肘は曲げたままにし、足とは反対側に振ります",
+  "runningCoachSampleRecordingGuideTitle": "サンプルのように録音する",
+  "runningCoachSampleOverlayPosture": "リーン10°",
+  "runningCoachSampleOverlayArms": "アーム90°",
+  "runningCoachSampleOverlayFoot": "着地 0.08",
+  "runningCoachSampleOverlayFrames": "24/24フレーム",
+  "runningCoachLiveCardTitle": "ライブコーチ",
+  "runningCoachLiveCardBody": "ランナーの輪郭とポーズラインをライブで追跡し、体幹の傾き、膝のドライブ、ステップのリズム、腕のバランスに関するスプリント固有のフィードバックに直接切り替えます。",
+  "runningCoachLiveAction": "ライブコーチを開始する",
+  "runningCoachLiveGuideAction": "撮影ガイド",
+  "runningCoachLiveScreenTitle": "ライブランニングコーチ",
+  "runningCoachLiveGuideScreenTitle": "ライブ撮影ガイド",
+  "runningCoachLiveGuideHeroTitle": "ランナーの概要を追跡し、下部のコーチングパネルを一緒に読みます",
+  "runningCoachLiveGuideHeroBody": "ライブコーチはランナーの輪郭とポーズラインを画面上に直接マークし、下部パネルには説明と結果がまとめて表示されます。トラッキングとフィードバックを安定に保つには、以下のセットアップを使用してください。",
+  "runningCoachLiveGuideTipSideTitle": "側面図を表示する",
+  "runningCoachLiveGuideTipSideBody": "ランナーは、カメラに向かってまっすぐに移動したり、斜めに移動したりするのではなく、横からフレームを横切って移動する必要があります。",
+  "runningCoachLiveGuideTipBodyTitle": "全身をフレーム内に収める",
+  "runningCoachLiveGuideTipBodyBody": "ポーズ ラインとスコアが安定するように、頭、肘、腰、足首はすべて表示されたままにする必要があります。",
+  "runningCoachLiveGuideTipHudTitle": "上部のキューと下部の結果を一緒に読み取ります",
+  "runningCoachLiveGuideTipHudBody": "黄色のボックスの代わりに、画面には上部のステータス キューとランナーのアウトライン マークが表示され、下部のパネルには理由、修正、ボディパーツの結果がまとめて表示されます。",
+  "runningCoachLiveGuideTipCameraTitle": "カメラを固定し、本体を十分な大きさに保ちます",
+  "runningCoachLiveGuideTipCameraBody": "カメラをしっかりと保持し、全身が画面の高さの少なくとも約半分を占めるようにランナーをフレームに収めます。フレームが充実するほど、ポーズ ラインと音声コーチングがより安定します。",
+  "runningCoachLivePreparingTitle": "カメラの準備中",
+  "runningCoachLivePreparingBody": "背面カメラを開いて、ライブポーズ追跡を準備します。",
+  "runningCoachLiveCameraIssueTitle": "カメラチェックが必要です",
+  "runningCoachLiveCameraDenied": "ライブランニングコーチングにはカメラへのアクセスが必要です。",
+  "runningCoachLiveCameraFailed": "コーチのライブカメラを開けませんでした。もう一度やり直してください。",
+  "runningCoachLiveRetryAction": "もう一度やり直してください",
+  "runningCoachLiveVoiceOn": "音声コーチングオン",
+  "runningCoachLiveVoiceOff": "音声コーチングはオフです",
+  "runningCoachLiveSwitchCamera": "カメラを切り替える",
+  "runningCoachLiveStatusFraming": "まずは枠を固定する",
+  "runningCoachLiveStatusCollecting": "収集動作",
+  "runningCoachLiveStatusCoaching": "ライブコーチングがアクティブです",
+  "runningCoachLiveCueNoRunner": "ランナーはまだ十分に明確ではありません。フレームに足を踏み入れます。",
+  "runningCoachLiveCueStepBack": "後ろに下がり、頭からつま先まで全身をフレームに収めます。",
+  "runningCoachLiveCueMoveCloser": "ランナーが小さく見えます。もう少しカメラに近づきます。",
+  "runningCoachLiveCueCenterRunner": "ランナーをフレームの中央にはっきりと配置します。",
+  "runningCoachLiveCueTurnSideways": "より横に回すと走行形状が読みやすくなります。",
+  "runningCoachLiveCueKeepRunning": "良い。さらに数ステップ同じリズムを維持すると、コーチングが表示されます。",
+  "runningCoachLiveCueLookingGood": "良い。このリズムを保ち、同じ形を保ちます。",
+  "runningCoachLiveTrackedFrames": "追跡フレーム {count}",
+  "@runningCoachLiveTrackedFrames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveScorePending": "採点中...",
+  "runningCoachLiveOverallScore": "ライブスコア {score}/100",
+  "@runningCoachLiveOverallScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveGuidanceTitle": "現在のガイダンス",
+  "runningCoachSprintLiveCardTitle": "ライブスプリントコーチング",
+  "runningCoachSprintLiveCardBody": "サイドビュー カメラを使用して体幹の傾き、膝のドライブ、ステップのリズム、腕のバランスを読み取り、今修正すべき 1 つのスプリント キューを取得します。",
+  "runningCoachSprintLiveAction": "スプリントコーチングを始める",
+  "runningCoachSprintLiveScreenTitle": "ライブスプリントコーチング",
+  "runningCoachSprintLiveStatusLowConfidence": "最初に全身のフレームを修正します",
+  "runningCoachSprintLiveStatusCollecting": "スプリントのリズムを安定させる",
+  "runningCoachSprintLiveStatusReady": "ライブフィードバックの準備完了",
+  "runningCoachSprintLiveStatusCoaching": "ライブスプリントフィードバックが有効です",
+  "runningCoachSprintLiveCueCollecting": "リズムとニードライブの測定値が安定するように、さらに数歩保持します。",
+  "runningCoachSprintLiveCueReady": "良い。この形を保ち、さらに 5 ～ 10 秒間全力疾走します。",
+  "runningCoachSprintGuideSideCapture": "サイドビューをクリアに保つ",
+  "runningCoachSprintGuideFullBodyFraming": "全身をフレーム内に収める",
+  "runningCoachSprintTrackingConfidenceValue": "追跡 {percent}%",
+  "@runningCoachSprintTrackingConfidenceValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintTrackedFrames": "追跡された {count} フレーム",
+  "@runningCoachSprintTrackedFrames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintDetectedSteps": "ステップイベント {count}",
+  "@runningCoachSprintDetectedSteps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionLogTitle": "セッションの概要",
+  "runningCoachSprintSessionCameraFpsLabel": "カメラ入力FPS",
+  "runningCoachSprintSessionAnalyzedFpsLabel": "分析された FPS",
+  "runningCoachSprintSessionAverageProcessingLabel": "平均処理",
+  "runningCoachSprintSessionAverageProcessingValue": "{ms}ms",
+  "@runningCoachSprintSessionAverageProcessingValue": {
+    "placeholders": {
+      "ms": {}
+    }
+  },
+  "runningCoachSprintSessionSkippedFramesLabel": "ドロップ/スキップ",
+  "runningCoachSprintSessionSkippedFramesValue": "{count} フレーム",
+  "@runningCoachSprintSessionSkippedFramesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionBodyNotVisibleLabel": "本体損失率",
+  "runningCoachSprintSessionBodyNotVisibleValue": "{percent}%",
+  "@runningCoachSprintSessionBodyNotVisibleValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionBodyVisibilityLabel": "身体の可視性",
+  "runningCoachSprintSessionBodyVisibilityValue": "{status}・コア{visible}/{total}・{percent}%",
+  "@runningCoachSprintSessionBodyVisibilityValue": {
+    "placeholders": {
+      "status": {},
+      "visible": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionActiveFeedbackLabel": "アクティブなフィードバック",
+  "runningCoachSprintSessionActiveFeedbackValue": "{key}・{text}",
+  "@runningCoachSprintSessionActiveFeedbackValue": {
+    "placeholders": {
+      "key": {},
+      "text": {}
+    }
+  },
+  "runningCoachSprintSessionFeedbackEmpty": "待っている",
+  "runningCoachSprintSessionFeedbackChangesLabel": "フィードバックの変更",
+  "runningCoachSprintSessionFeedbackChangesValue": "{count} の変化 / 分ごとの {perMinute} · クールダウン保持 {suppressed}",
+  "@runningCoachSprintSessionFeedbackChangesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "perMinute": {},
+      "suppressed": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionReadinessLabel": "準備完了",
+  "runningCoachSprintSessionReadinessValue": "可視 {visible} · ミス {missing} · 安定した {stable} · トラベル {travel}",
+  "@runningCoachSprintSessionReadinessValue": {
+    "placeholders": {
+      "visible": {
+        "type": "int"
+      },
+      "missing": {
+        "type": "int"
+      },
+      "stable": {
+        "type": "int"
+      },
+      "travel": {}
+    }
+  },
+  "runningCoachSprintSessionStepDetectorLabel": "段差検出器",
+  "runningCoachSprintSessionStepDetectorValue": "スイッチ {switches} ・ ok {accepted} ・ lowV {lowVelocity} ・ ギャップ {minInterval}",
+  "@runningCoachSprintSessionStepDetectorValue": {
+    "placeholders": {
+      "switches": {
+        "type": "int"
+      },
+      "accepted": {
+        "type": "int"
+      },
+      "lowVelocity": {
+        "type": "int"
+      },
+      "minInterval": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionConfidenceLabel": "画期的な信頼性",
+  "runningCoachSprintSessionConfidenceValue": "0.8+ {high}% · 0.6-0.8 {medium}% · <0.6 {low}%",
+  "@runningCoachSprintSessionConfidenceValue": {
+    "placeholders": {
+      "high": {
+        "type": "int"
+      },
+      "medium": {
+        "type": "int"
+      },
+      "low": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricPending": "--",
+  "runningCoachSprintMetricTrunkLabel": "体幹スリム",
+  "runningCoachSprintMetricTrunkValue": "{value}°",
+  "@runningCoachSprintMetricTrunkValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintMetricKneeDriveLabel": "ニードライブ",
+  "runningCoachSprintMetricKneeDriveValue": "スケール {value}%",
+  "@runningCoachSprintMetricKneeDriveValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintMetricCadenceLabel": "ケイデンス",
+  "runningCoachSprintMetricCadenceValue": "{value} spm",
+  "@runningCoachSprintMetricCadenceValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintMetricRhythmLabel": "リズムドリフト",
+  "runningCoachSprintMetricRhythmValue": "{value}ms",
+  "@runningCoachSprintMetricRhythmValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintMetricArmBalanceLabel": "アームバランス",
+  "runningCoachSprintMetricArmBalanceValue": "ギャップ {value}%",
+  "@runningCoachSprintMetricArmBalanceValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintBodyVisibilityFull": "全身ロック",
+  "runningCoachSprintBodyVisibilityPartial": "部分的なランドマーク",
+  "runningCoachSprintBodyVisibilityNotVisible": "身体が失われた",
+  "runningCoachSprintCueBodyVisible": "全身がフレーム内に収まるようにもう 1 段階調整します。",
+  "runningCoachSprintCueLeanForward": "ウエストで折るのではなく、足首から少し前傾するようにします。",
+  "runningCoachSprintCueDriveKnee": "押し出した後、膝をもう少し積極的に前に動かします。",
+  "runningCoachSprintCueKeepRhythm": "左右のリズムが漂います。接地接触をより均一に保つようにしてください。",
+  "runningCoachSprintCueBalanceArms": "腕の振りがアンバランスです。両側の後進ドライブをより厳密に一致させます。",
+  "runningCoachSprintCueKeepPushing": "良い。同じリズムで前傾姿勢で押し続けます。",
+  "runningCoachSelectedVideoLabel": "選択したビデオ",
+  "runningCoachNoVideoSelected": "まだビデオが選択されていません。",
+  "runningCoachPickVideoAction": "ビデオを選択",
+  "runningCoachAnalyzeAction": "分析実行",
+  "runningCoachAnalysisInProgress": "分析中...",
+  "runningCoachPickVideoFailed": "ビデオピッカーを開けませんでした。",
+  "runningCoachUnsupportedPlatform": "ビデオ分析の実行は、Android および iPhone/iPad アプリのビルドでのみ利用できます。",
+  "runningCoachNativeAnalyzerUnavailable": "このアプリのビルドには、実行中のビデオ アナライザーがまだ含まれていません。最新のモバイル アプリ ビルドを再インストールして、もう一度試してください。",
+  "runningCoachVideoFileMissing": "選択したビデオ ファイルが見つかりませんでした。",
+  "runningCoachVideoTooShort": "ビデオが短すぎます。少なくともいくつかのランニングステップを記録します。",
+  "runningCoachNoPoseDetected": "ランナーを十分に追跡できませんでした。肘、膝、足が見える、より鮮明なサイドビュー クリップを試してください。",
+  "runningCoachAnalysisFailedGeneric": "分析の実行に失敗しました。より鮮明な側面図を持つ別のクリップを試してください。",
+  "runningCoachResultsTitle": "コーチング実績",
+  "runningCoachOverallHeadlineStrong": "力強いランニング形状",
+  "runningCoachOverallHeadlineSolid": "1 つの明確な修正を備えた強固なベース",
+  "runningCoachOverallHeadlineNeedsWork": "よりクリーンなランニングパターンを構築する",
+  "runningCoachOverallSummary": "総合ランニングスコア {score}/100",
+  "@runningCoachOverallSummary": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachOverallScoreLabel": "総合スコア",
+  "runningCoachDurationLabel": "クリップ",
+  "runningCoachFramesAnalyzedLabel": "フレーム",
+  "runningCoachCoverageLabel": "カバレッジ",
+  "runningCoachMetricScoresTitle": "メトリクススコア",
+  "runningCoachFocusTitle": "まず集中してください",
+  "runningCoachMaintainTitle": "これらを保管してください",
+  "runningCoachMetricScore": "スコア {score}",
+  "@runningCoachMetricScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachPriorityLabel": "優先順位 {priority}",
+  "@runningCoachPriorityLabel": {
+    "placeholders": {
+      "priority": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachMetricValueLabel": "測定値",
+  "runningCoachBodyRegionUpper": "上半身",
+  "runningCoachBodyRegionLower": "下半身",
+  "runningCoachBodyRegionWhole": "全身のリズム",
+  "runningCoachStatusGood": "良い",
+  "runningCoachStatusWatch": "時計",
+  "runningCoachStatusNeedsWork": "仕事が必要です",
+  "runningCoachLeanValue": "{value}° 前傾",
+  "@runningCoachLeanValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachBounceValue": "{value}% 垂直バウンド",
+  "@runningCoachBounceValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachFootStrikeValue": "{value}x 腰より前",
+  "@runningCoachFootStrikeValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachKneeValue": "{value}°サポート膝角度",
+  "@runningCoachKneeValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachArmValue": "{value}° エルボ角度",
+  "@runningCoachArmValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachStrideValue": "{value}x ストライドリーチ",
+  "@runningCoachStrideValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachInsightPostureTitle": "姿勢",
+  "runningCoachPostureGoodSummary": "体の角度は、わずかに前傾したきれいなスプリント姿勢に近いです。",
+  "runningCoachPostureGoodCue": "胸を高く保ち、体全体を前に倒します。",
+  "runningCoachPostureGoodDrill": "ドリル: 同じボディラインを固定するために、15m の壁沿いの行進を 2 回行います。",
+  "runningCoachPostureUprightSummary": "胴体が直立しすぎているため、一歩ごとに前向きな姿勢が失われている可能性があります。",
+  "runningCoachPostureUprightCue": "「つま先よりも鼻」を考えて、ウエストではなく足首から痩せるようにしましょう。",
+  "runningCoachPostureUprightDrill": "ドリル: 15m の落下スタートを 2 回、その後 15m の壁沿いの行進を 2 回。",
+  "runningCoachPostureLeanSummary": "上体が傾きすぎると、歩幅が崩れ、回復が遅くなることがあります。",
+  "runningCoachPostureLeanCue": "腰から背を高く伸ばし、肋骨が骨盤の上に重なるようにします。",
+  "runningCoachPostureLeanDrill": "ドリル: 高さ 20 メートル x 2 回の姿勢で、軽く素早いステップで走ります。",
+  "runningCoachInsightBounceTitle": "バウンス",
+  "runningCoachBounceGoodSummary": "垂直方向の動きが制御されているように見え、エネルギーを前に進めるのに役立ちます。",
+  "runningCoachBounceGoodCue": "上に跳ね返るのではなく、地面を後ろに押し続けます。",
+  "runningCoachBounceGoodDrill": "ドリル: 次のスプリントセットの前に、20m の足首ドリブルを 2 回実行します。",
+  "runningCoachBounceHighSummary": "クリップには余分な上下のバウンスがあり、エネルギーを浪費する可能性があります。",
+  "runningCoachBounceHighCue": "素早いコンタクトを考えて、まっすぐ下にではなく、地面を後ろに押してください。",
+  "runningCoachBounceHighDrill": "ドリル: 3 x 20mの足首ドリブルと短いコンタクトでのストレートレッグラン。",
+  "runningCoachInsightFootStrikeTitle": "フットストライク",
+  "runningCoachFootStrikeGoodSummary": "先頭の足は、ステップが前方に転がり続けることができるほど十分に腰の近くで着地します。",
+  "runningCoachFootStrikeGoodCue": "腰の下で着地を続け、手を伸ばすのではなく、押し出すことからスピードを出しましょう。",
+  "runningCoachFootStrikeGoodDrill": "ドリル: 短く素早いコンタクトを伴う 2 x 20m のウィケットスタイルのラン。",
+  "runningCoachFootStrikeOverSummary": "先頭の足が腰の前に伸びすぎているため、接地時にブレーキがかかる可能性があります。",
+  "runningCoachFootStrikeOverCue": "着地点を腰の下に戻し、前方に手を伸ばすのではなく、後ろに押すことを考えてください。",
+  "runningCoachFootStrikeOverDrill": "ドリル: 20m の A マーチ 2 回と、コンタクトが短い 20m のウィケットスタイルのラン 2 回。",
+  "runningCoachInsightKneeTitle": "膝の屈曲",
+  "runningCoachKneeGoodSummary": "サポート膝は十分に曲がっており、崩れることなく弾力性を保っています。",
+  "runningCoachKneeGoodCue": "着地時にロックするのではなく、スタンス脚を柔らかく反応性のある状態に保ちます。",
+  "runningCoachKneeGoodDrill": "ドリル: 20m ポゴラン 2 回、その後 20m ドリブルラン 2 回。",
+  "runningCoachKneeStraightSummary": "サポート膝が真っすぐに着地しすぎると、ステップが硬くて重く見えることがあります。",
+  "runningCoachKneeStraightCue": "着地の膝を柔らかくし、脚が腰の下で地面を受け入れるようにします。",
+  "runningCoachKneeStraightDrill": "ドリル: 膝を曲げたコンタクトと素早いステップでの 20m ドリブル ランを 2 回実行します。",
+  "runningCoachKneeCollapseSummary": "サポート膝が接地後に折りすぎているため、スタンス脚の剛性が失われています。",
+  "runningCoachKneeCollapseCue": "スタンスレッグ全体で弾力を保ち、腰を足の上に重ねた状態に保ちます。",
+  "runningCoachKneeCollapseDrill": "ドリル: 片側あたり 15 メートルの片足ポゴホップを 2 回、その後 20 メートルのドリブルランを 2 回行います。",
+  "runningCoachInsightArmTitle": "アームキャリッジ",
+  "runningCoachArmGoodSummary": "肘はコンパクトな範囲に留まり、上半身を過度に緊張させることなくリズムをサポートします。",
+  "runningCoachArmGoodCue": "肘を曲げたまま、脚と同じリズムで手を前から後ろに動かします。",
+  "runningCoachArmGoodDrill": "ドリル：20秒の壁アームスイッチ×2、次に20メートルアームドライブ行進×2。",
+  "runningCoachArmOpenSummary": "肘が開きすぎているため、腕がリズムを​​助けるどころか漏れている可能性があります。",
+  "runningCoachArmOpenCue": "肘をさらに曲げたままにし、手を長く伸ばすのではなく、腰の後ろを後ろに動かします。",
+  "runningCoachArmOpenDrill": "ドリル: 肘を 80 ～ 100 度コンパクトに曲げた状態で、20 秒の壁アーム スイッチを 2 回実行します。",
+  "runningCoachArmTightSummary": "肘が固すぎると腕の振りが短くなり、ストライドが無理に感じられることがあります。",
+  "runningCoachArmTightCue": "肩をリラックスさせ、肘をもう少し開きながら、手を後ろに動かし続けます。",
+  "runningCoachArmTightDrill": "ドリル: 肩をリラックスさせてバックドライブをスムーズにして、20m のマーチングアームを 2 回振ります。",
+  "runningCoachInsightStrideTitle": "ストライドリーチ",
+  "runningCoachStrideGoodSummary": "前足は体の下にある便利な着地窓の近くに留まります。",
+  "runningCoachStrideGoodCue": "同じタイミングを保ち、手を伸ばすのではなく力でストライドを広げます。",
+  "runningCoachStrideGoodDrill": "ドリル: 同じリズムを保つために、20m のウィケットスタイルの素早いステップを 2 回実行します。",
+  "runningCoachStrideShortSummary": "ストライドの到達距離が短​​く見えるので、足を引っ張って十分に走り始めていない可能性があります。",
+  "runningCoachStrideShortCue": "膝を前方に動かし、より速い腕のリズムに合わせてステップを自然に開きます。",
+  "runningCoachStrideShortDrill": "ドリル: 2 x 20m の A マーチを A スキップに入れてフロントサイドのメカニックを構築します。",
+  "runningCoachStrideOverSummary": "前足が体の前方に伸びすぎて、ブレーキがかかる可能性があります。",
+  "runningCoachStrideOverCue": "腰の下に近い位置で着地し、手を伸ばすのではなく、押し出すことからスピードを出しましょう。",
+  "runningCoachStrideOverDrill": "ドリル: 20m の A マーチを 2 回、短いコンタクトを伴う 20m のウィケットスタイルのランを 2 回。",
+  "runningCoachSprintDebugToggle": "スプリント デバッグ オーバーレイの切り替え",
+  "runningCoachSprintDebugPanelTitle": "デバッグオーバーレイ",
+  "runningCoachSprintCueWhyLabel": "なぜ",
+  "runningCoachSprintCueTryLabel": "試す",
+  "runningCoachSprintTrackingStateBodyTooSmall": "近くに移動してください",
+  "runningCoachSprintTrackingStateBodyOutOfFrame": "全身をフレーム内に収める",
+  "runningCoachSprintTrackingStateLowConfidence": "追跡の信頼性を高める",
+  "runningCoachSprintTrackingStateSideViewUnstable": "サイドビューを決める",
+  "runningCoachSprintTrackingStateReady": "分析の準備完了",
+  "runningCoachSprintTrackingHintBodyTooSmall": "ランナーのフレームが小さすぎます。分析する前に近づいてください。",
+  "runningCoachSprintTrackingHintBodyOutOfFrame": "一部のジョイントがフレームから外れているため、ポーズ ラインをロックしたままにすることができません。",
+  "runningCoachSprintTrackingHintLowConfidence": "今のところポーズの信頼性は低いです。もう少し安定したショットを続けてください。",
+  "runningCoachSprintTrackingHintSideViewUnstable": "サイドビューの動きがまだ不安定です。きれいな横方向の走行経路を維持します。",
+  "runningCoachSprintTrackingDiagnosisBodyTooSmall": "現在のボディボックスは小さすぎるため、デバイス上で体幹、膝、リズムを安定して測定できません。",
+  "runningCoachSprintTrackingDiagnosisBodyOutOfFrame": "コア ジョイントがエッジ付近でクリッピングしているため、ポーズ ラインとスプリント メトリクスがドリフトする可能性があります。",
+  "runningCoachSprintTrackingDiagnosisLowConfidence": "目に見える関節やランドマークの信頼度の平均は、コーチングの品質基準を下回っています。",
+  "runningCoachSprintTrackingDiagnosisSideViewUnstable": "モーション パスはまだ十分に横方向にとどまっていないため、側面図の分析は差し控えられています。",
+  "runningCoachSprintTrackingActionBodyTooSmall": "本体が画面の高さの約半分以上になるまでカメラを近づけます。",
+  "runningCoachSprintTrackingActionBodyOutOfFrame": "再び全力疾走する前に、頭、肘、腰、足首をガイド フレーム内に保ってください。",
+  "runningCoachSprintTrackingActionLowConfidence": "より安定したカメラ、より鮮明な照明を使用し、数フレームの間ランナーを中心に保ちます。",
+  "runningCoachSprintTrackingActionSideViewUnstable": "カメラに向かって流したり斜めに流したりするのではなく、横からフレームを横切って走ります。",
+  "runningCoachSprintTrackingSummary": "{state}・高さ {heightPercent}%・面積 {areaPercent}%",
+  "@runningCoachSprintTrackingSummary": {
+    "placeholders": {
+      "state": {},
+      "heightPercent": {
+        "type": "int"
+      },
+      "areaPercent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSpeechSummary": "スピーチ {state}・{reason}",
+  "@runningCoachSprintSpeechSummary": {
+    "placeholders": {
+      "state": {},
+      "reason": {}
+    }
+  },
+  "runningCoachSprintSpeechStateIdle": "アイドル状態",
+  "runningCoachSprintSpeechStateQueued": "キューに入れられました",
+  "runningCoachSprintSpeechStateStarted": "開始しました",
+  "runningCoachSprintSpeechStateCompleted": "完了",
+  "runningCoachSprintSpeechStateSkipped": "スキップされました",
+  "runningCoachSprintSpeechStateCancelled": "キャンセル",
+  "runningCoachSprintSpeechStateError": "エラー",
+  "runningCoachSprintSpeechSkipNone": "スキップなし",
+  "runningCoachSprintSpeechSkipDisabled": "音声フィードバックがオフになっています",
+  "runningCoachSprintSpeechSkipNoFeedbackSelected": "フィードバックが選択されていません",
+  "runningCoachSprintSpeechSkipEmptyCue": "キューテキストが空です",
+  "runningCoachSprintSpeechSkipInfoFeedback": "警告信号のみが読み上げられます",
+  "runningCoachSprintSpeechSkipTrackingNotReady": "追跡はまだ準備ができていません",
+  "runningCoachSprintSpeechSkipLowConfidence": "フィードバックの信頼性が低すぎてスピーチができない",
+  "runningCoachSprintSpeechSkipTrackingNotStable": "トラッキングが十分に長く安定していない",
+  "runningCoachSprintSpeechSkipCooldownActive": "スピーチのクールダウンが有効です",
+  "runningCoachSprintDiagnosisLeanForward": "体幹の立ち上がりが早すぎるため、最初の加速ステップで前方への推進力が失われます。",
+  "runningCoachSprintDiagnosisDriveKnee": "膝ドライブが腰に対して低い位置にあるため、フロントサイドステップが強くつながりません。",
+  "runningCoachSprintDiagnosisKeepRhythm": "ステップのタイミングがばらつきすぎて、左右のスプリントのリズムがズレてしまいます。",
+  "runningCoachSprintDiagnosisBalanceArms": "片方の腕は後方への駆動にあまり貢献していないため、上半身からのリズムサポートが不均一になります。",
+  "runningCoachSprintDiagnosisKeepPushing": "主要なスプリント指標は安定範囲内にあるため、アプリは現在のキューを保持しています。",
+  "runningCoachSprintActionLeanForward": "最初の 3 ステップでは胸を低く保ち、足首から前傾するようにします。",
+  "runningCoachSprintActionDriveKnee": "地面を強く押して、膝を自分で持ち上げようとするのではなく、膝を通すようにします。",
+  "runningCoachSprintActionKeepRhythm": "それ以上長いステップに手を伸ばさないでください。次の数歩の間、接地点を等間隔に保ちます。",
+  "runningCoachSprintActionBalanceArms": "両側の後方アームドライブを一致させ、肩を静かに保ちます。",
+  "runningCoachSprintActionKeepPushing": "アプリが安定性を確認できるように、さらに数ステップ同じ形状を維持します。",
+  "runningCoachSprintSessionTrackingStateLabel": "追跡状態",
+  "runningCoachSprintSessionPersonSizeLabel": "人のサイズ",
+  "runningCoachSprintSessionPersonSizeValue": "高さ {heightPercent}% · 面積 {areaPercent}%",
+  "@runningCoachSprintSessionPersonSizeValue": {
+    "placeholders": {
+      "heightPercent": {
+        "type": "int"
+      },
+      "areaPercent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionVisibleJointCountLabel": "目に見える接合部",
+  "runningCoachSprintSessionVisibleJointCountValue": "{count} ジョイント · 平均 {confidence}",
+  "@runningCoachSprintSessionVisibleJointCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "confidence": {}
+    }
+  },
+  "runningCoachSprintSessionSpeechStateLabel": "発話状態",
+  "runningCoachSprintSessionSpeechStateValue": "{state} · {reason} · クールダウン {cooldownMs}ms",
+  "@runningCoachSprintSessionSpeechStateValue": {
+    "placeholders": {
+      "state": {},
+      "reason": {},
+      "cooldownMs": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionFeatureConfidenceLabel": "特徴の信頼度",
+  "runningCoachSprintSessionFeatureConfidenceValue": "{trunk} / {knee} / {rhythm}",
+  "@runningCoachSprintSessionFeatureConfidenceValue": {
+    "placeholders": {
+      "trunk": {},
+      "knee": {},
+      "rhythm": {}
+    }
+  },
+  "runningCoachSprintSessionFeatureDebugValue": "{feature} {value} ({confidence}%)",
+  "@runningCoachSprintSessionFeatureDebugValue": {
+    "placeholders": {
+      "feature": {},
+      "value": {},
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionFeatureUnavailableValue": "{feature} は利用不可: {reason}",
+  "@runningCoachSprintSessionFeatureUnavailableValue": {
+    "placeholders": {
+      "feature": {},
+      "reason": {}
+    }
+  },
+  "runningCoachSprintFeatureUnavailableJointWindow": "十分な安定した関節フレームがありません",
+  "runningCoachSprintFeatureUnavailableStepEvents": "十分な安定したステップイベントがありません",
+  "homeWeatherNeedsLocationTitle": "場所が必要です",
+  "homeWeatherNeedsLocationSubtitle": "位置情報をオンにする",
+  "homeStreakBadgeActive": "勢い",
+  "homeStreakBadgeResume": "再起動",
+  "homeStreakActiveTodayTitle": "{count} 連続日",
+  "@homeStreakActiveTodayTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStreakActiveYesterdayTitle": "{count} 昨日までの数日間",
+  "@homeStreakActiveYesterdayTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStreakPausedTitle": "{count} 日連続記録が一時停止",
+  "@homeStreakPausedTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStreakActiveTodayBody": "今日のセッションはすでに始まっています。明日はもう 1 つの短いログでリズムを構築していきます。",
+  "homeStreakActiveYesterdayBody": "今日、セッションをもう 1 つ追加すると、最近のリズムがまっすぐに進みます。",
+  "homeStreakPausedBody": "{gap} 日間ご不在でした。短いセッションから再開すると、すぐにリズムが戻ります。",
+  "@homeStreakPausedBody": {
+    "placeholders": {
+      "gap": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStreakLastLogged": "最終ログ {date}",
+  "@homeStreakLastLogged": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "homeStreakDaysValue": "{count} 日",
+  "@homeStreakDaysValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStreakActionContinue": "今日の記録",
+  "homeStreakActionReview": "週",
+  "educationScreenTitle": "お父さんがテオに語るワールドカップの物語",
+  "educationStoryIntroBody": "テオ、今夜はワールドカップを問題集のようにめくってほしくない。ひとつの長い物語として読んでほしい。チャンピオンの名前だけでなく、各トーナメントが残した匂い、騒音、表情を思い出すと、その気持ちはずっと長く続きます。スコアラインと同じくらい、顔や時代の空気を見つめる選手に成長してほしい。\n\nそのため、この画面ではストーリーが小さなページに分割されなくなりました。これで一気に長く読めます。親指で章をめくるのではなく、何年もゆっくりと進み続けてください。 1930 年のウルグアイと 2026 年の北米のまだ開かれていないページが 1 つの線でつながっているように感じてもらいたいのです。",
+  "educationStoryOriginsTitle": "1930 ～ 1938 年、初めてのワールドカップが船で到着",
+  "educationStoryOriginsBody": "テオ、最初のワールドカップは飛行機よりも船が重要だった時代に始まりました。ヨーロッパのチームは数週間をかけて海を渡りウルグアイに到着し、ホストチームは100周年祝賀の熱気の中でエスタディオ・センテナリオの完成を急いだ。現代の基準からすると、すべてが不便に見えますが、その遅さこそが、最初のトーナメントが依然として非常に鋭く感じられる理由です。ワールドカップは最初から私たちに、大きな出来事はしばしば多少の不快感を抱えてやってくることを教えてくれました。\n\nそして、物語が 1934 年のイタリアと 1938 年のフランスに移るとき、結果表だけを見てほしくないのです。ムッソリーニの影、長旅、出場をめぐる憤り、そして審判の議論にも目を向けてほしい。ワールドカップは決してサッカーだけのものではありませんでした。旅行技術、政治、国家間の感情はすでに草にくっついていました。\n\nしたがって、1930 年、1934 年、1938 年を思い出すときは、3 つの数字だけを覚えてはいけません。塩の匂い、スピーチの調子、不安な拍手の音をそのままにしておきます。歴史を実際の場面として思い出すと、歴史は試験の答えのように感じなくなります。",
+  "educationStoryReturnTitle": "1950 年から 1970 年、同じトーナメントに沈黙と笑顔があった頃",
+  "educationStoryReturnBody": "戦争で空いた年月を経て、1950 年にブラジルでワールドカップが復活し、人々はおそらく最初に祝賀会を期待したでしょう。しかし、テオ、私があのトーナメントについて話すときはいつも、マラカナンの沈黙から始めます。ウルグアイがブラジルに勝利したことは、一つの結果が国全体の規模を変える可能性があることを示した。\n\nその後、物語は 1954 年のベルンの奇跡、1958 年の 17 歳のペレ、1962 年のガリンシャ、1966 年のイングランド、そして 1970 年の黄金のブラジルへと急速に進みます。その時までに、ワールドカップは単なるトーナメント以上のものになっていました。それは集合的な記憶を作るための機械と化していました。誰かが倒れ、誰かが現れ、そして誰かが非常に完成して伝説のように見え始める。\n\nこの続きを読むときは、再起動、衝撃、誕生、復讐、完了という 5 つの単語を横に置いておいてください。その言葉は、長い時代を、その思いを少しも萎縮させることなく、あなたの手に折り畳む。",
+  "educationStoryMiddleTitle": "1974 年から 2006 年まで、美しさと議論は一緒に記憶されなければなりません",
+  "educationStoryMiddleBody": "1974年までに、空気の質感は再び変わります。トロフィーが変わり、オランダはトータルフットボールでピッチの座標を揺るがし、西ドイツはその美しい混乱を結果に変えた。テオ、この時代を読むたびに、サッカーは理想主義と現実が公の場で衝突する数少ない場所の一つであることを思い出します。グレースは愛されやすいですが、トロフィーは通常、より重いものに傾いています。\n\nしかし、この時期は決して戦術の内側だけに当てはまるものではありません。 1978 年のアルゼンチンには軍事政権の寒さが漂っています。 1982年のバティストンの転倒は、あまりにも長い間記憶に残っている。 1986年のマラドーナはまるで天気のようだ。そして、1990年のロジェ・ミラのダンス、2002年の韓国の準決勝進出、そして2006年のジダンの頭突きは、ワールドカップがいかにテレビから溢れ出て家庭内の雰囲気を変えるのかを示している。\n\nそして、2002 年は私たちにとって他人のタイムラインではありません。そこには、街頭での叫び声、深夜の喧騒、そしてホイッスルが鳴った後も静まり返らない空気が含まれます。したがって、この時代を読むときは、誰が得点したかだけを思い出さないでください。それがどんな夜だったのか思い出してください。",
+  "educationStoryRecentTitle": "2010 年から 2022 年、数字が増えるほど、シーンはより鮮明になりました",
+  "educationStoryRecentBody": "South Africa 2010 を開くと、最初にブブゼラが聞こえます。ブラジル 2014 を開くと、7 対 1 のスコアボードが何よりも早く表示されます。 2018年のロシアではVARモニターの前で黙とうがあり、2022年のカタールではメッシとムバッペが一つの決勝戦の中​​で世代の継承と世代の衝突の両方を抱えている。テオさん、データとテクノロジーが増えれば話が曖昧になるように聞こえますが、ワールドカップはどういうわけか逆の方向に進みました。数字が多くなればなるほど、その光景はより強く身体の中に残ります。\n\nクローゼの16点目、モロッコの準決勝進出、そしてスアレスのハンドボールはすべて記録簿に残るだろう。しかし、人々が何年も抱き続けているものは、依然としてその瞬間の人間の表現です。それが私が一番伝えたいことです。テーブルが整理されます。シーンはそれを理解させます。\n\nしたがって、最近のワールドカップを観るときは、スコアラインやデータだけに止まらないでください。なぜ人々はショックを受けたのか、なぜ話し続けたのか、なぜそのイメージが残ったのかを尋ねてください。そうやってサッカーの地図は広がっていくのです。",
+  "educationStoryPeopleTitle": "人も政治もテクノロジーも必要だ",
+  "educationStoryPeopleBody": "テオさん、ワールドカップはチャンピオンズテーブルだけでは決して説明できません。ジュール・リメ、ポッツォ、ペレ、ベッケンバウアー、マラドーナ、ロナウド、メッシなど、時代全体を前進させた顔が必要です。また、戦争がサッカーの最も壮大なカレンダーを止めるほど強かった1942年と1946年の中止されたトーナメントのような瞬間も必要です。そうして初めて、ワールドカップがいかに急速に広い世界に似てきたかがわかります。\n\n1966年にジュール・リメ・トロフィーを取り戻した犬ピクルス、1982年のシューマッハとバティストンの衝突、2010年のランパードの取り消しゴール、2014年のゴールラインテクノロジー、2018年のVAR、2022年の半自動オフサイドはすべて同じ線上に属します。サッカーは常により公平になることを望んでいますが、同時に完璧な公平性が完全には実現しないことも明らかにしています。\n\nしたがって、すべてのトーナメントの横に 2 つの質問を書き続けてください。誰が勝ったのか。そして何が変わったのか。これら 2 つの線をまとめ始めると、歴史は堅苦しくなくなり、同時により正確になります。",
+  "educationStoryFutureTitle": "2026年以降、まだ開かれていないページを読むには",
+  "educationStoryFutureBody": "次に、2026 年の北米に目を向けましょう。48 チーム、104 試合、3 つの開催国が参加するこのフィールドは、すでに以前のトーナメントとは異なる顔を見せています。テオ、これらの数字を見ると、移動距離、回復時間、ベンチの強さ、不慣れな相手を素早く解読する能力について何よりも考えます。トーナメントが長くなればなるほど、1 つのスターよりも耐久力全体の構造に依存するようになります。\n\nしたがって、未来を読むことは、占い師のように 1 人の勝者を推測することと同じではありません。それは、セットプレーで試合が傾き始めた瞬間にどのチームが生き残れるか、どちらのチームが長い道のりでリズムを維持できるか、そしてどのチームが18歳から23歳の選手まで真の競争力を維持できるかを見極める練習だ。ワールドカップの歴史を長く読めば読むほど、そのような状況が早くから目立ち始めます。\n\n2026 年も過去と同じように読んでほしいと思います。チーム名だけを書かないでください。プレス、トランジション、セットプレー、そしてその横にディフェンスラインの安定性を書きます。そうすれば、良い予測は良い記憶から生まれることが理解できるでしょう。",
+  "educationStoryClosingBody": "結局のところ、テオ、ワールドカップをよく見るということは、最後のスコアを一つ覚えることではありません。これは、1930 年の最初の航海から 2026 年に待つ次の問題までの長い糸をたどる物語です。この物語を読むたびに、数字よりも人間を、結果よりも空気を、そして一試合よりも時代をより鮮明に見ることを学んでいただければと思います。",
+  "educationHeroEyebrow": "ユースセッションキット",
+  "educationHeroTitle": "すぐに指導できるユースサッカーコンテンツ",
+  "educationHeroBody": "説明は短く、繰り返しは多く、質問は 1 つで終わります。これら 3 つのセッションは、そのフロー用に構築されています。",
+  "educationHeroStatLessons": "3 つのレッスンが用意されています",
+  "educationHeroStatMinutes": "45分の流れ",
+  "educationHeroStatPrinciples": "コーチキューが含まれています",
+  "educationHeroStatHistory": "クイズ履歴が含まれています",
+  "educationSectionLessonsTitle": "準備完了のレッスン",
+  "educationSectionHistoryTitle": "クイズ歴史学習",
+  "educationSectionHistoryBody": "これらのカードには、クイズに頻繁に登場する年、競技名、象徴的な瞬間がグループ化されています。 1 枚のカードを確認し、タイムラインがまだ新しいうちにラウンドに直接進みます。",
+  "educationSectionPrinciplesTitle": "コーチングの原則",
+  "educationHistoryWorldCupEyebrow": "ワールドカップのルーツ",
+  "educationHistoryWorldCupTitle": "ワールドカップ財団",
+  "educationHistoryWorldCupSummary": "1 枚のカードを使用して、最初のトーナメント、トロフィーの変更、ワールドカップの歴史の多くの疑問を構成する見出しの記録を固定します。",
+  "educationHistoryWorldCupFocus": "年 + ホスト",
+  "educationHistoryWorldCupFact1": "1930年にウルグアイで第1回FIFAワールドカップが開催された。",
+  "educationHistoryWorldCupFact2": "ジュール リメ トロフィーは 1970 年まで使用され、現在の FIFA ワールドカップ トロフィーは 1974 年から使用されています。",
+  "educationHistoryWorldCupFact3": "男子ワールドカップのタイトル獲得数で最も多いのはブラジルであり、ミロスラフ・クローゼは画期的な歴代得点者である。",
+  "educationHistoryCompetitionEyebrow": "コンテストのタイムライン",
+  "educationHistoryCompetitionTitle": "コンテストの名前と発表",
+  "educationHistoryCompetitionSummary": "リーグやヨーロッパの大会に関する質問は、発足年と初代チャンピオンまたはブランド変更シーズンを組み合わせると、より簡単になります。",
+  "educationHistoryCompetitionFocus": "ローンチ + 初代チャンピオン",
+  "educationHistoryCompetitionFact1": "プレミアリーグは1992年に発足し、マンチェスター・ユナイテッドが1992-93年に初代タイトルを獲得した。",
+  "educationHistoryCompetitionFact2": "ヨーロピアンカップは1992-93シーズンからUEFAチャンピオンズリーグとして運営を開始した。",
+  "educationHistoryCompetitionFact3": "アーセナルの2003-04シーズンのインヴィンシブルズは、プレミアリーグ史上最も多くのアンカーを務めた選手の1人となった。",
+  "educationHistoryMomentsEyebrow": "象徴的な瞬間",
+  "educationHistoryMomentsTitle": "象徴的な瞬間と女子サッカー",
+  "educationHistoryMomentsSummary": "有名なシーンと年と対戦相手の両方を組み合わせて、女子サッカーを独自のタイムラインに保持して、すばやく思い出すことができます。",
+  "educationHistoryMomentsFocus": "瞬間＋相手",
+  "educationHistoryMomentsFact1": "マラドーナの「神の手」は1986年のワールドカップのイングランド戦で起こった。",
+  "educationHistoryMomentsFact2": "ジダンの頭突きは、2006 FIFA ワールドカップ決勝の象徴的なシーンです。",
+  "educationHistoryMomentsFact3": "1991年に中国で第1回FIFA女子ワールドカップが開催された。",
+  "educationModuleBallEyebrow": "ボールマスタリー",
+  "educationModuleBallTitle": "タッチ数を増やす",
+  "educationModuleBallSummary": "両足のインサイドとアウトサイドのタッチとターンを繋ぎ続けるセッションで、若いプレーヤーがボールに慣れることができます。",
+  "educationModuleBallAge": "U8-U10",
+  "educationModuleBallDuration": "12分",
+  "educationModuleBallCue1": "足を軽く活動的に保ちながら、時々目を上げましょう。",
+  "educationModuleBallCue2": "スピードを求める前に、ボールが体の近くにあるかどうかを確認してください。",
+  "educationModuleBallCue3": "ミスをした後は、ドリルを止めるのではなく、次のタッチを奨励します。",
+  "educationModulePassEyebrow": "ファーストタッチ＆パス",
+  "educationModulePassTitle": "ファーストタッチインパス",
+  "educationModulePassSummary": "受け取って、回して、放す。このセッションでは、タッチの方向とパスの精度を 1 つの流れで結び付けます。",
+  "educationModulePassAge": "U10-U12",
+  "educationModulePassDuration": "15分",
+  "educationModulePassCue1": "プレイヤーに、受信する前に一度肩越しにスキャンするように指示します。",
+  "educationModulePassCue2": "次のパスが送られるべきスペースへの最初のタッチを指導します。",
+  "educationModulePassCue3": "より強いペースを求める前に、体の形状と接地面を設定してください。",
+  "educationModuleDecisionEyebrow": "1対1の判定",
+  "educationModuleDecisionTitle": "1v1 の突破と選択",
+  "educationModuleDecisionSummary": "決定セッションは、スピードの変化、ディフェンダーの動きを止めてから、シュートまたはパスで終了することを中心に構築されました。",
+  "educationModuleDecisionAge": "U11-U13",
+  "educationModuleDecisionDuration": "18分",
+  "educationModuleDecisionCue1": "最初の一歩を大きく踏み出し、その後の方向転換は短く鋭く保ちます。",
+  "educationModuleDecisionCue2": "最終的な結果だけでなく、まずタイミングと準備を褒めます。",
+  "educationModuleDecisionCue3": "成功したら、なぜそれがうまくいったのかを短い文でもう一度考えてみましょう。",
+  "educationPrincipleOneTitle": "一度に 1 つのキュー",
+  "educationPrincipleOneBody": "指示は短く、実行可能なものにしてください。 「開く」、「スキャン」、「接続」などの単一単語の合図はうまく機能します。",
+  "educationPrincipleTwoTitle": "間違いの直後に褒め言葉を見つける",
+  "educationPrincipleTwoBody": "結果だけではなく準備を褒めると、選手たちは立ち止まらずに努力を続けます。",
+  "educationPrincipleThreeTitle": "最後の 2 分間は質問に使用してください",
+  "educationPrincipleThreeBody": "今日は何が楽だったか、次回は何を変えたいかを尋ねます。その反省がレッスンを定着させるのに役立ちます。",
+  "educationBookSectionStory": "テオのシーン",
+  "educationBookSectionTimeline": "コアタイムライン",
+  "educationBookSectionFacts": "メモリデータ",
+  "educationBookSectionNote": "テオのメモ",
+  "educationBookSwipeHint": "ページめくりは横スワイプのみです。各章をゆっくりと下にスクロールして読んでください。",
+  "educationBookPreviousButton": "前の",
+  "educationBookNextButton": "次",
+  "educationBookProgressLabel": "{current}/{total} 章",
+  "@educationBookProgressLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "educationBookCoverLabel": "プロローグ",
+  "educationBookCoverTitle": "夜に棚からワールドカップを降ろす",
+  "educationBookCoverSubtitle": "テオが歴史の本の最初のページを開く方法",
+  "educationBookCoverStory": "トレーニング後、紙の方がボールよりも重く感じる夜もあります。テオは古いワールドカップ番組の棚に沿って涼しい手を走らせます。ページからはほのかに埃の匂いが漂い、その中にはモンテビデオの港、マラカナンの階段、アステカの陽光、そしてルサイルの磨かれた夜が横たわっている。まるで誰かが季節全体を紙に折りたたんで、後のためにここに置いてきたような気がします。\n\nこの本はサッカーのすべてを解説しようとするものではありません。それはただ一つの川、ワールドカップを追っているだけだ。この物語は 1930 年にウルグアイで始まり、2022 年にカタールを通過し、2026 年の北アメリカの端で停止し、まだ書かれるのを待っています。テオはその抑制が好きです。場合によっては、一度にすべてを保持しようとするよりも、1 つのことを長時間見つめるほうが正確な場合があります。\n\nそこで彼は、1930 年、1950 年、1958 年、1970 年、1986 年、1998 年、2002 年、2010 年、2018 年、2022 年、2026 年を空白のページに書き留めます。年は数字のように見えますが、じっと見つめていると、温度が異なる部屋のように感じられます。ある部屋にはペレの笑顔が保管されています。人はマラカナンの沈黙を守ります。もう一人は、メッシがついに息を吐き出す瞬間を記録している。今夜、テオは各ドアノブを順番に触ることにしました。",
+  "educationBookCoverTimeline": "FIFA は 1904 年に設立され、後にワールド カップの開催を可能にする管理体制を構築しました。\n1930年にウルグアイで初の男子FIFAワールドカップが開催された。\n1942 年版と 1946 年版は第二次世界大戦のため中止されました。\n1974 年以降、ジュール リメ トロフィーは現在の FIFA ワールドカップ トロフィーに置き換えられました。\n1998 年のフランスでは、決勝戦が 32 チームの形式に拡大されました。\n2018年ロシア大会は、VARが完全に導入された初の男子ワールドカップとなった。\nカナダ、メキシコ、米国は 2026 年に 48 チーム、104 試合のトーナメントを開催する予定です。",
+  "educationBookCoverFacts": "テオさんのブックマーク 1: 2022 年のカタールまで、男子ワールドカップは 22 回開催されました。\nテオのブックマーク 2: 5 タイトルのブラジル、4 のドイツ、4 のイタリア、3 のアルゼンチンが主なタイトルアンカーです。\nテオのブックマーク 3: ミロスラフ クローゼの 16 ゴールは、依然として男子ワールドカップの歴代得点記録です。\nテオのブックマーク 4: ワールドカップの歴史は、年、開催地、チャンピオン、象徴的なシーン、そして主役が一緒にグループ化されたときに最もよく残ります。",
+  "educationBookCoverNote": "テオは、この本は単なる勝者のリストではないと書いています。世界が4年ごとにどんな顔を見せたのかを記した記録である。だからこそ、彼は 2022 年に終了した最新のトーナメントと、隣の 2026 年に開幕するトーナメントを並べて記憶することにしたのです。",
+  "educationBookOriginsLabel": "第1章",
+  "educationBookOriginsTitle": "船でやって来た初めての夏",
+  "educationBookOriginsSubtitle": "1930 年ウルグアイ、1934 年イタリア、1938 年フランス",
+  "educationBookOriginsStory": "最初の章は、飛行機よりも船が重要だった時代から始まります。ヨーロッパのチームは何週間もかけて海を渡りウルグアイに到着し、開催国側は100周年の祝賀の熱気で慌ただしくエスタディオ・センテナリオを終えた。現代の基準からすると、すべてが遅くて不便ですが、その遅さによってトーナメントがよりシャープに見えます。大きなイベントは、少なからず不快感を伴いながらやってくることがよくあります。ワールドカップは最初からそれを分かっていた。\n\n1930年にウルグアイが初代チャンピオンとなり、イタリアが1934年と1938年にタイトルを獲得する中、テオはスコアラインより先に結果の空気を読んでいる自分に気づいた。ムッソリーニの影は一つの大会にまで及ぶ。戦争はまだ始まっていないが、すでにヨーロッパの回廊を静かに歩き始めている。ワールドカップは彼が予想していたよりもはるかに早く世界に似てきました。旅行、政治、ボイコット、審判の議論はすべて同じ表紙に収まります。\n\nこの時代を読んだテオは、ワールドカップが初期の形では決して無実ではなかったことを知ります。海のせいでチームは遅れたが、そのおかげでトーナメントは伝説のようになった。到着までに長い時間がかかるものは、ほとんど忘れられません。そこで彼は、1930 年、1934 年、1938 年を数字としてだけでなく、塩の匂い、スピーチの調子、そして不安な拍手の音として記憶することにしました。",
+  "educationBookOriginsTimeline": "1930 年のウルグアイ大会には 13 チームしか参加しませんでしたが、開催国が初代チャンピオンとなり、トーナメントの雰囲気を決めました。\n1930年の決勝戦は南米の戦いとして終わり、ウルグアイがアルゼンチンを4対2で破った。\n1934 年のイタリア大会は、決勝戦の前に完全に開発された予選パスが適用された最初のワールドカップでした。\nウルグアイは多くのヨーロッパチームが1930年大会から参加しなかったことに抗議して1934年の大会を欠場した。\nヴィットリオ・ポッツォ監督の下、イタリアは1934年と1938年に連覇を達成した。\n1938 年のフランス大会では、オランダ東インドがアジアのチームとして初めて男子ワールドカップ決勝に出場しました。",
+  "educationBookOriginsFacts": "ジュール・リメはトーナメントの存続を推進した中央管理者であり、後にオリジナルのトロフィーに彼の名前を与えました。\nヴィットリオ・ポッツォは依然として男子ワールドカップで連覇を達成した唯一の監督である。\nヨーロッパと南米の間の長い移動距離は、現代のファンがよく予想するよりも参加を大きく左右しました。\nテオは 1930 年、1934 年、1938 年を最初のトーナメント、最初の完全予選時代、そして最初の連続タイトルランとして記録しました。",
+  "educationBookOriginsNote": "Taeo は 1930 年、1934 年、1938 年を 1 つのクラスターとして保持します。最初のトーナメント、最初の予選時代、そして最初のリピートチャンピオンがすべて揃って到着しました。ワールドカップは最初からすでにサッカー以上のものでした。",
+  "educationBookWorldCupLabel": "第2章",
+  "educationBookWorldCupTitle": "同じスタジアムで静寂と祝賀がどのように保たれるか",
+  "educationBookWorldCupSubtitle": "1950 年のブラジルから 1970 年のメキシコまで",
+  "educationBookWorldCupStory": "空白の2夏が戦争に敗れた後、1950年にブラジルでワールドカップが再開されたとき、人々はおそらく最初に祝賀会を期待しただろう。しかし、テオが最初に出会った光景は沈黙だった。マラカナンでの決戦でウルグアイがブラジルに勝利したことは、一つの結果が国全体の規模を変えることができることを彼に示した。その時点から、ワールドカップはスポーツイベントというよりも、集団の記憶を作るためのマシンのように見えます。\n\nその後に続くページは、驚くべきスピードで伝説へと変わっていきます。 1954年のベルンの奇跡。1958年に到着した17歳のペレ。1962年にガリンシャが背負ったブラジル。1966年イングランドの唯一のタイトル。1970年のメキシコでの黄金のブラジル。テオが読めば読むほど、歴史書は生き続けるために顔や動きを借用していることが明らかになる。誰かが倒れます。誰かが現れます。誰かが非常に完成され、発明されたように見え始めます。\n\nそこでテオは、1950 年から 1970 年までを、再起動、衝撃、誕生、復讐、完了という 5 つの単語にまとめます。片手に収まるくらいの小さな紙に。しかし、その言葉の中にある感情は、それによって萎縮することはありません。マラカナンの沈黙とペレの微笑みは、それぞれ異なる方向を向いて、非常に長い間残り続けます。",
+  "educationBookWorldCupTimeline": "1950年のブラジル大会では1試合決勝ではなく最終グループ制が採用され、ウルグアイのブラジルに対する勝利はマラカナンショックとなった。\n1954年に西ドイツが強豪ハンガリーを破り、ベルンの奇跡を起こした。\n1958 年のスウェーデン大会では、17 歳のペレがこの競技界で最も輝かしい新星として浮上しました。\nブラジルは1962年のチリ戦でガリンシャが重要な試合でチームを牽引し、トロフィーを保持した。\nイングランドは1966年の男子ワールドカップで唯一優勝し、決勝ではジェフ・ハーストが有名なハットトリックを達成した。\n1970年のメキシコ大会でブラジルは3度目のタイトルを獲得し、ジュール・リメ・トロフィーの永久所有権を獲得した。\n1970 年の決勝戦でのカルロス アルベルトのゴールは、今でもチーム フットボールの象徴として再生され続けています。",
+  "educationBookWorldCupFacts": "ハンガリーは多くの人が世界最強とみなしていたチームとして、1954年の決勝に進出した。\nジャイルジーニョは、1970年のタイトル獲得に向けてブラジルが出場したすべての試合でゴールを決めた。\nペレのヘディングシュートからのゴードン・バンクスのセーブは今でも多くの人から世紀のセーブとして評価されている。\nテオは、1950 年のマラカナン ショック、1958 年のペレの出現、1970 年のブラジルの傑作をまとめています。",
+  "educationBookWorldCupNote": "テオ氏は、1950年から1970年までのワールドカップは戦後の復帰式典であると同時に、新たな天才を紹介する世界最大の舞台でもあったと書いている。",
+  "educationBookClubLabel": "第3章",
+  "educationBookClubTitle": "美と不快が共存する時代",
+  "educationBookClubSubtitle": "1974 年の西ドイツから 1990 年のイタリアまで",
+  "educationBookClubStory": "1974年になると、本の中の空気が変わります。トロフィーも変わります。オランダはトータルフットボールでピッチの座標を揺るがし、西ドイツは最終的にその美しい混沌を結果として整理する。テオはこの章を読むたびに、サッカーは理想主義と現実が公の場で衝突する数少ない場所の一つだと思う。グレースは愛されやすいですが、トロフィーは通常、より重いものに傾いています。\n\nしかし、この時代は戦術だけでは説明できません。 1978 年のアルゼンチンには軍事政権の寒さが漂っています。 1982年、バティストンの転倒による涙が試合そのものの時間を切り開いた。 1986年のマラドーナは選手というよりは気象システムのように見える。神の手と5人抜きのゴールは同じ夏に起こり、この矛盾はワールドカップの様相をより鮮明にするだけだ。\n\nテオは 1990 年に達する頃には、時代が必ずしも整った文章で終わるわけではないことを理解しています。ロジャー・ミラのダンス、ベッケンバウアーの指導者としての肩書、そしてマラドーナの涙は温度が異なるままだ。歴史は完璧に整えられるよりも、少しだけ混ざり合ったほうが長く続きます。そこで彼は、このストレッチを、美しさ、不快さ、才能、議論という 4 つの単語で緩く結び付けています。",
+  "educationBookClubTimeline": "1974 年の西ドイツ大会は、現在の FIFA ワールドカップ トロフィーを授与された最初の大会でした。\nクライフのターンとオランダのトータルフットボールは、最終結果を超えて残るイメージを残した。\nアルゼンチンは 1978 年に初のタイトルを獲得しましたが、トーナメントは依然として軍事政権の政治情勢と結びついています。\n1982年のスペイン大会は24チームによる初の男子ワールドカップとなった。\n1982年の準決勝のフランス対西ドイツ戦は、ワールドカップで初めてPK戦で決着がついた試合であり、シューマッハとバティストンの衝突でも記憶されている。\nマラドーナの1986年のイングランド戦でのパフォーマンスは、サッカー界に神の手と世紀のゴールの両方をもたらした。\nカメルーンは1990年に準々決勝に進出し、男子ワールドカップで準々決勝に進出した最初のアフリカチームとなった。",
+  "educationBookClubFacts": "フランツ・ベッケンバウアーは、1974年に選手として、1990年にコーチとしてワールドカップで優勝したため、決定的なシンボルとして立っています。\nパオロ・ロッシは出場停止から復帰し、1982年のイタリアタイトルの顔となった。\n1990 年のイタリアは、守備の傾向がその後のルール議論を促進した大会としてよく引用されます。\nテオ氏は、1974年、1978年、1982年、1986年、1990年を、美しさと不快さの両方を残したワールドカップの年として分類する。",
+  "educationBookClubNote": "テオは、この時期はワールドカップがきれいで美しい物語だけを残さないことを証明していると書いている。それが長続きする理由でもあります。歴史は、何が人々を不快にさせたのか、何が人々を歓喜させたのかを記憶しなければなりません。",
+  "educationBookTacticsLabel": "第4章",
+  "educationBookTacticsTitle": "ワールドカップがテレビからリビングルームに伝わったとき",
+  "educationBookTacticsSubtitle": "米国 1994 年、フランス 1998 年、韓国と日本 2002 年、ドイツ 2006 年",
+  "educationBookTacticsStory": "USA 1994 までに、テオはトーナメントがまったく異なる規模になっていると見ています。巨大なスタジアム、広告ボードの明るさ、テレビ画面を通して広がる熱気、空に舞い上がるバッジョのキックはすべて同じ記憶に定着する。ワールドカップはもはや、他国での遠いお祭りのようには感じられません。リビングの真ん中に突然大きな家具が置かれたような感じです。気づかずに通り過ぎる人はいません。\n\n1998年のジダン率いるフランス戦、2002年の韓国の準決勝進出とロナウドの挽回、2006年の決勝でのジダンの頭突きなどを経験していくうちに、テオはこれらの大会が異常にリプレイしやすいと感じ始める。強烈なシーンは繰り返しやすく、繰り返されたシーンは世代を超えて共有される記憶になります。彼にとって 2002 年は決して他人事ではありません。近くの通りでの叫び声、テレビの下の空き缶、そして試合終了のホイッスルが鳴った後、静まるまでに長い時間を要した夜の空気。\n\nそう見ると、ワールドカップは常にスコアラインよりわずかに広いです。トーナメントの中には、誰が得点したかよりも、どんな夜になったかが記憶に残るものもあります。テオは 1994 年、1998 年、2002 年、2006 年のことを考えるとき、数字を思い出す前に、顔、騒音、カメラ アングルを思い出します。おそらく、現代の歴史の本はそのように書かれているのでしょう。",
+  "educationBookTacticsTimeline": "1994年の決勝は、PK戦で決着した初めての男子ワールドカップ決勝となった。\n1994年のロベルト・バッジョのミスはワールドカップ史上最も有名な映像の一つとなった。\n1998 年のフランスでは、32 チームによる決勝戦形式が始まりました。\nローラン・ブランは1998年フランス大会でワールドカップ史上初の金ゴールを決めた。\n2002 年には日韓両国が男子ワールドカップの初の共同開催国となり、韓国は準決勝に進出した。\nロナウドは2002年に8得点を挙げ、1998年の決勝の痛みを救いの物語に変えた。\n2006年のドイツ大会は決勝でジダンのレッドカードで終わり、イタリアが優勝した。",
+  "educationBookTacticsFacts": "ヒディンク、スコラーリ、リッピなどの名前は、選手たちと同じくらいこの時代の記憶に強く残っている。\nクロアチアのダヴォル・シュケル選手は1998年にゴールデンブーツ賞を獲得し、チームは3位に急上昇した。\n2002年のセネガルの準々決勝進出とトルコの準決勝進出は、ワールドカップが決して巨人だけによって動かされるわけではないことを改めて示した。\nテオは、1994年、1998年、2002年、2006年が生き続けるためには、最後のシーンを通して思い出されなければならないと書いています。",
+  "educationBookTacticsNote": "テオは、2002 年の章に特に長く残ります。韓国のファンにとって、ワールドカップの歴史は遠い時間軸ではありません。それは心に直接触れる思い出のラインです。だからこそ、彼はリザルトシートだけでなく、その周囲の雰囲気や音も覚えておくことにしたのです。",
+  "educationBookLegendsLabel": "第5章",
+  "educationBookLegendsTitle": "数字が多ければ多いほど、シーンはより鮮明になります",
+  "educationBookLegendsSubtitle": "2010 年の南アフリカから 2022 年のカタールまで",
+  "educationBookLegendsStory": "テオが南アフリカ 2010 のオープニングを飾るとき、彼は最初にブブゼラを聞きました。いくつかのトーナメントは、目よりも耳を通して記憶されます。スペインのタイトル、スアレスのハンドボールの危機、ガーナの退場、そしてタコのポールの奇妙な名声は、同じ月の中に異なる種類の真剣さが存在し得ることを彼に示した。ワールドカップは歴史の本であることに変わりはありませんが、噂、ジョーク、集団的な執着の保管庫でもあります。\n\n2014年にブラジルが7-1で大敗し、2018年にVARが完全に導入され、2022年にカタールでの決勝に至るまでに、テオは、数字が増えても物語は曖昧ではないと感じ始める。代わりに彼らはシーンを鮮明にします。クローゼの16点目、ムバッペの加速、メッシのキャリアに欠けていた最後のピース、そしてモロッコの準決勝進出はすべて、さまざまな角度から歴史を押し上げている。データは物事を説明するのに役立ちますが、身体に残るのは決してデータだけではありません。\n\nテオは最近のワールドカップを読むたびに、同じ結論に戻ります。人はテーブルよりも長くシーンを覚えています。 7-1のスコアボード。 VARモニターの前の静寂。延長戦終了後、メッシが頭を下げる一瞬。記録は棚に保管されています。情景が体の内側にこびりつきます。",
+  "educationBookLegendsTimeline": "2010 年南アフリカ大会はアフリカ大陸で初めて開催された男子ワールドカップでした。\nスペインは2010年ワールドカップ決勝でイニエスタの延長戦ゴールで初優勝を果たした。\n2010年のガーナ戦でのスアレスのハンドボールは、ワールドカップの記憶に残る最も熱い口論シーンの一つとなった。\nドイツは2014年の準決勝でブラジルを7対1で破り、そのまま優勝を果たした。\n2014年のブラジル戦でのクローゼのゴールは、男子ワールドカップの歴代得点記録を16に更新した。\n2018年ロシア大会は、大会を通じてVARが全面的に使用された初の男子ワールドカップとなった。\n2022年のカタールではモロッコが準決勝に進出し、アルゼンチンはメッシを中心に勝利した。",
+  "educationBookLegendsFacts": "タコのポールは、何度も試合結果を的中させたことで、2010 年に予言のアイコンとなりました。\nキリアン・ムバッペの2018年のタイトルと2022年の決勝ハットトリックは、ペレ以来最強の若いワールドカップの物語を築き上げた。\nリオネル・メッシは2022年をワールドカップのキャリアにおける最後の空白を埋めるために利用した。\nテオは音、崩壊、テクノロジー、青春、完成という5つの感情を通して2010年、2014年、2018年、2022年を思い出します。",
+  "educationBookLegendsNote": "テオ氏は、最もデータ量の多いワールドカップであっても、人々は依然としてシーンを最初に覚えていると書いています。ブブゼラ、7-1 のスコアボード、VAR チェック、そしてメッシの笑顔は、どのスプレッドシートよりも長く残ります。",
+  "educationBookAsiaLabel": "第6章",
+  "educationBookAsiaTitle": "何年も前に顔が思い浮かぶ瞬間",
+  "educationBookAsiaSubtitle": "ジュール・リメからペレ、マラドーナ、ベッケンバウアー、メッシまで",
+  "educationBookAsiaStory": "ある時点で、テオは何年もかけてワールドカップを思い出す前に、顔を通してワールドカップを覚え始めます。ジュール・リメ氏はトーナメントの実現に貢献してくれました。連続タイトルを形作ったポッツォ。 3度頂点に立ったペレ。選手の門も監督の門もくぐり抜けたベッケンバウアー。ひと夏を神話に変えたマラドーナ。一つ一つ読んでいくと、これらの名前は歴史に驚くほど個人的な表現を与えてくれます。大規模なトーナメントであっても、結局は数人の息遣いでまとめられてしまうこともあります。\n\nこの章の図はどれも完成していません。ガリンシャは負傷したチームを背負っている。ロナウドは、決勝戦で敗れた記憶を4年後に裏返す。ジダンは天才性と破壊力の両方を残した。メッシは最後だけ自分の言葉を終える。だからテオは、ワールドカップは実際には何もないところからヒーローを生み出す場所ではないと感じています。すでに震えていた人々の輪郭を拡大する場所です。\n\n彼は名前の横に必ず年と場面を書きます。ペレは 1958 年と 1970 年を意味します。マラドーナは 1986 年を意味します。ロナウドは 2002 年を意味します。メッシは 2022 年を意味します。名前だけでは試験ノートのように感じます。シーンを追加すると、突然物語になります。おそらく歴史書はその形でしか生き残らないのでしょう。",
+  "educationBookAsiaTimeline": "ジュール・リメは、このコンクールに初期の政治的動機と最初のトロフィーの名前を与えました。\nヴィットリオ・ポッツォは1934年と1938年にイタリアを連覇させた。\nペレは 1958 年、1962 年、1970 年に男子ワールドカップで優勝しており、これは他の男子選手が達成できない記録です。\nフランツ・ベッケンバウアーは1974年に選手として、1990年にコーチとしてトロフィーを獲得した。\n1986年のマラドーナのキャンペーンは、それだけでワールドカップ神話の大部分を説明できるほど大きなものである。\n2002 年のロナウドの 8 ゴールは、1998 年の痛みをサッカー史上最もクリーンな償いの一つに変えました。\nメッシとムバッペは、2022年の決勝を利用して、世代の通過と世代の衝突の両方を同時に示した。",
+  "educationBookAsiaFacts": "フォンテーヌの 13 ゴールだけが、ワールドカップ 1 大会における史上最高記録として残っています。\nミロスラフ・クローゼの16ゴールは、複数の大会を通じた男子ワールドカップの歴代最多得点記録であり続けている。\nマリオ・ザガロ、フランツ・ベッケンバウアー、ディディエ・デシャンは、選手としても監督としてもワールドカップで優勝した象徴的な人物の一人です。\nTaeo は、名前、国、トーナメントの定義、シーンの定義を組み合わせて、各図を 1 行に記録します。",
+  "educationBookAsiaNote": "テオは、ワールドカップを思い出す最も早い方法は、人を通して思い出すことだと判断しました。何年も続くと、まるで試練のように感じます。顔とシーンがそれを物語に変えます。",
+  "educationBookWomenLabel": "第7章",
+  "educationBookWomenTitle": "スタジアムの外の空気も読む方法",
+  "educationBookWomenSubtitle": "戦争、政治、窃盗、そして判断の技術",
+  "educationBookWomenStory": "ある時点でテオは、チャンピオンだけを列挙する歴史書は少し失礼だと判断しました。ワールドカップがスタジアム内だけで起こったことは一度もありません。戦争により完全に消滅したトーナメントもありました。独裁政権下でプレイされたものもあった。サッカーそのものだけでなく、ピッチ外の出来事でも記憶に残っている人もいます。広い世界の空気が常に芝生に染み出ています。\n\n1966年にジュール・リメ・トロフィーが盗まれ、ピクルスと呼ばれる犬がそれを回収した事件は、現実とは思えないほど奇妙だ。 1982年のバティストンの転倒、2010年のランパードの取り消しゴール、2014年のゴールラインテクノロジー、2018年のVAR、そして2022年の半自動オフサイドは、サッカーが人間の判断における不完全さとどれだけ長く格闘してきたかを示している。スポーツは常に、完全に公平になることは不可能であることを承知しながら、より公平になることを望んでいます。\n\nそこで、テオはすべてのトーナメントの横に 2 つの質問を書きます。誰が勝ったのか。そして何が変わったのか。これらの文を組み合わせると、出来事の概要がより明確になります。歴史はスコアボードで終わるわけではありません。背後にある空気と合わせて読まなければなりません。",
+  "educationBookWomenTimeline": "1942年と1946年の中止は、世界大戦がサッカーの最も壮大なカレンダーさえも中止する可能性があることを示した。\n1966 年のイングランド大会が始まる前に、ジュール リメ トロフィーが盗まれ、ピクルスという名前の犬によって発見されました。\n1978 年のアルゼンチンは依然として軍事政権の政治的圧力と結びついています。\n1982年の準決勝でのシューマッハとバティストンの衝突は、スポーツマンシップと審判に関する議論を拡大させた。\n2010年のドイツ戦でのフランク・ランパードのゴールが取り消されたことにより、技術的見直しの主張はさらに大きくなった。\nゴールラインテクノロジーはブラジル2014で使用されました。\n2018年にVARが導入され、2022年には半自動オフサイドが導入され、エリート審判の様子が再び変わった。",
+  "educationBookWomenFacts": "ピクルスは、ワールドカップのトロフィーの回収に貢献した後、サッカー史上最も有名な犬になりました。\nテクノロジーがワールドカップの論争を消すわけではない。それは人々が議論する論争の種類を変えます。\n政治や社会情勢は、主催者の記憶、観客の感情、そしてトーナメントの記憶の仕方を変えます。\nテオは歴史上の出来事を研究するとき、常にスコアラインの横に社会的背景を書きます。",
+  "educationBookWomenNote": "テオ氏は、ワールドカップは最大のサッカートーナメントだけではないと書いています。時代の政治、テクノロジー、公平性の議論が一度に集まる場所でもあります。だからこそ、彼はフィールド外の話を脚注として扱うことを拒否している。",
+  "educationBookModernLabel": "第8章",
+  "educationBookModernTitle": "次のトーナメントを待つ間に書き留めておく価値のあること",
+  "educationBookModernSubtitle": "2026年北米に向けたテオのメモ",
+  "educationBookModernStory": "さて、本はまだ開催されていないトーナメントに向かってゆっくりと歩きます。 2026 年の北米はすでに別の表情をしています。48 チーム、104 試合、3 つの開催国です。テオがこれらの数字を見たとき、彼は本命ではなく、移動距離、回復時間、そしてベンチの呼吸を最初に考えます。トーナメントが長くなるにつれて、1 つのスターではなく、全体的な忍耐力に依存するようです。\n\nそのため、この章は預言よりも観察に近いと感じられます。どのチームが不慣れな相手を素早く解読できるか。セットプレーで試合が傾き始めた数分間、どのチームが生き残ることができるか。どのチームが長い道のりでもリズムを維持できるか。テオは、強い側の条件は通常、華やかな文章よりも退屈な詳細から生まれると信じています。不思議なことに、歴史は彼と一致することが多い。\n\nまだ開催されていないトーナメントについてあまり大声で話すのは危険だと感じます。未来は通常、予想よりも無味乾燥な形で到来し、予測は外れることがよくあります。それでも、テオは数ページを空白にしてしまいます。彼は、歴史書の最後の美点は常に次の文のためにスペースを確保していることだと考えています。",
+  "educationBookModernTimeline": "2026年のワールドカップは、カナダ、メキシコ、米国が共催する初めての男子大会となる。\n2026年以降、男子ワールドカップ決勝の参加チームは48チームに拡大される。\n48 チームのフォーマットでは 104 試合が行われることになり、スケジュールとローテーションが戦略的にさらに重視されます。\n長距離の移動ルートと気候変動は、これまでの多くの版よりも重要になる可能性があります。\nセットプレー、ベンチスコアリング、分析準備のスピードは、イベントが長くなればなるほど価値が高まるはずだ。\nテオは、2026 年を単に勝者を探すのではなく、強さの条件を探すものとして扱うことにしました。",
+  "educationBookModernFacts": "トーナメントが長くなるにつれて、スターター 11 人とともに 18 人から 23 人までの選手の実際の競技レベルがより重要になります。\n48 チームのフィールドでは、アジア、アフリカ、コンカフからのサプライズの可能性も高まります。\n伝統的な巨人は依然として最大のベースラインを持っていますが、可能なひねりの数はフォーマットとともに増加する可能性があります。\nテオは予想を書くとき、チーム名の横にプレッシング、トランジション、セットプレー、守備の安定性を追加します。",
+  "educationBookModernNote": "テオ氏は、予測は幸運を当てるゲームではないと書いています。強いチームの状況を読む練習です。だからこそ、彼は名前そのものよりも、なぜそのチームが強力に見えるのかについて詳しく書いている。",
+  "educationBookFinaleLabel": "エピローグ",
+  "educationBookFinaleTitle": "最後のページが閉じるのがいつも少し遅い",
+  "educationBookFinaleSubtitle": "1930年と2026年を一本の線で結ぶエピローグ",
+  "educationBookFinaleStory": "最後のページまでに、テオはワールドカップが実際には 4 年に 1 度発行される非常に分厚い雑誌であると考え始めます。時代は移り変わりますが、表紙のタイトルは変わらず、その中にその時の空気、顔、主張が凝縮されています。ウルグアイに渡った選手たちも、今日カメラやセンサーの下を走っている選手たちも、結局は同じ背骨の上で休むことになる。それは少し奇妙に感じますが、まさにその通りでもあります。\n\nペレ、マラドーナ、メッシなどの名前が残っている年もある。マラカナンショックや7-1などのスコアのせいで残る人もいる。戦争、独裁政権、または判断技術のせいで残っている人もいます。そこでテオは、ワールドカップを読むことはサッカーを暗記することではないと判断しました。それは時間の流れに沿って手を動かすことに近いです。ひとつの試合の背後に時代が折り畳まれていることに気づくと、スコアさえも重みを持ち始める。\n\n本を閉じる前に、1930年、1950年、1958年、1970年、1986年、1998年、2002年、2010年、2018年、2022年、2026年をもう一度読みます。今では、冷たいデーツのように聞こえなくなりました。異なる照明の下では部屋の名前のように聞こえます。いくつかの部屋はすでに彼の後ろにあります。 1つはまだオープン寸前です。だからこそ歴史書が重要なのだとテオさんは考えている。その間の空間をゆっくりと歩くことができます。",
+  "educationBookFinaleTimeline": "テオはワールドカップ初期の大会から、この大会がいかに急速に世界史の中心に躍り出たかを学びました。\nテオは戦後の時代から、一つの試合が国民の記憶になり得ることを学んだ。\nテオ氏は最近のトーナメントから、データが多用される時代であっても、人々は依然としてシーンと顔を最初に覚えていることを学びました。\nテオは 2026 年のプレビューから、未来を読むには過去のパターンを見ることから始まることを学びました。",
+  "educationBookFinaleFacts": "アンカー 1 を確認する: 年、主催者、チャンピオン、象徴的なシーン、主要人物を 1 行に結び付けます。\nレビューアンカー 2: 1930 年、1950 年、1970 年、1986 年、1998 年、2002 年、2018 年、2022 年は交渉の余地のないレビュー年です。\nアンカー 3 を確認する: ペレの 3 回のタイトル、ブラジルの 5 回のタイトル、クローゼの 16 ゴールなどの代表的な数字に記録を結びつけます。\nアンカー 4 を確認する: チーム名の横に戦術、フィットネス、チームの層の厚さが書かれていると、予測がより強力になります。",
+  "educationBookFinaleNote": "本を閉じるとき、テオは次の日記の最初の行をこのように書きます。ワールドカップを本当によく見るということは、決勝スコアを 1 つだけ暗記することではなく、1930 年の最初のキックから 2026 年に待つ次の問題までの長い物語全体を追うことです。",
+  "familySharing": "親モード/プレーヤー共有",
+  "familySharedBackupDescription": "サーバーなしで 1 つの共有ドライブのバックアップを使用します。プレーヤー モードはコア レコードを直接管理しますが、親モードはフィードバックと報酬名のみを同期します。",
+  "familyBackupIncludesMedia": "プロフィール写真やトレーニング写真のファイルをローカルに収集できる場合は、それらの写真もバックアップします。",
+  "familyParentAutoSyncDescription": "親モードでは、トレーニングのフィードバックと報酬名のみが自動的に同期されます。プレーヤー モードからプレーヤー レコードをバックアップおよび復元します。",
+  "familyChildDriveConnectionTitle": "共有バックアップドライブを接続する",
+  "familyChildDriveConnectionDescription": "親モードでは、プレーヤーのソース データを保持する Google ドライブ アカウントに接続し、両方のモードで同じバックアップ ファイルを共有できるようにします。",
+  "familyConnectChildDrive": "共有ドライブを接続する",
+  "familyDisconnectChildDrive": "共有ドライブを切断する",
+  "familyRoleChild": "プレーヤー",
+  "familyRolePlayer": "プレーヤー",
+  "familyRoleParent": "親",
+  "familyRoleCoach": "親",
+  "familyRoleSelectionTitle": "使用モードの選択",
+  "familyRoleSelectionDescription": "このデバイスをプレーヤーが直接使用するか、最初にレビューのために保護者が使用するかを選択します。",
+  "settingsUsageModeTitle": "使用モード",
+  "settingsRoleAndSyncTitle": "使用法と同期",
+  "settingsInfoTooltip": "説明を表示",
+  "settingsSupportModeLabel": "親",
+  "settingsSupportRoleTitle": "親モードの詳細",
+  "settingsDriveConnectionTitle": "Googleドライブ接続",
+  "settingsDriveConnectionPlayerSummary": "このデバイスの記録を保存およびインポートしている Google ドライブ アカウントを確認してください。",
+  "settingsDriveConnectionSupportSummary": "現在接続されているGoogleドライブアカウントを確認してください。",
+  "settingsDataSyncTitle": "データ同期",
+  "settingsDataSyncPlayerSummary": "現在のデータとドライブのバックアップの間の鮮度を確認し、ドライブのアクションを実行します。",
+  "settingsDataSyncSupportSummary": "最新のバックアップをインポートし、共有された変更を同じファイルに書き込みます。",
+  "settingsSyncSourceStatusTitle": "バックアップデータ",
+  "settingsSyncStatusTitle": "データ同期ステータス",
+  "settingsSyncShowDetails": "詳細を表示",
+  "settingsSyncHideDetails": "詳細を隠す",
+  "settingsSyncGoogleConnected": "Google が接続しました",
+  "settingsSyncGoogleDisconnected": "Google が切断されました",
+  "settingsSyncDailyOn": "毎日のバックアップがオン",
+  "settingsSyncDailyOff": "毎日のバックアップがオフになっている",
+  "settingsSyncOnSaveOn": "保存時にバックアップ",
+  "settingsSyncOnSaveOff": "セーブオフ時のバックアップ",
+  "settingsSyncBackedUpDataTime": "バックアップデータ：{time}",
+  "@settingsSyncBackedUpDataTime": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsSyncCurrentDataSnapshot": "現在のデータのスナップショット: {time}",
+  "@settingsSyncCurrentDataSnapshot": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsSyncStatusChecking": "チェック中",
+  "settingsSyncBackupDataReady": "バックアップソースが見つかりました。",
+  "settingsSyncStatusSignInNeeded": "接続する",
+  "settingsSyncStatusNoBackup": "バックアップなし",
+  "settingsSyncStatusCurrent": "最近のバックアップ",
+  "settingsSyncStatusReview": "バックアップを確認する",
+  "settingsSyncStatusStale": "バックアップが古い",
+  "settingsSyncSummaryChecking": "ドライブのバックアップステータスを確認しています。",
+  "settingsSyncSummarySignInNeeded": "アカウントを接続して、このデバイスをドライブ バックアップと比較し、インポートまたはバックアップ アクションを実行します。",
+  "settingsSyncSummaryNoBackup": "ドライブのバックアップ ファイルはまだ存在しません。まず、「データのバックアップ」を使用して現在のデータを保存します。",
+  "settingsSyncSummaryCurrent": "ドライブのバックアップは {time} 頃に作成されました。データを置き換えたり上書きしたりする前に、この時間を確認してください。",
+  "@settingsSyncSummaryCurrent": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsSyncSummaryStale": "ドライブのバックアップは {time} からのものです。それ以降に行われた変更はまだバックアップされていない可能性があります。",
+  "@settingsSyncSummaryStale": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsDriveActionFilePath": "ファイルパス: {path}",
+  "@settingsDriveActionFilePath": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "settingsDriveActionBackupTime": "バックアップの保存場所: {time}",
+  "@settingsDriveActionBackupTime": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsDriveActionBackupTimeUnknown": "バックアップ保存時間: このデバイスではまだ利用できません。",
+  "settingsDriveConnectAction": "Googleドライブに接続する",
+  "settingsDriveDisconnectAction": "Googleドライブを切断する",
+  "settingsRestoreLatestActionTitle": "最新データをインポートする",
+  "settingsBackupDataActionTitle": "データのバックアップ",
+  "settingsRoleAccountSummary": "最初にこのデバイス使用モードを選択します。",
+  "settingsRoleAccountTitle": "利用モードとアカウント",
+  "settingsRoleAccountDescription": "最初にこのデバイスの使用方法を選択します。以下のアカウント接続は、そのモードに合わせて変更されます。",
+  "settingsRoleAccountUnavailable": "このビルドでは Google ドライブ アカウントの接続は利用できません。",
+  "settingsRolePlayerDescription": "プレーヤーモードでトレーニング、食事、スケッチ、XP、バックアップを記録します。",
+  "settingsRoleParentDescription": "コアレコードを編集せずに、プレーヤーのレコードを読み取り、フィードバックや報酬の名前を管理します。",
+  "settingsRoleCoachDescription": "トレーニングに焦点を当てたフィードバックを共有して、親モードでプレーヤーの記録とスケッチを確認します。",
+  "settingsRoleActionTitle": "モードベースのアクション",
+  "settingsPlayerActionSummary": "プレーヤー モードでは、最初にバックアップを使用して新しいレコードを保護し、古いデータを復元する必要がある場合にのみ、以下のインポート アクションを使用します。",
+  "settingsSupportActionSummary": "親モードでは、ここでは新しいソース バックアップは作成されません。代わりに、プレーヤー データをインポートするか、最後のインポート前に保存された状態にロールバックします。",
+  "settingsPlayerAccountTitle": "バックアップ ドライブ アカウントを記録する",
+  "settingsPlayerAccountDescription": "このデバイスのトレーニング記録のバックアップとインポートに使用する Google ドライブ アカウントを接続します。",
+  "settingsPlayerBackupActionBody": "現在のデバイスのレコードを最新の Google ドライブのバックアップとして保存します。新しいエントリを保護する場合は、最初にこれを使用します。",
+  "settingsPlayerRestoreDriveActionTitle": "最新データをインポートする",
+  "settingsPlayerRestoreDriveActionBody": "現在のデバイスのデータを、Google ドライブに保存されている最新のバックアップに置き換えます。",
+  "settingsPlayerRestoreLocalActionTitle": "最新のインポートを元に戻す",
+  "settingsPlayerRestoreLocalActionBody": "このデバイスを、最新のインポートによって変更される前の状態に戻します。",
+  "settingsSupportRestoreDriveActionTitle": "最新のプレイヤーデータをインポートする",
+  "settingsSupportRestoreDriveActionBody": "プレーヤー モードで保存された最新の Google ドライブ バックアップをこのデバイスにプルします。",
+  "settingsSupportRestoreLocalActionTitle": "最新のインポートを元に戻す",
+  "settingsSupportRestoreLocalActionBody": "このデバイスにインポートされた最新のプレーヤー データの変更を以前の状態に戻します。",
+  "settingsSupportBackupConfirm": "親モードのフィードバックとレベル報酬名をプレーヤーのソース ドライブのバックアップにバックアップしますか?",
+  "settingsSupportBackupSuccess": "共有された変更は、プレーヤーのソース ドライブにバックアップされました。",
+  "settingsSupportBackupFailed": "共有された変更をバックアップできませんでした。このドライブ アカウントにプレーヤー モードのバックアップが既に存在することを確認してください。",
+  "settingsRestoreRollbackTitle": "インポートのロールバック",
+  "settingsRestoreRollbackBody": "これは、このデバイスでの最後のインポートを元に戻すための高度なリカバリであり、通常のバックアップ アクションではありません。",
+  "familyRoleActivated": "{role} モードが有効になりました。",
+  "@familyRoleActivated": {
+    "placeholders": {
+      "role": {}
+    }
+  },
+  "familyParentModeEnabled": "親モードを有効にする",
+  "familyParentModeDescription": "親モードではこれをオンにします。プレーヤーモードに戻るにはオフにします。",
+  "familyChildName": "プレイヤー名",
+  "familyParentName": "親の名前",
+  "familyChildNameEmpty": "プレイヤー名を設定します",
+  "familyParentNameEmpty": "親の名前を設定します",
+  "familyEditNames": "姓を編集する",
+  "familyPolicyTitle": "親モード/プレーヤー共有ポリシー",
+  "familyPolicyChildOwnsData": "プレーヤー モードでは、トレーニング、プロフィール、日記、食事、計画を真実の情報源としてバックアップします。",
+  "familyPolicyParentWritesOnly": "親モードでは、トレーニング フィードバックとレベル報酬名のみを保存できます。",
+  "familyPolicyParentSeedRequired": "少なくとも 1 つのプレーヤーのバックアップがすでに存在している場合は、親デバイスを接続します。",
+  "familyRoleChildActivated": "プレイヤーモードが有効になりました。",
+  "familyRoleParentActivated": "親モードが有効になりました。",
+  "familyNamesSaved": "家族名が保存されました。",
+  "driveConnectedAccount": "接続されたドライブ アカウント",
+  "driveConnectedAccountEmpty": "Google ドライブ アカウントがまだ接続されていません。",
+  "driveSavedPlayerAccount": "プレーヤーモードのバックアップドライブ",
+  "driveReconnectSavedPlayer": "プレーヤーモードドライブを再接続します",
+  "driveReconnectSavedPlayerHint": "親モードを終了した後、ここで保存したプレーヤーモードのドライブ アカウントに再接続します。",
+  "driveReconnectSavedPlayerMismatch": "保存したプレーヤーモードのドライブ アカウントに再接続してください。",
+  "driveSavedParentAccount": "保存された親モードのドライブ",
+  "driveReconnectSavedParent": "保存された親モードのドライブを再接続します",
+  "driveReconnectSavedParentHint": "親モードで最後に使用したドライブ アカウントを再接続します。",
+  "driveReconnectSavedParentMismatch": "保存した保護者モードのドライブ アカウントに再接続してください。",
+  "driveSharedChildAccount": "ソースバックアップドライブ",
+  "driveSharedChildAccountEmpty": "バックアップ元はまだ不明です。最初に少なくとも 1 つのバックアップを作成します。",
+  "driveSharedChildAccountRemoteBackup": "リモート バックアップが見つかりました。同じ Google ドライブ アカウントを接続します。",
+  "familyChildDriveConnectionSummary": "ソース バックアップを保持する Google ドライブ アカウントを使用します。",
+  "familyParentUsesChildDriveSummary": "ここではソース バックアップ ドライブ アカウントを使用します。",
+  "familyParentUsesChildDriveHint": "親モードでは、プレーヤーのソース データを保持する Google ドライブ アカウントでサインインし、トレーニング フィードバックと報酬名を同じバックアップ ファイルに同期します。",
+  "familyParentUsesChildDriveWarning": "親モードでは、トレーニング フィードバックと報酬名が同じバックアップ ファイルに安全に同期されるように、プレーヤーのソース データを保持する Google ドライブ アカウントに接続する必要があります。",
+  "familySharedSyncTitle": "データ同期ステータス",
+  "familySharedSyncDescription": "親のフィードバックとレベル報酬の名前は、同じプレーヤーのバックアップ ファイルに自動的に書き込まれます。",
+  "familySyncAlertTitle": "家族の同期",
+  "familySyncParentTrainingAdded": "{count} 新しいプレーヤーのトレーニング ログが同期されました。",
+  "@familySyncParentTrainingAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "familySyncParentRewardClaimed": "{count} プレーヤーの報酬請求が同期されました。",
+  "@familySyncParentRewardClaimed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "familySyncParentTrainingAndRewardClaimed": "{trainingCount} の新規プレーヤーのトレーニング ログと {rewardCount} の報酬請求が同期されました。",
+  "@familySyncParentTrainingAndRewardClaimed": {
+    "placeholders": {
+      "trainingCount": {
+        "type": "int"
+      },
+      "rewardCount": {
+        "type": "int"
+      }
+    }
+  },
+  "familySyncChildFeedbackAdded": "{count} 親フィードバックの更新が同期されました。",
+  "@familySyncChildFeedbackAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "familySyncChildRewardUpdated": "レベル報酬名が同期されました。",
+  "familySyncChildFeedbackAndReward": "{count} 親フィードバックの更新と報酬名が同期されました。",
+  "@familySyncChildFeedbackAndReward": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "familySharedLastSync": "最後の親/プレーヤーの同期",
+  "familySharedLastPush": "最後のひと押し",
+  "familySharedLastRefresh": "最終インポートチェック",
+  "familySharedAutoRefreshDescription": "親モードが開くか、アプリが再開されると、最新の状態が自動的にチェックされます。ローカルの変更がドライブにプッシュされるのをまだ待機している場合、自動チェックは一時停止します。",
+  "familySharedPendingLocalChanges": "ローカルの変更をドライブにプッシュする必要があるため、自動インポートは一時停止されています。",
+  "familySharedRestore": "プレイヤーデータをインポートする",
+  "familySharedRestoreConfirm": "Google ドライブから最新のプレーヤー データをインポートしますか?これにより、このデバイスに表示されるプレーヤーのレコードと共有データが置き換えられます。",
+  "familySharedRestoreSuccess": "プレイヤーデータをインポートしました。",
+  "familySharedRestoreFailed": "プレイヤーデータのインポートに失敗しました。もう一度試してください。",
+  "familySharedRestoreLocal": "以前のプレイヤーデータをインポートする",
+  "familySharedRestoreLocalConfirm": "このデバイスにインポートされた最新のプレーヤー データの変更を元に戻しますか?これにより、このデバイスに表示されるプレーヤーのレコードと共有データが置き換えられます。",
+  "familySharedRestoreLocalSuccess": "最新のインポートは取り消されました。",
+  "familySharedRestoreLocalFailed": "最新のインポートを元に戻すことができませんでした。もう一度試してください。",
+  "restoreReconfirmTitle": "復元の確認",
+  "restoreReconfirmBody": "本当に復元しますか?現在のデータは置き換えられます。",
+  "familyParentFamilyMismatch": "接続されたドライブのバックアップは、この親/プレーヤーの共有データと一致しません。",
+  "moreInfoAction": "詳細情報",
+  "parentReadOnlyProfileSummary": "プロフィールはここでのみ閲覧可能です。",
+  "parentReadOnlyProfileDescription": "親モードでは、プロファイルは読み取り専用に保たれます。トレーニング ログからトレーニング フィードバックを残し、レベル ガイドから報酬名を設定します。",
+  "parentReadOnlySettingsOptions": "親モードでは、デフォルト値やニュース フィルターを編集できません。プレイヤーモードで変更してください。",
+  "benchmarkReferenceNote": "身長と体重は CDC 成長曲線の中央値を使用します。活動時間はWHOの青少年指導を利用しています。ジャグリング練習場はサッカーのトレーニングの基準であり、医学的な基準ではありません。",
+  "parentReadOnlyEntryTitle": "親モードではトレーニングノートを編集できません。",
+  "parentReadOnlyEntryBody": "トレーニング、食事、日記などの主要な記録はプレーヤー モードに残ります。親モードでは、元のレコードは変更されず、フィードバックと報酬の名前のみが個別に保存されます。",
+  "parentReadOnlyLogsSummary": "トレーニング ログを表示し、フィードバックのみを残します。",
+  "parentReadOnlyLogsBanner": "親モードではトレーニング ログは削除されません。代わりにレコードを開いてフィードバックを残してください。",
+  "parentReadOnlyLogsMessage": "親モードではトレーニング ログを削除できません。",
+  "parentReadOnlyMealLogSummary": "食事ログはここでのみ閲覧可能です。",
+  "parentReadOnlyMealLog": "親モードでは食事ログを編集できません。プレイヤーモードの食事を更新します。",
+  "parentReadOnlyQuiz": "親モードではクイズは実行されません。クイズ履歴と XP はプレーヤー モードのままです。",
+  "parentReadOnlyDrawerMessage": "親モードでは、コア レコードが読み取り専用に保持されます。代わりに共有データを使用し、ネーミングに報酬を与えます。",
+  "parentReadOnlyCalendarSummary": "カレンダーはここでのみ表示されます。",
+  "parentReadOnlyCalendarBanner": "親モードでは、カレンダーは読み取り専用になります。プレーヤーモードでのプラン、試合、食事を更新します。",
+  "parentReadOnlyCalendarMessage": "親モードではカレンダーを編集できません。",
+  "parentReadOnlyDiaryMessage": "親モードでは日記を編集できません。",
+  "parentReadOnlyDiaryBadge": "親モードは読み取り専用",
+  "parentReadOnlySketchMessage": "親モードではトレーニング スケッチを編集できません。",
+  "parentReadOnlyFortuneEmpty": "保存されたフォーチュンはまだありません。",
+  "parentFeedbackSectionTitle": "保護者からのフィードバック",
+  "parentFeedbackHelper": "元のトレーニング記録はそのままにして、このセッションの親のフィードバックのみを個別に保存します。",
+  "parentFeedbackReadOnlyHint": "保護者がこのトレーニング ログに残したフィードバック。",
+  "parentFeedbackInputLabel": "保護者からのフィードバック",
+  "parentFeedbackInputHint": "親が褒めたいこと、次に見てほしいことを書きます。",
+  "parentFeedbackSave": "フィードバックを保存する",
+  "parentFeedbackClear": "クリア",
+  "parentFeedbackWriteAction": "フィードバックを書く",
+  "parentFeedbackEditAction": "フィードバックを編集する",
+  "parentFeedbackViewAction": "フィードバックを見る",
+  "parentFeedbackDiscardTitle": "保存されていないフィードバック",
+  "parentFeedbackDiscardBody": "未保存のフィードバックがあります。保存せずに終了しますか?",
+  "parentFeedbackDiscardAction": "離れる",
+  "parentFeedbackSaved": "フィードバックが保存されました。",
+  "parentFeedbackSaveFailed": "フィードバックを保存できませんでした。もう一度やり直してください。",
+  "parentFeedbackCleared": "フィードバックがクリアされました。",
+  "parentFeedbackEmpty": "まだフィードバックはありません。",
+  "parentFeedbackReactionOnly": "親の反応が保存されました。",
+  "parentFeedbackReactionLabel": "反応",
+  "parentFeedbackReactionNone": "なし",
+  "parentFeedbackReactionThanks": "ありがとう",
+  "parentFeedbackReactionProud": "誇りに思う",
+  "parentFeedbackReactionReview": "レビュー",
+  "parentFeedbackReactionTry": "次に試してください",
+  "parentFeedbackOpenExistingEntryTitle": "既存のトレーニング ログを開いてフィードバックを残してください。",
+  "parentFeedbackOpenExistingEntryBody": "親モードでは、新しいトレーニング ログは作成されません。親のフィードバックは、プレーヤーが最初に記録した後でのみ、既存のトレーニング ログに保存できます。",
+  "parentSharedSyncInProgress": "プレーヤーのドライブと同期しています...",
+  "parentSharedSyncDone": "プレーヤーのドライブにも同期されます。",
+  "parentSharedSyncPending": "ドライブが接続された後、同じプレーヤーのバックアップ ファイルに同期されます。",
+  "levelGuideParentModeLabel": "親モード",
+  "levelGuideChildModeLabel": "プレイヤーモード",
+  "levelGuideParentModeDescription": "親モードでは報酬名のみを保存でき、保存された報酬名は共有プレーヤーのドライブのバックアップにも同期されます。報酬で受け取ったマークはプレーヤー モードに残ります。",
+  "levelGuideChildModeDescription": "プレイヤーモードでは、受け取ったレベル報酬をマークできます。報酬の名前は親モードのままです。",
+  "levelGuideModeInfoTooltip": "モードの説明を表示",
+  "levelGuideClaimChildOnly": "プレイヤーモードで請求する",
+  "levelGuideRewardFallbackName": "褒美",
+  "levelGuideRewardClaimed": "{rewardName}を主張しました。",
+  "@levelGuideRewardClaimed": {
+    "placeholders": {
+      "rewardName": {}
+    }
+  },
+  "levelGuideRewardSaved": "報酬が保存されました。",
+  "levelGuideRewardCleared": "報酬クリアしました。",
+  "levelGuideMaxLevelRangeLabel": "{minXp} XP+ · 最大レベル",
+  "@levelGuideMaxLevelRangeLabel": {
+    "placeholders": {
+      "minXp": {}
+    }
+  },
+  "levelGuideMaxLevelMasteryHint": "次のレベルはありません。 {masterySpan} XP ごとにマスタリー スターを獲得し続けます。",
+  "@levelGuideMaxLevelMasteryHint": {
+    "placeholders": {
+      "masterySpan": {}
+    }
+  },
+  "trainingPlanAddTitle": "トレーニングプランを追加",
+  "trainingPlanEditTitle": "トレーニング計画の編集",
+  "trainingPlanViewTitle": "トレーニングプランを見る",
+  "matchAddTitle": "一致を追加",
+  "matchEditTitle": "マッチの編集",
+  "matchViewTitle": "試合を見る",
+  "matchOpponentTeamLabel": "相手チーム",
+  "matchOpponentTeamHint": "例えば水原U15",
+  "matchOurScoreLabel": "私たちのスコア",
+  "matchOpponentScoreLabel": "相手のスコア",
+  "matchGoalsLabel": "目標",
+  "matchAssistsLabel": "アシスト",
+  "matchMinutesPlayedLabel": "プレイ時間（分）",
+  "matchMinutesPlayedHint": "例えば70",
+  "matchNoteOptionalLabel": "注記 (オプション)",
+  "matchShotsOnTargetLabel": "枠内シュート",
+  "matchBallsWonLabel": "獲得したボール",
+  "calendarMatchXpSourceLabel": "対戦成績",
+  "matchSavedWithXpFeedback": "保存されたマッチ +{count} XP",
+  "@matchSavedWithXpFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchControlsPanel": "ツールと選択",
+  "trainingSketchPlayTooltip": "遊ぶ",
+  "trainingSketchPlaybackSpeedTooltip": "再生速度",
+  "trainingSketchAddSketchTooltip": "スケッチを追加",
+  "trainingSketchCopySketchTooltip": "別のスケッチからコピーする",
+  "trainingSketchDeleteSketchTooltip": "スケッチの削除",
+  "trainingSketchImportSketchTooltip": "以前のスケッチをインポートする",
+  "trainingSketchRenameSketchTooltip": "スケッチの名前を変更",
+  "trainingSketchMemoLabel": "トレーニングスケッチノート",
+  "trainingSketchMemoHint": "例えばコーン間をツータッチドリブルしてパスする",
+  "trainingSketchVoiceInputTooltip": "音声入力",
+  "trainingSketchConeButton": "円錐",
+  "trainingSketchLowHurdleButton": "ハードルが低い",
+  "trainingSketchPlayerButton": "プレーヤー",
+  "trainingSketchBallButton": "ボール",
+  "trainingSketchLadderButton": "ラダー",
+  "trainingSketchPenButton": "ペン",
+  "trainingSketchClearInkButton": "クリアインク",
+  "trainingSketchResetButton": "クリア",
+  "trainingSketchPenModeHint": "ペンモード: ボード上をドラッグして描画します。",
+  "trainingSketchPenColorLabel": "ペンの色",
+  "trainingSketchQuickStart": "クイックスタート: プレーヤー/ボールを追加 -> パスを描画 -> 再生 (速度) -> 保存",
+  "trainingSketchSelectedItemTitle": "選択した項目",
+  "trainingSketchAssignColorLabel": "色の割り当て",
+  "trainingSketchDrawRouteFirst": "まずルートを描画または選択します。",
+  "trainingSketchAddPlayerFirst": "まずプレーヤーアイコンを追加します。",
+  "trainingSketchAddBallFirst": "まずボールアイコンを追加します。",
+  "trainingSketchRoutesButton": "ルート",
+  "trainingSketchClearAllRoutesButton": "全ルートクリア",
+  "trainingSketchPlayerRoutesTitle": "プレイヤールート",
+  "trainingSketchBallRoutesTitle": "ボールルート",
+  "trainingSketchRoutesEmpty": "このタイプにはまだルートがありません。",
+  "trainingSketchRedrawRouteButton": "選択された再描画",
+  "trainingSketchDeleteRouteButton": "選択したものを削除",
+  "trainingSketchPlayerRouteChip": "プレイヤー {index}",
+  "@trainingSketchPlayerRouteChip": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchBallRouteChip": "ボール {index}",
+  "@trainingSketchBallRouteChip": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRouteReplaceHint": "ボード上でドラッグして、選択したルートを置き換えます。",
+  "trainingSketchSelectedPlayerRouteHint": "ボード上をドラッグして、選択したプレイヤーのルートを設定します。すでに存在する場合は置き換えられます。",
+  "trainingSketchSelectedBallRouteHint": "ボード上でドラッグして、選択したボールのルートを設定します。すでに存在する場合は置き換えられます。",
+  "trainingSketchPlayerRouteHint": "ボード上をドラッグして、未使用のプレイヤー ルートを割り当てます。特定のプレイヤーをターゲットにしたい場合は、最初にプレイヤーを選択します。",
+  "trainingSketchBallRouteHint": "ボード上をドラッグして、未使用のボール ルートを割り当てます。特定のボールをターゲットにしたい場合は、最初にボールを選択します。",
+  "trainingSketchLinkPlayerHint": "ルート モードでは、このプレーヤーを選択し、ドラッグしてルートを割り当てるか置き換えます。",
+  "trainingSketchLinkBallHint": "ルート モードでは、このボールを選択してドラッグし、そのルートを割り当てるか置き換えます。",
+  "trainingSketchPlayerRouteLimitReached": "すべてのプレイヤーのルートはすでに割り当てられています。ルートを置き換えるか再描画するプレーヤーを選択します。",
+  "trainingSketchBallRouteLimitReached": "すべてのボールルートはすでに割り当てられています。ボールを選択してルートを置き換えるか、再描画します。",
+  "trainingSketchTemplatePickerTitle": "テンプレートを選択",
+  "trainingSketchTemplateBlankLabel": "空白のスケッチ",
+  "trainingSketchTemplateBlankDescription": "空のボードから始める",
+  "trainingSketchTemplatePassWarmupLabel": "パスウォームアップ",
+  "trainingSketchTemplatePassWarmupDescription": "基本的な 3 プレーヤーのパスのセットアップ",
+  "trainingSketchTemplatePassWarmupMethod": "ツータッチパスとローテーション",
+  "trainingSketchTemplateBuildUpLabel": "ビルドアップパターン",
+  "trainingSketchTemplateBuildUpDescription": "背面ビルドアップ構造",
+  "trainingSketchTemplateBuildUpMethod": "3-2の形での後方ビルドアップ",
+  "trainingSketchTemplatePressingLabel": "プレストランジション",
+  "trainingSketchTemplatePressingDescription": "前押しトリガー形状",
+  "trainingSketchTemplatePressingMethod": "前押しトリガーのキューを確認する",
+  "trainingSketchTemplateSetPieceLabel": "セットピース",
+  "trainingSketchTemplateSetPieceDescription": "コーナーキックのレイアウト",
+  "trainingSketchTemplateSetPieceMethod": "コーナーキック攻撃のセットアップ",
+  "trainingSketchTemplateRondoLabel": "ロンド",
+  "trainingSketchTemplateRondoDescription": "4対1のキープアウェイシェイプ",
+  "trainingSketchTemplateRondoMethod": "2 タッチ制限のある 4 対 1 ロンド",
+  "trainingSketchTemplateFinishingLabel": "仕上げパターン",
+  "trainingSketchTemplateFinishingDescription": "クロス・ボックス仕上げの流れ",
+  "trainingSketchTemplateFinishingMethod": "幅広い組み合わせでボックス仕上げ",
+  "trainingSketchTemplateWingCombinationLabel": "幅広い組み合わせ",
+  "trainingSketchTemplateWingCombinationDescription": "ウィンガーとフルバックのオーバーラップパターン",
+  "trainingSketchTemplateWingCombinationMethod": "ウィンガーとフルバックのオーバーラップからカットバックへ",
+  "trainingSketchTemplateTransitionAttackLabel": "トランジション攻撃",
+  "trainingSketchTemplateTransitionAttackDescription": "リゲイン直後の速攻",
+  "trainingSketchTemplateTransitionAttackMethod": "取り戻してから6秒以内に前方に攻撃する",
+  "trainingSketchTemplateGalleryAction": "テンプレートを表示する",
+  "trainingSketchTemplateGalleryTitle": "トレーニング テンプレート ギャラリー",
+  "trainingSketchTemplateGallerySubtitle": "スケッチを作成する前に、動線と注記をプレビューします。"
+}
