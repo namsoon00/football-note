@@ -26,13 +26,13 @@ void main() {
       expect(find.text('오늘의 퀴즈'), findsOneWidget);
       expect(find.text('오늘의 문제'), findsOneWidget);
       expect(find.byTooltip('퀴즈 모드 선택'), findsNothing);
-      expect(find.byTooltip('전체 문제 보기'), findsOneWidget);
-      expect(find.byTooltip('퀴즈 히스토리'), findsOneWidget);
+      expect(find.widgetWithText(OutlinedButton, '문제'), findsOneWidget);
+      expect(find.widgetWithText(OutlinedButton, '기록'), findsOneWidget);
       expect(find.text('챌린지 모드'), findsOneWidget);
-      expect(find.text('전체 문제 보기'), findsNothing);
-      expect(find.text('퀴즈 히스토리'), findsNothing);
+      expect(find.text('문제'), findsOneWidget);
+      expect(find.text('기록'), findsOneWidget);
 
-      await tester.tap(find.byTooltip('전체 문제 보기'));
+      await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
       await tester.pumpAndSettle();
 
       expect(find.text('코치용 퀴즈 라이브러리'), findsOneWidget);
@@ -42,7 +42,7 @@ void main() {
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
 
-      expect(find.byTooltip('퀴즈 히스토리'), findsOneWidget);
+      expect(find.widgetWithText(OutlinedButton, '기록'), findsOneWidget);
       expect(find.text('오늘의 문제'), findsOneWidget);
     },
   );
@@ -62,7 +62,7 @@ void main() {
       );
       await tester.pump();
 
-      await tester.tap(find.byTooltip('전체 문제 보기'));
+      await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), '쥘 리메');
@@ -88,7 +88,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byTooltip('전체 문제 보기'));
+    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '글리코겐');
@@ -115,7 +115,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byTooltip('전체 문제 보기'));
+    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '4-2-3-1');
@@ -197,8 +197,9 @@ void main() {
             'questionId': 'ox_offside_own_half_0_0_t',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
         ]),
       );
@@ -216,12 +217,14 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds = (jsonDecode(
-      repository.getValue<String>(
-        SkillQuizScreen.dailyQuestionsKey,
-      )!,
-    ) as List<dynamic>)
-        .cast<String>();
+    final savedIds =
+        (jsonDecode(
+                  repository.getValue<String>(
+                    SkillQuizScreen.dailyQuestionsKey,
+                  )!,
+                )
+                as List<dynamic>)
+            .cast<String>();
     expect(savedIds, hasLength(10));
   });
 
@@ -237,15 +240,17 @@ void main() {
             'questionId': 'ox_support_angle_15',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'mcq_support_angle_best_10',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
         ]),
       );
@@ -263,12 +268,14 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds = (jsonDecode(
-      repository.getValue<String>(
-        SkillQuizScreen.dailyQuestionsKey,
-      )!,
-    ) as List<dynamic>)
-        .cast<String>();
+    final savedIds =
+        (jsonDecode(
+                  repository.getValue<String>(
+                    SkillQuizScreen.dailyQuestionsKey,
+                  )!,
+                )
+                as List<dynamic>)
+            .cast<String>();
 
     final duplicateConceptIds = savedIds
         .where((id) => id.contains('support_angle'))
@@ -288,22 +295,25 @@ void main() {
             'questionId': 'ox_support_angle_15',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'mcq_support_angle_best_10',
             'dueAt': now.subtract(const Duration(hours: 12)).toIso8601String(),
             'wrongCount': 2,
-            'lastWrongAt':
-                now.subtract(const Duration(hours: 18)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(hours: 18))
+                .toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'missing_question',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 3)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 3))
+                .toIso8601String(),
           },
         ]),
       );
@@ -344,8 +354,9 @@ void main() {
             'conceptKey': 'support_angle',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
         ]),
       );
@@ -388,7 +399,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('전체 문제 보기'));
+      await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'support angle');
@@ -626,7 +637,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byTooltip('퀴즈 히스토리'));
+    await tester.tap(find.widgetWithText(OutlinedButton, '기록'));
     await tester.pumpAndSettle();
 
     expect(find.text('퀴즈 히스토리'), findsWidgets);
@@ -666,7 +677,7 @@ void main() {
     expect(find.text('오늘의 문제'), findsOneWidget);
     expect(find.textContaining('진행 '), findsNothing);
 
-    await tester.tap(find.byTooltip('전체 문제 보기'));
+    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
     await tester.pumpAndSettle();
 
     expect(find.text('코치용 퀴즈 라이브러리'), findsOneWidget);

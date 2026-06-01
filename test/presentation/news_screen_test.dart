@@ -124,9 +124,8 @@ void main() {
     expect(find.text('번역'), findsNothing);
 
     final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
-    final translateX = tester
-        .getTopLeft(find.byKey(_translateToggleActionKey))
-        .dx;
+    final translateX =
+        tester.getTopLeft(find.byKey(_translateToggleActionKey)).dx;
     final searchX = tester.getTopLeft(find.byKey(_searchActionKey)).dx;
 
     expect(scrapX, lessThan(translateX));
@@ -283,6 +282,7 @@ void main() {
           'titleKo': '본 기사',
           'link': 'https://example.com/viewed-news',
           'source': '테스트',
+          'imageUrl': 'https://example.com/viewed-news.jpg',
           'openedAt': DateTime(2026, 5, 19, 10, 30).toIso8601String(),
         },
       ]),
@@ -313,6 +313,14 @@ void main() {
 
     expect(find.text('본 소식'), findsOneWidget);
     expect(find.text('본 기사'), findsOneWidget);
+    expect(
+      find.byKey(
+        const ValueKey<String>(
+          'opened-news-thumb-https://example.com/viewed-news',
+        ),
+      ),
+      findsOneWidget,
+    );
   });
 }
 
@@ -342,8 +350,8 @@ class _FakeNewsRepository implements NewsRepository {
   _FakeNewsRepository({
     required List<NewsChannel> channels,
     required Map<String, List<NewsArticle>> articlesByChannelId,
-  }) : _channels = channels,
-       _articlesByChannelId = articlesByChannelId;
+  })  : _channels = channels,
+        _articlesByChannelId = articlesByChannelId;
 
   @override
   List<NewsChannel> channels() => _channels;

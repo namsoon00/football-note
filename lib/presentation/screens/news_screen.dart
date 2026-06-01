@@ -1480,7 +1480,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                       itemBuilder: (context, index) {
                         final item = openedItems[index];
                         return ListTile(
-                          leading: const Icon(Icons.article_outlined),
+                          leading: _NewsThumb(
+                            key: ValueKey<String>(
+                              'opened-news-thumb-${item.link}',
+                            ),
+                            article: item.article,
+                          ),
                           title: Text(
                             item.displayTitle(isKo),
                             maxLines: 2,
@@ -1615,6 +1620,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       'titleKo': titleKo,
       'link': link,
       'source': article.source.trim(),
+      'imageUrl': article.imageUrl.trim(),
       'openedAt': openedAt.toIso8601String(),
     });
     if (next.length > 300) {
@@ -1780,6 +1786,7 @@ class _OpenedNewsItem {
   final String titleKo;
   final String link;
   final String source;
+  final String imageUrl;
   final DateTime? openedAt;
 
   const _OpenedNewsItem({
@@ -1787,6 +1794,7 @@ class _OpenedNewsItem {
     required this.titleKo,
     required this.link,
     required this.source,
+    required this.imageUrl,
     required this.openedAt,
   });
 
@@ -1796,9 +1804,13 @@ class _OpenedNewsItem {
       titleKo: map['titleKo']?.toString().trim() ?? '',
       link: map['link']?.toString().trim() ?? '',
       source: map['source']?.toString().trim() ?? '',
+      imageUrl: map['imageUrl']?.toString().trim() ?? '',
       openedAt: DateTime.tryParse(map['openedAt']?.toString() ?? ''),
     );
   }
+
+  NewsArticle get article =>
+      NewsArticle(title: title, link: link, source: source, imageUrl: imageUrl);
 
   String displayTitle(bool isKo) {
     if (isKo && titleKo.trim().isNotEmpty) return titleKo.trim();
@@ -1880,7 +1892,7 @@ class _ScrappedNewsItem {
 class _NewsThumb extends StatefulWidget {
   final NewsArticle article;
 
-  const _NewsThumb({required this.article});
+  const _NewsThumb({super.key, required this.article});
 
   @override
   State<_NewsThumb> createState() => _NewsThumbState();
@@ -1935,7 +1947,7 @@ class _NewsThumbState extends State<_NewsThumb> {
   Future<void> _loadFallbackImage() async {
     if (_didRequestFallback ||
         _resolvedImageUrl.isNotEmpty ||
-        !_isSportsKhanArticle(widget.article.link)) {
+        !_isHttpUrl(widget.article.link.trim())) {
       return;
     }
     _didRequestFallback = true;
@@ -1962,23 +1974,24 @@ class _NewsThumbState extends State<_NewsThumb> {
           .timeout(const Duration(seconds: 10));
       if (response.statusCode != 200) return '';
       final body = response.body;
+      final baseUri = Uri.tryParse(normalizedLink);
       for (final pattern in <RegExp>[_ogImagePattern, _twitterImagePattern]) {
         final match = pattern.firstMatch(body);
         final candidate = match?.group(1)?.trim() ?? '';
         if (_isHttpUrl(candidate)) {
           return candidate;
         }
+        if (baseUri != null && candidate.isNotEmpty) {
+          final resolved = baseUri.resolve(candidate).toString();
+          if (_isHttpUrl(resolved)) {
+            return resolved;
+          }
+        }
       }
     } catch (_) {
       return '';
     }
     return '';
-  }
-
-  bool _isSportsKhanArticle(String link) {
-    final uri = Uri.tryParse(link.trim());
-    if (uri == null || uri.host.isEmpty) return false;
-    return uri.host.toLowerCase() == 'sports.khan.co.kr';
   }
 
   bool _isHttpUrl(String url) {

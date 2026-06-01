@@ -614,9 +614,21 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        isKo ? '알림 설정' : 'Alert settings',
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Row(
+                        children: [
+                          IconButton.filledTonal(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.arrow_back),
+                            tooltip: l10n.notificationSettingsCloseTooltip,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l10n.notificationSettingsTitle,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
                       Container(

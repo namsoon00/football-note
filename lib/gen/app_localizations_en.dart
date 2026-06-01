@@ -499,6 +499,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTodoQuizShort => 'Quiz';
 
   @override
+  String get homeTodoNewsShort => 'News';
+
+  @override
   String get homeTodoDiaryShort => 'Diary';
 
   @override
@@ -718,6 +721,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quizScreenTitle => 'Today\'s Quiz';
+
+  @override
+  String get quizLibraryAction => 'Questions';
+
+  @override
+  String get quizHistoryAction => 'History';
+
+  @override
+  String get quizBackHomeTooltip => 'Back to quiz home';
 
   @override
   String quizXpSavedFeedback(int count) {
@@ -1981,7 +1993,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageKorean => 'Korean';
 
   @override
+  String get languageJapanese => 'Japanese';
+
+  @override
   String get settings => 'Settings';
+
+  @override
+  String get settingsGeneralSection => 'General';
 
   @override
   String get account => 'Account';
@@ -2198,6 +2216,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationSettingsAction => 'Settings';
+
+  @override
+  String get notificationSettingsTitle => 'Alert settings';
+
+  @override
+  String get notificationSettingsCloseTooltip => 'Close alert settings';
 
   @override
   String get notificationRefreshAction => 'Refresh';
@@ -2454,6 +2478,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherLoadFailed => 'Failed to load local weather.';
+
+  @override
+  String get entryWeatherLoading => 'Loading weather...';
+
+  @override
+  String get entryWeatherHomeMissing => 'Load weather on Home first.';
+
+  @override
+  String get entryWeatherUseLocationTooltip => 'Use location weather';
 
   @override
   String get homeWeatherRetryTitle => 'Retry weather';

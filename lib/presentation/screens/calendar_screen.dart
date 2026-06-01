@@ -2406,15 +2406,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Future<void> _confirmDeletePlan(_TrainingPlan plan) async {
+  Future<bool> _confirmDeletePlan(_TrainingPlan plan) async {
     if (_isParentMode) {
       _showParentReadOnlyMessage();
-      return;
+      return false;
     }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final scope = await _pickPlanDeleteScope(plan);
-    if (!mounted) return;
-    if (scope == null) return;
+    if (!mounted) return false;
+    if (scope == null) return false;
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -2468,7 +2468,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       } else {
         await _deletePlan(plan.id);
       }
+      return true;
     }
+    return false;
   }
 
   bool _sameStringList(List<String> a, List<String> b) {
@@ -3140,7 +3142,7 @@ class _DayTimeline extends StatelessWidget {
   final ValueChanged<_TrainingPlan> onMovePlan;
   final Future<bool> Function(TrainingEntry) onDeleteEntry;
   final Future<bool> Function(MealEntry) onDeleteMealEntry;
-  final ValueChanged<_TrainingPlan> onDeletePlan;
+  final Future<bool> Function(_TrainingPlan) onDeletePlan;
   final VoidCallback onListScrollUp;
   final VoidCallback onListReachedBottom;
 
@@ -3268,12 +3270,32 @@ class _DayTimeline extends StatelessWidget {
             ...sortedPlans.map(
               (plan) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: _PlanTile(
-                  plan: plan,
-                  onTap: () => onEditPlan(plan),
-                  onMove: isReadOnly ? null : () => onMovePlan(plan),
-                  onDelete: isReadOnly ? null : () => onDeletePlan(plan),
-                ),
+                child: isReadOnly
+                    ? _PlanTile(plan: plan, onTap: () => onEditPlan(plan))
+                    : Dismissible(
+                        key: ValueKey('plan-${plan.id}'),
+                        direction: DismissDirection.endToStart,
+                        confirmDismiss: (_) => onDeletePlan(plan),
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.errorContainer,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.delete_outline,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onErrorContainer,
+                          ),
+                        ),
+                        child: _PlanTile(
+                          plan: plan,
+                          onTap: () => onEditPlan(plan),
+                          onMove: () => onMovePlan(plan),
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 12),
@@ -3425,9 +3447,8 @@ class _PlanTile extends StatelessWidget {
   final _TrainingPlan plan;
   final VoidCallback? onTap;
   final VoidCallback? onMove;
-  final VoidCallback? onDelete;
 
-  const _PlanTile({required this.plan, this.onTap, this.onMove, this.onDelete});
+  const _PlanTile({required this.plan, this.onTap, this.onMove});
 
   @override
   Widget build(BuildContext context) {
@@ -3473,21 +3494,7 @@ class _PlanTile extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: _calendarTimelineSubtitleStyle(context),
         ),
-        trailing: Wrap(
-          spacing: 2,
-          children: [
-            IconButton(
-              tooltip: isKo ? '시간 이동' : 'Move schedule',
-              icon: const Icon(Icons.open_with_outlined),
-              onPressed: onMove,
-            ),
-            IconButton(
-              tooltip: isKo ? '계획 삭제' : 'Delete plan',
-              icon: const Icon(Icons.delete_outline),
-              onPressed: onDelete,
-            ),
-          ],
-        ),
+        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }

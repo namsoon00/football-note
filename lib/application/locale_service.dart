@@ -21,6 +21,8 @@ class LocaleService extends ChangeNotifier {
     final raw = values.first;
     if (raw == 'en') {
       _locale = const Locale('en');
+    } else if (raw == 'ja') {
+      _locale = const Locale('ja');
     } else if (raw == 'ko') {
       _locale = const Locale('ko', 'KR');
     }
@@ -32,10 +34,7 @@ class LocaleService extends ChangeNotifier {
     if (locale == null) {
       await _optionRepository.saveOptions(_key, const []);
     } else {
-      await _optionRepository.saveOptions(
-        _key,
-        [locale.languageCode],
-      );
+      await _optionRepository.saveOptions(_key, [locale.languageCode]);
     }
     notifyListeners();
   }

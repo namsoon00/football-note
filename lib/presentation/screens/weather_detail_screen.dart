@@ -933,7 +933,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       notes.add(isKo ? '과열 방지 위해 휴식 간격을 짧게' : 'Take frequent cooling breaks');
     } else if (apparentTemperature >= 22) {
       layers = isKo ? '반팔 훈련복' : 'Short-sleeve training top';
-      outer = isKo ? '얇은 조끼(선택)' : 'Light vest (optional)';
+      outer = isKo ? '겉옷 없음' : 'No outerwear';
       bottom = isKo ? '반바지' : 'Training shorts';
       accessories = isKo ? '여벌 티셔츠, 땀수건' : 'Spare shirt and sweat towel';
     } else if (apparentTemperature >= 15) {
