@@ -8,7 +8,9 @@ import 'package:football_note/application/drive_backup_service.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/player_level_service.dart';
+import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
+import 'package:football_note/infrastructure/hive_option_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 
@@ -137,6 +139,18 @@ void main() {
         'meal_logs_v1': '[{"id":"meal-1"}]',
         'training_boards_v1': '[{"id":"board-1"}]',
         'family_parent_training_feedback_v1': '{"items":[]}',
+        PlayerLevelService.customRewardNamesKey: <String, String>{
+          '2': 'New boots',
+        },
+        PlayerLevelService.claimedRewardLevelsKey: <int>[2],
+        PlayerLevelService.rewardClaimMessagesKey: <Map<String, Object>>[
+          <String, Object>{
+            'id': 'reward-2-1',
+            'level': 2,
+            'rewardName': 'New boots',
+            'claimedAt': '2026-04-20T08:00:00.000',
+          },
+        ],
         'skill_quiz_history_v1': '[{"id":"quiz-1"}]',
         'news_opened_items_v1': '[{"id":"news-1"}]',
       });
@@ -150,6 +164,17 @@ void main() {
       expect(
         backupOptions['family_parent_training_feedback_v1'],
         '{"items":[]}',
+      );
+      expect(
+        backupOptions[PlayerLevelService.customRewardNamesKey],
+        <String, String>{'2': 'New boots'},
+      );
+      expect(backupOptions[PlayerLevelService.claimedRewardLevelsKey], <int>[
+        2,
+      ]);
+      expect(
+        backupOptions[PlayerLevelService.rewardClaimMessagesKey],
+        isA<List>(),
       );
       expect(backupOptions['skill_quiz_history_v1'], '[{"id":"quiz-1"}]');
       expect(backupOptions['news_opened_items_v1'], '[{"id":"news-1"}]');
@@ -436,8 +461,7 @@ void main() {
       );
       expect(
         ((optionBox.get(FamilyAccessService.parentTrainingFeedbackKey)
-                as Map)['training_1713427800000000']
-            as Map)['message'],
+            as Map)['training_1713427800000000'] as Map)['message'],
         'Remote parent feedback',
       );
       expect(
@@ -533,6 +557,62 @@ void main() {
     expect(optionBox.get(PlayerLevelService.totalXpKey), 0);
     expect(optionBox.get(MealLogService.storageKey), '[]');
   });
+
+  test(
+    'account switch restore replaces stale diary and meal data and notifies meal listeners',
+    () async {
+      final optionRepository = HiveOptionRepository(optionBox);
+      final mealLogService = MealLogService(optionRepository);
+      final observedMeals = <List<MealEntry>>[];
+      final mealSubscription = mealLogService.watchEntries().listen(
+            observedMeals.add,
+          );
+      final dataSubscription = service.dataChanges().listen((_) {
+        mealLogService.reloadFromStorage();
+      });
+
+      await mealLogService.save(
+        MealEntry(
+          date: DateTime(2026, 4, 18),
+          breakfastRiceBowls: 1,
+          lunchRiceBowls: 1,
+        ),
+      );
+      await optionBox.put(
+        'custom_diary_entries_v3',
+        '{"2026-04-18":{"body":"local diary"}}',
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(observedMeals.last, hasLength(1));
+
+      await service.restoreFromMapForTesting(<String, dynamic>{
+        'version': 5,
+        'createdAt': '2026-04-19T10:00:00.000',
+        'entries': const <Map<String, dynamic>>[],
+        'options': <String, dynamic>{
+          MealLogService.storageKey: '[]',
+          'custom_diary_entries_v3': '{"2026-04-19":{"body":"remote diary"}}',
+        },
+        'family': const <String, dynamic>{
+          'updatedByRole': 'child',
+          'familyLayerOnly': false,
+        },
+      });
+      await Future<void>.delayed(Duration.zero);
+
+      expect(optionBox.get(MealLogService.storageKey), '[]');
+      expect(
+        optionBox.get('custom_diary_entries_v3'),
+        '{"2026-04-19":{"body":"remote diary"}}',
+      );
+      expect(mealLogService.allEntries(), isEmpty);
+      expect(observedMeals.last, isEmpty);
+
+      await dataSubscription.cancel();
+      await mealSubscription.cancel();
+      await mealLogService.dispose();
+    },
+  );
 
   test('stores record mode drive account separately', () async {
     service = DriveBackupService(
@@ -768,6 +848,15 @@ void main() {
           FamilyAccessService.familyIdKey: 'family-1',
           DriveBackupService.sharedChildDriveEmailKey: 'child@example.com',
           'player_custom_reward_names_v1': <String, String>{'2': 'Ball'},
+          PlayerLevelService.claimedRewardLevelsKey: <int>[2],
+          PlayerLevelService.rewardClaimMessagesKey: <Map<String, Object>>[
+            <String, Object>{
+              'id': 'reward-2-remote',
+              'level': 2,
+              'rewardName': 'Ball',
+              'claimedAt': '2026-04-18T11:00:00.000',
+            },
+          ],
           FamilyAccessService.parentTrainingFeedbackKey: <String, dynamic>{
             'training_1713000000000000': <String, dynamic>{
               'message': 'Existing remote feedback',
@@ -790,6 +879,21 @@ void main() {
           <String, dynamic>{
             'key': 'player_custom_reward_names_v1',
             'value': <String, String>{'2': 'Ball'},
+          },
+          <String, dynamic>{
+            'key': PlayerLevelService.claimedRewardLevelsKey,
+            'value': <int>[2],
+          },
+          <String, dynamic>{
+            'key': PlayerLevelService.rewardClaimMessagesKey,
+            'value': <Map<String, Object>>[
+              <String, Object>{
+                'id': 'reward-2-remote',
+                'level': 2,
+                'rewardName': 'Ball',
+                'claimedAt': '2026-04-18T11:00:00.000',
+              },
+            ],
           },
           <String, dynamic>{
             'key': FamilyAccessService.parentTrainingFeedbackKey,
@@ -829,14 +933,92 @@ void main() {
         (mergedOptions['player_custom_reward_names_v1'] as Map)['2'],
         'New boots',
       );
+      expect(mergedOptions[PlayerLevelService.claimedRewardLevelsKey], <int>[
+        2,
+      ]);
+      expect(
+        ((mergedOptions[PlayerLevelService.rewardClaimMessagesKey] as List)
+            .single as Map)['rewardName'],
+        'Ball',
+      );
       expect(
         ((mergedOptions[FamilyAccessService.parentTrainingFeedbackKey]
-                as Map)['training_1713427800000000']
-            as Map)['message'],
+            as Map)['training_1713427800000000'] as Map)['message'],
         'Check the first touch after scanning.',
       );
       expect(family['updatedByRole'], 'parent');
       expect(family['familyLayerOnly'], isTrue);
+    },
+  );
+
+  test(
+    'child shared restore imports parent feedback and reward names',
+    () async {
+      await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'child');
+      await optionBox.put(
+        PlayerLevelService.rewardClaimMessagesKey,
+        <Map<String, Object>>[
+          <String, Object>{
+            'id': 'reward-local',
+            'level': 2,
+            'rewardName': 'Local claim',
+          },
+        ],
+      );
+
+      final result = await service.restoreSharedOptionsFromMapForTesting(
+        <String, dynamic>{
+          'version': 5,
+          'createdAt': '2026-04-20T09:00:00.000',
+          'entries': const <dynamic>[],
+          'options': const <String, dynamic>{},
+          'optionRecords': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'key': FamilyAccessService.parentTrainingFeedbackKey,
+              'value': <String, dynamic>{
+                'training_1713427800000000': <String, dynamic>{
+                  'message': 'Great first touch.',
+                },
+              },
+            },
+            <String, dynamic>{
+              'key': PlayerLevelService.customRewardNamesKey,
+              'value': <String, String>{'3': 'Recovery kit'},
+            },
+            <String, dynamic>{
+              'key': PlayerLevelService.rewardClaimMessagesKey,
+              'value': <Map<String, Object>>[
+                <String, Object>{
+                  'id': 'reward-remote',
+                  'level': 3,
+                  'rewardName': 'Remote claim',
+                },
+              ],
+            },
+          ],
+          'family': const <String, dynamic>{
+            'updatedByRole': 'parent',
+            'familyLayerOnly': true,
+          },
+        },
+      );
+
+      expect(result.newParentFeedbackCount, 1);
+      expect(result.rewardNamesChanged, isTrue);
+      expect(
+        ((optionBox.get(FamilyAccessService.parentTrainingFeedbackKey)
+            as Map)['training_1713427800000000'] as Map)['message'],
+        'Great first touch.',
+      );
+      expect(
+        (optionBox.get(PlayerLevelService.customRewardNamesKey) as Map)['3'],
+        'Recovery kit',
+      );
+      expect(
+        ((optionBox.get(PlayerLevelService.rewardClaimMessagesKey) as List)
+            .single as Map)['rewardName'],
+        'Local claim',
+      );
     },
   );
 
