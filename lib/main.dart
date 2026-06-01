@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/services.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -175,8 +176,28 @@ class FootballNoteApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          builder: (context, child) =>
-              KeyboardDismissOverlay(child: child ?? const SizedBox.shrink()),
+          builder: (context, child) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final overlayStyle =
+                (isDark
+                        ? SystemUiOverlayStyle.light
+                        : SystemUiOverlayStyle.dark)
+                    .copyWith(
+                      statusBarColor: Colors.transparent,
+                      systemNavigationBarColor: isDark
+                          ? const Color(0xFF0F131A)
+                          : const Color(0xFFF6F8FC),
+                      systemNavigationBarIconBrightness: isDark
+                          ? Brightness.light
+                          : Brightness.dark,
+                    );
+            return AnnotatedRegion<SystemUiOverlayStyle>(
+              value: overlayStyle,
+              child: KeyboardDismissOverlay(
+                child: child ?? const SizedBox.shrink(),
+              ),
+            );
+          },
           home: _EntryGate(
             trainingService: trainingService,
             mealLogService: mealLogService,
