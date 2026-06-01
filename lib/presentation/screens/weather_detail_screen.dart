@@ -813,13 +813,14 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           (
             label: l10n.homeWeatherMorningLabel,
             preview: forecast.morningForecast,
-            fallbackTemperature: forecast.temperatureMin,
+            fallbackTemperature:
+                forecast.temperatureMin ?? forecast.temperatureMax,
           ),
           (
             label: l10n.homeWeatherEveningLabel,
             preview: forecast.eveningForecast,
             fallbackTemperature:
-                forecast.temperatureMin ?? forecast.temperatureMax,
+                forecast.temperatureMax ?? forecast.temperatureMin,
           ),
         ];
     return slots

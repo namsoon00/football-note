@@ -691,7 +691,7 @@ class _FallingGemPainter extends CustomPainter {
       final y = (fall * (size.height + 140)) - 70;
       final gemSize = 10.0 + ((index % 4) * 4);
       final color = colors[index % colors.length];
-      final opacity = 0.12 + ((index % 5) * 0.035);
+      final opacity = 0.28 + ((index % 5) * 0.055);
       final center = Offset(x.toDouble(), y);
       final halfWidth = gemSize * 0.58;
       final halfHeight = gemSize * 0.82;
@@ -701,12 +701,25 @@ class _FallingGemPainter extends CustomPainter {
         ..lineTo(center.dx, center.dy + halfHeight)
         ..lineTo(center.dx - halfWidth, center.dy)
         ..close();
+      canvas.drawPath(
+        path.shift(const Offset(0, 1.2)),
+        Paint()..color = Colors.black.withValues(alpha: 0.12),
+      );
       canvas.drawPath(path, Paint()..color = color.withValues(alpha: opacity));
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.34)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.9,
+      );
       canvas.drawLine(
         Offset(center.dx - halfWidth * 0.45, center.dy - halfHeight * 0.12),
         Offset(center.dx + halfWidth * 0.35, center.dy - halfHeight * 0.48),
         Paint()
-          ..color = Colors.white.withValues(alpha: opacity * 1.6)
+          ..color = Colors.white.withValues(
+            alpha: (opacity * 1.45).clamp(0.0, 1.0),
+          )
           ..strokeWidth = 1.2
           ..strokeCap = StrokeCap.round,
       );

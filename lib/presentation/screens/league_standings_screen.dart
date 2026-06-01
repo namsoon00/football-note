@@ -50,7 +50,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   final Map<LeagueStandingsType, Future<_LeagueOverviewSnapshot>> _futures = {};
   final Map<LeagueStandingsType, ScrollController> _scrollControllers = {};
   final Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>
-  _leagueTabKeys = {
+      _leagueTabKeys = {
     for (final type in LeagueStandingsType.values)
       type: GlobalKey<State<StatefulWidget>>(),
   };
@@ -66,8 +66,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     super.initState();
     _ownsService = widget.service == null;
     _service = widget.service ?? LeagueStandingsService();
-    _reminderService =
-        widget.reminderService ??
+    _reminderService = widget.reminderService ??
         (widget.optionRepository != null && widget.settingsService != null
             ? LeagueFixtureReminderService(
                 widget.optionRepository!,
@@ -109,7 +108,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   void _restoreFavoriteFixtureFilters() {
     final stored =
         widget.optionRepository?.getValue<List>(_favoriteFixtureFilterKey) ??
-        const <dynamic>[];
+            const <dynamic>[];
     _favoriteFixtureFilterTypes
       ..clear()
       ..addAll(
@@ -290,10 +289,10 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
           l10n.newsLeagueFixtureNotificationChannelDescription,
       bodyBuilder: (entry, teamName, opponentName) =>
           l10n.newsLeagueFavoriteTeamNotificationBody(
-            teamName,
-            opponentName,
-            formatter.format(entry.kickoffAt.toLocal()),
-          ),
+        teamName,
+        opponentName,
+        formatter.format(entry.kickoffAt.toLocal()),
+      ),
     );
     return count;
   }
@@ -438,17 +437,17 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                             ),
                             onFixturesExpandedChanged: (expanded) =>
                                 _setFixturesExpanded(
-                                  data.standings.type,
-                                  expanded,
-                                ),
+                              data.standings.type,
+                              expanded,
+                            ),
                             favoriteTeamKeys: _favoriteTeamKeys,
                             filterFavoriteFixtures: _favoriteFixtureFilterTypes
                                 .contains(data.standings.type),
                             onFilterFavoriteFixturesChanged: (enabled) =>
                                 _setFavoriteFixtureFilter(
-                                  data.standings.type,
-                                  enabled,
-                                ),
+                              data.standings.type,
+                              enabled,
+                            ),
                             reminderPanel: _buildReminderPanel(l10n, data),
                           ),
                         );
@@ -498,7 +497,7 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
   late Set<String> _favoriteTeamKeys;
   final Map<LeagueStandingsType, _LeagueOverviewSnapshot> _cache = {};
   final Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>
-  _leagueTabKeys = {
+      _leagueTabKeys = {
     for (final type in LeagueStandingsType.values)
       type: GlobalKey<State<StatefulWidget>>(),
   };
@@ -657,10 +656,13 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
                                 child: Text(
                                   selectedCount == 0
                                       ? l10n.newsLeagueFavoriteTeamNone
-                                      : l10n.newsLeagueFavoriteTeamSelectedCount(
+                                      : l10n
+                                          .newsLeagueFavoriteTeamSelectedCount(
                                           selectedCount,
                                         ),
-                                  style: Theme.of(context).textTheme.bodySmall
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
                                       ?.copyWith(fontWeight: FontWeight.w800),
                                 ),
                               ),
@@ -885,143 +887,106 @@ class _LeagueReminderPanel extends StatelessWidget {
     final theme = Theme.of(context);
     final visibleTeamNames = selectedTeamNames.take(3).toList(growable: false);
     final hiddenTeamCount = selectedTeamNames.length - visibleTeamNames.length;
-    return Material(
-      color: theme.colorScheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final teamSummary = selectedTeamNames.isEmpty
+        ? emptyLabel
+        : [
+            ...visibleTeamNames,
+            if (hiddenTeamCount > 0) '+$hiddenTeamCount',
+          ].join(' · ');
+    return Semantics(
+      button: true,
+      label: selectLabel,
+      child: OutlinedButton(
+        onPressed: onSelect,
+        style: OutlinedButton.styleFrom(
+          alignment: Alignment.centerLeft,
+          backgroundColor: theme.colorScheme.surfaceContainerLow,
+          foregroundColor: theme.colorScheme.onSurface,
+          disabledForegroundColor: theme.colorScheme.onSurfaceVariant,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          minimumSize: const Size.fromHeight(64),
+          side: BorderSide(
+            color: onSelect == null
+                ? theme.colorScheme.outlineVariant.withValues(alpha: 0.55)
+                : theme.colorScheme.primary.withValues(alpha: 0.42),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: Row(
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.notifications_active_outlined,
-                    size: 20,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 9),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: selectedTeamNames.isEmpty
-                  ? [
-                      _NeutralTeamChip(
-                        label: emptyLabel,
-                        icon: Icons.favorite_border_rounded,
-                      ),
-                    ]
-                  : [
-                      ...visibleTeamNames.map(
-                        (name) => _NeutralTeamChip(
-                          label: name,
-                          icon: Icons.favorite_rounded,
-                        ),
-                      ),
-                      if (hiddenTeamCount > 0)
-                        _NeutralTeamChip(
-                          label: '+$hiddenTeamCount',
-                          icon: Icons.more_horiz_rounded,
-                        ),
-                    ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              reminderCountLabel,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Icon(
+                Icons.favorite_border_rounded,
+                size: 21,
+                color: theme.colorScheme.primary,
               ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                FilledButton.icon(
-                  onPressed: onSelect,
-                  icon: const Icon(Icons.tune_rounded),
-                  label: Text(selectLabel),
-                  style: FilledButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 3),
+                  Text(
+                    teamSummary.isEmpty ? subtitle : teamSummary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    reminderCountLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              selectLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: onSelect == null
+                    ? theme.colorScheme.onSurfaceVariant
+                    : theme.colorScheme.primary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: onSelect == null
+                  ? theme.colorScheme.onSurfaceVariant
+                  : theme.colorScheme.primary,
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _NeutralTeamChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-
-  const _NeutralTeamChip({required this.label, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final maxTextWidth = MediaQuery.sizeOf(context).width * 0.58;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: theme.colorScheme.primary),
-          const SizedBox(width: 6),
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxTextWidth),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1138,14 +1103,14 @@ class _FixtureSection extends StatelessWidget {
     );
     final entries = filterFavorites && hasFavoriteTeamsForLeague
         ? snapshot.entries
-              .where(
-                (entry) => _fixtureMatchesFavoriteTeam(
-                  snapshot.type,
-                  entry,
-                  favoriteTeamKeys,
-                ),
-              )
-              .toList(growable: false)
+            .where(
+              (entry) => _fixtureMatchesFavoriteTeam(
+                snapshot.type,
+                entry,
+                favoriteTeamKeys,
+              ),
+            )
+            .toList(growable: false)
         : snapshot.entries;
     final canToggle = entries.length > _collapsedFixtureLimit;
     final visibleEntries = canToggle && !expanded
@@ -1420,9 +1385,9 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w900,
-        ),
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
       ),
     );
   }
@@ -1502,8 +1467,8 @@ class _StandingTeamRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
                 ),
               ],
@@ -1550,45 +1515,85 @@ class _LogoCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final compactName = name.trim();
-    final initials = shortName.trim().isNotEmpty
-        ? shortName.trim()
-        : compactName.isEmpty
-        ? '?'
-        : compactName
-              .substring(0, compactName.length < 2 ? compactName.length : 2)
-              .toUpperCase();
+    final initials = _logoFallbackText(shortName, compactName);
     final trimmedLogoUrl = logoUrl.trim();
+    final theme = Theme.of(context);
+    Widget fallbackLogo() {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              initials,
+              maxLines: 1,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
       width: 32,
       height: 32,
-      padding: trimmedLogoUrl.isEmpty
-          ? EdgeInsets.zero
-          : const EdgeInsets.all(3),
+      padding:
+          trimmedLogoUrl.isEmpty ? EdgeInsets.zero : const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: theme.brightness == Brightness.dark ? 0.72 : 1.0,
+        ),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       clipBehavior: Clip.antiAlias,
       child: trimmedLogoUrl.isEmpty
-          ? Center(
-              child: Text(
-                initials,
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
-            )
+          ? fallbackLogo()
           : Image.network(
               trimmedLogoUrl,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Center(
-                child: Text(
-                  initials,
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-              ),
+              filterQuality: FilterQuality.medium,
+              gaplessPlayback: true,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.5,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (_, __, ___) => fallbackLogo(),
             ),
     );
   }
+}
+
+String _logoFallbackText(String shortName, String name) {
+  final preferred =
+      shortName.trim().isNotEmpty ? shortName.trim() : name.trim();
+  if (preferred.isEmpty) return '?';
+  final words = preferred
+      .split(RegExp(r'\s+'))
+      .where((word) => word.trim().isNotEmpty)
+      .toList(growable: false);
+  if (words.length >= 2) {
+    return words
+        .take(2)
+        .map((word) => String.fromCharCode(word.runes.first))
+        .join()
+        .toUpperCase();
+  }
+  final runes = preferred.runes.toList(growable: false);
+  final takeCount = runes.length <= 3 ? runes.length : 2;
+  return String.fromCharCodes(runes.take(takeCount)).toUpperCase();
 }
 
 class _StandingRowShell extends StatelessWidget {
@@ -1633,15 +1638,12 @@ Widget _cell(
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
-      style:
-          (header
-                  ? Theme.of(context).textTheme.labelMedium
-                  : Theme.of(context).textTheme.bodyMedium)
-              ?.copyWith(
-                fontWeight: header || strong
-                    ? FontWeight.w900
-                    : FontWeight.w600,
-              ),
+      style: (header
+              ? Theme.of(context).textTheme.labelMedium
+              : Theme.of(context).textTheme.bodyMedium)
+          ?.copyWith(
+        fontWeight: header || strong ? FontWeight.w900 : FontWeight.w600,
+      ),
     ),
   );
 }

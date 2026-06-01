@@ -562,16 +562,24 @@ class LeagueStandingsService {
   }
 
   static String _teamLogo(Map<String, dynamic> team) {
+    final directLogo = team['logo']?.toString().trim() ?? '';
+    if (_isNetworkUrl(directLogo)) {
+      return directLogo;
+    }
     final logos = team['logos'];
     if (logos is! List || logos.isEmpty) return '';
     for (final logo in logos) {
       if (logo is! Map) continue;
       final href = logo['href']?.toString().trim() ?? '';
-      if (href.startsWith('https://') || href.startsWith('http://')) {
+      if (_isNetworkUrl(href)) {
         return href;
       }
     }
     return '';
+  }
+
+  static bool _isNetworkUrl(String value) {
+    return value.startsWith('https://') || value.startsWith('http://');
   }
 
   static String _sourceUrl(Map<String, dynamic> standings) {
