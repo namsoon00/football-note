@@ -54,10 +54,14 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   }
 
   bool get _hasChanges {
-    if (_canEdit) {
-      return _controller.text.trim() != _savedMessage.trim();
+    final reactionsChanged = !_sameReactionSet(
+      _selectedReactions,
+      _savedReactions.toSet(),
+    );
+    if (!_canEdit) {
+      return reactionsChanged;
     }
-    return !_sameReactionSet(_selectedReactions, _savedReactions.toSet());
+    return _controller.text.trim() != _savedMessage.trim() || reactionsChanged;
   }
 
   bool get _canReact {
@@ -69,7 +73,9 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     if (_isSaving) return false;
     if (_canEdit) {
       return _controller.text.trim().isNotEmpty ||
-          _savedMessage.trim().isNotEmpty;
+          _savedMessage.trim().isNotEmpty ||
+          _selectedReactions.isNotEmpty ||
+          _savedReactions.isNotEmpty;
     }
     return _selectedReactions.isNotEmpty || _savedReactions.isNotEmpty;
   }
@@ -135,7 +141,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
       final saved = await _feedbackService.saveFeedbackForEntry(
         widget.entry,
         _canEdit ? _controller.text : _savedMessage,
-        _canEdit ? _savedReactions : _selectedReactions.toList(),
+        _selectedReactions.toList(),
       );
       final didSync = await _syncParentSharedDataIfPossible();
       if (!mounted) {
@@ -274,14 +280,14 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                                 alignLabelWithHint: true,
                               ),
                             ),
-                            if (_savedReactions.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              _ParentFeedbackReactionPicker(
-                                selectedReactions: _savedReactions.toSet(),
-                                canEdit: false,
-                                onChanged: (_) {},
-                              ),
-                            ],
+                            const SizedBox(height: 16),
+                            _ParentFeedbackReactionPicker(
+                              selectedReactions: _selectedReactions,
+                              canEdit: !_isSaving,
+                              onChanged: (value) {
+                                setState(() => _selectedReactions = value);
+                              },
+                            ),
                           ],
                         )
                       else

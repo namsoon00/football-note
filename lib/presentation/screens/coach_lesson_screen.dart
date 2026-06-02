@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:table_calendar/table_calendar.dart';
@@ -87,6 +89,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   static const String _plansStorageKey = 'training_plans_v1';
   static const String _diaryThemeKey = 'diary_theme_v1';
   static const String _customDiaryEntriesKey = 'custom_diary_entries_v3';
+  static const int _customDiaryPhotoLimit = 6;
 
   final PageController _pageController = PageController();
   final Set<String> _expandedQuizStickerIds = <String>{};
@@ -695,13 +698,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return _buildPaperCard(
       title: null,
       subtitle: customDiary.updatedAt == null
-          ? (_isKo ? '핵심만 간단히 기록해보세요.' : 'Keep it short and clear.')
-          : (_isKo
-                ? '마지막 저장 ${DateFormat('M.d HH:mm', 'ko').format(customDiary.updatedAt!)}'
-                : 'Last saved ${DateFormat('MMM d HH:mm', 'en').format(customDiary.updatedAt!)}'),
+          ? _l10n.diaryEmptyHint
+          : '${_l10n.diaryLastSavedPrefix} ${DateFormat(_isKo ? 'M.d HH:mm' : 'MMM d HH:mm', _isKo ? 'ko' : 'en').format(customDiary.updatedAt!)}',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (customDiary.photoDataUrls.isNotEmpty) ...[
+            _buildDiaryPhotoGallery(customDiary.photoDataUrls),
+            const SizedBox(height: 14),
+          ],
           Text(
             customDiary.story.trim().isNotEmpty
                 ? customDiary.story.trim()
@@ -771,6 +776,191 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           if (!customDiary.hasContent && todoSeeds.isNotEmpty)
             const SizedBox(height: 4),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDiaryPhotoComposer({
+    required List<String> photoDataUrls,
+    required VoidCallback onAddPhoto,
+    required ValueChanged<int> onRemovePhoto,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _tileSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _paperEdge),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _l10n.photo,
+                  style: _theme.textTheme.labelLarge?.copyWith(
+                    color: _headlineInk,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: photoDataUrls.length >= _customDiaryPhotoLimit
+                    ? null
+                    : onAddPhoto,
+                icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
+                label: Text(_l10n.addPhoto),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (photoDataUrls.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              decoration: BoxDecoration(
+                color: _composerIdleSurface(),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: _composerIdleBorder().color),
+              ),
+              child: Text(
+                _l10n.noImage,
+                style: _theme.textTheme.bodySmall?.copyWith(
+                  color: _bodyInk,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            )
+          else
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final tileSize = math.max(
+                  74.0,
+                  (constraints.maxWidth - 16) / 3,
+                );
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (var index = 0; index < photoDataUrls.length; index++)
+                      SizedBox(
+                        width: tileSize,
+                        height: tileSize,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: _buildDiaryPhotoImage(
+                                photoDataUrls[index],
+                                label: _l10n.photoIndex(index + 1),
+                              ),
+                            ),
+                            PositionedDirectional(
+                              top: 4,
+                              end: 4,
+                              child: IconButton.filled(
+                                onPressed: () => onRemovePhoto(index),
+                                tooltip: _l10n.removePhoto,
+                                style: IconButton.styleFrom(
+                                  fixedSize: const Size.square(32),
+                                  minimumSize: const Size.square(32),
+                                  padding: EdgeInsets.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                icon: const Icon(Icons.close_rounded, size: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiaryPhotoGallery(List<String> photoDataUrls) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final extraTileSize = math.max(72.0, (constraints.maxWidth - 16) / 3);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: AspectRatio(
+                aspectRatio: 16 / 10,
+                child: _buildDiaryPhotoImage(
+                  photoDataUrls.first,
+                  label: _l10n.photoIndex(1),
+                ),
+              ),
+            ),
+            if (photoDataUrls.length > 1) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (var index = 1; index < photoDataUrls.length; index++)
+                    SizedBox(
+                      width: extraTileSize,
+                      height: extraTileSize,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: _buildDiaryPhotoImage(
+                          photoDataUrls[index],
+                          label: _l10n.photoIndex(index + 1),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDiaryPhotoImage(String dataUrl, {required String label}) {
+    final bytes = _decodeDiaryPhotoDataUrl(dataUrl);
+    if (bytes == null || bytes.isEmpty) {
+      return _buildDiaryPhotoFallback();
+    }
+    return Semantics(
+      image: true,
+      label: label,
+      child: Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (_, __, ___) => _buildDiaryPhotoFallback(),
+      ),
+    );
+  }
+
+  Widget _buildDiaryPhotoFallback() {
+    return Container(
+      alignment: Alignment.center,
+      color: _composerIdleSurface(),
+      padding: const EdgeInsets.all(12),
+      child: Text(
+        _l10n.imageLoadFailed,
+        textAlign: TextAlign.center,
+        style: _theme.textTheme.bodySmall?.copyWith(
+          color: _bodyInk,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -1852,10 +2042,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (!mounted) return;
     setState(() {});
     if (showFeedback) {
-      AppFeedback.showSuccess(
-        context,
-        text: _isKo ? '다이어리를 저장했어요.' : 'Diary saved.',
-      );
+      AppFeedback.showSuccess(context, text: _l10n.diarySavedMessage);
     }
   }
 
@@ -3304,6 +3491,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               .map(recordStorageIdFromSeed)
               .whereType<String>()
               .toList(growable: true);
+    final photoDataUrls = <String>[...initialData.photoDataUrls];
+    final imagePicker = ImagePicker();
     var isClosingFlowRunning = false;
     Timer? autoSaveTimer;
     var autoSaveInFlight = false;
@@ -3326,6 +3515,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             )
             .toList(growable: false),
         stickers: const <String>[],
+        photoDataUrls: List<String>.unmodifiable(photoDataUrls),
         updatedAt: initialData.updatedAt,
       );
     }
@@ -3338,6 +3528,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             .map((sticker) => sticker.storageId)
             .toList(growable: false),
         'stickers': [...data.stickers]..sort(),
+        'photoDataUrls': data.photoDataUrls,
       });
     }
 
@@ -3372,6 +3563,34 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       );
     }
 
+    Future<void> addDiaryPhoto(
+      BuildContext modalContext,
+      StateSetter setModalState,
+    ) async {
+      if (photoDataUrls.length >= _customDiaryPhotoLimit) {
+        AppFeedback.showMessage(
+          modalContext,
+          text: _l10n.photoLimitReached(_customDiaryPhotoLimit),
+        );
+        return;
+      }
+      try {
+        final picked = await imagePicker.pickImage(
+          source: ImageSource.gallery,
+          maxWidth: 1600,
+          imageQuality: 78,
+        );
+        if (picked == null) return;
+        final dataUrl = await _diaryPhotoDataUrlFromXFile(picked);
+        if (!composerActive || !mounted || !modalContext.mounted) return;
+        setModalState(() => photoDataUrls.add(dataUrl));
+        scheduleAutoSave();
+      } catch (_) {
+        if (!composerActive || !mounted || !modalContext.mounted) return;
+        AppFeedback.showMessage(modalContext, text: _l10n.imageLoadFailed);
+      }
+    }
+
     titleController.addListener(scheduleAutoSave);
     storyController.addListener(scheduleAutoSave);
     persistedDraftSignature = buildDraftSignature(buildDraftData());
@@ -3402,24 +3621,20 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       final shouldSave = await showDialog<bool>(
         context: modalContext,
         builder: (dialogContext) => AlertDialog(
-          title: Text(_isKo ? '저장할까요?' : 'Save changes?'),
-          content: Text(
-            _isKo
-                ? '저장하지 않은 내용이 있어요. 저장 후 닫을까요?'
-                : 'You have unsaved changes. Save before closing?',
-          ),
+          title: Text(_l10n.diaryComposerSavePromptTitle),
+          content: Text(_l10n.diaryComposerSavePromptBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(null),
-              child: Text(_isKo ? '취소' : 'Cancel'),
+              child: Text(_l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(_isKo ? '저장 안 함' : "Don't save"),
+              child: Text(_l10n.diaryComposerDontSave),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(_isKo ? '저장' : 'Save'),
+              child: Text(_l10n.save),
             ),
           ],
         ),
@@ -3573,13 +3788,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               if (!available) {
                 if (!mounted || !context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      _isKo
-                          ? '이 기기에서는 음성 입력을 사용할 수 없어요.'
-                          : 'Voice input is not available on this device.',
-                    ),
-                  ),
+                  SnackBar(content: Text(_l10n.diaryVoiceInputUnavailable)),
                 );
                 return;
               }
@@ -3638,7 +3847,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   hintText: hintText,
                   alignLabelWithHint: alignLabelWithHint,
                   suffixIcon: IconButton(
-                    tooltip: _isKo ? '음성 입력' : 'Voice input',
+                    tooltip: _l10n.diaryVoiceInputTooltip,
                     onPressed: () => toggleListening(controller),
                     icon: Icon(
                       isListeningForField ? Icons.mic : Icons.mic_none,
@@ -3662,16 +3871,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        _isKo ? '오늘의 일기 구성하기' : 'Compose today diary',
+                        _l10n.diaryComposerTitle,
                         style: _theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        _isKo
-                            ? '아래 기록에서 스티커로 붙일 항목을 고르고, 본문은 직접 간단히 작성하세요.'
-                            : 'Pick stickers from today records below, and write the story yourself in short.',
+                        _l10n.diaryComposerDescription,
                         style: _theme.textTheme.bodyMedium?.copyWith(
                           color: _bodyInk,
                           height: 1.5,
@@ -3684,11 +3891,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         textInputAction: TextInputAction.next,
                         labelText: titleController.text.trim().isEmpty
                             ? _l10n.diaryTitlePlaceholder
-                            : (_isKo ? '제목' : 'Title'),
+                            : _l10n.diaryTitleLabel,
                         hintText: titleController.text.trim().isEmpty
-                            ? (_isKo
-                                  ? '예: 비 온 날 끝까지 이어진 패스 감각'
-                                  : 'Ex: Passing rhythm that lasted through the rain')
+                            ? _l10n.diaryTitleHint
                             : '',
                       ),
                       const SizedBox(height: 12),
@@ -3702,6 +3907,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             ? _defaultStoryPrompt(day)
                             : '',
                         alignLabelWithHint: true,
+                      ),
+                      const SizedBox(height: 14),
+                      _buildDiaryPhotoComposer(
+                        photoDataUrls: photoDataUrls,
+                        onAddPhoto: () => addDiaryPhoto(context, setModalState),
+                        onRemovePhoto: (index) {
+                          if (index < 0 || index >= photoDataUrls.length) {
+                            return;
+                          }
+                          setModalState(() => photoDataUrls.removeAt(index));
+                          scheduleAutoSave();
+                        },
                       ),
                       if (todoSeeds.isNotEmpty) ...[
                         const SizedBox(height: 18),
@@ -4251,26 +4468,22 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   final shouldClear = await showDialog<bool>(
                                     context: context,
                                     builder: (dialogContext) => AlertDialog(
-                                      title: Text(
-                                        _isKo ? '정말 비울까요?' : 'Clear all?',
-                                      ),
+                                      title: Text(_l10n.diaryClearConfirmTitle),
                                       content: Text(
-                                        _isKo
-                                            ? '작성한 제목, 본문, 선택한 스티커를 모두 비웁니다.'
-                                            : 'This will clear title, story, and selected stickers.',
+                                        _l10n.diaryClearConfirmBody,
                                       ),
                                       actions: [
                                         TextButton(
                                           onPressed: () => Navigator.of(
                                             dialogContext,
                                           ).pop(false),
-                                          child: Text(_isKo ? '취소' : 'Cancel'),
+                                          child: Text(_l10n.cancel),
                                         ),
                                         FilledButton(
                                           onPressed: () => Navigator.of(
                                             dialogContext,
                                           ).pop(true),
-                                          child: Text(_isKo ? '비우기' : 'Clear'),
+                                          child: Text(_l10n.diaryClearAction),
                                         ),
                                       ],
                                     ),
@@ -4280,10 +4493,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                     titleController.clear();
                                     storyController.clear();
                                     selectedRecordStickerOrder.clear();
+                                    photoDataUrls.clear();
                                   });
                                   scheduleAutoSave();
                                 },
-                                child: Text(_isKo ? '비우기' : 'Clear'),
+                                child: Text(_l10n.diaryClearAction),
                               ),
                               const Spacer(),
                               SizedBox(
@@ -4316,7 +4530,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                       navigator.pop(draft);
                                     }
                                   },
-                                  child: Text(_isKo ? '저장' : 'Save'),
+                                  child: Text(_l10n.save),
                                 ),
                               ),
                             ],
@@ -4350,6 +4564,41 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     await _saveCustomDiary(day.date, result);
     if (result.hasContent) {
       await _markDiaryCompletedIfNeeded(day.date);
+    }
+  }
+
+  Future<String> _diaryPhotoDataUrlFromXFile(XFile file) async {
+    final bytes = await file.readAsBytes();
+    if (bytes.isEmpty) {
+      throw StateError('empty_diary_photo');
+    }
+    final mimeType = _diaryPhotoMimeType(file);
+    return 'data:$mimeType;base64,${base64Encode(bytes)}';
+  }
+
+  String _diaryPhotoMimeType(XFile file) {
+    final explicit = file.mimeType?.trim();
+    if (explicit != null && explicit.startsWith('image/')) {
+      return explicit;
+    }
+    final lowerName = file.name.toLowerCase();
+    if (lowerName.endsWith('.png')) return 'image/png';
+    if (lowerName.endsWith('.webp')) return 'image/webp';
+    if (lowerName.endsWith('.heic')) return 'image/heic';
+    return 'image/jpeg';
+  }
+
+  Uint8List? _decodeDiaryPhotoDataUrl(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    final commaIndex = trimmed.indexOf(',');
+    final encoded = commaIndex == -1
+        ? trimmed
+        : trimmed.substring(commaIndex + 1);
+    try {
+      return base64Decode(encoded);
+    } on FormatException {
+      return null;
     }
   }
 
@@ -4981,6 +5230,7 @@ class _CustomDiaryEntryData {
   final String moodId;
   final List<_DiaryRecordStickerData> recordStickers;
   final List<String> stickers;
+  final List<String> photoDataUrls;
   final DateTime? updatedAt;
 
   const _CustomDiaryEntryData({
@@ -4990,6 +5240,7 @@ class _CustomDiaryEntryData {
     required this.moodId,
     required this.recordStickers,
     required this.stickers,
+    required this.photoDataUrls,
     required this.updatedAt,
   });
 
@@ -5000,6 +5251,7 @@ class _CustomDiaryEntryData {
       moodId = _DiaryMoodPreset.calmId,
       recordStickers = const <_DiaryRecordStickerData>[],
       stickers = const <String>[],
+      photoDataUrls = const <String>[],
       updatedAt = null;
 
   bool get hasContent =>
@@ -5007,7 +5259,8 @@ class _CustomDiaryEntryData {
       story.trim().isNotEmpty ||
       sections.any((section) => section.hasContent) ||
       recordStickers.isNotEmpty ||
-      stickers.isNotEmpty;
+      stickers.isNotEmpty ||
+      photoDataUrls.isNotEmpty;
 
   _DiaryMoodPreset get mood => _DiaryMoodPreset.fromId(moodId);
 
@@ -5018,6 +5271,7 @@ class _CustomDiaryEntryData {
     String? moodId,
     List<_DiaryRecordStickerData>? recordStickers,
     List<String>? stickers,
+    List<String>? photoDataUrls,
     DateTime? updatedAt,
   }) {
     return _CustomDiaryEntryData(
@@ -5027,6 +5281,7 @@ class _CustomDiaryEntryData {
       moodId: moodId ?? this.moodId,
       recordStickers: recordStickers ?? this.recordStickers,
       stickers: stickers ?? this.stickers,
+      photoDataUrls: photoDataUrls ?? this.photoDataUrls,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -5040,6 +5295,7 @@ class _CustomDiaryEntryData {
         .map((sticker) => sticker.toMap())
         .toList(growable: false),
     'stickers': stickers,
+    'photoDataUrls': photoDataUrls,
     if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
   };
 
@@ -5089,6 +5345,12 @@ class _CustomDiaryEntryData {
           .toList(growable: false),
       stickers:
           (map['stickers'] as List?)
+              ?.map((value) => value.toString())
+              .where((value) => value.trim().isNotEmpty)
+              .toList(growable: false) ??
+          const <String>[],
+      photoDataUrls:
+          (map['photoDataUrls'] as List?)
               ?.map((value) => value.toString())
               .where((value) => value.trim().isNotEmpty)
               .toList(growable: false) ??

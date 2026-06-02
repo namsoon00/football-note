@@ -97,6 +97,40 @@ void main() {
       );
     });
 
+    test(
+      'composeSnapshot keeps today range consistent with current temperature',
+      () async {
+        const locale = Locale('ko', 'KR');
+        final l10n = await AppLocalizations.delegate.load(locale);
+        final snapshot = WeatherSharedResource.composeSnapshot(
+          location: '잠실보조구장',
+          locale: locale,
+          fetchedAt: DateTime(2026, 4, 26, 9),
+          l10n: l10n,
+          weatherSnapshot: WeatherDetailsSnapshot(
+            provider: WeatherDataProvider.openMeteo,
+            temperature: 18,
+            weatherCode: 0,
+            temperatureMax: 24,
+            temperatureMin: 20,
+            dailyForecasts: <WeatherDailyForecast>[
+              WeatherDailyForecast(
+                date: DateTime(2026, 4, 26),
+                weatherCode: 0,
+                temperatureMax: 24,
+                temperatureMin: 20,
+              ),
+            ],
+          ),
+          airQualitySnapshot: const AirQualitySnapshot(),
+        );
+
+        expect(snapshot.temperatureMin, 18);
+        expect(snapshot.temperatureMax, 24);
+        expect(snapshot.dailyForecasts.first.temperatureMin, 18);
+      },
+    );
+
     test('fetchForCoordinates attaches daily fine dust forecasts', () async {
       const locale = Locale('ko', 'KR');
       final l10n = await AppLocalizations.delegate.load(locale);

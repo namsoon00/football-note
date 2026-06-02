@@ -806,7 +806,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsDomesticFeedsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Domestic feeds'**
+  /// **'Korean feeds'**
   String get newsDomesticFeedsLabel;
 
   /// No description provided for @newsInternationalFeedsLabel.
@@ -824,7 +824,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsRegionDomesticLabel.
   ///
   /// In en, this message translates to:
-  /// **'Domestic'**
+  /// **'Korea'**
   String get newsRegionDomesticLabel;
 
   /// No description provided for @newsRegionInternationalLabel.
@@ -3342,6 +3342,18 @@ abstract class AppLocalizations {
   /// **'Jump rope days only'**
   String get filterJumpRopeOnly;
 
+  /// No description provided for @filterFeedbackOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback only'**
+  String get filterFeedbackOnly;
+
+  /// No description provided for @filterEmptyResetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filters to see more entries.'**
+  String get filterEmptyResetHint;
+
   /// No description provided for @filterReset.
   ///
   /// In en, this message translates to:
@@ -4104,28 +4116,88 @@ abstract class AppLocalizations {
   /// **'Refresh'**
   String get notificationRefreshAction;
 
+  /// No description provided for @notificationMuteStatusPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts are currently paused.'**
+  String get notificationMuteStatusPaused;
+
+  /// No description provided for @notificationMuteControlTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeating alert control'**
+  String get notificationMuteControlTitle;
+
+  /// No description provided for @notificationMuteControlSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporarily mute alerts or resume anytime.'**
+  String get notificationMuteControlSubtitle;
+
+  /// No description provided for @notificationMute8HoursAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute 8h'**
+  String get notificationMute8HoursAction;
+
+  /// No description provided for @notificationResumeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get notificationResumeAction;
+
+  /// No description provided for @notificationAllSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All notifications'**
+  String get notificationAllSettingsTitle;
+
+  /// No description provided for @notificationTrainingPlanVibrationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan vibration'**
+  String get notificationTrainingPlanVibrationTitle;
+
+  /// No description provided for @notificationXpAlertSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'XP alerts'**
+  String get notificationXpAlertSettingsTitle;
+
+  /// No description provided for @notificationXpAlertSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show an alert whenever XP is earned.'**
+  String get notificationXpAlertSettingsSubtitle;
+
+  /// No description provided for @notificationLevelUpSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Level-up notifications'**
+  String get notificationLevelUpSettingsTitle;
+
   /// No description provided for @notificationFamilySectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'{count} family sync alert(s)'**
+  /// **'{count} parent sync alert(s)'**
   String notificationFamilySectionTitle(int count);
 
   /// No description provided for @notificationFamilyEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No family sync alerts yet.'**
+  /// **'No parent sync alerts yet.'**
   String get notificationFamilyEmpty;
 
   /// No description provided for @notificationFamilySettingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Family sync alerts'**
+  /// **'Parent sync alerts'**
   String get notificationFamilySettingsTitle;
 
   /// No description provided for @notificationFamilySettingsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Notify when player logs or parent feedback/rewards sync.'**
+  /// **'Notify when player logs or guardian feedback/rewards sync.'**
   String get notificationFamilySettingsSubtitle;
 
   /// No description provided for @notificationLeagueFixtureSettingsTitle.
@@ -4452,11 +4524,83 @@ abstract class AppLocalizations {
   /// **'Hide keyboard'**
   String get hideKeyboard;
 
+  /// No description provided for @diaryComposerSavePromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes?'**
+  String get diaryComposerSavePromptTitle;
+
+  /// No description provided for @diaryComposerSavePromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes. Save before closing?'**
+  String get diaryComposerSavePromptBody;
+
+  /// No description provided for @diaryComposerDontSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t save'**
+  String get diaryComposerDontSave;
+
+  /// No description provided for @diaryVoiceInputTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice input'**
+  String get diaryVoiceInputTooltip;
+
+  /// No description provided for @diaryVoiceInputUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice input is not available on this device.'**
+  String get diaryVoiceInputUnavailable;
+
+  /// No description provided for @diaryComposerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Compose today\'s diary'**
+  String get diaryComposerTitle;
+
+  /// No description provided for @diaryComposerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick stickers from today records below, and write the story yourself in short.'**
+  String get diaryComposerDescription;
+
+  /// No description provided for @diaryEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it short and clear.'**
+  String get diaryEmptyHint;
+
+  /// No description provided for @diaryLastSavedPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Last saved'**
+  String get diaryLastSavedPrefix;
+
+  /// No description provided for @diarySavedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary saved.'**
+  String get diarySavedMessage;
+
   /// No description provided for @diaryTitlePlaceholder.
   ///
   /// In en, this message translates to:
   /// **'Please enter a title'**
   String get diaryTitlePlaceholder;
+
+  /// No description provided for @diaryTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get diaryTitleLabel;
+
+  /// No description provided for @diaryTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ex: Passing rhythm that lasted through the rain'**
+  String get diaryTitleHint;
 
   /// No description provided for @diaryStoryLabel.
   ///
@@ -4473,8 +4617,26 @@ abstract class AppLocalizations {
   /// No description provided for @diarySaveEmptyMessage.
   ///
   /// In en, this message translates to:
-  /// **'Nothing to save yet. Add a title, story, or sticker first.'**
+  /// **'Nothing to save yet. Add a title, story, sticker, or photo first.'**
   String get diarySaveEmptyMessage;
+
+  /// No description provided for @diaryClearConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all?'**
+  String get diaryClearConfirmTitle;
+
+  /// No description provided for @diaryClearConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will clear title, story, selected stickers, and photos.'**
+  String get diaryClearConfirmBody;
+
+  /// No description provided for @diaryClearAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get diaryClearAction;
 
   /// No description provided for @diaryCustomEmotionLabel.
   ///
@@ -4683,37 +4845,37 @@ abstract class AppLocalizations {
   /// No description provided for @weatherPrecipitationNone.
   ///
   /// In en, this message translates to:
-  /// **'Almost no rain'**
+  /// **'Little rain'**
   String get weatherPrecipitationNone;
 
   /// No description provided for @weatherPrecipitationTrace.
   ///
   /// In en, this message translates to:
-  /// **'The ground may feel a little damp'**
+  /// **'Light rain'**
   String get weatherPrecipitationTrace;
 
   /// No description provided for @weatherPrecipitationLight.
   ///
   /// In en, this message translates to:
-  /// **'A light rain where an umbrella helps'**
+  /// **'Light rain'**
   String get weatherPrecipitationLight;
 
   /// No description provided for @weatherPrecipitationModerate.
   ///
   /// In en, this message translates to:
-  /// **'Enough rain to wet the field'**
+  /// **'Rain'**
   String get weatherPrecipitationModerate;
 
   /// No description provided for @weatherPrecipitationHeavy.
   ///
   /// In en, this message translates to:
-  /// **'Puddles can form quickly'**
+  /// **'Heavy rain'**
   String get weatherPrecipitationHeavy;
 
   /// No description provided for @weatherPrecipitationVeryHeavy.
   ///
   /// In en, this message translates to:
-  /// **'Too much rain for easy outdoor play'**
+  /// **'Very heavy rain'**
   String get weatherPrecipitationVeryHeavy;
 
   /// No description provided for @homeWeatherHourlyPrecipitation.
@@ -9573,7 +9735,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySyncAlertTitle.
   ///
   /// In en, this message translates to:
-  /// **'Family sync'**
+  /// **'Parent sync'**
   String get familySyncAlertTitle;
 
   /// No description provided for @familySyncParentTrainingAdded.

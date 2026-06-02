@@ -461,7 +461,8 @@ void main() {
       );
       expect(
         ((optionBox.get(FamilyAccessService.parentTrainingFeedbackKey)
-            as Map)['training_1713427800000000'] as Map)['message'],
+                as Map)['training_1713427800000000']
+            as Map)['message'],
         'Remote parent feedback',
       );
       expect(
@@ -565,8 +566,8 @@ void main() {
       final mealLogService = MealLogService(optionRepository);
       final observedMeals = <List<MealEntry>>[];
       final mealSubscription = mealLogService.watchEntries().listen(
-            observedMeals.add,
-          );
+        observedMeals.add,
+      );
       final dataSubscription = service.dataChanges().listen((_) {
         mealLogService.reloadFromStorage();
       });
@@ -938,12 +939,14 @@ void main() {
       ]);
       expect(
         ((mergedOptions[PlayerLevelService.rewardClaimMessagesKey] as List)
-            .single as Map)['rewardName'],
+                .single
+            as Map)['rewardName'],
         'Ball',
       );
       expect(
         ((mergedOptions[FamilyAccessService.parentTrainingFeedbackKey]
-            as Map)['training_1713427800000000'] as Map)['message'],
+                as Map)['training_1713427800000000']
+            as Map)['message'],
         'Check the first touch after scanning.',
       );
       expect(family['updatedByRole'], 'parent');
@@ -1007,7 +1010,8 @@ void main() {
       expect(result.rewardNamesChanged, isTrue);
       expect(
         ((optionBox.get(FamilyAccessService.parentTrainingFeedbackKey)
-            as Map)['training_1713427800000000'] as Map)['message'],
+                as Map)['training_1713427800000000']
+            as Map)['message'],
         'Great first touch.',
       );
       expect(
@@ -1016,7 +1020,8 @@ void main() {
       );
       expect(
         ((optionBox.get(PlayerLevelService.rewardClaimMessagesKey) as List)
-            .single as Map)['rewardName'],
+                .single
+            as Map)['rewardName'],
         'Local claim',
       );
     },
@@ -1267,7 +1272,7 @@ void main() {
         ),
       );
 
-      await service.syncConnectedPlayerBackupForTesting(
+      final switchedAccount = await service.syncConnectedPlayerBackupForTesting(
         connectedAccount: const DriveConnectionInfo(
           email: 'new@example.com',
           displayName: 'New Player',
@@ -1326,6 +1331,7 @@ void main() {
         },
       );
 
+      expect(switchedAccount, isTrue);
       expect(trainingBox.length, 1);
       expect(trainingBox.values.first.notes, 'new remote player data');
       expect(service.getSavedRecordDriveEmail(), 'new@example.com');
@@ -1370,7 +1376,7 @@ void main() {
         '{"2026-04-18":{"body":"old diary"}}',
       );
 
-      await service.syncConnectedPlayerBackupForTesting(
+      final switchedAccount = await service.syncConnectedPlayerBackupForTesting(
         connectedAccount: const DriveConnectionInfo(
           email: 'new@example.com',
           displayName: 'New Player',
@@ -1379,6 +1385,7 @@ void main() {
         remoteBackup: null,
       );
 
+      expect(switchedAccount, isTrue);
       expect(trainingBox.length, 0);
       expect(optionBox.get('custom_diary_entries_v3'), isNull);
       expect(service.getSavedRecordDriveEmail(), 'new@example.com');

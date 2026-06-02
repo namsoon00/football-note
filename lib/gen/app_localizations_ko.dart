@@ -1761,6 +1761,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filterJumpRopeOnly => '줄넘기 한 날만';
 
   @override
+  String get filterFeedbackOnly => '피드백 있는 기록만';
+
+  @override
+  String get filterEmptyResetHint => '필터를 초기화하면 더 많은 기록을 볼 수 있어요.';
+
+  @override
   String get filterReset => '초기화';
 
   @override
@@ -2156,15 +2162,45 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notificationRefreshAction => '새로고침';
 
   @override
+  String get notificationMuteStatusPaused => '현재 알림이 일시중지되어 있어요.';
+
+  @override
+  String get notificationMuteControlTitle => '반복 알림 제어';
+
+  @override
+  String get notificationMuteControlSubtitle => '알림을 잠시 멈추거나 다시 켤 수 있어요.';
+
+  @override
+  String get notificationMute8HoursAction => '8시간 끄기';
+
+  @override
+  String get notificationResumeAction => '다시 켜기';
+
+  @override
+  String get notificationAllSettingsTitle => '전체 알림';
+
+  @override
+  String get notificationTrainingPlanVibrationTitle => '훈련 계획 진동 알림';
+
+  @override
+  String get notificationXpAlertSettingsTitle => '경험치 알림';
+
+  @override
+  String get notificationXpAlertSettingsSubtitle => '경험치를 얻으면 바로 알림을 보냅니다.';
+
+  @override
+  String get notificationLevelUpSettingsTitle => '레벨 업 알림';
+
+  @override
   String notificationFamilySectionTitle(int count) {
-    return '가족 동기화 알림 $count개';
+    return '보호자 동기화 알림 $count개';
   }
 
   @override
-  String get notificationFamilyEmpty => '아직 가족 동기화 알림이 없어요.';
+  String get notificationFamilyEmpty => '아직 보호자 동기화 알림이 없어요.';
 
   @override
-  String get notificationFamilySettingsTitle => '가족 동기화 알림';
+  String get notificationFamilySettingsTitle => '보호자 동기화 알림';
 
   @override
   String get notificationFamilySettingsSubtitle =>
@@ -2351,7 +2387,44 @@ class AppLocalizationsKo extends AppLocalizations {
   String get hideKeyboard => '키보드 내리기';
 
   @override
+  String get diaryComposerSavePromptTitle => '저장할까요?';
+
+  @override
+  String get diaryComposerSavePromptBody => '저장하지 않은 내용이 있어요. 저장 후 닫을까요?';
+
+  @override
+  String get diaryComposerDontSave => '저장 안 함';
+
+  @override
+  String get diaryVoiceInputTooltip => '음성 입력';
+
+  @override
+  String get diaryVoiceInputUnavailable => '이 기기에서는 음성 입력을 사용할 수 없어요.';
+
+  @override
+  String get diaryComposerTitle => '오늘의 일기 구성하기';
+
+  @override
+  String get diaryComposerDescription =>
+      '아래 기록에서 스티커로 붙일 항목을 고르고, 본문은 직접 간단히 작성하세요.';
+
+  @override
+  String get diaryEmptyHint => '핵심만 간단히 기록해보세요.';
+
+  @override
+  String get diaryLastSavedPrefix => '마지막 저장';
+
+  @override
+  String get diarySavedMessage => '다이어리를 저장했어요.';
+
+  @override
   String get diaryTitlePlaceholder => '제목을 입력해 주세요';
+
+  @override
+  String get diaryTitleLabel => '제목';
+
+  @override
+  String get diaryTitleHint => '예: 비 온 날 끝까지 이어진 패스 감각';
 
   @override
   String get diaryStoryLabel => '본문';
@@ -2361,7 +2434,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get diarySaveEmptyMessage =>
-      '저장할 내용이 없어요. 제목, 본문, 스티커 중 하나 이상을 추가해 주세요.';
+      '저장할 내용이 없어요. 제목, 본문, 스티커, 사진 중 하나 이상을 추가해 주세요.';
+
+  @override
+  String get diaryClearConfirmTitle => '정말 비울까요?';
+
+  @override
+  String get diaryClearConfirmBody => '작성한 제목, 본문, 선택한 스티커, 사진을 모두 비웁니다.';
+
+  @override
+  String get diaryClearAction => '비우기';
 
   @override
   String get diaryCustomEmotionLabel => '감정 직접 만들기';
@@ -2468,22 +2550,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherPrecipitation => '강수량';
 
   @override
-  String get weatherPrecipitationNone => '거의 안 와요';
+  String get weatherPrecipitationNone => '비 거의 없음';
 
   @override
-  String get weatherPrecipitationTrace => '땅이 살짝 젖는 정도예요';
+  String get weatherPrecipitationTrace => '약한 비';
 
   @override
-  String get weatherPrecipitationLight => '우산이 있으면 좋아요';
+  String get weatherPrecipitationLight => '가벼운 비';
 
   @override
-  String get weatherPrecipitationModerate => '운동장이 젖을 만큼 와요';
+  String get weatherPrecipitationModerate => '비';
 
   @override
-  String get weatherPrecipitationHeavy => '물웅덩이가 금방 생겨요';
+  String get weatherPrecipitationHeavy => '많은 비';
 
   @override
-  String get weatherPrecipitationVeryHeavy => '밖에서 놀기 어려울 만큼 와요';
+  String get weatherPrecipitationVeryHeavy => '폭우';
 
   @override
   String get homeWeatherHourlyPrecipitation => '시간별 강수량';
@@ -5326,7 +5408,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '보호자 피드백과 레벨 선물 이름은 같은 선수 백업 파일로 자동 반영됩니다.';
 
   @override
-  String get familySyncAlertTitle => '가족 동기화';
+  String get familySyncAlertTitle => '보호자 동기화';
 
   @override
   String familySyncParentTrainingAdded(int count) {
