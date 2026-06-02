@@ -187,7 +187,7 @@ class WeatherSharedResource {
   const WeatherSharedResource._();
 
   static const Duration cacheTtl = Duration(minutes: 10);
-  static const Duration _fetchTimeout = Duration(seconds: 7);
+  static const Duration _fetchTimeout = Duration(seconds: 12);
   static const Duration _retryDelay = Duration(milliseconds: 300);
   static const int _maxFetchAttempts = 2;
   static WeatherSharedSnapshot? _cachedSnapshot;
@@ -379,7 +379,7 @@ class WeatherSharedResource {
     final forecasts = weatherSnapshot.dailyForecasts
         .map((forecast) {
           final airForecast = airForecastsByDate[_normalizeDate(forecast.date)];
-          return WeatherSharedDailyForecast(
+          final sharedForecast = WeatherSharedDailyForecast(
             date: forecast.date,
             weatherCode: forecast.weatherCode,
             summary: _weatherLabelFromCode(
@@ -431,8 +431,14 @@ class WeatherSharedResource {
                 )
                 .toList(growable: false),
           );
+          return _alignTodayForecastWithCurrentTemperature(
+            forecast: sharedForecast,
+            fetchedAt: fetchedAt,
+            temperature: temperature,
+          );
         })
         .toList(growable: false);
+    final todayForecast = _todayForecastOrNull(forecasts, fetchedAt);
     final summary = _buildWeatherSummary(
       temperature: temperature,
       weatherCode: weatherCode,
@@ -450,8 +456,12 @@ class WeatherSharedResource {
       humidity: weatherSnapshot.humidity,
       precipitation: weatherSnapshot.precipitation,
       windSpeed: weatherSnapshot.windSpeed,
-      temperatureMax: weatherSnapshot.temperatureMax,
-      temperatureMin: weatherSnapshot.temperatureMin,
+      temperatureMax:
+          todayForecast?.temperatureMax ??
+          _maxIncludingCurrent(weatherSnapshot.temperatureMax, temperature),
+      temperatureMin:
+          todayForecast?.temperatureMin ??
+          _minIncludingCurrent(weatherSnapshot.temperatureMin, temperature),
       temperatureDeltaFromYesterday: temperatureDeltaFromYesterday,
       pm10: airQualitySnapshot.pm10,
       pm25: airQualitySnapshot.pm25,
@@ -463,6 +473,70 @@ class WeatherSharedResource {
 
   static DateTime _normalizeDate(DateTime date) =>
       DateTime(date.year, date.month, date.day);
+
+  static WeatherSharedDailyForecast? _todayForecastOrNull(
+    List<WeatherSharedDailyForecast> forecasts,
+    DateTime fetchedAt,
+  ) {
+    final today = _normalizeDate(fetchedAt);
+    for (final forecast in forecasts) {
+      if (_normalizeDate(forecast.date) == today) {
+        return forecast;
+      }
+    }
+    return null;
+  }
+
+  static WeatherSharedDailyForecast _alignTodayForecastWithCurrentTemperature({
+    required WeatherSharedDailyForecast forecast,
+    required DateTime fetchedAt,
+    required double? temperature,
+  }) {
+    if (temperature == null ||
+        _normalizeDate(forecast.date) != _normalizeDate(fetchedAt)) {
+      return forecast;
+    }
+    final temperatureMin = _minIncludingCurrent(
+      forecast.temperatureMin,
+      temperature,
+    );
+    final temperatureMax = _maxIncludingCurrent(
+      forecast.temperatureMax,
+      temperature,
+    );
+    if (temperatureMin == forecast.temperatureMin &&
+        temperatureMax == forecast.temperatureMax) {
+      return forecast;
+    }
+    return WeatherSharedDailyForecast(
+      date: forecast.date,
+      summary: forecast.summary,
+      weatherCode: forecast.weatherCode,
+      temperatureMax: temperatureMax,
+      temperatureMin: temperatureMin,
+      precipitationSum: forecast.precipitationSum,
+      windSpeedMax: forecast.windSpeedMax,
+      pm10: forecast.pm10,
+      pm25: forecast.pm25,
+      uvIndexMax: forecast.uvIndexMax,
+      morningForecast: forecast.morningForecast,
+      eveningForecast: forecast.eveningForecast,
+      hourlyForecasts: forecast.hourlyForecasts,
+      hourlyPrecipitations: forecast.hourlyPrecipitations,
+    );
+  }
+
+  static double? _minIncludingCurrent(double? value, double? temperature) {
+    if (temperature == null) return value;
+    if (value == null || temperature < value) return temperature;
+    return value;
+  }
+
+  static double? _maxIncludingCurrent(double? value, double? temperature) {
+    if (temperature == null) return value;
+    if (value == null || temperature > value) return temperature;
+    return value;
+  }
 
   static Future<double?> _fetchYesterdayTemperatureAtSameHour({
     required double latitude,

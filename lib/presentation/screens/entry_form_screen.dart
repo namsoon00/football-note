@@ -706,13 +706,45 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   String _defaultString(String key, List<String> options, String optionsKey) {
+    if (options.isEmpty) return '';
     final value = widget.optionRepository.getValue<String>(key);
-    if (value == null || value.isEmpty) return options.first;
-    if (!options.contains(value)) {
-      options.add(value);
+    final normalized = LocalizedOptionDefaults.normalizeDefaultValue(
+      key: key,
+      storedValue: value,
+      localizedDefaults: _localizedDefaultsForDefaultKey(key),
+      options: options,
+      preserveCustomValue: true,
+    );
+    if (normalized.isEmpty) return options.first;
+    if (value != normalized) {
+      unawaited(widget.optionRepository.setValue(key, normalized));
+    }
+    if (!options.contains(normalized)) {
+      options.add(normalized);
       widget.optionRepository.saveOptions(optionsKey, options);
     }
-    return value;
+    return normalized;
+  }
+
+  List<String> _localizedDefaultsForDefaultKey(String key) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (key) {
+      case 'default_location':
+        return [
+          l10n.defaultLocation1,
+          l10n.defaultLocation2,
+          l10n.defaultLocation3,
+        ];
+      case 'default_program':
+        return [
+          l10n.defaultProgram1,
+          l10n.defaultProgram2,
+          l10n.defaultProgram3,
+          l10n.defaultProgram4,
+        ];
+      default:
+        return const <String>[];
+    }
   }
 
   bool get _canEditParentFeedback {

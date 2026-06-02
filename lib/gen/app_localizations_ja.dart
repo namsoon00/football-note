@@ -388,7 +388,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newsClearAll => 'すべてクリア';
 
   @override
-  String get newsDomesticFeedsLabel => '国産飼料';
+  String get newsDomesticFeedsLabel => '韓国フィード';
 
   @override
   String get newsInternationalFeedsLabel => '国際フィード';
@@ -397,7 +397,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newsRegionAllLabel => '全て';
 
   @override
-  String get newsRegionDomesticLabel => '国内';
+  String get newsRegionDomesticLabel => '韓国';
 
   @override
   String get newsRegionInternationalLabel => '世界';
@@ -1771,6 +1771,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get filterJumpRopeOnly => '縄跳びの日のみ';
 
   @override
+  String get filterFeedbackOnly => 'フィードバックありのみ';
+
+  @override
+  String get filterEmptyResetHint => 'フィルターをリセットすると、ほかの記録も表示できます。';
+
+  @override
   String get filterReset => 'リセット';
 
   @override
@@ -2167,19 +2173,49 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationRefreshAction => 'リフレッシュ';
 
   @override
+  String get notificationMuteStatusPaused => '通知は現在一時停止中です。';
+
+  @override
+  String get notificationMuteControlTitle => '繰り返し通知の管理';
+
+  @override
+  String get notificationMuteControlSubtitle => '通知を一時停止したり、いつでも再開できます。';
+
+  @override
+  String get notificationMute8HoursAction => '8時間オフ';
+
+  @override
+  String get notificationResumeAction => '再開';
+
+  @override
+  String get notificationAllSettingsTitle => 'すべての通知';
+
+  @override
+  String get notificationTrainingPlanVibrationTitle => 'トレーニング計画の振動通知';
+
+  @override
+  String get notificationXpAlertSettingsTitle => 'XP通知';
+
+  @override
+  String get notificationXpAlertSettingsSubtitle => 'XPを獲得したときに通知します。';
+
+  @override
+  String get notificationLevelUpSettingsTitle => 'レベルアップ通知';
+
+  @override
   String notificationFamilySectionTitle(int count) {
-    return '$count ファミリー同期アラート';
+    return '$count 件の保護者同期アラート';
   }
 
   @override
-  String get notificationFamilyEmpty => 'ファミリー同期アラートはまだありません。';
+  String get notificationFamilyEmpty => '保護者同期アラートはまだありません。';
 
   @override
-  String get notificationFamilySettingsTitle => 'ファミリー同期アラート';
+  String get notificationFamilySettingsTitle => '保護者同期アラート';
 
   @override
   String get notificationFamilySettingsSubtitle =>
-      'プレーヤーのログまたは保護者のフィードバック/報酬が同期されたときに通知します。';
+      '選手の記録や保護者フィードバック/報酬が同期されたときに通知します。';
 
   @override
   String get notificationLeagueFixtureSettingsTitle => 'お気に入りのチームの試合アラート';
@@ -2362,17 +2398,62 @@ class AppLocalizationsJa extends AppLocalizations {
   String get hideKeyboard => 'キーボードを隠す';
 
   @override
+  String get diaryComposerSavePromptTitle => '保存しますか？';
+
+  @override
+  String get diaryComposerSavePromptBody => '未保存の変更があります。保存して閉じますか？';
+
+  @override
+  String get diaryComposerDontSave => '保存しない';
+
+  @override
+  String get diaryVoiceInputTooltip => '音声入力';
+
+  @override
+  String get diaryVoiceInputUnavailable => 'この端末では音声入力を使用できません。';
+
+  @override
+  String get diaryComposerTitle => '今日の日記を書く';
+
+  @override
+  String get diaryComposerDescription => '今日の記録からステッカーを選び、本文は短く自分で書きましょう。';
+
+  @override
+  String get diaryEmptyHint => '要点だけを短く記録しましょう。';
+
+  @override
+  String get diaryLastSavedPrefix => '最終保存';
+
+  @override
+  String get diarySavedMessage => '日記を保存しました。';
+
+  @override
   String get diaryTitlePlaceholder => 'タイトルを入力してください';
 
   @override
-  String get diaryStoryLabel => '体';
+  String get diaryTitleLabel => 'タイトル';
+
+  @override
+  String get diaryTitleHint => '例: 雨の日も続いたパスのリズム';
+
+  @override
+  String get diaryStoryLabel => '本文';
 
   @override
   String get diaryStoryPlaceholder => '本文を入力してください';
 
   @override
   String get diarySaveEmptyMessage =>
-      'まだ保存するものはありません。最初にタイトル、ストーリー、またはステッカーを追加します。';
+      'まだ保存する内容がありません。タイトル、本文、ステッカー、写真のいずれかを追加してください。';
+
+  @override
+  String get diaryClearConfirmTitle => 'すべて消しますか？';
+
+  @override
+  String get diaryClearConfirmBody => 'タイトル、本文、選択したステッカー、写真をすべて消します。';
+
+  @override
+  String get diaryClearAction => '消去';
 
   @override
   String get diaryCustomEmotionLabel => '自分自身の感情を創造する';
@@ -2479,22 +2560,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeWeatherPrecipitation => '降水量';
 
   @override
-  String get weatherPrecipitationNone => '雨もほとんど降らず';
+  String get weatherPrecipitationNone => '雨ほぼなし';
 
   @override
-  String get weatherPrecipitationTrace => '地面が少し湿っているように感じるかもしれません';
+  String get weatherPrecipitationTrace => '弱い雨';
 
   @override
-  String get weatherPrecipitationLight => '傘があると助かる小雨';
+  String get weatherPrecipitationLight => '小雨';
 
   @override
-  String get weatherPrecipitationModerate => '畑が濡れるほどの雨が降った';
+  String get weatherPrecipitationModerate => '雨';
 
   @override
-  String get weatherPrecipitationHeavy => '水たまりがすぐにできる';
+  String get weatherPrecipitationHeavy => '強い雨';
 
   @override
-  String get weatherPrecipitationVeryHeavy => '雨が多すぎて屋外で遊ぶのは難しい';
+  String get weatherPrecipitationVeryHeavy => '大雨';
 
   @override
   String get homeWeatherHourlyPrecipitation => '時間降水量';
@@ -5329,7 +5410,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '親のフィードバックとレベル報酬の名前は、同じプレーヤーのバックアップ ファイルに自動的に書き込まれます。';
 
   @override
-  String get familySyncAlertTitle => '家族の同期';
+  String get familySyncAlertTitle => '保護者同期';
 
   @override
   String familySyncParentTrainingAdded(int count) {

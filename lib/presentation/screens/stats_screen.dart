@@ -1504,16 +1504,6 @@ class _TrainingOverviewSection extends StatelessWidget {
         ? null
         : ((completedPlanDays / plannedDays.length) * 100).round();
     final focus = _topFocusLabel(entries, isKo);
-    final strongest = _topPhrase(
-      entries.map((entry) => entry.goodPoints).toList(growable: false),
-      isKo: isKo,
-      fallback: isKo ? '강점 기록 필요' : 'Need strength notes',
-    );
-    final weakest = _topPhrase(
-      entries.map((entry) => entry.improvements).toList(growable: false),
-      isKo: isKo,
-      fallback: isKo ? '보완점 기록 필요' : 'Need improvement notes',
-    );
     final nextAction = _topPhrase(
       entries.map((entry) => entry.nextGoal).toList(growable: false),
       isKo: isKo,
@@ -1524,14 +1514,6 @@ class _TrainingOverviewSection extends StatelessWidget {
                 : 'Add the next goal in training logs'),
     );
     final streak = _currentTrainingStreak(entries);
-    final overviewMessage = _buildOverviewMessage(
-      isKo: isKo,
-      totalMinutes: totalMinutes,
-      sessions: entries.length,
-      executionRate: executionRate,
-      weakest: weakest,
-      nextAction: nextAction,
-    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1585,26 +1567,10 @@ class _TrainingOverviewSection extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 12),
-              _CoachMessage(
-                icon: Icons.auto_awesome_outlined,
-                title: isKo ? '코치 해석' : 'Coach Insight',
-                message: overviewMessage,
-              ),
-              const SizedBox(height: 12),
               LayoutBuilder(
                 builder: (context, constraints) {
                   final wide = constraints.maxWidth >= 700;
                   final cards = [
-                    _InsightMiniCard(
-                      title: isKo ? '가장 좋아진 점' : 'Best gain',
-                      value: strongest,
-                      icon: Icons.trending_up_outlined,
-                    ),
-                    _InsightMiniCard(
-                      title: isKo ? '가장 약한 점' : 'Weak spot',
-                      value: weakest,
-                      icon: Icons.report_problem_outlined,
-                    ),
                     _InsightMiniCard(
                       title: isKo ? '다음 액션' : 'Next action',
                       value: nextAction,
@@ -2432,24 +2398,6 @@ int _currentTrainingStreak(List<TrainingEntry> entries) {
     break;
   }
   return streak;
-}
-
-String _buildOverviewMessage({
-  required bool isKo,
-  required int totalMinutes,
-  required int sessions,
-  required int? executionRate,
-  required String weakest,
-  required String nextAction,
-}) {
-  final executionText = executionRate == null
-      ? (isKo ? '계획 데이터는 아직 없습니다.' : 'No plan data yet.')
-      : (isKo
-            ? '계획 실행률은 $executionRate%입니다.'
-            : 'Plan execution is $executionRate%.');
-  return isKo
-      ? '이번 기간 훈련은 총 ${_formatMinutesAsTime(totalMinutes, isKo: true)}, $sessions회입니다. $executionText 가장 약한 지점은 $weakest 쪽으로 보이고, 다음엔 $nextAction 를 먼저 가져가면 좋습니다.'
-      : 'This period totals ${_formatMinutesAsTime(totalMinutes, isKo: false)} across $sessions sessions. $executionText The main weak area looks like $weakest, and the next priority is $nextAction.';
 }
 
 class _PartRecord {

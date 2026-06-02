@@ -44,7 +44,8 @@ class LocalizedOptionDefaults {
     for (final item in stored) {
       final value = item.trim();
       if (value.isEmpty) continue;
-      final mapped = _translateKnownValue(
+      final mapped =
+          _translateKnownValue(
             value: value,
             variants: variants,
             localizedDefaults: localizedDefaults,
@@ -64,6 +65,7 @@ class LocalizedOptionDefaults {
     required String? storedValue,
     required List<String> localizedDefaults,
     required List<String> options,
+    bool preserveCustomValue = false,
   }) {
     if (options.isEmpty) return '';
     final fallback = options.first;
@@ -73,7 +75,7 @@ class LocalizedOptionDefaults {
     if (options.contains(value)) return value;
 
     final variants = _variantsForKey(key);
-    if (variants == null) return fallback;
+    if (variants == null) return preserveCustomValue ? value : fallback;
     final mapped = _translateKnownValue(
       value: value,
       variants: variants,
@@ -82,7 +84,7 @@ class LocalizedOptionDefaults {
     if (mapped != null && options.contains(mapped)) {
       return mapped;
     }
-    return fallback;
+    return preserveCustomValue ? value : fallback;
   }
 
   static List<List<String>>? _variantsForKey(String key) {

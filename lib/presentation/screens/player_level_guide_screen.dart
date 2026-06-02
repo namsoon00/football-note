@@ -86,6 +86,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                     ? l10n.parentSharedSyncInProgress
                     : null,
                 modeInfoTooltip: l10n.levelGuideModeInfoTooltip,
+                onLevelPressed: () => _scrollToLevel(currentState.level),
                 onModeInfoPressed: () => _showModeInfoDialog(
                   context,
                   roleLabel: familyState.isParentMode
@@ -155,6 +156,17 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
         alignment: 0.08,
       );
     });
+  }
+
+  void _scrollToLevel(int level) {
+    final targetContext = _levelKeys[level]?.currentContext;
+    if (targetContext == null) return;
+    Scrollable.ensureVisible(
+      targetContext,
+      duration: const Duration(milliseconds: 360),
+      curve: Curves.easeOutCubic,
+      alignment: 0.08,
+    );
   }
 
   Future<void> _showModeInfoDialog(
@@ -279,6 +291,7 @@ class _LevelGuideSummaryCard extends StatelessWidget {
   final String roleLabel;
   final String? syncStatusLabel;
   final String modeInfoTooltip;
+  final VoidCallback onLevelPressed;
   final VoidCallback onModeInfoPressed;
 
   const _LevelGuideSummaryCard({
@@ -287,6 +300,7 @@ class _LevelGuideSummaryCard extends StatelessWidget {
     required this.roleLabel,
     required this.syncStatusLabel,
     required this.modeInfoTooltip,
+    required this.onLevelPressed,
     required this.onModeInfoPressed,
   });
 
@@ -310,14 +324,21 @@ class _LevelGuideSummaryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            l10n.levelGuideCurrentProgressTotal(
-              levelState.level,
-              levelState.totalXp,
+          InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: onLevelPressed,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                l10n.levelGuideCurrentProgressTotal(
+                  levelState.level,
+                  levelState.totalXp,
+                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+              ),
             ),
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 4),
           Text(

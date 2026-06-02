@@ -406,7 +406,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsClearAll => 'Clear all';
 
   @override
-  String get newsDomesticFeedsLabel => 'Domestic feeds';
+  String get newsDomesticFeedsLabel => 'Korean feeds';
 
   @override
   String get newsInternationalFeedsLabel => 'International feeds';
@@ -415,7 +415,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsRegionAllLabel => 'All';
 
   @override
-  String get newsRegionDomesticLabel => 'Domestic';
+  String get newsRegionDomesticLabel => 'Korea';
 
   @override
   String get newsRegionInternationalLabel => 'World';
@@ -1826,6 +1826,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterJumpRopeOnly => 'Jump rope days only';
 
   @override
+  String get filterFeedbackOnly => 'Feedback only';
+
+  @override
+  String get filterEmptyResetHint => 'Reset filters to see more entries.';
+
+  @override
   String get filterReset => 'Reset';
 
   @override
@@ -2227,19 +2233,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationRefreshAction => 'Refresh';
 
   @override
+  String get notificationMuteStatusPaused => 'Alerts are currently paused.';
+
+  @override
+  String get notificationMuteControlTitle => 'Repeating alert control';
+
+  @override
+  String get notificationMuteControlSubtitle =>
+      'Temporarily mute alerts or resume anytime.';
+
+  @override
+  String get notificationMute8HoursAction => 'Mute 8h';
+
+  @override
+  String get notificationResumeAction => 'Resume';
+
+  @override
+  String get notificationAllSettingsTitle => 'All notifications';
+
+  @override
+  String get notificationTrainingPlanVibrationTitle =>
+      'Training plan vibration';
+
+  @override
+  String get notificationXpAlertSettingsTitle => 'XP alerts';
+
+  @override
+  String get notificationXpAlertSettingsSubtitle =>
+      'Show an alert whenever XP is earned.';
+
+  @override
+  String get notificationLevelUpSettingsTitle => 'Level-up notifications';
+
+  @override
   String notificationFamilySectionTitle(int count) {
-    return '$count family sync alert(s)';
+    return '$count parent sync alert(s)';
   }
 
   @override
-  String get notificationFamilyEmpty => 'No family sync alerts yet.';
+  String get notificationFamilyEmpty => 'No parent sync alerts yet.';
 
   @override
-  String get notificationFamilySettingsTitle => 'Family sync alerts';
+  String get notificationFamilySettingsTitle => 'Parent sync alerts';
 
   @override
   String get notificationFamilySettingsSubtitle =>
-      'Notify when player logs or parent feedback/rewards sync.';
+      'Notify when player logs or guardian feedback/rewards sync.';
 
   @override
   String get notificationLeagueFixtureSettingsTitle =>
@@ -2426,7 +2465,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hideKeyboard => 'Hide keyboard';
 
   @override
+  String get diaryComposerSavePromptTitle => 'Save changes?';
+
+  @override
+  String get diaryComposerSavePromptBody =>
+      'You have unsaved changes. Save before closing?';
+
+  @override
+  String get diaryComposerDontSave => 'Don\'t save';
+
+  @override
+  String get diaryVoiceInputTooltip => 'Voice input';
+
+  @override
+  String get diaryVoiceInputUnavailable =>
+      'Voice input is not available on this device.';
+
+  @override
+  String get diaryComposerTitle => 'Compose today\'s diary';
+
+  @override
+  String get diaryComposerDescription =>
+      'Pick stickers from today records below, and write the story yourself in short.';
+
+  @override
+  String get diaryEmptyHint => 'Keep it short and clear.';
+
+  @override
+  String get diaryLastSavedPrefix => 'Last saved';
+
+  @override
+  String get diarySavedMessage => 'Diary saved.';
+
+  @override
   String get diaryTitlePlaceholder => 'Please enter a title';
+
+  @override
+  String get diaryTitleLabel => 'Title';
+
+  @override
+  String get diaryTitleHint =>
+      'Ex: Passing rhythm that lasted through the rain';
 
   @override
   String get diaryStoryLabel => 'Body';
@@ -2436,7 +2515,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diarySaveEmptyMessage =>
-      'Nothing to save yet. Add a title, story, or sticker first.';
+      'Nothing to save yet. Add a title, story, sticker, or photo first.';
+
+  @override
+  String get diaryClearConfirmTitle => 'Clear all?';
+
+  @override
+  String get diaryClearConfirmBody =>
+      'This will clear title, story, selected stickers, and photos.';
+
+  @override
+  String get diaryClearAction => 'Clear';
 
   @override
   String get diaryCustomEmotionLabel => 'Create your own emotion';
@@ -2550,24 +2639,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherPrecipitation => 'Precipitation';
 
   @override
-  String get weatherPrecipitationNone => 'Almost no rain';
+  String get weatherPrecipitationNone => 'Little rain';
 
   @override
-  String get weatherPrecipitationTrace => 'The ground may feel a little damp';
+  String get weatherPrecipitationTrace => 'Light rain';
 
   @override
-  String get weatherPrecipitationLight =>
-      'A light rain where an umbrella helps';
+  String get weatherPrecipitationLight => 'Light rain';
 
   @override
-  String get weatherPrecipitationModerate => 'Enough rain to wet the field';
+  String get weatherPrecipitationModerate => 'Rain';
 
   @override
-  String get weatherPrecipitationHeavy => 'Puddles can form quickly';
+  String get weatherPrecipitationHeavy => 'Heavy rain';
 
   @override
-  String get weatherPrecipitationVeryHeavy =>
-      'Too much rain for easy outdoor play';
+  String get weatherPrecipitationVeryHeavy => 'Very heavy rain';
 
   @override
   String get homeWeatherHourlyPrecipitation => 'Hourly precipitation';
@@ -5511,7 +5598,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent feedback and level reward names are written automatically into the same player backup file.';
 
   @override
-  String get familySyncAlertTitle => 'Family sync';
+  String get familySyncAlertTitle => 'Parent sync';
 
   @override
   String familySyncParentTrainingAdded(int count) {

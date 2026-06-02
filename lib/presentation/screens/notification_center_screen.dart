@@ -642,20 +642,14 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           children: [
                             Text(
                               _mutedNow
-                                  ? (isKo
-                                        ? '현재 알림이 일시중지되어 있어요.'
-                                        : 'Alerts are currently paused.')
-                                  : (isKo
-                                        ? '반복 알림 제어'
-                                        : 'Repeating alert control'),
+                                  ? l10n.notificationMuteStatusPaused
+                                  : l10n.notificationMuteControlTitle,
                               style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              isKo
-                                  ? '알림을 잠시 멈추거나 다시 켤 수 있어요.'
-                                  : 'Temporarily mute alerts or resume anytime.',
+                              l10n.notificationMuteControlSubtitle,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             const SizedBox(height: 10),
@@ -673,7 +667,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                     icon: const Icon(
                                       Icons.notifications_off_outlined,
                                     ),
-                                    label: Text(isKo ? '8시간 끄기' : 'Mute 8h'),
+                                    label: Text(
+                                      l10n.notificationMute8HoursAction,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -689,7 +685,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                     icon: const Icon(
                                       Icons.notifications_active_outlined,
                                     ),
-                                    label: Text(isKo ? '다시 켜기' : 'Resume'),
+                                    label: Text(l10n.notificationResumeAction),
                                   ),
                                 ),
                               ],
@@ -700,7 +696,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       const SizedBox(height: 12),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text(isKo ? '전체 알림' : 'All notifications'),
+                        title: Text(l10n.notificationAllSettingsTitle),
                         value: widget.settingsService.reminderEnabled,
                         onChanged: (value) async {
                           await widget.settingsService.setReminderEnabled(
@@ -712,7 +708,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(
-                          isKo ? '훈련 계획 진동 알림' : 'Training plan vibration',
+                          l10n.notificationTrainingPlanVibrationTitle,
                         ),
                         value: widget.settingsService.reminderVibrationEnabled,
                         onChanged: widget.settingsService.reminderEnabled
@@ -725,11 +721,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text(isKo ? '경험치 알림' : 'XP alerts'),
+                        title: Text(l10n.notificationXpAlertSettingsTitle),
                         subtitle: Text(
-                          isKo
-                              ? '경험치를 얻으면 바로 알림을 보냅니다.'
-                              : 'Show an alert whenever XP is earned.',
+                          l10n.notificationXpAlertSettingsSubtitle,
                         ),
                         value: widget.settingsService.xpAlertEnabled,
                         onChanged: widget.settingsService.reminderEnabled
@@ -743,9 +737,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          isKo ? '레벨 업 알림' : 'Level-up notifications',
-                        ),
+                        title: Text(l10n.notificationLevelUpSettingsTitle),
                         value: widget.settingsService.levelUpAlertEnabled,
                         onChanged: widget.settingsService.reminderEnabled
                             ? (value) async {

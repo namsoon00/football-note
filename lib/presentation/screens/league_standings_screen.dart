@@ -38,19 +38,17 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
       'league_standings_last_selected_type_v1';
   static const String _favoriteFixtureFilterKey =
       'league_standings_favorite_fixture_filter_types_v1';
-  static const List<LeagueStandingsType> _leagueTypes =
-      LeagueStandingsType.values;
-
   late final LeagueStandingsService _service;
   late final bool _ownsService;
   late final LeagueFixtureReminderService? _reminderService;
   late final PageController _pageController;
   late LeagueStandingsType _selectedType;
+  late String _languageCode;
   final Map<LeagueStandingsType, _LeagueOverviewSnapshot> _cache = {};
   final Map<LeagueStandingsType, Future<_LeagueOverviewSnapshot>> _futures = {};
   final Map<LeagueStandingsType, ScrollController> _scrollControllers = {};
   final Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>
-      _leagueTabKeys = {
+  _leagueTabKeys = {
     for (final type in LeagueStandingsType.values)
       type: GlobalKey<State<StatefulWidget>>(),
   };
@@ -66,13 +64,16 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     super.initState();
     _ownsService = widget.service == null;
     _service = widget.service ?? LeagueStandingsService();
-    _reminderService = widget.reminderService ??
+    _reminderService =
+        widget.reminderService ??
         (widget.optionRepository != null && widget.settingsService != null
             ? LeagueFixtureReminderService(
                 widget.optionRepository!,
                 widget.settingsService!,
               )
             : null);
+    _languageCode =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
     _favoriteTeamKeys = _reminderService?.favoriteTeamKeysSync() ?? <String>{};
     _restoreFavoriteFixtureFilters();
     _selectedType = _loadInitialType();
@@ -81,6 +82,19 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     );
     _future = _futureFor(_selectedType);
     _scrollLeagueTabIntoView(_selectedType);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nextLanguageCode = Localizations.localeOf(context).languageCode;
+    if (nextLanguageCode == _languageCode) return;
+    _languageCode = nextLanguageCode;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_pageController.hasClients) return;
+      _pageController.jumpToPage(_leagueIndexForType(_selectedType));
+      _scrollLeagueTabIntoView(_selectedType);
+    });
   }
 
   @override
@@ -108,7 +122,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   void _restoreFavoriteFixtureFilters() {
     final stored =
         widget.optionRepository?.getValue<List>(_favoriteFixtureFilterKey) ??
-            const <dynamic>[];
+        const <dynamic>[];
     _favoriteFixtureFilterTypes
       ..clear()
       ..addAll(
@@ -154,6 +168,9 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     final index = _leagueTypes.indexOf(type);
     return index < 0 ? 0 : index;
   }
+
+  List<LeagueStandingsType> get _leagueTypes =>
+      _leagueTypesForLanguage(_languageCode);
 
   void _selectType(LeagueStandingsType type) {
     if (type == _selectedType) {
@@ -289,10 +306,10 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
           l10n.newsLeagueFixtureNotificationChannelDescription,
       bodyBuilder: (entry, teamName, opponentName) =>
           l10n.newsLeagueFavoriteTeamNotificationBody(
-        teamName,
-        opponentName,
-        formatter.format(entry.kickoffAt.toLocal()),
-      ),
+            teamName,
+            opponentName,
+            formatter.format(entry.kickoffAt.toLocal()),
+          ),
     );
     return count;
   }
@@ -379,6 +396,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                   child: SegmentedButton<LeagueStandingsType>(
                     segments: _leagueStandingsSegments(
                       l10n,
+                      leagueTypes: _leagueTypes,
                       labelKeys: _leagueTabKeys,
                     ),
                     selected: {_selectedType},
@@ -437,17 +455,17 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                             ),
                             onFixturesExpandedChanged: (expanded) =>
                                 _setFixturesExpanded(
-                              data.standings.type,
-                              expanded,
-                            ),
+                                  data.standings.type,
+                                  expanded,
+                                ),
                             favoriteTeamKeys: _favoriteTeamKeys,
                             filterFavoriteFixtures: _favoriteFixtureFilterTypes
                                 .contains(data.standings.type),
                             onFilterFavoriteFixturesChanged: (enabled) =>
                                 _setFavoriteFixtureFilter(
-                              data.standings.type,
-                              enabled,
-                            ),
+                                  data.standings.type,
+                                  enabled,
+                                ),
                             reminderPanel: _buildReminderPanel(l10n, data),
                           ),
                         );
@@ -497,7 +515,7 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
   late Set<String> _favoriteTeamKeys;
   final Map<LeagueStandingsType, _LeagueOverviewSnapshot> _cache = {};
   final Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>
-      _leagueTabKeys = {
+  _leagueTabKeys = {
     for (final type in LeagueStandingsType.values)
       type: GlobalKey<State<StatefulWidget>>(),
   };
@@ -600,6 +618,9 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
                   child: SegmentedButton<LeagueStandingsType>(
                     segments: _leagueStandingsSegments(
                       l10n,
+                      leagueTypes: _leagueTypesForLanguage(
+                        Localizations.localeOf(context).languageCode,
+                      ),
                       labelKeys: _leagueTabKeys,
                     ),
                     selected: {_selectedType},
@@ -656,13 +677,10 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
                                 child: Text(
                                   selectedCount == 0
                                       ? l10n.newsLeagueFavoriteTeamNone
-                                      : l10n
-                                          .newsLeagueFavoriteTeamSelectedCount(
+                                      : l10n.newsLeagueFavoriteTeamSelectedCount(
                                           selectedCount,
                                         ),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(fontWeight: FontWeight.w800),
                                 ),
                               ),
@@ -784,73 +802,99 @@ bool _fixtureMatchesFavoriteTeam(
 
 List<ButtonSegment<LeagueStandingsType>> _leagueStandingsSegments(
   AppLocalizations l10n, {
+  required List<LeagueStandingsType> leagueTypes,
   Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>? labelKeys,
 }) {
-  return [
-    ButtonSegment<LeagueStandingsType>(
-      value: LeagueStandingsType.kLeague1,
+  return leagueTypes
+      .map((type) => _leagueStandingsSegment(l10n, type, labelKeys))
+      .toList(growable: false);
+}
+
+List<LeagueStandingsType> _leagueTypesForLanguage(String languageCode) {
+  if (languageCode == 'ko' || languageCode == 'ja') {
+    return LeagueStandingsType.values;
+  }
+  return const <LeagueStandingsType>[
+    LeagueStandingsType.premierLeague,
+    LeagueStandingsType.championsLeague,
+    LeagueStandingsType.laLiga,
+    LeagueStandingsType.bundesliga,
+    LeagueStandingsType.majorLeagueSoccer,
+    LeagueStandingsType.saudiProLeague,
+    LeagueStandingsType.kLeague1,
+  ];
+}
+
+ButtonSegment<LeagueStandingsType> _leagueStandingsSegment(
+  AppLocalizations l10n,
+  LeagueStandingsType type,
+  Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>? labelKeys,
+) {
+  return switch (type) {
+    LeagueStandingsType.kLeague1 => ButtonSegment<LeagueStandingsType>(
+      value: type,
       icon: const Icon(Icons.flag_outlined, size: 18),
       label: _leagueSegmentLabel(
         labelKeys,
-        LeagueStandingsType.kLeague1,
+        type,
         l10n.newsKLeagueStandingsTitle,
       ),
     ),
-    ButtonSegment<LeagueStandingsType>(
-      value: LeagueStandingsType.premierLeague,
+    LeagueStandingsType.premierLeague => ButtonSegment<LeagueStandingsType>(
+      value: type,
       icon: const Icon(Icons.shield_outlined, size: 18),
       label: _leagueSegmentLabel(
         labelKeys,
-        LeagueStandingsType.premierLeague,
+        type,
         l10n.newsPremierLeagueStandingsTitle,
       ),
     ),
-    ButtonSegment<LeagueStandingsType>(
-      value: LeagueStandingsType.championsLeague,
+    LeagueStandingsType.championsLeague => ButtonSegment<LeagueStandingsType>(
+      value: type,
       icon: const Icon(Icons.emoji_events_outlined, size: 18),
       label: _leagueSegmentLabel(
         labelKeys,
-        LeagueStandingsType.championsLeague,
+        type,
         l10n.newsChampionsLeagueStandingsTitle,
       ),
     ),
-    ButtonSegment<LeagueStandingsType>(
-      value: LeagueStandingsType.laLiga,
+    LeagueStandingsType.laLiga => ButtonSegment<LeagueStandingsType>(
+      value: type,
       icon: const Icon(Icons.sports_soccer, size: 18),
       label: _leagueSegmentLabel(
         labelKeys,
-        LeagueStandingsType.laLiga,
+        type,
         l10n.newsLaLigaStandingsTitle,
       ),
     ),
-    ButtonSegment<LeagueStandingsType>(
-      value: LeagueStandingsType.bundesliga,
+    LeagueStandingsType.bundesliga => ButtonSegment<LeagueStandingsType>(
+      value: type,
       icon: const Icon(Icons.shield, size: 18),
       label: _leagueSegmentLabel(
         labelKeys,
-        LeagueStandingsType.bundesliga,
+        type,
         l10n.newsBundesligaStandingsTitle,
       ),
     ),
-    ButtonSegment<LeagueStandingsType>(
-      value: LeagueStandingsType.majorLeagueSoccer,
+    LeagueStandingsType.majorLeagueSoccer => ButtonSegment<LeagueStandingsType>(
+      value: type,
       icon: const Icon(Icons.public, size: 18),
       label: _leagueSegmentLabel(
         labelKeys,
-        LeagueStandingsType.majorLeagueSoccer,
+        type,
         l10n.newsMajorLeagueSoccerStandingsTitle,
       ),
     ),
-    ButtonSegment<LeagueStandingsType>(
-      value: LeagueStandingsType.saudiProLeague,
+    LeagueStandingsType.saudiProLeague => ButtonSegment<LeagueStandingsType>(
+      value: type,
       icon: const Icon(Icons.flag_outlined, size: 18),
       label: _leagueSegmentLabel(
         labelKeys,
-        LeagueStandingsType.saudiProLeague,
+        type,
         l10n.newsSaudiProLeagueStandingsTitle,
       ),
     ),
-  ];
+  };
 }
 
 Widget _leagueSegmentLabel(
@@ -1103,14 +1147,14 @@ class _FixtureSection extends StatelessWidget {
     );
     final entries = filterFavorites && hasFavoriteTeamsForLeague
         ? snapshot.entries
-            .where(
-              (entry) => _fixtureMatchesFavoriteTeam(
-                snapshot.type,
-                entry,
-                favoriteTeamKeys,
-              ),
-            )
-            .toList(growable: false)
+              .where(
+                (entry) => _fixtureMatchesFavoriteTeam(
+                  snapshot.type,
+                  entry,
+                  favoriteTeamKeys,
+                ),
+              )
+              .toList(growable: false)
         : snapshot.entries;
     final canToggle = entries.length > _collapsedFixtureLimit;
     final visibleEntries = canToggle && !expanded
@@ -1385,9 +1429,9 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w900,
-            ),
+          color: color,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }
@@ -1467,8 +1511,8 @@ class _StandingTeamRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
@@ -1540,8 +1584,9 @@ class _LogoCircle extends StatelessWidget {
     return Container(
       width: 32,
       height: 32,
-      padding:
-          trimmedLogoUrl.isEmpty ? EdgeInsets.zero : const EdgeInsets.all(4),
+      padding: trimmedLogoUrl.isEmpty
+          ? EdgeInsets.zero
+          : const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(
           alpha: theme.brightness == Brightness.dark ? 0.72 : 1.0,
@@ -1577,8 +1622,9 @@ class _LogoCircle extends StatelessWidget {
 }
 
 String _logoFallbackText(String shortName, String name) {
-  final preferred =
-      shortName.trim().isNotEmpty ? shortName.trim() : name.trim();
+  final preferred = shortName.trim().isNotEmpty
+      ? shortName.trim()
+      : name.trim();
   if (preferred.isEmpty) return '?';
   final words = preferred
       .split(RegExp(r'\s+'))
@@ -1638,12 +1684,15 @@ Widget _cell(
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
-      style: (header
-              ? Theme.of(context).textTheme.labelMedium
-              : Theme.of(context).textTheme.bodyMedium)
-          ?.copyWith(
-        fontWeight: header || strong ? FontWeight.w900 : FontWeight.w600,
-      ),
+      style:
+          (header
+                  ? Theme.of(context).textTheme.labelMedium
+                  : Theme.of(context).textTheme.bodyMedium)
+              ?.copyWith(
+                fontWeight: header || strong
+                    ? FontWeight.w900
+                    : FontWeight.w600,
+              ),
     ),
   );
 }
