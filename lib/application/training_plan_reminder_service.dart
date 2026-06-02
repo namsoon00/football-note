@@ -291,7 +291,6 @@ class TrainingPlanReminderService {
   }
 
   Future<void> syncSettingsDrivenReminders() async {
-    _settings.load();
     if (!_settings.reminderEnabled) {
       await _clearAllScheduledReminderNotifications();
       return;
