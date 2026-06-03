@@ -5,7 +5,6 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
-import '../../application/benchmark_service.dart';
 import '../../application/drive_connection_info.dart';
 import '../../application/drive_backup_service.dart';
 import '../../application/family_access_service.dart';
@@ -42,7 +41,6 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _backupBusy = false;
   bool _restoreBusy = false;
   bool _signInBusy = false;
-  bool _benchmarkSyncBusy = false;
   bool _signedIn = false;
   bool _autoDaily = true;
   bool _autoOnSave = true;
@@ -510,25 +508,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ],
                   );
                 },
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton.icon(
-                onPressed: _benchmarkSyncBusy
-                    ? null
-                    : () => _refreshBenchmarkData(isKo),
-                icon: _benchmarkSyncBusy
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.sync),
-                label: Text(
-                  _benchmarkSyncBusy
-                      ? (isKo ? '평균 데이터 동기화 중...' : 'Syncing average data...')
-                      : (isKo ? '평균 데이터 지금 새로고침' : 'Refresh Average Data Now'),
-                ),
-                style: _outlinedActionStyle(),
               ),
             ],
           ),
@@ -1184,16 +1163,6 @@ class _SettingsScreenState extends State<SettingsScreen>
           label: l10n.defaultDuration,
           valueText: defaultDurationText,
           onEdit: readOnly ? null : () => _pickDefaultDuration(l10n),
-          onDelete: readOnly
-              ? null
-              : () async {
-                  await widget.optionRepository.setValue(
-                    'default_duration',
-                    null,
-                  );
-                  if (!mounted) return;
-                  setState(() => _defaultDuration = _durationOptions.first);
-                },
         ),
         _buildDefaultTile(
           label: l10n.defaultIntensity,
@@ -1207,16 +1176,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                       setState(() => _defaultIntensity = value),
                   title: l10n.defaultIntensity,
                 ),
-          onDelete: readOnly
-              ? null
-              : () async {
-                  await widget.optionRepository.setValue(
-                    'default_intensity',
-                    null,
-                  );
-                  if (!mounted) return;
-                  setState(() => _defaultIntensity = 3);
-                },
         ),
         _buildDefaultTile(
           label: l10n.defaultCondition,
@@ -1230,16 +1189,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                       setState(() => _defaultCondition = value),
                   title: l10n.defaultCondition,
                 ),
-          onDelete: readOnly
-              ? null
-              : () async {
-                  await widget.optionRepository.setValue(
-                    'default_condition',
-                    null,
-                  );
-                  if (!mounted) return;
-                  setState(() => _defaultCondition = 3);
-                },
         ),
         _buildDefaultTile(
           label: l10n.defaultLocation,
@@ -1254,16 +1203,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                   onChanged: (value) =>
                       setState(() => _defaultLocation = value),
                 ),
-          onDelete: readOnly
-              ? null
-              : () async {
-                  await widget.optionRepository.setValue(
-                    'default_location',
-                    null,
-                  );
-                  if (!mounted) return;
-                  setState(() => _defaultLocation = _locationOptions.first);
-                },
         ),
         _buildDefaultTile(
           label: l10n.defaultProgram,
@@ -1277,16 +1216,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                   title: l10n.defaultProgram,
                   onChanged: (value) => setState(() => _defaultProgram = value),
                 ),
-          onDelete: readOnly
-              ? null
-              : () async {
-                  await widget.optionRepository.setValue(
-                    'default_program',
-                    null,
-                  );
-                  if (!mounted) return;
-                  setState(() => _defaultProgram = _programOptions.first);
-                },
         ),
         const SizedBox(height: 12),
         const Divider(height: 1),
@@ -1411,7 +1340,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     required String label,
     required String valueText,
     required Future<void> Function()? onEdit,
-    required Future<void> Function()? onDelete,
   }) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return ListTile(
@@ -1419,20 +1347,10 @@ class _SettingsScreenState extends State<SettingsScreen>
       contentPadding: EdgeInsets.zero,
       title: Text(label),
       subtitle: Text(valueText),
-      trailing: Wrap(
-        spacing: 4,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: isKo ? '수정' : 'Edit',
-            onPressed: onEdit,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: isKo ? '삭제' : 'Delete',
-            onPressed: onDelete,
-          ),
-        ],
+      trailing: IconButton(
+        icon: const Icon(Icons.edit_outlined),
+        tooltip: isKo ? '수정' : 'Edit',
+        onPressed: onEdit,
       ),
     );
   }
@@ -1974,43 +1892,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  ButtonStyle _outlinedActionStyle() {
-    return ButtonStyle(
-      minimumSize: WidgetStateProperty.all(const Size.fromHeight(56)),
-      padding: WidgetStateProperty.all(
-        const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      ),
-      textStyle: WidgetStateProperty.all(
-        const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
-      shape: WidgetStateProperty.all(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-      side: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.pressed)) {
-          return const BorderSide(
-            color: WatchCartConstants.primaryColor,
-            width: 2,
-          );
-        }
-        return BorderSide(
-          color: WatchCartConstants.primaryColor.withAlpha(160),
-          width: 1.4,
-        );
-      }),
-      backgroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.pressed)) {
-          return WatchCartConstants.primaryColor.withAlpha(22);
-        }
-        return null;
-      }),
-      overlayColor: WidgetStateProperty.all(
-        WatchCartConstants.primaryColor.withAlpha(30),
-      ),
-      splashFactory: InkRipple.splashFactory,
-    );
-  }
-
   ButtonStyle _quickActionButtonStyle({
     _DriveQuickActionTone tone = _DriveQuickActionTone.neutral,
   }) {
@@ -2434,43 +2315,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     );
     return secondConfirm == true;
-  }
-
-  Future<void> _refreshBenchmarkData(bool isKo) async {
-    setState(() => _benchmarkSyncBusy = true);
-    try {
-      final service = BenchmarkService(widget.optionRepository);
-      await service.refreshFromExternalIfNeeded(force: true);
-      if (!mounted) return;
-      final synced = service.lastSyncedAt();
-      final suffix = synced == null
-          ? ''
-          : ' (${DateFormat('yyyy-MM-dd HH:mm').format(synced.toLocal())})';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isKo
-                ? '평균 데이터 업데이트 완료$suffix'
-                : 'Average benchmark data updated$suffix',
-          ),
-        ),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isKo
-                ? '평균 데이터 업데이트에 실패했어요. 네트워크를 확인해 주세요.'
-                : 'Failed to update average benchmark data. Check network.',
-          ),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _benchmarkSyncBusy = false);
-      }
-    }
   }
 }
 

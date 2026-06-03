@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
+import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
@@ -24,6 +26,8 @@ void main() {
     final optionRepository = _MemoryOptionRepository();
     final trainingService = TrainingService(_MemoryTrainingRepository());
     final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -39,6 +43,8 @@ void main() {
           trainingService: trainingService,
           mealLogService: mealLogService,
           optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
         ),
       ),
     );
@@ -59,8 +65,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester
-        .tap(find.byKey(const ValueKey('challenge-template-starter_3')));
+    await tester.tap(
+      find.byKey(const ValueKey('challenge-template-starter_3')),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('2. 단계 선택'), findsOneWidget);
@@ -83,8 +90,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('라운드'), findsOneWidget);
-    expect(find.byKey(const ValueKey('challenge-rounds-calendar')),
-        findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsOneWidget,
+    );
     expect(find.text('R1'), findsOneWidget);
     expect(find.text('줄넘기'), findsOneWidget);
     expect(find.text('리프팅'), findsOneWidget);

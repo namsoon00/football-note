@@ -168,6 +168,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Turn the weakest signal into the next plan or note goal.';
 
   @override
+  String get welcomeChallengeOverview =>
+      'Challenge is where Rinzy tracks daily round missions and turns completion into bigger XP gains.';
+
+  @override
+  String get welcomeChallengeActionStart => 'Start challenge';
+
+  @override
+  String get welcomeChallengeStepStart =>
+      'Choose a duration and level to create rounds you can follow from today.';
+
+  @override
+  String get welcomeChallengeActionMission => 'Enter mission';
+
+  @override
+  String get welcomeChallengeStepMission =>
+      'Tap training, jump rope, lifting, or meal missions to open the matching record screen.';
+
+  @override
+  String get welcomeChallengeActionReward => 'XP reward';
+
+  @override
+  String get welcomeChallengeStepReward =>
+      'Each finished round stacks XP, and Rinzy celebrates when you finish the challenge.';
+
+  @override
   String get welcomeDiaryOverview =>
       'Use Diary to turn the day into one readable story with training, meals, and stickers.';
 
@@ -494,6 +519,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeTodoJumpRopeShort => 'Jump';
+
+  @override
+  String get jumpRopeRecordTitle => 'Jump rope record';
+
+  @override
+  String get jumpRopeMinutesLabel => 'Jump rope time (min)';
+
+  @override
+  String get jumpRopeCountLabel => 'Jump rope count';
+
+  @override
+  String get jumpRopeMemoLabel => 'Memo';
+
+  @override
+  String get jumpRopeMemoHint => 'Write what you felt during jump rope.';
 
   @override
   String get homeTodoQuizShort => 'Quiz';
@@ -3245,13 +3285,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String diaryJumpRopeCombined(int count, String minutes) {
-    return 'Jump rope $count reps/$minutes';
+    return 'Jump rope $minutes/$count reps';
   }
 
   @override
   String diaryConditioningSummary(
       int liftingCount, int jumpCount, String jumpMinutes) {
-    return 'Lifting $liftingCount reps · Jump rope $jumpCount reps/$jumpMinutes';
+    return 'Lifting $liftingCount reps · Jump rope $jumpMinutes/$jumpCount reps';
   }
 
   @override
@@ -6069,6 +6109,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent mode cannot edit default values or news filters. Change them in player mode.';
 
   @override
+  String get benchmarkReferencesTitle => 'Average benchmarks';
+
+  @override
+  String get benchmarkRefreshAction => 'Refresh average';
+
+  @override
+  String get benchmarkRefreshInProgress => 'Refreshing';
+
+  @override
+  String benchmarkLastSynced(Object date) {
+    return 'Last sync: $date';
+  }
+
+  @override
+  String get benchmarkRefreshSuccess => 'Average benchmark data updated.';
+
+  @override
+  String get benchmarkRefreshFailed =>
+      'Failed to update average benchmark data. Check network.';
+
+  @override
   String get benchmarkReferenceNote =>
       'Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.';
 
@@ -6689,6 +6750,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String challengeRoundXpLabel(int xp) {
     return 'Round +$xp XP';
+  }
+
+  @override
+  String challengeActiveLevelPill(Object level) {
+    return 'Level: $level';
+  }
+
+  @override
+  String challengePotentialXpPill(int xp) {
+    return 'Potential XP +$xp';
   }
 
   @override

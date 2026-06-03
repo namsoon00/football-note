@@ -49,6 +49,13 @@
   "welcomeStatsStepPeriod": "Change the period to compare this week, last week, or a custom range.",
   "welcomeStatsStepAverage": "Open average comparison to see which metric is ahead or behind.",
   "welcomeStatsStepFocus": "Turn the weakest signal into the next plan or note goal.",
+  "welcomeChallengeOverview": "Challenge is where Rinzy tracks daily round missions and turns completion into bigger XP gains.",
+  "welcomeChallengeActionStart": "Start challenge",
+  "welcomeChallengeStepStart": "Choose a duration and level to create rounds you can follow from today.",
+  "welcomeChallengeActionMission": "Enter mission",
+  "welcomeChallengeStepMission": "Tap training, jump rope, lifting, or meal missions to open the matching record screen.",
+  "welcomeChallengeActionReward": "XP reward",
+  "welcomeChallengeStepReward": "Each finished round stacks XP, and Rinzy celebrates when you finish the challenge.",
   "welcomeDiaryOverview": "Use Diary to turn the day into one readable story with training, meals, and stickers.",
   "welcomeDiaryStepToday": "Open today's diary from Home or the Diary tab after recording.",
   "welcomeDiaryStepSticker": "Pull in today's record stickers and arrange the reading order.",
@@ -192,6 +199,11 @@
   "homeTodoTrainingLogShort": "Log",
   "homeTodoLiftingShort": "Lifting",
   "homeTodoJumpRopeShort": "Jump",
+  "jumpRopeRecordTitle": "Jump rope record",
+  "jumpRopeMinutesLabel": "Jump rope time (min)",
+  "jumpRopeCountLabel": "Jump rope count",
+  "jumpRopeMemoLabel": "Memo",
+  "jumpRopeMemoHint": "Write what you felt during jump rope.",
   "homeTodoQuizShort": "Quiz",
   "homeTodoNewsShort": "News",
   "homeTodoDiaryShort": "Diary",
@@ -1553,7 +1565,7 @@
       }
     }
   },
-  "diaryJumpRopeCombined": "Jump rope {count} reps/{minutes}",
+  "diaryJumpRopeCombined": "Jump rope {minutes}/{count} reps",
   "@diaryJumpRopeCombined": {
     "placeholders": {
       "count": {
@@ -1564,7 +1576,7 @@
       }
     }
   },
-  "diaryConditioningSummary": "Lifting {liftingCount} reps · Jump rope {jumpCount} reps/{jumpMinutes}",
+  "diaryConditioningSummary": "Lifting {liftingCount} reps · Jump rope {jumpMinutes}/{jumpCount} reps",
   "@diaryConditioningSummary": {
     "placeholders": {
       "liftingCount": {
@@ -2969,6 +2981,17 @@
   "parentReadOnlyProfileSummary": "Profile is view only here.",
   "parentReadOnlyProfileDescription": "Parent mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.",
   "parentReadOnlySettingsOptions": "Parent mode cannot edit default values or news filters. Change them in player mode.",
+  "benchmarkReferencesTitle": "Average benchmarks",
+  "benchmarkRefreshAction": "Refresh average",
+  "benchmarkRefreshInProgress": "Refreshing",
+  "benchmarkLastSynced": "Last sync: {date}",
+  "@benchmarkLastSynced": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "benchmarkRefreshSuccess": "Average benchmark data updated.",
+  "benchmarkRefreshFailed": "Failed to update average benchmark data. Check network.",
   "benchmarkReferenceNote": "Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.",
   "parentReadOnlyEntryTitle": "Parent mode cannot edit training notes.",
   "parentReadOnlyEntryBody": "Core records like training, meals, and diary stay in player mode. Parent mode leaves the original record untouched and stores only feedback and reward naming separately.",
@@ -3222,6 +3245,20 @@
   },
   "challengeRoundXpLabel": "Round +{xp} XP",
   "@challengeRoundXpLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeActiveLevelPill": "Level: {level}",
+  "@challengeActiveLevelPill": {
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "challengePotentialXpPill": "Potential XP +{xp}",
+  "@challengePotentialXpPill": {
     "placeholders": {
       "xp": {
         "type": "int"

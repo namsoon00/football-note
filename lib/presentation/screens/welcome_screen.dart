@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
+import '../widgets/rinzy_mascot.dart';
+
 class WelcomeScreen extends StatefulWidget {
   final VoidCallback onStart;
 
@@ -26,19 +28,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                l10n.welcomeGuideTitle,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.welcomeGuideIntro,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(height: 1.45),
-              ),
+              _RinzyWelcomeHeader(l10n: l10n),
               const SizedBox(height: 14),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -88,6 +78,53 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _RinzyWelcomeHeader extends StatelessWidget {
+  final AppLocalizations l10n;
+
+  const _RinzyWelcomeHeader({required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const RinzyMascot(size: 86, progress: 0.28),
+        const SizedBox(width: 12),
+        Expanded(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHighest.withValues(alpha: 0.84),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: scheme.primary.withValues(alpha: 0.18)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.welcomeGuideTitle,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.welcomeGuideIntro,
+                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.42),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -387,6 +424,29 @@ List<_WelcomeSection> _buildSections(AppLocalizations l10n) {
           icon: Icons.flag_outlined,
           actionLabel: l10n.guideActionWeakPoint,
           description: l10n.welcomeStatsStepFocus,
+        ),
+      ],
+    ),
+    _WelcomeSection(
+      id: 'challenge',
+      icon: Icons.flag_outlined,
+      title: l10n.challengeTitle,
+      overview: l10n.welcomeChallengeOverview,
+      steps: [
+        _WelcomeStep(
+          icon: Icons.flag_circle_outlined,
+          actionLabel: l10n.welcomeChallengeActionStart,
+          description: l10n.welcomeChallengeStepStart,
+        ),
+        _WelcomeStep(
+          icon: Icons.touch_app_outlined,
+          actionLabel: l10n.welcomeChallengeActionMission,
+          description: l10n.welcomeChallengeStepMission,
+        ),
+        _WelcomeStep(
+          icon: Icons.star_rounded,
+          actionLabel: l10n.welcomeChallengeActionReward,
+          description: l10n.welcomeChallengeStepReward,
         ),
       ],
     ),

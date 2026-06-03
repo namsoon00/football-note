@@ -370,6 +370,48 @@ abstract class AppLocalizations {
   /// **'Turn the weakest signal into the next plan or note goal.'**
   String get welcomeStatsStepFocus;
 
+  /// No description provided for @welcomeChallengeOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge is where Rinzy tracks daily round missions and turns completion into bigger XP gains.'**
+  String get welcomeChallengeOverview;
+
+  /// No description provided for @welcomeChallengeActionStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start challenge'**
+  String get welcomeChallengeActionStart;
+
+  /// No description provided for @welcomeChallengeStepStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a duration and level to create rounds you can follow from today.'**
+  String get welcomeChallengeStepStart;
+
+  /// No description provided for @welcomeChallengeActionMission.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter mission'**
+  String get welcomeChallengeActionMission;
+
+  /// No description provided for @welcomeChallengeStepMission.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap training, jump rope, lifting, or meal missions to open the matching record screen.'**
+  String get welcomeChallengeStepMission;
+
+  /// No description provided for @welcomeChallengeActionReward.
+  ///
+  /// In en, this message translates to:
+  /// **'XP reward'**
+  String get welcomeChallengeActionReward;
+
+  /// No description provided for @welcomeChallengeStepReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Each finished round stacks XP, and Rinzy celebrates when you finish the challenge.'**
+  String get welcomeChallengeStepReward;
+
   /// No description provided for @welcomeDiaryOverview.
   ///
   /// In en, this message translates to:
@@ -970,6 +1012,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Jump'**
   String get homeTodoJumpRopeShort;
+
+  /// No description provided for @jumpRopeRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope record'**
+  String get jumpRopeRecordTitle;
+
+  /// No description provided for @jumpRopeMinutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope time (min)'**
+  String get jumpRopeMinutesLabel;
+
+  /// No description provided for @jumpRopeCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope count'**
+  String get jumpRopeCountLabel;
+
+  /// No description provided for @jumpRopeMemoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Memo'**
+  String get jumpRopeMemoLabel;
+
+  /// No description provided for @jumpRopeMemoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write what you felt during jump rope.'**
+  String get jumpRopeMemoHint;
 
   /// No description provided for @homeTodoQuizShort.
   ///
@@ -5895,13 +5967,13 @@ abstract class AppLocalizations {
   /// No description provided for @diaryJumpRopeCombined.
   ///
   /// In en, this message translates to:
-  /// **'Jump rope {count} reps/{minutes}'**
+  /// **'Jump rope {minutes}/{count} reps'**
   String diaryJumpRopeCombined(int count, String minutes);
 
   /// No description provided for @diaryConditioningSummary.
   ///
   /// In en, this message translates to:
-  /// **'Lifting {liftingCount} reps · Jump rope {jumpCount} reps/{jumpMinutes}'**
+  /// **'Lifting {liftingCount} reps · Jump rope {jumpMinutes}/{jumpCount} reps'**
   String diaryConditioningSummary(
       int liftingCount, int jumpCount, String jumpMinutes);
 
@@ -10460,6 +10532,42 @@ abstract class AppLocalizations {
   /// **'Parent mode cannot edit default values or news filters. Change them in player mode.'**
   String get parentReadOnlySettingsOptions;
 
+  /// No description provided for @benchmarkReferencesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Average benchmarks'**
+  String get benchmarkReferencesTitle;
+
+  /// No description provided for @benchmarkRefreshAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh average'**
+  String get benchmarkRefreshAction;
+
+  /// No description provided for @benchmarkRefreshInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshing'**
+  String get benchmarkRefreshInProgress;
+
+  /// No description provided for @benchmarkLastSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: {date}'**
+  String benchmarkLastSynced(Object date);
+
+  /// No description provided for @benchmarkRefreshSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Average benchmark data updated.'**
+  String get benchmarkRefreshSuccess;
+
+  /// No description provided for @benchmarkRefreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update average benchmark data. Check network.'**
+  String get benchmarkRefreshFailed;
+
   /// No description provided for @benchmarkReferenceNote.
   ///
   /// In en, this message translates to:
@@ -11545,6 +11653,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Round +{xp} XP'**
   String challengeRoundXpLabel(int xp);
+
+  /// No description provided for @challengeActiveLevelPill.
+  ///
+  /// In en, this message translates to:
+  /// **'Level: {level}'**
+  String challengeActiveLevelPill(Object level);
+
+  /// No description provided for @challengePotentialXpPill.
+  ///
+  /// In en, this message translates to:
+  /// **'Potential XP +{xp}'**
+  String challengePotentialXpPill(int xp);
 
   /// No description provided for @challengeCompletionBonusLabel.
   ///

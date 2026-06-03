@@ -10,7 +10,6 @@ import '../../application/backup_service.dart';
 import '../../application/challenge_service.dart';
 import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
-import '../../application/meal_coaching_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
@@ -99,9 +98,6 @@ class HomeHubScreen extends StatefulWidget {
 }
 
 class _HomeHubScreenState extends State<HomeHubScreen> {
-  static const String _priorityFocusOverrideKey =
-      'home_priority_focus_override_v1';
-  final MealCoachingService _mealCoachingService = const MealCoachingService();
   bool _weatherLoading = false;
   bool _weatherNeedsLocation = true;
   bool _weatherLoadFailed = false;
@@ -153,10 +149,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
-              final allEntries = (snapshot.data ?? const <TrainingEntry>[])
-                  .where((entry) => !entry.isMatch)
-                  .toList()
-                ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries =
+                  (snapshot.data ?? const <TrainingEntry>[])
+                      .where((entry) => !entry.isMatch)
+                      .toList()
+                    ..sort(TrainingEntry.compareByRecentCreated);
               return StreamBuilder<List<MealEntry>>(
                 stream: widget.mealLogService.watchEntries(),
                 builder: (context, mealSnapshot) {
@@ -188,10 +185,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     quizCompletedAt: _loadQuizCompletedAt(
                       widget.optionRepository,
                     ),
-                    viewedDiaryDayToken:
-                        widget.optionRepository.getValue<String>(
-                      CoachLessonScreen.todayViewedDiaryDayKey,
-                    ),
+                    viewedDiaryDayToken: widget.optionRepository
+                        .getValue<String>(
+                          CoachLessonScreen.todayViewedDiaryDayKey,
+                        ),
                     quizResumeSummary: SkillQuizScreen.loadResumeSummary(
                       widget.optionRepository,
                     ),
@@ -201,7 +198,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                   if (challengeProgress != null) {
                     _scheduleChallengeFinalizeIfNeeded(challengeProgress);
                   }
-                  final priorityFocusSignal = _resolvePriorityFocusSignal(data);
                   final reminderUnreadCount = TrainingPlanReminderService(
                     widget.optionRepository,
                     widget.settingsService,
@@ -227,9 +223,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                     Scaffold.of(context).openDrawer(),
                                 profilePhotoSource:
                                     widget.optionRepository.getValue<String>(
-                                          'profile_photo_url',
-                                        ) ??
-                                        '',
+                                      'profile_photo_url',
+                                    ) ??
+                                    '',
                                 onNewsTap: _openNews,
                                 newsBadgeCount: newsCount,
                                 onQuizTap: _openQuizShortcut,
@@ -283,9 +279,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                             Expanded(
                               child: Text(
                                 l10n.homeHubTitleShort,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
+                                style: Theme.of(context).textTheme.headlineSmall
                                     ?.copyWith(fontWeight: FontWeight.w900),
                               ),
                             ),
@@ -317,50 +311,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                 onPrimaryAction: _isParentMode
                                     ? widget.onOpenPlans
                                     : showLogAction
-                                        ? _trackedAction(
-                                            'today_plan_log',
-                                            () => unawaited(
-                                                _openTodayPlanLog(data)),
-                                          )
-                                        : widget.onOpenPlans,
+                                    ? _trackedAction(
+                                        'today_plan_log',
+                                        () =>
+                                            unawaited(_openTodayPlanLog(data)),
+                                      )
+                                    : widget.onOpenPlans,
                               );
                             },
                           ),
                         ],
-                        const SizedBox(height: 12),
-                        _PriorityActionCard(
-                          focusSignal: priorityFocusSignal,
-                          l10n: l10n,
-                          isParentMode: _isParentMode,
-                          todayMealEntry: data.todayMealEntry,
-                          mealCoachingService: _mealCoachingService,
-                          onPrimaryTap: _isParentMode
-                              ? _trackedPriorityAction(
-                                  'parent_welcome_logs',
-                                  widget.onOpenLogs,
-                                )
-                              : _trackedPriorityAction(
-                                  priorityFocusSignal,
-                                  priorityFocusSignal == 'plan_next'
-                                      ? (widget.onQuickPlan ??
-                                          widget.onOpenPlans)
-                                      : priorityFocusSignal == 'log_today'
-                                          ? widget.onOpenPlans
-                                          : priorityFocusSignal == 'add_session'
-                                              ? widget.onOpenWeeklyStats
-                                              : priorityFocusSignal ==
-                                                      'add_minutes'
-                                                  ? widget.onQuickBoard
-                                                  : priorityFocusSignal ==
-                                                          'meal_routine'
-                                                      ? widget.onQuickMeal
-                                                      : priorityFocusSignal ==
-                                                              'recovery'
-                                                          ? widget
-                                                              .onOpenWeeklyStats
-                                                          : _openLevelGuide,
-                                ),
-                        ),
                         const SizedBox(height: 12),
                         _DailyFlowCard(
                           data: data,
@@ -467,7 +427,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   }
 
   VoidCallback _weatherBadgeTapAction() {
-    final needsUserLoad = _weatherLoadFailed ||
+    final needsUserLoad =
+        _weatherLoadFailed ||
         (_weatherNeedsLocation && _weatherSummary.trim().isEmpty);
     if (!needsUserLoad) {
       return _openWeatherDetails;
@@ -545,8 +506,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       }
       position ??= await Geolocator.getCurrentPosition(
         locationSettings: LocationSettings(
-          accuracy:
-              requestPermission ? LocationAccuracy.high : LocationAccuracy.low,
+          accuracy: requestPermission
+              ? LocationAccuracy.high
+              : LocationAccuracy.low,
           timeLimit: Duration(seconds: requestPermission ? 8 : 5),
         ),
       );
@@ -556,15 +518,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         isKo: isKo,
         koreaLabel: l10n.homeWeatherCountryKorea,
       ).timeout(const Duration(seconds: 5)).catchError((_) => '');
-      final weatherFuture = WeatherSharedResource.fetchForCoordinates(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        l10n: l10n,
-        locale: locale,
-        allowRetry: false,
-      )
-          .then<WeatherSharedSnapshot?>((snapshot) => snapshot)
-          .catchError((_) => null);
+      final weatherFuture =
+          WeatherSharedResource.fetchForCoordinates(
+                latitude: position.latitude,
+                longitude: position.longitude,
+                l10n: l10n,
+                locale: locale,
+                allowRetry: false,
+              )
+              .then<WeatherSharedSnapshot?>((snapshot) => snapshot)
+              .catchError((_) => null);
       final results = await Future.wait<Object?>([placeFuture, weatherFuture]);
       final place = results[0] as String;
       if (!mounted) return;
@@ -625,13 +588,12 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) =>
-      WeatherLocationService.resolvePlaceName(
-        latitude: latitude,
-        longitude: longitude,
-        isKo: isKo,
-        koreaLabel: koreaLabel,
-      );
+  }) => WeatherLocationService.resolvePlaceName(
+    latitude: latitude,
+    longitude: longitude,
+    isKo: isKo,
+    koreaLabel: koreaLabel,
+  );
 
   Future<void> _openWeatherDetails({
     WeatherDetailInitialAction initialAction = WeatherDetailInitialAction.none,
@@ -649,8 +611,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   }
 
   Future<void> _openWeatherOutfitGuide() => _openWeatherDetails(
-        initialAction: WeatherDetailInitialAction.outfitGuide,
-      );
+    initialAction: WeatherDetailInitialAction.outfitGuide,
+  );
 
   void _scheduleDailyTaskCompletionAwardIfNeeded(_HomeHubData data) {
     if (_isParentMode || !data.completedDailyTasks) return;
@@ -809,6 +771,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           trainingService: widget.trainingService,
           mealLogService: widget.mealLogService,
           optionRepository: widget.optionRepository,
+          localeService: widget.localeService,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
         ),
       ),
     );
@@ -875,86 +840,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       'home_action_last_tap_at_v1',
       DateTime.now().toIso8601String(),
     );
-  }
-
-  String _resolvePriorityFocusSignal(_HomeHubData data) {
-    final rawOverride =
-        widget.optionRepository.getValue<String>(_priorityFocusOverrideKey) ??
-            '';
-    final candidates = _priorityFocusCandidates(data);
-    if (rawOverride.isNotEmpty && candidates.contains(rawOverride)) {
-      return rawOverride;
-    }
-    return data.focusSignal;
-  }
-
-  List<String> _priorityFocusCandidates(_HomeHubData data) {
-    final ordered = <String>[
-      data.focusSignal,
-      if (data.focusSignal != 'log_today') 'log_today',
-      if (!data.hasTrainingPlanTodayOrTomorrow &&
-          data.focusSignal != 'plan_next')
-        'plan_next',
-      if (data.loggedMealsToday == false && data.focusSignal != 'meal_routine')
-        'meal_routine',
-      if (data.focusSignal != 'add_session') 'add_session',
-      if (data.focusSignal != 'add_minutes') 'add_minutes',
-      if (data.focusSignal != 'recovery') 'recovery',
-      if (data.focusSignal != 'upgrade_quality') 'upgrade_quality',
-    ];
-    return ordered.toSet().toList(growable: false);
-  }
-
-  VoidCallback? _trackedPriorityAction(
-    String focusSignal,
-    VoidCallback? action,
-  ) {
-    if (action == null) return null;
-    return () {
-      action();
-      _queueHomeActionSideEffect(() async {
-        await _trackHomeActionTap('priority_action');
-        await _advancePriorityFocusSignal(focusSignal);
-      });
-    };
-  }
-
-  Future<void> _advancePriorityFocusSignal(String currentFocusSignal) async {
-    final entries = await widget.trainingService.allEntries();
-    final trainingEntries = entries
-        .where((entry) => !entry.isMatch)
-        .toList(growable: false)
-      ..sort(TrainingEntry.compareByRecentCreated);
-    final mealEntries = widget.mealLogService.mergedEntries(
-      legacyEntries: trainingEntries,
-    );
-    final boardsById = TrainingBoardService(widget.optionRepository).boardMap();
-    final boards = boardsById.values.toList(growable: false)
-      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-    final data = _HomeHubData.build(
-      entries: trainingEntries,
-      mealEntries: mealEntries,
-      plans: _loadPlans(widget.optionRepository),
-      boards: boards,
-      quizCompletedAt: _loadQuizCompletedAt(widget.optionRepository),
-      viewedDiaryDayToken: widget.optionRepository.getValue<String>(
-        CoachLessonScreen.todayViewedDiaryDayKey,
-      ),
-      quizResumeSummary: SkillQuizScreen.loadResumeSummary(
-        widget.optionRepository,
-      ),
-      openedNewsToday: _openedNewsToday(),
-    );
-    final candidates = _priorityFocusCandidates(data);
-    final currentIndex = candidates.indexOf(currentFocusSignal);
-    final nextIndex =
-        currentIndex < 0 ? 0 : (currentIndex + 1) % candidates.length;
-    await widget.optionRepository.setValue(
-      _priorityFocusOverrideKey,
-      candidates[nextIndex],
-    );
-    if (!mounted) return;
-    setState(() {});
   }
 
   void _openTodayEntryOrCreate(
@@ -1108,8 +993,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                   title: Text(
                     l10n.homeTodayPlanSelectForLogTitle,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 );
               }
@@ -1217,9 +1102,6 @@ class _HomeHubData {
   final TrainingBoard? latestBoard;
   final int todayPlanCount;
   final List<_DashboardPlan> todayPlans;
-  final bool hasTrainingPlanTodayOrTomorrow;
-  final String strongestSignal;
-  final String focusSignal;
   final TrainingEntry? latestTrainingEntry;
   final TrainingEntry? latestCreatedTrainingEntry;
   final bool loggedTrainingToday;
@@ -1245,9 +1127,6 @@ class _HomeHubData {
     required this.latestBoard,
     required this.todayPlanCount,
     required this.todayPlans,
-    required this.hasTrainingPlanTodayOrTomorrow,
-    required this.strongestSignal,
-    required this.focusSignal,
     required this.latestTrainingEntry,
     required this.latestCreatedTrainingEntry,
     required this.loggedTrainingToday,
@@ -1273,15 +1152,15 @@ class _HomeHubData {
   int get dailyTaskTotalCount => 8;
 
   int get dailyTaskCompletedCount => <bool>[
-        loggedTrainingToday,
-        loggedLiftingToday,
-        loggedJumpRopeToday,
-        loggedMealsToday,
-        openedNewsToday,
-        quizCompletedToday,
-        reviewedTodayDiary,
-        loggedBoardToday,
-      ].where((done) => done).length;
+    loggedTrainingToday,
+    loggedLiftingToday,
+    loggedJumpRopeToday,
+    loggedMealsToday,
+    openedNewsToday,
+    quizCompletedToday,
+    reviewedTodayDiary,
+    loggedBoardToday,
+  ].where((done) => done).length;
 
   bool get completedDailyTasks =>
       dailyTaskCompletedCount >= dailyTaskTotalCount;
@@ -1312,47 +1191,53 @@ class _HomeHubData {
       (sum, entry) => sum + entry.durationMinutes,
     );
     final latestTrainingEntry = entries.isEmpty ? null : entries.first;
-    final latestCreatedTrainingEntry = entries.where((entry) {
-      final createdDay = DateTime(
-        entry.createdAt.year,
-        entry.createdAt.month,
-        entry.createdAt.day,
-      );
-      return createdDay == today;
-    }).fold<TrainingEntry?>(
-      null,
-      (latest, entry) =>
-          latest == null || entry.createdAt.isAfter(latest.createdAt)
+    final latestCreatedTrainingEntry = entries
+        .where((entry) {
+          final createdDay = DateTime(
+            entry.createdAt.year,
+            entry.createdAt.month,
+            entry.createdAt.day,
+          );
+          return createdDay == today;
+        })
+        .fold<TrainingEntry?>(
+          null,
+          (latest, entry) =>
+              latest == null || entry.createdAt.isAfter(latest.createdAt)
               ? entry
               : latest,
-    );
-    final todayEntries = entries.where((entry) {
-      final day = DateTime(
-        entry.date.year,
-        entry.date.month,
-        entry.date.day,
-      );
-      return day == today;
-    }).toList(growable: false);
+        );
+    final todayEntries = entries
+        .where((entry) {
+          final day = DateTime(
+            entry.date.year,
+            entry.date.month,
+            entry.date.day,
+          );
+          return day == today;
+        })
+        .toList(growable: false);
     final loggedTrainingToday = todayEntries.isNotEmpty;
     final loggedLiftingToday = todayEntries.any(
       (entry) => entry.liftingByPart.values.any((value) => value > 0),
     );
     final loggedJumpRopeToday = todayEntries.any(_hasCompletedJumpRope);
-    final todayMealEntry = mealEntries.where((entry) {
-      final day = DateTime(
-        entry.date.year,
-        entry.date.month,
-        entry.date.day,
-      );
-      return day == today;
-    }).fold<MealEntry?>(
-      null,
-      (latest, entry) =>
-          latest == null || entry.createdAt.isAfter(latest.createdAt)
+    final todayMealEntry = mealEntries
+        .where((entry) {
+          final day = DateTime(
+            entry.date.year,
+            entry.date.month,
+            entry.date.day,
+          );
+          return day == today;
+        })
+        .fold<MealEntry?>(
+          null,
+          (latest, entry) =>
+              latest == null || entry.createdAt.isAfter(latest.createdAt)
               ? entry
               : latest,
-    );
+        );
     final loggedMealsToday =
         todayMealEntry != null && todayMealEntry.hasRecords;
 
@@ -1381,70 +1266,31 @@ class _HomeHubData {
       return _RecentTrainingMarker(day: day, recorded: entryDays.contains(day));
     });
 
-    final todayPlans = plans.where((plan) {
-      final day = DateTime(
-        plan.scheduledAt.year,
-        plan.scheduledAt.month,
-        plan.scheduledAt.day,
-      );
-      return day == today;
-    }).toList(growable: false)
-      ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    final todayPlans =
+        plans
+            .where((plan) {
+              final day = DateTime(
+                plan.scheduledAt.year,
+                plan.scheduledAt.month,
+                plan.scheduledAt.day,
+              );
+              return day == today;
+            })
+            .toList(growable: false)
+          ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     final remainingTodayPlans = todayPlans
         .where((plan) => !_isPlanCoveredByTrainingEntry(plan, entries))
         .toList(growable: false);
     final todayPlanCount = remainingTodayPlans.length;
-    final tomorrow = today.add(const Duration(days: 1));
-    final hasTrainingPlanTodayOrTomorrow = plans.any((plan) {
-      final day = DateTime(
-        plan.scheduledAt.year,
-        plan.scheduledAt.month,
-        plan.scheduledAt.day,
-      );
-      return day == today || day == tomorrow;
-    });
-    final totalMood = weeklyEntries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.mood,
-    );
-    final averageMood =
-        weeklyEntries.isEmpty ? 0 : totalMood / weeklyEntries.length;
-
-    String strongest;
-    String focus;
-    if (weeklyEntries.length >= 4) {
-      strongest = 'consistency';
-    } else if (averageMood >= 4) {
-      strongest = 'condition';
-    } else if (weeklyMinutes >= 180) {
-      strongest = 'volume';
-    } else {
-      strongest = 'restart';
-    }
-
-    if (!hasTrainingPlanTodayOrTomorrow) {
-      focus = 'plan_next';
-    } else if (weeklyEntries.isEmpty) {
-      focus = 'log_today';
-    } else if (!loggedMealsToday) {
-      focus = 'meal_routine';
-    } else if (weeklyEntries.length < 3) {
-      focus = 'add_session';
-    } else if (weeklyMinutes < 150) {
-      focus = 'add_minutes';
-    } else if (averageMood < 3) {
-      focus = 'recovery';
-    } else {
-      focus = 'upgrade_quality';
-    }
-
-    final quizCompletedToday = quizCompletedAt != null &&
+    final quizCompletedToday =
+        quizCompletedAt != null &&
         quizCompletedAt.year == now.year &&
         quizCompletedAt.month == now.month &&
         quizCompletedAt.day == now.day;
     final reviewedTodayDiary =
         viewedDiaryDayToken == CoachLessonScreen.todayViewedDayToken(now);
-    final loggedBoardToday = boards.isNotEmpty &&
+    final loggedBoardToday =
+        boards.isNotEmpty &&
         boards.first.updatedAt.year == now.year &&
         boards.first.updatedAt.month == now.month &&
         boards.first.updatedAt.day == now.day;
@@ -1461,9 +1307,6 @@ class _HomeHubData {
       latestBoard: boards.isEmpty ? null : boards.first,
       todayPlanCount: todayPlanCount,
       todayPlans: remainingTodayPlans,
-      hasTrainingPlanTodayOrTomorrow: hasTrainingPlanTodayOrTomorrow,
-      strongestSignal: strongest,
-      focusSignal: focus,
       latestTrainingEntry: latestTrainingEntry,
       latestCreatedTrainingEntry: latestCreatedTrainingEntry,
       loggedTrainingToday: loggedTrainingToday,
@@ -1506,7 +1349,8 @@ class _HomeHubData {
       final entryType = entry.type.trim().toLowerCase();
       final entryProgram = entry.program.trim().toLowerCase();
       final entryLocation = entry.location.trim().toLowerCase();
-      final categoryMatches = normalizedCategory.isEmpty ||
+      final categoryMatches =
+          normalizedCategory.isEmpty ||
           entryType == normalizedCategory ||
           entryProgram == normalizedCategory;
       final locationMatches =
@@ -1540,9 +1384,11 @@ class _DashboardPlan {
 
   factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
     return _DashboardPlan(
-      id: map['id']?.toString() ??
+      id:
+          map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,
@@ -1654,10 +1500,10 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.visible,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w800,
-                        height: 1.25,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w800,
+                    height: 1.25,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1704,19 +1550,21 @@ class _ChallengeHomeCard extends StatelessWidget {
     final activeRound = progress?.activeRound;
     final completed = progress?.completedRoundCount ?? 0;
     final total = progress?.totalRoundCount ?? 0;
-    final challengeTintAlpha =
-        theme.brightness == Brightness.dark ? 0.24 : 0.34;
-    final challengeGoldAlpha =
-        theme.brightness == Brightness.dark ? 0.18 : 0.28;
+    final challengeTintAlpha = theme.brightness == Brightness.dark
+        ? 0.24
+        : 0.34;
+    final challengeGoldAlpha = theme.brightness == Brightness.dark
+        ? 0.18
+        : 0.28;
     final subtitle = progress == null
         ? l10n.homeChallengeEmptyBody
         : activeRound == null
-            ? l10n.challengeCompletedSummary(title)
-            : l10n.homeChallengeActiveBody(
-                completed,
-                total,
-                activeRound.round.number,
-              );
+        ? l10n.challengeCompletedSummary(title)
+        : l10n.homeChallengeActiveBody(
+            completed,
+            total,
+            activeRound.round.number,
+          );
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1729,15 +1577,11 @@ class _ChallengeHomeCard extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 Color.alphaBlend(
-                  const Color(0xFF40D697).withValues(
-                    alpha: challengeTintAlpha,
-                  ),
+                  const Color(0xFF40D697).withValues(alpha: challengeTintAlpha),
                   theme.colorScheme.surface,
                 ),
                 Color.alphaBlend(
-                  const Color(0xFFFFC95A).withValues(
-                    alpha: challengeGoldAlpha,
-                  ),
+                  const Color(0xFFFFC95A).withValues(alpha: challengeGoldAlpha),
                   theme.colorScheme.surface,
                 ),
               ],
@@ -1795,13 +1639,7 @@ class _ChallengeHomeCard extends StatelessWidget {
                     ),
                     if (progress != null) ...[
                       const SizedBox(height: 10),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: LinearProgressIndicator(
-                          minHeight: 7,
-                          value: progress!.completionRate,
-                        ),
-                      ),
+                      _HomeChallengeGauge(progress: progress!.completionRate),
                     ],
                   ],
                 ),
@@ -1810,6 +1648,78 @@ class _ChallengeHomeCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _HomeChallengeGauge extends StatelessWidget {
+  final double progress;
+
+  const _HomeChallengeGauge({required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: 26,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: 22,
+            right: 22,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                minHeight: 7,
+                value: progress.clamp(0, 1).toDouble(),
+                backgroundColor: scheme.surface.withValues(alpha: 0.58),
+              ),
+            ),
+          ),
+          const Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: _HomeGaugeIcon(
+              icon: Icons.local_fire_department_rounded,
+              color: Color(0xFFFF7A1A),
+            ),
+          ),
+          const Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: _HomeGaugeIcon(
+              icon: Icons.star_rounded,
+              color: Color(0xFFFFC857),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeGaugeIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+
+  const _HomeGaugeIcon({required this.icon, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.78),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.24),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Icon(icon, color: color, size: 17),
     );
   }
 }
@@ -1879,9 +1789,7 @@ class _LevelHeroCard extends StatelessWidget {
                               ),
                               child: Text(
                                 'Lv.${levelState.level}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelLarge
+                                style: Theme.of(context).textTheme.labelLarge
                                     ?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -1894,9 +1802,7 @@ class _LevelHeroCard extends StatelessWidget {
                                 l10n.playerLevelName(levelState.level),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
+                                style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -1913,11 +1819,11 @@ class _LevelHeroCard extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           progressLabel,
-                          style:
-                              Theme.of(context).textTheme.labelMedium?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.92),
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.92),
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ],
                     ),
@@ -1982,16 +1888,16 @@ class _DailyFlowCard extends StatelessWidget {
                 child: Text(
                   l10n.homeDailyCheckTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
               Text(
                 l10n.homeDailyCheckCompletedCount(completedCount, totalCount),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ],
           ),
@@ -2066,164 +1972,6 @@ class _DailyFlowCard extends StatelessWidget {
   }
 }
 
-class _PriorityActionCard extends StatelessWidget {
-  final String focusSignal;
-  final AppLocalizations l10n;
-  final bool isParentMode;
-  final MealEntry? todayMealEntry;
-  final MealCoachingService mealCoachingService;
-  final VoidCallback? onPrimaryTap;
-
-  const _PriorityActionCard({
-    required this.focusSignal,
-    required this.l10n,
-    required this.isParentMode,
-    required this.todayMealEntry,
-    required this.mealCoachingService,
-    required this.onPrimaryTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final (message, buttonLabel, icon) = _copy();
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            theme.colorScheme.secondaryContainer.withValues(alpha: 0.95),
-            theme.colorScheme.primaryContainer.withValues(alpha: 0.70),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha: 0.14),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, color: theme.colorScheme.primary, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  message,
-                  maxLines: 2,
-                  overflow: TextOverflow.visible,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    height: 1.25,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: onPrimaryTap,
-                style: FilledButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  minimumSize: const Size(1, 44),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-                child: Text(
-                  buttonLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  (String, String, IconData) _copy() {
-    if (isParentMode) {
-      return (
-        l10n.homeParentWelcomeMessage,
-        l10n.homeParentWelcomeAction,
-        Icons.family_restroom_outlined,
-      );
-    }
-    final mealStatus = todayMealEntry == null
-        ? null
-        : mealCoachingService.statusForMealEntry(todayMealEntry!);
-    switch (focusSignal) {
-      case 'plan_next':
-        return (
-          l10n.homePriorityPlanNextMessage,
-          l10n.homePriorityPlanNextAction,
-          Icons.add_alarm_outlined,
-        );
-      case 'log_today':
-        return (
-          l10n.homePriorityCheckPlansMessage,
-          l10n.homePriorityPlansAction,
-          Icons.event_note_outlined,
-        );
-      case 'add_session':
-        return (
-          l10n.homePriorityReviewWeekMessage,
-          l10n.homePriorityStatsAction,
-          Icons.bar_chart_outlined,
-        );
-      case 'add_minutes':
-        return (
-          l10n.homePrioritySketchNextMessage,
-          l10n.homePriorityBoardAction,
-          Icons.developer_board_outlined,
-        );
-      case 'meal_routine':
-        return (
-          _mealSuggestionCompactText(mealStatus),
-          l10n.homeMealCoachRecordAction,
-          Icons.rice_bowl_outlined,
-        );
-      case 'recovery':
-        return (
-          l10n.homePriorityConditionMessage,
-          l10n.homePriorityStatsAction,
-          Icons.monitor_heart_outlined,
-        );
-      default:
-        return (
-          l10n.homePriorityRewardsMessage,
-          l10n.homePriorityLevelAction,
-          Icons.military_tech_outlined,
-        );
-    }
-  }
-
-  String _mealSuggestionCompactText(MealStatus? status) {
-    final completed = status?.completedMeals ?? 0;
-    return switch (completed) {
-      3 => l10n.homeMealSuggestionDoneShort,
-      2 => l10n.homeMealSuggestionTwoShort,
-      1 => l10n.homeMealSuggestionOneShort,
-      _ => l10n.homeMealSuggestionNoneShort,
-    };
-  }
-}
-
 class _TrainingStreakSpotlightCard extends StatelessWidget {
   final _HomeHubData data;
   final AppLocalizations l10n;
@@ -2240,21 +1988,23 @@ class _TrainingStreakSpotlightCard extends StatelessWidget {
     final theme = Theme.of(context);
     final gapDays = data.latestTrainingGapDays ?? 0;
     final isActive = data.streakIsActive;
-    final badgeLabel =
-        isActive ? l10n.homeStreakBadgeActive : l10n.homeStreakBadgeResume;
+    final badgeLabel = isActive
+        ? l10n.homeStreakBadgeActive
+        : l10n.homeStreakBadgeResume;
     final title = gapDays == 0
         ? l10n.homeStreakActiveTodayTitle(data.streakDays)
         : gapDays == 1
-            ? l10n.homeStreakActiveYesterdayTitle(data.streakDays)
-            : l10n.homeStreakPausedTitle(data.streakDays);
+        ? l10n.homeStreakActiveYesterdayTitle(data.streakDays)
+        : l10n.homeStreakPausedTitle(data.streakDays);
     final actionLabel = gapDays == 0
         ? l10n.homeStreakActionReview
         : l10n.homeStreakActionContinue;
     final gradientColors = isActive
         ? const <Color>[Color(0xFFFFCB8E), Color(0xFFF56E56)]
         : const <Color>[Color(0xFFF0E7CE), Color(0xFFD6DDE8)];
-    final foreground =
-        isActive ? const Color(0xFF4A1C07) : const Color(0xFF1F3344);
+    final foreground = isActive
+        ? const Color(0xFF4A1C07)
+        : const Color(0xFF1F3344);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -2451,9 +2201,9 @@ class _RecentTrainingMarkerChip extends StatelessWidget {
           overflow: TextOverflow.fade,
           softWrap: false,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: foreground,
-                fontWeight: marker.recorded ? FontWeight.w900 : FontWeight.w700,
-              ),
+            color: foreground,
+            fontWeight: marker.recorded ? FontWeight.w900 : FontWeight.w700,
+          ),
         ),
       ),
     );
@@ -2634,13 +2384,13 @@ class _TodayWeatherButton extends StatelessWidget {
             primary: weatherLoadFailed
                 ? l10n.homeWeatherRetryTitle
                 : weatherNeedsLocation
-                    ? l10n.homeWeatherNeedsLocationTitle
-                    : l10n.homeWeatherTitle,
+                ? l10n.homeWeatherNeedsLocationTitle
+                : l10n.homeWeatherTitle,
             secondary: weatherLoadFailed
                 ? l10n.homeWeatherRetrySubtitle
                 : weatherNeedsLocation
-                    ? l10n.homeWeatherNeedsLocationSubtitle
-                    : null,
+                ? l10n.homeWeatherNeedsLocationSubtitle
+                : null,
           );
     return Material(
       color: Colors.transparent,
@@ -2682,10 +2432,10 @@ class _TodayWeatherButton extends StatelessWidget {
                           hasWeather
                               ? _weatherIcon(weatherCode)
                               : weatherLoadFailed
-                                  ? Icons.refresh_rounded
-                                  : weatherNeedsLocation
-                                      ? Icons.location_searching_rounded
-                                      : Icons.cloud_off_outlined,
+                              ? Icons.refresh_rounded
+                              : weatherNeedsLocation
+                              ? Icons.location_searching_rounded
+                              : Icons.cloud_off_outlined,
                           size: 17,
                           color: palette.foreground,
                         ),
@@ -2874,7 +2624,8 @@ class _ContinueCard extends StatelessWidget {
     final quizSummary = data.quizResumeSummary;
     final hasQuizSession = quizSummary.hasActiveSession;
     final latestTrainingEntry = data.latestTrainingEntry;
-    final latestTrainingIsToday = latestTrainingEntry != null &&
+    final latestTrainingIsToday =
+        latestTrainingEntry != null &&
         DateTime(
               latestTrainingEntry.date.year,
               latestTrainingEntry.date.month,
@@ -2889,8 +2640,8 @@ class _ContinueCard extends StatelessWidget {
             );
     final quizTitle = hasQuizSession
         ? (quizSummary.reviewMode
-            ? l10n.homeContinueWrongAnswerReview
-            : l10n.homeContinueQuiz)
+              ? l10n.homeContinueWrongAnswerReview
+              : l10n.homeContinueQuiz)
         : l10n.homeContinueStartQuiz;
     final quizSubtitle = hasQuizSession
         ? l10n.homeContinueQuizProgress(
@@ -2935,11 +2686,11 @@ class _ContinueCard extends StatelessWidget {
           subtitle: data.latestBoard == null
               ? l10n.homeContinueBoardCount(data.boardCount)
               : data.latestBoardUpdatedAt == null
-                  ? l10n.homeContinueBoardCount(data.boardCount)
-                  : l10n.homeContinueBoardSaved(
-                      data.latestBoard!.title,
-                      shortDateFormat.format(data.latestBoardUpdatedAt!),
-                    ),
+              ? l10n.homeContinueBoardCount(data.boardCount)
+              : l10n.homeContinueBoardSaved(
+                  data.latestBoard!.title,
+                  shortDateFormat.format(data.latestBoardUpdatedAt!),
+                ),
           buttonLabel: l10n.homeContinueBoardButton,
           onPressed: onContinueBoard,
         ),
@@ -3030,8 +2781,8 @@ class _ContinueItem extends StatelessWidget {
                     Text(
                       item.title,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -3045,9 +2796,9 @@ class _ContinueItem extends StatelessWidget {
               Text(
                 item.buttonLabel,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(width: 2),
               Icon(
@@ -3118,10 +2869,10 @@ class _QuickActionButton extends StatelessWidget {
                       forceStrutHeight: true,
                     ),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontSize: 14,
-                          height: 1.05,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      fontSize: 14,
+                      height: 1.05,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
               ],
@@ -3182,9 +2933,9 @@ class _HomeLevelIllustration extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
@@ -3246,10 +2997,10 @@ class _TodoChip extends StatelessWidget {
                     forceStrutHeight: true,
                   ),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize: 14,
-                        height: 1.05,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    fontSize: 14,
+                    height: 1.05,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ],
