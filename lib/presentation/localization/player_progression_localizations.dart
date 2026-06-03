@@ -129,6 +129,8 @@ extension PlayerProgressionLocalizations on AppLocalizations {
         return xpHistoryDiaryCreated;
       case PlayerXpHistoryCategory.dailyTasks:
         return xpHistoryDailyTasksComplete;
+      case PlayerXpHistoryCategory.challenge:
+        return xpHistoryChallengeRound(challengeHistoryTitleLabel(item));
     }
   }
 
@@ -206,6 +208,8 @@ extension PlayerProgressionLocalizations on AppLocalizations {
         return xpHistoryReasonDiaryCreated;
       case 'daily_tasks_completed':
         return xpHistoryReasonDailyTasksCompleted;
+      case 'challenge_round_completed':
+        return xpHistoryReasonChallengeRoundCompleted;
       case 'daily_xp_cap':
         return xpHistoryReasonDailyCap;
       default:
@@ -215,5 +219,19 @@ extension PlayerProgressionLocalizations on AppLocalizations {
         }
         return reason;
     }
+  }
+
+  String challengeHistoryTitleLabel(PlayerXpHistoryEntry item) {
+    final parts = item.label.split(':');
+    if (parts.isEmpty) return challengeTitle;
+    final templateTitle = switch (parts.first) {
+      'starter_3' => challengeTemplateStarterTitle,
+      'weekly_7' => challengeTemplateWeeklyTitle,
+      'focus_14' => challengeTemplateFocusTitle,
+      _ => challengeTitle,
+    };
+    final roundNumber = parts.length > 1 ? int.tryParse(parts[1]) : null;
+    if (roundNumber == null) return templateTitle;
+    return '$templateTitle · $roundNumber';
   }
 }

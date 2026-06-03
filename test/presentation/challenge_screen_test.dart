@@ -1,0 +1,124 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/meal_log_service.dart';
+import 'package:football_note/application/training_service.dart';
+import 'package:football_note/domain/entities/training_entry.dart';
+import 'package:football_note/domain/repositories/option_repository.dart';
+import 'package:football_note/domain/repositories/training_repository.dart';
+import 'package:football_note/gen/app_localizations.dart';
+import 'package:football_note/presentation/screens/challenge_screen.dart';
+
+void main() {
+  testWidgets('challenge screen starts a template and shows round list', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('챌린지 선택'), findsOneWidget);
+    expect(find.text('3일 워밍업 챌린지'), findsOneWidget);
+
+    await tester.tap(find.text('시작').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('라운드'), findsOneWidget);
+    expect(find.text('1라운드'), findsWidgets);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+}
+
+class _MemoryOptionRepository implements OptionRepository {
+  final Map<String, dynamic> _values = <String, dynamic>{};
+
+  @override
+  List<String> getOptions(String key, List<String> defaults) {
+    final value = _values[key];
+    if (value is List<String>) return value;
+    return defaults;
+  }
+
+  @override
+  List<int> getIntOptions(String key, List<int> defaults) {
+    final value = _values[key];
+    if (value is List<int>) return value;
+    return defaults;
+  }
+
+  @override
+  T? getValue<T>(String key) => _values[key] as T?;
+
+  @override
+  Future<void> saveOptions(String key, List<dynamic> options) async {
+    _values[key] = options;
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    _values[key] = value;
+  }
+}
+
+class _MemoryTrainingRepository implements TrainingRepository {
+  final List<TrainingEntry> _entries = <TrainingEntry>[];
+  final StreamController<List<TrainingEntry>> _controller =
+      StreamController<List<TrainingEntry>>.broadcast();
+
+  _MemoryTrainingRepository() {
+    _controller.add(const <TrainingEntry>[]);
+  }
+
+  @override
+  Future<void> add(TrainingEntry entry) async {
+    _entries.add(entry);
+    _controller.add(List<TrainingEntry>.unmodifiable(_entries));
+  }
+
+  @override
+  Future<void> delete(TrainingEntry entry) async {
+    _entries.remove(entry);
+    _controller.add(List<TrainingEntry>.unmodifiable(_entries));
+  }
+
+  @override
+  Future<List<TrainingEntry>> getAll() async {
+    return List<TrainingEntry>.unmodifiable(_entries);
+  }
+
+  @override
+  Future<void> update(int key, TrainingEntry entry) async {
+    if (key >= 0 && key < _entries.length) {
+      _entries[key] = entry;
+    }
+    _controller.add(List<TrainingEntry>.unmodifiable(_entries));
+  }
+
+  @override
+  Stream<List<TrainingEntry>> watchAll() => _controller.stream;
+}

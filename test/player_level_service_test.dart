@@ -450,6 +450,38 @@ void main() {
     expect(history.first.reasons, contains('plan_group_created:3'));
   });
 
+  test('challenge round awards xp once per run and round', () async {
+    final repository = _MemoryOptionRepository();
+    final service = PlayerLevelService(repository);
+
+    final award = await service.awardForChallengeRound(
+      challengeRunId: 'starter_3-1',
+      roundNumber: 1,
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 1, 20),
+      rewardXp: 8,
+    );
+    final duplicateAward = await service.awardForChallengeRound(
+      challengeRunId: 'starter_3-1',
+      roundNumber: 1,
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 1, 21),
+      rewardXp: 8,
+    );
+
+    expect(award.gainedXp, 8);
+    expect(duplicateAward.gainedXp, 0);
+    expect(service.loadState().totalXp, 8);
+    final history = service.loadXpHistory();
+    expect(history, hasLength(1));
+    expect(history.single.category, PlayerXpHistoryCategory.challenge);
+    expect(history.single.reasons, contains('challenge_round_completed'));
+    expect(
+      repository.getValue<List>(PlayerLevelService.awardedChallengeRoundsKey),
+      contains('starter_3-1:1'),
+    );
+  });
+
   test('daily positive xp is capped to keep level-ups slower', () async {
     final repository = _MemoryOptionRepository()
       ..seed(PlayerLevelService.totalXpKey, 64)

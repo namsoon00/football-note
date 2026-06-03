@@ -30,12 +30,8 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final history =
-        _levelService
-            .loadXpHistory()
-            .where((item) => item.category == PlayerXpHistoryCategory.training)
-            .toList()
-          ..sort((a, b) => b.awardedAt.compareTo(a.awardedAt));
+    final history = _levelService.loadXpHistory()
+      ..sort((a, b) => b.awardedAt.compareTo(a.awardedAt));
     final groupedHistory = _groupByDay(history);
 
     return Scaffold(
@@ -174,9 +170,9 @@ class _XpHistorySummaryCard extends StatelessWidget {
           Text(
             l10n.xpHistoryRecentFlow,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-            ),
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
           const SizedBox(height: 6),
           Text(
@@ -276,9 +272,8 @@ class _XpHistoryTimelineRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final positive = item.deltaXp >= 0;
-    final accent = positive
-        ? theme.colorScheme.primary
-        : theme.colorScheme.error;
+    final accent =
+        positive ? theme.colorScheme.primary : theme.colorScheme.error;
     final deltaText = positive ? '+${item.deltaXp} XP' : '${item.deltaXp} XP';
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,9 +435,9 @@ class _HistoryReasonChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w800,
-        ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }

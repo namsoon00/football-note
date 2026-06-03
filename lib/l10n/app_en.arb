@@ -3155,5 +3155,147 @@
   "trainingSketchTemplateTransitionAttackMethod": "Attack forward within six seconds of the regain",
   "trainingSketchTemplateGalleryAction": "View templates",
   "trainingSketchTemplateGalleryTitle": "Training template gallery",
-  "trainingSketchTemplateGallerySubtitle": "Preview movement lines and notes before creating a sketch."
+  "trainingSketchTemplateGallerySubtitle": "Preview movement lines and notes before creating a sketch.",
+  "challengeTitle": "Challenge",
+  "challengeStartHeroTitle": "Rinzy's Challenge Mode",
+  "challengeStartHeroBody": "Build a round-by-round routine with training minutes and rice-bowl goals.",
+  "challengeLatestComplete": "Latest challenge complete",
+  "challengeSelectTitle": "Choose a challenge",
+  "challengeTemplateStarterTitle": "3-day Warm-up Challenge",
+  "challengeTemplateStarterDescription": "Start small with short training targets and steady meals.",
+  "challengeTemplateWeeklyTitle": "7-day Routine Challenge",
+  "challengeTemplateWeeklyDescription": "Lock in a full week of training rhythm and meal volume.",
+  "challengeTemplateFocusTitle": "14-day Focus Challenge",
+  "challengeTemplateFocusDescription": "Push a two-week growth block with gradually rising goals.",
+  "challengeDaysLabel": "{days} days",
+  "@challengeDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRewardXp": "+{xp} XP",
+  "@challengeRewardXp": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeStartAction": "Start",
+  "challengeRoundCount": "{completed}/{total} rounds complete",
+  "@challengeRoundCount": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeProgressPercent": "{percent}% complete",
+  "@challengeProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeTodayRoundTitle": "Today · Round {round}",
+  "@challengeTodayRoundTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeUpcomingRoundTitle": "Next · Round {round}",
+  "@challengeUpcomingRoundTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRoundsTitle": "Rounds",
+  "challengeRoundTitle": "Round {round}",
+  "@challengeRoundTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeTrainingLabel": "Training",
+  "challengeMealLabel": "Meals",
+  "challengeTrainingGoalValue": "{current}/{target} min",
+  "@challengeTrainingGoalValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeMealGoalValue": "{current}/{target} bowls",
+  "@challengeMealGoalValue": {
+    "placeholders": {
+      "current": {},
+      "target": {}
+    }
+  },
+  "challengeCompletedBadge": "Complete",
+  "challengePendingBadge": "In progress",
+  "challengeCompletedSummary": "{title} complete",
+  "@challengeCompletedSummary": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeRoundDateToday": "Today",
+  "challengeStartSnack": "{title} started.",
+  "@challengeStartSnack": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeAwardSnack": "Challenge round complete +{xp} XP",
+  "@challengeAwardSnack": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCompletedSnack": "Challenge complete.",
+  "challengeAbandonAction": "End",
+  "challengeAbandonTitle": "End challenge",
+  "challengeAbandonBody": "End the current challenge and choose another?",
+  "challengeAbandonConfirm": "End",
+  "homeChallengeEmptyBody": "Start a challenge with Rinzy.",
+  "homeChallengeActiveBody": "{completed}/{total} complete · Round {round} today",
+  "@homeChallengeActiveBody": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryChallengeRound": "Challenge round · {label}",
+  "@xpHistoryChallengeRound": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryReasonChallengeRoundCompleted": "challenge round complete"
 }

@@ -6581,4 +6581,155 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get trainingSketchTemplateGallerySubtitle =>
       'Preview movement lines and notes before creating a sketch.';
+
+  @override
+  String get challengeTitle => 'Challenge';
+
+  @override
+  String get challengeStartHeroTitle => 'Rinzy\'s Challenge Mode';
+
+  @override
+  String get challengeStartHeroBody =>
+      'Build a round-by-round routine with training minutes and rice-bowl goals.';
+
+  @override
+  String get challengeLatestComplete => 'Latest challenge complete';
+
+  @override
+  String get challengeSelectTitle => 'Choose a challenge';
+
+  @override
+  String get challengeTemplateStarterTitle => '3-day Warm-up Challenge';
+
+  @override
+  String get challengeTemplateStarterDescription =>
+      'Start small with short training targets and steady meals.';
+
+  @override
+  String get challengeTemplateWeeklyTitle => '7-day Routine Challenge';
+
+  @override
+  String get challengeTemplateWeeklyDescription =>
+      'Lock in a full week of training rhythm and meal volume.';
+
+  @override
+  String get challengeTemplateFocusTitle => '14-day Focus Challenge';
+
+  @override
+  String get challengeTemplateFocusDescription =>
+      'Push a two-week growth block with gradually rising goals.';
+
+  @override
+  String challengeDaysLabel(int days) {
+    return '$days days';
+  }
+
+  @override
+  String challengeRewardXp(int xp) {
+    return '+$xp XP';
+  }
+
+  @override
+  String get challengeStartAction => 'Start';
+
+  @override
+  String challengeRoundCount(int completed, int total) {
+    return '$completed/$total rounds complete';
+  }
+
+  @override
+  String challengeProgressPercent(int percent) {
+    return '$percent% complete';
+  }
+
+  @override
+  String challengeTodayRoundTitle(int round) {
+    return 'Today · Round $round';
+  }
+
+  @override
+  String challengeUpcomingRoundTitle(int round) {
+    return 'Next · Round $round';
+  }
+
+  @override
+  String get challengeRoundsTitle => 'Rounds';
+
+  @override
+  String challengeRoundTitle(int round) {
+    return 'Round $round';
+  }
+
+  @override
+  String get challengeTrainingLabel => 'Training';
+
+  @override
+  String get challengeMealLabel => 'Meals';
+
+  @override
+  String challengeTrainingGoalValue(int current, int target) {
+    return '$current/$target min';
+  }
+
+  @override
+  String challengeMealGoalValue(Object current, Object target) {
+    return '$current/$target bowls';
+  }
+
+  @override
+  String get challengeCompletedBadge => 'Complete';
+
+  @override
+  String get challengePendingBadge => 'In progress';
+
+  @override
+  String challengeCompletedSummary(Object title) {
+    return '$title complete';
+  }
+
+  @override
+  String get challengeRoundDateToday => 'Today';
+
+  @override
+  String challengeStartSnack(Object title) {
+    return '$title started.';
+  }
+
+  @override
+  String challengeAwardSnack(int xp) {
+    return 'Challenge round complete +$xp XP';
+  }
+
+  @override
+  String get challengeCompletedSnack => 'Challenge complete.';
+
+  @override
+  String get challengeAbandonAction => 'End';
+
+  @override
+  String get challengeAbandonTitle => 'End challenge';
+
+  @override
+  String get challengeAbandonBody =>
+      'End the current challenge and choose another?';
+
+  @override
+  String get challengeAbandonConfirm => 'End';
+
+  @override
+  String get homeChallengeEmptyBody => 'Start a challenge with Rinzy.';
+
+  @override
+  String homeChallengeActiveBody(int completed, int total, int round) {
+    return '$completed/$total complete · Round $round today';
+  }
+
+  @override
+  String xpHistoryChallengeRound(Object label) {
+    return 'Challenge round · $label';
+  }
+
+  @override
+  String get xpHistoryReasonChallengeRoundCompleted =>
+      'challenge round complete';
 }

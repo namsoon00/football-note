@@ -3155,5 +3155,147 @@
   "trainingSketchTemplateTransitionAttackMethod": "取り戻してから6秒以内に前方に攻撃する",
   "trainingSketchTemplateGalleryAction": "テンプレートを表示する",
   "trainingSketchTemplateGalleryTitle": "トレーニング テンプレート ギャラリー",
-  "trainingSketchTemplateGallerySubtitle": "スケッチを作成する前に、動線と注記をプレビューします。"
+  "trainingSketchTemplateGallerySubtitle": "スケッチを作成する前に、動線と注記をプレビューします。",
+  "challengeTitle": "チャレンジ",
+  "challengeStartHeroTitle": "リンジーのチャレンジモード",
+  "challengeStartHeroBody": "トレーニング時間とご飯の目標をラウンドごとに積み上げます。",
+  "challengeLatestComplete": "最新チャレンジ完了",
+  "challengeSelectTitle": "チャレンジを選択",
+  "challengeTemplateStarterTitle": "3日ウォームアップチャレンジ",
+  "challengeTemplateStarterDescription": "短いトレーニング目標と安定した食事量で始めます。",
+  "challengeTemplateWeeklyTitle": "7日ルーチンチャレンジ",
+  "challengeTemplateWeeklyDescription": "1週間のトレーニングリズムと食事量を固定します。",
+  "challengeTemplateFocusTitle": "14日集中成長チャレンジ",
+  "challengeTemplateFocusDescription": "2週間、少しずつ上がる目標で成長ブロックを進めます。",
+  "challengeDaysLabel": "{days}日",
+  "@challengeDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRewardXp": "+{xp} XP",
+  "@challengeRewardXp": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeStartAction": "開始",
+  "challengeRoundCount": "{completed}/{total} ラウンド完了",
+  "@challengeRoundCount": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeProgressPercent": "{percent}% 完了",
+  "@challengeProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeTodayRoundTitle": "今日 · ラウンド {round}",
+  "@challengeTodayRoundTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeUpcomingRoundTitle": "次 · ラウンド {round}",
+  "@challengeUpcomingRoundTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRoundsTitle": "ラウンド",
+  "challengeRoundTitle": "ラウンド {round}",
+  "@challengeRoundTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeTrainingLabel": "トレーニング",
+  "challengeMealLabel": "食事",
+  "challengeTrainingGoalValue": "{current}/{target}分",
+  "@challengeTrainingGoalValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeMealGoalValue": "{current}/{target}杯",
+  "@challengeMealGoalValue": {
+    "placeholders": {
+      "current": {},
+      "target": {}
+    }
+  },
+  "challengeCompletedBadge": "完了",
+  "challengePendingBadge": "進行中",
+  "challengeCompletedSummary": "{title} 完了",
+  "@challengeCompletedSummary": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeRoundDateToday": "今日",
+  "challengeStartSnack": "{title}を開始しました。",
+  "@challengeStartSnack": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeAwardSnack": "チャレンジラウンド完了 +{xp} XP",
+  "@challengeAwardSnack": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCompletedSnack": "チャレンジ完了。",
+  "challengeAbandonAction": "終了",
+  "challengeAbandonTitle": "チャレンジを終了",
+  "challengeAbandonBody": "現在のチャレンジを終了して別のチャレンジを選択しますか?",
+  "challengeAbandonConfirm": "終了",
+  "homeChallengeEmptyBody": "リンジーとチャレンジを始めましょう。",
+  "homeChallengeActiveBody": "{completed}/{total} 完了 · 今日ラウンド {round}",
+  "@homeChallengeActiveBody": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryChallengeRound": "チャレンジラウンド · {label}",
+  "@xpHistoryChallengeRound": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryReasonChallengeRoundCompleted": "チャレンジラウンド完了"
 }

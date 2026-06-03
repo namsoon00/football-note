@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/challenge_service.dart';
 import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/meal_coaching_service.dart';
@@ -20,6 +21,7 @@ import '../../application/training_service.dart';
 import '../../application/weather_location_service.dart';
 import '../../application/weather_shared_resource.dart';
 import '../../domain/entities/training_board.dart';
+import '../../domain/entities/challenge.dart';
 import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -29,6 +31,7 @@ import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/player_level_visuals.dart';
+import '../widgets/rinzy_mascot.dart';
 import '../widgets/rice_bowl_summary.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
@@ -38,6 +41,7 @@ import 'skill_quiz_screen.dart';
 import 'news_screen.dart';
 import 'notification_center_screen.dart';
 import 'coach_lesson_screen.dart';
+import 'challenge_screen.dart';
 import 'entry_form_screen.dart';
 import 'player_level_guide_screen.dart';
 import 'running_coach_screen.dart';
@@ -105,8 +109,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   String _weatherLocation = '';
   String _weatherSummary = '';
   int? _weatherCode;
+  Timer? _initialWeatherTimer;
   bool _dailyTaskAwardInFlight = false;
   String? _lastDailyTaskAwardToken;
+  bool _challengeAwardInFlight = false;
+  String? _lastChallengeAwardSignature;
 
   bool get _isParentMode =>
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
@@ -122,6 +129,12 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         () => NewsBadgeService.refresh(widget.optionRepository),
       );
     });
+  }
+
+  @override
+  void dispose() {
+    _initialWeatherTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -160,6 +173,13 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     directEntries: mealSnapshot.data ?? const <MealEntry>[],
                     legacyEntries: allEntries,
                   );
+                  final challengeService = ChallengeService(
+                    widget.optionRepository,
+                  );
+                  final challengeProgress = challengeService.activeProgress(
+                    trainingEntries: allEntries,
+                    mealEntries: mealEntries,
+                  );
                   final data = _HomeHubData.build(
                     entries: allEntries,
                     mealEntries: mealEntries,
@@ -178,6 +198,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     openedNewsToday: _openedNewsToday(),
                   );
                   _scheduleDailyTaskCompletionAwardIfNeeded(data);
+                  if (challengeProgress != null) {
+                    _scheduleChallengeAwardIfNeeded(challengeProgress);
+                  }
                   final priorityFocusSignal = _resolvePriorityFocusSignal(data);
                   final reminderUnreadCount = TrainingPlanReminderService(
                     widget.optionRepository,
@@ -222,6 +245,17 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         _LevelHeroCard(
                           levelState: levelState,
                           onTap: _openLevelGuide,
+                        ),
+                        const SizedBox(height: 10),
+                        _ChallengeHomeCard(
+                          progress: challengeProgress,
+                          title: challengeProgress == null
+                              ? l10n.challengeTitle
+                              : _challengeTemplateTitle(
+                                  l10n,
+                                  challengeProgress.template,
+                                ),
+                          onTap: _openChallenge,
                         ),
                         if (data.showStreakHighlight) ...[
                           const SizedBox(height: 10),
@@ -442,12 +476,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   }
 
   void _scheduleInitialWeatherLoad() {
-    unawaited(
-      Future<void>.delayed(const Duration(milliseconds: 650), () async {
-        if (!mounted) return;
-        await _loadHomeWeather(requestPermission: false, showLoading: false);
-      }),
-    );
+    _initialWeatherTimer?.cancel();
+    _initialWeatherTimer = Timer(const Duration(milliseconds: 650), () {
+      if (!mounted) return;
+      unawaited(_loadHomeWeather(requestPermission: false, showLoading: false));
+    });
   }
 
   Future<void> _loadHomeWeather({
@@ -660,6 +693,73 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     }
   }
 
+  void _scheduleChallengeAwardIfNeeded(ChallengeProgress progress) {
+    if (_isParentMode) return;
+    final completedRounds = progress.rounds
+        .where((round) => round.completed)
+        .map((round) => round.round.number)
+        .join(',');
+    if (completedRounds.isEmpty) return;
+    final signature = '${progress.run.id}:$completedRounds';
+    if (_challengeAwardInFlight || _lastChallengeAwardSignature == signature) {
+      return;
+    }
+    _lastChallengeAwardSignature = signature;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_awardChallengeRounds(progress, signature));
+    });
+  }
+
+  Future<void> _awardChallengeRounds(
+    ChallengeProgress progress,
+    String signature,
+  ) async {
+    if (_challengeAwardInFlight || !mounted) return;
+    _challengeAwardInFlight = true;
+    try {
+      final l10n = AppLocalizations.of(context)!;
+      final isKo = Localizations.localeOf(context).languageCode == 'ko';
+      final awards = await ChallengeService(
+        widget.optionRepository,
+      ).awardCompletedRounds(
+        progress: progress,
+        playerLevelService: PlayerLevelService(widget.optionRepository),
+      );
+      final gainedXp = awards.fold<int>(
+        0,
+        (sum, award) => sum + award.gainedXp,
+      );
+      if (!mounted) return;
+      if (gainedXp <= 0) {
+        setState(() {});
+        return;
+      }
+      final reminderService = TrainingPlanReminderService(
+        widget.optionRepository,
+        widget.settingsService,
+      );
+      await reminderService.showXpGainAlert(
+        gainedXp: gainedXp,
+        totalXp:
+            PlayerLevelService(widget.optionRepository).loadState().totalXp,
+        isKo: isKo,
+        sourceLabel: l10n.challengeTitle,
+      );
+      final leveledUp = awards.any((award) => award.didLevelUp);
+      if (leveledUp) {
+        await reminderService.showLevelUpAlert(
+          level: PlayerLevelService(widget.optionRepository).loadState().level,
+          isKo: isKo,
+        );
+      }
+      if (mounted) setState(() {});
+    } finally {
+      _challengeAwardInFlight = false;
+      _lastChallengeAwardSignature = signature;
+    }
+  }
+
   static List<_DashboardPlan> _loadPlans(OptionRepository optionRepository) {
     final raw = optionRepository.getValue<String>('training_plans_v1');
     if (raw == null || raw.trim().isEmpty) return const <_DashboardPlan>[];
@@ -729,6 +829,19 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             RunningCoachScreen(optionRepository: widget.optionRepository),
       ),
     );
+  }
+
+  Future<void> _openChallenge() async {
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => ChallengeScreen(
+          trainingService: widget.trainingService,
+          mealLogService: widget.mealLogService,
+          optionRepository: widget.optionRepository,
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
   }
 
   Future<void> _openQuizShortcut() async {
@@ -1480,6 +1593,18 @@ bool _hasCompletedJumpRope(TrainingEntry entry) {
   return entry.jumpRopeCount > 0 || entry.jumpRopeMinutes > 0;
 }
 
+String _challengeTemplateTitle(
+  AppLocalizations l10n,
+  ChallengeTemplate template,
+) {
+  return switch (template.id) {
+    'starter_3' => l10n.challengeTemplateStarterTitle,
+    'weekly_7' => l10n.challengeTemplateWeeklyTitle,
+    'focus_14' => l10n.challengeTemplateFocusTitle,
+    _ => l10n.challengeTitle,
+  };
+}
+
 class _TodayPlanHighlightCard extends StatelessWidget {
   final AppLocalizations l10n;
   final List<_DashboardPlan> plans;
@@ -1582,6 +1707,100 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                     ),
                   ),
                 ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChallengeHomeCard extends StatelessWidget {
+  final ChallengeProgress? progress;
+  final String title;
+  final VoidCallback onTap;
+
+  const _ChallengeHomeCard({
+    required this.progress,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final activeRound = progress?.activeRound;
+    final completed = progress?.completedRoundCount ?? 0;
+    final total = progress?.totalRoundCount ?? 0;
+    final subtitle = progress == null
+        ? l10n.homeChallengeEmptyBody
+        : activeRound == null
+            ? l10n.challengeCompletedSummary(title)
+            : l10n.homeChallengeActiveBody(
+                completed,
+                total,
+                activeRound.round.number,
+              );
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: const ValueKey('home-challenge-card'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Ink(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: theme.colorScheme.outline),
+          ),
+          child: Row(
+            children: [
+              RinzyMascot(
+                size: 72,
+                progress: progress?.completionRate ?? 0,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    if (progress != null) ...[
+                      const SizedBox(height: 10),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: LinearProgressIndicator(
+                          minHeight: 7,
+                          value: progress!.completionRate,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ],
           ),
         ),

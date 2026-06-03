@@ -6354,4 +6354,149 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get trainingSketchTemplateGallerySubtitle =>
       'スケッチを作成する前に、動線と注記をプレビューします。';
+
+  @override
+  String get challengeTitle => 'チャレンジ';
+
+  @override
+  String get challengeStartHeroTitle => 'リンジーのチャレンジモード';
+
+  @override
+  String get challengeStartHeroBody => 'トレーニング時間とご飯の目標をラウンドごとに積み上げます。';
+
+  @override
+  String get challengeLatestComplete => '最新チャレンジ完了';
+
+  @override
+  String get challengeSelectTitle => 'チャレンジを選択';
+
+  @override
+  String get challengeTemplateStarterTitle => '3日ウォームアップチャレンジ';
+
+  @override
+  String get challengeTemplateStarterDescription => '短いトレーニング目標と安定した食事量で始めます。';
+
+  @override
+  String get challengeTemplateWeeklyTitle => '7日ルーチンチャレンジ';
+
+  @override
+  String get challengeTemplateWeeklyDescription => '1週間のトレーニングリズムと食事量を固定します。';
+
+  @override
+  String get challengeTemplateFocusTitle => '14日集中成長チャレンジ';
+
+  @override
+  String get challengeTemplateFocusDescription => '2週間、少しずつ上がる目標で成長ブロックを進めます。';
+
+  @override
+  String challengeDaysLabel(int days) {
+    return '$days日';
+  }
+
+  @override
+  String challengeRewardXp(int xp) {
+    return '+$xp XP';
+  }
+
+  @override
+  String get challengeStartAction => '開始';
+
+  @override
+  String challengeRoundCount(int completed, int total) {
+    return '$completed/$total ラウンド完了';
+  }
+
+  @override
+  String challengeProgressPercent(int percent) {
+    return '$percent% 完了';
+  }
+
+  @override
+  String challengeTodayRoundTitle(int round) {
+    return '今日 · ラウンド $round';
+  }
+
+  @override
+  String challengeUpcomingRoundTitle(int round) {
+    return '次 · ラウンド $round';
+  }
+
+  @override
+  String get challengeRoundsTitle => 'ラウンド';
+
+  @override
+  String challengeRoundTitle(int round) {
+    return 'ラウンド $round';
+  }
+
+  @override
+  String get challengeTrainingLabel => 'トレーニング';
+
+  @override
+  String get challengeMealLabel => '食事';
+
+  @override
+  String challengeTrainingGoalValue(int current, int target) {
+    return '$current/$target分';
+  }
+
+  @override
+  String challengeMealGoalValue(Object current, Object target) {
+    return '$current/$target杯';
+  }
+
+  @override
+  String get challengeCompletedBadge => '完了';
+
+  @override
+  String get challengePendingBadge => '進行中';
+
+  @override
+  String challengeCompletedSummary(Object title) {
+    return '$title 完了';
+  }
+
+  @override
+  String get challengeRoundDateToday => '今日';
+
+  @override
+  String challengeStartSnack(Object title) {
+    return '$titleを開始しました。';
+  }
+
+  @override
+  String challengeAwardSnack(int xp) {
+    return 'チャレンジラウンド完了 +$xp XP';
+  }
+
+  @override
+  String get challengeCompletedSnack => 'チャレンジ完了。';
+
+  @override
+  String get challengeAbandonAction => '終了';
+
+  @override
+  String get challengeAbandonTitle => 'チャレンジを終了';
+
+  @override
+  String get challengeAbandonBody => '現在のチャレンジを終了して別のチャレンジを選択しますか?';
+
+  @override
+  String get challengeAbandonConfirm => '終了';
+
+  @override
+  String get homeChallengeEmptyBody => 'リンジーとチャレンジを始めましょう。';
+
+  @override
+  String homeChallengeActiveBody(int completed, int total, int round) {
+    return '$completed/$total 完了 · 今日ラウンド $round';
+  }
+
+  @override
+  String xpHistoryChallengeRound(Object label) {
+    return 'チャレンジラウンド · $label';
+  }
+
+  @override
+  String get xpHistoryReasonChallengeRoundCompleted => 'チャレンジラウンド完了';
 }

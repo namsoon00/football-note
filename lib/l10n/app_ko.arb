@@ -3155,5 +3155,147 @@
   "trainingSketchTemplateTransitionAttackMethod": "볼 탈취 후 6초 안에 전진",
   "trainingSketchTemplateGalleryAction": "템플릿 보기",
   "trainingSketchTemplateGalleryTitle": "훈련 템플릿 갤러리",
-  "trainingSketchTemplateGallerySubtitle": "스케치를 만들기 전에 이동선과 메모 구성을 미리 확인하세요."
+  "trainingSketchTemplateGallerySubtitle": "스케치를 만들기 전에 이동선과 메모 구성을 미리 확인하세요.",
+  "challengeTitle": "챌린지",
+  "challengeStartHeroTitle": "린지의 챌린지 모드",
+  "challengeStartHeroBody": "훈련 시간과 밥그릇 목표를 라운드마다 쌓아 루틴을 만듭니다.",
+  "challengeLatestComplete": "최근 챌린지 완료",
+  "challengeSelectTitle": "챌린지 선택",
+  "challengeTemplateStarterTitle": "3일 워밍업 챌린지",
+  "challengeTemplateStarterDescription": "짧은 훈련 목표와 안정적인 식사량으로 가볍게 시작합니다.",
+  "challengeTemplateWeeklyTitle": "7일 루틴 챌린지",
+  "challengeTemplateWeeklyDescription": "한 주 동안 훈련 리듬과 식사량을 함께 고정합니다.",
+  "challengeTemplateFocusTitle": "14일 집중 성장 챌린지",
+  "challengeTemplateFocusDescription": "2주 동안 조금씩 높아지는 목표로 성장 블록을 밀어붙입니다.",
+  "challengeDaysLabel": "{days}일",
+  "@challengeDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRewardXp": "+{xp} XP",
+  "@challengeRewardXp": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeStartAction": "시작",
+  "challengeRoundCount": "{completed}/{total} 라운드 완료",
+  "@challengeRoundCount": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeProgressPercent": "{percent}% 완료",
+  "@challengeProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeTodayRoundTitle": "오늘 · {round}라운드",
+  "@challengeTodayRoundTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeUpcomingRoundTitle": "다음 · {round}라운드",
+  "@challengeUpcomingRoundTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRoundsTitle": "라운드",
+  "challengeRoundTitle": "{round}라운드",
+  "@challengeRoundTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeTrainingLabel": "훈련",
+  "challengeMealLabel": "식사",
+  "challengeTrainingGoalValue": "{current}/{target}분",
+  "@challengeTrainingGoalValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeMealGoalValue": "{current}/{target}그릇",
+  "@challengeMealGoalValue": {
+    "placeholders": {
+      "current": {},
+      "target": {}
+    }
+  },
+  "challengeCompletedBadge": "완료",
+  "challengePendingBadge": "진행 중",
+  "challengeCompletedSummary": "{title} 완료",
+  "@challengeCompletedSummary": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeRoundDateToday": "오늘",
+  "challengeStartSnack": "{title}를 시작했어요.",
+  "@challengeStartSnack": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeAwardSnack": "챌린지 라운드 완료 +{xp} XP",
+  "@challengeAwardSnack": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCompletedSnack": "챌린지를 완료했어요.",
+  "challengeAbandonAction": "종료",
+  "challengeAbandonTitle": "챌린지 종료",
+  "challengeAbandonBody": "현재 챌린지를 종료하고 다른 챌린지를 선택할까요?",
+  "challengeAbandonConfirm": "종료",
+  "homeChallengeEmptyBody": "린지와 함께 챌린지를 시작하세요.",
+  "homeChallengeActiveBody": "{completed}/{total} 완료 · 오늘 {round}라운드",
+  "@homeChallengeActiveBody": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "xpHistoryChallengeRound": "챌린지 라운드 · {label}",
+  "@xpHistoryChallengeRound": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "xpHistoryReasonChallengeRoundCompleted": "챌린지 라운드 완료"
 }

@@ -15,6 +15,7 @@ import '../screens/news_screen.dart';
 import '../screens/notification_center_screen.dart';
 import '../screens/skill_quiz_screen.dart';
 import '../screens/running_coach_screen.dart';
+import '../screens/challenge_screen.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'app_page_route.dart';
 
@@ -244,6 +245,22 @@ class AppDrawer extends StatelessWidget {
                     Navigator.of(context).push(
                       AppPageRoute(
                         builder: (_) => RunningCoachScreen(
+                          optionRepository: optionRepository,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                _DrawerActionTile(
+                  icon: Icons.flag_outlined,
+                  label: l10n.challengeTitle,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      AppPageRoute(
+                        builder: (_) => ChallengeScreen(
+                          trainingService: trainingService,
+                          mealLogService: MealLogService(optionRepository),
                           optionRepository: optionRepository,
                         ),
                       ),

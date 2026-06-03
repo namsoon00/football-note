@@ -19,6 +19,8 @@ class PlayerLevelService {
   static const String awardedRoutineDaysKey = 'player_awarded_routine_days_v1';
   static const String awardedDailyTaskCompletionDaysKey =
       'player_awarded_daily_task_completion_days_v1';
+  static const String awardedChallengeRoundsKey =
+      'player_awarded_challenge_rounds_v1';
   static const String diaryCreatedDayKey = 'player_diary_created_day_v2';
   static const String claimedRewardLevelsKey =
       'player_claimed_reward_levels_v1';
@@ -127,9 +129,8 @@ class PlayerLevelService {
         beforeLevel: before.level,
         afterLevel: after.level,
         category: PlayerXpHistoryCategory.training,
-        label: entry.program.trim().isNotEmpty
-            ? entry.program.trim()
-            : entry.type,
+        label:
+            entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type,
         reasons: reasons,
       ),
     );
@@ -617,6 +618,76 @@ class PlayerLevelService {
     );
   }
 
+  Future<PlayerLevelAward> awardForChallengeRound({
+    required String challengeRunId,
+    required int roundNumber,
+    required String challengeLabel,
+    required DateTime completedAt,
+    required int rewardXp,
+  }) async {
+    final before = loadState();
+    final normalizedRunId = challengeRunId.trim();
+    if (normalizedRunId.isEmpty || roundNumber <= 0 || rewardXp <= 0) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    final token = '$normalizedRunId:$roundNumber';
+    final awardedRounds = _getStringSet(awardedChallengeRoundsKey);
+    if (!awardedRounds.add(token)) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+
+    final reasons = <String>['challenge_round_completed'];
+    final gainedXp = _applyDailyPositiveXpCap(
+      requestedXp: rewardXp,
+      awardedAt: completedAt,
+      reasons: reasons,
+    );
+    await _options.setValue(
+      awardedChallengeRoundsKey,
+      awardedRounds.toList()..sort(),
+    );
+    if (gainedXp <= 0) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: reasons,
+      );
+    }
+
+    final nextTotal = before.totalXp + gainedXp;
+    await _options.setValue(totalXpKey, nextTotal);
+    final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: completedAt,
+        deltaXp: gainedXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: PlayerXpHistoryCategory.challenge,
+        label: '$challengeLabel:$roundNumber',
+        reasons: reasons,
+      ),
+    );
+    return PlayerLevelAward(
+      gainedXp: gainedXp,
+      before: before,
+      after: after,
+      reasons: reasons,
+    );
+  }
+
   static PlayerLevelReward? rewardForLevel(int level) {
     if (level < 1 || level > PlayerProgressionRules.levelThresholds.length) {
       return null;
@@ -929,9 +1000,8 @@ class PlayerLevelState {
         xpToNextMasteryStar: xpToNextMasteryStar,
       );
     }
-    final nextLevelXp = level >= thresholds.length
-        ? currentLevelXp + 2100
-        : thresholds[level];
+    final nextLevelXp =
+        level >= thresholds.length ? currentLevelXp + 2100 : thresholds[level];
     final span = (nextLevelXp - currentLevelXp).clamp(1, 1000000);
     final progress = ((totalXp - currentLevelXp) / span).clamp(0.0, 1.0);
     return PlayerLevelState(
@@ -1016,6 +1086,7 @@ enum PlayerXpHistoryCategory {
   board,
   diary,
   dailyTasks,
+  challenge,
 }
 
 class PlayerXpHistoryEntry {
@@ -1041,8 +1112,7 @@ class PlayerXpHistoryEntry {
 
   factory PlayerXpHistoryEntry.fromMap(Map<String, dynamic> map) {
     return PlayerXpHistoryEntry(
-      awardedAt:
-          DateTime.tryParse(map['awardedAt']?.toString() ?? '') ??
+      awardedAt: DateTime.tryParse(map['awardedAt']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
       deltaXp: (map['deltaXp'] as num?)?.toInt() ?? 0,
       totalXp: (map['totalXp'] as num?)?.toInt() ?? 0,
@@ -1053,8 +1123,7 @@ class PlayerXpHistoryEntry {
         orElse: () => PlayerXpHistoryCategory.training,
       ),
       label: map['label']?.toString() ?? '',
-      reasons:
-          (map['reasons'] as List?)
+      reasons: (map['reasons'] as List?)
               ?.map((item) => item.toString())
               .toList(growable: false) ??
           const <String>[],

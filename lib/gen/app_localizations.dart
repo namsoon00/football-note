@@ -11365,6 +11365,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preview movement lines and notes before creating a sketch.'**
   String get trainingSketchTemplateGallerySubtitle;
+
+  /// No description provided for @challengeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge'**
+  String get challengeTitle;
+
+  /// No description provided for @challengeStartHeroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rinzy\'s Challenge Mode'**
+  String get challengeStartHeroTitle;
+
+  /// No description provided for @challengeStartHeroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Build a round-by-round routine with training minutes and rice-bowl goals.'**
+  String get challengeStartHeroBody;
+
+  /// No description provided for @challengeLatestComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest challenge complete'**
+  String get challengeLatestComplete;
+
+  /// No description provided for @challengeSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a challenge'**
+  String get challengeSelectTitle;
+
+  /// No description provided for @challengeTemplateStarterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3-day Warm-up Challenge'**
+  String get challengeTemplateStarterTitle;
+
+  /// No description provided for @challengeTemplateStarterDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Start small with short training targets and steady meals.'**
+  String get challengeTemplateStarterDescription;
+
+  /// No description provided for @challengeTemplateWeeklyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day Routine Challenge'**
+  String get challengeTemplateWeeklyTitle;
+
+  /// No description provided for @challengeTemplateWeeklyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock in a full week of training rhythm and meal volume.'**
+  String get challengeTemplateWeeklyDescription;
+
+  /// No description provided for @challengeTemplateFocusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'14-day Focus Challenge'**
+  String get challengeTemplateFocusTitle;
+
+  /// No description provided for @challengeTemplateFocusDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Push a two-week growth block with gradually rising goals.'**
+  String get challengeTemplateFocusDescription;
+
+  /// No description provided for @challengeDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String challengeDaysLabel(int days);
+
+  /// No description provided for @challengeRewardXp.
+  ///
+  /// In en, this message translates to:
+  /// **'+{xp} XP'**
+  String challengeRewardXp(int xp);
+
+  /// No description provided for @challengeStartAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get challengeStartAction;
+
+  /// No description provided for @challengeRoundCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed}/{total} rounds complete'**
+  String challengeRoundCount(int completed, int total);
+
+  /// No description provided for @challengeProgressPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% complete'**
+  String challengeProgressPercent(int percent);
+
+  /// No description provided for @challengeTodayRoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today · Round {round}'**
+  String challengeTodayRoundTitle(int round);
+
+  /// No description provided for @challengeUpcomingRoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next · Round {round}'**
+  String challengeUpcomingRoundTitle(int round);
+
+  /// No description provided for @challengeRoundsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounds'**
+  String get challengeRoundsTitle;
+
+  /// No description provided for @challengeRoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {round}'**
+  String challengeRoundTitle(int round);
+
+  /// No description provided for @challengeTrainingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get challengeTrainingLabel;
+
+  /// No description provided for @challengeMealLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals'**
+  String get challengeMealLabel;
+
+  /// No description provided for @challengeTrainingGoalValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{target} min'**
+  String challengeTrainingGoalValue(int current, int target);
+
+  /// No description provided for @challengeMealGoalValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{target} bowls'**
+  String challengeMealGoalValue(Object current, Object target);
+
+  /// No description provided for @challengeCompletedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get challengeCompletedBadge;
+
+  /// No description provided for @challengePendingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get challengePendingBadge;
+
+  /// No description provided for @challengeCompletedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} complete'**
+  String challengeCompletedSummary(Object title);
+
+  /// No description provided for @challengeRoundDateToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get challengeRoundDateToday;
+
+  /// No description provided for @challengeStartSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} started.'**
+  String challengeStartSnack(Object title);
+
+  /// No description provided for @challengeAwardSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge round complete +{xp} XP'**
+  String challengeAwardSnack(int xp);
+
+  /// No description provided for @challengeCompletedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge complete.'**
+  String get challengeCompletedSnack;
+
+  /// No description provided for @challengeAbandonAction.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get challengeAbandonAction;
+
+  /// No description provided for @challengeAbandonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End challenge'**
+  String get challengeAbandonTitle;
+
+  /// No description provided for @challengeAbandonBody.
+  ///
+  /// In en, this message translates to:
+  /// **'End the current challenge and choose another?'**
+  String get challengeAbandonBody;
+
+  /// No description provided for @challengeAbandonConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get challengeAbandonConfirm;
+
+  /// No description provided for @homeChallengeEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a challenge with Rinzy.'**
+  String get homeChallengeEmptyBody;
+
+  /// No description provided for @homeChallengeActiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed}/{total} complete · Round {round} today'**
+  String homeChallengeActiveBody(int completed, int total, int round);
+
+  /// No description provided for @xpHistoryChallengeRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge round · {label}'**
+  String xpHistoryChallengeRound(Object label);
+
+  /// No description provided for @xpHistoryReasonChallengeRoundCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'challenge round complete'**
+  String get xpHistoryReasonChallengeRoundCompleted;
 }
 
 class _AppLocalizationsDelegate
