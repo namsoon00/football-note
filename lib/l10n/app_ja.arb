@@ -49,6 +49,13 @@
   "welcomeStatsStepPeriod": "今週、先週、またはカスタム範囲を比較する期間を変更します。",
   "welcomeStatsStepAverage": "平均比較を開いて、どのメトリクスが進んでいるか遅れているかを確認します。",
   "welcomeStatsStepFocus": "最も弱いシグナルを次の計画またはメモの目標に変えます。",
+  "welcomeChallengeOverview": "チャレンジでは、リンジーが毎日のラウンドミッションを確認し、完了を大きな XP に変えてくれます。",
+  "welcomeChallengeActionStart": "チャレンジ開始",
+  "welcomeChallengeStepStart": "期間とレベルを選ぶと、今日から続けるラウンドが作られます。",
+  "welcomeChallengeActionMission": "ミッション入力",
+  "welcomeChallengeStepMission": "トレーニング、縄跳び、リフティング、食事のミッションをタップすると記録画面が開きます。",
+  "welcomeChallengeActionReward": "XP 報酬",
+  "welcomeChallengeStepReward": "ラウンドを終えるたびに XP が貯まり、完走するとリンジーが祝ってくれます。",
   "welcomeDiaryOverview": "日記を使用すると、トレーニング、食事、ステッカーなどで 1 日を 1 つの読みやすいストーリーに変えることができます。",
   "welcomeDiaryStepToday": "記録後、ホームまたは日記タブから今日の日記を開きます。",
   "welcomeDiaryStepSticker": "今日の記録シールを引いて、読む順番を並べます。",
@@ -192,6 +199,11 @@
   "homeTodoTrainingLogShort": "ログ",
   "homeTodoLiftingShort": "リフティング",
   "homeTodoJumpRopeShort": "ジャンプ",
+  "jumpRopeRecordTitle": "縄跳び記録",
+  "jumpRopeMinutesLabel": "縄跳び時間(分)",
+  "jumpRopeCountLabel": "縄跳び回数",
+  "jumpRopeMemoLabel": "メモ",
+  "jumpRopeMemoHint": "縄跳び中に感じたことを書いてください。",
   "homeTodoQuizShort": "クイズ",
   "homeTodoNewsShort": "ニュース",
   "homeTodoDiaryShort": "日記",
@@ -1553,7 +1565,7 @@
       }
     }
   },
-  "diaryJumpRopeCombined": "縄跳び {count}回/{minutes}",
+  "diaryJumpRopeCombined": "縄跳び {minutes}/{count}回",
   "@diaryJumpRopeCombined": {
     "placeholders": {
       "count": {
@@ -1564,7 +1576,7 @@
       }
     }
   },
-  "diaryConditioningSummary": "リフティング {liftingCount}回 · 縄跳び {jumpCount}回/{jumpMinutes}",
+  "diaryConditioningSummary": "リフティング {liftingCount}回 · 縄跳び {jumpMinutes}/{jumpCount}回",
   "@diaryConditioningSummary": {
     "placeholders": {
       "liftingCount": {
@@ -2969,6 +2981,17 @@
   "parentReadOnlyProfileSummary": "プロフィールはここでのみ閲覧可能です。",
   "parentReadOnlyProfileDescription": "親モードでは、プロファイルは読み取り専用に保たれます。トレーニング ログからトレーニング フィードバックを残し、レベル ガイドから報酬名を設定します。",
   "parentReadOnlySettingsOptions": "親モードでは、デフォルト値やニュース フィルターを編集できません。プレイヤーモードで変更してください。",
+  "benchmarkReferencesTitle": "平均基準",
+  "benchmarkRefreshAction": "平均を更新",
+  "benchmarkRefreshInProgress": "更新中",
+  "benchmarkLastSynced": "最終同期: {date}",
+  "@benchmarkLastSynced": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "benchmarkRefreshSuccess": "平均基準データを更新しました。",
+  "benchmarkRefreshFailed": "平均基準データの更新に失敗しました。ネットワークを確認してください。",
   "benchmarkReferenceNote": "身長と体重は CDC 成長曲線の中央値を使用します。活動時間はWHOの青少年指導を利用しています。ジャグリング練習場はサッカーのトレーニングの基準であり、医学的な基準ではありません。",
   "parentReadOnlyEntryTitle": "親モードではトレーニングノートを編集できません。",
   "parentReadOnlyEntryBody": "トレーニング、食事、日記などの主要な記録はプレーヤー モードに残ります。親モードでは、元のレコードは変更されず、フィードバックと報酬の名前のみが個別に保存されます。",
@@ -3222,6 +3245,20 @@
   },
   "challengeRoundXpLabel": "ラウンド +{xp} XP",
   "@challengeRoundXpLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeActiveLevelPill": "レベル: {level}",
+  "@challengeActiveLevelPill": {
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "challengePotentialXpPill": "獲得可能 XP +{xp}",
+  "@challengePotentialXpPill": {
     "placeholders": {
       "xp": {
         "type": "int"

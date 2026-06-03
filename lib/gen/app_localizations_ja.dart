@@ -158,6 +158,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeStatsStepFocus => '最も弱いシグナルを次の計画またはメモの目標に変えます。';
 
   @override
+  String get welcomeChallengeOverview =>
+      'チャレンジでは、リンジーが毎日のラウンドミッションを確認し、完了を大きな XP に変えてくれます。';
+
+  @override
+  String get welcomeChallengeActionStart => 'チャレンジ開始';
+
+  @override
+  String get welcomeChallengeStepStart => '期間とレベルを選ぶと、今日から続けるラウンドが作られます。';
+
+  @override
+  String get welcomeChallengeActionMission => 'ミッション入力';
+
+  @override
+  String get welcomeChallengeStepMission =>
+      'トレーニング、縄跳び、リフティング、食事のミッションをタップすると記録画面が開きます。';
+
+  @override
+  String get welcomeChallengeActionReward => 'XP 報酬';
+
+  @override
+  String get welcomeChallengeStepReward =>
+      'ラウンドを終えるたびに XP が貯まり、完走するとリンジーが祝ってくれます。';
+
+  @override
   String get welcomeDiaryOverview =>
       '日記を使用すると、トレーニング、食事、ステッカーなどで 1 日を 1 つの読みやすいストーリーに変えることができます。';
 
@@ -474,6 +498,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeTodoJumpRopeShort => 'ジャンプ';
+
+  @override
+  String get jumpRopeRecordTitle => '縄跳び記録';
+
+  @override
+  String get jumpRopeMinutesLabel => '縄跳び時間(分)';
+
+  @override
+  String get jumpRopeCountLabel => '縄跳び回数';
+
+  @override
+  String get jumpRopeMemoLabel => 'メモ';
+
+  @override
+  String get jumpRopeMemoHint => '縄跳び中に感じたことを書いてください。';
 
   @override
   String get homeTodoQuizShort => 'クイズ';
@@ -3147,13 +3186,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diaryJumpRopeCombined(int count, String minutes) {
-    return '縄跳び $count回/$minutes';
+    return '縄跳び $minutes/$count回';
   }
 
   @override
   String diaryConditioningSummary(
       int liftingCount, int jumpCount, String jumpMinutes) {
-    return 'リフティング $liftingCount回 · 縄跳び $jumpCount回/$jumpMinutes';
+    return 'リフティング $liftingCount回 · 縄跳び $jumpMinutes/$jumpCount回';
   }
 
   @override
@@ -5865,6 +5904,26 @@ class AppLocalizationsJa extends AppLocalizations {
       '親モードでは、デフォルト値やニュース フィルターを編集できません。プレイヤーモードで変更してください。';
 
   @override
+  String get benchmarkReferencesTitle => '平均基準';
+
+  @override
+  String get benchmarkRefreshAction => '平均を更新';
+
+  @override
+  String get benchmarkRefreshInProgress => '更新中';
+
+  @override
+  String benchmarkLastSynced(Object date) {
+    return '最終同期: $date';
+  }
+
+  @override
+  String get benchmarkRefreshSuccess => '平均基準データを更新しました。';
+
+  @override
+  String get benchmarkRefreshFailed => '平均基準データの更新に失敗しました。ネットワークを確認してください。';
+
+  @override
   String get benchmarkReferenceNote =>
       '身長と体重は CDC 成長曲線の中央値を使用します。活動時間はWHOの青少年指導を利用しています。ジャグリング練習場はサッカーのトレーニングの基準であり、医学的な基準ではありません。';
 
@@ -6459,6 +6518,16 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String challengeRoundXpLabel(int xp) {
     return 'ラウンド +$xp XP';
+  }
+
+  @override
+  String challengeActiveLevelPill(Object level) {
+    return 'レベル: $level';
+  }
+
+  @override
+  String challengePotentialXpPill(int xp) {
+    return '獲得可能 XP +$xp';
   }
 
   @override

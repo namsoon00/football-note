@@ -262,6 +262,9 @@ class AppDrawer extends StatelessWidget {
                           trainingService: trainingService,
                           mealLogService: MealLogService(optionRepository),
                           optionRepository: optionRepository,
+                          localeService: localeService,
+                          settingsService: settingsService,
+                          driveBackupService: driveBackupService,
                         ),
                       ),
                     );

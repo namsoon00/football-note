@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 import '../../application/player_level_service.dart';
@@ -533,10 +535,12 @@ class _TrainingXpDialogSpec {
     PlayerLevelAward award,
   ) {
     final reasons = award.reasons.toSet();
-    final hasJumpRopeGain = reasons.contains('jump_rope_added') ||
+    final hasJumpRopeGain =
+        reasons.contains('jump_rope_added') ||
         (!reasons.contains('jump_rope_missed') &&
             reasons.any((reason) => reason.contains('jump_rope')));
-    final hasLiftingGain = reasons.contains('lifting_added') ||
+    final hasLiftingGain =
+        reasons.contains('lifting_added') ||
         (!reasons.contains('lifting_missed') &&
             reasons.any((reason) => reason.contains('lifting')));
     if (hasJumpRopeGain) {
@@ -583,6 +587,8 @@ Future<void> _showCelebrationDialog(
   BuildContext context, {
   required Widget child,
 }) {
+  unawaited(HapticFeedback.mediumImpact());
+  unawaited(SystemSound.play(SystemSoundType.alert));
   return showGeneralDialog<void>(
     context: context,
     barrierDismissible: true,
@@ -597,7 +603,7 @@ Future<void> _showCelebrationDialog(
         reverseCurve: Curves.easeInCubic,
       );
       final availableWidth = MediaQuery.sizeOf(context).width - 32;
-      final dialogWidth = math.max(280.0, math.min(availableWidth, 520.0));
+      final dialogWidth = math.max(280.0, math.min(availableWidth, 620.0));
       return FadeTransition(
         opacity: curved,
         child: Stack(
@@ -608,13 +614,20 @@ Future<void> _showCelebrationDialog(
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
-            Center(
-              child: ScaleTransition(
-                scale: Tween<double>(begin: 0.92, end: 1).animate(curved),
-                child: Dialog(
-                  backgroundColor: Colors.transparent,
-                  insetPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: SizedBox(width: dialogWidth, child: child),
+            Material(
+              color: Colors.transparent,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+                  child: Center(
+                    child: ScaleTransition(
+                      scale: Tween<double>(begin: 0.94, end: 1).animate(curved),
+                      child: SizedBox(
+                        width: dialogWidth,
+                        child: SingleChildScrollView(child: child),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -784,22 +797,7 @@ class _FlameBurstState extends State<_FlameBurst>
                     math.sin(progress * math.pi * 2) * 1.8,
                     math.cos(progress * math.pi * 2) * 1.2,
                   ),
-                  child: Icon(
-                    Icons.local_fire_department_rounded,
-                    size: 70,
-                    color: widget.color.withValues(alpha: 0.92),
-                    shadows: [
-                      Shadow(
-                        color: widget.color.withValues(alpha: 0.38),
-                        blurRadius: 22,
-                      ),
-                      const Shadow(
-                        color: Color(0x22000000),
-                        blurRadius: 12,
-                        offset: Offset(0, 5),
-                      ),
-                    ],
-                  ),
+                  child: _CuteFlameIcon(color: widget.color, size: 70),
                 ),
                 Positioned(
                   top: 3 + math.sin(progress * math.pi * 2) * 2,
@@ -830,22 +828,24 @@ class _FlameBurstPainter extends CustomPainter {
     if (size.isEmpty) return;
     final center = Offset(size.width * 0.5, size.height * 0.68);
     final glow = Paint()
-      ..shader = RadialGradient(
-        colors: <Color>[
-          color.withValues(alpha: 0.34),
-          const Color(0xFFFFB703).withValues(alpha: 0.18),
-          Colors.transparent,
-        ],
-        stops: const <double>[0, 0.45, 1],
-      ).createShader(
-        Rect.fromCircle(center: center, radius: size.width * 0.42),
-      );
+      ..shader =
+          RadialGradient(
+            colors: <Color>[
+              color.withValues(alpha: 0.34),
+              const Color(0xFFFFB703).withValues(alpha: 0.18),
+              Colors.transparent,
+            ],
+            stops: const <double>[0, 0.45, 1],
+          ).createShader(
+            Rect.fromCircle(center: center, radius: size.width * 0.42),
+          );
     canvas.drawCircle(center, size.width * 0.42, glow);
 
     for (var index = 0; index < 9; index++) {
       final seed = ((index * 23) % 97) / 97.0;
       final rise = (progress + seed) % 1.0;
-      final x = size.width * (0.22 + seed * 0.56) +
+      final x =
+          size.width * (0.22 + seed * 0.56) +
           math.sin((progress * math.pi * 2) + index) * 7;
       final y = size.height * (0.90 - rise * 0.76);
       final radius = 1.5 + (1 - rise) * 3.5;
@@ -857,8 +857,7 @@ class _FlameBurstPainter extends CustomPainter {
             const Color(0xFFFFF3B0),
             const Color(0xFFFF7A1A),
             rise,
-          )!
-              .withValues(alpha: (1 - rise).clamp(0.0, 1.0) * 0.78),
+          )!.withValues(alpha: (1 - rise).clamp(0.0, 1.0) * 0.78),
       );
     }
 
@@ -972,21 +971,10 @@ class _GemClusterState extends State<_GemCluster>
               ),
               Transform.scale(
                 scale: pulse,
-                child: Icon(
-                  Icons.diamond_rounded,
-                  size: 64,
+                child: _CuteGemIcon(
                   color: widget.color,
-                  shadows: [
-                    Shadow(
-                      color: widget.color.withValues(alpha: 0.42),
-                      blurRadius: 20 + (glint * 10),
-                    ),
-                    const Shadow(
-                      color: Color(0x22000000),
-                      blurRadius: 12,
-                      offset: Offset(0, 5),
-                    ),
-                  ],
+                  size: 64,
+                  glint: glint,
                 ),
               ),
               Positioned(
@@ -1034,6 +1022,151 @@ class _GemClusterState extends State<_GemCluster>
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _CuteFlameIcon extends StatelessWidget {
+  final Color color;
+  final double size;
+
+  const _CuteFlameIcon({required this.color, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(
+            Icons.local_fire_department_rounded,
+            size: size,
+            color: color.withValues(alpha: 0.94),
+            shadows: [
+              Shadow(color: color.withValues(alpha: 0.42), blurRadius: 22),
+              const Shadow(
+                color: Color(0x26000000),
+                blurRadius: 12,
+                offset: Offset(0, 5),
+              ),
+            ],
+          ),
+          Positioned(
+            top: size * 0.39,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _FaceDot(size: size * 0.055),
+                SizedBox(width: size * 0.13),
+                _FaceDot(size: size * 0.055),
+              ],
+            ),
+          ),
+          Positioned(
+            top: size * 0.50,
+            child: Container(
+              width: size * 0.16,
+              height: size * 0.07,
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: const Color(0xFF5A260A).withValues(alpha: 0.72),
+                    width: size * 0.018,
+                  ),
+                ),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CuteGemIcon extends StatelessWidget {
+  final Color color;
+  final double size;
+  final double glint;
+
+  const _CuteGemIcon({
+    required this.color,
+    required this.size,
+    required this.glint,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(
+            Icons.diamond_rounded,
+            size: size,
+            color: color,
+            shadows: [
+              Shadow(
+                color: color.withValues(alpha: 0.42),
+                blurRadius: 20 + (glint * 10),
+              ),
+              const Shadow(
+                color: Color(0x26000000),
+                blurRadius: 12,
+                offset: Offset(0, 5),
+              ),
+            ],
+          ),
+          Positioned(
+            top: size * 0.38,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _FaceDot(size: size * 0.05),
+                SizedBox(width: size * 0.14),
+                _FaceDot(size: size * 0.05),
+              ],
+            ),
+          ),
+          Positioned(
+            top: size * 0.49,
+            child: Container(
+              width: size * 0.15,
+              height: size * 0.06,
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.78),
+                    width: size * 0.016,
+                  ),
+                ),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FaceDot extends StatelessWidget {
+  final double size;
+
+  const _FaceDot({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: const Color(0xFF3A2A20).withValues(alpha: 0.78),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.34)),
       ),
     );
   }

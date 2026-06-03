@@ -1,10 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
+import '../../application/backup_service.dart';
 import '../../application/challenge_service.dart';
+import '../../application/locale_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
@@ -19,17 +22,25 @@ import '../theme/app_motion.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/rinzy_mascot.dart';
+import 'entry_form_screen.dart';
+import 'meal_log_screen.dart';
 
 class ChallengeScreen extends StatefulWidget {
   final TrainingService trainingService;
   final MealLogService mealLogService;
   final OptionRepository optionRepository;
+  final LocaleService localeService;
+  final SettingsService settingsService;
+  final BackupService? driveBackupService;
 
   const ChallengeScreen({
     super.key,
     required this.trainingService,
     required this.mealLogService,
     required this.optionRepository,
+    required this.localeService,
+    required this.settingsService,
+    this.driveBackupService,
   });
 
   @override
@@ -49,7 +60,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   void initState() {
     super.initState();
     _challengeService = ChallengeService(widget.optionRepository);
-    _settingsService = SettingsService(widget.optionRepository)..load();
+    _settingsService = widget.settingsService..load();
     _reminderService = TrainingPlanReminderService(
       widget.optionRepository,
       _settingsService,
@@ -124,9 +135,15 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       else
                         _ActiveChallengeSection(
                           progress: progress,
-                          templateTitle:
-                              _templateTitle(l10n, progress.template),
+                          templateTitle: _templateTitle(
+                            l10n,
+                            progress.template,
+                          ),
                           onAbandon: _confirmAbandon,
+                          onOpenTraining: _openTrainingMission,
+                          onOpenJumpRope: _openJumpRopeMission,
+                          onOpenLifting: _openLiftingMission,
+                          onOpenMeal: _openMealMission,
                         ),
                     ],
                   );
@@ -200,6 +217,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       );
       if (!mounted) return;
       if (gainedXp > 0) {
+        _playChallengeSuccessFeedback();
         final awardedRoundCount = progress.completedRoundCount
             .clamp(1, progress.rounds.length)
             .toInt();
@@ -238,6 +256,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     ChallengeTrainingLevel trainingLevel,
   ) async {
     final l10n = AppLocalizations.of(context)!;
+    _playChallengeTapFeedback();
     await _challengeService.startChallenge(
       template,
       trainingLevel: trainingLevel,
@@ -246,8 +265,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content:
-              Text(l10n.challengeStartSnack(_templateTitle(l10n, template)))),
+        content: Text(l10n.challengeStartSnack(_templateTitle(l10n, template))),
+      ),
     );
   }
 
@@ -274,6 +293,70 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     await _challengeService.abandonActiveRun();
     if (!mounted) return;
     setState(() {});
+  }
+
+  Future<void> _openTrainingMission(ChallengeRoundProgress round) {
+    return _openTrainingEntryMission(round, initialFocusTarget: null);
+  }
+
+  Future<void> _openJumpRopeMission(ChallengeRoundProgress round) {
+    return _openTrainingEntryMission(
+      round,
+      initialFocusTarget: EntryFormInitialFocusTarget.jumpRope,
+    );
+  }
+
+  Future<void> _openLiftingMission(ChallengeRoundProgress round) {
+    return _openTrainingEntryMission(
+      round,
+      initialFocusTarget: EntryFormInitialFocusTarget.lifting,
+    );
+  }
+
+  Future<void> _openTrainingEntryMission(
+    ChallengeRoundProgress round, {
+    required EntryFormInitialFocusTarget? initialFocusTarget,
+  }) async {
+    _playChallengeTapFeedback();
+    await Navigator.of(context).push(
+      AppPageRoute<void>(
+        builder: (_) => EntryFormScreen(
+          trainingService: widget.trainingService,
+          optionRepository: widget.optionRepository,
+          localeService: widget.localeService,
+          settingsService: _settingsService,
+          driveBackupService: widget.driveBackupService,
+          initialDate: round.date,
+          initialFocusTarget: initialFocusTarget,
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openMealMission(ChallengeRoundProgress round) async {
+    _playChallengeTapFeedback();
+    await Navigator.of(context).push(
+      AppPageRoute<void>(
+        builder: (_) => MealLogScreen(
+          mealLogService: widget.mealLogService,
+          optionRepository: widget.optionRepository,
+          settingsService: _settingsService,
+          initialDate: round.date,
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  void _playChallengeTapFeedback() {
+    unawaited(HapticFeedback.selectionClick());
+    unawaited(SystemSound.play(SystemSoundType.click));
+  }
+
+  void _playChallengeSuccessFeedback() {
+    unawaited(HapticFeedback.heavyImpact());
+    unawaited(SystemSound.play(SystemSoundType.alert));
   }
 }
 
@@ -721,12 +804,7 @@ class _ChallengeHistoryScreen extends StatelessWidget {
         child: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-            children: [
-              _ChallengeHistorySection(
-                runs: runs,
-                showTitle: false,
-              ),
-            ],
+            children: [_ChallengeHistorySection(runs: runs, showTitle: false)],
           ),
         ),
       ),
@@ -738,10 +816,7 @@ class _ChallengeHistorySection extends StatelessWidget {
   final List<ChallengeRun> runs;
   final bool showTitle;
 
-  const _ChallengeHistorySection({
-    required this.runs,
-    this.showTitle = true,
-  });
+  const _ChallengeHistorySection({required this.runs, this.showTitle = true});
 
   @override
   Widget build(BuildContext context) {
@@ -784,10 +859,7 @@ class _ChallengeHistoryTile extends StatelessWidget {
   final ChallengeRun run;
   final String title;
 
-  const _ChallengeHistoryTile({
-    required this.run,
-    required this.title,
-  });
+  const _ChallengeHistoryTile({required this.run, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -899,13 +971,7 @@ class _ChallengeIntroCard extends StatelessWidget {
             ],
           );
           if (compact) {
-            return Column(
-              children: [
-                mascot,
-                const SizedBox(height: 12),
-                text,
-              ],
-            );
+            return Column(children: [mascot, const SizedBox(height: 12), text]);
           }
           return Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -925,11 +991,19 @@ class _ActiveChallengeSection extends StatelessWidget {
   final ChallengeProgress progress;
   final String templateTitle;
   final VoidCallback onAbandon;
+  final ValueChanged<ChallengeRoundProgress> onOpenTraining;
+  final ValueChanged<ChallengeRoundProgress> onOpenJumpRope;
+  final ValueChanged<ChallengeRoundProgress> onOpenLifting;
+  final ValueChanged<ChallengeRoundProgress> onOpenMeal;
 
   const _ActiveChallengeSection({
     required this.progress,
     required this.templateTitle,
     required this.onAbandon,
+    required this.onOpenTraining,
+    required this.onOpenJumpRope,
+    required this.onOpenLifting,
+    required this.onOpenMeal,
   });
 
   @override
@@ -938,13 +1012,17 @@ class _ActiveChallengeSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _ChallengeRoundsCalendar(
-          progress: progress,
-          onAbandon: onAbandon,
-        ),
+        _ChallengeRoundsCalendar(progress: progress, onAbandon: onAbandon),
         const SizedBox(height: 18),
         if (activeRound != null)
-          _RoundFocusCard(round: activeRound)
+          _RoundFocusCard(
+            progress: progress,
+            round: activeRound,
+            onOpenTraining: onOpenTraining,
+            onOpenJumpRope: onOpenJumpRope,
+            onOpenLifting: onOpenLifting,
+            onOpenMeal: onOpenMeal,
+          )
         else
           _CompletedCard(title: templateTitle),
       ],
@@ -953,9 +1031,21 @@ class _ActiveChallengeSection extends StatelessWidget {
 }
 
 class _RoundFocusCard extends StatelessWidget {
+  final ChallengeProgress progress;
   final ChallengeRoundProgress round;
+  final ValueChanged<ChallengeRoundProgress> onOpenTraining;
+  final ValueChanged<ChallengeRoundProgress> onOpenJumpRope;
+  final ValueChanged<ChallengeRoundProgress> onOpenLifting;
+  final ValueChanged<ChallengeRoundProgress> onOpenMeal;
 
-  const _RoundFocusCard({required this.round});
+  const _RoundFocusCard({
+    required this.progress,
+    required this.round,
+    required this.onOpenTraining,
+    required this.onOpenJumpRope,
+    required this.onOpenLifting,
+    required this.onOpenMeal,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -964,6 +1054,10 @@ class _RoundFocusCard extends StatelessWidget {
     final title = round.isToday
         ? l10n.challengeTodayRoundTitle(round.round.number)
         : l10n.challengeUpcomingRoundTitle(round.round.number);
+    final potentialXp = challengeTotalPotentialXpFor(
+      progress.template,
+      progress.run.trainingLevel,
+    );
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -975,15 +1069,45 @@ class _RoundFocusCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 7,
+                      children: [
+                        _SmallStatusPill(
+                          label: l10n.challengeActiveLevelPill(
+                            _trainingLevelTitle(
+                              l10n,
+                              progress.run.trainingLevel,
+                            ),
+                          ),
+                        ),
+                        _SmallStatusPill(
+                          label: l10n.challengePotentialXpPill(potentialXp),
+                        ),
+                        _SmallStatusPill(
+                          label: l10n.challengeRoundXpLabel(
+                            round.round.rewardXp,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(width: 8),
               _SmallStatusPill(
                 label: round.completed
                     ? l10n.challengeCompletedBadge
@@ -1005,6 +1129,7 @@ class _RoundFocusCard extends StatelessWidget {
               round.round.targetTrainingMinutes,
             ),
             completed: round.trainingCompleted,
+            onTap: () => onOpenTraining(round),
           ),
           const SizedBox(height: 10),
           _MissionProgressRow(
@@ -1020,6 +1145,7 @@ class _RoundFocusCard extends StatelessWidget {
               round.round.targetJumpRopeMinutes,
             ),
             completed: round.jumpRopeCompleted,
+            onTap: () => onOpenJumpRope(round),
           ),
           const SizedBox(height: 10),
           _MissionProgressRow(
@@ -1035,6 +1161,7 @@ class _RoundFocusCard extends StatelessWidget {
               round.round.targetLiftingMinutes,
             ),
             completed: round.liftingCompleted,
+            onTap: () => onOpenLifting(round),
           ),
           const SizedBox(height: 10),
           _MissionProgressRow(
@@ -1044,9 +1171,12 @@ class _RoundFocusCard extends StatelessWidget {
               _formatBowls(round.riceBowls),
               _formatBowls(round.round.targetRiceBowls),
             ),
-            progress:
-                _goalProgress(round.riceBowls, round.round.targetRiceBowls),
+            progress: _goalProgress(
+              round.riceBowls,
+              round.round.targetRiceBowls,
+            ),
             completed: round.mealCompleted,
+            onTap: () => onOpenMeal(round),
           ),
         ],
       ),
@@ -1105,6 +1235,10 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
             : '${DateFormat.yMMMd(localeName).format(startDate)} - '
                 '${DateFormat.yMMMd(localeName).format(endDate)}';
     final percent = (progress.completionRate * 100).round();
+    final potentialXp = challengeTotalPotentialXpFor(
+      progress.template,
+      progress.run.trainingLevel,
+    );
     return Container(
       key: const ValueKey('challenge-rounds-calendar'),
       padding: const EdgeInsets.all(18),
@@ -1161,14 +1295,23 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              minHeight: 9,
-              value: progress.completionRate,
-            ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 7,
+            children: [
+              _SmallStatusPill(
+                label: l10n.challengeActiveLevelPill(
+                  _trainingLevelTitle(l10n, progress.run.trainingLevel),
+                ),
+              ),
+              _SmallStatusPill(
+                label: l10n.challengePotentialXpPill(potentialXp),
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
+          _ChallengeGauge(progress: progress.completionRate),
           const SizedBox(height: 6),
           Align(
             alignment: AlignmentDirectional.centerEnd,
@@ -1389,11 +1532,7 @@ class _RoundCalendarRinzyCelebration extends StatelessWidget {
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
-            CheerRinzyMascot(
-              size: size,
-              progress: 1,
-              animate: !reduceMotion,
-            ),
+            CheerRinzyMascot(size: size, progress: 1, animate: !reduceMotion),
           ],
         ),
       ),
@@ -1407,6 +1546,7 @@ class _MissionProgressRow extends StatelessWidget {
   final String value;
   final double progress;
   final bool completed;
+  final VoidCallback onTap;
 
   const _MissionProgressRow({
     required this.icon,
@@ -1414,6 +1554,7 @@ class _MissionProgressRow extends StatelessWidget {
     required this.value,
     required this.progress,
     required this.completed,
+    required this.onTap,
   });
 
   @override
@@ -1423,70 +1564,179 @@ class _MissionProgressRow extends StatelessWidget {
         ? theme.colorScheme.primary
         : theme.colorScheme.onSurfaceVariant;
     final ratio = progress.clamp(0, 1).toDouble();
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: completed
-              ? theme.colorScheme.primary.withValues(alpha: 0.34)
-              : theme.colorScheme.outline.withValues(alpha: 0.20),
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
+        child: Ink(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.5,
+            ),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: completed
+                  ? theme.colorScheme.primary.withValues(alpha: 0.34)
+                  : theme.colorScheme.outline.withValues(alpha: 0.20),
+            ),
+          ),
+          child: Column(
             children: [
-              Icon(icon, color: color, size: 22),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                flex: 0,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    value,
-                    maxLines: 1,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w900,
+              Row(
+                children: [
+                  Icon(icon, color: color, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    flex: 0,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        value,
+                        maxLines: 1,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(
+                    completed
+                        ? Icons.check_circle_rounded
+                        : Icons.chevron_right_rounded,
+                    color: color,
+                    size: completed ? 18 : 20,
+                  ),
+                ],
               ),
-              const SizedBox(width: 6),
-              Icon(
-                completed
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_unchecked,
-                color: color,
-                size: 18,
+              const SizedBox(height: 9),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  minHeight: 8,
+                  value: ratio,
+                  backgroundColor: theme.colorScheme.surface.withValues(
+                    alpha: 0.72,
+                  ),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    completed ? theme.colorScheme.primary : color,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 9),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              minHeight: 8,
-              value: ratio,
-              backgroundColor:
-                  theme.colorScheme.surface.withValues(alpha: 0.72),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                completed ? theme.colorScheme.primary : color,
+        ),
+      ),
+    );
+  }
+}
+
+class _ChallengeGauge extends StatelessWidget {
+  final double progress;
+
+  const _ChallengeGauge({required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    const iconSize = 30.0;
+    const trackHeight = 9.0;
+    return SizedBox(
+      height: 34,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: iconSize * 0.86,
+            right: iconSize * 0.86,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                minHeight: trackHeight,
+                value: progress.clamp(0, 1).toDouble(),
+                backgroundColor: scheme.surfaceContainerHighest.withValues(
+                  alpha: 0.82,
+                ),
+                valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
               ),
             ),
+          ),
+          const Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: _GaugeEndpointIcon(
+              icon: Icons.local_fire_department_rounded,
+              color: Color(0xFFFF7A1A),
+              size: iconSize,
+            ),
+          ),
+          const Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: _GaugeEndpointIcon(
+              icon: Icons.star_rounded,
+              color: Color(0xFFFFC857),
+              size: iconSize,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GaugeEndpointIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final double size;
+
+  const _GaugeEndpointIcon({
+    required this.icon,
+    required this.color,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          colors: [Colors.white, color.withValues(alpha: 0.42)],
+        ),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.32),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Icon(
+        icon,
+        color: color,
+        size: size * 0.72,
+        shadows: const [
+          Shadow(
+            color: Color(0x26000000),
+            blurRadius: 4,
+            offset: Offset(0, 1.5),
           ),
         ],
       ),
@@ -1544,7 +1794,7 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
       body: AppBackground(
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
             child: Column(
               children: [
                 Align(
@@ -1555,34 +1805,45 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
                     icon: const Icon(Icons.close),
                   ),
                 ),
-                const Spacer(),
-                CheerRinzyMascot(
-                  size: MediaQuery.sizeOf(context)
-                      .width
-                      .clamp(220, 320)
-                      .toDouble(),
-                  progress: 1,
-                ),
-                const SizedBox(height: 22),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CheerRinzyMascot(
+                            size: MediaQuery.sizeOf(
+                              context,
+                            ).width.clamp(240, 360).toDouble(),
+                            progress: 1,
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            title,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            body,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w700,
+                              height: 1.35,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _SmallStatusPill(
+                            label: l10n.challengeRewardXp(gainedXp),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  body,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                _SmallStatusPill(label: l10n.challengeRewardXp(gainedXp)),
-                const Spacer(),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
@@ -1642,11 +1903,7 @@ String _trainingLevelDescription(
   };
 }
 
-String _minutesGoalValue(
-  AppLocalizations l10n,
-  int current,
-  int target,
-) {
+String _minutesGoalValue(AppLocalizations l10n, int current, int target) {
   return l10n.challengeTrainingGoalValue(current, target);
 }
 
@@ -1662,10 +1919,7 @@ String _runResultLabel(AppLocalizations l10n, ChallengeRun run) {
   return l10n.challengeHistoryResultInProgress;
 }
 
-String _templateTitleForRun(
-  AppLocalizations l10n,
-  ChallengeRun run,
-) {
+String _templateTitleForRun(AppLocalizations l10n, ChallengeRun run) {
   final title = switch (run.templateId) {
     'starter_3' => l10n.challengeTemplateStarterTitle,
     'weekly_7' => l10n.challengeTemplateWeeklyTitle,

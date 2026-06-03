@@ -149,6 +149,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeStatsStepFocus => '가장 약한 신호를 다음 계획이나 노트 목표로 바꿔요.';
 
   @override
+  String get welcomeChallengeOverview =>
+      '챌린지는 린지가 매일 라운드 미션을 챙겨 주고 완료 경험치를 크게 모아 주는 화면입니다.';
+
+  @override
+  String get welcomeChallengeActionStart => '챌린지 시작';
+
+  @override
+  String get welcomeChallengeStepStart => '기간과 레벨을 고르면 오늘부터 이어갈 라운드가 만들어져요.';
+
+  @override
+  String get welcomeChallengeActionMission => '미션 입력';
+
+  @override
+  String get welcomeChallengeStepMission =>
+      '훈련, 줄넘기, 리프팅, 식사 미션을 눌러 바로 기록 화면으로 들어가요.';
+
+  @override
+  String get welcomeChallengeActionReward => 'XP 보상';
+
+  @override
+  String get welcomeChallengeStepReward =>
+      '라운드를 끝낼수록 경험치가 쌓이고 완주하면 린지가 축하해 줘요.';
+
+  @override
   String get welcomeDiaryOverview => '다이어리는 훈련, 식사, 스티커를 하루 이야기로 묶는 화면입니다.';
 
   @override
@@ -463,6 +487,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeTodoJumpRopeShort => '줄넘기';
+
+  @override
+  String get jumpRopeRecordTitle => '줄넘기 기록';
+
+  @override
+  String get jumpRopeMinutesLabel => '줄넘기 시간(분)';
+
+  @override
+  String get jumpRopeCountLabel => '줄넘기 횟수';
+
+  @override
+  String get jumpRopeMemoLabel => '메모';
+
+  @override
+  String get jumpRopeMemoHint => '줄넘기를 하면서 느낀 점을 적어보세요.';
 
   @override
   String get homeTodoQuizShort => '퀴즈';
@@ -3138,13 +3177,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String diaryJumpRopeCombined(int count, String minutes) {
-    return '줄넘기 $count회/$minutes';
+    return '줄넘기 $minutes/$count회';
   }
 
   @override
   String diaryConditioningSummary(
       int liftingCount, int jumpCount, String jumpMinutes) {
-    return '리프팅 $liftingCount회 · 줄넘기 $jumpCount회/$jumpMinutes';
+    return '리프팅 $liftingCount회 · 줄넘기 $jumpMinutes/$jumpCount회';
   }
 
   @override
@@ -5862,6 +5901,26 @@ class AppLocalizationsKo extends AppLocalizations {
       '보호자 모드에서는 기본값과 뉴스 필터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.';
 
   @override
+  String get benchmarkReferencesTitle => '평균 기준';
+
+  @override
+  String get benchmarkRefreshAction => '평균 새로고침';
+
+  @override
+  String get benchmarkRefreshInProgress => '새로고침 중';
+
+  @override
+  String benchmarkLastSynced(Object date) {
+    return '최근 동기화: $date';
+  }
+
+  @override
+  String get benchmarkRefreshSuccess => '평균 기준 데이터를 업데이트했어요.';
+
+  @override
+  String get benchmarkRefreshFailed => '평균 기준 데이터 업데이트에 실패했어요. 네트워크를 확인해 주세요.';
+
+  @override
   String get benchmarkReferenceNote =>
       '키와 체중은 CDC 성장 차트 중앙값, 활동 시간은 WHO 청소년 신체활동 권고를 기준으로 합니다. 리프팅 범위는 축구 훈련 참고값이며 의학 기준은 아닙니다.';
 
@@ -6453,6 +6512,16 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String challengeRoundXpLabel(int xp) {
     return '라운드 +$xp XP';
+  }
+
+  @override
+  String challengeActiveLevelPill(Object level) {
+    return '레벨: $level';
+  }
+
+  @override
+  String challengePotentialXpPill(int xp) {
+    return '쌓을 수 있는 XP +$xp';
   }
 
   @override
