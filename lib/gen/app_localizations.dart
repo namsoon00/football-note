@@ -995,6 +995,132 @@ abstract class AppLocalizations {
   /// **'Sketch'**
   String get homeTodoBoardSketchShort;
 
+  /// No description provided for @homeQuickActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get homeQuickActionsTitle;
+
+  /// No description provided for @homeQuickActionMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Add match'**
+  String get homeQuickActionMatch;
+
+  /// No description provided for @homeQuickActionPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Add plan'**
+  String get homeQuickActionPlan;
+
+  /// No description provided for @homeContinueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get homeContinueTitle;
+
+  /// No description provided for @homeContinueEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to continue today. Pick a fresh challenge below.'**
+  String get homeContinueEmpty;
+
+  /// No description provided for @homeContinueWrongAnswerReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue wrong-answer review'**
+  String get homeContinueWrongAnswerReview;
+
+  /// No description provided for @homeContinueQuiz.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue quiz'**
+  String get homeContinueQuiz;
+
+  /// No description provided for @homeContinueStartQuiz.
+  ///
+  /// In en, this message translates to:
+  /// **'Start quiz'**
+  String get homeContinueStartQuiz;
+
+  /// No description provided for @homeContinueQuizProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress {current} / {total}'**
+  String homeContinueQuizProgress(int current, int total);
+
+  /// No description provided for @homeContinueQuizStartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump back into today\'s quiz.'**
+  String get homeContinueQuizStartSubtitle;
+
+  /// No description provided for @homeContinueTodayTrainingLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Today training log'**
+  String get homeContinueTodayTrainingLog;
+
+  /// No description provided for @homeContinueTrainingDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {duration} min'**
+  String homeContinueTrainingDuration(Object date, int duration);
+
+  /// No description provided for @homeContinueTrainingButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get homeContinueTrainingButton;
+
+  /// No description provided for @homeContinueTodayPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today training plan'**
+  String get homeContinueTodayPlanTitle;
+
+  /// No description provided for @homeContinueTodayPlanSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} plans are waiting today.'**
+  String homeContinueTodayPlanSubtitle(int count);
+
+  /// No description provided for @homeContinuePlanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Open plans'**
+  String get homeContinuePlanButton;
+
+  /// No description provided for @homeContinueQuizButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Open quiz'**
+  String get homeContinueQuizButton;
+
+  /// No description provided for @homeContinueRecentBoardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent training board'**
+  String get homeContinueRecentBoardTitle;
+
+  /// No description provided for @homeContinueBoardCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sketches'**
+  String homeContinueBoardCount(int count);
+
+  /// No description provided for @homeContinueBoardSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} · saved {date}'**
+  String homeContinueBoardSaved(Object title, Object date);
+
+  /// No description provided for @homeContinueBoardButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit now'**
+  String get homeContinueBoardButton;
+
   /// No description provided for @dailyTasksXpDialogTitle.
   ///
   /// In en, this message translates to:
@@ -3390,6 +3516,12 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get delete;
 
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
   /// No description provided for @statsRecent7.
   ///
   /// In en, this message translates to:
@@ -4542,6 +4674,108 @@ abstract class AppLocalizations {
   /// **'Don\'t save'**
   String get diaryComposerDontSave;
 
+  /// No description provided for @diaryNewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'New diary'**
+  String get diaryNewAction;
+
+  /// No description provided for @diaryNextDayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next day'**
+  String get diaryNextDayTooltip;
+
+  /// No description provided for @diaryPreviousDayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous day'**
+  String get diaryPreviousDayTooltip;
+
+  /// No description provided for @diaryComposeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compose'**
+  String get diaryComposeTooltip;
+
+  /// No description provided for @diaryEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No diary pages yet'**
+  String get diaryEmptyTitle;
+
+  /// No description provided for @diaryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date and create your first page.'**
+  String get diaryEmptyBody;
+
+  /// No description provided for @diaryCreateFirstAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create first diary'**
+  String get diaryCreateFirstAction;
+
+  /// No description provided for @diaryDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete diary'**
+  String get diaryDeleteDialogTitle;
+
+  /// No description provided for @diaryDeleteDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this day diary?'**
+  String get diaryDeleteDialogBody;
+
+  /// No description provided for @diaryDeletedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary deleted.'**
+  String get diaryDeletedMessage;
+
+  /// No description provided for @diaryDeleteRestoredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored deleted diary.'**
+  String get diaryDeleteRestoredMessage;
+
+  /// No description provided for @diaryThemeNotebookName.
+  ///
+  /// In en, this message translates to:
+  /// **'Notebook'**
+  String get diaryThemeNotebookName;
+
+  /// No description provided for @diaryThemeNotebookDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A calm paper-textured default diary.'**
+  String get diaryThemeNotebookDescription;
+
+  /// No description provided for @diaryThemeDuskName.
+  ///
+  /// In en, this message translates to:
+  /// **'Dusk'**
+  String get diaryThemeDuskName;
+
+  /// No description provided for @diaryThemeDuskDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads in the warmth of a red evening glow.'**
+  String get diaryThemeDuskDescription;
+
+  /// No description provided for @diaryThemeOceanName.
+  ///
+  /// In en, this message translates to:
+  /// **'Early Sea'**
+  String get diaryThemeOceanName;
+
+  /// No description provided for @diaryThemeOceanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A crisp and cool page like blue ink.'**
+  String get diaryThemeOceanDescription;
+
   /// No description provided for @diaryVoiceInputTooltip.
   ///
   /// In en, this message translates to:
@@ -5537,6 +5771,331 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No weather was logged.'**
   String get diaryWeatherEmpty;
+
+  /// No description provided for @diaryUnknownSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown source'**
+  String get diaryUnknownSource;
+
+  /// No description provided for @diaryLocationUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'No location'**
+  String get diaryLocationUnset;
+
+  /// No description provided for @diaryLocationNotLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'No location logged'**
+  String get diaryLocationNotLogged;
+
+  /// No description provided for @diaryFundamentalsFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'fundamentals'**
+  String get diaryFundamentalsFallback;
+
+  /// No description provided for @diaryUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {date}'**
+  String diaryUpdatedAt(String date);
+
+  /// No description provided for @diaryMatchOpponentUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'vs unknown opponent'**
+  String get diaryMatchOpponentUnknown;
+
+  /// No description provided for @diaryMatchOpponentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'vs {opponent}'**
+  String diaryMatchOpponentLabel(String opponent);
+
+  /// No description provided for @diaryMatchScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'score {score}'**
+  String diaryMatchScoreLabel(String score);
+
+  /// No description provided for @diaryMatchGoalsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'goals {count}'**
+  String diaryMatchGoalsLabel(int count);
+
+  /// No description provided for @diaryMatchAssistsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'assists {count}'**
+  String diaryMatchAssistsLabel(int count);
+
+  /// No description provided for @diaryMatchMinutesPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} played'**
+  String diaryMatchMinutesPlayed(String minutes);
+
+  /// No description provided for @diaryMatchPersonalStats.
+  ///
+  /// In en, this message translates to:
+  /// **'{goals}G {assists}A'**
+  String diaryMatchPersonalStats(int goals, int assists);
+
+  /// No description provided for @diaryTotalRiceBowls.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bowls total'**
+  String diaryTotalRiceBowls(String count);
+
+  /// No description provided for @diaryCompletedMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} meals logged'**
+  String diaryCompletedMeals(int count);
+
+  /// No description provided for @diaryReps.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reps'**
+  String diaryReps(int count);
+
+  /// No description provided for @diaryTotalReps.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reps total'**
+  String diaryTotalReps(int count);
+
+  /// No description provided for @diaryLiftingReps.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting {count} reps'**
+  String diaryLiftingReps(int count);
+
+  /// No description provided for @diaryJumpRopeReps.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope {count} reps'**
+  String diaryJumpRopeReps(int count);
+
+  /// No description provided for @diaryJumpRopeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope {minutes}'**
+  String diaryJumpRopeMinutes(String minutes);
+
+  /// No description provided for @diaryJumpRopeCombined.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope {count} reps/{minutes}'**
+  String diaryJumpRopeCombined(int count, String minutes);
+
+  /// No description provided for @diaryConditioningSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting {liftingCount} reps · Jump rope {jumpCount} reps/{jumpMinutes}'**
+  String diaryConditioningSummary(
+      int liftingCount, int jumpCount, String jumpMinutes);
+
+  /// No description provided for @diaryStoryPromptFromSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from {title} and continue with the scene you want to keep today. You can naturally connect what you planned, what you actually did, and how it felt.'**
+  String diaryStoryPromptFromSeed(String title);
+
+  /// No description provided for @diaryStoryPromptDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Write today in your own words. Start with what happened around {place}, what stayed with you in {focus}, what felt good, and what still lingers.'**
+  String diaryStoryPromptDefault(String place, String focus);
+
+  /// No description provided for @diaryPlanStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from {title} and write why this task deserves a place in today\'s diary.'**
+  String diaryPlanStorySentence(String title);
+
+  /// No description provided for @diaryPlanNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} note'**
+  String diaryPlanNoteTitle(String category);
+
+  /// No description provided for @diaryPlanDurationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{duration} plan'**
+  String diaryPlanDurationLabel(String duration);
+
+  /// No description provided for @diaryPinnedPlanTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned plan'**
+  String get diaryPinnedPlanTooltip;
+
+  /// No description provided for @diaryTrainingTodoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training · {label}'**
+  String diaryTrainingTodoTitle(String label);
+
+  /// No description provided for @diaryTrainingSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} summary'**
+  String diaryTrainingSummaryTitle(String label);
+
+  /// No description provided for @diaryFortunePinSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin today\'s fortune flow as a diary sticker.'**
+  String get diaryFortunePinSummary;
+
+  /// No description provided for @diaryFortuneStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the one flow or encouragement you want to keep from today\'s fortune.'**
+  String get diaryFortuneStorySentence;
+
+  /// No description provided for @diaryFortuneNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today fortune note'**
+  String get diaryFortuneNoteTitle;
+
+  /// No description provided for @diaryMatchTodoTitleNoOpponent.
+  ///
+  /// In en, this message translates to:
+  /// **'Match'**
+  String get diaryMatchTodoTitleNoOpponent;
+
+  /// No description provided for @diaryMatchTodoTitleWithOpponent.
+  ///
+  /// In en, this message translates to:
+  /// **'Match · vs {opponent}'**
+  String diaryMatchTodoTitleWithOpponent(String opponent);
+
+  /// No description provided for @diaryMatchStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay the match scene by scene and write both the sharp choices and the missed ones.'**
+  String get diaryMatchStorySentence;
+
+  /// No description provided for @diaryMatchFlowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match flow'**
+  String get diaryMatchFlowTitle;
+
+  /// No description provided for @diaryMatchSectionBodyDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the flow that stayed most from the match.'**
+  String get diaryMatchSectionBodyDefault;
+
+  /// No description provided for @diaryBoardStickerFallbackSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement and idea captured on this board'**
+  String get diaryBoardStickerFallbackSummary;
+
+  /// No description provided for @diaryBoardNotePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Board note: {memo}'**
+  String diaryBoardNotePrefix(String memo);
+
+  /// No description provided for @diaryBoardTodoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Board · {title}'**
+  String diaryBoardTodoTitle(String title);
+
+  /// No description provided for @diaryBoardStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the movement or idea you want to keep from this board.'**
+  String get diaryBoardStorySentence;
+
+  /// No description provided for @diaryBoardFallbackSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull the tactic idea into the diary.'**
+  String get diaryBoardFallbackSummary;
+
+  /// No description provided for @diaryBoardNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} note'**
+  String diaryBoardNoteTitle(String title);
+
+  /// No description provided for @diaryLiftingStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Write how the lifting rhythm held today\'s ball feel in place.'**
+  String get diaryLiftingStorySentence;
+
+  /// No description provided for @diaryLiftingNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting note'**
+  String get diaryLiftingNoteTitle;
+
+  /// No description provided for @diaryLiftingSectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the moment the touch settled together with the counts.'**
+  String get diaryLiftingSectionBody;
+
+  /// No description provided for @diaryJumpRopeStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the moment jump rope woke the body up and changed the breathing rhythm.'**
+  String get diaryJumpRopeStorySentence;
+
+  /// No description provided for @diaryJumpRopeNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope note'**
+  String get diaryJumpRopeNoteTitle;
+
+  /// No description provided for @diaryJumpRopeSectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the count, time, and the point where the body started to feel lighter.'**
+  String get diaryJumpRopeSectionBody;
+
+  /// No description provided for @diaryWeatherStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Write how the weather affected your training flow and body.'**
+  String get diaryWeatherStorySentence;
+
+  /// No description provided for @diaryNewsTodoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'News · {title}'**
+  String diaryNewsTodoTitle(String title);
+
+  /// No description provided for @diaryNewsStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Write one point you want to keep from \"{title}\".'**
+  String diaryNewsStorySentence(String title);
+
+  /// No description provided for @diaryTodayNewsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today news'**
+  String get diaryTodayNewsTitle;
+
+  /// No description provided for @diaryNewsSectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{source} article: {title}'**
+  String diaryNewsSectionBody(String source, String title);
 
   /// No description provided for @quizWrongAnswerTimeout.
   ///

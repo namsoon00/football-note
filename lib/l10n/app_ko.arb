@@ -196,6 +196,65 @@
   "homeTodoNewsShort": "소식",
   "homeTodoDiaryShort": "다이어리",
   "homeTodoBoardSketchShort": "스케치",
+  "homeQuickActionsTitle": "빠른 실행",
+  "homeQuickActionMatch": "시합 기록",
+  "homeQuickActionPlan": "훈련 계획",
+  "homeContinueTitle": "이어하기",
+  "homeContinueEmpty": "오늘은 이어서 할 액션이 없어요. 아래에서 새 도전을 골라보세요.",
+  "homeContinueWrongAnswerReview": "오답 복습 이어하기",
+  "homeContinueQuiz": "퀴즈 이어하기",
+  "homeContinueStartQuiz": "새 퀴즈 시작",
+  "homeContinueQuizProgress": "{current} / {total} 진행 중",
+  "@homeContinueQuizProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinueQuizStartSubtitle": "오늘 퀴즈를 다시 시작해요.",
+  "homeContinueTodayTrainingLog": "오늘 훈련 기록",
+  "homeContinueTrainingDuration": "{date} · {duration}분",
+  "@homeContinueTrainingDuration": {
+    "placeholders": {
+      "date": {},
+      "duration": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinueTrainingButton": "이어서 쓰기",
+  "homeContinueTodayPlanTitle": "오늘 훈련 계획",
+  "homeContinueTodayPlanSubtitle": "오늘 계획 {count}개가 있어요.",
+  "@homeContinueTodayPlanSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinuePlanButton": "계획 보기",
+  "homeContinueQuizButton": "퀴즈 열기",
+  "homeContinueRecentBoardTitle": "최근 훈련보드",
+  "homeContinueBoardCount": "스케치 {count}개",
+  "@homeContinueBoardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinueBoardSaved": "{title} · 최근 저장 {date}",
+  "@homeContinueBoardSaved": {
+    "placeholders": {
+      "title": {},
+      "date": {}
+    }
+  },
+  "homeContinueBoardButton": "바로 수정",
   "dailyTasksXpDialogTitle": "오늘 할일 완주",
   "dailyTasksXpDialogMessage": "하루 루틴을 모두 맞췄어요. 꾸준함이 성장 보석으로 쌓였습니다.",
   "dailyTasksXpDialogGems": "+{count} 보석",
@@ -932,6 +991,7 @@
   "deleteConfirm": "선택한 기록을 삭제할까요?",
   "cancel": "취소",
   "delete": "삭제",
+  "undo": "되돌리기",
   "statsRecent7": "최근 7일",
   "statsRecent30": "최근 30일",
   "statsTotalSessions": "훈련 횟수",
@@ -1145,6 +1205,23 @@
   "diaryComposerSavePromptTitle": "저장할까요?",
   "diaryComposerSavePromptBody": "저장하지 않은 내용이 있어요. 저장 후 닫을까요?",
   "diaryComposerDontSave": "저장 안 함",
+  "diaryNewAction": "새 다이어리",
+  "diaryNextDayTooltip": "다음 날짜",
+  "diaryPreviousDayTooltip": "이전 날짜",
+  "diaryComposeTooltip": "작성",
+  "diaryEmptyTitle": "아직 만든 다이어리가 없습니다.",
+  "diaryEmptyBody": "날짜를 골라 첫 페이지를 만들면 다이어리가 시작됩니다.",
+  "diaryCreateFirstAction": "첫 다이어리 만들기",
+  "diaryDeleteDialogTitle": "다이어리 삭제",
+  "diaryDeleteDialogBody": "이 날짜의 다이어리를 삭제할까요?",
+  "diaryDeletedMessage": "다이어리를 삭제했어요.",
+  "diaryDeleteRestoredMessage": "삭제를 되돌렸어요.",
+  "diaryThemeNotebookName": "노트북",
+  "diaryThemeNotebookDescription": "차분한 종이 질감의 기본 다이어리입니다.",
+  "diaryThemeDuskName": "노을",
+  "diaryThemeDuskDescription": "붉은 저녁빛처럼 따뜻한 분위기로 읽습니다.",
+  "diaryThemeOceanName": "새벽 바다",
+  "diaryThemeOceanDescription": "푸른 잉크처럼 또렷하고 서늘한 페이지입니다.",
   "diaryVoiceInputTooltip": "음성 입력",
   "diaryVoiceInputUnavailable": "이 기기에서는 음성 입력을 사용할 수 없어요.",
   "diaryComposerTitle": "오늘의 일기 구성하기",
@@ -1355,6 +1432,288 @@
   "diaryConditioningJumpRopeLabel": "줄넘기",
   "diaryConditioningLiftingLabel": "리프팅",
   "diaryWeatherEmpty": "날씨 기록이 없습니다.",
+  "diaryUnknownSource": "출처 없음",
+  "diaryLocationUnset": "장소 미기록",
+  "diaryLocationNotLogged": "장소 기록 없음",
+  "diaryFundamentalsFallback": "기본기",
+  "diaryUpdatedAt": "업데이트 {date}",
+  "@diaryUpdatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchOpponentUnknown": "상대 팀 미기록",
+  "diaryMatchOpponentLabel": "{opponent}전",
+  "@diaryMatchOpponentLabel": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchScoreLabel": "스코어 {score}",
+  "@diaryMatchScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchGoalsLabel": "개인 득점 {count}",
+  "@diaryMatchGoalsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryMatchAssistsLabel": "도움 {count}",
+  "@diaryMatchAssistsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryMatchMinutesPlayed": "출전 {minutes}",
+  "@diaryMatchMinutesPlayed": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchPersonalStats": "{goals}골 {assists}도움",
+  "@diaryMatchPersonalStats": {
+    "placeholders": {
+      "goals": {
+        "type": "int"
+      },
+      "assists": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryTotalRiceBowls": "총 {count}공기",
+  "@diaryTotalRiceBowls": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryCompletedMeals": "{count}끼 기록",
+  "@diaryCompletedMeals": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryReps": "{count}회",
+  "@diaryReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryTotalReps": "총 {count}회",
+  "@diaryTotalReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryLiftingReps": "리프팅 {count}회",
+  "@diaryLiftingReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryJumpRopeReps": "줄넘기 {count}회",
+  "@diaryJumpRopeReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryJumpRopeMinutes": "줄넘기 {minutes}",
+  "@diaryJumpRopeMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryJumpRopeCombined": "줄넘기 {count}회/{minutes}",
+  "@diaryJumpRopeCombined": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryConditioningSummary": "리프팅 {liftingCount}회 · 줄넘기 {jumpCount}회/{jumpMinutes}",
+  "@diaryConditioningSummary": {
+    "placeholders": {
+      "liftingCount": {
+        "type": "int"
+      },
+      "jumpCount": {
+        "type": "int"
+      },
+      "jumpMinutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryStoryPromptFromSeed": "{title}부터 시작해서 오늘 남기고 싶은 장면을 이어 적어 보세요. 해야 했던 일과 실제로 한 일, 기분 변화를 자연스럽게 붙여 써도 좋아요.",
+  "@diaryStoryPromptFromSeed": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryStoryPromptDefault": "오늘 {place}에서 있었던 일을 내 말로 적어 보세요. {focus} 쪽에서 어떤 장면이 가장 오래 남았는지, 무엇이 즐거웠고 무엇이 아쉬웠는지 자유롭게 써도 좋아요.",
+  "@diaryStoryPromptDefault": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "focus": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPlanStorySentence": "{title} 할 일을 먼저 떠올리며, 왜 이걸 오늘 다이어리에 넣고 싶은지 적어 본다.",
+  "@diaryPlanStorySentence": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPlanNoteTitle": "{category} 메모",
+  "@diaryPlanNoteTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPlanDurationLabel": "{duration} 계획",
+  "@diaryPlanDurationLabel": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPinnedPlanTooltip": "계획 고정",
+  "diaryTrainingTodoTitle": "훈련 · {label}",
+  "@diaryTrainingTodoTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryTrainingSummaryTitle": "{label} 훈련 요약",
+  "@diaryTrainingSummaryTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryFortunePinSummary": "오늘 기록에 남은 운세 흐름을 다이어리 스티커로 붙여둘 수 있어요.",
+  "diaryFortuneStorySentence": "오늘 운세에서 기억하고 싶은 흐름이나 응원 한 줄을 적어 본다.",
+  "diaryFortuneNoteTitle": "오늘 운세 메모",
+  "diaryMatchTodoTitleNoOpponent": "시합",
+  "diaryMatchTodoTitleWithOpponent": "시합 · {opponent}전",
+  "@diaryMatchTodoTitleWithOpponent": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchStorySentence": "시합 흐름을 한 장면씩 떠올리며 좋았던 선택과 아쉬운 선택을 함께 적어 본다.",
+  "diaryMatchFlowTitle": "시합 흐름",
+  "diaryMatchSectionBodyDefault": "시합에서 가장 크게 남은 흐름을 적는다.",
+  "diaryBoardStickerFallbackSummary": "이 보드에서 기록한 움직임과 아이디어",
+  "diaryBoardNotePrefix": "보드 메모: {memo}",
+  "@diaryBoardNotePrefix": {
+    "placeholders": {
+      "memo": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryBoardTodoTitle": "훈련보드 · {title}",
+  "@diaryBoardTodoTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryBoardStorySentence": "이 보드에서 남기고 싶은 움직임과 아이디어를 적는다.",
+  "diaryBoardFallbackSummary": "전술 아이디어를 일기로 옮길 수 있어요.",
+  "diaryBoardNoteTitle": "{title} 메모",
+  "@diaryBoardNoteTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryLiftingStorySentence": "리프팅 반복이 오늘 감각을 어떻게 붙잡아 줬는지 적어 본다.",
+  "diaryLiftingNoteTitle": "리프팅 메모",
+  "diaryLiftingSectionBody": "반복 수와 함께 발 감각이 안정된 순간을 남긴다.",
+  "diaryJumpRopeStorySentence": "줄넘기로 몸이 깨어난 순간과 호흡 변화를 적어 본다.",
+  "diaryJumpRopeNoteTitle": "줄넘기 메모",
+  "diaryJumpRopeSectionBody": "횟수와 시간, 몸이 가벼워진 타이밍을 함께 남긴다.",
+  "diaryWeatherStorySentence": "그날 날씨가 훈련 흐름과 몸 상태에 어떤 영향을 줬는지 적어 보세요.",
+  "diaryNewsTodoTitle": "소식 · {title}",
+  "@diaryNewsTodoTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryNewsStorySentence": "{title} 기사를 읽고 기억하고 싶은 포인트를 한 줄로 남긴다.",
+  "@diaryNewsStorySentence": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryTodayNewsTitle": "오늘 본 소식",
+  "diaryNewsSectionBody": "{source} 기사: {title}",
+  "@diaryNewsSectionBody": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "quizWrongAnswerTimeout": "시간 초과",
   "quizWrongAnswerRevealed": "정답 보기",
   "quizWrongAnswerSkipped": "답을 고르지 않음",

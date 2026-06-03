@@ -20,6 +20,56 @@ import 'package:football_note/presentation/screens/home_hub_screen.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
 
 void main() {
+  testWidgets('home quick actions and continue card use Japanese localization',
+      (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeHubScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          onCreate: () {},
+          onQuickPlan: () {},
+          onQuickMatch: () {},
+          onQuickQuiz: () {},
+          onQuickMeal: () {},
+          onQuickBoard: () {},
+          onOpenPlans: () {},
+          onOpenLogs: () {},
+          onOpenDiary: () {},
+          onOpenWeeklyStats: () {},
+          onEdit: (_) {},
+          onEditTrainingBoard: (_) {},
+          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+        ),
+        locale: const Locale('ja'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('クイック操作'), findsOneWidget);
+    expect(find.text('試合を記録'), findsOneWidget);
+    expect(find.text('練習計画を追加'), findsOneWidget);
+    expect(find.text('続きから'), findsOneWidget);
+    expect(find.text('Quick actions'), findsNothing);
+    expect(find.text('Continue'), findsNothing);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets('today plan section can start a training log from plan', (
     WidgetTester tester,
   ) async {
@@ -562,9 +612,9 @@ void main() {
   });
 }
 
-Widget _buildApp(Widget home) {
+Widget _buildApp(Widget home, {Locale locale = const Locale('ko', 'KR')}) {
   return MaterialApp(
-    locale: const Locale('ko', 'KR'),
+    locale: locale,
     localizationsDelegates: const [
       AppLocalizations.delegate,
       GlobalMaterialLocalizations.delegate,

@@ -477,6 +477,79 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeTodoBoardSketchShort => '스케치';
 
   @override
+  String get homeQuickActionsTitle => '빠른 실행';
+
+  @override
+  String get homeQuickActionMatch => '시합 기록';
+
+  @override
+  String get homeQuickActionPlan => '훈련 계획';
+
+  @override
+  String get homeContinueTitle => '이어하기';
+
+  @override
+  String get homeContinueEmpty => '오늘은 이어서 할 액션이 없어요. 아래에서 새 도전을 골라보세요.';
+
+  @override
+  String get homeContinueWrongAnswerReview => '오답 복습 이어하기';
+
+  @override
+  String get homeContinueQuiz => '퀴즈 이어하기';
+
+  @override
+  String get homeContinueStartQuiz => '새 퀴즈 시작';
+
+  @override
+  String homeContinueQuizProgress(int current, int total) {
+    return '$current / $total 진행 중';
+  }
+
+  @override
+  String get homeContinueQuizStartSubtitle => '오늘 퀴즈를 다시 시작해요.';
+
+  @override
+  String get homeContinueTodayTrainingLog => '오늘 훈련 기록';
+
+  @override
+  String homeContinueTrainingDuration(Object date, int duration) {
+    return '$date · $duration분';
+  }
+
+  @override
+  String get homeContinueTrainingButton => '이어서 쓰기';
+
+  @override
+  String get homeContinueTodayPlanTitle => '오늘 훈련 계획';
+
+  @override
+  String homeContinueTodayPlanSubtitle(int count) {
+    return '오늘 계획 $count개가 있어요.';
+  }
+
+  @override
+  String get homeContinuePlanButton => '계획 보기';
+
+  @override
+  String get homeContinueQuizButton => '퀴즈 열기';
+
+  @override
+  String get homeContinueRecentBoardTitle => '최근 훈련보드';
+
+  @override
+  String homeContinueBoardCount(int count) {
+    return '스케치 $count개';
+  }
+
+  @override
+  String homeContinueBoardSaved(Object title, Object date) {
+    return '$title · 최근 저장 $date';
+  }
+
+  @override
+  String get homeContinueBoardButton => '바로 수정';
+
+  @override
   String get dailyTasksXpDialogTitle => '오늘 할일 완주';
 
   @override
@@ -1785,6 +1858,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get delete => '삭제';
 
   @override
+  String get undo => '되돌리기';
+
+  @override
   String get statsRecent7 => '최근 7일';
 
   @override
@@ -2396,6 +2472,57 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryComposerDontSave => '저장 안 함';
 
   @override
+  String get diaryNewAction => '새 다이어리';
+
+  @override
+  String get diaryNextDayTooltip => '다음 날짜';
+
+  @override
+  String get diaryPreviousDayTooltip => '이전 날짜';
+
+  @override
+  String get diaryComposeTooltip => '작성';
+
+  @override
+  String get diaryEmptyTitle => '아직 만든 다이어리가 없습니다.';
+
+  @override
+  String get diaryEmptyBody => '날짜를 골라 첫 페이지를 만들면 다이어리가 시작됩니다.';
+
+  @override
+  String get diaryCreateFirstAction => '첫 다이어리 만들기';
+
+  @override
+  String get diaryDeleteDialogTitle => '다이어리 삭제';
+
+  @override
+  String get diaryDeleteDialogBody => '이 날짜의 다이어리를 삭제할까요?';
+
+  @override
+  String get diaryDeletedMessage => '다이어리를 삭제했어요.';
+
+  @override
+  String get diaryDeleteRestoredMessage => '삭제를 되돌렸어요.';
+
+  @override
+  String get diaryThemeNotebookName => '노트북';
+
+  @override
+  String get diaryThemeNotebookDescription => '차분한 종이 질감의 기본 다이어리입니다.';
+
+  @override
+  String get diaryThemeDuskName => '노을';
+
+  @override
+  String get diaryThemeDuskDescription => '붉은 저녁빛처럼 따뜻한 분위기로 읽습니다.';
+
+  @override
+  String get diaryThemeOceanName => '새벽 바다';
+
+  @override
+  String get diaryThemeOceanDescription => '푸른 잉크처럼 또렷하고 서늘한 페이지입니다.';
+
+  @override
   String get diaryVoiceInputTooltip => '음성 입력';
 
   @override
@@ -2920,6 +3047,231 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get diaryWeatherEmpty => '날씨 기록이 없습니다.';
+
+  @override
+  String get diaryUnknownSource => '출처 없음';
+
+  @override
+  String get diaryLocationUnset => '장소 미기록';
+
+  @override
+  String get diaryLocationNotLogged => '장소 기록 없음';
+
+  @override
+  String get diaryFundamentalsFallback => '기본기';
+
+  @override
+  String diaryUpdatedAt(String date) {
+    return '업데이트 $date';
+  }
+
+  @override
+  String get diaryMatchOpponentUnknown => '상대 팀 미기록';
+
+  @override
+  String diaryMatchOpponentLabel(String opponent) {
+    return '$opponent전';
+  }
+
+  @override
+  String diaryMatchScoreLabel(String score) {
+    return '스코어 $score';
+  }
+
+  @override
+  String diaryMatchGoalsLabel(int count) {
+    return '개인 득점 $count';
+  }
+
+  @override
+  String diaryMatchAssistsLabel(int count) {
+    return '도움 $count';
+  }
+
+  @override
+  String diaryMatchMinutesPlayed(String minutes) {
+    return '출전 $minutes';
+  }
+
+  @override
+  String diaryMatchPersonalStats(int goals, int assists) {
+    return '$goals골 $assists도움';
+  }
+
+  @override
+  String diaryTotalRiceBowls(String count) {
+    return '총 $count공기';
+  }
+
+  @override
+  String diaryCompletedMeals(int count) {
+    return '$count끼 기록';
+  }
+
+  @override
+  String diaryReps(int count) {
+    return '$count회';
+  }
+
+  @override
+  String diaryTotalReps(int count) {
+    return '총 $count회';
+  }
+
+  @override
+  String diaryLiftingReps(int count) {
+    return '리프팅 $count회';
+  }
+
+  @override
+  String diaryJumpRopeReps(int count) {
+    return '줄넘기 $count회';
+  }
+
+  @override
+  String diaryJumpRopeMinutes(String minutes) {
+    return '줄넘기 $minutes';
+  }
+
+  @override
+  String diaryJumpRopeCombined(int count, String minutes) {
+    return '줄넘기 $count회/$minutes';
+  }
+
+  @override
+  String diaryConditioningSummary(
+      int liftingCount, int jumpCount, String jumpMinutes) {
+    return '리프팅 $liftingCount회 · 줄넘기 $jumpCount회/$jumpMinutes';
+  }
+
+  @override
+  String diaryStoryPromptFromSeed(String title) {
+    return '$title부터 시작해서 오늘 남기고 싶은 장면을 이어 적어 보세요. 해야 했던 일과 실제로 한 일, 기분 변화를 자연스럽게 붙여 써도 좋아요.';
+  }
+
+  @override
+  String diaryStoryPromptDefault(String place, String focus) {
+    return '오늘 $place에서 있었던 일을 내 말로 적어 보세요. $focus 쪽에서 어떤 장면이 가장 오래 남았는지, 무엇이 즐거웠고 무엇이 아쉬웠는지 자유롭게 써도 좋아요.';
+  }
+
+  @override
+  String diaryPlanStorySentence(String title) {
+    return '$title 할 일을 먼저 떠올리며, 왜 이걸 오늘 다이어리에 넣고 싶은지 적어 본다.';
+  }
+
+  @override
+  String diaryPlanNoteTitle(String category) {
+    return '$category 메모';
+  }
+
+  @override
+  String diaryPlanDurationLabel(String duration) {
+    return '$duration 계획';
+  }
+
+  @override
+  String get diaryPinnedPlanTooltip => '계획 고정';
+
+  @override
+  String diaryTrainingTodoTitle(String label) {
+    return '훈련 · $label';
+  }
+
+  @override
+  String diaryTrainingSummaryTitle(String label) {
+    return '$label 훈련 요약';
+  }
+
+  @override
+  String get diaryFortunePinSummary => '오늘 기록에 남은 운세 흐름을 다이어리 스티커로 붙여둘 수 있어요.';
+
+  @override
+  String get diaryFortuneStorySentence => '오늘 운세에서 기억하고 싶은 흐름이나 응원 한 줄을 적어 본다.';
+
+  @override
+  String get diaryFortuneNoteTitle => '오늘 운세 메모';
+
+  @override
+  String get diaryMatchTodoTitleNoOpponent => '시합';
+
+  @override
+  String diaryMatchTodoTitleWithOpponent(String opponent) {
+    return '시합 · $opponent전';
+  }
+
+  @override
+  String get diaryMatchStorySentence =>
+      '시합 흐름을 한 장면씩 떠올리며 좋았던 선택과 아쉬운 선택을 함께 적어 본다.';
+
+  @override
+  String get diaryMatchFlowTitle => '시합 흐름';
+
+  @override
+  String get diaryMatchSectionBodyDefault => '시합에서 가장 크게 남은 흐름을 적는다.';
+
+  @override
+  String get diaryBoardStickerFallbackSummary => '이 보드에서 기록한 움직임과 아이디어';
+
+  @override
+  String diaryBoardNotePrefix(String memo) {
+    return '보드 메모: $memo';
+  }
+
+  @override
+  String diaryBoardTodoTitle(String title) {
+    return '훈련보드 · $title';
+  }
+
+  @override
+  String get diaryBoardStorySentence => '이 보드에서 남기고 싶은 움직임과 아이디어를 적는다.';
+
+  @override
+  String get diaryBoardFallbackSummary => '전술 아이디어를 일기로 옮길 수 있어요.';
+
+  @override
+  String diaryBoardNoteTitle(String title) {
+    return '$title 메모';
+  }
+
+  @override
+  String get diaryLiftingStorySentence => '리프팅 반복이 오늘 감각을 어떻게 붙잡아 줬는지 적어 본다.';
+
+  @override
+  String get diaryLiftingNoteTitle => '리프팅 메모';
+
+  @override
+  String get diaryLiftingSectionBody => '반복 수와 함께 발 감각이 안정된 순간을 남긴다.';
+
+  @override
+  String get diaryJumpRopeStorySentence => '줄넘기로 몸이 깨어난 순간과 호흡 변화를 적어 본다.';
+
+  @override
+  String get diaryJumpRopeNoteTitle => '줄넘기 메모';
+
+  @override
+  String get diaryJumpRopeSectionBody => '횟수와 시간, 몸이 가벼워진 타이밍을 함께 남긴다.';
+
+  @override
+  String get diaryWeatherStorySentence =>
+      '그날 날씨가 훈련 흐름과 몸 상태에 어떤 영향을 줬는지 적어 보세요.';
+
+  @override
+  String diaryNewsTodoTitle(String title) {
+    return '소식 · $title';
+  }
+
+  @override
+  String diaryNewsStorySentence(String title) {
+    return '$title 기사를 읽고 기억하고 싶은 포인트를 한 줄로 남긴다.';
+  }
+
+  @override
+  String get diaryTodayNewsTitle => '오늘 본 소식';
+
+  @override
+  String diaryNewsSectionBody(String source, String title) {
+    return '$source 기사: $title';
+  }
 
   @override
   String get quizWrongAnswerTimeout => '시간 초과';

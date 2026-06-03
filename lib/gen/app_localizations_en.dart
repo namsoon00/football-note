@@ -508,6 +508,80 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTodoBoardSketchShort => 'Sketch';
 
   @override
+  String get homeQuickActionsTitle => 'Quick actions';
+
+  @override
+  String get homeQuickActionMatch => 'Add match';
+
+  @override
+  String get homeQuickActionPlan => 'Add plan';
+
+  @override
+  String get homeContinueTitle => 'Continue';
+
+  @override
+  String get homeContinueEmpty =>
+      'Nothing to continue today. Pick a fresh challenge below.';
+
+  @override
+  String get homeContinueWrongAnswerReview => 'Continue wrong-answer review';
+
+  @override
+  String get homeContinueQuiz => 'Continue quiz';
+
+  @override
+  String get homeContinueStartQuiz => 'Start quiz';
+
+  @override
+  String homeContinueQuizProgress(int current, int total) {
+    return 'In progress $current / $total';
+  }
+
+  @override
+  String get homeContinueQuizStartSubtitle => 'Jump back into today\'s quiz.';
+
+  @override
+  String get homeContinueTodayTrainingLog => 'Today training log';
+
+  @override
+  String homeContinueTrainingDuration(Object date, int duration) {
+    return '$date · $duration min';
+  }
+
+  @override
+  String get homeContinueTrainingButton => 'Continue';
+
+  @override
+  String get homeContinueTodayPlanTitle => 'Today training plan';
+
+  @override
+  String homeContinueTodayPlanSubtitle(int count) {
+    return '$count plans are waiting today.';
+  }
+
+  @override
+  String get homeContinuePlanButton => 'Open plans';
+
+  @override
+  String get homeContinueQuizButton => 'Open quiz';
+
+  @override
+  String get homeContinueRecentBoardTitle => 'Recent training board';
+
+  @override
+  String homeContinueBoardCount(int count) {
+    return '$count sketches';
+  }
+
+  @override
+  String homeContinueBoardSaved(Object title, Object date) {
+    return '$title · saved $date';
+  }
+
+  @override
+  String get homeContinueBoardButton => 'Edit now';
+
+  @override
   String get dailyTasksXpDialogTitle => 'Today\'s tasks complete';
 
   @override
@@ -1850,6 +1924,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
+  String get undo => 'Undo';
+
+  @override
   String get statsRecent7 => 'Last 7 days';
 
   @override
@@ -2475,6 +2552,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryComposerDontSave => 'Don\'t save';
 
   @override
+  String get diaryNewAction => 'New diary';
+
+  @override
+  String get diaryNextDayTooltip => 'Next day';
+
+  @override
+  String get diaryPreviousDayTooltip => 'Previous day';
+
+  @override
+  String get diaryComposeTooltip => 'Compose';
+
+  @override
+  String get diaryEmptyTitle => 'No diary pages yet';
+
+  @override
+  String get diaryEmptyBody => 'Pick a date and create your first page.';
+
+  @override
+  String get diaryCreateFirstAction => 'Create first diary';
+
+  @override
+  String get diaryDeleteDialogTitle => 'Delete diary';
+
+  @override
+  String get diaryDeleteDialogBody => 'Delete this day diary?';
+
+  @override
+  String get diaryDeletedMessage => 'Diary deleted.';
+
+  @override
+  String get diaryDeleteRestoredMessage => 'Restored deleted diary.';
+
+  @override
+  String get diaryThemeNotebookName => 'Notebook';
+
+  @override
+  String get diaryThemeNotebookDescription =>
+      'A calm paper-textured default diary.';
+
+  @override
+  String get diaryThemeDuskName => 'Dusk';
+
+  @override
+  String get diaryThemeDuskDescription =>
+      'Reads in the warmth of a red evening glow.';
+
+  @override
+  String get diaryThemeOceanName => 'Early Sea';
+
+  @override
+  String get diaryThemeOceanDescription =>
+      'A crisp and cool page like blue ink.';
+
+  @override
   String get diaryVoiceInputTooltip => 'Voice input';
 
   @override
@@ -3023,6 +3154,241 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diaryWeatherEmpty => 'No weather was logged.';
+
+  @override
+  String get diaryUnknownSource => 'Unknown source';
+
+  @override
+  String get diaryLocationUnset => 'No location';
+
+  @override
+  String get diaryLocationNotLogged => 'No location logged';
+
+  @override
+  String get diaryFundamentalsFallback => 'fundamentals';
+
+  @override
+  String diaryUpdatedAt(String date) {
+    return 'Updated $date';
+  }
+
+  @override
+  String get diaryMatchOpponentUnknown => 'vs unknown opponent';
+
+  @override
+  String diaryMatchOpponentLabel(String opponent) {
+    return 'vs $opponent';
+  }
+
+  @override
+  String diaryMatchScoreLabel(String score) {
+    return 'score $score';
+  }
+
+  @override
+  String diaryMatchGoalsLabel(int count) {
+    return 'goals $count';
+  }
+
+  @override
+  String diaryMatchAssistsLabel(int count) {
+    return 'assists $count';
+  }
+
+  @override
+  String diaryMatchMinutesPlayed(String minutes) {
+    return '$minutes played';
+  }
+
+  @override
+  String diaryMatchPersonalStats(int goals, int assists) {
+    return '${goals}G ${assists}A';
+  }
+
+  @override
+  String diaryTotalRiceBowls(String count) {
+    return '$count bowls total';
+  }
+
+  @override
+  String diaryCompletedMeals(int count) {
+    return '$count meals logged';
+  }
+
+  @override
+  String diaryReps(int count) {
+    return '$count reps';
+  }
+
+  @override
+  String diaryTotalReps(int count) {
+    return '$count reps total';
+  }
+
+  @override
+  String diaryLiftingReps(int count) {
+    return 'Lifting $count reps';
+  }
+
+  @override
+  String diaryJumpRopeReps(int count) {
+    return 'Jump rope $count reps';
+  }
+
+  @override
+  String diaryJumpRopeMinutes(String minutes) {
+    return 'Jump rope $minutes';
+  }
+
+  @override
+  String diaryJumpRopeCombined(int count, String minutes) {
+    return 'Jump rope $count reps/$minutes';
+  }
+
+  @override
+  String diaryConditioningSummary(
+      int liftingCount, int jumpCount, String jumpMinutes) {
+    return 'Lifting $liftingCount reps · Jump rope $jumpCount reps/$jumpMinutes';
+  }
+
+  @override
+  String diaryStoryPromptFromSeed(String title) {
+    return 'Start from $title and continue with the scene you want to keep today. You can naturally connect what you planned, what you actually did, and how it felt.';
+  }
+
+  @override
+  String diaryStoryPromptDefault(String place, String focus) {
+    return 'Write today in your own words. Start with what happened around $place, what stayed with you in $focus, what felt good, and what still lingers.';
+  }
+
+  @override
+  String diaryPlanStorySentence(String title) {
+    return 'Start from $title and write why this task deserves a place in today\'s diary.';
+  }
+
+  @override
+  String diaryPlanNoteTitle(String category) {
+    return '$category note';
+  }
+
+  @override
+  String diaryPlanDurationLabel(String duration) {
+    return '$duration plan';
+  }
+
+  @override
+  String get diaryPinnedPlanTooltip => 'Pinned plan';
+
+  @override
+  String diaryTrainingTodoTitle(String label) {
+    return 'Training · $label';
+  }
+
+  @override
+  String diaryTrainingSummaryTitle(String label) {
+    return '$label summary';
+  }
+
+  @override
+  String get diaryFortunePinSummary =>
+      'Pin today\'s fortune flow as a diary sticker.';
+
+  @override
+  String get diaryFortuneStorySentence =>
+      'Write the one flow or encouragement you want to keep from today\'s fortune.';
+
+  @override
+  String get diaryFortuneNoteTitle => 'Today fortune note';
+
+  @override
+  String get diaryMatchTodoTitleNoOpponent => 'Match';
+
+  @override
+  String diaryMatchTodoTitleWithOpponent(String opponent) {
+    return 'Match · vs $opponent';
+  }
+
+  @override
+  String get diaryMatchStorySentence =>
+      'Replay the match scene by scene and write both the sharp choices and the missed ones.';
+
+  @override
+  String get diaryMatchFlowTitle => 'Match flow';
+
+  @override
+  String get diaryMatchSectionBodyDefault =>
+      'Write the flow that stayed most from the match.';
+
+  @override
+  String get diaryBoardStickerFallbackSummary =>
+      'Movement and idea captured on this board';
+
+  @override
+  String diaryBoardNotePrefix(String memo) {
+    return 'Board note: $memo';
+  }
+
+  @override
+  String diaryBoardTodoTitle(String title) {
+    return 'Board · $title';
+  }
+
+  @override
+  String get diaryBoardStorySentence =>
+      'Write the movement or idea you want to keep from this board.';
+
+  @override
+  String get diaryBoardFallbackSummary =>
+      'Pull the tactic idea into the diary.';
+
+  @override
+  String diaryBoardNoteTitle(String title) {
+    return '$title note';
+  }
+
+  @override
+  String get diaryLiftingStorySentence =>
+      'Write how the lifting rhythm held today\'s ball feel in place.';
+
+  @override
+  String get diaryLiftingNoteTitle => 'Lifting note';
+
+  @override
+  String get diaryLiftingSectionBody =>
+      'Keep the moment the touch settled together with the counts.';
+
+  @override
+  String get diaryJumpRopeStorySentence =>
+      'Write the moment jump rope woke the body up and changed the breathing rhythm.';
+
+  @override
+  String get diaryJumpRopeNoteTitle => 'Jump rope note';
+
+  @override
+  String get diaryJumpRopeSectionBody =>
+      'Keep the count, time, and the point where the body started to feel lighter.';
+
+  @override
+  String get diaryWeatherStorySentence =>
+      'Write how the weather affected your training flow and body.';
+
+  @override
+  String diaryNewsTodoTitle(String title) {
+    return 'News · $title';
+  }
+
+  @override
+  String diaryNewsStorySentence(String title) {
+    return 'Write one point you want to keep from \"$title\".';
+  }
+
+  @override
+  String get diaryTodayNewsTitle => 'Today news';
+
+  @override
+  String diaryNewsSectionBody(String source, String title) {
+    return '$source article: $title';
+  }
 
   @override
   String get quizWrongAnswerTimeout => 'Timed out';

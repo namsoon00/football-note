@@ -196,6 +196,65 @@
   "homeTodoNewsShort": "ニュース",
   "homeTodoDiaryShort": "日記",
   "homeTodoBoardSketchShort": "スケッチ",
+  "homeQuickActionsTitle": "クイック操作",
+  "homeQuickActionMatch": "試合を記録",
+  "homeQuickActionPlan": "練習計画を追加",
+  "homeContinueTitle": "続きから",
+  "homeContinueEmpty": "今日は続きから再開する項目がありません。下から新しいアクションを選びましょう。",
+  "homeContinueWrongAnswerReview": "間違えた問題の復習を続ける",
+  "homeContinueQuiz": "クイズを続ける",
+  "homeContinueStartQuiz": "新しいクイズを始める",
+  "homeContinueQuizProgress": "{current} / {total} 進行中",
+  "@homeContinueQuizProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinueQuizStartSubtitle": "今日のクイズをもう一度始めましょう。",
+  "homeContinueTodayTrainingLog": "今日の練習記録",
+  "homeContinueTrainingDuration": "{date} · {duration}分",
+  "@homeContinueTrainingDuration": {
+    "placeholders": {
+      "date": {},
+      "duration": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinueTrainingButton": "続きを書く",
+  "homeContinueTodayPlanTitle": "今日の練習計画",
+  "homeContinueTodayPlanSubtitle": "今日の計画が {count} 件あります。",
+  "@homeContinueTodayPlanSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinuePlanButton": "計画を見る",
+  "homeContinueQuizButton": "クイズを開く",
+  "homeContinueRecentBoardTitle": "最近の練習ボード",
+  "homeContinueBoardCount": "スケッチ {count} 件",
+  "@homeContinueBoardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinueBoardSaved": "{title} · 最近保存 {date}",
+  "@homeContinueBoardSaved": {
+    "placeholders": {
+      "title": {},
+      "date": {}
+    }
+  },
+  "homeContinueBoardButton": "今すぐ編集",
   "dailyTasksXpDialogTitle": "今日のタスクは完了しました",
   "dailyTasksXpDialogMessage": "ルーチン全体がチェックされます。その一貫性が成長の原動力となりました。",
   "dailyTasksXpDialogGems": "+{count} ジェム",
@@ -932,6 +991,7 @@
   "deleteConfirm": "このエントリを削除しますか?",
   "cancel": "キャンセル",
   "delete": "消去",
+  "undo": "元に戻す",
   "statsRecent7": "過去 7 日間",
   "statsRecent30": "過去 30 日間",
   "statsTotalSessions": "合計セッション数",
@@ -1145,6 +1205,23 @@
   "diaryComposerSavePromptTitle": "保存しますか？",
   "diaryComposerSavePromptBody": "未保存の変更があります。保存して閉じますか？",
   "diaryComposerDontSave": "保存しない",
+  "diaryNewAction": "新しい日記",
+  "diaryNextDayTooltip": "次の日付",
+  "diaryPreviousDayTooltip": "前の日付",
+  "diaryComposeTooltip": "作成",
+  "diaryEmptyTitle": "作成した日記はまだありません",
+  "diaryEmptyBody": "日付を選んで最初のページを作成すると、日記を始められます。",
+  "diaryCreateFirstAction": "最初の日記を作成",
+  "diaryDeleteDialogTitle": "日記を削除",
+  "diaryDeleteDialogBody": "この日の日記を削除しますか？",
+  "diaryDeletedMessage": "日記を削除しました。",
+  "diaryDeleteRestoredMessage": "削除した日記を元に戻しました。",
+  "diaryThemeNotebookName": "ノート",
+  "diaryThemeNotebookDescription": "落ち着いた紙の質感の基本テーマです。",
+  "diaryThemeDuskName": "夕焼け",
+  "diaryThemeDuskDescription": "赤い夕暮れのような温かい雰囲気で読めます。",
+  "diaryThemeOceanName": "明け方の海",
+  "diaryThemeOceanDescription": "青いインクのようにくっきり涼しいページです。",
   "diaryVoiceInputTooltip": "音声入力",
   "diaryVoiceInputUnavailable": "この端末では音声入力を使用できません。",
   "diaryComposerTitle": "今日の日記を書く",
@@ -1355,6 +1432,288 @@
   "diaryConditioningJumpRopeLabel": "縄跳び",
   "diaryConditioningLiftingLabel": "リフティング",
   "diaryWeatherEmpty": "天気は記録されていませんでした。",
+  "diaryUnknownSource": "出典なし",
+  "diaryLocationUnset": "場所未記録",
+  "diaryLocationNotLogged": "場所の記録なし",
+  "diaryFundamentalsFallback": "基礎",
+  "diaryUpdatedAt": "更新 {date}",
+  "@diaryUpdatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchOpponentUnknown": "相手チーム未記録",
+  "diaryMatchOpponentLabel": "{opponent}戦",
+  "@diaryMatchOpponentLabel": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchScoreLabel": "スコア {score}",
+  "@diaryMatchScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchGoalsLabel": "個人得点 {count}",
+  "@diaryMatchGoalsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryMatchAssistsLabel": "アシスト {count}",
+  "@diaryMatchAssistsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryMatchMinutesPlayed": "出場 {minutes}",
+  "@diaryMatchMinutesPlayed": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchPersonalStats": "{goals}G {assists}A",
+  "@diaryMatchPersonalStats": {
+    "placeholders": {
+      "goals": {
+        "type": "int"
+      },
+      "assists": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryTotalRiceBowls": "合計 {count}杯",
+  "@diaryTotalRiceBowls": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryCompletedMeals": "{count}食を記録",
+  "@diaryCompletedMeals": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryReps": "{count}回",
+  "@diaryReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryTotalReps": "合計 {count}回",
+  "@diaryTotalReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryLiftingReps": "リフティング {count}回",
+  "@diaryLiftingReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryJumpRopeReps": "縄跳び {count}回",
+  "@diaryJumpRopeReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryJumpRopeMinutes": "縄跳び {minutes}",
+  "@diaryJumpRopeMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryJumpRopeCombined": "縄跳び {count}回/{minutes}",
+  "@diaryJumpRopeCombined": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryConditioningSummary": "リフティング {liftingCount}回 · 縄跳び {jumpCount}回/{jumpMinutes}",
+  "@diaryConditioningSummary": {
+    "placeholders": {
+      "liftingCount": {
+        "type": "int"
+      },
+      "jumpCount": {
+        "type": "int"
+      },
+      "jumpMinutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryStoryPromptFromSeed": "{title}から始めて、今日残したい場面を書き続けましょう。予定していたこと、実際にしたこと、気持ちの変化を自然につなげても大丈夫です。",
+  "@diaryStoryPromptFromSeed": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryStoryPromptDefault": "今日{place}であったことを自分の言葉で書きましょう。{focus}で一番印象に残った場面、楽しかったこと、惜しかったことを自由に残して大丈夫です。",
+  "@diaryStoryPromptDefault": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "focus": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPlanStorySentence": "{title}の予定を思い出しながら、なぜ今日の日記に残したいのかを書いてみる。",
+  "@diaryPlanStorySentence": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPlanNoteTitle": "{category}メモ",
+  "@diaryPlanNoteTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPlanDurationLabel": "{duration}の計画",
+  "@diaryPlanDurationLabel": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPinnedPlanTooltip": "計画を固定",
+  "diaryTrainingTodoTitle": "トレーニング · {label}",
+  "@diaryTrainingTodoTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryTrainingSummaryTitle": "{label}のトレーニング要約",
+  "@diaryTrainingSummaryTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryFortunePinSummary": "今日の記録に残った運勢の流れを日記ステッカーとして貼れます。",
+  "diaryFortuneStorySentence": "今日の運勢で残したい流れや応援の一言を書いてみる。",
+  "diaryFortuneNoteTitle": "今日の運勢メモ",
+  "diaryMatchTodoTitleNoOpponent": "試合",
+  "diaryMatchTodoTitleWithOpponent": "試合 · {opponent}戦",
+  "@diaryMatchTodoTitleWithOpponent": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchStorySentence": "試合の流れを場面ごとに思い出し、良かった判断と惜しかった判断を一緒に書いてみる。",
+  "diaryMatchFlowTitle": "試合の流れ",
+  "diaryMatchSectionBodyDefault": "試合で一番印象に残った流れを書く。",
+  "diaryBoardStickerFallbackSummary": "このボードで記録した動きとアイデア",
+  "diaryBoardNotePrefix": "ボードメモ: {memo}",
+  "@diaryBoardNotePrefix": {
+    "placeholders": {
+      "memo": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryBoardTodoTitle": "ボード · {title}",
+  "@diaryBoardTodoTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryBoardStorySentence": "このボードから残したい動きやアイデアを書く。",
+  "diaryBoardFallbackSummary": "戦術アイデアを日記に移せます。",
+  "diaryBoardNoteTitle": "{title}メモ",
+  "@diaryBoardNoteTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryLiftingStorySentence": "リフティングの反復が今日のボール感覚をどう支えたかを書いてみる。",
+  "diaryLiftingNoteTitle": "リフティングメモ",
+  "diaryLiftingSectionBody": "回数と一緒に、足元の感覚が安定した瞬間を残す。",
+  "diaryJumpRopeStorySentence": "縄跳びで体が起きた瞬間と呼吸の変化を書いてみる。",
+  "diaryJumpRopeNoteTitle": "縄跳びメモ",
+  "diaryJumpRopeSectionBody": "回数、時間、体が軽くなったタイミングを一緒に残す。",
+  "diaryWeatherStorySentence": "その日の天気がトレーニングの流れや体の状態にどう影響したかを書きましょう。",
+  "diaryNewsTodoTitle": "ニュース · {title}",
+  "@diaryNewsTodoTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryNewsStorySentence": "{title}の記事を読んで、覚えておきたいポイントを一行で残す。",
+  "@diaryNewsStorySentence": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryTodayNewsTitle": "今日読んだニュース",
+  "diaryNewsSectionBody": "{source}の記事: {title}",
+  "@diaryNewsSectionBody": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "quizWrongAnswerTimeout": "タイムアウトしました",
   "quizWrongAnswerRevealed": "答えを明らかにした",
   "quizWrongAnswerSkipped": "回答が選択されていません",
