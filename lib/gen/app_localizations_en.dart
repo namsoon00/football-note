@@ -6187,7 +6187,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parentFeedbackEmpty => 'There is no feedback yet.';
 
   @override
-  String get parentFeedbackReactionOnly => 'A parent reaction was saved.';
+  String get parentFeedbackReactionOnly => 'The player left a reaction.';
 
   @override
   String get parentFeedbackReactionLabel => 'Reaction';

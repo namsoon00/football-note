@@ -12,7 +12,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/challenge_screen.dart';
 
 void main() {
-  testWidgets('challenge screen starts a template and shows round list', (
+  testWidgets('challenge screen starts a template and shows round calendar', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 640));
@@ -50,6 +50,15 @@ void main() {
     expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsNothing);
     expect(tester.takeException(), isNull);
 
+    await tester.tap(find.byIcon(Icons.history));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('챌린지 히스토리'), findsOneWidget);
+    expect(find.text('아직 챌린지 기록이 없어요.'), findsOneWidget);
+    Navigator.of(tester.element(find.text('챌린지 히스토리'))).pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
     await tester
         .tap(find.byKey(const ValueKey('challenge-template-starter_3')));
     await tester.pump();
@@ -74,7 +83,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('라운드'), findsOneWidget);
-    expect(find.text('1라운드'), findsWidgets);
+    expect(find.byKey(const ValueKey('challenge-rounds-calendar')),
+        findsOneWidget);
+    expect(find.text('R1'), findsOneWidget);
     expect(find.text('줄넘기'), findsOneWidget);
     expect(find.text('리프팅'), findsOneWidget);
     expect(tester.takeException(), isNull);

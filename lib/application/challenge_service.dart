@@ -206,6 +206,53 @@ class ChallengeService {
     return awards;
   }
 
+  Future<List<PlayerLevelAward>> finalizeRun({
+    required ChallengeProgress progress,
+    required PlayerLevelService playerLevelService,
+    DateTime? finalizedAt,
+  }) async {
+    final endedAt = finalizedAt ?? DateTime.now();
+    if (progress.run.isEnded || !progress.readyToFinalize(now: endedAt)) {
+      return const <PlayerLevelAward>[];
+    }
+
+    final awards = <PlayerLevelAward>[];
+    for (final round in progress.rounds.where((item) => item.completed)) {
+      final award = await playerLevelService.awardForChallengeRound(
+        challengeRunId: progress.run.id,
+        roundNumber: round.round.number,
+        challengeLabel: progress.template.id,
+        completedAt: round.date.add(const Duration(hours: 21)),
+        rewardXp: round.round.rewardXp,
+      );
+      awards.add(award);
+    }
+
+    if (progress.allRoundsCompleted) {
+      final completionAward =
+          await playerLevelService.awardForChallengeCompletion(
+        challengeRunId: progress.run.id,
+        challengeLabel: progress.template.id,
+        completedAt: endedAt,
+        rewardXp: challengeCompletionBonusXpFor(
+          progress.template,
+          progress.run.trainingLevel,
+        ),
+      );
+      awards.add(completionAward);
+      await completeRun(progress.run.id, completedAt: endedAt);
+    } else {
+      final failedRoundNumber = progress.firstIncompleteRound?.round.number;
+      await failRun(
+        progress.run.id,
+        roundNumber: failedRoundNumber ?? progress.rounds.length,
+        failedAt: endedAt,
+      );
+    }
+
+    return awards;
+  }
+
   ChallengeRound roundForLevel(
     ChallengeRound base,
     ChallengeTrainingLevel level,
@@ -280,8 +327,8 @@ const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =
   ChallengeTrainingLevelConfig(
     level: ChallengeTrainingLevel.rookie,
     targetTrainingMinutes: 60,
-    targetJumpRopeMinutes: 20,
-    targetLiftingMinutes: 20,
+    targetJumpRopeMinutes: 10,
+    targetLiftingMinutes: 10,
     targetRiceBowls: 3,
     rewardXpPerRound: 10,
     completionBonusXpPerDay: 40,
@@ -289,8 +336,8 @@ const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =
   ChallengeTrainingLevelConfig(
     level: ChallengeTrainingLevel.growth,
     targetTrainingMinutes: 90,
-    targetJumpRopeMinutes: 30,
-    targetLiftingMinutes: 30,
+    targetJumpRopeMinutes: 20,
+    targetLiftingMinutes: 20,
     targetRiceBowls: 3.5,
     rewardXpPerRound: 16,
     completionBonusXpPerDay: 70,
@@ -298,8 +345,8 @@ const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =
   ChallengeTrainingLevelConfig(
     level: ChallengeTrainingLevel.ace,
     targetTrainingMinutes: 120,
-    targetJumpRopeMinutes: 40,
-    targetLiftingMinutes: 40,
+    targetJumpRopeMinutes: 30,
+    targetLiftingMinutes: 30,
     targetRiceBowls: 4,
     rewardXpPerRound: 24,
     completionBonusXpPerDay: 110,
@@ -351,8 +398,8 @@ ChallengeTemplate _defaultChallengeTemplate({
       (index) => ChallengeRound(
         number: index + 1,
         targetTrainingMinutes: 60,
-        targetJumpRopeMinutes: 20,
-        targetLiftingMinutes: 20,
+        targetJumpRopeMinutes: 10,
+        targetLiftingMinutes: 10,
         targetRiceBowls: 3,
         rewardXp: 10,
       ),

@@ -5972,7 +5972,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get parentFeedbackEmpty => '아직 피드백이 없어요.';
 
   @override
-  String get parentFeedbackReactionOnly => '보호자가 리액션을 남겼어요.';
+  String get parentFeedbackReactionOnly => '선수가 리액션을 남겼어요.';
 
   @override
   String get parentFeedbackReactionLabel => '리액션';

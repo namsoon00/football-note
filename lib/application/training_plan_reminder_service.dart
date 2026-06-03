@@ -6,6 +6,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../domain/entities/challenge.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
 import 'settings_service.dart';
@@ -24,6 +25,7 @@ class TrainingPlanReminderService {
   static const String alarmMutedUntilKey = 'training_plan_alarm_muted_until_v1';
   static const String inactivityReminderIdsKey =
       'training_inactivity_notification_ids_v1';
+  static const String challengeReminderIdsKey = 'challenge_notification_ids_v1';
   static const String lastTrainingLogAtKey = 'last_training_log_at_v1';
   static const String _localeOptionKey = 'locale';
 
@@ -297,6 +299,81 @@ class TrainingPlanReminderService {
     }
     await syncFromPlans(loadPlansFromStorage());
     await syncInactivityReminder();
+  }
+
+  Future<void> syncChallengeReminders(ChallengeProgress? progress) async {
+    await initialize();
+    if (kIsWeb) {
+      await _options.setValue(challengeReminderIdsKey, <int>[]);
+      return;
+    }
+    await _clearNotificationIds(challengeReminderIdsKey);
+    if (!_settings.reminderEnabled ||
+        progress == null ||
+        progress.run.isEnded) {
+      return;
+    }
+    if (await isAlarmMutedNow()) return;
+
+    final now = tz.TZDateTime.now(tz.local);
+    final reminderTime = _settings.reminderTime;
+    final isKo = _isKoLocale();
+    final scheduledIds = <int>[];
+    for (final round in progress.rounds) {
+      if (round.completed) continue;
+      final localDate = round.date;
+      final scheduledAt = tz.TZDateTime(
+        tz.local,
+        localDate.year,
+        localDate.month,
+        localDate.day,
+        reminderTime.hour,
+        reminderTime.minute,
+      );
+      if (!scheduledAt.isAfter(now)) continue;
+      final id = _notificationIdForScope(
+        'challenge',
+        '${progress.run.id}:${round.round.number}:'
+            '${localDate.year}${localDate.month}${localDate.day}',
+      );
+      try {
+        await _scheduleZonedReminder(
+          id: id,
+          title: 'SoccerNote',
+          body: _challengeReminderBody(round, isKo: isKo),
+          scheduledAt: scheduledAt,
+          details: NotificationDetails(
+            android: AndroidNotificationDetails(
+              _settings.reminderVibrationEnabled
+                  ? _androidChannelIdVibrate
+                  : _androidChannelId,
+              _androidChannelName,
+              channelDescription: _androidChannelDescription,
+              importance: Importance.high,
+              priority: Priority.high,
+              enableVibration: _settings.reminderVibrationEnabled,
+              vibrationPattern:
+                  _settings.reminderVibrationEnabled ? _vibrationPattern : null,
+            ),
+            iOS: const DarwinNotificationDetails(),
+          ),
+          payload: 'challenge:${progress.run.id}:${round.round.number}',
+        );
+        scheduledIds.add(id);
+      } catch (_) {
+        // Keep scheduling later challenge rounds even if one reminder fails.
+      }
+    }
+    await _options.setValue(challengeReminderIdsKey, scheduledIds);
+  }
+
+  Future<void> clearChallengeReminders() async {
+    await initialize();
+    if (kIsWeb) {
+      await _options.setValue(challengeReminderIdsKey, <int>[]);
+      return;
+    }
+    await _clearNotificationIds(challengeReminderIdsKey);
   }
 
   List<Map<String, dynamic>> loadPlansFromStorage() {
@@ -712,11 +789,13 @@ class TrainingPlanReminderService {
       await _options.setValue(reminderIdsKey, <int>[]);
       await _options.setValue(reminderReadIdsKey, <int>[]);
       await _options.setValue(inactivityReminderIdsKey, <int>[]);
+      await _options.setValue(challengeReminderIdsKey, <int>[]);
       return;
     }
     await _clearNotificationIds(reminderIdsKey);
     await _options.setValue(reminderReadIdsKey, <int>[]);
     await _clearNotificationIds(inactivityReminderIdsKey);
+    await _clearNotificationIds(challengeReminderIdsKey);
   }
 
   DateTime? _lastTrainingLogAt() {
@@ -764,6 +843,24 @@ class TrainingPlanReminderService {
     return isKo
         ? '훈련 기록을 남긴 지 시간이 지났어요.'
         : 'It has been a while since your last training log.';
+  }
+
+  String _challengeReminderBody(
+    ChallengeRoundProgress round, {
+    required bool isKo,
+  }) {
+    final training = round.round.targetTrainingMinutes;
+    final jumpRope = round.round.targetJumpRopeMinutes;
+    final lifting = round.round.targetLiftingMinutes;
+    final meal = _formatBowls(round.round.targetRiceBowls);
+    return isKo
+        ? '오늘 ${round.round.number}라운드: 훈련 $training분, 줄넘기 $jumpRope분, 리프팅 $lifting분, 식사 $meal그릇을 확인해요.'
+        : 'Round ${round.round.number} today: training $training min, jump rope $jumpRope min, lifting $lifting min, meals $meal bowls.';
+  }
+
+  String _formatBowls(double value) {
+    final fixed = value.toStringAsFixed(1);
+    return fixed.endsWith('.0') ? fixed.substring(0, fixed.length - 2) : fixed;
   }
 
   int unreadReminderCountSync() {

@@ -45,7 +45,7 @@ void main() {
     expect(cleared, isEmpty);
   });
 
-  test('stores multiple reaction-only parent feedback', () async {
+  test('stores multiple player reactions without feedback text', () async {
     final repository = _MemoryOptionRepository();
     final service = ParentSharedFeedbackService(repository);
     final entry = TrainingEntry(

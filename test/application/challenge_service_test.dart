@@ -22,8 +22,8 @@ void main() {
     );
     expect(templates[2].rounds.first.targetTrainingMinutes, 60);
     expect(templates[2].rounds.last.targetTrainingMinutes, 60);
-    expect(templates[2].rounds.first.targetJumpRopeMinutes, 20);
-    expect(templates[2].rounds.last.targetLiftingMinutes, 20);
+    expect(templates[2].rounds.first.targetJumpRopeMinutes, 10);
+    expect(templates[2].rounds.last.targetLiftingMinutes, 10);
   });
 
   test('training levels use fixed targets and larger rewards', () {
@@ -40,16 +40,22 @@ void main() {
       lastBaseRound,
       ChallengeTrainingLevel.rookie,
     );
+    final growth = service.roundForLevel(
+      baseRound,
+      ChallengeTrainingLevel.growth,
+    );
     final ace = service.roundForLevel(baseRound, ChallengeTrainingLevel.ace);
 
     expect(rookie.targetTrainingMinutes, 60);
-    expect(rookie.targetJumpRopeMinutes, 20);
-    expect(rookie.targetLiftingMinutes, 20);
+    expect(rookie.targetJumpRopeMinutes, 10);
+    expect(rookie.targetLiftingMinutes, 10);
     expect(lastRookie.targetTrainingMinutes, rookie.targetTrainingMinutes);
     expect(lastRookie.targetJumpRopeMinutes, rookie.targetJumpRopeMinutes);
+    expect(growth.targetJumpRopeMinutes, 20);
+    expect(growth.targetLiftingMinutes, 20);
     expect(ace.targetTrainingMinutes, 120);
-    expect(ace.targetJumpRopeMinutes, 40);
-    expect(ace.targetLiftingMinutes, 40);
+    expect(ace.targetJumpRopeMinutes, 30);
+    expect(ace.targetLiftingMinutes, 30);
     expect(rookie.rewardXp, 10);
     expect(ace.rewardXp, 24);
     expect(
@@ -110,7 +116,7 @@ void main() {
     expect(progress.completedRoundCount, 1);
   });
 
-  test('completed round awards xp once', () async {
+  test('finalization waits until the challenge is ready to end', () async {
     final repository = _MemoryOptionRepository();
     final service = ChallengeService(repository);
     final levelService = PlayerLevelService(repository);
@@ -139,25 +145,16 @@ void main() {
       ],
     )!;
 
-    final firstAwards = await service.awardCompletedRounds(
+    final awards = await service.finalizeRun(
       progress: progress,
       playerLevelService: levelService,
-      awardedAt: DateTime(2026, 6, 1, 21),
-    );
-    final duplicateAwards = await service.awardCompletedRounds(
-      progress: progress,
-      playerLevelService: levelService,
-      awardedAt: DateTime(2026, 6, 1, 22),
+      finalizedAt: DateTime(2026, 6, 2, 8),
     );
 
-    expect(firstAwards.single.gainedXp, 10);
-    expect(duplicateAwards.single.gainedXp, 0);
-    expect(levelService.loadState().totalXp, 10);
-    expect(levelService.loadXpHistory(), hasLength(1));
-    expect(
-      levelService.loadXpHistory().single.category,
-      PlayerXpHistoryCategory.challenge,
-    );
+    expect(awards, isEmpty);
+    expect(service.activeRun(), isNotNull);
+    expect(levelService.loadState().totalXp, 0);
+    expect(levelService.loadXpHistory(), isEmpty);
   });
 
   test('all completed rounds finish the active challenge', () async {
@@ -214,10 +211,10 @@ void main() {
       ],
     )!;
 
-    await service.awardCompletedRounds(
+    await service.finalizeRun(
       progress: progress,
       playerLevelService: levelService,
-      awardedAt: DateTime(2026, 6, 3, 21),
+      finalizedAt: DateTime(2026, 6, 3, 21),
     );
 
     expect(service.activeRun(), isNull);
@@ -231,9 +228,11 @@ void main() {
     );
   });
 
-  test('missed expired round fails the active challenge', () async {
+  test('partially completed challenge continues and settles after final day',
+      () async {
     final repository = _MemoryOptionRepository();
     final service = ChallengeService(repository);
+    final levelService = PlayerLevelService(repository);
     final template = service.templateById('starter_3')!;
     final run = await service.startChallenge(
       template,
@@ -241,22 +240,61 @@ void main() {
     );
     final progress = service.progressForRun(
       run: run,
-      trainingEntries: const <TrainingEntry>[],
-      mealEntries: const <MealEntry>[],
+      trainingEntries: <TrainingEntry>[
+        _trainingEntry(
+          day: DateTime(2026, 6, 1),
+          minutes: 20,
+          jumpRopeMinutes: 20,
+          liftingMinutes: 20,
+        ),
+        _trainingEntry(
+          day: DateTime(2026, 6, 3),
+          minutes: 20,
+          jumpRopeMinutes: 20,
+          liftingMinutes: 20,
+        ),
+      ],
+      mealEntries: <MealEntry>[
+        MealEntry(
+          date: DateTime(2026, 6, 1),
+          breakfastRiceBowls: 1,
+          lunchRiceBowls: 1,
+          dinnerRiceBowls: 1,
+        ),
+        MealEntry(
+          date: DateTime(2026, 6, 3),
+          breakfastRiceBowls: 1,
+          lunchRiceBowls: 1,
+          dinnerRiceBowls: 1,
+        ),
+      ],
     )!;
-    final missed = progress.missedExpiredRound(now: DateTime(2026, 6, 2, 8));
+    final missed = progress.missedExpiredRound(now: DateTime(2026, 6, 3, 8));
 
-    expect(missed?.round.number, 1);
-    await service.failRun(
-      run.id,
-      roundNumber: missed!.round.number,
-      failedAt: DateTime(2026, 6, 2, 8),
+    expect(missed?.round.number, 2);
+    final earlyAwards = await service.finalizeRun(
+      progress: progress,
+      playerLevelService: levelService,
+      finalizedAt: DateTime(2026, 6, 3, 8),
+    );
+    expect(earlyAwards, isEmpty);
+    expect(service.activeRun(), isNotNull);
+
+    final finalAwards = await service.finalizeRun(
+      progress: progress,
+      playerLevelService: levelService,
+      finalizedAt: DateTime(2026, 6, 4, 8),
     );
 
     expect(service.activeRun(), isNull);
     final failed = service.loadRuns().single;
     expect(failed.isFailed, isTrue);
-    expect(failed.failedRoundNumber, 1);
+    expect(failed.failedRoundNumber, 2);
+    expect(
+      finalAwards.map((award) => award.gainedXp).where((xp) => xp > 0),
+      <int>[10, 10],
+    );
+    expect(levelService.loadState().totalXp, 20);
   });
 }
 

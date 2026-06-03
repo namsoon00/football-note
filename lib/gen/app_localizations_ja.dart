@@ -5974,7 +5974,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get parentFeedbackEmpty => 'まだフィードバックはありません。';
 
   @override
-  String get parentFeedbackReactionOnly => '親の反応が保存されました。';
+  String get parentFeedbackReactionOnly => '選手がリアクションを残しました。';
 
   @override
   String get parentFeedbackReactionLabel => '反応';

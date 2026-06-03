@@ -53,19 +53,25 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     ).loadState().isParentMode;
   }
 
+  bool get _isPlayerMode {
+    return FamilyAccessService(
+      widget.optionRepository,
+    ).loadState().isChildMode;
+  }
+
   bool get _hasChanges {
     final reactionsChanged = !_sameReactionSet(
       _selectedReactions,
       _savedReactions.toSet(),
     );
-    if (!_canEdit) {
-      return reactionsChanged;
+    if (_canEdit) {
+      return _controller.text.trim() != _savedMessage.trim();
     }
-    return _controller.text.trim() != _savedMessage.trim() || reactionsChanged;
+    return _canReact && reactionsChanged;
   }
 
   bool get _canReact {
-    return !_canEdit &&
+    return _isPlayerMode &&
         (_savedMessage.trim().isNotEmpty || _savedReactions.isNotEmpty);
   }
 
@@ -73,9 +79,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     if (_isSaving) return false;
     if (_canEdit) {
       return _controller.text.trim().isNotEmpty ||
-          _savedMessage.trim().isNotEmpty ||
-          _selectedReactions.isNotEmpty ||
-          _savedReactions.isNotEmpty;
+          _savedMessage.trim().isNotEmpty;
     }
     return _selectedReactions.isNotEmpty || _savedReactions.isNotEmpty;
   }
@@ -141,7 +145,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
       final saved = await _feedbackService.saveFeedbackForEntry(
         widget.entry,
         _canEdit ? _controller.text : _savedMessage,
-        _selectedReactions.toList(),
+        _canEdit ? _savedReactions : _selectedReactions.toList(),
       );
       final didSync = await _syncParentSharedDataIfPossible();
       if (!mounted) {
@@ -186,8 +190,8 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     final localeTag = Localizations.localeOf(context).toString();
     final previewText = _savedMessage.trim().isEmpty
         ? (_savedReactions.isEmpty
-              ? l10n.parentFeedbackEmpty
-              : l10n.parentFeedbackReactionOnly)
+            ? l10n.parentFeedbackEmpty
+            : l10n.parentFeedbackReactionOnly)
         : _savedMessage.trim();
     final updatedLabel = _savedUpdatedAt == null
         ? ''
@@ -239,7 +243,9 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                     children: [
                       Text(
                         l10n.parentFeedbackSectionTitle,
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 6),
@@ -280,14 +286,14 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                                 alignLabelWithHint: true,
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            _ParentFeedbackReactionPicker(
-                              selectedReactions: _selectedReactions,
-                              canEdit: !_isSaving,
-                              onChanged: (value) {
-                                setState(() => _selectedReactions = value);
-                              },
-                            ),
+                            if (_savedReactions.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              _ParentFeedbackReactionPicker(
+                                selectedReactions: _savedReactions.toSet(),
+                                canEdit: false,
+                                onChanged: (_) {},
+                              ),
+                            ],
                           ],
                         )
                       else
@@ -331,19 +337,14 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                     children: [
                       if (_canEdit)
                         TextButton(
-                          onPressed: _canClear
-                              ? () {
-                                  _controller.clear();
-                                  setState(() => _selectedReactions.clear());
-                                }
-                              : null,
+                          onPressed:
+                              _canClear ? () => _controller.clear() : null,
                           child: Text(l10n.parentFeedbackClear),
                         ),
                       const Spacer(),
                       FilledButton.icon(
-                        onPressed: (_isSaving || !_hasChanges)
-                            ? null
-                            : _saveFeedback,
+                        onPressed:
+                            (_isSaving || !_hasChanges) ? null : _saveFeedback,
                         icon: const Icon(Icons.save_outlined),
                         label: Text(l10n.parentFeedbackSave),
                       ),

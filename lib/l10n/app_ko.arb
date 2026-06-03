@@ -3003,7 +3003,7 @@
   "parentFeedbackSaveFailed": "피드백 저장에 실패했어요. 다시 시도해 주세요.",
   "parentFeedbackCleared": "피드백을 지웠어요.",
   "parentFeedbackEmpty": "아직 피드백이 없어요.",
-  "parentFeedbackReactionOnly": "보호자가 리액션을 남겼어요.",
+  "parentFeedbackReactionOnly": "선수가 리액션을 남겼어요.",
   "parentFeedbackReactionLabel": "리액션",
   "parentFeedbackReactionNone": "없음",
   "parentFeedbackReactionThanks": "고마워요",

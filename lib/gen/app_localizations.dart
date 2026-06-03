@@ -10667,7 +10667,7 @@ abstract class AppLocalizations {
   /// No description provided for @parentFeedbackReactionOnly.
   ///
   /// In en, this message translates to:
-  /// **'A parent reaction was saved.'**
+  /// **'The player left a reaction.'**
   String get parentFeedbackReactionOnly;
 
   /// No description provided for @parentFeedbackReactionLabel.

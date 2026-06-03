@@ -112,8 +112,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   Timer? _initialWeatherTimer;
   bool _dailyTaskAwardInFlight = false;
   String? _lastDailyTaskAwardToken;
-  bool _challengeFailureInFlight = false;
-  String? _lastChallengeFailureSignature;
+  bool _challengeFinalizeInFlight = false;
+  String? _lastChallengeFinalizeSignature;
 
   bool get _isParentMode =>
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
@@ -199,7 +199,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                   );
                   _scheduleDailyTaskCompletionAwardIfNeeded(data);
                   if (challengeProgress != null) {
-                    _scheduleChallengeFailureIfNeeded(challengeProgress);
+                    _scheduleChallengeFinalizeIfNeeded(challengeProgress);
                   }
                   final priorityFocusSignal = _resolvePriorityFocusSignal(data);
                   final reminderUnreadCount = TrainingPlanReminderService(
@@ -693,38 +693,41 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     }
   }
 
-  void _scheduleChallengeFailureIfNeeded(ChallengeProgress progress) {
+  void _scheduleChallengeFinalizeIfNeeded(ChallengeProgress progress) {
     if (_isParentMode) return;
-    final missedRound = progress.missedExpiredRound();
-    if (missedRound == null) return;
-    final signature = '${progress.run.id}:fail:${missedRound.round.number}';
-    if (_challengeFailureInFlight ||
-        _lastChallengeFailureSignature == signature) {
+    if (!progress.readyToFinalize()) return;
+    final completedRounds = progress.rounds
+        .where((round) => round.completed)
+        .map((round) => round.round.number)
+        .join(',');
+    final signature =
+        '${progress.run.id}:finalize:$completedRounds:${progress.rounds.length}';
+    if (_challengeFinalizeInFlight ||
+        _lastChallengeFinalizeSignature == signature) {
       return;
     }
-    _lastChallengeFailureSignature = signature;
+    _lastChallengeFinalizeSignature = signature;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      unawaited(_failChallenge(progress, missedRound, signature));
+      unawaited(_finalizeChallenge(progress, signature));
     });
   }
 
-  Future<void> _failChallenge(
+  Future<void> _finalizeChallenge(
     ChallengeProgress progress,
-    ChallengeRoundProgress missedRound,
     String signature,
   ) async {
-    if (_challengeFailureInFlight || !mounted) return;
-    _challengeFailureInFlight = true;
+    if (_challengeFinalizeInFlight || !mounted) return;
+    _challengeFinalizeInFlight = true;
     try {
-      await ChallengeService(widget.optionRepository).failRun(
-        progress.run.id,
-        roundNumber: missedRound.round.number,
+      await ChallengeService(widget.optionRepository).finalizeRun(
+        progress: progress,
+        playerLevelService: PlayerLevelService(widget.optionRepository),
       );
       if (mounted) setState(() {});
     } finally {
-      _challengeFailureInFlight = false;
-      _lastChallengeFailureSignature = signature;
+      _challengeFinalizeInFlight = false;
+      _lastChallengeFinalizeSignature = signature;
     }
   }
 
@@ -1701,6 +1704,10 @@ class _ChallengeHomeCard extends StatelessWidget {
     final activeRound = progress?.activeRound;
     final completed = progress?.completedRoundCount ?? 0;
     final total = progress?.totalRoundCount ?? 0;
+    final challengeTintAlpha =
+        theme.brightness == Brightness.dark ? 0.24 : 0.34;
+    final challengeGoldAlpha =
+        theme.brightness == Brightness.dark ? 0.18 : 0.28;
     final subtitle = progress == null
         ? l10n.homeChallengeEmptyBody
         : activeRound == null
@@ -1719,15 +1726,45 @@ class _ChallengeHomeCard extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
+            gradient: LinearGradient(
+              colors: [
+                Color.alphaBlend(
+                  const Color(0xFF40D697).withValues(
+                    alpha: challengeTintAlpha,
+                  ),
+                  theme.colorScheme.surface,
+                ),
+                Color.alphaBlend(
+                  const Color(0xFFFFC95A).withValues(
+                    alpha: challengeGoldAlpha,
+                  ),
+                  theme.colorScheme.surface,
+                ),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: theme.colorScheme.outline),
+            border: Border.all(
+              color: const Color(0xFF26A66D).withValues(
+                alpha: theme.brightness == Brightness.dark ? 0.44 : 0.34,
+              ),
+            ),
           ),
           child: Row(
             children: [
-              RinzyMascot(
-                size: 72,
-                progress: progress?.completionRate ?? 0,
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface.withValues(alpha: 0.48),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: RinzyMascot(
+                    size: 68,
+                    progress: progress?.completionRate ?? 0,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

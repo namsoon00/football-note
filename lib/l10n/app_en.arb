@@ -3003,7 +3003,7 @@
   "parentFeedbackSaveFailed": "Could not save feedback. Try again.",
   "parentFeedbackCleared": "Feedback cleared.",
   "parentFeedbackEmpty": "There is no feedback yet.",
-  "parentFeedbackReactionOnly": "A parent reaction was saved.",
+  "parentFeedbackReactionOnly": "The player left a reaction.",
   "parentFeedbackReactionLabel": "Reaction",
   "parentFeedbackReactionNone": "None",
   "parentFeedbackReactionThanks": "Thanks",

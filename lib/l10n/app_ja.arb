@@ -3003,7 +3003,7 @@
   "parentFeedbackSaveFailed": "フィードバックを保存できませんでした。もう一度やり直してください。",
   "parentFeedbackCleared": "フィードバックがクリアされました。",
   "parentFeedbackEmpty": "まだフィードバックはありません。",
-  "parentFeedbackReactionOnly": "親の反応が保存されました。",
+  "parentFeedbackReactionOnly": "選手がリアクションを残しました。",
   "parentFeedbackReactionLabel": "反応",
   "parentFeedbackReactionNone": "なし",
   "parentFeedbackReactionThanks": "ありがとう",

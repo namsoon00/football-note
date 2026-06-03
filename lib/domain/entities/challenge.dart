@@ -161,9 +161,29 @@ class ChallengeProgress {
   bool get allRoundsCompleted =>
       rounds.isNotEmpty && completedRoundCount >= rounds.length;
 
+  ChallengeRoundProgress? get firstIncompleteRound {
+    for (final round in rounds) {
+      if (!round.completed) return round;
+    }
+    return null;
+  }
+
+  DateTime? get finalRoundDate => rounds.isEmpty ? null : rounds.last.date;
+
   double get completionRate {
     if (rounds.isEmpty) return 0;
     return completedRoundCount / rounds.length;
+  }
+
+  bool hasEndedByDate({DateTime? now}) {
+    final finalDate = finalRoundDate;
+    if (finalDate == null) return false;
+    final today = normalizeDay(now ?? DateTime.now());
+    return finalDate.isBefore(today);
+  }
+
+  bool readyToFinalize({DateTime? now}) {
+    return allRoundsCompleted || hasEndedByDate(now: now);
   }
 
   ChallengeRoundProgress? get todayRound {
@@ -228,6 +248,9 @@ class ChallengeRoundProgress {
       mealCompleted;
 
   bool get isToday => date == normalizeDay(DateTime.now());
+
+  bool get isMissed =>
+      !completed && date.isBefore(normalizeDay(DateTime.now()));
 }
 
 DateTime normalizeDay(DateTime value) {

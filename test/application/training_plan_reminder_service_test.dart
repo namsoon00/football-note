@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/challenge_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_plan_reminder_service.dart';
+import 'package:football_note/domain/entities/challenge.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 
 void main() {
@@ -28,6 +30,9 @@ void main() {
           case 'initialize':
           case 'requestNotificationsPermission':
           case 'requestExactAlarmsPermission':
+            return true;
+          case 'zonedSchedule':
+          case 'cancel':
             return true;
           default:
             return null;
@@ -66,6 +71,63 @@ void main() {
     await Future.wait(syncs);
 
     expect(notifications, 1);
+  });
+
+  test('challenge reminders schedule one notification per remaining round',
+      () async {
+    final repository = _MemoryOptionRepository()
+      ..seed('reminder_enabled', true)
+      ..seed('reminder_time', '07:30');
+    final settings = SettingsService(repository)..load();
+    final reminderService = TrainingPlanReminderService(repository, settings);
+    final startDay = DateTime.now().add(const Duration(days: 2));
+    final template = defaultChallengeTemplates.first;
+    final run = ChallengeRun(
+      id: 'challenge-run-1',
+      templateId: template.id,
+      startedAt: DateTime(startDay.year, startDay.month, startDay.day, 9),
+    );
+    final progress = ChallengeProgress(
+      run: run,
+      template: template,
+      rounds: template.rounds
+          .map(
+            (round) => ChallengeRoundProgress(
+              round: round,
+              date: run.dayForRound(round.number),
+              trainingMinutes: 0,
+              jumpRopeMinutes: 0,
+              liftingMinutes: 0,
+              riceBowls: 0,
+            ),
+          )
+          .toList(growable: false),
+    );
+
+    await reminderService.syncChallengeReminders(progress);
+
+    final ids = repository.getValue<List>(
+      TrainingPlanReminderService.challengeReminderIdsKey,
+    );
+    expect(ids, hasLength(3));
+  });
+
+  test('challenge reminder sync clears stored ids when there is no active run',
+      () async {
+    final repository = _MemoryOptionRepository()
+      ..seed('reminder_enabled', true)
+      ..seed(TrainingPlanReminderService.challengeReminderIdsKey, <int>[1, 2]);
+    final settings = SettingsService(repository)..load();
+    final reminderService = TrainingPlanReminderService(repository, settings);
+
+    await reminderService.syncChallengeReminders(null);
+
+    expect(
+      repository.getValue<List>(
+        TrainingPlanReminderService.challengeReminderIdsKey,
+      ),
+      isEmpty,
+    );
   });
 }
 
