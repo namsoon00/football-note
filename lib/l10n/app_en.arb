@@ -1100,6 +1100,7 @@
   "voiceNotAvailable": "Voice input is not available on this device.",
   "liftingRecord": "Lifting Record",
   "liftingByPart": "Lifting (reps by part)",
+  "liftingMinutesLabel": "Lifting time (min)",
   "liftingPartInfront": "Infront",
   "liftingPartInside": "Inside",
   "liftingPartOutside": "Outside",
@@ -3158,15 +3159,18 @@
   "trainingSketchTemplateGallerySubtitle": "Preview movement lines and notes before creating a sketch.",
   "challengeTitle": "Challenge",
   "challengeStartHeroTitle": "Rinzy's Challenge Mode",
-  "challengeStartHeroBody": "Build a round-by-round routine with training minutes and rice-bowl goals.",
+  "challengeStartHeroBody": "Build a round-by-round routine with training, jump rope, lifting, and meal goals.",
   "challengeLatestComplete": "Latest challenge complete",
   "challengeSelectTitle": "Choose a challenge",
-  "challengeTemplateStarterTitle": "3-day Warm-up Challenge",
-  "challengeTemplateStarterDescription": "Start small with short training targets and steady meals.",
-  "challengeTemplateWeeklyTitle": "7-day Routine Challenge",
-  "challengeTemplateWeeklyDescription": "Lock in a full week of training rhythm and meal volume.",
-  "challengeTemplateFocusTitle": "14-day Focus Challenge",
-  "challengeTemplateFocusDescription": "Push a two-week growth block with gradually rising goals.",
+  "challengeTemplateStarterTitle": "Sprout Challenge",
+  "challengeTemplateStarterDescription": "A light 3-day mission to wake up the body.",
+  "challengeTemplateWeeklyTitle": "Grow-Up Challenge",
+  "challengeTemplateWeeklyDescription": "Grow training and meal rhythm step by step for 7 days.",
+  "challengeTemplateFocusTitle": "Star Challenge",
+  "challengeTemplateFocusDescription": "A stronger 14-day mission with higher goals.",
+  "challengeDifficultySprout": "Sprout",
+  "challengeDifficultyBoost": "Grow-Up",
+  "challengeDifficultyStar": "Star",
   "challengeDaysLabel": "{days} days",
   "@challengeDaysLabel": {
     "placeholders": {
@@ -3229,6 +3233,8 @@
     }
   },
   "challengeTrainingLabel": "Training",
+  "challengeJumpRopeLabel": "Jump rope",
+  "challengeLiftingLabel": "Lifting",
   "challengeMealLabel": "Meals",
   "challengeTrainingGoalValue": "{current}/{target} min",
   "@challengeTrainingGoalValue": {
@@ -3272,6 +3278,28 @@
     }
   },
   "challengeCompletedSnack": "Challenge complete.",
+  "challengeCelebrationTitle": "Mission complete!",
+  "challengeCelebrationBody": "Round {rounds} complete. Rinzy is cheering. You earned +{xp} XP.",
+  "@challengeCelebrationBody": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCelebrationCompleteTitle": "Challenge complete!",
+  "challengeCelebrationCompleteBody": "All rounds are done. You earned +{xp} XP.",
+  "@challengeCelebrationCompleteBody": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCelebrationAction": "Nice!",
   "challengeAbandonAction": "End",
   "challengeAbandonTitle": "End challenge",
   "challengeAbandonBody": "End the current challenge and choose another?",

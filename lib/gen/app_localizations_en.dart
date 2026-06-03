@@ -2229,6 +2229,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liftingByPart => 'Lifting (reps by part)';
 
   @override
+  String get liftingMinutesLabel => 'Lifting time (min)';
+
+  @override
   String get liftingPartInfront => 'Infront';
 
   @override
@@ -6590,7 +6593,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeStartHeroBody =>
-      'Build a round-by-round routine with training minutes and rice-bowl goals.';
+      'Build a round-by-round routine with training, jump rope, lifting, and meal goals.';
 
   @override
   String get challengeLatestComplete => 'Latest challenge complete';
@@ -6599,25 +6602,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeSelectTitle => 'Choose a challenge';
 
   @override
-  String get challengeTemplateStarterTitle => '3-day Warm-up Challenge';
+  String get challengeTemplateStarterTitle => 'Sprout Challenge';
 
   @override
   String get challengeTemplateStarterDescription =>
-      'Start small with short training targets and steady meals.';
+      'A light 3-day mission to wake up the body.';
 
   @override
-  String get challengeTemplateWeeklyTitle => '7-day Routine Challenge';
+  String get challengeTemplateWeeklyTitle => 'Grow-Up Challenge';
 
   @override
   String get challengeTemplateWeeklyDescription =>
-      'Lock in a full week of training rhythm and meal volume.';
+      'Grow training and meal rhythm step by step for 7 days.';
 
   @override
-  String get challengeTemplateFocusTitle => '14-day Focus Challenge';
+  String get challengeTemplateFocusTitle => 'Star Challenge';
 
   @override
   String get challengeTemplateFocusDescription =>
-      'Push a two-week growth block with gradually rising goals.';
+      'A stronger 14-day mission with higher goals.';
+
+  @override
+  String get challengeDifficultySprout => 'Sprout';
+
+  @override
+  String get challengeDifficultyBoost => 'Grow-Up';
+
+  @override
+  String get challengeDifficultyStar => 'Star';
 
   @override
   String challengeDaysLabel(int days) {
@@ -6664,6 +6676,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeTrainingLabel => 'Training';
 
   @override
+  String get challengeJumpRopeLabel => 'Jump rope';
+
+  @override
+  String get challengeLiftingLabel => 'Lifting';
+
+  @override
   String get challengeMealLabel => 'Meals';
 
   @override
@@ -6702,6 +6720,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeCompletedSnack => 'Challenge complete.';
+
+  @override
+  String get challengeCelebrationTitle => 'Mission complete!';
+
+  @override
+  String challengeCelebrationBody(int rounds, int xp) {
+    return 'Round $rounds complete. Rinzy is cheering. You earned +$xp XP.';
+  }
+
+  @override
+  String get challengeCelebrationCompleteTitle => 'Challenge complete!';
+
+  @override
+  String challengeCelebrationCompleteBody(int xp) {
+    return 'All rounds are done. You earned +$xp XP.';
+  }
+
+  @override
+  String get challengeCelebrationAction => 'Nice!';
 
   @override
   String get challengeAbandonAction => 'End';

@@ -4086,6 +4086,12 @@ abstract class AppLocalizations {
   /// **'Lifting (reps by part)'**
   String get liftingByPart;
 
+  /// No description provided for @liftingMinutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting time (min)'**
+  String get liftingMinutesLabel;
+
   /// No description provided for @liftingPartInfront.
   ///
   /// In en, this message translates to:
@@ -11381,7 +11387,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeStartHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Build a round-by-round routine with training minutes and rice-bowl goals.'**
+  /// **'Build a round-by-round routine with training, jump rope, lifting, and meal goals.'**
   String get challengeStartHeroBody;
 
   /// No description provided for @challengeLatestComplete.
@@ -11399,38 +11405,56 @@ abstract class AppLocalizations {
   /// No description provided for @challengeTemplateStarterTitle.
   ///
   /// In en, this message translates to:
-  /// **'3-day Warm-up Challenge'**
+  /// **'Sprout Challenge'**
   String get challengeTemplateStarterTitle;
 
   /// No description provided for @challengeTemplateStarterDescription.
   ///
   /// In en, this message translates to:
-  /// **'Start small with short training targets and steady meals.'**
+  /// **'A light 3-day mission to wake up the body.'**
   String get challengeTemplateStarterDescription;
 
   /// No description provided for @challengeTemplateWeeklyTitle.
   ///
   /// In en, this message translates to:
-  /// **'7-day Routine Challenge'**
+  /// **'Grow-Up Challenge'**
   String get challengeTemplateWeeklyTitle;
 
   /// No description provided for @challengeTemplateWeeklyDescription.
   ///
   /// In en, this message translates to:
-  /// **'Lock in a full week of training rhythm and meal volume.'**
+  /// **'Grow training and meal rhythm step by step for 7 days.'**
   String get challengeTemplateWeeklyDescription;
 
   /// No description provided for @challengeTemplateFocusTitle.
   ///
   /// In en, this message translates to:
-  /// **'14-day Focus Challenge'**
+  /// **'Star Challenge'**
   String get challengeTemplateFocusTitle;
 
   /// No description provided for @challengeTemplateFocusDescription.
   ///
   /// In en, this message translates to:
-  /// **'Push a two-week growth block with gradually rising goals.'**
+  /// **'A stronger 14-day mission with higher goals.'**
   String get challengeTemplateFocusDescription;
+
+  /// No description provided for @challengeDifficultySprout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprout'**
+  String get challengeDifficultySprout;
+
+  /// No description provided for @challengeDifficultyBoost.
+  ///
+  /// In en, this message translates to:
+  /// **'Grow-Up'**
+  String get challengeDifficultyBoost;
+
+  /// No description provided for @challengeDifficultyStar.
+  ///
+  /// In en, this message translates to:
+  /// **'Star'**
+  String get challengeDifficultyStar;
 
   /// No description provided for @challengeDaysLabel.
   ///
@@ -11492,6 +11516,18 @@ abstract class AppLocalizations {
   /// **'Training'**
   String get challengeTrainingLabel;
 
+  /// No description provided for @challengeJumpRopeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope'**
+  String get challengeJumpRopeLabel;
+
+  /// No description provided for @challengeLiftingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting'**
+  String get challengeLiftingLabel;
+
   /// No description provided for @challengeMealLabel.
   ///
   /// In en, this message translates to:
@@ -11551,6 +11587,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Challenge complete.'**
   String get challengeCompletedSnack;
+
+  /// No description provided for @challengeCelebrationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission complete!'**
+  String get challengeCelebrationTitle;
+
+  /// No description provided for @challengeCelebrationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {rounds} complete. Rinzy is cheering. You earned +{xp} XP.'**
+  String challengeCelebrationBody(int rounds, int xp);
+
+  /// No description provided for @challengeCelebrationCompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge complete!'**
+  String get challengeCelebrationCompleteTitle;
+
+  /// No description provided for @challengeCelebrationCompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All rounds are done. You earned +{xp} XP.'**
+  String challengeCelebrationCompleteBody(int xp);
+
+  /// No description provided for @challengeCelebrationAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Nice!'**
+  String get challengeCelebrationAction;
 
   /// No description provided for @challengeAbandonAction.
   ///

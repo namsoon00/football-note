@@ -112,8 +112,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   Timer? _initialWeatherTimer;
   bool _dailyTaskAwardInFlight = false;
   String? _lastDailyTaskAwardToken;
-  bool _challengeAwardInFlight = false;
-  String? _lastChallengeAwardSignature;
 
   bool get _isParentMode =>
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
@@ -198,9 +196,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     openedNewsToday: _openedNewsToday(),
                   );
                   _scheduleDailyTaskCompletionAwardIfNeeded(data);
-                  if (challengeProgress != null) {
-                    _scheduleChallengeAwardIfNeeded(challengeProgress);
-                  }
                   final priorityFocusSignal = _resolvePriorityFocusSignal(data);
                   final reminderUnreadCount = TrainingPlanReminderService(
                     widget.optionRepository,
@@ -690,73 +685,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       }
     } finally {
       _dailyTaskAwardInFlight = false;
-    }
-  }
-
-  void _scheduleChallengeAwardIfNeeded(ChallengeProgress progress) {
-    if (_isParentMode) return;
-    final completedRounds = progress.rounds
-        .where((round) => round.completed)
-        .map((round) => round.round.number)
-        .join(',');
-    if (completedRounds.isEmpty) return;
-    final signature = '${progress.run.id}:$completedRounds';
-    if (_challengeAwardInFlight || _lastChallengeAwardSignature == signature) {
-      return;
-    }
-    _lastChallengeAwardSignature = signature;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      unawaited(_awardChallengeRounds(progress, signature));
-    });
-  }
-
-  Future<void> _awardChallengeRounds(
-    ChallengeProgress progress,
-    String signature,
-  ) async {
-    if (_challengeAwardInFlight || !mounted) return;
-    _challengeAwardInFlight = true;
-    try {
-      final l10n = AppLocalizations.of(context)!;
-      final isKo = Localizations.localeOf(context).languageCode == 'ko';
-      final awards = await ChallengeService(
-        widget.optionRepository,
-      ).awardCompletedRounds(
-        progress: progress,
-        playerLevelService: PlayerLevelService(widget.optionRepository),
-      );
-      final gainedXp = awards.fold<int>(
-        0,
-        (sum, award) => sum + award.gainedXp,
-      );
-      if (!mounted) return;
-      if (gainedXp <= 0) {
-        setState(() {});
-        return;
-      }
-      final reminderService = TrainingPlanReminderService(
-        widget.optionRepository,
-        widget.settingsService,
-      );
-      await reminderService.showXpGainAlert(
-        gainedXp: gainedXp,
-        totalXp:
-            PlayerLevelService(widget.optionRepository).loadState().totalXp,
-        isKo: isKo,
-        sourceLabel: l10n.challengeTitle,
-      );
-      final leveledUp = awards.any((award) => award.didLevelUp);
-      if (leveledUp) {
-        await reminderService.showLevelUpAlert(
-          level: PlayerLevelService(widget.optionRepository).loadState().level,
-          isKo: isKo,
-        );
-      }
-      if (mounted) setState(() {});
-    } finally {
-      _challengeAwardInFlight = false;
-      _lastChallengeAwardSignature = signature;
     }
   }
 

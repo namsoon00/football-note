@@ -15,10 +15,13 @@ void main() {
     expect(templates[0].rounds, hasLength(3));
     expect(templates[1].rounds, hasLength(7));
     expect(templates[2].rounds, hasLength(14));
+    expect(
+      templates.map((template) => template.rewardXpPerRound),
+      <int>[8, 12, 18],
+    );
   });
 
-  test('progress is completed only when training and meals both meet goals',
-      () async {
+  test('progress is completed only when every mission goal is met', () async {
     final service = ChallengeService(_MemoryOptionRepository());
     final template = service.templateById('starter_3')!;
     final startDay = DateTime(2026, 6, 1, 9);
@@ -27,8 +30,18 @@ void main() {
     final progress = service.progressForRun(
       run: run,
       trainingEntries: <TrainingEntry>[
-        _trainingEntry(day: DateTime(2026, 6, 1), minutes: 20),
-        _trainingEntry(day: DateTime(2026, 6, 2), minutes: 25),
+        _trainingEntry(
+          day: DateTime(2026, 6, 1),
+          minutes: 20,
+          jumpRopeMinutes: 5,
+          liftingMinutes: 5,
+        ),
+        _trainingEntry(
+          day: DateTime(2026, 6, 2),
+          minutes: 25,
+          jumpRopeMinutes: 6,
+          liftingMinutes: 6,
+        ),
       ],
       mealEntries: <MealEntry>[
         MealEntry(
@@ -44,9 +57,13 @@ void main() {
     )!;
 
     expect(progress.rounds[0].trainingCompleted, isTrue);
+    expect(progress.rounds[0].jumpRopeCompleted, isTrue);
+    expect(progress.rounds[0].liftingCompleted, isTrue);
     expect(progress.rounds[0].mealCompleted, isTrue);
     expect(progress.rounds[0].completed, isTrue);
     expect(progress.rounds[1].trainingCompleted, isTrue);
+    expect(progress.rounds[1].jumpRopeCompleted, isTrue);
+    expect(progress.rounds[1].liftingCompleted, isTrue);
     expect(progress.rounds[1].mealCompleted, isFalse);
     expect(progress.rounds[1].completed, isFalse);
     expect(progress.completedRoundCount, 1);
@@ -64,7 +81,12 @@ void main() {
     final progress = service.progressForRun(
       run: run,
       trainingEntries: <TrainingEntry>[
-        _trainingEntry(day: DateTime(2026, 6, 1), minutes: 20),
+        _trainingEntry(
+          day: DateTime(2026, 6, 1),
+          minutes: 20,
+          jumpRopeMinutes: 5,
+          liftingMinutes: 5,
+        ),
       ],
       mealEntries: <MealEntry>[
         MealEntry(
@@ -109,9 +131,24 @@ void main() {
     final progress = service.progressForRun(
       run: run,
       trainingEntries: <TrainingEntry>[
-        _trainingEntry(day: DateTime(2026, 6, 1), minutes: 20),
-        _trainingEntry(day: DateTime(2026, 6, 2), minutes: 25),
-        _trainingEntry(day: DateTime(2026, 6, 3), minutes: 30),
+        _trainingEntry(
+          day: DateTime(2026, 6, 1),
+          minutes: 20,
+          jumpRopeMinutes: 5,
+          liftingMinutes: 5,
+        ),
+        _trainingEntry(
+          day: DateTime(2026, 6, 2),
+          minutes: 25,
+          jumpRopeMinutes: 6,
+          liftingMinutes: 6,
+        ),
+        _trainingEntry(
+          day: DateTime(2026, 6, 3),
+          minutes: 30,
+          jumpRopeMinutes: 8,
+          liftingMinutes: 8,
+        ),
       ],
       mealEntries: <MealEntry>[
         MealEntry(
@@ -146,7 +183,12 @@ void main() {
   });
 }
 
-TrainingEntry _trainingEntry({required DateTime day, required int minutes}) {
+TrainingEntry _trainingEntry({
+  required DateTime day,
+  required int minutes,
+  int jumpRopeMinutes = 0,
+  int liftingMinutes = 0,
+}) {
   return TrainingEntry(
     date: day,
     durationMinutes: minutes,
@@ -156,6 +198,9 @@ TrainingEntry _trainingEntry({required DateTime day, required int minutes}) {
     injury: false,
     notes: '',
     location: '운동장',
+    jumpRopeMinutes: jumpRopeMinutes,
+    jumpRopeEnabled: jumpRopeMinutes > 0,
+    liftingMinutes: liftingMinutes,
   );
 }
 

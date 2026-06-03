@@ -1100,6 +1100,7 @@
   "voiceNotAvailable": "이 기기에서는 음성 입력을 사용할 수 없어요.",
   "liftingRecord": "리프팅 기록",
   "liftingByPart": "리프팅(부위별 횟수)",
+  "liftingMinutesLabel": "리프팅 시간(분)",
   "liftingPartInfront": "인프론트",
   "liftingPartInside": "인사이드",
   "liftingPartOutside": "아웃사이드",
@@ -3158,15 +3159,18 @@
   "trainingSketchTemplateGallerySubtitle": "스케치를 만들기 전에 이동선과 메모 구성을 미리 확인하세요.",
   "challengeTitle": "챌린지",
   "challengeStartHeroTitle": "린지의 챌린지 모드",
-  "challengeStartHeroBody": "훈련 시간과 밥그릇 목표를 라운드마다 쌓아 루틴을 만듭니다.",
+  "challengeStartHeroBody": "훈련, 줄넘기, 리프팅, 식사 목표를 라운드마다 쌓아 루틴을 만듭니다.",
   "challengeLatestComplete": "최근 챌린지 완료",
   "challengeSelectTitle": "챌린지 선택",
-  "challengeTemplateStarterTitle": "3일 워밍업 챌린지",
-  "challengeTemplateStarterDescription": "짧은 훈련 목표와 안정적인 식사량으로 가볍게 시작합니다.",
-  "challengeTemplateWeeklyTitle": "7일 루틴 챌린지",
-  "challengeTemplateWeeklyDescription": "한 주 동안 훈련 리듬과 식사량을 함께 고정합니다.",
-  "challengeTemplateFocusTitle": "14일 집중 성장 챌린지",
-  "challengeTemplateFocusDescription": "2주 동안 조금씩 높아지는 목표로 성장 블록을 밀어붙입니다.",
+  "challengeTemplateStarterTitle": "새싹 챌린지",
+  "challengeTemplateStarterDescription": "3일 동안 가볍게 몸을 깨우는 쉬운 미션입니다.",
+  "challengeTemplateWeeklyTitle": "쑥쑥 챌린지",
+  "challengeTemplateWeeklyDescription": "7일 동안 훈련과 식사 리듬을 차근차근 키웁니다.",
+  "challengeTemplateFocusTitle": "스타 챌린지",
+  "challengeTemplateFocusDescription": "14일 동안 더 높은 목표에 도전하는 강한 미션입니다.",
+  "challengeDifficultySprout": "새싹",
+  "challengeDifficultyBoost": "쑥쑥",
+  "challengeDifficultyStar": "스타",
   "challengeDaysLabel": "{days}일",
   "@challengeDaysLabel": {
     "placeholders": {
@@ -3229,6 +3233,8 @@
     }
   },
   "challengeTrainingLabel": "훈련",
+  "challengeJumpRopeLabel": "줄넘기",
+  "challengeLiftingLabel": "리프팅",
   "challengeMealLabel": "식사",
   "challengeTrainingGoalValue": "{current}/{target}분",
   "@challengeTrainingGoalValue": {
@@ -3272,6 +3278,28 @@
     }
   },
   "challengeCompletedSnack": "챌린지를 완료했어요.",
+  "challengeCelebrationTitle": "미션 완료!",
+  "challengeCelebrationBody": "{rounds}라운드 완료! 린지가 박수를 보내요. +{xp} XP를 받았어요.",
+  "@challengeCelebrationBody": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCelebrationCompleteTitle": "챌린지 완주!",
+  "challengeCelebrationCompleteBody": "모든 라운드를 끝냈어요. +{xp} XP를 받았어요.",
+  "@challengeCelebrationCompleteBody": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCelebrationAction": "좋아!",
   "challengeAbandonAction": "종료",
   "challengeAbandonTitle": "챌린지 종료",
   "challengeAbandonBody": "현재 챌린지를 종료하고 다른 챌린지를 선택할까요?",

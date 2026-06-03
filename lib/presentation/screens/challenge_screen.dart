@@ -13,6 +13,7 @@ import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_page_route.dart';
 import '../widgets/rinzy_mascot.dart';
 
 class ChallengeScreen extends StatefulWidget {
@@ -125,7 +126,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   ) async {
     if (_awardInFlight) return;
     _awardInFlight = true;
-    final l10n = AppLocalizations.of(context)!;
     try {
       final awards = await _challengeService.awardCompletedRounds(
         progress: progress,
@@ -137,15 +137,22 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       );
       if (!mounted) return;
       if (gainedXp > 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.challengeAwardSnack(gainedXp))),
+        final awardedRoundCount = awards
+            .where((award) => award.gainedXp > 0)
+            .length
+            .clamp(1, progress.rounds.length)
+            .toInt();
+        await Navigator.of(context).push(
+          AppPageRoute<void>(
+            builder: (_) => _ChallengeCelebrationScreen(
+              gainedXp: gainedXp,
+              awardedRoundCount: awardedRoundCount,
+              challengeCompleted: progress.allRoundsCompleted,
+            ),
+          ),
         );
       }
-      if (progress.allRoundsCompleted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.challengeCompletedSnack)),
-        );
-      }
+      if (!mounted) return;
       setState(() {});
     } finally {
       _awardInFlight = false;
@@ -323,6 +330,9 @@ class _ChallengeTemplateCard extends StatelessWidget {
                 children: [
                   _SmallStatusPill(
                     label: l10n.challengeDaysLabel(template.dayCount),
+                  ),
+                  _SmallStatusPill(
+                    label: _difficultyLabel(l10n, template.difficulty),
                   ),
                   _SmallStatusPill(
                     label: l10n.challengeRewardXp(
@@ -633,11 +643,34 @@ class _RoundFocusCard extends StatelessWidget {
           _MissionProgressRow(
             icon: Icons.timer_outlined,
             label: l10n.challengeTrainingLabel,
-            value: l10n.challengeTrainingGoalValue(
+            value: _minutesGoalValue(
+              l10n,
               round.trainingMinutes,
               round.round.targetTrainingMinutes,
             ),
             completed: round.trainingCompleted,
+          ),
+          const SizedBox(height: 10),
+          _MissionProgressRow(
+            icon: Icons.directions_run,
+            label: l10n.challengeJumpRopeLabel,
+            value: _minutesGoalValue(
+              l10n,
+              round.jumpRopeMinutes,
+              round.round.targetJumpRopeMinutes,
+            ),
+            completed: round.jumpRopeCompleted,
+          ),
+          const SizedBox(height: 10),
+          _MissionProgressRow(
+            icon: Icons.sports_soccer,
+            label: l10n.challengeLiftingLabel,
+            value: _minutesGoalValue(
+              l10n,
+              round.liftingMinutes,
+              round.round.targetLiftingMinutes,
+            ),
+            completed: round.liftingCompleted,
           ),
           const SizedBox(height: 10),
           _MissionProgressRow(
@@ -732,16 +765,34 @@ class _RoundProgressTile extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     _SmallStatusPill(
-                      label: l10n.challengeTrainingGoalValue(
+                      label:
+                          '${l10n.challengeTrainingLabel} ${_minutesGoalValue(
+                        l10n,
                         round.trainingMinutes,
                         round.round.targetTrainingMinutes,
-                      ),
+                      )}',
                     ),
                     _SmallStatusPill(
-                      label: l10n.challengeMealGoalValue(
+                      label:
+                          '${l10n.challengeJumpRopeLabel} ${_minutesGoalValue(
+                        l10n,
+                        round.jumpRopeMinutes,
+                        round.round.targetJumpRopeMinutes,
+                      )}',
+                    ),
+                    _SmallStatusPill(
+                      label: '${l10n.challengeLiftingLabel} ${_minutesGoalValue(
+                        l10n,
+                        round.liftingMinutes,
+                        round.round.targetLiftingMinutes,
+                      )}',
+                    ),
+                    _SmallStatusPill(
+                      label:
+                          '${l10n.challengeMealLabel} ${l10n.challengeMealGoalValue(
                         _formatBowls(round.riceBowls),
                         _formatBowls(round.round.targetRiceBowls),
-                      ),
+                      )}',
                     ),
                     _SmallStatusPill(
                       label: l10n.challengeRewardXp(round.round.rewardXp),
@@ -825,6 +876,87 @@ class _SmallStatusPill extends StatelessWidget {
   }
 }
 
+class _ChallengeCelebrationScreen extends StatelessWidget {
+  final int gainedXp;
+  final int awardedRoundCount;
+  final bool challengeCompleted;
+
+  const _ChallengeCelebrationScreen({
+    required this.gainedXp,
+    required this.awardedRoundCount,
+    required this.challengeCompleted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final title = challengeCompleted
+        ? l10n.challengeCelebrationCompleteTitle
+        : l10n.challengeCelebrationTitle;
+    final body = challengeCompleted
+        ? l10n.challengeCelebrationCompleteBody(gainedXp)
+        : l10n.challengeCelebrationBody(awardedRoundCount, gainedXp);
+    return Scaffold(
+      body: AppBackground(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Column(
+              children: [
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: IconButton(
+                    tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ),
+                const Spacer(),
+                RinzyMascot(
+                  size: MediaQuery.sizeOf(context)
+                      .width
+                      .clamp(180, 260)
+                      .toDouble(),
+                  progress: 1,
+                ),
+                const SizedBox(height: 22),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  body,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _SmallStatusPill(label: l10n.challengeRewardXp(gainedXp)),
+                const Spacer(),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.celebration_outlined),
+                    label: Text(l10n.challengeCelebrationAction),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 String _templateTitle(AppLocalizations l10n, ChallengeTemplate template) {
   return switch (template.id) {
     'starter_3' => l10n.challengeTemplateStarterTitle,
@@ -841,6 +973,25 @@ String _templateDescription(AppLocalizations l10n, ChallengeTemplate template) {
     'focus_14' => l10n.challengeTemplateFocusDescription,
     _ => l10n.challengeStartHeroBody,
   };
+}
+
+String _difficultyLabel(
+  AppLocalizations l10n,
+  ChallengeDifficulty difficulty,
+) {
+  return switch (difficulty) {
+    ChallengeDifficulty.sprout => l10n.challengeDifficultySprout,
+    ChallengeDifficulty.boost => l10n.challengeDifficultyBoost,
+    ChallengeDifficulty.star => l10n.challengeDifficultyStar,
+  };
+}
+
+String _minutesGoalValue(
+  AppLocalizations l10n,
+  int current,
+  int target,
+) {
+  return l10n.challengeTrainingGoalValue(current, target);
 }
 
 String _roundSubtitle(BuildContext context, ChallengeRoundProgress round) {

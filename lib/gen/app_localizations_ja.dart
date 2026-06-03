@@ -2168,6 +2168,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get liftingByPart => 'リフティング（部位ごとの回数）';
 
   @override
+  String get liftingMinutesLabel => 'リフティング時間（分）';
+
+  @override
   String get liftingPartInfront => '前に';
 
   @override
@@ -6362,7 +6365,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeStartHeroTitle => 'リンジーのチャレンジモード';
 
   @override
-  String get challengeStartHeroBody => 'トレーニング時間とご飯の目標をラウンドごとに積み上げます。';
+  String get challengeStartHeroBody => 'トレーニング、縄跳び、リフティング、食事の目標をラウンドごとに積み上げます。';
 
   @override
   String get challengeLatestComplete => '最新チャレンジ完了';
@@ -6371,22 +6374,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeSelectTitle => 'チャレンジを選択';
 
   @override
-  String get challengeTemplateStarterTitle => '3日ウォームアップチャレンジ';
+  String get challengeTemplateStarterTitle => 'めばえチャレンジ';
 
   @override
-  String get challengeTemplateStarterDescription => '短いトレーニング目標と安定した食事量で始めます。';
+  String get challengeTemplateStarterDescription => '3日間、軽く体を起こすやさしいミッションです。';
 
   @override
-  String get challengeTemplateWeeklyTitle => '7日ルーチンチャレンジ';
+  String get challengeTemplateWeeklyTitle => 'ぐんぐんチャレンジ';
 
   @override
-  String get challengeTemplateWeeklyDescription => '1週間のトレーニングリズムと食事量を固定します。';
+  String get challengeTemplateWeeklyDescription => '7日間、練習と食事のリズムを少しずつ育てます。';
 
   @override
-  String get challengeTemplateFocusTitle => '14日集中成長チャレンジ';
+  String get challengeTemplateFocusTitle => 'スターチャレンジ';
 
   @override
-  String get challengeTemplateFocusDescription => '2週間、少しずつ上がる目標で成長ブロックを進めます。';
+  String get challengeTemplateFocusDescription => '14日間、より高い目標に挑む強めのミッションです。';
+
+  @override
+  String get challengeDifficultySprout => 'めばえ';
+
+  @override
+  String get challengeDifficultyBoost => 'ぐんぐん';
+
+  @override
+  String get challengeDifficultyStar => 'スター';
 
   @override
   String challengeDaysLabel(int days) {
@@ -6433,6 +6445,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeTrainingLabel => 'トレーニング';
 
   @override
+  String get challengeJumpRopeLabel => '縄跳び';
+
+  @override
+  String get challengeLiftingLabel => 'リフティング';
+
+  @override
   String get challengeMealLabel => '食事';
 
   @override
@@ -6471,6 +6489,25 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeCompletedSnack => 'チャレンジ完了。';
+
+  @override
+  String get challengeCelebrationTitle => 'ミッション完了!';
+
+  @override
+  String challengeCelebrationBody(int rounds, int xp) {
+    return 'ラウンド $rounds 完了! リンジーが応援しています。+$xp XP を受け取りました。';
+  }
+
+  @override
+  String get challengeCelebrationCompleteTitle => 'チャレンジ完走!';
+
+  @override
+  String challengeCelebrationCompleteBody(int xp) {
+    return 'すべてのラウンドが終わりました。+$xp XP を受け取りました。';
+  }
+
+  @override
+  String get challengeCelebrationAction => 'いいね!';
 
   @override
   String get challengeAbandonAction => '終了';

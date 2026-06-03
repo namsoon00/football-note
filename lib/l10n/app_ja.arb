@@ -1100,6 +1100,7 @@
   "voiceNotAvailable": "このデバイスでは音声入力は利用できません。",
   "liftingRecord": "リフティング記録",
   "liftingByPart": "リフティング（部位ごとの回数）",
+  "liftingMinutesLabel": "リフティング時間（分）",
   "liftingPartInfront": "前に",
   "liftingPartInside": "内部",
   "liftingPartOutside": "外",
@@ -3158,15 +3159,18 @@
   "trainingSketchTemplateGallerySubtitle": "スケッチを作成する前に、動線と注記をプレビューします。",
   "challengeTitle": "チャレンジ",
   "challengeStartHeroTitle": "リンジーのチャレンジモード",
-  "challengeStartHeroBody": "トレーニング時間とご飯の目標をラウンドごとに積み上げます。",
+  "challengeStartHeroBody": "トレーニング、縄跳び、リフティング、食事の目標をラウンドごとに積み上げます。",
   "challengeLatestComplete": "最新チャレンジ完了",
   "challengeSelectTitle": "チャレンジを選択",
-  "challengeTemplateStarterTitle": "3日ウォームアップチャレンジ",
-  "challengeTemplateStarterDescription": "短いトレーニング目標と安定した食事量で始めます。",
-  "challengeTemplateWeeklyTitle": "7日ルーチンチャレンジ",
-  "challengeTemplateWeeklyDescription": "1週間のトレーニングリズムと食事量を固定します。",
-  "challengeTemplateFocusTitle": "14日集中成長チャレンジ",
-  "challengeTemplateFocusDescription": "2週間、少しずつ上がる目標で成長ブロックを進めます。",
+  "challengeTemplateStarterTitle": "めばえチャレンジ",
+  "challengeTemplateStarterDescription": "3日間、軽く体を起こすやさしいミッションです。",
+  "challengeTemplateWeeklyTitle": "ぐんぐんチャレンジ",
+  "challengeTemplateWeeklyDescription": "7日間、練習と食事のリズムを少しずつ育てます。",
+  "challengeTemplateFocusTitle": "スターチャレンジ",
+  "challengeTemplateFocusDescription": "14日間、より高い目標に挑む強めのミッションです。",
+  "challengeDifficultySprout": "めばえ",
+  "challengeDifficultyBoost": "ぐんぐん",
+  "challengeDifficultyStar": "スター",
   "challengeDaysLabel": "{days}日",
   "@challengeDaysLabel": {
     "placeholders": {
@@ -3229,6 +3233,8 @@
     }
   },
   "challengeTrainingLabel": "トレーニング",
+  "challengeJumpRopeLabel": "縄跳び",
+  "challengeLiftingLabel": "リフティング",
   "challengeMealLabel": "食事",
   "challengeTrainingGoalValue": "{current}/{target}分",
   "@challengeTrainingGoalValue": {
@@ -3272,6 +3278,28 @@
     }
   },
   "challengeCompletedSnack": "チャレンジ完了。",
+  "challengeCelebrationTitle": "ミッション完了!",
+  "challengeCelebrationBody": "ラウンド {rounds} 完了! リンジーが応援しています。+{xp} XP を受け取りました。",
+  "@challengeCelebrationBody": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCelebrationCompleteTitle": "チャレンジ完走!",
+  "challengeCelebrationCompleteBody": "すべてのラウンドが終わりました。+{xp} XP を受け取りました。",
+  "@challengeCelebrationCompleteBody": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCelebrationAction": "いいね!",
   "challengeAbandonAction": "終了",
   "challengeAbandonTitle": "チャレンジを終了",
   "challengeAbandonBody": "現在のチャレンジを終了して別のチャレンジを選択しますか?",

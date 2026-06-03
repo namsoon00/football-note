@@ -2157,6 +2157,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get liftingByPart => '리프팅(부위별 횟수)';
 
   @override
+  String get liftingMinutesLabel => '리프팅 시간(분)';
+
+  @override
   String get liftingPartInfront => '인프론트';
 
   @override
@@ -6356,7 +6359,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeStartHeroTitle => '린지의 챌린지 모드';
 
   @override
-  String get challengeStartHeroBody => '훈련 시간과 밥그릇 목표를 라운드마다 쌓아 루틴을 만듭니다.';
+  String get challengeStartHeroBody =>
+      '훈련, 줄넘기, 리프팅, 식사 목표를 라운드마다 쌓아 루틴을 만듭니다.';
 
   @override
   String get challengeLatestComplete => '최근 챌린지 완료';
@@ -6365,25 +6369,34 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeSelectTitle => '챌린지 선택';
 
   @override
-  String get challengeTemplateStarterTitle => '3일 워밍업 챌린지';
+  String get challengeTemplateStarterTitle => '새싹 챌린지';
 
   @override
   String get challengeTemplateStarterDescription =>
-      '짧은 훈련 목표와 안정적인 식사량으로 가볍게 시작합니다.';
+      '3일 동안 가볍게 몸을 깨우는 쉬운 미션입니다.';
 
   @override
-  String get challengeTemplateWeeklyTitle => '7일 루틴 챌린지';
+  String get challengeTemplateWeeklyTitle => '쑥쑥 챌린지';
 
   @override
   String get challengeTemplateWeeklyDescription =>
-      '한 주 동안 훈련 리듬과 식사량을 함께 고정합니다.';
+      '7일 동안 훈련과 식사 리듬을 차근차근 키웁니다.';
 
   @override
-  String get challengeTemplateFocusTitle => '14일 집중 성장 챌린지';
+  String get challengeTemplateFocusTitle => '스타 챌린지';
 
   @override
   String get challengeTemplateFocusDescription =>
-      '2주 동안 조금씩 높아지는 목표로 성장 블록을 밀어붙입니다.';
+      '14일 동안 더 높은 목표에 도전하는 강한 미션입니다.';
+
+  @override
+  String get challengeDifficultySprout => '새싹';
+
+  @override
+  String get challengeDifficultyBoost => '쑥쑥';
+
+  @override
+  String get challengeDifficultyStar => '스타';
 
   @override
   String challengeDaysLabel(int days) {
@@ -6430,6 +6443,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeTrainingLabel => '훈련';
 
   @override
+  String get challengeJumpRopeLabel => '줄넘기';
+
+  @override
+  String get challengeLiftingLabel => '리프팅';
+
+  @override
   String get challengeMealLabel => '식사';
 
   @override
@@ -6468,6 +6487,25 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeCompletedSnack => '챌린지를 완료했어요.';
+
+  @override
+  String get challengeCelebrationTitle => '미션 완료!';
+
+  @override
+  String challengeCelebrationBody(int rounds, int xp) {
+    return '$rounds라운드 완료! 린지가 박수를 보내요. +$xp XP를 받았어요.';
+  }
+
+  @override
+  String get challengeCelebrationCompleteTitle => '챌린지 완주!';
+
+  @override
+  String challengeCelebrationCompleteBody(int xp) {
+    return '모든 라운드를 끝냈어요. +$xp XP를 받았어요.';
+  }
+
+  @override
+  String get challengeCelebrationAction => '좋아!';
 
   @override
   String get challengeAbandonAction => '종료';

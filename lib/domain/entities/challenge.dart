@@ -1,14 +1,18 @@
 import 'meal_entry.dart';
 import 'training_entry.dart';
 
+enum ChallengeDifficulty { sprout, boost, star }
+
 class ChallengeTemplate {
   final String id;
+  final ChallengeDifficulty difficulty;
   final int dayCount;
   final int rewardXpPerRound;
   final List<ChallengeRound> rounds;
 
   const ChallengeTemplate({
     required this.id,
+    required this.difficulty,
     required this.dayCount,
     required this.rewardXpPerRound,
     required this.rounds,
@@ -18,12 +22,16 @@ class ChallengeTemplate {
 class ChallengeRound {
   final int number;
   final int targetTrainingMinutes;
+  final int targetJumpRopeMinutes;
+  final int targetLiftingMinutes;
   final double targetRiceBowls;
   final int rewardXp;
 
   const ChallengeRound({
     required this.number,
     required this.targetTrainingMinutes,
+    required this.targetJumpRopeMinutes,
+    required this.targetLiftingMinutes,
     required this.targetRiceBowls,
     required this.rewardXp,
   });
@@ -143,20 +151,32 @@ class ChallengeRoundProgress {
   final ChallengeRound round;
   final DateTime date;
   final int trainingMinutes;
+  final int jumpRopeMinutes;
+  final int liftingMinutes;
   final double riceBowls;
 
   const ChallengeRoundProgress({
     required this.round,
     required this.date,
     required this.trainingMinutes,
+    required this.jumpRopeMinutes,
+    required this.liftingMinutes,
     required this.riceBowls,
   });
 
   bool get trainingCompleted => trainingMinutes >= round.targetTrainingMinutes;
 
+  bool get jumpRopeCompleted => jumpRopeMinutes >= round.targetJumpRopeMinutes;
+
+  bool get liftingCompleted => liftingMinutes >= round.targetLiftingMinutes;
+
   bool get mealCompleted => riceBowls >= round.targetRiceBowls;
 
-  bool get completed => trainingCompleted && mealCompleted;
+  bool get completed =>
+      trainingCompleted &&
+      jumpRopeCompleted &&
+      liftingCompleted &&
+      mealCompleted;
 
   bool get isToday => date == normalizeDay(DateTime.now());
 }
@@ -171,6 +191,22 @@ int trainingMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
       .where((entry) =>
           !entry.isMatch && normalizeDay(entry.date) == normalizedDay)
       .fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
+}
+
+int jumpRopeMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
+  final normalizedDay = normalizeDay(day);
+  return entries
+      .where((entry) =>
+          !entry.isMatch && normalizeDay(entry.date) == normalizedDay)
+      .fold<int>(0, (sum, entry) => sum + entry.jumpRopeMinutes);
+}
+
+int liftingMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
+  final normalizedDay = normalizeDay(day);
+  return entries
+      .where((entry) =>
+          !entry.isMatch && normalizeDay(entry.date) == normalizedDay)
+      .fold<int>(0, (sum, entry) => sum + entry.liftingMinutes);
 }
 
 double riceBowlsForDay(Iterable<MealEntry> entries, DateTime day) {

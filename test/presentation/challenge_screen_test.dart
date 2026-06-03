@@ -45,7 +45,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('챌린지 선택'), findsOneWidget);
-    expect(find.text('3일 워밍업 챌린지'), findsOneWidget);
+    expect(find.text('새싹 챌린지'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester
@@ -55,6 +55,8 @@ void main() {
 
     expect(find.text('라운드'), findsOneWidget);
     expect(find.text('1라운드'), findsWidgets);
+    expect(find.text('줄넘기'), findsOneWidget);
+    expect(find.text('리프팅'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
