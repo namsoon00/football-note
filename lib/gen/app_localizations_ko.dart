@@ -6369,7 +6369,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeSelectTitle => '챌린지 선택';
 
   @override
-  String get challengeDurationSelectTitle => '기간 선택';
+  String get challengeDurationSelectTitle => '1. 기간 선택';
 
   @override
   String get challengeTemplateStarterTitle => '3일 챌린지';
@@ -6399,7 +6399,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeDifficultyStar => '스타';
 
   @override
-  String get challengeTrainingLevelTitle => '훈련 레벨';
+  String get challengeTrainingLevelTitle => '2. 단계 선택';
 
   @override
   String get challengeTrainingLevelRookieTitle => '루키 레벨';
@@ -6426,8 +6426,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeRecommendedLevelBadge => '추천';
 
   @override
-  String challengeTargetMultiplierLabel(int percent) {
-    return '목표 $percent%';
+  String challengeLevelTrainingTargetLabel(int minutes) {
+    return '총 훈련 $minutes분';
+  }
+
+  @override
+  String challengeLevelJumpRopeTargetLabel(int minutes) {
+    return '줄넘기 $minutes분';
+  }
+
+  @override
+  String challengeLevelLiftingTargetLabel(int minutes) {
+    return '리프팅 $minutes분';
   }
 
   @override
@@ -6457,6 +6467,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeRewardPitchTitle => '완주하면 큰 보너스가 기다려요';
+
+  @override
+  String get challengeStartReadyTitle => '3. 시작 준비';
 
   @override
   String get challengeStartAction => '챌린지 시작';

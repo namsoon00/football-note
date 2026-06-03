@@ -44,17 +44,29 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('기간 선택'), findsOneWidget);
+    expect(find.text('1. 기간 선택'), findsOneWidget);
     expect(find.text('3일 챌린지'), findsOneWidget);
+    expect(find.text('2. 단계 선택'), findsNothing);
+    expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsNothing);
     expect(tester.takeException(), isNull);
 
     await tester
         .tap(find.byKey(const ValueKey('challenge-template-starter_3')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('2. 단계 선택'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsNothing);
     expect(find.text('라운드'), findsNothing);
 
-    await tester.drag(find.byType(ListView), const Offset(0, -1200));
+    final rookieLevel = find.byKey(const ValueKey('challenge-level-rookie'));
+    await tester.ensureVisible(rookieLevel);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(rookieLevel);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('3. 시작 준비'), findsOneWidget);
+
+    await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 시작'));
     await tester.pump(const Duration(milliseconds: 300));
     final startButton = find.widgetWithText(FilledButton, '챌린지 시작');
     await tester.tap(startButton);

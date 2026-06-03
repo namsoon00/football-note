@@ -3162,7 +3162,7 @@
   "challengeStartHeroBody": "Choose a duration and training level, then press start to begin. Missing even one day ends the challenge.",
   "challengeLatestComplete": "Latest challenge complete",
   "challengeSelectTitle": "Choose a challenge",
-  "challengeDurationSelectTitle": "Choose duration",
+  "challengeDurationSelectTitle": "1. Choose duration",
   "challengeTemplateStarterTitle": "3-day Challenge",
   "challengeTemplateStarterDescription": "Learn the challenge rhythm with a short focused run.",
   "challengeTemplateWeeklyTitle": "7-day Challenge",
@@ -3172,7 +3172,7 @@
   "challengeDifficultySprout": "Sprout",
   "challengeDifficultyBoost": "Grow-Up",
   "challengeDifficultyStar": "Star",
-  "challengeTrainingLevelTitle": "Training level",
+  "challengeTrainingLevelTitle": "2. Choose level",
   "challengeTrainingLevelRookieTitle": "Rookie level",
   "challengeTrainingLevelRookieDescription": "A lighter target for younger players or players just starting soccer.",
   "challengeTrainingLevelGrowthTitle": "Grow-Up level",
@@ -3180,10 +3180,26 @@
   "challengeTrainingLevelAceTitle": "Ace level",
   "challengeTrainingLevelAceDescription": "A challenging target for older players with more soccer experience.",
   "challengeRecommendedLevelBadge": "Recommended",
-  "challengeTargetMultiplierLabel": "Targets {percent}%",
-  "@challengeTargetMultiplierLabel": {
+  "challengeLevelTrainingTargetLabel": "Total training {minutes} min",
+  "@challengeLevelTrainingTargetLabel": {
     "placeholders": {
-      "percent": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeLevelJumpRopeTargetLabel": "Jump rope {minutes} min",
+  "@challengeLevelJumpRopeTargetLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeLevelLiftingTargetLabel": "Lifting {minutes} min",
+  "@challengeLevelLiftingTargetLabel": {
+    "placeholders": {
+      "minutes": {
         "type": "int"
       }
     }
@@ -3229,6 +3245,7 @@
     }
   },
   "challengeRewardPitchTitle": "A big finish bonus is waiting",
+  "challengeStartReadyTitle": "3. Ready to start",
   "challengeStartAction": "Start challenge",
   "challengeRoundCount": "{completed}/{total} rounds complete",
   "@challengeRoundCount": {

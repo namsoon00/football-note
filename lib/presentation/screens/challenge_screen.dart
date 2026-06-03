@@ -291,24 +291,20 @@ class _ChallengeStartSection extends StatefulWidget {
 }
 
 class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
-  late ChallengeTemplate _selectedTemplate;
-  late ChallengeTrainingLevel _selectedLevel;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedTemplate = widget.templates.first;
-    _selectedLevel = widget.recommendedLevel;
-  }
+  ChallengeTemplate? _selectedTemplate;
+  ChallengeTrainingLevel? _selectedLevel;
 
   @override
   void didUpdateWidget(_ChallengeStartSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!widget.templates.contains(_selectedTemplate)) {
-      _selectedTemplate = widget.templates.first;
-    }
     if (oldWidget.recommendedLevel != widget.recommendedLevel) {
-      _selectedLevel = widget.recommendedLevel;
+      _selectedLevel = null;
+    }
+    final selectedTemplate = _selectedTemplate;
+    if (selectedTemplate != null &&
+        !widget.templates.contains(selectedTemplate)) {
+      _selectedTemplate = null;
+      _selectedLevel = null;
     }
   }
 
@@ -340,47 +336,62 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
             template: template,
             title: widget.templateTitle(template),
             description: widget.templateDescription(template),
-            selected: template.id == _selectedTemplate.id,
+            selected: template.id == _selectedTemplate?.id,
             level: _selectedLevel,
-            onSelect: () => setState(() => _selectedTemplate = template),
+            onSelect: () => setState(() {
+              _selectedTemplate = template;
+              _selectedLevel = null;
+            }),
           ),
           const SizedBox(height: 10),
         ],
-        const SizedBox(height: 10),
-        Text(
-          l10n.challengeTrainingLevelTitle,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        const SizedBox(height: 10),
-        for (final config in challengeTrainingLevelConfigs) ...[
-          _ChallengeLevelCard(
-            level: config.level,
-            selected: config.level == _selectedLevel,
-            recommended: config.level == widget.recommendedLevel,
-            onSelect: () => setState(() => _selectedLevel = config.level),
+        if (_selectedTemplate != null) ...[
+          const SizedBox(height: 10),
+          Text(
+            l10n.challengeTrainingLevelTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
           ),
           const SizedBox(height: 10),
+          for (final config in challengeTrainingLevelConfigs) ...[
+            _ChallengeLevelCard(
+              level: config.level,
+              selected: config.level == _selectedLevel,
+              recommended: config.level == widget.recommendedLevel,
+              onSelect: () => setState(() => _selectedLevel = config.level),
+            ),
+            const SizedBox(height: 10),
+          ],
         ],
-        const SizedBox(height: 6),
-        _RewardPitchCard(
-          roundXp: trainingLevelConfig(_selectedLevel).rewardXpPerRound,
-          completionBonusXp: challengeCompletionBonusXpFor(
-            _selectedTemplate,
-            _selectedLevel,
+        if (_selectedTemplate != null && _selectedLevel != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            l10n.challengeStartReadyTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
           ),
-          totalXp: challengeTotalPotentialXpFor(
-            _selectedTemplate,
-            _selectedLevel,
+          const SizedBox(height: 10),
+          _RewardPitchCard(
+            roundXp: trainingLevelConfig(_selectedLevel!).rewardXpPerRound,
+            completionBonusXp: challengeCompletionBonusXpFor(
+              _selectedTemplate!,
+              _selectedLevel!,
+            ),
+            totalXp: challengeTotalPotentialXpFor(
+              _selectedTemplate!,
+              _selectedLevel!,
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        FilledButton.icon(
-          onPressed: () => widget.onStart(_selectedTemplate, _selectedLevel),
-          icon: const Icon(Icons.play_arrow),
-          label: Text(l10n.challengeStartAction),
-        ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: () =>
+                widget.onStart(_selectedTemplate!, _selectedLevel!),
+            icon: const Icon(Icons.play_arrow),
+            label: Text(l10n.challengeStartAction),
+          ),
+        ],
         const SizedBox(height: 22),
         _ChallengeHistorySection(
           runs: widget.historyRuns,
@@ -395,7 +406,7 @@ class _ChallengeTemplateCard extends StatelessWidget {
   final String title;
   final String description;
   final bool selected;
-  final ChallengeTrainingLevel level;
+  final ChallengeTrainingLevel? level;
   final VoidCallback onSelect;
 
   const _ChallengeTemplateCard({
@@ -484,16 +495,18 @@ class _ChallengeTemplateCard extends StatelessWidget {
                   _SmallStatusPill(
                     label: l10n.challengeDaysLabel(template.dayCount),
                   ),
-                  _SmallStatusPill(
-                    label: l10n.challengeRoundXpLabel(
-                      trainingLevelConfig(level).rewardXpPerRound,
+                  if (level != null) ...[
+                    _SmallStatusPill(
+                      label: l10n.challengeRoundXpLabel(
+                        trainingLevelConfig(level!).rewardXpPerRound,
+                      ),
                     ),
-                  ),
-                  _SmallStatusPill(
-                    label: l10n.challengeCompletionBonusLabel(
-                      challengeCompletionBonusXpFor(template, level),
+                    _SmallStatusPill(
+                      label: l10n.challengeCompletionBonusLabel(
+                        challengeCompletionBonusXpFor(template, level!),
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ],
@@ -525,6 +538,7 @@ class _ChallengeLevelCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
+        key: ValueKey('challenge-level-${level.name}'),
         onTap: onSelect,
         borderRadius: BorderRadius.circular(16),
         child: Ink(
@@ -586,8 +600,18 @@ class _ChallengeLevelCard extends StatelessWidget {
                           ),
                         ),
                         _SmallStatusPill(
-                          label: l10n.challengeTargetMultiplierLabel(
-                            (config.targetMultiplier * 100).round(),
+                          label: l10n.challengeLevelTrainingTargetLabel(
+                            config.targetTrainingMinutes,
+                          ),
+                        ),
+                        _SmallStatusPill(
+                          label: l10n.challengeLevelJumpRopeTargetLabel(
+                            config.targetJumpRopeMinutes,
+                          ),
+                        ),
+                        _SmallStatusPill(
+                          label: l10n.challengeLevelLiftingTargetLabel(
+                            config.targetLiftingMinutes,
                           ),
                         ),
                       ],

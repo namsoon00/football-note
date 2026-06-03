@@ -3162,7 +3162,7 @@
   "challengeStartHeroBody": "기간과 훈련 레벨을 고른 뒤 시작 버튼을 누르면 도전이 시작됩니다. 하루라도 놓치면 실패예요.",
   "challengeLatestComplete": "최근 챌린지 완료",
   "challengeSelectTitle": "챌린지 선택",
-  "challengeDurationSelectTitle": "기간 선택",
+  "challengeDurationSelectTitle": "1. 기간 선택",
   "challengeTemplateStarterTitle": "3일 챌린지",
   "challengeTemplateStarterDescription": "짧게 집중해서 챌린지 감각을 익힙니다.",
   "challengeTemplateWeeklyTitle": "7일 챌린지",
@@ -3172,7 +3172,7 @@
   "challengeDifficultySprout": "새싹",
   "challengeDifficultyBoost": "쑥쑥",
   "challengeDifficultyStar": "스타",
-  "challengeTrainingLevelTitle": "훈련 레벨",
+  "challengeTrainingLevelTitle": "2. 단계 선택",
   "challengeTrainingLevelRookieTitle": "루키 레벨",
   "challengeTrainingLevelRookieDescription": "저학년이거나 축구를 막 시작한 선수에게 맞춘 가벼운 목표입니다.",
   "challengeTrainingLevelGrowthTitle": "쑥쑥 레벨",
@@ -3180,10 +3180,26 @@
   "challengeTrainingLevelAceTitle": "에이스 레벨",
   "challengeTrainingLevelAceDescription": "나이와 축구 구력이 쌓인 선수에게 맞춘 도전적인 목표입니다.",
   "challengeRecommendedLevelBadge": "추천",
-  "challengeTargetMultiplierLabel": "목표 {percent}%",
-  "@challengeTargetMultiplierLabel": {
+  "challengeLevelTrainingTargetLabel": "총 훈련 {minutes}분",
+  "@challengeLevelTrainingTargetLabel": {
     "placeholders": {
-      "percent": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeLevelJumpRopeTargetLabel": "줄넘기 {minutes}분",
+  "@challengeLevelJumpRopeTargetLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeLevelLiftingTargetLabel": "리프팅 {minutes}분",
+  "@challengeLevelLiftingTargetLabel": {
+    "placeholders": {
+      "minutes": {
         "type": "int"
       }
     }
@@ -3229,6 +3245,7 @@
     }
   },
   "challengeRewardPitchTitle": "완주하면 큰 보너스가 기다려요",
+  "challengeStartReadyTitle": "3. 시작 준비",
   "challengeStartAction": "챌린지 시작",
   "challengeRoundCount": "{completed}/{total} 라운드 완료",
   "@challengeRoundCount": {

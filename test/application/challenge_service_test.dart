@@ -20,22 +20,36 @@ void main() {
       templates.map((template) => template.rewardXpPerRound),
       <int>[10, 10, 10],
     );
+    expect(templates[2].rounds.first.targetTrainingMinutes, 60);
+    expect(templates[2].rounds.last.targetTrainingMinutes, 60);
+    expect(templates[2].rounds.first.targetJumpRopeMinutes, 20);
+    expect(templates[2].rounds.last.targetLiftingMinutes, 20);
   });
 
-  test('training levels scale targets and completion rewards', () {
+  test('training levels use fixed targets and larger rewards', () {
     final service = ChallengeService(_MemoryOptionRepository());
     final template = service.templateById('starter_3')!;
     final baseRound = template.rounds.first;
+    final lastBaseRound = template.rounds.last;
 
     final rookie = service.roundForLevel(
       baseRound,
       ChallengeTrainingLevel.rookie,
     );
+    final lastRookie = service.roundForLevel(
+      lastBaseRound,
+      ChallengeTrainingLevel.rookie,
+    );
     final ace = service.roundForLevel(baseRound, ChallengeTrainingLevel.ace);
 
-    expect(rookie.targetTrainingMinutes, 20);
-    expect(
-        ace.targetTrainingMinutes, greaterThan(rookie.targetTrainingMinutes));
+    expect(rookie.targetTrainingMinutes, 60);
+    expect(rookie.targetJumpRopeMinutes, 20);
+    expect(rookie.targetLiftingMinutes, 20);
+    expect(lastRookie.targetTrainingMinutes, rookie.targetTrainingMinutes);
+    expect(lastRookie.targetJumpRopeMinutes, rookie.targetJumpRopeMinutes);
+    expect(ace.targetTrainingMinutes, 120);
+    expect(ace.targetJumpRopeMinutes, 40);
+    expect(ace.targetLiftingMinutes, 40);
     expect(rookie.rewardXp, 10);
     expect(ace.rewardXp, 24);
     expect(
@@ -58,14 +72,14 @@ void main() {
         _trainingEntry(
           day: DateTime(2026, 6, 1),
           minutes: 20,
-          jumpRopeMinutes: 5,
-          liftingMinutes: 5,
+          jumpRopeMinutes: 20,
+          liftingMinutes: 20,
         ),
         _trainingEntry(
           day: DateTime(2026, 6, 2),
-          minutes: 25,
-          jumpRopeMinutes: 6,
-          liftingMinutes: 6,
+          minutes: 20,
+          jumpRopeMinutes: 20,
+          liftingMinutes: 20,
         ),
       ],
       mealEntries: <MealEntry>[
@@ -73,6 +87,7 @@ void main() {
           date: DateTime(2026, 6, 1),
           breakfastRiceBowls: 1,
           lunchRiceBowls: 1,
+          dinnerRiceBowls: 1,
         ),
         MealEntry(
           date: DateTime(2026, 6, 2),
@@ -81,6 +96,7 @@ void main() {
       ],
     )!;
 
+    expect(progress.rounds[0].trainingMinutes, 60);
     expect(progress.rounds[0].trainingCompleted, isTrue);
     expect(progress.rounds[0].jumpRopeCompleted, isTrue);
     expect(progress.rounds[0].liftingCompleted, isTrue);
@@ -109,8 +125,8 @@ void main() {
         _trainingEntry(
           day: DateTime(2026, 6, 1),
           minutes: 20,
-          jumpRopeMinutes: 5,
-          liftingMinutes: 5,
+          jumpRopeMinutes: 20,
+          liftingMinutes: 20,
         ),
       ],
       mealEntries: <MealEntry>[
@@ -118,6 +134,7 @@ void main() {
           date: DateTime(2026, 6, 1),
           breakfastRiceBowls: 1,
           lunchRiceBowls: 1,
+          dinnerRiceBowls: 1,
         ),
       ],
     )!;
@@ -159,20 +176,20 @@ void main() {
         _trainingEntry(
           day: DateTime(2026, 6, 1),
           minutes: 20,
-          jumpRopeMinutes: 5,
-          liftingMinutes: 5,
+          jumpRopeMinutes: 20,
+          liftingMinutes: 20,
         ),
         _trainingEntry(
           day: DateTime(2026, 6, 2),
-          minutes: 25,
-          jumpRopeMinutes: 6,
-          liftingMinutes: 6,
+          minutes: 20,
+          jumpRopeMinutes: 20,
+          liftingMinutes: 20,
         ),
         _trainingEntry(
           day: DateTime(2026, 6, 3),
-          minutes: 30,
-          jumpRopeMinutes: 8,
-          liftingMinutes: 8,
+          minutes: 20,
+          jumpRopeMinutes: 20,
+          liftingMinutes: 20,
         ),
       ],
       mealEntries: <MealEntry>[
@@ -180,12 +197,13 @@ void main() {
           date: DateTime(2026, 6, 1),
           breakfastRiceBowls: 1,
           lunchRiceBowls: 1,
+          dinnerRiceBowls: 1,
         ),
         MealEntry(
           date: DateTime(2026, 6, 2),
           breakfastRiceBowls: 1,
           lunchRiceBowls: 1,
-          dinnerRiceBowls: 0.5,
+          dinnerRiceBowls: 1,
         ),
         MealEntry(
           date: DateTime(2026, 6, 3),

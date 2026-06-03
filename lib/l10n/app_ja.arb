@@ -3162,7 +3162,7 @@
   "challengeStartHeroBody": "期間とトレーニングレベルを選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。",
   "challengeLatestComplete": "最新チャレンジ完了",
   "challengeSelectTitle": "チャレンジを選択",
-  "challengeDurationSelectTitle": "期間を選択",
+  "challengeDurationSelectTitle": "1. 期間を選択",
   "challengeTemplateStarterTitle": "3日チャレンジ",
   "challengeTemplateStarterDescription": "短く集中してチャレンジのリズムを覚えます。",
   "challengeTemplateWeeklyTitle": "7日チャレンジ",
@@ -3172,7 +3172,7 @@
   "challengeDifficultySprout": "めばえ",
   "challengeDifficultyBoost": "ぐんぐん",
   "challengeDifficultyStar": "スター",
-  "challengeTrainingLevelTitle": "トレーニングレベル",
+  "challengeTrainingLevelTitle": "2. レベルを選択",
   "challengeTrainingLevelRookieTitle": "ルーキーレベル",
   "challengeTrainingLevelRookieDescription": "低学年やサッカーを始めたばかりの選手向けの軽めの目標です。",
   "challengeTrainingLevelGrowthTitle": "ぐんぐんレベル",
@@ -3180,10 +3180,26 @@
   "challengeTrainingLevelAceTitle": "エースレベル",
   "challengeTrainingLevelAceDescription": "年齢とサッカー経験がある選手向けの挑戦的な目標です。",
   "challengeRecommendedLevelBadge": "おすすめ",
-  "challengeTargetMultiplierLabel": "目標 {percent}%",
-  "@challengeTargetMultiplierLabel": {
+  "challengeLevelTrainingTargetLabel": "総トレーニング {minutes}分",
+  "@challengeLevelTrainingTargetLabel": {
     "placeholders": {
-      "percent": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeLevelJumpRopeTargetLabel": "縄跳び {minutes}分",
+  "@challengeLevelJumpRopeTargetLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeLevelLiftingTargetLabel": "リフティング {minutes}分",
+  "@challengeLevelLiftingTargetLabel": {
+    "placeholders": {
+      "minutes": {
         "type": "int"
       }
     }
@@ -3229,6 +3245,7 @@
     }
   },
   "challengeRewardPitchTitle": "完走すると大きなボーナスがあります",
+  "challengeStartReadyTitle": "3. 開始準備",
   "challengeStartAction": "チャレンジ開始",
   "challengeRoundCount": "{completed}/{total} ラウンド完了",
   "@challengeRoundCount": {

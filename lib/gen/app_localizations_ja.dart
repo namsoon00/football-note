@@ -6375,7 +6375,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeSelectTitle => 'チャレンジを選択';
 
   @override
-  String get challengeDurationSelectTitle => '期間を選択';
+  String get challengeDurationSelectTitle => '1. 期間を選択';
 
   @override
   String get challengeTemplateStarterTitle => '3日チャレンジ';
@@ -6405,7 +6405,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeDifficultyStar => 'スター';
 
   @override
-  String get challengeTrainingLevelTitle => 'トレーニングレベル';
+  String get challengeTrainingLevelTitle => '2. レベルを選択';
 
   @override
   String get challengeTrainingLevelRookieTitle => 'ルーキーレベル';
@@ -6432,8 +6432,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeRecommendedLevelBadge => 'おすすめ';
 
   @override
-  String challengeTargetMultiplierLabel(int percent) {
-    return '目標 $percent%';
+  String challengeLevelTrainingTargetLabel(int minutes) {
+    return '総トレーニング $minutes分';
+  }
+
+  @override
+  String challengeLevelJumpRopeTargetLabel(int minutes) {
+    return '縄跳び $minutes分';
+  }
+
+  @override
+  String challengeLevelLiftingTargetLabel(int minutes) {
+    return 'リフティング $minutes分';
   }
 
   @override
@@ -6463,6 +6473,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeRewardPitchTitle => '完走すると大きなボーナスがあります';
+
+  @override
+  String get challengeStartReadyTitle => '3. 開始準備';
 
   @override
   String get challengeStartAction => 'チャレンジ開始';

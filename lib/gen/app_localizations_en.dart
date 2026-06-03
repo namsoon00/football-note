@@ -6602,7 +6602,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeSelectTitle => 'Choose a challenge';
 
   @override
-  String get challengeDurationSelectTitle => 'Choose duration';
+  String get challengeDurationSelectTitle => '1. Choose duration';
 
   @override
   String get challengeTemplateStarterTitle => '3-day Challenge';
@@ -6635,7 +6635,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeDifficultyStar => 'Star';
 
   @override
-  String get challengeTrainingLevelTitle => 'Training level';
+  String get challengeTrainingLevelTitle => '2. Choose level';
 
   @override
   String get challengeTrainingLevelRookieTitle => 'Rookie level';
@@ -6662,8 +6662,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeRecommendedLevelBadge => 'Recommended';
 
   @override
-  String challengeTargetMultiplierLabel(int percent) {
-    return 'Targets $percent%';
+  String challengeLevelTrainingTargetLabel(int minutes) {
+    return 'Total training $minutes min';
+  }
+
+  @override
+  String challengeLevelJumpRopeTargetLabel(int minutes) {
+    return 'Jump rope $minutes min';
+  }
+
+  @override
+  String challengeLevelLiftingTargetLabel(int minutes) {
+    return 'Lifting $minutes min';
   }
 
   @override
@@ -6693,6 +6703,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeRewardPitchTitle => 'A big finish bonus is waiting';
+
+  @override
+  String get challengeStartReadyTitle => '3. Ready to start';
 
   @override
   String get challengeStartAction => 'Start challenge';

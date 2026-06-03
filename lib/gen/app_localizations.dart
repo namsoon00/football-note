@@ -11405,7 +11405,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeDurationSelectTitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose duration'**
+  /// **'1. Choose duration'**
   String get challengeDurationSelectTitle;
 
   /// No description provided for @challengeTemplateStarterTitle.
@@ -11465,7 +11465,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeTrainingLevelTitle.
   ///
   /// In en, this message translates to:
-  /// **'Training level'**
+  /// **'2. Choose level'**
   String get challengeTrainingLevelTitle;
 
   /// No description provided for @challengeTrainingLevelRookieTitle.
@@ -11510,11 +11510,23 @@ abstract class AppLocalizations {
   /// **'Recommended'**
   String get challengeRecommendedLevelBadge;
 
-  /// No description provided for @challengeTargetMultiplierLabel.
+  /// No description provided for @challengeLevelTrainingTargetLabel.
   ///
   /// In en, this message translates to:
-  /// **'Targets {percent}%'**
-  String challengeTargetMultiplierLabel(int percent);
+  /// **'Total training {minutes} min'**
+  String challengeLevelTrainingTargetLabel(int minutes);
+
+  /// No description provided for @challengeLevelJumpRopeTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope {minutes} min'**
+  String challengeLevelJumpRopeTargetLabel(int minutes);
+
+  /// No description provided for @challengeLevelLiftingTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting {minutes} min'**
+  String challengeLevelLiftingTargetLabel(int minutes);
 
   /// No description provided for @challengeDaysLabel.
   ///
@@ -11551,6 +11563,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A big finish bonus is waiting'**
   String get challengeRewardPitchTitle;
+
+  /// No description provided for @challengeStartReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Ready to start'**
+  String get challengeStartReadyTitle;
 
   /// No description provided for @challengeStartAction.
   ///

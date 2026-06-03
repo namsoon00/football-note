@@ -239,7 +239,14 @@ int trainingMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
   return entries
       .where((entry) =>
           !entry.isMatch && normalizeDay(entry.date) == normalizedDay)
-      .fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
+      .fold<int>(
+        0,
+        (sum, entry) =>
+            sum +
+            entry.durationMinutes +
+            entry.jumpRopeMinutes +
+            entry.liftingMinutes,
+      );
 }
 
 int jumpRopeMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
