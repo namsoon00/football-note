@@ -213,42 +213,13 @@ class _ChallengeStartSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: theme.colorScheme.outline),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const RinzyMascot(size: 96),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.challengeStartHeroTitle,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.challengeStartHeroBody,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    if (latestCompletedRun != null) ...[
-                      const SizedBox(height: 10),
-                      _SmallStatusPill(label: l10n.challengeLatestComplete),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
+        _ChallengeIntroCard(
+          title: l10n.challengeStartHeroTitle,
+          body: l10n.challengeStartHeroBody,
+          progress: 0,
+          footer: latestCompletedRun == null
+              ? null
+              : _SmallStatusPill(label: l10n.challengeLatestComplete),
         ),
         const SizedBox(height: 18),
         Text(
@@ -289,64 +260,275 @@ class _ChallengeTemplateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: ValueKey('challenge-template-${template.id}'),
+        onTap: onStart,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.colorScheme.outline),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              Icons.flag_outlined,
-              color: theme.colorScheme.primary,
-            ),
+        child: Ink(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: theme.colorScheme.outline),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.flag_outlined,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(description, style: theme.textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.chevron_right,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _SmallStatusPill(
+                    label: l10n.challengeDaysLabel(template.dayCount),
+                  ),
+                  _SmallStatusPill(
+                    label: l10n.challengeRewardXp(
+                      template.rewardXpPerRound,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    l10n.challengeStartAction,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onPrimary,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(description, style: theme.textTheme.bodySmall),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _SmallStatusPill(
-                      label: l10n.challengeDaysLabel(template.dayCount),
-                    ),
-                    _SmallStatusPill(
-                      label: l10n.challengeRewardXp(
-                        template.rewardXpPerRound,
-                      ),
-                    ),
-                  ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChallengeIntroCard extends StatelessWidget {
+  final String title;
+  final String body;
+  final double progress;
+  final Widget? footer;
+
+  const _ChallengeIntroCard({
+    required this.title,
+    required this.body,
+    required this.progress,
+    this.footer,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outline),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 330;
+          final mascot = RinzyMascot(
+            size: compact ? 116 : 98,
+            progress: progress,
+          );
+          final text = Column(
+            crossAxisAlignment:
+                compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                textAlign: compact ? TextAlign.center : TextAlign.start,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                body,
+                textAlign: compact ? TextAlign.center : TextAlign.start,
+                style: theme.textTheme.bodyMedium,
+              ),
+              if (footer != null) ...[
+                const SizedBox(height: 10),
+                Align(
+                  alignment: compact
+                      ? Alignment.center
+                      : AlignmentDirectional.centerStart,
+                  child: footer,
                 ),
               ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          FilledButton.tonal(
-            onPressed: onStart,
-            child: Text(l10n.challengeStartAction),
-          ),
-        ],
+            ],
+          );
+          if (compact) {
+            return Column(
+              children: [
+                mascot,
+                const SizedBox(height: 12),
+                text,
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              mascot,
+              const SizedBox(width: 14),
+              Expanded(child: text),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ActiveChallengeIntroCard extends StatelessWidget {
+  final ChallengeProgress progress;
+  final String templateTitle;
+
+  const _ActiveChallengeIntroCard({
+    required this.progress,
+    required this.templateTitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final percent = (progress.completionRate * 100).round();
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primary.withValues(alpha: 0.18),
+            theme.colorScheme.tertiaryContainer.withValues(alpha: 0.38),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.20),
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 330;
+          final mascot = RinzyMascot(
+            size: compact ? 122 : 104,
+            progress: progress.completionRate,
+          );
+          final summary = Column(
+            crossAxisAlignment:
+                compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            children: [
+              Text(
+                templateTitle,
+                textAlign: compact ? TextAlign.center : TextAlign.start,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.challengeRoundCount(
+                  progress.completedRoundCount,
+                  progress.totalRoundCount,
+                ),
+                textAlign: compact ? TextAlign.center : TextAlign.start,
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  minHeight: 9,
+                  value: progress.completionRate,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.challengeProgressPercent(percent),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          );
+          if (compact) {
+            return Column(
+              children: [
+                mascot,
+                const SizedBox(height: 12),
+                summary,
+              ],
+            );
+          }
+          return Row(
+            children: [
+              mascot,
+              const SizedBox(width: 14),
+              Expanded(child: summary),
+            ],
+          );
+        },
       ),
     );
   }
@@ -368,68 +550,12 @@ class _ActiveChallengeSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final activeRound = progress.activeRound;
-    final percent = (progress.completionRate * 100).round();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                theme.colorScheme.primary.withValues(alpha: 0.18),
-                theme.colorScheme.tertiaryContainer.withValues(alpha: 0.38),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: theme.colorScheme.primary.withValues(alpha: 0.20),
-            ),
-          ),
-          child: Row(
-            children: [
-              RinzyMascot(size: 104, progress: progress.completionRate),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      templateTitle,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.challengeRoundCount(
-                        progress.completedRoundCount,
-                        progress.totalRoundCount,
-                      ),
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 10),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: LinearProgressIndicator(
-                        minHeight: 9,
-                        value: progress.completionRate,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.challengeProgressPercent(percent),
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        _ActiveChallengeIntroCard(
+          progress: progress,
+          templateTitle: templateTitle,
         ),
         const SizedBox(height: 12),
         if (activeRound != null)

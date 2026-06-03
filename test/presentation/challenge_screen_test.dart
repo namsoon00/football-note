@@ -15,6 +15,12 @@ void main() {
   testWidgets('challenge screen starts a template and shows round list', (
     WidgetTester tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
     final optionRepository = _MemoryOptionRepository();
     final trainingService = TrainingService(_MemoryTrainingRepository());
     final mealLogService = MealLogService(optionRepository);
@@ -40,13 +46,16 @@ void main() {
 
     expect(find.text('챌린지 선택'), findsOneWidget);
     expect(find.text('3일 워밍업 챌린지'), findsOneWidget);
+    expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('시작').first);
+    await tester
+        .tap(find.byKey(const ValueKey('challenge-template-starter_3')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('라운드'), findsOneWidget);
     expect(find.text('1라운드'), findsWidgets);
+    expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
