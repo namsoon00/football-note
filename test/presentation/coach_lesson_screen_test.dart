@@ -18,6 +18,50 @@ import 'package:football_note/presentation/screens/entry_form_screen.dart';
 import '../helpers/test_asset_bundle.dart';
 
 void main() {
+  testWidgets('diary top actions and theme picker use Japanese localization', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _FakeOptionRepository()
+      ..setRawValue(
+        'custom_diary_entries_v3',
+        '{"2026-06-03":{"title":"テスト日記","story":"今日の練習を記録する。","sections":[],"moodId":"calm","stickers":[],"updatedAt":"2026-06-03T08:00:00.000"}}',
+      );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ja'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: CoachLessonScreen(optionRepository: optionRepository),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('日記'), findsOneWidget);
+    expect(find.text('テーマ'), findsOneWidget);
+    expect(find.text('新しい日記'), findsOneWidget);
+    expect(find.text('Diary'), findsNothing);
+    expect(find.text('Theme'), findsNothing);
+    expect(find.text('New diary'), findsNothing);
+
+    await tester.tap(find.text('テーマ'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ノート'), findsOneWidget);
+    expect(find.text('夕焼け'), findsOneWidget);
+    expect(find.text('明け方の海'), findsOneWidget);
+    expect(find.text('Notebook'), findsNothing);
+    expect(find.text('Dusk'), findsNothing);
+  });
+
   testWidgets('coach lesson screen shows daily diary pages', (
     WidgetTester tester,
   ) async {

@@ -196,6 +196,65 @@
   "homeTodoNewsShort": "News",
   "homeTodoDiaryShort": "Diary",
   "homeTodoBoardSketchShort": "Sketch",
+  "homeQuickActionsTitle": "Quick actions",
+  "homeQuickActionMatch": "Add match",
+  "homeQuickActionPlan": "Add plan",
+  "homeContinueTitle": "Continue",
+  "homeContinueEmpty": "Nothing to continue today. Pick a fresh challenge below.",
+  "homeContinueWrongAnswerReview": "Continue wrong-answer review",
+  "homeContinueQuiz": "Continue quiz",
+  "homeContinueStartQuiz": "Start quiz",
+  "homeContinueQuizProgress": "In progress {current} / {total}",
+  "@homeContinueQuizProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinueQuizStartSubtitle": "Jump back into today's quiz.",
+  "homeContinueTodayTrainingLog": "Today training log",
+  "homeContinueTrainingDuration": "{date} · {duration} min",
+  "@homeContinueTrainingDuration": {
+    "placeholders": {
+      "date": {},
+      "duration": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinueTrainingButton": "Continue",
+  "homeContinueTodayPlanTitle": "Today training plan",
+  "homeContinueTodayPlanSubtitle": "{count} plans are waiting today.",
+  "@homeContinueTodayPlanSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinuePlanButton": "Open plans",
+  "homeContinueQuizButton": "Open quiz",
+  "homeContinueRecentBoardTitle": "Recent training board",
+  "homeContinueBoardCount": "{count} sketches",
+  "@homeContinueBoardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeContinueBoardSaved": "{title} · saved {date}",
+  "@homeContinueBoardSaved": {
+    "placeholders": {
+      "title": {},
+      "date": {}
+    }
+  },
+  "homeContinueBoardButton": "Edit now",
   "dailyTasksXpDialogTitle": "Today's tasks complete",
   "dailyTasksXpDialogMessage": "The whole routine is checked off. That consistency turned into growth gems.",
   "dailyTasksXpDialogGems": "+{count} gems",
@@ -932,6 +991,7 @@
   "deleteConfirm": "Delete this entry?",
   "cancel": "Cancel",
   "delete": "Delete",
+  "undo": "Undo",
   "statsRecent7": "Last 7 days",
   "statsRecent30": "Last 30 days",
   "statsTotalSessions": "Total Sessions",
@@ -1145,6 +1205,23 @@
   "diaryComposerSavePromptTitle": "Save changes?",
   "diaryComposerSavePromptBody": "You have unsaved changes. Save before closing?",
   "diaryComposerDontSave": "Don't save",
+  "diaryNewAction": "New diary",
+  "diaryNextDayTooltip": "Next day",
+  "diaryPreviousDayTooltip": "Previous day",
+  "diaryComposeTooltip": "Compose",
+  "diaryEmptyTitle": "No diary pages yet",
+  "diaryEmptyBody": "Pick a date and create your first page.",
+  "diaryCreateFirstAction": "Create first diary",
+  "diaryDeleteDialogTitle": "Delete diary",
+  "diaryDeleteDialogBody": "Delete this day diary?",
+  "diaryDeletedMessage": "Diary deleted.",
+  "diaryDeleteRestoredMessage": "Restored deleted diary.",
+  "diaryThemeNotebookName": "Notebook",
+  "diaryThemeNotebookDescription": "A calm paper-textured default diary.",
+  "diaryThemeDuskName": "Dusk",
+  "diaryThemeDuskDescription": "Reads in the warmth of a red evening glow.",
+  "diaryThemeOceanName": "Early Sea",
+  "diaryThemeOceanDescription": "A crisp and cool page like blue ink.",
   "diaryVoiceInputTooltip": "Voice input",
   "diaryVoiceInputUnavailable": "Voice input is not available on this device.",
   "diaryComposerTitle": "Compose today's diary",
@@ -1355,6 +1432,288 @@
   "diaryConditioningJumpRopeLabel": "Jump rope",
   "diaryConditioningLiftingLabel": "Lifting",
   "diaryWeatherEmpty": "No weather was logged.",
+  "diaryUnknownSource": "Unknown source",
+  "diaryLocationUnset": "No location",
+  "diaryLocationNotLogged": "No location logged",
+  "diaryFundamentalsFallback": "fundamentals",
+  "diaryUpdatedAt": "Updated {date}",
+  "@diaryUpdatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchOpponentUnknown": "vs unknown opponent",
+  "diaryMatchOpponentLabel": "vs {opponent}",
+  "@diaryMatchOpponentLabel": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchScoreLabel": "score {score}",
+  "@diaryMatchScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchGoalsLabel": "goals {count}",
+  "@diaryMatchGoalsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryMatchAssistsLabel": "assists {count}",
+  "@diaryMatchAssistsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryMatchMinutesPlayed": "{minutes} played",
+  "@diaryMatchMinutesPlayed": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchPersonalStats": "{goals}G {assists}A",
+  "@diaryMatchPersonalStats": {
+    "placeholders": {
+      "goals": {
+        "type": "int"
+      },
+      "assists": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryTotalRiceBowls": "{count} bowls total",
+  "@diaryTotalRiceBowls": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryCompletedMeals": "{count} meals logged",
+  "@diaryCompletedMeals": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryReps": "{count} reps",
+  "@diaryReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryTotalReps": "{count} reps total",
+  "@diaryTotalReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryLiftingReps": "Lifting {count} reps",
+  "@diaryLiftingReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryJumpRopeReps": "Jump rope {count} reps",
+  "@diaryJumpRopeReps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryJumpRopeMinutes": "Jump rope {minutes}",
+  "@diaryJumpRopeMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryJumpRopeCombined": "Jump rope {count} reps/{minutes}",
+  "@diaryJumpRopeCombined": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryConditioningSummary": "Lifting {liftingCount} reps · Jump rope {jumpCount} reps/{jumpMinutes}",
+  "@diaryConditioningSummary": {
+    "placeholders": {
+      "liftingCount": {
+        "type": "int"
+      },
+      "jumpCount": {
+        "type": "int"
+      },
+      "jumpMinutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryStoryPromptFromSeed": "Start from {title} and continue with the scene you want to keep today. You can naturally connect what you planned, what you actually did, and how it felt.",
+  "@diaryStoryPromptFromSeed": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryStoryPromptDefault": "Write today in your own words. Start with what happened around {place}, what stayed with you in {focus}, what felt good, and what still lingers.",
+  "@diaryStoryPromptDefault": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "focus": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPlanStorySentence": "Start from {title} and write why this task deserves a place in today's diary.",
+  "@diaryPlanStorySentence": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPlanNoteTitle": "{category} note",
+  "@diaryPlanNoteTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPlanDurationLabel": "{duration} plan",
+  "@diaryPlanDurationLabel": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPinnedPlanTooltip": "Pinned plan",
+  "diaryTrainingTodoTitle": "Training · {label}",
+  "@diaryTrainingTodoTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryTrainingSummaryTitle": "{label} summary",
+  "@diaryTrainingSummaryTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryFortunePinSummary": "Pin today's fortune flow as a diary sticker.",
+  "diaryFortuneStorySentence": "Write the one flow or encouragement you want to keep from today's fortune.",
+  "diaryFortuneNoteTitle": "Today fortune note",
+  "diaryMatchTodoTitleNoOpponent": "Match",
+  "diaryMatchTodoTitleWithOpponent": "Match · vs {opponent}",
+  "@diaryMatchTodoTitleWithOpponent": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryMatchStorySentence": "Replay the match scene by scene and write both the sharp choices and the missed ones.",
+  "diaryMatchFlowTitle": "Match flow",
+  "diaryMatchSectionBodyDefault": "Write the flow that stayed most from the match.",
+  "diaryBoardStickerFallbackSummary": "Movement and idea captured on this board",
+  "diaryBoardNotePrefix": "Board note: {memo}",
+  "@diaryBoardNotePrefix": {
+    "placeholders": {
+      "memo": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryBoardTodoTitle": "Board · {title}",
+  "@diaryBoardTodoTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryBoardStorySentence": "Write the movement or idea you want to keep from this board.",
+  "diaryBoardFallbackSummary": "Pull the tactic idea into the diary.",
+  "diaryBoardNoteTitle": "{title} note",
+  "@diaryBoardNoteTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryLiftingStorySentence": "Write how the lifting rhythm held today's ball feel in place.",
+  "diaryLiftingNoteTitle": "Lifting note",
+  "diaryLiftingSectionBody": "Keep the moment the touch settled together with the counts.",
+  "diaryJumpRopeStorySentence": "Write the moment jump rope woke the body up and changed the breathing rhythm.",
+  "diaryJumpRopeNoteTitle": "Jump rope note",
+  "diaryJumpRopeSectionBody": "Keep the count, time, and the point where the body started to feel lighter.",
+  "diaryWeatherStorySentence": "Write how the weather affected your training flow and body.",
+  "diaryNewsTodoTitle": "News · {title}",
+  "@diaryNewsTodoTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryNewsStorySentence": "Write one point you want to keep from \"{title}\".",
+  "@diaryNewsStorySentence": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryTodayNewsTitle": "Today news",
+  "diaryNewsSectionBody": "{source} article: {title}",
+  "@diaryNewsSectionBody": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "quizWrongAnswerTimeout": "Timed out",
   "quizWrongAnswerRevealed": "Revealed the answer",
   "quizWrongAnswerSkipped": "No answer selected",

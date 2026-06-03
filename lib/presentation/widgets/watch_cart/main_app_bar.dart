@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:football_note/gen/app_localizations.dart';
 
 class WatchCartAppBar extends StatelessWidget {
   final VoidCallback? onLeadingTap;
@@ -36,6 +37,7 @@ class WatchCartAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     const actionConstraints = BoxConstraints(minWidth: 44, minHeight: 44);
     const actionPadding = EdgeInsets.all(6);
     final leadingButton = Container(
@@ -109,9 +111,7 @@ class WatchCartAppBar extends StatelessWidget {
                       ),
                   ],
                 ),
-                tooltip: Localizations.localeOf(context).languageCode == 'ko'
-                    ? '오늘의 소식'
-                    : 'Today news',
+                tooltip: l10n.tabNews,
                 iconSize: 28,
                 padding: actionPadding,
                 constraints: actionConstraints,
@@ -120,9 +120,7 @@ class WatchCartAppBar extends StatelessWidget {
             if (onQuizTap != null)
               IconButton(
                 icon: const Icon(Icons.quiz_outlined),
-                tooltip: Localizations.localeOf(context).languageCode == 'ko'
-                    ? '퀴즈'
-                    : 'Quiz',
+                tooltip: l10n.drawerQuiz,
                 iconSize: 28,
                 padding: actionPadding,
                 constraints: actionConstraints,
@@ -172,9 +170,7 @@ class WatchCartAppBar extends StatelessWidget {
                       ),
                   ],
                 ),
-                tooltip: Localizations.localeOf(context).languageCode == 'ko'
-                    ? '알림'
-                    : 'Notifications',
+                tooltip: l10n.notifications,
                 iconSize: 30,
                 padding: actionPadding,
                 constraints: actionConstraints,
