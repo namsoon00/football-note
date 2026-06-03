@@ -6365,7 +6365,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeStartHeroTitle => 'リンジーのチャレンジモード';
 
   @override
-  String get challengeStartHeroBody => 'トレーニング、縄跳び、リフティング、食事の目標をラウンドごとに積み上げます。';
+  String get challengeStartHeroBody =>
+      '期間とトレーニングレベルを選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。';
 
   @override
   String get challengeLatestComplete => '最新チャレンジ完了';
@@ -6374,22 +6375,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeSelectTitle => 'チャレンジを選択';
 
   @override
-  String get challengeTemplateStarterTitle => 'めばえチャレンジ';
+  String get challengeDurationSelectTitle => '期間を選択';
 
   @override
-  String get challengeTemplateStarterDescription => '3日間、軽く体を起こすやさしいミッションです。';
+  String get challengeTemplateStarterTitle => '3日チャレンジ';
 
   @override
-  String get challengeTemplateWeeklyTitle => 'ぐんぐんチャレンジ';
+  String get challengeTemplateStarterDescription => '短く集中してチャレンジのリズムを覚えます。';
 
   @override
-  String get challengeTemplateWeeklyDescription => '7日間、練習と食事のリズムを少しずつ育てます。';
+  String get challengeTemplateWeeklyTitle => '7日チャレンジ';
 
   @override
-  String get challengeTemplateFocusTitle => 'スターチャレンジ';
+  String get challengeTemplateWeeklyDescription => '1週間、毎日のルーティンを続けます。';
 
   @override
-  String get challengeTemplateFocusDescription => '14日間、より高い目標に挑む強めのミッションです。';
+  String get challengeTemplateFocusTitle => '14日チャレンジ';
+
+  @override
+  String get challengeTemplateFocusDescription => '2週間、コツコツ続ける力を伸ばします。';
 
   @override
   String get challengeDifficultySprout => 'めばえ';
@@ -6399,6 +6403,38 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeDifficultyStar => 'スター';
+
+  @override
+  String get challengeTrainingLevelTitle => 'トレーニングレベル';
+
+  @override
+  String get challengeTrainingLevelRookieTitle => 'ルーキーレベル';
+
+  @override
+  String get challengeTrainingLevelRookieDescription =>
+      '低学年やサッカーを始めたばかりの選手向けの軽めの目標です。';
+
+  @override
+  String get challengeTrainingLevelGrowthTitle => 'ぐんぐんレベル';
+
+  @override
+  String get challengeTrainingLevelGrowthDescription =>
+      '基礎のリズムができ、定期的に練習する選手向けの標準目標です。';
+
+  @override
+  String get challengeTrainingLevelAceTitle => 'エースレベル';
+
+  @override
+  String get challengeTrainingLevelAceDescription =>
+      '年齢とサッカー経験がある選手向けの挑戦的な目標です。';
+
+  @override
+  String get challengeRecommendedLevelBadge => 'おすすめ';
+
+  @override
+  String challengeTargetMultiplierLabel(int percent) {
+    return '目標 $percent%';
+  }
 
   @override
   String challengeDaysLabel(int days) {
@@ -6411,7 +6447,25 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get challengeStartAction => '開始';
+  String challengeRoundXpLabel(int xp) {
+    return 'ラウンド +$xp XP';
+  }
+
+  @override
+  String challengeCompletionBonusLabel(int xp) {
+    return '完走ボーナス +$xp XP';
+  }
+
+  @override
+  String challengeTotalXpLabel(int xp) {
+    return '最大 +$xp XP';
+  }
+
+  @override
+  String get challengeRewardPitchTitle => '完走すると大きなボーナスがあります';
+
+  @override
+  String get challengeStartAction => 'チャレンジ開始';
 
   @override
   String challengeRoundCount(int completed, int total) {
@@ -6491,6 +6545,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeCompletedSnack => 'チャレンジ完了。';
 
   @override
+  String challengeFailedSnack(int round) {
+    return 'ラウンド $round を逃したため、チャレンジは失敗で終了しました。';
+  }
+
+  @override
   String get challengeCelebrationTitle => 'ミッション完了!';
 
   @override
@@ -6508,6 +6567,34 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeCelebrationAction => 'いいね!';
+
+  @override
+  String get challengeHistoryTitle => 'チャレンジ履歴';
+
+  @override
+  String get challengeHistoryEmpty => 'まだチャレンジ履歴がありません。';
+
+  @override
+  String challengeHistoryStarted(Object date) {
+    return '$date 開始';
+  }
+
+  @override
+  String challengeHistoryFailedRound(Object date, int round) {
+    return '$date 開始 · ラウンド $round 失敗';
+  }
+
+  @override
+  String get challengeHistoryResultCompleted => '成功';
+
+  @override
+  String get challengeHistoryResultFailed => '失敗';
+
+  @override
+  String get challengeHistoryResultAbandoned => '終了';
+
+  @override
+  String get challengeHistoryResultInProgress => '進行中';
 
   @override
   String get challengeAbandonAction => '終了';
@@ -6536,4 +6623,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get xpHistoryReasonChallengeRoundCompleted => 'チャレンジラウンド完了';
+
+  @override
+  String get xpHistoryReasonChallengeCompletionBonus => 'チャレンジ完走ボーナス';
 }

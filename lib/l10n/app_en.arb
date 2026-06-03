@@ -3159,18 +3159,35 @@
   "trainingSketchTemplateGallerySubtitle": "Preview movement lines and notes before creating a sketch.",
   "challengeTitle": "Challenge",
   "challengeStartHeroTitle": "Rinzy's Challenge Mode",
-  "challengeStartHeroBody": "Build a round-by-round routine with training, jump rope, lifting, and meal goals.",
+  "challengeStartHeroBody": "Choose a duration and training level, then press start to begin. Missing even one day ends the challenge.",
   "challengeLatestComplete": "Latest challenge complete",
   "challengeSelectTitle": "Choose a challenge",
-  "challengeTemplateStarterTitle": "Sprout Challenge",
-  "challengeTemplateStarterDescription": "A light 3-day mission to wake up the body.",
-  "challengeTemplateWeeklyTitle": "Grow-Up Challenge",
-  "challengeTemplateWeeklyDescription": "Grow training and meal rhythm step by step for 7 days.",
-  "challengeTemplateFocusTitle": "Star Challenge",
-  "challengeTemplateFocusDescription": "A stronger 14-day mission with higher goals.",
+  "challengeDurationSelectTitle": "Choose duration",
+  "challengeTemplateStarterTitle": "3-day Challenge",
+  "challengeTemplateStarterDescription": "Learn the challenge rhythm with a short focused run.",
+  "challengeTemplateWeeklyTitle": "7-day Challenge",
+  "challengeTemplateWeeklyDescription": "Keep a daily routine for one full week.",
+  "challengeTemplateFocusTitle": "14-day Challenge",
+  "challengeTemplateFocusDescription": "Build consistency across two steady weeks.",
   "challengeDifficultySprout": "Sprout",
   "challengeDifficultyBoost": "Grow-Up",
   "challengeDifficultyStar": "Star",
+  "challengeTrainingLevelTitle": "Training level",
+  "challengeTrainingLevelRookieTitle": "Rookie level",
+  "challengeTrainingLevelRookieDescription": "A lighter target for younger players or players just starting soccer.",
+  "challengeTrainingLevelGrowthTitle": "Grow-Up level",
+  "challengeTrainingLevelGrowthDescription": "A steady target for players with basic rhythm and regular practice.",
+  "challengeTrainingLevelAceTitle": "Ace level",
+  "challengeTrainingLevelAceDescription": "A challenging target for older players with more soccer experience.",
+  "challengeRecommendedLevelBadge": "Recommended",
+  "challengeTargetMultiplierLabel": "Targets {percent}%",
+  "@challengeTargetMultiplierLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "challengeDaysLabel": "{days} days",
   "@challengeDaysLabel": {
     "placeholders": {
@@ -3187,7 +3204,32 @@
       }
     }
   },
-  "challengeStartAction": "Start",
+  "challengeRoundXpLabel": "Round +{xp} XP",
+  "@challengeRoundXpLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCompletionBonusLabel": "Finish bonus +{xp} XP",
+  "@challengeCompletionBonusLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeTotalXpLabel": "Up to +{xp} XP",
+  "@challengeTotalXpLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRewardPitchTitle": "A big finish bonus is waiting",
+  "challengeStartAction": "Start challenge",
   "challengeRoundCount": "{completed}/{total} rounds complete",
   "@challengeRoundCount": {
     "placeholders": {
@@ -3278,6 +3320,14 @@
     }
   },
   "challengeCompletedSnack": "Challenge complete.",
+  "challengeFailedSnack": "Round {round} was missed, so the challenge ended as failed.",
+  "@challengeFailedSnack": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
   "challengeCelebrationTitle": "Mission complete!",
   "challengeCelebrationBody": "Round {rounds} complete. Rinzy is cheering. You earned +{xp} XP.",
   "@challengeCelebrationBody": {
@@ -3300,6 +3350,27 @@
     }
   },
   "challengeCelebrationAction": "Nice!",
+  "challengeHistoryTitle": "Challenge history",
+  "challengeHistoryEmpty": "No challenge history yet.",
+  "challengeHistoryStarted": "Started {date}",
+  "@challengeHistoryStarted": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "challengeHistoryFailedRound": "Started {date} · failed at round {round}",
+  "@challengeHistoryFailedRound": {
+    "placeholders": {
+      "date": {},
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeHistoryResultCompleted": "Success",
+  "challengeHistoryResultFailed": "Failed",
+  "challengeHistoryResultAbandoned": "Ended",
+  "challengeHistoryResultInProgress": "In progress",
   "challengeAbandonAction": "End",
   "challengeAbandonTitle": "End challenge",
   "challengeAbandonBody": "End the current challenge and choose another?",
@@ -3325,5 +3396,6 @@
       "label": {}
     }
   },
-  "xpHistoryReasonChallengeRoundCompleted": "challenge round complete"
+  "xpHistoryReasonChallengeRoundCompleted": "challenge round complete",
+  "xpHistoryReasonChallengeCompletionBonus": "challenge finish bonus"
 }

@@ -21,6 +21,8 @@ class PlayerLevelService {
       'player_awarded_daily_task_completion_days_v1';
   static const String awardedChallengeRoundsKey =
       'player_awarded_challenge_rounds_v1';
+  static const String awardedChallengeCompletionsKey =
+      'player_awarded_challenge_completions_v1';
   static const String diaryCreatedDayKey = 'player_diary_created_day_v2';
   static const String claimedRewardLevelsKey =
       'player_claimed_reward_levels_v1';
@@ -682,6 +684,60 @@ class PlayerLevelService {
     );
     return PlayerLevelAward(
       gainedXp: gainedXp,
+      before: before,
+      after: after,
+      reasons: reasons,
+    );
+  }
+
+  Future<PlayerLevelAward> awardForChallengeCompletion({
+    required String challengeRunId,
+    required String challengeLabel,
+    required DateTime completedAt,
+    required int rewardXp,
+  }) async {
+    final before = loadState();
+    final normalizedRunId = challengeRunId.trim();
+    if (normalizedRunId.isEmpty || rewardXp <= 0) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    final awardedRuns = _getStringSet(awardedChallengeCompletionsKey);
+    if (!awardedRuns.add(normalizedRunId)) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+
+    await _options.setValue(
+      awardedChallengeCompletionsKey,
+      awardedRuns.toList()..sort(),
+    );
+    final reasons = <String>['challenge_completed_bonus'];
+    final nextTotal = before.totalXp + rewardXp;
+    await _options.setValue(totalXpKey, nextTotal);
+    final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: completedAt,
+        deltaXp: rewardXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: PlayerXpHistoryCategory.challenge,
+        label: '$challengeLabel:complete',
+        reasons: reasons,
+      ),
+    );
+    return PlayerLevelAward(
+      gainedXp: rewardXp,
       before: before,
       after: after,
       reasons: reasons,

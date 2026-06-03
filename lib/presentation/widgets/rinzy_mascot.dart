@@ -66,10 +66,12 @@ class _RinzyMascotState extends State<RinzyMascot>
               final progress = widget.progress.clamp(0, 1).toDouble();
               final t = widget.animate ? _controller.value : 0.0;
               final wave = math.sin(t * math.pi * 2);
-              final hop = math.max(0.0, math.sin((t + 0.08) * math.pi * 2));
-              final tilt = wave * (0.025 + progress * 0.012);
-              final scale = 1 + hop * 0.018 + progress * 0.015;
-              final lift = hop * widget.size * 0.035;
+              final stride = math.sin(t * math.pi * 4);
+              final hop = math.max(0.0, math.sin((t + 0.08) * math.pi * 4));
+              final tilt = wave * (0.035 + progress * 0.014);
+              final scale = 1 + hop * 0.022 + progress * 0.014;
+              final lift = hop * widget.size * 0.045;
+              final runX = stride * widget.size * 0.026;
 
               return Stack(
                 alignment: Alignment.bottomCenter,
@@ -78,7 +80,7 @@ class _RinzyMascotState extends State<RinzyMascot>
                   Positioned(
                     bottom: widget.size * 0.03,
                     child: Transform.scale(
-                      scaleX: 1 - hop * 0.08,
+                      scaleX: 1 - hop * 0.12,
                       child: Container(
                         width: widget.size * 0.54,
                         height: widget.size * 0.08,
@@ -104,7 +106,7 @@ class _RinzyMascotState extends State<RinzyMascot>
                         right: widget.size * 0.02,
                       ),
                       child: Transform.translate(
-                        offset: Offset(0, -lift),
+                        offset: Offset(runX, -lift),
                         child: Transform.rotate(
                           angle: tilt,
                           child: Transform.scale(

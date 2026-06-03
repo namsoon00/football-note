@@ -54,19 +54,25 @@ class ChallengeService {
 
   Future<ChallengeRun> startChallenge(
     ChallengeTemplate template, {
+    ChallengeTrainingLevel trainingLevel = ChallengeTrainingLevel.rookie,
     DateTime? startedAt,
   }) async {
     final start = startedAt ?? DateTime.now();
     final run = ChallengeRun(
       id: '${template.id}-${start.toUtc().microsecondsSinceEpoch}',
       templateId: template.id,
+      trainingLevel: trainingLevel,
       startedAt: start,
     );
     final runs = loadRuns()
         .map(
           (item) => item.isEnded
               ? item
-              : item.copyWith(completedAt: start, abandoned: true),
+              : item.copyWith(
+                  completedAt: start,
+                  abandoned: true,
+                  result: ChallengeRunResult.abandoned,
+                ),
         )
         .toList(growable: true);
     runs.insert(0, run);
@@ -79,7 +85,32 @@ class ChallengeService {
     final runs = loadRuns()
         .map(
           (run) => run.id == runId
-              ? run.copyWith(completedAt: completed, abandoned: false)
+              ? run.copyWith(
+                  completedAt: completed,
+                  abandoned: false,
+                  result: ChallengeRunResult.completed,
+                )
+              : run,
+        )
+        .toList(growable: false);
+    await _saveRuns(runs);
+  }
+
+  Future<void> failRun(
+    String runId, {
+    required int roundNumber,
+    DateTime? failedAt,
+  }) async {
+    final endedAt = failedAt ?? DateTime.now();
+    final runs = loadRuns()
+        .map(
+          (run) => run.id == runId
+              ? run.copyWith(
+                  completedAt: endedAt,
+                  abandoned: false,
+                  result: ChallengeRunResult.failed,
+                  failedRoundNumber: roundNumber,
+                )
               : run,
         )
         .toList(growable: false);
@@ -93,7 +124,11 @@ class ChallengeService {
     final runs = loadRuns()
         .map(
           (run) => run.id == active.id
-              ? run.copyWith(completedAt: endedAt, abandoned: true)
+              ? run.copyWith(
+                  completedAt: endedAt,
+                  abandoned: true,
+                  result: ChallengeRunResult.abandoned,
+                )
               : run,
         )
         .toList(growable: false);
@@ -109,9 +144,10 @@ class ChallengeService {
     if (template == null) return null;
     final rounds = template.rounds.map(
       (round) {
+        final effectiveRound = roundForLevel(round, run.trainingLevel);
         final date = run.dayForRound(round.number);
         return ChallengeRoundProgress(
-          round: round,
+          round: effectiveRound,
           date: date,
           trainingMinutes: trainingMinutesForDay(trainingEntries, date),
           jumpRopeMinutes: jumpRopeMinutesForDay(trainingEntries, date),
@@ -153,10 +189,73 @@ class ChallengeService {
       awards.add(award);
     }
     if (progress.allRoundsCompleted) {
+      final completionAward =
+          await playerLevelService.awardForChallengeCompletion(
+        challengeRunId: progress.run.id,
+        challengeLabel: progress.template.id,
+        completedAt: awardedAt ?? DateTime.now(),
+        rewardXp: completionBonusXpFor(
+          progress.template,
+          progress.run.trainingLevel,
+        ),
+      );
+      awards.add(completionAward);
       await completeRun(progress.run.id,
           completedAt: awardedAt ?? DateTime.now());
     }
     return awards;
+  }
+
+  ChallengeRound roundForLevel(
+    ChallengeRound base,
+    ChallengeTrainingLevel level,
+  ) {
+    final config = trainingLevelConfig(level);
+    int scaleMinutes(int value) {
+      return (value * config.targetMultiplier)
+          .round()
+          .clamp(1, 1000000)
+          .toInt();
+    }
+
+    double scaleBowls(double value) {
+      final scaled = value * config.mealMultiplier;
+      return (scaled * 2).round() / 2;
+    }
+
+    return ChallengeRound(
+      number: base.number,
+      targetTrainingMinutes: scaleMinutes(base.targetTrainingMinutes),
+      targetJumpRopeMinutes: scaleMinutes(base.targetJumpRopeMinutes),
+      targetLiftingMinutes: scaleMinutes(base.targetLiftingMinutes),
+      targetRiceBowls: scaleBowls(base.targetRiceBowls),
+      rewardXp: config.rewardXpPerRound,
+    );
+  }
+
+  int completionBonusXpFor(
+    ChallengeTemplate template,
+    ChallengeTrainingLevel level,
+  ) {
+    return challengeCompletionBonusXpFor(template, level);
+  }
+
+  int totalPotentialXpFor(
+    ChallengeTemplate template,
+    ChallengeTrainingLevel level,
+  ) {
+    return challengeTotalPotentialXpFor(template, level);
+  }
+
+  static ChallengeTrainingLevel recommendedLevel({
+    required int? ageYears,
+    required int? soccerYears,
+  }) {
+    final age = ageYears ?? 10;
+    final years = soccerYears ?? 0;
+    if (age >= 13 && years >= 4) return ChallengeTrainingLevel.ace;
+    if (age >= 10 && years >= 2) return ChallengeTrainingLevel.growth;
+    return ChallengeTrainingLevel.rookie;
   }
 
   Future<void> _saveRuns(List<ChallengeRun> runs) async {
@@ -168,12 +267,77 @@ class ChallengeService {
   }
 }
 
+class ChallengeTrainingLevelConfig {
+  final ChallengeTrainingLevel level;
+  final double targetMultiplier;
+  final double mealMultiplier;
+  final int rewardXpPerRound;
+  final int completionBonusXpPerDay;
+
+  const ChallengeTrainingLevelConfig({
+    required this.level,
+    required this.targetMultiplier,
+    required this.mealMultiplier,
+    required this.rewardXpPerRound,
+    required this.completionBonusXpPerDay,
+  });
+}
+
+const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =
+    <ChallengeTrainingLevelConfig>[
+  ChallengeTrainingLevelConfig(
+    level: ChallengeTrainingLevel.rookie,
+    targetMultiplier: 1,
+    mealMultiplier: 1,
+    rewardXpPerRound: 10,
+    completionBonusXpPerDay: 40,
+  ),
+  ChallengeTrainingLevelConfig(
+    level: ChallengeTrainingLevel.growth,
+    targetMultiplier: 1.25,
+    mealMultiplier: 1.1,
+    rewardXpPerRound: 16,
+    completionBonusXpPerDay: 70,
+  ),
+  ChallengeTrainingLevelConfig(
+    level: ChallengeTrainingLevel.ace,
+    targetMultiplier: 1.5,
+    mealMultiplier: 1.2,
+    rewardXpPerRound: 24,
+    completionBonusXpPerDay: 110,
+  ),
+];
+
+ChallengeTrainingLevelConfig trainingLevelConfig(
+  ChallengeTrainingLevel level,
+) {
+  for (final config in challengeTrainingLevelConfigs) {
+    if (config.level == level) return config;
+  }
+  return challengeTrainingLevelConfigs.first;
+}
+
+int challengeCompletionBonusXpFor(
+  ChallengeTemplate template,
+  ChallengeTrainingLevel level,
+) {
+  return template.dayCount * trainingLevelConfig(level).completionBonusXpPerDay;
+}
+
+int challengeTotalPotentialXpFor(
+  ChallengeTemplate template,
+  ChallengeTrainingLevel level,
+) {
+  final config = trainingLevelConfig(level);
+  return template.dayCount * config.rewardXpPerRound +
+      challengeCompletionBonusXpFor(template, level);
+}
+
 const List<ChallengeTemplate> defaultChallengeTemplates = <ChallengeTemplate>[
   ChallengeTemplate(
     id: 'starter_3',
-    difficulty: ChallengeDifficulty.sprout,
     dayCount: 3,
-    rewardXpPerRound: 8,
+    rewardXpPerRound: 10,
     rounds: <ChallengeRound>[
       ChallengeRound(
         number: 1,
@@ -181,7 +345,7 @@ const List<ChallengeTemplate> defaultChallengeTemplates = <ChallengeTemplate>[
         targetJumpRopeMinutes: 5,
         targetLiftingMinutes: 5,
         targetRiceBowls: 2,
-        rewardXp: 8,
+        rewardXp: 10,
       ),
       ChallengeRound(
         number: 2,
@@ -189,7 +353,7 @@ const List<ChallengeTemplate> defaultChallengeTemplates = <ChallengeTemplate>[
         targetJumpRopeMinutes: 6,
         targetLiftingMinutes: 6,
         targetRiceBowls: 2.5,
-        rewardXp: 8,
+        rewardXp: 10,
       ),
       ChallengeRound(
         number: 3,
@@ -197,191 +361,189 @@ const List<ChallengeTemplate> defaultChallengeTemplates = <ChallengeTemplate>[
         targetJumpRopeMinutes: 8,
         targetLiftingMinutes: 8,
         targetRiceBowls: 3,
-        rewardXp: 8,
+        rewardXp: 10,
       ),
     ],
   ),
   ChallengeTemplate(
     id: 'weekly_7',
-    difficulty: ChallengeDifficulty.boost,
     dayCount: 7,
-    rewardXpPerRound: 12,
+    rewardXpPerRound: 10,
     rounds: <ChallengeRound>[
       ChallengeRound(
         number: 1,
-        targetTrainingMinutes: 30,
-        targetJumpRopeMinutes: 8,
-        targetLiftingMinutes: 8,
-        targetRiceBowls: 3,
-        rewardXp: 12,
+        targetTrainingMinutes: 20,
+        targetJumpRopeMinutes: 5,
+        targetLiftingMinutes: 5,
+        targetRiceBowls: 2,
+        rewardXp: 10,
       ),
       ChallengeRound(
         number: 2,
+        targetTrainingMinutes: 20,
+        targetJumpRopeMinutes: 5,
+        targetLiftingMinutes: 5,
+        targetRiceBowls: 2,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 3,
+        targetTrainingMinutes: 25,
+        targetJumpRopeMinutes: 6,
+        targetLiftingMinutes: 6,
+        targetRiceBowls: 2.5,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 4,
+        targetTrainingMinutes: 25,
+        targetJumpRopeMinutes: 6,
+        targetLiftingMinutes: 6,
+        targetRiceBowls: 2.5,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 5,
         targetTrainingMinutes: 30,
         targetJumpRopeMinutes: 8,
         targetLiftingMinutes: 8,
         targetRiceBowls: 3,
-        rewardXp: 12,
+        rewardXp: 10,
       ),
       ChallengeRound(
-        number: 3,
+        number: 6,
+        targetTrainingMinutes: 30,
+        targetJumpRopeMinutes: 8,
+        targetLiftingMinutes: 8,
+        targetRiceBowls: 3,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 7,
         targetTrainingMinutes: 35,
         targetJumpRopeMinutes: 10,
         targetLiftingMinutes: 10,
         targetRiceBowls: 3,
-        rewardXp: 12,
-      ),
-      ChallengeRound(
-        number: 4,
-        targetTrainingMinutes: 35,
-        targetJumpRopeMinutes: 10,
-        targetLiftingMinutes: 10,
-        targetRiceBowls: 3.5,
-        rewardXp: 12,
-      ),
-      ChallengeRound(
-        number: 5,
-        targetTrainingMinutes: 40,
-        targetJumpRopeMinutes: 12,
-        targetLiftingMinutes: 12,
-        targetRiceBowls: 3.5,
-        rewardXp: 12,
-      ),
-      ChallengeRound(
-        number: 6,
-        targetTrainingMinutes: 40,
-        targetJumpRopeMinutes: 12,
-        targetLiftingMinutes: 12,
-        targetRiceBowls: 4,
-        rewardXp: 12,
-      ),
-      ChallengeRound(
-        number: 7,
-        targetTrainingMinutes: 45,
-        targetJumpRopeMinutes: 15,
-        targetLiftingMinutes: 15,
-        targetRiceBowls: 4,
-        rewardXp: 12,
+        rewardXp: 10,
       ),
     ],
   ),
   ChallengeTemplate(
     id: 'focus_14',
-    difficulty: ChallengeDifficulty.star,
     dayCount: 14,
-    rewardXpPerRound: 18,
+    rewardXpPerRound: 10,
     rounds: <ChallengeRound>[
       ChallengeRound(
         number: 1,
-        targetTrainingMinutes: 35,
-        targetJumpRopeMinutes: 10,
-        targetLiftingMinutes: 10,
-        targetRiceBowls: 3,
-        rewardXp: 18,
+        targetTrainingMinutes: 15,
+        targetJumpRopeMinutes: 4,
+        targetLiftingMinutes: 4,
+        targetRiceBowls: 2,
+        rewardXp: 10,
       ),
       ChallengeRound(
         number: 2,
-        targetTrainingMinutes: 35,
-        targetJumpRopeMinutes: 10,
-        targetLiftingMinutes: 10,
-        targetRiceBowls: 3,
-        rewardXp: 18,
+        targetTrainingMinutes: 20,
+        targetJumpRopeMinutes: 5,
+        targetLiftingMinutes: 5,
+        targetRiceBowls: 2,
+        rewardXp: 10,
       ),
       ChallengeRound(
         number: 3,
-        targetTrainingMinutes: 40,
-        targetJumpRopeMinutes: 12,
-        targetLiftingMinutes: 12,
-        targetRiceBowls: 3.5,
-        rewardXp: 18,
+        targetTrainingMinutes: 20,
+        targetJumpRopeMinutes: 5,
+        targetLiftingMinutes: 5,
+        targetRiceBowls: 2,
+        rewardXp: 10,
       ),
       ChallengeRound(
         number: 4,
+        targetTrainingMinutes: 20,
+        targetJumpRopeMinutes: 5,
+        targetLiftingMinutes: 5,
+        targetRiceBowls: 2.5,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 5,
+        targetTrainingMinutes: 25,
+        targetJumpRopeMinutes: 6,
+        targetLiftingMinutes: 6,
+        targetRiceBowls: 2.5,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 6,
+        targetTrainingMinutes: 25,
+        targetJumpRopeMinutes: 6,
+        targetLiftingMinutes: 6,
+        targetRiceBowls: 2.5,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 7,
+        targetTrainingMinutes: 25,
+        targetJumpRopeMinutes: 6,
+        targetLiftingMinutes: 6,
+        targetRiceBowls: 3,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 8,
+        targetTrainingMinutes: 30,
+        targetJumpRopeMinutes: 8,
+        targetLiftingMinutes: 8,
+        targetRiceBowls: 3,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 9,
+        targetTrainingMinutes: 30,
+        targetJumpRopeMinutes: 8,
+        targetLiftingMinutes: 8,
+        targetRiceBowls: 3,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 10,
+        targetTrainingMinutes: 30,
+        targetJumpRopeMinutes: 8,
+        targetLiftingMinutes: 8,
+        targetRiceBowls: 3,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 11,
+        targetTrainingMinutes: 35,
+        targetJumpRopeMinutes: 10,
+        targetLiftingMinutes: 10,
+        targetRiceBowls: 3.5,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 12,
+        targetTrainingMinutes: 35,
+        targetJumpRopeMinutes: 10,
+        targetLiftingMinutes: 10,
+        targetRiceBowls: 3.5,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 13,
+        targetTrainingMinutes: 35,
+        targetJumpRopeMinutes: 10,
+        targetLiftingMinutes: 10,
+        targetRiceBowls: 3.5,
+        rewardXp: 10,
+      ),
+      ChallengeRound(
+        number: 14,
         targetTrainingMinutes: 40,
         targetJumpRopeMinutes: 12,
         targetLiftingMinutes: 12,
         targetRiceBowls: 3.5,
-        rewardXp: 18,
-      ),
-      ChallengeRound(
-        number: 5,
-        targetTrainingMinutes: 45,
-        targetJumpRopeMinutes: 14,
-        targetLiftingMinutes: 14,
-        targetRiceBowls: 3.5,
-        rewardXp: 18,
-      ),
-      ChallengeRound(
-        number: 6,
-        targetTrainingMinutes: 45,
-        targetJumpRopeMinutes: 14,
-        targetLiftingMinutes: 14,
-        targetRiceBowls: 4,
-        rewardXp: 18,
-      ),
-      ChallengeRound(
-        number: 7,
-        targetTrainingMinutes: 50,
-        targetJumpRopeMinutes: 16,
-        targetLiftingMinutes: 16,
-        targetRiceBowls: 4,
-        rewardXp: 18,
-      ),
-      ChallengeRound(
-        number: 8,
-        targetTrainingMinutes: 50,
-        targetJumpRopeMinutes: 16,
-        targetLiftingMinutes: 16,
-        targetRiceBowls: 4,
-        rewardXp: 18,
-      ),
-      ChallengeRound(
-        number: 9,
-        targetTrainingMinutes: 55,
-        targetJumpRopeMinutes: 18,
-        targetLiftingMinutes: 18,
-        targetRiceBowls: 4.5,
-        rewardXp: 18,
-      ),
-      ChallengeRound(
-        number: 10,
-        targetTrainingMinutes: 55,
-        targetJumpRopeMinutes: 18,
-        targetLiftingMinutes: 18,
-        targetRiceBowls: 4.5,
-        rewardXp: 18,
-      ),
-      ChallengeRound(
-        number: 11,
-        targetTrainingMinutes: 60,
-        targetJumpRopeMinutes: 20,
-        targetLiftingMinutes: 20,
-        targetRiceBowls: 4.5,
-        rewardXp: 18,
-      ),
-      ChallengeRound(
-        number: 12,
-        targetTrainingMinutes: 60,
-        targetJumpRopeMinutes: 20,
-        targetLiftingMinutes: 20,
-        targetRiceBowls: 5,
-        rewardXp: 18,
-      ),
-      ChallengeRound(
-        number: 13,
-        targetTrainingMinutes: 65,
-        targetJumpRopeMinutes: 22,
-        targetLiftingMinutes: 22,
-        targetRiceBowls: 5,
-        rewardXp: 18,
-      ),
-      ChallengeRound(
-        number: 14,
-        targetTrainingMinutes: 70,
-        targetJumpRopeMinutes: 24,
-        targetLiftingMinutes: 24,
-        targetRiceBowls: 5,
-        rewardXp: 18,
+        rewardXp: 10,
       ),
     ],
   ),

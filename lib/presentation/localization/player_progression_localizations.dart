@@ -210,6 +210,8 @@ extension PlayerProgressionLocalizations on AppLocalizations {
         return xpHistoryReasonDailyTasksCompleted;
       case 'challenge_round_completed':
         return xpHistoryReasonChallengeRoundCompleted;
+      case 'challenge_completed_bonus':
+        return xpHistoryReasonChallengeCompletionBonus;
       case 'daily_xp_cap':
         return xpHistoryReasonDailyCap;
       default:
@@ -231,6 +233,9 @@ extension PlayerProgressionLocalizations on AppLocalizations {
       _ => challengeTitle,
     };
     final roundNumber = parts.length > 1 ? int.tryParse(parts[1]) : null;
+    if (parts.length > 1 && parts[1] == 'complete') {
+      return '$templateTitle · $xpHistoryReasonChallengeCompletionBonus';
+    }
     if (roundNumber == null) return templateTitle;
     return '$templateTitle · $roundNumber';
   }

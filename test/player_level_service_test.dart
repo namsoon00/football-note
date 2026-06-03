@@ -482,6 +482,39 @@ void main() {
     );
   });
 
+  test('challenge completion bonus awards large xp once per run', () async {
+    final repository = _MemoryOptionRepository();
+    final service = PlayerLevelService(repository);
+
+    final award = await service.awardForChallengeCompletion(
+      challengeRunId: 'starter_3-1',
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 3, 20),
+      rewardXp: 120,
+    );
+    final duplicateAward = await service.awardForChallengeCompletion(
+      challengeRunId: 'starter_3-1',
+      challengeLabel: 'starter_3',
+      completedAt: DateTime(2026, 6, 3, 21),
+      rewardXp: 120,
+    );
+
+    expect(award.gainedXp, 120);
+    expect(duplicateAward.gainedXp, 0);
+    expect(service.loadState().totalXp, 120);
+    final history = service.loadXpHistory();
+    expect(history, hasLength(1));
+    expect(history.single.category, PlayerXpHistoryCategory.challenge);
+    expect(history.single.label, 'starter_3:complete');
+    expect(history.single.reasons, contains('challenge_completed_bonus'));
+    expect(
+      repository.getValue<List>(
+        PlayerLevelService.awardedChallengeCompletionsKey,
+      ),
+      contains('starter_3-1'),
+    );
+  });
+
   test('daily positive xp is capped to keep level-ups slower', () async {
     final repository = _MemoryOptionRepository()
       ..seed(PlayerLevelService.totalXpKey, 64)

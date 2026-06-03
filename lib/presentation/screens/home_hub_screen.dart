@@ -112,6 +112,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   Timer? _initialWeatherTimer;
   bool _dailyTaskAwardInFlight = false;
   String? _lastDailyTaskAwardToken;
+  bool _challengeFailureInFlight = false;
+  String? _lastChallengeFailureSignature;
 
   bool get _isParentMode =>
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
@@ -196,6 +198,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     openedNewsToday: _openedNewsToday(),
                   );
                   _scheduleDailyTaskCompletionAwardIfNeeded(data);
+                  if (challengeProgress != null) {
+                    _scheduleChallengeFailureIfNeeded(challengeProgress);
+                  }
                   final priorityFocusSignal = _resolvePriorityFocusSignal(data);
                   final reminderUnreadCount = TrainingPlanReminderService(
                     widget.optionRepository,
@@ -685,6 +690,41 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       }
     } finally {
       _dailyTaskAwardInFlight = false;
+    }
+  }
+
+  void _scheduleChallengeFailureIfNeeded(ChallengeProgress progress) {
+    if (_isParentMode) return;
+    final missedRound = progress.missedExpiredRound();
+    if (missedRound == null) return;
+    final signature = '${progress.run.id}:fail:${missedRound.round.number}';
+    if (_challengeFailureInFlight ||
+        _lastChallengeFailureSignature == signature) {
+      return;
+    }
+    _lastChallengeFailureSignature = signature;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_failChallenge(progress, missedRound, signature));
+    });
+  }
+
+  Future<void> _failChallenge(
+    ChallengeProgress progress,
+    ChallengeRoundProgress missedRound,
+    String signature,
+  ) async {
+    if (_challengeFailureInFlight || !mounted) return;
+    _challengeFailureInFlight = true;
+    try {
+      await ChallengeService(widget.optionRepository).failRun(
+        progress.run.id,
+        roundNumber: missedRound.round.number,
+      );
+      if (mounted) setState(() {});
+    } finally {
+      _challengeFailureInFlight = false;
+      _lastChallengeFailureSignature = signature;
     }
   }
 

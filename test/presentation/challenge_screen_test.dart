@@ -44,12 +44,20 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('챌린지 선택'), findsOneWidget);
-    expect(find.text('새싹 챌린지'), findsOneWidget);
+    expect(find.text('기간 선택'), findsOneWidget);
+    expect(find.text('3일 챌린지'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester
         .tap(find.byKey(const ValueKey('challenge-template-starter_3')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('라운드'), findsNothing);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -1200));
+    await tester.pump(const Duration(milliseconds: 300));
+    final startButton = find.widgetWithText(FilledButton, '챌린지 시작');
+    await tester.tap(startButton);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 

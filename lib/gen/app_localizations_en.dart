@@ -6593,7 +6593,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeStartHeroBody =>
-      'Build a round-by-round routine with training, jump rope, lifting, and meal goals.';
+      'Choose a duration and training level, then press start to begin. Missing even one day ends the challenge.';
 
   @override
   String get challengeLatestComplete => 'Latest challenge complete';
@@ -6602,25 +6602,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeSelectTitle => 'Choose a challenge';
 
   @override
-  String get challengeTemplateStarterTitle => 'Sprout Challenge';
+  String get challengeDurationSelectTitle => 'Choose duration';
+
+  @override
+  String get challengeTemplateStarterTitle => '3-day Challenge';
 
   @override
   String get challengeTemplateStarterDescription =>
-      'A light 3-day mission to wake up the body.';
+      'Learn the challenge rhythm with a short focused run.';
 
   @override
-  String get challengeTemplateWeeklyTitle => 'Grow-Up Challenge';
+  String get challengeTemplateWeeklyTitle => '7-day Challenge';
 
   @override
   String get challengeTemplateWeeklyDescription =>
-      'Grow training and meal rhythm step by step for 7 days.';
+      'Keep a daily routine for one full week.';
 
   @override
-  String get challengeTemplateFocusTitle => 'Star Challenge';
+  String get challengeTemplateFocusTitle => '14-day Challenge';
 
   @override
   String get challengeTemplateFocusDescription =>
-      'A stronger 14-day mission with higher goals.';
+      'Build consistency across two steady weeks.';
 
   @override
   String get challengeDifficultySprout => 'Sprout';
@@ -6630,6 +6633,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeDifficultyStar => 'Star';
+
+  @override
+  String get challengeTrainingLevelTitle => 'Training level';
+
+  @override
+  String get challengeTrainingLevelRookieTitle => 'Rookie level';
+
+  @override
+  String get challengeTrainingLevelRookieDescription =>
+      'A lighter target for younger players or players just starting soccer.';
+
+  @override
+  String get challengeTrainingLevelGrowthTitle => 'Grow-Up level';
+
+  @override
+  String get challengeTrainingLevelGrowthDescription =>
+      'A steady target for players with basic rhythm and regular practice.';
+
+  @override
+  String get challengeTrainingLevelAceTitle => 'Ace level';
+
+  @override
+  String get challengeTrainingLevelAceDescription =>
+      'A challenging target for older players with more soccer experience.';
+
+  @override
+  String get challengeRecommendedLevelBadge => 'Recommended';
+
+  @override
+  String challengeTargetMultiplierLabel(int percent) {
+    return 'Targets $percent%';
+  }
 
   @override
   String challengeDaysLabel(int days) {
@@ -6642,7 +6677,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get challengeStartAction => 'Start';
+  String challengeRoundXpLabel(int xp) {
+    return 'Round +$xp XP';
+  }
+
+  @override
+  String challengeCompletionBonusLabel(int xp) {
+    return 'Finish bonus +$xp XP';
+  }
+
+  @override
+  String challengeTotalXpLabel(int xp) {
+    return 'Up to +$xp XP';
+  }
+
+  @override
+  String get challengeRewardPitchTitle => 'A big finish bonus is waiting';
+
+  @override
+  String get challengeStartAction => 'Start challenge';
 
   @override
   String challengeRoundCount(int completed, int total) {
@@ -6722,6 +6775,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeCompletedSnack => 'Challenge complete.';
 
   @override
+  String challengeFailedSnack(int round) {
+    return 'Round $round was missed, so the challenge ended as failed.';
+  }
+
+  @override
   String get challengeCelebrationTitle => 'Mission complete!';
 
   @override
@@ -6739,6 +6797,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeCelebrationAction => 'Nice!';
+
+  @override
+  String get challengeHistoryTitle => 'Challenge history';
+
+  @override
+  String get challengeHistoryEmpty => 'No challenge history yet.';
+
+  @override
+  String challengeHistoryStarted(Object date) {
+    return 'Started $date';
+  }
+
+  @override
+  String challengeHistoryFailedRound(Object date, int round) {
+    return 'Started $date · failed at round $round';
+  }
+
+  @override
+  String get challengeHistoryResultCompleted => 'Success';
+
+  @override
+  String get challengeHistoryResultFailed => 'Failed';
+
+  @override
+  String get challengeHistoryResultAbandoned => 'Ended';
+
+  @override
+  String get challengeHistoryResultInProgress => 'In progress';
 
   @override
   String get challengeAbandonAction => 'End';
@@ -6769,4 +6855,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get xpHistoryReasonChallengeRoundCompleted =>
       'challenge round complete';
+
+  @override
+  String get xpHistoryReasonChallengeCompletionBonus =>
+      'challenge finish bonus';
 }

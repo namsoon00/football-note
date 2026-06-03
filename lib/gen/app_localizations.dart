@@ -11387,7 +11387,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeStartHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Build a round-by-round routine with training, jump rope, lifting, and meal goals.'**
+  /// **'Choose a duration and training level, then press start to begin. Missing even one day ends the challenge.'**
   String get challengeStartHeroBody;
 
   /// No description provided for @challengeLatestComplete.
@@ -11402,40 +11402,46 @@ abstract class AppLocalizations {
   /// **'Choose a challenge'**
   String get challengeSelectTitle;
 
+  /// No description provided for @challengeDurationSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose duration'**
+  String get challengeDurationSelectTitle;
+
   /// No description provided for @challengeTemplateStarterTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sprout Challenge'**
+  /// **'3-day Challenge'**
   String get challengeTemplateStarterTitle;
 
   /// No description provided for @challengeTemplateStarterDescription.
   ///
   /// In en, this message translates to:
-  /// **'A light 3-day mission to wake up the body.'**
+  /// **'Learn the challenge rhythm with a short focused run.'**
   String get challengeTemplateStarterDescription;
 
   /// No description provided for @challengeTemplateWeeklyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Grow-Up Challenge'**
+  /// **'7-day Challenge'**
   String get challengeTemplateWeeklyTitle;
 
   /// No description provided for @challengeTemplateWeeklyDescription.
   ///
   /// In en, this message translates to:
-  /// **'Grow training and meal rhythm step by step for 7 days.'**
+  /// **'Keep a daily routine for one full week.'**
   String get challengeTemplateWeeklyDescription;
 
   /// No description provided for @challengeTemplateFocusTitle.
   ///
   /// In en, this message translates to:
-  /// **'Star Challenge'**
+  /// **'14-day Challenge'**
   String get challengeTemplateFocusTitle;
 
   /// No description provided for @challengeTemplateFocusDescription.
   ///
   /// In en, this message translates to:
-  /// **'A stronger 14-day mission with higher goals.'**
+  /// **'Build consistency across two steady weeks.'**
   String get challengeTemplateFocusDescription;
 
   /// No description provided for @challengeDifficultySprout.
@@ -11456,6 +11462,60 @@ abstract class AppLocalizations {
   /// **'Star'**
   String get challengeDifficultyStar;
 
+  /// No description provided for @challengeTrainingLevelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training level'**
+  String get challengeTrainingLevelTitle;
+
+  /// No description provided for @challengeTrainingLevelRookieTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rookie level'**
+  String get challengeTrainingLevelRookieTitle;
+
+  /// No description provided for @challengeTrainingLevelRookieDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A lighter target for younger players or players just starting soccer.'**
+  String get challengeTrainingLevelRookieDescription;
+
+  /// No description provided for @challengeTrainingLevelGrowthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Grow-Up level'**
+  String get challengeTrainingLevelGrowthTitle;
+
+  /// No description provided for @challengeTrainingLevelGrowthDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A steady target for players with basic rhythm and regular practice.'**
+  String get challengeTrainingLevelGrowthDescription;
+
+  /// No description provided for @challengeTrainingLevelAceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ace level'**
+  String get challengeTrainingLevelAceTitle;
+
+  /// No description provided for @challengeTrainingLevelAceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A challenging target for older players with more soccer experience.'**
+  String get challengeTrainingLevelAceDescription;
+
+  /// No description provided for @challengeRecommendedLevelBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get challengeRecommendedLevelBadge;
+
+  /// No description provided for @challengeTargetMultiplierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Targets {percent}%'**
+  String challengeTargetMultiplierLabel(int percent);
+
   /// No description provided for @challengeDaysLabel.
   ///
   /// In en, this message translates to:
@@ -11468,10 +11528,34 @@ abstract class AppLocalizations {
   /// **'+{xp} XP'**
   String challengeRewardXp(int xp);
 
+  /// No description provided for @challengeRoundXpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Round +{xp} XP'**
+  String challengeRoundXpLabel(int xp);
+
+  /// No description provided for @challengeCompletionBonusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish bonus +{xp} XP'**
+  String challengeCompletionBonusLabel(int xp);
+
+  /// No description provided for @challengeTotalXpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to +{xp} XP'**
+  String challengeTotalXpLabel(int xp);
+
+  /// No description provided for @challengeRewardPitchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A big finish bonus is waiting'**
+  String get challengeRewardPitchTitle;
+
   /// No description provided for @challengeStartAction.
   ///
   /// In en, this message translates to:
-  /// **'Start'**
+  /// **'Start challenge'**
   String get challengeStartAction;
 
   /// No description provided for @challengeRoundCount.
@@ -11588,6 +11672,12 @@ abstract class AppLocalizations {
   /// **'Challenge complete.'**
   String get challengeCompletedSnack;
 
+  /// No description provided for @challengeFailedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {round} was missed, so the challenge ended as failed.'**
+  String challengeFailedSnack(int round);
+
   /// No description provided for @challengeCelebrationTitle.
   ///
   /// In en, this message translates to:
@@ -11617,6 +11707,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nice!'**
   String get challengeCelebrationAction;
+
+  /// No description provided for @challengeHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge history'**
+  String get challengeHistoryTitle;
+
+  /// No description provided for @challengeHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No challenge history yet.'**
+  String get challengeHistoryEmpty;
+
+  /// No description provided for @challengeHistoryStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Started {date}'**
+  String challengeHistoryStarted(Object date);
+
+  /// No description provided for @challengeHistoryFailedRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Started {date} · failed at round {round}'**
+  String challengeHistoryFailedRound(Object date, int round);
+
+  /// No description provided for @challengeHistoryResultCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get challengeHistoryResultCompleted;
+
+  /// No description provided for @challengeHistoryResultFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get challengeHistoryResultFailed;
+
+  /// No description provided for @challengeHistoryResultAbandoned.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get challengeHistoryResultAbandoned;
+
+  /// No description provided for @challengeHistoryResultInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get challengeHistoryResultInProgress;
 
   /// No description provided for @challengeAbandonAction.
   ///
@@ -11665,6 +11803,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'challenge round complete'**
   String get xpHistoryReasonChallengeRoundCompleted;
+
+  /// No description provided for @xpHistoryReasonChallengeCompletionBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'challenge finish bonus'**
+  String get xpHistoryReasonChallengeCompletionBonus;
 }
 
 class _AppLocalizationsDelegate

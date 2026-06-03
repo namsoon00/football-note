@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/challenge_service.dart';
 import 'package:football_note/application/player_level_service.dart';
+import 'package:football_note/domain/entities/challenge.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
@@ -17,7 +18,31 @@ void main() {
     expect(templates[2].rounds, hasLength(14));
     expect(
       templates.map((template) => template.rewardXpPerRound),
-      <int>[8, 12, 18],
+      <int>[10, 10, 10],
+    );
+  });
+
+  test('training levels scale targets and completion rewards', () {
+    final service = ChallengeService(_MemoryOptionRepository());
+    final template = service.templateById('starter_3')!;
+    final baseRound = template.rounds.first;
+
+    final rookie = service.roundForLevel(
+      baseRound,
+      ChallengeTrainingLevel.rookie,
+    );
+    final ace = service.roundForLevel(baseRound, ChallengeTrainingLevel.ace);
+
+    expect(rookie.targetTrainingMinutes, 20);
+    expect(
+        ace.targetTrainingMinutes, greaterThan(rookie.targetTrainingMinutes));
+    expect(rookie.rewardXp, 10);
+    expect(ace.rewardXp, 24);
+    expect(
+      service.completionBonusXpFor(template, ChallengeTrainingLevel.ace),
+      greaterThan(
+        service.completionBonusXpFor(template, ChallengeTrainingLevel.rookie),
+      ),
     );
   });
 
@@ -108,9 +133,9 @@ void main() {
       awardedAt: DateTime(2026, 6, 1, 22),
     );
 
-    expect(firstAwards.single.gainedXp, 8);
+    expect(firstAwards.single.gainedXp, 10);
     expect(duplicateAwards.single.gainedXp, 0);
-    expect(levelService.loadState().totalXp, 8);
+    expect(levelService.loadState().totalXp, 10);
     expect(levelService.loadXpHistory(), hasLength(1));
     expect(
       levelService.loadXpHistory().single.category,
@@ -179,7 +204,41 @@ void main() {
 
     expect(service.activeRun(), isNull);
     expect(service.latestCompletedRun(), isNotNull);
-    expect(levelService.loadState().totalXp, 24);
+    expect(levelService.loadState().totalXp, 150);
+    expect(
+      levelService.loadXpHistory().map((entry) => entry.reasons).expand(
+            (reasons) => reasons,
+          ),
+      contains('challenge_completed_bonus'),
+    );
+  });
+
+  test('missed expired round fails the active challenge', () async {
+    final repository = _MemoryOptionRepository();
+    final service = ChallengeService(repository);
+    final template = service.templateById('starter_3')!;
+    final run = await service.startChallenge(
+      template,
+      startedAt: DateTime(2026, 6, 1, 9),
+    );
+    final progress = service.progressForRun(
+      run: run,
+      trainingEntries: const <TrainingEntry>[],
+      mealEntries: const <MealEntry>[],
+    )!;
+    final missed = progress.missedExpiredRound(now: DateTime(2026, 6, 2, 8));
+
+    expect(missed?.round.number, 1);
+    await service.failRun(
+      run.id,
+      roundNumber: missed!.round.number,
+      failedAt: DateTime(2026, 6, 2, 8),
+    );
+
+    expect(service.activeRun(), isNull);
+    final failed = service.loadRuns().single;
+    expect(failed.isFailed, isTrue);
+    expect(failed.failedRoundNumber, 1);
   });
 }
 

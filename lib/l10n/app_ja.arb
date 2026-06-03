@@ -3159,18 +3159,35 @@
   "trainingSketchTemplateGallerySubtitle": "スケッチを作成する前に、動線と注記をプレビューします。",
   "challengeTitle": "チャレンジ",
   "challengeStartHeroTitle": "リンジーのチャレンジモード",
-  "challengeStartHeroBody": "トレーニング、縄跳び、リフティング、食事の目標をラウンドごとに積み上げます。",
+  "challengeStartHeroBody": "期間とトレーニングレベルを選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。",
   "challengeLatestComplete": "最新チャレンジ完了",
   "challengeSelectTitle": "チャレンジを選択",
-  "challengeTemplateStarterTitle": "めばえチャレンジ",
-  "challengeTemplateStarterDescription": "3日間、軽く体を起こすやさしいミッションです。",
-  "challengeTemplateWeeklyTitle": "ぐんぐんチャレンジ",
-  "challengeTemplateWeeklyDescription": "7日間、練習と食事のリズムを少しずつ育てます。",
-  "challengeTemplateFocusTitle": "スターチャレンジ",
-  "challengeTemplateFocusDescription": "14日間、より高い目標に挑む強めのミッションです。",
+  "challengeDurationSelectTitle": "期間を選択",
+  "challengeTemplateStarterTitle": "3日チャレンジ",
+  "challengeTemplateStarterDescription": "短く集中してチャレンジのリズムを覚えます。",
+  "challengeTemplateWeeklyTitle": "7日チャレンジ",
+  "challengeTemplateWeeklyDescription": "1週間、毎日のルーティンを続けます。",
+  "challengeTemplateFocusTitle": "14日チャレンジ",
+  "challengeTemplateFocusDescription": "2週間、コツコツ続ける力を伸ばします。",
   "challengeDifficultySprout": "めばえ",
   "challengeDifficultyBoost": "ぐんぐん",
   "challengeDifficultyStar": "スター",
+  "challengeTrainingLevelTitle": "トレーニングレベル",
+  "challengeTrainingLevelRookieTitle": "ルーキーレベル",
+  "challengeTrainingLevelRookieDescription": "低学年やサッカーを始めたばかりの選手向けの軽めの目標です。",
+  "challengeTrainingLevelGrowthTitle": "ぐんぐんレベル",
+  "challengeTrainingLevelGrowthDescription": "基礎のリズムができ、定期的に練習する選手向けの標準目標です。",
+  "challengeTrainingLevelAceTitle": "エースレベル",
+  "challengeTrainingLevelAceDescription": "年齢とサッカー経験がある選手向けの挑戦的な目標です。",
+  "challengeRecommendedLevelBadge": "おすすめ",
+  "challengeTargetMultiplierLabel": "目標 {percent}%",
+  "@challengeTargetMultiplierLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "challengeDaysLabel": "{days}日",
   "@challengeDaysLabel": {
     "placeholders": {
@@ -3187,7 +3204,32 @@
       }
     }
   },
-  "challengeStartAction": "開始",
+  "challengeRoundXpLabel": "ラウンド +{xp} XP",
+  "@challengeRoundXpLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCompletionBonusLabel": "完走ボーナス +{xp} XP",
+  "@challengeCompletionBonusLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeTotalXpLabel": "最大 +{xp} XP",
+  "@challengeTotalXpLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRewardPitchTitle": "完走すると大きなボーナスがあります",
+  "challengeStartAction": "チャレンジ開始",
   "challengeRoundCount": "{completed}/{total} ラウンド完了",
   "@challengeRoundCount": {
     "placeholders": {
@@ -3278,6 +3320,14 @@
     }
   },
   "challengeCompletedSnack": "チャレンジ完了。",
+  "challengeFailedSnack": "ラウンド {round} を逃したため、チャレンジは失敗で終了しました。",
+  "@challengeFailedSnack": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
   "challengeCelebrationTitle": "ミッション完了!",
   "challengeCelebrationBody": "ラウンド {rounds} 完了! リンジーが応援しています。+{xp} XP を受け取りました。",
   "@challengeCelebrationBody": {
@@ -3300,6 +3350,27 @@
     }
   },
   "challengeCelebrationAction": "いいね!",
+  "challengeHistoryTitle": "チャレンジ履歴",
+  "challengeHistoryEmpty": "まだチャレンジ履歴がありません。",
+  "challengeHistoryStarted": "{date} 開始",
+  "@challengeHistoryStarted": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "challengeHistoryFailedRound": "{date} 開始 · ラウンド {round} 失敗",
+  "@challengeHistoryFailedRound": {
+    "placeholders": {
+      "date": {},
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeHistoryResultCompleted": "成功",
+  "challengeHistoryResultFailed": "失敗",
+  "challengeHistoryResultAbandoned": "終了",
+  "challengeHistoryResultInProgress": "進行中",
   "challengeAbandonAction": "終了",
   "challengeAbandonTitle": "チャレンジを終了",
   "challengeAbandonBody": "現在のチャレンジを終了して別のチャレンジを選択しますか?",
@@ -3325,5 +3396,6 @@
       "label": {}
     }
   },
-  "xpHistoryReasonChallengeRoundCompleted": "チャレンジラウンド完了"
+  "xpHistoryReasonChallengeRoundCompleted": "チャレンジラウンド完了",
+  "xpHistoryReasonChallengeCompletionBonus": "チャレンジ完走ボーナス"
 }

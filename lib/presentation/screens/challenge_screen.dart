@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../application/challenge_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/player_level_service.dart';
+import '../../application/player_profile_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/entities/challenge.dart';
 import '../../domain/entities/meal_entry.dart';
@@ -35,7 +36,9 @@ class ChallengeScreen extends StatefulWidget {
 class _ChallengeScreenState extends State<ChallengeScreen> {
   late final ChallengeService _challengeService;
   bool _awardInFlight = false;
+  bool _failureInFlight = false;
   String? _lastAwardSignature;
+  String? _lastFailureSignature;
 
   @override
   void initState() {
@@ -69,18 +72,38 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     mealEntries: mealEntries,
                   );
                   if (progress != null) {
-                    _scheduleAwardSync(progress);
+                    final missedRound = progress.missedExpiredRound();
+                    if (missedRound != null) {
+                      _scheduleFailureSync(progress, missedRound);
+                    } else {
+                      _scheduleAwardSync(progress);
+                    }
                   }
-                  final latestCompleted = progress == null
-                      ? _challengeService.latestCompletedRun()
-                      : null;
+                  final runs = _challengeService.loadRuns();
+                  final historyRuns =
+                      runs.where((run) => run.isEnded).toList(growable: false);
+                  final profileService = PlayerProfileService(
+                    widget.optionRepository,
+                  );
+                  final profile = profileService.load();
+                  final recommendedLevel = ChallengeService.recommendedLevel(
+                    ageYears: profileService.ageInYears(
+                      profile,
+                      DateTime.now(),
+                    ),
+                    soccerYears: profileService.soccerYears(
+                      profile,
+                      DateTime.now(),
+                    ),
+                  );
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
                     children: [
                       if (progress == null)
                         _ChallengeStartSection(
                           templates: _challengeService.templates(),
-                          latestCompletedRun: latestCompleted,
+                          historyRuns: historyRuns,
+                          recommendedLevel: recommendedLevel,
                           templateTitle: (template) =>
                               _templateTitle(l10n, template),
                           templateDescription: (template) =>
@@ -118,6 +141,45 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       if (!mounted) return;
       unawaited(_syncAwards(progress, signature));
     });
+  }
+
+  void _scheduleFailureSync(
+    ChallengeProgress progress,
+    ChallengeRoundProgress missedRound,
+  ) {
+    final signature = '${progress.run.id}:fail:${missedRound.round.number}';
+    if (_failureInFlight || _lastFailureSignature == signature) return;
+    _lastFailureSignature = signature;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_syncFailure(progress, missedRound, signature));
+    });
+  }
+
+  Future<void> _syncFailure(
+    ChallengeProgress progress,
+    ChallengeRoundProgress missedRound,
+    String signature,
+  ) async {
+    if (_failureInFlight) return;
+    _failureInFlight = true;
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await _challengeService.failRun(
+        progress.run.id,
+        roundNumber: missedRound.round.number,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.challengeFailedSnack(missedRound.round.number)),
+        ),
+      );
+      setState(() {});
+    } finally {
+      _failureInFlight = false;
+      _lastFailureSignature = signature;
+    }
   }
 
   Future<void> _syncAwards(
@@ -160,9 +222,15 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     }
   }
 
-  Future<void> _startChallenge(ChallengeTemplate template) async {
+  Future<void> _startChallenge(
+    ChallengeTemplate template,
+    ChallengeTrainingLevel trainingLevel,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
-    await _challengeService.startChallenge(template);
+    await _challengeService.startChallenge(
+      template,
+      trainingLevel: trainingLevel,
+    );
     if (!mounted) return;
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
@@ -198,20 +266,51 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 }
 
-class _ChallengeStartSection extends StatelessWidget {
+class _ChallengeStartSection extends StatefulWidget {
   final List<ChallengeTemplate> templates;
-  final ChallengeRun? latestCompletedRun;
+  final List<ChallengeRun> historyRuns;
+  final ChallengeTrainingLevel recommendedLevel;
   final String Function(ChallengeTemplate template) templateTitle;
   final String Function(ChallengeTemplate template) templateDescription;
-  final ValueChanged<ChallengeTemplate> onStart;
+  final void Function(
+    ChallengeTemplate template,
+    ChallengeTrainingLevel trainingLevel,
+  ) onStart;
 
   const _ChallengeStartSection({
     required this.templates,
-    required this.latestCompletedRun,
+    required this.historyRuns,
+    required this.recommendedLevel,
     required this.templateTitle,
     required this.templateDescription,
     required this.onStart,
   });
+
+  @override
+  State<_ChallengeStartSection> createState() => _ChallengeStartSectionState();
+}
+
+class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
+  late ChallengeTemplate _selectedTemplate;
+  late ChallengeTrainingLevel _selectedLevel;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTemplate = widget.templates.first;
+    _selectedLevel = widget.recommendedLevel;
+  }
+
+  @override
+  void didUpdateWidget(_ChallengeStartSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.templates.contains(_selectedTemplate)) {
+      _selectedTemplate = widget.templates.first;
+    }
+    if (oldWidget.recommendedLevel != widget.recommendedLevel) {
+      _selectedLevel = widget.recommendedLevel;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -224,27 +323,68 @@ class _ChallengeStartSection extends StatelessWidget {
           title: l10n.challengeStartHeroTitle,
           body: l10n.challengeStartHeroBody,
           progress: 0,
-          footer: latestCompletedRun == null
+          footer: widget.historyRuns.isEmpty
               ? null
               : _SmallStatusPill(label: l10n.challengeLatestComplete),
         ),
         const SizedBox(height: 18),
         Text(
-          l10n.challengeSelectTitle,
+          l10n.challengeDurationSelectTitle,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w900,
           ),
         ),
         const SizedBox(height: 10),
-        for (final template in templates) ...[
+        for (final template in widget.templates) ...[
           _ChallengeTemplateCard(
             template: template,
-            title: templateTitle(template),
-            description: templateDescription(template),
-            onStart: () => onStart(template),
+            title: widget.templateTitle(template),
+            description: widget.templateDescription(template),
+            selected: template.id == _selectedTemplate.id,
+            level: _selectedLevel,
+            onSelect: () => setState(() => _selectedTemplate = template),
           ),
           const SizedBox(height: 10),
         ],
+        const SizedBox(height: 10),
+        Text(
+          l10n.challengeTrainingLevelTitle,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 10),
+        for (final config in challengeTrainingLevelConfigs) ...[
+          _ChallengeLevelCard(
+            level: config.level,
+            selected: config.level == _selectedLevel,
+            recommended: config.level == widget.recommendedLevel,
+            onSelect: () => setState(() => _selectedLevel = config.level),
+          ),
+          const SizedBox(height: 10),
+        ],
+        const SizedBox(height: 6),
+        _RewardPitchCard(
+          roundXp: trainingLevelConfig(_selectedLevel).rewardXpPerRound,
+          completionBonusXp: challengeCompletionBonusXpFor(
+            _selectedTemplate,
+            _selectedLevel,
+          ),
+          totalXp: challengeTotalPotentialXpFor(
+            _selectedTemplate,
+            _selectedLevel,
+          ),
+        ),
+        const SizedBox(height: 12),
+        FilledButton.icon(
+          onPressed: () => widget.onStart(_selectedTemplate, _selectedLevel),
+          icon: const Icon(Icons.play_arrow),
+          label: Text(l10n.challengeStartAction),
+        ),
+        const SizedBox(height: 22),
+        _ChallengeHistorySection(
+          runs: widget.historyRuns,
+        ),
       ],
     );
   }
@@ -254,13 +394,17 @@ class _ChallengeTemplateCard extends StatelessWidget {
   final ChallengeTemplate template;
   final String title;
   final String description;
-  final VoidCallback onStart;
+  final bool selected;
+  final ChallengeTrainingLevel level;
+  final VoidCallback onSelect;
 
   const _ChallengeTemplateCard({
     required this.template,
     required this.title,
     required this.description,
-    required this.onStart,
+    required this.selected,
+    required this.level,
+    required this.onSelect,
   });
 
   @override
@@ -271,14 +415,19 @@ class _ChallengeTemplateCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         key: ValueKey('challenge-template-${template.id}'),
-        onTap: onStart,
+        onTap: onSelect,
         borderRadius: BorderRadius.circular(18),
         child: Ink(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: theme.colorScheme.outline),
+            border: Border.all(
+              color: selected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.outline,
+              width: selected ? 2 : 1,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -318,8 +467,12 @@ class _ChallengeTemplateCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Icon(
-                    Icons.chevron_right,
-                    color: theme.colorScheme.onSurfaceVariant,
+                    selected
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: selected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
@@ -332,36 +485,278 @@ class _ChallengeTemplateCard extends StatelessWidget {
                     label: l10n.challengeDaysLabel(template.dayCount),
                   ),
                   _SmallStatusPill(
-                    label: _difficultyLabel(l10n, template.difficulty),
+                    label: l10n.challengeRoundXpLabel(
+                      trainingLevelConfig(level).rewardXpPerRound,
+                    ),
                   ),
                   _SmallStatusPill(
-                    label: l10n.challengeRewardXp(
-                      template.rewardXpPerRound,
+                    label: l10n.challengeCompletionBonusLabel(
+                      challengeCompletionBonusXpFor(template, level),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Text(
-                    l10n.challengeStartAction,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.onPrimary,
-                      fontWeight: FontWeight.w900,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChallengeLevelCard extends StatelessWidget {
+  final ChallengeTrainingLevel level;
+  final bool selected;
+  final bool recommended;
+  final VoidCallback onSelect;
+
+  const _ChallengeLevelCard({
+    required this.level,
+    required this.selected,
+    required this.recommended,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final config = trainingLevelConfig(level);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onSelect,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.outline,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                selected ? Icons.check_circle : Icons.radio_button_unchecked,
+                color: selected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          _trainingLevelTitle(l10n, level),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        if (recommended)
+                          _SmallStatusPill(
+                            label: l10n.challengeRecommendedLevelBadge,
+                          ),
+                      ],
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _trainingLevelDescription(l10n, level),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _SmallStatusPill(
+                          label: l10n.challengeRoundXpLabel(
+                            config.rewardXpPerRound,
+                          ),
+                        ),
+                        _SmallStatusPill(
+                          label: l10n.challengeTargetMultiplierLabel(
+                            (config.targetMultiplier * 100).round(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _RewardPitchCard extends StatelessWidget {
+  final int roundXp;
+  final int completionBonusXp;
+  final int totalXp;
+
+  const _RewardPitchCard({
+    required this.roundXp,
+    required this.completionBonusXp,
+    required this.totalXp,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.42),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.20),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.challengeRewardPitchTitle,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _SmallStatusPill(label: l10n.challengeRoundXpLabel(roundXp)),
+              _SmallStatusPill(
+                label: l10n.challengeCompletionBonusLabel(completionBonusXp),
+              ),
+              _SmallStatusPill(label: l10n.challengeTotalXpLabel(totalXp)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChallengeHistorySection extends StatelessWidget {
+  final List<ChallengeRun> runs;
+
+  const _ChallengeHistorySection({
+    required this.runs,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final shownRuns = runs.take(8).toList(growable: false);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.challengeHistoryTitle,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (shownRuns.isEmpty)
+          Text(
+            l10n.challengeHistoryEmpty,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          )
+        else
+          for (final run in shownRuns) ...[
+            _ChallengeHistoryTile(
+              run: run,
+              title: _templateTitleForRun(l10n, run),
+            ),
+            const SizedBox(height: 8),
+          ],
+      ],
+    );
+  }
+}
+
+class _ChallengeHistoryTile extends StatelessWidget {
+  final ChallengeRun run;
+  final String title;
+
+  const _ChallengeHistoryTile({
+    required this.run,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final localeName = Localizations.localeOf(context).toLanguageTag();
+    final started = DateFormat.yMMMd(localeName).format(run.startDay);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: theme.colorScheme.outline),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            run.isCompleted
+                ? Icons.emoji_events_outlined
+                : run.isFailed
+                    ? Icons.flag_circle_outlined
+                    : Icons.stop_circle_outlined,
+            color: run.isCompleted
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  run.isFailed && run.failedRoundNumber != null
+                      ? l10n.challengeHistoryFailedRound(
+                          started,
+                          run.failedRoundNumber!,
+                        )
+                      : l10n.challengeHistoryStarted(started),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _SmallStatusPill(label: _runResultLabel(l10n, run)),
+        ],
       ),
     );
   }
@@ -519,6 +914,27 @@ class _ActiveChallengeIntroCard extends StatelessWidget {
                 style: theme.textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _SmallStatusPill(
+                    label: _trainingLevelTitle(
+                      l10n,
+                      progress.run.trainingLevel,
+                    ),
+                  ),
+                  _SmallStatusPill(
+                    label: l10n.challengeCompletionBonusLabel(
+                      challengeCompletionBonusXpFor(
+                        progress.template,
+                        progress.run.trainingLevel,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           );
@@ -975,14 +1391,27 @@ String _templateDescription(AppLocalizations l10n, ChallengeTemplate template) {
   };
 }
 
-String _difficultyLabel(
+String _trainingLevelTitle(
   AppLocalizations l10n,
-  ChallengeDifficulty difficulty,
+  ChallengeTrainingLevel level,
 ) {
-  return switch (difficulty) {
-    ChallengeDifficulty.sprout => l10n.challengeDifficultySprout,
-    ChallengeDifficulty.boost => l10n.challengeDifficultyBoost,
-    ChallengeDifficulty.star => l10n.challengeDifficultyStar,
+  return switch (level) {
+    ChallengeTrainingLevel.rookie => l10n.challengeTrainingLevelRookieTitle,
+    ChallengeTrainingLevel.growth => l10n.challengeTrainingLevelGrowthTitle,
+    ChallengeTrainingLevel.ace => l10n.challengeTrainingLevelAceTitle,
+  };
+}
+
+String _trainingLevelDescription(
+  AppLocalizations l10n,
+  ChallengeTrainingLevel level,
+) {
+  return switch (level) {
+    ChallengeTrainingLevel.rookie =>
+      l10n.challengeTrainingLevelRookieDescription,
+    ChallengeTrainingLevel.growth =>
+      l10n.challengeTrainingLevelGrowthDescription,
+    ChallengeTrainingLevel.ace => l10n.challengeTrainingLevelAceDescription,
   };
 }
 
@@ -992,6 +1421,26 @@ String _minutesGoalValue(
   int target,
 ) {
   return l10n.challengeTrainingGoalValue(current, target);
+}
+
+String _runResultLabel(AppLocalizations l10n, ChallengeRun run) {
+  if (run.isCompleted) return l10n.challengeHistoryResultCompleted;
+  if (run.isFailed) return l10n.challengeHistoryResultFailed;
+  if (run.isAbandoned) return l10n.challengeHistoryResultAbandoned;
+  return l10n.challengeHistoryResultInProgress;
+}
+
+String _templateTitleForRun(
+  AppLocalizations l10n,
+  ChallengeRun run,
+) {
+  final title = switch (run.templateId) {
+    'starter_3' => l10n.challengeTemplateStarterTitle,
+    'weekly_7' => l10n.challengeTemplateWeeklyTitle,
+    'focus_14' => l10n.challengeTemplateFocusTitle,
+    _ => l10n.challengeTitle,
+  };
+  return '$title · ${_trainingLevelTitle(l10n, run.trainingLevel)}';
 }
 
 String _roundSubtitle(BuildContext context, ChallengeRoundProgress round) {

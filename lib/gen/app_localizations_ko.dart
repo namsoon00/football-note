@@ -6360,7 +6360,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeStartHeroBody =>
-      '훈련, 줄넘기, 리프팅, 식사 목표를 라운드마다 쌓아 루틴을 만듭니다.';
+      '기간과 훈련 레벨을 고른 뒤 시작 버튼을 누르면 도전이 시작됩니다. 하루라도 놓치면 실패예요.';
 
   @override
   String get challengeLatestComplete => '최근 챌린지 완료';
@@ -6369,25 +6369,25 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeSelectTitle => '챌린지 선택';
 
   @override
-  String get challengeTemplateStarterTitle => '새싹 챌린지';
+  String get challengeDurationSelectTitle => '기간 선택';
 
   @override
-  String get challengeTemplateStarterDescription =>
-      '3일 동안 가볍게 몸을 깨우는 쉬운 미션입니다.';
+  String get challengeTemplateStarterTitle => '3일 챌린지';
 
   @override
-  String get challengeTemplateWeeklyTitle => '쑥쑥 챌린지';
+  String get challengeTemplateStarterDescription => '짧게 집중해서 챌린지 감각을 익힙니다.';
 
   @override
-  String get challengeTemplateWeeklyDescription =>
-      '7일 동안 훈련과 식사 리듬을 차근차근 키웁니다.';
+  String get challengeTemplateWeeklyTitle => '7일 챌린지';
 
   @override
-  String get challengeTemplateFocusTitle => '스타 챌린지';
+  String get challengeTemplateWeeklyDescription => '일주일 동안 매일 루틴을 이어갑니다.';
 
   @override
-  String get challengeTemplateFocusDescription =>
-      '14일 동안 더 높은 목표에 도전하는 강한 미션입니다.';
+  String get challengeTemplateFocusTitle => '14일 챌린지';
+
+  @override
+  String get challengeTemplateFocusDescription => '2주 동안 꾸준함을 길게 쌓습니다.';
 
   @override
   String get challengeDifficultySprout => '새싹';
@@ -6397,6 +6397,38 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeDifficultyStar => '스타';
+
+  @override
+  String get challengeTrainingLevelTitle => '훈련 레벨';
+
+  @override
+  String get challengeTrainingLevelRookieTitle => '루키 레벨';
+
+  @override
+  String get challengeTrainingLevelRookieDescription =>
+      '저학년이거나 축구를 막 시작한 선수에게 맞춘 가벼운 목표입니다.';
+
+  @override
+  String get challengeTrainingLevelGrowthTitle => '쑥쑥 레벨';
+
+  @override
+  String get challengeTrainingLevelGrowthDescription =>
+      '기본기가 잡히고 꾸준히 훈련하는 선수에게 맞춘 표준 목표입니다.';
+
+  @override
+  String get challengeTrainingLevelAceTitle => '에이스 레벨';
+
+  @override
+  String get challengeTrainingLevelAceDescription =>
+      '나이와 축구 구력이 쌓인 선수에게 맞춘 도전적인 목표입니다.';
+
+  @override
+  String get challengeRecommendedLevelBadge => '추천';
+
+  @override
+  String challengeTargetMultiplierLabel(int percent) {
+    return '목표 $percent%';
+  }
 
   @override
   String challengeDaysLabel(int days) {
@@ -6409,7 +6441,25 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get challengeStartAction => '시작';
+  String challengeRoundXpLabel(int xp) {
+    return '라운드 +$xp XP';
+  }
+
+  @override
+  String challengeCompletionBonusLabel(int xp) {
+    return '완주 보너스 +$xp XP';
+  }
+
+  @override
+  String challengeTotalXpLabel(int xp) {
+    return '최대 +$xp XP';
+  }
+
+  @override
+  String get challengeRewardPitchTitle => '완주하면 큰 보너스가 기다려요';
+
+  @override
+  String get challengeStartAction => '챌린지 시작';
 
   @override
   String challengeRoundCount(int completed, int total) {
@@ -6489,6 +6539,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeCompletedSnack => '챌린지를 완료했어요.';
 
   @override
+  String challengeFailedSnack(int round) {
+    return '$round라운드를 놓쳐 챌린지가 실패로 끝났어요.';
+  }
+
+  @override
   String get challengeCelebrationTitle => '미션 완료!';
 
   @override
@@ -6506,6 +6561,34 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeCelebrationAction => '좋아!';
+
+  @override
+  String get challengeHistoryTitle => '챌린지 히스토리';
+
+  @override
+  String get challengeHistoryEmpty => '아직 챌린지 기록이 없어요.';
+
+  @override
+  String challengeHistoryStarted(Object date) {
+    return '$date 시작';
+  }
+
+  @override
+  String challengeHistoryFailedRound(Object date, int round) {
+    return '$date 시작 · $round라운드 실패';
+  }
+
+  @override
+  String get challengeHistoryResultCompleted => '성공';
+
+  @override
+  String get challengeHistoryResultFailed => '실패';
+
+  @override
+  String get challengeHistoryResultAbandoned => '종료';
+
+  @override
+  String get challengeHistoryResultInProgress => '진행 중';
 
   @override
   String get challengeAbandonAction => '종료';
@@ -6534,4 +6617,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get xpHistoryReasonChallengeRoundCompleted => '챌린지 라운드 완료';
+
+  @override
+  String get xpHistoryReasonChallengeCompletionBonus => '챌린지 완주 보너스';
 }

@@ -1,18 +1,18 @@
 import 'meal_entry.dart';
 import 'training_entry.dart';
 
-enum ChallengeDifficulty { sprout, boost, star }
+enum ChallengeTrainingLevel { rookie, growth, ace }
+
+enum ChallengeRunResult { completed, failed, abandoned }
 
 class ChallengeTemplate {
   final String id;
-  final ChallengeDifficulty difficulty;
   final int dayCount;
   final int rewardXpPerRound;
   final List<ChallengeRound> rounds;
 
   const ChallengeTemplate({
     required this.id,
-    required this.difficulty,
     required this.dayCount,
     required this.rewardXpPerRound,
     required this.rounds,
@@ -40,21 +40,35 @@ class ChallengeRound {
 class ChallengeRun {
   final String id;
   final String templateId;
+  final ChallengeTrainingLevel trainingLevel;
   final DateTime startedAt;
   final DateTime? completedAt;
   final bool abandoned;
+  final ChallengeRunResult? result;
+  final int? failedRoundNumber;
 
   const ChallengeRun({
     required this.id,
     required this.templateId,
+    this.trainingLevel = ChallengeTrainingLevel.rookie,
     required this.startedAt,
     this.completedAt,
     this.abandoned = false,
+    this.result,
+    this.failedRoundNumber,
   });
 
-  bool get isEnded => completedAt != null;
+  bool get isEnded => completedAt != null || result != null;
 
-  bool get isCompleted => completedAt != null && !abandoned;
+  bool get isCompleted =>
+      result == ChallengeRunResult.completed ||
+      (result == null && completedAt != null && !abandoned);
+
+  bool get isFailed => result == ChallengeRunResult.failed;
+
+  bool get isAbandoned =>
+      result == ChallengeRunResult.abandoned ||
+      (result == null && completedAt != null && abandoned);
 
   DateTime get startDay => normalizeDay(startedAt);
 
@@ -65,16 +79,22 @@ class ChallengeRun {
   ChallengeRun copyWith({
     String? id,
     String? templateId,
+    ChallengeTrainingLevel? trainingLevel,
     DateTime? startedAt,
     DateTime? completedAt,
     bool? abandoned,
+    ChallengeRunResult? result,
+    int? failedRoundNumber,
   }) {
     return ChallengeRun(
       id: id ?? this.id,
       templateId: templateId ?? this.templateId,
+      trainingLevel: trainingLevel ?? this.trainingLevel,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
       abandoned: abandoned ?? this.abandoned,
+      result: result ?? this.result,
+      failedRoundNumber: failedRoundNumber ?? this.failedRoundNumber,
     );
   }
 
@@ -82,21 +102,42 @@ class ChallengeRun {
     return <String, dynamic>{
       'id': id,
       'templateId': templateId,
+      'trainingLevel': trainingLevel.name,
       'startedAt': startedAt.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
       'abandoned': abandoned,
+      'result': result?.name,
+      'failedRoundNumber': failedRoundNumber,
     };
   }
 
   factory ChallengeRun.fromMap(Map<String, dynamic> map) {
+    final completedAt = DateTime.tryParse(
+      map['completedAt']?.toString() ?? '',
+    );
+    final abandoned = map['abandoned'] == true;
+    final parsedResult = _challengeRunResultFromName(
+      map['result']?.toString(),
+    );
     return ChallengeRun(
       id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       templateId: map['templateId']?.toString() ?? '',
+      trainingLevel: _challengeTrainingLevelFromName(
+        map['trainingLevel']?.toString(),
+        templateId: map['templateId']?.toString() ?? '',
+      ),
       startedAt: DateTime.tryParse(map['startedAt']?.toString() ?? '') ??
           DateTime.now(),
-      completedAt: DateTime.tryParse(map['completedAt']?.toString() ?? ''),
-      abandoned: map['abandoned'] == true,
+      completedAt: completedAt,
+      abandoned: abandoned,
+      result: parsedResult ??
+          (completedAt == null
+              ? null
+              : abandoned
+                  ? ChallengeRunResult.abandoned
+                  : ChallengeRunResult.completed),
+      failedRoundNumber: (map['failedRoundNumber'] as num?)?.toInt(),
     );
   }
 }
@@ -144,6 +185,14 @@ class ChallengeProgress {
       if (!round.completed) return round;
     }
     return rounds.isEmpty ? null : rounds.last;
+  }
+
+  ChallengeRoundProgress? missedExpiredRound({DateTime? now}) {
+    final today = normalizeDay(now ?? DateTime.now());
+    for (final round in rounds) {
+      if (round.date.isBefore(today) && !round.completed) return round;
+    }
+    return null;
   }
 }
 
@@ -219,4 +268,25 @@ double riceBowlsForDay(Iterable<MealEntry> entries, DateTime day) {
     }
   }
   return latest?.totalRiceBowls ?? 0;
+}
+
+ChallengeTrainingLevel _challengeTrainingLevelFromName(
+  String? raw, {
+  required String templateId,
+}) {
+  for (final level in ChallengeTrainingLevel.values) {
+    if (level.name == raw) return level;
+  }
+  return switch (templateId) {
+    'weekly_7' => ChallengeTrainingLevel.growth,
+    'focus_14' => ChallengeTrainingLevel.ace,
+    _ => ChallengeTrainingLevel.rookie,
+  };
+}
+
+ChallengeRunResult? _challengeRunResultFromName(String? raw) {
+  for (final result in ChallengeRunResult.values) {
+    if (result.name == raw) return result;
+  }
+  return null;
 }
