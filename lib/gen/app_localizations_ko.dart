@@ -256,6 +256,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsLeagueFixturesCalendarTitle => '경기 일정 캘린더';
 
   @override
+  String get newsLeagueFixturesOpenCalendar => '캘린더로 보기';
+
+  @override
+  String get newsLeagueFixturesCalendarEmptyDay => '이 날짜에 배치된 경기가 없어요.';
+
+  @override
   String get newsLeagueFixturesSubtitle =>
       '예정 경기와 최근 결과를 보여주며, 챔피언스리그 토너먼트 대진도 가능한 경우 함께 표시합니다.';
 

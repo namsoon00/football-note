@@ -266,6 +266,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newsLeagueFixturesCalendarTitle => '試合日程カレンダー';
 
   @override
+  String get newsLeagueFixturesOpenCalendar => 'カレンダーで表示';
+
+  @override
+  String get newsLeagueFixturesCalendarEmptyDay => 'この日に配置された試合はありません。';
+
+  @override
   String get newsLeagueFixturesSubtitle =>
       '今後の試合日程と最近の結果（利用可能な場合はチャンピオンズ リーグのノックアウトの組み合わせを含む）。';
 

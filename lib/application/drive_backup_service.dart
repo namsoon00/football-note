@@ -28,20 +28,21 @@ class DriveBackupService implements BackupRepository {
     BackupAssetFileStore? backupAssetFileStore,
     Future<DriveConnectionInfo?> Function()? driveConnectionLoader,
     String? webClientId,
-  })  : _googleSignIn = googleSignIn ??
-            (kIsWeb
-                ? null
-                : GoogleSignIn(
-                    clientId:
-                        webClientId != null && webClientId.trim().isNotEmpty
-                            ? webClientId.trim()
-                            : null,
-                    scopes: const ['email', _driveScope],
-                  )),
-        _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
-        _backupAssetFileStore =
-            backupAssetFileStore ?? createBackupAssetFileStore(),
-        _driveConnectionLoader = driveConnectionLoader {
+  }) : _googleSignIn =
+           googleSignIn ??
+           (kIsWeb
+               ? null
+               : GoogleSignIn(
+                   clientId:
+                       webClientId != null && webClientId.trim().isNotEmpty
+                       ? webClientId.trim()
+                       : null,
+                   scopes: const ['email', _driveScope],
+                 )),
+       _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
+       _backupAssetFileStore =
+           backupAssetFileStore ?? createBackupAssetFileStore(),
+       _driveConnectionLoader = driveConnectionLoader {
     _bindDriveAccountStateChanges();
   }
 
@@ -126,6 +127,7 @@ class DriveBackupService implements BackupRepository {
   static const parentModeDriveMismatchErrorCode = 'parent_mode_drive_mismatch';
   static const invalidBackupPayloadErrorCode = 'invalid_backup_payload';
   static const unsupportedBackupVersionErrorCode = 'unsupported_backup_version';
+  static const unsupportedBackupValueErrorCode = 'unsupported_backup_value';
   static const _recentDriveConnectionTtl = Duration(minutes: 5);
   static const _silentSignInTtl = Duration(minutes: 5);
   static const Set<String> _excludedOptionKeys = {
@@ -150,7 +152,7 @@ class DriveBackupService implements BackupRepository {
     parentDriveSubjectLocalKey,
     ...FamilyAccessService.localOnlyOptionKeys,
   };
-  static const _backupVersion = 5;
+  static const _backupVersion = 6;
   static const _typedValueKey = '__type';
   static const _typedDataKey = 'data';
   static const _optionRecordsKey = 'optionRecords';
@@ -991,7 +993,7 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<DriveConnectionInfo?>
-      _loadLatestRemoteSharedChildDriveConnectionInfo() async {
+  _loadLatestRemoteSharedChildDriveConnectionInfo() async {
     final remote = await _loadLatestRemoteBackupMap();
     if (remote == null) {
       return null;
@@ -1016,8 +1018,8 @@ class DriveBackupService implements BackupRepository {
         return;
       }
       _firebaseAuthSubscription = auth.authStateChanges().listen(
-            (_) => unawaited(_handleDriveAccountStateChanged()),
-          );
+        (_) => unawaited(_handleDriveAccountStateChanged()),
+      );
       return;
     }
     final google = _googleSignIn;
@@ -1058,7 +1060,7 @@ class DriveBackupService implements BackupRepository {
         (_optionBox.get(connectedDriveLabelLocalKey) as String?)?.trim() ?? '';
     final subjectId =
         (_optionBox.get(connectedDriveSubjectLocalKey) as String?)?.trim() ??
-            '';
+        '';
     if (email.isEmpty && displayName.isEmpty && subjectId.isEmpty) {
       return null;
     }
@@ -1160,7 +1162,8 @@ class DriveBackupService implements BackupRepository {
 
   Future<String?> _findFolderId(drive.DriveApi api) async {
     final result = await api.files.list(
-      q: "mimeType='application/vnd.google-apps.folder' and "
+      q:
+          "mimeType='application/vnd.google-apps.folder' and "
           "name='$_folderName' and trashed=false",
       spaces: 'drive',
       $fields: 'files(id,name)',
@@ -1372,10 +1375,12 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi driveApi,
     drive.File file,
   ) async {
-    final media = await driveApi.files.get(
-      file.id!,
-      downloadOptions: drive.DownloadOptions.fullMedia,
-    ) as drive.Media;
+    final media =
+        await driveApi.files.get(
+              file.id!,
+              downloadOptions: drive.DownloadOptions.fullMedia,
+            )
+            as drive.Media;
     final content = await utf8.decoder.bind(media.stream).join();
     final data = _decodeBackupPayload(content);
     await _syncConnectedDriveAccountCache();
@@ -1415,7 +1420,7 @@ class DriveBackupService implements BackupRepository {
           : _toBackupValue(_optionBox.get(key));
       if (encodedKey == _unsupportedValue ||
           encodedValue == _unsupportedValue) {
-        continue;
+        throw StateError('$unsupportedBackupValueErrorCode:${key.toString()}');
       }
       optionRecords.add(<String, dynamic>{
         'key': encodedKey,
@@ -1446,11 +1451,10 @@ class DriveBackupService implements BackupRepository {
   Map<String, dynamic> buildBackupForTesting({
     FamilyRole updatedByRole = FamilyRole.child,
     bool familyLayerOnly = false,
-  }) =>
-      _buildBackup(
-        updatedByRole: updatedByRole,
-        familyLayerOnly: familyLayerOnly,
-      );
+  }) => _buildBackup(
+    updatedByRole: updatedByRole,
+    familyLayerOnly: familyLayerOnly,
+  );
 
   @visibleForTesting
   Future<void> restoreFromMapForTesting(Map<String, dynamic> data) =>
@@ -1669,7 +1673,7 @@ class DriveBackupService implements BackupRepository {
     }
     final restoredPrimary =
         await _restoreAssetReference(entry.imagePath, assetRecords) ??
-            (restoredPaths.isNotEmpty ? restoredPaths.first : entry.imagePath);
+        (restoredPaths.isNotEmpty ? restoredPaths.first : entry.imagePath);
     return TrainingEntry(
       date: entry.date,
       durationMinutes: entry.durationMinutes,
@@ -2262,19 +2266,36 @@ class DriveBackupService implements BackupRepository {
       return result;
     }
     if (value is Map) {
+      final canUsePlainMap =
+          value.keys.every((key) => key is String) &&
+          !(value[_typedValueKey] is String &&
+              value.containsKey(_typedDataKey));
       final result = <String, dynamic>{};
-      for (final entry in value.entries) {
-        final key = entry.key;
-        if (key is! String) {
-          return _unsupportedValue;
+      if (canUsePlainMap) {
+        for (final entry in value.entries) {
+          final key = entry.key as String;
+          final converted = _toBackupValue(entry.value);
+          if (converted == _unsupportedValue) {
+            return _unsupportedValue;
+          }
+          result[key] = converted;
         }
-        final converted = _toBackupValue(entry.value);
-        if (converted == _unsupportedValue) {
-          return _unsupportedValue;
-        }
-        result[key] = converted;
+        return result;
       }
-      return result;
+      final typedEntries = <Map<String, dynamic>>[];
+      for (final entry in value.entries) {
+        final convertedKey = _toBackupValue(entry.key);
+        final convertedValue = _toBackupValue(entry.value);
+        if (convertedKey == _unsupportedValue ||
+            convertedValue == _unsupportedValue) {
+          return _unsupportedValue;
+        }
+        typedEntries.add(<String, dynamic>{
+          'key': convertedKey,
+          'value': convertedValue,
+        });
+      }
+      return {_typedValueKey: 'map', _typedDataKey: typedEntries};
     }
     return _unsupportedValue;
   }
@@ -2308,6 +2329,21 @@ class DriveBackupService implements BackupRepository {
                   .toSet();
             }
             return <dynamic>{};
+          case 'map':
+            if (data is List) {
+              final result = <dynamic, dynamic>{};
+              for (final raw in data) {
+                if (raw is! Map) continue;
+                final key = _fromBackupValue(raw['key'], version: version);
+                final restoredValue = _fromBackupValue(
+                  raw['value'],
+                  version: version,
+                );
+                result[key] = restoredValue;
+              }
+              return result;
+            }
+            return <dynamic, dynamic>{};
           default:
             return data;
         }
@@ -2367,10 +2403,12 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi driveApi,
     String fileId,
   ) async {
-    final media = await driveApi.files.get(
-      fileId,
-      downloadOptions: drive.DownloadOptions.fullMedia,
-    ) as drive.Media;
+    final media =
+        await driveApi.files.get(
+              fileId,
+              downloadOptions: drive.DownloadOptions.fullMedia,
+            )
+            as drive.Media;
     return utf8.decoder.bind(media.stream).join();
   }
 
@@ -2659,7 +2697,8 @@ class DriveBackupService implements BackupRepository {
       imagePaths:
           (map['imagePaths'] as List?)?.cast<String>() ?? const <String>[],
       status: map['status'] as String? ?? 'normal',
-      liftingByPart: (map['liftingByPart'] as Map?)?.map(
+      liftingByPart:
+          (map['liftingByPart'] as Map?)?.map(
             (key, value) =>
                 MapEntry(key.toString(), (value is num) ? value.toInt() : 0),
           ) ??
@@ -2672,7 +2711,7 @@ class DriveBackupService implements BackupRepository {
           map['fortuneRecommendedProgram'] as String? ?? '',
       goalFocuses:
           (map['goalFocuses'] as List?)?.map((e) => e.toString()).toList() ??
-              const <String>[],
+          const <String>[],
       goodPoints:
           (map['goodPoints'] as String?) ?? (map['feedback'] as String? ?? ''),
       improvements:
@@ -2700,7 +2739,8 @@ class DriveBackupService implements BackupRepository {
       shotsOnTarget: (map['shotsOnTarget'] as num?)?.toInt(),
       ballsWon: (map['ballsWon'] as num?)?.toInt(),
       matchKind: map['matchKind'] as String? ?? 'friendly',
-      leagueTeamNames: (map['leagueTeamNames'] as List?)
+      leagueTeamNames:
+          (map['leagueTeamNames'] as List?)
               ?.map((e) => e.toString())
               .toList() ??
           const <String>[],

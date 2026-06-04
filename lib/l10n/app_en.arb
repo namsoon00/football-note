@@ -88,6 +88,8 @@
   "newsLeagueStandingsRetry": "Retry",
   "newsLeagueFixturesTitle": "Fixtures and results",
   "newsLeagueFixturesCalendarTitle": "Fixture calendar",
+  "newsLeagueFixturesOpenCalendar": "View as calendar",
+  "newsLeagueFixturesCalendarEmptyDay": "No fixtures are placed on this date.",
   "newsLeagueFixturesSubtitle": "Upcoming fixtures and recent results, including Champions League knockout pairings when available.",
   "newsLeagueFixturesEmpty": "No fixtures are available in the current schedule window.",
   "newsLeagueFixturesShowAll": "Show all fixtures",
