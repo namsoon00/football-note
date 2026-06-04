@@ -1722,6 +1722,11 @@ class DriveBackupService implements BackupRepository {
       dinnerRiceBowls: entry.dinnerRiceBowls,
       shotsOnTarget: entry.shotsOnTarget,
       ballsWon: entry.ballsWon,
+      matchKind: entry.matchKind,
+      leagueTeamNames: entry.leagueTeamNames,
+      leagueResultMode: entry.leagueResultMode,
+      leaguePoints: entry.leaguePoints,
+      tournamentWins: entry.tournamentWins,
     );
   }
 
@@ -2604,6 +2609,11 @@ class DriveBackupService implements BackupRepository {
       'dinnerRiceBowls': entry.dinnerRiceBowls,
       'shotsOnTarget': entry.shotsOnTarget,
       'ballsWon': entry.ballsWon,
+      'matchKind': entry.matchKind,
+      'leagueTeamNames': entry.leagueTeamNames,
+      'leagueResultMode': entry.leagueResultMode,
+      'leaguePoints': entry.leaguePoints,
+      'tournamentWins': entry.tournamentWins,
     };
   }
 
@@ -2689,6 +2699,14 @@ class DriveBackupService implements BackupRepository {
       dinnerRiceBowls: (map['dinnerRiceBowls'] as num?)?.toInt() ?? 0,
       shotsOnTarget: (map['shotsOnTarget'] as num?)?.toInt(),
       ballsWon: (map['ballsWon'] as num?)?.toInt(),
+      matchKind: map['matchKind'] as String? ?? 'friendly',
+      leagueTeamNames: (map['leagueTeamNames'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const <String>[],
+      leagueResultMode: map['leagueResultMode'] as String? ?? 'points',
+      leaguePoints: (map['leaguePoints'] as num?)?.toInt(),
+      tournamentWins: (map['tournamentWins'] as num?)?.toInt(),
     );
   }
 }

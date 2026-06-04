@@ -87,6 +87,7 @@
   "newsLeagueStandingsError": "順位表を読み込めませんでした。",
   "newsLeagueStandingsRetry": "リトライ",
   "newsLeagueFixturesTitle": "日程と結果",
+  "newsLeagueFixturesCalendarTitle": "試合日程カレンダー",
   "newsLeagueFixturesSubtitle": "今後の試合日程と最近の結果（利用可能な場合はチャンピオンズ リーグのノックアウトの組み合わせを含む）。",
   "newsLeagueFixturesEmpty": "現在のスケジュールウィンドウでは利用可能なフィクスチャはありません。",
   "newsLeagueFixturesShowAll": "すべての備品を表示",
@@ -872,9 +873,11 @@
   "fifaHubBiggestClimber": "最大の登山者",
   "fifaHubBiggestFaller": "最大の転倒者",
   "fifaHubGlobalRankingTitle": "世界ランキング",
-  "fifaHubGlobalRankingSubtitle": "ランキングエリアをスクロールして、すべての代表チームを参照します。",
+  "fifaHubGlobalRankingSubtitle": "セクションを開いて代表チームの順位を確認します。",
   "fifaHubShowAll": "すべて表示",
   "fifaHubShowLess": "表示を少なくする",
+  "fifaHubShowAllList": "全リストを表示",
+  "fifaHubCollapseList": "リストを閉じる",
   "fifaHubRecentResultsTitle": "最近のワールドワイドAマッチ結果",
   "fifaHubRecentResultsSubtitle": "FIFA マッチフィードからフィルターされたシニア代表チームの試合。",
   "fifaHubRecentResultsEmpty": "最近のワールドワイド A マッチの結果は見つかりませんでした。",
@@ -3071,8 +3074,32 @@
   "matchAddTitle": "一致を追加",
   "matchEditTitle": "マッチの編集",
   "matchViewTitle": "試合を見る",
+  "matchKindFriendly": "親善試合",
+  "matchKindLeague": "リーグ戦",
   "matchOpponentTeamLabel": "相手チーム",
   "matchOpponentTeamHint": "例えば水原U15",
+  "matchLeagueTeamsLabel": "リーグ参加チーム",
+  "matchLeagueTeamsHint": "1行に1チーム、またはカンマ区切りで入力",
+  "matchLeaguePointsMode": "勝ち点",
+  "matchTournamentWinsMode": "トーナメント勝利",
+  "matchLeaguePointsLabel": "勝ち点",
+  "matchTournamentWinsLabel": "トーナメント勝利",
+  "matchLeaguePointsValue": "勝ち点 {points}",
+  "@matchLeaguePointsValue": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentWinsValue": "{count}勝",
+  "@matchTournamentWinsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "matchOurScoreLabel": "私たちのスコア",
   "matchOpponentScoreLabel": "相手のスコア",
   "matchGoalsLabel": "目標",
@@ -3203,6 +3230,16 @@
   "challengeTrainingLevelAceTitle": "エースレベル",
   "challengeTrainingLevelAceDescription": "年齢とサッカー経験がある選手向けの挑戦的な目標です。",
   "challengeRecommendedLevelBadge": "おすすめ",
+  "challengeSkillSelectTitle": "3. スキルを選択",
+  "challengeSkillSelectSubtitle": "このチャレンジに入れるサッカースキルを好きなだけ選びます。",
+  "challengeSkillDribble": "ドリブル",
+  "challengeSkillSpeedRun": "スピード走",
+  "challengeSkillJumpRope": "縄跳び",
+  "challengeSkillLifting": "リフティング",
+  "challengeSkillPassing": "パス",
+  "challengeSkillShooting": "シュート",
+  "challengeSkillFirstTouch": "ファーストタッチ",
+  "challengeSkillDefense": "守備",
   "challengeLevelTrainingTargetLabel": "総トレーニング {minutes}分",
   "@challengeLevelTrainingTargetLabel": {
     "placeholders": {
@@ -3282,7 +3319,7 @@
     }
   },
   "challengeRewardPitchTitle": "完走すると大きなボーナスがあります",
-  "challengeStartReadyTitle": "3. 開始準備",
+  "challengeStartReadyTitle": "4. 開始準備",
   "challengeStartAction": "チャレンジ開始",
   "challengeRoundCount": "{completed}/{total} ラウンド完了",
   "@challengeRoundCount": {
@@ -3382,6 +3419,16 @@
       }
     }
   },
+  "challengeFailureTitle": "ラウンド {round} で止まりました",
+  "@challengeFailureTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeFailureBody": "リンジーは残念そうです。でも次の挑戦はもっと力強く始められます。",
+  "challengeFailureAction": "ラウンドを確認",
   "challengeCelebrationTitle": "ミッション完了!",
   "challengeCelebrationBody": "ラウンド {rounds} 完了! リンジーが応援しています。+{xp} XP を受け取りました。",
   "@challengeCelebrationBody": {

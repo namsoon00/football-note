@@ -23,15 +23,11 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
   static const FifaRankingGender _rankingGender = FifaRankingGender.men;
 
   late final FifaWorldOverviewService _service;
-  late final ScrollController _rankingScrollController;
-  late final ScrollController _recentMatchScrollController;
-  late final ScrollController _upcomingMatchScrollController;
-  late final ScrollController _kfaRecentMatchScrollController;
-  late final ScrollController _kfaUpcomingMatchScrollController;
   Locale? _lastLocale;
   FifaWorldOverview? _overview;
   List<KfaMatchEntry> _kfaRecentResults = const <KfaMatchEntry>[];
   List<KfaMatchEntry> _kfaUpcomingFixtures = const <KfaMatchEntry>[];
+  final Set<String> _expandedSections = <String>{};
   bool _isRankingLoading = true;
   bool _isMatchLoading = false;
   bool _isKfaLoading = false;
@@ -42,11 +38,6 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
   void initState() {
     super.initState();
     _service = FifaWorldOverviewService();
-    _rankingScrollController = ScrollController();
-    _recentMatchScrollController = ScrollController();
-    _upcomingMatchScrollController = ScrollController();
-    _kfaRecentMatchScrollController = ScrollController();
-    _kfaUpcomingMatchScrollController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadOverview();
@@ -67,11 +58,6 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
 
   @override
   void dispose() {
-    _rankingScrollController.dispose();
-    _recentMatchScrollController.dispose();
-    _upcomingMatchScrollController.dispose();
-    _kfaRecentMatchScrollController.dispose();
-    _kfaUpcomingMatchScrollController.dispose();
     _service.dispose();
     super.dispose();
   }
@@ -120,7 +106,7 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
             subtitle: l10n.fifaHubKfaUpcomingFixturesSubtitle,
             emptyMessage: l10n.fifaHubKfaUpcomingFixturesEmpty,
             matches: _kfaUpcomingFixtures,
-            scrollController: _kfaUpcomingMatchScrollController,
+            sectionId: 'kfa-upcoming',
           ),
         if (!_isKfaLoading || _kfaRecentResults.isNotEmpty)
           _buildKfaMatchSection(
@@ -129,7 +115,7 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
             subtitle: l10n.fifaHubKfaRecentResultsSubtitle,
             emptyMessage: l10n.fifaHubKfaRecentResultsEmpty,
             matches: _kfaRecentResults,
-            scrollController: _kfaRecentMatchScrollController,
+            sectionId: 'kfa-recent',
           ),
         if (!_isMatchLoading || overview.recentResults.isNotEmpty)
           _buildMatchSection(
@@ -138,7 +124,7 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
             subtitle: l10n.fifaHubRecentResultsSubtitle,
             emptyMessage: l10n.fifaHubRecentResultsEmpty,
             matches: overview.recentResults,
-            scrollController: _recentMatchScrollController,
+            sectionId: 'fifa-recent',
           ),
         if (!_isMatchLoading || overview.upcomingFixtures.isNotEmpty)
           _buildMatchSection(
@@ -147,7 +133,7 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
             subtitle: l10n.fifaHubUpcomingFixturesSubtitle,
             emptyMessage: l10n.fifaHubUpcomingFixturesEmpty,
             matches: overview.upcomingFixtures,
-            scrollController: _upcomingMatchScrollController,
+            sectionId: 'fifa-upcoming',
           ),
       ],
       const SizedBox(height: 12),
@@ -324,9 +310,12 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
 
   Widget _buildRankingCard(BuildContext context, FifaWorldOverview overview) {
     final l10n = AppLocalizations.of(context)!;
-    final rankingHeight = (MediaQuery.sizeOf(context).height * 0.42)
-        .clamp(300.0, 430.0)
-        .toDouble();
+    const sectionId = 'ranking';
+    final expanded = _expandedSections.contains(sectionId);
+    final canToggle = overview.rankings.length > 12;
+    final visibleRankings = canToggle && !expanded
+        ? overview.rankings.take(12).toList(growable: false)
+        : overview.rankings;
 
     return WatchCartCard(
       child: Column(
@@ -344,27 +333,27 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: rankingHeight,
-            child: Scrollbar(
-              controller: _rankingScrollController,
-              thumbVisibility: true,
-              child: ListView.separated(
-                controller: _rankingScrollController,
-                primary: false,
-                itemCount: overview.rankings.length,
-                padding: EdgeInsets.zero,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final entry = overview.rankings[index];
-                  return _RankingRow(
-                    entry: entry,
-                    onTap: () => _openCountryDetail(entry),
-                  );
-                },
+          for (var index = 0; index < visibleRankings.length; index++) ...[
+            _RankingRow(
+              entry: visibleRankings[index],
+              onTap: () => _openCountryDetail(visibleRankings[index]),
+            ),
+            if (index != visibleRankings.length - 1) const SizedBox(height: 10),
+          ],
+          if (canToggle) ...[
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: () => _toggleSection(sectionId),
+              icon: Icon(
+                expanded
+                    ? Icons.expand_less_rounded
+                    : Icons.expand_more_rounded,
+              ),
+              label: Text(
+                expanded ? l10n.fifaHubCollapseList : l10n.fifaHubShowAllList,
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -376,9 +365,14 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
     required String subtitle,
     required String emptyMessage,
     required List<FifaAMatchEntry> matches,
-    required ScrollController scrollController,
+    required String sectionId,
   }) {
-    final matchHeight = _matchListHeight(context);
+    final expanded = _expandedSections.contains(sectionId);
+    final canToggle = matches.length > 3;
+    final visibleMatches = canToggle && !expanded
+        ? matches.take(3).toList(growable: false)
+        : matches;
+    final l10n = AppLocalizations.of(context)!;
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,28 +388,30 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
           const SizedBox(height: 12),
           if (matches.isEmpty)
             Text(emptyMessage, style: Theme.of(context).textTheme.bodyMedium)
-          else
-            SizedBox(
-              height: matchHeight,
-              child: Scrollbar(
-                controller: scrollController,
-                thumbVisibility: true,
-                child: ListView.separated(
-                  controller: scrollController,
-                  primary: false,
-                  padding: EdgeInsets.zero,
-                  itemCount: matches.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final match = matches[index];
-                    return _MatchRow(
-                      match: match,
-                      onTap: () => _openFifaMatchDetail(match),
-                    );
-                  },
+          else ...[
+            for (var index = 0; index < visibleMatches.length; index++) ...[
+              _MatchRow(
+                match: visibleMatches[index],
+                onTap: () => _openFifaMatchDetail(visibleMatches[index]),
+              ),
+              if (index != visibleMatches.length - 1)
+                const SizedBox(height: 10),
+            ],
+            if (canToggle) ...[
+              const SizedBox(height: 10),
+              TextButton.icon(
+                onPressed: () => _toggleSection(sectionId),
+                icon: Icon(
+                  expanded
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded,
+                ),
+                label: Text(
+                  expanded ? l10n.fifaHubCollapseList : l10n.fifaHubShowAllList,
                 ),
               ),
-            ),
+            ],
+          ],
         ],
       ),
     );
@@ -427,9 +423,14 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
     required String subtitle,
     required String emptyMessage,
     required List<KfaMatchEntry> matches,
-    required ScrollController scrollController,
+    required String sectionId,
   }) {
-    final matchHeight = _matchListHeight(context);
+    final expanded = _expandedSections.contains(sectionId);
+    final canToggle = matches.length > 3;
+    final visibleMatches = canToggle && !expanded
+        ? matches.take(3).toList(growable: false)
+        : matches;
+    final l10n = AppLocalizations.of(context)!;
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,41 +446,50 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
           const SizedBox(height: 12),
           if (matches.isEmpty)
             Text(emptyMessage, style: Theme.of(context).textTheme.bodyMedium)
-          else
-            SizedBox(
-              height: matchHeight,
-              child: Scrollbar(
-                controller: scrollController,
-                thumbVisibility: true,
-                child: ListView.separated(
-                  controller: scrollController,
-                  primary: false,
-                  padding: EdgeInsets.zero,
-                  itemCount: matches.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final match = matches[index];
-                    return _KfaMatchRow(
-                      match: match,
-                      onTap: () => _openKfaMatchDetail(match),
-                    );
-                  },
+          else ...[
+            for (var index = 0; index < visibleMatches.length; index++) ...[
+              _KfaMatchRow(
+                match: visibleMatches[index],
+                onTap: () => _openKfaMatchDetail(visibleMatches[index]),
+              ),
+              if (index != visibleMatches.length - 1)
+                const SizedBox(height: 10),
+            ],
+            if (canToggle) ...[
+              const SizedBox(height: 10),
+              TextButton.icon(
+                onPressed: () => _toggleSection(sectionId),
+                icon: Icon(
+                  expanded
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded,
+                ),
+                label: Text(
+                  expanded ? l10n.fifaHubCollapseList : l10n.fifaHubShowAllList,
                 ),
               ),
-            ),
+            ],
+          ],
         ],
       ),
     );
   }
-
-  double _matchListHeight(BuildContext context) =>
-      (MediaQuery.sizeOf(context).height * 0.32).clamp(220.0, 340.0).toDouble();
 
   Widget _buildMessageCard(String message) {
     return Padding(
       padding: const EdgeInsets.only(top: 80),
       child: Center(child: Text(message, textAlign: TextAlign.center)),
     );
+  }
+
+  void _toggleSection(String sectionId) {
+    setState(() {
+      if (_expandedSections.contains(sectionId)) {
+        _expandedSections.remove(sectionId);
+      } else {
+        _expandedSections.add(sectionId);
+      }
+    });
   }
 
   Future<void> _loadOverview({bool force = false}) async {
@@ -686,9 +696,9 @@ class _HeroChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ],
       ),
@@ -712,9 +722,9 @@ class _SoftInfoChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: const Color(0xFF123B6E),
-          fontWeight: FontWeight.w700,
-        ),
+              color: const Color(0xFF123B6E),
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
@@ -757,8 +767,8 @@ class _RankingRow extends StatelessWidget {
                 child: Text(
                   '${entry.rank}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -775,8 +785,8 @@ class _RankingRow extends StatelessWidget {
                     Text(
                       entry.teamName,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -800,9 +810,9 @@ class _RankingRow extends StatelessWidget {
                     Text(
                       '${entry.rankMovement.abs()}',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: movementColor,
-                        fontWeight: FontWeight.w800,
-                      ),
+                            color: movementColor,
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ],
                 ),
@@ -884,9 +894,9 @@ class _MatchRow extends StatelessWidget {
                     child: Text(
                       statusLabel,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.w800,
-                      ),
+                            color: statusColor,
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -894,8 +904,8 @@ class _MatchRow extends StatelessWidget {
                     child: Text(
                       match.competition,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                   Icon(
@@ -927,7 +937,9 @@ class _MatchRow extends StatelessWidget {
                       child: match.hasScore
                           ? Text(
                               '${match.homeScore}-${match.awayScore}',
-                              style: Theme.of(context).textTheme.titleMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w900),
                             )
                           : Icon(
@@ -976,9 +988,8 @@ class _KfaMatchRow extends StatelessWidget {
     final statusLabel = isResult
         ? l10n.fifaHubMatchStatusResult
         : l10n.fifaHubMatchStatusFixture;
-    final statusColor = isResult
-        ? const Color(0xFF1B5E20)
-        : const Color(0xFF355C7D);
+    final statusColor =
+        isResult ? const Color(0xFF1B5E20) : const Color(0xFF355C7D);
 
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerLowest,
@@ -1005,9 +1016,9 @@ class _KfaMatchRow extends StatelessWidget {
                     child: Text(
                       statusLabel,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.w800,
-                      ),
+                            color: statusColor,
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -1015,8 +1026,8 @@ class _KfaMatchRow extends StatelessWidget {
                     child: Text(
                       match.competition,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                   Icon(
@@ -1049,7 +1060,9 @@ class _KfaMatchRow extends StatelessWidget {
                       child: match.hasScore
                           ? Text(
                               '${match.homeScore}-${match.awayScore}',
-                              style: Theme.of(context).textTheme.titleMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w900),
                             )
                           : const Icon(Icons.schedule_outlined, size: 20),
@@ -1291,8 +1304,8 @@ class _MatchDetailTitle extends StatelessWidget {
         Text(
           sourceNote,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
       ],
     );
@@ -1393,8 +1406,8 @@ class _ScoreboardFrame extends StatelessWidget {
               Text(
                 scoreText,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
               const SizedBox(height: 8),
               Container(
@@ -1406,9 +1419,9 @@ class _ScoreboardFrame extends StatelessWidget {
                 child: Text(
                   statusLabel,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: statusColor,
-                    fontWeight: FontWeight.w800,
-                  ),
+                        color: statusColor,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
             ],
@@ -1440,16 +1453,15 @@ class _ScoreTeam extends StatelessWidget {
         ? null
         : _CountryFlag(countryCode: countryCode, size: 32, radius: 10);
     return Column(
-      crossAxisAlignment: alignEnd
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w800,
-          ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w800,
+              ),
         ),
         if (flag != null) ...[const SizedBox(height: 8), flag],
         const SizedBox(height: 8),
@@ -1579,9 +1591,9 @@ class _MatchDetailInfoRows extends StatelessWidget {
                 child: Text(
                   entry.value.label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -1645,15 +1657,13 @@ class _ScorerLine extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final text = scorers.isEmpty
         ? '-'
-        : scorers
-              .map((scorer) {
-                final name = scorer.playerName.trim().isEmpty
-                    ? l10n.fifaMatchDetailUnknownScorer
-                    : scorer.playerName.trim();
-                final minute = scorer.minute.trim();
-                return minute.isEmpty ? name : '$minute $name';
-              })
-              .join(', ');
+        : scorers.map((scorer) {
+            final name = scorer.playerName.trim().isEmpty
+                ? l10n.fifaMatchDetailUnknownScorer
+                : scorer.playerName.trim();
+            final minute = scorer.minute.trim();
+            return minute.isEmpty ? name : '$minute $name';
+          }).join(', ');
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1863,9 +1873,8 @@ class _TeamLine extends StatelessWidget {
       ),
     );
     return Row(
-      mainAxisAlignment: alignEnd
-          ? MainAxisAlignment.end
-          : MainAxisAlignment.start,
+      mainAxisAlignment:
+          alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: alignEnd
           ? [nameText, const SizedBox(width: 8), flag]
           : [flag, const SizedBox(width: 8), nameText],

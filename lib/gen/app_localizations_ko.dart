@@ -253,6 +253,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsLeagueFixturesTitle => '경기 일정과 결과';
 
   @override
+  String get newsLeagueFixturesCalendarTitle => '경기 일정 캘린더';
+
+  @override
   String get newsLeagueFixturesSubtitle =>
       '예정 경기와 최근 결과를 보여주며, 챔피언스리그 토너먼트 대진도 가능한 경우 함께 표시합니다.';
 
@@ -1492,13 +1495,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fifaHubGlobalRankingTitle => '전체 랭킹';
 
   @override
-  String get fifaHubGlobalRankingSubtitle => '랭킹 영역을 스크롤해서 전체 국가대표 순위를 확인하세요.';
+  String get fifaHubGlobalRankingSubtitle => '섹션을 펼쳐 전체 국가대표 순위를 확인하세요.';
 
   @override
   String get fifaHubShowAll => '전체 보기';
 
   @override
   String get fifaHubShowLess => '접기';
+
+  @override
+  String get fifaHubShowAllList => '전체 목록 보기';
+
+  @override
+  String get fifaHubCollapseList => '목록 접기';
 
   @override
   String get fifaHubRecentResultsTitle => '전 세계 A매치 최근 결과';
@@ -6130,10 +6139,44 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchViewTitle => '시합 보기';
 
   @override
+  String get matchKindFriendly => '친선 경기';
+
+  @override
+  String get matchKindLeague => '리그 경기';
+
+  @override
   String get matchOpponentTeamLabel => '상대 팀';
 
   @override
   String get matchOpponentTeamHint => '예) 수원 U15';
+
+  @override
+  String get matchLeagueTeamsLabel => '리그 팀';
+
+  @override
+  String get matchLeagueTeamsHint => '한 줄에 한 팀씩 입력하거나 쉼표로 구분하세요';
+
+  @override
+  String get matchLeaguePointsMode => '승점';
+
+  @override
+  String get matchTournamentWinsMode => '토너먼트 승리';
+
+  @override
+  String get matchLeaguePointsLabel => '승점';
+
+  @override
+  String get matchTournamentWinsLabel => '토너먼트 승리';
+
+  @override
+  String matchLeaguePointsValue(int points) {
+    return '승점 $points';
+  }
+
+  @override
+  String matchTournamentWinsValue(int count) {
+    return '$count승';
+  }
 
   @override
   String get matchOurScoreLabel => '우리 점수';
@@ -6485,6 +6528,36 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeRecommendedLevelBadge => '추천';
 
   @override
+  String get challengeSkillSelectTitle => '3. 스킬 선택';
+
+  @override
+  String get challengeSkillSelectSubtitle => '이번 챌린지에 담을 축구 스킬을 원하는 만큼 고르세요.';
+
+  @override
+  String get challengeSkillDribble => '드리블';
+
+  @override
+  String get challengeSkillSpeedRun => '스피드 달리기';
+
+  @override
+  String get challengeSkillJumpRope => '줄넘기';
+
+  @override
+  String get challengeSkillLifting => '리프팅';
+
+  @override
+  String get challengeSkillPassing => '패스';
+
+  @override
+  String get challengeSkillShooting => '슈팅';
+
+  @override
+  String get challengeSkillFirstTouch => '퍼스트 터치';
+
+  @override
+  String get challengeSkillDefense => '수비';
+
+  @override
   String challengeLevelTrainingTargetLabel(int minutes) {
     return '총 훈련 $minutes분';
   }
@@ -6538,7 +6611,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeRewardPitchTitle => '완주하면 큰 보너스가 기다려요';
 
   @override
-  String get challengeStartReadyTitle => '3. 시작 준비';
+  String get challengeStartReadyTitle => '4. 시작 준비';
 
   @override
   String get challengeStartAction => '챌린지 시작';
@@ -6624,6 +6697,17 @@ class AppLocalizationsKo extends AppLocalizations {
   String challengeFailedSnack(int round) {
     return '$round라운드를 놓쳐 챌린지가 실패로 끝났어요.';
   }
+
+  @override
+  String challengeFailureTitle(int round) {
+    return '$round라운드에서 멈췄어요';
+  }
+
+  @override
+  String get challengeFailureBody => '린지가 아쉬워해요. 그래도 다음 도전은 더 힘차게 시작할 수 있어요.';
+
+  @override
+  String get challengeFailureAction => '라운드 확인';
 
   @override
   String get challengeCelebrationTitle => '미션 완료!';

@@ -87,6 +87,7 @@
   "newsLeagueStandingsError": "Could not load standings.",
   "newsLeagueStandingsRetry": "Retry",
   "newsLeagueFixturesTitle": "Fixtures and results",
+  "newsLeagueFixturesCalendarTitle": "Fixture calendar",
   "newsLeagueFixturesSubtitle": "Upcoming fixtures and recent results, including Champions League knockout pairings when available.",
   "newsLeagueFixturesEmpty": "No fixtures are available in the current schedule window.",
   "newsLeagueFixturesShowAll": "Show all fixtures",
@@ -872,9 +873,11 @@
   "fifaHubBiggestClimber": "Biggest climber",
   "fifaHubBiggestFaller": "Biggest faller",
   "fifaHubGlobalRankingTitle": "Global ranking",
-  "fifaHubGlobalRankingSubtitle": "Scroll the ranking area to browse all national teams.",
+  "fifaHubGlobalRankingSubtitle": "Open sections to browse national teams without an inner scroll.",
   "fifaHubShowAll": "Show all",
   "fifaHubShowLess": "Show less",
+  "fifaHubShowAllList": "Show full list",
+  "fifaHubCollapseList": "Collapse list",
   "fifaHubRecentResultsTitle": "Recent worldwide A-match results",
   "fifaHubRecentResultsSubtitle": "Senior national-team matches filtered from FIFA match feeds.",
   "fifaHubRecentResultsEmpty": "No recent worldwide A-match results found.",
@@ -3071,8 +3074,32 @@
   "matchAddTitle": "Add Match",
   "matchEditTitle": "Edit Match",
   "matchViewTitle": "View Match",
+  "matchKindFriendly": "Friendly",
+  "matchKindLeague": "League",
   "matchOpponentTeamLabel": "Opponent team",
   "matchOpponentTeamHint": "e.g. Suwon U15",
+  "matchLeagueTeamsLabel": "League teams",
+  "matchLeagueTeamsHint": "Enter one team per line or separate with commas",
+  "matchLeaguePointsMode": "Points",
+  "matchTournamentWinsMode": "Tournament wins",
+  "matchLeaguePointsLabel": "League points",
+  "matchTournamentWinsLabel": "Tournament wins",
+  "matchLeaguePointsValue": "{points} pts",
+  "@matchLeaguePointsValue": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentWinsValue": "{count} wins",
+  "@matchTournamentWinsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "matchOurScoreLabel": "Our score",
   "matchOpponentScoreLabel": "Opponent score",
   "matchGoalsLabel": "Goals",
@@ -3203,6 +3230,16 @@
   "challengeTrainingLevelAceTitle": "Ace level",
   "challengeTrainingLevelAceDescription": "A challenging target for older players with more soccer experience.",
   "challengeRecommendedLevelBadge": "Recommended",
+  "challengeSkillSelectTitle": "3. Choose skills",
+  "challengeSkillSelectSubtitle": "Pick as many soccer skills as this challenge needs.",
+  "challengeSkillDribble": "Dribble",
+  "challengeSkillSpeedRun": "Speed run",
+  "challengeSkillJumpRope": "Jump rope",
+  "challengeSkillLifting": "Lifting",
+  "challengeSkillPassing": "Passing",
+  "challengeSkillShooting": "Shooting",
+  "challengeSkillFirstTouch": "First touch",
+  "challengeSkillDefense": "Defense",
   "challengeLevelTrainingTargetLabel": "Total training {minutes} min",
   "@challengeLevelTrainingTargetLabel": {
     "placeholders": {
@@ -3282,7 +3319,7 @@
     }
   },
   "challengeRewardPitchTitle": "A big finish bonus is waiting",
-  "challengeStartReadyTitle": "3. Ready to start",
+  "challengeStartReadyTitle": "4. Ready to start",
   "challengeStartAction": "Start challenge",
   "challengeRoundCount": "{completed}/{total} rounds complete",
   "@challengeRoundCount": {
@@ -3382,6 +3419,16 @@
       }
     }
   },
+  "challengeFailureTitle": "Round {round} stopped here",
+  "@challengeFailureTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeFailureBody": "Rinzy is sad, but tomorrow's round can start stronger.",
+  "challengeFailureAction": "Check the round",
   "challengeCelebrationTitle": "Mission complete!",
   "challengeCelebrationBody": "Round {rounds} complete. Rinzy is cheering. You earned +{xp} XP.",
   "@challengeCelebrationBody": {

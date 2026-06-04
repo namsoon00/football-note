@@ -5,6 +5,27 @@ enum ChallengeTrainingLevel { rookie, growth, ace }
 
 enum ChallengeRunResult { completed, failed, abandoned }
 
+const List<String> defaultChallengeSkillIds = <String>[
+  'dribble',
+  'speedRun',
+  'jumpRope',
+  'lifting',
+];
+
+List<String> normalizeChallengeSkillIds(Iterable<String> rawIds) {
+  final seen = <String>{};
+  final normalized = <String>[];
+  for (final id in rawIds) {
+    final trimmed = id.trim();
+    if (trimmed.isEmpty || seen.contains(trimmed)) continue;
+    seen.add(trimmed);
+    normalized.add(trimmed);
+  }
+  return normalized.isEmpty
+      ? List<String>.from(defaultChallengeSkillIds)
+      : normalized;
+}
+
 class ChallengeTemplate {
   final String id;
   final int dayCount;
@@ -46,6 +67,7 @@ class ChallengeRun {
   final bool abandoned;
   final ChallengeRunResult? result;
   final int? failedRoundNumber;
+  final List<String> selectedSkillIds;
 
   const ChallengeRun({
     required this.id,
@@ -56,6 +78,7 @@ class ChallengeRun {
     this.abandoned = false,
     this.result,
     this.failedRoundNumber,
+    this.selectedSkillIds = defaultChallengeSkillIds,
   });
 
   bool get isEnded => completedAt != null || result != null;
@@ -85,6 +108,7 @@ class ChallengeRun {
     bool? abandoned,
     ChallengeRunResult? result,
     int? failedRoundNumber,
+    List<String>? selectedSkillIds,
   }) {
     return ChallengeRun(
       id: id ?? this.id,
@@ -95,6 +119,7 @@ class ChallengeRun {
       abandoned: abandoned ?? this.abandoned,
       result: result ?? this.result,
       failedRoundNumber: failedRoundNumber ?? this.failedRoundNumber,
+      selectedSkillIds: selectedSkillIds ?? this.selectedSkillIds,
     );
   }
 
@@ -108,17 +133,14 @@ class ChallengeRun {
       'abandoned': abandoned,
       'result': result?.name,
       'failedRoundNumber': failedRoundNumber,
+      'selectedSkillIds': selectedSkillIds,
     };
   }
 
   factory ChallengeRun.fromMap(Map<String, dynamic> map) {
-    final completedAt = DateTime.tryParse(
-      map['completedAt']?.toString() ?? '',
-    );
+    final completedAt = DateTime.tryParse(map['completedAt']?.toString() ?? '');
     final abandoned = map['abandoned'] == true;
-    final parsedResult = _challengeRunResultFromName(
-      map['result']?.toString(),
-    );
+    final parsedResult = _challengeRunResultFromName(map['result']?.toString());
     return ChallengeRun(
       id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
@@ -138,6 +160,10 @@ class ChallengeRun {
                   ? ChallengeRunResult.abandoned
                   : ChallengeRunResult.completed),
       failedRoundNumber: (map['failedRoundNumber'] as num?)?.toInt(),
+      selectedSkillIds: normalizeChallengeSkillIds(
+        (map['selectedSkillIds'] as List?)?.map((item) => item.toString()) ??
+            defaultChallengeSkillIds,
+      ),
     );
   }
 }
@@ -260,8 +286,9 @@ DateTime normalizeDay(DateTime value) {
 int trainingMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
   final normalizedDay = normalizeDay(day);
   return entries
-      .where((entry) =>
-          !entry.isMatch && normalizeDay(entry.date) == normalizedDay)
+      .where(
+        (entry) => !entry.isMatch && normalizeDay(entry.date) == normalizedDay,
+      )
       .fold<int>(
         0,
         (sum, entry) =>
@@ -275,16 +302,18 @@ int trainingMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
 int jumpRopeMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
   final normalizedDay = normalizeDay(day);
   return entries
-      .where((entry) =>
-          !entry.isMatch && normalizeDay(entry.date) == normalizedDay)
+      .where(
+        (entry) => !entry.isMatch && normalizeDay(entry.date) == normalizedDay,
+      )
       .fold<int>(0, (sum, entry) => sum + entry.jumpRopeMinutes);
 }
 
 int liftingMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
   final normalizedDay = normalizeDay(day);
   return entries
-      .where((entry) =>
-          !entry.isMatch && normalizeDay(entry.date) == normalizedDay)
+      .where(
+        (entry) => !entry.isMatch && normalizeDay(entry.date) == normalizedDay,
+      )
       .fold<int>(0, (sum, entry) => sum + entry.liftingMinutes);
 }
 

@@ -221,15 +221,44 @@ class _CheerRinzyMascotState extends State<CheerRinzyMascot>
   }
 }
 
+class SadRinzyMascot extends StatelessWidget {
+  final double size;
+  final double progress;
+
+  const SadRinzyMascot({super.key, this.size = 112, this.progress = 0});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Sad Rinzy',
+      image: true,
+      child: RepaintBoundary(
+        child: SizedBox.square(
+          dimension: size,
+          child: CustomPaint(
+            painter: _RinzyChibiPainter(
+              progress: progress,
+              phase: 0,
+              sad: true,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _RinzyChibiPainter extends CustomPainter {
   final double progress;
   final double phase;
   final bool cheer;
+  final bool sad;
 
   const _RinzyChibiPainter({
     required this.progress,
     required this.phase,
     this.cheer = false,
+    this.sad = false,
   });
 
   @override
@@ -269,8 +298,8 @@ class _RinzyChibiPainter extends CustomPainter {
     final spotPaint = Paint()
       ..color = const Color(0xFFB8792E).withValues(alpha: 0.76);
     final blushPaint = Paint()
-      ..color =
-          const Color(0xFFFF8FB3).withValues(alpha: 0.34 + progress * 0.14);
+      ..color = (sad ? const Color(0xFF8FB9FF) : const Color(0xFFFF8FB3))
+          .withValues(alpha: 0.34 + progress * 0.14);
     final eyePaint = Paint()..color = const Color(0xFF33251B);
     final eyeHighlightPaint = Paint()..color = Colors.white;
     final scarfPaint = Paint()..color = const Color(0xFF40B8A8);
@@ -297,22 +326,19 @@ class _RinzyChibiPainter extends CustomPainter {
 
     _drawTail(canvas, size, unit, outlinePaint);
     _drawLegs(canvas, size, unit, outlinePaint, armPaint);
-    _drawArms(
-      canvas,
-      size,
-      unit,
-      armPaint,
-      outlinePaint,
-      cheerWave: cheerWave,
-    );
+    _drawArms(canvas, size, unit, armPaint, outlinePaint, cheerWave: cheerWave);
 
-    final neck =
-        RRect.fromRectAndRadius(neckRect, Radius.circular(unit * 0.08));
+    final neck = RRect.fromRectAndRadius(
+      neckRect,
+      Radius.circular(unit * 0.08),
+    );
     canvas.drawRRect(neck, bodyPaint);
     canvas.drawRRect(neck, outlinePaint);
 
-    final body =
-        RRect.fromRectAndRadius(bodyRect, Radius.circular(unit * 0.16));
+    final body = RRect.fromRectAndRadius(
+      bodyRect,
+      Radius.circular(unit * 0.16),
+    );
     canvas.drawRRect(body, bodyPaint);
     canvas.drawRRect(body, outlinePaint);
     _drawBodySpots(canvas, size, unit, spotPaint);
@@ -400,8 +426,10 @@ class _RinzyChibiPainter extends CustomPainter {
     _drawHorn(canvas, Offset(size.width * 0.42, size.height * 0.12), unit);
     _drawHorn(canvas, Offset(size.width * 0.58, size.height * 0.12), unit);
 
-    final head =
-        RRect.fromRectAndRadius(headRect, Radius.circular(unit * 0.24));
+    final head = RRect.fromRectAndRadius(
+      headRect,
+      Radius.circular(unit * 0.24),
+    );
     canvas.drawRRect(head, facePaint);
     canvas.drawRRect(head, outlinePaint);
     canvas.drawCircle(
@@ -470,11 +498,32 @@ class _RinzyChibiPainter extends CustomPainter {
         width: unit * 0.10,
         height: unit * 0.08,
       ),
-      0.15,
-      math.pi - 0.30,
+      sad ? math.pi + 0.25 : 0.15,
+      sad ? math.pi - 0.50 : math.pi - 0.30,
       false,
       smilePaint,
     );
+    if (sad) {
+      final tearPaint = Paint()
+        ..color = const Color(0xFF62B5FF).withValues(alpha: 0.82)
+        ..style = PaintingStyle.fill;
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(size.width * 0.39, size.height * 0.36),
+          width: unit * 0.028,
+          height: unit * 0.060,
+        ),
+        tearPaint,
+      );
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(size.width * 0.61, size.height * 0.36),
+          width: unit * 0.028,
+          height: unit * 0.060,
+        ),
+        tearPaint,
+      );
+    }
   }
 
   void _drawHorn(Canvas canvas, Offset base, double unit) {
@@ -633,6 +682,7 @@ class _RinzyChibiPainter extends CustomPainter {
   bool shouldRepaint(covariant _RinzyChibiPainter oldDelegate) {
     return oldDelegate.progress != progress ||
         oldDelegate.phase != phase ||
-        oldDelegate.cheer != cheer;
+        oldDelegate.cheer != cheer ||
+        oldDelegate.sad != sad;
   }
 }

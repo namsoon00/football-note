@@ -155,6 +155,21 @@ class TrainingEntry extends HiveObject {
   @HiveField(55)
   final int? ballsWon;
 
+  @HiveField(57)
+  final String matchKind;
+
+  @HiveField(58)
+  final List<String> leagueTeamNames;
+
+  @HiveField(59)
+  final String leagueResultMode;
+
+  @HiveField(60)
+  final int? leaguePoints;
+
+  @HiveField(61)
+  final int? tournamentWins;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -207,6 +222,11 @@ class TrainingEntry extends HiveObject {
     this.dinnerRiceBowls = 0,
     this.shotsOnTarget,
     this.ballsWon,
+    this.matchKind = 'friendly',
+    this.leagueTeamNames = const <String>[],
+    this.leagueResultMode = 'points',
+    this.leaguePoints,
+    this.tournamentWins,
   }) : createdAt = createdAt ?? DateTime.now();
 
   String get effectiveMatchLocation =>
@@ -215,6 +235,7 @@ class TrainingEntry extends HiveObject {
   bool get isMatch =>
       opponentTeam.trim().isNotEmpty ||
       club.trim().isNotEmpty ||
+      matchKind.trim().isNotEmpty && matchKind != 'friendly' ||
       scoredGoals != null ||
       concededGoals != null ||
       playerGoals != null ||
@@ -222,6 +243,8 @@ class TrainingEntry extends HiveObject {
       minutesPlayed != null ||
       shotsOnTarget != null ||
       ballsWon != null;
+
+  bool get isLeagueMatch => matchKind == 'league';
 
   static int compareByRecentCreated(TrainingEntry a, TrainingEntry b) {
     final createdCompare = b.createdAt.compareTo(a.createdAt);
@@ -311,13 +334,20 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       dinnerRiceBowls: (fields[53] as num?)?.toInt() ?? 0,
       shotsOnTarget: (fields[54] as num?)?.toInt(),
       ballsWon: (fields[55] as num?)?.toInt(),
+      matchKind: (fields[57] as String?) ?? 'friendly',
+      leagueTeamNames:
+          (fields[58] as List?)?.map((e) => e.toString()).toList() ??
+              const <String>[],
+      leagueResultMode: (fields[59] as String?) ?? 'points',
+      leaguePoints: (fields[60] as num?)?.toInt(),
+      tournamentWins: (fields[61] as num?)?.toInt(),
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(51)
+      ..writeByte(56)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -419,6 +449,16 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(54)
       ..write(obj.shotsOnTarget)
       ..writeByte(55)
-      ..write(obj.ballsWon);
+      ..write(obj.ballsWon)
+      ..writeByte(57)
+      ..write(obj.matchKind)
+      ..writeByte(58)
+      ..write(obj.leagueTeamNames)
+      ..writeByte(59)
+      ..write(obj.leagueResultMode)
+      ..writeByte(60)
+      ..write(obj.leaguePoints)
+      ..writeByte(61)
+      ..write(obj.tournamentWins);
   }
 }

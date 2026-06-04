@@ -26,12 +26,14 @@ class ParentFeedbackScreen extends StatefulWidget {
   final TrainingEntry entry;
   final OptionRepository optionRepository;
   final BackupService? driveBackupService;
+  final bool initialFocusReactions;
 
   const ParentFeedbackScreen({
     super.key,
     required this.entry,
     required this.optionRepository,
     required this.driveBackupService,
+    this.initialFocusReactions = false,
   });
 
   @override
@@ -41,6 +43,7 @@ class ParentFeedbackScreen extends StatefulWidget {
 class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   late final ParentSharedFeedbackService _feedbackService;
   late final TextEditingController _controller;
+  final GlobalKey _reactionPickerKey = GlobalKey();
   String _savedMessage = '';
   List<String> _savedReactions = const <String>[];
   Set<String> _selectedReactions = <String>{};
@@ -54,9 +57,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   }
 
   bool get _isPlayerMode {
-    return FamilyAccessService(
-      widget.optionRepository,
-    ).loadState().isChildMode;
+    return FamilyAccessService(widget.optionRepository).loadState().isChildMode;
   }
 
   bool get _hasChanges {
@@ -95,6 +96,18 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     _savedUpdatedAt = feedback?.updatedAt;
     _controller = TextEditingController(text: _savedMessage)
       ..addListener(_handleControllerChanged);
+    if (widget.initialFocusReactions) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final context = _reactionPickerKey.currentContext;
+        if (!mounted || context == null) return;
+        Scrollable.ensureVisible(
+          context,
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic,
+          alignment: 0.16,
+        );
+      });
+    }
   }
 
   @override
@@ -304,11 +317,23 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                       if (_canReact) ...[
                         const SizedBox(height: 16),
                         _ParentFeedbackReactionPicker(
+                          key: _reactionPickerKey,
                           selectedReactions: _selectedReactions,
                           canEdit: !_isSaving,
                           onChanged: (value) {
                             setState(() => _selectedReactions = value);
                           },
+                        ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: FilledButton.icon(
+                            onPressed: (_isSaving || !_hasChanges)
+                                ? null
+                                : _saveFeedback,
+                            icon: const Icon(Icons.save_outlined),
+                            label: Text(l10n.parentFeedbackSave),
+                          ),
                         ),
                       ],
                       if (_isSaving) ...[
@@ -327,7 +352,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: (!_canEdit && !_canReact)
+        bottomNavigationBar: !_canEdit
             ? null
             : SafeArea(
                 top: false,
@@ -367,6 +392,7 @@ class _ParentFeedbackReactionPicker extends StatelessWidget {
   final ValueChanged<Set<String>> onChanged;
 
   const _ParentFeedbackReactionPicker({
+    super.key,
     required this.selectedReactions,
     required this.canEdit,
     required this.onChanged,

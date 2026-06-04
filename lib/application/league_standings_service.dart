@@ -6,8 +6,8 @@ import '../domain/entities/league_standings.dart';
 
 class LeagueStandingsService {
   LeagueStandingsService({http.Client? client})
-    : _client = client ?? http.Client(),
-      _ownsClient = client == null;
+      : _client = client ?? http.Client(),
+        _ownsClient = client == null;
 
   final http.Client _client;
   final bool _ownsClient;
@@ -22,12 +22,12 @@ class LeagueStandingsService {
   };
   static final Uri _kLeagueStandingsUri =
       Uri.https('www.kleague.com', '/record/teamRank.do', {
-        'leagueId': '1',
-        'stadium': 'all',
-        'recordType': 'rank',
-        'sortTargetId': '',
-        'isSort': 'false',
-      });
+    'leagueId': '1',
+    'stadium': 'all',
+    'recordType': 'rank',
+    'sortTargetId': '',
+    'isSort': 'false',
+  });
   static final Uri _kLeagueFixturesUri = Uri.https(
     'www.kleague.com',
     '/getScheduleList.do',
@@ -38,7 +38,6 @@ class LeagueStandingsService {
       'https://www.kleague.com/schedule.do?leagueId=1';
   static const int _fixtureLookBackDays = 14;
   static const int _fixtureLookAheadDays = 90;
-  static const int _kLeagueFixtureLookAheadDays = 14;
 
   Future<LeagueStandingsSnapshot> fetch(LeagueStandingsType type) async {
     if (type == LeagueStandingsType.kLeague1) {
@@ -49,9 +48,8 @@ class LeagueStandingsService {
       'site.api.espn.com',
       '/apis/v2/sports/soccer/$leagueId/standings',
     );
-    final response = await _client
-        .get(uri)
-        .timeout(const Duration(seconds: 10));
+    final response =
+        await _client.get(uri).timeout(const Duration(seconds: 10));
     if (response.statusCode != 200) {
       throw StateError('Standings request failed: ${response.statusCode}');
     }
@@ -74,9 +72,7 @@ class LeagueStandingsService {
     final start = reference.subtract(
       const Duration(days: _fixtureLookBackDays),
     );
-    final end = reference.add(
-      const Duration(days: _kLeagueFixtureLookAheadDays),
-    );
+    final end = reference.add(const Duration(days: _fixtureLookAheadDays));
     final uri = Uri.https(
       'site.api.espn.com',
       '/apis/site/v2/sports/soccer/$leagueId/scoreboard',
@@ -85,9 +81,8 @@ class LeagueStandingsService {
         'limit': '100',
       },
     );
-    final response = await _client
-        .get(uri)
-        .timeout(const Duration(seconds: 10));
+    final response =
+        await _client.get(uri).timeout(const Duration(seconds: 10));
     if (response.statusCode != 200) {
       throw StateError('Fixtures request failed: ${response.statusCode}');
     }
@@ -125,9 +120,8 @@ class LeagueStandingsService {
         'year': year.toString(),
       },
     );
-    final response = await _client
-        .post(uri)
-        .timeout(const Duration(seconds: 10));
+    final response =
+        await _client.post(uri).timeout(const Duration(seconds: 10));
     if (response.statusCode != 200) {
       throw StateError(
         'K League standings request failed: '
@@ -197,9 +191,8 @@ class LeagueStandingsService {
     required Map<String, dynamic> payload,
   }) {
     final children = payload['children'];
-    final firstChild = children is List && children.isNotEmpty
-        ? children.first
-        : null;
+    final firstChild =
+        children is List && children.isNotEmpty ? children.first : null;
     final child = firstChild is Map
         ? firstChild.cast<String, dynamic>()
         : <String, dynamic>{};
@@ -226,8 +219,8 @@ class LeagueStandingsService {
           : _fallbackLeagueName(type),
       seasonName:
           standings['seasonDisplayName']?.toString().trim().isNotEmpty == true
-          ? standings['seasonDisplayName'].toString().trim()
-          : child['name']?.toString().trim() ?? '',
+              ? standings['seasonDisplayName'].toString().trim()
+              : child['name']?.toString().trim() ?? '',
       sourceUrl: _sourceUrl(standings),
       fetchedAt: DateTime.now(),
       entries: entries,

@@ -55,6 +55,7 @@ class ChallengeService {
   Future<ChallengeRun> startChallenge(
     ChallengeTemplate template, {
     ChallengeTrainingLevel trainingLevel = ChallengeTrainingLevel.rookie,
+    List<String> selectedSkillIds = defaultChallengeSkillIds,
     DateTime? startedAt,
   }) async {
     final start = startedAt ?? DateTime.now();
@@ -63,6 +64,7 @@ class ChallengeService {
       templateId: template.id,
       trainingLevel: trainingLevel,
       startedAt: start,
+      selectedSkillIds: normalizeChallengeSkillIds(selectedSkillIds),
     );
     final runs = loadRuns()
         .map(
@@ -142,20 +144,18 @@ class ChallengeService {
   }) {
     final template = templateById(run.templateId);
     if (template == null) return null;
-    final rounds = template.rounds.map(
-      (round) {
-        final effectiveRound = roundForLevel(round, run.trainingLevel);
-        final date = run.dayForRound(round.number);
-        return ChallengeRoundProgress(
-          round: effectiveRound,
-          date: date,
-          trainingMinutes: trainingMinutesForDay(trainingEntries, date),
-          jumpRopeMinutes: jumpRopeMinutesForDay(trainingEntries, date),
-          liftingMinutes: liftingMinutesForDay(trainingEntries, date),
-          riceBowls: riceBowlsForDay(mealEntries, date),
-        );
-      },
-    ).toList(growable: false);
+    final rounds = template.rounds.map((round) {
+      final effectiveRound = roundForLevel(round, run.trainingLevel);
+      final date = run.dayForRound(round.number);
+      return ChallengeRoundProgress(
+        round: effectiveRound,
+        date: date,
+        trainingMinutes: trainingMinutesForDay(trainingEntries, date),
+        jumpRopeMinutes: jumpRopeMinutesForDay(trainingEntries, date),
+        liftingMinutes: liftingMinutesForDay(trainingEntries, date),
+        riceBowls: riceBowlsForDay(mealEntries, date),
+      );
+    }).toList(growable: false);
     return ChallengeProgress(run: run, template: template, rounds: rounds);
   }
 
@@ -200,8 +200,10 @@ class ChallengeService {
         ),
       );
       awards.add(completionAward);
-      await completeRun(progress.run.id,
-          completedAt: awardedAt ?? DateTime.now());
+      await completeRun(
+        progress.run.id,
+        completedAt: awardedAt ?? DateTime.now(),
+      );
     }
     return awards;
   }
@@ -353,9 +355,7 @@ const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =
   ),
 ];
 
-ChallengeTrainingLevelConfig trainingLevelConfig(
-  ChallengeTrainingLevel level,
-) {
+ChallengeTrainingLevelConfig trainingLevelConfig(ChallengeTrainingLevel level) {
   for (final config in challengeTrainingLevelConfigs) {
     if (config.level == level) return config;
   }
