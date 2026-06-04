@@ -87,6 +87,7 @@
   "newsLeagueStandingsError": "순위를 불러오지 못했어요.",
   "newsLeagueStandingsRetry": "다시 시도",
   "newsLeagueFixturesTitle": "경기 일정과 결과",
+  "newsLeagueFixturesCalendarTitle": "경기 일정 캘린더",
   "newsLeagueFixturesSubtitle": "예정 경기와 최근 결과를 보여주며, 챔피언스리그 토너먼트 대진도 가능한 경우 함께 표시합니다.",
   "newsLeagueFixturesEmpty": "현재 일정 구간에 표시할 경기가 없어요.",
   "newsLeagueFixturesShowAll": "일정 전체 보기",
@@ -872,9 +873,11 @@
   "fifaHubBiggestClimber": "최대 상승",
   "fifaHubBiggestFaller": "최대 하락",
   "fifaHubGlobalRankingTitle": "전체 랭킹",
-  "fifaHubGlobalRankingSubtitle": "랭킹 영역을 스크롤해서 전체 국가대표 순위를 확인하세요.",
+  "fifaHubGlobalRankingSubtitle": "섹션을 펼쳐 전체 국가대표 순위를 확인하세요.",
   "fifaHubShowAll": "전체 보기",
   "fifaHubShowLess": "접기",
+  "fifaHubShowAllList": "전체 목록 보기",
+  "fifaHubCollapseList": "목록 접기",
   "fifaHubRecentResultsTitle": "전 세계 A매치 최근 결과",
   "fifaHubRecentResultsSubtitle": "FIFA 경기 피드에서 시니어 국가대표 경기만 골라 보여줍니다.",
   "fifaHubRecentResultsEmpty": "최근 전 세계 A매치 결과를 찾지 못했어요.",
@@ -3071,8 +3074,32 @@
   "matchAddTitle": "시합 등록",
   "matchEditTitle": "시합 수정",
   "matchViewTitle": "시합 보기",
+  "matchKindFriendly": "친선 경기",
+  "matchKindLeague": "리그 경기",
   "matchOpponentTeamLabel": "상대 팀",
   "matchOpponentTeamHint": "예) 수원 U15",
+  "matchLeagueTeamsLabel": "리그 팀",
+  "matchLeagueTeamsHint": "한 줄에 한 팀씩 입력하거나 쉼표로 구분하세요",
+  "matchLeaguePointsMode": "승점",
+  "matchTournamentWinsMode": "토너먼트 승리",
+  "matchLeaguePointsLabel": "승점",
+  "matchTournamentWinsLabel": "토너먼트 승리",
+  "matchLeaguePointsValue": "승점 {points}",
+  "@matchLeaguePointsValue": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentWinsValue": "{count}승",
+  "@matchTournamentWinsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "matchOurScoreLabel": "우리 점수",
   "matchOpponentScoreLabel": "상대 점수",
   "matchGoalsLabel": "골",
@@ -3203,6 +3230,16 @@
   "challengeTrainingLevelAceTitle": "에이스 레벨",
   "challengeTrainingLevelAceDescription": "나이와 축구 구력이 쌓인 선수에게 맞춘 도전적인 목표입니다.",
   "challengeRecommendedLevelBadge": "추천",
+  "challengeSkillSelectTitle": "3. 스킬 선택",
+  "challengeSkillSelectSubtitle": "이번 챌린지에 담을 축구 스킬을 원하는 만큼 고르세요.",
+  "challengeSkillDribble": "드리블",
+  "challengeSkillSpeedRun": "스피드 달리기",
+  "challengeSkillJumpRope": "줄넘기",
+  "challengeSkillLifting": "리프팅",
+  "challengeSkillPassing": "패스",
+  "challengeSkillShooting": "슈팅",
+  "challengeSkillFirstTouch": "퍼스트 터치",
+  "challengeSkillDefense": "수비",
   "challengeLevelTrainingTargetLabel": "총 훈련 {minutes}분",
   "@challengeLevelTrainingTargetLabel": {
     "placeholders": {
@@ -3282,7 +3319,7 @@
     }
   },
   "challengeRewardPitchTitle": "완주하면 큰 보너스가 기다려요",
-  "challengeStartReadyTitle": "3. 시작 준비",
+  "challengeStartReadyTitle": "4. 시작 준비",
   "challengeStartAction": "챌린지 시작",
   "challengeRoundCount": "{completed}/{total} 라운드 완료",
   "@challengeRoundCount": {
@@ -3382,6 +3419,16 @@
       }
     }
   },
+  "challengeFailureTitle": "{round}라운드에서 멈췄어요",
+  "@challengeFailureTitle": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeFailureBody": "린지가 아쉬워해요. 그래도 다음 도전은 더 힘차게 시작할 수 있어요.",
+  "challengeFailureAction": "라운드 확인",
   "challengeCelebrationTitle": "미션 완료!",
   "challengeCelebrationBody": "{rounds}라운드 완료! 린지가 박수를 보내요. +{xp} XP를 받았어요.",
   "@challengeCelebrationBody": {

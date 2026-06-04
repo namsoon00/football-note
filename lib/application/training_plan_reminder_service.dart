@@ -854,8 +854,8 @@ class TrainingPlanReminderService {
     final lifting = round.round.targetLiftingMinutes;
     final meal = _formatBowls(round.round.targetRiceBowls);
     return isKo
-        ? '오늘 ${round.round.number}라운드: 훈련 $training분, 줄넘기 $jumpRope분, 리프팅 $lifting분, 식사 $meal그릇을 확인해요.'
-        : 'Round ${round.round.number} today: training $training min, jump rope $jumpRope min, lifting $lifting min, meals $meal bowls.';
+        ? '린지가 기다려요. 오늘 ${round.round.number}라운드는 훈련 $training분, 줄넘기 $jumpRope분, 리프팅 $lifting분, 식사 $meal그릇으로 별에 한 걸음 더 가까워져요.'
+        : 'Rinzy is waiting. Round ${round.round.number} moves you closer to the star: training $training min, jump rope $jumpRope min, lifting $lifting min, meals $meal bowls.';
   }
 
   String _formatBowls(double value) {

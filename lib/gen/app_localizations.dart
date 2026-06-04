@@ -568,6 +568,12 @@ abstract class AppLocalizations {
   /// **'Fixtures and results'**
   String get newsLeagueFixturesTitle;
 
+  /// No description provided for @newsLeagueFixturesCalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixture calendar'**
+  String get newsLeagueFixturesCalendarTitle;
+
   /// No description provided for @newsLeagueFixturesSubtitle.
   ///
   /// In en, this message translates to:
@@ -2805,7 +2811,7 @@ abstract class AppLocalizations {
   /// No description provided for @fifaHubGlobalRankingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Scroll the ranking area to browse all national teams.'**
+  /// **'Open sections to browse national teams without an inner scroll.'**
   String get fifaHubGlobalRankingSubtitle;
 
   /// No description provided for @fifaHubShowAll.
@@ -2819,6 +2825,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show less'**
   String get fifaHubShowLess;
+
+  /// No description provided for @fifaHubShowAllList.
+  ///
+  /// In en, this message translates to:
+  /// **'Show full list'**
+  String get fifaHubShowAllList;
+
+  /// No description provided for @fifaHubCollapseList.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse list'**
+  String get fifaHubCollapseList;
 
   /// No description provided for @fifaHubRecentResultsTitle.
   ///
@@ -10952,6 +10970,18 @@ abstract class AppLocalizations {
   /// **'View Match'**
   String get matchViewTitle;
 
+  /// No description provided for @matchKindFriendly.
+  ///
+  /// In en, this message translates to:
+  /// **'Friendly'**
+  String get matchKindFriendly;
+
+  /// No description provided for @matchKindLeague.
+  ///
+  /// In en, this message translates to:
+  /// **'League'**
+  String get matchKindLeague;
+
   /// No description provided for @matchOpponentTeamLabel.
   ///
   /// In en, this message translates to:
@@ -10963,6 +10993,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. Suwon U15'**
   String get matchOpponentTeamHint;
+
+  /// No description provided for @matchLeagueTeamsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'League teams'**
+  String get matchLeagueTeamsLabel;
+
+  /// No description provided for @matchLeagueTeamsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter one team per line or separate with commas'**
+  String get matchLeagueTeamsHint;
+
+  /// No description provided for @matchLeaguePointsMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Points'**
+  String get matchLeaguePointsMode;
+
+  /// No description provided for @matchTournamentWinsMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament wins'**
+  String get matchTournamentWinsMode;
+
+  /// No description provided for @matchLeaguePointsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'League points'**
+  String get matchLeaguePointsLabel;
+
+  /// No description provided for @matchTournamentWinsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament wins'**
+  String get matchTournamentWinsLabel;
+
+  /// No description provided for @matchLeaguePointsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{points} pts'**
+  String matchLeaguePointsValue(int points);
+
+  /// No description provided for @matchTournamentWinsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} wins'**
+  String matchTournamentWinsValue(int count);
 
   /// No description provided for @matchOurScoreLabel.
   ///
@@ -11618,6 +11696,66 @@ abstract class AppLocalizations {
   /// **'Recommended'**
   String get challengeRecommendedLevelBadge;
 
+  /// No description provided for @challengeSkillSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Choose skills'**
+  String get challengeSkillSelectTitle;
+
+  /// No description provided for @challengeSkillSelectSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick as many soccer skills as this challenge needs.'**
+  String get challengeSkillSelectSubtitle;
+
+  /// No description provided for @challengeSkillDribble.
+  ///
+  /// In en, this message translates to:
+  /// **'Dribble'**
+  String get challengeSkillDribble;
+
+  /// No description provided for @challengeSkillSpeedRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed run'**
+  String get challengeSkillSpeedRun;
+
+  /// No description provided for @challengeSkillJumpRope.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope'**
+  String get challengeSkillJumpRope;
+
+  /// No description provided for @challengeSkillLifting.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting'**
+  String get challengeSkillLifting;
+
+  /// No description provided for @challengeSkillPassing.
+  ///
+  /// In en, this message translates to:
+  /// **'Passing'**
+  String get challengeSkillPassing;
+
+  /// No description provided for @challengeSkillShooting.
+  ///
+  /// In en, this message translates to:
+  /// **'Shooting'**
+  String get challengeSkillShooting;
+
+  /// No description provided for @challengeSkillFirstTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch'**
+  String get challengeSkillFirstTouch;
+
+  /// No description provided for @challengeSkillDefense.
+  ///
+  /// In en, this message translates to:
+  /// **'Defense'**
+  String get challengeSkillDefense;
+
   /// No description provided for @challengeLevelTrainingTargetLabel.
   ///
   /// In en, this message translates to:
@@ -11687,7 +11825,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeStartReadyTitle.
   ///
   /// In en, this message translates to:
-  /// **'3. Ready to start'**
+  /// **'4. Ready to start'**
   String get challengeStartReadyTitle;
 
   /// No description provided for @challengeStartAction.
@@ -11815,6 +11953,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Round {round} was missed, so the challenge ended as failed.'**
   String challengeFailedSnack(int round);
+
+  /// No description provided for @challengeFailureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {round} stopped here'**
+  String challengeFailureTitle(int round);
+
+  /// No description provided for @challengeFailureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rinzy is sad, but tomorrow\'s round can start stronger.'**
+  String get challengeFailureBody;
+
+  /// No description provided for @challengeFailureAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the round'**
+  String get challengeFailureAction;
 
   /// No description provided for @challengeCelebrationTitle.
   ///

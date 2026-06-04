@@ -263,6 +263,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newsLeagueFixturesTitle => '日程と結果';
 
   @override
+  String get newsLeagueFixturesCalendarTitle => '試合日程カレンダー';
+
+  @override
   String get newsLeagueFixturesSubtitle =>
       '今後の試合日程と最近の結果（利用可能な場合はチャンピオンズ リーグのノックアウトの組み合わせを含む）。';
 
@@ -1503,14 +1506,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fifaHubGlobalRankingTitle => '世界ランキング';
 
   @override
-  String get fifaHubGlobalRankingSubtitle =>
-      'ランキングエリアをスクロールして、すべての代表チームを参照します。';
+  String get fifaHubGlobalRankingSubtitle => 'セクションを開いて代表チームの順位を確認します。';
 
   @override
   String get fifaHubShowAll => 'すべて表示';
 
   @override
   String get fifaHubShowLess => '表示を少なくする';
+
+  @override
+  String get fifaHubShowAllList => '全リストを表示';
+
+  @override
+  String get fifaHubCollapseList => 'リストを閉じる';
 
   @override
   String get fifaHubRecentResultsTitle => '最近のワールドワイドAマッチ結果';
@@ -6134,10 +6142,44 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchViewTitle => '試合を見る';
 
   @override
+  String get matchKindFriendly => '親善試合';
+
+  @override
+  String get matchKindLeague => 'リーグ戦';
+
+  @override
   String get matchOpponentTeamLabel => '相手チーム';
 
   @override
   String get matchOpponentTeamHint => '例えば水原U15';
+
+  @override
+  String get matchLeagueTeamsLabel => 'リーグ参加チーム';
+
+  @override
+  String get matchLeagueTeamsHint => '1行に1チーム、またはカンマ区切りで入力';
+
+  @override
+  String get matchLeaguePointsMode => '勝ち点';
+
+  @override
+  String get matchTournamentWinsMode => 'トーナメント勝利';
+
+  @override
+  String get matchLeaguePointsLabel => '勝ち点';
+
+  @override
+  String get matchTournamentWinsLabel => 'トーナメント勝利';
+
+  @override
+  String matchLeaguePointsValue(int points) {
+    return '勝ち点 $points';
+  }
+
+  @override
+  String matchTournamentWinsValue(int count) {
+    return '$count勝';
+  }
 
   @override
   String get matchOurScoreLabel => '私たちのスコア';
@@ -6491,6 +6533,36 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeRecommendedLevelBadge => 'おすすめ';
 
   @override
+  String get challengeSkillSelectTitle => '3. スキルを選択';
+
+  @override
+  String get challengeSkillSelectSubtitle => 'このチャレンジに入れるサッカースキルを好きなだけ選びます。';
+
+  @override
+  String get challengeSkillDribble => 'ドリブル';
+
+  @override
+  String get challengeSkillSpeedRun => 'スピード走';
+
+  @override
+  String get challengeSkillJumpRope => '縄跳び';
+
+  @override
+  String get challengeSkillLifting => 'リフティング';
+
+  @override
+  String get challengeSkillPassing => 'パス';
+
+  @override
+  String get challengeSkillShooting => 'シュート';
+
+  @override
+  String get challengeSkillFirstTouch => 'ファーストタッチ';
+
+  @override
+  String get challengeSkillDefense => '守備';
+
+  @override
   String challengeLevelTrainingTargetLabel(int minutes) {
     return '総トレーニング $minutes分';
   }
@@ -6544,7 +6616,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeRewardPitchTitle => '完走すると大きなボーナスがあります';
 
   @override
-  String get challengeStartReadyTitle => '3. 開始準備';
+  String get challengeStartReadyTitle => '4. 開始準備';
 
   @override
   String get challengeStartAction => 'チャレンジ開始';
@@ -6630,6 +6702,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String challengeFailedSnack(int round) {
     return 'ラウンド $round を逃したため、チャレンジは失敗で終了しました。';
   }
+
+  @override
+  String challengeFailureTitle(int round) {
+    return 'ラウンド $round で止まりました';
+  }
+
+  @override
+  String get challengeFailureBody => 'リンジーは残念そうです。でも次の挑戦はもっと力強く始められます。';
+
+  @override
+  String get challengeFailureAction => 'ラウンドを確認';
 
   @override
   String get challengeCelebrationTitle => 'ミッション完了!';

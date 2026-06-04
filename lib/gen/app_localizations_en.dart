@@ -279,6 +279,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsLeagueFixturesTitle => 'Fixtures and results';
 
   @override
+  String get newsLeagueFixturesCalendarTitle => 'Fixture calendar';
+
+  @override
   String get newsLeagueFixturesSubtitle =>
       'Upcoming fixtures and recent results, including Champions League knockout pairings when available.';
 
@@ -1546,13 +1549,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fifaHubGlobalRankingSubtitle =>
-      'Scroll the ranking area to browse all national teams.';
+      'Open sections to browse national teams without an inner scroll.';
 
   @override
   String get fifaHubShowAll => 'Show all';
 
   @override
   String get fifaHubShowLess => 'Show less';
+
+  @override
+  String get fifaHubShowAllList => 'Show full list';
+
+  @override
+  String get fifaHubCollapseList => 'Collapse list';
 
   @override
   String get fifaHubRecentResultsTitle => 'Recent worldwide A-match results';
@@ -6349,10 +6358,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchViewTitle => 'View Match';
 
   @override
+  String get matchKindFriendly => 'Friendly';
+
+  @override
+  String get matchKindLeague => 'League';
+
+  @override
   String get matchOpponentTeamLabel => 'Opponent team';
 
   @override
   String get matchOpponentTeamHint => 'e.g. Suwon U15';
+
+  @override
+  String get matchLeagueTeamsLabel => 'League teams';
+
+  @override
+  String get matchLeagueTeamsHint =>
+      'Enter one team per line or separate with commas';
+
+  @override
+  String get matchLeaguePointsMode => 'Points';
+
+  @override
+  String get matchTournamentWinsMode => 'Tournament wins';
+
+  @override
+  String get matchLeaguePointsLabel => 'League points';
+
+  @override
+  String get matchTournamentWinsLabel => 'Tournament wins';
+
+  @override
+  String matchLeaguePointsValue(int points) {
+    return '$points pts';
+  }
+
+  @override
+  String matchTournamentWinsValue(int count) {
+    return '$count wins';
+  }
 
   @override
   String get matchOurScoreLabel => 'Our score';
@@ -6723,6 +6767,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeRecommendedLevelBadge => 'Recommended';
 
   @override
+  String get challengeSkillSelectTitle => '3. Choose skills';
+
+  @override
+  String get challengeSkillSelectSubtitle =>
+      'Pick as many soccer skills as this challenge needs.';
+
+  @override
+  String get challengeSkillDribble => 'Dribble';
+
+  @override
+  String get challengeSkillSpeedRun => 'Speed run';
+
+  @override
+  String get challengeSkillJumpRope => 'Jump rope';
+
+  @override
+  String get challengeSkillLifting => 'Lifting';
+
+  @override
+  String get challengeSkillPassing => 'Passing';
+
+  @override
+  String get challengeSkillShooting => 'Shooting';
+
+  @override
+  String get challengeSkillFirstTouch => 'First touch';
+
+  @override
+  String get challengeSkillDefense => 'Defense';
+
+  @override
   String challengeLevelTrainingTargetLabel(int minutes) {
     return 'Total training $minutes min';
   }
@@ -6776,7 +6851,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeRewardPitchTitle => 'A big finish bonus is waiting';
 
   @override
-  String get challengeStartReadyTitle => '3. Ready to start';
+  String get challengeStartReadyTitle => '4. Ready to start';
 
   @override
   String get challengeStartAction => 'Start challenge';
@@ -6862,6 +6937,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String challengeFailedSnack(int round) {
     return 'Round $round was missed, so the challenge ended as failed.';
   }
+
+  @override
+  String challengeFailureTitle(int round) {
+    return 'Round $round stopped here';
+  }
+
+  @override
+  String get challengeFailureBody =>
+      'Rinzy is sad, but tomorrow\'s round can start stronger.';
+
+  @override
+  String get challengeFailureAction => 'Check the round';
 
   @override
   String get challengeCelebrationTitle => 'Mission complete!';
