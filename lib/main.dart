@@ -24,6 +24,7 @@ import 'application/league_fixture_reminder_service.dart';
 import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/welcome_screen.dart';
 import 'presentation/theme/app_theme.dart';
 import 'presentation/widgets/keyboard_dismiss_overlay.dart';
 
@@ -234,13 +235,19 @@ class _EntryGate extends StatefulWidget {
 }
 
 class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
+  static const String _welcomeSeenKey = 'welcome_seen_v1';
+
   late final HomeScreen _homeScreen;
   bool _parentRefreshBusy = false;
+  bool _welcomeSeen = false;
+  bool _welcomeDismissInFlight = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _welcomeSeen =
+        widget.optionRepository.getValue<bool>(_welcomeSeenKey) ?? false;
     _homeScreen = HomeScreen(
       key: const ValueKey('home-screen'),
       trainingService: widget.trainingService,
@@ -287,8 +294,37 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
     }
   }
 
+  void _markWelcomeSeen() {
+    if (_welcomeDismissInFlight) {
+      return;
+    }
+    _welcomeDismissInFlight = true;
+    unawaited(_markWelcomeSeenAsync());
+  }
+
+  Future<void> _markWelcomeSeenAsync() async {
+    try {
+      await widget.optionRepository.setValue(_welcomeSeenKey, true);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _welcomeSeen = true;
+        _welcomeDismissInFlight = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _welcomeDismissInFlight = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_welcomeSeen) {
+      return WelcomeScreen(onStart: _markWelcomeSeen);
+    }
     return _homeScreen;
   }
 }

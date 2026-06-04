@@ -282,6 +282,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsLeagueFixturesCalendarTitle => 'Fixture calendar';
 
   @override
+  String get newsLeagueFixturesOpenCalendar => 'View as calendar';
+
+  @override
+  String get newsLeagueFixturesCalendarEmptyDay =>
+      'No fixtures are placed on this date.';
+
+  @override
   String get newsLeagueFixturesSubtitle =>
       'Upcoming fixtures and recent results, including Champions League knockout pairings when available.';
 

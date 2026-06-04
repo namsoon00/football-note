@@ -94,7 +94,7 @@ void main() {
     final family = backup['family'] as Map<String, dynamic>;
 
     expect(backup['format'], 'football_note_backup');
-    expect(backup['version'], 5);
+    expect(backup['version'], 6);
     expect(backupOptions['profile_name'], 'Lee');
     expect(backupOptions['theme_mode'], 'dark');
     expect(backupOptions['reminder_enabled'], false);
@@ -221,6 +221,28 @@ void main() {
     expect(optionBox.get('binary_blob'), bytes);
     expect(optionBox.get('session_started_at'), timestamp);
   });
+
+  test(
+    'backs up and restores map option values with non-string keys',
+    () async {
+      await optionBox.put('numeric_keyed_map', <int, String>{7: 'seven'});
+      await optionBox.put('typed_marker_map', <String, Object>{
+        '__type': 'plain-user-data',
+        'data': <int, String>{9: 'nine'},
+      });
+
+      final backup = service.buildBackupForTesting();
+      await optionBox.clear();
+
+      await service.restoreFromMapForTesting(backup);
+
+      expect(optionBox.get('numeric_keyed_map'), <int, String>{7: 'seven'});
+      expect(optionBox.get('typed_marker_map'), <String, Object>{
+        '__type': 'plain-user-data',
+        'data': <int, String>{9: 'nine'},
+      });
+    },
+  );
 
   test('backs up and restores non-string option keys with v3 schema', () async {
     await optionBox.put(404, 'legacy_key_data');

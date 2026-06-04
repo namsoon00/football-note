@@ -574,6 +574,18 @@ abstract class AppLocalizations {
   /// **'Fixture calendar'**
   String get newsLeagueFixturesCalendarTitle;
 
+  /// No description provided for @newsLeagueFixturesOpenCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'View as calendar'**
+  String get newsLeagueFixturesOpenCalendar;
+
+  /// No description provided for @newsLeagueFixturesCalendarEmptyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No fixtures are placed on this date.'**
+  String get newsLeagueFixturesCalendarEmptyDay;
+
   /// No description provided for @newsLeagueFixturesSubtitle.
   ///
   /// In en, this message translates to:
