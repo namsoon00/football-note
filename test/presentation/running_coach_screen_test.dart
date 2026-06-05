@@ -39,14 +39,37 @@ void main() {
       findsOneWidget,
     );
     expect(
+      find.byKey(const ValueKey('running-coach-sample-joint-readouts')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-analysis-method')),
+      findsOneWidget,
+    );
+    expect(
       find.byKey(const ValueKey('running-coach-sample-back-button')),
       findsOneWidget,
     );
+    expect(find.text('Reference sample'), findsOneWidget);
+    expect(find.text('Wrong form sample'), findsOneWidget);
     expect(find.text('What to compare in the video'), findsOneWidget);
-    expect(find.textContaining('Frame '), findsOneWidget);
+    expect(find.text('Reference readouts'), findsOneWidget);
+    expect(find.textContaining('Frame '), findsWidgets);
     expect(find.text('Landing 0.08'), findsOneWidget);
     expect(
       find.text('Foot lands under the hip with toes forward'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('landing distance is 0.08'), findsOneWidget);
+
+    await tester.tap(find.text('Wrong form sample'));
+    await tester.pump();
+
+    expect(find.text('Wrong-form readouts'), findsOneWidget);
+    expect(find.text('Overstride 0.24'), findsOneWidget);
+    expect(find.text('Bounce 12%'), findsOneWidget);
+    expect(
+      find.textContaining('overstride is 0.24 ahead of the hip'),
       findsOneWidget,
     );
 

@@ -56,6 +56,10 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         : _buildInsightSections(l10n, _coachingReport!);
     final sampleResult = _sampleAnalysisResult();
     final sampleReport = _coachingService.buildReport(sampleResult);
+    final mistakeSampleResult = _mistakeSampleAnalysisResult();
+    final mistakeSampleReport = _coachingService.buildReport(
+      mistakeSampleResult,
+    );
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -80,6 +84,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
               l10n,
               result: sampleResult,
               report: sampleReport,
+              mistakeResult: mistakeSampleResult,
+              mistakeReport: mistakeSampleReport,
             ),
           ),
           const SizedBox(height: 12),
@@ -131,6 +137,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     AppLocalizations l10n, {
     required RunningVideoAnalysisResult result,
     required RunningCoachingReport report,
+    required RunningVideoAnalysisResult mistakeResult,
+    required RunningCoachingReport mistakeReport,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -155,6 +163,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
             ],
             result: result,
             report: report,
+            mistakeResult: mistakeResult,
+            mistakeReport: mistakeReport,
           ),
         ),
       ),
@@ -172,6 +182,42 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       footStrikeDistanceRatio: 0.08,
       stanceKneeAngleDegrees: 155,
       elbowAngleDegrees: 90,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 24,
+        ),
+        RunningCoachMetric.bounce: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 24,
+        ),
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 24,
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 24,
+        ),
+        RunningCoachMetric.armCarriage: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 24,
+        ),
+      },
+    );
+  }
+
+  RunningVideoAnalysisResult _mistakeSampleAnalysisResult() {
+    return const RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 6),
+      sampledFrames: 24,
+      validFrames: 24,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 2,
+      verticalBounceRatio: 0.12,
+      footStrikeDistanceRatio: 0.24,
+      stanceKneeAngleDegrees: 176,
+      elbowAngleDegrees: 132,
       metricQualities: <RunningCoachMetric, RunningMetricQuality>{
         RunningCoachMetric.posture: RunningMetricQuality(
           confidence: 1,
@@ -366,13 +412,17 @@ String _formatRunningDuration(Duration duration) {
 const int _sampleTimelineFrameCount = 24;
 const Duration _sampleVideoLoopDuration = Duration(milliseconds: 2200);
 
-class _RunningCoachSampleCard extends StatelessWidget {
+enum _SampleVideoMode { reference, mistake }
+
+class _RunningCoachSampleCard extends StatefulWidget {
   final String title;
   final String body;
   final List<String> tips;
   final List<String> steps;
   final RunningVideoAnalysisResult result;
   final RunningCoachingReport report;
+  final RunningVideoAnalysisResult mistakeResult;
+  final RunningCoachingReport mistakeReport;
 
   const _RunningCoachSampleCard({
     required this.title,
@@ -381,12 +431,34 @@ class _RunningCoachSampleCard extends StatelessWidget {
     required this.steps,
     required this.result,
     required this.report,
+    required this.mistakeResult,
+    required this.mistakeReport,
   });
+
+  @override
+  State<_RunningCoachSampleCard> createState() =>
+      _RunningCoachSampleCardState();
+}
+
+class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
+  _SampleVideoMode _mode = _SampleVideoMode.reference;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final primaryFocus = report.primaryFocus;
+    final activeResult = _mode == _SampleVideoMode.reference
+        ? widget.result
+        : widget.mistakeResult;
+    final activeReport = _mode == _SampleVideoMode.reference
+        ? widget.report
+        : widget.mistakeReport;
+    final modeTitle = _mode == _SampleVideoMode.reference
+        ? l10n.runningCoachSampleReferenceTitle
+        : l10n.runningCoachSampleMistakeTitle;
+    final modeBody = _mode == _SampleVideoMode.reference
+        ? l10n.runningCoachSampleReferenceBody
+        : l10n.runningCoachSampleMistakeBody;
+    final primaryFocus = activeReport.primaryFocus;
     final focusCopy = primaryFocus == null
         ? null
         : RunningCoachInsightCopy.fromInsight(primaryFocus, l10n);
@@ -410,7 +482,7 @@ class _RunningCoachSampleCard extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 12),
                     child: Text(
-                      title,
+                      widget.title,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
@@ -418,9 +490,38 @@ class _RunningCoachSampleCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            Text(body, style: Theme.of(context).textTheme.bodyMedium),
+            Text(widget.body, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 14),
-            _SampleVideoFrame(score: report.overallScore),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<_SampleVideoMode>(
+                segments: [
+                  ButtonSegment<_SampleVideoMode>(
+                    value: _SampleVideoMode.reference,
+                    icon: const Icon(Icons.check_circle_outline_rounded),
+                    label: Text(l10n.runningCoachSampleReferenceTab),
+                  ),
+                  ButtonSegment<_SampleVideoMode>(
+                    value: _SampleVideoMode.mistake,
+                    icon: const Icon(Icons.report_problem_outlined),
+                    label: Text(l10n.runningCoachSampleMistakeTab),
+                  ),
+                ],
+                selected: {_mode},
+                onSelectionChanged: (selection) {
+                  setState(() => _mode = selection.first);
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            _SampleVideoFrame(score: activeReport.overallScore, mode: _mode),
+            const SizedBox(height: 12),
+            _SampleFrameCuePanel(
+              panelKey: const ValueKey('running-coach-sample-joint-readouts'),
+              title: modeTitle,
+              body: modeBody,
+              cues: _modeReadouts(l10n, _mode),
+            ),
             const SizedBox(height: 12),
             _SampleFrameCuePanel(
               title: l10n.runningCoachSampleFrameGuideTitle,
@@ -445,10 +546,34 @@ class _RunningCoachSampleCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            _SampleFrameCuePanel(
+              panelKey: const ValueKey('running-coach-sample-analysis-method'),
+              title: l10n.runningCoachSampleAnalysisMethodTitle,
+              body: l10n.runningCoachSampleAnalysisMethodBody,
+              cues: [
+                _SampleFrameCue(
+                  icon: Icons.accessibility_new_rounded,
+                  text: l10n.runningCoachSampleMethodPose,
+                ),
+                _SampleFrameCue(
+                  icon: Icons.architecture_rounded,
+                  text: l10n.runningCoachSampleMethodAngles,
+                ),
+                _SampleFrameCue(
+                  icon: Icons.ads_click_rounded,
+                  text: l10n.runningCoachSampleMethodContact,
+                ),
+                _SampleFrameCue(
+                  icon: Icons.verified_outlined,
+                  text: l10n.runningCoachSampleMethodConfidence,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             _SampleRecordingGuidePanel(
               title: l10n.runningCoachSampleRecordingGuideTitle,
-              tips: tips,
-              steps: steps,
+              tips: widget.tips,
+              steps: widget.steps,
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -457,15 +582,16 @@ class _RunningCoachSampleCard extends StatelessWidget {
               children: [
                 _StatChip(
                   label: l10n.runningCoachDurationLabel,
-                  value: _formatRunningDuration(result.videoDuration),
+                  value: _formatRunningDuration(activeResult.videoDuration),
                 ),
                 _StatChip(
                   label: l10n.runningCoachFramesAnalyzedLabel,
-                  value: '${result.validFrames}/${result.sampledFrames}',
+                  value:
+                      '${activeResult.validFrames}/${activeResult.sampledFrames}',
                 ),
                 _StatChip(
                   label: l10n.runningCoachOverallScoreLabel,
-                  value: '${report.overallScore}',
+                  value: '${activeReport.overallScore}',
                 ),
               ],
             ),
@@ -488,6 +614,58 @@ class _RunningCoachSampleCard extends StatelessWidget {
       ),
     );
   }
+
+  List<_SampleFrameCue> _modeReadouts(
+    AppLocalizations l10n,
+    _SampleVideoMode mode,
+  ) {
+    if (mode == _SampleVideoMode.mistake) {
+      return [
+        _SampleFrameCue(
+          icon: Icons.straighten_rounded,
+          text: l10n.runningCoachSampleMistakePosture,
+        ),
+        _SampleFrameCue(
+          icon: Icons.ads_click_rounded,
+          text: l10n.runningCoachSampleMistakeFoot,
+        ),
+        _SampleFrameCue(
+          icon: Icons.timeline_rounded,
+          text: l10n.runningCoachSampleMistakeKnee,
+        ),
+        _SampleFrameCue(
+          icon: Icons.open_in_full_rounded,
+          text: l10n.runningCoachSampleMistakeArms,
+        ),
+        _SampleFrameCue(
+          icon: Icons.swap_vert_rounded,
+          text: l10n.runningCoachSampleMistakeBounce,
+        ),
+      ];
+    }
+    return [
+      _SampleFrameCue(
+        icon: Icons.straighten_rounded,
+        text: l10n.runningCoachSampleReferencePosture,
+      ),
+      _SampleFrameCue(
+        icon: Icons.ads_click_rounded,
+        text: l10n.runningCoachSampleReferenceFoot,
+      ),
+      _SampleFrameCue(
+        icon: Icons.timeline_rounded,
+        text: l10n.runningCoachSampleReferenceKnee,
+      ),
+      _SampleFrameCue(
+        icon: Icons.sync_alt_rounded,
+        text: l10n.runningCoachSampleReferenceArms,
+      ),
+      _SampleFrameCue(
+        icon: Icons.center_focus_strong_rounded,
+        text: l10n.runningCoachSampleReferenceFrame,
+      ),
+    ];
+  }
 }
 
 class _SampleFrameCue {
@@ -498,11 +676,13 @@ class _SampleFrameCue {
 }
 
 class _SampleFrameCuePanel extends StatelessWidget {
+  final Key panelKey;
   final String title;
   final String body;
   final List<_SampleFrameCue> cues;
 
   const _SampleFrameCuePanel({
+    this.panelKey = const ValueKey('running-coach-sample-frame-guide'),
     required this.title,
     required this.body,
     required this.cues,
@@ -512,7 +692,7 @@ class _SampleFrameCuePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      key: const ValueKey('running-coach-sample-frame-guide'),
+      key: panelKey,
       width: double.infinity,
       decoration: BoxDecoration(
         color: scheme.secondaryContainer.withAlpha(120),
@@ -694,8 +874,9 @@ class _SampleFrameCueChip extends StatelessWidget {
 
 class _SampleVideoFrame extends StatefulWidget {
   final int score;
+  final _SampleVideoMode mode;
 
-  const _SampleVideoFrame({required this.score});
+  const _SampleVideoFrame({required this.score, required this.mode});
 
   @override
   State<_SampleVideoFrame> createState() => _SampleVideoFrameState();
@@ -724,6 +905,20 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
+    final isMistake = widget.mode == _SampleVideoMode.mistake;
+    final runnerColor = isMistake ? scheme.error : scheme.primary;
+    final postureOverlay = isMistake
+        ? l10n.runningCoachSampleMistakeOverlayPosture
+        : l10n.runningCoachSampleOverlayPosture;
+    final armsOverlay = isMistake
+        ? l10n.runningCoachSampleMistakeOverlayArms
+        : l10n.runningCoachSampleOverlayArms;
+    final footOverlay = isMistake
+        ? l10n.runningCoachSampleMistakeOverlayFoot
+        : l10n.runningCoachSampleOverlayFoot;
+    final fourthOverlay = isMistake
+        ? l10n.runningCoachSampleMistakeOverlayBounce
+        : l10n.runningCoachSampleOverlayFrames;
     return AspectRatio(
       key: const ValueKey('running-coach-sample-video-frame'),
       aspectRatio: 16 / 7,
@@ -742,11 +937,14 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                   builder: (context, _) => CustomPaint(
                     painter: _SampleRunnerPainter(
                       progress: _controller.value,
-                      lineColor: scheme.primary,
+                      lineColor: runnerColor,
                       trackColor: scheme.outlineVariant,
-                      ghostColor: scheme.primary.withValues(alpha: 0.18),
+                      ghostColor: runnerColor.withValues(alpha: 0.18),
                       frameColor: scheme.tertiary,
                       markerColor: scheme.secondary,
+                      poseVariant: isMistake
+                          ? SampleRunnerPoseVariant.mistake
+                          : SampleRunnerPoseVariant.reference,
                     ),
                   ),
                 ),
@@ -780,15 +978,15 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                 left: 12,
                 top: 48,
                 child: _VideoOverlayLabel(
-                  text: l10n.runningCoachSampleOverlayPosture,
-                  color: scheme.primary,
+                  text: postureOverlay,
+                  color: runnerColor,
                 ),
               ),
               Positioned(
                 right: 12,
                 top: 48,
                 child: _VideoOverlayLabel(
-                  text: l10n.runningCoachSampleOverlayArms,
+                  text: armsOverlay,
                   color: scheme.secondary,
                 ),
               ),
@@ -796,7 +994,7 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                 left: 12,
                 bottom: 24,
                 child: _VideoOverlayLabel(
-                  text: l10n.runningCoachSampleOverlayFoot,
+                  text: footOverlay,
                   color: scheme.tertiary,
                 ),
               ),
@@ -804,8 +1002,8 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                 right: 12,
                 bottom: 24,
                 child: _VideoOverlayLabel(
-                  text: l10n.runningCoachSampleOverlayFrames,
-                  color: scheme.primary,
+                  text: fourthOverlay,
+                  color: runnerColor,
                 ),
               ),
               Positioned(
@@ -897,6 +1095,7 @@ class _SampleRunnerPainter extends CustomPainter {
   final Color ghostColor;
   final Color frameColor;
   final Color markerColor;
+  final SampleRunnerPoseVariant poseVariant;
 
   const _SampleRunnerPainter({
     required this.progress,
@@ -905,6 +1104,7 @@ class _SampleRunnerPainter extends CustomPainter {
     required this.ghostColor,
     required this.frameColor,
     required this.markerColor,
+    required this.poseVariant,
   });
 
   @override
@@ -1025,7 +1225,11 @@ class _SampleRunnerPainter extends CustomPainter {
     required Color color,
     required double strokeWidth,
   }) {
-    final pose = buildSampleRunnerPose(progress: progress, size: size);
+    final pose = buildSampleRunnerPose(
+      progress: progress,
+      size: size,
+      variant: poseVariant,
+    );
     final scale = size.height;
     final isGhost = strokeWidth < 4;
     final baseAlpha = isGhost ? 0.18 : 0.96;
@@ -1305,6 +1509,10 @@ class _SampleRunnerPainter extends CustomPainter {
           rearLeg.knee,
           rearLeg.ankle,
         ],
+        frontLeg: frontLeg,
+        rearLeg: rearLeg,
+        frontArm: frontArm,
+        rearArm: rearArm,
       );
     }
   }
@@ -1377,6 +1585,10 @@ class _SampleRunnerPainter extends CustomPainter {
     required Offset hip,
     required double groundY,
     required List<Offset> joints,
+    required SampleRunnerLegPose frontLeg,
+    required SampleRunnerLegPose rearLeg,
+    required SampleRunnerArmPose frontArm,
+    required SampleRunnerArmPose rearArm,
   }) {
     final guidePaint = Paint()
       ..color = markerColor.withValues(alpha: 0.74)
@@ -1386,6 +1598,14 @@ class _SampleRunnerPainter extends CustomPainter {
       ..color = markerColor.withValues(alpha: 0.26)
       ..style = PaintingStyle.stroke
       ..strokeWidth = math.max(1.0, size.height * 0.008);
+    final contactLeg =
+        (groundY - frontLeg.ankle.dy).abs() <=
+            (groundY - rearLeg.ankle.dy).abs()
+        ? frontLeg
+        : rearLeg;
+    final contactPatchPaint = Paint()
+      ..color = markerColor.withValues(alpha: 0.22)
+      ..style = PaintingStyle.fill;
 
     canvas.drawLine(neck, hip, guidePaint);
     canvas.drawLine(
@@ -1419,6 +1639,58 @@ class _SampleRunnerPainter extends CustomPainter {
       ),
       subtleGuidePaint,
     );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(
+          (contactLeg.ankle.dx + contactLeg.toe.dx) / 2,
+          groundY + size.height * 0.006,
+        ),
+        width: size.height * 0.132,
+        height: size.height * 0.034,
+      ),
+      contactPatchPaint,
+    );
+    _drawSegment(
+      canvas,
+      Offset(contactLeg.hip.dx, groundY - size.height * 0.012),
+      Offset(contactLeg.hip.dx, groundY + size.height * 0.030),
+      markerColor.withValues(alpha: 0.54),
+      math.max(1.0, size.height * 0.008),
+    );
+    _drawSegment(
+      canvas,
+      Offset(contactLeg.hip.dx, groundY + size.height * 0.020),
+      Offset(contactLeg.ankle.dx, groundY + size.height * 0.020),
+      markerColor.withValues(alpha: 0.52),
+      math.max(1.0, size.height * 0.008),
+    );
+    _drawAngleArc(
+      canvas,
+      center: contactLeg.knee,
+      first: contactLeg.hip,
+      second: contactLeg.ankle,
+      radius: size.height * 0.052,
+      color: markerColor.withValues(alpha: 0.70),
+      strokeWidth: math.max(1.0, size.height * 0.010),
+    );
+    _drawAngleArc(
+      canvas,
+      center: frontArm.elbow,
+      first: frontArm.shoulder,
+      second: frontArm.wrist,
+      radius: size.height * 0.034,
+      color: markerColor.withValues(alpha: 0.58),
+      strokeWidth: math.max(1.0, size.height * 0.008),
+    );
+    _drawAngleArc(
+      canvas,
+      center: rearArm.elbow,
+      first: rearArm.shoulder,
+      second: rearArm.wrist,
+      radius: size.height * 0.030,
+      color: markerColor.withValues(alpha: 0.38),
+      strokeWidth: math.max(1.0, size.height * 0.007),
+    );
     for (final joint in joints) {
       canvas.drawCircle(
         joint,
@@ -1431,6 +1703,38 @@ class _SampleRunnerPainter extends CustomPainter {
         Paint()..color = markerColor.withValues(alpha: 0.92),
       );
     }
+  }
+
+  void _drawAngleArc(
+    Canvas canvas, {
+    required Offset center,
+    required Offset first,
+    required Offset second,
+    required double radius,
+    required Color color,
+    required double strokeWidth,
+  }) {
+    final startAngle = math.atan2(first.dy - center.dy, first.dx - center.dx);
+    final endAngle = math.atan2(second.dy - center.dy, second.dx - center.dx);
+    final sweep = _shortestAngleSweep(startAngle, endAngle);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweep,
+      false,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  double _shortestAngleSweep(double start, double end) {
+    var sweep = (end - start) % (math.pi * 2);
+    if (sweep > math.pi) sweep -= math.pi * 2;
+    if (sweep < -math.pi) sweep += math.pi * 2;
+    return sweep;
   }
 
   void _drawHand(Canvas canvas, Offset center, Color color, double radius) {
@@ -1497,7 +1801,8 @@ class _SampleRunnerPainter extends CustomPainter {
         oldDelegate.trackColor != trackColor ||
         oldDelegate.ghostColor != ghostColor ||
         oldDelegate.frameColor != frameColor ||
-        oldDelegate.markerColor != markerColor;
+        oldDelegate.markerColor != markerColor ||
+        oldDelegate.poseVariant != poseVariant;
   }
 }
 

@@ -3800,51 +3800,52 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      '영상을 고르면 자세 점수와 가장 먼저 고칠 항목을 바로 정리해 줍니다.';
+      '측면 영상을 고르면 점수, 관절 각도, 접지 기준, 가장 먼저 고칠 움직임을 같이 정리해 줍니다.';
 
   @override
   String get runningCoachTipsTitle => '촬영 팁';
 
   @override
   String get runningCoachTipWholeBody =>
-      '머리부터 발목까지 전신이 들어오고, 팔꿈치와 발도 계속 보이게 촬영해 주세요.';
+      '머리부터 접지하는 발까지 전신이 들어오고, 어깨, 엉덩이, 무릎, 발목, 팔꿈치, 손목이 계속 보이게 촬영해 주세요.';
 
   @override
-  String get runningCoachTipSideView => '러너가 화면을 가로지르도록 측면에서 촬영해 주세요.';
+  String get runningCoachTipSideView =>
+      '러너가 카메라 쪽으로 오거나 멀어지지 않고 화면을 가로지르도록 정확한 측면에서 촬영해 주세요.';
 
   @override
   String get runningCoachTipSteadyCamera =>
-      '카메라는 흔들리지 않게 두고 5~15초 정도의 짧은 달리기 장면을 사용해 주세요.';
+      '카메라는 흔들리지 않게 두고 밝고 고른 빛에서 3보 이상 깨끗한 5~15초 장면을 사용해 주세요.';
 
   @override
   String get runningCoachUploadGuideTitle => '동영상 업로드 가이드';
 
   @override
   String get runningCoachUploadGuideBody =>
-      '샘플 영상 가이드에서 촬영 세팅, 프레임 기준, 움직임 판독을 한 화면에서 같이 확인해요.';
+      '샘플 가이드에서 좋은 자세와 잘못된 자세 루프를 비교하고, 코치가 읽는 관절, 각도, 접지 지점을 정확히 확인해요.';
 
   @override
   String get runningCoachUploadGuideStepSide =>
-      '달리는 라인과 카메라를 나란히 두고, 러너가 좌우로 지나가게 촬영해 주세요.';
+      '휴대폰을 달리는 라인과 직각으로, 엉덩이 높이에 맞춰 두고 러너가 좌우로 지나가게 촬영해 주세요.';
 
   @override
   String get runningCoachUploadGuideStepDistance =>
-      '러너 앞뒤에 여유 공간을 두어 모든 스텝에서 전신이 계속 보이게 해 주세요.';
+      '러너 앞뒤에 여유 공간을 두어 머리, 엉덩이, 무릎, 발목, 발, 팔꿈치, 손목이 모든 스텝에서 보이게 해 주세요.';
 
   @override
   String get runningCoachUploadGuideStepDuration =>
-      '깨끗한 보폭이 3번 이상 들어간 5~15초 영상을 쓰고, 준비하며 걷는 구간은 잘라 주세요.';
+      '깨끗한 보폭이 3~6번 들어간 5~15초 영상을 쓰고, 준비 걸음, 회전, 멈춘 프레임은 잘라 주세요.';
 
   @override
   String get runningCoachUploadGuideStepLight =>
-      '밝고 고른 빛에서 촬영하고, 러너 뒤로 다른 사람이 지나가지 않게 해 주세요.';
+      '밝고 고른 빛과 단순한 배경에서 촬영하고, 그림자, 잘린 발, 뒤로 지나가는 사람을 피해주세요.';
 
   @override
   String get runningCoachSampleTitle => '샘플 영상 가이드';
 
   @override
   String get runningCoachSampleBody =>
-      '이 루프를 기준으로 보세요. 영상, 자세 수치, 촬영 체크가 한 화면에 있어 각 코칭 포인트를 러너 움직임과 바로 맞춰 볼 수 있어요.';
+      '기준 루프와 잘못된 자세 루프를 바꿔 보며 코치가 상체, 착지, 무릎 부하, 팔 각도, 바운스, 프레임 품질을 어떻게 읽는지 확인해요.';
 
   @override
   String get runningCoachSampleGuideAction => '샘플 영상 가이드 보기';
@@ -3874,6 +3875,88 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleCueArms => '팔꿈치를 접고 다리와 반대로 스윙';
 
   @override
+  String get runningCoachSampleReferenceTab => '기준 샘플';
+
+  @override
+  String get runningCoachSampleMistakeTab => '잘못된 샘플';
+
+  @override
+  String get runningCoachSampleReferenceTitle => '기준 자세 판독';
+
+  @override
+  String get runningCoachSampleMistakeTitle => '잘못된 자세 판독';
+
+  @override
+  String get runningCoachSampleReferenceBody =>
+      '목표 루프예요. 러너가 몸 전체를 살짝 기울이고, 엉덩이 가까이 착지하며, 무릎을 부드럽게 받고, 팔은 간결하게 유지해요.';
+
+  @override
+  String get runningCoachSampleMistakeBody =>
+      '흔한 실패 패턴이에요. 상체가 서고, 발이 앞에 떨어지고, 접지 무릎이 펴지며, 팔꿈치가 열리고, 위아래 바운스가 커져요.';
+
+  @override
+  String get runningCoachSampleReferencePosture =>
+      '상체 선: 발목-엉덩이-어깨 전경사 10도, 허리 접힘 없음.';
+
+  @override
+  String get runningCoachSampleReferenceFoot =>
+      '접지 지점: 착지 거리 0.08, 엉덩이 아래에 가깝게 착지.';
+
+  @override
+  String get runningCoachSampleReferenceKnee =>
+      '접지 무릎: 155도, 잠그지 않고 부드럽게 부하를 받음.';
+
+  @override
+  String get runningCoachSampleReferenceArms =>
+      '팔 각도: 팔꿈치가 90도 근처에서 다리와 반대로 스윙.';
+
+  @override
+  String get runningCoachSampleReferenceFrame =>
+      '프레임 품질: 주요 관절이 보이는 24/24 사용 가능 프레임.';
+
+  @override
+  String get runningCoachSampleMistakePosture =>
+      '상체 선: 전경사 2도라 앞으로 밀지 못하고 몸이 선 상태.';
+
+  @override
+  String get runningCoachSampleMistakeFoot =>
+      '접지 지점: 엉덩이보다 0.24 앞에 떨어지는 오버스트라이드.';
+
+  @override
+  String get runningCoachSampleMistakeKnee =>
+      '접지 무릎: 176도, 충격을 받고 밀기에는 너무 곧게 펴짐.';
+
+  @override
+  String get runningCoachSampleMistakeArms =>
+      '팔 각도: 팔꿈치가 132도로 열려 팔-다리 리듬이 느려짐.';
+
+  @override
+  String get runningCoachSampleMistakeBounce => '바운스: 수직 움직임 12%, 힘이 위로 새어 나감.';
+
+  @override
+  String get runningCoachSampleAnalysisMethodTitle => '코치가 분석하는 방식';
+
+  @override
+  String get runningCoachSampleAnalysisMethodBody =>
+      '코치는 안정적인 측면 프레임을 샘플링하고, 자세 랜드마크를 추적하고, 접지 구간을 추정한 뒤 각 지표를 신뢰도와 함께 점수화해요.';
+
+  @override
+  String get runningCoachSampleMethodPose =>
+      '자세 랜드마크: 어깨, 엉덩이, 무릎, 발목, 팔꿈치, 손목, 머리가 계속 보여야 해요.';
+
+  @override
+  String get runningCoachSampleMethodAngles =>
+      '각도: 전경사, 접지 무릎, 팔꿈치 각도를 프레임마다 측정해요.';
+
+  @override
+  String get runningCoachSampleMethodContact =>
+      '접지: 착지에 가까운 프레임으로 엉덩이 선 대비 발 착지 거리를 추정해요.';
+
+  @override
+  String get runningCoachSampleMethodConfidence =>
+      '신뢰도: 추적 범위가 낮거나 안정 프레임이 적으면 다시 확인하라고 알려줘요.';
+
+  @override
   String get runningCoachSampleRecordingGuideTitle => '샘플처럼 촬영하기';
 
   @override
@@ -3887,6 +3970,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleOverlayFrames => '24/24프레임';
+
+  @override
+  String get runningCoachSampleMistakeOverlayPosture => '상체 2도';
+
+  @override
+  String get runningCoachSampleMistakeOverlayArms => '팔 132도';
+
+  @override
+  String get runningCoachSampleMistakeOverlayFoot => '오버 0.24';
+
+  @override
+  String get runningCoachSampleMistakeOverlayBounce => '바운스 12%';
 
   @override
   String get runningCoachLiveCardTitle => '실시간 코치';
