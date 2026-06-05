@@ -565,7 +565,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsLeagueFixturesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Fixtures and results'**
+  /// **'Fixture calendar'**
   String get newsLeagueFixturesTitle;
 
   /// No description provided for @newsLeagueFixturesCalendarTitle.
@@ -589,13 +589,13 @@ abstract class AppLocalizations {
   /// No description provided for @newsLeagueFixturesSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Upcoming fixtures and recent results, including Champions League knockout pairings when available.'**
+  /// **'Open the calendar to review upcoming fixtures and recent results.'**
   String get newsLeagueFixturesSubtitle;
 
   /// No description provided for @newsLeagueFixturesEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No fixtures are available in the current schedule window.'**
+  /// **'No fixtures were found after checking a wider schedule window.'**
   String get newsLeagueFixturesEmpty;
 
   /// No description provided for @newsLeagueFixturesShowAll.
@@ -11873,8 +11873,26 @@ abstract class AppLocalizations {
   /// No description provided for @challengeSkillSelectSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Pick as many soccer skills as this challenge needs.'**
+  /// **'Choose from the same training programs used in training records. Matching saved records count toward challenge rounds.'**
   String get challengeSkillSelectSubtitle;
+
+  /// No description provided for @challengeTrainingProgramLinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training program link'**
+  String get challengeTrainingProgramLinkTitle;
+
+  /// No description provided for @challengeTrainingProgramLinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set or save a training record with one of these program names to make it count for this challenge.'**
+  String get challengeTrainingProgramLinkBody;
+
+  /// No description provided for @challengeTrainingProgramLinkAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get challengeTrainingProgramLinkAction;
 
   /// No description provided for @challengeSkillDribble.
   ///

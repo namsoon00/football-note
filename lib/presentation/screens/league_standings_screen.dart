@@ -53,8 +53,6 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     for (final type in LeagueStandingsType.values)
       type: GlobalKey<State<StatefulWidget>>(),
   };
-  final Set<LeagueStandingsType> _expandedFixtureTypes =
-      <LeagueStandingsType>{};
   final Set<LeagueStandingsType> _favoriteFixtureFilterTypes =
       <LeagueStandingsType>{};
   Set<String> _favoriteTeamKeys = <String>{};
@@ -240,16 +238,6 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
 
   ScrollController _scrollControllerFor(LeagueStandingsType type) {
     return _scrollControllers.putIfAbsent(type, ScrollController.new);
-  }
-
-  void _setFixturesExpanded(LeagueStandingsType type, bool expanded) {
-    setState(() {
-      if (expanded) {
-        _expandedFixtureTypes.add(type);
-      } else {
-        _expandedFixtureTypes.remove(type);
-      }
-    });
   }
 
   void _setFavoriteFixtureFilter(LeagueStandingsType type, bool enabled) {
@@ -449,14 +437,6 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                             scrollController: _scrollControllerFor(
                               data.standings.type,
                             ),
-                            fixturesExpanded: _expandedFixtureTypes.contains(
-                              data.standings.type,
-                            ),
-                            onFixturesExpandedChanged: (expanded) =>
-                                _setFixturesExpanded(
-                                  data.standings.type,
-                                  expanded,
-                                ),
                             favoriteTeamKeys: _favoriteTeamKeys,
                             filterFavoriteFixtures: _favoriteFixtureFilterTypes
                                 .contains(data.standings.type),
@@ -1126,8 +1106,6 @@ class _StandingsTable extends StatelessWidget {
   final LeagueStandingsSnapshot snapshot;
   final LeagueFixtureSnapshot fixtures;
   final ScrollController scrollController;
-  final bool fixturesExpanded;
-  final ValueChanged<bool> onFixturesExpandedChanged;
   final Set<String> favoriteTeamKeys;
   final bool filterFavoriteFixtures;
   final ValueChanged<bool> onFilterFavoriteFixturesChanged;
@@ -1137,8 +1115,6 @@ class _StandingsTable extends StatelessWidget {
     required this.snapshot,
     required this.fixtures,
     required this.scrollController,
-    required this.fixturesExpanded,
-    required this.onFixturesExpandedChanged,
     required this.favoriteTeamKeys,
     required this.filterFavoriteFixtures,
     required this.onFilterFavoriteFixturesChanged,
@@ -1173,8 +1149,6 @@ class _StandingsTable extends StatelessWidget {
         ],
         _FixtureSection(
           snapshot: fixtures,
-          expanded: fixturesExpanded,
-          onExpandedChanged: onFixturesExpandedChanged,
           favoriteTeamKeys: favoriteTeamKeys,
           filterFavorites: filterFavoriteFixtures,
           onFilterFavoritesChanged: onFilterFavoriteFixturesChanged,
@@ -1199,19 +1173,13 @@ class _StandingsTable extends StatelessWidget {
 }
 
 class _FixtureSection extends StatelessWidget {
-  static const int _collapsedFixtureLimit = 3;
-
   final LeagueFixtureSnapshot snapshot;
-  final bool expanded;
-  final ValueChanged<bool> onExpandedChanged;
   final Set<String> favoriteTeamKeys;
   final bool filterFavorites;
   final ValueChanged<bool> onFilterFavoritesChanged;
 
   const _FixtureSection({
     required this.snapshot,
-    required this.expanded,
-    required this.onExpandedChanged,
     required this.favoriteTeamKeys,
     required this.filterFavorites,
     required this.onFilterFavoritesChanged,
@@ -1235,10 +1203,6 @@ class _FixtureSection extends StatelessWidget {
               )
               .toList(growable: false)
         : snapshot.entries;
-    final canToggle = entries.length > _collapsedFixtureLimit;
-    final visibleEntries = canToggle && !expanded
-        ? entries.take(_collapsedFixtureLimit).toList(growable: false)
-        : entries;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1285,7 +1249,7 @@ class _FixtureSection extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 10),
-        if (visibleEntries.isEmpty)
+        if (entries.isEmpty)
           Text(
             filterFavorites && hasFavoriteTeamsForLeague
                 ? l10n.newsLeagueFixturesSelectedTeamsEmpty
@@ -1293,40 +1257,10 @@ class _FixtureSection extends StatelessWidget {
             style: theme.textTheme.bodyMedium,
           )
         else
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _FixtureCalendarButton(
-                snapshot: snapshot,
-                entries: entries,
-                favoriteTeamKeys: favoriteTeamKeys,
-              ),
-              const SizedBox(height: 12),
-              for (var index = 0; index < visibleEntries.length; index++) ...[
-                _FixtureRow(entry: visibleEntries[index]),
-                if (index != visibleEntries.length - 1)
-                  const SizedBox(height: 8),
-              ],
-              if (canToggle) ...[
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => onExpandedChanged(!expanded),
-                    icon: Icon(
-                      expanded
-                          ? Icons.expand_less_rounded
-                          : Icons.expand_more_rounded,
-                    ),
-                    label: Text(
-                      expanded
-                          ? l10n.newsLeagueFixturesCollapse
-                          : l10n.newsLeagueFixturesShowAll,
-                    ),
-                  ),
-                ),
-              ],
-            ],
+          _FixtureCalendarButton(
+            snapshot: snapshot,
+            entries: entries,
+            favoriteTeamKeys: favoriteTeamKeys,
           ),
       ],
     );

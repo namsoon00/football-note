@@ -16,10 +16,11 @@ void main() {
     expect(templates[0].rounds, hasLength(3));
     expect(templates[1].rounds, hasLength(7));
     expect(templates[2].rounds, hasLength(14));
-    expect(
-      templates.map((template) => template.rewardXpPerRound),
-      <int>[10, 10, 10],
-    );
+    expect(templates.map((template) => template.rewardXpPerRound), <int>[
+      10,
+      10,
+      10,
+    ]);
     expect(templates[2].rounds.first.targetTrainingMinutes, 60);
     expect(templates[2].rounds.last.targetTrainingMinutes, 60);
     expect(templates[2].rounds.first.targetJumpRopeMinutes, 10);
@@ -95,10 +96,7 @@ void main() {
           lunchRiceBowls: 1,
           dinnerRiceBowls: 1,
         ),
-        MealEntry(
-          date: DateTime(2026, 6, 2),
-          breakfastRiceBowls: 1,
-        ),
+        MealEntry(date: DateTime(2026, 6, 2), breakfastRiceBowls: 1),
       ],
     )!;
 
@@ -115,6 +113,49 @@ void main() {
     expect(progress.rounds[1].completed, isFalse);
     expect(progress.completedRoundCount, 1);
   });
+
+  test(
+    'program-based challenge skills count matching training records',
+    () async {
+      final service = ChallengeService(_MemoryOptionRepository());
+      final template = service.templateById('starter_3')!;
+      final run = await service.startChallenge(
+        template,
+        selectedSkillIds: <String>['전술'],
+        startedAt: DateTime(2026, 6, 1, 9),
+      );
+
+      final progress = service.progressForRun(
+        run: run,
+        trainingEntries: <TrainingEntry>[
+          _trainingEntry(
+            day: DateTime(2026, 6, 1),
+            minutes: 120,
+            program: '기본기',
+          ),
+          _trainingEntry(
+            day: DateTime(2026, 6, 1),
+            minutes: 60,
+            jumpRopeMinutes: 10,
+            liftingMinutes: 10,
+            program: '전술',
+          ),
+        ],
+        mealEntries: <MealEntry>[
+          MealEntry(
+            date: DateTime(2026, 6, 1),
+            breakfastRiceBowls: 1,
+            lunchRiceBowls: 1,
+            dinnerRiceBowls: 1,
+          ),
+        ],
+      )!;
+
+      expect(progress.run.selectedSkillIds, <String>['전술']);
+      expect(progress.rounds.first.trainingMinutes, 80);
+      expect(progress.rounds.first.completed, isTrue);
+    },
+  );
 
   test('finalization waits until the challenge is ready to end', () async {
     final repository = _MemoryOptionRepository();
@@ -221,81 +262,84 @@ void main() {
     expect(service.latestCompletedRun(), isNotNull);
     expect(levelService.loadState().totalXp, 150);
     expect(
-      levelService.loadXpHistory().map((entry) => entry.reasons).expand(
-            (reasons) => reasons,
-          ),
+      levelService
+          .loadXpHistory()
+          .map((entry) => entry.reasons)
+          .expand((reasons) => reasons),
       contains('challenge_completed_bonus'),
     );
   });
 
-  test('partially completed challenge continues and settles after final day',
-      () async {
-    final repository = _MemoryOptionRepository();
-    final service = ChallengeService(repository);
-    final levelService = PlayerLevelService(repository);
-    final template = service.templateById('starter_3')!;
-    final run = await service.startChallenge(
-      template,
-      startedAt: DateTime(2026, 6, 1, 9),
-    );
-    final progress = service.progressForRun(
-      run: run,
-      trainingEntries: <TrainingEntry>[
-        _trainingEntry(
-          day: DateTime(2026, 6, 1),
-          minutes: 20,
-          jumpRopeMinutes: 20,
-          liftingMinutes: 20,
-        ),
-        _trainingEntry(
-          day: DateTime(2026, 6, 3),
-          minutes: 20,
-          jumpRopeMinutes: 20,
-          liftingMinutes: 20,
-        ),
-      ],
-      mealEntries: <MealEntry>[
-        MealEntry(
-          date: DateTime(2026, 6, 1),
-          breakfastRiceBowls: 1,
-          lunchRiceBowls: 1,
-          dinnerRiceBowls: 1,
-        ),
-        MealEntry(
-          date: DateTime(2026, 6, 3),
-          breakfastRiceBowls: 1,
-          lunchRiceBowls: 1,
-          dinnerRiceBowls: 1,
-        ),
-      ],
-    )!;
-    final missed = progress.missedExpiredRound(now: DateTime(2026, 6, 3, 8));
+  test(
+    'partially completed challenge continues and settles after final day',
+    () async {
+      final repository = _MemoryOptionRepository();
+      final service = ChallengeService(repository);
+      final levelService = PlayerLevelService(repository);
+      final template = service.templateById('starter_3')!;
+      final run = await service.startChallenge(
+        template,
+        startedAt: DateTime(2026, 6, 1, 9),
+      );
+      final progress = service.progressForRun(
+        run: run,
+        trainingEntries: <TrainingEntry>[
+          _trainingEntry(
+            day: DateTime(2026, 6, 1),
+            minutes: 20,
+            jumpRopeMinutes: 20,
+            liftingMinutes: 20,
+          ),
+          _trainingEntry(
+            day: DateTime(2026, 6, 3),
+            minutes: 20,
+            jumpRopeMinutes: 20,
+            liftingMinutes: 20,
+          ),
+        ],
+        mealEntries: <MealEntry>[
+          MealEntry(
+            date: DateTime(2026, 6, 1),
+            breakfastRiceBowls: 1,
+            lunchRiceBowls: 1,
+            dinnerRiceBowls: 1,
+          ),
+          MealEntry(
+            date: DateTime(2026, 6, 3),
+            breakfastRiceBowls: 1,
+            lunchRiceBowls: 1,
+            dinnerRiceBowls: 1,
+          ),
+        ],
+      )!;
+      final missed = progress.missedExpiredRound(now: DateTime(2026, 6, 3, 8));
 
-    expect(missed?.round.number, 2);
-    final earlyAwards = await service.finalizeRun(
-      progress: progress,
-      playerLevelService: levelService,
-      finalizedAt: DateTime(2026, 6, 3, 8),
-    );
-    expect(earlyAwards, isEmpty);
-    expect(service.activeRun(), isNotNull);
+      expect(missed?.round.number, 2);
+      final earlyAwards = await service.finalizeRun(
+        progress: progress,
+        playerLevelService: levelService,
+        finalizedAt: DateTime(2026, 6, 3, 8),
+      );
+      expect(earlyAwards, isEmpty);
+      expect(service.activeRun(), isNotNull);
 
-    final finalAwards = await service.finalizeRun(
-      progress: progress,
-      playerLevelService: levelService,
-      finalizedAt: DateTime(2026, 6, 4, 8),
-    );
+      final finalAwards = await service.finalizeRun(
+        progress: progress,
+        playerLevelService: levelService,
+        finalizedAt: DateTime(2026, 6, 4, 8),
+      );
 
-    expect(service.activeRun(), isNull);
-    final failed = service.loadRuns().single;
-    expect(failed.isFailed, isTrue);
-    expect(failed.failedRoundNumber, 2);
-    expect(
-      finalAwards.map((award) => award.gainedXp).where((xp) => xp > 0),
-      <int>[10, 10],
-    );
-    expect(levelService.loadState().totalXp, 20);
-  });
+      expect(service.activeRun(), isNull);
+      final failed = service.loadRuns().single;
+      expect(failed.isFailed, isTrue);
+      expect(failed.failedRoundNumber, 2);
+      expect(
+        finalAwards.map((award) => award.gainedXp).where((xp) => xp > 0),
+        <int>[10, 10],
+      );
+      expect(levelService.loadState().totalXp, 20);
+    },
+  );
 }
 
 TrainingEntry _trainingEntry({
@@ -303,16 +347,18 @@ TrainingEntry _trainingEntry({
   required int minutes,
   int jumpRopeMinutes = 0,
   int liftingMinutes = 0,
+  String program = '패스',
 }) {
   return TrainingEntry(
     date: day,
     durationMinutes: minutes,
     intensity: 3,
-    type: '패스',
+    type: program,
     mood: 3,
     injury: false,
     notes: '',
     location: '운동장',
+    program: program,
     jumpRopeMinutes: jumpRopeMinutes,
     jumpRopeEnabled: jumpRopeMinutes > 0,
     liftingMinutes: liftingMinutes,

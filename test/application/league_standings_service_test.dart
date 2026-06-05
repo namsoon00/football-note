@@ -176,6 +176,41 @@ void main() {
     expect(snapshot.entries.last.awayTeamName, 'Atlético Madrid');
   });
 
+  test(
+    'ESPN fixtures retry a wider window when no upcoming match exists',
+    () async {
+      final requestedLimits = <String>[];
+      final service = LeagueStandingsService(
+        client: MockClient((request) async {
+          requestedLimits.add(request.url.queryParameters['limit'] ?? '');
+          final isFallback = request.url.queryParameters['limit'] == '300';
+          return http.Response(
+            jsonEncode(
+              _espnFixturePayload(
+                id: isFallback ? 'next-match' : 'old-match',
+                date: isFallback
+                    ? '2026-12-12T15:00:00Z'
+                    : '2026-05-01T15:00:00Z',
+                completed: !isFallback,
+              ),
+            ),
+            200,
+          );
+        }),
+      );
+      addTearDown(service.dispose);
+
+      final snapshot = await service.fetchFixtures(
+        LeagueStandingsType.premierLeague,
+        now: DateTime.utc(2026, 6, 1),
+      );
+
+      expect(requestedLimits, <String>['100', '300']);
+      expect(snapshot.entries.single.id, 'next-match');
+      expect(snapshot.entries.single.status, LeagueFixtureStatus.scheduled);
+    },
+  );
+
   test('parses K League standings payload', () {
     final snapshot = LeagueStandingsService.parseKLeagueSnapshotForTesting(
       fetchedAt: DateTime(2026, 5, 26, 12),
@@ -377,4 +412,53 @@ void main() {
     expect(snapshot.entries, hasLength(1));
     expect(snapshot.entries.single.id, '2026-1-80-1');
   });
+}
+
+Map<String, dynamic> _espnFixturePayload({
+  required String id,
+  required String date,
+  required bool completed,
+}) {
+  return {
+    'leagues': [
+      {
+        'name': 'English Premier League',
+        'season': {'displayName': '2026-27 English Premier League'},
+      },
+    ],
+    'events': [
+      {
+        'id': id,
+        'date': date,
+        'competitions': [
+          {
+            'id': id,
+            'date': date,
+            'status': {
+              'type': {
+                'state': completed ? 'post' : 'pre',
+                'completed': completed,
+              },
+            },
+            'competitors': [
+              {
+                'homeAway': 'home',
+                'team': {
+                  'displayName': 'Arsenal',
+                  'shortDisplayName': 'Arsenal',
+                },
+              },
+              {
+                'homeAway': 'away',
+                'team': {
+                  'displayName': 'Chelsea',
+                  'shortDisplayName': 'Chelsea',
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
 }

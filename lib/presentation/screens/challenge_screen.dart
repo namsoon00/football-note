@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../application/backup_service.dart';
 import '../../application/challenge_service.dart';
 import '../../application/locale_service.dart';
+import '../../application/localized_option_defaults.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
@@ -120,6 +121,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       DateTime.now(),
                     ),
                   );
+                  final skillOptions = _challengeProgramSkillOptions(
+                    l10n,
+                    widget.optionRepository,
+                  );
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
                     children: [
@@ -131,6 +136,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                               _templateTitle(l10n, template),
                           templateDescription: (template) =>
                               _templateDescription(l10n, template),
+                          skillOptions: skillOptions,
+                          onOpenTrainingPrograms: _openTrainingProgramSetup,
                           onStart: _startChallenge,
                         )
                       else
@@ -145,6 +152,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                           onOpenJumpRope: _openJumpRopeMission,
                           onOpenLifting: _openLiftingMission,
                           onOpenMeal: _openMealMission,
+                          onOpenTrainingPrograms: _openTrainingProgramSetup,
                         ),
                     ],
                   );
@@ -381,6 +389,24 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _openTrainingProgramSetup() async {
+    _playChallengeTapFeedback();
+    await Navigator.of(context).push(
+      AppPageRoute<void>(
+        builder: (_) => EntryFormScreen(
+          trainingService: widget.trainingService,
+          optionRepository: widget.optionRepository,
+          localeService: widget.localeService,
+          settingsService: _settingsService,
+          driveBackupService: widget.driveBackupService,
+          initialDate: DateTime.now(),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {});
+  }
+
   void _playChallengeTapFeedback() {
     unawaited(HapticFeedback.selectionClick());
     unawaited(SystemSound.play(SystemSoundType.click));
@@ -397,6 +423,8 @@ class _ChallengeStartSection extends StatefulWidget {
   final ChallengeTrainingLevel recommendedLevel;
   final String Function(ChallengeTemplate template) templateTitle;
   final String Function(ChallengeTemplate template) templateDescription;
+  final List<_ChallengeSkillOption> skillOptions;
+  final VoidCallback onOpenTrainingPrograms;
   final void Function(
     ChallengeTemplate template,
     ChallengeTrainingLevel trainingLevel,
@@ -408,6 +436,8 @@ class _ChallengeStartSection extends StatefulWidget {
     required this.recommendedLevel,
     required this.templateTitle,
     required this.templateDescription,
+    required this.skillOptions,
+    required this.onOpenTrainingPrograms,
     required this.onStart,
   });
 
@@ -420,13 +450,33 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   final GlobalKey _readySectionKey = GlobalKey();
   ChallengeTemplate? _selectedTemplate;
   ChallengeTrainingLevel? _selectedLevel;
-  Set<String> _selectedSkillIds = Set<String>.from(defaultChallengeSkillIds);
+  late Set<String> _selectedSkillIds;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSkillIds = _initialChallengeSkillSelection(widget.skillOptions);
+  }
 
   @override
   void didUpdateWidget(_ChallengeStartSection oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.recommendedLevel != widget.recommendedLevel) {
       _selectedLevel = null;
+    }
+    if (!_sameChallengeSkillOptions(
+      oldWidget.skillOptions,
+      widget.skillOptions,
+    )) {
+      final availableIds =
+          widget.skillOptions.map((option) => option.id).toSet();
+      _selectedSkillIds =
+          _selectedSkillIds.where(availableIds.contains).toSet();
+      if (_selectedSkillIds.isEmpty) {
+        _selectedSkillIds = _initialChallengeSkillSelection(
+          widget.skillOptions,
+        );
+      }
     }
     final selectedTemplate = _selectedTemplate;
     if (selectedTemplate != null &&
@@ -502,10 +552,15 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
           ),
           const SizedBox(height: 10),
           _ChallengeSkillPicker(
+            options: widget.skillOptions,
             selectedSkillIds: _selectedSkillIds,
             onChanged: (ids) {
               setState(() => _selectedSkillIds = ids);
             },
+          ),
+          const SizedBox(height: 10),
+          _TrainingProgramLinkCard(
+            onOpenTrainingPrograms: widget.onOpenTrainingPrograms,
           ),
         ],
         if (_selectedTemplate != null && _selectedLevel != null) ...[
@@ -548,7 +603,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
     setState(() {
       _selectedTemplate = template;
       _selectedLevel = null;
-      _selectedSkillIds = Set<String>.from(defaultChallengeSkillIds);
+      _selectedSkillIds = _initialChallengeSkillSelection(widget.skillOptions);
     });
     _scrollTo(_levelSectionKey);
   }
@@ -593,6 +648,7 @@ class _ChallengeTemplateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final accent = _challengeTemplateAccent(template.id);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -602,12 +658,16 @@ class _ChallengeTemplateCard extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
+            gradient: LinearGradient(
+              colors: [
+                accent.withValues(alpha: selected ? 0.22 : 0.12),
+                theme.colorScheme.surface,
+                const Color(0xFFFFD166).withValues(alpha: 0.10),
+              ],
+            ),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: selected
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.outline,
+              color: selected ? accent : theme.colorScheme.outlineVariant,
               width: selected ? 2 : 1,
             ),
           ),
@@ -621,13 +681,10 @@ class _ChallengeTemplateCard extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                      color: accent.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(
-                      Icons.flag_outlined,
-                      color: theme.colorScheme.primary,
-                    ),
+                    child: Icon(Icons.flag_outlined, color: accent),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -652,9 +709,8 @@ class _ChallengeTemplateCard extends StatelessWidget {
                     selected
                         ? Icons.check_circle
                         : Icons.radio_button_unchecked,
-                    color: selected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
+                    color:
+                        selected ? accent : theme.colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
@@ -706,6 +762,7 @@ class _ChallengeLevelCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final config = trainingLevelConfig(level);
+    final accent = _challengeLevelAccent(level);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -715,12 +772,15 @@ class _ChallengeLevelCard extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
+            gradient: LinearGradient(
+              colors: [
+                accent.withValues(alpha: selected ? 0.20 : 0.10),
+                theme.colorScheme.surface,
+              ],
+            ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selected
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.outline,
+              color: selected ? accent : theme.colorScheme.outlineVariant,
               width: selected ? 2 : 1,
             ),
           ),
@@ -729,9 +789,7 @@ class _ChallengeLevelCard extends StatelessWidget {
             children: [
               Icon(
                 selected ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: selected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
+                color: selected ? accent : theme.colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -799,26 +857,41 @@ class _ChallengeLevelCard extends StatelessWidget {
 }
 
 class _ChallengeSkillPicker extends StatelessWidget {
+  final List<_ChallengeSkillOption> options;
   final Set<String> selectedSkillIds;
   final ValueChanged<Set<String>> onChanged;
 
   const _ChallengeSkillPicker({
+    required this.options,
     required this.selectedSkillIds,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
-        for (final option in _challengeSkillOptions(l10n))
+        for (final option in options)
           FilterChip(
-            avatar: Icon(option.icon, size: 18),
+            avatar: Icon(
+              option.icon,
+              size: 18,
+              color: selectedSkillIds.contains(option.id)
+                  ? option.color
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
             label: Text(option.label),
             selected: selectedSkillIds.contains(option.id),
+            selectedColor: option.color.withValues(alpha: 0.18),
+            checkmarkColor: option.color,
+            side: BorderSide(
+              color: selectedSkillIds.contains(option.id)
+                  ? option.color.withValues(alpha: 0.62)
+                  : theme.colorScheme.outlineVariant,
+            ),
             onSelected: (selected) {
               final next = Set<String>.from(selectedSkillIds);
               if (selected) {
@@ -831,6 +904,95 @@ class _ChallengeSkillPicker extends StatelessWidget {
             },
           ),
       ],
+    );
+  }
+}
+
+class _TrainingProgramLinkCard extends StatelessWidget {
+  final VoidCallback onOpenTrainingPrograms;
+  final bool compact;
+
+  const _TrainingProgramLinkCard({
+    required this.onOpenTrainingPrograms,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    const accent = Color(0xFFFF7A59);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onOpenTrainingPrograms,
+        borderRadius: BorderRadius.circular(18),
+        child: Ink(
+          padding: EdgeInsets.all(compact ? 12 : 14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                accent.withValues(alpha: 0.18),
+                const Color(0xFF2DD4BF).withValues(alpha: 0.14),
+                const Color(0xFFFFD166).withValues(alpha: 0.16),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: accent.withValues(alpha: 0.30)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: compact ? 36 : 42,
+                height: compact ? 36 : 42,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.tune_rounded, color: accent),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.challengeTrainingProgramLinkTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      l10n.challengeTrainingProgramLinkBody,
+                      maxLines: compact ? 2 : 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l10n.challengeTrainingProgramLinkAction,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: accent),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -853,10 +1015,16 @@ class _RewardPitchCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.42),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFFD166).withValues(alpha: 0.28),
+            const Color(0xFF06D6A0).withValues(alpha: 0.16),
+            const Color(0xFF7C4DFF).withValues(alpha: 0.10),
+          ],
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha: 0.20),
+          color: const Color(0xFFFFB703).withValues(alpha: 0.38),
         ),
       ),
       child: Column(
@@ -978,7 +1146,7 @@ class _ChallengeHistoryTile extends StatelessWidget {
               child: run.isCompleted
                   ? const CheerRinzyMascot(size: 34, progress: 1)
                   : run.isFailed
-                      ? const SadRinzyMascot(size: 34)
+                      ? const CryingRinzyMascot(size: 34)
                       : Icon(
                           Icons.stop_circle_outlined,
                           color: theme.colorScheme.onSurfaceVariant,
@@ -1034,9 +1202,20 @@ class _ChallengeIntroCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: [
+            const Color(0xFF06D6A0).withValues(alpha: 0.24),
+            const Color(0xFFFFD166).withValues(alpha: 0.20),
+            const Color(0xFFEF476F).withValues(alpha: 0.12),
+            theme.colorScheme.surface,
+          ],
+        ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outline),
+        border: Border.all(
+          color: const Color(0xFF06D6A0).withValues(alpha: 0.34),
+        ),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -1089,6 +1268,7 @@ class _ActiveChallengeSection extends StatelessWidget {
   final ValueChanged<ChallengeRoundProgress> onOpenJumpRope;
   final ValueChanged<ChallengeRoundProgress> onOpenLifting;
   final ValueChanged<ChallengeRoundProgress> onOpenMeal;
+  final VoidCallback onOpenTrainingPrograms;
 
   const _ActiveChallengeSection({
     required this.progress,
@@ -1098,6 +1278,7 @@ class _ActiveChallengeSection extends StatelessWidget {
     required this.onOpenJumpRope,
     required this.onOpenLifting,
     required this.onOpenMeal,
+    required this.onOpenTrainingPrograms,
   });
 
   @override
@@ -1116,6 +1297,7 @@ class _ActiveChallengeSection extends StatelessWidget {
             onOpenJumpRope: onOpenJumpRope,
             onOpenLifting: onOpenLifting,
             onOpenMeal: onOpenMeal,
+            onOpenTrainingPrograms: onOpenTrainingPrograms,
           )
         else
           _CompletedCard(title: templateTitle),
@@ -1131,6 +1313,7 @@ class _RoundFocusCard extends StatelessWidget {
   final ValueChanged<ChallengeRoundProgress> onOpenJumpRope;
   final ValueChanged<ChallengeRoundProgress> onOpenLifting;
   final ValueChanged<ChallengeRoundProgress> onOpenMeal;
+  final VoidCallback onOpenTrainingPrograms;
 
   const _RoundFocusCard({
     required this.progress,
@@ -1139,6 +1322,7 @@ class _RoundFocusCard extends StatelessWidget {
     required this.onOpenJumpRope,
     required this.onOpenLifting,
     required this.onOpenMeal,
+    required this.onOpenTrainingPrograms,
   });
 
   @override
@@ -1159,9 +1343,19 @@ class _RoundFocusCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: [
+            const Color(0xFF00A6A6).withValues(alpha: 0.18),
+            const Color(0xFFFF7A59).withValues(alpha: 0.12),
+            theme.colorScheme.surface,
+          ],
+        ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outline),
+        border: Border.all(
+          color: const Color(0xFF00A6A6).withValues(alpha: 0.28),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1223,6 +1417,11 @@ class _RoundFocusCard extends StatelessWidget {
                     : l10n.challengePendingBadge,
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          _TrainingProgramLinkCard(
+            onOpenTrainingPrograms: onOpenTrainingPrograms,
+            compact: true,
           ),
           const SizedBox(height: 12),
           _MissionProgressRow(
@@ -1352,9 +1551,20 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
       key: const ValueKey('challenge-rounds-calendar'),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: [
+            const Color(0xFF7C4DFF).withValues(alpha: 0.16),
+            const Color(0xFFFFD166).withValues(alpha: 0.16),
+            const Color(0xFF06D6A0).withValues(alpha: 0.12),
+            theme.colorScheme.surface,
+          ],
+        ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outline),
+        border: Border.all(
+          color: const Color(0xFF7C4DFF).withValues(alpha: 0.26),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1818,7 +2028,7 @@ class _ChallengeFailureScreen extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SadRinzyMascot(
+                          CryingRinzyMascot(
                             size: MediaQuery.sizeOf(
                               context,
                             ).width.clamp(220, 340).toDouble(),
@@ -2029,47 +2239,156 @@ String _templateTitleForRun(AppLocalizations l10n, ChallengeRun run) {
   return '$title · ${_trainingLevelTitle(l10n, run.trainingLevel)}';
 }
 
-List<_ChallengeSkillOption> _challengeSkillOptions(AppLocalizations l10n) {
+Color _challengeTemplateAccent(String templateId) {
+  return switch (templateId) {
+    'starter_3' => const Color(0xFF06D6A0),
+    'weekly_7' => const Color(0xFFFF7A59),
+    'focus_14' => const Color(0xFF7C4DFF),
+    _ => const Color(0xFF00A6A6),
+  };
+}
+
+Color _challengeLevelAccent(ChallengeTrainingLevel level) {
+  return switch (level) {
+    ChallengeTrainingLevel.rookie => const Color(0xFF06D6A0),
+    ChallengeTrainingLevel.growth => const Color(0xFFFFB703),
+    ChallengeTrainingLevel.ace => const Color(0xFF7C4DFF),
+  };
+}
+
+List<_ChallengeSkillOption> _challengeProgramSkillOptions(
+  AppLocalizations l10n,
+  OptionRepository optionRepository,
+) {
+  final defaults = <String>[
+    l10n.defaultProgram1,
+    l10n.defaultProgram2,
+    l10n.defaultProgram3,
+    l10n.defaultProgram4,
+  ];
+  final stored = optionRepository.getOptions('programs', defaults);
+  final normalized = LocalizedOptionDefaults.normalizeOptions(
+    key: 'programs',
+    stored: stored,
+    localizedDefaults: defaults,
+  );
+  if (!_sameStringList(stored, normalized)) {
+    unawaited(optionRepository.saveOptions('programs', normalized));
+  }
+  final seen = <String>{};
+  final programs = <String>[];
+  for (final program in normalized) {
+    final trimmed = program.trim();
+    if (trimmed.isEmpty || seen.contains(trimmed)) continue;
+    seen.add(trimmed);
+    programs.add(trimmed);
+  }
+  final colors = <Color>[
+    const Color(0xFF00A6A6),
+    const Color(0xFFFF7A59),
+    const Color(0xFF7C4DFF),
+    const Color(0xFFFFB703),
+    const Color(0xFF2F80ED),
+    const Color(0xFF40B85A),
+  ];
+  final icons = <IconData>[
+    Icons.sports_soccer,
+    Icons.directions_run_rounded,
+    Icons.groups_2_outlined,
+    Icons.self_improvement_rounded,
+    Icons.bolt_rounded,
+    Icons.auto_awesome_rounded,
+  ];
+  return <_ChallengeSkillOption>[
+    for (var index = 0; index < programs.length; index++)
+      _ChallengeSkillOption(
+        id: programs[index],
+        label: programs[index],
+        icon: icons[index % icons.length],
+        color: colors[index % colors.length],
+      ),
+  ];
+}
+
+Set<String> _initialChallengeSkillSelection(
+  List<_ChallengeSkillOption> options,
+) {
+  if (options.isEmpty) {
+    return Set<String>.from(defaultChallengeSkillIds);
+  }
+  return options.map((option) => option.id).toSet();
+}
+
+bool _sameChallengeSkillOptions(
+  List<_ChallengeSkillOption> a,
+  List<_ChallengeSkillOption> b,
+) {
+  if (a.length != b.length) return false;
+  for (var index = 0; index < a.length; index++) {
+    if (a[index].id != b[index].id) return false;
+  }
+  return true;
+}
+
+bool _sameStringList(List<String> a, List<String> b) {
+  if (a.length != b.length) return false;
+  for (var index = 0; index < a.length; index++) {
+    if (a[index] != b[index]) return false;
+  }
+  return true;
+}
+
+List<_ChallengeSkillOption> _legacyChallengeSkillOptions(
+  AppLocalizations l10n,
+) {
   return <_ChallengeSkillOption>[
     _ChallengeSkillOption(
       id: 'dribble',
       label: l10n.challengeSkillDribble,
       icon: Icons.sports_soccer,
+      color: const Color(0xFF00A6A6),
     ),
     _ChallengeSkillOption(
       id: 'speedRun',
       label: l10n.challengeSkillSpeedRun,
       icon: Icons.directions_run_rounded,
+      color: const Color(0xFFFF7A59),
     ),
     _ChallengeSkillOption(
       id: 'jumpRope',
       label: l10n.challengeSkillJumpRope,
       icon: Icons.sports_gymnastics_rounded,
+      color: const Color(0xFF7C4DFF),
     ),
     _ChallengeSkillOption(
       id: 'lifting',
       label: l10n.challengeSkillLifting,
       icon: Icons.sports_soccer_outlined,
+      color: const Color(0xFFFFB703),
     ),
     _ChallengeSkillOption(
       id: 'passing',
       label: l10n.challengeSkillPassing,
       icon: Icons.sync_alt_rounded,
+      color: const Color(0xFF2F80ED),
     ),
     _ChallengeSkillOption(
       id: 'shooting',
       label: l10n.challengeSkillShooting,
       icon: Icons.adjust_rounded,
+      color: const Color(0xFF40B85A),
     ),
     _ChallengeSkillOption(
       id: 'firstTouch',
       label: l10n.challengeSkillFirstTouch,
       icon: Icons.ads_click_rounded,
+      color: const Color(0xFFEC4899),
     ),
     _ChallengeSkillOption(
       id: 'defense',
       label: l10n.challengeSkillDefense,
       icon: Icons.shield_outlined,
+      color: const Color(0xFF64748B),
     ),
   ];
 }
@@ -2079,7 +2398,8 @@ List<String> _challengeSkillLabels(
   Iterable<String> selectedSkillIds,
 ) {
   final optionsById = {
-    for (final option in _challengeSkillOptions(l10n)) option.id: option.label,
+    for (final option in _legacyChallengeSkillOptions(l10n))
+      option.id: option.label,
   };
   return normalizeChallengeSkillIds(
     selectedSkillIds,
@@ -2090,11 +2410,13 @@ class _ChallengeSkillOption {
   final String id;
   final String label;
   final IconData icon;
+  final Color color;
 
   const _ChallengeSkillOption({
     required this.id,
     required this.label,
     required this.icon,
+    required this.color,
   });
 }
 

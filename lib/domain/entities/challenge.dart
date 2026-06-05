@@ -12,6 +12,17 @@ const List<String> defaultChallengeSkillIds = <String>[
   'lifting',
 ];
 
+const Set<String> legacyChallengeSkillIds = <String>{
+  'dribble',
+  'speedRun',
+  'jumpRope',
+  'lifting',
+  'passing',
+  'shooting',
+  'firstTouch',
+  'defense',
+};
+
 List<String> normalizeChallengeSkillIds(Iterable<String> rawIds) {
   final seen = <String>{};
   final normalized = <String>[];
@@ -142,23 +153,26 @@ class ChallengeRun {
     final abandoned = map['abandoned'] == true;
     final parsedResult = _challengeRunResultFromName(map['result']?.toString());
     return ChallengeRun(
-      id: map['id']?.toString() ??
+      id:
+          map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       templateId: map['templateId']?.toString() ?? '',
       trainingLevel: _challengeTrainingLevelFromName(
         map['trainingLevel']?.toString(),
         templateId: map['templateId']?.toString() ?? '',
       ),
-      startedAt: DateTime.tryParse(map['startedAt']?.toString() ?? '') ??
+      startedAt:
+          DateTime.tryParse(map['startedAt']?.toString() ?? '') ??
           DateTime.now(),
       completedAt: completedAt,
       abandoned: abandoned,
-      result: parsedResult ??
+      result:
+          parsedResult ??
           (completedAt == null
               ? null
               : abandoned
-                  ? ChallengeRunResult.abandoned
-                  : ChallengeRunResult.completed),
+              ? ChallengeRunResult.abandoned
+              : ChallengeRunResult.completed),
       failedRoundNumber: (map['failedRoundNumber'] as num?)?.toInt(),
       selectedSkillIds: normalizeChallengeSkillIds(
         (map['selectedSkillIds'] as List?)?.map((item) => item.toString()) ??
@@ -283,11 +297,24 @@ DateTime normalizeDay(DateTime value) {
   return DateTime(value.year, value.month, value.day);
 }
 
-int trainingMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
+int trainingMinutesForDay(
+  Iterable<TrainingEntry> entries,
+  DateTime day, {
+  Iterable<String> selectedSkillIds = const <String>[],
+}) {
   final normalizedDay = normalizeDay(day);
+  final skillIds = normalizeChallengeSkillIds(selectedSkillIds);
+  final usesTrainingPrograms = skillIds.any(
+    (id) => !legacyChallengeSkillIds.contains(id),
+  );
   return entries
       .where(
         (entry) => !entry.isMatch && normalizeDay(entry.date) == normalizedDay,
+      )
+      .where(
+        (entry) =>
+            !usesTrainingPrograms ||
+            trainingEntryMatchesChallengeSkill(entry, skillIds),
       )
       .fold<int>(
         0,
@@ -297,6 +324,23 @@ int trainingMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
             entry.jumpRopeMinutes +
             entry.liftingMinutes,
       );
+}
+
+bool trainingEntryMatchesChallengeSkill(
+  TrainingEntry entry,
+  Iterable<String> selectedSkillIds,
+) {
+  final normalizedTargets = selectedSkillIds
+      .where((id) => !legacyChallengeSkillIds.contains(id))
+      .map(_normalizeChallengeSkillText)
+      .where((id) => id.isNotEmpty)
+      .toSet();
+  if (normalizedTargets.isEmpty) return true;
+  final entryValues = <String>{
+    _normalizeChallengeSkillText(entry.program),
+    _normalizeChallengeSkillText(entry.type),
+  }..removeWhere((value) => value.isEmpty);
+  return entryValues.any(normalizedTargets.contains);
 }
 
 int jumpRopeMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
@@ -348,4 +392,8 @@ ChallengeRunResult? _challengeRunResultFromName(String? raw) {
     if (result.name == raw) return result;
   }
   return null;
+}
+
+String _normalizeChallengeSkillText(String value) {
+  return value.trim().toLowerCase();
 }

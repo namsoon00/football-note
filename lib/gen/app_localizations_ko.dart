@@ -250,7 +250,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsLeagueStandingsRetry => '다시 시도';
 
   @override
-  String get newsLeagueFixturesTitle => '경기 일정과 결과';
+  String get newsLeagueFixturesTitle => '일정 캘린더';
 
   @override
   String get newsLeagueFixturesCalendarTitle => '경기 일정 캘린더';
@@ -262,11 +262,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsLeagueFixturesCalendarEmptyDay => '이 날짜에 배치된 경기가 없어요.';
 
   @override
-  String get newsLeagueFixturesSubtitle =>
-      '예정 경기와 최근 결과를 보여주며, 챔피언스리그 토너먼트 대진도 가능한 경우 함께 표시합니다.';
+  String get newsLeagueFixturesSubtitle => '캘린더에서 예정 경기와 최근 결과를 확인하세요.';
 
   @override
-  String get newsLeagueFixturesEmpty => '현재 일정 구간에 표시할 경기가 없어요.';
+  String get newsLeagueFixturesEmpty => '더 넓은 일정 구간을 확인했지만 표시할 경기를 찾지 못했어요.';
 
   @override
   String get newsLeagueFixturesShowAll => '일정 전체 보기';
@@ -6632,7 +6631,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeSkillSelectTitle => '3. 스킬 선택';
 
   @override
-  String get challengeSkillSelectSubtitle => '이번 챌린지에 담을 축구 스킬을 원하는 만큼 고르세요.';
+  String get challengeSkillSelectSubtitle =>
+      '훈련 기록에서 쓰는 훈련 프로그램 중에서 고르세요. 같은 프로그램으로 저장한 기록이 챌린지 라운드로 인식됩니다.';
+
+  @override
+  String get challengeTrainingProgramLinkTitle => '훈련 프로그램 연결';
+
+  @override
+  String get challengeTrainingProgramLinkBody =>
+      '이름이 같은 훈련 프로그램으로 기록을 저장하면 이번 챌린지 기록으로 반영돼요.';
+
+  @override
+  String get challengeTrainingProgramLinkAction => '열기';
 
   @override
   String get challengeSkillDribble => '드리블';
