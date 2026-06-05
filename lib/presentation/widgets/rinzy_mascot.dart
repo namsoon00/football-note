@@ -248,17 +248,93 @@ class SadRinzyMascot extends StatelessWidget {
   }
 }
 
+class CryingRinzyMascot extends StatefulWidget {
+  final double size;
+  final bool animate;
+
+  const CryingRinzyMascot({super.key, this.size = 112, this.animate = true});
+
+  @override
+  State<CryingRinzyMascot> createState() => _CryingRinzyMascotState();
+}
+
+class _CryingRinzyMascotState extends State<CryingRinzyMascot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1150),
+    );
+    if (widget.animate) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(CryingRinzyMascot oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.animate && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!widget.animate && _controller.isAnimating) {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      image: true,
+      child: RepaintBoundary(
+        child: SizedBox.square(
+          dimension: widget.size,
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              final phase = widget.animate ? _controller.value : 0.0;
+              final shiver =
+                  math.sin(phase * math.pi * 8) * widget.size * 0.006;
+              return Transform.translate(
+                offset: Offset(shiver, 0),
+                child: CustomPaint(
+                  painter: _RinzyChibiPainter(
+                    progress: 0,
+                    phase: phase,
+                    sad: true,
+                    crying: true,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _RinzyChibiPainter extends CustomPainter {
   final double progress;
   final double phase;
   final bool cheer;
   final bool sad;
+  final bool crying;
 
   const _RinzyChibiPainter({
     required this.progress,
     required this.phase,
     this.cheer = false,
     this.sad = false,
+    this.crying = false,
   });
 
   @override
@@ -523,7 +599,58 @@ class _RinzyChibiPainter extends CustomPainter {
         ),
         tearPaint,
       );
+      if (crying) {
+        _drawCryingTears(canvas, size, unit, tearPaint);
+      }
     }
+  }
+
+  void _drawCryingTears(
+    Canvas canvas,
+    Size size,
+    double unit,
+    Paint tearPaint,
+  ) {
+    final streamPaint = Paint()
+      ..color = const Color(0xFF62B5FF).withValues(alpha: 0.58)
+      ..strokeWidth = unit * 0.018
+      ..strokeCap = StrokeCap.round;
+    for (final dx in <double>[0.39, 0.61]) {
+      final start = Offset(size.width * dx, size.height * 0.36);
+      final end = Offset(size.width * dx, size.height * 0.48);
+      canvas.drawLine(start, end, streamPaint);
+      for (var index = 0; index < 3; index++) {
+        final fall = (phase + index * 0.31 + (dx < 0.5 ? 0.08 : 0.0)) % 1.0;
+        final dropletCenter = Offset(
+          size.width * dx +
+              math.sin((phase + index) * math.pi * 2) * unit * 0.01,
+          size.height * (0.40 + fall * 0.30),
+        );
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: dropletCenter,
+            width: unit * (0.024 + fall * 0.010),
+            height: unit * (0.052 + fall * 0.016),
+          ),
+          tearPaint
+            ..color = const Color(
+              0xFF62B5FF,
+            ).withValues(alpha: 0.82 * (1 - fall * 0.55)),
+        );
+      }
+    }
+    final puddlePaint = Paint()
+      ..color = const Color(0xFF62B5FF).withValues(
+        alpha: 0.18 + math.max(0.0, math.sin(phase * math.pi * 2)) * 0.08,
+      );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(size.width * 0.50, size.height * 0.91),
+        width: unit * 0.32,
+        height: unit * 0.045,
+      ),
+      puddlePaint,
+    );
   }
 
   void _drawHorn(Canvas canvas, Offset base, double unit) {
@@ -683,6 +810,7 @@ class _RinzyChibiPainter extends CustomPainter {
     return oldDelegate.progress != progress ||
         oldDelegate.phase != phase ||
         oldDelegate.cheer != cheer ||
-        oldDelegate.sad != sad;
+        oldDelegate.sad != sad ||
+        oldDelegate.crying != crying;
   }
 }

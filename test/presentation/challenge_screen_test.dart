@@ -71,6 +71,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('2. 단계 선택'), findsOneWidget);
+    expect(find.text('3. 스킬 선택'), findsOneWidget);
+    expect(find.text('훈련 프로그램 연결'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsNothing);
     expect(find.text('라운드'), findsNothing);
 
@@ -80,7 +82,7 @@ void main() {
     await tester.tap(rookieLevel);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('3. 시작 준비'), findsOneWidget);
+    expect(find.text('4. 시작 준비'), findsOneWidget);
 
     await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 시작'));
     await tester.pump(const Duration(milliseconds: 300));

@@ -276,7 +276,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsLeagueStandingsRetry => 'Retry';
 
   @override
-  String get newsLeagueFixturesTitle => 'Fixtures and results';
+  String get newsLeagueFixturesTitle => 'Fixture calendar';
 
   @override
   String get newsLeagueFixturesCalendarTitle => 'Fixture calendar';
@@ -290,11 +290,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsLeagueFixturesSubtitle =>
-      'Upcoming fixtures and recent results, including Champions League knockout pairings when available.';
+      'Open the calendar to review upcoming fixtures and recent results.';
 
   @override
   String get newsLeagueFixturesEmpty =>
-      'No fixtures are available in the current schedule window.';
+      'No fixtures were found after checking a wider schedule window.';
 
   @override
   String get newsLeagueFixturesShowAll => 'Show all fixtures';
@@ -6874,7 +6874,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeSkillSelectSubtitle =>
-      'Pick as many soccer skills as this challenge needs.';
+      'Choose from the same training programs used in training records. Matching saved records count toward challenge rounds.';
+
+  @override
+  String get challengeTrainingProgramLinkTitle => 'Training program link';
+
+  @override
+  String get challengeTrainingProgramLinkBody =>
+      'Set or save a training record with one of these program names to make it count for this challenge.';
+
+  @override
+  String get challengeTrainingProgramLinkAction => 'Open';
 
   @override
   String get challengeSkillDribble => 'Dribble';

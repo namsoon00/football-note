@@ -260,7 +260,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newsLeagueStandingsRetry => 'リトライ';
 
   @override
-  String get newsLeagueFixturesTitle => '日程と結果';
+  String get newsLeagueFixturesTitle => '日程カレンダー';
 
   @override
   String get newsLeagueFixturesCalendarTitle => '試合日程カレンダー';
@@ -272,11 +272,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newsLeagueFixturesCalendarEmptyDay => 'この日に配置された試合はありません。';
 
   @override
-  String get newsLeagueFixturesSubtitle =>
-      '今後の試合日程と最近の結果（利用可能な場合はチャンピオンズ リーグのノックアウトの組み合わせを含む）。';
+  String get newsLeagueFixturesSubtitle => 'カレンダーで今後の日程と最近の結果を確認します。';
 
   @override
-  String get newsLeagueFixturesEmpty => '現在のスケジュールウィンドウでは利用可能なフィクスチャはありません。';
+  String get newsLeagueFixturesEmpty => 'より広い日程範囲を確認しましたが、表示できる試合は見つかりませんでした。';
 
   @override
   String get newsLeagueFixturesShowAll => 'すべての備品を表示';
@@ -6628,7 +6627,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeSkillSelectTitle => '3. スキルを選択';
 
   @override
-  String get challengeSkillSelectSubtitle => 'このチャレンジに入れるサッカースキルを好きなだけ選びます。';
+  String get challengeSkillSelectSubtitle =>
+      'トレーニング記録で使う同じプログラムから選びます。同じプログラムで保存した記録がチャレンジラウンドとして認識されます。';
+
+  @override
+  String get challengeTrainingProgramLinkTitle => 'トレーニングプログラム連携';
+
+  @override
+  String get challengeTrainingProgramLinkBody =>
+      '同じ名前のトレーニングプログラムで記録を保存すると、このチャレンジに反映されます。';
+
+  @override
+  String get challengeTrainingProgramLinkAction => '開く';
 
   @override
   String get challengeSkillDribble => 'ドリブル';
