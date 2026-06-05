@@ -7018,7 +7018,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachAnalyzeBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a clip to get a form score and the first movement issue to fix.'**
+  /// **'Choose a side-view clip to see the score, measured joint angles, contact cues, and the first movement issue to fix.'**
   String get runningCoachAnalyzeBody;
 
   /// No description provided for @runningCoachTipsTitle.
@@ -7030,19 +7030,19 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachTipWholeBody.
   ///
   /// In en, this message translates to:
-  /// **'Keep the full body in frame from head to ankle, with elbows and feet visible for the whole clip.'**
+  /// **'Keep the full body in frame from head to foot strike, with shoulders, hips, knees, ankles, elbows, and wrists visible.'**
   String get runningCoachTipWholeBody;
 
   /// No description provided for @runningCoachTipSideView.
   ///
   /// In en, this message translates to:
-  /// **'Record from the side while the runner moves across the frame.'**
+  /// **'Record from a true side view while the runner moves across the frame, not toward or away from the camera.'**
   String get runningCoachTipSideView;
 
   /// No description provided for @runningCoachTipSteadyCamera.
   ///
   /// In en, this message translates to:
-  /// **'Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.'**
+  /// **'Use a steady camera, bright even light, and capture 5-15 seconds with at least 3 clean strides.'**
   String get runningCoachTipSteadyCamera;
 
   /// No description provided for @runningCoachUploadGuideTitle.
@@ -7054,31 +7054,31 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachUploadGuideBody.
   ///
   /// In en, this message translates to:
-  /// **'Open the sample guide to see the recording setup, frame cues, and movement readouts on one sample video screen.'**
+  /// **'Open the sample guide to compare a good loop with a wrong-form loop and see exactly which joints, angles, and contact points the coach reads.'**
   String get runningCoachUploadGuideBody;
 
   /// No description provided for @runningCoachUploadGuideStepSide.
   ///
   /// In en, this message translates to:
-  /// **'Stand square to the running lane and film the runner moving left-to-right or right-to-left.'**
+  /// **'Set the phone square to the running lane at hip height, then film the runner moving left-to-right or right-to-left.'**
   String get runningCoachUploadGuideStepSide;
 
   /// No description provided for @runningCoachUploadGuideStepDistance.
   ///
   /// In en, this message translates to:
-  /// **'Leave space in front and behind the runner so every step keeps the whole body visible.'**
+  /// **'Leave space in front and behind the runner so the head, hips, knees, ankles, feet, elbows, and wrists stay visible on every step.'**
   String get runningCoachUploadGuideStepDistance;
 
   /// No description provided for @runningCoachUploadGuideStepDuration.
   ///
   /// In en, this message translates to:
-  /// **'Use a 5-15 second clip with 3 or more clean strides, then trim away walking setup time.'**
+  /// **'Use a 5-15 second clip with 3-6 clean strides, then trim away walking setup, turns, and stopped frames.'**
   String get runningCoachUploadGuideStepDuration;
 
   /// No description provided for @runningCoachUploadGuideStepLight.
   ///
   /// In en, this message translates to:
-  /// **'Record in bright, even light and avoid other people crossing behind the runner.'**
+  /// **'Record in bright, even light with a plain background; avoid shadows, cropped feet, and people crossing behind the runner.'**
   String get runningCoachUploadGuideStepLight;
 
   /// No description provided for @runningCoachSampleTitle.
@@ -7090,7 +7090,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleBody.
   ///
   /// In en, this message translates to:
-  /// **'Use this loop as the reference: the video, posture readouts, and recording checks stay together so each cue is easier to match to the runner.'**
+  /// **'Switch between the reference and wrong-form loops to see how the same coach reads posture, landing, knee load, arm angle, bounce, and frame quality.'**
   String get runningCoachSampleBody;
 
   /// No description provided for @runningCoachSampleGuideAction.
@@ -7141,6 +7141,138 @@ abstract class AppLocalizations {
   /// **'Elbows stay bent and swing opposite the legs'**
   String get runningCoachSampleCueArms;
 
+  /// No description provided for @runningCoachSampleReferenceTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference sample'**
+  String get runningCoachSampleReferenceTab;
+
+  /// No description provided for @runningCoachSampleMistakeTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong form sample'**
+  String get runningCoachSampleMistakeTab;
+
+  /// No description provided for @runningCoachSampleReferenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference readouts'**
+  String get runningCoachSampleReferenceTitle;
+
+  /// No description provided for @runningCoachSampleMistakeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong-form readouts'**
+  String get runningCoachSampleMistakeTitle;
+
+  /// No description provided for @runningCoachSampleReferenceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the target loop: the runner keeps a slight whole-body lean, lands close to the hip, loads the knee softly, and keeps the arms compact.'**
+  String get runningCoachSampleReferenceBody;
+
+  /// No description provided for @runningCoachSampleMistakeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This loop shows the common failure pattern: upright torso, overstride, straight contact knee, open elbows, and extra vertical bounce.'**
+  String get runningCoachSampleMistakeBody;
+
+  /// No description provided for @runningCoachSampleReferencePosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Posture line: ankle-hip-shoulder lean is 10° without folding at the waist.'**
+  String get runningCoachSampleReferencePosture;
+
+  /// No description provided for @runningCoachSampleReferenceFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact point: landing distance is 0.08, close enough to stay under the hip.'**
+  String get runningCoachSampleReferenceFoot;
+
+  /// No description provided for @runningCoachSampleReferenceKnee.
+  ///
+  /// In en, this message translates to:
+  /// **'Stance knee: 155° at contact, softly loaded instead of locked.'**
+  String get runningCoachSampleReferenceKnee;
+
+  /// No description provided for @runningCoachSampleReferenceArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm angle: elbows stay near 90° and swing opposite the legs.'**
+  String get runningCoachSampleReferenceArms;
+
+  /// No description provided for @runningCoachSampleReferenceFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame quality: 24/24 usable frames with all main joints visible.'**
+  String get runningCoachSampleReferenceFrame;
+
+  /// No description provided for @runningCoachSampleMistakePosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Posture line: lean is only 2°, so the runner sits tall instead of driving forward.'**
+  String get runningCoachSampleMistakePosture;
+
+  /// No description provided for @runningCoachSampleMistakeFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact point: overstride is 0.24 ahead of the hip, increasing braking.'**
+  String get runningCoachSampleMistakeFoot;
+
+  /// No description provided for @runningCoachSampleMistakeKnee.
+  ///
+  /// In en, this message translates to:
+  /// **'Stance knee: 176° at contact, too straight to absorb and push.'**
+  String get runningCoachSampleMistakeKnee;
+
+  /// No description provided for @runningCoachSampleMistakeArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm angle: elbows open to 132°, slowing the arm-leg rhythm.'**
+  String get runningCoachSampleMistakeArms;
+
+  /// No description provided for @runningCoachSampleMistakeBounce.
+  ///
+  /// In en, this message translates to:
+  /// **'Bounce: vertical motion rises to 12%, wasting force upward.'**
+  String get runningCoachSampleMistakeBounce;
+
+  /// No description provided for @runningCoachSampleAnalysisMethodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How the coach analyzes it'**
+  String get runningCoachSampleAnalysisMethodTitle;
+
+  /// No description provided for @runningCoachSampleAnalysisMethodBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The coach samples stable side-view frames, tracks pose landmarks, estimates contact windows, and scores each metric with confidence.'**
+  String get runningCoachSampleAnalysisMethodBody;
+
+  /// No description provided for @runningCoachSampleMethodPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose landmarks: shoulders, hips, knees, ankles, elbows, wrists, and head must stay visible.'**
+  String get runningCoachSampleMethodPose;
+
+  /// No description provided for @runningCoachSampleMethodAngles.
+  ///
+  /// In en, this message translates to:
+  /// **'Angles: forward lean, stance knee, and elbow carriage are measured frame by frame.'**
+  String get runningCoachSampleMethodAngles;
+
+  /// No description provided for @runningCoachSampleMethodContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact: the closest landing frames estimate foot strike distance from the hip line.'**
+  String get runningCoachSampleMethodContact;
+
+  /// No description provided for @runningCoachSampleMethodConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence: low coverage or too few stable frames makes the coach warn you to recheck.'**
+  String get runningCoachSampleMethodConfidence;
+
   /// No description provided for @runningCoachSampleRecordingGuideTitle.
   ///
   /// In en, this message translates to:
@@ -7170,6 +7302,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'24/24 frames'**
   String get runningCoachSampleOverlayFrames;
+
+  /// No description provided for @runningCoachSampleMistakeOverlayPosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Upright 2°'**
+  String get runningCoachSampleMistakeOverlayPosture;
+
+  /// No description provided for @runningCoachSampleMistakeOverlayArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arms 132°'**
+  String get runningCoachSampleMistakeOverlayArms;
+
+  /// No description provided for @runningCoachSampleMistakeOverlayFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Overstride 0.24'**
+  String get runningCoachSampleMistakeOverlayFoot;
+
+  /// No description provided for @runningCoachSampleMistakeOverlayBounce.
+  ///
+  /// In en, this message translates to:
+  /// **'Bounce 12%'**
+  String get runningCoachSampleMistakeOverlayBounce;
 
   /// No description provided for @runningCoachLiveCardTitle.
   ///

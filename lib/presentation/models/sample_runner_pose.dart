@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+enum SampleRunnerPoseVariant { reference, mistake }
+
 class SampleRunnerPose {
   final double groundY;
   final Offset hip;
@@ -69,28 +71,38 @@ class SampleRunnerArmPose {
 SampleRunnerPose buildSampleRunnerPose({
   required double progress,
   required Size size,
+  SampleRunnerPoseVariant variant = SampleRunnerPoseVariant.reference,
 }) {
   final normalizedProgress = progress % 1.0;
   final phase = normalizedProgress * 2 * math.pi;
   final stride = math.sin(phase);
   final scale = size.height;
-  final flightLift = (1 - math.cos(phase * 2)) * scale * 0.008;
-  final bob = math.cos(phase * 2) * scale * 0.004 - flightLift;
+  final isMistake = variant == SampleRunnerPoseVariant.mistake;
+  final flightLift =
+      (1 - math.cos(phase * 2)) * scale * (isMistake ? 0.004 : 0.008);
+  final bob =
+      math.cos(phase * 2) * scale * (isMistake ? 0.014 : 0.004) - flightLift;
   final groundY = scale * 0.80;
   final hip = Offset(
     (size.width * 0.54) + (stride * scale * 0.012),
     groundY - scale * 0.315 + bob,
   );
-  final chest = Offset(hip.dx + scale * 0.074, hip.dy - scale * 0.205);
-  final neck = Offset(chest.dx + scale * 0.032, chest.dy - scale * 0.065);
-  final head = Offset(neck.dx + scale * 0.042, neck.dy - scale * 0.050);
+  final chest = isMistake
+      ? Offset(hip.dx + scale * 0.018, hip.dy - scale * 0.198)
+      : Offset(hip.dx + scale * 0.074, hip.dy - scale * 0.205);
+  final neck = isMistake
+      ? Offset(chest.dx + scale * 0.006, chest.dy - scale * 0.065)
+      : Offset(chest.dx + scale * 0.032, chest.dy - scale * 0.065);
+  final head = isMistake
+      ? Offset(neck.dx + scale * 0.012, neck.dy - scale * 0.050)
+      : Offset(neck.dx + scale * 0.042, neck.dy - scale * 0.050);
   final shoulderFront = Offset(
-    chest.dx + scale * 0.074,
-    chest.dy - scale * 0.002,
+    chest.dx + scale * (isMistake ? 0.058 : 0.074),
+    chest.dy + scale * (isMistake ? 0.002 : -0.002),
   );
   final shoulderRear = Offset(
-    chest.dx - scale * 0.078,
-    chest.dy + scale * 0.018,
+    chest.dx - scale * (isMistake ? 0.086 : 0.078),
+    chest.dy + scale * (isMistake ? 0.022 : 0.018),
   );
   final hipFront = Offset(hip.dx + scale * 0.056, hip.dy - scale * 0.004);
   final hipRear = Offset(hip.dx - scale * 0.058, hip.dy + scale * 0.008);
@@ -112,19 +124,27 @@ SampleRunnerPose buildSampleRunnerPose({
       cycle: frontLegCycle,
       scale: scale,
       groundY: groundY,
+      variant: variant,
     ),
     rearLeg: _legPose(
       anchor: hipRear,
       cycle: rearLegCycle,
       scale: scale,
       groundY: groundY,
+      variant: variant,
     ),
     frontArm: _armPose(
       anchor: shoulderFront,
       cycle: (frontLegCycle + 0.50) % 1.0,
       scale: scale,
+      variant: variant,
     ),
-    rearArm: _armPose(anchor: shoulderRear, cycle: frontLegCycle, scale: scale),
+    rearArm: _armPose(
+      anchor: shoulderRear,
+      cycle: frontLegCycle,
+      scale: scale,
+      variant: variant,
+    ),
   );
 }
 
@@ -133,10 +153,11 @@ SampleRunnerLegPose _legPose({
   required double cycle,
   required double scale,
   required double groundY,
+  required SampleRunnerPoseVariant variant,
 }) {
   final upperLegLength = scale * 0.190;
   final lowerLegLength = scale * 0.215;
-  final key = _sampleLegKey(cycle);
+  final key = _sampleLegKey(cycle, variant);
   final ankleTarget = Offset(
     anchor.dx + scale * key.ankleX,
     groundY - scale * key.ankleLift,
@@ -156,7 +177,7 @@ SampleRunnerLegPose _legPose({
     hip: anchor,
     knee: limb.joint,
     ankle: limb.end,
-    toe: limb.end + _fixedFootVector(cycle, scale),
+    toe: limb.end + _fixedFootVector(cycle, scale, variant),
   );
 }
 
@@ -164,10 +185,11 @@ SampleRunnerArmPose _armPose({
   required Offset anchor,
   required double cycle,
   required double scale,
+  required SampleRunnerPoseVariant variant,
 }) {
   final upperArmLength = scale * 0.105;
   final forearmLength = scale * 0.098;
-  final key = _sampleArmKey(cycle);
+  final key = _sampleArmKey(cycle, variant);
   final wristTarget = Offset(
     anchor.dx + scale * key.wristX,
     anchor.dy + scale * key.wristDrop,
@@ -188,8 +210,12 @@ SampleRunnerArmPose _armPose({
     elbow: limb.joint,
     wrist: limb.end,
     forearmLength: forearmLength,
-    minAngle: math.pi * 0.42,
-    maxAngle: math.pi * 0.64,
+    minAngle: variant == SampleRunnerPoseVariant.mistake
+        ? math.pi * 0.34
+        : math.pi * 0.42,
+    maxAngle: variant == SampleRunnerPoseVariant.mistake
+        ? math.pi * 0.82
+        : math.pi * 0.64,
   );
   return SampleRunnerArmPose(shoulder: anchor, elbow: limb.joint, wrist: wrist);
 }
@@ -271,6 +297,51 @@ const List<_LegGaitKey> _legGaitKeys = [
   ),
 ];
 
+const List<_LegGaitKey> _mistakeLegGaitKeys = [
+  _LegGaitKey(
+    phase: 0.00,
+    ankleX: 0.275,
+    ankleLift: 0.004,
+    kneeX: 0.188,
+    kneeDrop: 0.205,
+  ),
+  _LegGaitKey(
+    phase: 0.18,
+    ankleX: -0.315,
+    ankleLift: 0.000,
+    kneeX: -0.238,
+    kneeDrop: 0.210,
+  ),
+  _LegGaitKey(
+    phase: 0.40,
+    ankleX: -0.080,
+    ankleLift: 0.110,
+    kneeX: -0.008,
+    kneeDrop: 0.170,
+  ),
+  _LegGaitKey(
+    phase: 0.68,
+    ankleX: 0.325,
+    ankleLift: 0.145,
+    kneeX: 0.260,
+    kneeDrop: 0.118,
+  ),
+  _LegGaitKey(
+    phase: 0.84,
+    ankleX: 0.330,
+    ankleLift: 0.022,
+    kneeX: 0.230,
+    kneeDrop: 0.196,
+  ),
+  _LegGaitKey(
+    phase: 1.00,
+    ankleX: 0.275,
+    ankleLift: 0.004,
+    kneeX: 0.188,
+    kneeDrop: 0.205,
+  ),
+];
+
 const List<_ArmGaitKey> _armGaitKeys = [
   _ArmGaitKey(
     phase: 0.00,
@@ -309,8 +380,51 @@ const List<_ArmGaitKey> _armGaitKeys = [
   ),
 ];
 
-_LegGaitKey _sampleLegKey(double cycle) {
-  final pair = _keyPair(_legGaitKeys, cycle);
+const List<_ArmGaitKey> _mistakeArmGaitKeys = [
+  _ArmGaitKey(
+    phase: 0.00,
+    wristX: 0.170,
+    wristDrop: 0.190,
+    elbowX: 0.070,
+    elbowDrop: 0.070,
+  ),
+  _ArmGaitKey(
+    phase: 0.25,
+    wristX: 0.086,
+    wristDrop: 0.225,
+    elbowX: 0.038,
+    elbowDrop: 0.110,
+  ),
+  _ArmGaitKey(
+    phase: 0.50,
+    wristX: -0.168,
+    wristDrop: 0.212,
+    elbowX: -0.092,
+    elbowDrop: 0.082,
+  ),
+  _ArmGaitKey(
+    phase: 0.75,
+    wristX: -0.038,
+    wristDrop: 0.225,
+    elbowX: -0.006,
+    elbowDrop: 0.112,
+  ),
+  _ArmGaitKey(
+    phase: 1.00,
+    wristX: 0.170,
+    wristDrop: 0.190,
+    elbowX: 0.070,
+    elbowDrop: 0.070,
+  ),
+];
+
+_LegGaitKey _sampleLegKey(double cycle, SampleRunnerPoseVariant variant) {
+  final pair = _keyPair(
+    variant == SampleRunnerPoseVariant.mistake
+        ? _mistakeLegGaitKeys
+        : _legGaitKeys,
+    cycle,
+  );
   final t = _smoothStep(pair.t);
   return _LegGaitKey(
     phase: cycle,
@@ -321,8 +435,13 @@ _LegGaitKey _sampleLegKey(double cycle) {
   );
 }
 
-_ArmGaitKey _sampleArmKey(double cycle) {
-  final pair = _keyPair(_armGaitKeys, cycle);
+_ArmGaitKey _sampleArmKey(double cycle, SampleRunnerPoseVariant variant) {
+  final pair = _keyPair(
+    variant == SampleRunnerPoseVariant.mistake
+        ? _mistakeArmGaitKeys
+        : _armGaitKeys,
+    cycle,
+  );
   final t = _smoothStep(pair.t);
   return _ArmGaitKey(
     phase: cycle,
@@ -439,8 +558,17 @@ double _angleDistance(double a, double b) {
   return diff.abs();
 }
 
-Offset _fixedFootVector(double cycle, double scale) {
-  final pair = _keyPair(_footGaitKeys, cycle);
+Offset _fixedFootVector(
+  double cycle,
+  double scale,
+  SampleRunnerPoseVariant variant,
+) {
+  final pair = _keyPair(
+    variant == SampleRunnerPoseVariant.mistake
+        ? _mistakeFootGaitKeys
+        : _footGaitKeys,
+    cycle,
+  );
   final t = _smoothStep(pair.t);
   final rawDirection = Offset(
     _mix(pair.a.x, pair.b.x, t),
@@ -464,6 +592,15 @@ const List<_FootGaitKey> _footGaitKeys = [
   _FootGaitKey(phase: 0.68, x: 0.90, y: 0.18),
   _FootGaitKey(phase: 0.84, x: 0.98, y: 0.05),
   _FootGaitKey(phase: 1.00, x: 0.98, y: 0.08),
+];
+
+const List<_FootGaitKey> _mistakeFootGaitKeys = [
+  _FootGaitKey(phase: 0.00, x: 0.82, y: -0.22),
+  _FootGaitKey(phase: 0.18, x: 0.78, y: -0.28),
+  _FootGaitKey(phase: 0.40, x: 0.70, y: 0.40),
+  _FootGaitKey(phase: 0.68, x: 0.76, y: 0.18),
+  _FootGaitKey(phase: 0.84, x: 0.82, y: -0.18),
+  _FootGaitKey(phase: 1.00, x: 0.82, y: -0.22),
 ];
 
 double _mix(double a, double b, double t) => a + (b - a) * t;

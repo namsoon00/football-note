@@ -3928,52 +3928,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      'Choose a clip to get a form score and the first movement issue to fix.';
+      'Choose a side-view clip to see the score, measured joint angles, contact cues, and the first movement issue to fix.';
 
   @override
   String get runningCoachTipsTitle => 'How to record';
 
   @override
   String get runningCoachTipWholeBody =>
-      'Keep the full body in frame from head to ankle, with elbows and feet visible for the whole clip.';
+      'Keep the full body in frame from head to foot strike, with shoulders, hips, knees, ankles, elbows, and wrists visible.';
 
   @override
   String get runningCoachTipSideView =>
-      'Record from the side while the runner moves across the frame.';
+      'Record from a true side view while the runner moves across the frame, not toward or away from the camera.';
 
   @override
   String get runningCoachTipSteadyCamera =>
-      'Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.';
+      'Use a steady camera, bright even light, and capture 5-15 seconds with at least 3 clean strides.';
 
   @override
   String get runningCoachUploadGuideTitle => 'Video upload guide';
 
   @override
   String get runningCoachUploadGuideBody =>
-      'Open the sample guide to see the recording setup, frame cues, and movement readouts on one sample video screen.';
+      'Open the sample guide to compare a good loop with a wrong-form loop and see exactly which joints, angles, and contact points the coach reads.';
 
   @override
   String get runningCoachUploadGuideStepSide =>
-      'Stand square to the running lane and film the runner moving left-to-right or right-to-left.';
+      'Set the phone square to the running lane at hip height, then film the runner moving left-to-right or right-to-left.';
 
   @override
   String get runningCoachUploadGuideStepDistance =>
-      'Leave space in front and behind the runner so every step keeps the whole body visible.';
+      'Leave space in front and behind the runner so the head, hips, knees, ankles, feet, elbows, and wrists stay visible on every step.';
 
   @override
   String get runningCoachUploadGuideStepDuration =>
-      'Use a 5-15 second clip with 3 or more clean strides, then trim away walking setup time.';
+      'Use a 5-15 second clip with 3-6 clean strides, then trim away walking setup, turns, and stopped frames.';
 
   @override
   String get runningCoachUploadGuideStepLight =>
-      'Record in bright, even light and avoid other people crossing behind the runner.';
+      'Record in bright, even light with a plain background; avoid shadows, cropped feet, and people crossing behind the runner.';
 
   @override
   String get runningCoachSampleTitle => 'Sample video guide';
 
   @override
   String get runningCoachSampleBody =>
-      'Use this loop as the reference: the video, posture readouts, and recording checks stay together so each cue is easier to match to the runner.';
+      'Switch between the reference and wrong-form loops to see how the same coach reads posture, landing, knee load, arm angle, bounce, and frame quality.';
 
   @override
   String get runningCoachSampleGuideAction => 'Open sample video guide';
@@ -4008,6 +4008,90 @@ class AppLocalizationsEn extends AppLocalizations {
       'Elbows stay bent and swing opposite the legs';
 
   @override
+  String get runningCoachSampleReferenceTab => 'Reference sample';
+
+  @override
+  String get runningCoachSampleMistakeTab => 'Wrong form sample';
+
+  @override
+  String get runningCoachSampleReferenceTitle => 'Reference readouts';
+
+  @override
+  String get runningCoachSampleMistakeTitle => 'Wrong-form readouts';
+
+  @override
+  String get runningCoachSampleReferenceBody =>
+      'This is the target loop: the runner keeps a slight whole-body lean, lands close to the hip, loads the knee softly, and keeps the arms compact.';
+
+  @override
+  String get runningCoachSampleMistakeBody =>
+      'This loop shows the common failure pattern: upright torso, overstride, straight contact knee, open elbows, and extra vertical bounce.';
+
+  @override
+  String get runningCoachSampleReferencePosture =>
+      'Posture line: ankle-hip-shoulder lean is 10° without folding at the waist.';
+
+  @override
+  String get runningCoachSampleReferenceFoot =>
+      'Contact point: landing distance is 0.08, close enough to stay under the hip.';
+
+  @override
+  String get runningCoachSampleReferenceKnee =>
+      'Stance knee: 155° at contact, softly loaded instead of locked.';
+
+  @override
+  String get runningCoachSampleReferenceArms =>
+      'Arm angle: elbows stay near 90° and swing opposite the legs.';
+
+  @override
+  String get runningCoachSampleReferenceFrame =>
+      'Frame quality: 24/24 usable frames with all main joints visible.';
+
+  @override
+  String get runningCoachSampleMistakePosture =>
+      'Posture line: lean is only 2°, so the runner sits tall instead of driving forward.';
+
+  @override
+  String get runningCoachSampleMistakeFoot =>
+      'Contact point: overstride is 0.24 ahead of the hip, increasing braking.';
+
+  @override
+  String get runningCoachSampleMistakeKnee =>
+      'Stance knee: 176° at contact, too straight to absorb and push.';
+
+  @override
+  String get runningCoachSampleMistakeArms =>
+      'Arm angle: elbows open to 132°, slowing the arm-leg rhythm.';
+
+  @override
+  String get runningCoachSampleMistakeBounce =>
+      'Bounce: vertical motion rises to 12%, wasting force upward.';
+
+  @override
+  String get runningCoachSampleAnalysisMethodTitle =>
+      'How the coach analyzes it';
+
+  @override
+  String get runningCoachSampleAnalysisMethodBody =>
+      'The coach samples stable side-view frames, tracks pose landmarks, estimates contact windows, and scores each metric with confidence.';
+
+  @override
+  String get runningCoachSampleMethodPose =>
+      'Pose landmarks: shoulders, hips, knees, ankles, elbows, wrists, and head must stay visible.';
+
+  @override
+  String get runningCoachSampleMethodAngles =>
+      'Angles: forward lean, stance knee, and elbow carriage are measured frame by frame.';
+
+  @override
+  String get runningCoachSampleMethodContact =>
+      'Contact: the closest landing frames estimate foot strike distance from the hip line.';
+
+  @override
+  String get runningCoachSampleMethodConfidence =>
+      'Confidence: low coverage or too few stable frames makes the coach warn you to recheck.';
+
+  @override
   String get runningCoachSampleRecordingGuideTitle => 'Record like the sample';
 
   @override
@@ -4021,6 +4105,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleOverlayFrames => '24/24 frames';
+
+  @override
+  String get runningCoachSampleMistakeOverlayPosture => 'Upright 2°';
+
+  @override
+  String get runningCoachSampleMistakeOverlayArms => 'Arms 132°';
+
+  @override
+  String get runningCoachSampleMistakeOverlayFoot => 'Overstride 0.24';
+
+  @override
+  String get runningCoachSampleMistakeOverlayBounce => 'Bounce 12%';
 
   @override
   String get runningCoachLiveCardTitle => 'Live coach';

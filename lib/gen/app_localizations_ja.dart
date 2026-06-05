@@ -3805,51 +3805,51 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      'クリップを選択して、フォームスコアと修正すべき最初の動きの問題を取得します。';
+      '横から撮ったクリップを選ぶと、スコア、関節角度、接地の目安、最初に直す動きが一緒に表示されます。';
 
   @override
   String get runningCoachTipsTitle => '録音方法';
 
   @override
   String get runningCoachTipWholeBody =>
-      'クリップ全体で肘と足が見えるように、頭から足首まで全身をフレーム内に収めます。';
+      '頭から接地する足まで全身を入れ、肩、腰、膝、足首、肘、手首が見えるようにします。';
 
   @override
-  String get runningCoachTipSideView => 'ランナーがフレームを横切って移動する間、横から録画します。';
+  String get runningCoachTipSideView => 'ランナーがカメラに近づいたり離れたりせず、画面を横切る真横の映像にします。';
 
   @override
   String get runningCoachTipSteadyCamera =>
-      '安定したカメラを使用して、リラックスしたスプリントやランニング フォームを 5 ～ 15 秒間撮影します。';
+      'カメラを固定し、明るく均一な光で、きれいな3歩以上を含む5〜15秒を撮影します。';
 
   @override
   String get runningCoachUploadGuideTitle => '動画アップロードガイド';
 
   @override
   String get runningCoachUploadGuideBody =>
-      'サンプル ガイドを開いて、1 つのサンプル ビデオ画面で録画セットアップ、フレーム キュー、動きの読み出しを確認します。';
+      'サンプルガイドで良いフォームと悪いフォームのループを比較し、コーチが読む関節、角度、接地点を確認します。';
 
   @override
   String get runningCoachUploadGuideStepSide =>
-      '走行車線に対して直角に立って、左から右、または右から左に動くランナーを撮影します。';
+      'スマートフォンを走路に対して直角、腰の高さに置き、ランナーが左右に通過するように撮影します。';
 
   @override
   String get runningCoachUploadGuideStepDistance =>
-      'ランナーの前後にスペースを空けて、一歩ごとに体全体が見えるようにします。';
+      '前後に余白を取り、頭、腰、膝、足首、足、肘、手首が全ステップで見えるようにします。';
 
   @override
   String get runningCoachUploadGuideStepDuration =>
-      '3 つ以上のきれいなストライドを含む 5 ～ 15 秒のクリップを使用し、ウォーキングの準備時間を短縮します。';
+      '3〜6歩のきれいなストライドを含む5〜15秒を使い、準備歩き、ターン、停止フレームは切ります。';
 
   @override
   String get runningCoachUploadGuideStepLight =>
-      '明るく均一な光の中で撮影し、ランナーの後ろを他の人が横切ることを避けてください。';
+      '明るく均一な光とシンプルな背景で撮影し、影、切れた足、背後を横切る人を避けます。';
 
   @override
   String get runningCoachSampleTitle => 'サンプルビデオガイド';
 
   @override
   String get runningCoachSampleBody =>
-      'このループを参照として使用します。ビデオ、姿勢の読み出し、記録チェックが一緒に保たれるため、各キューをランナーに合わせやすくなります。';
+      '基準ループと悪いフォームのループを切り替え、姿勢、着地、膝の負荷、腕の角度、バウンス、フレーム品質をどう読むか確認します。';
 
   @override
   String get runningCoachSampleGuideAction => 'サンプルビデオガイドを開く';
@@ -3879,6 +3879,80 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleCueArms => '肘は曲げたままにし、足とは反対側に振ります';
 
   @override
+  String get runningCoachSampleReferenceTab => '基準サンプル';
+
+  @override
+  String get runningCoachSampleMistakeTab => '悪いフォーム';
+
+  @override
+  String get runningCoachSampleReferenceTitle => '基準フォームの読み取り';
+
+  @override
+  String get runningCoachSampleMistakeTitle => '悪いフォームの読み取り';
+
+  @override
+  String get runningCoachSampleReferenceBody =>
+      '目標のループです。全身を少し前傾させ、腰の近くに着地し、膝で柔らかく受け、腕はコンパクトに保ちます。';
+
+  @override
+  String get runningCoachSampleMistakeBody =>
+      'よくある失敗例です。胴体が立ち、足が前に出過ぎ、接地膝が伸び、肘が開き、上下のバウンスが増えます。';
+
+  @override
+  String get runningCoachSampleReferencePosture =>
+      '姿勢線: 足首-腰-肩の前傾は10°で、腰折れはありません。';
+
+  @override
+  String get runningCoachSampleReferenceFoot => '接地点: 着地距離は0.08で、腰の下に近く収まります。';
+
+  @override
+  String get runningCoachSampleReferenceKnee => '接地膝: 155°で、ロックせず柔らかく負荷を受けます。';
+
+  @override
+  String get runningCoachSampleReferenceArms => '腕角度: 肘は90°付近で、脚と反対に振れます。';
+
+  @override
+  String get runningCoachSampleReferenceFrame =>
+      'フレーム品質: 主要関節が見える24/24の使用可能フレーム。';
+
+  @override
+  String get runningCoachSampleMistakePosture => '姿勢線: 前傾は2°だけで、前へ押せず体が立っています。';
+
+  @override
+  String get runningCoachSampleMistakeFoot => '接地点: 腰より0.24前に着くオーバーストライドです。';
+
+  @override
+  String get runningCoachSampleMistakeKnee => '接地膝: 176°で、受けて押すには伸びすぎています。';
+
+  @override
+  String get runningCoachSampleMistakeArms => '腕角度: 肘が132°まで開き、腕と脚のリズムが遅れます。';
+
+  @override
+  String get runningCoachSampleMistakeBounce => 'バウンス: 上下動が12%まで増え、力が上へ逃げます。';
+
+  @override
+  String get runningCoachSampleAnalysisMethodTitle => 'コーチの分析方法';
+
+  @override
+  String get runningCoachSampleAnalysisMethodBody =>
+      '安定した横向きフレームをサンプリングし、ポーズランドマークを追跡し、接地区間を推定して、各指標を信頼度付きで採点します。';
+
+  @override
+  String get runningCoachSampleMethodPose =>
+      'ポーズランドマーク: 肩、腰、膝、足首、肘、手首、頭が見えている必要があります。';
+
+  @override
+  String get runningCoachSampleMethodAngles => '角度: 前傾、接地膝、肘の角度をフレームごとに測定します。';
+
+  @override
+  String get runningCoachSampleMethodContact =>
+      '接地: 着地に近いフレームから、腰の線に対する足の距離を推定します。';
+
+  @override
+  String get runningCoachSampleMethodConfidence =>
+      '信頼度: 追跡範囲が低い、または安定フレームが少ない場合は再確認を促します。';
+
+  @override
   String get runningCoachSampleRecordingGuideTitle => 'サンプルのように録音する';
 
   @override
@@ -3892,6 +3966,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleOverlayFrames => '24/24フレーム';
+
+  @override
+  String get runningCoachSampleMistakeOverlayPosture => '直立 2°';
+
+  @override
+  String get runningCoachSampleMistakeOverlayArms => '腕 132°';
+
+  @override
+  String get runningCoachSampleMistakeOverlayFoot => '過大 0.24';
+
+  @override
+  String get runningCoachSampleMistakeOverlayBounce => '上下 12%';
 
   @override
   String get runningCoachLiveCardTitle => 'ライブコーチ';

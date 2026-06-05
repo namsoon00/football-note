@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/presentation/models/sample_runner_pose.dart';
@@ -113,4 +114,44 @@ void main() {
       expect(pose.rearLeg.footLength, closeTo(size.height * 0.060, 0.0001));
     }
   });
+
+  test('mistake variant shows upright posture and extra bounce cues', () {
+    const size = Size(360, 157.5);
+    final cycleSamples = [
+      for (var index = 0; index < 16; index += 1) index / 16
+    ];
+    final referencePoses = <SampleRunnerPose>[
+      for (final progress in cycleSamples)
+        buildSampleRunnerPose(progress: progress, size: size),
+    ];
+    final mistakePoses = <SampleRunnerPose>[
+      for (final progress in cycleSamples)
+        buildSampleRunnerPose(
+          progress: progress,
+          size: size,
+          variant: SampleRunnerPoseVariant.mistake,
+        ),
+    ];
+    final referenceDrive = referencePoses[2];
+    final mistakeDrive = mistakePoses[2];
+
+    expect(
+      mistakeDrive.chest.dx - mistakeDrive.hip.dx,
+      lessThan(referenceDrive.chest.dx - referenceDrive.hip.dx),
+    );
+    expect(
+      mistakeDrive.head.dx - mistakeDrive.hip.dx,
+      lessThan(referenceDrive.head.dx - referenceDrive.hip.dx),
+    );
+    expect(
+      _hipVerticalRange(mistakePoses),
+      greaterThan(_hipVerticalRange(referencePoses) * 1.4),
+    );
+  });
+}
+
+double _hipVerticalRange(List<SampleRunnerPose> poses) {
+  final minY = poses.map((pose) => pose.hip.dy).reduce(math.min);
+  final maxY = poses.map((pose) => pose.hip.dy).reduce(math.max);
+  return maxY - minY;
 }
