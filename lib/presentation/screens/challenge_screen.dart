@@ -28,6 +28,11 @@ import 'entry_form_screen.dart';
 import 'meal_log_screen.dart';
 import 'settings_screen.dart';
 
+typedef _OpenChallengeTrainingMission = Future<void> Function(
+  ChallengeRoundProgress round, {
+  ChallengeTrainingProgramProgress? program,
+});
+
 class ChallengeScreen extends StatefulWidget {
   final TrainingService trainingService;
   final MealLogService mealLogService;
@@ -320,8 +325,15 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     setState(() {});
   }
 
-  Future<void> _openTrainingMission(ChallengeRoundProgress round) {
-    return _openTrainingEntryMission(round, initialFocusTarget: null);
+  Future<void> _openTrainingMission(
+    ChallengeRoundProgress round, {
+    ChallengeTrainingProgramProgress? program,
+  }) {
+    return _openTrainingEntryMission(
+      round,
+      initialFocusTarget: null,
+      programMission: program,
+    );
   }
 
   Future<void> _openJumpRopeMission(ChallengeRoundProgress round) {
@@ -341,11 +353,30 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   Future<void> _openTrainingEntryMission(
     ChallengeRoundProgress round, {
     required EntryFormInitialFocusTarget? initialFocusTarget,
+    ChallengeTrainingProgramProgress? programMission,
   }) async {
     _playChallengeTapFeedback();
     final navigator = Navigator.of(context);
-    final existingEntry = await _trainingEntryForRound(round.date);
+    final existingEntry = await _trainingEntryForRound(
+      round.date,
+      programId: programMission?.programId,
+    );
     if (!mounted) return;
+    final remainingProgramMinutes = programMission == null
+        ? 0
+        : (programMission.targetMinutes - programMission.currentMinutes).clamp(
+            0,
+            programMission.targetMinutes,
+          );
+    final initialPlanContext = existingEntry == null && programMission != null
+        ? EntryFormInitialPlanContext(
+            scheduledAt: round.date,
+            program: programMission.label,
+            durationMinutes: remainingProgramMinutes > 0
+                ? remainingProgramMinutes
+                : programMission.targetMinutes,
+          )
+        : null;
     await navigator.push(
       AppPageRoute<void>(
         builder: (_) => EntryFormScreen(
@@ -355,7 +386,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           settingsService: _settingsService,
           driveBackupService: widget.driveBackupService,
           entry: existingEntry,
-          initialDate: existingEntry == null ? round.date : null,
+          initialDate: existingEntry == null && initialPlanContext == null
+              ? round.date
+              : null,
+          initialPlanContext: initialPlanContext,
           initialFocusTarget: initialFocusTarget,
         ),
       ),
@@ -364,13 +398,25 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     setState(() {});
   }
 
-  Future<TrainingEntry?> _trainingEntryForRound(DateTime day) async {
+  Future<TrainingEntry?> _trainingEntryForRound(
+    DateTime day, {
+    String? programId,
+  }) async {
     final normalizedDay = normalizeDay(day);
+    final targetProgram = programId?.trim();
     final entries = await widget.trainingService.allEntries();
     final sameDayEntries = entries
         .where(
           (entry) =>
               !entry.isMatch && normalizeDay(entry.date) == normalizedDay,
+        )
+        .where(
+          (entry) =>
+              targetProgram == null ||
+              targetProgram.isEmpty ||
+              trainingEntryMatchesChallengeSkill(entry, <String>[
+                targetProgram,
+              ]),
         )
         .toList(growable: false)
       ..sort(TrainingEntry.compareByRecentCreated);
@@ -1707,7 +1753,7 @@ class _ActiveChallengeSection extends StatelessWidget {
   final ChallengeProgress progress;
   final String templateTitle;
   final VoidCallback onAbandon;
-  final ValueChanged<ChallengeRoundProgress> onOpenTraining;
+  final _OpenChallengeTrainingMission onOpenTraining;
   final ValueChanged<ChallengeRoundProgress> onOpenJumpRope;
   final ValueChanged<ChallengeRoundProgress> onOpenLifting;
   final ValueChanged<ChallengeRoundProgress> onOpenMeal;
@@ -1752,7 +1798,7 @@ class _ActiveChallengeSection extends StatelessWidget {
 class _RoundFocusCard extends StatelessWidget {
   final ChallengeProgress progress;
   final ChallengeRoundProgress round;
-  final ValueChanged<ChallengeRoundProgress> onOpenTraining;
+  final _OpenChallengeTrainingMission onOpenTraining;
   final ValueChanged<ChallengeRoundProgress> onOpenJumpRope;
   final ValueChanged<ChallengeRoundProgress> onOpenLifting;
   final ValueChanged<ChallengeRoundProgress> onOpenMeal;
@@ -1817,9 +1863,8 @@ class _RoundFocusCard extends StatelessWidget {
               _ChallengeInfoItem(
                 icon: Icons.flag_outlined,
                 label: l10n.challengeInfoStatusLabel,
-                value: round.completed
-                    ? l10n.challengeCompletedBadge
-                    : l10n.challengePendingBadge,
+                value: '${round.completedMissionCount}/${round.missionCount} · '
+                    '${round.completed ? l10n.challengeCompletedBadge : l10n.challengePendingBadge}',
               ),
               _ChallengeInfoItem(
                 icon: Icons.trending_up_rounded,
@@ -1847,23 +1892,43 @@ class _RoundFocusCard extends StatelessWidget {
           ),
           if (round.round.targetTrainingMinutes > 0) ...[
             const SizedBox(height: 12),
-            _MissionProgressRow(
-              icon: Icons.timer_outlined,
-              label: l10n.challengeTrainingProgramMissionLabel,
-              subtitle:
-                  selectedPrograms.isEmpty ? null : selectedPrograms.join(', '),
-              value: _minutesGoalValue(
-                l10n,
-                round.trainingMinutes,
-                round.round.targetTrainingMinutes,
-              ),
-              progress: _goalProgress(
-                round.trainingMinutes,
-                round.round.targetTrainingMinutes,
-              ),
-              completed: round.trainingCompleted,
-              onTap: () => onOpenTraining(round),
-            ),
+            if (round.trainingPrograms.isEmpty)
+              _MissionProgressRow(
+                icon: Icons.timer_outlined,
+                label: l10n.challengeTrainingProgramMissionLabel,
+                subtitle: selectedPrograms.isEmpty
+                    ? null
+                    : selectedPrograms.join(', '),
+                value: _minutesGoalValue(
+                  l10n,
+                  round.trainingMinutes,
+                  round.round.targetTrainingMinutes,
+                ),
+                progress: _goalProgress(
+                  round.trainingMinutes,
+                  round.round.targetTrainingMinutes,
+                ),
+                completed: round.trainingCompleted,
+                onTap: () => onOpenTraining(round),
+              )
+            else
+              for (final program in round.trainingPrograms) ...[
+                _MissionProgressRow(
+                  icon: Icons.sports_soccer,
+                  label: program.label,
+                  subtitle: l10n.challengeTrainingProgramMissionLabel,
+                  value: _minutesGoalValue(
+                    l10n,
+                    program.currentMinutes,
+                    program.targetMinutes,
+                  ),
+                  progress: program.progressRate,
+                  completed: program.completed,
+                  onTap: () => onOpenTraining(round, program: program),
+                ),
+                if (program != round.trainingPrograms.last)
+                  const SizedBox(height: 10),
+              ],
           ],
           if (round.round.targetJumpRopeMinutes > 0) ...[
             const SizedBox(height: 10),
@@ -2308,10 +2373,13 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
         : missed
             ? l10n.challengeHistoryResultFailed
             : l10n.challengePendingBadge;
+    final missionCountLabel =
+        '${round.completedMissionCount}/${round.missionCount}';
 
     return Semantics(
       label: '${l10n.challengeRoundTitle(round.round.number)}, '
           '${_roundSubtitle(context, round)}, '
+          '$missionCountLabel, '
           '$statusLabel',
       child: AnimatedContainer(
         key: ValueKey('challenge-calendar-round-${round.round.number}'),
@@ -2389,7 +2457,7 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    statusLabel,
+                    '$missionCountLabel · $statusLabel',
                     maxLines: 1,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: foreground.withValues(alpha: 0.78),

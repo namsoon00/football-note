@@ -849,13 +849,67 @@ class TrainingPlanReminderService {
     ChallengeRoundProgress round, {
     required bool isKo,
   }) {
-    final training = round.round.targetTrainingMinutes;
-    final jumpRope = round.round.targetJumpRopeMinutes;
-    final lifting = round.round.targetLiftingMinutes;
-    final meal = _formatBowls(round.round.targetRiceBowls);
+    final missionParts = <String>[];
+    if (round.trainingPrograms.isEmpty) {
+      final remainingTraining =
+          (round.round.targetTrainingMinutes - round.trainingMinutes).clamp(
+        0,
+        round.round.targetTrainingMinutes,
+      );
+      if (remainingTraining > 0) {
+        missionParts.add(
+          isKo ? '훈련 $remainingTraining분' : 'training $remainingTraining min',
+        );
+      }
+    } else {
+      for (final program in round.trainingPrograms) {
+        final remaining =
+            (program.targetMinutes - program.currentMinutes).clamp(
+          0,
+          program.targetMinutes,
+        );
+        if (remaining <= 0) continue;
+        missionParts.add(
+          isKo
+              ? '${program.label} $remaining분'
+              : '${program.label} $remaining min',
+        );
+      }
+    }
+    final remainingJumpRope =
+        (round.round.targetJumpRopeMinutes - round.jumpRopeMinutes).clamp(
+      0,
+      round.round.targetJumpRopeMinutes,
+    );
+    if (remainingJumpRope > 0) {
+      missionParts.add(
+        isKo ? '줄넘기 $remainingJumpRope분' : 'jump rope $remainingJumpRope min',
+      );
+    }
+    final remainingLifting =
+        (round.round.targetLiftingMinutes - round.liftingMinutes).clamp(
+      0,
+      round.round.targetLiftingMinutes,
+    );
+    if (remainingLifting > 0) {
+      missionParts.add(
+        isKo ? '리프팅 $remainingLifting분' : 'lifting $remainingLifting min',
+      );
+    }
+    final remainingMeal = (round.round.targetRiceBowls - round.riceBowls).clamp(
+      0,
+      round.round.targetRiceBowls,
+    );
+    if (remainingMeal > 0) {
+      final meal = _formatBowls(remainingMeal.toDouble());
+      missionParts.add(isKo ? '식사 $meal그릇' : 'meals $meal bowls');
+    }
+    final missionSummary = missionParts.isEmpty
+        ? (isKo ? '마지막 확인' : 'final check')
+        : missionParts.join(isKo ? ', ' : ', ');
     return isKo
-        ? '린지가 기다려요. 오늘 ${round.round.number}라운드는 훈련 $training분, 줄넘기 $jumpRope분, 리프팅 $lifting분, 식사 $meal그릇으로 별에 한 걸음 더 가까워져요.'
-        : 'Rinzy is waiting. Round ${round.round.number} moves you closer to the star: training $training min, jump rope $jumpRope min, lifting $lifting min, meals $meal bowls.';
+        ? '린지가 기다려요. 오늘 ${round.round.number}라운드 남은 미션: $missionSummary.'
+        : 'Rinzy is waiting. Round ${round.round.number} remaining missions: $missionSummary.';
   }
 
   String _formatBowls(double value) {

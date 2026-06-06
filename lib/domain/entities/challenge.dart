@@ -222,26 +222,23 @@ class ChallengeRun {
     final rawSelectedSkillIds = map['selectedSkillIds'];
     final rawMissionTargets = map['missionTargets'];
     return ChallengeRun(
-      id:
-          map['id']?.toString() ??
+      id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       templateId: map['templateId']?.toString() ?? '',
       trainingLevel: _challengeTrainingLevelFromName(
         map['trainingLevel']?.toString(),
         templateId: map['templateId']?.toString() ?? '',
       ),
-      startedAt:
-          DateTime.tryParse(map['startedAt']?.toString() ?? '') ??
+      startedAt: DateTime.tryParse(map['startedAt']?.toString() ?? '') ??
           DateTime.now(),
       completedAt: completedAt,
       abandoned: abandoned,
-      result:
-          parsedResult ??
+      result: parsedResult ??
           (completedAt == null
               ? null
               : abandoned
-              ? ChallengeRunResult.abandoned
-              : ChallengeRunResult.completed),
+                  ? ChallengeRunResult.abandoned
+                  : ChallengeRunResult.completed),
       failedRoundNumber: (map['failedRoundNumber'] as num?)?.toInt(),
       selectedSkillIds: normalizeChallengeSkillIds(
         (rawSelectedSkillIds as List?)?.map((item) => item.toString()) ??
@@ -338,6 +335,7 @@ class ChallengeRoundProgress {
   final int jumpRopeMinutes;
   final int liftingMinutes;
   final double riceBowls;
+  final List<ChallengeTrainingProgramProgress> trainingPrograms;
 
   const ChallengeRoundProgress({
     required this.round,
@@ -346,9 +344,12 @@ class ChallengeRoundProgress {
     required this.jumpRopeMinutes,
     required this.liftingMinutes,
     required this.riceBowls,
+    this.trainingPrograms = const <ChallengeTrainingProgramProgress>[],
   });
 
-  bool get trainingCompleted => trainingMinutes >= round.targetTrainingMinutes;
+  bool get trainingCompleted => trainingPrograms.isEmpty
+      ? trainingMinutes >= round.targetTrainingMinutes
+      : trainingPrograms.every((mission) => mission.completed);
 
   bool get jumpRopeCompleted => jumpRopeMinutes >= round.targetJumpRopeMinutes;
 
@@ -362,10 +363,58 @@ class ChallengeRoundProgress {
       liftingCompleted &&
       mealCompleted;
 
+  int get missionCount {
+    final trainingCount = round.targetTrainingMinutes > 0
+        ? (trainingPrograms.isEmpty ? 1 : trainingPrograms.length)
+        : 0;
+    return trainingCount +
+        (round.targetJumpRopeMinutes > 0 ? 1 : 0) +
+        (round.targetLiftingMinutes > 0 ? 1 : 0) +
+        (round.targetRiceBowls > 0 ? 1 : 0);
+  }
+
+  int get completedMissionCount {
+    final trainingCount = round.targetTrainingMinutes <= 0
+        ? 0
+        : trainingPrograms.isEmpty
+            ? (trainingCompleted ? 1 : 0)
+            : trainingPrograms.where((mission) => mission.completed).length;
+    return trainingCount +
+        (round.targetJumpRopeMinutes > 0 && jumpRopeCompleted ? 1 : 0) +
+        (round.targetLiftingMinutes > 0 && liftingCompleted ? 1 : 0) +
+        (round.targetRiceBowls > 0 && mealCompleted ? 1 : 0);
+  }
+
+  double get missionCompletionRate {
+    if (missionCount <= 0) return 0;
+    return completedMissionCount / missionCount;
+  }
+
   bool get isToday => date == normalizeDay(DateTime.now());
 
   bool get isMissed =>
       !completed && date.isBefore(normalizeDay(DateTime.now()));
+}
+
+class ChallengeTrainingProgramProgress {
+  final String programId;
+  final String label;
+  final int currentMinutes;
+  final int targetMinutes;
+
+  const ChallengeTrainingProgramProgress({
+    required this.programId,
+    required this.label,
+    required this.currentMinutes,
+    required this.targetMinutes,
+  });
+
+  bool get completed => currentMinutes >= targetMinutes;
+
+  double get progressRate {
+    if (targetMinutes <= 0) return 1;
+    return (currentMinutes / targetMinutes).clamp(0, 1).toDouble();
+  }
 }
 
 DateTime normalizeDay(DateTime value) {
@@ -416,6 +465,53 @@ bool trainingEntryMatchesChallengeSkill(
     _normalizeChallengeSkillText(entry.type),
   }..removeWhere((value) => value.isEmpty);
   return entryValues.any(normalizedTargets.contains);
+}
+
+List<ChallengeTrainingProgramProgress> trainingProgramProgressForDay(
+  Iterable<TrainingEntry> entries,
+  DateTime day, {
+  required Iterable<String> selectedSkillIds,
+  required int targetTrainingMinutes,
+}) {
+  if (targetTrainingMinutes <= 0) {
+    return const <ChallengeTrainingProgramProgress>[];
+  }
+  final programs = normalizeChallengeSkillIds(selectedSkillIds)
+      .where((id) => !legacyChallengeSkillIds.contains(id))
+      .toList(growable: false);
+  if (programs.isEmpty) return const <ChallengeTrainingProgramProgress>[];
+
+  final normalizedDay = normalizeDay(day);
+  final targets = _splitTargetMinutes(targetTrainingMinutes, programs.length);
+  return <ChallengeTrainingProgramProgress>[
+    for (var index = 0; index < programs.length; index++)
+      ChallengeTrainingProgramProgress(
+        programId: programs[index],
+        label: programs[index],
+        currentMinutes: entries
+            .where(
+              (entry) =>
+                  !entry.isMatch &&
+                  normalizeDay(entry.date) == normalizedDay &&
+                  trainingEntryMatchesChallengeSkill(entry, <String>[
+                    programs[index],
+                  ]),
+            )
+            .fold<int>(0, (sum, entry) => sum + entry.durationMinutes),
+        targetMinutes: targets[index],
+      ),
+  ];
+}
+
+List<int> _splitTargetMinutes(int total, int count) {
+  if (count <= 0) return const <int>[];
+  final base = total ~/ count;
+  final remainder = total % count;
+  return List<int>.generate(
+    count,
+    (index) => base + (index < remainder ? 1 : 0),
+    growable: false,
+  );
 }
 
 int jumpRopeMinutesForDay(Iterable<TrainingEntry> entries, DateTime day) {
@@ -480,9 +576,8 @@ int _nonNegativeInt(Object? raw) {
 }
 
 double _nonNegativeDouble(Object? raw) {
-  final value = raw is num
-      ? raw.toDouble()
-      : double.tryParse(raw?.toString() ?? '');
+  final value =
+      raw is num ? raw.toDouble() : double.tryParse(raw?.toString() ?? '');
   if (value == null || value < 0) return 0;
   return value;
 }

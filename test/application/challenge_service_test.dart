@@ -151,9 +151,15 @@ void main() {
         ],
       )!;
 
+      final round = progress.rounds.first;
       expect(progress.run.selectedSkillIds, <String>['전술']);
-      expect(progress.rounds.first.trainingMinutes, 80);
-      expect(progress.rounds.first.completed, isTrue);
+      expect(round.trainingPrograms, hasLength(1));
+      expect(round.trainingPrograms.single.label, '전술');
+      expect(round.trainingPrograms.single.currentMinutes, 60);
+      expect(round.trainingPrograms.single.targetMinutes, 60);
+      expect(round.trainingPrograms.single.completed, isTrue);
+      expect(round.trainingMinutes, 60);
+      expect(round.completed, isTrue);
     },
   );
 
@@ -194,6 +200,59 @@ void main() {
     expect(progress.rounds.first.liftingCompleted, isTrue);
     expect(progress.rounds.first.mealCompleted, isTrue);
     expect(progress.rounds.first.completed, isTrue);
+    expect(progress.rounds.first.completedMissionCount, 1);
+    expect(progress.rounds.first.missionCount, 1);
+  });
+
+  test('program missions split the training target by selected program',
+      () async {
+    final service = ChallengeService(_MemoryOptionRepository());
+    final template = service.templateById('starter_3')!;
+    final run = await service.startChallenge(
+      template,
+      selectedSkillIds: <String>['전술', '패스', '슈팅'],
+      startedAt: DateTime(2026, 6, 1, 9),
+    );
+
+    final progress = service.progressForRun(
+      run: run,
+      trainingEntries: <TrainingEntry>[
+        _trainingEntry(
+          day: DateTime(2026, 6, 1),
+          minutes: 120,
+          program: '기본기',
+        ),
+        _trainingEntry(
+          day: DateTime(2026, 6, 1),
+          minutes: 20,
+          program: '전술',
+        ),
+        _trainingEntry(
+          day: DateTime(2026, 6, 1),
+          minutes: 10,
+          program: '패스',
+        ),
+      ],
+      mealEntries: const <MealEntry>[],
+    )!;
+
+    final round = progress.rounds.first;
+    expect(
+      round.trainingPrograms.map((mission) => mission.label),
+      <String>['전술', '패스', '슈팅'],
+    );
+    expect(
+      round.trainingPrograms.map((mission) => mission.targetMinutes),
+      <int>[20, 20, 20],
+    );
+    expect(
+      round.trainingPrograms.map((mission) => mission.currentMinutes),
+      <int>[20, 10, 0],
+    );
+    expect(round.trainingMinutes, 30);
+    expect(round.trainingCompleted, isFalse);
+    expect(round.completedMissionCount, 1);
+    expect(round.missionCount, 6);
   });
 
   test('finalization waits until the challenge is ready to end', () async {
