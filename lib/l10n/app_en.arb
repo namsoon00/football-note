@@ -3258,11 +3258,29 @@
   "challengeTrainingLevelAceTitle": "Ace level",
   "challengeTrainingLevelAceDescription": "A challenging target for older players with more soccer experience.",
   "challengeRecommendedLevelBadge": "Recommended",
-  "challengeSkillSelectTitle": "3. Choose skills",
-  "challengeSkillSelectSubtitle": "Choose from the same training programs used in training records. Matching saved records count toward challenge rounds.",
-  "challengeTrainingProgramLinkTitle": "Training program link",
-  "challengeTrainingProgramLinkBody": "Set or save a training record with one of these program names to make it count for this challenge.",
+  "challengeSkillSelectTitle": "3. Choose missions",
+  "challengeSkillSelectSubtitle": "Choose training programs, jump rope, lifting, and meal missions for this challenge, then adjust each daily target.",
+  "challengeMissionOtherSectionTitle": "Extra missions",
+  "challengeMissionTargetsTitle": "Mission targets",
+  "challengeMissionTargetsSubtitle": "Choose the daily amount for each selected mission.",
+  "challengeTrainingProgramLinkTitle": "Edit training programs",
+  "challengeTrainingProgramLinkBody": "Open Settings defaults to edit the training program options.",
   "challengeTrainingProgramLinkAction": "Open",
+  "challengeTrainingProgramMissionLabel": "Training programs",
+  "challengeMissionSummaryTitle": "Selected missions",
+  "challengeMissionProgramSummary": "{label}: {programs}",
+  "@challengeMissionProgramSummary": {
+    "placeholders": {
+      "label": {},
+      "programs": {}
+    }
+  },
+  "challengeRiceBowlsOption": "{bowls} bowls",
+  "@challengeRiceBowlsOption": {
+    "placeholders": {
+      "bowls": {}
+    }
+  },
   "challengeSkillDribble": "Dribble",
   "challengeSkillSpeedRun": "Speed run",
   "challengeSkillJumpRope": "Jump rope",
@@ -3325,6 +3343,12 @@
       "level": {}
     }
   },
+  "challengeInfoStatusLabel": "Status",
+  "challengeInfoLevelLabel": "Level",
+  "challengeInfoRoundXpLabel": "Round reward",
+  "challengeInfoPotentialXpLabel": "Challenge reward",
+  "challengeInfoPeriodLabel": "Period",
+  "challengeInfoRoundProgressLabel": "Round progress",
   "challengePotentialXpPill": "Potential XP +{xp}",
   "@challengePotentialXpPill": {
     "placeholders": {

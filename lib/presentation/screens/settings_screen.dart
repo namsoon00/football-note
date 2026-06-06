@@ -17,11 +17,14 @@ import '../widgets/watch_cart/watch_cart_card.dart';
 
 enum _DriveQuickActionTone { neutral, connect, disconnect, restore, backup }
 
+enum SettingsInitialTarget { trainingPrograms }
+
 class SettingsScreen extends StatefulWidget {
   final LocaleService localeService;
   final SettingsService settingsService;
   final OptionRepository optionRepository;
   final BackupService? driveBackupService;
+  final SettingsInitialTarget? initialTarget;
 
   const SettingsScreen({
     super.key,
@@ -29,6 +32,7 @@ class SettingsScreen extends StatefulWidget {
     required this.settingsService,
     required this.optionRepository,
     this.driveBackupService,
+    this.initialTarget,
   });
 
   @override
@@ -50,6 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   String _sharedChildDriveEmail = '';
   bool _hasRemotePlayerBackup = false;
   bool _driveStatusLoading = true;
+  bool _openedInitialTarget = false;
   StreamSubscription<void>? _driveAccountStateSubscription;
 
   late List<int> _durationOptions;
@@ -162,6 +167,18 @@ class _SettingsScreenState extends State<SettingsScreen>
           curve: Curves.easeOutCubic,
         ),
       );
+    });
+  }
+
+  void _scheduleInitialTarget(bool readOnly) {
+    if (_openedInitialTarget || widget.initialTarget == null) return;
+    _openedInitialTarget = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || readOnly) return;
+      if (widget.initialTarget == SettingsInitialTarget.trainingPrograms) {
+        final isKo = Localizations.localeOf(context).languageCode == 'ko';
+        unawaited(_manageProgramOptions(isKo));
+      }
     });
   }
 
@@ -417,6 +434,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       'news_blocked_domains',
       const [],
     );
+    _scheduleInitialTarget(parentSettingsReadOnly);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -515,6 +533,8 @@ class _SettingsScreenState extends State<SettingsScreen>
           _buildSectionCard(
             title: l10n.defaults,
             icon: Icons.tune_outlined,
+            initiallyExpanded:
+                widget.initialTarget == SettingsInitialTarget.trainingPrograms,
             children: [
               const SizedBox(height: 6),
               _buildDefaultsAndOptionManager(
@@ -1281,26 +1301,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         _buildOptionManagerTile(
           title: isKo ? '프로그램 옵션' : 'Program options',
           subtitle: '${_programOptions.length}${isKo ? '개 항목' : ' items'}',
-          onTap: readOnly
-              ? null
-              : () => _manageStringOptions(
-                  key: 'programs',
-                  title: isKo ? '프로그램 옵션 관리' : 'Manage program options',
-                  options: _programOptions,
-                  minKeep: 1,
-                  onSaved: (updated) async {
-                    setState(() => _programOptions = updated);
-                    if (!_programOptions.contains(_defaultProgram)) {
-                      final fallback = _programOptions.first;
-                      await widget.optionRepository.setValue(
-                        'default_program',
-                        fallback,
-                      );
-                      if (!mounted) return;
-                      setState(() => _defaultProgram = fallback);
-                    }
-                  },
-                ),
+          onTap: readOnly ? null : () => _manageProgramOptions(isKo),
         ),
         _buildOptionManagerTile(
           title: isKo ? '훈련 목표 옵션' : 'Training goal options',
@@ -1375,6 +1376,24 @@ class _SettingsScreenState extends State<SettingsScreen>
             : scheme.onSurface.withValues(alpha: 0.32),
       ),
       onTap: onTap,
+    );
+  }
+
+  Future<void> _manageProgramOptions(bool isKo) async {
+    await _manageStringOptions(
+      key: 'programs',
+      title: isKo ? '프로그램 옵션 관리' : 'Manage program options',
+      options: _programOptions,
+      minKeep: 1,
+      onSaved: (updated) async {
+        setState(() => _programOptions = updated);
+        if (!_programOptions.contains(_defaultProgram)) {
+          final fallback = _programOptions.first;
+          await widget.optionRepository.setValue('default_program', fallback);
+          if (!mounted) return;
+          setState(() => _defaultProgram = fallback);
+        }
+      },
     );
   }
 

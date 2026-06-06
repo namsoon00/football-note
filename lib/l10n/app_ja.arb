@@ -3258,11 +3258,29 @@
   "challengeTrainingLevelAceTitle": "エースレベル",
   "challengeTrainingLevelAceDescription": "年齢とサッカー経験がある選手向けの挑戦的な目標です。",
   "challengeRecommendedLevelBadge": "おすすめ",
-  "challengeSkillSelectTitle": "3. スキルを選択",
-  "challengeSkillSelectSubtitle": "トレーニング記録で使う同じプログラムから選びます。同じプログラムで保存した記録がチャレンジラウンドとして認識されます。",
-  "challengeTrainingProgramLinkTitle": "トレーニングプログラム連携",
-  "challengeTrainingProgramLinkBody": "同じ名前のトレーニングプログラムで記録を保存すると、このチャレンジに反映されます。",
+  "challengeSkillSelectTitle": "3. ミッションを選択",
+  "challengeSkillSelectSubtitle": "このチャレンジに入れるトレーニングプログラム、縄跳び、リフティング、食事ミッションを選び、毎日の目標量を調整します。",
+  "challengeMissionOtherSectionTitle": "追加ミッション",
+  "challengeMissionTargetsTitle": "ミッション別目標",
+  "challengeMissionTargetsSubtitle": "選択したミッションごとに毎日の達成量を選びます。",
+  "challengeTrainingProgramLinkTitle": "トレーニングプログラム編集",
+  "challengeTrainingProgramLinkBody": "設定のデフォルトからトレーニングプログラム項目を編集します。",
   "challengeTrainingProgramLinkAction": "開く",
+  "challengeTrainingProgramMissionLabel": "トレーニングプログラム",
+  "challengeMissionSummaryTitle": "選択したミッション",
+  "challengeMissionProgramSummary": "{label}: {programs}",
+  "@challengeMissionProgramSummary": {
+    "placeholders": {
+      "label": {},
+      "programs": {}
+    }
+  },
+  "challengeRiceBowlsOption": "{bowls}杯",
+  "@challengeRiceBowlsOption": {
+    "placeholders": {
+      "bowls": {}
+    }
+  },
   "challengeSkillDribble": "ドリブル",
   "challengeSkillSpeedRun": "スピード走",
   "challengeSkillJumpRope": "縄跳び",
@@ -3325,6 +3343,12 @@
       "level": {}
     }
   },
+  "challengeInfoStatusLabel": "状態",
+  "challengeInfoLevelLabel": "レベル",
+  "challengeInfoRoundXpLabel": "ラウンド報酬",
+  "challengeInfoPotentialXpLabel": "チャレンジ報酬",
+  "challengeInfoPeriodLabel": "期間",
+  "challengeInfoRoundProgressLabel": "ラウンド進捗",
   "challengePotentialXpPill": "獲得可能 XP +{xp}",
   "@challengePotentialXpPill": {
     "placeholders": {

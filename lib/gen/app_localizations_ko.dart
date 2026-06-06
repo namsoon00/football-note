@@ -6628,21 +6628,46 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeRecommendedLevelBadge => '추천';
 
   @override
-  String get challengeSkillSelectTitle => '3. 스킬 선택';
+  String get challengeSkillSelectTitle => '3. 미션 선택';
 
   @override
   String get challengeSkillSelectSubtitle =>
-      '훈련 기록에서 쓰는 훈련 프로그램 중에서 고르세요. 같은 프로그램으로 저장한 기록이 챌린지 라운드로 인식됩니다.';
+      '챌린지에 넣을 훈련 프로그램, 줄넘기, 리프팅, 식사 미션을 고르고 목표 훈련량을 조정하세요.';
 
   @override
-  String get challengeTrainingProgramLinkTitle => '훈련 프로그램 연결';
+  String get challengeMissionOtherSectionTitle => '추가 미션';
+
+  @override
+  String get challengeMissionTargetsTitle => '미션별 목표량';
+
+  @override
+  String get challengeMissionTargetsSubtitle => '선택한 미션마다 매일 채울 기준을 고르세요.';
+
+  @override
+  String get challengeTrainingProgramLinkTitle => '훈련 프로그램 편집';
 
   @override
   String get challengeTrainingProgramLinkBody =>
-      '이름이 같은 훈련 프로그램으로 기록을 저장하면 이번 챌린지 기록으로 반영돼요.';
+      '설정 화면의 기본값에서 훈련 프로그램 옵션을 바로 편집해요.';
 
   @override
   String get challengeTrainingProgramLinkAction => '열기';
+
+  @override
+  String get challengeTrainingProgramMissionLabel => '훈련 프로그램';
+
+  @override
+  String get challengeMissionSummaryTitle => '선택한 미션';
+
+  @override
+  String challengeMissionProgramSummary(Object label, Object programs) {
+    return '$label: $programs';
+  }
+
+  @override
+  String challengeRiceBowlsOption(Object bowls) {
+    return '$bowls그릇';
+  }
 
   @override
   String get challengeSkillDribble => '드리블';
@@ -6702,6 +6727,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String challengeActiveLevelPill(Object level) {
     return '레벨: $level';
   }
+
+  @override
+  String get challengeInfoStatusLabel => '상태';
+
+  @override
+  String get challengeInfoLevelLabel => '단계';
+
+  @override
+  String get challengeInfoRoundXpLabel => '라운드 보상';
+
+  @override
+  String get challengeInfoPotentialXpLabel => '챌린지 보상';
+
+  @override
+  String get challengeInfoPeriodLabel => '기간';
+
+  @override
+  String get challengeInfoRoundProgressLabel => '라운드 진행';
 
   @override
   String challengePotentialXpPill(int xp) {
