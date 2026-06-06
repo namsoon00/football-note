@@ -157,6 +157,45 @@ void main() {
     },
   );
 
+  test('custom mission targets can require only selected missions', () async {
+    final service = ChallengeService(_MemoryOptionRepository());
+    final template = service.templateById('starter_3')!;
+    final run = await service.startChallenge(
+      template,
+      selectedSkillIds: const <String>[],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 0,
+        jumpRopeMinutes: 15,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
+      startedAt: DateTime(2026, 6, 1, 9),
+    );
+
+    final progress = service.progressForRun(
+      run: run,
+      trainingEntries: <TrainingEntry>[
+        _trainingEntry(
+          day: DateTime(2026, 6, 1),
+          minutes: 0,
+          jumpRopeMinutes: 15,
+          liftingMinutes: 0,
+          program: '기본기',
+        ),
+      ],
+      mealEntries: const <MealEntry>[],
+    )!;
+
+    expect(progress.run.selectedSkillIds, isEmpty);
+    expect(progress.rounds.first.round.targetTrainingMinutes, 0);
+    expect(progress.rounds.first.round.targetJumpRopeMinutes, 15);
+    expect(progress.rounds.first.trainingCompleted, isTrue);
+    expect(progress.rounds.first.jumpRopeCompleted, isTrue);
+    expect(progress.rounds.first.liftingCompleted, isTrue);
+    expect(progress.rounds.first.mealCompleted, isTrue);
+    expect(progress.rounds.first.completed, isTrue);
+  });
+
   test('finalization waits until the challenge is ready to end', () async {
     final repository = _MemoryOptionRepository();
     final service = ChallengeService(repository);

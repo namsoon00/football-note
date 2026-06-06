@@ -6624,21 +6624,46 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeRecommendedLevelBadge => 'おすすめ';
 
   @override
-  String get challengeSkillSelectTitle => '3. スキルを選択';
+  String get challengeSkillSelectTitle => '3. ミッションを選択';
 
   @override
   String get challengeSkillSelectSubtitle =>
-      'トレーニング記録で使う同じプログラムから選びます。同じプログラムで保存した記録がチャレンジラウンドとして認識されます。';
+      'このチャレンジに入れるトレーニングプログラム、縄跳び、リフティング、食事ミッションを選び、毎日の目標量を調整します。';
 
   @override
-  String get challengeTrainingProgramLinkTitle => 'トレーニングプログラム連携';
+  String get challengeMissionOtherSectionTitle => '追加ミッション';
+
+  @override
+  String get challengeMissionTargetsTitle => 'ミッション別目標';
+
+  @override
+  String get challengeMissionTargetsSubtitle => '選択したミッションごとに毎日の達成量を選びます。';
+
+  @override
+  String get challengeTrainingProgramLinkTitle => 'トレーニングプログラム編集';
 
   @override
   String get challengeTrainingProgramLinkBody =>
-      '同じ名前のトレーニングプログラムで記録を保存すると、このチャレンジに反映されます。';
+      '設定のデフォルトからトレーニングプログラム項目を編集します。';
 
   @override
   String get challengeTrainingProgramLinkAction => '開く';
+
+  @override
+  String get challengeTrainingProgramMissionLabel => 'トレーニングプログラム';
+
+  @override
+  String get challengeMissionSummaryTitle => '選択したミッション';
+
+  @override
+  String challengeMissionProgramSummary(Object label, Object programs) {
+    return '$label: $programs';
+  }
+
+  @override
+  String challengeRiceBowlsOption(Object bowls) {
+    return '$bowls杯';
+  }
 
   @override
   String get challengeSkillDribble => 'ドリブル';
@@ -6698,6 +6723,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String challengeActiveLevelPill(Object level) {
     return 'レベル: $level';
   }
+
+  @override
+  String get challengeInfoStatusLabel => '状態';
+
+  @override
+  String get challengeInfoLevelLabel => 'レベル';
+
+  @override
+  String get challengeInfoRoundXpLabel => 'ラウンド報酬';
+
+  @override
+  String get challengeInfoPotentialXpLabel => 'チャレンジ報酬';
+
+  @override
+  String get challengeInfoPeriodLabel => '期間';
+
+  @override
+  String get challengeInfoRoundProgressLabel => 'ラウンド進捗';
 
   @override
   String challengePotentialXpPill(int xp) {

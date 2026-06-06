@@ -56,6 +56,7 @@ class ChallengeService {
     ChallengeTemplate template, {
     ChallengeTrainingLevel trainingLevel = ChallengeTrainingLevel.rookie,
     List<String> selectedSkillIds = defaultChallengeSkillIds,
+    ChallengeMissionTargets? missionTargets,
     DateTime? startedAt,
   }) async {
     final start = startedAt ?? DateTime.now();
@@ -64,7 +65,11 @@ class ChallengeService {
       templateId: template.id,
       trainingLevel: trainingLevel,
       startedAt: start,
-      selectedSkillIds: normalizeChallengeSkillIds(selectedSkillIds),
+      selectedSkillIds: normalizeChallengeSkillIds(
+        selectedSkillIds,
+        allowEmpty: missionTargets?.hasTrainingMission == false,
+      ),
+      missionTargets: missionTargets,
     );
     final runs = loadRuns()
         .map(
@@ -146,7 +151,7 @@ class ChallengeService {
     if (template == null) return null;
     final rounds = template.rounds
         .map((round) {
-          final effectiveRound = roundForLevel(round, run.trainingLevel);
+          final effectiveRound = roundForRun(round, run);
           final date = run.dayForRound(round.number);
           return ChallengeRoundProgress(
             round: effectiveRound,
@@ -276,6 +281,27 @@ class ChallengeService {
     );
   }
 
+  ChallengeRound roundForRun(ChallengeRound base, ChallengeRun run) {
+    final levelRound = roundForLevel(base, run.trainingLevel);
+    final targets =
+        run.missionTargets ?? challengeMissionTargetsFromRound(levelRound);
+    return roundWithMissionTargets(levelRound, targets);
+  }
+
+  ChallengeRound roundWithMissionTargets(
+    ChallengeRound base,
+    ChallengeMissionTargets targets,
+  ) {
+    return ChallengeRound(
+      number: base.number,
+      targetTrainingMinutes: targets.trainingMinutes,
+      targetJumpRopeMinutes: targets.jumpRopeMinutes,
+      targetLiftingMinutes: targets.liftingMinutes,
+      targetRiceBowls: targets.riceBowls,
+      rewardXp: base.rewardXp,
+    );
+  }
+
   int completionBonusXpFor(
     ChallengeTemplate template,
     ChallengeTrainingLevel level,
@@ -328,6 +354,26 @@ class ChallengeTrainingLevelConfig {
     required this.rewardXpPerRound,
     required this.completionBonusXpPerDay,
   });
+}
+
+ChallengeMissionTargets challengeMissionTargetsFromConfig(
+  ChallengeTrainingLevelConfig config,
+) {
+  return ChallengeMissionTargets(
+    trainingMinutes: config.targetTrainingMinutes,
+    jumpRopeMinutes: config.targetJumpRopeMinutes,
+    liftingMinutes: config.targetLiftingMinutes,
+    riceBowls: config.targetRiceBowls,
+  );
+}
+
+ChallengeMissionTargets challengeMissionTargetsFromRound(ChallengeRound round) {
+  return ChallengeMissionTargets(
+    trainingMinutes: round.targetTrainingMinutes,
+    jumpRopeMinutes: round.targetJumpRopeMinutes,
+    liftingMinutes: round.targetLiftingMinutes,
+    riceBowls: round.targetRiceBowls,
+  );
 }
 
 const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =

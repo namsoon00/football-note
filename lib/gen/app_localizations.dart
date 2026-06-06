@@ -11867,25 +11867,43 @@ abstract class AppLocalizations {
   /// No description provided for @challengeSkillSelectTitle.
   ///
   /// In en, this message translates to:
-  /// **'3. Choose skills'**
+  /// **'3. Choose missions'**
   String get challengeSkillSelectTitle;
 
   /// No description provided for @challengeSkillSelectSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose from the same training programs used in training records. Matching saved records count toward challenge rounds.'**
+  /// **'Choose training programs, jump rope, lifting, and meal missions for this challenge, then adjust each daily target.'**
   String get challengeSkillSelectSubtitle;
+
+  /// No description provided for @challengeMissionOtherSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra missions'**
+  String get challengeMissionOtherSectionTitle;
+
+  /// No description provided for @challengeMissionTargetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission targets'**
+  String get challengeMissionTargetsTitle;
+
+  /// No description provided for @challengeMissionTargetsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the daily amount for each selected mission.'**
+  String get challengeMissionTargetsSubtitle;
 
   /// No description provided for @challengeTrainingProgramLinkTitle.
   ///
   /// In en, this message translates to:
-  /// **'Training program link'**
+  /// **'Edit training programs'**
   String get challengeTrainingProgramLinkTitle;
 
   /// No description provided for @challengeTrainingProgramLinkBody.
   ///
   /// In en, this message translates to:
-  /// **'Set or save a training record with one of these program names to make it count for this challenge.'**
+  /// **'Open Settings defaults to edit the training program options.'**
   String get challengeTrainingProgramLinkBody;
 
   /// No description provided for @challengeTrainingProgramLinkAction.
@@ -11893,6 +11911,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open'**
   String get challengeTrainingProgramLinkAction;
+
+  /// No description provided for @challengeTrainingProgramMissionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Training programs'**
+  String get challengeTrainingProgramMissionLabel;
+
+  /// No description provided for @challengeMissionSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected missions'**
+  String get challengeMissionSummaryTitle;
+
+  /// No description provided for @challengeMissionProgramSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: {programs}'**
+  String challengeMissionProgramSummary(Object label, Object programs);
+
+  /// No description provided for @challengeRiceBowlsOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{bowls} bowls'**
+  String challengeRiceBowlsOption(Object bowls);
 
   /// No description provided for @challengeSkillDribble.
   ///
@@ -11983,6 +12025,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Level: {level}'**
   String challengeActiveLevelPill(Object level);
+
+  /// No description provided for @challengeInfoStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get challengeInfoStatusLabel;
+
+  /// No description provided for @challengeInfoLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get challengeInfoLevelLabel;
+
+  /// No description provided for @challengeInfoRoundXpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Round reward'**
+  String get challengeInfoRoundXpLabel;
+
+  /// No description provided for @challengeInfoPotentialXpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge reward'**
+  String get challengeInfoPotentialXpLabel;
+
+  /// No description provided for @challengeInfoPeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get challengeInfoPeriodLabel;
+
+  /// No description provided for @challengeInfoRoundProgressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Round progress'**
+  String get challengeInfoRoundProgressLabel;
 
   /// No description provided for @challengePotentialXpPill.
   ///

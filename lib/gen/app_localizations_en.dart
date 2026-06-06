@@ -6870,21 +6870,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeRecommendedLevelBadge => 'Recommended';
 
   @override
-  String get challengeSkillSelectTitle => '3. Choose skills';
+  String get challengeSkillSelectTitle => '3. Choose missions';
 
   @override
   String get challengeSkillSelectSubtitle =>
-      'Choose from the same training programs used in training records. Matching saved records count toward challenge rounds.';
+      'Choose training programs, jump rope, lifting, and meal missions for this challenge, then adjust each daily target.';
 
   @override
-  String get challengeTrainingProgramLinkTitle => 'Training program link';
+  String get challengeMissionOtherSectionTitle => 'Extra missions';
+
+  @override
+  String get challengeMissionTargetsTitle => 'Mission targets';
+
+  @override
+  String get challengeMissionTargetsSubtitle =>
+      'Choose the daily amount for each selected mission.';
+
+  @override
+  String get challengeTrainingProgramLinkTitle => 'Edit training programs';
 
   @override
   String get challengeTrainingProgramLinkBody =>
-      'Set or save a training record with one of these program names to make it count for this challenge.';
+      'Open Settings defaults to edit the training program options.';
 
   @override
   String get challengeTrainingProgramLinkAction => 'Open';
+
+  @override
+  String get challengeTrainingProgramMissionLabel => 'Training programs';
+
+  @override
+  String get challengeMissionSummaryTitle => 'Selected missions';
+
+  @override
+  String challengeMissionProgramSummary(Object label, Object programs) {
+    return '$label: $programs';
+  }
+
+  @override
+  String challengeRiceBowlsOption(Object bowls) {
+    return '$bowls bowls';
+  }
 
   @override
   String get challengeSkillDribble => 'Dribble';
@@ -6944,6 +6970,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String challengeActiveLevelPill(Object level) {
     return 'Level: $level';
   }
+
+  @override
+  String get challengeInfoStatusLabel => 'Status';
+
+  @override
+  String get challengeInfoLevelLabel => 'Level';
+
+  @override
+  String get challengeInfoRoundXpLabel => 'Round reward';
+
+  @override
+  String get challengeInfoPotentialXpLabel => 'Challenge reward';
+
+  @override
+  String get challengeInfoPeriodLabel => 'Period';
+
+  @override
+  String get challengeInfoRoundProgressLabel => 'Round progress';
 
   @override
   String challengePotentialXpPill(int xp) {

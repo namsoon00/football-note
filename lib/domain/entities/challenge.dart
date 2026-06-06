@@ -23,7 +23,10 @@ const Set<String> legacyChallengeSkillIds = <String>{
   'defense',
 };
 
-List<String> normalizeChallengeSkillIds(Iterable<String> rawIds) {
+List<String> normalizeChallengeSkillIds(
+  Iterable<String> rawIds, {
+  bool allowEmpty = false,
+}) {
   final seen = <String>{};
   final normalized = <String>[];
   for (final id in rawIds) {
@@ -32,9 +35,68 @@ List<String> normalizeChallengeSkillIds(Iterable<String> rawIds) {
     seen.add(trimmed);
     normalized.add(trimmed);
   }
-  return normalized.isEmpty
-      ? List<String>.from(defaultChallengeSkillIds)
-      : normalized;
+  if (normalized.isNotEmpty) return normalized;
+  return allowEmpty ? <String>[] : List<String>.from(defaultChallengeSkillIds);
+}
+
+class ChallengeMissionTargets {
+  final int trainingMinutes;
+  final int jumpRopeMinutes;
+  final int liftingMinutes;
+  final double riceBowls;
+
+  const ChallengeMissionTargets({
+    required this.trainingMinutes,
+    required this.jumpRopeMinutes,
+    required this.liftingMinutes,
+    required this.riceBowls,
+  });
+
+  bool get hasTrainingMission => trainingMinutes > 0;
+
+  bool get hasJumpRopeMission => jumpRopeMinutes > 0;
+
+  bool get hasLiftingMission => liftingMinutes > 0;
+
+  bool get hasMealMission => riceBowls > 0;
+
+  bool get hasAnyMission =>
+      hasTrainingMission ||
+      hasJumpRopeMission ||
+      hasLiftingMission ||
+      hasMealMission;
+
+  ChallengeMissionTargets copyWith({
+    int? trainingMinutes,
+    int? jumpRopeMinutes,
+    int? liftingMinutes,
+    double? riceBowls,
+  }) {
+    return ChallengeMissionTargets(
+      trainingMinutes: trainingMinutes ?? this.trainingMinutes,
+      jumpRopeMinutes: jumpRopeMinutes ?? this.jumpRopeMinutes,
+      liftingMinutes: liftingMinutes ?? this.liftingMinutes,
+      riceBowls: riceBowls ?? this.riceBowls,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'trainingMinutes': trainingMinutes,
+      'jumpRopeMinutes': jumpRopeMinutes,
+      'liftingMinutes': liftingMinutes,
+      'riceBowls': riceBowls,
+    };
+  }
+
+  factory ChallengeMissionTargets.fromMap(Map<String, dynamic> map) {
+    return ChallengeMissionTargets(
+      trainingMinutes: _nonNegativeInt(map['trainingMinutes']),
+      jumpRopeMinutes: _nonNegativeInt(map['jumpRopeMinutes']),
+      liftingMinutes: _nonNegativeInt(map['liftingMinutes']),
+      riceBowls: _nonNegativeDouble(map['riceBowls']),
+    );
+  }
 }
 
 class ChallengeTemplate {
@@ -79,6 +141,7 @@ class ChallengeRun {
   final ChallengeRunResult? result;
   final int? failedRoundNumber;
   final List<String> selectedSkillIds;
+  final ChallengeMissionTargets? missionTargets;
 
   const ChallengeRun({
     required this.id,
@@ -90,6 +153,7 @@ class ChallengeRun {
     this.result,
     this.failedRoundNumber,
     this.selectedSkillIds = defaultChallengeSkillIds,
+    this.missionTargets,
   });
 
   bool get isEnded => completedAt != null || result != null;
@@ -120,6 +184,7 @@ class ChallengeRun {
     ChallengeRunResult? result,
     int? failedRoundNumber,
     List<String>? selectedSkillIds,
+    ChallengeMissionTargets? missionTargets,
   }) {
     return ChallengeRun(
       id: id ?? this.id,
@@ -131,6 +196,7 @@ class ChallengeRun {
       result: result ?? this.result,
       failedRoundNumber: failedRoundNumber ?? this.failedRoundNumber,
       selectedSkillIds: selectedSkillIds ?? this.selectedSkillIds,
+      missionTargets: missionTargets ?? this.missionTargets,
     );
   }
 
@@ -145,6 +211,7 @@ class ChallengeRun {
       'result': result?.name,
       'failedRoundNumber': failedRoundNumber,
       'selectedSkillIds': selectedSkillIds,
+      'missionTargets': missionTargets?.toMap(),
     };
   }
 
@@ -152,6 +219,8 @@ class ChallengeRun {
     final completedAt = DateTime.tryParse(map['completedAt']?.toString() ?? '');
     final abandoned = map['abandoned'] == true;
     final parsedResult = _challengeRunResultFromName(map['result']?.toString());
+    final rawSelectedSkillIds = map['selectedSkillIds'];
+    final rawMissionTargets = map['missionTargets'];
     return ChallengeRun(
       id:
           map['id']?.toString() ??
@@ -175,9 +244,15 @@ class ChallengeRun {
               : ChallengeRunResult.completed),
       failedRoundNumber: (map['failedRoundNumber'] as num?)?.toInt(),
       selectedSkillIds: normalizeChallengeSkillIds(
-        (map['selectedSkillIds'] as List?)?.map((item) => item.toString()) ??
+        (rawSelectedSkillIds as List?)?.map((item) => item.toString()) ??
             defaultChallengeSkillIds,
+        allowEmpty: rawSelectedSkillIds is List,
       ),
+      missionTargets: rawMissionTargets is Map
+          ? ChallengeMissionTargets.fromMap(
+              rawMissionTargets.cast<String, dynamic>(),
+            )
+          : null,
     );
   }
 }
@@ -396,4 +471,18 @@ ChallengeRunResult? _challengeRunResultFromName(String? raw) {
 
 String _normalizeChallengeSkillText(String value) {
   return value.trim().toLowerCase();
+}
+
+int _nonNegativeInt(Object? raw) {
+  final value = raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '');
+  if (value == null || value < 0) return 0;
+  return value;
+}
+
+double _nonNegativeDouble(Object? raw) {
+  final value = raw is num
+      ? raw.toDouble()
+      : double.tryParse(raw?.toString() ?? '');
+  if (value == null || value < 0) return 0;
+  return value;
 }
