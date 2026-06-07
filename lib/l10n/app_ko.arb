@@ -51,7 +51,7 @@
   "welcomeStatsStepFocus": "가장 약한 신호를 다음 계획이나 노트 목표로 바꿔요.",
   "welcomeChallengeOverview": "챌린지는 린지가 매일 라운드 미션을 챙겨 주고 완료 경험치를 크게 모아 주는 화면입니다.",
   "welcomeChallengeActionStart": "챌린지 시작",
-  "welcomeChallengeStepStart": "기간과 레벨을 고르면 오늘부터 이어갈 라운드가 만들어져요.",
+  "welcomeChallengeStepStart": "기간을 고르면 오늘부터 이어갈 라운드가 만들어져요.",
   "welcomeChallengeActionMission": "미션 입력",
   "welcomeChallengeStepMission": "훈련, 줄넘기, 리프팅, 식사 미션을 눌러 바로 기록 화면으로 들어가요.",
   "welcomeChallengeActionReward": "XP 보상",
@@ -63,6 +63,7 @@
   "logsQuickGuideTitle": "빠른 시작 가이드",
   "logsQuickGuideIntro": "첫 기록은 이 순서로 만들고, 저장 후 이 화면에서 다시 확인하세요.",
   "newsFifaHubButton": "피파랭킹",
+  "newsWorldCupButton": "월드컵",
   "newsKLeagueStandingsButton": "국내리그",
   "newsMoreActionsTooltip": "리그보기",
   "newsMoreActionsTitle": "더보기",
@@ -175,6 +176,55 @@
   "newsMatchResultWin": "승",
   "newsMatchResultDraw": "무",
   "newsMatchResultLoss": "패",
+  "worldCupTitle": "월드컵 보기",
+  "worldCupHeroTitle": "FIFA 월드컵 2026",
+  "worldCupHeroSubtitle": "캐나다, 멕시코, 미국 · 48개 팀",
+  "worldCupCountdownDays": "{days}일 남음",
+  "@worldCupCountdownDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupCountdownToday": "개막일",
+  "worldCupCountdownStarted": "대회 진행 중",
+  "worldCupCountdownComplete": "대회 종료",
+  "worldCupOverviewTitle": "대회 개요",
+  "worldCupHostsLabel": "개최국",
+  "worldCupHostsValue": "캐나다 · 멕시코 · 미국",
+  "worldCupDatesLabel": "기간",
+  "worldCupDateRange": "{start} - {end}",
+  "@worldCupDateRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupFormatLabel": "방식",
+  "worldCupFormatValue": "48개 팀 · 12개 조",
+  "worldCupMatchesLabel": "경기",
+  "worldCupMatchesValue": "16개 개최 도시에서 104경기",
+  "worldCupKoreaTitle": "대한민국 보기",
+  "worldCupKoreaBody": "대한민국은 A조에서 체코와 과달라하라 첫 경기를 치릅니다.",
+  "worldCupKoreaGroupLabel": "조",
+  "worldCupKoreaGroup": "A조",
+  "worldCupKoreaOpenerLabel": "첫 경기",
+  "worldCupKoreaOpener": "대한민국 v 체코 · 에스타디오 과달라하라",
+  "worldCupMilestonesTitle": "결승까지의 흐름",
+  "worldCupMilestoneOpeningLabel": "개막전",
+  "worldCupOpeningMatch": "멕시코 v 남아프리카공화국 · 2026년 6월 11일 · 멕시코시티 스타디움",
+  "worldCupMilestoneGroupLabel": "조별리그",
+  "worldCupGroupStage": "6월 11일부터 조별리그가 시작되고 32강 대진으로 이어집니다.",
+  "worldCupMilestoneKnockoutLabel": "토너먼트",
+  "worldCupKnockouts": "조별리그 이후 32강이 시작됩니다.",
+  "worldCupMilestoneFinalLabel": "결승",
+  "worldCupFinalMatch": "2026년 7월 19일 · 뉴욕 뉴저지 스타디움",
+  "worldCupSourceAction": "FIFA 일정 열기",
   "homeTodayPlanCardTitle": "오늘의 훈련 계획",
   "homeTodayPlanCardSummary": "오늘 계획 {count}개",
   "@homeTodayPlanCardSummary": {
@@ -3237,7 +3287,7 @@
   "trainingSketchTemplateGallerySubtitle": "스케치를 만들기 전에 이동선과 메모 구성을 미리 확인하세요.",
   "challengeTitle": "챌린지",
   "challengeStartHeroTitle": "린지의 챌린지 모드",
-  "challengeStartHeroBody": "기간과 훈련 레벨을 고른 뒤 시작 버튼을 누르면 도전이 시작됩니다. 하루라도 놓치면 실패예요.",
+  "challengeStartHeroBody": "기간과 미션별 훈련량을 고른 뒤 시작 버튼을 누르면 도전이 시작됩니다. 하루라도 놓치면 실패예요.",
   "challengeLatestComplete": "최근 챌린지 완료",
   "challengeSelectTitle": "챌린지 선택",
   "challengeDurationSelectTitle": "1. 기간 선택",
@@ -3258,7 +3308,7 @@
   "challengeTrainingLevelAceTitle": "에이스 레벨",
   "challengeTrainingLevelAceDescription": "나이와 축구 구력이 쌓인 선수에게 맞춘 도전적인 목표입니다.",
   "challengeRecommendedLevelBadge": "추천",
-  "challengeSkillSelectTitle": "3. 미션 선택",
+  "challengeSkillSelectTitle": "2. 미션 선택",
   "challengeSkillSelectSubtitle": "챌린지에 넣을 훈련 프로그램, 줄넘기, 리프팅, 식사 미션을 고르고 목표 훈련량을 조정하세요.",
   "challengeMissionOtherSectionTitle": "추가 미션",
   "challengeMissionTargetsTitle": "미션별 목표량",
@@ -3374,7 +3424,7 @@
     }
   },
   "challengeRewardPitchTitle": "완주하면 큰 보너스가 기다려요",
-  "challengeStartReadyTitle": "4. 시작 준비",
+  "challengeStartReadyTitle": "3. 시작 준비",
   "challengeStartAction": "챌린지 시작",
   "challengeRoundCount": "{completed}/{total} 라운드 완료",
   "@challengeRoundCount": {

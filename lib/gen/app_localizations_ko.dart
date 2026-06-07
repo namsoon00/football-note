@@ -156,7 +156,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeChallengeActionStart => '챌린지 시작';
 
   @override
-  String get welcomeChallengeStepStart => '기간과 레벨을 고르면 오늘부터 이어갈 라운드가 만들어져요.';
+  String get welcomeChallengeStepStart => '기간을 고르면 오늘부터 이어갈 라운드가 만들어져요.';
 
   @override
   String get welcomeChallengeActionMission => '미션 입력';
@@ -192,6 +192,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get newsFifaHubButton => '피파랭킹';
+
+  @override
+  String get newsWorldCupButton => '월드컵';
 
   @override
   String get newsKLeagueStandingsButton => '국내리그';
@@ -461,6 +464,107 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get newsMatchResultLoss => '패';
+
+  @override
+  String get worldCupTitle => '월드컵 보기';
+
+  @override
+  String get worldCupHeroTitle => 'FIFA 월드컵 2026';
+
+  @override
+  String get worldCupHeroSubtitle => '캐나다, 멕시코, 미국 · 48개 팀';
+
+  @override
+  String worldCupCountdownDays(int days) {
+    return '$days일 남음';
+  }
+
+  @override
+  String get worldCupCountdownToday => '개막일';
+
+  @override
+  String get worldCupCountdownStarted => '대회 진행 중';
+
+  @override
+  String get worldCupCountdownComplete => '대회 종료';
+
+  @override
+  String get worldCupOverviewTitle => '대회 개요';
+
+  @override
+  String get worldCupHostsLabel => '개최국';
+
+  @override
+  String get worldCupHostsValue => '캐나다 · 멕시코 · 미국';
+
+  @override
+  String get worldCupDatesLabel => '기간';
+
+  @override
+  String worldCupDateRange(String start, String end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get worldCupFormatLabel => '방식';
+
+  @override
+  String get worldCupFormatValue => '48개 팀 · 12개 조';
+
+  @override
+  String get worldCupMatchesLabel => '경기';
+
+  @override
+  String get worldCupMatchesValue => '16개 개최 도시에서 104경기';
+
+  @override
+  String get worldCupKoreaTitle => '대한민국 보기';
+
+  @override
+  String get worldCupKoreaBody => '대한민국은 A조에서 체코와 과달라하라 첫 경기를 치릅니다.';
+
+  @override
+  String get worldCupKoreaGroupLabel => '조';
+
+  @override
+  String get worldCupKoreaGroup => 'A조';
+
+  @override
+  String get worldCupKoreaOpenerLabel => '첫 경기';
+
+  @override
+  String get worldCupKoreaOpener => '대한민국 v 체코 · 에스타디오 과달라하라';
+
+  @override
+  String get worldCupMilestonesTitle => '결승까지의 흐름';
+
+  @override
+  String get worldCupMilestoneOpeningLabel => '개막전';
+
+  @override
+  String get worldCupOpeningMatch =>
+      '멕시코 v 남아프리카공화국 · 2026년 6월 11일 · 멕시코시티 스타디움';
+
+  @override
+  String get worldCupMilestoneGroupLabel => '조별리그';
+
+  @override
+  String get worldCupGroupStage => '6월 11일부터 조별리그가 시작되고 32강 대진으로 이어집니다.';
+
+  @override
+  String get worldCupMilestoneKnockoutLabel => '토너먼트';
+
+  @override
+  String get worldCupKnockouts => '조별리그 이후 32강이 시작됩니다.';
+
+  @override
+  String get worldCupMilestoneFinalLabel => '결승';
+
+  @override
+  String get worldCupFinalMatch => '2026년 7월 19일 · 뉴욕 뉴저지 스타디움';
+
+  @override
+  String get worldCupSourceAction => 'FIFA 일정 열기';
 
   @override
   String get homeTodayPlanCardTitle => '오늘의 훈련 계획';
@@ -6562,7 +6666,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeStartHeroBody =>
-      '기간과 훈련 레벨을 고른 뒤 시작 버튼을 누르면 도전이 시작됩니다. 하루라도 놓치면 실패예요.';
+      '기간과 미션별 훈련량을 고른 뒤 시작 버튼을 누르면 도전이 시작됩니다. 하루라도 놓치면 실패예요.';
 
   @override
   String get challengeLatestComplete => '최근 챌린지 완료';
@@ -6628,7 +6732,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeRecommendedLevelBadge => '추천';
 
   @override
-  String get challengeSkillSelectTitle => '3. 미션 선택';
+  String get challengeSkillSelectTitle => '2. 미션 선택';
 
   @override
   String get challengeSkillSelectSubtitle =>
@@ -6765,7 +6869,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeRewardPitchTitle => '완주하면 큰 보너스가 기다려요';
 
   @override
-  String get challengeStartReadyTitle => '4. 시작 준비';
+  String get challengeStartReadyTitle => '3. 시작 준비';
 
   @override
   String get challengeStartAction => '챌린지 시작';

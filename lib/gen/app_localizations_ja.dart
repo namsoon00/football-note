@@ -165,7 +165,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeChallengeActionStart => 'チャレンジ開始';
 
   @override
-  String get welcomeChallengeStepStart => '期間とレベルを選ぶと、今日から続けるラウンドが作られます。';
+  String get welcomeChallengeStepStart => '期間を選ぶと、今日から続けるラウンドが作られます。';
 
   @override
   String get welcomeChallengeActionMission => 'ミッション入力';
@@ -202,6 +202,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get newsFifaHubButton => 'FIFAランク';
+
+  @override
+  String get newsWorldCupButton => 'W杯';
 
   @override
   String get newsKLeagueStandingsButton => '国内';
@@ -472,6 +475,107 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get newsMatchResultLoss => '損失';
+
+  @override
+  String get worldCupTitle => 'ワールドカップ表示';
+
+  @override
+  String get worldCupHeroTitle => 'FIFAワールドカップ2026';
+
+  @override
+  String get worldCupHeroSubtitle => 'カナダ、メキシコ、アメリカ · 48チーム';
+
+  @override
+  String worldCupCountdownDays(int days) {
+    return 'あと$days日';
+  }
+
+  @override
+  String get worldCupCountdownToday => '開幕日';
+
+  @override
+  String get worldCupCountdownStarted => '大会開催中';
+
+  @override
+  String get worldCupCountdownComplete => '大会終了';
+
+  @override
+  String get worldCupOverviewTitle => '大会概要';
+
+  @override
+  String get worldCupHostsLabel => '開催国';
+
+  @override
+  String get worldCupHostsValue => 'カナダ · メキシコ · アメリカ';
+
+  @override
+  String get worldCupDatesLabel => '日程';
+
+  @override
+  String worldCupDateRange(String start, String end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get worldCupFormatLabel => '形式';
+
+  @override
+  String get worldCupFormatValue => '48チーム · 12グループ';
+
+  @override
+  String get worldCupMatchesLabel => '試合';
+
+  @override
+  String get worldCupMatchesValue => '16開催都市で104試合';
+
+  @override
+  String get worldCupKoreaTitle => '韓国代表を見る';
+
+  @override
+  String get worldCupKoreaBody => '韓国代表はグループAでチェコとのグアダラハラ初戦から始まります。';
+
+  @override
+  String get worldCupKoreaGroupLabel => 'グループ';
+
+  @override
+  String get worldCupKoreaGroup => 'グループA';
+
+  @override
+  String get worldCupKoreaOpenerLabel => '初戦';
+
+  @override
+  String get worldCupKoreaOpener => '韓国 v チェコ · エスタディオ・グアダラハラ';
+
+  @override
+  String get worldCupMilestonesTitle => '決勝までの流れ';
+
+  @override
+  String get worldCupMilestoneOpeningLabel => '開幕戦';
+
+  @override
+  String get worldCupOpeningMatch =>
+      'メキシコ v 南アフリカ · 2026年6月11日 · メキシコシティ・スタジアム';
+
+  @override
+  String get worldCupMilestoneGroupLabel => 'グループステージ';
+
+  @override
+  String get worldCupGroupStage => '6月11日にグループステージが始まり、32チームの決勝トーナメントへ進みます。';
+
+  @override
+  String get worldCupMilestoneKnockoutLabel => '決勝トーナメント';
+
+  @override
+  String get worldCupKnockouts => 'グループステージ後にラウンド32が始まります。';
+
+  @override
+  String get worldCupMilestoneFinalLabel => '決勝';
+
+  @override
+  String get worldCupFinalMatch => '2026年7月19日 · ニューヨーク・ニュージャージー・スタジアム';
+
+  @override
+  String get worldCupSourceAction => 'FIFA日程を開く';
 
   @override
   String get homeTodayPlanCardTitle => '今日のトレーニングプラン';
@@ -6558,7 +6662,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeStartHeroBody =>
-      '期間とトレーニングレベルを選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。';
+      '期間とミッション別の量を選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。';
 
   @override
   String get challengeLatestComplete => '最新チャレンジ完了';
@@ -6624,7 +6728,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeRecommendedLevelBadge => 'おすすめ';
 
   @override
-  String get challengeSkillSelectTitle => '3. ミッションを選択';
+  String get challengeSkillSelectTitle => '2. ミッションを選択';
 
   @override
   String get challengeSkillSelectSubtitle =>
@@ -6761,7 +6865,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeRewardPitchTitle => '完走すると大きなボーナスがあります';
 
   @override
-  String get challengeStartReadyTitle => '4. 開始準備';
+  String get challengeStartReadyTitle => '3. 開始準備';
 
   @override
   String get challengeStartAction => 'チャレンジ開始';

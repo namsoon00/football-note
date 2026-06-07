@@ -28,21 +28,15 @@ class DriveBackupService implements BackupRepository {
     BackupAssetFileStore? backupAssetFileStore,
     Future<DriveConnectionInfo?> Function()? driveConnectionLoader,
     String? webClientId,
-  }) : _googleSignIn =
-           googleSignIn ??
-           (kIsWeb
-               ? null
-               : GoogleSignIn(
-                   clientId:
-                       webClientId != null && webClientId.trim().isNotEmpty
-                       ? webClientId.trim()
-                       : null,
-                   scopes: const ['email', _driveScope],
-                 )),
-       _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
-       _backupAssetFileStore =
-           backupAssetFileStore ?? createBackupAssetFileStore(),
-       _driveConnectionLoader = driveConnectionLoader {
+  })  : _googleSignIn = googleSignIn ??
+            GoogleSignIn(
+              clientId: _googleClientIdForPlatform(webClientId),
+              scopes: const ['email', _driveScope],
+            ),
+        _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
+        _backupAssetFileStore =
+            backupAssetFileStore ?? createBackupAssetFileStore(),
+        _driveConnectionLoader = driveConnectionLoader {
     _bindDriveAccountStateChanges();
   }
 
@@ -63,6 +57,15 @@ class DriveBackupService implements BackupRepository {
   DateTime? _recentDriveConnectionExpiresAt;
   GoogleSignInAccount? _lastSilentSignInAccount;
   DateTime? _lastSilentSignInAt;
+
+  static const String _defaultWebClientId =
+      '771305087734-atioeqhkpt2f0kqqhqq54nqkqi8630ju.apps.googleusercontent.com';
+
+  static String? _googleClientIdForPlatform(String? webClientId) {
+    final explicit = webClientId?.trim() ?? '';
+    if (explicit.isNotEmpty) return explicit;
+    return kIsWeb ? _defaultWebClientId : null;
+  }
 
   static FirebaseAuth? _safeFirebaseAuth() {
     if (kIsWeb) {
@@ -204,7 +207,12 @@ class DriveBackupService implements BackupRepository {
       return false;
     }
     if (kIsWeb) {
-      if (_firebaseAuth?.currentUser == null || _webAccessToken == null) {
+      var googleAccount = _googleSignIn?.currentUser;
+      googleAccount ??= await _signInSilentlyThrottled();
+      final firebaseSignedIn = _firebaseAuth?.currentUser != null;
+      if (googleAccount == null &&
+          !firebaseSignedIn &&
+          _webAccessToken == null) {
         return false;
       }
       try {
@@ -500,13 +508,24 @@ class DriveBackupService implements BackupRepository {
 
   Future<bool> isSignedIn() async {
     if (kIsWeb) {
-      final signedIn = _firebaseAuth?.currentUser != null;
-      if (signedIn) {
+      var googleAccount = _googleSignIn?.currentUser;
+      googleAccount ??= await _signInSilentlyThrottled();
+      final firebaseSignedIn = _firebaseAuth?.currentUser != null;
+      if (googleAccount != null) {
+        _cacheRecentDriveConnection(
+          DriveConnectionInfo(
+            email: googleAccount.email.trim(),
+            displayName: googleAccount.displayName?.trim() ?? '',
+            subjectId: googleAccount.id,
+          ),
+        );
+        await _syncConnectedDriveAccountCache();
+      } else if (firebaseSignedIn) {
         await _syncConnectedDriveAccountCache();
       } else {
         await _clearConnectedDriveAccountCache();
       }
-      return signedIn;
+      return googleAccount != null || firebaseSignedIn;
     }
     final google = _googleSignIn;
     if (google == null) return false;
@@ -536,6 +555,7 @@ class DriveBackupService implements BackupRepository {
     _lastSilentSignInAccount = null;
     _lastSilentSignInAt = null;
     if (kIsWeb) {
+      await _googleSignIn?.signOut();
       await _firebaseAuth?.signOut();
       await _clearConnectedDriveAccountCache();
       return;
@@ -744,8 +764,18 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> _reauthenticateForDriveScope() async {
     if (kIsWeb) {
-      await _firebaseAuth?.signOut();
       _webAccessToken = null;
+      final google = _googleSignIn;
+      if (google != null) {
+        try {
+          await google.disconnect();
+        } catch (_) {
+          // Ignore and continue with sign-out/sign-in flow.
+        }
+        await google.signOut();
+      } else {
+        await _firebaseAuth?.signOut();
+      }
       await _ensureWebAccessToken(requireInteractive: true);
       return;
     }
@@ -781,6 +811,10 @@ class DriveBackupService implements BackupRepository {
     if (!kIsWeb) {
       throw StateError('Web access token requested on non-web platform.');
     }
+    final google = _googleSignIn;
+    if (google != null) {
+      return _ensureGoogleAccessToken(requireInteractive: requireInteractive);
+    }
     final auth = _firebaseAuth;
     if (auth == null) {
       throw StateError('Firebase web auth unavailable.');
@@ -810,6 +844,52 @@ class DriveBackupService implements BackupRepository {
     final oauth = credential.credential;
     final token = oauth is OAuthCredential ? oauth.accessToken : null;
     if (token == null || token.isEmpty) {
+      throw StateError('Drive access token is missing.');
+    }
+    _webAccessToken = token;
+    return token;
+  }
+
+  Future<String> _ensureGoogleAccessToken({
+    required bool requireInteractive,
+  }) async {
+    final google = _googleSignIn;
+    if (google == null) {
+      throw StateError('Google sign-in required.');
+    }
+    final cached = _webAccessToken;
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    var account = google.currentUser;
+    account ??= await _signInSilentlyThrottled();
+    if (account == null && requireInteractive) {
+      account = await google.signIn();
+    }
+    if (account == null) {
+      throw StateError('Google sign-in required.');
+    }
+    if (requireInteractive) {
+      await _ensureDriveScopeGranted();
+    }
+    _cacheRecentDriveConnection(
+      DriveConnectionInfo(
+        email: account.email.trim(),
+        displayName: account.displayName?.trim() ?? '',
+        subjectId: account.id,
+      ),
+    );
+    final authentication = await account.authentication;
+    var token = authentication.accessToken?.trim() ?? '';
+    if (token.isEmpty) {
+      final authHeaders = await account.authHeaders;
+      final authorization = authHeaders['Authorization'] ?? '';
+      const bearerPrefix = 'Bearer ';
+      if (authorization.startsWith(bearerPrefix)) {
+        token = authorization.substring(bearerPrefix.length).trim();
+      }
+    }
+    if (token.isEmpty) {
       throw StateError('Drive access token is missing.');
     }
     _webAccessToken = token;
@@ -993,7 +1073,7 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<DriveConnectionInfo?>
-  _loadLatestRemoteSharedChildDriveConnectionInfo() async {
+      _loadLatestRemoteSharedChildDriveConnectionInfo() async {
     final remote = await _loadLatestRemoteBackupMap();
     if (remote == null) {
       return null;
@@ -1012,29 +1092,29 @@ class DriveBackupService implements BackupRepository {
   void _bindDriveAccountStateChanges() {
     unawaited(_googleAccountSubscription?.cancel());
     unawaited(_firebaseAuthSubscription?.cancel());
+    final google = _googleSignIn;
+    if (google != null) {
+      _googleAccountSubscription = google.onCurrentUserChanged.listen(
+        (_) => unawaited(_handleDriveAccountStateChanged()),
+      );
+    }
     if (kIsWeb) {
       final auth = _firebaseAuth;
       if (auth == null) {
         return;
       }
       _firebaseAuthSubscription = auth.authStateChanges().listen(
-        (_) => unawaited(_handleDriveAccountStateChanged()),
-      );
+            (_) => unawaited(_handleDriveAccountStateChanged()),
+          );
       return;
     }
-    final google = _googleSignIn;
-    if (google == null) {
-      return;
-    }
-    _googleAccountSubscription = google.onCurrentUserChanged.listen(
-      (_) => unawaited(_handleDriveAccountStateChanged()),
-    );
   }
 
   Future<void> _handleDriveAccountStateChanged() async {
     try {
       if (kIsWeb) {
-        if (_firebaseAuth?.currentUser == null) {
+        if (_googleSignIn?.currentUser == null &&
+            _firebaseAuth?.currentUser == null) {
           _clearRecentDriveConnection();
         }
       } else if (_googleSignIn?.currentUser == null) {
@@ -1060,7 +1140,7 @@ class DriveBackupService implements BackupRepository {
         (_optionBox.get(connectedDriveLabelLocalKey) as String?)?.trim() ?? '';
     final subjectId =
         (_optionBox.get(connectedDriveSubjectLocalKey) as String?)?.trim() ??
-        '';
+            '';
     if (email.isEmpty && displayName.isEmpty && subjectId.isEmpty) {
       return null;
     }
@@ -1080,6 +1160,17 @@ class DriveBackupService implements BackupRepository {
       return info;
     }
     if (kIsWeb) {
+      var account = _googleSignIn?.currentUser;
+      account ??= await _signInSilentlyThrottled();
+      if (account != null) {
+        final info = DriveConnectionInfo(
+          email: account.email.trim(),
+          displayName: account.displayName?.trim() ?? '',
+          subjectId: account.id,
+        );
+        _cacheRecentDriveConnection(info);
+        return info;
+      }
       final user = _firebaseAuth?.currentUser;
       if (user == null) return _loadRecentDriveConnection();
       final info = DriveConnectionInfo(
@@ -1162,8 +1253,7 @@ class DriveBackupService implements BackupRepository {
 
   Future<String?> _findFolderId(drive.DriveApi api) async {
     final result = await api.files.list(
-      q:
-          "mimeType='application/vnd.google-apps.folder' and "
+      q: "mimeType='application/vnd.google-apps.folder' and "
           "name='$_folderName' and trashed=false",
       spaces: 'drive',
       $fields: 'files(id,name)',
@@ -1375,12 +1465,10 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi driveApi,
     drive.File file,
   ) async {
-    final media =
-        await driveApi.files.get(
-              file.id!,
-              downloadOptions: drive.DownloadOptions.fullMedia,
-            )
-            as drive.Media;
+    final media = await driveApi.files.get(
+      file.id!,
+      downloadOptions: drive.DownloadOptions.fullMedia,
+    ) as drive.Media;
     final content = await utf8.decoder.bind(media.stream).join();
     final data = _decodeBackupPayload(content);
     await _syncConnectedDriveAccountCache();
@@ -1451,10 +1539,11 @@ class DriveBackupService implements BackupRepository {
   Map<String, dynamic> buildBackupForTesting({
     FamilyRole updatedByRole = FamilyRole.child,
     bool familyLayerOnly = false,
-  }) => _buildBackup(
-    updatedByRole: updatedByRole,
-    familyLayerOnly: familyLayerOnly,
-  );
+  }) =>
+      _buildBackup(
+        updatedByRole: updatedByRole,
+        familyLayerOnly: familyLayerOnly,
+      );
 
   @visibleForTesting
   Future<void> restoreFromMapForTesting(Map<String, dynamic> data) =>
@@ -1673,7 +1762,7 @@ class DriveBackupService implements BackupRepository {
     }
     final restoredPrimary =
         await _restoreAssetReference(entry.imagePath, assetRecords) ??
-        (restoredPaths.isNotEmpty ? restoredPaths.first : entry.imagePath);
+            (restoredPaths.isNotEmpty ? restoredPaths.first : entry.imagePath);
     return TrainingEntry(
       date: entry.date,
       durationMinutes: entry.durationMinutes,
@@ -2266,8 +2355,7 @@ class DriveBackupService implements BackupRepository {
       return result;
     }
     if (value is Map) {
-      final canUsePlainMap =
-          value.keys.every((key) => key is String) &&
+      final canUsePlainMap = value.keys.every((key) => key is String) &&
           !(value[_typedValueKey] is String &&
               value.containsKey(_typedDataKey));
       final result = <String, dynamic>{};
@@ -2403,12 +2491,10 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi driveApi,
     String fileId,
   ) async {
-    final media =
-        await driveApi.files.get(
-              fileId,
-              downloadOptions: drive.DownloadOptions.fullMedia,
-            )
-            as drive.Media;
+    final media = await driveApi.files.get(
+      fileId,
+      downloadOptions: drive.DownloadOptions.fullMedia,
+    ) as drive.Media;
     return utf8.decoder.bind(media.stream).join();
   }
 
@@ -2697,8 +2783,7 @@ class DriveBackupService implements BackupRepository {
       imagePaths:
           (map['imagePaths'] as List?)?.cast<String>() ?? const <String>[],
       status: map['status'] as String? ?? 'normal',
-      liftingByPart:
-          (map['liftingByPart'] as Map?)?.map(
+      liftingByPart: (map['liftingByPart'] as Map?)?.map(
             (key, value) =>
                 MapEntry(key.toString(), (value is num) ? value.toInt() : 0),
           ) ??
@@ -2711,7 +2796,7 @@ class DriveBackupService implements BackupRepository {
           map['fortuneRecommendedProgram'] as String? ?? '',
       goalFocuses:
           (map['goalFocuses'] as List?)?.map((e) => e.toString()).toList() ??
-          const <String>[],
+              const <String>[],
       goodPoints:
           (map['goodPoints'] as String?) ?? (map['feedback'] as String? ?? ''),
       improvements:
@@ -2739,8 +2824,7 @@ class DriveBackupService implements BackupRepository {
       shotsOnTarget: (map['shotsOnTarget'] as num?)?.toInt(),
       ballsWon: (map['ballsWon'] as num?)?.toInt(),
       matchKind: map['matchKind'] as String? ?? 'friendly',
-      leagueTeamNames:
-          (map['leagueTeamNames'] as List?)
+      leagueTeamNames: (map['leagueTeamNames'] as List?)
               ?.map((e) => e.toString())
               .toList() ??
           const <String>[],

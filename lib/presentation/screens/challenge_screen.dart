@@ -11,7 +11,6 @@ import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/player_level_service.dart';
-import '../../application/player_profile_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
 import '../../application/training_plan_reminder_service.dart';
@@ -28,10 +27,11 @@ import 'entry_form_screen.dart';
 import 'meal_log_screen.dart';
 import 'settings_screen.dart';
 
-typedef _OpenChallengeTrainingMission = Future<void> Function(
-  ChallengeRoundProgress round, {
-  ChallengeTrainingProgramProgress? program,
-});
+typedef _OpenChallengeTrainingMission =
+    Future<void> Function(
+      ChallengeRoundProgress round, {
+      ChallengeTrainingProgramProgress? program,
+    });
 
 class ChallengeScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -113,20 +113,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     _scheduleFinalizeSync(progress);
                   }
                   _scheduleChallengeReminderSync(progress);
-                  final profileService = PlayerProfileService(
-                    widget.optionRepository,
-                  );
-                  final profile = profileService.load();
-                  final recommendedLevel = ChallengeService.recommendedLevel(
-                    ageYears: profileService.ageInYears(
-                      profile,
-                      DateTime.now(),
-                    ),
-                    soccerYears: profileService.soccerYears(
-                      profile,
-                      DateTime.now(),
-                    ),
-                  );
                   final skillOptions = _challengeProgramSkillOptions(
                     l10n,
                     widget.optionRepository,
@@ -137,7 +123,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       if (progress == null)
                         _ChallengeStartSection(
                           templates: _challengeService.templates(),
-                          recommendedLevel: recommendedLevel,
                           templateTitle: (template) =>
                               _templateTitle(l10n, template),
                           templateDescription: (template) =>
@@ -191,8 +176,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     final signature = progress == null
         ? 'none'
         : '${progress.run.id}:'
-            '${progress.rounds.where((round) => round.completed).map((round) => round.round.number).join(',')}:'
-            '${progress.rounds.length}';
+              '${progress.rounds.where((round) => round.completed).map((round) => round.round.number).join(',')}:'
+              '${progress.rounds.length}';
     if (_reminderSyncInFlight || _lastReminderSignature == signature) return;
     _lastReminderSignature = signature;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -236,7 +221,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         await Navigator.of(context).push(
           AppPageRoute<void>(
             builder: (_) => _ChallengeFailureScreen(
-              failedRoundNumber: progress.firstIncompleteRound?.round.number ??
+              failedRoundNumber:
+                  progress.firstIncompleteRound?.round.number ??
                   progress.rounds.length,
               gainedXp: gainedXp,
             ),
@@ -279,7 +265,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
   Future<void> _startChallenge(
     ChallengeTemplate template,
-    ChallengeTrainingLevel trainingLevel,
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
   ) async {
@@ -287,7 +272,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     _playChallengeTapFeedback();
     await _challengeService.startChallenge(
       template,
-      trainingLevel: trainingLevel,
       selectedSkillIds: selectedSkillIds,
       missionTargets: missionTargets,
     );
@@ -405,21 +389,22 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     final normalizedDay = normalizeDay(day);
     final targetProgram = programId?.trim();
     final entries = await widget.trainingService.allEntries();
-    final sameDayEntries = entries
-        .where(
-          (entry) =>
-              !entry.isMatch && normalizeDay(entry.date) == normalizedDay,
-        )
-        .where(
-          (entry) =>
-              targetProgram == null ||
-              targetProgram.isEmpty ||
-              trainingEntryMatchesChallengeSkill(entry, <String>[
-                targetProgram,
-              ]),
-        )
-        .toList(growable: false)
-      ..sort(TrainingEntry.compareByRecentCreated);
+    final sameDayEntries =
+        entries
+            .where(
+              (entry) =>
+                  !entry.isMatch && normalizeDay(entry.date) == normalizedDay,
+            )
+            .where(
+              (entry) =>
+                  targetProgram == null ||
+                  targetProgram.isEmpty ||
+                  trainingEntryMatchesChallengeSkill(entry, <String>[
+                    targetProgram,
+                  ]),
+            )
+            .toList(growable: false)
+          ..sort(TrainingEntry.compareByRecentCreated);
     return sameDayEntries.isEmpty ? null : sameDayEntries.first;
   }
 
@@ -468,21 +453,19 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
 class _ChallengeStartSection extends StatefulWidget {
   final List<ChallengeTemplate> templates;
-  final ChallengeTrainingLevel recommendedLevel;
   final String Function(ChallengeTemplate template) templateTitle;
   final String Function(ChallengeTemplate template) templateDescription;
   final List<_ChallengeSkillOption> skillOptions;
   final VoidCallback onOpenTrainingPrograms;
   final void Function(
     ChallengeTemplate template,
-    ChallengeTrainingLevel trainingLevel,
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
-  ) onStart;
+  )
+  onStart;
 
   const _ChallengeStartSection({
     required this.templates,
-    required this.recommendedLevel,
     required this.templateTitle,
     required this.templateDescription,
     required this.skillOptions,
@@ -495,11 +478,9 @@ class _ChallengeStartSection extends StatefulWidget {
 }
 
 class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
-  final GlobalKey _levelSectionKey = GlobalKey();
   final GlobalKey _missionSectionKey = GlobalKey();
   final GlobalKey _readySectionKey = GlobalKey();
   ChallengeTemplate? _selectedTemplate;
-  ChallengeTrainingLevel? _selectedLevel;
   late Set<String> _selectedSkillIds;
   ChallengeMissionTargets? _missionTargets;
 
@@ -512,9 +493,6 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   @override
   void didUpdateWidget(_ChallengeStartSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.recommendedLevel != widget.recommendedLevel) {
-      _selectedLevel = null;
-    }
     if (!_sameChallengeSkillOptions(
       oldWidget.skillOptions,
       widget.skillOptions,
@@ -530,7 +508,6 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
     if (selectedTemplate != null &&
         !widget.templates.contains(selectedTemplate)) {
       _selectedTemplate = null;
-      _selectedLevel = null;
       _missionTargets = null;
     }
   }
@@ -561,33 +538,11 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
             title: widget.templateTitle(template),
             description: widget.templateDescription(template),
             selected: template.id == _selectedTemplate?.id,
-            level: _selectedLevel,
             onSelect: () => _selectTemplate(template),
           ),
           const SizedBox(height: 10),
         ],
         if (_selectedTemplate != null) ...[
-          const SizedBox(height: 10),
-          Text(
-            l10n.challengeTrainingLevelTitle,
-            key: _levelSectionKey,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 10),
-          for (final config in challengeTrainingLevelConfigs) ...[
-            _ChallengeLevelCard(
-              level: config.level,
-              selected: config.level == _selectedLevel,
-              recommended: config.level == widget.recommendedLevel,
-              onSelect: () => _selectLevel(config.level),
-            ),
-            const SizedBox(height: 10),
-          ],
-          const SizedBox(height: 10),
-        ],
-        if (_selectedTemplate != null && _selectedLevel != null) ...[
           const SizedBox(height: 6),
           Text(
             l10n.challengeSkillSelectTitle,
@@ -634,21 +589,22 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
           ),
           const SizedBox(height: 10),
           _RewardPitchCard(
-            roundXp: trainingLevelConfig(_selectedLevel!).rewardXpPerRound,
+            roundXp: trainingLevelConfig(
+              ChallengeTrainingLevel.rookie,
+            ).rewardXpPerRound,
             completionBonusXp: challengeCompletionBonusXpFor(
               _selectedTemplate!,
-              _selectedLevel!,
+              ChallengeTrainingLevel.rookie,
             ),
             totalXp: challengeTotalPotentialXpFor(
               _selectedTemplate!,
-              _selectedLevel!,
+              ChallengeTrainingLevel.rookie,
             ),
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: () => widget.onStart(
               _selectedTemplate!,
-              _selectedLevel!,
               normalizeChallengeSkillIds(
                 _selectedSkillIds,
                 allowEmpty: !_effectiveMissionTargets.hasTrainingMission,
@@ -666,26 +622,18 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   void _selectTemplate(ChallengeTemplate template) {
     setState(() {
       _selectedTemplate = template;
-      _selectedLevel = null;
-      _missionTargets = null;
-      _selectedSkillIds = <String>{};
-    });
-    _scrollTo(_levelSectionKey);
-  }
-
-  void _selectLevel(ChallengeTrainingLevel level) {
-    setState(() {
-      _selectedLevel = level;
       _missionTargets = challengeMissionTargetsFromConfig(
-        trainingLevelConfig(level),
+        trainingLevelConfig(ChallengeTrainingLevel.rookie),
       );
+      _selectedSkillIds = <String>{};
     });
     _scrollTo(_missionSectionKey);
   }
 
   ChallengeMissionTargets get _defaultMissionTargetsForSelectedLevel {
-    final level = _selectedLevel ?? widget.recommendedLevel;
-    return challengeMissionTargetsFromConfig(trainingLevelConfig(level));
+    return challengeMissionTargetsFromConfig(
+      trainingLevelConfig(ChallengeTrainingLevel.rookie),
+    );
   }
 
   ChallengeMissionTargets get _effectiveMissionTargets {
@@ -772,7 +720,6 @@ class _ChallengeTemplateCard extends StatelessWidget {
   final String title;
   final String description;
   final bool selected;
-  final ChallengeTrainingLevel? level;
   final VoidCallback onSelect;
 
   const _ChallengeTemplateCard({
@@ -780,7 +727,6 @@ class _ChallengeTemplateCard extends StatelessWidget {
     required this.title,
     required this.description,
     required this.selected,
-    required this.level,
     required this.onSelect,
   });
 
@@ -848,8 +794,9 @@ class _ChallengeTemplateCard extends StatelessWidget {
                     selected
                         ? Icons.check_circle
                         : Icons.radio_button_unchecked,
-                    color:
-                        selected ? accent : theme.colorScheme.onSurfaceVariant,
+                    color: selected
+                        ? accent
+                        : theme.colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
@@ -861,131 +808,7 @@ class _ChallengeTemplateCard extends StatelessWidget {
                   _SmallStatusPill(
                     label: l10n.challengeDaysLabel(template.dayCount),
                   ),
-                  if (level != null) ...[
-                    _SmallStatusPill(
-                      label: l10n.challengeRoundXpLabel(
-                        trainingLevelConfig(level!).rewardXpPerRound,
-                      ),
-                    ),
-                    _SmallStatusPill(
-                      label: l10n.challengeCompletionBonusLabel(
-                        challengeCompletionBonusXpFor(template, level!),
-                      ),
-                    ),
-                  ],
                 ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ChallengeLevelCard extends StatelessWidget {
-  final ChallengeTrainingLevel level;
-  final bool selected;
-  final bool recommended;
-  final VoidCallback onSelect;
-
-  const _ChallengeLevelCard({
-    required this.level,
-    required this.selected,
-    required this.recommended,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final config = trainingLevelConfig(level);
-    final accent = _challengeLevelAccent(level);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        key: ValueKey('challenge-level-${level.name}'),
-        onTap: onSelect,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                accent.withValues(alpha: selected ? 0.12 : 0.05),
-                theme.colorScheme.surface,
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected ? accent : theme.colorScheme.outlineVariant,
-              width: selected ? 2 : 1,
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                selected ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: selected ? accent : theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          _trainingLevelTitle(l10n, level),
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        if (recommended)
-                          _SmallStatusPill(
-                            label: l10n.challengeRecommendedLevelBadge,
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _trainingLevelDescription(l10n, level),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _SmallStatusPill(
-                          label: l10n.challengeRoundXpLabel(
-                            config.rewardXpPerRound,
-                          ),
-                        ),
-                        _SmallStatusPill(
-                          label: l10n.challengeLevelTrainingTargetLabel(
-                            config.targetTrainingMinutes,
-                          ),
-                        ),
-                        _SmallStatusPill(
-                          label: l10n.challengeLevelJumpRopeTargetLabel(
-                            config.targetJumpRopeMinutes,
-                          ),
-                        ),
-                        _SmallStatusPill(
-                          label: l10n.challengeLevelLiftingTargetLabel(
-                            config.targetLiftingMinutes,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
               ),
             ],
           ),
@@ -1186,11 +1009,6 @@ class _MissionFilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return FilterChip(
-      avatar: Icon(
-        option.icon,
-        size: 18,
-        color: selected ? option.color : theme.colorScheme.onSurfaceVariant,
-      ),
       label: Text(option.label),
       selected: selected,
       selectedColor: option.color.withValues(alpha: 0.12),
@@ -1285,7 +1103,6 @@ class _ChallengeMissionTargetSection extends StatelessWidget {
           if (selectedTrainingPrograms.isNotEmpty) ...[
             for (final program in selectedTrainingPrograms) ...[
               _MissionTargetChoiceRow<int>(
-                icon: program.icon,
                 title: program.label,
                 subtitle: l10n.program,
                 value: _targetForTrainingProgram(program.id),
@@ -1365,7 +1182,7 @@ class _ChallengeMissionTargetSection extends StatelessWidget {
 }
 
 class _MissionTargetChoiceRow<T extends num> extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
   final String title;
   final String? subtitle;
   final T value;
@@ -1374,7 +1191,7 @@ class _MissionTargetChoiceRow<T extends num> extends StatelessWidget {
   final ValueChanged<T> onChanged;
 
   const _MissionTargetChoiceRow({
-    required this.icon,
+    this.icon,
     required this.title,
     this.subtitle,
     required this.value,
@@ -1395,8 +1212,10 @@ class _MissionTargetChoiceRow<T extends num> extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 20, color: theme.colorScheme.primary),
-            const SizedBox(width: 8),
+            if (icon != null) ...[
+              Icon(icon, size: 20, color: theme.colorScheme.primary),
+              const SizedBox(width: 8),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1696,11 +1515,11 @@ class _ChallengeHistoryTile extends StatelessWidget {
               child: run.isCompleted
                   ? const CheerRinzyMascot(size: 34, progress: 1)
                   : run.isFailed
-                      ? const CryingRinzyMascot(size: 34)
-                      : Icon(
-                          Icons.stop_circle_outlined,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                  ? const CryingRinzyMascot(size: 34)
+                  : Icon(
+                      Icons.stop_circle_outlined,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
             ),
           ),
           const SizedBox(width: 10),
@@ -1771,8 +1590,9 @@ class _ChallengeIntroCard extends StatelessWidget {
             progress: progress,
           );
           final text = Column(
-            crossAxisAlignment:
-                compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            crossAxisAlignment: compact
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
             children: [
               Text(
                 title,
@@ -1886,11 +1706,6 @@ class _RoundFocusCard extends StatelessWidget {
       l10n,
       progress.run.selectedSkillIds,
     );
-    final missionLabels = _challengeMissionLabels(
-      l10n,
-      selectedPrograms,
-      round.round,
-    );
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1925,11 +1740,6 @@ class _RoundFocusCard extends StatelessWidget {
                     '${round.completed ? l10n.challengeCompletedBadge : l10n.challengePendingBadge}',
               ),
               _ChallengeInfoItem(
-                icon: Icons.trending_up_rounded,
-                label: l10n.challengeInfoLevelLabel,
-                value: _trainingLevelTitle(l10n, progress.run.trainingLevel),
-              ),
-              _ChallengeInfoItem(
                 icon: Icons.star_border_rounded,
                 label: l10n.challengeInfoRoundXpLabel,
                 value: l10n.challengeRewardXp(round.round.rewardXp),
@@ -1941,8 +1751,6 @@ class _RoundFocusCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          _ChallengeMissionSummaryPanel(missionLabels: missionLabels),
           if (!round.isToday) ...[
             const SizedBox(height: 12),
             _TrainingProgramLinkCard(
@@ -1954,7 +1762,6 @@ class _RoundFocusCard extends StatelessWidget {
             const SizedBox(height: 12),
             if (round.trainingPrograms.isEmpty)
               _MissionProgressRow(
-                icon: Icons.timer_outlined,
                 label: l10n.challengeTrainingProgramMissionLabel,
                 subtitle: selectedPrograms.isEmpty
                     ? null
@@ -1974,7 +1781,6 @@ class _RoundFocusCard extends StatelessWidget {
             else
               for (final program in round.trainingPrograms) ...[
                 _MissionProgressRow(
-                  icon: Icons.sports_soccer,
                   label: program.label,
                   subtitle: l10n.challengeTrainingProgramMissionLabel,
                   value: _minutesGoalValue(
@@ -2168,73 +1974,6 @@ class _ChallengeInfoTile extends StatelessWidget {
   }
 }
 
-class _ChallengeMissionSummaryPanel extends StatelessWidget {
-  final List<String> missionLabels;
-
-  const _ChallengeMissionSummaryPanel({required this.missionLabels});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.checklist_rounded,
-                size: 18,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 7),
-              Expanded(
-                child: Text(
-                  l10n.challengeMissionSummaryTitle,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          for (final mission in missionLabels) ...[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.check_circle_outline_rounded,
-                  size: 17,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: Text(
-                    mission,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (mission != missionLabels.last) const SizedBox(height: 6),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
 class _ChallengeRoundsCalendar extends StatelessWidget {
   final ChallengeProgress progress;
   final VoidCallback onAbandon;
@@ -2257,9 +1996,9 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
     final endDate = rounds.last.date;
     final calendarTitle =
         startDate.year == endDate.year && startDate.month == endDate.month
-            ? DateFormat.yMMMM(localeName).format(startDate)
-            : '${DateFormat.yMMMd(localeName).format(startDate)} - '
-                '${DateFormat.yMMMd(localeName).format(endDate)}';
+        ? DateFormat.yMMMM(localeName).format(startDate)
+        : '${DateFormat.yMMMd(localeName).format(startDate)} - '
+              '${DateFormat.yMMMd(localeName).format(endDate)}';
     final percent = (progress.completionRate * 100).round();
     final potentialXp = challengeTotalPotentialXpFor(
       progress.template,
@@ -2320,11 +2059,6 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
                   progress.completedRoundCount,
                   progress.totalRoundCount,
                 ),
-              ),
-              _ChallengeInfoItem(
-                icon: Icons.trending_up_rounded,
-                label: l10n.challengeInfoLevelLabel,
-                value: _trainingLevelTitle(l10n, progress.run.trainingLevel),
               ),
               _ChallengeInfoItem(
                 icon: Icons.workspace_premium_outlined,
@@ -2409,36 +2143,37 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
     final bgColor = completed
         ? scheme.primaryContainer.withValues(alpha: 0.68)
         : missed
-            ? scheme.errorContainer.withValues(alpha: 0.62)
-            : round.isToday
-                ? scheme.secondaryContainer.withValues(alpha: 0.56)
-                : scheme.surfaceContainerHighest.withValues(alpha: 0.62);
+        ? scheme.errorContainer.withValues(alpha: 0.62)
+        : round.isToday
+        ? scheme.secondaryContainer.withValues(alpha: 0.56)
+        : scheme.surfaceContainerHighest.withValues(alpha: 0.62);
     final borderColor = completed
         ? scheme.primary.withValues(alpha: 0.62)
         : missed
-            ? scheme.error.withValues(alpha: 0.60)
-            : round.isToday
-                ? scheme.secondary.withValues(alpha: 0.54)
-                : scheme.outline.withValues(alpha: 0.32);
+        ? scheme.error.withValues(alpha: 0.60)
+        : round.isToday
+        ? scheme.secondary.withValues(alpha: 0.54)
+        : scheme.outline.withValues(alpha: 0.32);
     final foreground = completed
         ? scheme.onPrimaryContainer
         : missed
-            ? scheme.onErrorContainer
-            : round.isToday
-                ? scheme.onSecondaryContainer
-                : scheme.onSurfaceVariant;
+        ? scheme.onErrorContainer
+        : round.isToday
+        ? scheme.onSecondaryContainer
+        : scheme.onSurfaceVariant;
     final localeName = Localizations.localeOf(context).toLanguageTag();
     final weekday = DateFormat.E(localeName).format(round.date);
     final statusLabel = completed
         ? l10n.challengeCompletedBadge
         : missed
-            ? l10n.challengeHistoryResultFailed
-            : l10n.challengePendingBadge;
+        ? l10n.challengeHistoryResultFailed
+        : l10n.challengePendingBadge;
     final missionCountLabel =
         '${round.completedMissionCount}/${round.missionCount}';
 
     return Semantics(
-      label: '${l10n.challengeRoundTitle(round.round.number)}, '
+      label:
+          '${l10n.challengeRoundTitle(round.round.number)}, '
           '${_roundSubtitle(context, round)}, '
           '$missionCountLabel, '
           '$statusLabel',
@@ -2461,6 +2196,15 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
             if (completed) {
               return Center(
                 child: _RoundCalendarRinzyCelebration(size: mascotSize),
+              );
+            }
+            if (missed || round.isToday) {
+              return Center(
+                child: _RoundCalendarRinzyStatus(
+                  round: round,
+                  size: mascotSize,
+                  failed: missed,
+                ),
               );
             }
             return Column(
@@ -2493,11 +2237,7 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
                 Expanded(
                   child: Center(
                     child: Icon(
-                      missed
-                          ? Icons.cancel_rounded
-                          : round.isToday
-                              ? Icons.flag_circle_outlined
-                              : Icons.radio_button_unchecked,
+                      Icons.radio_button_unchecked,
                       color: foreground,
                       size: mascotSize * 0.72,
                     ),
@@ -2536,6 +2276,70 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
   }
 }
 
+class _RoundCalendarRinzyStatus extends StatelessWidget {
+  final ChallengeRoundProgress round;
+  final double size;
+  final bool failed;
+
+  const _RoundCalendarRinzyStatus({
+    required this.round,
+    required this.size,
+    required this.failed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final reduceMotion = AppMotion.reduceMotion(context);
+    final missionCountLabel =
+        '${round.completedMissionCount}/${round.missionCount}';
+    final statusLabel = failed
+        ? l10n.challengeHistoryResultFailed
+        : l10n.challengePendingBadge;
+    final progress = round.missionCompletionRate;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox.square(
+          dimension: size,
+          child: failed
+              ? CryingRinzyMascot(size: size, animate: !reduceMotion)
+              : RinzyMascot(
+                  size: size,
+                  progress: progress,
+                  animate: !reduceMotion,
+                ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'R${round.round.number}',
+          maxLines: 1,
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.clip,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w900,
+            height: 1,
+          ),
+        ),
+        const SizedBox(height: 3),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            '$missionCountLabel · $statusLabel',
+            maxLines: 1,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _RoundCalendarRinzyCelebration extends StatelessWidget {
   final double size;
 
@@ -2567,7 +2371,7 @@ class _RoundCalendarRinzyCelebration extends StatelessWidget {
 }
 
 class _MissionProgressRow extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
   final String label;
   final String? subtitle;
   final String value;
@@ -2576,7 +2380,7 @@ class _MissionProgressRow extends StatelessWidget {
   final VoidCallback onTap;
 
   const _MissionProgressRow({
-    required this.icon,
+    this.icon,
     required this.label,
     this.subtitle,
     required this.value,
@@ -2614,8 +2418,10 @@ class _MissionProgressRow extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(icon, color: color, size: 22),
-                  const SizedBox(width: 10),
+                  if (icon != null) ...[
+                    Icon(icon, color: color, size: 22),
+                    const SizedBox(width: 10),
+                  ],
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2711,9 +2517,9 @@ class _SmallStatusPill extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w800,
-            ),
+          color: scheme.onSurfaceVariant,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -2914,30 +2720,6 @@ String _templateDescription(AppLocalizations l10n, ChallengeTemplate template) {
   };
 }
 
-String _trainingLevelTitle(
-  AppLocalizations l10n,
-  ChallengeTrainingLevel level,
-) {
-  return switch (level) {
-    ChallengeTrainingLevel.rookie => l10n.challengeTrainingLevelRookieTitle,
-    ChallengeTrainingLevel.growth => l10n.challengeTrainingLevelGrowthTitle,
-    ChallengeTrainingLevel.ace => l10n.challengeTrainingLevelAceTitle,
-  };
-}
-
-String _trainingLevelDescription(
-  AppLocalizations l10n,
-  ChallengeTrainingLevel level,
-) {
-  return switch (level) {
-    ChallengeTrainingLevel.rookie =>
-      l10n.challengeTrainingLevelRookieDescription,
-    ChallengeTrainingLevel.growth =>
-      l10n.challengeTrainingLevelGrowthDescription,
-    ChallengeTrainingLevel.ace => l10n.challengeTrainingLevelAceDescription,
-  };
-}
-
 String _minutesGoalValue(AppLocalizations l10n, int current, int target) {
   return l10n.challengeTrainingGoalValue(current, target);
 }
@@ -2955,13 +2737,12 @@ String _runResultLabel(AppLocalizations l10n, ChallengeRun run) {
 }
 
 String _templateTitleForRun(AppLocalizations l10n, ChallengeRun run) {
-  final title = switch (run.templateId) {
+  return switch (run.templateId) {
     'starter_3' => l10n.challengeTemplateStarterTitle,
     'weekly_7' => l10n.challengeTemplateWeeklyTitle,
     'focus_14' => l10n.challengeTemplateFocusTitle,
     _ => l10n.challengeTitle,
   };
-  return '$title · ${_trainingLevelTitle(l10n, run.trainingLevel)}';
 }
 
 Color _challengeTemplateAccent(String templateId) {
@@ -2970,14 +2751,6 @@ Color _challengeTemplateAccent(String templateId) {
     'weekly_7' => const Color(0xFFE76F51),
     'focus_14' => const Color(0xFF5B6CFF),
     _ => const Color(0xFF256D85),
-  };
-}
-
-Color _challengeLevelAccent(ChallengeTrainingLevel level) {
-  return switch (level) {
-    ChallengeTrainingLevel.rookie => const Color(0xFF2A9D8F),
-    ChallengeTrainingLevel.growth => const Color(0xFFE9A23B),
-    ChallengeTrainingLevel.ace => const Color(0xFF5B6CFF),
   };
 }
 
@@ -3016,20 +2789,11 @@ List<_ChallengeSkillOption> _challengeProgramSkillOptions(
     const Color(0xFF5B6CFF),
     const Color(0xFF4C956C),
   ];
-  final icons = <IconData>[
-    Icons.sports_soccer,
-    Icons.directions_run_rounded,
-    Icons.groups_2_outlined,
-    Icons.self_improvement_rounded,
-    Icons.bolt_rounded,
-    Icons.auto_awesome_rounded,
-  ];
   return <_ChallengeSkillOption>[
     for (var index = 0; index < programs.length; index++)
       _ChallengeSkillOption(
         id: programs[index],
         label: programs[index],
-        icon: icons[index % icons.length],
         color: colors[index % colors.length],
       ),
   ];
@@ -3061,49 +2825,41 @@ List<_ChallengeSkillOption> _legacyChallengeSkillOptions(
     _ChallengeSkillOption(
       id: 'dribble',
       label: l10n.challengeSkillDribble,
-      icon: Icons.sports_soccer,
       color: const Color(0xFF256D85),
     ),
     _ChallengeSkillOption(
       id: 'speedRun',
       label: l10n.challengeSkillSpeedRun,
-      icon: Icons.directions_run_rounded,
       color: const Color(0xFFE76F51),
     ),
     _ChallengeSkillOption(
       id: 'jumpRope',
       label: l10n.challengeSkillJumpRope,
-      icon: Icons.sports_gymnastics_rounded,
       color: const Color(0xFF5B6CFF),
     ),
     _ChallengeSkillOption(
       id: 'lifting',
       label: l10n.challengeSkillLifting,
-      icon: Icons.sports_soccer_outlined,
       color: const Color(0xFFE9A23B),
     ),
     _ChallengeSkillOption(
       id: 'passing',
       label: l10n.challengeSkillPassing,
-      icon: Icons.sync_alt_rounded,
       color: const Color(0xFF2F80ED),
     ),
     _ChallengeSkillOption(
       id: 'shooting',
       label: l10n.challengeSkillShooting,
-      icon: Icons.adjust_rounded,
       color: const Color(0xFF40B85A),
     ),
     _ChallengeSkillOption(
       id: 'firstTouch',
       label: l10n.challengeSkillFirstTouch,
-      icon: Icons.ads_click_rounded,
       color: const Color(0xFFEC4899),
     ),
     _ChallengeSkillOption(
       id: 'defense',
       label: l10n.challengeSkillDefense,
-      icon: Icons.shield_outlined,
       color: const Color(0xFF64748B),
     ),
   ];
@@ -3122,46 +2878,14 @@ List<String> _challengeSkillLabels(
   ).map((id) => optionsById[id] ?? id).toList(growable: false);
 }
 
-List<String> _challengeMissionLabels(
-  AppLocalizations l10n,
-  List<String> selectedProgramLabels,
-  ChallengeRound round,
-) {
-  final labels = <String>[];
-  if (round.targetTrainingMinutes > 0) {
-    if (selectedProgramLabels.isEmpty) {
-      labels.add(l10n.challengeTrainingProgramMissionLabel);
-    } else {
-      labels.add(
-        l10n.challengeMissionProgramSummary(
-          l10n.challengeTrainingProgramMissionLabel,
-          selectedProgramLabels.join(', '),
-        ),
-      );
-    }
-  }
-  if (round.targetJumpRopeMinutes > 0) {
-    labels.add(l10n.challengeJumpRopeLabel);
-  }
-  if (round.targetLiftingMinutes > 0) {
-    labels.add(l10n.challengeLiftingLabel);
-  }
-  if (round.targetRiceBowls > 0) {
-    labels.add(l10n.challengeMealLabel);
-  }
-  return labels;
-}
-
 class _ChallengeSkillOption {
   final String id;
   final String label;
-  final IconData icon;
   final Color color;
 
   const _ChallengeSkillOption({
     required this.id,
     required this.label,
-    required this.icon,
     required this.color,
   });
 }

@@ -385,7 +385,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeChallengeStepStart.
   ///
   /// In en, this message translates to:
-  /// **'Choose a duration and level to create rounds you can follow from today.'**
+  /// **'Choose a duration to create rounds you can follow from today.'**
   String get welcomeChallengeStepStart;
 
   /// No description provided for @welcomeChallengeActionMission.
@@ -453,6 +453,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'FIFA Rank'**
   String get newsFifaHubButton;
+
+  /// No description provided for @newsWorldCupButton.
+  ///
+  /// In en, this message translates to:
+  /// **'World Cup'**
+  String get newsWorldCupButton;
 
   /// No description provided for @newsKLeagueStandingsButton.
   ///
@@ -970,6 +976,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loss'**
   String get newsMatchResultLoss;
+
+  /// No description provided for @worldCupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'World Cup View'**
+  String get worldCupTitle;
+
+  /// No description provided for @worldCupHeroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA World Cup 2026'**
+  String get worldCupHeroTitle;
+
+  /// No description provided for @worldCupHeroSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Canada, Mexico, United States · 48 teams'**
+  String get worldCupHeroSubtitle;
+
+  /// No description provided for @worldCupCountdownDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days left'**
+  String worldCupCountdownDays(int days);
+
+  /// No description provided for @worldCupCountdownToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening day'**
+  String get worldCupCountdownToday;
+
+  /// No description provided for @worldCupCountdownStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament underway'**
+  String get worldCupCountdownStarted;
+
+  /// No description provided for @worldCupCountdownComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament complete'**
+  String get worldCupCountdownComplete;
+
+  /// No description provided for @worldCupOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament overview'**
+  String get worldCupOverviewTitle;
+
+  /// No description provided for @worldCupHostsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hosts'**
+  String get worldCupHostsLabel;
+
+  /// No description provided for @worldCupHostsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Canada · Mexico · United States'**
+  String get worldCupHostsValue;
+
+  /// No description provided for @worldCupDatesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get worldCupDatesLabel;
+
+  /// No description provided for @worldCupDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} - {end}'**
+  String worldCupDateRange(String start, String end);
+
+  /// No description provided for @worldCupFormatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get worldCupFormatLabel;
+
+  /// No description provided for @worldCupFormatValue.
+  ///
+  /// In en, this message translates to:
+  /// **'48 teams · 12 groups'**
+  String get worldCupFormatValue;
+
+  /// No description provided for @worldCupMatchesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get worldCupMatchesLabel;
+
+  /// No description provided for @worldCupMatchesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'104 fixtures across 16 host cities'**
+  String get worldCupMatchesValue;
+
+  /// No description provided for @worldCupKoreaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Korea Republic watch'**
+  String get worldCupKoreaTitle;
+
+  /// No description provided for @worldCupKoreaBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Korea Republic starts in Group A and opens against Czechia in Guadalajara.'**
+  String get worldCupKoreaBody;
+
+  /// No description provided for @worldCupKoreaGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get worldCupKoreaGroupLabel;
+
+  /// No description provided for @worldCupKoreaGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group A'**
+  String get worldCupKoreaGroup;
+
+  /// No description provided for @worldCupKoreaOpenerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Opener'**
+  String get worldCupKoreaOpenerLabel;
+
+  /// No description provided for @worldCupKoreaOpener.
+  ///
+  /// In en, this message translates to:
+  /// **'Korea Republic v Czechia · Estadio Guadalajara'**
+  String get worldCupKoreaOpener;
+
+  /// No description provided for @worldCupMilestonesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Road to the final'**
+  String get worldCupMilestonesTitle;
+
+  /// No description provided for @worldCupMilestoneOpeningLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening match'**
+  String get worldCupMilestoneOpeningLabel;
+
+  /// No description provided for @worldCupOpeningMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Mexico v South Africa · 11 Jun 2026 · Mexico City Stadium'**
+  String get worldCupOpeningMatch;
+
+  /// No description provided for @worldCupMilestoneGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Group stage'**
+  String get worldCupMilestoneGroupLabel;
+
+  /// No description provided for @worldCupGroupStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Group matches start on 11 Jun and build the 32-team knockout bracket.'**
+  String get worldCupGroupStage;
+
+  /// No description provided for @worldCupMilestoneKnockoutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Knockout rounds'**
+  String get worldCupMilestoneKnockoutLabel;
+
+  /// No description provided for @worldCupKnockouts.
+  ///
+  /// In en, this message translates to:
+  /// **'The round of 32 starts after the group stage.'**
+  String get worldCupKnockouts;
+
+  /// No description provided for @worldCupMilestoneFinalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Final'**
+  String get worldCupMilestoneFinalLabel;
+
+  /// No description provided for @worldCupFinalMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'19 Jul 2026 · New York New Jersey Stadium'**
+  String get worldCupFinalMatch;
+
+  /// No description provided for @worldCupSourceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open FIFA schedule'**
+  String get worldCupSourceAction;
 
   /// No description provided for @homeTodayPlanCardTitle.
   ///
@@ -11741,7 +11939,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeStartHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a duration and training level, then press start to begin. Missing even one day ends the challenge.'**
+  /// **'Choose a duration and mission amounts, then press start to begin. Missing even one day ends the challenge.'**
   String get challengeStartHeroBody;
 
   /// No description provided for @challengeLatestComplete.
@@ -11867,7 +12065,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeSkillSelectTitle.
   ///
   /// In en, this message translates to:
-  /// **'3. Choose missions'**
+  /// **'2. Choose missions'**
   String get challengeSkillSelectTitle;
 
   /// No description provided for @challengeSkillSelectSubtitle.
@@ -12089,7 +12287,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeStartReadyTitle.
   ///
   /// In en, this message translates to:
-  /// **'4. Ready to start'**
+  /// **'3. Ready to start'**
   String get challengeStartReadyTitle;
 
   /// No description provided for @challengeStartAction.

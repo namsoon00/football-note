@@ -147,12 +147,14 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
       final cached = _cache[type];
       if (cached != null) return cached;
     }
-    final standingsFuture = _service.fetch(type);
-    final fixturesFuture = _service.fetchFixtures(type);
-    final values = await Future.wait<Object>([standingsFuture, fixturesFuture]);
+    final standings = await _service.fetch(type);
+    final fixtures = await _loadFixturesOrEmpty(
+      type: type,
+      standings: standings,
+    );
     final snapshot = _LeagueOverviewSnapshot(
-      standings: values[0] as LeagueStandingsSnapshot,
-      fixtures: values[1] as LeagueFixtureSnapshot,
+      standings: standings,
+      fixtures: fixtures,
     );
     _cache[type] = snapshot;
     unawaited(_syncLeagueReminders());
@@ -161,6 +163,19 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
 
   Future<_LeagueOverviewSnapshot> _futureFor(LeagueStandingsType type) {
     return _futures.putIfAbsent(type, () => _load(type));
+  }
+
+  Future<LeagueFixtureSnapshot> _loadFixturesOrEmpty({
+    required LeagueStandingsType type,
+    required LeagueStandingsSnapshot standings,
+  }) async {
+    try {
+      return await _service.fetchFixtures(type);
+    } catch (error, stackTrace) {
+      debugPrint('League fixtures unavailable for ${type.name}: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      return _emptyLeagueFixtureSnapshot(standings);
+    }
   }
 
   int _leagueIndexForType(LeagueStandingsType type) {
@@ -512,16 +527,30 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
   Future<_LeagueOverviewSnapshot> _load(LeagueStandingsType type) async {
     final cached = _cache[type];
     if (cached != null) return cached;
-    final values = await Future.wait<Object>([
-      widget.service.fetch(type),
-      widget.service.fetchFixtures(type),
-    ]);
+    final standings = await widget.service.fetch(type);
+    final fixtures = await _loadFixturesOrEmpty(
+      type: type,
+      standings: standings,
+    );
     final snapshot = _LeagueOverviewSnapshot(
-      standings: values[0] as LeagueStandingsSnapshot,
-      fixtures: values[1] as LeagueFixtureSnapshot,
+      standings: standings,
+      fixtures: fixtures,
     );
     _cache[type] = snapshot;
     return snapshot;
+  }
+
+  Future<LeagueFixtureSnapshot> _loadFixturesOrEmpty({
+    required LeagueStandingsType type,
+    required LeagueStandingsSnapshot standings,
+  }) async {
+    try {
+      return await widget.service.fetchFixtures(type);
+    } catch (error, stackTrace) {
+      debugPrint('League fixtures unavailable for ${type.name}: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      return _emptyLeagueFixtureSnapshot(standings);
+    }
   }
 
   void _selectType(LeagueStandingsType type) {
@@ -743,6 +772,19 @@ class _LeagueOverviewSnapshot {
     required this.standings,
     required this.fixtures,
   });
+}
+
+LeagueFixtureSnapshot _emptyLeagueFixtureSnapshot(
+  LeagueStandingsSnapshot standings,
+) {
+  return LeagueFixtureSnapshot(
+    type: standings.type,
+    leagueName: standings.leagueName,
+    seasonName: standings.seasonName,
+    sourceUrl: standings.sourceUrl,
+    fetchedAt: standings.fetchedAt,
+    entries: const <LeagueFixtureEntry>[],
+  );
 }
 
 class _LeagueFavoriteTeamOption {
