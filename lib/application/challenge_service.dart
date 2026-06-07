@@ -149,34 +149,45 @@ class ChallengeService {
   }) {
     final template = templateById(run.templateId);
     if (template == null) return null;
-    final rounds = template.rounds.map((round) {
-      final effectiveRound = roundForRun(round, run);
-      final date = run.dayForRound(round.number);
-      final trainingPrograms = trainingProgramProgressForDay(
-        trainingEntries,
-        date,
-        selectedSkillIds: run.selectedSkillIds,
-        targetTrainingMinutes: effectiveRound.targetTrainingMinutes,
-      );
-      return ChallengeRoundProgress(
-        round: effectiveRound,
-        date: date,
-        trainingMinutes: trainingPrograms.isEmpty
-            ? trainingMinutesForDay(
-                trainingEntries,
-                date,
-                selectedSkillIds: run.selectedSkillIds,
-              )
-            : trainingPrograms.fold<int>(
-                0,
-                (sum, program) => sum + program.currentMinutes,
-              ),
-        jumpRopeMinutes: jumpRopeMinutesForDay(trainingEntries, date),
-        liftingMinutes: liftingMinutesForDay(trainingEntries, date),
-        riceBowls: riceBowlsForDay(mealEntries, date),
-        trainingPrograms: trainingPrograms,
-      );
-    }).toList(growable: false);
+    final rounds = template.rounds
+        .map((round) {
+          final levelRound = roundForLevel(round, run.trainingLevel);
+          final targets = missionTargetsForRun(levelRound, run);
+          final effectiveRound = roundWithMissionTargets(
+            levelRound,
+            targets,
+            selectedSkillIds: run.selectedSkillIds,
+          );
+          final date = run.dayForRound(round.number);
+          final trainingPrograms = trainingProgramProgressForDay(
+            trainingEntries,
+            date,
+            selectedSkillIds: run.selectedSkillIds,
+            targetTrainingMinutes: effectiveRound.targetTrainingMinutes,
+            targetMinutesByProgram: targets.trainingProgramTargetsFor(
+              run.selectedSkillIds,
+            ),
+          );
+          return ChallengeRoundProgress(
+            round: effectiveRound,
+            date: date,
+            trainingMinutes: trainingPrograms.isEmpty
+                ? trainingMinutesForDay(
+                    trainingEntries,
+                    date,
+                    selectedSkillIds: run.selectedSkillIds,
+                  )
+                : trainingPrograms.fold<int>(
+                    0,
+                    (sum, program) => sum + program.currentMinutes,
+                  ),
+            jumpRopeMinutes: jumpRopeMinutesForDay(trainingEntries, date),
+            liftingMinutes: liftingMinutesForDay(trainingEntries, date),
+            riceBowls: riceBowlsForDay(mealEntries, date),
+            trainingPrograms: trainingPrograms,
+          );
+        })
+        .toList(growable: false);
     return ChallengeProgress(run: run, template: template, rounds: rounds);
   }
 
@@ -293,18 +304,31 @@ class ChallengeService {
 
   ChallengeRound roundForRun(ChallengeRound base, ChallengeRun run) {
     final levelRound = roundForLevel(base, run.trainingLevel);
-    final targets =
-        run.missionTargets ?? challengeMissionTargetsFromRound(levelRound);
-    return roundWithMissionTargets(levelRound, targets);
+    final targets = missionTargetsForRun(levelRound, run);
+    return roundWithMissionTargets(
+      levelRound,
+      targets,
+      selectedSkillIds: run.selectedSkillIds,
+    );
+  }
+
+  ChallengeMissionTargets missionTargetsForRun(
+    ChallengeRound levelRound,
+    ChallengeRun run,
+  ) {
+    return run.missionTargets ?? challengeMissionTargetsFromRound(levelRound);
   }
 
   ChallengeRound roundWithMissionTargets(
     ChallengeRound base,
-    ChallengeMissionTargets targets,
-  ) {
+    ChallengeMissionTargets targets, {
+    Iterable<String> selectedSkillIds = const <String>[],
+  }) {
     return ChallengeRound(
       number: base.number,
-      targetTrainingMinutes: targets.trainingMinutes,
+      targetTrainingMinutes: targets.trainingMinutesForPrograms(
+        selectedSkillIds,
+      ),
       targetJumpRopeMinutes: targets.jumpRopeMinutes,
       targetLiftingMinutes: targets.liftingMinutes,
       targetRiceBowls: targets.riceBowls,

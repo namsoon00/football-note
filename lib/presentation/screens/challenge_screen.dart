@@ -506,7 +506,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   @override
   void initState() {
     super.initState();
-    _selectedSkillIds = _initialChallengeSkillSelection(widget.skillOptions);
+    _selectedSkillIds = <String>{};
   }
 
   @override
@@ -519,15 +519,12 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
       oldWidget.skillOptions,
       widget.skillOptions,
     )) {
-      final availableIds =
-          widget.skillOptions.map((option) => option.id).toSet();
-      _selectedSkillIds =
-          _selectedSkillIds.where(availableIds.contains).toSet();
-      if (_selectedSkillIds.isEmpty) {
-        _selectedSkillIds = _initialChallengeSkillSelection(
-          widget.skillOptions,
-        );
-      }
+      final availableIds = widget.skillOptions
+          .map((option) => option.id)
+          .toSet();
+      _selectedSkillIds = _selectedSkillIds
+          .where(availableIds.contains)
+          .toSet();
     }
     final selectedTemplate = _selectedTemplate;
     if (selectedTemplate != null &&
@@ -671,7 +668,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
       _selectedTemplate = template;
       _selectedLevel = null;
       _missionTargets = null;
-      _selectedSkillIds = _initialChallengeSkillSelection(widget.skillOptions);
+      _selectedSkillIds = <String>{};
     });
     _scrollTo(_levelSectionKey);
   }
@@ -682,11 +679,6 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
       _missionTargets = challengeMissionTargetsFromConfig(
         trainingLevelConfig(level),
       );
-      if (_selectedSkillIds.isEmpty) {
-        _selectedSkillIds = _initialChallengeSkillSelection(
-          widget.skillOptions,
-        );
-      }
     });
     _scrollTo(_missionSectionKey);
   }
@@ -699,22 +691,24 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   ChallengeMissionTargets get _effectiveMissionTargets {
     final targets = _missionTargets ?? _defaultMissionTargetsForSelectedLevel;
     if (_selectedSkillIds.isEmpty && targets.hasTrainingMission) {
-      return targets.copyWith(trainingMinutes: 0);
+      return targets.copyWith(
+        trainingMinutes: 0,
+        trainingProgramMinutes: const <String, int>{},
+      );
     }
-    return targets;
+    if (_selectedSkillIds.isEmpty) return targets;
+    return _targetsWithSelectedTrainingPrograms(targets, _selectedSkillIds);
   }
 
   void _updateSelectedTrainingPrograms(Set<String> ids) {
     final defaults = _defaultMissionTargetsForSelectedLevel;
-    final current = _effectiveMissionTargets;
+    final current = _missionTargets ?? defaults;
     setState(() {
       _selectedSkillIds = ids;
-      _missionTargets = current.copyWith(
-        trainingMinutes: ids.isEmpty
-            ? 0
-            : current.trainingMinutes > 0
-                ? current.trainingMinutes
-                : defaults.trainingMinutes,
+      _missionTargets = _targetsWithSelectedTrainingPrograms(
+        current,
+        ids,
+        defaultTrainingMinutes: defaults.trainingMinutes,
       );
     });
   }
@@ -725,12 +719,38 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
       _missionTargets = targets;
       if (!targets.hasTrainingMission) {
         _selectedSkillIds = <String>{};
-      } else if (_selectedSkillIds.isEmpty) {
-        _selectedSkillIds = _initialChallengeSkillSelection(
-          widget.skillOptions,
-        );
       }
     });
+  }
+
+  ChallengeMissionTargets _targetsWithSelectedTrainingPrograms(
+    ChallengeMissionTargets targets,
+    Set<String> selectedIds, {
+    int? defaultTrainingMinutes,
+  }) {
+    if (selectedIds.isEmpty) {
+      return targets.copyWith(
+        trainingMinutes: 0,
+        trainingProgramMinutes: const <String, int>{},
+      );
+    }
+    final fallback = _defaultTrainingProgramTarget(
+      targets,
+      defaultTrainingMinutes ??
+          _defaultMissionTargetsForSelectedLevel.trainingMinutes,
+    );
+    final programTargets = <String, int>{
+      for (final id in selectedIds)
+        id: targets.trainingProgramMinutes[id] ?? fallback,
+    };
+    final total = programTargets.values.fold<int>(
+      0,
+      (sum, minutes) => sum + minutes,
+    );
+    return targets.copyWith(
+      trainingMinutes: total,
+      trainingProgramMinutes: programTargets,
+    );
   }
 
   void _scrollTo(GlobalKey key) {
@@ -1263,19 +1283,20 @@ class _ChallengeMissionTargetSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           if (selectedTrainingPrograms.isNotEmpty) ...[
-            _MissionTargetChoiceRow<int>(
-              icon: Icons.timer_outlined,
-              title: l10n.challengeTrainingProgramMissionLabel,
-              subtitle: selectedTrainingPrograms
-                  .map((option) => option.label)
-                  .join(', '),
-              value: missionTargets.trainingMinutes,
-              values: _challengeTrainingTargetOptions,
-              labelBuilder: l10n.minutes,
-              onChanged: (value) =>
-                  onChanged(missionTargets.copyWith(trainingMinutes: value)),
-            ),
-            const SizedBox(height: 12),
+            for (final program in selectedTrainingPrograms) ...[
+              _MissionTargetChoiceRow<int>(
+                icon: program.icon,
+                title: program.label,
+                subtitle: l10n.program,
+                value: _targetForTrainingProgram(program.id),
+                values: _challengeTrainingTargetOptions,
+                labelBuilder: l10n.minutes,
+                onChanged: (value) => onChanged(
+                  _copyWithTrainingProgramTarget(program.id, value),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
           ],
           if (missionTargets.hasJumpRopeMission) ...[
             _MissionTargetChoiceRow<int>(
@@ -1314,6 +1335,31 @@ class _ChallengeMissionTargetSection extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+
+  int _targetForTrainingProgram(String programId) {
+    final target = missionTargets.trainingProgramMinutes[programId];
+    if (target != null && target > 0) return target;
+    if (missionTargets.trainingMinutes > 0) {
+      return missionTargets.trainingMinutes;
+    }
+    return _challengeTrainingTargetOptions.first;
+  }
+
+  ChallengeMissionTargets _copyWithTrainingProgramTarget(
+    String programId,
+    int value,
+  ) {
+    final targets = <String, int>{
+      for (final program in selectedTrainingPrograms)
+        program.id: _targetForTrainingProgram(program.id),
+    };
+    targets[programId] = value;
+    final total = targets.values.fold<int>(0, (sum, minutes) => sum + minutes);
+    return missionTargets.copyWith(
+      trainingMinutes: total,
+      trainingProgramMinutes: targets,
     );
   }
 }
@@ -1403,6 +1449,17 @@ bool _hasAnySelectedMission(
       missionTargets.hasJumpRopeMission ||
       missionTargets.hasLiftingMission ||
       missionTargets.hasMealMission;
+}
+
+int _defaultTrainingProgramTarget(
+  ChallengeMissionTargets targets,
+  int fallback,
+) {
+  for (final minutes in targets.trainingProgramMinutes.values) {
+    if (minutes > 0) return minutes;
+  }
+  if (targets.trainingMinutes > 0) return targets.trainingMinutes;
+  return fallback;
 }
 
 class _TrainingProgramLinkCard extends StatelessWidget {
@@ -1863,7 +1920,8 @@ class _RoundFocusCard extends StatelessWidget {
               _ChallengeInfoItem(
                 icon: Icons.flag_outlined,
                 label: l10n.challengeInfoStatusLabel,
-                value: '${round.completedMissionCount}/${round.missionCount} · '
+                value:
+                    '${round.completedMissionCount}/${round.missionCount} · '
                     '${round.completed ? l10n.challengeCompletedBadge : l10n.challengePendingBadge}',
               ),
               _ChallengeInfoItem(
@@ -1885,11 +1943,13 @@ class _RoundFocusCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _ChallengeMissionSummaryPanel(missionLabels: missionLabels),
-          const SizedBox(height: 12),
-          _TrainingProgramLinkCard(
-            onOpenTrainingPrograms: onOpenTrainingPrograms,
-            compact: true,
-          ),
+          if (!round.isToday) ...[
+            const SizedBox(height: 12),
+            _TrainingProgramLinkCard(
+              onOpenTrainingPrograms: onOpenTrainingPrograms,
+              compact: true,
+            ),
+          ],
           if (round.round.targetTrainingMinutes > 0) ...[
             const SizedBox(height: 12),
             if (round.trainingPrograms.isEmpty)
@@ -2035,12 +2095,13 @@ class _ChallengeInfoGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final twoColumns = constraints.maxWidth >= 360;
+        final columnCount = constraints.maxWidth >= 640 ? 4 : 2;
+        const spacing = 8.0;
         final width =
-            twoColumns ? (constraints.maxWidth - 8) / 2 : constraints.maxWidth;
+            (constraints.maxWidth - spacing * (columnCount - 1)) / columnCount;
         return Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: spacing,
+          runSpacing: spacing,
           children: [
             for (final item in items)
               SizedBox(
@@ -2972,15 +3033,6 @@ List<_ChallengeSkillOption> _challengeProgramSkillOptions(
         color: colors[index % colors.length],
       ),
   ];
-}
-
-Set<String> _initialChallengeSkillSelection(
-  List<_ChallengeSkillOption> options,
-) {
-  if (options.isEmpty) {
-    return Set<String>.from(defaultChallengeSkillIds);
-  }
-  return options.map((option) => option.id).toSet();
 }
 
 bool _sameChallengeSkillOptions(

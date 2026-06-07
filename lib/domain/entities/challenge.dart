@@ -41,18 +41,22 @@ List<String> normalizeChallengeSkillIds(
 
 class ChallengeMissionTargets {
   final int trainingMinutes;
+  final Map<String, int> trainingProgramMinutes;
   final int jumpRopeMinutes;
   final int liftingMinutes;
   final double riceBowls;
 
   const ChallengeMissionTargets({
     required this.trainingMinutes,
+    this.trainingProgramMinutes = const <String, int>{},
     required this.jumpRopeMinutes,
     required this.liftingMinutes,
     required this.riceBowls,
   });
 
-  bool get hasTrainingMission => trainingMinutes > 0;
+  bool get hasTrainingMission =>
+      trainingMinutes > 0 ||
+      trainingProgramMinutes.values.any((minutes) => minutes > 0);
 
   bool get hasJumpRopeMission => jumpRopeMinutes > 0;
 
@@ -68,21 +72,52 @@ class ChallengeMissionTargets {
 
   ChallengeMissionTargets copyWith({
     int? trainingMinutes,
+    Map<String, int>? trainingProgramMinutes,
     int? jumpRopeMinutes,
     int? liftingMinutes,
     double? riceBowls,
   }) {
     return ChallengeMissionTargets(
       trainingMinutes: trainingMinutes ?? this.trainingMinutes,
+      trainingProgramMinutes:
+          trainingProgramMinutes ?? this.trainingProgramMinutes,
       jumpRopeMinutes: jumpRopeMinutes ?? this.jumpRopeMinutes,
       liftingMinutes: liftingMinutes ?? this.liftingMinutes,
       riceBowls: riceBowls ?? this.riceBowls,
     );
   }
 
+  int trainingMinutesForPrograms(Iterable<String> selectedSkillIds) {
+    final programs = _challengeTrainingProgramIds(selectedSkillIds);
+    if (programs.isEmpty) {
+      return _trainingProgramMinutesTotal(trainingProgramMinutes) > 0
+          ? _trainingProgramMinutesTotal(trainingProgramMinutes)
+          : trainingMinutes;
+    }
+    final targets = trainingProgramTargetsFor(programs);
+    if (targets.isEmpty) return trainingMinutes;
+    return _trainingProgramMinutesTotal(targets);
+  }
+
+  Map<String, int> trainingProgramTargetsFor(
+    Iterable<String> selectedSkillIds,
+  ) {
+    final programs = _challengeTrainingProgramIds(selectedSkillIds);
+    if (programs.isEmpty) return const <String, int>{};
+    final targets = <String, int>{};
+    for (final program in programs) {
+      final target = trainingProgramMinutes[program];
+      if (target != null && target > 0) {
+        targets[program] = target;
+      }
+    }
+    return targets;
+  }
+
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'trainingMinutes': trainingMinutes,
+      'trainingProgramMinutes': trainingProgramMinutes,
       'jumpRopeMinutes': jumpRopeMinutes,
       'liftingMinutes': liftingMinutes,
       'riceBowls': riceBowls,
@@ -92,6 +127,7 @@ class ChallengeMissionTargets {
   factory ChallengeMissionTargets.fromMap(Map<String, dynamic> map) {
     return ChallengeMissionTargets(
       trainingMinutes: _nonNegativeInt(map['trainingMinutes']),
+      trainingProgramMinutes: _nonNegativeIntMap(map['trainingProgramMinutes']),
       jumpRopeMinutes: _nonNegativeInt(map['jumpRopeMinutes']),
       liftingMinutes: _nonNegativeInt(map['liftingMinutes']),
       riceBowls: _nonNegativeDouble(map['riceBowls']),
@@ -472,6 +508,7 @@ List<ChallengeTrainingProgramProgress> trainingProgramProgressForDay(
   DateTime day, {
   required Iterable<String> selectedSkillIds,
   required int targetTrainingMinutes,
+  Map<String, int> targetMinutesByProgram = const <String, int>{},
 }) {
   if (targetTrainingMinutes <= 0) {
     return const <ChallengeTrainingProgramProgress>[];
@@ -482,7 +519,12 @@ List<ChallengeTrainingProgramProgress> trainingProgramProgressForDay(
   if (programs.isEmpty) return const <ChallengeTrainingProgramProgress>[];
 
   final normalizedDay = normalizeDay(day);
-  final targets = _splitTargetMinutes(targetTrainingMinutes, programs.length);
+  final hasProgramTargets = targetMinutesByProgram.values.any(
+    (minutes) => minutes > 0,
+  );
+  final splitTargets = hasProgramTargets
+      ? const <int>[]
+      : _splitTargetMinutes(targetTrainingMinutes, programs.length);
   return <ChallengeTrainingProgramProgress>[
     for (var index = 0; index < programs.length; index++)
       ChallengeTrainingProgramProgress(
@@ -498,7 +540,9 @@ List<ChallengeTrainingProgramProgress> trainingProgramProgressForDay(
                   ]),
             )
             .fold<int>(0, (sum, entry) => sum + entry.durationMinutes),
-        targetMinutes: targets[index],
+        targetMinutes: hasProgramTargets
+            ? targetMinutesByProgram[programs[index]] ?? targetTrainingMinutes
+            : splitTargets[index],
       ),
   ];
 }
@@ -569,10 +613,35 @@ String _normalizeChallengeSkillText(String value) {
   return value.trim().toLowerCase();
 }
 
+List<String> _challengeTrainingProgramIds(Iterable<String> selectedSkillIds) {
+  return normalizeChallengeSkillIds(selectedSkillIds, allowEmpty: true)
+      .where((id) => !legacyChallengeSkillIds.contains(id))
+      .toList(growable: false);
+}
+
+int _trainingProgramMinutesTotal(Map<String, int> targets) {
+  return targets.values
+      .where((minutes) => minutes > 0)
+      .fold<int>(0, (sum, minutes) => sum + minutes);
+}
+
 int _nonNegativeInt(Object? raw) {
   final value = raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '');
   if (value == null || value < 0) return 0;
   return value;
+}
+
+Map<String, int> _nonNegativeIntMap(Object? raw) {
+  if (raw is! Map) return const <String, int>{};
+  final result = <String, int>{};
+  raw.forEach((key, value) {
+    final normalizedKey = key.toString().trim();
+    final normalizedValue = _nonNegativeInt(value);
+    if (normalizedKey.isNotEmpty && normalizedValue > 0) {
+      result[normalizedKey] = normalizedValue;
+    }
+  });
+  return Map<String, int>.unmodifiable(result);
 }
 
 double _nonNegativeDouble(Object? raw) {
