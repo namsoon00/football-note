@@ -204,55 +204,52 @@ void main() {
     expect(progress.rounds.first.missionCount, 1);
   });
 
-  test('program missions split the training target by selected program',
-      () async {
+  test('program missions use stored per-program target minutes', () async {
     final service = ChallengeService(_MemoryOptionRepository());
     final template = service.templateById('starter_3')!;
-    final run = await service.startChallenge(
+    await service.startChallenge(
       template,
       selectedSkillIds: <String>['전술', '패스', '슈팅'],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 90,
+        trainingProgramMinutes: <String, int>{'전술': 30, '패스': 45, '슈팅': 15},
+        jumpRopeMinutes: 0,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
       startedAt: DateTime(2026, 6, 1, 9),
     );
+    final run = service.activeRun()!;
 
     final progress = service.progressForRun(
       run: run,
       trainingEntries: <TrainingEntry>[
-        _trainingEntry(
-          day: DateTime(2026, 6, 1),
-          minutes: 120,
-          program: '기본기',
-        ),
-        _trainingEntry(
-          day: DateTime(2026, 6, 1),
-          minutes: 20,
-          program: '전술',
-        ),
-        _trainingEntry(
-          day: DateTime(2026, 6, 1),
-          minutes: 10,
-          program: '패스',
-        ),
+        _trainingEntry(day: DateTime(2026, 6, 1), minutes: 120, program: '기본기'),
+        _trainingEntry(day: DateTime(2026, 6, 1), minutes: 30, program: '전술'),
+        _trainingEntry(day: DateTime(2026, 6, 1), minutes: 45, program: '패스'),
+        _trainingEntry(day: DateTime(2026, 6, 1), minutes: 10, program: '슈팅'),
       ],
       mealEntries: const <MealEntry>[],
     )!;
 
     final round = progress.rounds.first;
-    expect(
-      round.trainingPrograms.map((mission) => mission.label),
-      <String>['전술', '패스', '슈팅'],
-    );
+    expect(round.trainingPrograms.map((mission) => mission.label), <String>[
+      '전술',
+      '패스',
+      '슈팅',
+    ]);
     expect(
       round.trainingPrograms.map((mission) => mission.targetMinutes),
-      <int>[20, 20, 20],
+      <int>[30, 45, 15],
     );
     expect(
       round.trainingPrograms.map((mission) => mission.currentMinutes),
-      <int>[20, 10, 0],
+      <int>[30, 45, 10],
     );
-    expect(round.trainingMinutes, 30);
+    expect(round.trainingMinutes, 85);
     expect(round.trainingCompleted, isFalse);
-    expect(round.completedMissionCount, 1);
-    expect(round.missionCount, 6);
+    expect(round.completedMissionCount, 2);
+    expect(round.missionCount, 3);
   });
 
   test('finalization waits until the challenge is ready to end', () async {

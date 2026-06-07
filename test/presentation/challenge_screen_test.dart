@@ -86,6 +86,9 @@ void main() {
     expect(find.text('훈련 프로그램 편집'), findsOneWidget);
     expect(find.text('미션별 목표량'), findsOneWidget);
     expect(find.text('4. 시작 준비'), findsOneWidget);
+    final defaultProgramChip = find.widgetWithText(FilterChip, '기본기');
+    expect(defaultProgramChip, findsOneWidget);
+    expect(tester.widget<FilterChip>(defaultProgramChip).selected, isFalse);
 
     await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 시작'));
     await tester.pump(const Duration(milliseconds: 300));
@@ -102,6 +105,7 @@ void main() {
     expect(find.text('R1'), findsOneWidget);
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));
     expect(find.text('리프팅'), findsAtLeastNWidgets(1));
+    expect(find.text('훈련 프로그램 편집'), findsNothing);
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
