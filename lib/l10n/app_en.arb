@@ -209,6 +209,69 @@
   "worldCupFormatValue": "48 teams · 12 groups",
   "worldCupMatchesLabel": "Matches",
   "worldCupMatchesValue": "104 fixtures across 16 host cities",
+  "worldCupMatchesCountValue": "{count} fixtures across 16 host cities",
+  "@worldCupMatchesCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamSettingsTitle": "My World Cup teams",
+  "worldCupSupportCountryLabel": "Cheering country",
+  "worldCupInterestCountriesLabel": "Interest countries",
+  "worldCupInterestCountriesEmpty": "No interest countries selected yet.",
+  "worldCupEditInterestCountriesAction": "Edit countries",
+  "worldCupClearInterestCountriesAction": "Clear",
+  "worldCupSelectedCountriesOnly": "Show selected countries only",
+  "worldCupHighlightedMatchesTitle": "Selected-country fixtures",
+  "worldCupNoHighlightedMatches": "Choose a cheering country or interest countries to highlight their fixtures.",
+  "worldCupCalendarTitle": "Full fixture calendar",
+  "worldCupDayMatchesTitle": "{date} · {count} fixtures",
+  "@worldCupDayMatchesTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupNoMatchesOnDay": "No fixtures on this day.",
+  "worldCupMatchNumber": "M{number}",
+  "@worldCupMatchNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupVersusShort": "v",
+  "worldCupGroupStageLabel": "Group {group}",
+  "@worldCupGroupStageLabel": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupRoundOf32Label": "Round of 32",
+  "worldCupRoundOf16Label": "Round of 16",
+  "worldCupQuarterFinalLabel": "Quarter-final",
+  "worldCupSemiFinalLabel": "Semi-final",
+  "worldCupThirdPlaceLabel": "Third place",
+  "worldCupFinalLabel": "Final",
+  "worldCupKickoffLocal": "{time} local time",
+  "@worldCupKickoffLocal": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupSupportBadge": "Cheering",
+  "worldCupInterestBadge": "Interest",
   "worldCupKoreaTitle": "Korea Republic watch",
   "worldCupKoreaBody": "Korea Republic starts in Group A and opens against Czechia in Guadalajara.",
   "worldCupKoreaGroupLabel": "Group",
@@ -3286,6 +3349,8 @@
   "trainingSketchTemplateGalleryTitle": "Training template gallery",
   "trainingSketchTemplateGallerySubtitle": "Preview movement lines and notes before creating a sketch.",
   "challengeTitle": "Challenge",
+  "challengeRewardAction": "Rewards",
+  "challengeHistoryAction": "History",
   "challengeStartHeroTitle": "Rinzy's Challenge Mode",
   "challengeStartHeroBody": "Choose a duration and mission amounts, then press start to begin. Missing even one day ends the challenge.",
   "challengeLatestComplete": "Latest challenge complete",
@@ -3387,6 +3452,14 @@
       }
     }
   },
+  "challengeStreakBonusLabel": "Streak bonus +{xp} XP",
+  "@challengeStreakBonusLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
   "challengeActiveLevelPill": "Level: {level}",
   "@challengeActiveLevelPill": {
     "placeholders": {
@@ -3424,6 +3497,50 @@
     }
   },
   "challengeRewardPitchTitle": "A big finish bonus is waiting",
+  "challengeRewardGuideTitle": "Challenge rewards",
+  "challengeRewardGuideBody": "Round rewards grow when rounds are completed consecutively. A finished challenge also adds the finish bonus.",
+  "challengeRewardGuideNoActive": "No active challenge is running. Start a challenge to see earned and remaining XP.",
+  "challengeRewardGuideActiveTitle": "Current challenge",
+  "challengeRewardGuideTemplateTitle": "{title} reward plan",
+  "@challengeRewardGuideTemplateTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeRewardGuideHistoryTitle": "Reward plan",
+  "challengeRewardGuideBaseRoundLabel": "Base round",
+  "challengeRewardGuideStreakBonusLabel": "Max streak bonus",
+  "challengeRewardGuideRoundTotalLabel": "Rounds total",
+  "challengeRewardGuideFinishBonusLabel": "Finish bonus",
+  "challengeRewardGuidePotentialLabel": "Maximum XP",
+  "challengeRewardGuideEarnedLabel": "Earned so far",
+  "challengeRewardGuideRemainingLabel": "Remaining",
+  "challengeRewardGuideRoundsTitle": "Round rewards",
+  "challengeRewardGuideRoundReward": "Round {round}: +{xp} XP",
+  "@challengeRewardGuideRoundReward": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRewardGuideRoundRewardWithBonus": "Round {round}: +{xp} XP (streak +{bonus})",
+  "@challengeRewardGuideRoundRewardWithBonus": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      },
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
   "challengeStartReadyTitle": "3. Ready to start",
   "challengeStartAction": "Start challenge",
   "challengeRoundCount": "{completed}/{total} rounds complete",
@@ -3577,6 +3694,39 @@
   "challengeHistoryResultFailed": "Failed",
   "challengeHistoryResultAbandoned": "Ended",
   "challengeHistoryResultInProgress": "In progress",
+  "challengeHistoryDetailTitle": "Challenge detail",
+  "challengeHistoryDetailCompletedBody": "All rounds were completed. Review the reward plan and round dates.",
+  "challengeHistoryDetailFailedBody": "This challenge stopped at round {round}. Review the round sequence and reward plan.",
+  "@challengeHistoryDetailFailedBody": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeHistoryDetailAbandonedBody": "This challenge was ended before completion. Review the original round plan.",
+  "challengeHistoryDetailPeriodValue": "{start} - {end}",
+  "@challengeHistoryDetailPeriodValue": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "challengeHistoryDetailMissionsLabel": "Missions",
+  "challengeHistoryDetailNoMissions": "Extra missions only",
+  "challengeHistoryDetailRoundsTitle": "Round detail",
+  "challengeHistoryDetailRoundDate": "Round {round} · {date}",
+  "@challengeHistoryDetailRoundDate": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "date": {}
+    }
+  },
+  "challengeHistoryDetailRoundCompleted": "Completed",
+  "challengeHistoryDetailRoundFailed": "Failed here",
+  "challengeHistoryDetailRoundEnded": "Not counted",
   "challengeAbandonAction": "End",
   "challengeAbandonTitle": "End challenge",
   "challengeAbandonBody": "End the current challenge and choose another?",
@@ -3603,5 +3753,6 @@
     }
   },
   "xpHistoryReasonChallengeRoundCompleted": "challenge round complete",
+  "xpHistoryReasonChallengeRoundStreakBonus": "challenge streak bonus",
   "xpHistoryReasonChallengeCompletionBonus": "challenge finish bonus"
 }

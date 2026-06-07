@@ -210,6 +210,8 @@ extension PlayerProgressionLocalizations on AppLocalizations {
         return xpHistoryReasonDailyTasksCompleted;
       case 'challenge_round_completed':
         return xpHistoryReasonChallengeRoundCompleted;
+      case 'challenge_round_streak_bonus':
+        return xpHistoryReasonChallengeRoundStreakBonus;
       case 'challenge_completed_bonus':
         return xpHistoryReasonChallengeCompletionBonus;
       case 'daily_xp_cap':

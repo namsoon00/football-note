@@ -67,6 +67,27 @@ void main() {
     );
   });
 
+  test('consecutive round rewards grow with capped streak bonus', () {
+    final service = ChallengeService(_MemoryOptionRepository());
+    final template = service.templateById('starter_3')!;
+
+    expect(challengeRoundStreakBonusXpFor(1), 0);
+    expect(challengeRoundStreakBonusXpFor(3), 6);
+    expect(challengeRoundStreakBonusXpFor(7), 15);
+    expect(
+      challengeRoundRewardXpFor(baseRewardXp: 10, consecutiveRoundNumber: 7),
+      25,
+    );
+    expect(
+      challengeTotalRoundRewardXpFor(template, ChallengeTrainingLevel.rookie),
+      39,
+    );
+    expect(
+      service.totalPotentialXpFor(template, ChallengeTrainingLevel.rookie),
+      159,
+    );
+  });
+
   test('progress is completed only when every mission goal is met', () async {
     final service = ChallengeService(_MemoryOptionRepository());
     final template = service.templateById('starter_3')!;
@@ -355,13 +376,20 @@ void main() {
 
     expect(service.activeRun(), isNull);
     expect(service.latestCompletedRun(), isNotNull);
-    expect(levelService.loadState().totalXp, 150);
+    expect(levelService.loadState().totalXp, 159);
     expect(
       levelService
           .loadXpHistory()
           .map((entry) => entry.reasons)
           .expand((reasons) => reasons),
       contains('challenge_completed_bonus'),
+    );
+    expect(
+      levelService
+          .loadXpHistory()
+          .map((entry) => entry.reasons)
+          .expand((reasons) => reasons),
+      contains('challenge_round_streak_bonus'),
     );
   });
 

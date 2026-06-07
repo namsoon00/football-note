@@ -459,23 +459,26 @@ void main() {
       roundNumber: 1,
       challengeLabel: 'starter_3',
       completedAt: DateTime(2026, 6, 1, 20),
-      rewardXp: 8,
+      rewardXp: 11,
+      streakBonusXp: 3,
     );
     final duplicateAward = await service.awardForChallengeRound(
       challengeRunId: 'starter_3-1',
       roundNumber: 1,
       challengeLabel: 'starter_3',
       completedAt: DateTime(2026, 6, 1, 21),
-      rewardXp: 8,
+      rewardXp: 11,
+      streakBonusXp: 3,
     );
 
-    expect(award.gainedXp, 8);
+    expect(award.gainedXp, 11);
     expect(duplicateAward.gainedXp, 0);
-    expect(service.loadState().totalXp, 8);
+    expect(service.loadState().totalXp, 11);
     final history = service.loadXpHistory();
     expect(history, hasLength(1));
     expect(history.single.category, PlayerXpHistoryCategory.challenge);
     expect(history.single.reasons, contains('challenge_round_completed'));
+    expect(history.single.reasons, contains('challenge_round_streak_bonus'));
     expect(
       repository.getValue<List>(PlayerLevelService.awardedChallengeRoundsKey),
       contains('starter_3-1:1'),

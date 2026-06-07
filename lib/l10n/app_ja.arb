@@ -209,6 +209,69 @@
   "worldCupFormatValue": "48チーム · 12グループ",
   "worldCupMatchesLabel": "試合",
   "worldCupMatchesValue": "16開催都市で104試合",
+  "worldCupMatchesCountValue": "16開催都市で{count}試合",
+  "@worldCupMatchesCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamSettingsTitle": "自分のワールドカップ国",
+  "worldCupSupportCountryLabel": "応援する国",
+  "worldCupInterestCountriesLabel": "注目国",
+  "worldCupInterestCountriesEmpty": "注目国はまだ選択されていません。",
+  "worldCupEditInterestCountriesAction": "国を編集",
+  "worldCupClearInterestCountriesAction": "クリア",
+  "worldCupSelectedCountriesOnly": "選択した国の試合のみ表示",
+  "worldCupHighlightedMatchesTitle": "選択国の試合",
+  "worldCupNoHighlightedMatches": "応援する国や注目国を選ぶと、その試合日程が強調されます。",
+  "worldCupCalendarTitle": "全試合カレンダー",
+  "worldCupDayMatchesTitle": "{date} · {count}試合",
+  "@worldCupDayMatchesTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupNoMatchesOnDay": "この日に試合はありません。",
+  "worldCupMatchNumber": "M{number}",
+  "@worldCupMatchNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupVersusShort": "対",
+  "worldCupGroupStageLabel": "グループ{group}",
+  "@worldCupGroupStageLabel": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupRoundOf32Label": "ラウンド32",
+  "worldCupRoundOf16Label": "ラウンド16",
+  "worldCupQuarterFinalLabel": "準々決勝",
+  "worldCupSemiFinalLabel": "準決勝",
+  "worldCupThirdPlaceLabel": "3位決定戦",
+  "worldCupFinalLabel": "決勝",
+  "worldCupKickoffLocal": "{time} 現地時間",
+  "@worldCupKickoffLocal": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupSupportBadge": "応援",
+  "worldCupInterestBadge": "注目",
   "worldCupKoreaTitle": "韓国代表を見る",
   "worldCupKoreaBody": "韓国代表はグループAでチェコとのグアダラハラ初戦から始まります。",
   "worldCupKoreaGroupLabel": "グループ",
@@ -3286,6 +3349,8 @@
   "trainingSketchTemplateGalleryTitle": "トレーニング テンプレート ギャラリー",
   "trainingSketchTemplateGallerySubtitle": "スケッチを作成する前に、動線と注記をプレビューします。",
   "challengeTitle": "チャレンジ",
+  "challengeRewardAction": "報酬",
+  "challengeHistoryAction": "履歴",
   "challengeStartHeroTitle": "リンジーのチャレンジモード",
   "challengeStartHeroBody": "期間とミッション別の量を選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。",
   "challengeLatestComplete": "最新チャレンジ完了",
@@ -3387,6 +3452,14 @@
       }
     }
   },
+  "challengeStreakBonusLabel": "連続ボーナス +{xp} XP",
+  "@challengeStreakBonusLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
   "challengeActiveLevelPill": "レベル: {level}",
   "@challengeActiveLevelPill": {
     "placeholders": {
@@ -3424,6 +3497,50 @@
     }
   },
   "challengeRewardPitchTitle": "完走すると大きなボーナスがあります",
+  "challengeRewardGuideTitle": "チャレンジ報酬",
+  "challengeRewardGuideBody": "ラウンドを連続で完了するほどラウンド報酬が増えます。最後まで完走すると完走ボーナスも加算されます。",
+  "challengeRewardGuideNoActive": "進行中のチャレンジはありません。チャレンジを始めると獲得済みXPと残りXPを確認できます。",
+  "challengeRewardGuideActiveTitle": "現在のチャレンジ",
+  "challengeRewardGuideTemplateTitle": "{title} 報酬プラン",
+  "@challengeRewardGuideTemplateTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeRewardGuideHistoryTitle": "報酬プラン",
+  "challengeRewardGuideBaseRoundLabel": "基本ラウンド",
+  "challengeRewardGuideStreakBonusLabel": "最大連続ボーナス",
+  "challengeRewardGuideRoundTotalLabel": "ラウンド合計",
+  "challengeRewardGuideFinishBonusLabel": "完走ボーナス",
+  "challengeRewardGuidePotentialLabel": "最大XP",
+  "challengeRewardGuideEarnedLabel": "現在獲得",
+  "challengeRewardGuideRemainingLabel": "残りXP",
+  "challengeRewardGuideRoundsTitle": "ラウンド報酬",
+  "challengeRewardGuideRoundReward": "ラウンド {round}: +{xp} XP",
+  "@challengeRewardGuideRoundReward": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRewardGuideRoundRewardWithBonus": "ラウンド {round}: +{xp} XP (連続 +{bonus})",
+  "@challengeRewardGuideRoundRewardWithBonus": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      },
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
   "challengeStartReadyTitle": "3. 開始準備",
   "challengeStartAction": "チャレンジ開始",
   "challengeRoundCount": "{completed}/{total} ラウンド完了",
@@ -3577,6 +3694,39 @@
   "challengeHistoryResultFailed": "失敗",
   "challengeHistoryResultAbandoned": "終了",
   "challengeHistoryResultInProgress": "進行中",
+  "challengeHistoryDetailTitle": "チャレンジ詳細",
+  "challengeHistoryDetailCompletedBody": "すべてのラウンドを完了しました。報酬プランとラウンド日を確認しましょう。",
+  "challengeHistoryDetailFailedBody": "このチャレンジはラウンド {round} で止まりました。ラウンドの流れと報酬プランを確認しましょう。",
+  "@challengeHistoryDetailFailedBody": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeHistoryDetailAbandonedBody": "完了前に終了したチャレンジです。元のラウンド計画を確認しましょう。",
+  "challengeHistoryDetailPeriodValue": "{start} - {end}",
+  "@challengeHistoryDetailPeriodValue": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "challengeHistoryDetailMissionsLabel": "ミッション",
+  "challengeHistoryDetailNoMissions": "追加ミッションのみ",
+  "challengeHistoryDetailRoundsTitle": "ラウンド詳細",
+  "challengeHistoryDetailRoundDate": "ラウンド {round} · {date}",
+  "@challengeHistoryDetailRoundDate": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "date": {}
+    }
+  },
+  "challengeHistoryDetailRoundCompleted": "完了",
+  "challengeHistoryDetailRoundFailed": "ここで失敗",
+  "challengeHistoryDetailRoundEnded": "未集計",
   "challengeAbandonAction": "終了",
   "challengeAbandonTitle": "チャレンジを終了",
   "challengeAbandonBody": "現在のチャレンジを終了して別のチャレンジを選択しますか?",
@@ -3603,5 +3753,6 @@
     }
   },
   "xpHistoryReasonChallengeRoundCompleted": "チャレンジラウンド完了",
+  "xpHistoryReasonChallengeRoundStreakBonus": "チャレンジ連続ボーナス",
   "xpHistoryReasonChallengeCompletionBonus": "チャレンジ完走ボーナス"
 }
