@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../domain/entities/league_standings.dart';
@@ -50,16 +51,11 @@ class LeagueStandingsService {
       'site.api.espn.com',
       '/apis/v2/sports/soccer/$leagueId/standings',
     );
-    final response = await _client
-        .get(uri)
-        .timeout(const Duration(seconds: 10));
-    if (response.statusCode != 200) {
-      throw StateError('Standings request failed: ${response.statusCode}');
-    }
-    final decoded = jsonDecode(response.body);
-    if (decoded is! Map<String, dynamic>) {
-      throw StateError('Invalid standings payload.');
-    }
+    final decoded = await _getJsonMap(
+      uri,
+      requestFailedMessage: 'Standings request failed',
+      invalidPayloadMessage: 'Invalid standings payload.',
+    );
     return parseSnapshotForTesting(type: type, payload: decoded);
   }
 
@@ -112,16 +108,11 @@ class LeagueStandingsService {
         'limit': '$limit',
       },
     );
-    final response = await _client
-        .get(uri)
-        .timeout(const Duration(seconds: 10));
-    if (response.statusCode != 200) {
-      throw StateError('Fixtures request failed: ${response.statusCode}');
-    }
-    final decoded = jsonDecode(response.body);
-    if (decoded is! Map<String, dynamic>) {
-      throw StateError('Invalid fixtures payload.');
-    }
+    final decoded = await _getJsonMap(
+      uri,
+      requestFailedMessage: 'Fixtures request failed',
+      invalidPayloadMessage: 'Invalid fixtures payload.',
+    );
     return parseFixtureSnapshotForTesting(type: type, payload: decoded);
   }
 
@@ -152,19 +143,17 @@ class LeagueStandingsService {
         'year': year.toString(),
       },
     );
-    final response = await _client
-        .post(uri)
-        .timeout(const Duration(seconds: 10));
-    if (response.statusCode != 200) {
-      throw StateError(
-        'K League standings request failed: '
-        '${response.statusCode}',
-      );
-    }
-    final decoded = jsonDecode(response.body);
-    if (decoded is! Map<String, dynamic>) {
-      throw StateError('Invalid K League standings payload.');
-    }
+    final decoded = kIsWeb
+        ? await _getJsonMap(
+            uri,
+            requestFailedMessage: 'K League standings request failed',
+            invalidPayloadMessage: 'Invalid K League standings payload.',
+          )
+        : await _postJsonMap(
+            uri,
+            requestFailedMessage: 'K League standings request failed',
+            invalidPayloadMessage: 'Invalid K League standings payload.',
+          );
     if (decoded['resultCode']?.toString() != '200') {
       throw StateError('K League standings returned an error.');
     }
@@ -246,6 +235,86 @@ class LeagueStandingsService {
       if (entry.status == LeagueFixtureStatus.finished) return false;
       return entry.kickoffAt.toLocal().isAfter(localReference);
     });
+  }
+
+  Future<Map<String, dynamic>> _getJsonMap(
+    Uri uri, {
+    required String requestFailedMessage,
+    required String invalidPayloadMessage,
+  }) async {
+    StateError? lastError;
+    for (final request in _jsonGetRequestsForPlatform(uri)) {
+      try {
+        final response = await _client
+            .get(request.uri)
+            .timeout(const Duration(seconds: 10));
+        if (response.statusCode != 200) {
+          lastError = StateError(
+            '$requestFailedMessage: ${response.statusCode}',
+          );
+          continue;
+        }
+        final body = _jsonBodyForResponse(response.body, request.type);
+        if (body == null || body.trim().isEmpty) {
+          lastError = StateError(invalidPayloadMessage);
+          continue;
+        }
+        final decoded = jsonDecode(body);
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        }
+        lastError = StateError(invalidPayloadMessage);
+      } on StateError catch (error) {
+        lastError = error;
+      } catch (error) {
+        lastError = StateError('$requestFailedMessage: $error');
+      }
+    }
+    throw lastError ?? StateError(requestFailedMessage);
+  }
+
+  Future<Map<String, dynamic>> _postJsonMap(
+    Uri uri, {
+    required String requestFailedMessage,
+    required String invalidPayloadMessage,
+  }) async {
+    final response = await _client
+        .post(uri)
+        .timeout(const Duration(seconds: 10));
+    if (response.statusCode != 200) {
+      throw StateError('$requestFailedMessage: ${response.statusCode}');
+    }
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw StateError(invalidPayloadMessage);
+    }
+    return decoded;
+  }
+
+  List<_JsonGetRequest> _jsonGetRequestsForPlatform(Uri uri) {
+    if (!kIsWeb) {
+      return [_JsonGetRequest(uri: uri, type: _JsonResponseType.raw)];
+    }
+    final encoded = Uri.encodeComponent(uri.toString());
+    return [
+      _JsonGetRequest(uri: uri, type: _JsonResponseType.raw),
+      _JsonGetRequest(
+        uri: Uri.parse('https://api.allorigins.win/raw?url=$encoded'),
+        type: _JsonResponseType.raw,
+      ),
+      _JsonGetRequest(
+        uri: Uri.parse('https://api.allorigins.win/get?url=$encoded'),
+        type: _JsonResponseType.allOriginsGet,
+      ),
+    ];
+  }
+
+  String? _jsonBodyForResponse(String body, _JsonResponseType type) {
+    if (type == _JsonResponseType.raw) return body;
+    final decoded = jsonDecode(body);
+    if (decoded is! Map<String, dynamic>) return null;
+    final contents = decoded['contents'];
+    return contents is String ? contents : null;
   }
 
   void dispose() {
@@ -832,4 +901,13 @@ class LeagueStandingsService {
       LeagueStandingsType.saudiProLeague => 'Saudi Pro League',
     };
   }
+}
+
+enum _JsonResponseType { raw, allOriginsGet }
+
+class _JsonGetRequest {
+  final Uri uri;
+  final _JsonResponseType type;
+
+  const _JsonGetRequest({required this.uri, required this.type});
 }

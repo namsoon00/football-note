@@ -51,7 +51,7 @@
   "welcomeStatsStepFocus": "最も弱いシグナルを次の計画またはメモの目標に変えます。",
   "welcomeChallengeOverview": "チャレンジでは、リンジーが毎日のラウンドミッションを確認し、完了を大きな XP に変えてくれます。",
   "welcomeChallengeActionStart": "チャレンジ開始",
-  "welcomeChallengeStepStart": "期間とレベルを選ぶと、今日から続けるラウンドが作られます。",
+  "welcomeChallengeStepStart": "期間を選ぶと、今日から続けるラウンドが作られます。",
   "welcomeChallengeActionMission": "ミッション入力",
   "welcomeChallengeStepMission": "トレーニング、縄跳び、リフティング、食事のミッションをタップすると記録画面が開きます。",
   "welcomeChallengeActionReward": "XP 報酬",
@@ -63,6 +63,7 @@
   "logsQuickGuideTitle": "クイックスタートガイド",
   "logsQuickGuideIntro": "この順序で最初のレコードを作成し、ここに戻って確認します。",
   "newsFifaHubButton": "FIFAランク",
+  "newsWorldCupButton": "W杯",
   "newsKLeagueStandingsButton": "国内",
   "newsMoreActionsTooltip": "リーグビュー",
   "newsMoreActionsTitle": "もっと",
@@ -175,6 +176,55 @@
   "newsMatchResultWin": "勝つ",
   "newsMatchResultDraw": "描く",
   "newsMatchResultLoss": "損失",
+  "worldCupTitle": "ワールドカップ表示",
+  "worldCupHeroTitle": "FIFAワールドカップ2026",
+  "worldCupHeroSubtitle": "カナダ、メキシコ、アメリカ · 48チーム",
+  "worldCupCountdownDays": "あと{days}日",
+  "@worldCupCountdownDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupCountdownToday": "開幕日",
+  "worldCupCountdownStarted": "大会開催中",
+  "worldCupCountdownComplete": "大会終了",
+  "worldCupOverviewTitle": "大会概要",
+  "worldCupHostsLabel": "開催国",
+  "worldCupHostsValue": "カナダ · メキシコ · アメリカ",
+  "worldCupDatesLabel": "日程",
+  "worldCupDateRange": "{start} - {end}",
+  "@worldCupDateRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupFormatLabel": "形式",
+  "worldCupFormatValue": "48チーム · 12グループ",
+  "worldCupMatchesLabel": "試合",
+  "worldCupMatchesValue": "16開催都市で104試合",
+  "worldCupKoreaTitle": "韓国代表を見る",
+  "worldCupKoreaBody": "韓国代表はグループAでチェコとのグアダラハラ初戦から始まります。",
+  "worldCupKoreaGroupLabel": "グループ",
+  "worldCupKoreaGroup": "グループA",
+  "worldCupKoreaOpenerLabel": "初戦",
+  "worldCupKoreaOpener": "韓国 v チェコ · エスタディオ・グアダラハラ",
+  "worldCupMilestonesTitle": "決勝までの流れ",
+  "worldCupMilestoneOpeningLabel": "開幕戦",
+  "worldCupOpeningMatch": "メキシコ v 南アフリカ · 2026年6月11日 · メキシコシティ・スタジアム",
+  "worldCupMilestoneGroupLabel": "グループステージ",
+  "worldCupGroupStage": "6月11日にグループステージが始まり、32チームの決勝トーナメントへ進みます。",
+  "worldCupMilestoneKnockoutLabel": "決勝トーナメント",
+  "worldCupKnockouts": "グループステージ後にラウンド32が始まります。",
+  "worldCupMilestoneFinalLabel": "決勝",
+  "worldCupFinalMatch": "2026年7月19日 · ニューヨーク・ニュージャージー・スタジアム",
+  "worldCupSourceAction": "FIFA日程を開く",
   "homeTodayPlanCardTitle": "今日のトレーニングプラン",
   "homeTodayPlanCardSummary": "今日: {count} プラン",
   "@homeTodayPlanCardSummary": {
@@ -3237,7 +3287,7 @@
   "trainingSketchTemplateGallerySubtitle": "スケッチを作成する前に、動線と注記をプレビューします。",
   "challengeTitle": "チャレンジ",
   "challengeStartHeroTitle": "リンジーのチャレンジモード",
-  "challengeStartHeroBody": "期間とトレーニングレベルを選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。",
+  "challengeStartHeroBody": "期間とミッション別の量を選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。",
   "challengeLatestComplete": "最新チャレンジ完了",
   "challengeSelectTitle": "チャレンジを選択",
   "challengeDurationSelectTitle": "1. 期間を選択",
@@ -3258,7 +3308,7 @@
   "challengeTrainingLevelAceTitle": "エースレベル",
   "challengeTrainingLevelAceDescription": "年齢とサッカー経験がある選手向けの挑戦的な目標です。",
   "challengeRecommendedLevelBadge": "おすすめ",
-  "challengeSkillSelectTitle": "3. ミッションを選択",
+  "challengeSkillSelectTitle": "2. ミッションを選択",
   "challengeSkillSelectSubtitle": "このチャレンジに入れるトレーニングプログラム、縄跳び、リフティング、食事ミッションを選び、毎日の目標量を調整します。",
   "challengeMissionOtherSectionTitle": "追加ミッション",
   "challengeMissionTargetsTitle": "ミッション別目標",
@@ -3374,7 +3424,7 @@
     }
   },
   "challengeRewardPitchTitle": "完走すると大きなボーナスがあります",
-  "challengeStartReadyTitle": "4. 開始準備",
+  "challengeStartReadyTitle": "3. 開始準備",
   "challengeStartAction": "チャレンジ開始",
   "challengeRoundCount": "{completed}/{total} ラウンド完了",
   "@challengeRoundCount": {

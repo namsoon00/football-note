@@ -176,7 +176,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeChallengeStepStart =>
-      'Choose a duration and level to create rounds you can follow from today.';
+      'Choose a duration to create rounds you can follow from today.';
 
   @override
   String get welcomeChallengeActionMission => 'Enter mission';
@@ -217,6 +217,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsFifaHubButton => 'FIFA Rank';
+
+  @override
+  String get newsWorldCupButton => 'World Cup';
 
   @override
   String get newsKLeagueStandingsButton => 'Domestic';
@@ -494,6 +497,111 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsMatchResultLoss => 'Loss';
+
+  @override
+  String get worldCupTitle => 'World Cup View';
+
+  @override
+  String get worldCupHeroTitle => 'FIFA World Cup 2026';
+
+  @override
+  String get worldCupHeroSubtitle => 'Canada, Mexico, United States · 48 teams';
+
+  @override
+  String worldCupCountdownDays(int days) {
+    return '$days days left';
+  }
+
+  @override
+  String get worldCupCountdownToday => 'Opening day';
+
+  @override
+  String get worldCupCountdownStarted => 'Tournament underway';
+
+  @override
+  String get worldCupCountdownComplete => 'Tournament complete';
+
+  @override
+  String get worldCupOverviewTitle => 'Tournament overview';
+
+  @override
+  String get worldCupHostsLabel => 'Hosts';
+
+  @override
+  String get worldCupHostsValue => 'Canada · Mexico · United States';
+
+  @override
+  String get worldCupDatesLabel => 'Dates';
+
+  @override
+  String worldCupDateRange(String start, String end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get worldCupFormatLabel => 'Format';
+
+  @override
+  String get worldCupFormatValue => '48 teams · 12 groups';
+
+  @override
+  String get worldCupMatchesLabel => 'Matches';
+
+  @override
+  String get worldCupMatchesValue => '104 fixtures across 16 host cities';
+
+  @override
+  String get worldCupKoreaTitle => 'Korea Republic watch';
+
+  @override
+  String get worldCupKoreaBody =>
+      'Korea Republic starts in Group A and opens against Czechia in Guadalajara.';
+
+  @override
+  String get worldCupKoreaGroupLabel => 'Group';
+
+  @override
+  String get worldCupKoreaGroup => 'Group A';
+
+  @override
+  String get worldCupKoreaOpenerLabel => 'Opener';
+
+  @override
+  String get worldCupKoreaOpener =>
+      'Korea Republic v Czechia · Estadio Guadalajara';
+
+  @override
+  String get worldCupMilestonesTitle => 'Road to the final';
+
+  @override
+  String get worldCupMilestoneOpeningLabel => 'Opening match';
+
+  @override
+  String get worldCupOpeningMatch =>
+      'Mexico v South Africa · 11 Jun 2026 · Mexico City Stadium';
+
+  @override
+  String get worldCupMilestoneGroupLabel => 'Group stage';
+
+  @override
+  String get worldCupGroupStage =>
+      'Group matches start on 11 Jun and build the 32-team knockout bracket.';
+
+  @override
+  String get worldCupMilestoneKnockoutLabel => 'Knockout rounds';
+
+  @override
+  String get worldCupKnockouts =>
+      'The round of 32 starts after the group stage.';
+
+  @override
+  String get worldCupMilestoneFinalLabel => 'Final';
+
+  @override
+  String get worldCupFinalMatch => '19 Jul 2026 · New York New Jersey Stadium';
+
+  @override
+  String get worldCupSourceAction => 'Open FIFA schedule';
 
   @override
   String get homeTodayPlanCardTitle => 'Today training plan';
@@ -6801,7 +6909,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeStartHeroBody =>
-      'Choose a duration and training level, then press start to begin. Missing even one day ends the challenge.';
+      'Choose a duration and mission amounts, then press start to begin. Missing even one day ends the challenge.';
 
   @override
   String get challengeLatestComplete => 'Latest challenge complete';
@@ -6870,7 +6978,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeRecommendedLevelBadge => 'Recommended';
 
   @override
-  String get challengeSkillSelectTitle => '3. Choose missions';
+  String get challengeSkillSelectTitle => '2. Choose missions';
 
   @override
   String get challengeSkillSelectSubtitle =>
@@ -7008,7 +7116,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeRewardPitchTitle => 'A big finish bonus is waiting';
 
   @override
-  String get challengeStartReadyTitle => '4. Ready to start';
+  String get challengeStartReadyTitle => '3. Ready to start';
 
   @override
   String get challengeStartAction => 'Start challenge';

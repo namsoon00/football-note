@@ -51,7 +51,7 @@
   "welcomeStatsStepFocus": "Turn the weakest signal into the next plan or note goal.",
   "welcomeChallengeOverview": "Challenge is where Rinzy tracks daily round missions and turns completion into bigger XP gains.",
   "welcomeChallengeActionStart": "Start challenge",
-  "welcomeChallengeStepStart": "Choose a duration and level to create rounds you can follow from today.",
+  "welcomeChallengeStepStart": "Choose a duration to create rounds you can follow from today.",
   "welcomeChallengeActionMission": "Enter mission",
   "welcomeChallengeStepMission": "Tap training, jump rope, lifting, or meal missions to open the matching record screen.",
   "welcomeChallengeActionReward": "XP reward",
@@ -63,6 +63,7 @@
   "logsQuickGuideTitle": "Quick start guide",
   "logsQuickGuideIntro": "Create your first record in this order, then return here to review it.",
   "newsFifaHubButton": "FIFA Rank",
+  "newsWorldCupButton": "World Cup",
   "newsKLeagueStandingsButton": "Domestic",
   "newsMoreActionsTooltip": "League view",
   "newsMoreActionsTitle": "More",
@@ -175,6 +176,55 @@
   "newsMatchResultWin": "Win",
   "newsMatchResultDraw": "Draw",
   "newsMatchResultLoss": "Loss",
+  "worldCupTitle": "World Cup View",
+  "worldCupHeroTitle": "FIFA World Cup 2026",
+  "worldCupHeroSubtitle": "Canada, Mexico, United States · 48 teams",
+  "worldCupCountdownDays": "{days} days left",
+  "@worldCupCountdownDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupCountdownToday": "Opening day",
+  "worldCupCountdownStarted": "Tournament underway",
+  "worldCupCountdownComplete": "Tournament complete",
+  "worldCupOverviewTitle": "Tournament overview",
+  "worldCupHostsLabel": "Hosts",
+  "worldCupHostsValue": "Canada · Mexico · United States",
+  "worldCupDatesLabel": "Dates",
+  "worldCupDateRange": "{start} - {end}",
+  "@worldCupDateRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupFormatLabel": "Format",
+  "worldCupFormatValue": "48 teams · 12 groups",
+  "worldCupMatchesLabel": "Matches",
+  "worldCupMatchesValue": "104 fixtures across 16 host cities",
+  "worldCupKoreaTitle": "Korea Republic watch",
+  "worldCupKoreaBody": "Korea Republic starts in Group A and opens against Czechia in Guadalajara.",
+  "worldCupKoreaGroupLabel": "Group",
+  "worldCupKoreaGroup": "Group A",
+  "worldCupKoreaOpenerLabel": "Opener",
+  "worldCupKoreaOpener": "Korea Republic v Czechia · Estadio Guadalajara",
+  "worldCupMilestonesTitle": "Road to the final",
+  "worldCupMilestoneOpeningLabel": "Opening match",
+  "worldCupOpeningMatch": "Mexico v South Africa · 11 Jun 2026 · Mexico City Stadium",
+  "worldCupMilestoneGroupLabel": "Group stage",
+  "worldCupGroupStage": "Group matches start on 11 Jun and build the 32-team knockout bracket.",
+  "worldCupMilestoneKnockoutLabel": "Knockout rounds",
+  "worldCupKnockouts": "The round of 32 starts after the group stage.",
+  "worldCupMilestoneFinalLabel": "Final",
+  "worldCupFinalMatch": "19 Jul 2026 · New York New Jersey Stadium",
+  "worldCupSourceAction": "Open FIFA schedule",
   "homeTodayPlanCardTitle": "Today training plan",
   "homeTodayPlanCardSummary": "Today: {count} plan(s)",
   "@homeTodayPlanCardSummary": {
@@ -3237,7 +3287,7 @@
   "trainingSketchTemplateGallerySubtitle": "Preview movement lines and notes before creating a sketch.",
   "challengeTitle": "Challenge",
   "challengeStartHeroTitle": "Rinzy's Challenge Mode",
-  "challengeStartHeroBody": "Choose a duration and training level, then press start to begin. Missing even one day ends the challenge.",
+  "challengeStartHeroBody": "Choose a duration and mission amounts, then press start to begin. Missing even one day ends the challenge.",
   "challengeLatestComplete": "Latest challenge complete",
   "challengeSelectTitle": "Choose a challenge",
   "challengeDurationSelectTitle": "1. Choose duration",
@@ -3258,7 +3308,7 @@
   "challengeTrainingLevelAceTitle": "Ace level",
   "challengeTrainingLevelAceDescription": "A challenging target for older players with more soccer experience.",
   "challengeRecommendedLevelBadge": "Recommended",
-  "challengeSkillSelectTitle": "3. Choose missions",
+  "challengeSkillSelectTitle": "2. Choose missions",
   "challengeSkillSelectSubtitle": "Choose training programs, jump rope, lifting, and meal missions for this challenge, then adjust each daily target.",
   "challengeMissionOtherSectionTitle": "Extra missions",
   "challengeMissionTargetsTitle": "Mission targets",
@@ -3374,7 +3424,7 @@
     }
   },
   "challengeRewardPitchTitle": "A big finish bonus is waiting",
-  "challengeStartReadyTitle": "4. Ready to start",
+  "challengeStartReadyTitle": "3. Ready to start",
   "challengeStartAction": "Start challenge",
   "challengeRoundCount": "{completed}/{total} rounds complete",
   "@challengeRoundCount": {
