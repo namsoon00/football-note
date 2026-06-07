@@ -518,6 +518,92 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupMatchesValue => '16개 개최 도시에서 104경기';
 
   @override
+  String worldCupMatchesCountValue(int count) {
+    return '16개 개최 도시에서 $count경기';
+  }
+
+  @override
+  String get worldCupTeamSettingsTitle => '내 월드컵 국가';
+
+  @override
+  String get worldCupSupportCountryLabel => '응원하는 나라';
+
+  @override
+  String get worldCupInterestCountriesLabel => '관심 국가';
+
+  @override
+  String get worldCupInterestCountriesEmpty => '아직 관심 국가를 선택하지 않았어요.';
+
+  @override
+  String get worldCupEditInterestCountriesAction => '국가 편집';
+
+  @override
+  String get worldCupClearInterestCountriesAction => '비우기';
+
+  @override
+  String get worldCupSelectedCountriesOnly => '선택한 국가 경기만 보기';
+
+  @override
+  String get worldCupHighlightedMatchesTitle => '선택 국가 경기';
+
+  @override
+  String get worldCupNoHighlightedMatches =>
+      '응원하는 나라나 관심 국가를 고르면 해당 경기 일정이 강조돼요.';
+
+  @override
+  String get worldCupCalendarTitle => '전체 경기 캘린더';
+
+  @override
+  String worldCupDayMatchesTitle(String date, int count) {
+    return '$date · $count경기';
+  }
+
+  @override
+  String get worldCupNoMatchesOnDay => '이 날에는 경기가 없어요.';
+
+  @override
+  String worldCupMatchNumber(int number) {
+    return 'M$number';
+  }
+
+  @override
+  String get worldCupVersusShort => '대';
+
+  @override
+  String worldCupGroupStageLabel(String group) {
+    return '$group조';
+  }
+
+  @override
+  String get worldCupRoundOf32Label => '32강';
+
+  @override
+  String get worldCupRoundOf16Label => '16강';
+
+  @override
+  String get worldCupQuarterFinalLabel => '8강';
+
+  @override
+  String get worldCupSemiFinalLabel => '준결승';
+
+  @override
+  String get worldCupThirdPlaceLabel => '3위 결정전';
+
+  @override
+  String get worldCupFinalLabel => '결승';
+
+  @override
+  String worldCupKickoffLocal(String time) {
+    return '$time 현지 시간';
+  }
+
+  @override
+  String get worldCupSupportBadge => '응원';
+
+  @override
+  String get worldCupInterestBadge => '관심';
+
+  @override
   String get worldCupKoreaTitle => '대한민국 보기';
 
   @override
@@ -6662,6 +6748,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeTitle => '챌린지';
 
   @override
+  String get challengeRewardAction => '보상';
+
+  @override
+  String get challengeHistoryAction => '히스토리';
+
+  @override
   String get challengeStartHeroTitle => '린지의 챌린지 모드';
 
   @override
@@ -6828,6 +6920,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String challengeStreakBonusLabel(int xp) {
+    return '연속 보너스 +$xp XP';
+  }
+
+  @override
   String challengeActiveLevelPill(Object level) {
     return '레벨: $level';
   }
@@ -6867,6 +6964,63 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeRewardPitchTitle => '완주하면 큰 보너스가 기다려요';
+
+  @override
+  String get challengeRewardGuideTitle => '챌린지 보상';
+
+  @override
+  String get challengeRewardGuideBody =>
+      '라운드를 연속으로 완료할수록 라운드 보상이 커져요. 챌린지를 끝까지 완주하면 완주 보너스도 더해집니다.';
+
+  @override
+  String get challengeRewardGuideNoActive =>
+      '진행 중인 챌린지가 없어요. 챌린지를 시작하면 획득한 XP와 남은 XP를 볼 수 있어요.';
+
+  @override
+  String get challengeRewardGuideActiveTitle => '현재 챌린지';
+
+  @override
+  String challengeRewardGuideTemplateTitle(Object title) {
+    return '$title 보상 계획';
+  }
+
+  @override
+  String get challengeRewardGuideHistoryTitle => '보상 계획';
+
+  @override
+  String get challengeRewardGuideBaseRoundLabel => '기본 라운드';
+
+  @override
+  String get challengeRewardGuideStreakBonusLabel => '최대 연속 보너스';
+
+  @override
+  String get challengeRewardGuideRoundTotalLabel => '라운드 합계';
+
+  @override
+  String get challengeRewardGuideFinishBonusLabel => '완주 보너스';
+
+  @override
+  String get challengeRewardGuidePotentialLabel => '최대 XP';
+
+  @override
+  String get challengeRewardGuideEarnedLabel => '현재 획득';
+
+  @override
+  String get challengeRewardGuideRemainingLabel => '남은 XP';
+
+  @override
+  String get challengeRewardGuideRoundsTitle => '라운드 보상';
+
+  @override
+  String challengeRewardGuideRoundReward(int round, int xp) {
+    return '라운드 $round: +$xp XP';
+  }
+
+  @override
+  String challengeRewardGuideRoundRewardWithBonus(
+      int round, int xp, int bonus) {
+    return '라운드 $round: +$xp XP (연속 +$bonus)';
+  }
 
   @override
   String get challengeStartReadyTitle => '3. 시작 준비';
@@ -7015,6 +7169,50 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeHistoryResultInProgress => '진행 중';
 
   @override
+  String get challengeHistoryDetailTitle => '챌린지 상세';
+
+  @override
+  String get challengeHistoryDetailCompletedBody =>
+      '모든 라운드를 완료했어요. 보상 계획과 라운드 날짜를 확인해요.';
+
+  @override
+  String challengeHistoryDetailFailedBody(int round) {
+    return '이 챌린지는 $round라운드에서 멈췄어요. 라운드 흐름과 보상 계획을 확인해요.';
+  }
+
+  @override
+  String get challengeHistoryDetailAbandonedBody =>
+      '완료 전에 종료된 챌린지예요. 원래 라운드 계획을 확인해요.';
+
+  @override
+  String challengeHistoryDetailPeriodValue(Object start, Object end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get challengeHistoryDetailMissionsLabel => '미션';
+
+  @override
+  String get challengeHistoryDetailNoMissions => '추가 미션만';
+
+  @override
+  String get challengeHistoryDetailRoundsTitle => '라운드 상세';
+
+  @override
+  String challengeHistoryDetailRoundDate(int round, Object date) {
+    return '라운드 $round · $date';
+  }
+
+  @override
+  String get challengeHistoryDetailRoundCompleted => '완료';
+
+  @override
+  String get challengeHistoryDetailRoundFailed => '여기서 실패';
+
+  @override
+  String get challengeHistoryDetailRoundEnded => '미집계';
+
+  @override
   String get challengeAbandonAction => '종료';
 
   @override
@@ -7041,6 +7239,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get xpHistoryReasonChallengeRoundCompleted => '챌린지 라운드 완료';
+
+  @override
+  String get xpHistoryReasonChallengeRoundStreakBonus => '챌린지 연속 보너스';
 
   @override
   String get xpHistoryReasonChallengeCompletionBonus => '챌린지 완주 보너스';

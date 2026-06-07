@@ -551,6 +551,93 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupMatchesValue => '104 fixtures across 16 host cities';
 
   @override
+  String worldCupMatchesCountValue(int count) {
+    return '$count fixtures across 16 host cities';
+  }
+
+  @override
+  String get worldCupTeamSettingsTitle => 'My World Cup teams';
+
+  @override
+  String get worldCupSupportCountryLabel => 'Cheering country';
+
+  @override
+  String get worldCupInterestCountriesLabel => 'Interest countries';
+
+  @override
+  String get worldCupInterestCountriesEmpty =>
+      'No interest countries selected yet.';
+
+  @override
+  String get worldCupEditInterestCountriesAction => 'Edit countries';
+
+  @override
+  String get worldCupClearInterestCountriesAction => 'Clear';
+
+  @override
+  String get worldCupSelectedCountriesOnly => 'Show selected countries only';
+
+  @override
+  String get worldCupHighlightedMatchesTitle => 'Selected-country fixtures';
+
+  @override
+  String get worldCupNoHighlightedMatches =>
+      'Choose a cheering country or interest countries to highlight their fixtures.';
+
+  @override
+  String get worldCupCalendarTitle => 'Full fixture calendar';
+
+  @override
+  String worldCupDayMatchesTitle(String date, int count) {
+    return '$date · $count fixtures';
+  }
+
+  @override
+  String get worldCupNoMatchesOnDay => 'No fixtures on this day.';
+
+  @override
+  String worldCupMatchNumber(int number) {
+    return 'M$number';
+  }
+
+  @override
+  String get worldCupVersusShort => 'v';
+
+  @override
+  String worldCupGroupStageLabel(String group) {
+    return 'Group $group';
+  }
+
+  @override
+  String get worldCupRoundOf32Label => 'Round of 32';
+
+  @override
+  String get worldCupRoundOf16Label => 'Round of 16';
+
+  @override
+  String get worldCupQuarterFinalLabel => 'Quarter-final';
+
+  @override
+  String get worldCupSemiFinalLabel => 'Semi-final';
+
+  @override
+  String get worldCupThirdPlaceLabel => 'Third place';
+
+  @override
+  String get worldCupFinalLabel => 'Final';
+
+  @override
+  String worldCupKickoffLocal(String time) {
+    return '$time local time';
+  }
+
+  @override
+  String get worldCupSupportBadge => 'Cheering';
+
+  @override
+  String get worldCupInterestBadge => 'Interest';
+
+  @override
   String get worldCupKoreaTitle => 'Korea Republic watch';
 
   @override
@@ -6905,6 +6992,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeTitle => 'Challenge';
 
   @override
+  String get challengeRewardAction => 'Rewards';
+
+  @override
+  String get challengeHistoryAction => 'History';
+
+  @override
   String get challengeStartHeroTitle => 'Rinzy\'s Challenge Mode';
 
   @override
@@ -7075,6 +7168,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String challengeStreakBonusLabel(int xp) {
+    return 'Streak bonus +$xp XP';
+  }
+
+  @override
   String challengeActiveLevelPill(Object level) {
     return 'Level: $level';
   }
@@ -7114,6 +7212,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeRewardPitchTitle => 'A big finish bonus is waiting';
+
+  @override
+  String get challengeRewardGuideTitle => 'Challenge rewards';
+
+  @override
+  String get challengeRewardGuideBody =>
+      'Round rewards grow when rounds are completed consecutively. A finished challenge also adds the finish bonus.';
+
+  @override
+  String get challengeRewardGuideNoActive =>
+      'No active challenge is running. Start a challenge to see earned and remaining XP.';
+
+  @override
+  String get challengeRewardGuideActiveTitle => 'Current challenge';
+
+  @override
+  String challengeRewardGuideTemplateTitle(Object title) {
+    return '$title reward plan';
+  }
+
+  @override
+  String get challengeRewardGuideHistoryTitle => 'Reward plan';
+
+  @override
+  String get challengeRewardGuideBaseRoundLabel => 'Base round';
+
+  @override
+  String get challengeRewardGuideStreakBonusLabel => 'Max streak bonus';
+
+  @override
+  String get challengeRewardGuideRoundTotalLabel => 'Rounds total';
+
+  @override
+  String get challengeRewardGuideFinishBonusLabel => 'Finish bonus';
+
+  @override
+  String get challengeRewardGuidePotentialLabel => 'Maximum XP';
+
+  @override
+  String get challengeRewardGuideEarnedLabel => 'Earned so far';
+
+  @override
+  String get challengeRewardGuideRemainingLabel => 'Remaining';
+
+  @override
+  String get challengeRewardGuideRoundsTitle => 'Round rewards';
+
+  @override
+  String challengeRewardGuideRoundReward(int round, int xp) {
+    return 'Round $round: +$xp XP';
+  }
+
+  @override
+  String challengeRewardGuideRoundRewardWithBonus(
+      int round, int xp, int bonus) {
+    return 'Round $round: +$xp XP (streak +$bonus)';
+  }
 
   @override
   String get challengeStartReadyTitle => '3. Ready to start';
@@ -7263,6 +7418,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeHistoryResultInProgress => 'In progress';
 
   @override
+  String get challengeHistoryDetailTitle => 'Challenge detail';
+
+  @override
+  String get challengeHistoryDetailCompletedBody =>
+      'All rounds were completed. Review the reward plan and round dates.';
+
+  @override
+  String challengeHistoryDetailFailedBody(int round) {
+    return 'This challenge stopped at round $round. Review the round sequence and reward plan.';
+  }
+
+  @override
+  String get challengeHistoryDetailAbandonedBody =>
+      'This challenge was ended before completion. Review the original round plan.';
+
+  @override
+  String challengeHistoryDetailPeriodValue(Object start, Object end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get challengeHistoryDetailMissionsLabel => 'Missions';
+
+  @override
+  String get challengeHistoryDetailNoMissions => 'Extra missions only';
+
+  @override
+  String get challengeHistoryDetailRoundsTitle => 'Round detail';
+
+  @override
+  String challengeHistoryDetailRoundDate(int round, Object date) {
+    return 'Round $round · $date';
+  }
+
+  @override
+  String get challengeHistoryDetailRoundCompleted => 'Completed';
+
+  @override
+  String get challengeHistoryDetailRoundFailed => 'Failed here';
+
+  @override
+  String get challengeHistoryDetailRoundEnded => 'Not counted';
+
+  @override
   String get challengeAbandonAction => 'End';
 
   @override
@@ -7291,6 +7490,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get xpHistoryReasonChallengeRoundCompleted =>
       'challenge round complete';
+
+  @override
+  String get xpHistoryReasonChallengeRoundStreakBonus =>
+      'challenge streak bonus';
 
   @override
   String get xpHistoryReasonChallengeCompletionBonus =>

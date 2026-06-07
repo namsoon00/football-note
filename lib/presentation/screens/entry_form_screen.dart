@@ -65,6 +65,7 @@ class EntryFormScreen extends StatefulWidget {
   final DateTime? initialDate;
   final EntryFormInitialPlanContext? initialPlanContext;
   final EntryFormInitialFocusTarget? initialFocusTarget;
+  final bool initialConditioningOnly;
   final bool initialFocusViewOnly;
   final bool initialOpenTrainingBoardEditor;
   final bool closeAfterInitialTrainingBoardEditor;
@@ -80,6 +81,7 @@ class EntryFormScreen extends StatefulWidget {
     this.initialDate,
     this.initialPlanContext,
     this.initialFocusTarget,
+    this.initialConditioningOnly = false,
     this.initialFocusViewOnly = false,
     this.initialOpenTrainingBoardEditor = false,
     this.closeAfterInitialTrainingBoardEditor = false,
@@ -245,13 +247,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _goodPointsController.text =
-          entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
+      _goodPointsController.text = entry.goodPoints.isNotEmpty
+          ? entry.goodPoints
+          : entry.feedback;
       _improvementsController.text = entry.improvements.isNotEmpty
           ? entry.improvements
           : _stripWeatherFromNotes(entry.notes);
-      _nextGoalController.text =
-          entry.nextGoal.isNotEmpty ? entry.nextGoal : entry.goal;
+      _nextGoalController.text = entry.nextGoal.isNotEmpty
+          ? entry.nextGoal
+          : entry.goal;
       _linkedBoardIds
         ..clear()
         ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
@@ -265,7 +269,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _injuryPartController.text = entry.injuryPart;
       _painController.text = entry.painLevel?.toString() ?? '';
       _rehab = entry.rehab;
-      _liftingEnabled = entry.liftingMinutes > 0 ||
+      _liftingEnabled =
+          entry.liftingMinutes > 0 ||
           entry.liftingByPart.values.any((value) => value > 0);
       _selectedDailyGoals
         ..clear()
@@ -302,12 +307,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
-      _liftingMinutesController.text =
-          entry.liftingMinutes > 0 ? entry.liftingMinutes.toString() : '';
-      _jumpRopeController.text =
-          entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
-      _jumpRopeMinutesController.text =
-          entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
+      _liftingMinutesController.text = entry.liftingMinutes > 0
+          ? entry.liftingMinutes.toString()
+          : '';
+      _jumpRopeController.text = entry.jumpRopeCount > 0
+          ? entry.jumpRopeCount.toString()
+          : '';
+      _jumpRopeMinutesController.text = entry.jumpRopeMinutes > 0
+          ? entry.jumpRopeMinutes.toString()
+          : '';
       _jumpRopeEnabled = entry.jumpRopeEnabled;
       _jumpRopeNoteController.text = entry.jumpRopeNote;
       _breakfastDone = entry.breakfastDone;
@@ -339,6 +347,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         'default_duration',
         _durationOptions.first,
       );
+      if (widget.initialConditioningOnly) {
+        _durationMinutes = _initIntSelection('durations', _durationOptions, 0);
+      }
       _intensity = _defaultInt('default_intensity', 3);
       _mood = _defaultInt('default_condition', 3);
       _location = _defaultString(
@@ -587,23 +598,27 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final source = widget.entry;
     if (source == null) return null;
 
-    final candidates = allEntries.where((entry) {
-      final key = entry.key;
-      return key is int &&
-          entry.createdAt == source.createdAt &&
-          entry.date == source.date &&
-          entry.isMatch == source.isMatch;
-    }).toList(growable: false);
+    final candidates = allEntries
+        .where((entry) {
+          final key = entry.key;
+          return key is int &&
+              entry.createdAt == source.createdAt &&
+              entry.date == source.date &&
+              entry.isMatch == source.isMatch;
+        })
+        .toList(growable: false);
     if (candidates.length == 1) {
       return candidates.single.key as int;
     }
 
-    final strictCandidates = candidates.where((entry) {
-      return entry.durationMinutes == source.durationMinutes &&
-          entry.type == source.type &&
-          entry.program == source.program &&
-          entry.location == source.location;
-    }).toList(growable: false);
+    final strictCandidates = candidates
+        .where((entry) {
+          return entry.durationMinutes == source.durationMinutes &&
+              entry.type == source.type &&
+              entry.program == source.program &&
+              entry.location == source.location;
+        })
+        .toList(growable: false);
     if (strictCandidates.length == 1) {
       return strictCandidates.single.key as int;
     }
@@ -656,8 +671,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final latest = await widget.trainingService.latestTrainingEntry();
     if (!mounted || latest == null || widget.entry != null) return;
     setState(() {
-      if (widget.initialPlanContext == null ||
-          widget.initialPlanContext!.durationMinutes <= 0) {
+      if (!widget.initialConditioningOnly &&
+          (widget.initialPlanContext == null ||
+              widget.initialPlanContext!.durationMinutes <= 0)) {
         _durationMinutes = _initIntSelection(
           'durations',
           _durationOptions,
@@ -851,8 +867,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           Text(
             feedbackText.isEmpty
                 ? (reaction.isEmpty
-                    ? l10n.parentFeedbackEmpty
-                    : l10n.parentFeedbackReactionOnly)
+                      ? l10n.parentFeedbackEmpty
+                      : l10n.parentFeedbackReactionOnly)
                 : feedbackText,
             maxLines: canEdit ? 3 : 5,
             overflow: TextOverflow.ellipsis,
@@ -960,8 +976,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor =
-                      selected ? statusColor : statusColor.withAlpha(170);
+                  final iconColor = selected
+                      ? statusColor
+                      : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -972,8 +989,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight:
-                                selected ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -1337,8 +1355,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                     ),
                   )
                   .toList(growable: false),
-              onChanged:
-                  done ? (value) => onRiceBowlsChanged(value ?? 0) : null,
+              onChanged: done
+                  ? (value) => onRiceBowlsChanged(value ?? 0)
+                  : null,
               decoration: InputDecoration(
                 labelText: l10n.mealRiceLabel,
                 filled: true,
@@ -1433,8 +1452,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final weatherStatusText = _weatherLoading
         ? l10n.entryWeatherLoading
         : _weatherSummary.trim().isNotEmpty
-            ? _weatherSummary.trim()
-            : l10n.entryWeatherHomeMissing;
+        ? _weatherSummary.trim()
+        : l10n.entryWeatherHomeMissing;
     final weatherHasValue = _weatherSummary.trim().isNotEmpty;
     final isMatchEntry = widget.entry?.isMatch ?? false;
     if (isReadOnly && widget.entry == null) {
@@ -1557,7 +1576,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               ),
                               if (!isReadOnly)
                                 TextButton.icon(
-                                  onPressed: (_deleteInProgress ||
+                                  onPressed:
+                                      (_deleteInProgress ||
                                           (_saveInProgress && !_autoSaving))
                                       ? null
                                       : _handleSavePressed,
@@ -1571,8 +1591,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                 TextButton.icon(
                                   onPressed:
                                       (_saveInProgress || _deleteInProgress)
-                                          ? null
-                                          : _confirmAndDelete,
+                                      ? null
+                                      : _confirmAndDelete,
                                   icon: const Icon(
                                     Icons.delete_outline,
                                     size: 18,
@@ -1720,35 +1740,41 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                               ),
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(999),
                                                 color: weatherHasValue
-                                                    ? theme.colorScheme
-                                                        .primaryContainer
-                                                        .withValues(
-                                                        alpha: 0.9,
-                                                      )
-                                                    : theme.colorScheme
-                                                        .surfaceContainerHighest,
+                                                    ? theme
+                                                          .colorScheme
+                                                          .primaryContainer
+                                                          .withValues(
+                                                            alpha: 0.9,
+                                                          )
+                                                    : theme
+                                                          .colorScheme
+                                                          .surfaceContainerHighest,
                                               ),
                                               child: Text(
                                                 weatherStatusText,
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: theme
-                                                    .textTheme.labelSmall
+                                                    .textTheme
+                                                    .labelSmall
                                                     ?.copyWith(
-                                                  fontWeight: FontWeight.w700,
-                                                  color: weatherHasValue
-                                                      ? theme.colorScheme
-                                                          .onPrimaryContainer
-                                                      : theme.colorScheme
-                                                          .onSurfaceVariant,
-                                                ),
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: weatherHasValue
+                                                          ? theme
+                                                                .colorScheme
+                                                                .onPrimaryContainer
+                                                          : theme
+                                                                .colorScheme
+                                                                .onSurfaceVariant,
+                                                    ),
                                               ),
                                             ),
                                             const SizedBox(width: 6),
@@ -1771,14 +1797,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                                       height: 16,
                                                       child:
                                                           CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                      ),
+                                                            strokeWidth: 2,
+                                                          ),
                                                     )
                                                   : Icon(
                                                       Icons.my_location,
                                                       size: 18,
                                                       color: theme
-                                                          .colorScheme.primary,
+                                                          .colorScheme
+                                                          .primary,
                                                     ),
                                             ),
                                           ],
@@ -1908,8 +1935,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   minLines: 3,
                                   maxLines: null,
                                   decoration: InputDecoration(
-                                    labelText:
-                                        isKo ? '아쉬운 점' : 'What to improve',
+                                    labelText: isKo
+                                        ? '아쉬운 점'
+                                        : 'What to improve',
                                     hintText: isKo
                                         ? '다음에 보완할 부분을 적어보세요.'
                                         : 'Write what needs improvement.',
@@ -1951,8 +1979,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                         label: l10n.injuryPart,
                                         value:
                                             _injuryPartController.text.isEmpty
-                                                ? l10n.notSet
-                                                : _injuryPartController.text,
+                                            ? l10n.notSet
+                                            : _injuryPartController.text,
                                         options: [
                                           l10n.notSet,
                                           ..._injuryPartOptions,
@@ -1961,8 +1989,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                           setState(() {
                                             _injuryPartController.text =
                                                 value == l10n.notSet
-                                                    ? ''
-                                                    : value;
+                                                ? ''
+                                                : value;
                                           });
                                           _scheduleAutoSave();
                                         },
@@ -2228,17 +2256,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             child: Text(
                               _autoSaving
                                   ? (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '자동 저장 중...'
-                                      : 'Autosaving...')
+                                              context,
+                                            ).languageCode ==
+                                            'ko'
+                                        ? '자동 저장 중...'
+                                        : 'Autosaving...')
                                   : (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '수정 내용이 자동 저장됩니다.'
-                                      : 'Changes are saved automatically.'),
+                                              context,
+                                            ).languageCode ==
+                                            'ko'
+                                        ? '수정 내용이 자동 저장됩니다.'
+                                        : 'Changes are saved automatically.'),
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
@@ -2319,13 +2347,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fg = active ? activeFg : theme.colorScheme.onSurfaceVariant;
     final bg = active
         ? (emphasizePrimary
-            ? theme.colorScheme.primary
-            : theme.colorScheme.primary.withValues(alpha: 0.12))
+              ? theme.colorScheme.primary
+              : theme.colorScheme.primary.withValues(alpha: 0.12))
         : theme.colorScheme.surfaceContainerHighest;
     final border = active
         ? (emphasizePrimary
-            ? theme.colorScheme.primary
-            : theme.colorScheme.primary.withValues(alpha: 0.36))
+              ? theme.colorScheme.primary
+              : theme.colorScheme.primary.withValues(alpha: 0.36))
         : theme.colorScheme.outline.withValues(alpha: 0.28);
 
     return AppPressableScale(
@@ -2375,14 +2403,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic = controller == _goodPointsController ||
+    final showMic =
+        controller == _goodPointsController ||
         controller == _improvementsController ||
         controller == _nextGoalController ||
         controller == _jumpRopeNoteController;
     final isListeningFor = _isListening && _listeningController == controller;
     final isMultiline = maxLines == null || maxLines > 1 || minLines > 1;
-    final resolvedTextInputAction =
-        isMultiline ? TextInputAction.newline : TextInputAction.done;
+    final resolvedTextInputAction = isMultiline
+        ? TextInputAction.newline
+        : TextInputAction.done;
     final micButton = showMic && enabled
         ? IconButton(
             onPressed: () => _toggleListening(controller, l10n),
@@ -2576,7 +2606,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
 
-    final needsSpacing = !isKoreanLocale &&
+    final needsSpacing =
+        !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -2748,13 +2779,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) =>
-      WeatherLocationService.resolvePlaceName(
-        latitude: latitude,
-        longitude: longitude,
-        isKo: isKo,
-        koreaLabel: koreaLabel,
-      );
+  }) => WeatherLocationService.resolvePlaceName(
+    latitude: latitude,
+    longitude: longitude,
+    isKo: isKo,
+    koreaLabel: koreaLabel,
+  );
 
   List<Color> _weatherBackgroundColors(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
@@ -2932,8 +2962,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           initialBoardId: _linkedBoardIds.isNotEmpty
               ? _linkedBoardIds.first
               : (hasRecentBoard
-                  ? recentBoardId
-                  : (allBoards.isNotEmpty ? allBoards.first.id : null)),
+                    ? recentBoardId
+                    : (allBoards.isNotEmpty ? allBoards.first.id : null)),
           readOnly: isReadOnly,
         ),
       ),
@@ -3023,9 +3053,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : <String, int>{};
       final liftingMinutes = _liftingEnabled
           ? (_parseInt(
-                _liftingMinutesController.text.trim(),
-              )?.clamp(0, 1000000) ??
-              0)
+                  _liftingMinutesController.text.trim(),
+                )?.clamp(0, 1000000) ??
+                0)
           : 0;
       final selectedGoals = _selectedDailyGoals.toList()..sort();
       final goodPoints = _goodPointsController.text.trim();
@@ -3038,12 +3068,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : 0;
       final jumpRopeMinutes = _jumpRopeEnabled
           ? (_parseInt(
-                _jumpRopeMinutesController.text.trim(),
-              )?.clamp(0, 1000000) ??
-              0)
+                  _jumpRopeMinutesController.text.trim(),
+                )?.clamp(0, 1000000) ??
+                0)
           : 0;
-      final jumpRopeNote =
-          _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '';
+      final jumpRopeNote = _jumpRopeEnabled
+          ? _jumpRopeNoteController.text.trim()
+          : '';
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
@@ -3099,10 +3130,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _cachedFortuneRecommendedProgram = generatedFortune.recommendedProgram;
       }
       final fortuneComment = shouldPersistFortune ? _cachedFortuneComment : '';
-      final fortuneRecommendation =
-          shouldPersistFortune ? _cachedFortuneRecommendation : '';
-      final fortuneRecommendedProgram =
-          shouldPersistFortune ? _cachedFortuneRecommendedProgram : '';
+      final fortuneRecommendation = shouldPersistFortune
+          ? _cachedFortuneRecommendation
+          : '';
+      final fortuneRecommendedProgram = shouldPersistFortune
+          ? _cachedFortuneRecommendedProgram
+          : '';
 
       final entry = TrainingEntry(
         date: draftEntry.date,
@@ -3227,8 +3260,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       _initialSnapshot = _formSnapshot();
       if (!mounted) return;
-      final fortuneToShow =
-          shouldShowFortuneOnSave ? _cachedFortuneComment : '';
+      final fortuneToShow = shouldShowFortuneOnSave
+          ? _cachedFortuneComment
+          : '';
       if (fortuneToShow.trim().isNotEmpty && popAfterSave) {
         await _showFortuneRevealDialog(fortuneToShow);
         if (!mounted) return;
@@ -3275,7 +3309,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         Navigator.of(context).pop();
       }
     } finally {
-      final shouldRunQueuedManualSave = silent &&
+      final shouldRunQueuedManualSave =
+          silent &&
           _manualSaveQueuedAfterAutoSave &&
           mounted &&
           !_disposing &&
@@ -3557,11 +3592,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     bool enabled = true,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    final resolvedEmoji =
-        label == l10n.program ? trainingProgramEmojiFor(value) : null;
+    final resolvedEmoji = label == l10n.program
+        ? trainingProgramEmojiFor(value)
+        : null;
     // Remove soccer-ball emoji before training type (keep other emojis).
-    final leadingEmoji =
-        (label == l10n.program && resolvedEmoji == '⚽') ? null : resolvedEmoji;
+    final leadingEmoji = (label == l10n.program && resolvedEmoji == '⚽')
+        ? null
+        : resolvedEmoji;
     return Row(
       children: [
         Expanded(

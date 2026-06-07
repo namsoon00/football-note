@@ -529,6 +529,91 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupMatchesValue => '16開催都市で104試合';
 
   @override
+  String worldCupMatchesCountValue(int count) {
+    return '16開催都市で$count試合';
+  }
+
+  @override
+  String get worldCupTeamSettingsTitle => '自分のワールドカップ国';
+
+  @override
+  String get worldCupSupportCountryLabel => '応援する国';
+
+  @override
+  String get worldCupInterestCountriesLabel => '注目国';
+
+  @override
+  String get worldCupInterestCountriesEmpty => '注目国はまだ選択されていません。';
+
+  @override
+  String get worldCupEditInterestCountriesAction => '国を編集';
+
+  @override
+  String get worldCupClearInterestCountriesAction => 'クリア';
+
+  @override
+  String get worldCupSelectedCountriesOnly => '選択した国の試合のみ表示';
+
+  @override
+  String get worldCupHighlightedMatchesTitle => '選択国の試合';
+
+  @override
+  String get worldCupNoHighlightedMatches => '応援する国や注目国を選ぶと、その試合日程が強調されます。';
+
+  @override
+  String get worldCupCalendarTitle => '全試合カレンダー';
+
+  @override
+  String worldCupDayMatchesTitle(String date, int count) {
+    return '$date · $count試合';
+  }
+
+  @override
+  String get worldCupNoMatchesOnDay => 'この日に試合はありません。';
+
+  @override
+  String worldCupMatchNumber(int number) {
+    return 'M$number';
+  }
+
+  @override
+  String get worldCupVersusShort => '対';
+
+  @override
+  String worldCupGroupStageLabel(String group) {
+    return 'グループ$group';
+  }
+
+  @override
+  String get worldCupRoundOf32Label => 'ラウンド32';
+
+  @override
+  String get worldCupRoundOf16Label => 'ラウンド16';
+
+  @override
+  String get worldCupQuarterFinalLabel => '準々決勝';
+
+  @override
+  String get worldCupSemiFinalLabel => '準決勝';
+
+  @override
+  String get worldCupThirdPlaceLabel => '3位決定戦';
+
+  @override
+  String get worldCupFinalLabel => '決勝';
+
+  @override
+  String worldCupKickoffLocal(String time) {
+    return '$time 現地時間';
+  }
+
+  @override
+  String get worldCupSupportBadge => '応援';
+
+  @override
+  String get worldCupInterestBadge => '注目';
+
+  @override
   String get worldCupKoreaTitle => '韓国代表を見る';
 
   @override
@@ -6658,6 +6743,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeTitle => 'チャレンジ';
 
   @override
+  String get challengeRewardAction => '報酬';
+
+  @override
+  String get challengeHistoryAction => '履歴';
+
+  @override
   String get challengeStartHeroTitle => 'リンジーのチャレンジモード';
 
   @override
@@ -6824,6 +6915,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String challengeStreakBonusLabel(int xp) {
+    return '連続ボーナス +$xp XP';
+  }
+
+  @override
   String challengeActiveLevelPill(Object level) {
     return 'レベル: $level';
   }
@@ -6863,6 +6959,63 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeRewardPitchTitle => '完走すると大きなボーナスがあります';
+
+  @override
+  String get challengeRewardGuideTitle => 'チャレンジ報酬';
+
+  @override
+  String get challengeRewardGuideBody =>
+      'ラウンドを連続で完了するほどラウンド報酬が増えます。最後まで完走すると完走ボーナスも加算されます。';
+
+  @override
+  String get challengeRewardGuideNoActive =>
+      '進行中のチャレンジはありません。チャレンジを始めると獲得済みXPと残りXPを確認できます。';
+
+  @override
+  String get challengeRewardGuideActiveTitle => '現在のチャレンジ';
+
+  @override
+  String challengeRewardGuideTemplateTitle(Object title) {
+    return '$title 報酬プラン';
+  }
+
+  @override
+  String get challengeRewardGuideHistoryTitle => '報酬プラン';
+
+  @override
+  String get challengeRewardGuideBaseRoundLabel => '基本ラウンド';
+
+  @override
+  String get challengeRewardGuideStreakBonusLabel => '最大連続ボーナス';
+
+  @override
+  String get challengeRewardGuideRoundTotalLabel => 'ラウンド合計';
+
+  @override
+  String get challengeRewardGuideFinishBonusLabel => '完走ボーナス';
+
+  @override
+  String get challengeRewardGuidePotentialLabel => '最大XP';
+
+  @override
+  String get challengeRewardGuideEarnedLabel => '現在獲得';
+
+  @override
+  String get challengeRewardGuideRemainingLabel => '残りXP';
+
+  @override
+  String get challengeRewardGuideRoundsTitle => 'ラウンド報酬';
+
+  @override
+  String challengeRewardGuideRoundReward(int round, int xp) {
+    return 'ラウンド $round: +$xp XP';
+  }
+
+  @override
+  String challengeRewardGuideRoundRewardWithBonus(
+      int round, int xp, int bonus) {
+    return 'ラウンド $round: +$xp XP (連続 +$bonus)';
+  }
 
   @override
   String get challengeStartReadyTitle => '3. 開始準備';
@@ -7011,6 +7164,50 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeHistoryResultInProgress => '進行中';
 
   @override
+  String get challengeHistoryDetailTitle => 'チャレンジ詳細';
+
+  @override
+  String get challengeHistoryDetailCompletedBody =>
+      'すべてのラウンドを完了しました。報酬プランとラウンド日を確認しましょう。';
+
+  @override
+  String challengeHistoryDetailFailedBody(int round) {
+    return 'このチャレンジはラウンド $round で止まりました。ラウンドの流れと報酬プランを確認しましょう。';
+  }
+
+  @override
+  String get challengeHistoryDetailAbandonedBody =>
+      '完了前に終了したチャレンジです。元のラウンド計画を確認しましょう。';
+
+  @override
+  String challengeHistoryDetailPeriodValue(Object start, Object end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get challengeHistoryDetailMissionsLabel => 'ミッション';
+
+  @override
+  String get challengeHistoryDetailNoMissions => '追加ミッションのみ';
+
+  @override
+  String get challengeHistoryDetailRoundsTitle => 'ラウンド詳細';
+
+  @override
+  String challengeHistoryDetailRoundDate(int round, Object date) {
+    return 'ラウンド $round · $date';
+  }
+
+  @override
+  String get challengeHistoryDetailRoundCompleted => '完了';
+
+  @override
+  String get challengeHistoryDetailRoundFailed => 'ここで失敗';
+
+  @override
+  String get challengeHistoryDetailRoundEnded => '未集計';
+
+  @override
   String get challengeAbandonAction => '終了';
 
   @override
@@ -7037,6 +7234,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get xpHistoryReasonChallengeRoundCompleted => 'チャレンジラウンド完了';
+
+  @override
+  String get xpHistoryReasonChallengeRoundStreakBonus => 'チャレンジ連続ボーナス';
 
   @override
   String get xpHistoryReasonChallengeCompletionBonus => 'チャレンジ完走ボーナス';

@@ -209,6 +209,69 @@
   "worldCupFormatValue": "48개 팀 · 12개 조",
   "worldCupMatchesLabel": "경기",
   "worldCupMatchesValue": "16개 개최 도시에서 104경기",
+  "worldCupMatchesCountValue": "16개 개최 도시에서 {count}경기",
+  "@worldCupMatchesCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamSettingsTitle": "내 월드컵 국가",
+  "worldCupSupportCountryLabel": "응원하는 나라",
+  "worldCupInterestCountriesLabel": "관심 국가",
+  "worldCupInterestCountriesEmpty": "아직 관심 국가를 선택하지 않았어요.",
+  "worldCupEditInterestCountriesAction": "국가 편집",
+  "worldCupClearInterestCountriesAction": "비우기",
+  "worldCupSelectedCountriesOnly": "선택한 국가 경기만 보기",
+  "worldCupHighlightedMatchesTitle": "선택 국가 경기",
+  "worldCupNoHighlightedMatches": "응원하는 나라나 관심 국가를 고르면 해당 경기 일정이 강조돼요.",
+  "worldCupCalendarTitle": "전체 경기 캘린더",
+  "worldCupDayMatchesTitle": "{date} · {count}경기",
+  "@worldCupDayMatchesTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupNoMatchesOnDay": "이 날에는 경기가 없어요.",
+  "worldCupMatchNumber": "M{number}",
+  "@worldCupMatchNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupVersusShort": "대",
+  "worldCupGroupStageLabel": "{group}조",
+  "@worldCupGroupStageLabel": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupRoundOf32Label": "32강",
+  "worldCupRoundOf16Label": "16강",
+  "worldCupQuarterFinalLabel": "8강",
+  "worldCupSemiFinalLabel": "준결승",
+  "worldCupThirdPlaceLabel": "3위 결정전",
+  "worldCupFinalLabel": "결승",
+  "worldCupKickoffLocal": "{time} 현지 시간",
+  "@worldCupKickoffLocal": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupSupportBadge": "응원",
+  "worldCupInterestBadge": "관심",
   "worldCupKoreaTitle": "대한민국 보기",
   "worldCupKoreaBody": "대한민국은 A조에서 체코와 과달라하라 첫 경기를 치릅니다.",
   "worldCupKoreaGroupLabel": "조",
@@ -3286,6 +3349,8 @@
   "trainingSketchTemplateGalleryTitle": "훈련 템플릿 갤러리",
   "trainingSketchTemplateGallerySubtitle": "스케치를 만들기 전에 이동선과 메모 구성을 미리 확인하세요.",
   "challengeTitle": "챌린지",
+  "challengeRewardAction": "보상",
+  "challengeHistoryAction": "히스토리",
   "challengeStartHeroTitle": "린지의 챌린지 모드",
   "challengeStartHeroBody": "기간과 미션별 훈련량을 고른 뒤 시작 버튼을 누르면 도전이 시작됩니다. 하루라도 놓치면 실패예요.",
   "challengeLatestComplete": "최근 챌린지 완료",
@@ -3387,6 +3452,14 @@
       }
     }
   },
+  "challengeStreakBonusLabel": "연속 보너스 +{xp} XP",
+  "@challengeStreakBonusLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
   "challengeActiveLevelPill": "레벨: {level}",
   "@challengeActiveLevelPill": {
     "placeholders": {
@@ -3424,6 +3497,50 @@
     }
   },
   "challengeRewardPitchTitle": "완주하면 큰 보너스가 기다려요",
+  "challengeRewardGuideTitle": "챌린지 보상",
+  "challengeRewardGuideBody": "라운드를 연속으로 완료할수록 라운드 보상이 커져요. 챌린지를 끝까지 완주하면 완주 보너스도 더해집니다.",
+  "challengeRewardGuideNoActive": "진행 중인 챌린지가 없어요. 챌린지를 시작하면 획득한 XP와 남은 XP를 볼 수 있어요.",
+  "challengeRewardGuideActiveTitle": "현재 챌린지",
+  "challengeRewardGuideTemplateTitle": "{title} 보상 계획",
+  "@challengeRewardGuideTemplateTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeRewardGuideHistoryTitle": "보상 계획",
+  "challengeRewardGuideBaseRoundLabel": "기본 라운드",
+  "challengeRewardGuideStreakBonusLabel": "최대 연속 보너스",
+  "challengeRewardGuideRoundTotalLabel": "라운드 합계",
+  "challengeRewardGuideFinishBonusLabel": "완주 보너스",
+  "challengeRewardGuidePotentialLabel": "최대 XP",
+  "challengeRewardGuideEarnedLabel": "현재 획득",
+  "challengeRewardGuideRemainingLabel": "남은 XP",
+  "challengeRewardGuideRoundsTitle": "라운드 보상",
+  "challengeRewardGuideRoundReward": "라운드 {round}: +{xp} XP",
+  "@challengeRewardGuideRoundReward": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeRewardGuideRoundRewardWithBonus": "라운드 {round}: +{xp} XP (연속 +{bonus})",
+  "@challengeRewardGuideRoundRewardWithBonus": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      },
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
   "challengeStartReadyTitle": "3. 시작 준비",
   "challengeStartAction": "챌린지 시작",
   "challengeRoundCount": "{completed}/{total} 라운드 완료",
@@ -3577,6 +3694,39 @@
   "challengeHistoryResultFailed": "실패",
   "challengeHistoryResultAbandoned": "종료",
   "challengeHistoryResultInProgress": "진행 중",
+  "challengeHistoryDetailTitle": "챌린지 상세",
+  "challengeHistoryDetailCompletedBody": "모든 라운드를 완료했어요. 보상 계획과 라운드 날짜를 확인해요.",
+  "challengeHistoryDetailFailedBody": "이 챌린지는 {round}라운드에서 멈췄어요. 라운드 흐름과 보상 계획을 확인해요.",
+  "@challengeHistoryDetailFailedBody": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeHistoryDetailAbandonedBody": "완료 전에 종료된 챌린지예요. 원래 라운드 계획을 확인해요.",
+  "challengeHistoryDetailPeriodValue": "{start} - {end}",
+  "@challengeHistoryDetailPeriodValue": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "challengeHistoryDetailMissionsLabel": "미션",
+  "challengeHistoryDetailNoMissions": "추가 미션만",
+  "challengeHistoryDetailRoundsTitle": "라운드 상세",
+  "challengeHistoryDetailRoundDate": "라운드 {round} · {date}",
+  "@challengeHistoryDetailRoundDate": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "date": {}
+    }
+  },
+  "challengeHistoryDetailRoundCompleted": "완료",
+  "challengeHistoryDetailRoundFailed": "여기서 실패",
+  "challengeHistoryDetailRoundEnded": "미집계",
   "challengeAbandonAction": "종료",
   "challengeAbandonTitle": "챌린지 종료",
   "challengeAbandonBody": "현재 챌린지를 종료하고 다른 챌린지를 선택할까요?",
@@ -3603,5 +3753,6 @@
     }
   },
   "xpHistoryReasonChallengeRoundCompleted": "챌린지 라운드 완료",
+  "xpHistoryReasonChallengeRoundStreakBonus": "챌린지 연속 보너스",
   "xpHistoryReasonChallengeCompletionBonus": "챌린지 완주 보너스"
 }

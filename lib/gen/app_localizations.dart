@@ -1073,6 +1073,156 @@ abstract class AppLocalizations {
   /// **'104 fixtures across 16 host cities'**
   String get worldCupMatchesValue;
 
+  /// No description provided for @worldCupMatchesCountValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} fixtures across 16 host cities'**
+  String worldCupMatchesCountValue(int count);
+
+  /// No description provided for @worldCupTeamSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My World Cup teams'**
+  String get worldCupTeamSettingsTitle;
+
+  /// No description provided for @worldCupSupportCountryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheering country'**
+  String get worldCupSupportCountryLabel;
+
+  /// No description provided for @worldCupInterestCountriesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest countries'**
+  String get worldCupInterestCountriesLabel;
+
+  /// No description provided for @worldCupInterestCountriesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No interest countries selected yet.'**
+  String get worldCupInterestCountriesEmpty;
+
+  /// No description provided for @worldCupEditInterestCountriesAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit countries'**
+  String get worldCupEditInterestCountriesAction;
+
+  /// No description provided for @worldCupClearInterestCountriesAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get worldCupClearInterestCountriesAction;
+
+  /// No description provided for @worldCupSelectedCountriesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Show selected countries only'**
+  String get worldCupSelectedCountriesOnly;
+
+  /// No description provided for @worldCupHighlightedMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected-country fixtures'**
+  String get worldCupHighlightedMatchesTitle;
+
+  /// No description provided for @worldCupNoHighlightedMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a cheering country or interest countries to highlight their fixtures.'**
+  String get worldCupNoHighlightedMatches;
+
+  /// No description provided for @worldCupCalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Full fixture calendar'**
+  String get worldCupCalendarTitle;
+
+  /// No description provided for @worldCupDayMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {count} fixtures'**
+  String worldCupDayMatchesTitle(String date, int count);
+
+  /// No description provided for @worldCupNoMatchesOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No fixtures on this day.'**
+  String get worldCupNoMatchesOnDay;
+
+  /// No description provided for @worldCupMatchNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'M{number}'**
+  String worldCupMatchNumber(int number);
+
+  /// No description provided for @worldCupVersusShort.
+  ///
+  /// In en, this message translates to:
+  /// **'v'**
+  String get worldCupVersusShort;
+
+  /// No description provided for @worldCupGroupStageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {group}'**
+  String worldCupGroupStageLabel(String group);
+
+  /// No description provided for @worldCupRoundOf32Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Round of 32'**
+  String get worldCupRoundOf32Label;
+
+  /// No description provided for @worldCupRoundOf16Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Round of 16'**
+  String get worldCupRoundOf16Label;
+
+  /// No description provided for @worldCupQuarterFinalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarter-final'**
+  String get worldCupQuarterFinalLabel;
+
+  /// No description provided for @worldCupSemiFinalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Semi-final'**
+  String get worldCupSemiFinalLabel;
+
+  /// No description provided for @worldCupThirdPlaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Third place'**
+  String get worldCupThirdPlaceLabel;
+
+  /// No description provided for @worldCupFinalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Final'**
+  String get worldCupFinalLabel;
+
+  /// No description provided for @worldCupKickoffLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} local time'**
+  String worldCupKickoffLocal(String time);
+
+  /// No description provided for @worldCupSupportBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheering'**
+  String get worldCupSupportBadge;
+
+  /// No description provided for @worldCupInterestBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest'**
+  String get worldCupInterestBadge;
+
   /// No description provided for @worldCupKoreaTitle.
   ///
   /// In en, this message translates to:
@@ -11930,6 +12080,18 @@ abstract class AppLocalizations {
   /// **'Challenge'**
   String get challengeTitle;
 
+  /// No description provided for @challengeRewardAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards'**
+  String get challengeRewardAction;
+
+  /// No description provided for @challengeHistoryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get challengeHistoryAction;
+
   /// No description provided for @challengeStartHeroTitle.
   ///
   /// In en, this message translates to:
@@ -12218,6 +12380,12 @@ abstract class AppLocalizations {
   /// **'Round +{xp} XP'**
   String challengeRoundXpLabel(int xp);
 
+  /// No description provided for @challengeStreakBonusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak bonus +{xp} XP'**
+  String challengeStreakBonusLabel(int xp);
+
   /// No description provided for @challengeActiveLevelPill.
   ///
   /// In en, this message translates to:
@@ -12283,6 +12451,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A big finish bonus is waiting'**
   String get challengeRewardPitchTitle;
+
+  /// No description provided for @challengeRewardGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge rewards'**
+  String get challengeRewardGuideTitle;
+
+  /// No description provided for @challengeRewardGuideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Round rewards grow when rounds are completed consecutively. A finished challenge also adds the finish bonus.'**
+  String get challengeRewardGuideBody;
+
+  /// No description provided for @challengeRewardGuideNoActive.
+  ///
+  /// In en, this message translates to:
+  /// **'No active challenge is running. Start a challenge to see earned and remaining XP.'**
+  String get challengeRewardGuideNoActive;
+
+  /// No description provided for @challengeRewardGuideActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current challenge'**
+  String get challengeRewardGuideActiveTitle;
+
+  /// No description provided for @challengeRewardGuideTemplateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} reward plan'**
+  String challengeRewardGuideTemplateTitle(Object title);
+
+  /// No description provided for @challengeRewardGuideHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward plan'**
+  String get challengeRewardGuideHistoryTitle;
+
+  /// No description provided for @challengeRewardGuideBaseRoundLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Base round'**
+  String get challengeRewardGuideBaseRoundLabel;
+
+  /// No description provided for @challengeRewardGuideStreakBonusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Max streak bonus'**
+  String get challengeRewardGuideStreakBonusLabel;
+
+  /// No description provided for @challengeRewardGuideRoundTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounds total'**
+  String get challengeRewardGuideRoundTotalLabel;
+
+  /// No description provided for @challengeRewardGuideFinishBonusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish bonus'**
+  String get challengeRewardGuideFinishBonusLabel;
+
+  /// No description provided for @challengeRewardGuidePotentialLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum XP'**
+  String get challengeRewardGuidePotentialLabel;
+
+  /// No description provided for @challengeRewardGuideEarnedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Earned so far'**
+  String get challengeRewardGuideEarnedLabel;
+
+  /// No description provided for @challengeRewardGuideRemainingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get challengeRewardGuideRemainingLabel;
+
+  /// No description provided for @challengeRewardGuideRoundsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Round rewards'**
+  String get challengeRewardGuideRoundsTitle;
+
+  /// No description provided for @challengeRewardGuideRoundReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {round}: +{xp} XP'**
+  String challengeRewardGuideRoundReward(int round, int xp);
+
+  /// No description provided for @challengeRewardGuideRoundRewardWithBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {round}: +{xp} XP (streak +{bonus})'**
+  String challengeRewardGuideRoundRewardWithBonus(int round, int xp, int bonus);
 
   /// No description provided for @challengeStartReadyTitle.
   ///
@@ -12512,6 +12776,78 @@ abstract class AppLocalizations {
   /// **'In progress'**
   String get challengeHistoryResultInProgress;
 
+  /// No description provided for @challengeHistoryDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge detail'**
+  String get challengeHistoryDetailTitle;
+
+  /// No description provided for @challengeHistoryDetailCompletedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All rounds were completed. Review the reward plan and round dates.'**
+  String get challengeHistoryDetailCompletedBody;
+
+  /// No description provided for @challengeHistoryDetailFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This challenge stopped at round {round}. Review the round sequence and reward plan.'**
+  String challengeHistoryDetailFailedBody(int round);
+
+  /// No description provided for @challengeHistoryDetailAbandonedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This challenge was ended before completion. Review the original round plan.'**
+  String get challengeHistoryDetailAbandonedBody;
+
+  /// No description provided for @challengeHistoryDetailPeriodValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} - {end}'**
+  String challengeHistoryDetailPeriodValue(Object start, Object end);
+
+  /// No description provided for @challengeHistoryDetailMissionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Missions'**
+  String get challengeHistoryDetailMissionsLabel;
+
+  /// No description provided for @challengeHistoryDetailNoMissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra missions only'**
+  String get challengeHistoryDetailNoMissions;
+
+  /// No description provided for @challengeHistoryDetailRoundsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Round detail'**
+  String get challengeHistoryDetailRoundsTitle;
+
+  /// No description provided for @challengeHistoryDetailRoundDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {round} · {date}'**
+  String challengeHistoryDetailRoundDate(int round, Object date);
+
+  /// No description provided for @challengeHistoryDetailRoundCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get challengeHistoryDetailRoundCompleted;
+
+  /// No description provided for @challengeHistoryDetailRoundFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed here'**
+  String get challengeHistoryDetailRoundFailed;
+
+  /// No description provided for @challengeHistoryDetailRoundEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not counted'**
+  String get challengeHistoryDetailRoundEnded;
+
   /// No description provided for @challengeAbandonAction.
   ///
   /// In en, this message translates to:
@@ -12559,6 +12895,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'challenge round complete'**
   String get xpHistoryReasonChallengeRoundCompleted;
+
+  /// No description provided for @xpHistoryReasonChallengeRoundStreakBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'challenge streak bonus'**
+  String get xpHistoryReasonChallengeRoundStreakBonus;
 
   /// No description provided for @xpHistoryReasonChallengeCompletionBonus.
   ///
