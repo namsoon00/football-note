@@ -216,13 +216,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Create your first record in this order, then return here to review it.';
 
   @override
-  String get newsFifaHubButton => 'FIFA Rank';
+  String get newsFifaHubButton => 'FIFA';
 
   @override
   String get newsWorldCupButton => 'World Cup';
 
   @override
-  String get newsKLeagueStandingsButton => 'Domestic';
+  String get newsKLeagueStandingsButton => 'League';
 
   @override
   String get newsMoreActionsTooltip => 'League view';
@@ -234,7 +234,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsRankingMoreButton => 'League view';
 
   @override
-  String get newsLeagueStandingsAction => 'League View';
+  String get newsLeagueStandingsAction => 'League';
 
   @override
   String get newsLeagueStandingsTitle => 'League View';
@@ -512,6 +512,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupTitle => 'World Cup View';
 
   @override
+  String get worldCupInfoAction => 'Guide';
+
+  @override
+  String get worldCupSourceShortAction => 'FIFA';
+
+  @override
   String get worldCupHeroTitle => 'FIFA World Cup 2026';
 
   @override
@@ -544,6 +550,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupOverviewTitle => 'Tournament overview';
 
   @override
+  String get worldCupOverviewIntro =>
+      'This World Cup is bigger than before: 48 countries, 12 groups, and 104 matches across Canada, Mexico, and the United States.';
+
+  @override
   String get worldCupHostsLabel => 'Hosts';
 
   @override
@@ -573,6 +583,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String worldCupMatchesCountValue(int count) {
     return '$count fixtures across 16 host cities';
   }
+
+  @override
+  String get worldCupGuideFormatTitle => 'How this World Cup works';
+
+  @override
+  String get worldCupGuideFormatBullets =>
+      '48 countries are split into 12 groups of 4.\nEach country plays 3 group matches.\nThe top 2 teams in every group move on, plus the 8 best third-place teams.\nAfter that, the Round of 32 begins and one loss means elimination.';
+
+  @override
+  String get worldCupGuideMatchRulesTitle => 'Match rules';
+
+  @override
+  String get worldCupGuideMatchRulesBullets =>
+      'A normal match has two 45-minute halves.\nGroup matches can finish as a draw, so both teams may earn 1 point.\nIn knockout matches, a draw after 90 minutes goes to extra time, then penalties if still tied.\nA win is 3 points, a draw is 1 point, and a loss is 0 points in the group stage.';
+
+  @override
+  String get worldCupGuideTiebreakTitle => 'How ties are broken';
+
+  @override
+  String get worldCupGuideTiebreakBullets =>
+      'Teams are ranked by points first.\nIf teams in the same group are tied, FIFA checks head-to-head points, head-to-head goal difference, and head-to-head goals.\nIf they are still tied, FIFA checks overall goal difference, overall goals, team conduct score, and then the latest FIFA ranking.\nThe 8 best third-place teams are compared by points, goal difference, goals scored, team conduct score, and FIFA ranking.';
+
+  @override
+  String get worldCupGuideRefereeTitle => 'Referees and helpers';
+
+  @override
+  String get worldCupGuideRefereeBullets =>
+      'FIFA selected 52 referees, 88 assistant referees, and 30 video match officials for the tournament.\nOn the field, a referee leads the match with two assistant referees, a fourth official, and reserve help when appointed.\nAssistant referees help with offside, throw-ins, goal kicks, corner kicks, substitutions, and penalty-kick details.\nThe referee always makes the final decision.';
+
+  @override
+  String get worldCupGuideVarTitle => 'VAR and technology';
+
+  @override
+  String get worldCupGuideVarBullets =>
+      'VAR means Video Assistant Referee.\nVAR checks big match-changing moments such as goal/no goal, penalty/no penalty, direct red card, and mistaken identity.\nThe referee can watch the screen for an on-field review, but the referee still makes the final call.\nGoal-line technology, advanced semi-automated offside support, and connected-ball technology help officials make faster factual decisions.';
 
   @override
   String get worldCupTeamSettingsTitle => 'My World Cup teams';
@@ -621,6 +666,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupVersusShort => 'v';
+
+  @override
+  String get worldCupMatchScheduled => 'Scheduled';
+
+  @override
+  String get worldCupMatchResultFinal => 'Result';
+
+  @override
+  String get worldCupScorePending => '- : -';
+
+  @override
+  String worldCupScoreLine(int homeScore, int awayScore) {
+    return '$homeScore : $awayScore';
+  }
+
+  @override
+  String get worldCupResultPendingTeam => 'Kickoff pending';
+
+  @override
+  String get worldCupResultWin => 'W';
+
+  @override
+  String get worldCupResultDraw => 'D';
+
+  @override
+  String get worldCupResultLoss => 'L';
+
+  @override
+  String get worldCupResultWinSummary => 'Win';
+
+  @override
+  String get worldCupResultDrawSummary => 'Draw';
+
+  @override
+  String get worldCupResultLossSummary => 'Loss';
 
   @override
   String worldCupGroupStageLabel(String group) {
@@ -711,14 +791,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupStandingsPlanBody =>
-      'Once results are available, this view will sort groups by points, goal difference, and goals scored. For now, use it to review each group setup.';
+      'Once results are available, this view will sort groups by FIFA\'s 2026 order: points, head-to-head checks, overall goal difference and goals, team conduct, then FIFA ranking. For now, use it to review each group setup.';
 
   @override
   String get worldCupStandingsRuleLabel => 'Tiebreak order';
 
   @override
   String get worldCupStandingsRuleValue =>
-      'Points · goal difference · goals scored';
+      'Points · head-to-head · goal difference · goals · conduct · FIFA ranking';
 
   @override
   String get worldCupGroupTeamsTitle => 'Group teams';
@@ -979,6 +1059,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String trainingXpDialogXp(int count) {
     return '+$count XP';
+  }
+
+  @override
+  String get trainingXpDialogRewardLabel => 'XP earned';
+
+  @override
+  String get trainingXpDialogTotalLabel => 'Total XP';
+
+  @override
+  String trainingXpDialogTotalValue(int totalXp) {
+    return '$totalXp XP';
+  }
+
+  @override
+  String get trainingXpDialogLevelLabel => 'Current level';
+
+  @override
+  String trainingXpDialogLevelValue(int level, String levelName) {
+    return 'Lv.$level $levelName';
   }
 
   @override
@@ -7460,6 +7559,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String challengeFailureTitle(int round) {
     return 'Round $round stopped here';
   }
+
+  @override
+  String get challengeFailureSimpleTitle => 'Rinzy is sad today';
 
   @override
   String get challengeFailureBody =>

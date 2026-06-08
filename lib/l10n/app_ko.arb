@@ -62,13 +62,13 @@
   "welcomeDiaryStepSave": "제목, 이야기, 스티커 중 하나라도 준비되면 다이어리를 저장해요.",
   "logsQuickGuideTitle": "빠른 시작 가이드",
   "logsQuickGuideIntro": "첫 기록은 이 순서로 만들고, 저장 후 이 화면에서 다시 확인하세요.",
-  "newsFifaHubButton": "피파랭킹",
+  "newsFifaHubButton": "피파",
   "newsWorldCupButton": "월드컵",
-  "newsKLeagueStandingsButton": "국내리그",
+  "newsKLeagueStandingsButton": "리그",
   "newsMoreActionsTooltip": "리그보기",
   "newsMoreActionsTitle": "더보기",
   "newsRankingMoreButton": "리그보기",
-  "newsLeagueStandingsAction": "리그보기",
+  "newsLeagueStandingsAction": "리그",
   "newsLeagueStandingsTitle": "리그 보기",
   "newsKLeagueStandingsTitle": "K리그1",
   "newsPremierLeagueStandingsTitle": "프리미어리그",
@@ -196,6 +196,8 @@
     }
   },
   "worldCupTitle": "월드컵 보기",
+  "worldCupInfoAction": "설명",
+  "worldCupSourceShortAction": "FIFA",
   "worldCupHeroTitle": "FIFA 월드컵 2026",
   "worldCupHeroSubtitle": "캐나다, 멕시코, 미국 · 48개 팀",
   "worldCupCountdownDays": "{days}일 남음",
@@ -213,6 +215,7 @@
   "worldCupStandingsTab": "순위",
   "worldCupTournamentTab": "토너먼트",
   "worldCupOverviewTitle": "대회 개요",
+  "worldCupOverviewIntro": "이번 월드컵은 이전보다 더 커졌어요. 캐나다, 멕시코, 미국에서 48개 나라가 12개 조로 나뉘어 104경기를 치릅니다.",
   "worldCupHostsLabel": "개최국",
   "worldCupHostsValue": "캐나다 · 멕시코 · 미국",
   "worldCupDatesLabel": "기간",
@@ -239,6 +242,16 @@
       }
     }
   },
+  "worldCupGuideFormatTitle": "이번 월드컵 진행 방식",
+  "worldCupGuideFormatBullets": "48개 나라가 4팀씩 12개 조로 나뉘어요.\n각 나라는 조별리그에서 3경기를 해요.\n각 조 1위와 2위는 바로 올라가고, 3위 팀 중 성적이 좋은 8팀도 올라가요.\n그다음 32강부터는 한 번 지면 탈락하는 토너먼트예요.",
+  "worldCupGuideMatchRulesTitle": "경기 기본 규칙",
+  "worldCupGuideMatchRulesBullets": "한 경기는 전반 45분, 후반 45분으로 진행돼요.\n조별리그는 비겨도 끝날 수 있고, 두 팀이 승점 1점씩 가져가요.\n토너먼트에서 90분 동안 비기면 연장전을 하고, 그래도 같으면 승부차기로 승자를 정해요.\n조별리그 승점은 승리 3점, 무승부 1점, 패배 0점이에요.",
+  "worldCupGuideTiebreakTitle": "순위가 같을 때",
+  "worldCupGuideTiebreakBullets": "가장 먼저 승점을 봐요.\n같은 조 안에서 승점이 같으면 맞대결 승점, 맞대결 득실차, 맞대결 득점을 차례로 봐요.\n그래도 같으면 전체 득실차, 전체 득점, 팀 페어플레이 점수, 최신 FIFA 랭킹을 봐요.\n3위 팀끼리는 승점, 득실차, 득점, 팀 페어플레이 점수, FIFA 랭킹 순서로 좋은 8팀을 정해요.",
+  "worldCupGuideRefereeTitle": "심판과 도와주는 사람들",
+  "worldCupGuideRefereeBullets": "FIFA는 이번 대회에 주심 52명, 부심 88명, 비디오 심판 30명을 뽑았어요.\n경기장 안에서는 주심 1명이 경기를 이끌고, 부심 2명과 대기심, 필요한 예비 심판이 도와요.\n부심은 오프사이드, 스로인, 골킥, 코너킥, 교체, 페널티킥 상황을 도와 확인해요.\n마지막 결정은 항상 주심이 내려요.",
+  "worldCupGuideVarTitle": "VAR과 경기 기술",
+  "worldCupGuideVarBullets": "VAR은 비디오로 중요한 장면을 다시 확인하는 심판이에요.\n골인지 아닌지, 페널티킥인지 아닌지, 바로 퇴장인지, 카드를 받은 선수가 맞는지 같은 큰 장면을 확인해요.\n주심은 필요하면 화면을 직접 보고 온필드 리뷰를 하지만, 최종 결정은 주심이 해요.\n골라인 판독, 더 발전한 반자동 오프사이드 도움, 연결된 공 기술도 빠르고 정확한 판정을 도와요.",
   "worldCupTeamSettingsTitle": "내 월드컵 국가",
   "worldCupSupportCountryLabel": "응원하는 나라",
   "worldCupInterestCountriesLabel": "관심 국가",
@@ -270,6 +283,27 @@
     }
   },
   "worldCupVersusShort": "대",
+  "worldCupMatchScheduled": "예정",
+  "worldCupMatchResultFinal": "결과",
+  "worldCupScorePending": "- : -",
+  "worldCupScoreLine": "{homeScore} : {awayScore}",
+  "@worldCupScoreLine": {
+    "placeholders": {
+      "homeScore": {
+        "type": "int"
+      },
+      "awayScore": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupResultPendingTeam": "경기 전",
+  "worldCupResultWin": "승",
+  "worldCupResultDraw": "무",
+  "worldCupResultLoss": "패",
+  "worldCupResultWinSummary": "이겼어요",
+  "worldCupResultDrawSummary": "비겼어요",
+  "worldCupResultLossSummary": "졌어요",
   "worldCupGroupStageLabel": "{group}조",
   "@worldCupGroupStageLabel": {
     "placeholders": {
@@ -310,9 +344,9 @@
   "worldCupMilestoneFinalLabel": "결승",
   "worldCupFinalMatch": "2026년 7월 19일 · 뉴욕 뉴저지 스타디움",
   "worldCupStandingsTitle": "조별 순위",
-  "worldCupStandingsPlanBody": "경기 결과가 쌓이면 승점, 득실차, 다득점 순으로 조별 순위를 정리할 예정이에요. 지금은 각 조 구성을 먼저 확인하세요.",
+  "worldCupStandingsPlanBody": "경기 결과가 쌓이면 2026 FIFA 기준에 맞춰 승점, 맞대결, 전체 득실차와 득점, 팀 페어플레이 점수, FIFA 랭킹 순서로 조별 순위를 정리할 예정이에요. 지금은 각 조 구성을 먼저 확인하세요.",
   "worldCupStandingsRuleLabel": "순위 기준",
-  "worldCupStandingsRuleValue": "승점 · 득실차 · 다득점",
+  "worldCupStandingsRuleValue": "승점 · 맞대결 · 득실차 · 득점 · 페어플레이 · FIFA 랭킹",
   "worldCupGroupTeamsTitle": "조별 팀 구성",
   "worldCupTournamentTitle": "토너먼트 대진표",
   "worldCupTournamentPlanBody": "현재는 공식 일정의 조 순위와 이전 경기 승자 슬롯 기준으로 보여줘요. 조별리그 결과가 확정되면 각 슬롯을 실제 국가명으로 따라갈 수 있어요.",
@@ -535,6 +569,28 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "trainingXpDialogRewardLabel": "오늘 얻은 경험치",
+  "trainingXpDialogTotalLabel": "누적 경험치",
+  "trainingXpDialogTotalValue": "{totalXp} XP",
+  "@trainingXpDialogTotalValue": {
+    "placeholders": {
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingXpDialogLevelLabel": "현재 레벨",
+  "trainingXpDialogLevelValue": "Lv.{level} {levelName}",
+  "@trainingXpDialogLevelValue": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "levelName": {
+        "type": "String"
       }
     }
   },
@@ -3765,6 +3821,7 @@
       }
     }
   },
+  "challengeFailureSimpleTitle": "오늘은 린지가 속상해요",
   "challengeFailureBody": "린지가 아쉬워해요. 그래도 다음 도전은 더 힘차게 시작할 수 있어요.",
   "challengeFailureAction": "라운드 확인",
   "challengeCelebrationTitle": "미션 완료!",

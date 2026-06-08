@@ -73,9 +73,9 @@ void main() {
     expect(find.byKey(_leagueStandingsActionKey), findsOneWidget);
     expect(find.byKey(_fifaHubActionKey), findsOneWidget);
     expect(find.byKey(_worldCupActionKey), findsOneWidget);
-    expect(find.text('리그보기'), findsOneWidget);
+    expect(find.text('리그'), findsOneWidget);
     expect(find.text('국내리그'), findsNothing);
-    expect(find.text('피파랭킹'), findsOneWidget);
+    expect(find.text('피파'), findsOneWidget);
   });
 
   testWidgets('world cup action is first and compact header keeps title', (
@@ -171,8 +171,9 @@ void main() {
     expect(find.text('번역'), findsNothing);
 
     final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
-    final translateX =
-        tester.getTopLeft(find.byKey(_translateToggleActionKey)).dx;
+    final translateX = tester
+        .getTopLeft(find.byKey(_translateToggleActionKey))
+        .dx;
     final searchX = tester.getTopLeft(find.byKey(_searchActionKey)).dx;
 
     expect(scrapX, lessThan(translateX));
@@ -397,8 +398,8 @@ class _FakeNewsRepository implements NewsRepository {
   _FakeNewsRepository({
     required List<NewsChannel> channels,
     required Map<String, List<NewsArticle>> articlesByChannelId,
-  })  : _channels = channels,
-        _articlesByChannelId = articlesByChannelId;
+  }) : _channels = channels,
+       _articlesByChannelId = articlesByChannelId;
 
   @override
   List<NewsChannel> channels() => _channels;
@@ -427,15 +428,13 @@ class _FakeTrainingRepository implements TrainingRepository {
   Future<List<TrainingEntry>> getRange(
     DateTime startInclusive,
     DateTime endExclusive,
-  ) async =>
-      const <TrainingEntry>[];
+  ) async => const <TrainingEntry>[];
 
   @override
   Future<List<TrainingEntry>> getRecent({
     required int limit,
     bool includeMatches = true,
-  }) async =>
-      const <TrainingEntry>[];
+  }) async => const <TrainingEntry>[];
 
   @override
   Future<void> update(int key, TrainingEntry entry) async {}
@@ -448,15 +447,13 @@ class _FakeTrainingRepository implements TrainingRepository {
   Stream<List<TrainingEntry>> watchRange(
     DateTime startInclusive,
     DateTime endExclusive,
-  ) =>
-      Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
+  ) => Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
 
   @override
   Stream<List<TrainingEntry>> watchRecent({
     required int limit,
     bool includeMatches = true,
-  }) =>
-      Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
+  }) => Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
 }
 
 class _MemoryOptionRepository implements OptionRepository {

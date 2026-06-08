@@ -24,4 +24,54 @@ void main() {
       contains('Korea Republic'),
     );
   });
+
+  test(
+    'fixtures can expose flags and match results when scores are present',
+    () {
+      const fixture = WorldCupFixture(
+        matchNumber: 999,
+        kickoffUtcIso: '2026-06-11T19:00:00Z',
+        stage: WorldCupStage.group,
+        group: 'A',
+        homeTeam: 'Korea Republic',
+        awayTeam: 'Czechia',
+        venue: 'Test Stadium',
+        homeScore: 2,
+        awayScore: 1,
+      );
+
+      expect(worldCupCountryFlag('Korea Republic'), isNotEmpty);
+      expect(worldCupCountryFlag('England'), isNotEmpty);
+      expect(fixture.hasScore, isTrue);
+      expect(
+        fixture.resultForTeam('Korea Republic'),
+        WorldCupFixtureTeamResult.win,
+      );
+      expect(fixture.resultForTeam('Czechia'), WorldCupFixtureTeamResult.loss);
+    },
+  );
+
+  test('day and country helper filters selected-country calendar counts', () {
+    final koreaFixture = worldCupFixturesForCountries(const {
+      'Korea Republic',
+    }).first;
+    final allFixturesOnDay = worldCupFixturesForDay(koreaFixture.localDay);
+    final selectedFixturesOnDay = worldCupFixturesForDayAndCountries(
+      koreaFixture.localDay,
+      const {'Korea Republic'},
+    );
+
+    expect(allFixturesOnDay.length, greaterThanOrEqualTo(1));
+    expect(selectedFixturesOnDay, isNotEmpty);
+    expect(
+      selectedFixturesOnDay.length,
+      lessThanOrEqualTo(allFixturesOnDay.length),
+    );
+    expect(
+      selectedFixturesOnDay.every(
+        (fixture) => fixture.involvesCountry('Korea Republic'),
+      ),
+      isTrue,
+    );
+  });
 }

@@ -20,6 +20,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('월드컵 보기'), findsOneWidget);
+    expect(find.text('설명'), findsOneWidget);
+    expect(find.text('FIFA'), findsOneWidget);
     final countrySettingsY = tester.getTopLeft(find.text('내 월드컵 국가')).dy;
     final calendarY = tester.getTopLeft(find.text('전체 경기 캘린더')).dy;
     expect(countrySettingsY, lessThan(calendarY));
@@ -41,7 +43,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('대회 개요'), findsOneWidget);
+    expect(find.text('이번 월드컵 진행 방식'), findsOneWidget);
+    expect(find.text('VAR과 경기 기술'), findsOneWidget);
     expect(find.text('결승까지의 흐름'), findsOneWidget);
+  });
+
+  testWidgets('selected-country filter stays in the calendar flow', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const WorldCupScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('선택한 국가 경기만 보기'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('선택 국가 경기'), findsNothing);
   });
 
   testWidgets('standings and tournament views show structured plan cards', (

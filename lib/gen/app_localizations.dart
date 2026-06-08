@@ -451,7 +451,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsFifaHubButton.
   ///
   /// In en, this message translates to:
-  /// **'FIFA Rank'**
+  /// **'FIFA'**
   String get newsFifaHubButton;
 
   /// No description provided for @newsWorldCupButton.
@@ -463,7 +463,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsKLeagueStandingsButton.
   ///
   /// In en, this message translates to:
-  /// **'Domestic'**
+  /// **'League'**
   String get newsKLeagueStandingsButton;
 
   /// No description provided for @newsMoreActionsTooltip.
@@ -487,7 +487,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsLeagueStandingsAction.
   ///
   /// In en, this message translates to:
-  /// **'League View'**
+  /// **'League'**
   String get newsLeagueStandingsAction;
 
   /// No description provided for @newsLeagueStandingsTitle.
@@ -995,6 +995,18 @@ abstract class AppLocalizations {
   /// **'World Cup View'**
   String get worldCupTitle;
 
+  /// No description provided for @worldCupInfoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide'**
+  String get worldCupInfoAction;
+
+  /// No description provided for @worldCupSourceShortAction.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA'**
+  String get worldCupSourceShortAction;
+
   /// No description provided for @worldCupHeroTitle.
   ///
   /// In en, this message translates to:
@@ -1055,6 +1067,12 @@ abstract class AppLocalizations {
   /// **'Tournament overview'**
   String get worldCupOverviewTitle;
 
+  /// No description provided for @worldCupOverviewIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'This World Cup is bigger than before: 48 countries, 12 groups, and 104 matches across Canada, Mexico, and the United States.'**
+  String get worldCupOverviewIntro;
+
   /// No description provided for @worldCupHostsLabel.
   ///
   /// In en, this message translates to:
@@ -1108,6 +1126,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} fixtures across 16 host cities'**
   String worldCupMatchesCountValue(int count);
+
+  /// No description provided for @worldCupGuideFormatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How this World Cup works'**
+  String get worldCupGuideFormatTitle;
+
+  /// No description provided for @worldCupGuideFormatBullets.
+  ///
+  /// In en, this message translates to:
+  /// **'48 countries are split into 12 groups of 4.\nEach country plays 3 group matches.\nThe top 2 teams in every group move on, plus the 8 best third-place teams.\nAfter that, the Round of 32 begins and one loss means elimination.'**
+  String get worldCupGuideFormatBullets;
+
+  /// No description provided for @worldCupGuideMatchRulesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match rules'**
+  String get worldCupGuideMatchRulesTitle;
+
+  /// No description provided for @worldCupGuideMatchRulesBullets.
+  ///
+  /// In en, this message translates to:
+  /// **'A normal match has two 45-minute halves.\nGroup matches can finish as a draw, so both teams may earn 1 point.\nIn knockout matches, a draw after 90 minutes goes to extra time, then penalties if still tied.\nA win is 3 points, a draw is 1 point, and a loss is 0 points in the group stage.'**
+  String get worldCupGuideMatchRulesBullets;
+
+  /// No description provided for @worldCupGuideTiebreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How ties are broken'**
+  String get worldCupGuideTiebreakTitle;
+
+  /// No description provided for @worldCupGuideTiebreakBullets.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams are ranked by points first.\nIf teams in the same group are tied, FIFA checks head-to-head points, head-to-head goal difference, and head-to-head goals.\nIf they are still tied, FIFA checks overall goal difference, overall goals, team conduct score, and then the latest FIFA ranking.\nThe 8 best third-place teams are compared by points, goal difference, goals scored, team conduct score, and FIFA ranking.'**
+  String get worldCupGuideTiebreakBullets;
+
+  /// No description provided for @worldCupGuideRefereeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Referees and helpers'**
+  String get worldCupGuideRefereeTitle;
+
+  /// No description provided for @worldCupGuideRefereeBullets.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA selected 52 referees, 88 assistant referees, and 30 video match officials for the tournament.\nOn the field, a referee leads the match with two assistant referees, a fourth official, and reserve help when appointed.\nAssistant referees help with offside, throw-ins, goal kicks, corner kicks, substitutions, and penalty-kick details.\nThe referee always makes the final decision.'**
+  String get worldCupGuideRefereeBullets;
+
+  /// No description provided for @worldCupGuideVarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'VAR and technology'**
+  String get worldCupGuideVarTitle;
+
+  /// No description provided for @worldCupGuideVarBullets.
+  ///
+  /// In en, this message translates to:
+  /// **'VAR means Video Assistant Referee.\nVAR checks big match-changing moments such as goal/no goal, penalty/no penalty, direct red card, and mistaken identity.\nThe referee can watch the screen for an on-field review, but the referee still makes the final call.\nGoal-line technology, advanced semi-automated offside support, and connected-ball technology help officials make faster factual decisions.'**
+  String get worldCupGuideVarBullets;
 
   /// No description provided for @worldCupTeamSettingsTitle.
   ///
@@ -1192,6 +1270,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'v'**
   String get worldCupVersusShort;
+
+  /// No description provided for @worldCupMatchScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get worldCupMatchScheduled;
+
+  /// No description provided for @worldCupMatchResultFinal.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get worldCupMatchResultFinal;
+
+  /// No description provided for @worldCupScorePending.
+  ///
+  /// In en, this message translates to:
+  /// **'- : -'**
+  String get worldCupScorePending;
+
+  /// No description provided for @worldCupScoreLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{homeScore} : {awayScore}'**
+  String worldCupScoreLine(int homeScore, int awayScore);
+
+  /// No description provided for @worldCupResultPendingTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Kickoff pending'**
+  String get worldCupResultPendingTeam;
+
+  /// No description provided for @worldCupResultWin.
+  ///
+  /// In en, this message translates to:
+  /// **'W'**
+  String get worldCupResultWin;
+
+  /// No description provided for @worldCupResultDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'D'**
+  String get worldCupResultDraw;
+
+  /// No description provided for @worldCupResultLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get worldCupResultLoss;
+
+  /// No description provided for @worldCupResultWinSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Win'**
+  String get worldCupResultWinSummary;
+
+  /// No description provided for @worldCupResultDrawSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get worldCupResultDrawSummary;
+
+  /// No description provided for @worldCupResultLossSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Loss'**
+  String get worldCupResultLossSummary;
 
   /// No description provided for @worldCupGroupStageLabel.
   ///
@@ -1352,7 +1496,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupStandingsPlanBody.
   ///
   /// In en, this message translates to:
-  /// **'Once results are available, this view will sort groups by points, goal difference, and goals scored. For now, use it to review each group setup.'**
+  /// **'Once results are available, this view will sort groups by FIFA\'s 2026 order: points, head-to-head checks, overall goal difference and goals, team conduct, then FIFA ranking. For now, use it to review each group setup.'**
   String get worldCupStandingsPlanBody;
 
   /// No description provided for @worldCupStandingsRuleLabel.
@@ -1364,7 +1508,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupStandingsRuleValue.
   ///
   /// In en, this message translates to:
-  /// **'Points · goal difference · goals scored'**
+  /// **'Points · head-to-head · goal difference · goals · conduct · FIFA ranking'**
   String get worldCupStandingsRuleValue;
 
   /// No description provided for @worldCupGroupTeamsTitle.
@@ -1792,6 +1936,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'+{count} XP'**
   String trainingXpDialogXp(int count);
+
+  /// No description provided for @trainingXpDialogRewardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'XP earned'**
+  String get trainingXpDialogRewardLabel;
+
+  /// No description provided for @trainingXpDialogTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total XP'**
+  String get trainingXpDialogTotalLabel;
+
+  /// No description provided for @trainingXpDialogTotalValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{totalXp} XP'**
+  String trainingXpDialogTotalValue(int totalXp);
+
+  /// No description provided for @trainingXpDialogLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current level'**
+  String get trainingXpDialogLevelLabel;
+
+  /// No description provided for @trainingXpDialogLevelValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv.{level} {levelName}'**
+  String trainingXpDialogLevelValue(int level, String levelName);
 
   /// No description provided for @trainingXpDialogAction.
   ///
@@ -12829,6 +13003,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Round {round} stopped here'**
   String challengeFailureTitle(int round);
+
+  /// No description provided for @challengeFailureSimpleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rinzy is sad today'**
+  String get challengeFailureSimpleTitle;
 
   /// No description provided for @challengeFailureBody.
   ///

@@ -62,13 +62,13 @@
   "welcomeDiaryStepSave": "タイトル、ストーリー、またはステッカーの選択の準備ができたら、日記を保存します。",
   "logsQuickGuideTitle": "クイックスタートガイド",
   "logsQuickGuideIntro": "この順序で最初のレコードを作成し、ここに戻って確認します。",
-  "newsFifaHubButton": "FIFAランク",
+  "newsFifaHubButton": "FIFA",
   "newsWorldCupButton": "W杯",
-  "newsKLeagueStandingsButton": "国内",
+  "newsKLeagueStandingsButton": "リーグ",
   "newsMoreActionsTooltip": "リーグビュー",
   "newsMoreActionsTitle": "もっと",
   "newsRankingMoreButton": "リーグビュー",
-  "newsLeagueStandingsAction": "リーグビュー",
+  "newsLeagueStandingsAction": "リーグ",
   "newsLeagueStandingsTitle": "リーグビュー",
   "newsKLeagueStandingsTitle": "Kリーグ1",
   "newsPremierLeagueStandingsTitle": "プレミアリーグ",
@@ -196,6 +196,8 @@
     }
   },
   "worldCupTitle": "ワールドカップ表示",
+  "worldCupInfoAction": "説明",
+  "worldCupSourceShortAction": "FIFA",
   "worldCupHeroTitle": "FIFAワールドカップ2026",
   "worldCupHeroSubtitle": "カナダ、メキシコ、アメリカ · 48チーム",
   "worldCupCountdownDays": "あと{days}日",
@@ -213,6 +215,7 @@
   "worldCupStandingsTab": "順位",
   "worldCupTournamentTab": "トーナメント",
   "worldCupOverviewTitle": "大会概要",
+  "worldCupOverviewIntro": "今回のワールドカップはこれまでより大きく、カナダ、メキシコ、アメリカで48か国が12グループに分かれて104試合を行います。",
   "worldCupHostsLabel": "開催国",
   "worldCupHostsValue": "カナダ · メキシコ · アメリカ",
   "worldCupDatesLabel": "日程",
@@ -239,6 +242,16 @@
       }
     }
   },
+  "worldCupGuideFormatTitle": "今回の進み方",
+  "worldCupGuideFormatBullets": "48か国が4チームずつ12グループに分かれます。\n各国はグループで3試合を行います。\n各グループの1位と2位、そして3位の中で成績のよい8チームが進みます。\nその後のラウンド32からは、1回負けると敗退するトーナメントです。",
+  "worldCupGuideMatchRulesTitle": "試合の基本ルール",
+  "worldCupGuideMatchRulesBullets": "1試合は前半45分、後半45分です。\nグループステージは引き分けで終わることがあり、両チームが勝点1を得ます。\nトーナメントで90分後に同点なら延長戦を行い、それでも同点ならPK戦で勝者を決めます。\nグループステージの勝点は勝ち3、引き分け1、負け0です。",
+  "worldCupGuideTiebreakTitle": "順位が同じとき",
+  "worldCupGuideTiebreakBullets": "最初に勝点を見ます。\n同じグループで勝点が並んだら、直接対決の勝点、直接対決の得失点差、直接対決の得点を順に見ます。\nまだ同じなら、全体の得失点差、全体の得点、チーム行動スコア、最新のFIFAランキングを見ます。\n3位チーム同士は、勝点、得失点差、得点、チーム行動スコア、FIFAランキングの順で上位8チームを決めます。",
+  "worldCupGuideRefereeTitle": "審判とサポート",
+  "worldCupGuideRefereeBullets": "FIFAは大会のために主審52人、副審88人、ビデオ審判30人を選びました。\nピッチでは主審1人が試合を進め、副審2人、第四審判、必要な予備審判が助けます。\n副審はオフサイド、スローイン、ゴールキック、コーナーキック、交代、PKの確認を助けます。\n最後の決定はいつも主審が行います。",
+  "worldCupGuideVarTitle": "VARとテクノロジー",
+  "worldCupGuideVarBullets": "VARはビデオで大事な場面を確認する審判です。\nゴールかどうか、PKかどうか、直接レッドカードか、カードを受けた選手が正しいかなどを確認します。\n主審は必要なら画面を見てオンフィールドレビューを行いますが、最終判断は主審がします。\nゴールライン技術、進化した半自動オフサイド支援、コネクテッドボール技術も、事実判定を速く正確にする助けになります。",
   "worldCupTeamSettingsTitle": "自分のワールドカップ国",
   "worldCupSupportCountryLabel": "応援する国",
   "worldCupInterestCountriesLabel": "注目国",
@@ -270,6 +283,27 @@
     }
   },
   "worldCupVersusShort": "対",
+  "worldCupMatchScheduled": "予定",
+  "worldCupMatchResultFinal": "結果",
+  "worldCupScorePending": "- : -",
+  "worldCupScoreLine": "{homeScore} : {awayScore}",
+  "@worldCupScoreLine": {
+    "placeholders": {
+      "homeScore": {
+        "type": "int"
+      },
+      "awayScore": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupResultPendingTeam": "試合前",
+  "worldCupResultWin": "勝",
+  "worldCupResultDraw": "分",
+  "worldCupResultLoss": "敗",
+  "worldCupResultWinSummary": "勝ち",
+  "worldCupResultDrawSummary": "引き分け",
+  "worldCupResultLossSummary": "負け",
   "worldCupGroupStageLabel": "グループ{group}",
   "@worldCupGroupStageLabel": {
     "placeholders": {
@@ -310,9 +344,9 @@
   "worldCupMilestoneFinalLabel": "決勝",
   "worldCupFinalMatch": "2026年7月19日 · ニューヨーク・ニュージャージー・スタジアム",
   "worldCupStandingsTitle": "グループ順位",
-  "worldCupStandingsPlanBody": "試合結果が入ったら、勝点、得失点差、得点数の順でグループ順位を整理します。今は各グループ構成を確認できます。",
+  "worldCupStandingsPlanBody": "試合結果が入ったら、2026年のFIFA基準に合わせて、勝点、直接対決、全体の得失点差と得点、チーム行動スコア、FIFAランキングの順でグループ順位を整理します。今は各グループ構成を確認できます。",
   "worldCupStandingsRuleLabel": "順位基準",
-  "worldCupStandingsRuleValue": "勝点 · 得失点差 · 得点",
+  "worldCupStandingsRuleValue": "勝点 · 直接対決 · 得失点差 · 得点 · 行動スコア · FIFAランキング",
   "worldCupGroupTeamsTitle": "グループ別チーム",
   "worldCupTournamentTitle": "トーナメント表",
   "worldCupTournamentPlanBody": "現在は公式日程のグループ順位枠と前試合の勝者枠を基準に表示します。グループ結果が確定したら、各枠を実際の国の道筋として追えます。",
@@ -535,6 +569,28 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "trainingXpDialogRewardLabel": "獲得XP",
+  "trainingXpDialogTotalLabel": "累計XP",
+  "trainingXpDialogTotalValue": "{totalXp} XP",
+  "@trainingXpDialogTotalValue": {
+    "placeholders": {
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingXpDialogLevelLabel": "現在のレベル",
+  "trainingXpDialogLevelValue": "Lv.{level} {levelName}",
+  "@trainingXpDialogLevelValue": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "levelName": {
+        "type": "String"
       }
     }
   },
@@ -3765,6 +3821,7 @@
       }
     }
   },
+  "challengeFailureSimpleTitle": "今日はリンジーが悲しそうです",
   "challengeFailureBody": "リンジーは残念そうです。でも次の挑戦はもっと力強く始められます。",
   "challengeFailureAction": "ラウンドを確認",
   "challengeCelebrationTitle": "ミッション完了!",

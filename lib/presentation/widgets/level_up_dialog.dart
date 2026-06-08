@@ -122,7 +122,12 @@ Future<void> showTrainingXpRewardDialog(
   final theme = Theme.of(context);
   final scheme = theme.colorScheme;
   final spec = _TrainingXpDialogSpec.fromAward(l10n, scheme, award);
-  await _showTrainingXpRewardDialog(context, award: award, spec: spec);
+  await _showTrainingXpRewardDialog(
+    context,
+    award: award,
+    spec: spec,
+    immersive: true,
+  );
 }
 
 Future<void> showDiaryXpRewardDialog(
@@ -163,6 +168,7 @@ Future<void> _showTrainingXpRewardDialog(
   BuildContext context, {
   required PlayerLevelAward award,
   required _TrainingXpDialogSpec spec,
+  bool immersive = false,
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final theme = Theme.of(context);
@@ -176,6 +182,19 @@ Future<void> _showTrainingXpRewardDialog(
           award.after.totalXp,
           award.after.xpToNextLevel,
         );
+  if (immersive) {
+    await _showCelebrationDialog(
+      context,
+      fullScreen: true,
+      showBackdrop: false,
+      child: _TrainingXpRewardFullScreen(
+        award: award,
+        spec: spec,
+        progressText: progressText,
+      ),
+    );
+    return;
+  }
   final panelColor = Color.alphaBlend(
     spec.color.withValues(
       alpha: theme.brightness == Brightness.dark ? 0.22 : 0.14,
@@ -276,55 +295,14 @@ Future<void> showTrainingStreakCheerDialog(
   final streakDays = _trainingStreakDays(award);
   if (streakDays < 2) return;
   final l10n = AppLocalizations.of(context)!;
-  final theme = Theme.of(context);
-  final scheme = theme.colorScheme;
   await _showCelebrationDialog(
     context,
-    child: Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.18)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x26000000),
-            blurRadius: 28,
-            offset: Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const _FlameBurst(color: Color(0xFFF97316)),
-          const SizedBox(height: 14),
-          Text(
-            l10n.trainingStreakCheerTitle(streakDays),
-            textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.trainingStreakCheerMessage,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(l10n.trainingStreakCheerAction),
-            ),
-          ),
-        ],
-      ),
+    fullScreen: true,
+    showBackdrop: false,
+    child: _TrainingStreakFullScreen(
+      streakDays: streakDays,
+      title: l10n.trainingStreakCheerTitle(streakDays),
+      message: l10n.trainingStreakCheerMessage,
     ),
   );
 }
@@ -535,12 +513,10 @@ class _TrainingXpDialogSpec {
     PlayerLevelAward award,
   ) {
     final reasons = award.reasons.toSet();
-    final hasJumpRopeGain =
-        reasons.contains('jump_rope_added') ||
+    final hasJumpRopeGain = reasons.contains('jump_rope_added') ||
         (!reasons.contains('jump_rope_missed') &&
             reasons.any((reason) => reason.contains('jump_rope')));
-    final hasLiftingGain =
-        reasons.contains('lifting_added') ||
+    final hasLiftingGain = reasons.contains('lifting_added') ||
         (!reasons.contains('lifting_missed') &&
             reasons.any((reason) => reason.contains('lifting')));
     if (hasJumpRopeGain) {
@@ -572,6 +548,432 @@ class _TrainingXpDialogSpec {
   }
 }
 
+class _TrainingXpRewardFullScreen extends StatelessWidget {
+  final PlayerLevelAward award;
+  final _TrainingXpDialogSpec spec;
+  final String progressText;
+
+  const _TrainingXpRewardFullScreen({
+    required this.award,
+    required this.spec,
+    required this.progressText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final gradientStart = Color.alphaBlend(
+      spec.color.withValues(alpha: 0.18),
+      scheme.surface,
+    );
+    final gradientEnd = Color.alphaBlend(
+      scheme.tertiary.withValues(alpha: 0.16),
+      scheme.surfaceContainerHighest,
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [gradientStart, gradientEnd],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: spec.color.withValues(alpha: 0.22)),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compactHeight = constraints.maxHeight < 620;
+            final heroSize = math.min(
+              constraints.maxWidth * 0.58,
+              compactHeight ? 178.0 : 236.0,
+            );
+            return Stack(
+              children: [
+                Positioned.fill(child: _OrbitGemBackdrop(color: spec.color)),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    compactHeight ? 18 : 28,
+                    20,
+                    18,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: IconButton.filledTonal(
+                          tooltip: MaterialLocalizations.of(
+                            context,
+                          ).closeButtonLabel,
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _OrbitGemCelebration(
+                                  color: spec.color,
+                                  size: heroSize,
+                                ),
+                                SizedBox(height: compactHeight ? 14 : 22),
+                                Text(
+                                  spec.title,
+                                  textAlign: TextAlign.center,
+                                  style:
+                                      theme.textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    color: scheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  spec.message,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.35,
+                                  ),
+                                ),
+                                SizedBox(height: compactHeight ? 18 : 26),
+                                _XpHeroAmount(
+                                  color: spec.color,
+                                  label: l10n.trainingXpDialogRewardLabel,
+                                  value: l10n.trainingXpDialogXp(
+                                    award.gainedXp,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                _LevelProgressStrip(
+                                  progress: award.after.progress,
+                                  foreground: spec.color,
+                                  background: spec.color.withValues(
+                                    alpha: 0.16,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  progressText,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _RewardStatCard(
+                                        label: l10n.trainingXpDialogTotalLabel,
+                                        value: l10n.trainingXpDialogTotalValue(
+                                          award.after.totalXp,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: _RewardStatCard(
+                                        label: l10n.trainingXpDialogLevelLabel,
+                                        value: l10n.trainingXpDialogLevelValue(
+                                          award.after.level,
+                                          l10n.playerLevelName(
+                                            award.after.level,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      FilledButton.icon(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.check_circle_outline_rounded),
+                        label: Text(l10n.trainingXpDialogAction),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                          backgroundColor: spec.color,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _TrainingStreakFullScreen extends StatelessWidget {
+  final int streakDays;
+  final String title;
+  final String message;
+
+  const _TrainingStreakFullScreen({
+    required this.streakDays,
+    required this.title,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    const flame = Color(0xFFF97316);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color.alphaBlend(flame.withValues(alpha: 0.18), scheme.surface),
+              Color.alphaBlend(
+                scheme.primary.withValues(alpha: 0.14),
+                scheme.surfaceContainerHighest,
+              ),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: flame.withValues(alpha: 0.22)),
+        ),
+        child: Stack(
+          children: [
+            const Positioned.fill(child: _WarmPulseBackdrop(color: flame)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: IconButton.filledTonal(
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).closeButtonLabel,
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(
+                              height: 140,
+                              child: FittedBox(
+                                child: _FlameBurst(color: flame),
+                              ),
+                            ),
+                            const SizedBox(height: 22),
+                            Text(
+                              title,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: scheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              message,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w700,
+                                height: 1.35,
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            _StreakTrail(days: streakDays, color: flame),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  FilledButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.local_fire_department_rounded),
+                    label: Text(l10n.trainingStreakCheerAction),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                      backgroundColor: flame,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _XpHeroAmount extends StatelessWidget {
+  final Color color;
+  final String label;
+  final String value;
+
+  const _XpHeroAmount({
+    required this.color,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.24)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.displaySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RewardStatCard extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _RewardStatCard({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(alpha: 0.74),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StreakTrail extends StatelessWidget {
+  final int days;
+  final Color color;
+
+  const _StreakTrail({required this.days, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final visibleDays = days.clamp(2, 7).toInt();
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (var index = 0; index < visibleDays; index += 1)
+          Container(
+            width: 46,
+            height: 56,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12 + index * 0.018),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: color.withValues(alpha: 0.28)),
+            ),
+            child: Icon(
+              Icons.local_fire_department_rounded,
+              color: color,
+              size: 24 + math.min(index.toDouble(), 3),
+              shadows: [
+                Shadow(color: color.withValues(alpha: 0.28), blurRadius: 12),
+              ],
+            ),
+          ),
+        if (days > visibleDays)
+          Container(
+            width: 46,
+            height: 56,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              '+${days - visibleDays}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 int _trainingStreakDays(PlayerLevelAward award) {
   final reasons = award.reasons.toSet();
   if (reasons.contains('streak_7') || reasons.contains('streak_daily_7_plus')) {
@@ -586,6 +988,8 @@ int _trainingStreakDays(PlayerLevelAward award) {
 Future<void> _showCelebrationDialog(
   BuildContext context, {
   required Widget child,
+  bool fullScreen = false,
+  bool showBackdrop = true,
 }) {
   unawaited(HapticFeedback.mediumImpact());
   unawaited(SystemSound.play(SystemSoundType.alert));
@@ -604,30 +1008,34 @@ Future<void> _showCelebrationDialog(
       );
       final availableWidth = MediaQuery.sizeOf(context).width - 32;
       final dialogWidth = math.max(280.0, math.min(availableWidth, 620.0));
+      final scaledChild = ScaleTransition(
+        scale: Tween<double>(begin: 0.94, end: 1).animate(curved),
+        child: fullScreen
+            ? SizedBox.expand(child: child)
+            : SizedBox(
+                width: dialogWidth,
+                child: SingleChildScrollView(child: child),
+              ),
+      );
       return FadeTransition(
         opacity: curved,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            IgnorePointer(
-              child: _FallingGemBackdrop(
-                color: Theme.of(context).colorScheme.primary,
+            if (showBackdrop)
+              IgnorePointer(
+                child: _FallingGemBackdrop(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
-            ),
             Material(
               color: Colors.transparent,
               child: SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
-                  child: Center(
-                    child: ScaleTransition(
-                      scale: Tween<double>(begin: 0.94, end: 1).animate(curved),
-                      child: SizedBox(
-                        width: dialogWidth,
-                        child: SingleChildScrollView(child: child),
-                      ),
-                    ),
-                  ),
+                  padding: fullScreen
+                      ? EdgeInsets.zero
+                      : const EdgeInsets.fromLTRB(16, 20, 16, 20),
+                  child: fullScreen ? scaledChild : Center(child: scaledChild),
                 ),
               ),
             ),
@@ -636,6 +1044,289 @@ Future<void> _showCelebrationDialog(
       );
     },
   );
+}
+
+class _OrbitGemCelebration extends StatefulWidget {
+  final Color color;
+  final double size;
+
+  const _OrbitGemCelebration({required this.color, required this.size});
+
+  @override
+  State<_OrbitGemCelebration> createState() => _OrbitGemCelebrationState();
+}
+
+class _OrbitGemCelebrationState extends State<_OrbitGemCelebration>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: widget.size,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final progress = _controller.value;
+          final pulse = 1 + math.sin(progress * math.pi * 2) * 0.035;
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _OrbitGemPainter(
+                    color: widget.color,
+                    progress: progress,
+                  ),
+                ),
+              ),
+              Transform.scale(
+                scale: pulse,
+                child: _CuteGemIcon(
+                  color: widget.color,
+                  size: widget.size * 0.38,
+                  glint: (math.sin((progress * math.pi * 2) + 0.8) + 1) / 2,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _OrbitGemPainter extends CustomPainter {
+  final Color color;
+  final double progress;
+
+  const _OrbitGemPainter({required this.color, required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final center = size.center(Offset.zero);
+    final radius = math.min(size.width, size.height) * 0.36;
+    final ringPaint = Paint()
+      ..color = color.withValues(alpha: 0.18)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: center,
+        width: radius * 2.15,
+        height: radius * 1.08,
+      ),
+      ringPaint,
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: center,
+        width: radius * 1.18,
+        height: radius * 2.10,
+      ),
+      ringPaint..color = color.withValues(alpha: 0.13),
+    );
+
+    for (var index = 0; index < 12; index += 1) {
+      final angle = progress * math.pi * 2 + (index * math.pi * 2 / 12);
+      final x =
+          center.dx + math.cos(angle) * radius * (index.isEven ? 1.04 : 0.74);
+      final y =
+          center.dy + math.sin(angle) * radius * (index.isEven ? 0.46 : 0.92);
+      final sizeFactor = 4.0 + (index % 3) * 1.6;
+      final path = Path()
+        ..moveTo(x, y - sizeFactor)
+        ..lineTo(x + sizeFactor, y)
+        ..lineTo(x, y + sizeFactor)
+        ..lineTo(x - sizeFactor, y)
+        ..close();
+      canvas.drawPath(
+        path,
+        Paint()..color = color.withValues(alpha: 0.24 + (index % 4) * 0.06),
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.36)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _OrbitGemPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.progress != progress;
+  }
+}
+
+class _OrbitGemBackdrop extends StatefulWidget {
+  final Color color;
+
+  const _OrbitGemBackdrop({required this.color});
+
+  @override
+  State<_OrbitGemBackdrop> createState() => _OrbitGemBackdropState();
+}
+
+class _OrbitGemBackdropState extends State<_OrbitGemBackdrop>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3600),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return CustomPaint(
+          painter: _RibbonBackdropPainter(
+            color: widget.color,
+            progress: _controller.value,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WarmPulseBackdrop extends StatefulWidget {
+  final Color color;
+
+  const _WarmPulseBackdrop({required this.color});
+
+  @override
+  State<_WarmPulseBackdrop> createState() => _WarmPulseBackdropState();
+}
+
+class _WarmPulseBackdropState extends State<_WarmPulseBackdrop>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return CustomPaint(
+          painter: _RibbonBackdropPainter(
+            color: widget.color,
+            progress: _controller.value,
+            warm: true,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _RibbonBackdropPainter extends CustomPainter {
+  final Color color;
+  final double progress;
+  final bool warm;
+
+  const _RibbonBackdropPainter({
+    required this.color,
+    required this.progress,
+    this.warm = false,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final ribbonPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    for (var index = 0; index < 6; index += 1) {
+      final offset = ((progress + index * 0.19) % 1.0) * size.width;
+      final y = size.height * (0.16 + index * 0.14);
+      final path = Path()
+        ..moveTo(offset - size.width * 0.55, y)
+        ..cubicTo(
+          offset - size.width * 0.24,
+          y - 48,
+          offset + size.width * 0.08,
+          y + 48,
+          offset + size.width * 0.42,
+          y - 12,
+        );
+      ribbonPaint
+        ..strokeWidth = warm ? 16.0 - index : 10.0 - index * 0.7
+        ..color = color.withValues(alpha: warm ? 0.08 : 0.065);
+      canvas.drawPath(path, ribbonPaint);
+    }
+
+    final sparklePaint = Paint()..color = color.withValues(alpha: 0.20);
+    for (var index = 0; index < 18; index += 1) {
+      final seed = ((index * 29) % 101) / 101.0;
+      final x = (seed * size.width + progress * 48) % size.width;
+      final y = ((index * 41) % 100) / 100.0 * size.height;
+      final radius = 1.8 + (index % 3);
+      final center = Offset(x, y);
+      canvas.drawLine(
+        center.translate(-radius, 0),
+        center.translate(radius, 0),
+        sparklePaint..strokeWidth = 1.2,
+      );
+      canvas.drawLine(
+        center.translate(0, -radius),
+        center.translate(0, radius),
+        sparklePaint..strokeWidth = 1.2,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RibbonBackdropPainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.progress != progress ||
+        oldDelegate.warm != warm;
+  }
 }
 
 class _FallingGemBackdrop extends StatefulWidget {
@@ -828,24 +1519,22 @@ class _FlameBurstPainter extends CustomPainter {
     if (size.isEmpty) return;
     final center = Offset(size.width * 0.5, size.height * 0.68);
     final glow = Paint()
-      ..shader =
-          RadialGradient(
-            colors: <Color>[
-              color.withValues(alpha: 0.34),
-              const Color(0xFFFFB703).withValues(alpha: 0.18),
-              Colors.transparent,
-            ],
-            stops: const <double>[0, 0.45, 1],
-          ).createShader(
-            Rect.fromCircle(center: center, radius: size.width * 0.42),
-          );
+      ..shader = RadialGradient(
+        colors: <Color>[
+          color.withValues(alpha: 0.34),
+          const Color(0xFFFFB703).withValues(alpha: 0.18),
+          Colors.transparent,
+        ],
+        stops: const <double>[0, 0.45, 1],
+      ).createShader(
+        Rect.fromCircle(center: center, radius: size.width * 0.42),
+      );
     canvas.drawCircle(center, size.width * 0.42, glow);
 
     for (var index = 0; index < 9; index++) {
       final seed = ((index * 23) % 97) / 97.0;
       final rise = (progress + seed) % 1.0;
-      final x =
-          size.width * (0.22 + seed * 0.56) +
+      final x = size.width * (0.22 + seed * 0.56) +
           math.sin((progress * math.pi * 2) + index) * 7;
       final y = size.height * (0.90 - rise * 0.76);
       final radius = 1.5 + (1 - rise) * 3.5;
@@ -857,7 +1546,8 @@ class _FlameBurstPainter extends CustomPainter {
             const Color(0xFFFFF3B0),
             const Color(0xFFFF7A1A),
             rise,
-          )!.withValues(alpha: (1 - rise).clamp(0.0, 1.0) * 0.78),
+          )!
+              .withValues(alpha: (1 - rise).clamp(0.0, 1.0) * 0.78),
       );
     }
 
