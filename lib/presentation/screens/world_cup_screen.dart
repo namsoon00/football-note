@@ -49,15 +49,22 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.worldCupTitle)),
+      appBar: AppBar(
+        title: Text(l10n.worldCupTitle),
+        actions: [
+          IconButton(
+            onPressed: _showTournamentInfo,
+            tooltip: l10n.worldCupOverviewTitle,
+            icon: const Icon(Icons.info_outline_rounded),
+          ),
+        ],
+      ),
       body: AppBackground(
         child: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
               _buildHero(context),
-              const SizedBox(height: 12),
-              _buildOverview(context),
               const SizedBox(height: 12),
               _buildCountrySettings(context),
               const SizedBox(height: 12),
@@ -67,14 +74,38 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
               const SizedBox(height: 12),
               _buildSelectedDayMatches(context),
               const SizedBox(height: 12),
-              _buildMilestones(context),
-              const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () =>
                     launchUrl(_sourceUri, mode: LaunchMode.externalApplication),
                 icon: const Icon(Icons.open_in_new_rounded),
                 label: Text(l10n.worldCupSourceAction),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showTournamentInfo() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            4,
+            16,
+            16 + MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildOverview(context),
+              const SizedBox(height: 12),
+              _buildMilestones(context),
             ],
           ),
         ),
@@ -510,7 +541,11 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: Row(
+                      child: Wrap(
+                        alignment: WrapAlignment.end,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 8,
                         children: [
                           TextButton(
                             onPressed: () {
@@ -520,14 +555,15 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                               l10n.worldCupClearInterestCountriesAction,
                             ),
                           ),
-                          const Spacer(),
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(false),
                             child: Text(l10n.cancel),
                           ),
-                          const SizedBox(width: 8),
                           FilledButton(
                             onPressed: () => Navigator.of(context).pop(true),
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(84, 44),
+                            ),
                             child: Text(l10n.save),
                           ),
                         ],
