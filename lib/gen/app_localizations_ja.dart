@@ -477,6 +477,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newsMatchResultLoss => '損失';
 
   @override
+  String matchKickoffKoreaOnly(String time) {
+    return '韓国時間 $time';
+  }
+
+  @override
+  String matchKickoffLocalAndKorea(String localTime, String koreaTime) {
+    return '$localTime · 韓国時間 $koreaTime';
+  }
+
+  @override
   String get worldCupTitle => 'ワールドカップ表示';
 
   @override
@@ -685,15 +695,50 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupGroupTeamsTitle => 'グループ別チーム';
 
   @override
-  String get worldCupTournamentTitle => 'トーナメント計画';
+  String get worldCupTournamentTitle => 'トーナメント表';
 
   @override
   String get worldCupTournamentPlanBody =>
-      'ラウンド32から決勝までの流れと日程を先に表示します。グループ結果が確定したら、各枠を実際のチームの道筋として追えるようにします。';
+      '現在は公式日程のグループ順位枠と前試合の勝者枠を基準に表示します。グループ結果が確定したら、各枠を実際の国の道筋として追えます。';
 
   @override
   String worldCupStageMatchCount(int count) {
     return '$count試合';
+  }
+
+  @override
+  String worldCupBracketRoundSummary(String dateRange, int count) {
+    return '$dateRange · $count試合';
+  }
+
+  @override
+  String worldCupBracketFirstSeed(String group) {
+    return 'グループ$group 1位';
+  }
+
+  @override
+  String worldCupBracketSecondSeed(String group) {
+    return 'グループ$group 2位';
+  }
+
+  @override
+  String worldCupBracketThirdSeed(String groups) {
+    return '$groupsの3位チームから1チーム';
+  }
+
+  @override
+  String worldCupBracketWinnerSlot(int matchNumber) {
+    return 'M$matchNumber勝者';
+  }
+
+  @override
+  String worldCupBracketLoserSlot(int matchNumber) {
+    return 'M$matchNumber敗者';
+  }
+
+  @override
+  String worldCupBracketSourceMatch(int matchNumber, String home, String away) {
+    return 'M$matchNumber: $home 対 $away';
   }
 
   @override
@@ -6292,6 +6337,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get parentReadOnlyCalendarMessage => '親モードではカレンダーを編集できません。';
+
+  @override
+  String get parentReadOnlyChallengeSummary => 'チャレンジはここでのみ表示されます。';
+
+  @override
+  String get parentReadOnlyChallengeMessage =>
+      '親モードではチャレンジを開始したりミッションを編集したりできません。プレイヤーモードで進めたチャレンジ状況のみ確認できます。';
 
   @override
   String get parentReadOnlyDiaryMessage => '親モードでは日記を編集できません。';

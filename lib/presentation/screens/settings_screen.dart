@@ -208,16 +208,15 @@ class _SettingsScreenState extends State<SettingsScreen>
     DriveConnectionInfo? sharedChildConnection;
     var hasRemotePlayerBackup = _hasRemotePlayerBackup;
     try {
-      sharedChildConnection = await widget.driveBackupService!
-          .getSharedChildDriveConnectionInfo(
-            allowRemoteLookup:
-                allowRemoteSharedLookup && familyState.isParentMode,
-          );
+      sharedChildConnection =
+          await widget.driveBackupService!.getSharedChildDriveConnectionInfo(
+        allowRemoteLookup: allowRemoteSharedLookup && familyState.isParentMode,
+      );
       if (checkRemotePlayerBackup &&
           familyState.isParentMode &&
           (sharedChildConnection == null || sharedChildConnection.isEmpty)) {
-        hasRemotePlayerBackup = await widget.driveBackupService!
-            .hasRemotePlayerBackup();
+        hasRemotePlayerBackup =
+            await widget.driveBackupService!.hasRemotePlayerBackup();
       }
     } catch (e, st) {
       debugPrint('Shared child Drive lookup failed: $e');
@@ -238,8 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     final cachedConnectedDriveEmail = _cachedConnectedDriveEmail();
     if (!mounted) return;
     setState(() {
-      _signedIn =
-          signedIn ||
+      _signedIn = signedIn ||
           (connection != null && !connection.isEmpty) ||
           (allowCachedConnection && cachedConnectedDriveLabel.isNotEmpty);
       _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
@@ -255,13 +253,11 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   String _cachedConnectedDriveLabel() {
-    final cachedLabel =
-        widget.optionRepository
+    final cachedLabel = widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveLabelLocalKey)
             ?.trim() ??
         '';
-    final cachedEmail =
-        widget.optionRepository
+    final cachedEmail = widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveEmailLocalKey)
             ?.trim() ??
         '';
@@ -299,6 +295,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     return savedEmail.toLowerCase() != connectedEmail.toLowerCase();
   }
 
+  bool _shouldShowLatestRestoreAction(FamilyAccessState familyState) {
+    if (!_signedIn) return false;
+    if (familyState.isSupportMode) return true;
+    return _backupLockedByChangedPlayerDrive(familyState);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -314,12 +316,11 @@ class _SettingsScreenState extends State<SettingsScreen>
     final sharedChildDriveSubtitle = _driveStatusLoading
         ? l10n.settingsSyncStatusChecking
         : expectedChildDriveLabel.isNotEmpty
-        ? l10n.settingsSyncBackupDataReady
-        : _hasRemotePlayerBackup
-        ? l10n.driveSharedChildAccountRemoteBackup
-        : l10n.driveSharedChildAccountEmpty;
-    final driveMatchesExpected =
-        expectedChildDriveLabel.isEmpty ||
+            ? l10n.settingsSyncBackupDataReady
+            : _hasRemotePlayerBackup
+                ? l10n.driveSharedChildAccountRemoteBackup
+                : l10n.driveSharedChildAccountEmpty;
+    final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _driveLabelMatchesEmail(_connectedDriveLabel, _sharedChildDriveEmail);
 
@@ -396,7 +397,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-        _durationOptions.first;
+            _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
@@ -557,17 +558,17 @@ class _SettingsScreenState extends State<SettingsScreen>
                 onTap: parentSettingsReadOnly
                     ? null
                     : () => _manageStringOptions(
-                        key: 'news_blocked_domains',
-                        title: isKo
-                            ? '광고 도메인 차단 목록 관리'
-                            : 'Manage blocked ad domains',
-                        options: _newsBlockedDomains,
-                        minKeep: 0,
-                        sanitize: _normalizeDomain,
-                        onSaved: (updated) async {
-                          setState(() => _newsBlockedDomains = updated);
-                        },
-                      ),
+                          key: 'news_blocked_domains',
+                          title: isKo
+                              ? '광고 도메인 차단 목록 관리'
+                              : 'Manage blocked ad domains',
+                          options: _newsBlockedDomains,
+                          minKeep: 0,
+                          sanitize: _normalizeDomain,
+                          onSaved: (updated) async {
+                            setState(() => _newsBlockedDomains = updated);
+                          },
+                        ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -575,8 +576,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                   parentSettingsReadOnly
                       ? l10n.parentReadOnlySettingsOptions
                       : isKo
-                      ? '예시: example.com (프로토콜/경로 없이 도메인만 입력)'
-                      : 'Example: example.com (domain only, no path)',
+                          ? '예시: example.com (프로토콜/경로 없이 도메인만 입력)'
+                          : 'Example: example.com (domain only, no path)',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
@@ -661,7 +662,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                             Expanded(
                               child: Text(
                                 title,
-                                style: Theme.of(context).textTheme.titleSmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
                                     ?.copyWith(fontWeight: FontWeight.w800),
                               ),
                             ),
@@ -882,8 +885,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     required bool driveMatchesExpected,
   }) {
     final driveBackupService = widget.driveBackupService!;
-    final hasKnownBackupData =
-        _hasRemotePlayerBackup ||
+    final hasKnownBackupData = _hasRemotePlayerBackup ||
         _sharedChildDriveLabel.trim().isNotEmpty ||
         _sharedChildDriveEmail.trim().isNotEmpty;
     final children = <Widget>[
@@ -903,8 +905,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         signedIn: _signedIn,
         autoDaily: _autoDaily,
         autoOnSave: _autoOnSave,
-        lastBackupAt:
-            driveBackupService.getLastFamilySyncPush() ??
+        lastBackupAt: driveBackupService.getLastFamilySyncPush() ??
             driveBackupService.getLastFamilyRefresh() ??
             driveBackupService.getLastBackup(),
         localRestoreAt: driveBackupService.getLocalPreRestoreTime(),
@@ -937,7 +938,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         onPressed: _signInBusy ? null : () => _toggleDriveSignIn(l10n),
       ),
     ];
-    if (_signedIn) {
+    if (_shouldShowLatestRestoreAction(familyState)) {
       actions.add(
         _buildDriveQuickActionButton(
           icon: Icons.cloud_download_outlined,
@@ -946,20 +947,17 @@ class _SettingsScreenState extends State<SettingsScreen>
           onPressed: (_backupBusy || _restoreBusy)
               ? null
               : () => _restoreFromDrive(
-                  l10n,
-                  title: l10n.settingsRestoreLatestActionTitle,
-                  filePath: DriveBackupService.backupDisplayPath,
-                  backupCreatedAt: widget.driveBackupService!.getLastBackup(),
-                  message: isSupportMode
-                      ? l10n.familySharedRestoreConfirm
-                      : null,
-                  successMessage: isSupportMode
-                      ? l10n.familySharedRestoreSuccess
-                      : null,
-                  failedMessage: isSupportMode
-                      ? l10n.familySharedRestoreFailed
-                      : null,
-                ),
+                    l10n,
+                    title: l10n.settingsRestoreLatestActionTitle,
+                    filePath: DriveBackupService.backupDisplayPath,
+                    backupCreatedAt: widget.driveBackupService!.getLastBackup(),
+                    message:
+                        isSupportMode ? l10n.familySharedRestoreConfirm : null,
+                    successMessage:
+                        isSupportMode ? l10n.familySharedRestoreSuccess : null,
+                    failedMessage:
+                        isSupportMode ? l10n.familySharedRestoreFailed : null,
+                  ),
         ),
       );
     }
@@ -972,10 +970,10 @@ class _SettingsScreenState extends State<SettingsScreen>
           onPressed: (_backupBusy || _restoreBusy || backupLocked)
               ? null
               : () => _backupToDrive(
-                  l10n,
-                  title: l10n.settingsBackupDataActionTitle,
-                  filePath: DriveBackupService.backupDisplayPath,
-                ),
+                    l10n,
+                    title: l10n.settingsBackupDataActionTitle,
+                    filePath: DriveBackupService.backupDisplayPath,
+                  ),
         ),
       );
     }
@@ -998,8 +996,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       subtitle: _driveStatusLoading
           ? l10n.settingsSyncStatusChecking
           : _connectedDriveLabel.trim().isEmpty
-          ? l10n.driveConnectedAccountEmpty
-          : _connectedDriveLabel.trim(),
+              ? l10n.driveConnectedAccountEmpty
+              : _connectedDriveLabel.trim(),
       loading: _driveStatusLoading,
     );
   }
@@ -1089,9 +1087,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -1156,9 +1153,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     bool isKo, {
     bool readOnly = false,
   }) {
-    final defaultDurationText = _defaultDuration <= 0
-        ? l10n.notSet
-        : l10n.minutes(_defaultDuration);
+    final defaultDurationText =
+        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1166,9 +1162,9 @@ class _SettingsScreenState extends State<SettingsScreen>
           Text(
             l10n.parentReadOnlySettingsOptions,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-            ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
           const SizedBox(height: 10),
         ],
@@ -1190,12 +1186,12 @@ class _SettingsScreenState extends State<SettingsScreen>
           onEdit: readOnly
               ? null
               : () => _pickDefaultRating(
-                  key: 'default_intensity',
-                  current: _defaultIntensity,
-                  onChanged: (value) =>
-                      setState(() => _defaultIntensity = value),
-                  title: l10n.defaultIntensity,
-                ),
+                    key: 'default_intensity',
+                    current: _defaultIntensity,
+                    onChanged: (value) =>
+                        setState(() => _defaultIntensity = value),
+                    title: l10n.defaultIntensity,
+                  ),
         ),
         _buildDefaultTile(
           label: l10n.defaultCondition,
@@ -1203,12 +1199,12 @@ class _SettingsScreenState extends State<SettingsScreen>
           onEdit: readOnly
               ? null
               : () => _pickDefaultRating(
-                  key: 'default_condition',
-                  current: _defaultCondition,
-                  onChanged: (value) =>
-                      setState(() => _defaultCondition = value),
-                  title: l10n.defaultCondition,
-                ),
+                    key: 'default_condition',
+                    current: _defaultCondition,
+                    onChanged: (value) =>
+                        setState(() => _defaultCondition = value),
+                    title: l10n.defaultCondition,
+                  ),
         ),
         _buildDefaultTile(
           label: l10n.defaultLocation,
@@ -1216,13 +1212,13 @@ class _SettingsScreenState extends State<SettingsScreen>
           onEdit: readOnly
               ? null
               : () => _pickDefaultString(
-                  key: 'default_location',
-                  current: _defaultLocation,
-                  options: _locationOptions,
-                  title: l10n.defaultLocation,
-                  onChanged: (value) =>
-                      setState(() => _defaultLocation = value),
-                ),
+                    key: 'default_location',
+                    current: _defaultLocation,
+                    options: _locationOptions,
+                    title: l10n.defaultLocation,
+                    onChanged: (value) =>
+                        setState(() => _defaultLocation = value),
+                  ),
         ),
         _buildDefaultTile(
           label: l10n.defaultProgram,
@@ -1230,12 +1226,13 @@ class _SettingsScreenState extends State<SettingsScreen>
           onEdit: readOnly
               ? null
               : () => _pickDefaultString(
-                  key: 'default_program',
-                  current: _defaultProgram,
-                  options: _programOptions,
-                  title: l10n.defaultProgram,
-                  onChanged: (value) => setState(() => _defaultProgram = value),
-                ),
+                    key: 'default_program',
+                    current: _defaultProgram,
+                    options: _programOptions,
+                    title: l10n.defaultProgram,
+                    onChanged: (value) =>
+                        setState(() => _defaultProgram = value),
+                  ),
         ),
         const SizedBox(height: 12),
         const Divider(height: 1),
@@ -1254,25 +1251,25 @@ class _SettingsScreenState extends State<SettingsScreen>
           onTap: readOnly
               ? null
               : () => _manageIntOptions(
-                  key: 'durations',
-                  title: isKo ? '훈련 시간 옵션 관리' : 'Manage duration options',
-                  options: _durationOptions,
-                  minKeep: 1,
-                  formatLabel: (value) =>
-                      value <= 0 ? l10n.notSet : l10n.minutes(value),
-                  onSaved: (updated) async {
-                    setState(() => _durationOptions = updated);
-                    if (!_durationOptions.contains(_defaultDuration)) {
-                      final fallback = _durationOptions.first;
-                      await widget.optionRepository.setValue(
-                        'default_duration',
-                        fallback,
-                      );
-                      if (!mounted) return;
-                      setState(() => _defaultDuration = fallback);
-                    }
-                  },
-                ),
+                    key: 'durations',
+                    title: isKo ? '훈련 시간 옵션 관리' : 'Manage duration options',
+                    options: _durationOptions,
+                    minKeep: 1,
+                    formatLabel: (value) =>
+                        value <= 0 ? l10n.notSet : l10n.minutes(value),
+                    onSaved: (updated) async {
+                      setState(() => _durationOptions = updated);
+                      if (!_durationOptions.contains(_defaultDuration)) {
+                        final fallback = _durationOptions.first;
+                        await widget.optionRepository.setValue(
+                          'default_duration',
+                          fallback,
+                        );
+                        if (!mounted) return;
+                        setState(() => _defaultDuration = fallback);
+                      }
+                    },
+                  ),
         ),
         _buildOptionManagerTile(
           title: isKo ? '장소 옵션' : 'Location options',
@@ -1280,23 +1277,23 @@ class _SettingsScreenState extends State<SettingsScreen>
           onTap: readOnly
               ? null
               : () => _manageStringOptions(
-                  key: 'locations',
-                  title: isKo ? '장소 옵션 관리' : 'Manage location options',
-                  options: _locationOptions,
-                  minKeep: 1,
-                  onSaved: (updated) async {
-                    setState(() => _locationOptions = updated);
-                    if (!_locationOptions.contains(_defaultLocation)) {
-                      final fallback = _locationOptions.first;
-                      await widget.optionRepository.setValue(
-                        'default_location',
-                        fallback,
-                      );
-                      if (!mounted) return;
-                      setState(() => _defaultLocation = fallback);
-                    }
-                  },
-                ),
+                    key: 'locations',
+                    title: isKo ? '장소 옵션 관리' : 'Manage location options',
+                    options: _locationOptions,
+                    minKeep: 1,
+                    onSaved: (updated) async {
+                      setState(() => _locationOptions = updated);
+                      if (!_locationOptions.contains(_defaultLocation)) {
+                        final fallback = _locationOptions.first;
+                        await widget.optionRepository.setValue(
+                          'default_location',
+                          fallback,
+                        );
+                        if (!mounted) return;
+                        setState(() => _defaultLocation = fallback);
+                      }
+                    },
+                  ),
         ),
         _buildOptionManagerTile(
           title: isKo ? '프로그램 옵션' : 'Program options',
@@ -1309,14 +1306,15 @@ class _SettingsScreenState extends State<SettingsScreen>
           onTap: readOnly
               ? null
               : () => _manageStringOptions(
-                  key: 'daily_goals',
-                  title: isKo ? '훈련 목표 옵션 관리' : 'Manage training goal options',
-                  options: _dailyGoalOptions,
-                  minKeep: 1,
-                  onSaved: (updated) async {
-                    setState(() => _dailyGoalOptions = updated);
-                  },
-                ),
+                    key: 'daily_goals',
+                    title:
+                        isKo ? '훈련 목표 옵션 관리' : 'Manage training goal options',
+                    options: _dailyGoalOptions,
+                    minKeep: 1,
+                    onSaved: (updated) async {
+                      setState(() => _dailyGoalOptions = updated);
+                    },
+                  ),
         ),
         _buildOptionManagerTile(
           title: isKo ? '부상 부위 옵션' : 'Injury part options',
@@ -1324,14 +1322,14 @@ class _SettingsScreenState extends State<SettingsScreen>
           onTap: readOnly
               ? null
               : () => _manageStringOptions(
-                  key: 'injury_parts',
-                  title: isKo ? '부상 부위 옵션 관리' : 'Manage injury part options',
-                  options: _injuryPartOptions,
-                  minKeep: 1,
-                  onSaved: (updated) async {
-                    setState(() => _injuryPartOptions = updated);
-                  },
-                ),
+                    key: 'injury_parts',
+                    title: isKo ? '부상 부위 옵션 관리' : 'Manage injury part options',
+                    options: _injuryPartOptions,
+                    minKeep: 1,
+                    onSaved: (updated) async {
+                      setState(() => _injuryPartOptions = updated);
+                    },
+                  ),
         ),
       ],
     );
@@ -1565,9 +1563,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized = sanitize == null
-                            ? added
-                            : sanitize(added);
+                        final normalized =
+                            sanitize == null ? added : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -2026,8 +2023,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -2152,8 +2148,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired

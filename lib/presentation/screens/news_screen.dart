@@ -11,7 +11,6 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../application/news_read_state.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/news_service.dart';
-import '../../application/world_cup_schedule.dart';
 import '../../application/family_access_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../application/locale_service.dart';
@@ -39,7 +38,6 @@ class NewsScreen extends StatefulWidget {
   final BackupService? driveBackupService;
   final bool isActive;
   final NewsService? newsService;
-  final DateTime? nowForTesting;
 
   const NewsScreen({
     super.key,
@@ -50,7 +48,6 @@ class NewsScreen extends StatefulWidget {
     this.driveBackupService,
     this.isActive = false,
     this.newsService,
-    @visibleForTesting this.nowForTesting,
   });
 
   @override
@@ -58,14 +55,6 @@ class NewsScreen extends StatefulWidget {
 }
 
 enum _NewsRegionFilter { all, domestic, international }
-
-@visibleForTesting
-bool isWorldCupTournamentPeriod(DateTime date) {
-  final day = normalizeWorldCupDay(date);
-  final firstDay = worldCupFixtures.first.localDay;
-  final lastDay = worldCupFixtures.last.localDay;
-  return !day.isBefore(firstDay) && !day.isAfter(lastDay);
-}
 
 class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _titleTranslateEnabledKey =
@@ -149,9 +138,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   bool get _isParentMode =>
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
-
-  bool get _isWorldCupPeriod =>
-      isWorldCupTournamentPeriod(widget.nowForTesting ?? DateTime.now());
 
   @override
   void initState() {
@@ -298,10 +284,13 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   Widget _buildNewsHeader(AppLocalizations l10n) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final actionsMaxWidth =
-            (constraints.maxWidth * (constraints.maxWidth < 520 ? 0.54 : 0.58))
-                .clamp(176.0, 380.0)
-                .toDouble();
+        final compact = constraints.maxWidth < 430;
+        final actionsMaxWidth = (compact
+                ? constraints.maxWidth - 52
+                : constraints.maxWidth *
+                    (constraints.maxWidth < 520 ? 0.54 : 0.58))
+            .clamp(176.0, 380.0)
+            .toDouble();
         final leagueAction = _buildHeaderLeagueAction(
           buttonKey: _leagueStandingsActionKey,
           label: l10n.newsLeagueStandingsAction,
@@ -320,10 +309,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
           icon: Icons.emoji_events_outlined,
           onPressed: _openWorldCup,
         );
-        final headerActions = _isWorldCupPeriod
-            ? [worldCupAction, fifaAction, leagueAction]
-            : [leagueAction, fifaAction, worldCupAction];
-        return Row(
+        final headerActions = [worldCupAction, fifaAction, leagueAction];
+        final titleRow = Row(
           children: [
             IconButton(
               onPressed: () => Navigator.of(context).maybePop(),
@@ -341,24 +328,43 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
               ),
             ),
-            const SizedBox(width: 8),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: actionsMaxWidth),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (var index = 0;
-                        index < headerActions.length;
-                        index += 1) ...[
-                      if (index > 0) const SizedBox(width: 6),
-                      headerActions[index],
-                    ],
+          ],
+        );
+        final actionScroller = Align(
+          alignment: Alignment.centerRight,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: actionsMaxWidth),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var index = 0;
+                      index < headerActions.length;
+                      index += 1) ...[
+                    if (index > 0) const SizedBox(width: 6),
+                    headerActions[index],
                   ],
-                ),
+                ],
               ),
             ),
+          ),
+        );
+        if (compact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              titleRow,
+              const SizedBox(height: 6),
+              actionScroller,
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: titleRow),
+            const SizedBox(width: 8),
+            actionScroller,
           ],
         );
       },

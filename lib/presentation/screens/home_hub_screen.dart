@@ -100,6 +100,7 @@ class HomeHubScreen extends StatefulWidget {
 
 class _HomeHubScreenState extends State<HomeHubScreen> {
   static const String _homeWeatherSnapshotKey = 'home_weather_snapshot_v1';
+  static const int _homeTrainingLookbackDays = 400;
 
   bool _weatherLoading = false;
   bool _weatherNeedsLocation = true;
@@ -109,6 +110,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   String _weatherSummary = '';
   int? _weatherCode;
   Timer? _initialWeatherTimer;
+  late Stream<List<TrainingEntry>> _trainingEntriesStream;
   bool _dailyTaskAwardInFlight = false;
   String? _lastDailyTaskAwardToken;
   bool _challengeFinalizeInFlight = false;
@@ -117,9 +119,22 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   bool get _isParentMode =>
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
 
+  Stream<List<TrainingEntry>> _watchHomeTrainingEntries() {
+    final today = _normalizeDay(DateTime.now());
+    return widget.trainingService.watchEntriesInRange(
+      today.subtract(const Duration(days: _homeTrainingLookbackDays)),
+      today.add(const Duration(days: 1)),
+    );
+  }
+
+  DateTime _normalizeDay(DateTime value) {
+    return DateTime(value.year, value.month, value.day);
+  }
+
   @override
   void initState() {
     super.initState();
+    _trainingEntriesStream = _watchHomeTrainingEntries();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final hasFreshWeather = _applyCachedHomeWeather();
@@ -130,6 +145,13 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         () => NewsBadgeService.refresh(widget.optionRepository),
       );
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeHubScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.trainingService == oldWidget.trainingService) return;
+    _trainingEntriesStream = _watchHomeTrainingEntries();
   }
 
   @override
@@ -152,7 +174,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       body: AppBackground(
         child: SafeArea(
           child: StreamBuilder<List<TrainingEntry>>(
-            stream: widget.trainingService.watchEntries(),
+            stream: _trainingEntriesStream,
             builder: (context, snapshot) {
               final allEntries = (snapshot.data ?? const <TrainingEntry>[])
                   .where((entry) => !entry.isMatch)

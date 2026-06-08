@@ -72,15 +72,16 @@ void main() {
     expect(find.text('오늘의 소식'), findsOneWidget);
     expect(find.byKey(_leagueStandingsActionKey), findsOneWidget);
     expect(find.byKey(_fifaHubActionKey), findsOneWidget);
+    expect(find.byKey(_worldCupActionKey), findsOneWidget);
     expect(find.text('리그보기'), findsOneWidget);
     expect(find.text('국내리그'), findsNothing);
     expect(find.text('피파랭킹'), findsOneWidget);
   });
 
-  testWidgets('world cup action moves to the left during the tournament', (
+  testWidgets('world cup action is first and compact header keeps title', (
     WidgetTester tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(900, 700));
+    await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     final repository = _MemoryOptionRepository();
@@ -108,7 +109,6 @@ void main() {
       _buildNewsApp(
         optionRepository: repository,
         newsService: NewsService(newsRepository),
-        nowForTesting: DateTime(2026, 6, 12),
       ),
     );
     await tester.pumpAndSettle();
@@ -116,8 +116,9 @@ void main() {
     final worldCupX = tester.getTopLeft(find.byKey(_worldCupActionKey)).dx;
     final fifaX = tester.getTopLeft(find.byKey(_fifaHubActionKey)).dx;
     final leagueX = tester.getTopLeft(find.byKey(_leagueStandingsActionKey)).dx;
+    final titleWidth = tester.getSize(find.text('오늘의 소식')).width;
 
-    expect(isWorldCupTournamentPeriod(DateTime(2026, 6, 12)), isTrue);
+    expect(titleWidth, greaterThan(120));
     expect(worldCupX, lessThan(fifaX));
     expect(fifaX, lessThan(leagueX));
   });
@@ -373,7 +374,6 @@ void main() {
 Widget _buildNewsApp({
   required OptionRepository optionRepository,
   required NewsService newsService,
-  DateTime? nowForTesting,
 }) {
   return MaterialApp(
     locale: const Locale('ko'),
@@ -385,7 +385,6 @@ Widget _buildNewsApp({
       optionRepository: optionRepository,
       settingsService: SettingsService(optionRepository),
       newsService: newsService,
-      nowForTesting: nowForTesting,
     ),
   );
 }
@@ -425,11 +424,39 @@ class _FakeTrainingRepository implements TrainingRepository {
   Future<List<TrainingEntry>> getAll() async => const <TrainingEntry>[];
 
   @override
+  Future<List<TrainingEntry>> getRange(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) async =>
+      const <TrainingEntry>[];
+
+  @override
+  Future<List<TrainingEntry>> getRecent({
+    required int limit,
+    bool includeMatches = true,
+  }) async =>
+      const <TrainingEntry>[];
+
+  @override
   Future<void> update(int key, TrainingEntry entry) async {}
 
   @override
   Stream<List<TrainingEntry>> watchAll() =>
       const Stream<List<TrainingEntry>>.empty();
+
+  @override
+  Stream<List<TrainingEntry>> watchRange(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) =>
+      Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
+
+  @override
+  Stream<List<TrainingEntry>> watchRecent({
+    required int limit,
+    bool includeMatches = true,
+  }) =>
+      Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
 }
 
 class _MemoryOptionRepository implements OptionRepository {

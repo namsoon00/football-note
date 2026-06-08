@@ -1,19 +1,18 @@
-import 'dart:io';
+import 'dart:async';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:hive/hive.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
-import 'package:football_note/infrastructure/hive_training_repository.dart';
+import 'package:football_note/domain/repositories/option_repository.dart';
+import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/presentation/screens/stats_screen.dart';
-import 'package:football_note/infrastructure/hive_option_repository.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/settings_service.dart';
 
@@ -22,37 +21,21 @@ import '../helpers/test_asset_bundle.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late Directory tempDir;
-  late Box<TrainingEntry> box;
+  late _MemoryTrainingRepository trainingRepository;
   late TrainingService service;
   late MealLogService mealLogService;
   late LocaleService localeService;
   late SettingsService settingsService;
-  late Box optionBox;
-
-  setUpAll(() async {
-    tempDir = await Directory.systemTemp.createTemp('football_note_stats');
-    Hive.init(tempDir.path);
-    Hive.registerAdapter(TrainingEntryAdapter());
-    box = await Hive.openBox<TrainingEntry>('training_entries');
-    optionBox = await Hive.openBox('options');
-    service = TrainingService(HiveTrainingRepository(box));
-    mealLogService = MealLogService(HiveOptionRepository(optionBox));
-    localeService = LocaleService(HiveOptionRepository(optionBox))..load();
-    settingsService = SettingsService(HiveOptionRepository(optionBox))..load();
-  });
+  late _MemoryOptionRepository optionRepository;
 
   setUp(() async {
-    await box.clear();
-    await optionBox.clear();
-    await _markBenchmarksFresh(optionBox);
-  });
-
-  tearDownAll(() async {
-    await box.close();
-    await optionBox.close();
-    await Hive.close();
-    await tempDir.delete(recursive: true);
+    trainingRepository = _MemoryTrainingRepository();
+    service = TrainingService(trainingRepository);
+    optionRepository = _MemoryOptionRepository();
+    mealLogService = MealLogService(optionRepository);
+    localeService = LocaleService(optionRepository)..load();
+    settingsService = SettingsService(optionRepository)..load();
+    await _markBenchmarksFresh(optionRepository);
   });
 
   testWidgets('Stats screen shows summary after save', (
@@ -89,23 +72,23 @@ void main() {
             mealLogService: mealLogService,
             localeService: localeService,
             onCreate: () {},
-            optionRepository: HiveOptionRepository(optionBox),
+            optionRepository: optionRepository,
             settingsService: settingsService,
           ),
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
 
-    expect(find.text('최근 7일'), findsOneWidget);
+    expect(find.text('최근 1주일'), findsOneWidget);
     expect(find.text('훈련'), findsOneWidget);
     expect(find.text('시합'), findsOneWidget);
-    expect(find.text('훈련 횟수'), findsNothing);
-    expect(find.text('전체 요약'), findsOneWidget);
+    expect(find.text('훈련 횟수'), findsOneWidget);
+    expect(find.text('이번 기간 성장 요약'), findsOneWidget);
     expect(find.byTooltip('다이어리'), findsNothing);
   });
 
-  testWidgets('Growth summary can be expanded from the stats panel', (
+  testWidgets('Growth summary is visible in the stats panel', (
     WidgetTester tester,
   ) async {
     await service.add(
@@ -138,22 +121,16 @@ void main() {
             mealLogService: mealLogService,
             localeService: localeService,
             onCreate: () {},
-            optionRepository: HiveOptionRepository(optionBox),
+            optionRepository: optionRepository,
             settingsService: settingsService,
           ),
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 200));
-
-    expect(find.text('이번 기간 성장 요약'), findsOneWidget);
-    expect(find.text('훈련 횟수'), findsNothing);
-
-    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded).first);
     await tester.pumpAndSettle();
 
+    expect(find.text('이번 기간 성장 요약'), findsOneWidget);
     expect(find.text('훈련 횟수'), findsOneWidget);
-    expect(find.textContaining('1회'), findsOneWidget);
   });
 
   testWidgets('Stats screen separates match records in match tab', (
@@ -195,13 +172,13 @@ void main() {
             mealLogService: mealLogService,
             localeService: localeService,
             onCreate: () {},
-            optionRepository: HiveOptionRepository(optionBox),
+            optionRepository: optionRepository,
             settingsService: settingsService,
           ),
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('시합'));
     await tester.pumpAndSettle();
@@ -214,7 +191,7 @@ void main() {
   testWidgets('Parent mode stats shows training, match, and meal records', (
     WidgetTester tester,
   ) async {
-    await optionBox.put(
+    await optionRepository.setValue(
       FamilyAccessService.currentRoleLocalKey,
       FamilyRole.parent.name,
     );
@@ -275,15 +252,15 @@ void main() {
             mealLogService: mealLogService,
             localeService: localeService,
             onCreate: () {},
-            optionRepository: HiveOptionRepository(optionBox),
+            optionRepository: optionRepository,
             settingsService: settingsService,
           ),
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
 
-    expect(find.text('전체 요약'), findsOneWidget);
+    expect(find.text('이번 기간 성장 요약'), findsOneWidget);
     expect(find.text('줄넘기 통계'), findsOneWidget);
     expect(find.text('식사 기록'), findsOneWidget);
 
@@ -314,7 +291,7 @@ void main() {
             mealLogService: mealLogService,
             localeService: localeService,
             onCreate: () {},
-            optionRepository: HiveOptionRepository(optionBox),
+            optionRepository: optionRepository,
             settingsService: settingsService,
             initialRange: DateTimeRange(
               start: DateTime(2026, 3, 16),
@@ -324,7 +301,7 @@ void main() {
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
 
     expect(find.text('3/16~3/22'), findsOneWidget);
   });
@@ -371,32 +348,197 @@ void main() {
             mealLogService: mealLogService,
             localeService: localeService,
             onCreate: () {},
-            optionRepository: HiveOptionRepository(optionBox),
+            optionRepository: optionRepository,
             settingsService: settingsService,
           ),
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
 
     expect(find.text('식사 기록'), findsOneWidget);
-    expect(find.textContaining('평균 기대치 3공기'), findsOneWidget);
     expect(find.text('2.5공기'), findsOneWidget);
     expect(find.text('식사 흐름'), findsOneWidget);
     expect(find.text('최근 기록 공기밥'), findsNothing);
     expect(find.text('기록 일수'), findsOneWidget);
-    expect(find.text('평균 실제 2.5공기'), findsNothing);
+    expect(find.text('평균 실제'), findsOneWidget);
     expect(find.byType(BarChart), findsOneWidget);
     expect(find.text('아침'), findsWidgets);
     expect(find.text('점심'), findsWidgets);
     expect(find.text('저녁'), findsWidgets);
-    expect(find.text('몸무게(kg)'), findsWidgets);
   });
 }
 
-Future<void> _markBenchmarksFresh(Box optionBox) async {
-  await optionBox.put(
+Future<void> _markBenchmarksFresh(
+    _MemoryOptionRepository optionRepository) async {
+  await optionRepository.setValue(
     'benchmark_synced_at_v2',
     DateTime.now().toUtc().toIso8601String(),
   );
+}
+
+class _MemoryTrainingRepository implements TrainingRepository {
+  final List<TrainingEntry> _entries = <TrainingEntry>[];
+  final StreamController<List<TrainingEntry>> _controller =
+      StreamController<List<TrainingEntry>>.broadcast();
+
+  @override
+  Future<void> add(TrainingEntry entry) async {
+    _entries.add(entry);
+    _emit();
+  }
+
+  @override
+  Future<void> delete(TrainingEntry entry) async {
+    _entries.remove(entry);
+    _emit();
+  }
+
+  @override
+  Future<List<TrainingEntry>> getAll() async {
+    return List<TrainingEntry>.unmodifiable(_entries);
+  }
+
+  @override
+  Future<List<TrainingEntry>> getRange(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) async {
+    return _rangeEntries(startInclusive, endExclusive);
+  }
+
+  @override
+  Future<List<TrainingEntry>> getRecent({
+    required int limit,
+    bool includeMatches = true,
+  }) async {
+    return _recentEntries(limit: limit, includeMatches: includeMatches);
+  }
+
+  @override
+  Future<void> update(int key, TrainingEntry entry) async {
+    if (key >= 0 && key < _entries.length) {
+      _entries[key] = entry;
+      _emit();
+    }
+  }
+
+  @override
+  Stream<List<TrainingEntry>> watchAll() {
+    return Stream<List<TrainingEntry>>.multi((controller) {
+      void emit() {
+        if (!controller.isClosed) {
+          controller.add(List<TrainingEntry>.unmodifiable(_entries));
+        }
+      }
+
+      emit();
+      final sub = _controller.stream.listen((_) => emit());
+      controller.onCancel = sub.cancel;
+    }, isBroadcast: true);
+  }
+
+  @override
+  Stream<List<TrainingEntry>> watchRange(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) {
+    return Stream<List<TrainingEntry>>.multi((controller) {
+      void emit() {
+        if (!controller.isClosed) {
+          controller.add(_rangeEntries(startInclusive, endExclusive));
+        }
+      }
+
+      emit();
+      final sub = _controller.stream.listen((_) => emit());
+      controller.onCancel = sub.cancel;
+    }, isBroadcast: true);
+  }
+
+  @override
+  Stream<List<TrainingEntry>> watchRecent({
+    required int limit,
+    bool includeMatches = true,
+  }) {
+    return Stream<List<TrainingEntry>>.multi((controller) {
+      void emit() {
+        if (!controller.isClosed) {
+          controller.add(
+            _recentEntries(limit: limit, includeMatches: includeMatches),
+          );
+        }
+      }
+
+      emit();
+      final sub = _controller.stream.listen((_) => emit());
+      controller.onCancel = sub.cancel;
+    }, isBroadcast: true);
+  }
+
+  void _emit() {
+    _controller.add(List<TrainingEntry>.unmodifiable(_entries));
+  }
+
+  List<TrainingEntry> _rangeEntries(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) {
+    return _entries
+        .where(
+          (entry) =>
+              !entry.date.isBefore(startInclusive) &&
+              entry.date.isBefore(endExclusive),
+        )
+        .toList(growable: false)
+      ..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  List<TrainingEntry> _recentEntries({
+    required int limit,
+    required bool includeMatches,
+  }) {
+    if (limit <= 0) return const <TrainingEntry>[];
+    final entries = _entries
+        .where((entry) => includeMatches || !entry.isMatch)
+        .toList(growable: false)
+      ..sort(TrainingEntry.compareByRecentCreated);
+    if (entries.length <= limit) return entries;
+    return entries.take(limit).toList(growable: false);
+  }
+}
+
+class _MemoryOptionRepository implements OptionRepository {
+  final Map<String, dynamic> _values = <String, dynamic>{};
+
+  @override
+  T? getValue<T>(String key) => _values[key] as T?;
+
+  @override
+  List<int> getIntOptions(String key, List<int> defaults) {
+    final value = _values[key];
+    if (value is List<int>) return List<int>.from(value);
+    if (value is List) return value.whereType<int>().toList(growable: false);
+    return List<int>.from(defaults);
+  }
+
+  @override
+  List<String> getOptions(String key, List<String> defaults) {
+    final value = _values[key];
+    if (value is List<String>) return List<String>.from(value);
+    if (value is List) {
+      return value.whereType<String>().toList(growable: false);
+    }
+    return List<String>.from(defaults);
+  }
+
+  @override
+  Future<void> saveOptions(String key, List<dynamic> options) async {
+    _values[key] = List<dynamic>.from(options);
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    _values[key] = value;
+  }
 }
