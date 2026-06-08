@@ -3501,6 +3501,7 @@
   "challengeRewardGuideBody": "라운드를 연속으로 완료할수록 라운드 보상이 커져요. 챌린지를 끝까지 완주하면 완주 보너스도 더해집니다.",
   "challengeRewardGuideNoActive": "진행 중인 챌린지가 없어요. 챌린지를 시작하면 획득한 XP와 남은 XP를 볼 수 있어요.",
   "challengeRewardGuideActiveTitle": "현재 챌린지",
+  "challengeRewardGuideTemplatesTitle": "챌린지별 보상 계획",
   "challengeRewardGuideTemplateTitle": "{title} 보상 계획",
   "@challengeRewardGuideTemplateTitle": {
     "placeholders": {
@@ -3545,6 +3546,17 @@
   "challengeStartAction": "챌린지 시작",
   "challengeRoundCount": "{completed}/{total} 라운드 완료",
   "@challengeRoundCount": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeMissionCount": "{completed}/{total} 미션 완료",
+  "@challengeMissionCount": {
     "placeholders": {
       "completed": {
         "type": "int"
@@ -3674,6 +3686,11 @@
   },
   "challengeCelebrationAction": "좋아!",
   "challengeHistoryTitle": "챌린지 히스토리",
+  "challengeHistorySummaryTitle": "챌린지 요약",
+  "challengeHistoryListTitle": "챌린지 기록",
+  "challengeHistorySummaryTotalLabel": "전체",
+  "challengeHistorySummarySuccessLabel": "성공",
+  "challengeHistorySummaryLatestLabel": "최근",
   "challengeHistoryEmpty": "아직 챌린지 기록이 없어요.",
   "challengeHistoryStarted": "{date} 시작",
   "@challengeHistoryStarted": {

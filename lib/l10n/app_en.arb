@@ -3501,6 +3501,7 @@
   "challengeRewardGuideBody": "Round rewards grow when rounds are completed consecutively. A finished challenge also adds the finish bonus.",
   "challengeRewardGuideNoActive": "No active challenge is running. Start a challenge to see earned and remaining XP.",
   "challengeRewardGuideActiveTitle": "Current challenge",
+  "challengeRewardGuideTemplatesTitle": "Reward plans by challenge",
   "challengeRewardGuideTemplateTitle": "{title} reward plan",
   "@challengeRewardGuideTemplateTitle": {
     "placeholders": {
@@ -3545,6 +3546,17 @@
   "challengeStartAction": "Start challenge",
   "challengeRoundCount": "{completed}/{total} rounds complete",
   "@challengeRoundCount": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeMissionCount": "{completed}/{total} missions complete",
+  "@challengeMissionCount": {
     "placeholders": {
       "completed": {
         "type": "int"
@@ -3674,6 +3686,11 @@
   },
   "challengeCelebrationAction": "Nice!",
   "challengeHistoryTitle": "Challenge history",
+  "challengeHistorySummaryTitle": "Challenge summary",
+  "challengeHistoryListTitle": "Challenge records",
+  "challengeHistorySummaryTotalLabel": "Total",
+  "challengeHistorySummarySuccessLabel": "Success",
+  "challengeHistorySummaryLatestLabel": "Latest",
   "challengeHistoryEmpty": "No challenge history yet.",
   "challengeHistoryStarted": "Started {date}",
   "@challengeHistoryStarted": {

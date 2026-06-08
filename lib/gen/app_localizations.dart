@@ -12476,6 +12476,12 @@ abstract class AppLocalizations {
   /// **'Current challenge'**
   String get challengeRewardGuideActiveTitle;
 
+  /// No description provided for @challengeRewardGuideTemplatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward plans by challenge'**
+  String get challengeRewardGuideTemplatesTitle;
+
   /// No description provided for @challengeRewardGuideTemplateTitle.
   ///
   /// In en, this message translates to:
@@ -12565,6 +12571,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{completed}/{total} rounds complete'**
   String challengeRoundCount(int completed, int total);
+
+  /// No description provided for @challengeMissionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed}/{total} missions complete'**
+  String challengeMissionCount(int completed, int total);
 
   /// No description provided for @challengeProgressPercent.
   ///
@@ -12733,6 +12745,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Challenge history'**
   String get challengeHistoryTitle;
+
+  /// No description provided for @challengeHistorySummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge summary'**
+  String get challengeHistorySummaryTitle;
+
+  /// No description provided for @challengeHistoryListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge records'**
+  String get challengeHistoryListTitle;
+
+  /// No description provided for @challengeHistorySummaryTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get challengeHistorySummaryTotalLabel;
+
+  /// No description provided for @challengeHistorySummarySuccessLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get challengeHistorySummarySuccessLabel;
+
+  /// No description provided for @challengeHistorySummaryLatestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get challengeHistorySummaryLatestLabel;
 
   /// No description provided for @challengeHistoryEmpty.
   ///

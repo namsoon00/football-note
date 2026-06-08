@@ -7228,6 +7228,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeRewardGuideActiveTitle => 'Current challenge';
 
   @override
+  String get challengeRewardGuideTemplatesTitle => 'Reward plans by challenge';
+
+  @override
   String challengeRewardGuideTemplateTitle(Object title) {
     return '$title reward plan';
   }
@@ -7279,6 +7282,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String challengeRoundCount(int completed, int total) {
     return '$completed/$total rounds complete';
+  }
+
+  @override
+  String challengeMissionCount(int completed, int total) {
+    return '$completed/$total missions complete';
   }
 
   @override
@@ -7391,6 +7399,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeHistoryTitle => 'Challenge history';
+
+  @override
+  String get challengeHistorySummaryTitle => 'Challenge summary';
+
+  @override
+  String get challengeHistoryListTitle => 'Challenge records';
+
+  @override
+  String get challengeHistorySummaryTotalLabel => 'Total';
+
+  @override
+  String get challengeHistorySummarySuccessLabel => 'Success';
+
+  @override
+  String get challengeHistorySummaryLatestLabel => 'Latest';
 
   @override
   String get challengeHistoryEmpty => 'No challenge history yet.';

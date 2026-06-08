@@ -3501,6 +3501,7 @@
   "challengeRewardGuideBody": "ラウンドを連続で完了するほどラウンド報酬が増えます。最後まで完走すると完走ボーナスも加算されます。",
   "challengeRewardGuideNoActive": "進行中のチャレンジはありません。チャレンジを始めると獲得済みXPと残りXPを確認できます。",
   "challengeRewardGuideActiveTitle": "現在のチャレンジ",
+  "challengeRewardGuideTemplatesTitle": "チャレンジ別の報酬プラン",
   "challengeRewardGuideTemplateTitle": "{title} 報酬プラン",
   "@challengeRewardGuideTemplateTitle": {
     "placeholders": {
@@ -3545,6 +3546,17 @@
   "challengeStartAction": "チャレンジ開始",
   "challengeRoundCount": "{completed}/{total} ラウンド完了",
   "@challengeRoundCount": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeMissionCount": "{completed}/{total} ミッション完了",
+  "@challengeMissionCount": {
     "placeholders": {
       "completed": {
         "type": "int"
@@ -3674,6 +3686,11 @@
   },
   "challengeCelebrationAction": "いいね!",
   "challengeHistoryTitle": "チャレンジ履歴",
+  "challengeHistorySummaryTitle": "チャレンジ概要",
+  "challengeHistoryListTitle": "チャレンジ記録",
+  "challengeHistorySummaryTotalLabel": "合計",
+  "challengeHistorySummarySuccessLabel": "成功",
+  "challengeHistorySummaryLatestLabel": "最新",
   "challengeHistoryEmpty": "まだチャレンジ履歴がありません。",
   "challengeHistoryStarted": "{date} 開始",
   "@challengeHistoryStarted": {

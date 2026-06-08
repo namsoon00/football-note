@@ -10,6 +10,7 @@ class InfoBanner extends StatelessWidget {
   final Color? backgroundColor;
   final Color? borderColor;
   final TextStyle? textStyle;
+  final bool centerContent;
 
   const InfoBanner({
     super.key,
@@ -21,6 +22,7 @@ class InfoBanner extends StatelessWidget {
     this.backgroundColor,
     this.borderColor,
     this.textStyle,
+    this.centerContent = false,
   });
 
   bool get _hasDetails => detailsMessage?.trim().isNotEmpty == true;
@@ -43,7 +45,9 @@ class InfoBanner extends StatelessWidget {
         border: Border.all(color: border),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: centerContent
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start,
         children: [
           Container(
             width: 30,
