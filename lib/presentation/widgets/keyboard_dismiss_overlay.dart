@@ -12,6 +12,23 @@ class KeyboardDismissOverlay extends StatelessWidget {
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
     final showButton = keyboardInset > 0;
     final label = AppLocalizations.of(context)!.hideKeyboard;
+    final button = Semantics(
+      button: true,
+      label: label,
+      child: IconButton.filledTonal(
+        onPressed: () => FocusManager.instance.primaryFocus?.unfocus(),
+        style: IconButton.styleFrom(
+          fixedSize: const Size.square(42),
+          minimumSize: const Size.square(42),
+          padding: EdgeInsets.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        icon: const Icon(Icons.keyboard_hide_rounded, size: 20),
+      ),
+    );
+    final dismissButton = Overlay.maybeOf(context) == null
+        ? button
+        : Tooltip(message: label, child: button);
 
     return Stack(
       fit: StackFit.expand,
@@ -29,24 +46,7 @@ class KeyboardDismissOverlay extends StatelessWidget {
                 child: SafeArea(
                   top: false,
                   left: false,
-                  child: Tooltip(
-                    message: label,
-                    child: Semantics(
-                      button: true,
-                      label: label,
-                      child: IconButton.filledTonal(
-                        onPressed: () =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                        style: IconButton.styleFrom(
-                          fixedSize: const Size.square(42),
-                          minimumSize: const Size.square(42),
-                          padding: EdgeInsets.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        icon: const Icon(Icons.keyboard_hide_rounded, size: 20),
-                      ),
-                    ),
-                  ),
+                  child: dismissButton,
                 ),
               ),
             ),
