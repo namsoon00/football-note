@@ -6980,6 +6980,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeRewardGuideActiveTitle => '현재 챌린지';
 
   @override
+  String get challengeRewardGuideTemplatesTitle => '챌린지별 보상 계획';
+
+  @override
   String challengeRewardGuideTemplateTitle(Object title) {
     return '$title 보상 계획';
   }
@@ -7031,6 +7034,11 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String challengeRoundCount(int completed, int total) {
     return '$completed/$total 라운드 완료';
+  }
+
+  @override
+  String challengeMissionCount(int completed, int total) {
+    return '$completed/$total 미션 완료';
   }
 
   @override
@@ -7142,6 +7150,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeHistoryTitle => '챌린지 히스토리';
+
+  @override
+  String get challengeHistorySummaryTitle => '챌린지 요약';
+
+  @override
+  String get challengeHistoryListTitle => '챌린지 기록';
+
+  @override
+  String get challengeHistorySummaryTotalLabel => '전체';
+
+  @override
+  String get challengeHistorySummarySuccessLabel => '성공';
+
+  @override
+  String get challengeHistorySummaryLatestLabel => '최근';
 
   @override
   String get challengeHistoryEmpty => '아직 챌린지 기록이 없어요.';

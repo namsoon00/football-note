@@ -6975,6 +6975,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeRewardGuideActiveTitle => '現在のチャレンジ';
 
   @override
+  String get challengeRewardGuideTemplatesTitle => 'チャレンジ別の報酬プラン';
+
+  @override
   String challengeRewardGuideTemplateTitle(Object title) {
     return '$title 報酬プラン';
   }
@@ -7026,6 +7029,11 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String challengeRoundCount(int completed, int total) {
     return '$completed/$total ラウンド完了';
+  }
+
+  @override
+  String challengeMissionCount(int completed, int total) {
+    return '$completed/$total ミッション完了';
   }
 
   @override
@@ -7137,6 +7145,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeHistoryTitle => 'チャレンジ履歴';
+
+  @override
+  String get challengeHistorySummaryTitle => 'チャレンジ概要';
+
+  @override
+  String get challengeHistoryListTitle => 'チャレンジ記録';
+
+  @override
+  String get challengeHistorySummaryTotalLabel => '合計';
+
+  @override
+  String get challengeHistorySummarySuccessLabel => '成功';
+
+  @override
+  String get challengeHistorySummaryLatestLabel => '最新';
 
   @override
   String get challengeHistoryEmpty => 'まだチャレンジ履歴がありません。';

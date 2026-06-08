@@ -23,7 +23,6 @@ import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
-import '../models/training_program_emoji.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
 import '../localization/player_progression_localizations.dart';
@@ -66,6 +65,8 @@ class EntryFormScreen extends StatefulWidget {
   final EntryFormInitialPlanContext? initialPlanContext;
   final EntryFormInitialFocusTarget? initialFocusTarget;
   final bool initialConditioningOnly;
+  final bool initialEnableLifting;
+  final bool initialEnableJumpRope;
   final bool initialFocusViewOnly;
   final bool initialOpenTrainingBoardEditor;
   final bool closeAfterInitialTrainingBoardEditor;
@@ -82,6 +83,8 @@ class EntryFormScreen extends StatefulWidget {
     this.initialPlanContext,
     this.initialFocusTarget,
     this.initialConditioningOnly = false,
+    this.initialEnableLifting = false,
+    this.initialEnableJumpRope = false,
     this.initialFocusViewOnly = false,
     this.initialOpenTrainingBoardEditor = false,
     this.closeAfterInitialTrainingBoardEditor = false,
@@ -430,10 +433,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   void _applyInitialFocusTarget() {
-    if (widget.initialFocusTarget == EntryFormInitialFocusTarget.lifting) {
+    if (widget.initialEnableLifting ||
+        widget.initialFocusTarget == EntryFormInitialFocusTarget.lifting) {
       _liftingEnabled = true;
     }
-    if (widget.initialFocusTarget == EntryFormInitialFocusTarget.jumpRope) {
+    if (widget.initialEnableJumpRope ||
+        widget.initialFocusTarget == EntryFormInitialFocusTarget.jumpRope) {
       _jumpRopeEnabled = true;
     }
     if (widget.initialFocusTarget == null || _didRequestInitialFocus) {
@@ -1051,35 +1056,44 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           ],
         ),
         const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _dailyGoalOptions.isEmpty
+                ? null
+                : () => _openDailyGoalPicker(isKo),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(
-                context,
-              ).colorScheme.outline.withValues(alpha: 0.3),
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _selectedDailyGoalsSummary(isKo),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium,
+            child: Ink(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.3),
                 ),
               ),
-              TextButton.icon(
-                onPressed: _dailyGoalOptions.isEmpty
-                    ? null
-                    : () => _openDailyGoalPicker(isKo),
-                icon: const Icon(Icons.checklist, size: 18),
-                label: Text(isKo ? '선택' : 'Select'),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _selectedDailyGoalsSummary(isKo),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: _dailyGoalOptions.isEmpty
+                        ? null
+                        : () => _openDailyGoalPicker(isKo),
+                    icon: const Icon(Icons.checklist, size: 18),
+                    label: Text(isKo ? '선택' : 'Select'),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ],
@@ -1620,6 +1634,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       InfoBanner(
                         key: const ValueKey('entry-plan-banner'),
                         icon: Icons.event_note_outlined,
+                        centerContent: true,
                         summary: l10n.entryStartedFromPlanSummary(
                           _initialPlanSummary(isKo),
                         ),
@@ -2061,7 +2076,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                       ),
                                       const SizedBox(height: 8),
                                       _buildEmphasizedField(
+                                        fieldKey: _liftingFieldKey,
                                         controller: _liftingMinutesController,
+                                        focusNode: _liftingFieldFocusNode,
                                         enabled: _liftingEnabled,
                                         keyboardType: TextInputType.number,
                                         decoration: InputDecoration(
@@ -2074,9 +2091,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                         children: [
                                           Expanded(
                                             child: _buildEmphasizedField(
-                                              fieldKey: _liftingFieldKey,
                                               controller: _liftChestController,
-                                              focusNode: _liftingFieldFocusNode,
                                               enabled: _liftingEnabled,
                                               keyboardType:
                                                   TextInputType.number,
@@ -2297,11 +2312,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         isKo ? '${plan.durationMinutes}분' : '${plan.durationMinutes} min',
       );
     }
-    parts.add(
-      isKo
-          ? DateFormat('a h:mm', 'ko').format(plan.scheduledAt)
-          : DateFormat('h:mm a', 'en').format(plan.scheduledAt),
-    );
     final location = plan.location.trim();
     if (location.isNotEmpty) {
       parts.add(location);
@@ -2341,10 +2351,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     bool emphasizePrimary = false,
   }) {
     final theme = Theme.of(context);
-    final activeFg = emphasizePrimary
-        ? theme.colorScheme.onPrimary
-        : theme.colorScheme.primary;
-    final fg = active ? activeFg : theme.colorScheme.onSurfaceVariant;
+    final fg = active
+        ? (emphasizePrimary
+              ? theme.colorScheme.onPrimary
+              : theme.colorScheme.primary)
+        : theme.colorScheme.onSurfaceVariant;
     final bg = active
         ? (emphasizePrimary
               ? theme.colorScheme.primary
@@ -2356,30 +2367,22 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               : theme.colorScheme.primary.withValues(alpha: 0.36))
         : theme.colorScheme.outline.withValues(alpha: 0.28);
 
-    return AppPressableScale(
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          visualDensity: VisualDensity.compact,
-          minimumSize: const Size(1, 40),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          backgroundColor: bg,
-          side: BorderSide(color: border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18, color: fg),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: fg,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w600,
-              ),
+    return SizedBox.square(
+      dimension: 42,
+      child: AppPressableScale(
+        child: IconButton(
+          onPressed: onPressed,
+          tooltip: label,
+          icon: Icon(icon, size: 20, color: fg),
+          style: IconButton.styleFrom(
+            backgroundColor: bg,
+            foregroundColor: fg,
+            side: BorderSide(color: border),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
-          ],
+            visualDensity: VisualDensity.compact,
+          ),
         ),
       ),
     );
@@ -3592,13 +3595,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     bool enabled = true,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    final resolvedEmoji = label == l10n.program
-        ? trainingProgramEmojiFor(value)
-        : null;
-    // Remove soccer-ball emoji before training type (keep other emojis).
-    final leadingEmoji = (label == l10n.program && resolvedEmoji == '⚽')
-        ? null
-        : resolvedEmoji;
     return Row(
       children: [
         Expanded(
@@ -3607,9 +3603,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             child: DropdownMenu<String>(
               initialSelection: value,
               label: Text(label),
-              leadingIcon: leadingEmoji == null
-                  ? null
-                  : Text(leadingEmoji, style: const TextStyle(fontSize: 18)),
               trailingIcon: Icon(
                 Icons.expand_more,
                 color: enabled
