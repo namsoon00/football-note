@@ -240,6 +240,20 @@ class _MemoryTrainingRepository implements TrainingRepository {
       List<TrainingEntry>.of(_entries);
 
   @override
+  Future<List<TrainingEntry>> getRange(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) async =>
+      _rangeEntries(startInclusive, endExclusive);
+
+  @override
+  Future<List<TrainingEntry>> getRecent({
+    required int limit,
+    bool includeMatches = true,
+  }) async =>
+      _recentEntries(limit: limit, includeMatches: includeMatches);
+
+  @override
   Future<void> update(int key, TrainingEntry entry) async {
     if (_entries.isEmpty) return;
     _entries[0] = entry;
@@ -249,7 +263,56 @@ class _MemoryTrainingRepository implements TrainingRepository {
   @override
   Stream<List<TrainingEntry>> watchAll() => _controller.stream;
 
+  @override
+  Stream<List<TrainingEntry>> watchRange(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) async* {
+    yield _rangeEntries(startInclusive, endExclusive);
+    yield* _controller.stream.map(
+      (_) => _rangeEntries(startInclusive, endExclusive),
+    );
+  }
+
+  @override
+  Stream<List<TrainingEntry>> watchRecent({
+    required int limit,
+    bool includeMatches = true,
+  }) async* {
+    yield _recentEntries(limit: limit, includeMatches: includeMatches);
+    yield* _controller.stream.map(
+      (_) => _recentEntries(limit: limit, includeMatches: includeMatches),
+    );
+  }
+
   void _emit() {
     _controller.add(List<TrainingEntry>.unmodifiable(_entries));
+  }
+
+  List<TrainingEntry> _rangeEntries(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) {
+    return _entries
+        .where(
+          (entry) =>
+              !entry.date.isBefore(startInclusive) &&
+              entry.date.isBefore(endExclusive),
+        )
+        .toList(growable: false)
+      ..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  List<TrainingEntry> _recentEntries({
+    required int limit,
+    required bool includeMatches,
+  }) {
+    if (limit <= 0) return const <TrainingEntry>[];
+    final entries = _entries
+        .where((entry) => includeMatches || !entry.isMatch)
+        .toList(growable: false)
+      ..sort(TrainingEntry.compareByRecentCreated);
+    if (entries.length <= limit) return entries;
+    return entries.take(limit).toList(growable: false);
   }
 }

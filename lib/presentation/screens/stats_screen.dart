@@ -61,6 +61,7 @@ class _StatsScreenState extends State<StatsScreen> {
   static const String _plansStorageKey = 'training_plans_v1';
   late final BenchmarkService _benchmarkService;
   late DateTimeRange _selectedRange;
+  late Stream<List<TrainingEntry>> _trainingEntriesStream;
   int _statsTabIndex = 0;
   bool _trainingOverviewExpanded = true;
   bool _routePushInFlight = false;
@@ -70,6 +71,7 @@ class _StatsScreenState extends State<StatsScreen> {
     super.initState();
     _benchmarkService = BenchmarkService(widget.optionRepository);
     _selectedRange = widget.initialRange ?? _recentWeekRange();
+    _trainingEntriesStream = _watchSelectedTrainingEntries();
     NewsBadgeService.refresh(widget.optionRepository);
     _refreshBenchmarks();
   }
@@ -81,9 +83,13 @@ class _StatsScreenState extends State<StatsScreen> {
     final previousRange = oldWidget.initialRange;
     final forceApplyRange =
         widget.initialRangeRequestKey != oldWidget.initialRangeRequestKey;
-    if (nextRange != null &&
-        (forceApplyRange || !_sameRange(previousRange, nextRange))) {
+    final rangeChanged = nextRange != null &&
+        (forceApplyRange || !_sameRange(previousRange, nextRange));
+    if (rangeChanged) {
       _selectedRange = nextRange;
+    }
+    if (rangeChanged || widget.trainingService != oldWidget.trainingService) {
+      _trainingEntriesStream = _watchSelectedTrainingEntries();
     }
   }
 
@@ -120,7 +126,7 @@ class _StatsScreenState extends State<StatsScreen> {
       body: AppBackground(
         child: SafeArea(
           child: StreamBuilder<List<TrainingEntry>>(
-            stream: widget.trainingService.watchEntries(),
+            stream: _trainingEntriesStream,
             builder: (context, snapshot) {
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
               if (snapshot.hasError) {
@@ -197,16 +203,8 @@ class _StatsScreenState extends State<StatsScreen> {
     final ageYears = profileService.ageInYears(profile, now);
     final soccerYears = profileService.soccerYears(profile, now);
     final canShowAverage = ageYears != null && soccerYears != null;
-    final rangeStart = DateTime(
-      _selectedRange.start.year,
-      _selectedRange.start.month,
-      _selectedRange.start.day,
-    );
-    final rangeEndExclusive = DateTime(
-      _selectedRange.end.year,
-      _selectedRange.end.month,
-      _selectedRange.end.day,
-    ).add(const Duration(days: 1));
+    final rangeStart = _rangeStartFor(_selectedRange);
+    final rangeEndExclusive = _rangeEndExclusiveFor(_selectedRange);
     final filteredEntries = entries
         .where(
           (entry) =>
@@ -319,7 +317,6 @@ class _StatsScreenState extends State<StatsScreen> {
             _buildMatchStatsTab(
               context,
               isKo: isKo,
-              entries: entries,
               filteredEntries: filteredEntries,
               matchEntries: matchEntries,
             ),
@@ -463,15 +460,9 @@ class _StatsScreenState extends State<StatsScreen> {
   Widget _buildMatchStatsTab(
     BuildContext context, {
     required bool isKo,
-    required List<TrainingEntry> entries,
     required List<TrainingEntry> filteredEntries,
     required List<TrainingEntry> matchEntries,
   }) {
-    if (entries.isEmpty) {
-      return _InlineNotice(
-        text: isKo ? '아직 시합 기록이 없습니다.' : 'No match records yet.',
-      );
-    }
     if (filteredEntries.isEmpty || matchEntries.isEmpty) {
       return _InlineNotice(
         text: isKo
@@ -521,16 +512,16 @@ class _StatsScreenState extends State<StatsScreen> {
       },
     );
     if (picked == null || !mounted) return;
-    setState(() {
-      _selectedRange = DateTimeRange(
+    _setSelectedRange(
+      DateTimeRange(
         start: DateTime(
           picked.start.year,
           picked.start.month,
           picked.start.day,
         ),
         end: DateTime(picked.end.year, picked.end.month, picked.end.day),
-      );
-    });
+      ),
+    );
   }
 
   String _rangeLabel(bool isKo) {
@@ -544,10 +535,29 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   void _setRecentWeekRange() {
+    _setSelectedRange(_recentWeekRange());
+  }
+
+  void _setSelectedRange(DateTimeRange range) {
     setState(() {
-      _selectedRange = _recentWeekRange();
+      _selectedRange = range;
+      _trainingEntriesStream = _watchSelectedTrainingEntries();
     });
   }
+
+  Stream<List<TrainingEntry>> _watchSelectedTrainingEntries() {
+    return widget.trainingService.watchEntriesInRange(
+      _rangeStartFor(_selectedRange),
+      _rangeEndExclusiveFor(_selectedRange),
+    );
+  }
+
+  DateTime _rangeStartFor(DateTimeRange range) =>
+      DateTime(range.start.year, range.start.month, range.start.day);
+
+  DateTime _rangeEndExclusiveFor(DateTimeRange range) =>
+      DateTime(range.end.year, range.end.month, range.end.day)
+          .add(const Duration(days: 1));
 
   DateTimeRange _recentWeekRange() {
     final today = DateTime.now();

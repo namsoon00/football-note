@@ -499,6 +499,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsMatchResultLoss => 'Loss';
 
   @override
+  String matchKickoffKoreaOnly(String time) {
+    return 'Korea time $time';
+  }
+
+  @override
+  String matchKickoffLocalAndKorea(String localTime, String koreaTime) {
+    return '$localTime · Korea time $koreaTime';
+  }
+
+  @override
   String get worldCupTitle => 'World Cup View';
 
   @override
@@ -714,15 +724,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupGroupTeamsTitle => 'Group teams';
 
   @override
-  String get worldCupTournamentTitle => 'Tournament path';
+  String get worldCupTournamentTitle => 'Tournament bracket';
 
   @override
   String get worldCupTournamentPlanBody =>
-      'This shows the round and date flow from the round of 32 to the final. Once group results are fixed, each slot can expand into the actual team path.';
+      'This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.';
 
   @override
   String worldCupStageMatchCount(int count) {
     return '$count matches';
+  }
+
+  @override
+  String worldCupBracketRoundSummary(String dateRange, int count) {
+    return '$dateRange · $count matches';
+  }
+
+  @override
+  String worldCupBracketFirstSeed(String group) {
+    return 'Group $group winner';
+  }
+
+  @override
+  String worldCupBracketSecondSeed(String group) {
+    return 'Group $group runner-up';
+  }
+
+  @override
+  String worldCupBracketThirdSeed(String groups) {
+    return 'One 3rd-place team from $groups';
+  }
+
+  @override
+  String worldCupBracketWinnerSlot(int matchNumber) {
+    return 'Winner of M$matchNumber';
+  }
+
+  @override
+  String worldCupBracketLoserSlot(int matchNumber) {
+    return 'Loser of M$matchNumber';
+  }
+
+  @override
+  String worldCupBracketSourceMatch(int matchNumber, String home, String away) {
+    return 'M$matchNumber: $home v $away';
   }
 
   @override
@@ -6523,6 +6568,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get parentReadOnlyCalendarMessage =>
       'Parent mode cannot edit the calendar.';
+
+  @override
+  String get parentReadOnlyChallengeSummary => 'Challenge is view only here.';
+
+  @override
+  String get parentReadOnlyChallengeMessage =>
+      'Parent mode cannot start challenges or edit missions. You can only review challenge progress created in player mode.';
 
   @override
   String get parentReadOnlyDiaryMessage => 'Parent mode cannot edit the diary.';

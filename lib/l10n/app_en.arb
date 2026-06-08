@@ -176,6 +176,25 @@
   "newsMatchResultWin": "Win",
   "newsMatchResultDraw": "Draw",
   "newsMatchResultLoss": "Loss",
+  "matchKickoffKoreaOnly": "Korea time {time}",
+  "@matchKickoffKoreaOnly": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "matchKickoffLocalAndKorea": "{localTime} · Korea time {koreaTime}",
+  "@matchKickoffLocalAndKorea": {
+    "placeholders": {
+      "localTime": {
+        "type": "String"
+      },
+      "koreaTime": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupTitle": "World Cup View",
   "worldCupHeroTitle": "FIFA World Cup 2026",
   "worldCupHeroSubtitle": "Canada, Mexico, United States · 48 teams",
@@ -295,13 +314,78 @@
   "worldCupStandingsRuleLabel": "Tiebreak order",
   "worldCupStandingsRuleValue": "Points · goal difference · goals scored",
   "worldCupGroupTeamsTitle": "Group teams",
-  "worldCupTournamentTitle": "Tournament path",
-  "worldCupTournamentPlanBody": "This shows the round and date flow from the round of 32 to the final. Once group results are fixed, each slot can expand into the actual team path.",
+  "worldCupTournamentTitle": "Tournament bracket",
+  "worldCupTournamentPlanBody": "This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.",
   "worldCupStageMatchCount": "{count} matches",
   "@worldCupStageMatchCount": {
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "worldCupBracketRoundSummary": "{dateRange} · {count} matches",
+  "@worldCupBracketRoundSummary": {
+    "placeholders": {
+      "dateRange": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupBracketFirstSeed": "Group {group} winner",
+  "@worldCupBracketFirstSeed": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupBracketSecondSeed": "Group {group} runner-up",
+  "@worldCupBracketSecondSeed": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupBracketThirdSeed": "One 3rd-place team from {groups}",
+  "@worldCupBracketThirdSeed": {
+    "placeholders": {
+      "groups": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupBracketWinnerSlot": "Winner of M{matchNumber}",
+  "@worldCupBracketWinnerSlot": {
+    "placeholders": {
+      "matchNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupBracketLoserSlot": "Loser of M{matchNumber}",
+  "@worldCupBracketLoserSlot": {
+    "placeholders": {
+      "matchNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupBracketSourceMatch": "M{matchNumber}: {home} v {away}",
+  "@worldCupBracketSourceMatch": {
+    "placeholders": {
+      "matchNumber": {
+        "type": "int"
+      },
+      "home": {
+        "type": "String"
+      },
+      "away": {
+        "type": "String"
       }
     }
   },
@@ -3167,6 +3251,8 @@
   "parentReadOnlyCalendarSummary": "Calendar is view only here.",
   "parentReadOnlyCalendarBanner": "Parent mode keeps the calendar read-only. Update plans, matches, and meals in player mode.",
   "parentReadOnlyCalendarMessage": "Parent mode cannot edit the calendar.",
+  "parentReadOnlyChallengeSummary": "Challenge is view only here.",
+  "parentReadOnlyChallengeMessage": "Parent mode cannot start challenges or edit missions. You can only review challenge progress created in player mode.",
   "parentReadOnlyDiaryMessage": "Parent mode cannot edit the diary.",
   "parentReadOnlyDiaryBadge": "Parent mode read-only",
   "parentReadOnlySketchMessage": "Parent mode cannot edit training sketches.",

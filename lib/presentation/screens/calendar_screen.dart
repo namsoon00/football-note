@@ -89,6 +89,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       'training_plan_last_reminder_minutes_before_v1';
   static const _lastPlanTemplateKey = 'last_training_plan_template_v1';
   static const double _calendarDayNumberFontSize = 17;
+  static const int _sheetContextEntryLimit = 300;
+  static const int _twoWeekRangePaddingDays = 21;
   static const Map<String, String> _krFixedHolidayLabels = <String, String>{
     '01-01': '신정',
     '03-01': '삼일절',
@@ -107,8 +109,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   late final TrainingPlanReminderService _reminderService;
   late final TrainingPlanBadgeService _badgeService;
-  late final Stream<List<TrainingEntry>> _trainingEntriesStream;
   late final Stream<List<MealEntry>> _mealEntriesStream;
+  StreamSubscription<List<TrainingEntry>>? _trainingEntriesSubscription;
+  List<TrainingEntry> _visibleTrainingEntries = const <TrainingEntry>[];
+  DateTimeRange? _loadedTrainingRange;
   List<_TrainingPlan> _plans = const <_TrainingPlan>[];
   String _plansStorageRaw = '';
   bool _quickCreateHandled = false;
@@ -123,7 +127,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
       widget.settingsService,
     );
     _badgeService = TrainingPlanBadgeService(widget.optionRepository);
-    _trainingEntriesStream = widget.trainingService.watchEntries();
     _mealEntriesStream = widget.mealLogService.watchEntries();
     _reloadPlansFromStorage();
     _calendarExpanded =
@@ -135,12 +138,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
       _selectedDay = normalizedDay;
       _focusedDay = normalizedDay;
     }
+    _watchFocusedTrainingRange();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onSelectedDayChanged?.call(
         _normalizeDay(_selectedDay ?? _focusedDay),
       );
       unawaited(_maybeRunQuickCreateAction());
     });
+  }
+
+  @override
+  void dispose() {
+    unawaited(_trainingEntriesSubscription?.cancel());
+    super.dispose();
   }
 
   @override
@@ -157,8 +167,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
           _selectedDay = normalizedDay;
           _focusedDay = normalizedDay;
         });
+        _watchFocusedTrainingRange();
         widget.onSelectedDayChanged?.call(normalizedDay);
       }
+    }
+    if (widget.trainingService != oldWidget.trainingService) {
+      _loadedTrainingRange = null;
+      _watchFocusedTrainingRange();
     }
     if (widget.quickCreateAction != oldWidget.quickCreateAction) {
       _quickCreateHandled = false;
@@ -176,17 +191,56 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final selectedDay = _selectedDay ?? _focusedDay;
     switch (action) {
       case CalendarQuickCreateAction.plan:
-        final entries = await widget.trainingService.allEntries();
+        final entries = await _contextEntries();
         if (!mounted) return;
         await _openPlanSheet(day: selectedDay, entries: entries);
         break;
       case CalendarQuickCreateAction.match:
-        final entries = await widget.trainingService.allEntries();
+        final entries = await _contextEntries();
         if (!mounted) return;
         await _openMatchSheet(day: selectedDay, entries: entries);
         break;
     }
     widget.onQuickCreateHandled?.call();
+  }
+
+  Future<List<TrainingEntry>> _contextEntries() {
+    return widget.trainingService.recentEntries(limit: _sheetContextEntryLimit);
+  }
+
+  void _watchFocusedTrainingRange() {
+    final range = _trainingLoadRangeFor(_focusedDay);
+    if (_sameDateTimeRange(_loadedTrainingRange, range)) return;
+    _loadedTrainingRange = range;
+    unawaited(_trainingEntriesSubscription?.cancel());
+    _trainingEntriesSubscription = widget.trainingService
+        .watchEntriesInRange(range.start, range.end)
+        .listen((entries) {
+      if (!mounted || !_sameDateTimeRange(_loadedTrainingRange, range)) {
+        return;
+      }
+      setState(() => _visibleTrainingEntries = entries);
+    });
+  }
+
+  DateTimeRange _trainingLoadRangeFor(DateTime focusedDay) {
+    final focused = _normalizeDay(focusedDay);
+    if (_calendarFormat == CalendarFormat.twoWeeks) {
+      return DateTimeRange(
+        start: focused.subtract(const Duration(days: _twoWeekRangePaddingDays)),
+        end: focused.add(const Duration(days: _twoWeekRangePaddingDays + 1)),
+      );
+    }
+    final monthStart = DateTime(focused.year, focused.month);
+    final nextMonthStart = DateTime(focused.year, focused.month + 1);
+    return DateTimeRange(
+      start: DateTime(monthStart.year, monthStart.month - 1),
+      end: DateTime(nextMonthStart.year, nextMonthStart.month + 1),
+    );
+  }
+
+  bool _sameDateTimeRange(DateTimeRange? a, DateTimeRange b) {
+    return a != null && a.start == b.start && a.end == b.end;
   }
 
   Future<void> _setCalendarExpanded(
@@ -205,6 +259,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       _calendarFormat = format;
       _focusedDay = _selectedDay ?? _focusedDay;
     });
+    _watchFocusedTrainingRange();
     await widget.optionRepository.setValue(
       _calendarFormatKey,
       _serializeCalendarFormat(format),
@@ -275,11 +330,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       body: AppBackground(
         child: SafeArea(
-          child: StreamBuilder<List<TrainingEntry>>(
-            stream: _trainingEntriesStream,
-            builder: (context, snapshot) {
+          child: Builder(
+            builder: (context) {
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
-              final entries = snapshot.data ?? [];
+              final entries = _visibleTrainingEntries;
               return StreamBuilder<List<MealEntry>>(
                 stream: _mealEntriesStream,
                 builder: (context, mealSnapshot) {
@@ -390,6 +444,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         _selectedDay = today;
                                         _focusedDay = today;
                                       });
+                                      _watchFocusedTrainingRange();
                                       widget.onSelectedDayChanged?.call(today);
                                     },
                                     icon: const Icon(
@@ -450,7 +505,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                                 StartingDayOfWeek.sunday,
                                             calendarFormat: _calendarFormat,
                                             onPageChanged: (focusedDay) {
-                                              _focusedDay = focusedDay;
+                                              setState(() {
+                                                _focusedDay = focusedDay;
+                                              });
+                                              _watchFocusedTrainingRange();
                                             },
                                             selectedDayPredicate: (day) =>
                                                 isSameDay(day, _selectedDay),
@@ -460,6 +518,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                                 _selectedDay = selectedDay;
                                                 _focusedDay = focusedDay;
                                               });
+                                              _watchFocusedTrainingRange();
                                               widget.onSelectedDayChanged?.call(
                                                 _normalizeDay(
                                                   selectedDay,
@@ -787,7 +846,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           : FloatingActionButton(
               heroTag: 'calendar_fab',
               onPressed: () async {
-                final entries = await widget.trainingService.allEntries();
+                final entries = await _contextEntries();
                 if (!mounted) return;
                 await _showCreateActionSheet(entries);
               },
@@ -1111,8 +1170,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (!mounted) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
-    final locationEntries =
-        entries ?? await widget.trainingService.allEntries();
+    final locationEntries = entries ?? await _contextEntries();
     if (!mounted) return;
     final locationOptions = _planLocationOptions(locationEntries);
     final rawCategories = widget.optionRepository.getOptions('programs', [

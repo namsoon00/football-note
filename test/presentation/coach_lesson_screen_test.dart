@@ -1338,11 +1338,70 @@ class _FakeTrainingRepository implements TrainingRepository {
   Future<List<TrainingEntry>> getAll() async => _entries;
 
   @override
+  Future<List<TrainingEntry>> getRange(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) async =>
+      _rangeEntries(startInclusive, endExclusive);
+
+  @override
+  Future<List<TrainingEntry>> getRecent({
+    required int limit,
+    bool includeMatches = true,
+  }) async =>
+      _recentEntries(limit: limit, includeMatches: includeMatches);
+
+  @override
   Future<void> update(int key, TrainingEntry entry) async {}
 
   @override
   Stream<List<TrainingEntry>> watchAll() =>
       Stream<List<TrainingEntry>>.value(_entries);
+
+  @override
+  Stream<List<TrainingEntry>> watchRange(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) =>
+      Stream<List<TrainingEntry>>.value(
+        _rangeEntries(startInclusive, endExclusive),
+      );
+
+  @override
+  Stream<List<TrainingEntry>> watchRecent({
+    required int limit,
+    bool includeMatches = true,
+  }) =>
+      Stream<List<TrainingEntry>>.value(
+        _recentEntries(limit: limit, includeMatches: includeMatches),
+      );
+
+  List<TrainingEntry> _rangeEntries(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) {
+    return _entries
+        .where(
+          (entry) =>
+              !entry.date.isBefore(startInclusive) &&
+              entry.date.isBefore(endExclusive),
+        )
+        .toList(growable: false)
+      ..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  List<TrainingEntry> _recentEntries({
+    required int limit,
+    required bool includeMatches,
+  }) {
+    if (limit <= 0) return const <TrainingEntry>[];
+    final entries = _entries
+        .where((entry) => includeMatches || !entry.isMatch)
+        .toList(growable: false)
+      ..sort(TrainingEntry.compareByRecentCreated);
+    if (entries.length <= limit) return entries;
+    return entries.take(limit).toList(growable: false);
+  }
 }
 
 class _FakeOptionRepository implements OptionRepository {

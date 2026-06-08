@@ -176,6 +176,25 @@
   "newsMatchResultWin": "勝つ",
   "newsMatchResultDraw": "描く",
   "newsMatchResultLoss": "損失",
+  "matchKickoffKoreaOnly": "韓国時間 {time}",
+  "@matchKickoffKoreaOnly": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "matchKickoffLocalAndKorea": "{localTime} · 韓国時間 {koreaTime}",
+  "@matchKickoffLocalAndKorea": {
+    "placeholders": {
+      "localTime": {
+        "type": "String"
+      },
+      "koreaTime": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupTitle": "ワールドカップ表示",
   "worldCupHeroTitle": "FIFAワールドカップ2026",
   "worldCupHeroSubtitle": "カナダ、メキシコ、アメリカ · 48チーム",
@@ -295,13 +314,78 @@
   "worldCupStandingsRuleLabel": "順位基準",
   "worldCupStandingsRuleValue": "勝点 · 得失点差 · 得点",
   "worldCupGroupTeamsTitle": "グループ別チーム",
-  "worldCupTournamentTitle": "トーナメント計画",
-  "worldCupTournamentPlanBody": "ラウンド32から決勝までの流れと日程を先に表示します。グループ結果が確定したら、各枠を実際のチームの道筋として追えるようにします。",
+  "worldCupTournamentTitle": "トーナメント表",
+  "worldCupTournamentPlanBody": "現在は公式日程のグループ順位枠と前試合の勝者枠を基準に表示します。グループ結果が確定したら、各枠を実際の国の道筋として追えます。",
   "worldCupStageMatchCount": "{count}試合",
   "@worldCupStageMatchCount": {
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "worldCupBracketRoundSummary": "{dateRange} · {count}試合",
+  "@worldCupBracketRoundSummary": {
+    "placeholders": {
+      "dateRange": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupBracketFirstSeed": "グループ{group} 1位",
+  "@worldCupBracketFirstSeed": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupBracketSecondSeed": "グループ{group} 2位",
+  "@worldCupBracketSecondSeed": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupBracketThirdSeed": "{groups}の3位チームから1チーム",
+  "@worldCupBracketThirdSeed": {
+    "placeholders": {
+      "groups": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupBracketWinnerSlot": "M{matchNumber}勝者",
+  "@worldCupBracketWinnerSlot": {
+    "placeholders": {
+      "matchNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupBracketLoserSlot": "M{matchNumber}敗者",
+  "@worldCupBracketLoserSlot": {
+    "placeholders": {
+      "matchNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupBracketSourceMatch": "M{matchNumber}: {home} 対 {away}",
+  "@worldCupBracketSourceMatch": {
+    "placeholders": {
+      "matchNumber": {
+        "type": "int"
+      },
+      "home": {
+        "type": "String"
+      },
+      "away": {
+        "type": "String"
       }
     }
   },
@@ -3167,6 +3251,8 @@
   "parentReadOnlyCalendarSummary": "カレンダーはここでのみ表示されます。",
   "parentReadOnlyCalendarBanner": "親モードでは、カレンダーは読み取り専用になります。プレーヤーモードでのプラン、試合、食事を更新します。",
   "parentReadOnlyCalendarMessage": "親モードではカレンダーを編集できません。",
+  "parentReadOnlyChallengeSummary": "チャレンジはここでのみ表示されます。",
+  "parentReadOnlyChallengeMessage": "親モードではチャレンジを開始したりミッションを編集したりできません。プレイヤーモードで進めたチャレンジ状況のみ確認できます。",
   "parentReadOnlyDiaryMessage": "親モードでは日記を編集できません。",
   "parentReadOnlyDiaryBadge": "親モードは読み取り専用",
   "parentReadOnlySketchMessage": "親モードではトレーニング スケッチを編集できません。",

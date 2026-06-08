@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/challenge_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/meal_log_service.dart';
@@ -77,6 +78,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isParentReadOnlyMode = _isParentReadOnlyMode;
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.challengeTitle),
@@ -102,7 +104,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       body: AppBackground(
         child: SafeArea(
           child: StreamBuilder<List<TrainingEntry>>(
-            stream: widget.trainingService.watchEntries(),
+            stream: _watchChallengeTrainingEntries(),
             builder: (context, trainingSnapshot) {
               final trainingEntries =
                   (trainingSnapshot.data ?? const <TrainingEntry>[])
@@ -119,10 +121,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     trainingEntries: trainingEntries,
                     mealEntries: mealEntries,
                   );
-                  if (progress != null) {
+                  if (progress != null && !isParentReadOnlyMode) {
                     _scheduleFinalizeSync(progress);
                   }
-                  _scheduleChallengeReminderSync(progress);
+                  if (!isParentReadOnlyMode) {
+                    _scheduleChallengeReminderSync(progress);
+                  }
                   final skillOptions = _challengeProgramSkillOptions(
                     l10n,
                     widget.optionRepository,
@@ -130,7 +134,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
                     children: [
-                      if (progress == null)
+                      if (progress == null && isParentReadOnlyMode)
+                        const _ChallengeReadOnlyEmptySection()
+                      else if (progress == null)
                         _ChallengeStartSection(
                           templates: _challengeService.templates(),
                           templateTitle: (template) =>
@@ -148,6 +154,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                             l10n,
                             progress.template,
                           ),
+                          readOnly: isParentReadOnlyMode,
                           onAbandon: _confirmAbandon,
                           onOpenTraining: _openTrainingMission,
                           onOpenJumpRope: _openJumpRopeMission,
@@ -272,8 +279,34 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     );
   }
 
+  Stream<List<TrainingEntry>> _watchChallengeTrainingEntries() {
+    final range = _activeChallengeTrainingRange();
+    if (range == null) {
+      return Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
+    }
+    return widget.trainingService.watchEntriesInRange(range.start, range.end);
+  }
+
+  Future<List<TrainingEntry>> _activeChallengeTrainingEntries() async {
+    final range = _activeChallengeTrainingRange();
+    if (range == null) return const <TrainingEntry>[];
+    return widget.trainingService.entriesInRange(range.start, range.end);
+  }
+
+  DateTimeRange? _activeChallengeTrainingRange() {
+    final run = _challengeService.activeRun();
+    if (run == null) return null;
+    final template = _challengeService.templateById(run.templateId);
+    if (template == null) return null;
+    final start = run.startDay;
+    return DateTimeRange(
+      start: start,
+      end: start.add(Duration(days: template.dayCount)),
+    );
+  }
+
   Future<void> _openRewardGuide() async {
-    final trainingEntries = (await widget.trainingService.allEntries())
+    final trainingEntries = (await _activeChallengeTrainingEntries())
         .where((entry) => !entry.isMatch)
         .toList(growable: false);
     final mealEntries = widget.mealLogService.mergedEntries(
@@ -299,6 +332,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
   ) async {
+    if (_isParentReadOnlyMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final l10n = AppLocalizations.of(context)!;
     _playChallengeTapFeedback();
     await _challengeService.startChallenge(
@@ -316,6 +353,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   Future<void> _confirmAbandon() async {
+    if (_isParentReadOnlyMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -370,6 +411,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     required EntryFormInitialFocusTarget? initialFocusTarget,
     ChallengeTrainingProgramProgress? programMission,
   }) async {
+    if (_isParentReadOnlyMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     _playChallengeTapFeedback();
     final navigator = Navigator.of(context);
     final existingEntry = await _trainingEntryForRound(
@@ -431,7 +476,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }) async {
     final normalizedDay = normalizeDay(day);
     final targetProgram = programId?.trim();
-    final entries = await widget.trainingService.allEntries();
+    final entries = await widget.trainingService.entriesInRange(
+      normalizedDay,
+      normalizedDay.add(const Duration(days: 1)),
+    );
     final sameDayEntries = entries
         .where(
           (entry) =>
@@ -451,6 +499,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   Future<void> _openMealMission(ChallengeRoundProgress round) async {
+    if (_isParentReadOnlyMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     _playChallengeTapFeedback();
     await Navigator.of(context).push(
       AppPageRoute<void>(
@@ -466,6 +518,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   Future<void> _openTrainingProgramSetup() async {
+    if (_isParentReadOnlyMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     _playChallengeTapFeedback();
     await Navigator.of(context).push(
       AppPageRoute<void>(
@@ -490,6 +546,92 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   void _playChallengeSuccessFeedback() {
     unawaited(HapticFeedback.heavyImpact());
     unawaited(SystemSound.play(SystemSoundType.alert));
+  }
+
+  bool get _isParentReadOnlyMode {
+    return FamilyAccessService(
+      widget.optionRepository,
+    ).loadState().isParentMode;
+  }
+
+  void _showParentReadOnlyMessage() {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger
+      ?..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.parentReadOnlyChallengeMessage,
+          ),
+        ),
+      );
+  }
+}
+
+class _ChallengeReadOnlyEmptySection extends StatelessWidget {
+  const _ChallengeReadOnlyEmptySection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _ChallengeIntroCard(
+          title: l10n.challengeStartHeroTitle,
+          body: l10n.challengeStartHeroBody,
+          progress: 0,
+        ),
+        const SizedBox(height: 18),
+        const _ParentReadOnlyChallengeNotice(),
+      ],
+    );
+  }
+}
+
+class _ParentReadOnlyChallengeNotice extends StatelessWidget {
+  const _ParentReadOnlyChallengeNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.visibility_outlined, color: theme.colorScheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.parentReadOnlyChallengeSummary,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.parentReadOnlyChallengeMessage,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -2440,6 +2582,7 @@ class _ChallengeIntroCard extends StatelessWidget {
 class _ActiveChallengeSection extends StatelessWidget {
   final ChallengeProgress progress;
   final String templateTitle;
+  final bool readOnly;
   final VoidCallback onAbandon;
   final _OpenChallengeTrainingMission onOpenTraining;
   final ValueChanged<ChallengeRoundProgress> onOpenJumpRope;
@@ -2450,6 +2593,7 @@ class _ActiveChallengeSection extends StatelessWidget {
   const _ActiveChallengeSection({
     required this.progress,
     required this.templateTitle,
+    required this.readOnly,
     required this.onAbandon,
     required this.onOpenTraining,
     required this.onOpenJumpRope,
@@ -2464,12 +2608,20 @@ class _ActiveChallengeSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _ChallengeRoundsCalendar(progress: progress, onAbandon: onAbandon),
+        if (readOnly) ...[
+          const _ParentReadOnlyChallengeNotice(),
+          const SizedBox(height: 18),
+        ],
+        _ChallengeRoundsCalendar(
+          progress: progress,
+          onAbandon: readOnly ? null : onAbandon,
+        ),
         const SizedBox(height: 18),
         if (activeRound != null)
           _RoundFocusCard(
             progress: progress,
             round: activeRound,
+            readOnly: readOnly,
             onOpenTraining: onOpenTraining,
             onOpenJumpRope: onOpenJumpRope,
             onOpenLifting: onOpenLifting,
@@ -2486,6 +2638,7 @@ class _ActiveChallengeSection extends StatelessWidget {
 class _RoundFocusCard extends StatelessWidget {
   final ChallengeProgress progress;
   final ChallengeRoundProgress round;
+  final bool readOnly;
   final _OpenChallengeTrainingMission onOpenTraining;
   final ValueChanged<ChallengeRoundProgress> onOpenJumpRope;
   final ValueChanged<ChallengeRoundProgress> onOpenLifting;
@@ -2495,6 +2648,7 @@ class _RoundFocusCard extends StatelessWidget {
   const _RoundFocusCard({
     required this.progress,
     required this.round,
+    required this.readOnly,
     required this.onOpenTraining,
     required this.onOpenJumpRope,
     required this.onOpenLifting,
@@ -2561,7 +2715,7 @@ class _RoundFocusCard extends StatelessWidget {
             trackHeight: 8,
             iconSize: 26,
           ),
-          if (!round.isToday) ...[
+          if (!round.isToday && !readOnly) ...[
             const SizedBox(height: 12),
             _TrainingProgramLinkCard(
               onOpenTrainingPrograms: onOpenTrainingPrograms,
@@ -2586,7 +2740,7 @@ class _RoundFocusCard extends StatelessWidget {
                   round.round.targetTrainingMinutes,
                 ),
                 completed: round.trainingCompleted,
-                onTap: () => onOpenTraining(round),
+                onTap: readOnly ? null : () => onOpenTraining(round),
               )
             else
               for (final program in round.trainingPrograms) ...[
@@ -2600,7 +2754,9 @@ class _RoundFocusCard extends StatelessWidget {
                   ),
                   progress: program.progressRate,
                   completed: program.completed,
-                  onTap: () => onOpenTraining(round, program: program),
+                  onTap: readOnly
+                      ? null
+                      : () => onOpenTraining(round, program: program),
                 ),
                 if (program != round.trainingPrograms.last)
                   const SizedBox(height: 10),
@@ -2621,7 +2777,7 @@ class _RoundFocusCard extends StatelessWidget {
                 round.round.targetJumpRopeMinutes,
               ),
               completed: round.jumpRopeCompleted,
-              onTap: () => onOpenJumpRope(round),
+              onTap: readOnly ? null : () => onOpenJumpRope(round),
             ),
           ],
           if (round.round.targetLiftingMinutes > 0) ...[
@@ -2639,7 +2795,7 @@ class _RoundFocusCard extends StatelessWidget {
                 round.round.targetLiftingMinutes,
               ),
               completed: round.liftingCompleted,
-              onTap: () => onOpenLifting(round),
+              onTap: readOnly ? null : () => onOpenLifting(round),
             ),
           ],
           if (round.round.targetRiceBowls > 0) ...[
@@ -2656,7 +2812,7 @@ class _RoundFocusCard extends StatelessWidget {
                 round.round.targetRiceBowls,
               ),
               completed: round.mealCompleted,
-              onTap: () => onOpenMeal(round),
+              onTap: readOnly ? null : () => onOpenMeal(round),
             ),
           ],
         ],
@@ -2786,7 +2942,7 @@ class _ChallengeInfoTile extends StatelessWidget {
 
 class _ChallengeRoundsCalendar extends StatelessWidget {
   final ChallengeProgress progress;
-  final VoidCallback onAbandon;
+  final VoidCallback? onAbandon;
 
   const _ChallengeRoundsCalendar({
     required this.progress,
@@ -2834,11 +2990,12 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
                   ),
                 ),
               ),
-              TextButton.icon(
-                onPressed: onAbandon,
-                icon: const Icon(Icons.stop_circle_outlined),
-                label: Text(l10n.challengeAbandonAction),
-              ),
+              if (onAbandon != null)
+                TextButton.icon(
+                  onPressed: onAbandon,
+                  icon: const Icon(Icons.stop_circle_outlined),
+                  label: Text(l10n.challengeAbandonAction),
+                ),
             ],
           ),
           const SizedBox(height: 10),
@@ -3112,7 +3269,7 @@ class _MissionProgressRow extends StatelessWidget {
   final String value;
   final double progress;
   final bool completed;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _MissionProgressRow({
     this.icon,
@@ -3202,7 +3359,9 @@ class _MissionProgressRow extends StatelessWidget {
                   Icon(
                     completed
                         ? Icons.check_circle_rounded
-                        : Icons.chevron_right_rounded,
+                        : onTap == null
+                            ? Icons.visibility_outlined
+                            : Icons.chevron_right_rounded,
                     color: color,
                     size: completed ? 18 : 20,
                   ),

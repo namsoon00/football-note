@@ -20,7 +20,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('월드컵 보기'), findsOneWidget);
+    final countrySettingsY = tester.getTopLeft(find.text('내 월드컵 국가')).dy;
+    final calendarY = tester.getTopLeft(find.text('전체 경기 캘린더')).dy;
+    expect(countrySettingsY, lessThan(calendarY));
     expect(find.text('전체 경기 캘린더'), findsOneWidget);
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('일정'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
     expect(find.text('일정'), findsOneWidget);
     expect(find.text('순위'), findsOneWidget);
     expect(find.text('토너먼트'), findsOneWidget);
@@ -48,6 +58,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('순위'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('순위'));
     await tester.pumpAndSettle();
 
@@ -55,11 +72,21 @@ void main() {
     expect(find.text('조별 팀 구성'), findsOneWidget);
     expect(find.text('A조'), findsWidgets);
 
+    await tester.scrollUntilVisible(
+      find.text('토너먼트'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('토너먼트'));
     await tester.pumpAndSettle();
 
-    expect(find.text('토너먼트 계획'), findsOneWidget);
+    expect(find.text('토너먼트 대진표'), findsOneWidget);
     expect(find.text('32강'), findsOneWidget);
+    expect(find.text('A조 2위'), findsOneWidget);
+    expect(find.text('B조 2위'), findsOneWidget);
+    expect(find.text('M73 승자'), findsOneWidget);
+    expect(find.text('M73: A조 2위 대 B조 2위'), findsOneWidget);
     expect(find.text('결승'), findsOneWidget);
   });
 

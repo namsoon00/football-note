@@ -466,6 +466,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsMatchResultLoss => '패';
 
   @override
+  String matchKickoffKoreaOnly(String time) {
+    return '한국 시간 $time';
+  }
+
+  @override
+  String matchKickoffLocalAndKorea(String localTime, String koreaTime) {
+    return '$localTime · 한국 시간 $koreaTime';
+  }
+
+  @override
   String get worldCupTitle => '월드컵 보기';
 
   @override
@@ -675,15 +685,50 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupGroupTeamsTitle => '조별 팀 구성';
 
   @override
-  String get worldCupTournamentTitle => '토너먼트 계획';
+  String get worldCupTournamentTitle => '토너먼트 대진표';
 
   @override
   String get worldCupTournamentPlanBody =>
-      '32강부터 결승까지의 라운드와 날짜 흐름을 먼저 보여줘요. 조별리그 결과가 확정되면 각 자리의 팀 이름을 따라갈 수 있게 확장할 예정이에요.';
+      '현재는 공식 일정의 조 순위와 이전 경기 승자 슬롯 기준으로 보여줘요. 조별리그 결과가 확정되면 각 슬롯을 실제 국가명으로 따라갈 수 있어요.';
 
   @override
   String worldCupStageMatchCount(int count) {
     return '$count경기';
+  }
+
+  @override
+  String worldCupBracketRoundSummary(String dateRange, int count) {
+    return '$dateRange · $count경기';
+  }
+
+  @override
+  String worldCupBracketFirstSeed(String group) {
+    return '$group조 1위';
+  }
+
+  @override
+  String worldCupBracketSecondSeed(String group) {
+    return '$group조 2위';
+  }
+
+  @override
+  String worldCupBracketThirdSeed(String groups) {
+    return '$groups조 3위 중 1팀';
+  }
+
+  @override
+  String worldCupBracketWinnerSlot(int matchNumber) {
+    return 'M$matchNumber 승자';
+  }
+
+  @override
+  String worldCupBracketLoserSlot(int matchNumber) {
+    return 'M$matchNumber 패자';
+  }
+
+  @override
+  String worldCupBracketSourceMatch(int matchNumber, String home, String away) {
+    return 'M$matchNumber: $home 대 $away';
   }
 
   @override
@@ -6301,6 +6346,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get parentReadOnlyCalendarMessage => '보호자 모드에서는 캘린더를 수정할 수 없어요.';
+
+  @override
+  String get parentReadOnlyChallengeSummary => '챌린지는 읽기 전용이에요.';
+
+  @override
+  String get parentReadOnlyChallengeMessage =>
+      '보호자 모드에서는 챌린지를 시작하거나 미션을 수정할 수 없어요. 선수 모드에서 진행한 챌린지 상태만 확인할 수 있습니다.';
 
   @override
   String get parentReadOnlyDiaryMessage => '보호자 모드에서는 다이어리를 수정할 수 없어요.';

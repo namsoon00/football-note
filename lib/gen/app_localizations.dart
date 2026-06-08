@@ -977,6 +977,18 @@ abstract class AppLocalizations {
   /// **'Loss'**
   String get newsMatchResultLoss;
 
+  /// No description provided for @matchKickoffKoreaOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Korea time {time}'**
+  String matchKickoffKoreaOnly(String time);
+
+  /// No description provided for @matchKickoffLocalAndKorea.
+  ///
+  /// In en, this message translates to:
+  /// **'{localTime} · Korea time {koreaTime}'**
+  String matchKickoffLocalAndKorea(String localTime, String koreaTime);
+
   /// No description provided for @worldCupTitle.
   ///
   /// In en, this message translates to:
@@ -1364,13 +1376,13 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupTournamentTitle.
   ///
   /// In en, this message translates to:
-  /// **'Tournament path'**
+  /// **'Tournament bracket'**
   String get worldCupTournamentTitle;
 
   /// No description provided for @worldCupTournamentPlanBody.
   ///
   /// In en, this message translates to:
-  /// **'This shows the round and date flow from the round of 32 to the final. Once group results are fixed, each slot can expand into the actual team path.'**
+  /// **'This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.'**
   String get worldCupTournamentPlanBody;
 
   /// No description provided for @worldCupStageMatchCount.
@@ -1378,6 +1390,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} matches'**
   String worldCupStageMatchCount(int count);
+
+  /// No description provided for @worldCupBracketRoundSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{dateRange} · {count} matches'**
+  String worldCupBracketRoundSummary(String dateRange, int count);
+
+  /// No description provided for @worldCupBracketFirstSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {group} winner'**
+  String worldCupBracketFirstSeed(String group);
+
+  /// No description provided for @worldCupBracketSecondSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {group} runner-up'**
+  String worldCupBracketSecondSeed(String group);
+
+  /// No description provided for @worldCupBracketThirdSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'One 3rd-place team from {groups}'**
+  String worldCupBracketThirdSeed(String groups);
+
+  /// No description provided for @worldCupBracketWinnerSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner of M{matchNumber}'**
+  String worldCupBracketWinnerSlot(int matchNumber);
+
+  /// No description provided for @worldCupBracketLoserSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Loser of M{matchNumber}'**
+  String worldCupBracketLoserSlot(int matchNumber);
+
+  /// No description provided for @worldCupBracketSourceMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'M{matchNumber}: {home} v {away}'**
+  String worldCupBracketSourceMatch(int matchNumber, String home, String away);
 
   /// No description provided for @worldCupSourceAction.
   ///
@@ -11245,6 +11299,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parent mode cannot edit the calendar.'**
   String get parentReadOnlyCalendarMessage;
+
+  /// No description provided for @parentReadOnlyChallengeSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge is view only here.'**
+  String get parentReadOnlyChallengeSummary;
+
+  /// No description provided for @parentReadOnlyChallengeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode cannot start challenges or edit missions. You can only review challenge progress created in player mode.'**
+  String get parentReadOnlyChallengeMessage;
 
   /// No description provided for @parentReadOnlyDiaryMessage.
   ///
