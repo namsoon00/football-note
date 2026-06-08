@@ -443,7 +443,7 @@ const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =
     <ChallengeTrainingLevelConfig>[
       ChallengeTrainingLevelConfig(
         level: ChallengeTrainingLevel.rookie,
-        targetTrainingMinutes: 60,
+        targetTrainingMinutes: 30,
         targetJumpRopeMinutes: 10,
         targetLiftingMinutes: 10,
         targetRiceBowls: 3,
@@ -540,7 +540,7 @@ ChallengeTemplate _defaultChallengeTemplate({
       dayCount,
       (index) => ChallengeRound(
         number: index + 1,
-        targetTrainingMinutes: 60,
+        targetTrainingMinutes: 30,
         targetJumpRopeMinutes: 10,
         targetLiftingMinutes: 10,
         targetRiceBowls: 3,

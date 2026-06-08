@@ -21,8 +21,8 @@ void main() {
       10,
       10,
     ]);
-    expect(templates[2].rounds.first.targetTrainingMinutes, 60);
-    expect(templates[2].rounds.last.targetTrainingMinutes, 60);
+    expect(templates[2].rounds.first.targetTrainingMinutes, 30);
+    expect(templates[2].rounds.last.targetTrainingMinutes, 30);
     expect(templates[2].rounds.first.targetJumpRopeMinutes, 10);
     expect(templates[2].rounds.last.targetLiftingMinutes, 10);
   });
@@ -47,7 +47,7 @@ void main() {
     );
     final ace = service.roundForLevel(baseRound, ChallengeTrainingLevel.ace);
 
-    expect(rookie.targetTrainingMinutes, 60);
+    expect(rookie.targetTrainingMinutes, 30);
     expect(rookie.targetJumpRopeMinutes, 10);
     expect(rookie.targetLiftingMinutes, 10);
     expect(lastRookie.targetTrainingMinutes, rookie.targetTrainingMinutes);
@@ -177,7 +177,7 @@ void main() {
       expect(round.trainingPrograms, hasLength(1));
       expect(round.trainingPrograms.single.label, '전술');
       expect(round.trainingPrograms.single.currentMinutes, 60);
-      expect(round.trainingPrograms.single.targetMinutes, 60);
+      expect(round.trainingPrograms.single.targetMinutes, 30);
       expect(round.trainingPrograms.single.completed, isTrue);
       expect(round.trainingMinutes, 60);
       expect(round.completed, isTrue);

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/challenge_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/settings_service.dart';
@@ -79,6 +80,18 @@ void main() {
     final defaultProgramChip = find.widgetWithText(FilterChip, '기본기');
     expect(defaultProgramChip, findsOneWidget);
     expect(tester.widget<FilterChip>(defaultProgramChip).selected, isFalse);
+    await tester.ensureVisible(defaultProgramChip);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(defaultProgramChip);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.widget<FilterChip>(defaultProgramChip).selected, isTrue);
+    expect(
+      tester
+          .widgetList<ChoiceChip>(find.widgetWithText(ChoiceChip, '30분'))
+          .any((chip) => chip.selected),
+      isTrue,
+    );
 
     await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 시작'));
     await tester.pump(const Duration(milliseconds: 300));
@@ -102,6 +115,82 @@ void main() {
     await tester.pump();
     await mealLogService.dispose();
   });
+
+  testWidgets('round calendar uses seven-day card sizing for every template', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final starterSize = await _pumpActiveChallengeRoundCard(
+      tester,
+      templateId: 'starter_3',
+    );
+    final weeklySize = await _pumpActiveChallengeRoundCard(
+      tester,
+      templateId: 'weekly_7',
+    );
+    final focusSize = await _pumpActiveChallengeRoundCard(
+      tester,
+      templateId: 'focus_14',
+    );
+
+    expect(starterSize.width, moreOrLessEquals(weeklySize.width));
+    expect(starterSize.height, moreOrLessEquals(weeklySize.height));
+    expect(focusSize.width, moreOrLessEquals(weeklySize.width));
+    expect(focusSize.height, moreOrLessEquals(weeklySize.height));
+  });
+}
+
+Future<Size> _pumpActiveChallengeRoundCard(
+  WidgetTester tester, {
+  required String templateId,
+}) async {
+  final optionRepository = _MemoryOptionRepository();
+  final challengeService = ChallengeService(optionRepository);
+  final template = challengeService.templateById(templateId)!;
+  await challengeService.startChallenge(
+    template,
+    startedAt: DateTime(2099, 1, 1, 9),
+  );
+  final trainingService = TrainingService(_MemoryTrainingRepository());
+  final mealLogService = MealLogService(optionRepository);
+  final localeService = LocaleService(optionRepository)..load();
+  final settingsService = SettingsService(optionRepository)..load();
+
+  await tester.pumpWidget(
+    MaterialApp(
+      locale: const Locale('ko', 'KR'),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: ChallengeScreen(
+        trainingService: trainingService,
+        mealLogService: mealLogService,
+        optionRepository: optionRepository,
+        localeService: localeService,
+        settingsService: settingsService,
+      ),
+    ),
+  );
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
+
+  final size = tester.getSize(
+    find.byKey(const ValueKey('challenge-calendar-round-1')),
+  );
+  await tester.pumpWidget(const SizedBox.shrink());
+  await tester.pump();
+  await mealLogService.dispose();
+  return size;
 }
 
 class _MemoryOptionRepository implements OptionRepository {

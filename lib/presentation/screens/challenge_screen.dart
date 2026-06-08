@@ -377,19 +377,23 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       programId: programMission?.programId,
     );
     if (!mounted) return;
-    final remainingProgramMinutes = programMission == null
-        ? 0
-        : (programMission.targetMinutes - programMission.currentMinutes).clamp(
-            0,
-            programMission.targetMinutes,
-          );
-    final initialPlanContext = existingEntry == null && programMission != null
+    final targetTrainingMinutes =
+        programMission?.targetMinutes ?? round.round.targetTrainingMinutes;
+    final currentTrainingMinutes =
+        programMission?.currentMinutes ?? round.trainingMinutes;
+    final remainingTrainingMinutes =
+        (targetTrainingMinutes - currentTrainingMinutes)
+            .clamp(0, targetTrainingMinutes)
+            .toInt();
+    final initialPlanContext = existingEntry == null &&
+            initialFocusTarget == null &&
+            targetTrainingMinutes > 0
         ? EntryFormInitialPlanContext(
             scheduledAt: round.date,
-            program: programMission.label,
-            durationMinutes: remainingProgramMinutes > 0
-                ? remainingProgramMinutes
-                : programMission.targetMinutes,
+            program: programMission?.label ?? '',
+            durationMinutes: remainingTrainingMinutes > 0
+                ? remainingTrainingMinutes
+                : targetTrainingMinutes,
           )
         : null;
     final initialConditioningOnly = existingEntry == null &&
@@ -2867,7 +2871,6 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
             builder: (context, constraints) {
               final compact = constraints.maxWidth < 380;
               final crossAxisCount = _challengeRoundColumnCount(
-                rounds.length,
                 compact: compact,
               );
               return GridView.builder(
@@ -2879,7 +2882,6 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
                   crossAxisSpacing: compact ? 8 : 10,
                   mainAxisSpacing: compact ? 8 : 10,
                   childAspectRatio: _challengeRoundAspectRatio(
-                    rounds.length,
                     compact: compact,
                   ),
                 ),
@@ -2895,18 +2897,11 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
   }
 }
 
-int _challengeRoundColumnCount(int roundCount, {required bool compact}) {
-  if (roundCount <= 3) return roundCount.clamp(1, 3).toInt();
-  if (roundCount <= 5) return compact ? 3 : roundCount;
-  if (roundCount <= DateTime.daysPerWeek) {
-    return compact ? 4 : DateTime.daysPerWeek;
-  }
+int _challengeRoundColumnCount({required bool compact}) {
   return compact ? 4 : DateTime.daysPerWeek;
 }
 
-double _challengeRoundAspectRatio(int roundCount, {required bool compact}) {
-  if (roundCount <= 3) return compact ? 0.82 : 1.0;
-  if (roundCount <= 5) return compact ? 0.82 : 0.92;
+double _challengeRoundAspectRatio({required bool compact}) {
   return compact ? 0.84 : 0.82;
 }
 
@@ -2953,7 +2948,7 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
         key: ValueKey('challenge-calendar-round-${round.round.number}'),
         duration: AppMotion.base(context),
         curve: AppMotion.curveEnter,
-        padding: EdgeInsets.all(completed ? 2 : 9),
+        padding: EdgeInsets.all(completed ? 2 : 7),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(16),
@@ -2964,7 +2959,7 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
             final shortestSide = constraints.biggest.shortestSide;
             final mascotSize = completed
                 ? (shortestSide * 0.96).clamp(30.0, 96.0)
-                : (constraints.maxWidth * 0.58).clamp(34.0, 56.0);
+                : (shortestSide * 0.62).clamp(26.0, 52.0);
             if (completed) {
               return Center(
                 child: _RoundCalendarRinzyCelebration(size: mascotSize),
