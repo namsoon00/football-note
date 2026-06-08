@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../domain/repositories/option_repository.dart';
 
 class SettingsService extends ChangeNotifier {
   final OptionRepository _repository;
+  bool _notificationScheduled = false;
+  bool _disposed = false;
 
   ThemeMode _themeMode = ThemeMode.light;
   bool _reminderEnabled = true;
@@ -38,85 +41,108 @@ class SettingsService extends ChangeNotifier {
     _reminderTime = _parseTime(time) ?? _reminderTime;
     _levelUpAlertEnabled =
         _repository.getValue<bool>('level_up_alert_enabled') ??
-        _levelUpAlertEnabled;
+            _levelUpAlertEnabled;
     _xpAlertEnabled =
         _repository.getValue<bool>('xp_alert_enabled') ?? _xpAlertEnabled;
     _inactivityAlertEnabled =
         _repository.getValue<bool>('inactivity_alert_enabled') ??
-        _inactivityAlertEnabled;
+            _inactivityAlertEnabled;
     _familySyncAlertEnabled =
         _repository.getValue<bool>('family_sync_alert_enabled') ??
-        _familySyncAlertEnabled;
+            _familySyncAlertEnabled;
     _leagueFixtureAlertEnabled =
         _repository.getValue<bool>('league_fixture_alert_enabled') ??
-        _leagueFixtureAlertEnabled;
+            _leagueFixtureAlertEnabled;
     _inactivityAlertDays = _clampInt(
       _repository.getValue<num>('inactivity_alert_days')?.toInt(),
       fallback: _inactivityAlertDays,
       min: 1,
       max: 14,
     );
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;
     await _repository.setValue('theme_mode', mode.name);
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setReminderEnabled(bool enabled) async {
     _reminderEnabled = enabled;
     await _repository.setValue('reminder_enabled', enabled);
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setReminderVibrationEnabled(bool enabled) async {
     _reminderVibrationEnabled = enabled;
     await _repository.setValue('reminder_vibration_enabled', enabled);
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setReminderTime(TimeOfDay time) async {
     _reminderTime = time;
     await _repository.setValue('reminder_time', _formatTime(time));
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setLevelUpAlertEnabled(bool enabled) async {
     _levelUpAlertEnabled = enabled;
     await _repository.setValue('level_up_alert_enabled', enabled);
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setXpAlertEnabled(bool enabled) async {
     _xpAlertEnabled = enabled;
     await _repository.setValue('xp_alert_enabled', enabled);
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setInactivityAlertEnabled(bool enabled) async {
     _inactivityAlertEnabled = enabled;
     await _repository.setValue('inactivity_alert_enabled', enabled);
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setFamilySyncAlertEnabled(bool enabled) async {
     _familySyncAlertEnabled = enabled;
     await _repository.setValue('family_sync_alert_enabled', enabled);
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setLeagueFixtureAlertEnabled(bool enabled) async {
     _leagueFixtureAlertEnabled = enabled;
     await _repository.setValue('league_fixture_alert_enabled', enabled);
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setInactivityAlertDays(int days) async {
     _inactivityAlertDays = days.clamp(1, 14);
     await _repository.setValue('inactivity_alert_days', _inactivityAlertDays);
-    notifyListeners();
+    _notifyListenersSafely();
+  }
+
+  void _notifyListenersSafely() {
+    if (_disposed) return;
+    if (SchedulerBinding.instance.schedulerPhase !=
+        SchedulerPhase.persistentCallbacks) {
+      notifyListeners();
+      return;
+    }
+    if (_notificationScheduled) return;
+    _notificationScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _notificationScheduled = false;
+      if (!_disposed) {
+        notifyListeners();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 
   ThemeMode? _parseThemeMode(String? value) {

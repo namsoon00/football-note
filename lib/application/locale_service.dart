@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../domain/repositories/option_repository.dart';
 
 class LocaleService extends ChangeNotifier {
@@ -6,6 +7,8 @@ class LocaleService extends ChangeNotifier {
 
   final OptionRepository _optionRepository;
   Locale? _locale;
+  bool _notificationScheduled = false;
+  bool _disposed = false;
 
   LocaleService(this._optionRepository);
 
@@ -15,7 +18,7 @@ class LocaleService extends ChangeNotifier {
     final values = _optionRepository.getOptions(_key, const []);
     if (values.isEmpty) {
       _locale = const Locale('ko', 'KR');
-      notifyListeners();
+      _notifyListenersSafely();
       return;
     }
     final raw = values.first;
@@ -26,7 +29,7 @@ class LocaleService extends ChangeNotifier {
     } else if (raw == 'ko') {
       _locale = const Locale('ko', 'KR');
     }
-    notifyListeners();
+    _notifyListenersSafely();
   }
 
   Future<void> setLocale(Locale? locale) async {
@@ -36,6 +39,29 @@ class LocaleService extends ChangeNotifier {
     } else {
       await _optionRepository.saveOptions(_key, [locale.languageCode]);
     }
-    notifyListeners();
+    _notifyListenersSafely();
+  }
+
+  void _notifyListenersSafely() {
+    if (_disposed) return;
+    if (SchedulerBinding.instance.schedulerPhase !=
+        SchedulerPhase.persistentCallbacks) {
+      notifyListeners();
+      return;
+    }
+    if (_notificationScheduled) return;
+    _notificationScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _notificationScheduled = false;
+      if (!_disposed) {
+        notifyListeners();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }
