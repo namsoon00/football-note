@@ -67,7 +67,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   void initState() {
     super.initState();
     _challengeService = ChallengeService(widget.optionRepository);
-    _settingsService = widget.settingsService..load();
+    _settingsService = widget.settingsService;
     _reminderService = TrainingPlanReminderService(
       widget.optionRepository,
       _settingsService,
