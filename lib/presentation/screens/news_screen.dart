@@ -11,6 +11,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../application/news_read_state.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/news_service.dart';
+import '../../application/world_cup_schedule.dart';
 import '../../application/family_access_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../application/locale_service.dart';
@@ -38,6 +39,7 @@ class NewsScreen extends StatefulWidget {
   final BackupService? driveBackupService;
   final bool isActive;
   final NewsService? newsService;
+  final DateTime? nowForTesting;
 
   const NewsScreen({
     super.key,
@@ -48,6 +50,7 @@ class NewsScreen extends StatefulWidget {
     this.driveBackupService,
     this.isActive = false,
     this.newsService,
+    @visibleForTesting this.nowForTesting,
   });
 
   @override
@@ -55,6 +58,14 @@ class NewsScreen extends StatefulWidget {
 }
 
 enum _NewsRegionFilter { all, domestic, international }
+
+@visibleForTesting
+bool isWorldCupTournamentPeriod(DateTime date) {
+  final day = normalizeWorldCupDay(date);
+  final firstDay = worldCupFixtures.first.localDay;
+  final lastDay = worldCupFixtures.last.localDay;
+  return !day.isBefore(firstDay) && !day.isAfter(lastDay);
+}
 
 class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _titleTranslateEnabledKey =
@@ -139,23 +150,22 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   bool get _isParentMode =>
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
 
+  bool get _isWorldCupPeriod =>
+      isWorldCupTournamentPeriod(widget.nowForTesting ?? DateTime.now());
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _newsService =
-        widget.newsService ??
+    _newsService = widget.newsService ??
         NewsService(RssNewsRepository(widget.optionRepository));
     _profileService = PlayerProfileService(widget.optionRepository);
     _channels = _newsService.channels();
     _regionPageController = PageController(
       initialPage: _regionIndex(_regionFilter),
     );
-    _positionHint = _profileService
-        .load()
-        .positionTestResult
-        .trim()
-        .toLowerCase();
+    _positionHint =
+        _profileService.load().positionTestResult.trim().toLowerCase();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
     _readArticleKeys = NewsReadState.loadReadKeys(widget.optionRepository);
     _scrappedLinks = widget.optionRepository
@@ -292,6 +302,27 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             (constraints.maxWidth * (constraints.maxWidth < 520 ? 0.54 : 0.58))
                 .clamp(176.0, 380.0)
                 .toDouble();
+        final leagueAction = _buildHeaderLeagueAction(
+          buttonKey: _leagueStandingsActionKey,
+          label: l10n.newsLeagueStandingsAction,
+          icon: Icons.sports_soccer_outlined,
+          onPressed: _openLeagueStandings,
+        );
+        final fifaAction = _buildHeaderLeagueAction(
+          buttonKey: _fifaHubActionKey,
+          label: l10n.newsFifaHubButton,
+          icon: Icons.public,
+          onPressed: _openFifaRankingHub,
+        );
+        final worldCupAction = _buildHeaderLeagueAction(
+          buttonKey: _worldCupActionKey,
+          label: l10n.newsWorldCupButton,
+          icon: Icons.emoji_events_outlined,
+          onPressed: _openWorldCup,
+        );
+        final headerActions = _isWorldCupPeriod
+            ? [worldCupAction, fifaAction, leagueAction]
+            : [leagueAction, fifaAction, worldCupAction];
         return Row(
           children: [
             IconButton(
@@ -318,26 +349,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildHeaderLeagueAction(
-                      buttonKey: _leagueStandingsActionKey,
-                      label: l10n.newsLeagueStandingsAction,
-                      icon: Icons.sports_soccer_outlined,
-                      onPressed: _openLeagueStandings,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildHeaderLeagueAction(
-                      buttonKey: _fifaHubActionKey,
-                      label: l10n.newsFifaHubButton,
-                      icon: Icons.public,
-                      onPressed: _openFifaRankingHub,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildHeaderLeagueAction(
-                      buttonKey: _worldCupActionKey,
-                      label: l10n.newsWorldCupButton,
-                      icon: Icons.emoji_events_outlined,
-                      onPressed: _openWorldCup,
-                    ),
+                    for (var index = 0;
+                        index < headerActions.length;
+                        index += 1) ...[
+                      if (index > 0) const SizedBox(width: 6),
+                      headerActions[index],
+                    ],
                   ],
                 ),
               ),
@@ -488,9 +505,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       backgroundColor: selected
           ? colorScheme.primaryContainer
           : colorScheme.surfaceContainerLow,
-      foregroundColor: selected
-          ? colorScheme.onPrimaryContainer
-          : colorScheme.onSurface,
+      foregroundColor:
+          selected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
       side: BorderSide(
         color: selected ? colorScheme.primary : colorScheme.outlineVariant,
       ),
@@ -656,32 +672,29 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final base = showScrappedOnly
         ? scrappedBase.map((item) => item.article).toList(growable: false)
         : _articles
-              .where(
-                (article) =>
-                    !_isReadArticle(article) ||
-                    _sessionOpenedArticleKeys.contains(
-                      NewsReadState.articleKey(article),
-                    ),
-              )
-              .toList(growable: false);
+            .where(
+              (article) =>
+                  !_isReadArticle(article) ||
+                  _sessionOpenedArticleKeys.contains(
+                    NewsReadState.articleKey(article),
+                  ),
+            )
+            .toList(growable: false);
     final regionBase = base
         .where((article) => _matchesRegionFilter(article, filter))
         .toList(growable: true);
     final filtered = query.isEmpty
         ? regionBase
-        : regionBase
-              .where((article) {
-                final title = article.title.toLowerCase();
-                final sourceText = article.source.toLowerCase();
-                final translated =
-                    _translatedTitlesByLink[article.link.trim()]
-                        ?.toLowerCase() ??
+        : regionBase.where((article) {
+            final title = article.title.toLowerCase();
+            final sourceText = article.source.toLowerCase();
+            final translated =
+                _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ??
                     '';
-                return title.contains(query) ||
-                    sourceText.contains(query) ||
-                    translated.contains(query);
-              })
-              .toList(growable: true);
+            return title.contains(query) ||
+                sourceText.contains(query) ||
+                translated.contains(query);
+          }).toList(growable: true);
     if (filter == _NewsRegionFilter.domestic) {
       filtered.sort((a, b) {
         final readCompare = _compareReadPriority(a, b);
@@ -872,9 +885,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     required Set<String> temp,
     required StateSetter setSheetState,
   }) {
-    final domesticChannels = _channels
-        .where(_isDomesticNewsChannel)
-        .toList(growable: false);
+    final domesticChannels =
+        _channels.where(_isDomesticNewsChannel).toList(growable: false);
     final internationalChannels = _channels
         .where((channel) => !_isDomesticNewsChannel(channel))
         .toList(growable: false);
@@ -965,9 +977,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     }
     final foregroundCount = _foregroundChannelLoadCount();
     final primaryIds = channelIds.take(foregroundCount).toList(growable: false);
-    final secondaryIds = channelIds
-        .skip(foregroundCount)
-        .toList(growable: false);
+    final secondaryIds =
+        channelIds.skip(foregroundCount).toList(growable: false);
 
     final primarySucceeded = await _loadChannels(
       token: token,
@@ -1077,21 +1088,19 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }) async {
     if (channelIds.isEmpty) return false;
     final loadedChunks = <List<NewsArticle>>[];
-    final tasks = channelIds
-        .map((id) async {
-          try {
-            final chunk = await _newsService.latest(
-              id,
-              forceRefresh: forceRefresh,
-            );
-            if (chunk.isNotEmpty) {
-              loadedChunks.add(chunk);
-            }
-          } catch (_) {
-            // Keep loading remaining channels even if one feed fails.
-          }
-        })
-        .toList(growable: false);
+    final tasks = channelIds.map((id) async {
+      try {
+        final chunk = await _newsService.latest(
+          id,
+          forceRefresh: forceRefresh,
+        );
+        if (chunk.isNotEmpty) {
+          loadedChunks.add(chunk);
+        }
+      } catch (_) {
+        // Keep loading remaining channels even if one feed fails.
+      }
+    }).toList(growable: false);
     await Future.wait(tasks);
     if (!mounted || token != _loadToken || loadedChunks.isEmpty) {
       return false;
@@ -1366,9 +1375,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       final decoded = jsonDecode(raw);
       if (decoded is! Map) return <String, int>{};
       return decoded.map<String, int>((key, value) {
-        final count = value is num
-            ? value.toInt()
-            : int.tryParse('$value') ?? 0;
+        final count =
+            value is num ? value.toInt() : int.tryParse('$value') ?? 0;
         return MapEntry(key.toString(), count);
       });
     } catch (_) {
@@ -1489,7 +1497,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                   child: Text(
                     l10n.newsViewedHistoryTitle,
-                    style: Theme.of(sheetContext).textTheme.titleLarge
+                    style: Theme.of(sheetContext)
+                        .textTheme
+                        .titleLarge
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
@@ -1676,21 +1686,19 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return;
-      final updated = decoded
-          .map((item) {
-            final map = item is Map<String, dynamic>
-                ? Map<String, dynamic>.from(item)
-                : item is Map
+      final updated = decoded.map((item) {
+        final map = item is Map<String, dynamic>
+            ? Map<String, dynamic>.from(item)
+            : item is Map
                 ? Map<String, dynamic>.from(item.cast<String, dynamic>())
                 : null;
-            if (map == null) return item;
-            if (map['link']?.toString().trim() == link &&
-                (map['titleKo']?.toString().trim().isEmpty ?? true)) {
-              map['titleKo'] = titleKo;
-            }
-            return map;
-          })
-          .toList(growable: false);
+        if (map == null) return item;
+        if (map['link']?.toString().trim() == link &&
+            (map['titleKo']?.toString().trim().isEmpty ?? true)) {
+          map['titleKo'] = titleKo;
+        }
+        return map;
+      }).toList(growable: false);
       await widget.optionRepository.setValue(
         NewsScreen.openedItemsKey,
         jsonEncode(updated),
@@ -1723,19 +1731,17 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
     _translatingLinks.add(key);
-    _translateToKorean(originalTitle)
-        .then((translated) {
-          if (!mounted) return;
-          final value = translated.trim();
-          if (value.isNotEmpty && value != originalTitle) {
-            setState(() {
-              _translatedTitlesByLink[key] = value;
-            });
-          }
-        })
-        .whenComplete(() {
-          _translatingLinks.remove(key);
+    _translateToKorean(originalTitle).then((translated) {
+      if (!mounted) return;
+      final value = translated.trim();
+      if (value.isNotEmpty && value != originalTitle) {
+        setState(() {
+          _translatedTitlesByLink[key] = value;
         });
+      }
+    }).whenComplete(() {
+      _translatingLinks.remove(key);
+    });
   }
 
   Future<void> _toggleTitleTranslate() async {

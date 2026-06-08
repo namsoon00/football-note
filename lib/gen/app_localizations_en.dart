@@ -522,6 +522,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupCountdownComplete => 'Tournament complete';
 
   @override
+  String get worldCupScheduleTab => 'Schedule';
+
+  @override
+  String get worldCupStandingsTab => 'Standings';
+
+  @override
+  String get worldCupTournamentTab => 'Tournament';
+
+  @override
   String get worldCupOverviewTitle => 'Tournament overview';
 
   @override
@@ -686,6 +695,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupFinalMatch => '19 Jul 2026 · New York New Jersey Stadium';
+
+  @override
+  String get worldCupStandingsTitle => 'Group standings';
+
+  @override
+  String get worldCupStandingsPlanBody =>
+      'Once results are available, this view will sort groups by points, goal difference, and goals scored. For now, use it to review each group setup.';
+
+  @override
+  String get worldCupStandingsRuleLabel => 'Tiebreak order';
+
+  @override
+  String get worldCupStandingsRuleValue =>
+      'Points · goal difference · goals scored';
+
+  @override
+  String get worldCupGroupTeamsTitle => 'Group teams';
+
+  @override
+  String get worldCupTournamentTitle => 'Tournament path';
+
+  @override
+  String get worldCupTournamentPlanBody =>
+      'This shows the round and date flow from the round of 32 to the final. Once group results are fixed, each slot can expand into the actual team path.';
+
+  @override
+  String worldCupStageMatchCount(int count) {
+    return '$count matches';
+  }
 
   @override
   String get worldCupSourceAction => 'Open FIFA schedule';

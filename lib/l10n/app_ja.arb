@@ -190,6 +190,9 @@
   "worldCupCountdownToday": "開幕日",
   "worldCupCountdownStarted": "大会開催中",
   "worldCupCountdownComplete": "大会終了",
+  "worldCupScheduleTab": "日程",
+  "worldCupStandingsTab": "順位",
+  "worldCupTournamentTab": "トーナメント",
   "worldCupOverviewTitle": "大会概要",
   "worldCupHostsLabel": "開催国",
   "worldCupHostsValue": "カナダ · メキシコ · アメリカ",
@@ -287,6 +290,21 @@
   "worldCupKnockouts": "グループステージ後にラウンド32が始まります。",
   "worldCupMilestoneFinalLabel": "決勝",
   "worldCupFinalMatch": "2026年7月19日 · ニューヨーク・ニュージャージー・スタジアム",
+  "worldCupStandingsTitle": "グループ順位",
+  "worldCupStandingsPlanBody": "試合結果が入ったら、勝点、得失点差、得点数の順でグループ順位を整理します。今は各グループ構成を確認できます。",
+  "worldCupStandingsRuleLabel": "順位基準",
+  "worldCupStandingsRuleValue": "勝点 · 得失点差 · 得点",
+  "worldCupGroupTeamsTitle": "グループ別チーム",
+  "worldCupTournamentTitle": "トーナメント計画",
+  "worldCupTournamentPlanBody": "ラウンド32から決勝までの流れと日程を先に表示します。グループ結果が確定したら、各枠を実際のチームの道筋として追えるようにします。",
+  "worldCupStageMatchCount": "{count}試合",
+  "@worldCupStageMatchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupSourceAction": "FIFA日程を開く",
   "homeTodayPlanCardTitle": "今日のトレーニングプラン",
   "homeTodayPlanCardSummary": "今日: {count} プラン",

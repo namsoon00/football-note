@@ -1019,6 +1019,24 @@ abstract class AppLocalizations {
   /// **'Tournament complete'**
   String get worldCupCountdownComplete;
 
+  /// No description provided for @worldCupScheduleTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get worldCupScheduleTab;
+
+  /// No description provided for @worldCupStandingsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Standings'**
+  String get worldCupStandingsTab;
+
+  /// No description provided for @worldCupTournamentTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament'**
+  String get worldCupTournamentTab;
+
   /// No description provided for @worldCupOverviewTitle.
   ///
   /// In en, this message translates to:
@@ -1312,6 +1330,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'19 Jul 2026 · New York New Jersey Stadium'**
   String get worldCupFinalMatch;
+
+  /// No description provided for @worldCupStandingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Group standings'**
+  String get worldCupStandingsTitle;
+
+  /// No description provided for @worldCupStandingsPlanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Once results are available, this view will sort groups by points, goal difference, and goals scored. For now, use it to review each group setup.'**
+  String get worldCupStandingsPlanBody;
+
+  /// No description provided for @worldCupStandingsRuleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiebreak order'**
+  String get worldCupStandingsRuleLabel;
+
+  /// No description provided for @worldCupStandingsRuleValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Points · goal difference · goals scored'**
+  String get worldCupStandingsRuleValue;
+
+  /// No description provided for @worldCupGroupTeamsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Group teams'**
+  String get worldCupGroupTeamsTitle;
+
+  /// No description provided for @worldCupTournamentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament path'**
+  String get worldCupTournamentTitle;
+
+  /// No description provided for @worldCupTournamentPlanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This shows the round and date flow from the round of 32 to the final. Once group results are fixed, each slot can expand into the actual team path.'**
+  String get worldCupTournamentPlanBody;
+
+  /// No description provided for @worldCupStageMatchCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} matches'**
+  String worldCupStageMatchCount(int count);
 
   /// No description provided for @worldCupSourceAction.
   ///

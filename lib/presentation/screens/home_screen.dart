@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../../application/training_service.dart';
 import '../../application/family_access_service.dart';
 import '../../application/meal_log_service.dart';
@@ -55,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   DateTimeRange? _statsInitialRange;
   int _statsInitialRangeRequestKey = 0;
   int _openTodayDiaryRequestKey = 0;
+  late final Set<int> _builtTabIndices;
   CalendarQuickCreateAction? _pendingCalendarQuickCreateAction;
   final Set<int> _guideCheckedInSession = <int>{};
   bool _routePushInFlight = false;
@@ -68,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _index = widget.initialIndex;
+    _builtTabIndices = <int>{_index};
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_showTabGuideIfNeeded(_index));
       unawaited(_syncFamilySharedDataIfNeeded());
@@ -184,84 +187,98 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final navBackground = Theme.of(context).colorScheme.surface;
     final pages = <Widget>[
-      HomeHubScreen(
-        trainingService: widget.trainingService,
-        mealLogService: widget.mealLogService,
-        localeService: widget.localeService,
-        optionRepository: widget.optionRepository,
-        settingsService: widget.settingsService,
-        driveBackupService: widget.driveBackupService,
-        onCreate: _openCreate,
-        onQuickPlan: () =>
-            _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
-        onQuickMatch: () =>
-            _openCalendarQuickCreate(CalendarQuickCreateAction.match),
-        onQuickQuiz: _openQuiz,
-        onQuickMeal: () => _openMealLog(initialDate: DateTime.now()),
-        onQuickBoard: _openTrainingBoards,
-        onOpenPlans: _openPlans,
-        onOpenPlansForDay: _openPlansForDay,
-        onOpenLogs: () => _onDestinationSelected(1),
-        onOpenDiary: _openTodayDiary,
-        onOpenWeeklyStats: _openWeeklyStatsForCurrentWeek,
-        onEdit: _openEdit,
-        onEditTrainingBoard: _openEditTrainingBoard,
-        onCreateTrainingBoard: _openCreateTrainingBoard,
+      _buildTabChild(
+        0,
+        HomeHubScreen(
+          trainingService: widget.trainingService,
+          mealLogService: widget.mealLogService,
+          localeService: widget.localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+          onCreate: _openCreate,
+          onQuickPlan: () =>
+              _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
+          onQuickMatch: () =>
+              _openCalendarQuickCreate(CalendarQuickCreateAction.match),
+          onQuickQuiz: _openQuiz,
+          onQuickMeal: () => _openMealLog(initialDate: DateTime.now()),
+          onQuickBoard: _openTrainingBoards,
+          onOpenPlans: _openPlans,
+          onOpenPlansForDay: _openPlansForDay,
+          onOpenLogs: () => _onDestinationSelected(1),
+          onOpenDiary: _openTodayDiary,
+          onOpenWeeklyStats: _openWeeklyStatsForCurrentWeek,
+          onEdit: _openEdit,
+          onEditTrainingBoard: _openEditTrainingBoard,
+          onCreateTrainingBoard: _openCreateTrainingBoard,
+        ),
       ),
-      LogsScreen(
-        trainingService: widget.trainingService,
-        localeService: widget.localeService,
-        optionRepository: widget.optionRepository,
-        settingsService: widget.settingsService,
-        driveBackupService: widget.driveBackupService,
-        onEdit: _openEdit,
-        onCreate: _openCreate,
-        onQuickPlan: () =>
-            _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
-        onQuickMatch: () =>
-            _openCalendarQuickCreate(CalendarQuickCreateAction.match),
-        onQuickQuiz: _openQuiz,
+      _buildTabChild(
+        1,
+        LogsScreen(
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+          onEdit: _openEdit,
+          onCreate: _openCreate,
+          onQuickPlan: () =>
+              _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
+          onQuickMatch: () =>
+              _openCalendarQuickCreate(CalendarQuickCreateAction.match),
+          onQuickQuiz: _openQuiz,
+        ),
       ),
-      CalendarScreen(
-        trainingService: widget.trainingService,
-        mealLogService: widget.mealLogService,
-        localeService: widget.localeService,
-        optionRepository: widget.optionRepository,
-        settingsService: widget.settingsService,
-        driveBackupService: widget.driveBackupService,
-        initialSelectedDay: _calendarSelectedDay,
-        onEdit: _openEdit,
-        onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
-        onCreateMeal: () => _openMealLog(initialDate: _calendarSelectedDay),
-        quickCreateAction:
-            _pendingCalendarQuickCreateAction ??
-            widget.calendarQuickCreateAction,
-        onQuickCreateHandled: _clearCalendarQuickCreateAction,
-        onSelectedDayChanged: (day) {
-          _calendarSelectedDay = DateTime(day.year, day.month, day.day);
-        },
+      _buildTabChild(
+        2,
+        CalendarScreen(
+          trainingService: widget.trainingService,
+          mealLogService: widget.mealLogService,
+          localeService: widget.localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+          initialSelectedDay: _calendarSelectedDay,
+          onEdit: _openEdit,
+          onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
+          onCreateMeal: () => _openMealLog(initialDate: _calendarSelectedDay),
+          quickCreateAction: _pendingCalendarQuickCreateAction ??
+              widget.calendarQuickCreateAction,
+          onQuickCreateHandled: _clearCalendarQuickCreateAction,
+          onSelectedDayChanged: (day) {
+            _calendarSelectedDay = DateTime(day.year, day.month, day.day);
+          },
+        ),
       ),
-      StatsScreen(
-        trainingService: widget.trainingService,
-        mealLogService: widget.mealLogService,
-        localeService: widget.localeService,
-        onCreate: _openCreate,
-        optionRepository: widget.optionRepository,
-        settingsService: widget.settingsService,
-        driveBackupService: widget.driveBackupService,
-        initialRange: _statsInitialRange,
-        initialRangeRequestKey: _statsInitialRangeRequestKey,
+      _buildTabChild(
+        3,
+        StatsScreen(
+          trainingService: widget.trainingService,
+          mealLogService: widget.mealLogService,
+          localeService: widget.localeService,
+          onCreate: _openCreate,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+          initialRange: _statsInitialRange,
+          initialRangeRequestKey: _statsInitialRangeRequestKey,
+        ),
       ),
-      CoachLessonScreen(
-        optionRepository: widget.optionRepository,
-        trainingService: widget.trainingService,
-        mealLogService: widget.mealLogService,
-        localeService: widget.localeService,
-        settingsService: widget.settingsService,
-        driveBackupService: widget.driveBackupService,
-        embeddedInHomeTab: true,
-        openTodayDiaryRequestKey: _openTodayDiaryRequestKey,
-        dataRevision: _dataRevision,
+      _buildTabChild(
+        4,
+        CoachLessonScreen(
+          optionRepository: widget.optionRepository,
+          trainingService: widget.trainingService,
+          mealLogService: widget.mealLogService,
+          localeService: widget.localeService,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+          embeddedInHomeTab: true,
+          openTodayDiaryRequestKey: _openTodayDiaryRequestKey,
+          dataRevision: _dataRevision,
+        ),
       ),
     ];
     final l10n = AppLocalizations.of(context)!;
@@ -306,14 +323,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  Widget _buildTabChild(int index, Widget child) {
+    if (!_builtTabIndices.contains(index)) {
+      return const SizedBox.shrink();
+    }
+    return TickerMode(enabled: _index == index, child: child);
+  }
+
   void _onDestinationSelected(int value) {
     if (_index == value) return;
-    setState(() => _index = value);
+    setState(() {
+      _builtTabIndices.add(value);
+      _index = value;
+    });
     unawaited(_showTabGuideIfNeeded(value));
   }
 
   void _openWeeklyStatsForCurrentWeek() {
     setState(() {
+      _builtTabIndices.add(3);
       _statsInitialRange = _currentWeekRange();
       _statsInitialRangeRequestKey++;
       _index = 3;
@@ -323,6 +351,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _openTodayDiary() {
     setState(() {
+      _builtTabIndices.add(4);
       _openTodayDiaryRequestKey++;
       _index = 4;
     });
@@ -344,18 +373,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!mounted || _routePushInFlight) return;
     _routePushInFlight = true;
     try {
-      final completer = Completer<void>();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!completer.isCompleted) {
-          completer.complete();
-        }
-      });
-      await completer.future;
+      if (SchedulerBinding.instance.schedulerPhase ==
+          SchedulerPhase.persistentCallbacks) {
+        final completer = Completer<void>();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
+        });
+        await completer.future;
+      }
       if (!mounted) return;
       await Navigator.of(context).push(route);
     } finally {
       _routePushInFlight = false;
-      if (mounted) setState(() {});
     }
   }
 
@@ -578,6 +609,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _openCalendarQuickCreate(CalendarQuickCreateAction action) {
     setState(() {
+      _builtTabIndices.add(1);
       _pendingCalendarQuickCreateAction = action;
       _index = 1;
     });
@@ -601,6 +633,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _openPlansForDay(DateTime day) {
     setState(() {
+      _builtTabIndices.add(2);
       _calendarSelectedDay = DateTime(day.year, day.month, day.day);
       _index = 2;
     });

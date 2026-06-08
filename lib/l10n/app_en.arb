@@ -190,6 +190,9 @@
   "worldCupCountdownToday": "Opening day",
   "worldCupCountdownStarted": "Tournament underway",
   "worldCupCountdownComplete": "Tournament complete",
+  "worldCupScheduleTab": "Schedule",
+  "worldCupStandingsTab": "Standings",
+  "worldCupTournamentTab": "Tournament",
   "worldCupOverviewTitle": "Tournament overview",
   "worldCupHostsLabel": "Hosts",
   "worldCupHostsValue": "Canada · Mexico · United States",
@@ -287,6 +290,21 @@
   "worldCupKnockouts": "The round of 32 starts after the group stage.",
   "worldCupMilestoneFinalLabel": "Final",
   "worldCupFinalMatch": "19 Jul 2026 · New York New Jersey Stadium",
+  "worldCupStandingsTitle": "Group standings",
+  "worldCupStandingsPlanBody": "Once results are available, this view will sort groups by points, goal difference, and goals scored. For now, use it to review each group setup.",
+  "worldCupStandingsRuleLabel": "Tiebreak order",
+  "worldCupStandingsRuleValue": "Points · goal difference · goals scored",
+  "worldCupGroupTeamsTitle": "Group teams",
+  "worldCupTournamentTitle": "Tournament path",
+  "worldCupTournamentPlanBody": "This shows the round and date flow from the round of 32 to the final. Once group results are fixed, each slot can expand into the actual team path.",
+  "worldCupStageMatchCount": "{count} matches",
+  "@worldCupStageMatchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupSourceAction": "Open FIFA schedule",
   "homeTodayPlanCardTitle": "Today training plan",
   "homeTodayPlanCardSummary": "Today: {count} plan(s)",

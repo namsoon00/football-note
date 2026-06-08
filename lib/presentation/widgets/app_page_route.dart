@@ -21,13 +21,13 @@ class AppPageRoute<T> extends CupertinoPageRoute<T> {
   Duration get transitionDuration =>
       _usesPlatformBackGesture(defaultTargetPlatform)
           ? super.transitionDuration
-          : const Duration(milliseconds: 220);
+          : const Duration(milliseconds: 160);
 
   @override
   Duration get reverseTransitionDuration =>
       _usesPlatformBackGesture(defaultTargetPlatform)
           ? super.reverseTransitionDuration
-          : const Duration(milliseconds: 180);
+          : const Duration(milliseconds: 130);
 
   @override
   Widget buildTransitions(
@@ -55,7 +55,7 @@ class AppPageRoute<T> extends CupertinoPageRoute<T> {
       reverseCurve: AppMotion.curveExit,
     );
     final slide = Tween<Offset>(
-      begin: const Offset(0.04, 0),
+      begin: const Offset(0.025, 0),
       end: Offset.zero,
     ).animate(fade);
     return FadeTransition(
