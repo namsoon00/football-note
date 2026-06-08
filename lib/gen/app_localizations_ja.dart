@@ -201,13 +201,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get logsQuickGuideIntro => 'この順序で最初のレコードを作成し、ここに戻って確認します。';
 
   @override
-  String get newsFifaHubButton => 'FIFAランク';
+  String get newsFifaHubButton => 'FIFA';
 
   @override
   String get newsWorldCupButton => 'W杯';
 
   @override
-  String get newsKLeagueStandingsButton => '国内';
+  String get newsKLeagueStandingsButton => 'リーグ';
 
   @override
   String get newsMoreActionsTooltip => 'リーグビュー';
@@ -219,7 +219,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newsRankingMoreButton => 'リーグビュー';
 
   @override
-  String get newsLeagueStandingsAction => 'リーグビュー';
+  String get newsLeagueStandingsAction => 'リーグ';
 
   @override
   String get newsLeagueStandingsTitle => 'リーグビュー';
@@ -490,6 +490,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupTitle => 'ワールドカップ表示';
 
   @override
+  String get worldCupInfoAction => '説明';
+
+  @override
+  String get worldCupSourceShortAction => 'FIFA';
+
+  @override
   String get worldCupHeroTitle => 'FIFAワールドカップ2026';
 
   @override
@@ -522,6 +528,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupOverviewTitle => '大会概要';
 
   @override
+  String get worldCupOverviewIntro =>
+      '今回のワールドカップはこれまでより大きく、カナダ、メキシコ、アメリカで48か国が12グループに分かれて104試合を行います。';
+
+  @override
   String get worldCupHostsLabel => '開催国';
 
   @override
@@ -551,6 +561,41 @@ class AppLocalizationsJa extends AppLocalizations {
   String worldCupMatchesCountValue(int count) {
     return '16開催都市で$count試合';
   }
+
+  @override
+  String get worldCupGuideFormatTitle => '今回の進み方';
+
+  @override
+  String get worldCupGuideFormatBullets =>
+      '48か国が4チームずつ12グループに分かれます。\n各国はグループで3試合を行います。\n各グループの1位と2位、そして3位の中で成績のよい8チームが進みます。\nその後のラウンド32からは、1回負けると敗退するトーナメントです。';
+
+  @override
+  String get worldCupGuideMatchRulesTitle => '試合の基本ルール';
+
+  @override
+  String get worldCupGuideMatchRulesBullets =>
+      '1試合は前半45分、後半45分です。\nグループステージは引き分けで終わることがあり、両チームが勝点1を得ます。\nトーナメントで90分後に同点なら延長戦を行い、それでも同点ならPK戦で勝者を決めます。\nグループステージの勝点は勝ち3、引き分け1、負け0です。';
+
+  @override
+  String get worldCupGuideTiebreakTitle => '順位が同じとき';
+
+  @override
+  String get worldCupGuideTiebreakBullets =>
+      '最初に勝点を見ます。\n同じグループで勝点が並んだら、直接対決の勝点、直接対決の得失点差、直接対決の得点を順に見ます。\nまだ同じなら、全体の得失点差、全体の得点、チーム行動スコア、最新のFIFAランキングを見ます。\n3位チーム同士は、勝点、得失点差、得点、チーム行動スコア、FIFAランキングの順で上位8チームを決めます。';
+
+  @override
+  String get worldCupGuideRefereeTitle => '審判とサポート';
+
+  @override
+  String get worldCupGuideRefereeBullets =>
+      'FIFAは大会のために主審52人、副審88人、ビデオ審判30人を選びました。\nピッチでは主審1人が試合を進め、副審2人、第四審判、必要な予備審判が助けます。\n副審はオフサイド、スローイン、ゴールキック、コーナーキック、交代、PKの確認を助けます。\n最後の決定はいつも主審が行います。';
+
+  @override
+  String get worldCupGuideVarTitle => 'VARとテクノロジー';
+
+  @override
+  String get worldCupGuideVarBullets =>
+      'VARはビデオで大事な場面を確認する審判です。\nゴールかどうか、PKかどうか、直接レッドカードか、カードを受けた選手が正しいかなどを確認します。\n主審は必要なら画面を見てオンフィールドレビューを行いますが、最終判断は主審がします。\nゴールライン技術、進化した半自動オフサイド支援、コネクテッドボール技術も、事実判定を速く正確にする助けになります。';
 
   @override
   String get worldCupTeamSettingsTitle => '自分のワールドカップ国';
@@ -597,6 +642,41 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupVersusShort => '対';
+
+  @override
+  String get worldCupMatchScheduled => '予定';
+
+  @override
+  String get worldCupMatchResultFinal => '結果';
+
+  @override
+  String get worldCupScorePending => '- : -';
+
+  @override
+  String worldCupScoreLine(int homeScore, int awayScore) {
+    return '$homeScore : $awayScore';
+  }
+
+  @override
+  String get worldCupResultPendingTeam => '試合前';
+
+  @override
+  String get worldCupResultWin => '勝';
+
+  @override
+  String get worldCupResultDraw => '分';
+
+  @override
+  String get worldCupResultLoss => '敗';
+
+  @override
+  String get worldCupResultWinSummary => '勝ち';
+
+  @override
+  String get worldCupResultDrawSummary => '引き分け';
+
+  @override
+  String get worldCupResultLossSummary => '負け';
 
   @override
   String worldCupGroupStageLabel(String group) {
@@ -683,13 +763,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupStandingsPlanBody =>
-      '試合結果が入ったら、勝点、得失点差、得点数の順でグループ順位を整理します。今は各グループ構成を確認できます。';
+      '試合結果が入ったら、2026年のFIFA基準に合わせて、勝点、直接対決、全体の得失点差と得点、チーム行動スコア、FIFAランキングの順でグループ順位を整理します。今は各グループ構成を確認できます。';
 
   @override
   String get worldCupStandingsRuleLabel => '順位基準';
 
   @override
-  String get worldCupStandingsRuleValue => '勝点 · 得失点差 · 得点';
+  String get worldCupStandingsRuleValue =>
+      '勝点 · 直接対決 · 得失点差 · 得点 · 行動スコア · FIFAランキング';
 
   @override
   String get worldCupGroupTeamsTitle => 'グループ別チーム';
@@ -944,6 +1025,25 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String trainingXpDialogXp(int count) {
     return '+$count XP';
+  }
+
+  @override
+  String get trainingXpDialogRewardLabel => '獲得XP';
+
+  @override
+  String get trainingXpDialogTotalLabel => '累計XP';
+
+  @override
+  String trainingXpDialogTotalValue(int totalXp) {
+    return '$totalXp XP';
+  }
+
+  @override
+  String get trainingXpDialogLevelLabel => '現在のレベル';
+
+  @override
+  String trainingXpDialogLevelValue(int level, String levelName) {
+    return 'Lv.$level $levelName';
   }
 
   @override
@@ -7206,6 +7306,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String challengeFailureTitle(int round) {
     return 'ラウンド $round で止まりました';
   }
+
+  @override
+  String get challengeFailureSimpleTitle => '今日はリンジーが悲しそうです';
 
   @override
   String get challengeFailureBody => 'リンジーは残念そうです。でも次の挑戦はもっと力強く始められます。';

@@ -62,13 +62,13 @@
   "welcomeDiaryStepSave": "Save the diary once the title, story, or sticker selection is ready.",
   "logsQuickGuideTitle": "Quick start guide",
   "logsQuickGuideIntro": "Create your first record in this order, then return here to review it.",
-  "newsFifaHubButton": "FIFA Rank",
+  "newsFifaHubButton": "FIFA",
   "newsWorldCupButton": "World Cup",
-  "newsKLeagueStandingsButton": "Domestic",
+  "newsKLeagueStandingsButton": "League",
   "newsMoreActionsTooltip": "League view",
   "newsMoreActionsTitle": "More",
   "newsRankingMoreButton": "League view",
-  "newsLeagueStandingsAction": "League View",
+  "newsLeagueStandingsAction": "League",
   "newsLeagueStandingsTitle": "League View",
   "newsKLeagueStandingsTitle": "K League 1",
   "newsPremierLeagueStandingsTitle": "Premier League",
@@ -196,6 +196,8 @@
     }
   },
   "worldCupTitle": "World Cup View",
+  "worldCupInfoAction": "Guide",
+  "worldCupSourceShortAction": "FIFA",
   "worldCupHeroTitle": "FIFA World Cup 2026",
   "worldCupHeroSubtitle": "Canada, Mexico, United States · 48 teams",
   "worldCupCountdownDays": "{days} days left",
@@ -213,6 +215,7 @@
   "worldCupStandingsTab": "Standings",
   "worldCupTournamentTab": "Tournament",
   "worldCupOverviewTitle": "Tournament overview",
+  "worldCupOverviewIntro": "This World Cup is bigger than before: 48 countries, 12 groups, and 104 matches across Canada, Mexico, and the United States.",
   "worldCupHostsLabel": "Hosts",
   "worldCupHostsValue": "Canada · Mexico · United States",
   "worldCupDatesLabel": "Dates",
@@ -239,6 +242,16 @@
       }
     }
   },
+  "worldCupGuideFormatTitle": "How this World Cup works",
+  "worldCupGuideFormatBullets": "48 countries are split into 12 groups of 4.\nEach country plays 3 group matches.\nThe top 2 teams in every group move on, plus the 8 best third-place teams.\nAfter that, the Round of 32 begins and one loss means elimination.",
+  "worldCupGuideMatchRulesTitle": "Match rules",
+  "worldCupGuideMatchRulesBullets": "A normal match has two 45-minute halves.\nGroup matches can finish as a draw, so both teams may earn 1 point.\nIn knockout matches, a draw after 90 minutes goes to extra time, then penalties if still tied.\nA win is 3 points, a draw is 1 point, and a loss is 0 points in the group stage.",
+  "worldCupGuideTiebreakTitle": "How ties are broken",
+  "worldCupGuideTiebreakBullets": "Teams are ranked by points first.\nIf teams in the same group are tied, FIFA checks head-to-head points, head-to-head goal difference, and head-to-head goals.\nIf they are still tied, FIFA checks overall goal difference, overall goals, team conduct score, and then the latest FIFA ranking.\nThe 8 best third-place teams are compared by points, goal difference, goals scored, team conduct score, and FIFA ranking.",
+  "worldCupGuideRefereeTitle": "Referees and helpers",
+  "worldCupGuideRefereeBullets": "FIFA selected 52 referees, 88 assistant referees, and 30 video match officials for the tournament.\nOn the field, a referee leads the match with two assistant referees, a fourth official, and reserve help when appointed.\nAssistant referees help with offside, throw-ins, goal kicks, corner kicks, substitutions, and penalty-kick details.\nThe referee always makes the final decision.",
+  "worldCupGuideVarTitle": "VAR and technology",
+  "worldCupGuideVarBullets": "VAR means Video Assistant Referee.\nVAR checks big match-changing moments such as goal/no goal, penalty/no penalty, direct red card, and mistaken identity.\nThe referee can watch the screen for an on-field review, but the referee still makes the final call.\nGoal-line technology, advanced semi-automated offside support, and connected-ball technology help officials make faster factual decisions.",
   "worldCupTeamSettingsTitle": "My World Cup teams",
   "worldCupSupportCountryLabel": "Cheering country",
   "worldCupInterestCountriesLabel": "Interest countries",
@@ -270,6 +283,27 @@
     }
   },
   "worldCupVersusShort": "v",
+  "worldCupMatchScheduled": "Scheduled",
+  "worldCupMatchResultFinal": "Result",
+  "worldCupScorePending": "- : -",
+  "worldCupScoreLine": "{homeScore} : {awayScore}",
+  "@worldCupScoreLine": {
+    "placeholders": {
+      "homeScore": {
+        "type": "int"
+      },
+      "awayScore": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupResultPendingTeam": "Kickoff pending",
+  "worldCupResultWin": "W",
+  "worldCupResultDraw": "D",
+  "worldCupResultLoss": "L",
+  "worldCupResultWinSummary": "Win",
+  "worldCupResultDrawSummary": "Draw",
+  "worldCupResultLossSummary": "Loss",
   "worldCupGroupStageLabel": "Group {group}",
   "@worldCupGroupStageLabel": {
     "placeholders": {
@@ -310,9 +344,9 @@
   "worldCupMilestoneFinalLabel": "Final",
   "worldCupFinalMatch": "19 Jul 2026 · New York New Jersey Stadium",
   "worldCupStandingsTitle": "Group standings",
-  "worldCupStandingsPlanBody": "Once results are available, this view will sort groups by points, goal difference, and goals scored. For now, use it to review each group setup.",
+  "worldCupStandingsPlanBody": "Once results are available, this view will sort groups by FIFA's 2026 order: points, head-to-head checks, overall goal difference and goals, team conduct, then FIFA ranking. For now, use it to review each group setup.",
   "worldCupStandingsRuleLabel": "Tiebreak order",
-  "worldCupStandingsRuleValue": "Points · goal difference · goals scored",
+  "worldCupStandingsRuleValue": "Points · head-to-head · goal difference · goals · conduct · FIFA ranking",
   "worldCupGroupTeamsTitle": "Group teams",
   "worldCupTournamentTitle": "Tournament bracket",
   "worldCupTournamentPlanBody": "This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.",
@@ -535,6 +569,28 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "trainingXpDialogRewardLabel": "XP earned",
+  "trainingXpDialogTotalLabel": "Total XP",
+  "trainingXpDialogTotalValue": "{totalXp} XP",
+  "@trainingXpDialogTotalValue": {
+    "placeholders": {
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingXpDialogLevelLabel": "Current level",
+  "trainingXpDialogLevelValue": "Lv.{level} {levelName}",
+  "@trainingXpDialogLevelValue": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "levelName": {
+        "type": "String"
       }
     }
   },
@@ -3765,6 +3821,7 @@
       }
     }
   },
+  "challengeFailureSimpleTitle": "Rinzy is sad today",
   "challengeFailureBody": "Rinzy is sad, but tomorrow's round can start stronger.",
   "challengeFailureAction": "Check the round",
   "challengeCelebrationTitle": "Mission complete!",

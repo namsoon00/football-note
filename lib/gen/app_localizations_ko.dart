@@ -191,13 +191,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get logsQuickGuideIntro => '첫 기록은 이 순서로 만들고, 저장 후 이 화면에서 다시 확인하세요.';
 
   @override
-  String get newsFifaHubButton => '피파랭킹';
+  String get newsFifaHubButton => '피파';
 
   @override
   String get newsWorldCupButton => '월드컵';
 
   @override
-  String get newsKLeagueStandingsButton => '국내리그';
+  String get newsKLeagueStandingsButton => '리그';
 
   @override
   String get newsMoreActionsTooltip => '리그보기';
@@ -209,7 +209,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsRankingMoreButton => '리그보기';
 
   @override
-  String get newsLeagueStandingsAction => '리그보기';
+  String get newsLeagueStandingsAction => '리그';
 
   @override
   String get newsLeagueStandingsTitle => '리그 보기';
@@ -479,6 +479,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupTitle => '월드컵 보기';
 
   @override
+  String get worldCupInfoAction => '설명';
+
+  @override
+  String get worldCupSourceShortAction => 'FIFA';
+
+  @override
   String get worldCupHeroTitle => 'FIFA 월드컵 2026';
 
   @override
@@ -511,6 +517,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupOverviewTitle => '대회 개요';
 
   @override
+  String get worldCupOverviewIntro =>
+      '이번 월드컵은 이전보다 더 커졌어요. 캐나다, 멕시코, 미국에서 48개 나라가 12개 조로 나뉘어 104경기를 치릅니다.';
+
+  @override
   String get worldCupHostsLabel => '개최국';
 
   @override
@@ -540,6 +550,41 @@ class AppLocalizationsKo extends AppLocalizations {
   String worldCupMatchesCountValue(int count) {
     return '16개 개최 도시에서 $count경기';
   }
+
+  @override
+  String get worldCupGuideFormatTitle => '이번 월드컵 진행 방식';
+
+  @override
+  String get worldCupGuideFormatBullets =>
+      '48개 나라가 4팀씩 12개 조로 나뉘어요.\n각 나라는 조별리그에서 3경기를 해요.\n각 조 1위와 2위는 바로 올라가고, 3위 팀 중 성적이 좋은 8팀도 올라가요.\n그다음 32강부터는 한 번 지면 탈락하는 토너먼트예요.';
+
+  @override
+  String get worldCupGuideMatchRulesTitle => '경기 기본 규칙';
+
+  @override
+  String get worldCupGuideMatchRulesBullets =>
+      '한 경기는 전반 45분, 후반 45분으로 진행돼요.\n조별리그는 비겨도 끝날 수 있고, 두 팀이 승점 1점씩 가져가요.\n토너먼트에서 90분 동안 비기면 연장전을 하고, 그래도 같으면 승부차기로 승자를 정해요.\n조별리그 승점은 승리 3점, 무승부 1점, 패배 0점이에요.';
+
+  @override
+  String get worldCupGuideTiebreakTitle => '순위가 같을 때';
+
+  @override
+  String get worldCupGuideTiebreakBullets =>
+      '가장 먼저 승점을 봐요.\n같은 조 안에서 승점이 같으면 맞대결 승점, 맞대결 득실차, 맞대결 득점을 차례로 봐요.\n그래도 같으면 전체 득실차, 전체 득점, 팀 페어플레이 점수, 최신 FIFA 랭킹을 봐요.\n3위 팀끼리는 승점, 득실차, 득점, 팀 페어플레이 점수, FIFA 랭킹 순서로 좋은 8팀을 정해요.';
+
+  @override
+  String get worldCupGuideRefereeTitle => '심판과 도와주는 사람들';
+
+  @override
+  String get worldCupGuideRefereeBullets =>
+      'FIFA는 이번 대회에 주심 52명, 부심 88명, 비디오 심판 30명을 뽑았어요.\n경기장 안에서는 주심 1명이 경기를 이끌고, 부심 2명과 대기심, 필요한 예비 심판이 도와요.\n부심은 오프사이드, 스로인, 골킥, 코너킥, 교체, 페널티킥 상황을 도와 확인해요.\n마지막 결정은 항상 주심이 내려요.';
+
+  @override
+  String get worldCupGuideVarTitle => 'VAR과 경기 기술';
+
+  @override
+  String get worldCupGuideVarBullets =>
+      'VAR은 비디오로 중요한 장면을 다시 확인하는 심판이에요.\n골인지 아닌지, 페널티킥인지 아닌지, 바로 퇴장인지, 카드를 받은 선수가 맞는지 같은 큰 장면을 확인해요.\n주심은 필요하면 화면을 직접 보고 온필드 리뷰를 하지만, 최종 결정은 주심이 해요.\n골라인 판독, 더 발전한 반자동 오프사이드 도움, 연결된 공 기술도 빠르고 정확한 판정을 도와요.';
 
   @override
   String get worldCupTeamSettingsTitle => '내 월드컵 국가';
@@ -587,6 +632,41 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupVersusShort => '대';
+
+  @override
+  String get worldCupMatchScheduled => '예정';
+
+  @override
+  String get worldCupMatchResultFinal => '결과';
+
+  @override
+  String get worldCupScorePending => '- : -';
+
+  @override
+  String worldCupScoreLine(int homeScore, int awayScore) {
+    return '$homeScore : $awayScore';
+  }
+
+  @override
+  String get worldCupResultPendingTeam => '경기 전';
+
+  @override
+  String get worldCupResultWin => '승';
+
+  @override
+  String get worldCupResultDraw => '무';
+
+  @override
+  String get worldCupResultLoss => '패';
+
+  @override
+  String get worldCupResultWinSummary => '이겼어요';
+
+  @override
+  String get worldCupResultDrawSummary => '비겼어요';
+
+  @override
+  String get worldCupResultLossSummary => '졌어요';
 
   @override
   String worldCupGroupStageLabel(String group) {
@@ -673,13 +753,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupStandingsPlanBody =>
-      '경기 결과가 쌓이면 승점, 득실차, 다득점 순으로 조별 순위를 정리할 예정이에요. 지금은 각 조 구성을 먼저 확인하세요.';
+      '경기 결과가 쌓이면 2026 FIFA 기준에 맞춰 승점, 맞대결, 전체 득실차와 득점, 팀 페어플레이 점수, FIFA 랭킹 순서로 조별 순위를 정리할 예정이에요. 지금은 각 조 구성을 먼저 확인하세요.';
 
   @override
   String get worldCupStandingsRuleLabel => '순위 기준';
 
   @override
-  String get worldCupStandingsRuleValue => '승점 · 득실차 · 다득점';
+  String get worldCupStandingsRuleValue =>
+      '승점 · 맞대결 · 득실차 · 득점 · 페어플레이 · FIFA 랭킹';
 
   @override
   String get worldCupGroupTeamsTitle => '조별 팀 구성';
@@ -934,6 +1015,25 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String trainingXpDialogXp(int count) {
     return '+$count XP';
+  }
+
+  @override
+  String get trainingXpDialogRewardLabel => '오늘 얻은 경험치';
+
+  @override
+  String get trainingXpDialogTotalLabel => '누적 경험치';
+
+  @override
+  String trainingXpDialogTotalValue(int totalXp) {
+    return '$totalXp XP';
+  }
+
+  @override
+  String get trainingXpDialogLevelLabel => '현재 레벨';
+
+  @override
+  String trainingXpDialogLevelValue(int level, String levelName) {
+    return 'Lv.$level $levelName';
   }
 
   @override
@@ -7211,6 +7311,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String challengeFailureTitle(int round) {
     return '$round라운드에서 멈췄어요';
   }
+
+  @override
+  String get challengeFailureSimpleTitle => '오늘은 린지가 속상해요';
 
   @override
   String get challengeFailureBody => '린지가 아쉬워해요. 그래도 다음 도전은 더 힘차게 시작할 수 있어요.';

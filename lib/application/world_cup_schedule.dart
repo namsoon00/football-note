@@ -16,6 +16,8 @@ class WorldCupFixture {
   final String homeTeam;
   final String awayTeam;
   final String venue;
+  final int? homeScore;
+  final int? awayScore;
 
   const WorldCupFixture({
     required this.matchNumber,
@@ -25,6 +27,8 @@ class WorldCupFixture {
     required this.homeTeam,
     required this.awayTeam,
     required this.venue,
+    this.homeScore,
+    this.awayScore,
   });
 
   DateTime get kickoffUtc => DateTime.parse(kickoffUtcIso);
@@ -38,12 +42,96 @@ class WorldCupFixture {
 
   bool get isGroupStage => stage == WorldCupStage.group;
 
+  bool get hasScore => homeScore != null && awayScore != null;
+
   bool involvesCountry(String country) {
     final normalized = country.trim().toLowerCase();
     if (normalized.isEmpty) return false;
     return homeTeam.toLowerCase() == normalized ||
         awayTeam.toLowerCase() == normalized;
   }
+
+  WorldCupFixtureTeamResult resultForTeam(String country) {
+    if (!hasScore || !involvesCountry(country)) {
+      return WorldCupFixtureTeamResult.scheduled;
+    }
+    final isHome = homeTeam.toLowerCase() == country.trim().toLowerCase();
+    final teamScore = isHome ? homeScore! : awayScore!;
+    final opponentScore = isHome ? awayScore! : homeScore!;
+    if (teamScore > opponentScore) return WorldCupFixtureTeamResult.win;
+    if (teamScore < opponentScore) return WorldCupFixtureTeamResult.loss;
+    return WorldCupFixtureTeamResult.draw;
+  }
+}
+
+enum WorldCupFixtureTeamResult { scheduled, win, draw, loss }
+
+const Map<String, String> _worldCupCountryCodes = <String, String>{
+  'Algeria': 'DZ',
+  'Argentina': 'AR',
+  'Australia': 'AU',
+  'Austria': 'AT',
+  'Belgium': 'BE',
+  'Bosnia and Herzegovina': 'BA',
+  'Brazil': 'BR',
+  'Canada': 'CA',
+  'Cape Verde': 'CV',
+  'Colombia': 'CO',
+  'Congo DR': 'CD',
+  'Croatia': 'HR',
+  'Curacao': 'CW',
+  'Czechia': 'CZ',
+  'Ecuador': 'EC',
+  'Egypt': 'EG',
+  'France': 'FR',
+  'Germany': 'DE',
+  'Ghana': 'GH',
+  'Haiti': 'HT',
+  'Iran': 'IR',
+  'Iraq': 'IQ',
+  'Ivory Coast': 'CI',
+  'Japan': 'JP',
+  'Jordan': 'JO',
+  'Korea Republic': 'KR',
+  'Mexico': 'MX',
+  'Morocco': 'MA',
+  'Netherlands': 'NL',
+  'New Zealand': 'NZ',
+  'Norway': 'NO',
+  'Panama': 'PA',
+  'Paraguay': 'PY',
+  'Portugal': 'PT',
+  'Qatar': 'QA',
+  'Saudi Arabia': 'SA',
+  'Senegal': 'SN',
+  'South Africa': 'ZA',
+  'Spain': 'ES',
+  'Sweden': 'SE',
+  'Switzerland': 'CH',
+  'Tunisia': 'TN',
+  'Turkiye': 'TR',
+  'Uruguay': 'UY',
+  'USA': 'US',
+  'Uzbekistan': 'UZ',
+};
+
+String worldCupCountryFlag(String country) {
+  final normalized = country.trim();
+  if (normalized == 'England') return _subdivisionFlag('gbeng');
+  if (normalized == 'Scotland') return _subdivisionFlag('gbsct');
+  final code = _worldCupCountryCodes[normalized];
+  if (code == null || code.length != 2) return '';
+  return String.fromCharCodes(
+    code.toUpperCase().codeUnits.map((unit) => 0x1F1E6 + unit - 0x41),
+  );
+}
+
+String _subdivisionFlag(String tag) {
+  return String.fromCharCodes(<int>[
+    0x1F3F4,
+    for (final unit in tag.codeUnits) 0xE0000 + unit,
+    0xE007F,
+  ]);
 }
 
 DateTime normalizeWorldCupDay(DateTime value) {
@@ -66,6 +154,24 @@ List<WorldCupFixture> worldCupFixturesForDay(DateTime day) {
   final normalized = normalizeWorldCupDay(day);
   return worldCupFixtures
       .where((fixture) => fixture.localDay == normalized)
+      .toList(growable: false);
+}
+
+List<WorldCupFixture> worldCupFixturesForDayAndCountries(
+  DateTime day,
+  Iterable<String> countries,
+) {
+  final selected = countries
+      .map((country) => country.trim().toLowerCase())
+      .where((country) => country.isNotEmpty)
+      .toSet();
+  if (selected.isEmpty) return const <WorldCupFixture>[];
+  return worldCupFixturesForDay(day)
+      .where(
+        (fixture) =>
+            selected.contains(fixture.homeTeam.toLowerCase()) ||
+            selected.contains(fixture.awayTeam.toLowerCase()),
+      )
       .toList(growable: false);
 }
 
