@@ -7,6 +7,9 @@ void main() {
   testWidgets('builds from MaterialApp builder without overlay ancestor', (
     tester,
   ) async {
+    tester.view.viewInsets = const FakeViewPadding(bottom: 240);
+    addTearDown(tester.view.resetViewInsets);
+
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko'),
@@ -21,5 +24,6 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('home'), findsOneWidget);
+    expect(find.byIcon(Icons.keyboard_hide_rounded), findsOneWidget);
   });
 }
