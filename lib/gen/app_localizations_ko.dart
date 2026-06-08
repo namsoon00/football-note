@@ -489,6 +489,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupCountdownComplete => '대회 종료';
 
   @override
+  String get worldCupScheduleTab => '일정';
+
+  @override
+  String get worldCupStandingsTab => '순위';
+
+  @override
+  String get worldCupTournamentTab => '토너먼트';
+
+  @override
   String get worldCupOverviewTitle => '대회 개요';
 
   @override
@@ -648,6 +657,34 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupFinalMatch => '2026년 7월 19일 · 뉴욕 뉴저지 스타디움';
+
+  @override
+  String get worldCupStandingsTitle => '조별 순위';
+
+  @override
+  String get worldCupStandingsPlanBody =>
+      '경기 결과가 쌓이면 승점, 득실차, 다득점 순으로 조별 순위를 정리할 예정이에요. 지금은 각 조 구성을 먼저 확인하세요.';
+
+  @override
+  String get worldCupStandingsRuleLabel => '순위 기준';
+
+  @override
+  String get worldCupStandingsRuleValue => '승점 · 득실차 · 다득점';
+
+  @override
+  String get worldCupGroupTeamsTitle => '조별 팀 구성';
+
+  @override
+  String get worldCupTournamentTitle => '토너먼트 계획';
+
+  @override
+  String get worldCupTournamentPlanBody =>
+      '32강부터 결승까지의 라운드와 날짜 흐름을 먼저 보여줘요. 조별리그 결과가 확정되면 각 자리의 팀 이름을 따라갈 수 있게 확장할 예정이에요.';
+
+  @override
+  String worldCupStageMatchCount(int count) {
+    return '$count경기';
+  }
 
   @override
   String get worldCupSourceAction => 'FIFA 일정 열기';

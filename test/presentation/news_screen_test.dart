@@ -31,6 +31,7 @@ const _leagueStandingsActionKey = ValueKey<String>(
   'news_quick_action_league_standings',
 );
 const _fifaHubActionKey = ValueKey<String>('news_quick_action_fifa_hub');
+const _worldCupActionKey = ValueKey<String>('news_quick_action_world_cup');
 
 void main() {
   testWidgets('news header exposes one league entry point', (
@@ -74,6 +75,51 @@ void main() {
     expect(find.text('리그보기'), findsOneWidget);
     expect(find.text('국내리그'), findsNothing);
     expect(find.text('피파랭킹'), findsOneWidget);
+  });
+
+  testWidgets('world cup action moves to the left during the tournament', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(900, 700));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final repository = _MemoryOptionRepository();
+    final newsRepository = _FakeNewsRepository(
+      channels: const [
+        NewsChannel(
+          id: 'issue_world_cup_header_domestic_soccer_ko',
+          name: '테스트 · 국내축구',
+          isDomestic: true,
+        ),
+      ],
+      articlesByChannelId: <String, List<NewsArticle>>{
+        'issue_world_cup_header_domestic_soccer_ko': const [
+          NewsArticle(
+            title: '월드컵 기간 뉴스',
+            link: 'https://example.com/world-cup-header',
+            source: '테스트',
+            channelId: 'issue_world_cup_header_domestic_soccer_ko',
+          ),
+        ],
+      },
+    );
+
+    await tester.pumpWidget(
+      _buildNewsApp(
+        optionRepository: repository,
+        newsService: NewsService(newsRepository),
+        nowForTesting: DateTime(2026, 6, 12),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final worldCupX = tester.getTopLeft(find.byKey(_worldCupActionKey)).dx;
+    final fifaX = tester.getTopLeft(find.byKey(_fifaHubActionKey)).dx;
+    final leagueX = tester.getTopLeft(find.byKey(_leagueStandingsActionKey)).dx;
+
+    expect(isWorldCupTournamentPeriod(DateTime(2026, 6, 12)), isTrue);
+    expect(worldCupX, lessThan(fifaX));
+    expect(fifaX, lessThan(leagueX));
   });
 
   testWidgets('news quick actions keep scrap, translate, search order', (
@@ -327,6 +373,7 @@ void main() {
 Widget _buildNewsApp({
   required OptionRepository optionRepository,
   required NewsService newsService,
+  DateTime? nowForTesting,
 }) {
   return MaterialApp(
     locale: const Locale('ko'),
@@ -338,6 +385,7 @@ Widget _buildNewsApp({
       optionRepository: optionRepository,
       settingsService: SettingsService(optionRepository),
       newsService: newsService,
+      nowForTesting: nowForTesting,
     ),
   );
 }
