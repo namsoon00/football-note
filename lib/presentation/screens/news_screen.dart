@@ -420,69 +420,83 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     required AppLocalizations l10n,
     required bool isKo,
   }) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Wrap(
-        alignment: WrapAlignment.end,
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          OutlinedButton.icon(
-            key: _channelsActionKey,
-            onPressed: _openChannelPicker,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            ),
-            icon: const Icon(Icons.rss_feed, size: 18),
-            label: Text(l10n.newsChannelsAction),
-          ),
-          _buildQuickToggleAction(
-            buttonKey: _scrapToggleActionKey,
-            label: _showScrappedOnly
-                ? l10n.newsShowAllNewsAction
-                : l10n.newsShowScrappedOnlyAction,
-            icon: _showScrappedOnly ? Icons.bookmark : Icons.bookmark_border,
-            selected: _showScrappedOnly,
-            tooltip: _showScrappedOnly
-                ? l10n.newsShowAllNewsAction
-                : l10n.newsShowScrappedOnlyAction,
-            onPressed: () {
-              setState(() {
-                _showScrappedOnly = !_showScrappedOnly;
-              });
-            },
-          ),
-          if (isKo)
-            Tooltip(
-              message: _titleTranslateEnabled
-                  ? l10n.newsTitleTranslateEnabledTooltip
-                  : l10n.newsTitleTranslateDisabledTooltip,
-              child: _buildQuickToggleAction(
-                buttonKey: _translateToggleActionKey,
-                label: l10n.newsTranslateAction,
-                icon: Icons.translate_rounded,
-                selected: _titleTranslateEnabled,
-                onPressed: _toggleTitleTranslate,
-              ),
-            ),
-          _buildQuickToggleAction(
-            buttonKey: _searchActionKey,
-            label: l10n.newsSearchAction,
-            icon: _showSearch ? Icons.close : Icons.search,
-            selected: _showSearch,
-            tooltip: l10n.newsSearchAction,
-            onPressed: _toggleSearch,
-          ),
-          _buildQuickToggleAction(
-            buttonKey: _viewedHistoryActionKey,
-            label: l10n.newsViewedHistoryAction,
-            icon: Icons.history,
-            selected: false,
-            tooltip: l10n.newsViewedHistoryAction,
-            onPressed: _openViewedNewsHistory,
-          ),
-        ],
+    final actions = <Widget>[
+      _buildQuickToggleAction(
+        buttonKey: _channelsActionKey,
+        label: l10n.newsChannelsAction,
+        icon: Icons.rss_feed,
+        selected: false,
+        showLabel: false,
+        tooltip: l10n.newsChannelsAction,
+        onPressed: _openChannelPicker,
       ),
+      _buildQuickToggleAction(
+        buttonKey: _scrapToggleActionKey,
+        label: _showScrappedOnly
+            ? l10n.newsShowAllNewsAction
+            : l10n.newsShowScrappedOnlyAction,
+        icon: _showScrappedOnly ? Icons.bookmark : Icons.bookmark_border,
+        selected: _showScrappedOnly,
+        showLabel: false,
+        tooltip: _showScrappedOnly
+            ? l10n.newsShowAllNewsAction
+            : l10n.newsShowScrappedOnlyAction,
+        onPressed: () {
+          setState(() {
+            _showScrappedOnly = !_showScrappedOnly;
+          });
+        },
+      ),
+      if (isKo)
+        _buildQuickToggleAction(
+          buttonKey: _translateToggleActionKey,
+          label: l10n.newsTranslateAction,
+          icon: Icons.translate_rounded,
+          selected: _titleTranslateEnabled,
+          showLabel: false,
+          tooltip: _titleTranslateEnabled
+              ? l10n.newsTitleTranslateEnabledTooltip
+              : l10n.newsTitleTranslateDisabledTooltip,
+          onPressed: _toggleTitleTranslate,
+        ),
+      _buildQuickToggleAction(
+        buttonKey: _searchActionKey,
+        label: l10n.newsSearchAction,
+        icon: _showSearch ? Icons.close : Icons.search,
+        selected: _showSearch,
+        showLabel: false,
+        tooltip: l10n.newsSearchAction,
+        onPressed: _toggleSearch,
+      ),
+      _buildQuickToggleAction(
+        buttonKey: _viewedHistoryActionKey,
+        label: l10n.newsViewedHistoryAction,
+        icon: Icons.history,
+        selected: false,
+        showLabel: false,
+        tooltip: l10n.newsViewedHistoryAction,
+        onPressed: _openViewedNewsHistory,
+      ),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var index = 0; index < actions.length; index += 1) ...[
+                  if (index > 0) const SizedBox(width: 8),
+                  actions[index],
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

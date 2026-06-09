@@ -23,6 +23,7 @@ const _scrapToggleActionKey = ValueKey<String>(
 const _translateToggleActionKey = ValueKey<String>(
   'news_quick_action_translate_toggle',
 );
+const _channelsActionKey = ValueKey<String>('news_quick_action_channels');
 const _searchActionKey = ValueKey<String>('news_quick_action_search');
 const _viewedHistoryActionKey = ValueKey<String>(
   'news_quick_action_viewed_history',
@@ -123,7 +124,7 @@ void main() {
     expect(fifaX, lessThan(leagueX));
   });
 
-  testWidgets('news quick actions keep scrap, translate, search order', (
+  testWidgets('news quick actions are icon-only on one row', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(1400, 900));
@@ -167,17 +168,32 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('스크랩한 소식만 보기'), findsOneWidget);
-    expect(find.text('번역'), findsOneWidget);
+    expect(find.text('채널 선택'), findsNothing);
+    expect(find.text('스크랩한 소식만 보기'), findsNothing);
+    expect(find.text('번역'), findsNothing);
+    expect(find.text('기사 검색'), findsNothing);
 
+    final channelRect = tester.getRect(find.byKey(_channelsActionKey));
+    final scrapRect = tester.getRect(find.byKey(_scrapToggleActionKey));
+    final translateRect = tester.getRect(find.byKey(_translateToggleActionKey));
+    final searchRect = tester.getRect(find.byKey(_searchActionKey));
+    final viewedHistoryRect = tester.getRect(
+      find.byKey(_viewedHistoryActionKey),
+    );
     final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
     final translateX = tester
         .getTopLeft(find.byKey(_translateToggleActionKey))
         .dx;
     final searchX = tester.getTopLeft(find.byKey(_searchActionKey)).dx;
 
+    expect(channelRect.top, moreOrLessEquals(scrapRect.top));
+    expect(scrapRect.top, moreOrLessEquals(translateRect.top));
+    expect(translateRect.top, moreOrLessEquals(searchRect.top));
+    expect(searchRect.top, moreOrLessEquals(viewedHistoryRect.top));
+    expect(channelRect.left, lessThan(scrapX));
     expect(scrapX, lessThan(translateX));
     expect(translateX, lessThan(searchX));
+    expect(searchX, lessThan(viewedHistoryRect.left));
   });
 
   testWidgets(
