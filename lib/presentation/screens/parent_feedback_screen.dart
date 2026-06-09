@@ -203,8 +203,8 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     final localeTag = Localizations.localeOf(context).toString();
     final previewText = _savedMessage.trim().isEmpty
         ? (_savedReactions.isEmpty
-            ? l10n.parentFeedbackEmpty
-            : l10n.parentFeedbackReactionOnly)
+              ? l10n.parentFeedbackEmpty
+              : l10n.parentFeedbackReactionOnly)
         : _savedMessage.trim();
     final updatedLabel = _savedUpdatedAt == null
         ? ''
@@ -256,9 +256,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                     children: [
                       Text(
                         l10n.parentFeedbackSectionTitle,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 6),
@@ -274,8 +272,10 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                         runSpacing: 8,
                         children: [
                           Chip(label: Text(sessionLabel)),
-                          if (widget.entry.program.trim().isNotEmpty)
-                            Chip(label: Text(widget.entry.program.trim())),
+                          if (_trainingProgramLabel(widget.entry).isNotEmpty)
+                            Chip(
+                              label: Text(_trainingProgramLabel(widget.entry)),
+                            ),
                           if (updatedLabel.isNotEmpty)
                             Chip(label: Text(updatedLabel)),
                         ],
@@ -362,14 +362,16 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                     children: [
                       if (_canEdit)
                         TextButton(
-                          onPressed:
-                              _canClear ? () => _controller.clear() : null,
+                          onPressed: _canClear
+                              ? () => _controller.clear()
+                              : null,
                           child: Text(l10n.parentFeedbackClear),
                         ),
                       const Spacer(),
                       FilledButton.icon(
-                        onPressed:
-                            (_isSaving || !_hasChanges) ? null : _saveFeedback,
+                        onPressed: (_isSaving || !_hasChanges)
+                            ? null
+                            : _saveFeedback,
                         icon: const Icon(Icons.save_outlined),
                         label: Text(l10n.parentFeedbackSave),
                       ),
@@ -480,4 +482,13 @@ class _ParentFeedbackReactionOption {
     required this.icon,
     required this.label,
   });
+}
+
+String _trainingProgramLabel(TrainingEntry entry) {
+  final programs = entry.effectiveTrainingProgramMinutes.keys
+      .map((program) => program.trim())
+      .where((program) => program.isNotEmpty)
+      .join(', ');
+  if (programs.isNotEmpty) return programs;
+  return entry.program.trim();
 }

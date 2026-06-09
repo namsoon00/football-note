@@ -380,18 +380,24 @@ void main() {
 
     final award = await service.awardForQuizCompletion(
       completedAt: DateTime(2026, 3, 24, 23, 55),
+      correctAnswers: 6,
+      totalQuestions: 10,
     );
     final duplicate = await service.awardForQuizCompletion(
       completedAt: DateTime(2026, 3, 24, 23, 59),
+      correctAnswers: 10,
+      totalQuestions: 10,
     );
     final nextDay = await service.awardForQuizCompletion(
       completedAt: DateTime(2026, 3, 25, 0, 5),
+      correctAnswers: 10,
+      totalQuestions: 10,
     );
 
     expect(award.gainedXp, 8);
     expect(duplicate.gainedXp, 0);
-    expect(nextDay.gainedXp, 8);
-    expect(service.loadState().totalXp, 16);
+    expect(nextDay.gainedXp, 15);
+    expect(service.loadState().totalXp, 23);
 
     final history = service.loadXpHistory();
     expect(history, hasLength(2));

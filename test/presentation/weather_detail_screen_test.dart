@@ -41,7 +41,7 @@ void main() {
     expect(find.text('21°C'), findsOneWidget);
     expect(find.text('맑음'), findsOneWidget);
     expect(find.text('어제 대비'), findsOneWidget);
-    expect(find.text('대기질'), findsOneWidget);
+    expect(find.text('대기질'), findsNothing);
     expect(find.text('미세먼지'), findsOneWidget);
     expect(find.text('초미세먼지'), findsOneWidget);
     expect(find.text('야외 활동 가이드'), findsNothing);

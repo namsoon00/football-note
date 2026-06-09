@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../application/league_fixture_reminder_service.dart';
+import '../../application/settings_service.dart';
 import '../../application/world_cup_schedule.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
@@ -14,8 +16,13 @@ import '../widgets/watch_cart/watch_cart_card.dart';
 
 class WorldCupScreen extends StatefulWidget {
   final OptionRepository? optionRepository;
+  final SettingsService? settingsService;
 
-  const WorldCupScreen({super.key, this.optionRepository});
+  const WorldCupScreen({
+    super.key,
+    this.optionRepository,
+    this.settingsService,
+  });
 
   @override
   State<WorldCupScreen> createState() => _WorldCupScreenState();
@@ -45,6 +52,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     _focusedDay = _initialCalendarDay();
     _selectedDay = _focusedDay;
     _loadCountryPreferences();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_syncWorldCupReminders());
+    });
   }
 
   @override
@@ -255,7 +266,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                   const spacing = 8.0;
                   final width =
                       (constraints.maxWidth - spacing * (columns - 1)) /
-                          columns;
+                      columns;
                   return Wrap(
                     spacing: spacing,
                     runSpacing: spacing,
@@ -518,7 +529,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             headerStyle: HeaderStyle(
               titleCentered: true,
               formatButtonVisible: false,
-              titleTextStyle: theme.textTheme.titleMedium?.copyWith(
+              titleTextStyle:
+                  theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ) ??
                   const TextStyle(fontWeight: FontWeight.w900),
@@ -548,11 +560,11 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                 final selectedCount = _showSelectedCountriesOnly
                     ? 0
                     : fixtures
-                        .where(
-                          (fixture) =>
-                              _fixtureMatchesSelectedCountries(fixture),
-                        )
-                        .length;
+                          .where(
+                            (fixture) =>
+                                _fixtureMatchesSelectedCountries(fixture),
+                          )
+                          .length;
                 return PositionedDirectional(
                   bottom: 2,
                   child: Row(
@@ -672,8 +684,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                       child: Text(
                         l10n.worldCupInterestCountriesLabel,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            ),
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
                     Expanded(
@@ -747,11 +759,13 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       _interestCountriesKey,
       _interestCountries.toList()..sort(),
     );
+    await _syncWorldCupReminders();
   }
 
   Future<void> _setSupportCountry(String country) async {
     setState(() => _supportCountry = country);
     await widget.optionRepository?.setValue(_supportCountryKey, country);
+    await _syncWorldCupReminders();
   }
 
   Future<void> _removeInterestCountry(String country) async {
@@ -764,6 +778,34 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     await widget.optionRepository?.saveOptions(
       _interestCountriesKey,
       _interestCountries.toList()..sort(),
+    );
+    await _syncWorldCupReminders();
+  }
+
+  Future<void> _syncWorldCupReminders() async {
+    final repository = widget.optionRepository;
+    final settingsService = widget.settingsService;
+    if (repository == null || settingsService == null || !mounted) return;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return;
+    final locale = Localizations.localeOf(context).toString();
+    final formatter = DateFormat.MMMd(locale).add_Hm();
+    await LeagueFixtureReminderService(
+      repository,
+      settingsService,
+    ).syncWorldCupReminders(
+      fixtures: worldCupFixtures,
+      selectedCountries: _selectedCountrySet,
+      title: l10n.notificationAppTitle,
+      androidChannelName: l10n.worldCupFixtureNotificationChannelName,
+      androidChannelDescription:
+          l10n.worldCupFixtureNotificationChannelDescription,
+      bodyBuilder: (fixture, teamName, opponentName) =>
+          l10n.worldCupFixtureNotificationBody(
+            teamName,
+            opponentName,
+            formatter.format(fixture.kickoffLocal),
+          ),
     );
   }
 
@@ -778,8 +820,9 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     if (storedSupport != null && _countries.contains(storedSupport)) {
       _supportCountry = storedSupport;
     }
-    _interestCountries =
-        storedInterest.where((country) => _countries.contains(country)).toSet();
+    _interestCountries = storedInterest
+        .where((country) => _countries.contains(country))
+        .toSet();
   }
 
   List<WorldCupFixture> _fixturesForDay(DateTime day) {
@@ -964,8 +1007,8 @@ class _FixtureRow extends StatelessWidget {
     final borderColor = supportMatch
         ? theme.colorScheme.primary
         : interestMatch
-            ? theme.colorScheme.tertiary
-            : theme.colorScheme.outlineVariant;
+        ? theme.colorScheme.tertiary
+        : theme.colorScheme.outlineVariant;
     final backgroundColor = selected
         ? borderColor.withValues(alpha: 0.08)
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.42);
@@ -1009,7 +1052,9 @@ class _FixtureRow extends StatelessWidget {
             children: [
               Expanded(
                 child: _FixtureTeamBlock(
-                    team: fixture.homeTeam, result: homeResult),
+                  team: fixture.homeTeam,
+                  result: homeResult,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -1085,12 +1130,14 @@ class _FixtureTeamBlock extends StatelessWidget {
       ],
     ];
     return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment:
-              alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
+          mainAxisAlignment: alignEnd
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
           children: alignEnd ? children.reversed.toList() : children,
         ),
         const SizedBox(height: 3),
@@ -1268,11 +1315,11 @@ class _CalendarMarker extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white,
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              height: 1,
-            ),
+          color: Colors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+          height: 1,
+        ),
       ),
     );
   }

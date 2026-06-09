@@ -7,11 +7,14 @@ import 'package:timezone/timezone.dart' as tz;
 import '../domain/entities/league_standings.dart';
 import '../domain/repositories/option_repository.dart';
 import 'settings_service.dart';
+import 'world_cup_schedule.dart';
 
 class LeagueFixtureReminderService {
   static const String favoriteTeamKeysKey =
       'league_fixture_favorite_team_keys_v1';
   static const String reminderIdsKey = 'league_fixture_reminder_ids_v1';
+  static const String worldCupReminderIdsKey =
+      'world_cup_fixture_reminder_ids_v1';
   static const String _androidChannelId = 'league_fixture_reminders';
 
   final OptionRepository _options;
@@ -123,7 +126,7 @@ class LeagueFixtureReminderService {
   }
 
   Future<void> clearAllReminders() async {
-    if (!_hasStoredNotificationIds()) {
+    if (!_hasStoredNotificationIds(reminderIdsKey)) {
       await _options.setValue(reminderIdsKey, <int>[]);
       return;
     }
@@ -132,7 +135,89 @@ class LeagueFixtureReminderService {
       await _options.setValue(reminderIdsKey, <int>[]);
       return;
     }
-    await _clearNotificationIds();
+    await _clearNotificationIds(reminderIdsKey);
+  }
+
+  Future<int> syncWorldCupReminders({
+    required Iterable<WorldCupFixture> fixtures,
+    required Set<String> selectedCountries,
+    required String title,
+    required String androidChannelName,
+    required String androidChannelDescription,
+    required String Function(
+      WorldCupFixture fixture,
+      String teamName,
+      String opponentName,
+    )
+    bodyBuilder,
+    Duration reminderOffset = const Duration(hours: 2),
+    DateTime? now,
+  }) async {
+    await clearWorldCupReminders();
+    final countries = selectedCountries
+        .map((country) => country.trim())
+        .where((country) => country.isNotEmpty)
+        .toSet();
+    if (countries.isEmpty ||
+        !_settings.reminderEnabled ||
+        !_settings.leagueFixtureAlertEnabled ||
+        kIsWeb) {
+      return 0;
+    }
+
+    await initialize();
+    await _ensureNotificationChannel(
+      name: androidChannelName,
+      description: androidChannelDescription,
+    );
+
+    final tzNow = tz.TZDateTime.from(now ?? DateTime.now(), tz.local);
+    final scheduledIds = <int>[];
+    final seenFixtureKeys = <String>{};
+    for (final fixture in fixtures) {
+      if (fixture.hasScore) continue;
+      final match = _worldCupFavoriteMatch(fixture, countries);
+      if (match == null) continue;
+      final fixtureKey = 'worldcup:${fixture.matchNumber}:${match.teamName}';
+      if (!seenFixtureKeys.add(fixtureKey)) continue;
+      final kickoffAt = tz.TZDateTime.from(fixture.kickoffLocal, tz.local);
+      var scheduledAt = kickoffAt.subtract(reminderOffset);
+      if (!scheduledAt.isAfter(tzNow)) {
+        scheduledAt = kickoffAt;
+      }
+      if (!scheduledAt.isAfter(tzNow)) continue;
+      final id = _notificationIdForScope('world_cup_fixture', fixtureKey);
+      try {
+        await _scheduleZonedReminder(
+          id: id,
+          title: title,
+          androidChannelName: androidChannelName,
+          androidChannelDescription: androidChannelDescription,
+          body: bodyBuilder(fixture, match.teamName, match.opponentName),
+          scheduledAt: scheduledAt,
+          payload: fixtureKey,
+        );
+        scheduledIds.add(id);
+      } catch (error) {
+        debugPrint('World Cup reminder failed for $fixtureKey: $error');
+      }
+    }
+
+    await _options.setValue(worldCupReminderIdsKey, scheduledIds);
+    return scheduledIds.length;
+  }
+
+  Future<void> clearWorldCupReminders() async {
+    if (!_hasStoredNotificationIds(worldCupReminderIdsKey)) {
+      await _options.setValue(worldCupReminderIdsKey, <int>[]);
+      return;
+    }
+    await initialize();
+    if (kIsWeb) {
+      await _options.setValue(worldCupReminderIdsKey, <int>[]);
+      return;
+    }
+    await _clearNotificationIds(worldCupReminderIdsKey);
   }
 
   Future<void> initialize() async {
@@ -237,18 +322,18 @@ class LeagueFixtureReminderService {
     }
   }
 
-  Future<void> _clearNotificationIds() async {
-    final ids = _options.getValue<List>(reminderIdsKey) ?? const [];
+  Future<void> _clearNotificationIds(String storageKey) async {
+    final ids = _options.getValue<List>(storageKey) ?? const [];
     for (final rawId in ids) {
       final id = (rawId is num) ? rawId.toInt() : int.tryParse('$rawId');
       if (id == null) continue;
       await _plugin.cancel(id);
     }
-    await _options.setValue(reminderIdsKey, <int>[]);
+    await _options.setValue(storageKey, <int>[]);
   }
 
-  bool _hasStoredNotificationIds() {
-    final ids = _options.getValue<List>(reminderIdsKey) ?? const [];
+  bool _hasStoredNotificationIds(String storageKey) {
+    final ids = _options.getValue<List>(storageKey) ?? const [];
     return ids.any((rawId) {
       if (rawId is num) return rawId.toInt() >= 0;
       return int.tryParse('$rawId') != null;
@@ -274,6 +359,23 @@ class LeagueFixtureReminderService {
         teamKey: awayKey,
         teamName: entry.awayTeamName,
         opponentName: entry.homeTeamName,
+      );
+    }
+    return null;
+  }
+
+  _LeagueFavoriteMatch? _worldCupFavoriteMatch(
+    WorldCupFixture fixture,
+    Set<String> selectedCountries,
+  ) {
+    for (final country in selectedCountries) {
+      if (!fixture.involvesCountry(country)) continue;
+      final normalized = country.trim().toLowerCase();
+      final isHome = fixture.homeTeam.toLowerCase() == normalized;
+      return _LeagueFavoriteMatch(
+        teamKey: country,
+        teamName: isHome ? fixture.homeTeam : fixture.awayTeam,
+        opponentName: isHome ? fixture.awayTeam : fixture.homeTeam,
       );
     }
     return null;

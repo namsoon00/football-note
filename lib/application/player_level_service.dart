@@ -54,6 +54,9 @@ class PlayerLevelService {
   static const int weekly5LogsXp = PlayerProgressionRules.weekly5LogsXp;
   static const int dailyTaskCompletionXp =
       PlayerProgressionRules.dailyTaskCompletionXp;
+  static const int quizCompletionBaseXp = 2;
+  static const int quizCorrectAnswerXp = 1;
+  static const int quizPerfectBonusXp = 3;
   static const int dailyPositiveXpCap =
       PlayerProgressionRules.dailyPositiveXpCap;
   static const int maxLevelMasterySpan =
@@ -83,6 +86,16 @@ class PlayerLevelService {
   PlayerLevelState loadState() {
     final totalXp = _options.getValue<int>(totalXpKey) ?? 0;
     return PlayerLevelState.fromXp(totalXp);
+  }
+
+  String _trainingProgramSummary(TrainingEntry entry) {
+    final programs = entry.effectiveTrainingProgramMinutes.keys
+        .where((program) => program.trim().isNotEmpty)
+        .join(', ');
+    if (programs.isNotEmpty) return programs;
+    final program = entry.program.trim();
+    if (program.isNotEmpty) return program;
+    return entry.type;
   }
 
   Future<PlayerLevelAward> awardForTrainingLog({
@@ -131,9 +144,7 @@ class PlayerLevelService {
         beforeLevel: before.level,
         afterLevel: after.level,
         category: PlayerXpHistoryCategory.training,
-        label: entry.program.trim().isNotEmpty
-            ? entry.program.trim()
-            : entry.type,
+        label: _trainingProgramSummary(entry),
         reasons: reasons,
       ),
     );
@@ -197,9 +208,7 @@ class PlayerLevelService {
         beforeLevel: before.level,
         afterLevel: after.level,
         category: PlayerXpHistoryCategory.training,
-        label: updatedEntry.program.trim().isNotEmpty
-            ? updatedEntry.program.trim()
-            : updatedEntry.type,
+        label: _trainingProgramSummary(updatedEntry),
         reasons: reasons,
       ),
     );
@@ -271,8 +280,22 @@ class PlayerLevelService {
 
   Future<PlayerLevelAward> awardForQuizCompletion({
     DateTime? completedAt,
+    int correctAnswers = 6,
+    int totalQuestions = 10,
   }) async {
     final before = loadState();
+    final normalizedTotal = totalQuestions < 0 ? 0 : totalQuestions;
+    final normalizedCorrect = normalizedTotal > 0
+        ? correctAnswers.clamp(0, normalizedTotal).toInt()
+        : (correctAnswers < 0 ? 0 : correctAnswers);
+    final perfectBonus =
+        normalizedTotal > 0 && normalizedCorrect >= normalizedTotal
+        ? quizPerfectBonusXp
+        : 0;
+    final requestedXp =
+        quizCompletionBaseXp +
+        normalizedCorrect * quizCorrectAnswerXp +
+        perfectBonus;
     final day = PlayerProgressionRules.normalizeDay(
       completedAt ?? DateTime.now(),
     );
@@ -288,7 +311,7 @@ class PlayerLevelService {
 
     final reasons = <String>['quiz_complete'];
     final gainedXp = _applyDailyPositiveXpCap(
-      requestedXp: 8,
+      requestedXp: requestedXp,
       awardedAt: completedAt ?? DateTime.now(),
       reasons: reasons,
     );
@@ -305,7 +328,9 @@ class PlayerLevelService {
           beforeLevel: before.level,
           afterLevel: after.level,
           category: PlayerXpHistoryCategory.quiz,
-          label: '',
+          label: normalizedTotal > 0
+              ? '$normalizedCorrect/$normalizedTotal'
+              : '',
           reasons: reasons,
         ),
       );

@@ -749,6 +749,31 @@ abstract class AppLocalizations {
   /// **'Fixture alerts for preferred league teams'**
   String get newsLeagueFixtureNotificationChannelDescription;
 
+  /// No description provided for @notificationAppTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo\'s Note'**
+  String get notificationAppTitle;
+
+  /// No description provided for @worldCupFixtureNotificationChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'World Cup Match Alerts'**
+  String get worldCupFixtureNotificationChannelName;
+
+  /// No description provided for @worldCupFixtureNotificationChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixture alerts for selected World Cup countries'**
+  String get worldCupFixtureNotificationChannelDescription;
+
+  /// No description provided for @worldCupFixtureNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{team} World Cup match: vs {opponent} at {kickoff}'**
+  String worldCupFixtureNotificationBody(
+      Object team, Object opponent, Object kickoff);
+
   /// No description provided for @newsLeagueStandingsTeamColumn.
   ///
   /// In en, this message translates to:
@@ -2393,6 +2418,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Quiz completed'**
   String get playerXpGuideQuizComplete;
+
+  /// No description provided for @playerXpGuideQuizCompleteXp.
+  ///
+  /// In en, this message translates to:
+  /// **'+2 to +15 XP by correct answers'**
+  String get playerXpGuideQuizCompleteXp;
 
   /// No description provided for @playerXpGuideMealTwoPlus.
   ///
@@ -6101,6 +6132,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lower numbers usually mean easier breathing outdoors.'**
   String get homeWeatherAirQualitySubtitle;
+
+  /// No description provided for @homeWeatherAirQualityForecastMissingReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Air-quality forecast is unavailable for this area or time.'**
+  String get homeWeatherAirQualityForecastMissingReason;
 
   /// No description provided for @homeWeatherAirGuideTitle.
   ///
@@ -13195,6 +13232,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Missions'**
   String get challengeHistoryDetailMissionsLabel;
+
+  /// No description provided for @challengeHistoryDetailEarnedXpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Earned XP'**
+  String get challengeHistoryDetailEarnedXpLabel;
 
   /// No description provided for @challengeHistoryDetailNoMissions.
   ///

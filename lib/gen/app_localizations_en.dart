@@ -384,6 +384,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Fixture alerts for preferred league teams';
 
   @override
+  String get notificationAppTitle => 'Taeo\'s Note';
+
+  @override
+  String get worldCupFixtureNotificationChannelName => 'World Cup Match Alerts';
+
+  @override
+  String get worldCupFixtureNotificationChannelDescription =>
+      'Fixture alerts for selected World Cup countries';
+
+  @override
+  String worldCupFixtureNotificationBody(
+      Object team, Object opponent, Object kickoff) {
+    return '$team World Cup match: vs $opponent at $kickoff';
+  }
+
+  @override
   String get newsLeagueStandingsTeamColumn => 'Team';
 
   @override
@@ -1328,6 +1344,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerXpGuideQuizComplete => 'Quiz completed';
+
+  @override
+  String get playerXpGuideQuizCompleteXp => '+2 to +15 XP by correct answers';
 
   @override
   String get playerXpGuideMealTwoPlus => 'Two or more meals logged';
@@ -3352,6 +3371,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeWeatherAirQualitySubtitle =>
       'Lower numbers usually mean easier breathing outdoors.';
+
+  @override
+  String get homeWeatherAirQualityForecastMissingReason =>
+      'Air-quality forecast is unavailable for this area or time.';
 
   @override
   String get homeWeatherAirGuideTitle => 'Outdoor activity guide';
@@ -7671,6 +7694,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeHistoryDetailMissionsLabel => 'Missions';
+
+  @override
+  String get challengeHistoryDetailEarnedXpLabel => 'Earned XP';
 
   @override
   String get challengeHistoryDetailNoMissions => 'Extra missions only';

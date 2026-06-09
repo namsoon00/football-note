@@ -771,9 +771,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     await _recordCategoryPerformance();
     await _appendQuizHistory(completedAt);
     await _trackMetric('football_quiz_session_completed');
-    final levelAward = await PlayerLevelService(
-      widget.optionRepository,
-    ).awardForQuizCompletion(completedAt: completedAt);
+    final levelAward = await PlayerLevelService(widget.optionRepository)
+        .awardForQuizCompletion(
+          completedAt: completedAt,
+          correctAnswers: _score,
+          totalQuestions: _questions.length,
+        );
     if (levelAward.gainedXp > 0) {
       final settingsService = SettingsService(widget.optionRepository)..load();
       final reminderService = TrainingPlanReminderService(
@@ -9657,6 +9660,79 @@ List<_ShortAnswerKnowledgeSeed> _shortAnswerKnowledgeSeeds() {
           'The answer is "compactness." If distances stretch too much, central and half-space gaps open easily.',
       koNextPoint: '라인 간격과 선수 간격을 따로 체크하세요.',
       enNextPoint: 'Check line spacing and player spacing separately.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'blindside_run',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '수비수가 공만 보는 순간 등 뒤 공간으로 빠져 들어가는 움직임',
+      enClue:
+          'Movement into the space behind a defender when they are focused on the ball',
+      acceptedAnswers: ['블라인드사이드', '블라인드 사이드', 'blindside', 'blind-side'],
+      koExplain: '정답은 "블라인드사이드"입니다. 수비 시야 밖에서 출발하면 짧은 패스도 큰 찬스가 될 수 있습니다.',
+      enExplain:
+          'The answer is "blindside." Starting outside the defender’s view can turn a short pass into a big chance.',
+      koNextPoint: '침투 전 수비수의 어깨 방향과 시선을 확인하세요.',
+      enNextPoint:
+          'Before running, check the defender’s shoulder angle and gaze.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'weak_side_attack',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '상대 수비 숫자가 적은 반대편 공간을 빠르게 노리는 공격',
+      enClue:
+          'Attack that quickly targets the far side where the defense has fewer players',
+      acceptedAnswers: ['약측 공격', '약측', 'weak side', 'weak-side'],
+      koExplain: '정답은 "약측 공격"입니다. 한쪽에 수비를 모은 뒤 반대편의 여유 공간을 활용합니다.',
+      enExplain:
+          'The answer is "weak-side attack." It uses the free space after the defense shifts toward one side.',
+      koNextPoint: '볼 반대편 윙과 풀백의 위치를 계속 스캔하세요.',
+      enNextPoint: 'Keep scanning the far-side winger and fullback positions.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'late_box_run',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '크로스나 컷백 타이밍에 뒤에서 늦게 박스로 들어가 마무리를 노리는 움직임',
+      enClue:
+          'Movement of arriving late into the box for a cross or cutback finish',
+      acceptedAnswers: ['늦은 침투', '박스 침투', 'late run', 'late box run'],
+      koExplain: '정답은 "늦은 침투"입니다. 너무 일찍 들어가면 잡히기 쉽고, 늦게 들어가면 컷백 공간을 받을 수 있습니다.',
+      enExplain:
+          'The answer is "late run." Arriving too early is easy to mark; arriving late can open the cutback lane.',
+      koNextPoint: '크로스 전에 페널티 스폿 뒤 공간을 한 번 확인하세요.',
+      enNextPoint: 'Before the cross, check the space behind the penalty spot.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'layoff_pass',
+      difficulty: 1,
+      category: _QuizCategory.tactics,
+      koClue: '등지고 받은 공을 가까운 동료에게 짧게 내주며 공격 방향을 이어 주는 패스',
+      enClue:
+          'Short pass laid back to a nearby teammate after receiving with back to goal',
+      acceptedAnswers: ['레이오프', '레이오프 패스', 'layoff', 'lay-off', 'layoff pass'],
+      koExplain: '정답은 "레이오프 패스"입니다. 등진 선수가 압박을 끌고, 앞을 보는 동료가 다음 전진을 선택합니다.',
+      enExplain:
+          'The answer is "layoff pass." The receiver draws pressure while a facing teammate chooses the next action.',
+      koNextPoint: '등지고 받을 때는 원터치로 내줄 동료를 먼저 정하세요.',
+      enNextPoint:
+          'When receiving with your back to goal, preselect the teammate for a one-touch layoff.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'open_body_shape',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koClue: '받기 전에 몸을 반쯤 열어 첫 터치 후 여러 선택지를 만드는 자세',
+      enClue:
+          'Receiving posture with the body half-open to keep multiple options after the first touch',
+      acceptedAnswers: ['오픈 바디', '열린 자세', 'open body', 'open body shape'],
+      koExplain: '정답은 "오픈 바디"입니다. 시야와 첫 터치 방향이 넓어져 압박 속에서도 선택지가 늘어납니다.',
+      enExplain:
+          'The answer is "open body shape." It widens vision and first-touch options under pressure.',
+      koNextPoint: '받기 전 어깨 너머를 보고 첫 터치 방향을 정하세요.',
+      enNextPoint:
+          'Scan over your shoulder before receiving and set the first-touch direction.',
     ),
     _ShortAnswerKnowledgeSeed(
       id: 'third_man',

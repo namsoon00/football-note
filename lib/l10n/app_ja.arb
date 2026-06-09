@@ -138,6 +138,17 @@
   },
   "newsLeagueFixtureNotificationChannelName": "リーグの試合速報",
   "newsLeagueFixtureNotificationChannelDescription": "優先リーグチームの試合日程アラート",
+  "notificationAppTitle": "テオのノート",
+  "worldCupFixtureNotificationChannelName": "W杯試合通知",
+  "worldCupFixtureNotificationChannelDescription": "選択したW杯出場国の日程通知",
+  "worldCupFixtureNotificationBody": "{team} W杯の試合: {opponent}戦 {kickoff}",
+  "@worldCupFixtureNotificationBody": {
+    "placeholders": {
+      "team": {},
+      "opponent": {},
+      "kickoff": {}
+    }
+  },
   "newsLeagueStandingsTeamColumn": "チーム",
   "newsLeagueStandingsPlayedColumn": "P",
   "newsLeagueStandingsWinsColumn": "W",
@@ -763,6 +774,7 @@
   "playerXpGuideTrainingSketchSavedXp": "+5 XP / +2 XP",
   "playerXpGuideDiaryCreated": "日記が作成されました",
   "playerXpGuideQuizComplete": "クイズが完了しました",
+  "playerXpGuideQuizCompleteXp": "正解数に応じて +2〜+15 XP",
   "playerXpGuideMealTwoPlus": "2 回以上の食事が記録されている",
   "playerXpGuideMealFull": "3食/3食丼5杯以上",
   "playerXpGuideDailyTasksComplete": "毎日の家事がすべて完了しました",
@@ -1614,6 +1626,7 @@
   "homeWeatherOutfitCaseWetRange": "雨や雪の場合",
   "homeWeatherAirQualityTitle": "空気の質",
   "homeWeatherAirQualitySubtitle": "通常、数値が低いほど、屋外で呼吸がしやすいことを意味します。",
+  "homeWeatherAirQualityForecastMissingReason": "この地域または時間帯では空気質予報が提供されていません。",
   "homeWeatherAirGuideTitle": "アウトドアアクティビティガイド",
   "homeWeatherAirGuideUnknown": "空気データを更新して、屋外アクティビティのガイダンスを確認します。",
   "homeWeatherAirGuideGood": "空気の質は通常の屋外活動やトレーニングに十分安定しています。",
@@ -3896,6 +3909,7 @@
     }
   },
   "challengeHistoryDetailMissionsLabel": "ミッション",
+  "challengeHistoryDetailEarnedXpLabel": "獲得XP",
   "challengeHistoryDetailNoMissions": "追加ミッションのみ",
   "challengeHistoryDetailRoundsTitle": "ラウンド詳細",
   "challengeHistoryDetailRoundDate": "ラウンド {round} · {date}",

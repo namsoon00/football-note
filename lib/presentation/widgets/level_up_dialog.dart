@@ -513,10 +513,12 @@ class _TrainingXpDialogSpec {
     PlayerLevelAward award,
   ) {
     final reasons = award.reasons.toSet();
-    final hasJumpRopeGain = reasons.contains('jump_rope_added') ||
+    final hasJumpRopeGain =
+        reasons.contains('jump_rope_added') ||
         (!reasons.contains('jump_rope_missed') &&
             reasons.any((reason) => reason.contains('jump_rope')));
-    final hasLiftingGain = reasons.contains('lifting_added') ||
+    final hasLiftingGain =
+        reasons.contains('lifting_added') ||
         (!reasons.contains('lifting_missed') &&
             reasons.any((reason) => reason.contains('lifting')));
     if (hasJumpRopeGain) {
@@ -627,11 +629,11 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
                                 Text(
                                   spec.title,
                                   textAlign: TextAlign.center,
-                                  style:
-                                      theme.textTheme.headlineMedium?.copyWith(
-                                    fontWeight: FontWeight.w900,
-                                    color: scheme.onSurface,
-                                  ),
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        color: scheme.onSurface,
+                                      ),
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
@@ -1519,22 +1521,24 @@ class _FlameBurstPainter extends CustomPainter {
     if (size.isEmpty) return;
     final center = Offset(size.width * 0.5, size.height * 0.68);
     final glow = Paint()
-      ..shader = RadialGradient(
-        colors: <Color>[
-          color.withValues(alpha: 0.34),
-          const Color(0xFFFFB703).withValues(alpha: 0.18),
-          Colors.transparent,
-        ],
-        stops: const <double>[0, 0.45, 1],
-      ).createShader(
-        Rect.fromCircle(center: center, radius: size.width * 0.42),
-      );
+      ..shader =
+          RadialGradient(
+            colors: <Color>[
+              color.withValues(alpha: 0.34),
+              const Color(0xFFFFB703).withValues(alpha: 0.18),
+              Colors.transparent,
+            ],
+            stops: const <double>[0, 0.45, 1],
+          ).createShader(
+            Rect.fromCircle(center: center, radius: size.width * 0.42),
+          );
     canvas.drawCircle(center, size.width * 0.42, glow);
 
     for (var index = 0; index < 9; index++) {
       final seed = ((index * 23) % 97) / 97.0;
       final rise = (progress + seed) % 1.0;
-      final x = size.width * (0.22 + seed * 0.56) +
+      final x =
+          size.width * (0.22 + seed * 0.56) +
           math.sin((progress * math.pi * 2) + index) * 7;
       final y = size.height * (0.90 - rise * 0.76);
       final radius = 1.5 + (1 - rise) * 3.5;
@@ -1546,8 +1550,7 @@ class _FlameBurstPainter extends CustomPainter {
             const Color(0xFFFFF3B0),
             const Color(0xFFFF7A1A),
             rise,
-          )!
-              .withValues(alpha: (1 - rise).clamp(0.0, 1.0) * 0.78),
+          )!.withValues(alpha: (1 - rise).clamp(0.0, 1.0) * 0.78),
       );
     }
 
@@ -1659,12 +1662,15 @@ class _GemClusterState extends State<_GemCluster>
                 top: 10 + (math.cos(progress * math.pi * 2) * 2),
                 color: widget.color.withValues(alpha: 0.42),
               ),
-              Transform.scale(
-                scale: pulse,
-                child: _CuteGemIcon(
-                  color: widget.color,
-                  size: 64,
-                  glint: glint,
+              Transform.translate(
+                offset: Offset(0, math.sin(progress * math.pi * 2) * 2.4),
+                child: Transform.scale(
+                  scale: pulse,
+                  child: _CuteGemIcon(
+                    color: widget.color,
+                    size: 64,
+                    glint: glint,
+                  ),
                 ),
               ),
               Positioned(
@@ -1794,21 +1800,10 @@ class _CuteGemIcon extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Icon(
-            Icons.diamond_rounded,
-            size: size,
-            color: color,
-            shadows: [
-              Shadow(
-                color: color.withValues(alpha: 0.42),
-                blurRadius: 20 + (glint * 10),
-              ),
-              const Shadow(
-                color: Color(0x26000000),
-                blurRadius: 12,
-                offset: Offset(0, 5),
-              ),
-            ],
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _CuteGemPainter(color: color, glint: glint),
+            ),
           ),
           Positioned(
             top: size * 0.38,
@@ -1840,6 +1835,119 @@ class _CuteGemIcon extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _CuteGemPainter extends CustomPainter {
+  final Color color;
+  final double glint;
+
+  const _CuteGemPainter({required this.color, required this.glint});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final shadowPaint = Paint()
+      ..color = const Color(0x33000000)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(w * 0.5, h * 0.84),
+        width: w * 0.62,
+        height: h * 0.18,
+      ),
+      shadowPaint,
+    );
+
+    final top = Offset(w * 0.50, h * 0.05);
+    final upperLeft = Offset(w * 0.16, h * 0.34);
+    final upperRight = Offset(w * 0.84, h * 0.34);
+    final bottom = Offset(w * 0.50, h * 0.94);
+    final center = Offset(w * 0.50, h * 0.42);
+    final leftFacet = Path()
+      ..moveTo(top.dx, top.dy)
+      ..lineTo(upperLeft.dx, upperLeft.dy)
+      ..lineTo(center.dx, center.dy)
+      ..close();
+    final rightFacet = Path()
+      ..moveTo(top.dx, top.dy)
+      ..lineTo(center.dx, center.dy)
+      ..lineTo(upperRight.dx, upperRight.dy)
+      ..close();
+    final lowerLeftFacet = Path()
+      ..moveTo(upperLeft.dx, upperLeft.dy)
+      ..lineTo(bottom.dx, bottom.dy)
+      ..lineTo(center.dx, center.dy)
+      ..close();
+    final lowerRightFacet = Path()
+      ..moveTo(center.dx, center.dy)
+      ..lineTo(bottom.dx, bottom.dy)
+      ..lineTo(upperRight.dx, upperRight.dy)
+      ..close();
+    final outline = Path()
+      ..moveTo(top.dx, top.dy)
+      ..lineTo(upperRight.dx, upperRight.dy)
+      ..lineTo(bottom.dx, bottom.dy)
+      ..lineTo(upperLeft.dx, upperLeft.dy)
+      ..close();
+
+    canvas.drawPath(
+      outline,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.lerp(Colors.white, color, 0.18)!,
+            color,
+            Color.lerp(Colors.black, color, 0.70)!,
+          ],
+        ).createShader(Offset.zero & size),
+    );
+    canvas.drawPath(
+      leftFacet,
+      Paint()..color = Color.lerp(Colors.white, color, 0.22)!,
+    );
+    canvas.drawPath(
+      rightFacet,
+      Paint()..color = Color.lerp(Colors.white, color, 0.38)!,
+    );
+    canvas.drawPath(
+      lowerLeftFacet,
+      Paint()..color = Color.lerp(Colors.black, color, 0.78)!,
+    );
+    canvas.drawPath(
+      lowerRightFacet,
+      Paint()..color = Color.lerp(Colors.black, color, 0.64)!,
+    );
+    canvas.drawPath(
+      outline,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.2, w * 0.035)
+        ..color = Colors.white.withValues(alpha: 0.50 + glint * 0.22),
+    );
+
+    final shinePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.38 + glint * 0.32);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.28, h * 0.22, w * 0.22, h * 0.08),
+        Radius.circular(w * 0.06),
+      ),
+      shinePaint,
+    );
+    canvas.drawCircle(
+      Offset(w * 0.66, h * 0.24),
+      w * (0.035 + glint * 0.018),
+      shinePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _CuteGemPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.glint != glint;
   }
 }
 
