@@ -258,23 +258,26 @@ class ChallengeRun {
     final rawSelectedSkillIds = map['selectedSkillIds'];
     final rawMissionTargets = map['missionTargets'];
     return ChallengeRun(
-      id: map['id']?.toString() ??
+      id:
+          map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       templateId: map['templateId']?.toString() ?? '',
       trainingLevel: _challengeTrainingLevelFromName(
         map['trainingLevel']?.toString(),
         templateId: map['templateId']?.toString() ?? '',
       ),
-      startedAt: DateTime.tryParse(map['startedAt']?.toString() ?? '') ??
+      startedAt:
+          DateTime.tryParse(map['startedAt']?.toString() ?? '') ??
           DateTime.now(),
       completedAt: completedAt,
       abandoned: abandoned,
-      result: parsedResult ??
+      result:
+          parsedResult ??
           (completedAt == null
               ? null
               : abandoned
-                  ? ChallengeRunResult.abandoned
-                  : ChallengeRunResult.completed),
+              ? ChallengeRunResult.abandoned
+              : ChallengeRunResult.completed),
       failedRoundNumber: (map['failedRoundNumber'] as num?)?.toInt(),
       selectedSkillIds: normalizeChallengeSkillIds(
         (rawSelectedSkillIds as List?)?.map((item) => item.toString()) ??
@@ -413,8 +416,8 @@ class ChallengeRoundProgress {
     final trainingCount = round.targetTrainingMinutes <= 0
         ? 0
         : trainingPrograms.isEmpty
-            ? (trainingCompleted ? 1 : 0)
-            : trainingPrograms.where((mission) => mission.completed).length;
+        ? (trainingCompleted ? 1 : 0)
+        : trainingPrograms.where((mission) => mission.completed).length;
     return trainingCount +
         (round.targetJumpRopeMinutes > 0 && jumpRopeCompleted ? 1 : 0) +
         (round.targetLiftingMinutes > 0 && liftingCompleted ? 1 : 0) +
@@ -499,6 +502,9 @@ bool trainingEntryMatchesChallengeSkill(
   final entryValues = <String>{
     _normalizeChallengeSkillText(entry.program),
     _normalizeChallengeSkillText(entry.type),
+    ...entry.effectiveTrainingProgramMinutes.keys.map(
+      _normalizeChallengeSkillText,
+    ),
   }..removeWhere((value) => value.isEmpty);
   return entryValues.any(normalizedTargets.contains);
 }
@@ -539,12 +545,47 @@ List<ChallengeTrainingProgramProgress> trainingProgramProgressForDay(
                     programs[index],
                   ]),
             )
-            .fold<int>(0, (sum, entry) => sum + entry.durationMinutes),
+            .fold<int>(
+              0,
+              (sum, entry) =>
+                  sum +
+                  trainingProgramMinutesForEntry(entry, <String>[
+                    programs[index],
+                  ]),
+            ),
         targetMinutes: hasProgramTargets
             ? targetMinutesByProgram[programs[index]] ?? targetTrainingMinutes
             : splitTargets[index],
       ),
   ];
+}
+
+int trainingProgramMinutesForEntry(
+  TrainingEntry entry,
+  Iterable<String> selectedSkillIds,
+) {
+  final normalizedTargets = selectedSkillIds
+      .where((id) => !legacyChallengeSkillIds.contains(id))
+      .map(_normalizeChallengeSkillText)
+      .where((id) => id.isNotEmpty)
+      .toSet();
+  if (normalizedTargets.isEmpty) return entry.durationMinutes;
+
+  final programMinutes = entry.effectiveTrainingProgramMinutes;
+  if (programMinutes.isEmpty) {
+    return trainingEntryMatchesChallengeSkill(entry, selectedSkillIds)
+        ? entry.durationMinutes
+        : 0;
+  }
+
+  var minutes = 0;
+  for (final item in programMinutes.entries) {
+    final normalizedProgram = _normalizeChallengeSkillText(item.key);
+    if (normalizedTargets.contains(normalizedProgram)) {
+      minutes += item.value;
+    }
+  }
+  return minutes;
 }
 
 List<int> _splitTargetMinutes(int total, int count) {
@@ -645,8 +686,9 @@ Map<String, int> _nonNegativeIntMap(Object? raw) {
 }
 
 double _nonNegativeDouble(Object? raw) {
-  final value =
-      raw is num ? raw.toDouble() : double.tryParse(raw?.toString() ?? '');
+  final value = raw is num
+      ? raw.toDouble()
+      : double.tryParse(raw?.toString() ?? '');
   if (value == null || value < 0) return 0;
   return value;
 }

@@ -147,6 +147,60 @@ void main() {
     expect(focusSize.height, moreOrLessEquals(weeklySize.height));
   });
 
+  testWidgets('missed calendar rounds hide round labels', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    final challengeService = ChallengeService(optionRepository);
+    final template = challengeService.templateById('starter_3')!;
+    final today = DateTime.now();
+    await challengeService.startChallenge(
+      template,
+      startedAt: DateTime(today.year, today.month, today.day - 2, 9),
+    );
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('R1'), findsNothing);
+    expect(find.text('R2'), findsNothing);
+    expect(find.text('R3'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+
   testWidgets('parent mode keeps challenge screen view only', (
     WidgetTester tester,
   ) async {
@@ -197,8 +251,10 @@ void main() {
     expect(find.text('챌린지는 읽기 전용이에요.'), findsOneWidget);
     expect(find.text('챌린지 포기'), findsNothing);
     expect(find.text('훈련 프로그램 편집'), findsNothing);
-    expect(find.byKey(const ValueKey('challenge-rounds-calendar')),
-        findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsOneWidget,
+    );
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));
 
     await tester.tap(find.text('줄넘기').first, warnIfMissed: false);
@@ -431,10 +487,11 @@ class _MemoryTrainingRepository implements TrainingRepository {
     required bool includeMatches,
   }) {
     if (limit <= 0) return const <TrainingEntry>[];
-    final entries = _entries
-        .where((entry) => includeMatches || !entry.isMatch)
-        .toList(growable: false)
-      ..sort(TrainingEntry.compareByRecentCreated);
+    final entries =
+        _entries
+            .where((entry) => includeMatches || !entry.isMatch)
+            .toList(growable: false)
+          ..sort(TrainingEntry.compareByRecentCreated);
     if (entries.length <= limit) return entries;
     return entries.take(limit).toList(growable: false);
   }

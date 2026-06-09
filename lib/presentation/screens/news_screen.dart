@@ -143,15 +143,19 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _newsService = widget.newsService ??
+    _newsService =
+        widget.newsService ??
         NewsService(RssNewsRepository(widget.optionRepository));
     _profileService = PlayerProfileService(widget.optionRepository);
     _channels = _newsService.channels();
     _regionPageController = PageController(
       initialPage: _regionIndex(_regionFilter),
     );
-    _positionHint =
-        _profileService.load().positionTestResult.trim().toLowerCase();
+    _positionHint = _profileService
+        .load()
+        .positionTestResult
+        .trim()
+        .toLowerCase();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
     _readArticleKeys = NewsReadState.loadReadKeys(widget.optionRepository);
     _scrappedLinks = widget.optionRepository
@@ -285,12 +289,13 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 430;
-        final actionsMaxWidth = (compact
-                ? constraints.maxWidth - 52
-                : constraints.maxWidth *
-                    (constraints.maxWidth < 520 ? 0.54 : 0.58))
-            .clamp(176.0, 380.0)
-            .toDouble();
+        final actionsMaxWidth =
+            (compact
+                    ? constraints.maxWidth - 140
+                    : constraints.maxWidth *
+                          (constraints.maxWidth < 520 ? 0.54 : 0.58))
+                .clamp(176.0, compact ? 260.0 : 380.0)
+                .toDouble();
         final leagueAction = _buildHeaderLeagueAction(
           buttonKey: _leagueStandingsActionKey,
           label: l10n.newsLeagueStandingsAction,
@@ -339,9 +344,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (var index = 0;
-                      index < headerActions.length;
-                      index += 1) ...[
+                  for (
+                    var index = 0;
+                    index < headerActions.length;
+                    index += 1
+                  ) ...[
                     if (index > 0) const SizedBox(width: 6),
                     headerActions[index],
                   ],
@@ -350,16 +357,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             ),
           ),
         );
-        if (compact) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              titleRow,
-              const SizedBox(height: 6),
-              actionScroller,
-            ],
-          );
-        }
         return Row(
           children: [
             Expanded(child: titleRow),
@@ -446,7 +443,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                 : l10n.newsShowScrappedOnlyAction,
             icon: _showScrappedOnly ? Icons.bookmark : Icons.bookmark_border,
             selected: _showScrappedOnly,
-            showLabel: false,
             tooltip: _showScrappedOnly
                 ? l10n.newsShowAllNewsAction
                 : l10n.newsShowScrappedOnlyAction,
@@ -466,7 +462,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                 label: l10n.newsTranslateAction,
                 icon: Icons.translate_rounded,
                 selected: _titleTranslateEnabled,
-                showLabel: false,
                 onPressed: _toggleTitleTranslate,
               ),
             ),
@@ -475,7 +470,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             label: l10n.newsSearchAction,
             icon: _showSearch ? Icons.close : Icons.search,
             selected: _showSearch,
-            showLabel: false,
             tooltip: l10n.newsSearchAction,
             onPressed: _toggleSearch,
           ),
@@ -484,7 +478,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             label: l10n.newsViewedHistoryAction,
             icon: Icons.history,
             selected: false,
-            showLabel: false,
             tooltip: l10n.newsViewedHistoryAction,
             onPressed: _openViewedNewsHistory,
           ),
@@ -511,8 +504,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       backgroundColor: selected
           ? colorScheme.primaryContainer
           : colorScheme.surfaceContainerLow,
-      foregroundColor:
-          selected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+      foregroundColor: selected
+          ? colorScheme.onPrimaryContainer
+          : colorScheme.onSurface,
       side: BorderSide(
         color: selected ? colorScheme.primary : colorScheme.outlineVariant,
       ),
@@ -678,29 +672,32 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final base = showScrappedOnly
         ? scrappedBase.map((item) => item.article).toList(growable: false)
         : _articles
-            .where(
-              (article) =>
-                  !_isReadArticle(article) ||
-                  _sessionOpenedArticleKeys.contains(
-                    NewsReadState.articleKey(article),
-                  ),
-            )
-            .toList(growable: false);
+              .where(
+                (article) =>
+                    !_isReadArticle(article) ||
+                    _sessionOpenedArticleKeys.contains(
+                      NewsReadState.articleKey(article),
+                    ),
+              )
+              .toList(growable: false);
     final regionBase = base
         .where((article) => _matchesRegionFilter(article, filter))
         .toList(growable: true);
     final filtered = query.isEmpty
         ? regionBase
-        : regionBase.where((article) {
-            final title = article.title.toLowerCase();
-            final sourceText = article.source.toLowerCase();
-            final translated =
-                _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ??
+        : regionBase
+              .where((article) {
+                final title = article.title.toLowerCase();
+                final sourceText = article.source.toLowerCase();
+                final translated =
+                    _translatedTitlesByLink[article.link.trim()]
+                        ?.toLowerCase() ??
                     '';
-            return title.contains(query) ||
-                sourceText.contains(query) ||
-                translated.contains(query);
-          }).toList(growable: true);
+                return title.contains(query) ||
+                    sourceText.contains(query) ||
+                    translated.contains(query);
+              })
+              .toList(growable: true);
     if (filter == _NewsRegionFilter.domestic) {
       filtered.sort((a, b) {
         final readCompare = _compareReadPriority(a, b);
@@ -891,8 +888,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     required Set<String> temp,
     required StateSetter setSheetState,
   }) {
-    final domesticChannels =
-        _channels.where(_isDomesticNewsChannel).toList(growable: false);
+    final domesticChannels = _channels
+        .where(_isDomesticNewsChannel)
+        .toList(growable: false);
     final internationalChannels = _channels
         .where((channel) => !_isDomesticNewsChannel(channel))
         .toList(growable: false);
@@ -983,8 +981,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     }
     final foregroundCount = _foregroundChannelLoadCount();
     final primaryIds = channelIds.take(foregroundCount).toList(growable: false);
-    final secondaryIds =
-        channelIds.skip(foregroundCount).toList(growable: false);
+    final secondaryIds = channelIds
+        .skip(foregroundCount)
+        .toList(growable: false);
 
     final primarySucceeded = await _loadChannels(
       token: token,
@@ -1094,19 +1093,21 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }) async {
     if (channelIds.isEmpty) return false;
     final loadedChunks = <List<NewsArticle>>[];
-    final tasks = channelIds.map((id) async {
-      try {
-        final chunk = await _newsService.latest(
-          id,
-          forceRefresh: forceRefresh,
-        );
-        if (chunk.isNotEmpty) {
-          loadedChunks.add(chunk);
-        }
-      } catch (_) {
-        // Keep loading remaining channels even if one feed fails.
-      }
-    }).toList(growable: false);
+    final tasks = channelIds
+        .map((id) async {
+          try {
+            final chunk = await _newsService.latest(
+              id,
+              forceRefresh: forceRefresh,
+            );
+            if (chunk.isNotEmpty) {
+              loadedChunks.add(chunk);
+            }
+          } catch (_) {
+            // Keep loading remaining channels even if one feed fails.
+          }
+        })
+        .toList(growable: false);
     await Future.wait(tasks);
     if (!mounted || token != _loadToken || loadedChunks.isEmpty) {
       return false;
@@ -1381,8 +1382,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       final decoded = jsonDecode(raw);
       if (decoded is! Map) return <String, int>{};
       return decoded.map<String, int>((key, value) {
-        final count =
-            value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+        final count = value is num
+            ? value.toInt()
+            : int.tryParse('$value') ?? 0;
         return MapEntry(key.toString(), count);
       });
     } catch (_) {
@@ -1503,9 +1505,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                   child: Text(
                     l10n.newsViewedHistoryTitle,
-                    style: Theme.of(sheetContext)
-                        .textTheme
-                        .titleLarge
+                    style: Theme.of(sheetContext).textTheme.titleLarge
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
@@ -1692,19 +1692,21 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return;
-      final updated = decoded.map((item) {
-        final map = item is Map<String, dynamic>
-            ? Map<String, dynamic>.from(item)
-            : item is Map
+      final updated = decoded
+          .map((item) {
+            final map = item is Map<String, dynamic>
+                ? Map<String, dynamic>.from(item)
+                : item is Map
                 ? Map<String, dynamic>.from(item.cast<String, dynamic>())
                 : null;
-        if (map == null) return item;
-        if (map['link']?.toString().trim() == link &&
-            (map['titleKo']?.toString().trim().isEmpty ?? true)) {
-          map['titleKo'] = titleKo;
-        }
-        return map;
-      }).toList(growable: false);
+            if (map == null) return item;
+            if (map['link']?.toString().trim() == link &&
+                (map['titleKo']?.toString().trim().isEmpty ?? true)) {
+              map['titleKo'] = titleKo;
+            }
+            return map;
+          })
+          .toList(growable: false);
       await widget.optionRepository.setValue(
         NewsScreen.openedItemsKey,
         jsonEncode(updated),
@@ -1737,17 +1739,19 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
     _translatingLinks.add(key);
-    _translateToKorean(originalTitle).then((translated) {
-      if (!mounted) return;
-      final value = translated.trim();
-      if (value.isNotEmpty && value != originalTitle) {
-        setState(() {
-          _translatedTitlesByLink[key] = value;
+    _translateToKorean(originalTitle)
+        .then((translated) {
+          if (!mounted) return;
+          final value = translated.trim();
+          if (value.isNotEmpty && value != originalTitle) {
+            setState(() {
+              _translatedTitlesByLink[key] = value;
+            });
+          }
+        })
+        .whenComplete(() {
+          _translatingLinks.remove(key);
         });
-      }
-    }).whenComplete(() {
-      _translatingLinks.remove(key);
-    });
   }
 
   Future<void> _toggleTitleTranslate() async {

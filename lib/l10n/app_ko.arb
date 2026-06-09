@@ -5,7 +5,7 @@
   "tabCalendar": "캘린더",
   "tabStats": "통계",
   "tabDiary": "다이어리",
-  "tabNews": "오늘의 소식",
+  "tabNews": "소식",
   "tabGuideTitle": "{tabName} 가이드",
   "@tabGuideTitle": {
     "placeholders": {
@@ -1248,6 +1248,11 @@
   "condition": "컨디션",
   "location": "장소",
   "program": "훈련 프로그램",
+  "entryProgramDurationsTitle": "프로그램별 훈련 시간",
+  "entryProgramDurationsSubtitle": "한 훈련 노트 안에서 프로그램마다 시간을 나눠 기록하세요.",
+  "entryProgramDurationAddAction": "프로그램 추가",
+  "entryProgramDurationRemoveTooltip": "프로그램 시간 삭제",
+  "entryProgramDurationEmpty": "아직 프로그램별 시간이 없어요.",
   "drills": "세션 드릴",
   "injury": "부상 여부",
   "injuryPart": "부상 부위",

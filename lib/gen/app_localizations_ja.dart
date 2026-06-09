@@ -27,7 +27,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tabDiary => '日記';
 
   @override
-  String get tabNews => '今日のニュース';
+  String get tabNews => 'ニュース';
 
   @override
   String tabGuideTitle(Object tabName) {
@@ -2196,6 +2196,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get program => 'プログラム';
+
+  @override
+  String get entryProgramDurationsTitle => 'プログラム別トレーニング時間';
+
+  @override
+  String get entryProgramDurationsSubtitle => '1つのトレーニングノートでプログラムごとの時間を記録します。';
+
+  @override
+  String get entryProgramDurationAddAction => 'プログラムを追加';
+
+  @override
+  String get entryProgramDurationRemoveTooltip => 'プログラム時間を削除';
+
+  @override
+  String get entryProgramDurationEmpty => 'プログラム別の時間はまだありません。';
 
   @override
   String get drills => 'セッションドリル';

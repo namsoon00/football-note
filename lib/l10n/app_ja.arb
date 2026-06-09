@@ -5,7 +5,7 @@
   "tabCalendar": "カレンダー",
   "tabStats": "統計",
   "tabDiary": "日記",
-  "tabNews": "今日のニュース",
+  "tabNews": "ニュース",
   "tabGuideTitle": "{tabName} ガイド",
   "@tabGuideTitle": {
     "placeholders": {
@@ -1248,6 +1248,11 @@
   "condition": "状態",
   "location": "位置",
   "program": "プログラム",
+  "entryProgramDurationsTitle": "プログラム別トレーニング時間",
+  "entryProgramDurationsSubtitle": "1つのトレーニングノートでプログラムごとの時間を記録します。",
+  "entryProgramDurationAddAction": "プログラムを追加",
+  "entryProgramDurationRemoveTooltip": "プログラム時間を削除",
+  "entryProgramDurationEmpty": "プログラム別の時間はまだありません。",
   "drills": "セッションドリル",
   "injury": "けが",
   "injuryPart": "損傷部位",

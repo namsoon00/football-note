@@ -27,7 +27,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tabDiary => '다이어리';
 
   @override
-  String get tabNews => '오늘의 소식';
+  String get tabNews => '소식';
 
   @override
   String tabGuideTitle(Object tabName) {
@@ -2188,6 +2188,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get program => '훈련 프로그램';
+
+  @override
+  String get entryProgramDurationsTitle => '프로그램별 훈련 시간';
+
+  @override
+  String get entryProgramDurationsSubtitle =>
+      '한 훈련 노트 안에서 프로그램마다 시간을 나눠 기록하세요.';
+
+  @override
+  String get entryProgramDurationAddAction => '프로그램 추가';
+
+  @override
+  String get entryProgramDurationRemoveTooltip => '프로그램 시간 삭제';
+
+  @override
+  String get entryProgramDurationEmpty => '아직 프로그램별 시간이 없어요.';
 
   @override
   String get drills => '세션 드릴';

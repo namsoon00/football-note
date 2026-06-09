@@ -5,7 +5,7 @@
   "tabCalendar": "Calendar",
   "tabStats": "Stats",
   "tabDiary": "Diary",
-  "tabNews": "Today's News",
+  "tabNews": "News",
   "tabGuideTitle": "{tabName} guide",
   "@tabGuideTitle": {
     "placeholders": {
@@ -1248,6 +1248,11 @@
   "condition": "Condition",
   "location": "Location",
   "program": "Program",
+  "entryProgramDurationsTitle": "Program training time",
+  "entryProgramDurationsSubtitle": "Split one training note into time for each program.",
+  "entryProgramDurationAddAction": "Add program",
+  "entryProgramDurationRemoveTooltip": "Remove program time",
+  "entryProgramDurationEmpty": "No program-specific time yet.",
   "drills": "Session Drills",
   "injury": "Injury",
   "injuryPart": "Injury Part",
