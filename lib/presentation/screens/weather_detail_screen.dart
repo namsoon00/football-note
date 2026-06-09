@@ -148,23 +148,23 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                           value: _formatWind(_windSpeed),
                           icon: Icons.air_rounded,
                         ),
+                        _CompactMetricData(
+                          label: l10n.homeWeatherPm10,
+                          value:
+                              '${_formatAirMetricValue(_pm10)} ${pm10Level.label}',
+                          icon: Icons.blur_on_rounded,
+                        ),
+                        _CompactMetricData(
+                          label: l10n.homeWeatherPm25,
+                          value:
+                              '${_formatAirMetricValue(_pm25)} ${pm25Level.label}',
+                          icon: Icons.blur_circular_rounded,
+                        ),
                       ]
                     : const <_CompactMetricData>[],
                 footer: _buildTodayHourlyWeatherFooter(l10n),
               ),
               if (hasWeather) ...[
-                const SizedBox(height: 16),
-                _TodayAirQualitySection(
-                  title: l10n.homeWeatherAirQualityTitle,
-                  pm10Label: l10n.homeWeatherPm10,
-                  pm10Value: _formatAirMetricValue(_pm10),
-                  pm10Status: pm10Level.label,
-                  pm10Level: pm10Level.level,
-                  pm25Label: l10n.homeWeatherPm25,
-                  pm25Value: _formatAirMetricValue(_pm25),
-                  pm25Status: pm25Level.label,
-                  pm25Level: pm25Level.level,
-                ),
                 const SizedBox(height: 16),
                 _WeatherRecommendationActions(
                   outfitLabel: l10n.homeWeatherOutfitButton,
@@ -209,6 +209,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   windLabel: l10n.homeWeatherWindSpeed,
                   fineDustLabel: l10n.homeWeatherPm10,
                   ultraFineDustLabel: l10n.homeWeatherPm25,
+                  airQualityMissingReason:
+                      l10n.homeWeatherAirQualityForecastMissingReason,
                   forecasts: _dailyForecasts.take(7).toList(growable: false),
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
@@ -1653,165 +1655,6 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
-class _TodayAirQualitySection extends StatelessWidget {
-  final String title;
-  final String pm10Label;
-  final String pm10Value;
-  final String pm10Status;
-  final _AirQualityLevel pm10Level;
-  final String pm25Label;
-  final String pm25Value;
-  final String pm25Status;
-  final _AirQualityLevel pm25Level;
-
-  const _TodayAirQualitySection({
-    required this.title,
-    required this.pm10Label,
-    required this.pm10Value,
-    required this.pm10Status,
-    required this.pm10Level,
-    required this.pm25Label,
-    required this.pm25Value,
-    required this.pm25Status,
-    required this.pm25Level,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _AirMetricCard(
-                  label: pm10Label,
-                  value: pm10Value,
-                  status: pm10Status,
-                  level: pm10Level,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _AirMetricCard(
-                  label: pm25Label,
-                  value: pm25Value,
-                  status: pm25Status,
-                  level: pm25Level,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AirMetricCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final String status;
-  final _AirQualityLevel level;
-
-  const _AirMetricCard({
-    required this.label,
-    required this.value,
-    required this.status,
-    required this.level,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = _airQualityPalette(theme, level);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: palette.background,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: palette.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: palette.foreground,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: _AirStatusPill(label: status, level: level),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AirStatusPill extends StatelessWidget {
-  final String label;
-  final _AirQualityLevel level;
-
-  const _AirStatusPill({required this.label, required this.level});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = _airQualityPalette(theme, level);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: palette.foreground.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: palette.foreground,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
-}
-
 class _WeatherOutfitGuideScreen extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -3021,6 +2864,7 @@ class _WeeklyForecastCard extends StatelessWidget {
   final String windLabel;
   final String fineDustLabel;
   final String ultraFineDustLabel;
+  final String airQualityMissingReason;
   final List<_DailyWeatherForecast> forecasts;
   final String Function(double?, double?) formatRange;
   final String Function(double?) formatMillimeter;
@@ -3036,6 +2880,7 @@ class _WeeklyForecastCard extends StatelessWidget {
     required this.windLabel,
     required this.fineDustLabel,
     required this.ultraFineDustLabel,
+    required this.airQualityMissingReason,
     required this.forecasts,
     required this.formatRange,
     required this.formatMillimeter,
@@ -3116,6 +2961,7 @@ class _WeeklyForecastCard extends StatelessWidget {
               ultraFineDustLevel: forecast.pm25 == null
                   ? null
                   : pm25LevelForValue(forecast.pm25),
+              airQualityMissingReason: airQualityMissingReason,
               icon: iconForCode(forecast.weatherCode),
             ),
             if (!identical(forecast, forecasts.last))
@@ -3140,6 +2986,7 @@ class _WeeklyForecastRow extends StatelessWidget {
   final _AirQualityLevel? fineDustLevel;
   final String? ultraFineDust;
   final _AirQualityLevel? ultraFineDustLevel;
+  final String airQualityMissingReason;
   final IconData icon;
 
   const _WeeklyForecastRow({
@@ -3155,12 +3002,14 @@ class _WeeklyForecastRow extends StatelessWidget {
     required this.fineDustLevel,
     required this.ultraFineDust,
     required this.ultraFineDustLevel,
+    required this.airQualityMissingReason,
     required this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasAirQualityInfo = fineDust != null || ultraFineDust != null;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -3180,154 +3029,168 @@ class _WeeklyForecastRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 78,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(
-                    alpha: 0.9,
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.16),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withValues(
-                          alpha: 0.72,
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  width: hasAirQualityInfo ? 86 : 78,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer.withValues(
+                        alpha: 0.9,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.16,
                         ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        icon,
-                        size: 18,
-                        color: theme.colorScheme.primary,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      forecast.weekdayLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      forecast.label,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      forecast.summary,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.thermostat_rounded,
-                          size: 18,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            range,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface,
-                              fontWeight: FontWeight.w800,
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface.withValues(
+                              alpha: 0.72,
                             ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            icon,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          forecast.weekdayLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          forecast.label,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _ForecastStatPill(
-                            icon: Icons.water_drop_outlined,
-                            label: precipitationLabel,
-                            value: precipitation,
-                            showLabel: false,
-                          ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        forecast.summary,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _ForecastStatPill(
-                            icon: Icons.air_rounded,
-                            label: windLabel,
-                            value: wind,
-                            showLabel: false,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (fineDust != null || ultraFineDust != null) ...[
-                      const SizedBox(height: 8),
+                      ),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
-                          if (fineDust != null)
-                            Expanded(
-                              child: _ForecastStatPill(
-                                icon: Icons.blur_on_rounded,
-                                label: fineDustLabel,
-                                value: fineDust!,
-                                airLevel: fineDustLevel,
+                          Icon(
+                            Icons.thermostat_rounded,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              range,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
-                          if (fineDust != null && ultraFineDust != null)
-                            const SizedBox(width: 8),
-                          if (ultraFineDust != null)
-                            Expanded(
-                              child: _ForecastStatPill(
-                                icon: Icons.blur_circular_rounded,
-                                label: ultraFineDustLabel,
-                                value: ultraFineDust!,
-                                airLevel: ultraFineDustLevel,
-                              ),
-                            ),
+                          ),
                         ],
                       ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _ForecastStatPill(
+                              icon: Icons.water_drop_outlined,
+                              label: precipitationLabel,
+                              value: precipitation,
+                              showLabel: false,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _ForecastStatPill(
+                              icon: Icons.air_rounded,
+                              label: windLabel,
+                              value: wind,
+                              showLabel: false,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (fineDust != null || ultraFineDust != null) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            if (fineDust != null)
+                              Expanded(
+                                child: _ForecastStatPill(
+                                  icon: Icons.blur_on_rounded,
+                                  label: fineDustLabel,
+                                  value: fineDust!,
+                                  airLevel: fineDustLevel,
+                                ),
+                              ),
+                            if (fineDust != null && ultraFineDust != null)
+                              const SizedBox(width: 8),
+                            if (ultraFineDust != null)
+                              Expanded(
+                                child: _ForecastStatPill(
+                                  icon: Icons.blur_circular_rounded,
+                                  label: ultraFineDustLabel,
+                                  value: ultraFineDust!,
+                                  airLevel: ultraFineDustLevel,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ] else ...[
+                        const SizedBox(height: 8),
+                        _ForecastStatPill(
+                          icon: Icons.info_outline_rounded,
+                          label: fineDustLabel,
+                          value: airQualityMissingReason,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

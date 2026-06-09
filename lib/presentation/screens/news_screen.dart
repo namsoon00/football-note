@@ -1483,8 +1483,10 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   Future<void> _openWorldCup() async {
     await Navigator.of(context).push<void>(
       AppPageRoute(
-        builder: (_) =>
-            WorldCupScreen(optionRepository: widget.optionRepository),
+        builder: (_) => WorldCupScreen(
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+        ),
       ),
     );
   }

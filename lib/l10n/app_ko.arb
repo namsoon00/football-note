@@ -138,6 +138,17 @@
   },
   "newsLeagueFixtureNotificationChannelName": "리그 경기 알림",
   "newsLeagueFixtureNotificationChannelDescription": "선호 팀의 리그 일정 알림",
+  "notificationAppTitle": "태오의 노트",
+  "worldCupFixtureNotificationChannelName": "월드컵 경기 알림",
+  "worldCupFixtureNotificationChannelDescription": "관심 국가의 월드컵 일정 알림",
+  "worldCupFixtureNotificationBody": "{team} 월드컵 경기: {opponent}전 {kickoff}",
+  "@worldCupFixtureNotificationBody": {
+    "placeholders": {
+      "team": {},
+      "opponent": {},
+      "kickoff": {}
+    }
+  },
   "newsLeagueStandingsTeamColumn": "팀",
   "newsLeagueStandingsPlayedColumn": "경기",
   "newsLeagueStandingsWinsColumn": "승",
@@ -763,6 +774,7 @@
   "playerXpGuideTrainingSketchSavedXp": "+5 XP / +2 XP",
   "playerXpGuideDiaryCreated": "다이어리 작성",
   "playerXpGuideQuizComplete": "퀴즈 완료",
+  "playerXpGuideQuizCompleteXp": "정답 수에 따라 +2~+15 XP",
   "playerXpGuideMealTwoPlus": "식사 두 끼 이상 기록",
   "playerXpGuideMealFull": "세 끼 기록 / 세 끼 모두 공기밥 5개 이상",
   "playerXpGuideDailyTasksComplete": "홈 오늘 할일 모두 완료",
@@ -1614,6 +1626,7 @@
   "homeWeatherOutfitCaseWetRange": "강수 또는 적설 시",
   "homeWeatherAirQualityTitle": "대기질",
   "homeWeatherAirQualitySubtitle": "숫자가 낮을수록 숨쉬기 편한 공기예요.",
+  "homeWeatherAirQualityForecastMissingReason": "대기질 예보가 제공되지 않는 지역/시간대입니다.",
   "homeWeatherAirGuideTitle": "야외 활동 가이드",
   "homeWeatherAirGuideUnknown": "대기질 데이터를 다시 불러오면 야외 활동 가이드를 보여드릴게요.",
   "homeWeatherAirGuideGood": "일반 야외 활동과 훈련을 진행하기 무난한 공기 상태예요.",
@@ -3896,6 +3909,7 @@
     }
   },
   "challengeHistoryDetailMissionsLabel": "미션",
+  "challengeHistoryDetailEarnedXpLabel": "획득 XP",
   "challengeHistoryDetailNoMissions": "추가 미션만",
   "challengeHistoryDetailRoundsTitle": "라운드 상세",
   "challengeHistoryDetailRoundDate": "라운드 {round} · {date}",

@@ -108,7 +108,7 @@ class PlayerXpGuideScreen extends StatelessWidget {
           _XpGuideItem(
             icon: Icons.quiz_outlined,
             title: l10n.playerXpGuideQuizComplete,
-            xpLabel: '+8 XP',
+            xpLabel: l10n.playerXpGuideQuizCompleteXp,
           ),
           _XpGuideItem(
             icon: Icons.rice_bowl_outlined,

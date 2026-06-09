@@ -84,6 +84,7 @@ Future<void> main() async {
     if (!settingsService.reminderEnabled ||
         !settingsService.leagueFixtureAlertEnabled) {
       unawaited(leagueFixtureReminderService.clearAllReminders());
+      unawaited(leagueFixtureReminderService.clearWorldCupReminders());
     }
   });
 

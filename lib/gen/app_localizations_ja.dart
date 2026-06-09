@@ -363,6 +363,21 @@ class AppLocalizationsJa extends AppLocalizations {
       '優先リーグチームの試合日程アラート';
 
   @override
+  String get notificationAppTitle => 'テオのノート';
+
+  @override
+  String get worldCupFixtureNotificationChannelName => 'W杯試合通知';
+
+  @override
+  String get worldCupFixtureNotificationChannelDescription => '選択したW杯出場国の日程通知';
+
+  @override
+  String worldCupFixtureNotificationBody(
+      Object team, Object opponent, Object kickoff) {
+    return '$team W杯の試合: $opponent戦 $kickoff';
+  }
+
+  @override
   String get newsLeagueStandingsTeamColumn => 'チーム';
 
   @override
@@ -1289,6 +1304,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get playerXpGuideQuizComplete => 'クイズが完了しました';
+
+  @override
+  String get playerXpGuideQuizCompleteXp => '正解数に応じて +2〜+15 XP';
 
   @override
   String get playerXpGuideMealTwoPlus => '2 回以上の食事が記録されている';
@@ -3252,6 +3270,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeWeatherAirQualitySubtitle => '通常、数値が低いほど、屋外で呼吸がしやすいことを意味します。';
+
+  @override
+  String get homeWeatherAirQualityForecastMissingReason =>
+      'この地域または時間帯では空気質予報が提供されていません。';
 
   @override
   String get homeWeatherAirGuideTitle => 'アウトドアアクティビティガイド';
@@ -7416,6 +7438,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeHistoryDetailMissionsLabel => 'ミッション';
+
+  @override
+  String get challengeHistoryDetailEarnedXpLabel => '獲得XP';
 
   @override
   String get challengeHistoryDetailNoMissions => '追加ミッションのみ';

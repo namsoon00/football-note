@@ -138,6 +138,17 @@
   },
   "newsLeagueFixtureNotificationChannelName": "League Fixture Alerts",
   "newsLeagueFixtureNotificationChannelDescription": "Fixture alerts for preferred league teams",
+  "notificationAppTitle": "Taeo's Note",
+  "worldCupFixtureNotificationChannelName": "World Cup Match Alerts",
+  "worldCupFixtureNotificationChannelDescription": "Fixture alerts for selected World Cup countries",
+  "worldCupFixtureNotificationBody": "{team} World Cup match: vs {opponent} at {kickoff}",
+  "@worldCupFixtureNotificationBody": {
+    "placeholders": {
+      "team": {},
+      "opponent": {},
+      "kickoff": {}
+    }
+  },
   "newsLeagueStandingsTeamColumn": "Team",
   "newsLeagueStandingsPlayedColumn": "P",
   "newsLeagueStandingsWinsColumn": "W",
@@ -763,6 +774,7 @@
   "playerXpGuideTrainingSketchSavedXp": "+5 XP / +2 XP",
   "playerXpGuideDiaryCreated": "Diary created",
   "playerXpGuideQuizComplete": "Quiz completed",
+  "playerXpGuideQuizCompleteXp": "+2 to +15 XP by correct answers",
   "playerXpGuideMealTwoPlus": "Two or more meals logged",
   "playerXpGuideMealFull": "Three meals / three meals with 5+ rice bowls",
   "playerXpGuideDailyTasksComplete": "All daily home tasks completed",
@@ -1614,6 +1626,7 @@
   "homeWeatherOutfitCaseWetRange": "When raining or snowing",
   "homeWeatherAirQualityTitle": "Air quality",
   "homeWeatherAirQualitySubtitle": "Lower numbers usually mean easier breathing outdoors.",
+  "homeWeatherAirQualityForecastMissingReason": "Air-quality forecast is unavailable for this area or time.",
   "homeWeatherAirGuideTitle": "Outdoor activity guide",
   "homeWeatherAirGuideUnknown": "Refresh air data to see outdoor activity guidance.",
   "homeWeatherAirGuideGood": "Air quality is stable enough for normal outdoor activity and training.",
@@ -3896,6 +3909,7 @@
     }
   },
   "challengeHistoryDetailMissionsLabel": "Missions",
+  "challengeHistoryDetailEarnedXpLabel": "Earned XP",
   "challengeHistoryDetailNoMissions": "Extra missions only",
   "challengeHistoryDetailRoundsTitle": "Round detail",
   "challengeHistoryDetailRoundDate": "Round {round} · {date}",

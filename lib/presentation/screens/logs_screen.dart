@@ -168,13 +168,13 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
     _jumpRopeOnly =
@@ -267,9 +267,9 @@ class _LogsScreenState extends State<LogsScreen> {
                             notificationBadgeCount: reminderUnreadCount,
                             profilePhotoSource:
                                 widget.optionRepository.getValue<String>(
-                                      'profile_photo_url',
-                                    ) ??
-                                    '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                             onProfileTap: () => _openProfile(context),
                             onSettingsTap: () => _openSettings(context),
                             title:
@@ -284,12 +284,12 @@ class _LogsScreenState extends State<LogsScreen> {
                         boardListIcon: Icons.edit_note_outlined,
                         boardListLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련 스케치 리스트'
-                                : 'Training sketch list',
+                            ? '훈련 스케치 리스트'
+                            : 'Training sketch list',
                         boardListTitle:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련 스케치'
-                                : 'Sketches',
+                            ? '훈련 스케치'
+                            : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
@@ -315,118 +315,115 @@ class _LogsScreenState extends State<LogsScreen> {
                                   subtitle: isParentMode
                                       ? l10n.parentFeedbackOpenExistingEntryBody
                                       : (Localizations.localeOf(
-                                                context,
-                                              ).languageCode ==
-                                              'ko'
-                                          ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
-                                          : 'Create your first training note to start the flow.'),
+                                                  context,
+                                                ).languageCode ==
+                                                'ko'
+                                            ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
+                                            : 'Create your first training note to start the flow.'),
                                   actionLabel: isParentMode
                                       ? null
                                       : (Localizations.localeOf(
-                                                context,
-                                              ).languageCode ==
-                                              'ko'
-                                          ? '기록 추가'
-                                          : 'Add entry'),
-                                  onPressed:
-                                      isParentMode ? null : widget.onCreate,
+                                                  context,
+                                                ).languageCode ==
+                                                'ko'
+                                            ? '기록 추가'
+                                            : 'Add entry'),
+                                  onPressed: isParentMode
+                                      ? null
+                                      : widget.onCreate,
                                 ),
                               )
                             : visibleEntries.isEmpty
-                                ? Padding(
-                                    key: const ValueKey('logs-empty-filtered'),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 24,
+                            ? Padding(
+                                key: const ValueKey('logs-empty-filtered'),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 24,
+                                ),
+                                child: _buildEmptyState(
+                                  title: l10n.noResults,
+                                  subtitle: l10n.filterEmptyResetHint,
+                                  actionLabel: l10n.filterReset,
+                                  onPressed: () async {
+                                    const reset = _LogFilters(
+                                      status: _allFilterValue,
+                                      location: _allFilterValue,
+                                      program: _allFilterValue,
+                                      injuryOnly: false,
+                                      jumpRopeOnly: false,
+                                      feedbackOnly: false,
+                                    );
+                                    setState(() {
+                                      _statusFilter = reset.status;
+                                      _locationFilter = reset.location;
+                                      _programFilter = reset.program;
+                                      _injuryOnly = reset.injuryOnly;
+                                      _jumpRopeOnly = reset.jumpRopeOnly;
+                                      _feedbackOnly = reset.feedbackOnly;
+                                      _resetPagination();
+                                    });
+                                    await _persistFilters(reset);
+                                  },
+                                ),
+                              )
+                            : _layout == _LogsLayout.card
+                            ? MasonryGridView.count(
+                                key: const ValueKey('logs-card-view'),
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 8,
+                                itemCount: visibleEntries.length,
+                                itemBuilder: (context, index) {
+                                  final entry = visibleEntries[index];
+                                  final row = _buildEntryRow(
+                                    context: context,
+                                    entry: entry,
+                                    deleteKeyPrefix: 'logs-card',
+                                    deletable: !isParentMode,
+                                    child: _EntryCard(
+                                      entry: entry,
+                                      mealCoachingService: _mealCoachingService,
+                                      boardsById: boardsById,
+                                      parentFeedbackMessage:
+                                          _parentFeedbackMessage(
+                                            entry,
+                                            parentFeedbackByEntryId,
+                                          ),
+                                      onEdit: () => _onEntryTap(entry),
                                     ),
-                                    child: _buildEmptyState(
-                                      title: l10n.noResults,
-                                      subtitle: l10n.filterEmptyResetHint,
-                                      actionLabel: l10n.filterReset,
-                                      onPressed: () async {
-                                        const reset = _LogFilters(
-                                          status: _allFilterValue,
-                                          location: _allFilterValue,
-                                          program: _allFilterValue,
-                                          injuryOnly: false,
-                                          jumpRopeOnly: false,
-                                          feedbackOnly: false,
-                                        );
-                                        setState(() {
-                                          _statusFilter = reset.status;
-                                          _locationFilter = reset.location;
-                                          _programFilter = reset.program;
-                                          _injuryOnly = reset.injuryOnly;
-                                          _jumpRopeOnly = reset.jumpRopeOnly;
-                                          _feedbackOnly = reset.feedbackOnly;
-                                          _resetPagination();
-                                        });
-                                        await _persistFilters(reset);
-                                      },
+                                  );
+                                  return row;
+                                },
+                              )
+                            : ListView.separated(
+                                key: const ValueKey('logs-list-view'),
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: visibleEntries.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 8),
+                                itemBuilder: (context, index) {
+                                  final entry = visibleEntries[index];
+                                  final row = _buildEntryRow(
+                                    context: context,
+                                    entry: entry,
+                                    deleteKeyPrefix: 'logs-list',
+                                    deletable: !isParentMode,
+                                    child: _EntryListItem(
+                                      entry: entry,
+                                      mealCoachingService: _mealCoachingService,
+                                      parentFeedbackMessage:
+                                          _parentFeedbackMessage(
+                                            entry,
+                                            parentFeedbackByEntryId,
+                                          ),
+                                      onEdit: () => _onEntryTap(entry),
                                     ),
-                                  )
-                                : _layout == _LogsLayout.card
-                                    ? MasonryGridView.count(
-                                        key: const ValueKey('logs-card-view'),
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        crossAxisCount: 2,
-                                        mainAxisSpacing: 8,
-                                        crossAxisSpacing: 8,
-                                        itemCount: visibleEntries.length,
-                                        itemBuilder: (context, index) {
-                                          final entry = visibleEntries[index];
-                                          final row = _buildEntryRow(
-                                            context: context,
-                                            entry: entry,
-                                            deleteKeyPrefix: 'logs-card',
-                                            deletable: !isParentMode,
-                                            child: _EntryCard(
-                                              entry: entry,
-                                              mealCoachingService:
-                                                  _mealCoachingService,
-                                              boardsById: boardsById,
-                                              parentFeedbackMessage:
-                                                  _parentFeedbackMessage(
-                                                entry,
-                                                parentFeedbackByEntryId,
-                                              ),
-                                              onEdit: () => _onEntryTap(entry),
-                                            ),
-                                          );
-                                          return row;
-                                        },
-                                      )
-                                    : ListView.separated(
-                                        key: const ValueKey('logs-list-view'),
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        itemCount: visibleEntries.length,
-                                        separatorBuilder: (_, __) =>
-                                            const SizedBox(height: 8),
-                                        itemBuilder: (context, index) {
-                                          final entry = visibleEntries[index];
-                                          final row = _buildEntryRow(
-                                            context: context,
-                                            entry: entry,
-                                            deleteKeyPrefix: 'logs-list',
-                                            deletable: !isParentMode,
-                                            child: _EntryListItem(
-                                              entry: entry,
-                                              mealCoachingService:
-                                                  _mealCoachingService,
-                                              parentFeedbackMessage:
-                                                  _parentFeedbackMessage(
-                                                entry,
-                                                parentFeedbackByEntryId,
-                                              ),
-                                              onEdit: () => _onEntryTap(entry),
-                                            ),
-                                          );
-                                          return row;
-                                        },
-                                      ),
+                                  );
+                                  return row;
+                                },
+                              ),
                       ),
                       if (visibleEntries.length < entries.length ||
                           hasMoreLoadedEntries)
@@ -603,8 +600,10 @@ class _LogsScreenState extends State<LogsScreen> {
           entry.location != _locationFilter) {
         return false;
       }
+      final programMinutes = entry.effectiveTrainingProgramMinutes;
       if (_programFilter != _allFilterValue &&
-          entry.program != _programFilter) {
+          entry.program != _programFilter &&
+          !programMinutes.containsKey(_programFilter)) {
         return false;
       }
       if (_injuryOnly && !entry.injury) {
@@ -623,6 +622,7 @@ class _LogsScreenState extends State<LogsScreen> {
       if (query.isEmpty) return true;
       final haystack = [
         entry.program,
+        programMinutes.keys.join(' '),
         entry.type,
         entry.opponentTeam,
         entry.location,
@@ -827,8 +827,9 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -1090,14 +1091,16 @@ class _LogsScreenState extends State<LogsScreen> {
   void _loadMore({required int filteredCount, required int loadedCount}) {
     if (!mounted) return;
     final canRevealFilteredEntries = _visibleCount < filteredCount;
-    final shouldLoadMoreEntries = loadedCount >= _loadedEntryLimit &&
+    final shouldLoadMoreEntries =
+        loadedCount >= _loadedEntryLimit &&
         _visibleCount + _pageSize >= filteredCount;
     if (!canRevealFilteredEntries && !shouldLoadMoreEntries) return;
     setState(() {
       if (canRevealFilteredEntries) {
         final nextVisibleCount = _visibleCount + _pageSize;
-        _visibleCount =
-            nextVisibleCount > filteredCount ? filteredCount : nextVisibleCount;
+        _visibleCount = nextVisibleCount > filteredCount
+            ? filteredCount
+            : nextVisibleCount;
       } else {
         _visibleCount += _pageSize;
       }
@@ -1245,9 +1248,7 @@ class _EntryCard extends StatelessWidget {
     final dateText = DateFormat.yMMMd(locale).add_E().format(entry.date);
     final l10n = AppLocalizations.of(context)!;
     final titleProgram = _entryTitleLabel(entry, l10n);
-    final durationText = entry.durationMinutes > 0
-        ? l10n.minutes(entry.durationMinutes)
-        : l10n.durationNotSet;
+    final durationText = _entryProgramDurationLabel(entry, l10n);
     final secondaryText = _entrySecondaryText(entry, isKo: isKo);
     final titleText = [
       titleProgram,
@@ -1265,9 +1266,11 @@ class _EntryCard extends StatelessWidget {
         .map((id) => boardsById[id])
         .whereType<TrainingBoard>()
         .toList(growable: false);
-    final legacyLayout =
-        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
-    final hasTrainingBoard = linkedBoards.isNotEmpty ||
+    final legacyLayout = linkedBoards.isEmpty
+        ? TrainingMethodLayout.decode(entry.drills)
+        : null;
+    final hasTrainingBoard =
+        linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
     final hasParentFeedback = parentFeedbackMessage.trim().isNotEmpty;
@@ -1361,9 +1364,7 @@ class _EntryListItem extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     final dateText = DateFormat.yMMMd(locale).add_E().format(entry.date);
     final l10n = AppLocalizations.of(context)!;
-    final durationText = entry.durationMinutes > 0
-        ? l10n.minutes(entry.durationMinutes)
-        : l10n.durationNotSet;
+    final durationText = _entryProgramDurationLabel(entry, l10n);
     final focusText = _buildListFocusText(
       entry,
       l10n,
@@ -1594,7 +1595,23 @@ String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
 String _entryTitleLabel(TrainingEntry entry, AppLocalizations l10n) {
   final label = entry.type.trim();
   if (label.isNotEmpty) return label;
+  final programs = entry.effectiveTrainingProgramMinutes.keys
+      .where((program) => program.trim().isNotEmpty)
+      .join(', ');
+  if (programs.isNotEmpty) return programs;
   return entry.program.trim().isNotEmpty ? entry.program.trim() : l10n.program;
+}
+
+String _entryProgramDurationLabel(TrainingEntry entry, AppLocalizations l10n) {
+  final programs = entry.effectiveTrainingProgramMinutes;
+  if (programs.isEmpty) {
+    return entry.durationMinutes > 0
+        ? l10n.minutes(entry.durationMinutes)
+        : l10n.durationNotSet;
+  }
+  return programs.entries
+      .map((program) => '${program.key} ${l10n.minutes(program.value)}')
+      .join(' · ');
 }
 
 String _entrySecondaryText(TrainingEntry entry, {required bool isKo}) {

@@ -352,6 +352,22 @@ class AppLocalizationsKo extends AppLocalizations {
       '선호 팀의 리그 일정 알림';
 
   @override
+  String get notificationAppTitle => '태오의 노트';
+
+  @override
+  String get worldCupFixtureNotificationChannelName => '월드컵 경기 알림';
+
+  @override
+  String get worldCupFixtureNotificationChannelDescription =>
+      '관심 국가의 월드컵 일정 알림';
+
+  @override
+  String worldCupFixtureNotificationBody(
+      Object team, Object opponent, Object kickoff) {
+    return '$team 월드컵 경기: $opponent전 $kickoff';
+  }
+
+  @override
   String get newsLeagueStandingsTeamColumn => '팀';
 
   @override
@@ -1279,6 +1295,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get playerXpGuideQuizComplete => '퀴즈 완료';
+
+  @override
+  String get playerXpGuideQuizCompleteXp => '정답 수에 따라 +2~+15 XP';
 
   @override
   String get playerXpGuideMealTwoPlus => '식사 두 끼 이상 기록';
@@ -3244,6 +3263,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherAirQualitySubtitle => '숫자가 낮을수록 숨쉬기 편한 공기예요.';
+
+  @override
+  String get homeWeatherAirQualityForecastMissingReason =>
+      '대기질 예보가 제공되지 않는 지역/시간대입니다.';
 
   @override
   String get homeWeatherAirGuideTitle => '야외 활동 가이드';
@@ -7422,6 +7445,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeHistoryDetailMissionsLabel => '미션';
+
+  @override
+  String get challengeHistoryDetailEarnedXpLabel => '획득 XP';
 
   @override
   String get challengeHistoryDetailNoMissions => '추가 미션만';
