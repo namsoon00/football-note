@@ -3116,16 +3116,19 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
         key: ValueKey('challenge-calendar-round-${round.round.number}'),
         duration: AppMotion.base(context),
         curve: AppMotion.curveEnter,
-        padding: EdgeInsets.all(completed ? 2 : 7),
+        padding: EdgeInsets.all(completed || missed ? 2 : 7),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor, width: completed ? 1.6 : 1),
+          border: Border.all(
+            color: borderColor,
+            width: completed || missed ? 1.6 : 1,
+          ),
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final shortestSide = constraints.biggest.shortestSide;
-            final mascotSize = completed
+            final mascotSize = completed || missed
                 ? (shortestSide * 0.96).clamp(30.0, 96.0)
                 : (shortestSide * 0.62).clamp(26.0, 52.0);
             if (completed) {
@@ -3214,18 +3217,22 @@ class _RoundCalendarRinzyStatus extends StatelessWidget {
     final theme = Theme.of(context);
     final reduceMotion = AppMotion.reduceMotion(context);
     final progress = round.missionCompletionRate;
+    if (failed) {
+      return SizedBox.square(
+        dimension: size,
+        child: CryingRinzyMascot(size: size, animate: !reduceMotion),
+      );
+    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox.square(
           dimension: size,
-          child: failed
-              ? CryingRinzyMascot(size: size, animate: !reduceMotion)
-              : RinzyMascot(
-                  size: size,
-                  progress: progress,
-                  animate: !reduceMotion,
-                ),
+          child: RinzyMascot(
+            size: size,
+            progress: progress,
+            animate: !reduceMotion,
+          ),
         ),
         const SizedBox(height: 4),
         Text(

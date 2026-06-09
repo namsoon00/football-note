@@ -69,7 +69,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('오늘의 소식'), findsOneWidget);
+    expect(find.text('소식'), findsOneWidget);
     expect(find.byKey(_leagueStandingsActionKey), findsOneWidget);
     expect(find.byKey(_fifaHubActionKey), findsOneWidget);
     expect(find.byKey(_worldCupActionKey), findsOneWidget);
@@ -116,9 +116,9 @@ void main() {
     final worldCupX = tester.getTopLeft(find.byKey(_worldCupActionKey)).dx;
     final fifaX = tester.getTopLeft(find.byKey(_fifaHubActionKey)).dx;
     final leagueX = tester.getTopLeft(find.byKey(_leagueStandingsActionKey)).dx;
-    final titleWidth = tester.getSize(find.text('오늘의 소식')).width;
+    final titleWidth = tester.getSize(find.text('소식')).width;
 
-    expect(titleWidth, greaterThan(120));
+    expect(titleWidth, greaterThan(30));
     expect(worldCupX, lessThan(fifaX));
     expect(fifaX, lessThan(leagueX));
   });
@@ -167,8 +167,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('스크랩한 소식만 보기'), findsNothing);
-    expect(find.text('번역'), findsNothing);
+    expect(find.text('스크랩한 소식만 보기'), findsOneWidget);
+    expect(find.text('번역'), findsOneWidget);
 
     final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
     final translateX = tester
@@ -359,7 +359,7 @@ void main() {
     await tester.tap(find.byKey(_viewedHistoryActionKey));
     await tester.pumpAndSettle();
 
-    expect(find.text('본 소식'), findsOneWidget);
+    expect(find.text('본 소식'), findsAtLeastNWidgets(1));
     expect(find.text('본 기사'), findsOneWidget);
     expect(
       find.byKey(

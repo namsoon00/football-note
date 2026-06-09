@@ -139,7 +139,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabNews.
   ///
   /// In en, this message translates to:
-  /// **'Today\'s News'**
+  /// **'News'**
   String get tabNews;
 
   /// No description provided for @tabGuideTitle.
@@ -4073,6 +4073,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Program'**
   String get program;
+
+  /// No description provided for @entryProgramDurationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Program training time'**
+  String get entryProgramDurationsTitle;
+
+  /// No description provided for @entryProgramDurationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Split one training note into time for each program.'**
+  String get entryProgramDurationsSubtitle;
+
+  /// No description provided for @entryProgramDurationAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add program'**
+  String get entryProgramDurationAddAction;
+
+  /// No description provided for @entryProgramDurationRemoveTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove program time'**
+  String get entryProgramDurationRemoveTooltip;
+
+  /// No description provided for @entryProgramDurationEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No program-specific time yet.'**
+  String get entryProgramDurationEmpty;
 
   /// No description provided for @drills.
   ///

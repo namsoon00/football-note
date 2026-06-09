@@ -156,6 +156,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   int _intensity = 3;
   int _mood = 3;
   String _type = '';
+  final Map<String, int> _trainingProgramMinutes = <String, int>{};
   String _status = 'normal';
   bool _injury = false;
   bool _rehab = false;
@@ -266,6 +267,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _intensity = entry.intensity;
       _mood = entry.mood;
       _type = _initSelection('programs', _programOptions, entry.program);
+      _trainingProgramMinutes
+        ..clear()
+        ..addAll(
+          _initialTrainingProgramMinutes(
+            entry,
+            fallbackProgram: _type,
+            fallbackMinutes: _durationMinutes,
+          ),
+        );
       _status = entry.status.isEmpty ? 'normal' : entry.status;
       _injury = entry.injury;
       _location = _initSelection('locations', _locationOptions, entry.location);
@@ -361,6 +371,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         'locations',
       );
       _type = _defaultString('default_program', _programOptions, 'programs');
+      _trainingProgramMinutes
+        ..clear()
+        ..addAll(
+          _durationMinutes > 0
+              ? <String, int>{_type.trim(): _durationMinutes}
+              : const <String, int>{},
+        );
       _status = 'normal';
       _linkedBoardIds.clear();
       _syncDrillsPayloadFromBoardLinks();
@@ -392,6 +409,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             _programOptions,
             planContext.program.trim(),
           );
+          _trainingProgramMinutes
+            ..clear()
+            ..addAll(
+              _durationMinutes > 0
+                  ? <String, int>{_type.trim(): _durationMinutes}
+                  : const <String, int>{},
+            );
         }
         if (planContext.durationMinutes > 0) {
           _durationMinutes = _initIntSelection(
@@ -399,6 +423,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             _durationOptions,
             planContext.durationMinutes,
           );
+          _trainingProgramMinutes
+            ..clear()
+            ..addAll(
+              _type.trim().isNotEmpty
+                  ? <String, int>{_type.trim(): _durationMinutes}
+                  : const <String, int>{},
+            );
         }
         if (planContext.location.trim().isNotEmpty) {
           _location = _initSelection(
@@ -590,7 +621,160 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _liftShouldersController.text.trim(),
       _liftArmsController.text.trim(),
       _liftCoreController.text.trim(),
+      _trainingProgramMinutesSnapshot(),
     ].join('|');
+  }
+
+  Map<String, int> _initialTrainingProgramMinutes(
+    TrainingEntry entry, {
+    required String fallbackProgram,
+    required int fallbackMinutes,
+  }) {
+    final stored = _normalizeProgramMinutes(entry.trainingProgramMinutes);
+    if (stored.isNotEmpty) {
+      _ensureProgramOptions(stored.keys);
+      return stored;
+    }
+    final program = fallbackProgram.trim();
+    if (program.isEmpty || fallbackMinutes <= 0) {
+      return const <String, int>{};
+    }
+    return <String, int>{program: fallbackMinutes};
+  }
+
+  void _ensureProgramOptions(Iterable<String> programs) {
+    var updated = false;
+    for (final rawProgram in programs) {
+      final program = rawProgram.trim();
+      if (program.isEmpty || _programOptions.contains(program)) continue;
+      _programOptions.add(program);
+      updated = true;
+    }
+    if (updated) {
+      widget.optionRepository.saveOptions('programs', _programOptions);
+    }
+  }
+
+  Map<String, int> _persistedTrainingProgramMinutes() {
+    final normalized = _normalizeProgramMinutes(_trainingProgramMinutes);
+    if (normalized.isNotEmpty) return normalized;
+    final program = _type.trim();
+    if (program.isEmpty || _durationMinutes <= 0) {
+      return const <String, int>{};
+    }
+    return <String, int>{program: _durationMinutes};
+  }
+
+  Map<String, int> _normalizeProgramMinutes(Map<String, int> source) {
+    final normalized = <String, int>{};
+    for (final entry in source.entries) {
+      final program = entry.key.trim();
+      final minutes = entry.value;
+      if (program.isEmpty || minutes <= 0) continue;
+      normalized[program] = (normalized[program] ?? 0) + minutes;
+    }
+    return normalized;
+  }
+
+  int _trainingProgramMinutesTotal(Map<String, int> source) {
+    return source.values
+        .where((minutes) => minutes > 0)
+        .fold<int>(0, (sum, minutes) => sum + minutes);
+  }
+
+  String _trainingProgramMinutesSnapshot() {
+    final keys =
+        _trainingProgramMinutes.keys
+            .map((program) => program.trim())
+            .where((program) => program.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+    return keys
+        .map((program) => '$program:${_trainingProgramMinutes[program] ?? 0}')
+        .join(',');
+  }
+
+  void _setDurationMinutes(int value) {
+    _durationMinutes = value;
+    if (_trainingProgramMinutes.length <= 1) {
+      _trainingProgramMinutes
+        ..clear()
+        ..addAll(
+          value > 0 && _type.trim().isNotEmpty
+              ? <String, int>{_type.trim(): value}
+              : const <String, int>{},
+        );
+    }
+  }
+
+  void _setPrimaryProgram(String value) {
+    final previous = _type.trim();
+    final next = value.trim();
+    _type = value;
+    if (next.isEmpty) return;
+    if (_trainingProgramMinutes.isEmpty) {
+      if (_durationMinutes > 0) {
+        _trainingProgramMinutes[next] = _durationMinutes;
+      }
+      return;
+    }
+    if (previous.isEmpty || previous == next) return;
+    final previousMinutes = _trainingProgramMinutes.remove(previous);
+    if (previousMinutes != null) {
+      _trainingProgramMinutes[next] =
+          (_trainingProgramMinutes[next] ?? 0) + previousMinutes;
+    }
+  }
+
+  void _addTrainingProgramDuration() {
+    final nextProgram = _programOptions.firstWhere(
+      (program) => !_trainingProgramMinutes.containsKey(program),
+      orElse: () => _type.trim().isNotEmpty
+          ? _type.trim()
+          : (_programOptions.isEmpty ? '' : _programOptions.first),
+    );
+    if (nextProgram.trim().isEmpty) return;
+    _trainingProgramMinutes.putIfAbsent(nextProgram, () => 0);
+  }
+
+  void _changeTrainingProgramDurationProgram(
+    String currentProgram,
+    String nextProgram,
+  ) {
+    final current = currentProgram.trim();
+    final next = nextProgram.trim();
+    if (current.isEmpty || next.isEmpty || current == next) return;
+    final minutes = _trainingProgramMinutes.remove(current) ?? 0;
+    _trainingProgramMinutes[next] =
+        (_trainingProgramMinutes[next] ?? 0) + minutes;
+    if (_type.trim() == current) {
+      _type = next;
+    }
+  }
+
+  void _changeTrainingProgramDurationMinutes(String program, int minutes) {
+    final key = program.trim();
+    if (key.isEmpty) return;
+    _trainingProgramMinutes[key] = minutes;
+    _syncTotalDurationFromPrograms();
+  }
+
+  void _removeTrainingProgramDuration(String program) {
+    final key = program.trim();
+    if (key.isEmpty) return;
+    _trainingProgramMinutes.remove(key);
+    if (_type.trim() == key && _trainingProgramMinutes.isNotEmpty) {
+      _type = _trainingProgramMinutes.keys.first;
+    }
+    _syncTotalDurationFromPrograms();
+  }
+
+  void _syncTotalDurationFromPrograms() {
+    final total = _trainingProgramMinutesTotal(_trainingProgramMinutes);
+    _durationMinutes = total > 0
+        ? _initIntSelection('durations', _durationOptions, total)
+        : _initIntSelection('durations', _durationOptions, 0);
   }
 
   bool get _hasUnsavedChanges {
@@ -684,6 +868,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           _durationOptions,
           latest.durationMinutes,
         );
+        if (_trainingProgramMinutes.length <= 1 && _type.trim().isNotEmpty) {
+          _trainingProgramMinutes
+            ..clear()
+            ..addAll(<String, int>{_type.trim(): _durationMinutes});
+        }
       }
       _location = _initSelection(
         'locations',
@@ -1838,7 +2027,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                       ? l10n.notSet
                                       : l10n.minutes(value),
                                   onChanged: (value) {
-                                    setState(() => _durationMinutes = value);
+                                    setState(() => _setDurationMinutes(value));
                                     _scheduleAutoSave();
                                   },
                                   onAdd: () => _addIntOption(
@@ -1878,7 +2067,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   value: _type,
                                   options: _programOptions,
                                   onChanged: (value) {
-                                    setState(() => _type = value);
+                                    setState(() => _setPrimaryProgram(value));
                                     _scheduleAutoSave();
                                   },
                                   onAdd: () => _addOption(
@@ -1891,6 +2080,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                         setState(() => _type = value),
                                   ),
                                 ),
+                                const SizedBox(height: 16),
+                                _buildProgramDurationSection(l10n),
                                 const SizedBox(height: 16),
                                 Row(
                                   children: [
@@ -2883,12 +3074,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final profile = PlayerProfileService(widget.optionRepository).load();
     final allEntries = await widget.trainingService.allEntries();
     if (!mounted || _disposing) return;
+    final trainingProgramMinutes = _persistedTrainingProgramMinutes();
+    final durationMinutes =
+        _trainingProgramMinutesTotal(trainingProgramMinutes) > 0
+        ? _trainingProgramMinutesTotal(trainingProgramMinutes)
+        : _durationMinutes;
     final goodPoints = _goodPointsController.text.trim();
     final improvements = _improvementsController.text.trim();
     final notes = _withWeatherInNotes(improvements, isKo);
     final draft = TrainingEntry(
       date: DateTime(_date.year, _date.month, _date.day),
-      durationMinutes: _durationMinutes,
+      durationMinutes: durationMinutes,
       intensity: _intensity,
       type: _type,
       mood: _mood,
@@ -2896,6 +3092,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       notes: notes,
       location: _location,
       program: _type,
+      trainingProgramMinutes: trainingProgramMinutes,
       drills: _drillsController.text.trim(),
       club: '',
       injuryPart: _injury ? _injuryPartController.text.trim() : '',
@@ -3040,7 +3237,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _syncDrillsPayloadFromBoardLinks();
       final injuryPart = _injury ? _injuryPartController.text.trim() : '';
       final painLevel = _injury ? _parseInt(_painController.text) : null;
-      final durationMinutes = _durationMinutes;
+      final trainingProgramMinutes = _persistedTrainingProgramMinutes();
+      final durationMinutes =
+          _trainingProgramMinutesTotal(trainingProgramMinutes) > 0
+          ? _trainingProgramMinutesTotal(trainingProgramMinutes)
+          : _durationMinutes;
       final profile = PlayerProfileService(widget.optionRepository).load();
       final allEntries = await widget.trainingService.allEntries();
       if (!mounted || _disposing) return;
@@ -3089,6 +3290,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         notes: notesWithWeather,
         location: _location,
         program: _type,
+        trainingProgramMinutes: trainingProgramMinutes,
         drills: _drillsController.text.trim(),
         club: '',
         injuryPart: injuryPart,
@@ -3150,6 +3352,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         notes: draftEntry.notes,
         location: draftEntry.location,
         program: draftEntry.program,
+        trainingProgramMinutes: draftEntry.trainingProgramMinutes,
         drills: draftEntry.drills,
         club: draftEntry.club,
         injuryPart: draftEntry.injuryPart,
@@ -3652,6 +3855,141 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildProgramDurationSection(AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final entries = _trainingProgramMinutes.entries.toList(growable: false);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.entryProgramDurationsTitle,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    l10n.entryProgramDurationsSubtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton.icon(
+              onPressed: () {
+                setState(_addTrainingProgramDuration);
+                _scheduleAutoSave();
+              },
+              icon: const Icon(Icons.add_circle_outline, size: 18),
+              label: Text(l10n.entryProgramDurationAddAction),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (entries.isEmpty)
+          Text(
+            l10n.entryProgramDurationEmpty,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          )
+        else
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 360;
+              return Column(
+                children: [
+                  for (var index = 0; index < entries.length; index++) ...[
+                    _buildProgramDurationRow(
+                      l10n: l10n,
+                      program: entries[index].key,
+                      minutes: entries[index].value,
+                      compact: compact,
+                    ),
+                    if (index < entries.length - 1) const SizedBox(height: 10),
+                  ],
+                ],
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildProgramDurationRow({
+    required AppLocalizations l10n,
+    required String program,
+    required int minutes,
+    required bool compact,
+  }) {
+    final programField = _buildSelectRow(
+      label: l10n.program,
+      value: program,
+      options: _programOptions,
+      onChanged: (value) {
+        setState(() => _changeTrainingProgramDurationProgram(program, value));
+        _scheduleAutoSave();
+      },
+      onAdd: null,
+    );
+    final durationField = _buildIntSelectRow(
+      label: l10n.trainingDuration,
+      value: minutes,
+      options: _durationOptions,
+      optionLabel: (value) => value == 0 ? l10n.notSet : l10n.minutes(value),
+      onChanged: (value) {
+        setState(() => _changeTrainingProgramDurationMinutes(program, value));
+        _scheduleAutoSave();
+      },
+      onAdd: null,
+    );
+    final removeButton = IconButton(
+      onPressed: () {
+        setState(() => _removeTrainingProgramDuration(program));
+        _scheduleAutoSave();
+      },
+      icon: const Icon(Icons.remove_circle_outline),
+      tooltip: l10n.entryProgramDurationRemoveTooltip,
+      visualDensity: VisualDensity.compact,
+      constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
+    );
+    if (compact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          programField,
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(child: durationField),
+              const SizedBox(width: 8),
+              removeButton,
+            ],
+          ),
+        ],
+      );
+    }
+    return Row(
+      children: [
+        Expanded(flex: 6, child: programField),
+        const SizedBox(width: 8),
+        Expanded(flex: 4, child: durationField),
+        const SizedBox(width: 4),
+        removeButton,
       ],
     );
   }

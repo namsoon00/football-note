@@ -273,6 +273,52 @@ void main() {
     expect(round.missionCount, 3);
   });
 
+  test(
+    'program missions can be completed from one multi-program note',
+    () async {
+      final service = ChallengeService(_MemoryOptionRepository());
+      final template = service.templateById('starter_3')!;
+      final run = await service.startChallenge(
+        template,
+        selectedSkillIds: <String>['전술', '패스', '슈팅'],
+        missionTargets: const ChallengeMissionTargets(
+          trainingMinutes: 90,
+          trainingProgramMinutes: <String, int>{'전술': 30, '패스': 45, '슈팅': 15},
+          jumpRopeMinutes: 0,
+          liftingMinutes: 0,
+          riceBowls: 0,
+        ),
+        startedAt: DateTime(2026, 6, 1, 9),
+      );
+
+      final progress = service.progressForRun(
+        run: run,
+        trainingEntries: <TrainingEntry>[
+          _trainingEntry(
+            day: DateTime(2026, 6, 1),
+            minutes: 90,
+            program: '전술',
+            trainingProgramMinutes: const <String, int>{
+              '전술': 30,
+              '패스': 45,
+              '슈팅': 15,
+            },
+          ),
+        ],
+        mealEntries: const <MealEntry>[],
+      )!;
+
+      final round = progress.rounds.first;
+      expect(
+        round.trainingPrograms.map((mission) => mission.currentMinutes),
+        <int>[30, 45, 15],
+      );
+      expect(round.trainingMinutes, 90);
+      expect(round.trainingCompleted, isTrue);
+      expect(round.completed, isTrue);
+    },
+  );
+
   test('finalization waits until the challenge is ready to end', () async {
     final repository = _MemoryOptionRepository();
     final service = ChallengeService(repository);
@@ -471,6 +517,7 @@ TrainingEntry _trainingEntry({
   int jumpRopeMinutes = 0,
   int liftingMinutes = 0,
   String program = '패스',
+  Map<String, int> trainingProgramMinutes = const <String, int>{},
 }) {
   return TrainingEntry(
     date: day,
@@ -482,6 +529,7 @@ TrainingEntry _trainingEntry({
     notes: '',
     location: '운동장',
     program: program,
+    trainingProgramMinutes: trainingProgramMinutes,
     jumpRopeMinutes: jumpRopeMinutes,
     jumpRopeEnabled: jumpRopeMinutes > 0,
     liftingMinutes: liftingMinutes,
