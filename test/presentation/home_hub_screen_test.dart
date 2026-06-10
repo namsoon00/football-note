@@ -132,7 +132,7 @@ void main() {
     expect(find.byType(EntryFormScreen), findsOneWidget);
     expect(find.byKey(const ValueKey('entry-plan-banner')), findsOneWidget);
     expect(find.textContaining('패스 훈련'), findsWidgets);
-    expect(find.textContaining('메인 구장'), findsWidgets);
+    expect(find.textContaining('메인 구장'), findsNothing);
   });
 
   testWidgets('today plan section keeps training plan button before end time', (
@@ -202,7 +202,7 @@ void main() {
     );
     expect(summary.data, contains('오늘 계획 1개'));
     expect(summary.data, contains('드리블'));
-    expect(summary.data, contains('보조 구장'));
+    expect(summary.data, isNot(contains('보조 구장')));
     expect(summary.maxLines, 2);
     expect(summary.overflow, isNot(TextOverflow.ellipsis));
   });
@@ -272,7 +272,7 @@ void main() {
         mood: 4,
         injury: false,
         notes: '',
-        location: '메인 구장',
+        location: '',
       ),
     );
     await tester.pump();

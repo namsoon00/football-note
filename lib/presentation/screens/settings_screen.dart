@@ -333,12 +333,16 @@ class _SettingsScreenState extends State<SettingsScreen>
       l10n.defaultProgram2,
       l10n.defaultProgram3,
       l10n.defaultProgram4,
+      l10n.challengeLiftingLabel,
+      l10n.challengeJumpRopeLabel,
     ]);
     final localizedProgramDefaults = [
       l10n.defaultProgram1,
       l10n.defaultProgram2,
       l10n.defaultProgram3,
       l10n.defaultProgram4,
+      l10n.challengeLiftingLabel,
+      l10n.challengeJumpRopeLabel,
     ];
     final normalizedPrograms = LocalizedOptionDefaults.normalizeOptions(
       key: 'programs',

@@ -266,7 +266,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                   const spacing = 8.0;
                   final width =
                       (constraints.maxWidth - spacing * (columns - 1)) /
-                      columns;
+                          columns;
                   return Wrap(
                     spacing: spacing,
                     runSpacing: spacing,
@@ -530,8 +530,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             headerStyle: HeaderStyle(
               titleCentered: true,
               formatButtonVisible: false,
-              titleTextStyle:
-                  theme.textTheme.titleMedium?.copyWith(
+              titleTextStyle: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ) ??
                   const TextStyle(fontWeight: FontWeight.w900),
@@ -561,11 +560,11 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                 final selectedCount = _showSelectedCountriesOnly
                     ? 0
                     : fixtures
-                          .where(
-                            (fixture) =>
-                                _fixtureMatchesSelectedCountries(fixture),
-                          )
-                          .length;
+                        .where(
+                          (fixture) =>
+                              _fixtureMatchesSelectedCountries(fixture),
+                        )
+                        .length;
                 return PositionedDirectional(
                   bottom: 2,
                   child: Row(
@@ -675,25 +674,34 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, sheetSetState) {
-            return SafeArea(
-              child: FractionallySizedBox(
-                heightFactor: 0.82,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                      child: Text(
-                        l10n.worldCupInterestCountriesLabel,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w900,
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.82,
+              minChildSize: 0.2,
+              maxChildSize: 0.92,
+              shouldCloseOnMinExtent: true,
+              builder: (context, scrollController) {
+                return SafeArea(
+                  child: CustomScrollView(
+                    controller: scrollController,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                          child: Text(
+                            l10n.worldCupInterestCountriesLabel,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _countries.length,
-                        itemBuilder: (context, index) {
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate((
+                          context,
+                          index,
+                        ) {
                           final country = _countries[index];
                           return CheckboxListTile(
                             value: working.contains(country),
@@ -709,42 +717,46 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                               });
                             },
                           );
-                        },
+                        }, childCount: _countries.length),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: Wrap(
-                        alignment: WrapAlignment.end,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              sheetSetState(working.clear);
-                            },
-                            child: Text(
-                              l10n.worldCupClearInterestCountriesAction,
-                            ),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                          child: Wrap(
+                            alignment: WrapAlignment.end,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  sheetSetState(working.clear);
+                                },
+                                child: Text(
+                                  l10n.worldCupClearInterestCountriesAction,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: Text(l10n.cancel),
+                              ),
+                              FilledButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size(84, 44),
+                                ),
+                                child: Text(l10n.save),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: Text(l10n.cancel),
-                          ),
-                          FilledButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size(84, 44),
-                            ),
-                            child: Text(l10n.save),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+                );
+              },
             );
           },
         );
@@ -813,10 +825,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
           l10n.worldCupFixtureNotificationChannelDescription,
       bodyBuilder: (fixture, teamName, opponentName) =>
           l10n.worldCupFixtureNotificationBody(
-            teamName,
-            opponentName,
-            formatter.format(fixture.kickoffLocal),
-          ),
+        teamName,
+        opponentName,
+        formatter.format(fixture.kickoffLocal),
+      ),
     );
   }
 
@@ -831,9 +843,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     if (storedSupport != null && _countries.contains(storedSupport)) {
       _supportCountry = storedSupport;
     }
-    _interestCountries = storedInterest
-        .where((country) => _countries.contains(country))
-        .toSet();
+    _interestCountries =
+        storedInterest.where((country) => _countries.contains(country)).toSet();
   }
 
   List<WorldCupFixture> _fixturesForDay(DateTime day) {
@@ -1020,8 +1031,8 @@ class _FixtureRow extends StatelessWidget {
     final borderColor = supportMatch
         ? theme.colorScheme.primary
         : interestMatch
-        ? theme.colorScheme.tertiary
-        : theme.colorScheme.outlineVariant;
+            ? theme.colorScheme.tertiary
+            : theme.colorScheme.outlineVariant;
     final backgroundColor = selected
         ? borderColor.withValues(alpha: 0.08)
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.42);
@@ -1148,14 +1159,12 @@ class _FixtureTeamBlock extends StatelessWidget {
       ],
     ];
     return Column(
-      crossAxisAlignment: alignEnd
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: alignEnd
-              ? MainAxisAlignment.end
-              : MainAxisAlignment.start,
+          mainAxisAlignment:
+              alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
           children: alignEnd ? children.reversed.toList() : children,
         ),
         const SizedBox(height: 3),
@@ -1364,11 +1373,11 @@ class _CalendarMarker extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Colors.white,
-          fontSize: 9,
-          fontWeight: FontWeight.w900,
-          height: 1,
-        ),
+              color: Colors.white,
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
       ),
     );
   }

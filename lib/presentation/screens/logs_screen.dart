@@ -127,6 +127,8 @@ class _LogsScreenState extends State<LogsScreen> {
       l10n.defaultProgram2,
       l10n.defaultProgram3,
       l10n.defaultProgram4,
+      l10n.challengeLiftingLabel,
+      l10n.challengeJumpRopeLabel,
     ]);
     final normalizedPrograms = LocalizedOptionDefaults.normalizeOptions(
       key: 'programs',
@@ -136,6 +138,8 @@ class _LogsScreenState extends State<LogsScreen> {
         l10n.defaultProgram2,
         l10n.defaultProgram3,
         l10n.defaultProgram4,
+        l10n.challengeLiftingLabel,
+        l10n.challengeJumpRopeLabel,
       ],
     );
     if (!_sameStringList(_programOptions, normalizedPrograms)) {
