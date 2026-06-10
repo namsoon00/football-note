@@ -319,6 +319,43 @@ void main() {
     },
   );
 
+  test('selected program minutes ignore unrelated total training time', () {
+    final day = DateTime(2026, 6, 1);
+    final entryWithSplit = _trainingEntry(
+      day: day,
+      minutes: 120,
+      jumpRopeMinutes: 20,
+      liftingMinutes: 10,
+      program: '전술',
+      trainingProgramMinutes: const <String, int>{'전술': 25, '패스': 95},
+    );
+    final legacySingleProgramEntry = _trainingEntry(
+      day: day,
+      minutes: 40,
+      jumpRopeMinutes: 15,
+      liftingMinutes: 15,
+      program: '슈팅',
+    );
+
+    expect(trainingProgramMinutesForEntry(entryWithSplit, <String>['전술']), 25);
+    expect(
+      trainingMinutesForDay(
+        <TrainingEntry>[entryWithSplit, legacySingleProgramEntry],
+        day,
+        selectedSkillIds: <String>['전술'],
+      ),
+      25,
+    );
+    expect(
+      trainingMinutesForDay(
+        <TrainingEntry>[entryWithSplit, legacySingleProgramEntry],
+        day,
+        selectedSkillIds: <String>['슈팅'],
+      ),
+      40,
+    );
+  });
+
   test('finalization waits until the challenge is ready to end', () async {
     final repository = _MemoryOptionRepository();
     final service = ChallengeService(repository);
@@ -438,6 +475,92 @@ void main() {
       contains('challenge_round_streak_bonus'),
     );
   });
+
+  test(
+    'round awards do not finalize a completed challenge before completion sync',
+    () async {
+      final repository = _MemoryOptionRepository();
+      final service = ChallengeService(repository);
+      final levelService = PlayerLevelService(repository);
+      final template = service.templateById('starter_3')!;
+      final run = await service.startChallenge(
+        template,
+        startedAt: DateTime(2026, 6, 1, 9),
+      );
+
+      final progress = service.progressForRun(
+        run: run,
+        trainingEntries: <TrainingEntry>[
+          _trainingEntry(
+            day: DateTime(2026, 6, 1),
+            minutes: 30,
+            jumpRopeMinutes: 10,
+            liftingMinutes: 10,
+          ),
+          _trainingEntry(
+            day: DateTime(2026, 6, 2),
+            minutes: 30,
+            jumpRopeMinutes: 10,
+            liftingMinutes: 10,
+          ),
+          _trainingEntry(
+            day: DateTime(2026, 6, 3),
+            minutes: 30,
+            jumpRopeMinutes: 10,
+            liftingMinutes: 10,
+          ),
+        ],
+        mealEntries: <MealEntry>[
+          MealEntry(
+            date: DateTime(2026, 6, 1),
+            breakfastRiceBowls: 1,
+            lunchRiceBowls: 1,
+            dinnerRiceBowls: 1,
+          ),
+          MealEntry(
+            date: DateTime(2026, 6, 2),
+            breakfastRiceBowls: 1,
+            lunchRiceBowls: 1,
+            dinnerRiceBowls: 1,
+          ),
+          MealEntry(
+            date: DateTime(2026, 6, 3),
+            breakfastRiceBowls: 1,
+            lunchRiceBowls: 1,
+            dinnerRiceBowls: 1,
+          ),
+        ],
+      )!;
+
+      final roundAwards = await service.awardCompletedRounds(
+        progress: progress,
+        playerLevelService: levelService,
+        awardedAt: DateTime(2026, 6, 3, 20),
+      );
+
+      expect(service.activeRun(), isNotNull);
+      expect(roundAwards.map((award) => award.gainedXp), <int>[10, 13, 16]);
+      expect(
+        roundAwards.map((award) => award.reasons).expand((reasons) => reasons),
+        isNot(contains('challenge_completed_bonus')),
+      );
+
+      final completionAwards = await service.finalizeRun(
+        progress: progress,
+        playerLevelService: levelService,
+        finalizedAt: DateTime(2026, 6, 3, 21),
+      );
+
+      expect(service.activeRun(), isNull);
+      expect(
+        completionAwards
+            .map((award) => award.reasons)
+            .expand((reasons) => reasons),
+        contains('challenge_completed_bonus'),
+      );
+      expect(levelService.loadState().totalXp, 159);
+    },
+  );
 
   test(
     'partially completed challenge continues and settles after final day',
