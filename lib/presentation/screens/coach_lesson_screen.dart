@@ -2376,8 +2376,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             else
               _durationText(entry.durationMinutes),
             '${_l10n.diaryTrainingStatusLabel} ${_trainingStatusLabel(entry.status)}',
-            _conditionText(entry.mood),
-            _intensityText(entry.intensity),
           ],
           // Match the icon used when recording training status
           icon: trainingStatusVisual(entry.status).icon,
@@ -2476,7 +2474,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           summary: fortune.composeText(),
           metaLabels: [
             _formatDiaryDate(entry.date),
-            _intensityText(entry.intensity),
+            '${_l10n.diaryTrainingStatusLabel} ${_trainingStatusLabel(entry.status)}',
           ],
           icon: Icons.auto_awesome_outlined,
           tint: _recordStickerTint(_DiaryRecordStickerKind.fortune),
@@ -2641,10 +2639,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   String _durationText(int minutes) => _l10n.minutes(minutes);
 
-  String _conditionText(int value) => '${_l10n.condition} $value';
-
-  String _intensityText(int value) => '${_l10n.intensity} $value';
-
   String _sourceText(String source) {
     final trimmed = source.trim();
     return trimmed.isEmpty ? _l10n.diaryUnknownSource : trimmed;
@@ -2773,8 +2767,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           : programDuration,
       if (includeStatus)
         '${_l10n.diaryTrainingStatusLabel} ${_trainingStatusLabel(entry.status)}',
-      _conditionText(entry.mood),
-      _intensityText(entry.intensity),
     ];
   }
 

@@ -35,14 +35,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => 'Welcome to your training flow';
+  String get welcomeGuideTitle => 'Let\'s tour the screens first';
 
   @override
   String get welcomeGuideIntro =>
-      'Follow the highlighted actions in order. Each tab starts with the button you are most likely to need.';
+      'The guide highlights where to tap first, and Rinzy uses coach marks to show the order.';
 
   @override
-  String get welcomeGuidePrimaryAction => 'Start training log';
+  String get welcomeGuidePrimaryAction => 'Start';
 
   @override
   String get welcomeGuideSectionFlow => 'Step-by-step flow';
@@ -50,6 +50,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get welcomeGuideNextTabHint =>
       'Pick another tab above to preview its buttons.';
+
+  @override
+  String get welcomeGuidePreviewLabel => 'Screen highlight';
+
+  @override
+  String get welcomeGuideCoachMarkLabel => 'Coach mark';
 
   @override
   String get parentWelcomeGuideTitle => 'Parent Mode Guide';
@@ -2290,6 +2296,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Split one training note into time for each program.';
 
   @override
+  String entryProgramDurationTotal(Object minutes) {
+    return 'Total $minutes';
+  }
+
+  @override
   String get entryProgramDurationAddAction => 'Add program';
 
   @override
@@ -3150,6 +3161,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherTitle => 'Weather coach';
 
   @override
+  String get homeWeatherTodayTitle => 'Today\'s weather';
+
+  @override
   String get homeWeatherSubtitle =>
       'Check local conditions and adjust training focus.';
 
@@ -3303,6 +3317,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherOutfitButton => 'Outfit guide';
+
+  @override
+  String get homeWeatherTodayRecommendationsTitle =>
+      'Recommendations for today\'s weather';
 
   @override
   String get homeWeatherOutfitLayersLabel => 'Top layers';
@@ -3468,6 +3486,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherSuggestionButton => 'Training focus';
+
+  @override
+  String get homeWeatherSuggestionSheetSubtitleDefault =>
+      'Best focus for the current weather.';
+
+  @override
+  String homeWeatherSuggestionSheetSubtitle(Object location) {
+    return 'Tailored to $location weather.';
+  }
+
+  @override
+  String get homeWeatherSuggestionFocusLabel => 'Focus';
+
+  @override
+  String get homeWeatherSuggestionCautionLabel => 'Execution tip';
+
+  @override
+  String get homeWeatherSuggestionRecoveryLabel => 'Recovery check';
 
   @override
   String get homeWeatherSuggestionClear =>
@@ -7624,6 +7660,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String challengeCelebrationCompleteBody(int xp) {
     return 'All rounds are done. You earned +$xp XP.';
   }
+
+  @override
+  String get challengeCelebrationCompleteBodyNoXp =>
+      'All missions are recorded. Review the challenge completion screen.';
 
   @override
   String get challengeCelebrationAction => 'Nice!';

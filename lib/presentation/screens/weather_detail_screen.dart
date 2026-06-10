@@ -100,6 +100,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             children: [
               _CompactWeatherHeaderCard(
                 title: hasWeather ? _summary : l10n.homeWeatherTitle,
+                sectionLabel: l10n.homeWeatherTodayTitle,
                 subtitle: _headerLocationLabel(l10n),
                 helper: null,
                 icon: _weatherIcon(_weatherCode),
@@ -162,20 +163,16 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                         ),
                       ]
                     : const <_CompactMetricData>[],
-                footer: _buildTodayHourlyWeatherFooter(l10n),
+                footer: hasWeather
+                    ? _buildTodayWeatherFooter(
+                        l10n: l10n,
+                        isKo: isKo,
+                        outfitGuide: detailedOutfitGuide,
+                        trainingGuide: trainingGuide,
+                      )
+                    : _buildTodayHourlyWeatherFooter(l10n),
               ),
               if (hasWeather) ...[
-                const SizedBox(height: 16),
-                _WeatherRecommendationActions(
-                  outfitLabel: l10n.homeWeatherOutfitButton,
-                  trainingLabel: l10n.homeWeatherSuggestionButton,
-                  onOutfitTap: () => _openOutfitGuideScreen(
-                    l10n: l10n,
-                    guide: detailedOutfitGuide,
-                  ),
-                  onTrainingTap: () =>
-                      _showTrainingGuideSheet(isKo: isKo, guide: trainingGuide),
-                ),
                 const SizedBox(height: 16),
                 _TomorrowWeatherCard(
                   title: l10n.homeWeatherTomorrowTitle,
@@ -726,6 +723,35 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     );
   }
 
+  Widget _buildTodayWeatherFooter({
+    required AppLocalizations l10n,
+    required bool isKo,
+    required _DetailedOutfitGuide outfitGuide,
+    required _TrainingGuide trainingGuide,
+  }) {
+    final hourlyWeather = _buildTodayHourlyWeatherFooter(l10n);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (hourlyWeather != null) ...[
+          hourlyWeather,
+          const SizedBox(height: 12),
+        ],
+        _TodayWeatherRecommendationPanel(
+          title: l10n.homeWeatherTodayRecommendationsTitle,
+          outfitLabel: l10n.homeWeatherOutfitButton,
+          outfitSummary: outfitGuide.coachSummary,
+          trainingLabel: l10n.homeWeatherSuggestionButton,
+          trainingSummary: trainingGuide.focus,
+          onOutfitTap: () =>
+              _openOutfitGuideScreen(l10n: l10n, guide: outfitGuide),
+          onTrainingTap: () =>
+              _showTrainingGuideSheet(isKo: isKo, guide: trainingGuide),
+        ),
+      ],
+    );
+  }
+
   double? get _currentOutfitTemperature =>
       _apparentTemperature ?? _temperature ?? _temperatureMax;
 
@@ -1180,6 +1206,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required bool isKo,
     required _TrainingGuide guide,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -1188,17 +1215,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: _StructuredTrainingGuideCard(
-            title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
+            title: l10n.homeWeatherSuggestionTitle,
             subtitle: _location.isEmpty
-                ? (isKo
-                      ? '지금 날씨에서 효율적인 훈련 방향입니다.'
-                      : 'Best focus for the current weather.')
-                : (isKo
-                      ? '$_location 날씨에 맞춘 훈련 방향입니다.'
-                      : 'Tailored to $_location weather.'),
-            focusLabel: isKo ? '오늘 집중' : 'Focus',
-            cautionLabel: isKo ? '운영 팁' : 'Execution tip',
-            recoveryLabel: isKo ? '회복 체크' : 'Recovery check',
+                ? l10n.homeWeatherSuggestionSheetSubtitleDefault
+                : l10n.homeWeatherSuggestionSheetSubtitle(_location),
+            focusLabel: l10n.homeWeatherSuggestionFocusLabel,
+            cautionLabel: l10n.homeWeatherSuggestionCautionLabel,
+            recoveryLabel: l10n.homeWeatherSuggestionRecoveryLabel,
             guide: guide,
           ),
         ),
@@ -1332,6 +1355,7 @@ class _WeatherHeadlineParts {
 
 class _CompactWeatherHeaderCard extends StatelessWidget {
   final String title;
+  final String sectionLabel;
   final String subtitle;
   final String? helper;
   final IconData icon;
@@ -1342,6 +1366,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
 
   const _CompactWeatherHeaderCard({
     required this.title,
+    required this.sectionLabel,
     required this.subtitle,
     this.helper,
     required this.icon,
@@ -1483,6 +1508,14 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 18),
+              Text(
+                sectionLabel,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: onGradientMuted,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 6),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1869,10 +1902,17 @@ class _OutfitCaseDetailCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.tertiaryContainer.withValues(alpha: 0.36),
+            theme.colorScheme.surface.withValues(alpha: 0.94),
+          ],
+        ),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+          color: theme.colorScheme.tertiary.withValues(alpha: 0.24),
         ),
       ),
       child: Column(
@@ -2430,39 +2470,167 @@ class _OutfitCoachCalloutCard extends StatelessWidget {
   }
 }
 
-class _WeatherRecommendationActions extends StatelessWidget {
+class _TodayWeatherRecommendationPanel extends StatelessWidget {
+  final String title;
   final String outfitLabel;
+  final String outfitSummary;
   final String trainingLabel;
+  final String trainingSummary;
   final VoidCallback onOutfitTap;
   final VoidCallback onTrainingTap;
 
-  const _WeatherRecommendationActions({
+  const _TodayWeatherRecommendationPanel({
+    required this.title,
     required this.outfitLabel,
+    required this.outfitSummary,
     required this.trainingLabel,
+    required this.trainingSummary,
     required this.onOutfitTap,
     required this.onTrainingTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: FilledButton.tonalIcon(
-            onPressed: onOutfitTap,
-            icon: const Icon(Icons.checkroom_outlined, size: 18),
-            label: Text(outfitLabel),
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.38),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 10),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 360;
+              final cards = [
+                _TodayRecommendationCard(
+                  icon: Icons.checkroom_outlined,
+                  label: outfitLabel,
+                  summary: outfitSummary,
+                  onTap: onOutfitTap,
+                ),
+                _TodayRecommendationCard(
+                  icon: Icons.sports_soccer_rounded,
+                  label: trainingLabel,
+                  summary: trainingSummary,
+                  onTap: onTrainingTap,
+                ),
+              ];
+              if (compact) {
+                return Column(
+                  children: [
+                    for (var index = 0; index < cards.length; index++) ...[
+                      cards[index],
+                      if (index < cards.length - 1) const SizedBox(height: 8),
+                    ],
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: cards[0]),
+                  const SizedBox(width: 10),
+                  Expanded(child: cards[1]),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TodayRecommendationCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String summary;
+  final VoidCallback onTap;
+
+  const _TodayRecommendationCard({
+    required this.icon,
+    required this.label,
+    required this.summary,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.primary.withValues(alpha: 0.20),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: theme.colorScheme.primary, size: 19),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      summary,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: FilledButton.tonalIcon(
-            onPressed: onTrainingTap,
-            icon: const Icon(Icons.sports_soccer_rounded, size: 18),
-            label: Text(trainingLabel),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

@@ -324,7 +324,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('줄넘기/리프팅'), findsOneWidget);
-      expect(find.textContaining('줄넘기 200회/8분'), findsOneWidget);
+      expect(find.textContaining('줄넘기 8분/200회'), findsOneWidget);
       expect(find.text('줄넘기'), findsNothing);
       expect(find.text('리프팅 · 인사이드'), findsOneWidget);
     },
@@ -380,7 +380,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('줄넘기'), findsOneWidget);
-    expect(find.textContaining('줄넘기 200회/8분'), findsOneWidget);
+    expect(find.textContaining('줄넘기 8분/200회'), findsOneWidget);
     expect(find.text('리프팅'), findsOneWidget);
     expect(find.textContaining('리프팅 110회'), findsOneWidget);
     expect(find.text('리프팅 · 인사이드'), findsOneWidget);
@@ -451,13 +451,19 @@ void main() {
         return focused.single;
       }
 
+      List<String> entryFieldTexts() => tester
+          .widgetList<EditableText>(find.byType(EditableText))
+          .map((widget) => widget.controller.text)
+          .toList(growable: false);
+
       await tester.tap(
         find.byKey(ValueKey('diary-record-sticker-jumpRope:$dayToken')),
       );
       await tester.pumpAndSettle();
 
       expect(find.byType(EntryFormScreen), findsOneWidget);
-      expect(focusedField().controller.text, '222');
+      expect(focusedField().controller.text, isEmpty);
+      expect(entryFieldTexts(), contains('222'));
 
       Navigator.of(tester.element(find.byType(EntryFormScreen))).pop();
       await tester.pumpAndSettle();
@@ -468,7 +474,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(EntryFormScreen), findsOneWidget);
-      expect(focusedField().controller.text, '111');
+      expect(focusedField().controller.text, isEmpty);
+      expect(entryFieldTexts(), contains('111'));
     },
   );
 

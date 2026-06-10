@@ -35,19 +35,26 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => '훈련 기록 흐름에 오신 걸 환영해요';
+  String get welcomeGuideTitle => '처음 쓰는 화면을 같이 둘러볼게요';
 
   @override
-  String get welcomeGuideIntro => '강조된 버튼을 순서대로 따라가면 첫 기록부터 복기까지 빠르게 이어집니다.';
+  String get welcomeGuideIntro =>
+      '화면에서 먼저 눌러볼 곳을 하이라이트하고, 린지가 코치마크로 사용 순서를 알려줘요.';
 
   @override
-  String get welcomeGuidePrimaryAction => '훈련 기록 시작';
+  String get welcomeGuidePrimaryAction => '시작하기';
 
   @override
   String get welcomeGuideSectionFlow => '순서대로 해보기';
 
   @override
   String get welcomeGuideNextTabHint => '위 탭을 바꾸면 다른 화면의 버튼 흐름을 볼 수 있어요.';
+
+  @override
+  String get welcomeGuidePreviewLabel => '화면 하이라이트';
+
+  @override
+  String get welcomeGuideCoachMarkLabel => '코치마크';
 
   @override
   String get parentWelcomeGuideTitle => '보호자 모드 안내';
@@ -2216,6 +2223,11 @@ class AppLocalizationsKo extends AppLocalizations {
       '한 훈련 노트 안에서 프로그램마다 시간을 나눠 기록하세요.';
 
   @override
+  String entryProgramDurationTotal(Object minutes) {
+    return '합계 $minutes';
+  }
+
+  @override
   String get entryProgramDurationAddAction => '프로그램 추가';
 
   @override
@@ -3056,6 +3068,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherTitle => '날씨 코치';
 
   @override
+  String get homeWeatherTodayTitle => '오늘 날씨';
+
+  @override
   String get homeWeatherSubtitle => '현재 날씨를 보고 오늘 훈련 강도를 조절해 보세요.';
 
   @override
@@ -3196,6 +3211,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherOutfitButton => '추천 복장';
+
+  @override
+  String get homeWeatherTodayRecommendationsTitle => '오늘 날씨에 맞춘 추천';
 
   @override
   String get homeWeatherOutfitLayersLabel => '상의 조합';
@@ -3357,6 +3375,24 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherSuggestionButton => '추천 훈련 포인트';
+
+  @override
+  String get homeWeatherSuggestionSheetSubtitleDefault =>
+      '지금 날씨에서 효율적인 훈련 방향입니다.';
+
+  @override
+  String homeWeatherSuggestionSheetSubtitle(Object location) {
+    return '$location 날씨에 맞춘 훈련 방향입니다.';
+  }
+
+  @override
+  String get homeWeatherSuggestionFocusLabel => '오늘 집중';
+
+  @override
+  String get homeWeatherSuggestionCautionLabel => '운영 팁';
+
+  @override
+  String get homeWeatherSuggestionRecoveryLabel => '회복 체크';
 
   @override
   String get homeWeatherSuggestionClear =>
@@ -7375,6 +7411,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String challengeCelebrationCompleteBody(int xp) {
     return '모든 라운드를 끝냈어요. +$xp XP를 받았어요.';
   }
+
+  @override
+  String get challengeCelebrationCompleteBodyNoXp =>
+      '모든 미션 기록이 끝났어요. 챌린지 완료 화면에서 진행을 확인하세요.';
 
   @override
   String get challengeCelebrationAction => '좋아!';

@@ -107,7 +107,10 @@ void main() {
       find.byKey(const ValueKey('challenge-rounds-calendar')),
       findsOneWidget,
     );
-    expect(find.text('R1'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('challenge-calendar-round-1')),
+      findsOneWidget,
+    );
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));
     expect(find.text('리프팅'), findsAtLeastNWidgets(1));
     expect(find.text('훈련 프로그램 편집'), findsNothing);
@@ -193,7 +196,11 @@ void main() {
 
     expect(find.text('R1'), findsNothing);
     expect(find.text('R2'), findsNothing);
-    expect(find.text('R3'), findsOneWidget);
+    expect(find.text('R3'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('challenge-calendar-round-3')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -487,11 +494,10 @@ class _MemoryTrainingRepository implements TrainingRepository {
     required bool includeMatches,
   }) {
     if (limit <= 0) return const <TrainingEntry>[];
-    final entries =
-        _entries
-            .where((entry) => includeMatches || !entry.isMatch)
-            .toList(growable: false)
-          ..sort(TrainingEntry.compareByRecentCreated);
+    final entries = _entries
+        .where((entry) => includeMatches || !entry.isMatch)
+        .toList(growable: false)
+      ..sort(TrainingEntry.compareByRecentCreated);
     if (entries.length <= limit) return entries;
     return entries.take(limit).toList(growable: false);
   }

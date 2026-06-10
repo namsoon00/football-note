@@ -35,20 +35,25 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => 'トレーニング フローへようこそ';
+  String get welcomeGuideTitle => '最初に画面を一緒に確認しましょう';
 
   @override
-  String get welcomeGuideIntro =>
-      '強調表示されたアクションを順番に実行してください。各タブは、必要になる可能性が最も高いボタンから始まります。';
+  String get welcomeGuideIntro => '最初にタップする場所をハイライトし、リンジーがコーチマークで順番を案内します。';
 
   @override
-  String get welcomeGuidePrimaryAction => 'トレーニング開始ログ';
+  String get welcomeGuidePrimaryAction => '開始';
 
   @override
   String get welcomeGuideSectionFlow => '段階的な流れ';
 
   @override
   String get welcomeGuideNextTabHint => '上の別のタブを選択して、そのボタンをプレビューします。';
+
+  @override
+  String get welcomeGuidePreviewLabel => '画面ハイライト';
+
+  @override
+  String get welcomeGuideCoachMarkLabel => 'コーチマーク';
 
   @override
   String get parentWelcomeGuideTitle => '保護者モードガイド';
@@ -2222,6 +2227,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryProgramDurationsSubtitle => '1つのトレーニングノートでプログラムごとの時間を記録します。';
 
   @override
+  String entryProgramDurationTotal(Object minutes) {
+    return '合計 $minutes';
+  }
+
+  @override
   String get entryProgramDurationAddAction => 'プログラムを追加';
 
   @override
@@ -3062,6 +3072,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeWeatherTitle => '天気コーチ';
 
   @override
+  String get homeWeatherTodayTitle => '今日の天気';
+
+  @override
   String get homeWeatherSubtitle => '現地の状況を確認し、トレーニングの焦点を調整します。';
 
   @override
@@ -3203,6 +3216,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeWeatherOutfitButton => '服装ガイド';
+
+  @override
+  String get homeWeatherTodayRecommendationsTitle => '今日の天気に合わせたおすすめ';
 
   @override
   String get homeWeatherOutfitLayersLabel => '最上層';
@@ -3363,6 +3379,24 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeWeatherSuggestionButton => 'トレーニングの焦点';
+
+  @override
+  String get homeWeatherSuggestionSheetSubtitleDefault =>
+      '現在の天気に合った効率的なトレーニング方向です。';
+
+  @override
+  String homeWeatherSuggestionSheetSubtitle(Object location) {
+    return '$location の天気に合わせたトレーニング方向です。';
+  }
+
+  @override
+  String get homeWeatherSuggestionFocusLabel => '今日の集中';
+
+  @override
+  String get homeWeatherSuggestionCautionLabel => '運用のヒント';
+
+  @override
+  String get homeWeatherSuggestionRecoveryLabel => '回復チェック';
 
   @override
   String get homeWeatherSuggestionClear =>
@@ -7368,6 +7402,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String challengeCelebrationCompleteBody(int xp) {
     return 'すべてのラウンドが終わりました。+$xp XP を受け取りました。';
   }
+
+  @override
+  String get challengeCelebrationCompleteBodyNoXp =>
+      'すべてのミッション記録が完了しました。チャレンジ完了画面で進行状況を確認してください。';
 
   @override
   String get challengeCelebrationAction => 'いいね!';

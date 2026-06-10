@@ -137,7 +137,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   List<int> _durationOptions = [];
   List<String> _injuryPartOptions = [];
   final Set<String> _selectedDailyGoals = <String>{};
-  final List<int> _ratingOptions = [1, 2, 3, 4, 5];
   bool _optionsLoaded = false;
   Timer? _autoSaveTimer;
   bool _autoSaving = false;
@@ -1998,38 +1997,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 _buildProgramDurationSection(l10n),
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildIntSelectRow(
-                                        label: l10n.intensity,
-                                        value: _intensity,
-                                        options: _ratingOptions,
-                                        optionLabel: (value) => '$value / 5',
-                                        onChanged: (value) {
-                                          setState(() => _intensity = value);
-                                          _scheduleAutoSave();
-                                        },
-                                        onAdd: null,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: _buildIntSelectRow(
-                                        label: l10n.condition,
-                                        value: _mood,
-                                        options: _ratingOptions,
-                                        optionLabel: (value) => '$value / 5',
-                                        onChanged: (value) {
-                                          setState(() => _mood = value);
-                                          _scheduleAutoSave();
-                                        },
-                                        onAdd: null,
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ],
                             ),
                           ),
@@ -3775,6 +3742,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   Widget _buildProgramDurationSection(AppLocalizations l10n) {
     final theme = Theme.of(context);
     final entries = _trainingProgramMinutes.entries.toList(growable: false);
+    final totalMinutes = _trainingProgramMinutesTotal(
+      _normalizeProgramMinutes(_trainingProgramMinutes),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -3789,7 +3759,47 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 ),
               ),
             ),
+            if (totalMinutes > 0) ...[
+              const SizedBox(width: 8),
+              _ProgramDurationTotalPill(
+                label: l10n.entryProgramDurationTotal(
+                  l10n.minutes(totalMinutes),
+                ),
+              ),
+            ],
             const SizedBox(width: 8),
+            PopupMenuButton<_ProgramDurationMenuAction>(
+              tooltip: l10n.add,
+              icon: const Icon(Icons.more_horiz_rounded),
+              onSelected: (action) {
+                switch (action) {
+                  case _ProgramDurationMenuAction.programOption:
+                    _addProgramOptionFromDurationSection(l10n);
+                  case _ProgramDurationMenuAction.durationOption:
+                    _addDurationOptionFromDurationSection(l10n);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: _ProgramDurationMenuAction.programOption,
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.playlist_add_rounded),
+                    title: Text('${l10n.add} ${l10n.program}'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: _ProgramDurationMenuAction.durationOption,
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.more_time_rounded),
+                    title: Text('${l10n.add} ${l10n.trainingDuration}'),
+                  ),
+                ),
+              ],
+            ),
             TextButton.icon(
               onPressed: () {
                 setState(_addTrainingProgramDuration);
@@ -3799,6 +3809,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               label: Text(l10n.entryProgramDurationAddAction),
             ),
           ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l10n.entryProgramDurationsSubtitle,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 10),
         if (entries.isEmpty)
@@ -3811,7 +3829,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         else
           LayoutBuilder(
             builder: (context, constraints) {
-              final compact = constraints.maxWidth < 360;
+              final compact = constraints.maxWidth < 240;
               return Column(
                 children: [
                   for (var index = 0; index < entries.length; index++) ...[
@@ -3837,43 +3855,28 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required int minutes,
     required bool compact,
   }) {
-    final programField = _buildSelectRow(
+    final theme = Theme.of(context);
+    final programField = _buildProgramDurationDropdown<String>(
       label: l10n.program,
       value: program,
       options: _programOptions,
+      icon: Icons.sports_soccer_outlined,
+      optionLabel: (value) => value,
       onChanged: (value) {
         setState(() => _changeTrainingProgramDurationProgram(program, value));
         _scheduleAutoSave();
       },
-      onAdd: () => _addOption(
-        key: 'programs',
-        title: l10n.program,
-        options: _programOptions,
-        onUpdated: (list) => setState(() => _programOptions = list),
-        onSelected: (value) => setState(
-          () => _changeTrainingProgramDurationProgram(program, value),
-        ),
-      ),
     );
-    final durationField = _buildIntSelectRow(
+    final durationField = _buildProgramDurationDropdown<int>(
       label: l10n.trainingDuration,
       value: minutes,
       options: _durationOptions,
+      icon: Icons.timer_outlined,
       optionLabel: (value) => value == 0 ? l10n.notSet : l10n.minutes(value),
       onChanged: (value) {
         setState(() => _changeTrainingProgramDurationMinutes(program, value));
         _scheduleAutoSave();
       },
-      onAdd: () => _addIntOption(
-        key: 'durations',
-        title: l10n.trainingDuration,
-        options: _durationOptions,
-        onUpdated: (list) => setState(() => _durationOptions = list),
-        onSelected: (value) => setState(
-          () => _changeTrainingProgramDurationMinutes(program, value),
-        ),
-        hint: '90',
-      ),
     );
     final removeButton = IconButton(
       onPressed: () {
@@ -3885,104 +3888,126 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       visualDensity: VisualDensity.compact,
       constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
     );
-    if (compact) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          programField,
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(child: durationField),
-              const SizedBox(width: 8),
-              removeButton,
-            ],
-          ),
-        ],
-      );
-    }
-    return Row(
-      children: [
-        Expanded(flex: 6, child: programField),
-        const SizedBox(width: 8),
-        Expanded(flex: 4, child: durationField),
-        const SizedBox(width: 4),
-        removeButton,
-      ],
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: theme.brightness == Brightness.dark ? 0.38 : 0.54,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.58),
+        ),
+      ),
+      child: compact
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                programField,
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: durationField),
+                    const SizedBox(width: 6),
+                    removeButton,
+                  ],
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(flex: 7, child: programField),
+                const SizedBox(width: 8),
+                Expanded(flex: 4, child: durationField),
+                const SizedBox(width: 4),
+                removeButton,
+              ],
+            ),
     );
   }
 
-  Widget _buildIntSelectRow({
+  Widget _buildProgramDurationDropdown<T>({
     required String label,
-    required int value,
-    required List<int> options,
-    required String Function(int value) optionLabel,
-    required ValueChanged<int> onChanged,
-    required VoidCallback? onAdd,
-    bool enabled = true,
+    required T value,
+    required List<T> options,
+    required IconData icon,
+    required String Function(T value) optionLabel,
+    required ValueChanged<T> onChanged,
   }) {
-    final l10n = AppLocalizations.of(context)!;
-    return Row(
-      children: [
-        Expanded(
-          child: SizedBox(
-            height: 50,
-            child: DropdownMenu<int>(
-              initialSelection: value,
-              label: Text(label),
-              trailingIcon: Icon(
-                Icons.expand_more,
-                color: enabled
-                    ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.42),
+    final theme = Theme.of(context);
+    final effectiveValue = options.contains(value)
+        ? value
+        : (options.isNotEmpty ? options.first : value);
+    return DropdownButtonFormField<T>(
+      initialValue: effectiveValue,
+      isExpanded: true,
+      icon: const Icon(Icons.expand_more_rounded, size: 18),
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, size: 18),
+        filled: true,
+        fillColor: theme.colorScheme.surface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      items: options
+          .map(
+            (option) => DropdownMenuItem<T>(
+              value: option,
+              child: Text(
+                optionLabel(option),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              selectedTrailingIcon: Icon(
-                Icons.expand_less,
-                color: enabled
-                    ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.42),
-              ),
-              textStyle: TextStyle(
-                fontSize: 14,
-                color: enabled
-                    ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.42),
-              ),
-              inputDecorationTheme: _dropdownDecoration(enabled: enabled),
-              dropdownMenuEntries: options
-                  .map(
-                    (option) => DropdownMenuEntry(
-                      value: option,
-                      label: optionLabel(option),
-                    ),
-                  )
-                  .toList(),
-              onSelected: (value) {
-                if (value != null && enabled) {
-                  onChanged(value);
-                }
-              },
-              enabled: enabled,
             ),
-          ),
-        ),
-        if (onAdd != null) ...[
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: enabled ? onAdd : null,
-            icon: const Icon(Icons.add),
-            tooltip: '${l10n.add} $label',
-            visualDensity: VisualDensity.compact,
-            constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
-          ),
-        ],
-      ],
+          )
+          .toList(growable: false),
+      onChanged: (value) {
+        if (value != null) onChanged(value);
+      },
+    );
+  }
+
+  void _addProgramOptionFromDurationSection(AppLocalizations l10n) {
+    _addOption(
+      key: 'programs',
+      title: l10n.program,
+      options: _programOptions,
+      onUpdated: (list) => setState(() => _programOptions = list),
+      onSelected: (value) {
+        setState(() {
+          _type = value;
+          _trainingProgramMinutes.putIfAbsent(value, () => 0);
+        });
+        _scheduleAutoSave();
+      },
+    );
+  }
+
+  void _addDurationOptionFromDurationSection(AppLocalizations l10n) {
+    _addIntOption(
+      key: 'durations',
+      title: l10n.trainingDuration,
+      options: _durationOptions,
+      onUpdated: (list) => setState(() => _durationOptions = list),
+      onSelected: (value) {
+        setState(() {
+          final program = _trainingProgramMinutes.keys.isNotEmpty
+              ? _trainingProgramMinutes.keys.last
+              : _type.trim();
+          if (program.isNotEmpty) {
+            _changeTrainingProgramDurationMinutes(program, value);
+          } else {
+            _durationMinutes = _initIntSelection(
+              'durations',
+              _durationOptions,
+              value,
+            );
+          }
+        });
+        _scheduleAutoSave();
+      },
+      hint: '90',
     );
   }
 
@@ -4161,6 +4186,36 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   String _liftingText(Map<String, int> liftingByPart, String key) {
     final value = liftingByPart[key] ?? 0;
     return value <= 0 ? '' : value.toString();
+  }
+}
+
+enum _ProgramDurationMenuAction { programOption, durationOption }
+
+class _ProgramDurationTotalPill extends StatelessWidget {
+  final String label;
+
+  const _ProgramDurationTotalPill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 116),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.74),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onPrimaryContainer,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
   }
 }
 

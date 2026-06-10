@@ -3827,7 +3827,7 @@ class _EntryTile extends StatelessWidget {
                     ),
                 ] else
                   Text(
-                    '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}',
+                    '${l10n.status} ${_trainingStatusLabel(l10n, entry.status)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: _calendarTimelineSubtitleStyle(context),
@@ -3892,6 +3892,16 @@ class _EntryTile extends StatelessWidget {
     return entry.program.trim().isNotEmpty
         ? entry.program.trim()
         : l10n.program;
+  }
+
+  String _trainingStatusLabel(AppLocalizations l10n, String status) {
+    return switch (status) {
+      'great' => l10n.statusGreat,
+      'good' => l10n.statusGood,
+      'tough' => l10n.statusTough,
+      'recovery' => l10n.statusRecovery,
+      _ => l10n.statusNormal,
+    };
   }
 
   String _trainingProgramDurationText(
