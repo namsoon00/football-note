@@ -90,7 +90,11 @@ class ChallengeService {
     return run;
   }
 
-  Future<void> completeRun(String runId, {DateTime? completedAt}) async {
+  Future<void> completeRun(
+    String runId, {
+    DateTime? completedAt,
+    List<int> completedRoundNumbers = const <int>[],
+  }) async {
     final completed = completedAt ?? DateTime.now();
     final runs = loadRuns()
         .map(
@@ -99,6 +103,7 @@ class ChallengeService {
                   completedAt: completed,
                   abandoned: false,
                   result: ChallengeRunResult.completed,
+                  completedRoundNumbers: completedRoundNumbers,
                 )
               : run,
         )
@@ -110,6 +115,7 @@ class ChallengeService {
     String runId, {
     required int roundNumber,
     DateTime? failedAt,
+    List<int> completedRoundNumbers = const <int>[],
   }) async {
     final endedAt = failedAt ?? DateTime.now();
     final runs = loadRuns()
@@ -120,6 +126,7 @@ class ChallengeService {
                   abandoned: false,
                   result: ChallengeRunResult.failed,
                   failedRoundNumber: roundNumber,
+                  completedRoundNumbers: completedRoundNumbers,
                 )
               : run,
         )
@@ -251,6 +258,7 @@ class ChallengeService {
       await completeRun(
         progress.run.id,
         completedAt: awardedAt ?? DateTime.now(),
+        completedRoundNumbers: _completedRoundNumbers(progress),
       );
     }
     return awards;
@@ -303,13 +311,18 @@ class ChallengeService {
             ),
           );
       awards.add(completionAward);
-      await completeRun(progress.run.id, completedAt: endedAt);
+      await completeRun(
+        progress.run.id,
+        completedAt: endedAt,
+        completedRoundNumbers: _completedRoundNumbers(progress),
+      );
     } else {
       final failedRoundNumber = progress.firstIncompleteRound?.round.number;
       await failRun(
         progress.run.id,
         roundNumber: failedRoundNumber ?? progress.rounds.length,
         failedAt: endedAt,
+        completedRoundNumbers: _completedRoundNumbers(progress),
       );
     }
 
@@ -397,6 +410,13 @@ class ChallengeService {
       jsonEncode(capped.map((run) => run.toMap()).toList(growable: false)),
     );
   }
+}
+
+List<int> _completedRoundNumbers(ChallengeProgress progress) {
+  return progress.rounds
+      .where((round) => round.completed)
+      .map((round) => round.round.number)
+      .toList(growable: false);
 }
 
 class ChallengeTrainingLevelConfig {

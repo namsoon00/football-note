@@ -502,6 +502,7 @@ void main() {
       final failed = service.loadRuns().single;
       expect(failed.isFailed, isTrue);
       expect(failed.failedRoundNumber, 2);
+      expect(failed.completedRoundNumbers, <int>[1, 3]);
       expect(
         finalAwards.map((award) => award.gainedXp).where((xp) => xp > 0),
         <int>[10, 10],

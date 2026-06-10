@@ -441,7 +441,20 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       unawaited(_applyLatestEntryDefaults());
     }
     _applyInitialFocusTarget();
-    _initialSnapshot = _formSnapshot();
+    var mergedInitialPlanIntoExistingEntry = false;
+    if (widget.entry != null && widget.initialPlanContext != null) {
+      _initialSnapshot = _formSnapshot();
+      mergedInitialPlanIntoExistingEntry =
+          _mergeInitialPlanContextIntoExistingEntry(widget.initialPlanContext!);
+    } else {
+      _initialSnapshot = _formSnapshot();
+    }
+    if (mergedInitialPlanIntoExistingEntry) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _scheduleAutoSave();
+      });
+    }
     if (widget.initialOpenTrainingBoardEditor && !_didHandleInitialBoardOpen) {
       _didHandleInitialBoardOpen = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -460,6 +473,24 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         ),
       );
     }
+  }
+
+  bool _mergeInitialPlanContextIntoExistingEntry(
+    EntryFormInitialPlanContext planContext,
+  ) {
+    if (planContext.durationMinutes <= 0) return false;
+    final program = planContext.program.trim().isNotEmpty
+        ? planContext.program.trim()
+        : _type.trim();
+    if (program.isEmpty) return false;
+    _ensureProgramOptions(<String>[program]);
+    _trainingProgramMinutes[program] =
+        (_trainingProgramMinutes[program] ?? 0) + planContext.durationMinutes;
+    if (_type.trim().isEmpty) {
+      _type = program;
+    }
+    _syncTotalDurationFromPrograms();
+    return true;
   }
 
   void _applyInitialFocusTarget() {
@@ -1754,41 +1785,45 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                 tooltip: l10n.cancel,
                               ),
                               if (!isReadOnly)
-                                IconButton.filledTonal(
+                                FilledButton.icon(
                                   onPressed:
                                       (_deleteInProgress ||
                                           (_saveInProgress && !_autoSaving))
                                       ? null
                                       : _handleSavePressed,
-                                  tooltip: l10n.save,
-                                  visualDensity: VisualDensity.compact,
-                                  constraints: const BoxConstraints.tightFor(
-                                    width: 40,
-                                    height: 40,
-                                  ),
                                   icon: const Icon(
                                     Icons.save_outlined,
-                                    size: 20,
+                                    size: 18,
+                                  ),
+                                  label: Text(l10n.save),
+                                  style: FilledButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                    minimumSize: const Size(0, 40),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
                                   ),
                                 ),
                               if (isEdit && !isReadOnly)
-                                IconButton.outlined(
+                                OutlinedButton.icon(
                                   onPressed:
                                       (_saveInProgress || _deleteInProgress)
                                       ? null
                                       : _confirmAndDelete,
-                                  tooltip: l10n.deleteEntry,
-                                  visualDensity: VisualDensity.compact,
-                                  constraints: const BoxConstraints.tightFor(
-                                    width: 40,
-                                    height: 40,
-                                  ),
                                   icon: const Icon(
                                     Icons.delete_outline,
-                                    size: 20,
+                                    size: 18,
                                   ),
-                                  style: IconButton.styleFrom(
+                                  label: Text(l10n.delete),
+                                  style: OutlinedButton.styleFrom(
                                     foregroundColor: theme.colorScheme.error,
+                                    visualDensity: VisualDensity.compact,
+                                    minimumSize: const Size(0, 40),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
                                     side: BorderSide(
                                       color: theme.colorScheme.error.withValues(
                                         alpha: 0.48,

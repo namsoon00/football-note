@@ -826,6 +826,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupGroupTeamsTitle => 'Group teams';
 
   @override
+  String worldCupTeamRosterOpenTooltip(String team) {
+    return 'Open $team roster';
+  }
+
+  @override
+  String worldCupTeamRosterTitle(String team) {
+    return '$team roster';
+  }
+
+  @override
+  String get worldCupTeamRosterSubtitle =>
+      'Position groups and a formation view for quickly reading the squad shape.';
+
+  @override
+  String worldCupTeamRosterFormationLabel(String formation) {
+    return '$formation formation';
+  }
+
+  @override
+  String get worldCupTeamRosterSourceNote =>
+      'Roster names are shown as position slots until official match squad data is connected.';
+
+  @override
+  String get worldCupTeamRosterGoalkeepers => 'Goalkeepers';
+
+  @override
+  String get worldCupTeamRosterDefenders => 'Defenders';
+
+  @override
+  String get worldCupTeamRosterMidfielders => 'Midfielders';
+
+  @override
+  String get worldCupTeamRosterForwards => 'Forwards';
+
+  @override
+  String get worldCupTeamRosterPositionGoalkeeper => 'GK';
+
+  @override
+  String get worldCupTeamRosterPositionDefender => 'DF';
+
+  @override
+  String get worldCupTeamRosterPositionMidfielder => 'MF';
+
+  @override
+  String get worldCupTeamRosterPositionForward => 'FW';
+
+  @override
+  String worldCupTeamRosterPlayerSlot(String position, int number) {
+    return '$position $number';
+  }
+
+  @override
   String get worldCupTournamentTitle => 'Tournament bracket';
 
   @override
@@ -7710,6 +7762,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeHistoryResultInProgress => 'In progress';
+
+  @override
+  String challengeHistoryRoundSuccessCount(int success, int total) {
+    return 'Success $success/$total';
+  }
+
+  @override
+  String challengeHistoryRoundFailureCount(int failure, int total) {
+    return 'Fail $failure/$total';
+  }
 
   @override
   String get challengeHistoryDetailTitle => 'Challenge detail';

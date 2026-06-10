@@ -361,6 +361,51 @@
   "worldCupStandingsRuleLabel": "Tiebreak order",
   "worldCupStandingsRuleValue": "Points · head-to-head · goal difference · goals · conduct · FIFA ranking",
   "worldCupGroupTeamsTitle": "Group teams",
+  "worldCupTeamRosterOpenTooltip": "Open {team} roster",
+  "@worldCupTeamRosterOpenTooltip": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterTitle": "{team} roster",
+  "@worldCupTeamRosterTitle": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterSubtitle": "Position groups and a formation view for quickly reading the squad shape.",
+  "worldCupTeamRosterFormationLabel": "{formation} formation",
+  "@worldCupTeamRosterFormationLabel": {
+    "placeholders": {
+      "formation": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterSourceNote": "Roster names are shown as position slots until official match squad data is connected.",
+  "worldCupTeamRosterGoalkeepers": "Goalkeepers",
+  "worldCupTeamRosterDefenders": "Defenders",
+  "worldCupTeamRosterMidfielders": "Midfielders",
+  "worldCupTeamRosterForwards": "Forwards",
+  "worldCupTeamRosterPositionGoalkeeper": "GK",
+  "worldCupTeamRosterPositionDefender": "DF",
+  "worldCupTeamRosterPositionMidfielder": "MF",
+  "worldCupTeamRosterPositionForward": "FW",
+  "worldCupTeamRosterPlayerSlot": "{position} {number}",
+  "@worldCupTeamRosterPlayerSlot": {
+    "placeholders": {
+      "position": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupTournamentTitle": "Tournament bracket",
   "worldCupTournamentPlanBody": "This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.",
   "worldCupStageMatchCount": "{count} matches",
@@ -3911,6 +3956,28 @@
   "challengeHistoryResultFailed": "Failed",
   "challengeHistoryResultAbandoned": "Ended",
   "challengeHistoryResultInProgress": "In progress",
+  "challengeHistoryRoundSuccessCount": "Success {success}/{total}",
+  "@challengeHistoryRoundSuccessCount": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeHistoryRoundFailureCount": "Fail {failure}/{total}",
+  "@challengeHistoryRoundFailureCount": {
+    "placeholders": {
+      "failure": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "challengeHistoryDetailTitle": "Challenge detail",
   "challengeHistoryDetailCompletedBody": "All rounds were completed. Review the reward plan and round dates.",
   "challengeHistoryDetailFailedBody": "This challenge stopped at round {round}. Review the round sequence and reward plan.",
