@@ -243,24 +243,6 @@ class ChallengeService {
       );
       awards.add(award);
     }
-    if (progress.allRoundsCompleted) {
-      final completionAward = await playerLevelService
-          .awardForChallengeCompletion(
-            challengeRunId: progress.run.id,
-            challengeLabel: progress.template.id,
-            completedAt: awardedAt ?? DateTime.now(),
-            rewardXp: completionBonusXpFor(
-              progress.template,
-              progress.run.trainingLevel,
-            ),
-          );
-      awards.add(completionAward);
-      await completeRun(
-        progress.run.id,
-        completedAt: awardedAt ?? DateTime.now(),
-        completedRoundNumbers: _completedRoundNumbers(progress),
-      );
-    }
     return awards;
   }
 

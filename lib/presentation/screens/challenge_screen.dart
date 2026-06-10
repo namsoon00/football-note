@@ -82,6 +82,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isParentReadOnlyMode = _isParentReadOnlyMode;
+    final canRunChallengeSideEffects =
+        !isParentReadOnlyMode && (ModalRoute.of(context)?.isCurrent ?? true);
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.challengeTitle),
@@ -124,11 +126,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     trainingEntries: trainingEntries,
                     mealEntries: mealEntries,
                   );
-                  if (progress != null && !isParentReadOnlyMode) {
+                  if (progress != null && canRunChallengeSideEffects) {
                     _scheduleRoundAwardSync(progress);
                     _scheduleFinalizeSync(progress);
                   }
-                  if (!isParentReadOnlyMode) {
+                  if (canRunChallengeSideEffects) {
                     _scheduleChallengeReminderSync(progress);
                   }
                   final skillOptions = _challengeProgramSkillOptions(
@@ -2894,6 +2896,13 @@ class _RoundFocusCard extends StatelessWidget {
       l10n,
       progress.run.selectedSkillIds,
     );
+    final isCurrentRound = round.isToday && !round.completed;
+    final activeGreen = theme.brightness == Brightness.dark
+        ? const Color(0xFF63C986)
+        : const Color(0xFF2E7D32);
+    final activeGreenContainer = theme.brightness == Brightness.dark
+        ? const Color(0xFF123D24)
+        : const Color(0xFFE2F7E8);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -2901,12 +2910,18 @@ class _RoundFocusCard extends StatelessWidget {
           begin: AlignmentDirectional.topStart,
           end: AlignmentDirectional.bottomEnd,
           colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.08),
+            isCurrentRound
+                ? activeGreenContainer
+                : theme.colorScheme.primary.withValues(alpha: 0.08),
             theme.colorScheme.surface,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        border: Border.all(
+          color: isCurrentRound
+              ? activeGreen.withValues(alpha: 0.38)
+              : theme.colorScheme.outlineVariant,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3299,6 +3314,15 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final activeGreenContainer = theme.brightness == Brightness.dark
+        ? const Color(0xFF123D24)
+        : const Color(0xFFE2F7E8);
+    final activeGreen = theme.brightness == Brightness.dark
+        ? const Color(0xFF63C986)
+        : const Color(0xFF2E7D32);
+    final activeGreenForeground = theme.brightness == Brightness.dark
+        ? const Color(0xFFBDF4CD)
+        : const Color(0xFF0F3D1D);
     final completed = round.completed;
     final missed = round.isMissed;
     final current = round.isToday && !completed && !missed;
@@ -3307,21 +3331,21 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
         : missed
         ? scheme.errorContainer.withValues(alpha: 0.62)
         : current
-        ? scheme.primaryContainer.withValues(alpha: 0.52)
+        ? activeGreenContainer
         : scheme.surfaceContainerHighest.withValues(alpha: 0.62);
     final borderColor = completed
         ? scheme.primary.withValues(alpha: 0.62)
         : missed
         ? scheme.error.withValues(alpha: 0.60)
         : current
-        ? scheme.primary.withValues(alpha: 0.72)
+        ? activeGreen.withValues(alpha: 0.72)
         : scheme.outline.withValues(alpha: 0.32);
     final foreground = completed
         ? scheme.onPrimaryContainer
         : missed
         ? scheme.onErrorContainer
         : current
-        ? scheme.onPrimaryContainer
+        ? activeGreenForeground
         : scheme.onSurfaceVariant;
     final localeName = Localizations.localeOf(context).toLanguageTag();
     final weekday = DateFormat.E(localeName).format(round.date);
@@ -3345,7 +3369,7 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
           boxShadow: current
               ? [
                   BoxShadow(
-                    color: scheme.primary.withValues(alpha: 0.16),
+                    color: activeGreen.withValues(alpha: 0.18),
                     blurRadius: 16,
                     offset: const Offset(0, 8),
                   ),

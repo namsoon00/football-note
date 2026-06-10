@@ -491,9 +491,11 @@ int trainingMinutesForDay(
         0,
         (sum, entry) =>
             sum +
-            entry.durationMinutes +
-            entry.jumpRopeMinutes +
-            entry.liftingMinutes,
+            (usesTrainingPrograms
+                ? trainingProgramMinutesForEntry(entry, skillIds)
+                : entry.durationMinutes +
+                      entry.jumpRopeMinutes +
+                      entry.liftingMinutes),
       );
 }
 
@@ -579,13 +581,32 @@ int trainingProgramMinutesForEntry(
       .toSet();
   if (normalizedTargets.isEmpty) return entry.durationMinutes;
 
-  final programMinutes = entry.effectiveTrainingProgramMinutes;
-  if (programMinutes.isEmpty) {
+  final explicitProgramMinutes = _nonNegativeIntMap(
+    entry.trainingProgramMinutes,
+  );
+  if (explicitProgramMinutes.isNotEmpty) {
+    return _selectedTrainingProgramMinutes(
+      explicitProgramMinutes,
+      normalizedTargets,
+    );
+  }
+
+  if (entry.effectiveTrainingProgramMinutes.isEmpty) {
     return trainingEntryMatchesChallengeSkill(entry, selectedSkillIds)
         ? entry.durationMinutes
         : 0;
   }
 
+  return _selectedTrainingProgramMinutes(
+    entry.effectiveTrainingProgramMinutes,
+    normalizedTargets,
+  );
+}
+
+int _selectedTrainingProgramMinutes(
+  Map<String, int> programMinutes,
+  Set<String> normalizedTargets,
+) {
   var minutes = 0;
   for (final item in programMinutes.entries) {
     final normalizedProgram = _normalizeChallengeSkillText(item.key);
