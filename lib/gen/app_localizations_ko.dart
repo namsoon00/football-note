@@ -789,6 +789,57 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupGroupTeamsTitle => '조별 팀 구성';
 
   @override
+  String worldCupTeamRosterOpenTooltip(String team) {
+    return '$team 선수 명단 열기';
+  }
+
+  @override
+  String worldCupTeamRosterTitle(String team) {
+    return '$team 선수 명단';
+  }
+
+  @override
+  String get worldCupTeamRosterSubtitle => '포지션별 명단과 포메이션 배치로 팀 구성을 빠르게 확인해요.';
+
+  @override
+  String worldCupTeamRosterFormationLabel(String formation) {
+    return '$formation 포메이션';
+  }
+
+  @override
+  String get worldCupTeamRosterSourceNote =>
+      '공식 경기 명단 데이터가 연결되기 전까지 선수 이름은 포지션 슬롯으로 표시됩니다.';
+
+  @override
+  String get worldCupTeamRosterGoalkeepers => '골키퍼';
+
+  @override
+  String get worldCupTeamRosterDefenders => '수비수';
+
+  @override
+  String get worldCupTeamRosterMidfielders => '미드필더';
+
+  @override
+  String get worldCupTeamRosterForwards => '공격수';
+
+  @override
+  String get worldCupTeamRosterPositionGoalkeeper => 'GK';
+
+  @override
+  String get worldCupTeamRosterPositionDefender => 'DF';
+
+  @override
+  String get worldCupTeamRosterPositionMidfielder => 'MF';
+
+  @override
+  String get worldCupTeamRosterPositionForward => 'FW';
+
+  @override
+  String worldCupTeamRosterPlayerSlot(String position, int number) {
+    return '$position $number';
+  }
+
+  @override
   String get worldCupTournamentTitle => '토너먼트 대진표';
 
   @override
@@ -7461,6 +7512,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeHistoryResultInProgress => '진행 중';
+
+  @override
+  String challengeHistoryRoundSuccessCount(int success, int total) {
+    return '성공 $success/$total';
+  }
+
+  @override
+  String challengeHistoryRoundFailureCount(int failure, int total) {
+    return '실패 $failure/$total';
+  }
 
   @override
   String get challengeHistoryDetailTitle => '챌린지 상세';

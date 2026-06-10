@@ -1554,6 +1554,90 @@ abstract class AppLocalizations {
   /// **'Group teams'**
   String get worldCupGroupTeamsTitle;
 
+  /// No description provided for @worldCupTeamRosterOpenTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {team} roster'**
+  String worldCupTeamRosterOpenTooltip(String team);
+
+  /// No description provided for @worldCupTeamRosterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{team} roster'**
+  String worldCupTeamRosterTitle(String team);
+
+  /// No description provided for @worldCupTeamRosterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Position groups and a formation view for quickly reading the squad shape.'**
+  String get worldCupTeamRosterSubtitle;
+
+  /// No description provided for @worldCupTeamRosterFormationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{formation} formation'**
+  String worldCupTeamRosterFormationLabel(String formation);
+
+  /// No description provided for @worldCupTeamRosterSourceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Roster names are shown as position slots until official match squad data is connected.'**
+  String get worldCupTeamRosterSourceNote;
+
+  /// No description provided for @worldCupTeamRosterGoalkeepers.
+  ///
+  /// In en, this message translates to:
+  /// **'Goalkeepers'**
+  String get worldCupTeamRosterGoalkeepers;
+
+  /// No description provided for @worldCupTeamRosterDefenders.
+  ///
+  /// In en, this message translates to:
+  /// **'Defenders'**
+  String get worldCupTeamRosterDefenders;
+
+  /// No description provided for @worldCupTeamRosterMidfielders.
+  ///
+  /// In en, this message translates to:
+  /// **'Midfielders'**
+  String get worldCupTeamRosterMidfielders;
+
+  /// No description provided for @worldCupTeamRosterForwards.
+  ///
+  /// In en, this message translates to:
+  /// **'Forwards'**
+  String get worldCupTeamRosterForwards;
+
+  /// No description provided for @worldCupTeamRosterPositionGoalkeeper.
+  ///
+  /// In en, this message translates to:
+  /// **'GK'**
+  String get worldCupTeamRosterPositionGoalkeeper;
+
+  /// No description provided for @worldCupTeamRosterPositionDefender.
+  ///
+  /// In en, this message translates to:
+  /// **'DF'**
+  String get worldCupTeamRosterPositionDefender;
+
+  /// No description provided for @worldCupTeamRosterPositionMidfielder.
+  ///
+  /// In en, this message translates to:
+  /// **'MF'**
+  String get worldCupTeamRosterPositionMidfielder;
+
+  /// No description provided for @worldCupTeamRosterPositionForward.
+  ///
+  /// In en, this message translates to:
+  /// **'FW'**
+  String get worldCupTeamRosterPositionForward;
+
+  /// No description provided for @worldCupTeamRosterPlayerSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'{position} {number}'**
+  String worldCupTeamRosterPlayerSlot(String position, int number);
+
   /// No description provided for @worldCupTournamentTitle.
   ///
   /// In en, this message translates to:
@@ -13262,6 +13346,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In progress'**
   String get challengeHistoryResultInProgress;
+
+  /// No description provided for @challengeHistoryRoundSuccessCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Success {success}/{total}'**
+  String challengeHistoryRoundSuccessCount(int success, int total);
+
+  /// No description provided for @challengeHistoryRoundFailureCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Fail {failure}/{total}'**
+  String challengeHistoryRoundFailureCount(int failure, int total);
 
   /// No description provided for @challengeHistoryDetailTitle.
   ///

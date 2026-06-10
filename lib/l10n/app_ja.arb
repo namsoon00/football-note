@@ -361,6 +361,51 @@
   "worldCupStandingsRuleLabel": "順位基準",
   "worldCupStandingsRuleValue": "勝点 · 直接対決 · 得失点差 · 得点 · 行動スコア · FIFAランキング",
   "worldCupGroupTeamsTitle": "グループ別チーム",
+  "worldCupTeamRosterOpenTooltip": "{team} の選手名簿を開く",
+  "@worldCupTeamRosterOpenTooltip": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterTitle": "{team} 選手名簿",
+  "@worldCupTeamRosterTitle": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterSubtitle": "ポジション別の名簿とフォーメーション配置でチームの形を確認できます。",
+  "worldCupTeamRosterFormationLabel": "{formation} フォーメーション",
+  "@worldCupTeamRosterFormationLabel": {
+    "placeholders": {
+      "formation": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterSourceNote": "公式試合メンバーデータが接続されるまで、選手名はポジション枠として表示されます。",
+  "worldCupTeamRosterGoalkeepers": "ゴールキーパー",
+  "worldCupTeamRosterDefenders": "ディフェンダー",
+  "worldCupTeamRosterMidfielders": "ミッドフィルダー",
+  "worldCupTeamRosterForwards": "フォワード",
+  "worldCupTeamRosterPositionGoalkeeper": "GK",
+  "worldCupTeamRosterPositionDefender": "DF",
+  "worldCupTeamRosterPositionMidfielder": "MF",
+  "worldCupTeamRosterPositionForward": "FW",
+  "worldCupTeamRosterPlayerSlot": "{position} {number}",
+  "@worldCupTeamRosterPlayerSlot": {
+    "placeholders": {
+      "position": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupTournamentTitle": "トーナメント表",
   "worldCupTournamentPlanBody": "現在は公式日程のグループ順位枠と前試合の勝者枠を基準に表示します。グループ結果が確定したら、各枠を実際の国の道筋として追えます。",
   "worldCupStageMatchCount": "{count}試合",
@@ -3911,6 +3956,28 @@
   "challengeHistoryResultFailed": "失敗",
   "challengeHistoryResultAbandoned": "終了",
   "challengeHistoryResultInProgress": "進行中",
+  "challengeHistoryRoundSuccessCount": "成功 {success}/{total}",
+  "@challengeHistoryRoundSuccessCount": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeHistoryRoundFailureCount": "失敗 {failure}/{total}",
+  "@challengeHistoryRoundFailureCount": {
+    "placeholders": {
+      "failure": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "challengeHistoryDetailTitle": "チャレンジ詳細",
   "challengeHistoryDetailCompletedBody": "すべてのラウンドを完了しました。報酬プランとラウンド日を確認しましょう。",
   "challengeHistoryDetailFailedBody": "このチャレンジはラウンド {round} で止まりました。ラウンドの流れと報酬プランを確認しましょう。",

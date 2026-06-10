@@ -176,6 +176,7 @@ class ChallengeRun {
   final bool abandoned;
   final ChallengeRunResult? result;
   final int? failedRoundNumber;
+  final List<int> completedRoundNumbers;
   final List<String> selectedSkillIds;
   final ChallengeMissionTargets? missionTargets;
 
@@ -188,6 +189,7 @@ class ChallengeRun {
     this.abandoned = false,
     this.result,
     this.failedRoundNumber,
+    this.completedRoundNumbers = const <int>[],
     this.selectedSkillIds = defaultChallengeSkillIds,
     this.missionTargets,
   });
@@ -219,6 +221,7 @@ class ChallengeRun {
     bool? abandoned,
     ChallengeRunResult? result,
     int? failedRoundNumber,
+    List<int>? completedRoundNumbers,
     List<String>? selectedSkillIds,
     ChallengeMissionTargets? missionTargets,
   }) {
@@ -231,6 +234,8 @@ class ChallengeRun {
       abandoned: abandoned ?? this.abandoned,
       result: result ?? this.result,
       failedRoundNumber: failedRoundNumber ?? this.failedRoundNumber,
+      completedRoundNumbers:
+          completedRoundNumbers ?? this.completedRoundNumbers,
       selectedSkillIds: selectedSkillIds ?? this.selectedSkillIds,
       missionTargets: missionTargets ?? this.missionTargets,
     );
@@ -246,6 +251,7 @@ class ChallengeRun {
       'abandoned': abandoned,
       'result': result?.name,
       'failedRoundNumber': failedRoundNumber,
+      'completedRoundNumbers': completedRoundNumbers,
       'selectedSkillIds': selectedSkillIds,
       'missionTargets': missionTargets?.toMap(),
     };
@@ -255,6 +261,7 @@ class ChallengeRun {
     final completedAt = DateTime.tryParse(map['completedAt']?.toString() ?? '');
     final abandoned = map['abandoned'] == true;
     final parsedResult = _challengeRunResultFromName(map['result']?.toString());
+    final rawCompletedRoundNumbers = map['completedRoundNumbers'];
     final rawSelectedSkillIds = map['selectedSkillIds'];
     final rawMissionTargets = map['missionTargets'];
     return ChallengeRun(
@@ -279,6 +286,7 @@ class ChallengeRun {
               ? ChallengeRunResult.abandoned
               : ChallengeRunResult.completed),
       failedRoundNumber: (map['failedRoundNumber'] as num?)?.toInt(),
+      completedRoundNumbers: _positiveUniqueIntList(rawCompletedRoundNumbers),
       selectedSkillIds: normalizeChallengeSkillIds(
         (rawSelectedSkillIds as List?)?.map((item) => item.toString()) ??
             defaultChallengeSkillIds,
@@ -648,6 +656,22 @@ ChallengeRunResult? _challengeRunResultFromName(String? raw) {
     if (result.name == raw) return result;
   }
   return null;
+}
+
+List<int> _positiveUniqueIntList(Object? raw) {
+  if (raw is! List) return const <int>[];
+  final seen = <int>{};
+  final result = <int>[];
+  for (final item in raw) {
+    final value = item is num
+        ? item.toInt()
+        : int.tryParse(item?.toString() ?? '');
+    if (value == null || value <= 0 || seen.contains(value)) continue;
+    seen.add(value);
+    result.add(value);
+  }
+  result.sort();
+  return List<int>.unmodifiable(result);
 }
 
 String _normalizeChallengeSkillText(String value) {

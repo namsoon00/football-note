@@ -361,6 +361,51 @@
   "worldCupStandingsRuleLabel": "순위 기준",
   "worldCupStandingsRuleValue": "승점 · 맞대결 · 득실차 · 득점 · 페어플레이 · FIFA 랭킹",
   "worldCupGroupTeamsTitle": "조별 팀 구성",
+  "worldCupTeamRosterOpenTooltip": "{team} 선수 명단 열기",
+  "@worldCupTeamRosterOpenTooltip": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterTitle": "{team} 선수 명단",
+  "@worldCupTeamRosterTitle": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterSubtitle": "포지션별 명단과 포메이션 배치로 팀 구성을 빠르게 확인해요.",
+  "worldCupTeamRosterFormationLabel": "{formation} 포메이션",
+  "@worldCupTeamRosterFormationLabel": {
+    "placeholders": {
+      "formation": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterSourceNote": "공식 경기 명단 데이터가 연결되기 전까지 선수 이름은 포지션 슬롯으로 표시됩니다.",
+  "worldCupTeamRosterGoalkeepers": "골키퍼",
+  "worldCupTeamRosterDefenders": "수비수",
+  "worldCupTeamRosterMidfielders": "미드필더",
+  "worldCupTeamRosterForwards": "공격수",
+  "worldCupTeamRosterPositionGoalkeeper": "GK",
+  "worldCupTeamRosterPositionDefender": "DF",
+  "worldCupTeamRosterPositionMidfielder": "MF",
+  "worldCupTeamRosterPositionForward": "FW",
+  "worldCupTeamRosterPlayerSlot": "{position} {number}",
+  "@worldCupTeamRosterPlayerSlot": {
+    "placeholders": {
+      "position": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupTournamentTitle": "토너먼트 대진표",
   "worldCupTournamentPlanBody": "현재는 공식 일정의 조 순위와 이전 경기 승자 슬롯 기준으로 보여줘요. 조별리그 결과가 확정되면 각 슬롯을 실제 국가명으로 따라갈 수 있어요.",
   "worldCupStageMatchCount": "{count}경기",
@@ -3911,6 +3956,28 @@
   "challengeHistoryResultFailed": "실패",
   "challengeHistoryResultAbandoned": "종료",
   "challengeHistoryResultInProgress": "진행 중",
+  "challengeHistoryRoundSuccessCount": "성공 {success}/{total}",
+  "@challengeHistoryRoundSuccessCount": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeHistoryRoundFailureCount": "실패 {failure}/{total}",
+  "@challengeHistoryRoundFailureCount": {
+    "placeholders": {
+      "failure": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "challengeHistoryDetailTitle": "챌린지 상세",
   "challengeHistoryDetailCompletedBody": "모든 라운드를 완료했어요. 보상 계획과 라운드 날짜를 확인해요.",
   "challengeHistoryDetailFailedBody": "이 챌린지는 {round}라운드에서 멈췄어요. 라운드 흐름과 보상 계획을 확인해요.",
