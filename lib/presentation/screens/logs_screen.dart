@@ -1397,7 +1397,7 @@ class _EntryListItem extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood} · $dateText',
+                  '${_buildSummaryLine(l10n, entry)} · $dateText',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1586,10 +1586,17 @@ class _ThumbPitchPainter extends CustomPainter {
 }
 
 String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
-  final parts = <String>[];
-  parts.add('${l10n.intensity} ${entry.intensity}');
-  parts.add('${l10n.condition} ${entry.mood}');
-  return parts.join('  •  ');
+  return '${l10n.status} ${_trainingStatusLabel(l10n, entry.status)}';
+}
+
+String _trainingStatusLabel(AppLocalizations l10n, String status) {
+  return switch (status) {
+    'great' => l10n.statusGreat,
+    'good' => l10n.statusGood,
+    'tough' => l10n.statusTough,
+    'recovery' => l10n.statusRecovery,
+    _ => l10n.statusNormal,
+  };
 }
 
 String _entryTitleLabel(TrainingEntry entry, AppLocalizations l10n) {

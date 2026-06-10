@@ -151,19 +151,19 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeGuideTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to your training flow'**
+  /// **'Let\'s tour the screens first'**
   String get welcomeGuideTitle;
 
   /// No description provided for @welcomeGuideIntro.
   ///
   /// In en, this message translates to:
-  /// **'Follow the highlighted actions in order. Each tab starts with the button you are most likely to need.'**
+  /// **'The guide highlights where to tap first, and Rinzy uses coach marks to show the order.'**
   String get welcomeGuideIntro;
 
   /// No description provided for @welcomeGuidePrimaryAction.
   ///
   /// In en, this message translates to:
-  /// **'Start training log'**
+  /// **'Start'**
   String get welcomeGuidePrimaryAction;
 
   /// No description provided for @welcomeGuideSectionFlow.
@@ -177,6 +177,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick another tab above to preview its buttons.'**
   String get welcomeGuideNextTabHint;
+
+  /// No description provided for @welcomeGuidePreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen highlight'**
+  String get welcomeGuidePreviewLabel;
+
+  /// No description provided for @welcomeGuideCoachMarkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach mark'**
+  String get welcomeGuideCoachMarkLabel;
 
   /// No description provided for @parentWelcomeGuideTitle.
   ///
@@ -4117,6 +4129,12 @@ abstract class AppLocalizations {
   /// **'Split one training note into time for each program.'**
   String get entryProgramDurationsSubtitle;
 
+  /// No description provided for @entryProgramDurationTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {minutes}'**
+  String entryProgramDurationTotal(Object minutes);
+
   /// No description provided for @entryProgramDurationAddAction.
   ///
   /// In en, this message translates to:
@@ -5719,6 +5737,12 @@ abstract class AppLocalizations {
   /// **'Weather coach'**
   String get homeWeatherTitle;
 
+  /// No description provided for @homeWeatherTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s weather'**
+  String get homeWeatherTodayTitle;
+
   /// No description provided for @homeWeatherSubtitle.
   ///
   /// In en, this message translates to:
@@ -6000,6 +6024,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Outfit guide'**
   String get homeWeatherOutfitButton;
+
+  /// No description provided for @homeWeatherTodayRecommendationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendations for today\'s weather'**
+  String get homeWeatherTodayRecommendationsTitle;
 
   /// No description provided for @homeWeatherOutfitLayersLabel.
   ///
@@ -6306,6 +6336,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Training focus'**
   String get homeWeatherSuggestionButton;
+
+  /// No description provided for @homeWeatherSuggestionSheetSubtitleDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Best focus for the current weather.'**
+  String get homeWeatherSuggestionSheetSubtitleDefault;
+
+  /// No description provided for @homeWeatherSuggestionSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tailored to {location} weather.'**
+  String homeWeatherSuggestionSheetSubtitle(Object location);
+
+  /// No description provided for @homeWeatherSuggestionFocusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get homeWeatherSuggestionFocusLabel;
+
+  /// No description provided for @homeWeatherSuggestionCautionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Execution tip'**
+  String get homeWeatherSuggestionCautionLabel;
+
+  /// No description provided for @homeWeatherSuggestionRecoveryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery check'**
+  String get homeWeatherSuggestionRecoveryLabel;
 
   /// No description provided for @homeWeatherSuggestionClear.
   ///
@@ -13112,6 +13172,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All rounds are done. You earned +{xp} XP.'**
   String challengeCelebrationCompleteBody(int xp);
+
+  /// No description provided for @challengeCelebrationCompleteBodyNoXp.
+  ///
+  /// In en, this message translates to:
+  /// **'All missions are recorded. Review the challenge completion screen.'**
+  String get challengeCelebrationCompleteBodyNoXp;
 
   /// No description provided for @challengeCelebrationAction.
   ///

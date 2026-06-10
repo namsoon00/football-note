@@ -12,11 +12,13 @@
       "tabName": {}
     }
   },
-  "welcomeGuideTitle": "トレーニング フローへようこそ",
-  "welcomeGuideIntro": "強調表示されたアクションを順番に実行してください。各タブは、必要になる可能性が最も高いボタンから始まります。",
-  "welcomeGuidePrimaryAction": "トレーニング開始ログ",
+  "welcomeGuideTitle": "最初に画面を一緒に確認しましょう",
+  "welcomeGuideIntro": "最初にタップする場所をハイライトし、リンジーがコーチマークで順番を案内します。",
+  "welcomeGuidePrimaryAction": "開始",
   "welcomeGuideSectionFlow": "段階的な流れ",
   "welcomeGuideNextTabHint": "上の別のタブを選択して、そのボタンをプレビューします。",
+  "welcomeGuidePreviewLabel": "画面ハイライト",
+  "welcomeGuideCoachMarkLabel": "コーチマーク",
   "parentWelcomeGuideTitle": "保護者モードガイド",
   "parentWelcomeGuideIntro": "親モードは、プレーヤーの記録を確認し、既存のトレーニング ログにフィードバックを残すためのものです。",
   "parentWelcomeGuideStepLogs": "まず [ログ] タブを開いて、プレーヤーによって保存されたレコードを確認します。",
@@ -1262,6 +1264,12 @@
   "program": "プログラム",
   "entryProgramDurationsTitle": "プログラム別トレーニング時間",
   "entryProgramDurationsSubtitle": "1つのトレーニングノートでプログラムごとの時間を記録します。",
+  "entryProgramDurationTotal": "合計 {minutes}",
+  "@entryProgramDurationTotal": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
   "entryProgramDurationAddAction": "プログラムを追加",
   "entryProgramDurationRemoveTooltip": "プログラム時間を削除",
   "entryProgramDurationEmpty": "プログラム別の時間はまだありません。",
@@ -1557,6 +1565,7 @@
   },
   "diaryCollapseNewsStickers": "ニュースステッカーを折りたたむ",
   "homeWeatherTitle": "天気コーチ",
+  "homeWeatherTodayTitle": "今日の天気",
   "homeWeatherSubtitle": "現地の状況を確認し、トレーニングの焦点を調整します。",
   "homeWeatherLoad": "地元の天気をロードする",
   "homeWeatherLoading": "地元の天気を読み込んでいます...",
@@ -1604,6 +1613,7 @@
   "homeWeatherOutfitWind": "体温を安定させるためにウィンドブレーカーを追加します。",
   "homeWeatherOutfitAirCaution": "空気の質が悪い場合は、通勤時にマスクを着用し、屋外でのハードな作業を減らしてください。",
   "homeWeatherOutfitButton": "服装ガイド",
+  "homeWeatherTodayRecommendationsTitle": "今日の天気に合わせたおすすめ",
   "homeWeatherOutfitLayersLabel": "最上層",
   "homeWeatherOutfitOuterLabel": "外層",
   "homeWeatherOutfitBottomLabel": "底",
@@ -1655,6 +1665,16 @@
   "homeWeatherStatusHazardous": "危険",
   "homeWeatherSuggestionTitle": "推奨されるトレーニングの焦点",
   "homeWeatherSuggestionButton": "トレーニングの焦点",
+  "homeWeatherSuggestionSheetSubtitleDefault": "現在の天気に合った効率的なトレーニング方向です。",
+  "homeWeatherSuggestionSheetSubtitle": "{location} の天気に合わせたトレーニング方向です。",
+  "@homeWeatherSuggestionSheetSubtitle": {
+    "placeholders": {
+      "location": {}
+    }
+  },
+  "homeWeatherSuggestionFocusLabel": "今日の集中",
+  "homeWeatherSuggestionCautionLabel": "運用のヒント",
+  "homeWeatherSuggestionRecoveryLabel": "回復チェック",
   "homeWeatherSuggestionClear": "屋外でのファーストタッチワーク、パスのリズム、短いスプリントセットに適した時期です。",
   "homeWeatherSuggestionCloudy": "戦術的なパターンワークやより長いテンポのドリルには、安定した条件を使用してください。",
   "homeWeatherSuggestionRain": "インドアタッチ、ウォールパス、バランスやコアワークに移行します。",
@@ -3863,6 +3883,7 @@
       }
     }
   },
+  "challengeCelebrationCompleteBodyNoXp": "すべてのミッション記録が完了しました。チャレンジ完了画面で進行状況を確認してください。",
   "challengeCelebrationAction": "いいね!",
   "challengeHistoryTitle": "チャレンジ履歴",
   "challengeHistorySummaryTitle": "チャレンジ概要",

@@ -179,12 +179,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
   void _scheduleFinalizeSync(ChallengeProgress progress) {
     if (!progress.readyToFinalize()) return;
-    final completedRounds = progress.rounds
-        .where((round) => round.completed)
-        .map((round) => round.round.number)
-        .join(',');
-    final signature =
-        '${progress.run.id}:finalize:$completedRounds:${progress.rounds.length}';
+    final signature = _finalizationSignature(progress);
     if (_finalizeInFlight || _lastFinalizeSignature == signature) return;
     _lastFinalizeSignature = signature;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -311,7 +306,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             builder: (_) => _ChallengeFailureScreen(gainedXp: gainedXp),
           ),
         );
-      } else if (gainedXp > 0) {
+      } else {
         _playChallengeSuccessFeedback();
         final awardedRoundCount = progress.completedRoundCount
             .clamp(1, progress.rounds.length)
@@ -334,6 +329,33 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       _finalizeInFlight = false;
       _lastFinalizeSignature = signature;
     }
+  }
+
+  String _finalizationSignature(ChallengeProgress progress) {
+    final completedRounds = progress.rounds
+        .where((round) => round.completed)
+        .map((round) => round.round.number)
+        .join(',');
+    return '${progress.run.id}:finalize:$completedRounds:${progress.rounds.length}';
+  }
+
+  Future<void> _finalizeChallengeIfReadyNow() async {
+    if (_isParentReadOnlyMode || _finalizeInFlight) return;
+    final trainingEntries = (await _activeChallengeTrainingEntries())
+        .where((entry) => !entry.isMatch)
+        .toList(growable: false);
+    final mealEntries = widget.mealLogService.mergedEntries(
+      directEntries: widget.mealLogService.allEntries(),
+      legacyEntries: trainingEntries,
+    );
+    final progress = _challengeService.activeProgress(
+      trainingEntries: trainingEntries,
+      mealEntries: mealEntries,
+    );
+    if (progress == null || !progress.readyToFinalize()) return;
+    final signature = _finalizationSignature(progress);
+    if (_lastFinalizeSignature == signature) return;
+    await _syncFinalization(progress, signature);
   }
 
   Future<void> _showChallengeXpAlerts(
@@ -568,6 +590,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       ),
     );
     if (!mounted) return;
+    await _finalizeChallengeIfReadyNow();
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -616,6 +640,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         ),
       ),
     );
+    if (!mounted) return;
+    await _finalizeChallengeIfReadyNow();
     if (mounted) setState(() {});
   }
 
@@ -3577,7 +3603,7 @@ class _ChallengeFailureScreen extends StatelessWidget {
                           CryingRinzyMascot(
                             size: MediaQuery.sizeOf(
                               context,
-                            ).width.clamp(220, 340).toDouble(),
+                            ).shortestSide.clamp(150, 220).toDouble(),
                           ),
                           const SizedBox(height: 24),
                           Text(
@@ -3648,10 +3674,26 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
         ? l10n.challengeCelebrationCompleteTitle
         : l10n.challengeCelebrationTitle;
     final body = challengeCompleted
-        ? l10n.challengeCelebrationCompleteBody(gainedXp)
+        ? (gainedXp > 0
+              ? l10n.challengeCelebrationCompleteBody(gainedXp)
+              : l10n.challengeCelebrationCompleteBodyNoXp)
         : l10n.challengeCelebrationBody(awardedRoundCount, gainedXp);
+    final mascotSize = MediaQuery.sizeOf(
+      context,
+    ).shortestSide.clamp(154, 220).toDouble();
     return Scaffold(
-      body: AppBackground(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              theme.colorScheme.primaryContainer.withValues(alpha: 0.58),
+              theme.colorScheme.surface,
+              theme.colorScheme.secondaryContainer.withValues(alpha: 0.42),
+            ],
+          ),
+        ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
@@ -3668,57 +3710,79 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
                 Expanded(
                   child: Center(
                     child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CheerRinzyMascot(
-                            size: MediaQuery.sizeOf(
-                              context,
-                            ).width.clamp(240, 360).toDouble(),
-                            progress: 1,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface.withValues(
+                            alpha: 0.9,
                           ),
-                          const SizedBox(height: 24),
-                          Text(
-                            title,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w900,
+                          borderRadius: BorderRadius.circular(26),
+                          border: Border.all(
+                            color: theme.colorScheme.outlineVariant.withValues(
+                              alpha: 0.56,
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            body,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w700,
-                              height: 1.35,
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.12,
+                              ),
+                              blurRadius: 28,
+                              offset: const Offset(0, 16),
                             ),
-                          ),
-                          const SizedBox(height: 20),
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              if (challengeCompleted && roundGainedXp > 0)
-                                _SmallStatusPill(
-                                  label: l10n.challengeRoundXpLabel(
-                                    roundGainedXp,
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CheerRinzyMascot(size: mascotSize, progress: 1),
+                            const SizedBox(height: 18),
+                            Text(
+                              title,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              body,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w700,
+                                height: 1.35,
+                              ),
+                            ),
+                            if (gainedXp > 0) ...[
+                              const SizedBox(height: 18),
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  if (challengeCompleted && roundGainedXp > 0)
+                                    _SmallStatusPill(
+                                      label: l10n.challengeRoundXpLabel(
+                                        roundGainedXp,
+                                      ),
+                                    ),
+                                  if (challengeCompleted &&
+                                      completionGainedXp > 0)
+                                    _SmallStatusPill(
+                                      label: l10n.challengeCompletionBonusLabel(
+                                        completionGainedXp,
+                                      ),
+                                    ),
+                                  _SmallStatusPill(
+                                    label: l10n.challengeRewardXp(gainedXp),
                                   ),
-                                ),
-                              if (challengeCompleted && completionGainedXp > 0)
-                                _SmallStatusPill(
-                                  label: l10n.challengeCompletionBonusLabel(
-                                    completionGainedXp,
-                                  ),
-                                ),
-                              _SmallStatusPill(
-                                label: l10n.challengeRewardXp(gainedXp),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

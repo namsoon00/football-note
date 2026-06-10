@@ -12,11 +12,13 @@
       "tabName": {}
     }
   },
-  "welcomeGuideTitle": "Welcome to your training flow",
-  "welcomeGuideIntro": "Follow the highlighted actions in order. Each tab starts with the button you are most likely to need.",
-  "welcomeGuidePrimaryAction": "Start training log",
+  "welcomeGuideTitle": "Let's tour the screens first",
+  "welcomeGuideIntro": "The guide highlights where to tap first, and Rinzy uses coach marks to show the order.",
+  "welcomeGuidePrimaryAction": "Start",
   "welcomeGuideSectionFlow": "Step-by-step flow",
   "welcomeGuideNextTabHint": "Pick another tab above to preview its buttons.",
+  "welcomeGuidePreviewLabel": "Screen highlight",
+  "welcomeGuideCoachMarkLabel": "Coach mark",
   "parentWelcomeGuideTitle": "Parent Mode Guide",
   "parentWelcomeGuideIntro": "Parent mode is for reviewing player records and leaving feedback on existing training logs.",
   "parentWelcomeGuideStepLogs": "Open the Logs tab first to review records saved by the player.",
@@ -1262,6 +1264,12 @@
   "program": "Program",
   "entryProgramDurationsTitle": "Program training time",
   "entryProgramDurationsSubtitle": "Split one training note into time for each program.",
+  "entryProgramDurationTotal": "Total {minutes}",
+  "@entryProgramDurationTotal": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
   "entryProgramDurationAddAction": "Add program",
   "entryProgramDurationRemoveTooltip": "Remove program time",
   "entryProgramDurationEmpty": "No program-specific time yet.",
@@ -1557,6 +1565,7 @@
   },
   "diaryCollapseNewsStickers": "Collapse news stickers",
   "homeWeatherTitle": "Weather coach",
+  "homeWeatherTodayTitle": "Today's weather",
   "homeWeatherSubtitle": "Check local conditions and adjust training focus.",
   "homeWeatherLoad": "Load local weather",
   "homeWeatherLoading": "Loading local weather...",
@@ -1604,6 +1613,7 @@
   "homeWeatherOutfitWind": "Add a windbreaker to keep body temperature stable.",
   "homeWeatherOutfitAirCaution": "If air quality is poor, wear a mask when commuting and reduce hard outdoor work.",
   "homeWeatherOutfitButton": "Outfit guide",
+  "homeWeatherTodayRecommendationsTitle": "Recommendations for today's weather",
   "homeWeatherOutfitLayersLabel": "Top layers",
   "homeWeatherOutfitOuterLabel": "Outer layer",
   "homeWeatherOutfitBottomLabel": "Bottom",
@@ -1655,6 +1665,16 @@
   "homeWeatherStatusHazardous": "Hazardous",
   "homeWeatherSuggestionTitle": "Suggested training focus",
   "homeWeatherSuggestionButton": "Training focus",
+  "homeWeatherSuggestionSheetSubtitleDefault": "Best focus for the current weather.",
+  "homeWeatherSuggestionSheetSubtitle": "Tailored to {location} weather.",
+  "@homeWeatherSuggestionSheetSubtitle": {
+    "placeholders": {
+      "location": {}
+    }
+  },
+  "homeWeatherSuggestionFocusLabel": "Focus",
+  "homeWeatherSuggestionCautionLabel": "Execution tip",
+  "homeWeatherSuggestionRecoveryLabel": "Recovery check",
   "homeWeatherSuggestionClear": "Good time for outdoor first-touch work, passing rhythm, and short sprint sets.",
   "homeWeatherSuggestionCloudy": "Use the stable conditions for tactical pattern work and longer tempo drills.",
   "homeWeatherSuggestionRain": "Shift to indoor touches, wall passing, and balance or core work.",
@@ -3863,6 +3883,7 @@
       }
     }
   },
+  "challengeCelebrationCompleteBodyNoXp": "All missions are recorded. Review the challenge completion screen.",
   "challengeCelebrationAction": "Nice!",
   "challengeHistoryTitle": "Challenge history",
   "challengeHistorySummaryTitle": "Challenge summary",

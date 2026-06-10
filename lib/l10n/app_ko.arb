@@ -12,11 +12,13 @@
       "tabName": {}
     }
   },
-  "welcomeGuideTitle": "훈련 기록 흐름에 오신 걸 환영해요",
-  "welcomeGuideIntro": "강조된 버튼을 순서대로 따라가면 첫 기록부터 복기까지 빠르게 이어집니다.",
-  "welcomeGuidePrimaryAction": "훈련 기록 시작",
+  "welcomeGuideTitle": "처음 쓰는 화면을 같이 둘러볼게요",
+  "welcomeGuideIntro": "화면에서 먼저 눌러볼 곳을 하이라이트하고, 린지가 코치마크로 사용 순서를 알려줘요.",
+  "welcomeGuidePrimaryAction": "시작하기",
   "welcomeGuideSectionFlow": "순서대로 해보기",
   "welcomeGuideNextTabHint": "위 탭을 바꾸면 다른 화면의 버튼 흐름을 볼 수 있어요.",
+  "welcomeGuidePreviewLabel": "화면 하이라이트",
+  "welcomeGuideCoachMarkLabel": "코치마크",
   "parentWelcomeGuideTitle": "보호자 모드 안내",
   "parentWelcomeGuideIntro": "보호자 모드에서는 선수 기록을 확인하고, 기존 훈련기록에 피드백만 남길 수 있어요.",
   "parentWelcomeGuideStepLogs": "훈련기록 탭에서 선수가 저장한 기록을 먼저 열어보세요.",
@@ -1262,6 +1264,12 @@
   "program": "훈련 프로그램",
   "entryProgramDurationsTitle": "프로그램별 훈련 시간",
   "entryProgramDurationsSubtitle": "한 훈련 노트 안에서 프로그램마다 시간을 나눠 기록하세요.",
+  "entryProgramDurationTotal": "합계 {minutes}",
+  "@entryProgramDurationTotal": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
   "entryProgramDurationAddAction": "프로그램 추가",
   "entryProgramDurationRemoveTooltip": "프로그램 시간 삭제",
   "entryProgramDurationEmpty": "아직 프로그램별 시간이 없어요.",
@@ -1557,6 +1565,7 @@
   },
   "diaryCollapseNewsStickers": "소식 스티커 접기",
   "homeWeatherTitle": "날씨 코치",
+  "homeWeatherTodayTitle": "오늘 날씨",
   "homeWeatherSubtitle": "현재 날씨를 보고 오늘 훈련 강도를 조절해 보세요.",
   "homeWeatherLoad": "현재 위치 날씨 불러오기",
   "homeWeatherLoading": "현재 위치 날씨를 불러오는 중...",
@@ -1604,6 +1613,7 @@
   "homeWeatherOutfitWind": "바람막이를 덧입고 체온이 떨어지지 않게 하세요.",
   "homeWeatherOutfitAirCaution": "대기질이 나쁘면 이동 시 마스크를 착용하고 야외 고강도는 줄이세요.",
   "homeWeatherOutfitButton": "추천 복장",
+  "homeWeatherTodayRecommendationsTitle": "오늘 날씨에 맞춘 추천",
   "homeWeatherOutfitLayersLabel": "상의 조합",
   "homeWeatherOutfitOuterLabel": "겉옷",
   "homeWeatherOutfitBottomLabel": "하의",
@@ -1655,6 +1665,16 @@
   "homeWeatherStatusHazardous": "위험",
   "homeWeatherSuggestionTitle": "추천 훈련 포인트",
   "homeWeatherSuggestionButton": "추천 훈련 포인트",
+  "homeWeatherSuggestionSheetSubtitleDefault": "지금 날씨에서 효율적인 훈련 방향입니다.",
+  "homeWeatherSuggestionSheetSubtitle": "{location} 날씨에 맞춘 훈련 방향입니다.",
+  "@homeWeatherSuggestionSheetSubtitle": {
+    "placeholders": {
+      "location": {}
+    }
+  },
+  "homeWeatherSuggestionFocusLabel": "오늘 집중",
+  "homeWeatherSuggestionCautionLabel": "운영 팁",
+  "homeWeatherSuggestionRecoveryLabel": "회복 체크",
   "homeWeatherSuggestionClear": "야외에서 퍼스트 터치, 패스 리듬, 짧은 스프린트 세트를 소화하기 좋은 날씨예요.",
   "homeWeatherSuggestionCloudy": "컨디션이 안정적이라 전술 패턴 연습과 템포 유지 훈련을 길게 가져가기 좋습니다.",
   "homeWeatherSuggestionRain": "실내 볼 터치, 벽 패스, 밸런스와 코어 중심 훈련으로 전환하는 편이 좋습니다.",
@@ -3863,6 +3883,7 @@
       }
     }
   },
+  "challengeCelebrationCompleteBodyNoXp": "모든 미션 기록이 끝났어요. 챌린지 완료 화면에서 진행을 확인하세요.",
   "challengeCelebrationAction": "좋아!",
   "challengeHistoryTitle": "챌린지 히스토리",
   "challengeHistorySummaryTitle": "챌린지 요약",
