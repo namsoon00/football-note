@@ -504,6 +504,64 @@ void main() {
     }
   });
 
+  testWidgets('lifting minutes count toward today tasks', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    await trainingService.add(
+      TrainingEntry(
+        date: today,
+        createdAt: now,
+        durationMinutes: 0,
+        intensity: 3,
+        type: '리프팅',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '',
+        liftingMinutes: 12,
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeHubScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          onCreate: () {},
+          onQuickPlan: () {},
+          onQuickMatch: () {},
+          onQuickQuiz: () {},
+          onQuickMeal: () {},
+          onQuickBoard: () {},
+          onOpenPlans: () {},
+          onOpenLogs: () {},
+          onOpenDiary: () {},
+          onOpenWeeklyStats: () {},
+          onEdit: (_) {},
+          onEditTrainingBoard: (_) {},
+          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('오늘 할일'), findsOneWidget);
+    expect(find.text('2/8 완료'), findsOneWidget);
+    expect(find.text('리프팅'), findsOneWidget);
+  });
+
   testWidgets('parent mode continue actions stay read-only from home', (
     WidgetTester tester,
   ) async {
