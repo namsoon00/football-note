@@ -201,6 +201,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         l10n.defaultProgram2,
         l10n.defaultProgram3,
         l10n.defaultProgram4,
+        l10n.challengeLiftingLabel,
+        l10n.challengeJumpRopeLabel,
       ],
     );
     _dailyGoalOptions = _loadOptions(
@@ -908,6 +910,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           l10n.defaultProgram2,
           l10n.defaultProgram3,
           l10n.defaultProgram4,
+          l10n.challengeLiftingLabel,
+          l10n.challengeJumpRopeLabel,
         ];
       default:
         return const <String>[];
@@ -2373,10 +2377,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       parts.add(
         isKo ? '${plan.durationMinutes}분' : '${plan.durationMinutes} min',
       );
-    }
-    final location = plan.location.trim();
-    if (location.isNotEmpty) {
-      parts.add(location);
     }
     final note = plan.note.trim();
     if (note.isNotEmpty) {

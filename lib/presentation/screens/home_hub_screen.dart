@@ -1056,7 +1056,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         scheduledAt: selectedPlan.scheduledAt,
         program: selectedPlan.category,
         durationMinutes: selectedPlan.durationMinutes,
-        location: selectedPlan.location,
+        location: '',
         note: selectedPlan.note,
       ),
     );
@@ -1112,16 +1112,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   String _planLogSubtitle(_DashboardPlan plan, AppLocalizations l10n) {
     final timeLabel = _formatPlanTime(plan.scheduledAt, l10n: l10n);
     final durationLabel = l10n.minutes(plan.durationMinutes);
-    final location = plan.location.trim();
     final note = plan.note.trim();
-    if (note.isEmpty && location.isEmpty) {
+    if (note.isEmpty) {
       return '$timeLabel · $durationLabel';
     }
-    final extras = <String>[
-      if (location.isNotEmpty) location,
-      if (note.isNotEmpty) note,
-    ];
-    return '$timeLabel · $durationLabel · ${extras.join(' · ')}';
+    return '$timeLabel · $durationLabel · $note';
   }
 
   void _openTodayBoardSketch(_HomeHubData data) {
@@ -1417,7 +1412,6 @@ class _HomeHubData {
       plan.scheduledAt.day,
     );
     final normalizedCategory = plan.category.trim().toLowerCase();
-    final normalizedLocation = plan.location.trim().toLowerCase();
     var hasTrainingEntryOnPlanDay = false;
     for (final entry in entries) {
       if (entry.isMatch) continue;
@@ -1428,7 +1422,7 @@ class _HomeHubData {
       );
       if (entryDay != planDay) continue;
       hasTrainingEntryOnPlanDay = true;
-      if (normalizedCategory.isEmpty && normalizedLocation.isEmpty) {
+      if (normalizedCategory.isEmpty) {
         return true;
       }
       final entryType = entry.type.trim().toLowerCase();
@@ -1437,14 +1431,11 @@ class _HomeHubData {
           .map((program) => program.trim().toLowerCase())
           .where((program) => program.isNotEmpty)
           .toSet();
-      final entryLocation = entry.location.trim().toLowerCase();
       final categoryMatches = normalizedCategory.isEmpty ||
           entryType == normalizedCategory ||
           entryProgram == normalizedCategory ||
           entryPrograms.contains(normalizedCategory);
-      final locationMatches =
-          normalizedLocation.isEmpty || entryLocation == normalizedLocation;
-      if (categoryMatches && locationMatches) {
+      if (categoryMatches) {
         return true;
       }
     }
@@ -1529,12 +1520,10 @@ class _TodayPlanHighlightCard extends StatelessWidget {
     final firstPlan = plans.isEmpty ? null : plans.first;
     final showLogAction =
         firstPlan != null && DateTime.now().isAfter(firstPlan.endsAt);
-    final location = firstPlan?.location.trim() ?? '';
     final category = firstPlan?.category.trim() ?? '';
     final detailText = [
       if (firstPlan != null) _formatPlanTime(firstPlan.scheduledAt, l10n: l10n),
       if (category.isNotEmpty) category,
-      if (location.isNotEmpty) location,
     ].join(' · ');
     final summary = [
       l10n.homeTodayPlanCardSummary(count),

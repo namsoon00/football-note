@@ -115,7 +115,7 @@ void main() {
     expect(find.text('결승'), findsOneWidget);
   });
 
-  testWidgets('interest country editor actions use finite button width', (
+  testWidgets('interest country editor opens without layout exception', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -135,6 +135,37 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.widgetWithText(FilledButton, '저장'), findsOneWidget);
+    expect(find.byType(DraggableScrollableSheet), findsOneWidget);
+  });
+
+  testWidgets('interest country editor dismisses when dragged down', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const WorldCupScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('국가 편집'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('국가 편집'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DraggableScrollableSheet), findsOneWidget);
+    expect(find.byType(CheckboxListTile), findsWidgets);
+
+    await tester.drag(
+      find.byType(DraggableScrollableSheet),
+      const Offset(0, 900),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CheckboxListTile), findsNothing);
   });
 }

@@ -5,8 +5,16 @@ class LocalizedOptionDefaults {
   ];
 
   static const List<List<String>> _programVariants = [
-    ['기본기', '피지컬', '전술', '회복'],
-    ['Fundamentals', 'Physical', 'Tactical', 'Recovery'],
+    ['기본기', '피지컬', '전술', '회복', '리프팅', '줄넘기'],
+    [
+      'Fundamentals',
+      'Physical',
+      'Tactical',
+      'Recovery',
+      'Lifting',
+      'Jump rope'
+    ],
+    ['基本', '物理的な', '戦術的', '回復', 'リフティング', '縄跳び'],
   ];
 
   static const List<List<String>> _dailyGoalVariants = [
@@ -44,8 +52,7 @@ class LocalizedOptionDefaults {
     for (final item in stored) {
       final value = item.trim();
       if (value.isEmpty) continue;
-      final mapped =
-          _translateKnownValue(
+      final mapped = _translateKnownValue(
             value: value,
             variants: variants,
             localizedDefaults: localizedDefaults,
@@ -53,6 +60,14 @@ class LocalizedOptionDefaults {
           value;
       if (!normalized.contains(mapped)) {
         normalized.add(mapped);
+      }
+    }
+    if (key == 'programs') {
+      for (final item in localizedDefaults) {
+        final value = item.trim();
+        if (value.isNotEmpty && !normalized.contains(value)) {
+          normalized.add(value);
+        }
       }
     }
     return normalized.isEmpty
