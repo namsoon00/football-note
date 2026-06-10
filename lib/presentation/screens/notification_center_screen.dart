@@ -10,6 +10,7 @@ import '../../application/training_plan_badge_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
+import '../navigation/notification_tap_router.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -33,8 +34,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   static const _showXpSectionKey = 'notification_show_xp_section_v1';
   static const _showPlanSectionKey = 'notification_show_plan_section_v1';
   static const _showFamilySectionKey = 'notification_show_family_section_v1';
+  static const _showFixtureSectionKey = 'notification_show_fixture_section_v1';
 
   late final TrainingPlanReminderService _reminderService;
+  late final LeagueFixtureReminderService _fixtureReminderService;
   bool _permissionGranted = true;
   bool _loading = true;
   bool _mutedNow = false;
@@ -42,15 +45,21 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   bool _showXpSection = true;
   bool _showPlanSection = true;
   bool _showFamilySection = true;
+  bool _showFixtureSection = true;
   List<_PlanAlarmRow> _planRows = const [];
   List<_XpMessageRow> _xpRows = const [];
   List<_FamilyMessageRow> _familyRows = const [];
+  List<_FixtureMessageRow> _fixtureRows = const [];
   String? _lastTrainingLogAt;
 
   @override
   void initState() {
     super.initState();
     _reminderService = TrainingPlanReminderService(
+      widget.optionRepository,
+      widget.settingsService,
+    );
+    _fixtureReminderService = LeagueFixtureReminderService(
       widget.optionRepository,
       widget.settingsService,
     );
@@ -71,6 +80,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     _showFamilySection =
         widget.optionRepository.getValue<bool>(_showFamilySectionKey) ??
         _showFamilySection;
+    _showFixtureSection =
+        widget.optionRepository.getValue<bool>(_showFixtureSectionKey) ??
+        _showFixtureSection;
   }
 
   void _toggleSection({
@@ -92,6 +104,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       final planRows = _loadPlanRows();
       final xpRows = _loadXpRows(seenXpIds);
       final familyRows = _loadFamilyRows();
+      final fixtureRows = _loadFixtureRows();
+      await _fixtureReminderService.markAllFixtureMessagesRead();
       final lastTrainingLogAt = widget.optionRepository.getValue<String>(
         TrainingPlanReminderService.lastTrainingLogAtKey,
       );
@@ -103,6 +117,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         _planRows = planRows;
         _xpRows = xpRows;
         _familyRows = familyRows;
+        _fixtureRows = fixtureRows;
         _lastTrainingLogAt = lastTrainingLogAt;
         _loading = false;
       });
@@ -113,6 +128,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         _planRows = _loadPlanRows();
         _xpRows = _loadXpRows(const <String>{});
         _familyRows = _loadFamilyRows();
+        _fixtureRows = _loadFixtureRows();
         _loading = false;
       });
     }
@@ -166,6 +182,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     return logs.map(_FamilyMessageRow.fromMap).toList(growable: false);
   }
 
+  List<_FixtureMessageRow> _loadFixtureRows() {
+    final logs = _fixtureReminderService.loadFixtureMessageLogSync();
+    return logs.map(_FixtureMessageRow.fromMap).toList(growable: false);
+  }
+
   Future<void> _deleteMessage(_PlanAlarmRow row) async {
     await _reminderService.dismissMessageKey(row.messageKey);
     await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
@@ -197,6 +218,30 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           .where((item) => item.id != row.id)
           .toList(growable: false);
     });
+  }
+
+  Future<void> _deleteFixtureMessage(_FixtureMessageRow row) async {
+    await _fixtureReminderService.deleteFixtureMessage(row.id);
+    await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
+    if (!mounted) return;
+    setState(() {
+      _fixtureRows = _fixtureRows
+          .where((item) => item.id != row.id)
+          .toList(growable: false);
+    });
+  }
+
+  Widget _deleteBackground(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(Icons.delete_outline, color: scheme.onErrorContainer),
+    );
   }
 
   Future<void> _muteForHours(int hours) async {
@@ -327,28 +372,15 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                 (item) => Dismissible(
                                   key: ValueKey('xp-msg-${item.id}'),
                                   direction: DismissDirection.endToStart,
-                                  background: Container(
-                                    alignment: Alignment.centerRight,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.errorContainer,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      Icons.delete_outline,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onErrorContainer,
-                                    ),
-                                  ),
+                                  background: _deleteBackground(context),
                                   onDismissed: (_) => _deleteXpMessage(item),
                                   child: Card(
                                     margin: const EdgeInsets.only(bottom: 8),
                                     child: ListTile(
+                                      onTap: () =>
+                                          NotificationTapRouter.handlePayload(
+                                            'xp:${item.totalXp}',
+                                          ),
                                       leading: const Icon(Icons.stars_rounded),
                                       title: Row(
                                         children: [
@@ -403,29 +435,16 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                 (item) => Dismissible(
                                   key: ValueKey('family-msg-${item.id}'),
                                   direction: DismissDirection.endToStart,
-                                  background: Container(
-                                    alignment: Alignment.centerRight,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.errorContainer,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      Icons.delete_outline,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onErrorContainer,
-                                    ),
-                                  ),
+                                  background: _deleteBackground(context),
                                   onDismissed: (_) =>
                                       _deleteFamilyMessage(item),
                                   child: Card(
                                     margin: const EdgeInsets.only(bottom: 8),
                                     child: ListTile(
+                                      onTap: () =>
+                                          NotificationTapRouter.handlePayload(
+                                            item.payload,
+                                          ),
                                       leading: const Icon(
                                         Icons.sync_alt_rounded,
                                       ),
@@ -437,6 +456,68 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                         tooltip: l10n.delete,
                                         onPressed: () =>
                                             _deleteFamilyMessage(item),
+                                        icon: const Icon(Icons.delete_outline),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(growable: false),
+                        ),
+                ),
+                const SizedBox(height: 8),
+                _NotificationSectionCard(
+                  title: l10n.notificationFixtureSectionTitle(
+                    _fixtureRows.length,
+                  ),
+                  icon: Icons.sports_soccer_rounded,
+                  expanded: _showFixtureSection,
+                  onTap: () => _toggleSection(
+                    storageKey: _showFixtureSectionKey,
+                    currentValue: _showFixtureSection,
+                    apply: (next) => _showFixtureSection = next,
+                  ),
+                  child: _fixtureRows.isEmpty
+                      ? ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.sports_soccer_outlined),
+                          title: Text(l10n.notificationFixtureEmpty),
+                        )
+                      : Column(
+                          children: _fixtureRows
+                              .map(
+                                (item) => Dismissible(
+                                  key: ValueKey('fixture-msg-${item.id}'),
+                                  direction: DismissDirection.endToStart,
+                                  background: _deleteBackground(context),
+                                  onDismissed: (_) =>
+                                      _deleteFixtureMessage(item),
+                                  child: Card(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: ListTile(
+                                      onTap: () =>
+                                          NotificationTapRouter.handlePayload(
+                                            item.payload,
+                                          ),
+                                      leading: Icon(
+                                        item.isWorldCup
+                                            ? Icons.emoji_events_outlined
+                                            : Icons.sports_soccer_rounded,
+                                      ),
+                                      title: Text(
+                                        item.title.isEmpty
+                                            ? item.leagueName
+                                            : item.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      subtitle: Text(
+                                        '${item.body}\n${DateFormat(isKo ? 'M/d(E) HH:mm' : 'EEE, M/d HH:mm').format(item.kickoffAt)}',
+                                      ),
+                                      trailing: IconButton(
+                                        tooltip: l10n.delete,
+                                        onPressed: () =>
+                                            _deleteFixtureMessage(item),
                                         icon: const Icon(Icons.delete_outline),
                                       ),
                                     ),
@@ -477,24 +558,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                 (item) => Dismissible(
                                   key: ValueKey('alarm-msg-${item.messageKey}'),
                                   direction: DismissDirection.endToStart,
-                                  background: Container(
-                                    alignment: Alignment.centerRight,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.errorContainer,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      Icons.delete_outline,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onErrorContainer,
-                                    ),
-                                  ),
+                                  background: _deleteBackground(context),
                                   onDismissed: (_) => _deleteMessage(item),
                                   child: Card(
                                     margin: const EdgeInsets.only(bottom: 8),
@@ -526,6 +590,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                         '${DateFormat(isKo ? 'M/d(E)' : 'EEE, M/d').format(item.scheduledAt)}'
                                         '${item.scheduleSummary.isEmpty ? '' : '\n${item.scheduleSummary}'}',
                                       ),
+                                      onTap: () =>
+                                          NotificationTapRouter.handlePayload(
+                                            item.id,
+                                          ),
                                       trailing: IconButton(
                                         tooltip: isKo ? '삭제' : 'Delete',
                                         onPressed: () => _deleteMessage(item),
@@ -1048,12 +1116,14 @@ class _FamilyMessageRow {
   final DateTime createdAt;
   final String title;
   final String body;
+  final String payload;
 
   const _FamilyMessageRow({
     required this.id,
     required this.createdAt,
     required this.title,
     required this.body,
+    required this.payload,
   });
 
   factory _FamilyMessageRow.fromMap(Map<String, dynamic> map) {
@@ -1064,6 +1134,47 @@ class _FamilyMessageRow {
           DateTime.now(),
       title: map['title']?.toString() ?? '',
       body: map['body']?.toString() ?? '',
+      payload: map['payload']?.toString() ?? '',
+    );
+  }
+}
+
+class _FixtureMessageRow {
+  final String id;
+  final String payload;
+  final DateTime scheduledAt;
+  final DateTime kickoffAt;
+  final String title;
+  final String body;
+  final String leagueName;
+  final bool isWorldCup;
+
+  const _FixtureMessageRow({
+    required this.id,
+    required this.payload,
+    required this.scheduledAt,
+    required this.kickoffAt,
+    required this.title,
+    required this.body,
+    required this.leagueName,
+    required this.isWorldCup,
+  });
+
+  factory _FixtureMessageRow.fromMap(Map<String, dynamic> map) {
+    final kickoffAt =
+        DateTime.tryParse(map['kickoffAt']?.toString() ?? '') ??
+        DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+        DateTime.now();
+    return _FixtureMessageRow(
+      id: map['id']?.toString() ?? '',
+      payload: map['payload']?.toString() ?? '',
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ?? kickoffAt,
+      kickoffAt: kickoffAt,
+      title: map['title']?.toString() ?? '',
+      body: map['body']?.toString() ?? '',
+      leagueName: map['leagueName']?.toString() ?? '',
+      isWorldCup: (map['kind']?.toString() ?? '') == 'worldCup',
     );
   }
 }

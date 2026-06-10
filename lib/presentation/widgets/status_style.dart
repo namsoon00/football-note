@@ -20,19 +20,19 @@ TrainingStatusVisual trainingStatusVisual(String status) {
   switch (status) {
     case 'great':
       return const TrainingStatusVisual(
-        icon: Icons.thumb_up_alt_rounded,
+        icon: Icons.emoji_events_rounded,
         color: Color(0xFFFFC24D),
         gradientStart: Color(0xFFFFE082),
         gradientEnd: Color(0xFFFF8F00),
-        sparkleIcon: Icons.auto_awesome_rounded,
+        sparkleIcon: Icons.sports_score_rounded,
       );
     case 'good':
       return const TrainingStatusVisual(
-        icon: Icons.sentiment_satisfied_alt_rounded,
+        icon: Icons.sports_soccer_rounded,
         color: Color(0xFF00C9A7),
         gradientStart: Color(0xFF6FFFE9),
         gradientEnd: Color(0xFF00A3C4),
-        sparkleIcon: Icons.thumb_up_rounded,
+        sparkleIcon: Icons.check_rounded,
       );
     case 'tough':
       return const TrainingStatusVisual(
@@ -44,7 +44,7 @@ TrainingStatusVisual trainingStatusVisual(String status) {
       );
     case 'recovery':
       return const TrainingStatusVisual(
-        icon: Icons.healing_rounded,
+        icon: Icons.self_improvement_rounded,
         color: Color(0xFF6EC6FF),
         gradientStart: Color(0xFF8EE3F5),
         gradientEnd: Color(0xFF5B86E5),
@@ -53,11 +53,11 @@ TrainingStatusVisual trainingStatusVisual(String status) {
     case 'normal':
     default:
       return const TrainingStatusVisual(
-        icon: Icons.sentiment_neutral_rounded,
+        icon: Icons.shield_rounded,
         color: Color(0xFF7EA8FF),
         gradientStart: Color(0xFF9EC5FF),
         gradientEnd: Color(0xFF5E7BFF),
-        sparkleIcon: Icons.circle_notifications_rounded,
+        sparkleIcon: Icons.sports_soccer_rounded,
       );
   }
 }

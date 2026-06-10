@@ -154,12 +154,14 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                           value:
                               '${_formatAirMetricValue(_pm10)} ${pm10Level.label}',
                           icon: Icons.blur_on_rounded,
+                          airLevel: pm10Level.level,
                         ),
                         _CompactMetricData(
                           label: l10n.homeWeatherPm25,
                           value:
                               '${_formatAirMetricValue(_pm25)} ${pm25Level.label}',
                           icon: Icons.blur_circular_rounded,
+                          airLevel: pm25Level.level,
                         ),
                       ]
                     : const <_CompactMetricData>[],
@@ -1326,11 +1328,13 @@ class _CompactMetricData {
   final String label;
   final String value;
   final IconData icon;
+  final _AirQualityLevel? airLevel;
 
   const _CompactMetricData({
     required this.label,
     required this.value,
     required this.icon,
+    this.airLevel,
   });
 }
 
@@ -1604,6 +1608,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                               label: metrics[index].label,
                               value: metrics[index].value,
                               icon: metrics[index].icon,
+                              airLevel: metrics[index].airLevel,
                             ),
                           ),
                       ],
@@ -1624,23 +1629,32 @@ class _MetricCard extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
+  final _AirQualityLevel? airLevel;
 
   const _MetricCard({
     required this.label,
     required this.value,
     required this.icon,
+    this.airLevel,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = airLevel == null
+        ? null
+        : _airQualityPalette(theme, airLevel!);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.84),
+        color:
+            palette?.background ??
+            theme.colorScheme.surface.withValues(alpha: 0.84),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+          color:
+              palette?.border ??
+              theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
         ),
       ),
       child: Row(
@@ -1649,10 +1663,16 @@ class _MetricCard extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
+              color:
+                  palette?.foreground.withValues(alpha: 0.13) ??
+                  theme.colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 18, color: theme.colorScheme.primary),
+            child: Icon(
+              icon,
+              size: 18,
+              color: palette?.foreground ?? theme.colorScheme.primary,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -1664,7 +1684,9 @@ class _MetricCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color:
+                        palette?.foreground ??
+                        theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
                     height: 1.15,
                   ),
@@ -1675,6 +1697,7 @@ class _MetricCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleSmall?.copyWith(
+                    color: palette?.foreground,
                     fontWeight: FontWeight.w900,
                     height: 1.1,
                   ),

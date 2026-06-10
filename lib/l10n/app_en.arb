@@ -386,7 +386,8 @@
       }
     }
   },
-  "worldCupTeamRosterSourceNote": "Roster names are shown as position slots until official match squad data is connected.",
+  "worldCupTeamRosterSourceNote": "Official 2026 squad data is not bundled for this country yet, so position slots are shown until a stable legal source is connected.",
+  "worldCupTeamRosterCandidateSourceNote": "Shown as a recent public national-team player pool, not a final FIFA match squad. Final 2026 squad data can change before kickoff.",
   "worldCupTeamRosterGoalkeepers": "Goalkeepers",
   "worldCupTeamRosterDefenders": "Defenders",
   "worldCupTeamRosterMidfielders": "Midfielders",
@@ -1401,6 +1402,28 @@
   "languageJapanese": "Japanese",
   "settings": "Settings",
   "settingsGeneralSection": "General",
+  "settingsApiUsageTitle": "APIs used in this app",
+  "settingsApiUsageSubtitle": "This app uses the following public or consent-based APIs. Quotas can change by provider, so the app caches where possible and limits background refreshes.",
+  "settingsApiTrafficLabel": "Traffic",
+  "settingsApiLegalLabel": "Legal use",
+  "settingsApiOpenMeteoProvider": "Open-Meteo weather, air quality, geocoding, and archive APIs",
+  "settingsApiOpenMeteoTraffic": "Free public service with fair-use expectations; requests are cached for weather views and refreshed only when needed.",
+  "settingsApiOpenMeteoLegal": "Used under Open-Meteo public API terms with attribution/source surfaces in weather features.",
+  "settingsApiKoreaPublicProvider": "Korea public data APIs for weather and air quality",
+  "settingsApiKoreaPublicTraffic": "Quota depends on the issued public-data service key and agency limits.",
+  "settingsApiKoreaPublicLegal": "Used with an issued service key under the Korean public data portal terms.",
+  "settingsApiKakaoProvider": "Kakao Local search/geocoding API",
+  "settingsApiKakaoTraffic": "Quota depends on the registered Kakao Developers app and REST API key.",
+  "settingsApiKakaoLegal": "Used only when the app key/platform configuration permits it under Kakao Developers terms.",
+  "settingsApiFootballProvider": "Football schedule, standings, and World Cup source pages/APIs",
+  "settingsApiFootballTraffic": "Read-only fetches are cached and retried conservatively; availability depends on the source service.",
+  "settingsApiFootballLegal": "Uses public fixture/standings data for in-app display and links/source labels where provided.",
+  "settingsApiNewsProvider": "RSS feeds and news fetch helpers",
+  "settingsApiNewsTraffic": "RSS/news responses are cached and filtered to reduce repeated traffic.",
+  "settingsApiNewsLegal": "Shows article metadata and opens the original publisher page instead of republishing full articles.",
+  "settingsApiGoogleProvider": "Google Drive and Firebase services",
+  "settingsApiGoogleTraffic": "Traffic follows the connected Google Cloud project and user Drive quota.",
+  "settingsApiGoogleLegal": "Drive access uses user consent and app backup scopes for the user's own files.",
   "account": "Account",
   "signInWithGoogle": "Sign in with Google",
   "signInFailed": "Sign-in failed. Please try again.",
@@ -1505,6 +1528,15 @@
     }
   },
   "notificationFamilyEmpty": "No parent sync alerts yet.",
+  "notificationFixtureSectionTitle": "{count} fixture alert(s)",
+  "@notificationFixtureSectionTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationFixtureEmpty": "No fixture alerts yet.",
   "notificationFamilySettingsTitle": "Parent sync alerts",
   "notificationFamilySettingsSubtitle": "Notify when player logs or guardian feedback/rewards sync.",
   "notificationLeagueFixtureSettingsTitle": "Favorite team match alerts",

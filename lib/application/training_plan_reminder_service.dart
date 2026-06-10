@@ -9,9 +9,12 @@ import 'package:timezone/timezone.dart' as tz;
 import '../domain/entities/challenge.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
+import 'league_fixture_reminder_service.dart';
 import 'settings_service.dart';
 
 class TrainingPlanReminderService {
+  static void Function(String? payload)? onNotificationPayloadTap;
+
   static const String plansStorageKey = 'training_plans_v1';
   static const String reminderIdsKey = 'training_plan_reminder_ids_v1';
   static const String reminderReadIdsKey = 'training_plan_reminder_read_ids_v1';
@@ -81,7 +84,12 @@ class TrainingPlanReminderService {
         requestSoundPermission: false,
       ),
     );
-    await _plugin.initialize(initSettings);
+    await _plugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (response) {
+        onNotificationPayloadTap?.call(response.payload);
+      },
+    );
 
     final androidImpl = _plugin
         .resolvePlatformSpecificImplementation<
@@ -125,6 +133,14 @@ class TrainingPlanReminderService {
     await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
 
     _initialized = true;
+  }
+
+  Future<String?> launchPayload() async {
+    await initialize();
+    if (kIsWeb) return null;
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp != true) return null;
+    return details?.notificationResponse?.payload;
   }
 
   Future<void> syncFromStorage() async {
@@ -951,7 +967,23 @@ class TrainingPlanReminderService {
       if (id.isEmpty) return false;
       return !familyReadIds.contains(id);
     }).length;
-    return xpUnread + familyUnread;
+    final fixtureLogs =
+        _options.getValue<List>(
+          LeagueFixtureReminderService.fixtureMessageLogKey,
+        ) ??
+        const [];
+    final fixtureReadRaw =
+        _options.getValue<List>(
+          LeagueFixtureReminderService.fixtureMessageReadIdsKey,
+        ) ??
+        const [];
+    final fixtureReadIds = fixtureReadRaw.map((e) => e.toString()).toSet();
+    final fixtureUnread = fixtureLogs.whereType<Map>().where((item) {
+      final id = item['id']?.toString() ?? '';
+      if (id.isEmpty) return false;
+      return !fixtureReadIds.contains(id);
+    }).length;
+    return xpUnread + familyUnread + fixtureUnread;
   }
 
   Future<void> markAllRemindersRead() async {

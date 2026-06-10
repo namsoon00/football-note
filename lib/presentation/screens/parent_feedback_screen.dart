@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -155,22 +157,25 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     }
     setState(() => _isSaving = true);
     try {
+      final canEdit = _canEdit;
       final saved = await _feedbackService.saveFeedbackForEntry(
         widget.entry,
-        _canEdit ? _controller.text : _savedMessage,
-        _canEdit ? _savedReactions : _selectedReactions.toList(),
+        canEdit ? _controller.text : _savedMessage,
+        canEdit ? _savedReactions : _selectedReactions.toList(),
       );
-      final didSync = await _syncParentSharedDataIfPossible();
+      final syncFuture = _syncParentSharedDataIfPossible(canEdit: canEdit);
       if (!mounted) {
+        unawaited(syncFuture);
         return;
       }
       Navigator.of(context).pop(
         ParentFeedbackScreenResult(
           changed: true,
           feedback: saved,
-          didSync: didSync,
+          didSync: false,
         ),
       );
+      unawaited(syncFuture);
     } catch (_) {
       if (!mounted) {
         return;
@@ -181,13 +186,13 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     }
   }
 
-  Future<bool> _syncParentSharedDataIfPossible() async {
+  Future<bool> _syncParentSharedDataIfPossible({required bool canEdit}) async {
     final backup = widget.driveBackupService;
     if (backup == null) {
       return false;
     }
     try {
-      if (_canEdit) {
+      if (canEdit) {
         await backup.markParentSharedDataDirty();
         return await backup.backupIfSignedIn();
       }

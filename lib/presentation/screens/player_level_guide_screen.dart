@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
@@ -226,13 +228,9 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
     ).loadState();
     if (familyState.isParentMode && mounted) {
       setState(() => _syncingRewardLevel = status.reward.level);
-      AppFeedback.showMessage(context, text: l10n.parentSharedSyncInProgress);
-    }
-    final didSync = await _syncSharedBackupIfPossible();
-    if (mounted && _syncingRewardLevel == status.reward.level) {
-      setState(() => _syncingRewardLevel = null);
-    } else if (!mounted) {
-      _syncingRewardLevel = null;
+      unawaited(_syncRewardNameInBackground(status.reward.level));
+    } else {
+      unawaited(_syncSharedBackupIfPossible());
     }
     if (!context.mounted) return;
     setState(() {});
@@ -241,12 +239,21 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
         : l10n.levelGuideRewardSaved;
     final syncMessage =
         FamilyAccessService(widget.optionRepository).loadState().isParentMode
-        ? (didSync ? l10n.parentSharedSyncDone : l10n.parentSharedSyncPending)
+        ? l10n.parentSharedSyncPending
         : '';
     AppFeedback.showSuccess(
       context,
       text: syncMessage.isEmpty ? baseMessage : '$baseMessage $syncMessage',
     );
+  }
+
+  Future<void> _syncRewardNameInBackground(int level) async {
+    await _syncSharedBackupIfPossible();
+    if (mounted && _syncingRewardLevel == level) {
+      setState(() => _syncingRewardLevel = null);
+    } else if (!mounted) {
+      _syncingRewardLevel = null;
+    }
   }
 
   Future<void> _openXpHistory(BuildContext context) async {

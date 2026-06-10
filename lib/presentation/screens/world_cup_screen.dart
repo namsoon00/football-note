@@ -31,6 +31,8 @@ class WorldCupScreen extends StatefulWidget {
 class _WorldCupScreenState extends State<WorldCupScreen> {
   static const String _supportCountryKey = 'world_cup_support_country_v1';
   static const String _interestCountriesKey = 'world_cup_interest_countries_v1';
+  static const String _countrySettingsExpandedKey =
+      'world_cup_country_settings_expanded_v1';
   static final Uri _sourceUri = Uri.parse(
     'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums',
   );
@@ -43,6 +45,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   String _supportCountry = 'Korea Republic';
   Set<String> _interestCountries = <String>{};
   bool _showSelectedCountriesOnly = false;
+  bool _showCountrySettings = false;
   _WorldCupView _selectedView = _WorldCupView.schedule;
 
   @override
@@ -134,6 +137,27 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Row(
+                children: [
+                  IconButton.filledTonal(
+                    onPressed: () => Navigator.of(context).pop(),
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).backButtonTooltip,
+                    icon: const Icon(Icons.arrow_back_rounded),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.worldCupOverviewTitle,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
               _buildOverview(context),
               const SizedBox(height: 12),
               _buildGuideCard(
@@ -266,7 +290,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                   const spacing = 8.0;
                   final width =
                       (constraints.maxWidth - spacing * (columns - 1)) /
-                          columns;
+                      columns;
                   return Wrap(
                     spacing: spacing,
                     runSpacing: spacing,
@@ -408,86 +432,110 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final interestCountries = _interestCountries.toList()..sort();
+    final selectedSummary = _selectedCountrySet.toList()..sort();
     return WatchCartCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SectionTitle(
-            icon: Icons.flag_rounded,
-            title: l10n.worldCupTeamSettingsTitle,
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _countries.contains(_supportCountry)
-                ? _supportCountry
-                : _countries.first,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.worldCupSupportCountryLabel,
-              border: const OutlineInputBorder(),
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: const EdgeInsets.only(bottom: 6),
+          initiallyExpanded: _showCountrySettings,
+          leading: const Icon(Icons.flag_rounded),
+          title: Text(
+            l10n.worldCupTeamSettingsTitle,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w900,
             ),
-            items: [
-              for (final country in _countries)
-                DropdownMenuItem<String>(
-                  value: country,
-                  child: _CountryLabel(country: country),
-                ),
-            ],
-            onChanged: (value) {
-              if (value == null) return;
-              unawaited(_setSupportCountry(value));
-            },
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.worldCupInterestCountriesLabel,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              TextButton.icon(
-                onPressed: _editInterestCountries,
-                icon: const Icon(Icons.edit_outlined),
-                label: Text(l10n.worldCupEditInterestCountriesAction),
-              ),
-            ],
+          subtitle: Text(
+            selectedSummary.isEmpty
+                ? l10n.worldCupInterestCountriesEmpty
+                : selectedSummary.join(' · '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 6),
-          if (interestCountries.isEmpty)
-            Text(
-              l10n.worldCupInterestCountriesEmpty,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+          onExpansionChanged: (expanded) {
+            setState(() => _showCountrySettings = expanded);
+            unawaited(
+              widget.optionRepository?.setValue(
+                _countrySettingsExpandedKey,
+                expanded,
               ),
-            )
-          else
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final country in interestCountries)
-                  InputChip(
-                    label: _CountryLabel(country: country),
-                    onDeleted: () => _removeInterestCountry(country),
+            );
+          },
+          children: [
+            DropdownButtonFormField<String>(
+              initialValue: _countries.contains(_supportCountry)
+                  ? _supportCountry
+                  : _countries.first,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: l10n.worldCupSupportCountryLabel,
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                for (final country in _countries)
+                  DropdownMenuItem<String>(
+                    value: country,
+                    child: _CountryLabel(country: country),
                   ),
               ],
+              onChanged: (value) {
+                if (value == null) return;
+                unawaited(_setSupportCountry(value));
+              },
             ),
-          const SizedBox(height: 12),
-          FilterChip(
-            avatar: const Icon(Icons.filter_alt_outlined, size: 18),
-            label: Text(l10n.worldCupSelectedCountriesOnly),
-            selected: _showSelectedCountriesOnly,
-            onSelected: _selectedCountrySet.isEmpty
-                ? null
-                : (selected) {
-                    setState(() => _showSelectedCountriesOnly = selected);
-                  },
-          ),
-        ],
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.worldCupInterestCountriesLabel,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: _editInterestCountries,
+                  icon: const Icon(Icons.edit_outlined),
+                  label: Text(l10n.worldCupEditInterestCountriesAction),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            if (interestCountries.isEmpty)
+              Text(
+                l10n.worldCupInterestCountriesEmpty,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final country in interestCountries)
+                    InputChip(
+                      label: _CountryLabel(country: country),
+                      onDeleted: () => _removeInterestCountry(country),
+                    ),
+                ],
+              ),
+            const SizedBox(height: 12),
+            FilterChip(
+              avatar: const Icon(Icons.filter_alt_outlined, size: 18),
+              label: Text(l10n.worldCupSelectedCountriesOnly),
+              selected: _showSelectedCountriesOnly,
+              onSelected: _selectedCountrySet.isEmpty
+                  ? null
+                  : (selected) {
+                      setState(() => _showSelectedCountriesOnly = selected);
+                    },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -530,7 +578,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             headerStyle: HeaderStyle(
               titleCentered: true,
               formatButtonVisible: false,
-              titleTextStyle: theme.textTheme.titleMedium?.copyWith(
+              titleTextStyle:
+                  theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ) ??
                   const TextStyle(fontWeight: FontWeight.w900),
@@ -560,11 +609,11 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                 final selectedCount = _showSelectedCountriesOnly
                     ? 0
                     : fixtures
-                        .where(
-                          (fixture) =>
-                              _fixtureMatchesSelectedCountries(fixture),
-                        )
-                        .length;
+                          .where(
+                            (fixture) =>
+                                _fixtureMatchesSelectedCountries(fixture),
+                          )
+                          .length;
                 return PositionedDirectional(
                   bottom: 2,
                   child: Row(
@@ -690,18 +739,13 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                           padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                           child: Text(
                             l10n.worldCupInterestCountriesLabel,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
                       ),
                       SliverList(
-                        delegate: SliverChildBuilderDelegate((
-                          context,
-                          index,
-                        ) {
+                        delegate: SliverChildBuilderDelegate((context, index) {
                           final country = _countries[index];
                           return CheckboxListTile(
                             value: working.contains(country),
@@ -825,10 +869,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
           l10n.worldCupFixtureNotificationChannelDescription,
       bodyBuilder: (fixture, teamName, opponentName) =>
           l10n.worldCupFixtureNotificationBody(
-        teamName,
-        opponentName,
-        formatter.format(fixture.kickoffLocal),
-      ),
+            teamName,
+            opponentName,
+            formatter.format(fixture.kickoffLocal),
+          ),
     );
   }
 
@@ -843,8 +887,12 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     if (storedSupport != null && _countries.contains(storedSupport)) {
       _supportCountry = storedSupport;
     }
-    _interestCountries =
-        storedInterest.where((country) => _countries.contains(country)).toSet();
+    _interestCountries = storedInterest
+        .where((country) => _countries.contains(country))
+        .toSet();
+    _showCountrySettings =
+        repository.getValue<bool>(_countrySettingsExpandedKey) ??
+        _showCountrySettings;
   }
 
   List<WorldCupFixture> _fixturesForDay(DateTime day) {
@@ -1031,8 +1079,8 @@ class _FixtureRow extends StatelessWidget {
     final borderColor = supportMatch
         ? theme.colorScheme.primary
         : interestMatch
-            ? theme.colorScheme.tertiary
-            : theme.colorScheme.outlineVariant;
+        ? theme.colorScheme.tertiary
+        : theme.colorScheme.outlineVariant;
     final backgroundColor = selected
         ? borderColor.withValues(alpha: 0.08)
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.42);
@@ -1159,12 +1207,14 @@ class _FixtureTeamBlock extends StatelessWidget {
       ],
     ];
     return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment:
-              alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
+          mainAxisAlignment: alignEnd
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
           children: alignEnd ? children.reversed.toList() : children,
         ),
         const SizedBox(height: 3),
@@ -1373,11 +1423,11 @@ class _CalendarMarker extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white,
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              height: 1,
-            ),
+          color: Colors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+          height: 1,
+        ),
       ),
     );
   }
@@ -1448,6 +1498,20 @@ class _GroupTeamsCard extends StatelessWidget {
 
 enum _WorldCupRosterPosition { goalkeeper, defender, midfielder, forward }
 
+class _WorldCupRosterPool {
+  final List<String> goalkeepers;
+  final List<String> defenders;
+  final List<String> midfielders;
+  final List<String> forwards;
+
+  const _WorldCupRosterPool({
+    required this.goalkeepers,
+    required this.defenders,
+    required this.midfielders,
+    required this.forwards,
+  });
+}
+
 class _WorldCupRosterPlayer {
   final String name;
   final _WorldCupRosterPosition position;
@@ -1469,7 +1533,8 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final players = _worldCupRosterPlayers(l10n);
+    final players = _worldCupRosterPlayers(team, l10n);
+    final hasKnownPool = _worldCupRosterHasKnownPlayers(team);
     final flag = worldCupCountryFlag(team);
     return SafeArea(
       child: FractionallySizedBox(
@@ -1510,7 +1575,7 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
             const SizedBox(height: 14),
             _WorldCupFormationPitch(
               title: l10n.worldCupTeamRosterFormationLabel('4-3-3'),
-              players: players,
+              players: _worldCupFormationPlayers(players),
             ),
             const SizedBox(height: 14),
             _WorldCupRosterPositionSection(
@@ -1546,7 +1611,9 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              l10n.worldCupTeamRosterSourceNote,
+              hasKnownPool
+                  ? l10n.worldCupTeamRosterCandidateSourceNote
+                  : l10n.worldCupTeamRosterSourceNote,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -1557,6 +1624,192 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
     );
   }
 }
+
+const Map<String, _WorldCupRosterPool> _worldCupRosterPools =
+    <String, _WorldCupRosterPool>{
+      'Korea Republic': _WorldCupRosterPool(
+        goalkeepers: ['Jo Hyeon-woo', 'Kim Seung-gyu', 'Song Bum-keun'],
+        defenders: [
+          'Kim Min-jae',
+          'Kim Young-gwon',
+          'Seol Young-woo',
+          'Lee Ki-je',
+          'Kim Moon-hwan',
+          'Cho Yu-min',
+        ],
+        midfielders: [
+          'Hwang In-beom',
+          'Lee Kang-in',
+          'Lee Jae-sung',
+          'Park Yong-woo',
+          'Hong Hyun-seok',
+          'Paik Seung-ho',
+        ],
+        forwards: [
+          'Son Heung-min',
+          'Hwang Hee-chan',
+          'Cho Gue-sung',
+          'Oh Hyeon-gyu',
+          'Oh Se-hun',
+        ],
+      ),
+      'Japan': _WorldCupRosterPool(
+        goalkeepers: ['Zion Suzuki', 'Daiya Maekawa', 'Keisuke Osako'],
+        defenders: [
+          'Takehiro Tomiyasu',
+          'Ko Itakura',
+          'Hiroki Ito',
+          'Yukinari Sugawara',
+          'Shogo Taniguchi',
+          'Yuta Nakayama',
+        ],
+        midfielders: [
+          'Wataru Endo',
+          'Hidemasa Morita',
+          'Ao Tanaka',
+          'Daichi Kamada',
+          'Takefusa Kubo',
+          'Ritsu Doan',
+        ],
+        forwards: [
+          'Kaoru Mitoma',
+          'Takumi Minamino',
+          'Ayase Ueda',
+          'Daizen Maeda',
+          'Junya Ito',
+        ],
+      ),
+      'United States': _WorldCupRosterPool(
+        goalkeepers: ['Matt Turner', 'Ethan Horvath', 'Patrick Schulte'],
+        defenders: [
+          'Antonee Robinson',
+          'Chris Richards',
+          'Tim Ream',
+          'Cameron Carter-Vickers',
+          'Joe Scally',
+          'Sergino Dest',
+        ],
+        midfielders: [
+          'Tyler Adams',
+          'Weston McKennie',
+          'Yunus Musah',
+          'Gio Reyna',
+          'Malik Tillman',
+          'Luca de la Torre',
+        ],
+        forwards: [
+          'Christian Pulisic',
+          'Tim Weah',
+          'Folarin Balogun',
+          'Ricardo Pepi',
+          'Josh Sargent',
+        ],
+      ),
+      'England': _WorldCupRosterPool(
+        goalkeepers: ['Jordan Pickford', 'Aaron Ramsdale', 'Dean Henderson'],
+        defenders: [
+          'Kyle Walker',
+          'John Stones',
+          'Marc Guehi',
+          'Luke Shaw',
+          'Kieran Trippier',
+          'Ezri Konsa',
+        ],
+        midfielders: [
+          'Declan Rice',
+          'Jude Bellingham',
+          'Phil Foden',
+          'Kobbie Mainoo',
+          'Conor Gallagher',
+          'Trent Alexander-Arnold',
+        ],
+        forwards: [
+          'Harry Kane',
+          'Bukayo Saka',
+          'Cole Palmer',
+          'Anthony Gordon',
+          'Ollie Watkins',
+        ],
+      ),
+      'France': _WorldCupRosterPool(
+        goalkeepers: ['Mike Maignan', 'Brice Samba', 'Alphonse Areola'],
+        defenders: [
+          'William Saliba',
+          'Dayot Upamecano',
+          'Ibrahima Konate',
+          'Jules Kounde',
+          'Theo Hernandez',
+          'Benjamin Pavard',
+        ],
+        midfielders: [
+          'Aurelien Tchouameni',
+          'Adrien Rabiot',
+          'Eduardo Camavinga',
+          'Antoine Griezmann',
+          'Youssouf Fofana',
+          'Warren Zaire-Emery',
+        ],
+        forwards: [
+          'Kylian Mbappe',
+          'Ousmane Dembele',
+          'Marcus Thuram',
+          'Randal Kolo Muani',
+          'Kingsley Coman',
+        ],
+      ),
+      'Argentina': _WorldCupRosterPool(
+        goalkeepers: ['Emiliano Martinez', 'Geronimo Rulli', 'Franco Armani'],
+        defenders: [
+          'Cristian Romero',
+          'Nicolas Otamendi',
+          'Lisandro Martinez',
+          'Nahuel Molina',
+          'Marcos Acuna',
+          'Nicolas Tagliafico',
+        ],
+        midfielders: [
+          'Enzo Fernandez',
+          'Rodrigo De Paul',
+          'Alexis Mac Allister',
+          'Leandro Paredes',
+          'Giovani Lo Celso',
+          'Exequiel Palacios',
+        ],
+        forwards: [
+          'Lionel Messi',
+          'Julian Alvarez',
+          'Lautaro Martinez',
+          'Angel Di Maria',
+          'Nicolas Gonzalez',
+        ],
+      ),
+      'Brazil': _WorldCupRosterPool(
+        goalkeepers: ['Alisson', 'Ederson', 'Bento'],
+        defenders: [
+          'Marquinhos',
+          'Eder Militao',
+          'Gabriel Magalhaes',
+          'Danilo',
+          'Guilherme Arana',
+          'Wendell',
+        ],
+        midfielders: [
+          'Bruno Guimaraes',
+          'Lucas Paqueta',
+          'Joao Gomes',
+          'Douglas Luiz',
+          'Andreas Pereira',
+          'Andre',
+        ],
+        forwards: [
+          'Vinicius Junior',
+          'Rodrygo',
+          'Raphinha',
+          'Endrick',
+          'Gabriel Martinelli',
+        ],
+      ),
+    };
 
 class _WorldCupFormationPitch extends StatelessWidget {
   final String title;
@@ -1799,7 +2052,44 @@ List<_WorldCupRosterPlayer> _playersForPosition(
       .toList(growable: false);
 }
 
-List<_WorldCupRosterPlayer> _worldCupRosterPlayers(AppLocalizations l10n) {
+bool _worldCupRosterHasKnownPlayers(String team) {
+  return _worldCupRosterPools.containsKey(team);
+}
+
+List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
+  String team,
+  AppLocalizations l10n,
+) {
+  final pool = _worldCupRosterPools[team];
+  if (pool != null) {
+    return <_WorldCupRosterPlayer>[
+      ..._playersFromNames(
+        pool.goalkeepers,
+        _WorldCupRosterPosition.goalkeeper,
+        const [Offset(0.50, 0.88)],
+      ),
+      ..._playersFromNames(
+        pool.defenders,
+        _WorldCupRosterPosition.defender,
+        const [
+          Offset(0.18, 0.70),
+          Offset(0.40, 0.72),
+          Offset(0.60, 0.72),
+          Offset(0.82, 0.70),
+        ],
+      ),
+      ..._playersFromNames(
+        pool.midfielders,
+        _WorldCupRosterPosition.midfielder,
+        const [Offset(0.25, 0.48), Offset(0.50, 0.42), Offset(0.75, 0.48)],
+      ),
+      ..._playersFromNames(
+        pool.forwards,
+        _WorldCupRosterPosition.forward,
+        const [Offset(0.24, 0.24), Offset(0.50, 0.17), Offset(0.76, 0.24)],
+      ),
+    ];
+  }
   return <_WorldCupRosterPlayer>[
     _WorldCupRosterPlayer(
       name: l10n.worldCupTeamRosterPlayerSlot(
@@ -1849,6 +2139,34 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(AppLocalizations l10n) {
           const Offset(0.76, 0.24),
         ][index],
       ),
+  ];
+}
+
+List<_WorldCupRosterPlayer> _playersFromNames(
+  List<String> names,
+  _WorldCupRosterPosition position,
+  List<Offset> formationSpots,
+) {
+  return [
+    for (var index = 0; index < names.length; index += 1)
+      _WorldCupRosterPlayer(
+        name: names[index],
+        position: position,
+        spot: index < formationSpots.length
+            ? formationSpots[index]
+            : Offset(0.18 + (index % 4) * 0.21, 0.96),
+      ),
+  ];
+}
+
+List<_WorldCupRosterPlayer> _worldCupFormationPlayers(
+  List<_WorldCupRosterPlayer> players,
+) {
+  return <_WorldCupRosterPlayer>[
+    ..._playersForPosition(players, _WorldCupRosterPosition.goalkeeper).take(1),
+    ..._playersForPosition(players, _WorldCupRosterPosition.defender).take(4),
+    ..._playersForPosition(players, _WorldCupRosterPosition.midfielder).take(3),
+    ..._playersForPosition(players, _WorldCupRosterPosition.forward).take(3),
   ];
 }
 
