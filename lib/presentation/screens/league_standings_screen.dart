@@ -50,7 +50,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   final Map<LeagueStandingsType, Future<_LeagueOverviewSnapshot>> _futures = {};
   final Map<LeagueStandingsType, ScrollController> _scrollControllers = {};
   final Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>
-  _leagueTabKeys = {
+      _leagueTabKeys = {
     for (final type in LeagueStandingsType.values)
       type: GlobalKey<State<StatefulWidget>>(),
   };
@@ -64,8 +64,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     super.initState();
     _ownsService = widget.service == null;
     _service = widget.service ?? LeagueStandingsService();
-    _reminderService =
-        widget.reminderService ??
+    _reminderService = widget.reminderService ??
         (widget.optionRepository != null && widget.settingsService != null
             ? LeagueFixtureReminderService(
                 widget.optionRepository!,
@@ -122,7 +121,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   void _restoreFavoriteFixtureFilters() {
     final stored =
         widget.optionRepository?.getValue<List>(_favoriteFixtureFilterKey) ??
-        const <dynamic>[];
+            const <dynamic>[];
     _favoriteFixtureFilterTypes
       ..clear()
       ..addAll(
@@ -309,10 +308,10 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
           l10n.newsLeagueFixtureNotificationChannelDescription,
       bodyBuilder: (entry, teamName, opponentName) =>
           l10n.newsLeagueFavoriteTeamNotificationBody(
-            teamName,
-            opponentName,
-            formatter.format(entry.kickoffAt.toLocal()),
-          ),
+        teamName,
+        opponentName,
+        formatter.format(entry.kickoffAt.toLocal()),
+      ),
     );
     return count;
   }
@@ -458,9 +457,9 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                                 .contains(data.standings.type),
                             onFilterFavoriteFixturesChanged: (enabled) =>
                                 _setFavoriteFixtureFilter(
-                                  data.standings.type,
-                                  enabled,
-                                ),
+                              data.standings.type,
+                              enabled,
+                            ),
                             reminderPanel: _buildReminderPanel(l10n, data),
                           ),
                         );
@@ -506,28 +505,64 @@ class _LeagueFavoriteTeamScreen extends StatefulWidget {
 }
 
 class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
+  late final PageController _pageController;
   late LeagueStandingsType _selectedType;
+  late String _languageCode;
   late Set<String> _favoriteTeamKeys;
   final Map<LeagueStandingsType, _LeagueOverviewSnapshot> _cache = {};
+  final Map<LeagueStandingsType, Future<_LeagueOverviewSnapshot>> _futures = {};
   final Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>
-  _leagueTabKeys = {
+      _leagueTabKeys = {
     for (final type in LeagueStandingsType.values)
       type: GlobalKey<State<StatefulWidget>>(),
   };
-  Future<_LeagueOverviewSnapshot>? _future;
 
   @override
   void initState() {
     super.initState();
+    _languageCode =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
     _selectedType = widget.initialType;
+    _pageController = PageController(
+      initialPage: _leagueIndexForType(_selectedType),
+    );
     _favoriteTeamKeys = Set<String>.from(widget.initialFavoriteTeamKeys);
-    _future = _load(_selectedType);
+    _futureFor(_selectedType);
     _scrollLeagueTabIntoView(_selectedType);
   }
 
-  Future<_LeagueOverviewSnapshot> _load(LeagueStandingsType type) async {
-    final cached = _cache[type];
-    if (cached != null) return cached;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nextLanguageCode = Localizations.localeOf(context).languageCode;
+    if (nextLanguageCode == _languageCode) return;
+    _languageCode = nextLanguageCode;
+    final types = _leagueTypes;
+    if (!types.contains(_selectedType) && types.isNotEmpty) {
+      _selectedType = types.first;
+      _futureFor(_selectedType);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_pageController.hasClients) return;
+      _pageController.jumpToPage(_leagueIndexForType(_selectedType));
+      _scrollLeagueTabIntoView(_selectedType);
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Future<_LeagueOverviewSnapshot> _load(
+    LeagueStandingsType type, {
+    bool refresh = false,
+  }) async {
+    if (!refresh) {
+      final cached = _cache[type];
+      if (cached != null) return cached;
+    }
     final standings = await widget.service.fetch(type);
     final fixtures = await _loadFixturesOrEmpty(
       type: type,
@@ -539,6 +574,10 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
     );
     _cache[type] = snapshot;
     return snapshot;
+  }
+
+  Future<_LeagueOverviewSnapshot> _futureFor(LeagueStandingsType type) {
+    return _futures.putIfAbsent(type, () => _load(type));
   }
 
   Future<LeagueFixtureSnapshot> _loadFixturesOrEmpty({
@@ -554,16 +593,51 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
     }
   }
 
+  int _leagueIndexForType(LeagueStandingsType type) {
+    final index = _leagueTypes.indexOf(type);
+    return index < 0 ? 0 : index;
+  }
+
+  List<LeagueStandingsType> get _leagueTypes =>
+      _leagueTypesForLanguage(_languageCode);
+
   void _selectType(LeagueStandingsType type) {
+    if (type == _selectedType) {
+      _scrollLeagueTabIntoView(type);
+      _animateToLeaguePage(type);
+      return;
+    }
+    _setSelectedType(type);
+    _animateToLeaguePage(type);
+  }
+
+  void _setSelectedType(LeagueStandingsType type) {
+    setState(() {
+      _selectedType = type;
+      _futureFor(type);
+    });
+    _scrollLeagueTabIntoView(type);
+  }
+
+  void _animateToLeaguePage(LeagueStandingsType type) {
+    if (!_pageController.hasClients) return;
+    unawaited(
+      _pageController.animateToPage(
+        _leagueIndexForType(type),
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      ),
+    );
+  }
+
+  void _handleLeaguePageChanged(int index) {
+    if (index < 0 || index >= _leagueTypes.length) return;
+    final type = _leagueTypes[index];
     if (type == _selectedType) {
       _scrollLeagueTabIntoView(type);
       return;
     }
-    setState(() {
-      _selectedType = type;
-      _future = _load(type);
-    });
-    _scrollLeagueTabIntoView(type);
+    _setSelectedType(type);
   }
 
   void _scrollLeagueTabIntoView(LeagueStandingsType type) {
@@ -582,8 +656,9 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
   }
 
   Future<void> _refresh() async {
-    final future = _load(_selectedType);
-    setState(() => _future = future);
+    final future = _load(_selectedType, refresh: true);
+    _futures[_selectedType] = future;
+    setState(() {});
     await future;
   }
 
@@ -597,8 +672,8 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
     });
   }
 
-  void _clearSelectedLeague() {
-    final selectedPrefix = '${_selectedType.name}:';
+  void _clearSelectedLeague(LeagueStandingsType type) {
+    final selectedPrefix = '${type.name}:';
     setState(() {
       _favoriteTeamKeys.removeWhere((key) => key.startsWith(selectedPrefix));
     });
@@ -613,6 +688,7 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final leagueTypes = _leagueTypes;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.newsLeagueFavoriteTeamManage)),
       body: AppBackground(
@@ -627,9 +703,7 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
                   child: SegmentedButton<LeagueStandingsType>(
                     segments: _leagueStandingsSegments(
                       l10n,
-                      leagueTypes: _leagueTypesForLanguage(
-                        Localizations.localeOf(context).languageCode,
-                      ),
+                      leagueTypes: leagueTypes,
                       labelKeys: _leagueTabKeys,
                     ),
                     selected: {_selectedType},
@@ -642,117 +716,20 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
                 ),
               ),
               Expanded(
-                child: FutureBuilder<_LeagueOverviewSnapshot>(
-                  future: _future,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting &&
-                        !snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return _MessageState(
-                        icon: Icons.cloud_off_outlined,
-                        title: l10n.newsLeagueFavoriteTeamLoadError,
-                        onRetry: _refresh,
-                      );
-                    }
-                    final data = snapshot.data;
-                    if (data == null) {
-                      return _MessageState(
-                        icon: Icons.favorite_border_rounded,
-                        title: l10n.newsLeagueFavoriteTeamEmpty,
-                        onRetry: _refresh,
-                      );
-                    }
-                    final options = _favoriteTeamOptionsFor(data);
-                    if (options.isEmpty) {
-                      return _MessageState(
-                        icon: Icons.favorite_border_rounded,
-                        title: l10n.newsLeagueFavoriteTeamEmpty,
-                        onRetry: _refresh,
-                      );
-                    }
-                    final selectedPrefix = '${_selectedType.name}:';
-                    final selectedCount = _favoriteTeamKeys
-                        .where((key) => key.startsWith(selectedPrefix))
-                        .length;
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  selectedCount == 0
-                                      ? l10n.newsLeagueFavoriteTeamNone
-                                      : l10n.newsLeagueFavoriteTeamSelectedCount(
-                                          selectedCount,
-                                        ),
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(fontWeight: FontWeight.w800),
-                                ),
-                              ),
-                              TextButton.icon(
-                                onPressed: selectedCount == 0
-                                    ? null
-                                    : _clearSelectedLeague,
-                                icon: const Icon(Icons.clear_all_rounded),
-                                label: Text(l10n.newsLeagueFavoriteTeamClear),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-                            itemCount: options.length,
-                            itemBuilder: (context, index) {
-                              final option = options[index];
-                              return CheckboxListTile(
-                                value: _favoriteTeamKeys.contains(option.key),
-                                title: Row(
-                                  children: [
-                                    _LogoCircle(
-                                      name: option.label,
-                                      shortName: option.shortName,
-                                      logoUrl: option.logoUrl,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        option.label,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                onChanged: (checked) =>
-                                    _toggleTeam(option.key, checked ?? false),
-                              );
-                            },
-                          ),
-                        ),
-                        SafeArea(
-                          top: false,
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: FilledButton.icon(
-                                onPressed: _save,
-                                icon: const Icon(Icons.save_outlined),
-                                label: Text(
-                                  l10n.newsLeagueFavoriteTeamSaveAction,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: leagueTypes.length,
+                  onPageChanged: _handleLeaguePageChanged,
+                  itemBuilder: (context, index) {
+                    final type = leagueTypes[index];
+                    return _FavoriteTeamLeaguePage(
+                      type: type,
+                      future: _futureFor(type),
+                      favoriteTeamKeys: _favoriteTeamKeys,
+                      onRefresh: _refresh,
+                      onToggleTeam: _toggleTeam,
+                      onClearLeague: () => _clearSelectedLeague(type),
+                      onSave: _save,
                     );
                   },
                 ),
@@ -761,6 +738,141 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _FavoriteTeamLeaguePage extends StatelessWidget {
+  final LeagueStandingsType type;
+  final Future<_LeagueOverviewSnapshot> future;
+  final Set<String> favoriteTeamKeys;
+  final Future<void> Function() onRefresh;
+  final void Function(String key, bool selected) onToggleTeam;
+  final VoidCallback onClearLeague;
+  final Future<void> Function() onSave;
+
+  const _FavoriteTeamLeaguePage({
+    required this.type,
+    required this.future,
+    required this.favoriteTeamKeys,
+    required this.onRefresh,
+    required this.onToggleTeam,
+    required this.onClearLeague,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return FutureBuilder<_LeagueOverviewSnapshot>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return _MessageState(
+            icon: Icons.cloud_off_outlined,
+            title: l10n.newsLeagueFavoriteTeamLoadError,
+            onRetry: onRefresh,
+          );
+        }
+        final data = snapshot.data;
+        if (data == null) {
+          return _MessageState(
+            icon: Icons.favorite_border_rounded,
+            title: l10n.newsLeagueFavoriteTeamEmpty,
+            onRetry: onRefresh,
+          );
+        }
+        final options = _favoriteTeamOptionsFor(data);
+        if (options.isEmpty) {
+          return _MessageState(
+            icon: Icons.favorite_border_rounded,
+            title: l10n.newsLeagueFavoriteTeamEmpty,
+            onRetry: onRefresh,
+          );
+        }
+        final selectedPrefix = '${type.name}:';
+        final selectedCount = favoriteTeamKeys
+            .where((key) => key.startsWith(selectedPrefix))
+            .length;
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      selectedCount == 0
+                          ? l10n.newsLeagueFavoriteTeamNone
+                          : l10n.newsLeagueFavoriteTeamSelectedCount(
+                              selectedCount,
+                            ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: selectedCount == 0 ? null : onClearLeague,
+                    icon: const Icon(Icons.clear_all_rounded),
+                    label: Text(l10n.newsLeagueFavoriteTeamClear),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                itemCount: options.length,
+                itemBuilder: (context, index) {
+                  final option = options[index];
+                  return CheckboxListTile(
+                    value: favoriteTeamKeys.contains(option.key),
+                    title: Row(
+                      children: [
+                        _LogoCircle(
+                          name: option.label,
+                          shortName: option.shortName,
+                          logoUrl: option.logoUrl,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            option.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    onChanged: (checked) =>
+                        onToggleTeam(option.key, checked ?? false),
+                  );
+                },
+              ),
+            ),
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: onSave,
+                    icon: const Icon(Icons.save_outlined),
+                    label: Text(l10n.newsLeagueFavoriteTeamSaveAction),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -894,68 +1006,68 @@ ButtonSegment<LeagueStandingsType> _leagueStandingsSegment(
 ) {
   return switch (type) {
     LeagueStandingsType.kLeague1 => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.flag_outlined, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsKLeagueStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.flag_outlined, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsKLeagueStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.premierLeague => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.shield_outlined, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsPremierLeagueStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.shield_outlined, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsPremierLeagueStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.championsLeague => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.emoji_events_outlined, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsChampionsLeagueStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.emoji_events_outlined, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsChampionsLeagueStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.laLiga => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.sports_soccer, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsLaLigaStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.sports_soccer, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsLaLigaStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.bundesliga => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.shield, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsBundesligaStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.shield, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsBundesligaStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.majorLeagueSoccer => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.public, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsMajorLeagueSoccerStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.public, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsMajorLeagueSoccerStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.saudiProLeague => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.flag_outlined, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsSaudiProLeagueStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.flag_outlined, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsSaudiProLeagueStandingsTitle,
+        ),
       ),
-    ),
   };
 }
 
@@ -1237,14 +1349,14 @@ class _FixtureSection extends StatelessWidget {
     );
     final entries = filterFavorites && hasFavoriteTeamsForLeague
         ? snapshot.entries
-              .where(
-                (entry) => _fixtureMatchesFavoriteTeam(
-                  snapshot.type,
-                  entry,
-                  favoriteTeamKeys,
-                ),
-              )
-              .toList(growable: false)
+            .where(
+              (entry) => _fixtureMatchesFavoriteTeam(
+                snapshot.type,
+                entry,
+                favoriteTeamKeys,
+              ),
+            )
+            .toList(growable: false)
         : snapshot.entries;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1375,9 +1487,9 @@ class _LeagueFixtureCalendarScreenState
     _entriesByDay = _groupByDay(entries);
     final now = DateTime.now();
     final defaultEntry = entries.cast<LeagueFixtureEntry?>().firstWhere(
-      (entry) => entry!.kickoffAt.toLocal().isAfter(now),
-      orElse: () => entries.isEmpty ? null : entries.first,
-    );
+          (entry) => entry!.kickoffAt.toLocal().isAfter(now),
+          orElse: () => entries.isEmpty ? null : entries.first,
+        );
     final defaultDay = defaultEntry == null
         ? _normalizeDay(now)
         : _normalizeDay(defaultEntry.kickoffAt.toLocal());
@@ -1483,8 +1595,7 @@ class _LeagueFixtureCalendarScreenState
                     headerStyle: HeaderStyle(
                       titleCentered: true,
                       formatButtonVisible: false,
-                      titleTextStyle:
-                          theme.textTheme.titleMedium?.copyWith(
+                      titleTextStyle: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w900,
                           ) ??
                           const TextStyle(fontWeight: FontWeight.w900),
@@ -1533,11 +1644,9 @@ class _LeagueFixtureCalendarScreenState
                   ),
                 )
               else
-                for (
-                  var index = 0;
-                  index < selectedEntries.length;
-                  index++
-                ) ...[
+                for (var index = 0;
+                    index < selectedEntries.length;
+                    index++) ...[
                   _FixtureRow(entry: selectedEntries[index]),
                   if (index != selectedEntries.length - 1)
                     const SizedBox(height: 8),
@@ -1781,9 +1890,9 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w900,
-        ),
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
       ),
     );
   }
@@ -1863,8 +1972,8 @@ class _StandingTeamRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
                 ),
               ],
@@ -1938,9 +2047,8 @@ class _LogoCircle extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      padding: trimmedLogoUrl.isEmpty
-          ? EdgeInsets.zero
-          : const EdgeInsets.all(4),
+      padding:
+          trimmedLogoUrl.isEmpty ? EdgeInsets.zero : const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(
           alpha: theme.brightness == Brightness.dark ? 0.72 : 1.0,
@@ -1976,9 +2084,8 @@ class _LogoCircle extends StatelessWidget {
 }
 
 String _logoFallbackText(String shortName, String name) {
-  final preferred = shortName.trim().isNotEmpty
-      ? shortName.trim()
-      : name.trim();
+  final preferred =
+      shortName.trim().isNotEmpty ? shortName.trim() : name.trim();
   if (preferred.isEmpty) return '?';
   final words = preferred
       .split(RegExp(r'\s+'))
@@ -2038,15 +2145,12 @@ Widget _cell(
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
-      style:
-          (header
-                  ? Theme.of(context).textTheme.labelMedium
-                  : Theme.of(context).textTheme.bodyMedium)
-              ?.copyWith(
-                fontWeight: header || strong
-                    ? FontWeight.w900
-                    : FontWeight.w600,
-              ),
+      style: (header
+              ? Theme.of(context).textTheme.labelMedium
+              : Theme.of(context).textTheme.bodyMedium)
+          ?.copyWith(
+        fontWeight: header || strong ? FontWeight.w900 : FontWeight.w600,
+      ),
     ),
   );
 }

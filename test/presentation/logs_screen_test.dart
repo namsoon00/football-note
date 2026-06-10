@@ -78,7 +78,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('기술 · 60분 · 학교 운동장'), findsOneWidget);
+    expect(find.text('기술 · 60분'), findsOneWidget);
+    expect(find.text('학교 운동장'), findsNothing);
     expect(find.text('터치 수 줄이기'), findsOneWidget);
     expect(find.byTooltip('다이어리'), findsNothing);
 
@@ -86,7 +87,7 @@ void main() {
     await tester.pump();
     await tester.enterText(find.byType(TextField), '메모');
     await tester.pump();
-    expect(find.text('기술 · 60분 · 학교 운동장'), findsOneWidget);
+    expect(find.text('기술 · 60분'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), '없는검색');
     await tester.pump();

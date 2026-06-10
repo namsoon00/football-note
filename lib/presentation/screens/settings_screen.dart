@@ -58,16 +58,11 @@ class _SettingsScreenState extends State<SettingsScreen>
   StreamSubscription<void>? _driveAccountStateSubscription;
 
   late List<int> _durationOptions;
-  late List<int> _ratingOptions;
-  late List<String> _locationOptions;
   late List<String> _programOptions;
   late List<String> _dailyGoalOptions;
   late List<String> _injuryPartOptions;
 
   late int _defaultDuration;
-  late int _defaultIntensity;
-  late int _defaultCondition;
-  late String _defaultLocation;
   late String _defaultProgram;
   late List<String> _newsBlockedDomains;
 
@@ -333,26 +328,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       'durations',
       const [0, 30, 45, 60, 75, 90, 120],
     );
-    _ratingOptions = const [1, 2, 3, 4, 5];
-    _locationOptions = widget.optionRepository.getOptions('locations', [
-      l10n.defaultLocation1,
-      l10n.defaultLocation2,
-      l10n.defaultLocation3,
-    ]);
-    final localizedLocationDefaults = [
-      l10n.defaultLocation1,
-      l10n.defaultLocation2,
-      l10n.defaultLocation3,
-    ];
-    final normalizedLocations = LocalizedOptionDefaults.normalizeOptions(
-      key: 'locations',
-      stored: _locationOptions,
-      localizedDefaults: localizedLocationDefaults,
-    );
-    if (!_sameStringList(_locationOptions, normalizedLocations)) {
-      _locationOptions = normalizedLocations;
-      widget.optionRepository.saveOptions('locations', normalizedLocations);
-    }
     _programOptions = widget.optionRepository.getOptions('programs', [
       l10n.defaultProgram1,
       l10n.defaultProgram2,
@@ -398,24 +373,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
             _durationOptions.first;
-    _defaultIntensity =
-        widget.optionRepository.getValue<int>('default_intensity') ?? 3;
-    _defaultCondition =
-        widget.optionRepository.getValue<int>('default_condition') ?? 3;
-    final storedDefaultLocation = widget.optionRepository.getValue<String>(
-      'default_location',
-    );
-    _defaultLocation = LocalizedOptionDefaults.normalizeDefaultValue(
-      key: 'default_location',
-      storedValue: storedDefaultLocation,
-      localizedDefaults: localizedLocationDefaults,
-      options: _locationOptions,
-    );
-    if (storedDefaultLocation != _defaultLocation) {
-      unawaited(
-        widget.optionRepository.setValue('default_location', _defaultLocation),
-      );
-    }
 
     final storedDefaultProgram = widget.optionRepository.getValue<String>(
       'default_program',
@@ -1181,46 +1138,6 @@ class _SettingsScreenState extends State<SettingsScreen>
           onEdit: readOnly ? null : () => _pickDefaultDuration(l10n),
         ),
         _buildDefaultTile(
-          label: l10n.defaultIntensity,
-          valueText: '$_defaultIntensity / 5',
-          onEdit: readOnly
-              ? null
-              : () => _pickDefaultRating(
-                    key: 'default_intensity',
-                    current: _defaultIntensity,
-                    onChanged: (value) =>
-                        setState(() => _defaultIntensity = value),
-                    title: l10n.defaultIntensity,
-                  ),
-        ),
-        _buildDefaultTile(
-          label: l10n.defaultCondition,
-          valueText: '$_defaultCondition / 5',
-          onEdit: readOnly
-              ? null
-              : () => _pickDefaultRating(
-                    key: 'default_condition',
-                    current: _defaultCondition,
-                    onChanged: (value) =>
-                        setState(() => _defaultCondition = value),
-                    title: l10n.defaultCondition,
-                  ),
-        ),
-        _buildDefaultTile(
-          label: l10n.defaultLocation,
-          valueText: _defaultLocation,
-          onEdit: readOnly
-              ? null
-              : () => _pickDefaultString(
-                    key: 'default_location',
-                    current: _defaultLocation,
-                    options: _locationOptions,
-                    title: l10n.defaultLocation,
-                    onChanged: (value) =>
-                        setState(() => _defaultLocation = value),
-                  ),
-        ),
-        _buildDefaultTile(
           label: l10n.defaultProgram,
           valueText: _defaultProgram,
           onEdit: readOnly
@@ -1267,30 +1184,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                         );
                         if (!mounted) return;
                         setState(() => _defaultDuration = fallback);
-                      }
-                    },
-                  ),
-        ),
-        _buildOptionManagerTile(
-          title: isKo ? '장소 옵션' : 'Location options',
-          subtitle: '${_locationOptions.length}${isKo ? '개 항목' : ' items'}',
-          onTap: readOnly
-              ? null
-              : () => _manageStringOptions(
-                    key: 'locations',
-                    title: isKo ? '장소 옵션 관리' : 'Manage location options',
-                    options: _locationOptions,
-                    minKeep: 1,
-                    onSaved: (updated) async {
-                      setState(() => _locationOptions = updated);
-                      if (!_locationOptions.contains(_defaultLocation)) {
-                        final fallback = _locationOptions.first;
-                        await widget.optionRepository.setValue(
-                          'default_location',
-                          fallback,
-                        );
-                        if (!mounted) return;
-                        setState(() => _defaultLocation = fallback);
                       }
                     },
                   ),
@@ -1403,22 +1296,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       title: l10n.defaultDuration,
       labelBuilder: (value) => value <= 0 ? l10n.notSet : l10n.minutes(value),
       onChanged: (value) => setState(() => _defaultDuration = value),
-    );
-  }
-
-  Future<void> _pickDefaultRating({
-    required String key,
-    required int current,
-    required ValueChanged<int> onChanged,
-    required String title,
-  }) async {
-    await _pickDefaultInt(
-      key: key,
-      current: current,
-      options: _ratingOptions,
-      title: title,
-      labelBuilder: (value) => '$value / 5',
-      onChanged: onChanged,
     );
   }
 
