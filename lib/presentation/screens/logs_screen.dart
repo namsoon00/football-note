@@ -36,6 +36,7 @@ import 'training_board_list_screen.dart';
 import 'news_screen.dart';
 import 'skill_quiz_screen.dart';
 import 'notification_center_screen.dart';
+import 'parent_feedback_screen.dart';
 
 class LogsScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -151,10 +152,10 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
     _jumpRopeOnly =
@@ -247,9 +248,9 @@ class _LogsScreenState extends State<LogsScreen> {
                             notificationBadgeCount: reminderUnreadCount,
                             profilePhotoSource:
                                 widget.optionRepository.getValue<String>(
-                                      'profile_photo_url',
-                                    ) ??
-                                    '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                             onProfileTap: () => _openProfile(context),
                             onSettingsTap: () => _openSettings(context),
                             title:
@@ -264,12 +265,12 @@ class _LogsScreenState extends State<LogsScreen> {
                         boardListIcon: Icons.edit_note_outlined,
                         boardListLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련 스케치 리스트'
-                                : 'Training sketch list',
+                            ? '훈련 스케치 리스트'
+                            : 'Training sketch list',
                         boardListTitle:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련 스케치'
-                                : 'Sketches',
+                            ? '훈련 스케치'
+                            : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
@@ -295,116 +296,117 @@ class _LogsScreenState extends State<LogsScreen> {
                                   subtitle: isParentMode
                                       ? l10n.parentFeedbackOpenExistingEntryBody
                                       : (Localizations.localeOf(
-                                                context,
-                                              ).languageCode ==
-                                              'ko'
-                                          ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
-                                          : 'Create your first training note to start the flow.'),
+                                                  context,
+                                                ).languageCode ==
+                                                'ko'
+                                            ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
+                                            : 'Create your first training note to start the flow.'),
                                   actionLabel: isParentMode
                                       ? null
                                       : (Localizations.localeOf(
-                                                context,
-                                              ).languageCode ==
-                                              'ko'
-                                          ? '기록 추가'
-                                          : 'Add entry'),
-                                  onPressed:
-                                      isParentMode ? null : widget.onCreate,
+                                                  context,
+                                                ).languageCode ==
+                                                'ko'
+                                            ? '기록 추가'
+                                            : 'Add entry'),
+                                  onPressed: isParentMode
+                                      ? null
+                                      : widget.onCreate,
                                 ),
                               )
                             : visibleEntries.isEmpty
-                                ? Padding(
-                                    key: const ValueKey('logs-empty-filtered'),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 24,
+                            ? Padding(
+                                key: const ValueKey('logs-empty-filtered'),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 24,
+                                ),
+                                child: _buildEmptyState(
+                                  title: l10n.noResults,
+                                  subtitle: l10n.filterEmptyResetHint,
+                                  actionLabel: l10n.filterReset,
+                                  onPressed: () async {
+                                    const reset = _LogFilters(
+                                      status: _allFilterValue,
+                                      program: _allFilterValue,
+                                      injuryOnly: false,
+                                      jumpRopeOnly: false,
+                                      feedbackOnly: false,
+                                    );
+                                    setState(() {
+                                      _statusFilter = reset.status;
+                                      _programFilter = reset.program;
+                                      _injuryOnly = reset.injuryOnly;
+                                      _jumpRopeOnly = reset.jumpRopeOnly;
+                                      _feedbackOnly = reset.feedbackOnly;
+                                      _resetPagination();
+                                    });
+                                    await _persistFilters(reset);
+                                  },
+                                ),
+                              )
+                            : _layout == _LogsLayout.card
+                            ? MasonryGridView.count(
+                                key: const ValueKey('logs-card-view'),
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 8,
+                                itemCount: visibleEntries.length,
+                                itemBuilder: (context, index) {
+                                  final entry = visibleEntries[index];
+                                  final row = _buildEntryRow(
+                                    context: context,
+                                    entry: entry,
+                                    deleteKeyPrefix: 'logs-card',
+                                    deletable: !isParentMode,
+                                    child: _EntryCard(
+                                      entry: entry,
+                                      mealCoachingService: _mealCoachingService,
+                                      boardsById: boardsById,
+                                      parentFeedbackMessage:
+                                          _parentFeedbackMessage(
+                                            entry,
+                                            parentFeedbackByEntryId,
+                                          ),
+                                      onEdit: () => _onEntryTap(entry),
+                                      onOpenParentFeedback: () =>
+                                          _openParentFeedback(entry),
                                     ),
-                                    child: _buildEmptyState(
-                                      title: l10n.noResults,
-                                      subtitle: l10n.filterEmptyResetHint,
-                                      actionLabel: l10n.filterReset,
-                                      onPressed: () async {
-                                        const reset = _LogFilters(
-                                          status: _allFilterValue,
-                                          program: _allFilterValue,
-                                          injuryOnly: false,
-                                          jumpRopeOnly: false,
-                                          feedbackOnly: false,
-                                        );
-                                        setState(() {
-                                          _statusFilter = reset.status;
-                                          _programFilter = reset.program;
-                                          _injuryOnly = reset.injuryOnly;
-                                          _jumpRopeOnly = reset.jumpRopeOnly;
-                                          _feedbackOnly = reset.feedbackOnly;
-                                          _resetPagination();
-                                        });
-                                        await _persistFilters(reset);
-                                      },
+                                  );
+                                  return row;
+                                },
+                              )
+                            : ListView.separated(
+                                key: const ValueKey('logs-list-view'),
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: visibleEntries.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 8),
+                                itemBuilder: (context, index) {
+                                  final entry = visibleEntries[index];
+                                  final row = _buildEntryRow(
+                                    context: context,
+                                    entry: entry,
+                                    deleteKeyPrefix: 'logs-list',
+                                    deletable: !isParentMode,
+                                    child: _EntryListItem(
+                                      entry: entry,
+                                      mealCoachingService: _mealCoachingService,
+                                      parentFeedbackMessage:
+                                          _parentFeedbackMessage(
+                                            entry,
+                                            parentFeedbackByEntryId,
+                                          ),
+                                      onEdit: () => _onEntryTap(entry),
+                                      onOpenParentFeedback: () =>
+                                          _openParentFeedback(entry),
                                     ),
-                                  )
-                                : _layout == _LogsLayout.card
-                                    ? MasonryGridView.count(
-                                        key: const ValueKey('logs-card-view'),
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        crossAxisCount: 2,
-                                        mainAxisSpacing: 8,
-                                        crossAxisSpacing: 8,
-                                        itemCount: visibleEntries.length,
-                                        itemBuilder: (context, index) {
-                                          final entry = visibleEntries[index];
-                                          final row = _buildEntryRow(
-                                            context: context,
-                                            entry: entry,
-                                            deleteKeyPrefix: 'logs-card',
-                                            deletable: !isParentMode,
-                                            child: _EntryCard(
-                                              entry: entry,
-                                              mealCoachingService:
-                                                  _mealCoachingService,
-                                              boardsById: boardsById,
-                                              parentFeedbackMessage:
-                                                  _parentFeedbackMessage(
-                                                entry,
-                                                parentFeedbackByEntryId,
-                                              ),
-                                              onEdit: () => _onEntryTap(entry),
-                                            ),
-                                          );
-                                          return row;
-                                        },
-                                      )
-                                    : ListView.separated(
-                                        key: const ValueKey('logs-list-view'),
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        itemCount: visibleEntries.length,
-                                        separatorBuilder: (_, __) =>
-                                            const SizedBox(height: 8),
-                                        itemBuilder: (context, index) {
-                                          final entry = visibleEntries[index];
-                                          final row = _buildEntryRow(
-                                            context: context,
-                                            entry: entry,
-                                            deleteKeyPrefix: 'logs-list',
-                                            deletable: !isParentMode,
-                                            child: _EntryListItem(
-                                              entry: entry,
-                                              mealCoachingService:
-                                                  _mealCoachingService,
-                                              parentFeedbackMessage:
-                                                  _parentFeedbackMessage(
-                                                entry,
-                                                parentFeedbackByEntryId,
-                                              ),
-                                              onEdit: () => _onEntryTap(entry),
-                                            ),
-                                          );
-                                          return row;
-                                        },
-                                      ),
+                                  );
+                                  return row;
+                                },
+                              ),
                       ),
                       if (visibleEntries.length < entries.length ||
                           hasMoreLoadedEntries)
@@ -789,8 +791,9 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -885,6 +888,30 @@ class _LogsScreenState extends State<LogsScreen> {
   void _onEntryTap(TrainingEntry entry) {
     HapticFeedback.selectionClick();
     widget.onEdit(entry);
+  }
+
+  Future<void> _openParentFeedback(TrainingEntry entry) async {
+    HapticFeedback.selectionClick();
+    final result = await Navigator.of(context).push<ParentFeedbackScreenResult>(
+      AppPageRoute(
+        builder: (_) => ParentFeedbackScreen(
+          entry: entry,
+          optionRepository: widget.optionRepository,
+          driveBackupService: widget.driveBackupService,
+          initialFocusReactions: true,
+        ),
+      ),
+    );
+    if (!mounted || result == null || !result.changed) return;
+    setState(() {});
+    final l10n = AppLocalizations.of(context)!;
+    final baseMessage = result.feedback == null
+        ? l10n.parentFeedbackCleared
+        : l10n.parentFeedbackSaved;
+    final syncMessage = result.didSync
+        ? l10n.parentSharedSyncDone
+        : l10n.parentSharedSyncPending;
+    AppFeedback.showSuccess(context, text: '$baseMessage $syncMessage');
   }
 
   Future<void> _persistFilters(_LogFilters filters) async {
@@ -1051,14 +1078,16 @@ class _LogsScreenState extends State<LogsScreen> {
   void _loadMore({required int filteredCount, required int loadedCount}) {
     if (!mounted) return;
     final canRevealFilteredEntries = _visibleCount < filteredCount;
-    final shouldLoadMoreEntries = loadedCount >= _loadedEntryLimit &&
+    final shouldLoadMoreEntries =
+        loadedCount >= _loadedEntryLimit &&
         _visibleCount + _pageSize >= filteredCount;
     if (!canRevealFilteredEntries && !shouldLoadMoreEntries) return;
     setState(() {
       if (canRevealFilteredEntries) {
         final nextVisibleCount = _visibleCount + _pageSize;
-        _visibleCount =
-            nextVisibleCount > filteredCount ? filteredCount : nextVisibleCount;
+        _visibleCount = nextVisibleCount > filteredCount
+            ? filteredCount
+            : nextVisibleCount;
       } else {
         _visibleCount += _pageSize;
       }
@@ -1188,6 +1217,7 @@ class _EntryCard extends StatelessWidget {
   final Map<String, TrainingBoard> boardsById;
   final String parentFeedbackMessage;
   final VoidCallback onEdit;
+  final VoidCallback onOpenParentFeedback;
 
   const _EntryCard({
     required this.entry,
@@ -1195,6 +1225,7 @@ class _EntryCard extends StatelessWidget {
     required this.boardsById,
     required this.parentFeedbackMessage,
     required this.onEdit,
+    required this.onOpenParentFeedback,
   });
 
   @override
@@ -1222,9 +1253,11 @@ class _EntryCard extends StatelessWidget {
         .map((id) => boardsById[id])
         .whereType<TrainingBoard>()
         .toList(growable: false);
-    final legacyLayout =
-        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
-    final hasTrainingBoard = linkedBoards.isNotEmpty ||
+    final legacyLayout = linkedBoards.isEmpty
+        ? TrainingMethodLayout.decode(entry.drills)
+        : null;
+    final hasTrainingBoard =
+        linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
     final hasParentFeedback = parentFeedbackMessage.trim().isNotEmpty;
@@ -1287,10 +1320,10 @@ class _EntryCard extends StatelessWidget {
                 ],
               ),
               if (hasParentFeedback)
-                const Positioned(
+                Positioned(
                   top: 0,
                   right: 0,
-                  child: _ParentFeedbackCornerMark(),
+                  child: _ParentFeedbackCornerMark(onTap: onOpenParentFeedback),
                 ),
             ],
           ),
@@ -1305,12 +1338,14 @@ class _EntryListItem extends StatelessWidget {
   final MealCoachingService mealCoachingService;
   final String parentFeedbackMessage;
   final VoidCallback onEdit;
+  final VoidCallback onOpenParentFeedback;
 
   const _EntryListItem({
     required this.entry,
     required this.mealCoachingService,
     required this.parentFeedbackMessage,
     required this.onEdit,
+    required this.onOpenParentFeedback,
   });
 
   @override
@@ -1368,10 +1403,10 @@ class _EntryListItem extends StatelessWidget {
             onTap: onEdit,
           ),
           if (hasParentFeedback)
-            const Positioned(
+            Positioned(
               top: 2,
               right: 2,
-              child: _ParentFeedbackCornerMark(),
+              child: _ParentFeedbackCornerMark(onTap: onOpenParentFeedback),
             ),
         ],
       ),
@@ -1380,7 +1415,9 @@ class _EntryListItem extends StatelessWidget {
 }
 
 class _ParentFeedbackCornerMark extends StatelessWidget {
-  const _ParentFeedbackCornerMark();
+  final VoidCallback onTap;
+
+  const _ParentFeedbackCornerMark({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1388,19 +1425,26 @@ class _ParentFeedbackCornerMark extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Tooltip(
       message: l10n.parentFeedbackSectionTitle,
-      child: Container(
-        width: 26,
-        height: 26,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: scheme.primaryContainer.withValues(alpha: 0.72),
-          shape: BoxShape.circle,
-          border: Border.all(color: scheme.primary.withValues(alpha: 0.28)),
-        ),
-        child: Icon(
-          Icons.chat_bubble_outline_rounded,
-          size: 15,
-          color: scheme.onPrimaryContainer,
+      child: Material(
+        color: Colors.transparent,
+        child: InkResponse(
+          onTap: onTap,
+          radius: 18,
+          child: Container(
+            width: 28,
+            height: 28,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer.withValues(alpha: 0.82),
+              shape: BoxShape.circle,
+              border: Border.all(color: scheme.primary.withValues(alpha: 0.28)),
+            ),
+            child: Icon(
+              Icons.chat_bubble_outline_rounded,
+              size: 15,
+              color: scheme.onPrimaryContainer,
+            ),
+          ),
         ),
       ),
     );

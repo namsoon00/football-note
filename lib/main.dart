@@ -26,6 +26,7 @@ import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/welcome_screen.dart';
 import 'presentation/theme/app_theme.dart';
+import 'presentation/navigation/notification_tap_router.dart';
 import 'presentation/widgets/keyboard_dismiss_overlay.dart';
 
 Future<void> main() async {
@@ -79,6 +80,20 @@ Future<void> main() async {
     settingsService,
   );
   final badgeService = TrainingPlanBadgeService(optionRepository);
+  NotificationTapRouter.configure(
+    NotificationTapDependencies(
+      trainingService: trainingService,
+      mealLogService: mealLogService,
+      optionRepository: optionRepository,
+      localeService: localeService,
+      settingsService: settingsService,
+      driveBackupService: backupService,
+    ),
+  );
+  TrainingPlanReminderService.onNotificationPayloadTap =
+      NotificationTapRouter.handlePayload;
+  LeagueFixtureReminderService.onNotificationPayloadTap =
+      NotificationTapRouter.handlePayload;
   settingsService.addListener(() {
     unawaited(reminderService.syncSettingsDrivenReminders());
     if (!settingsService.reminderEnabled ||
@@ -130,6 +145,10 @@ Future<void> _warmStartupServices({
   }
   try {
     await reminderService.initialize();
+    final launchPayload = await reminderService.launchPayload();
+    if (launchPayload != null && launchPayload.trim().isNotEmpty) {
+      NotificationTapRouter.handlePayload(launchPayload);
+    }
     await reminderService.syncAll(entries: await trainingService.allEntries());
   } catch (_) {
     // Reminder sync can recover on later app interactions.
@@ -170,6 +189,7 @@ class FootballNoteApp extends StatelessWidget {
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
           themeMode: settingsService.themeMode,
+          navigatorKey: NotificationTapRouter.navigatorKey,
           locale: localeService.locale,
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: const [

@@ -10,11 +10,16 @@ import 'settings_service.dart';
 import 'world_cup_schedule.dart';
 
 class LeagueFixtureReminderService {
+  static void Function(String? payload)? onNotificationPayloadTap;
+
   static const String favoriteTeamKeysKey =
       'league_fixture_favorite_team_keys_v1';
   static const String reminderIdsKey = 'league_fixture_reminder_ids_v1';
   static const String worldCupReminderIdsKey =
       'world_cup_fixture_reminder_ids_v1';
+  static const String fixtureMessageLogKey = 'league_fixture_message_log_v1';
+  static const String fixtureMessageReadIdsKey =
+      'league_fixture_message_read_ids_v1';
   static const String _androidChannelId = 'league_fixture_reminders';
 
   final OptionRepository _options;
@@ -66,6 +71,10 @@ class LeagueFixtureReminderService {
         !_settings.reminderEnabled ||
         !_settings.leagueFixtureAlertEnabled ||
         kIsWeb) {
+      await _replaceFixtureMessagesForKind(
+        'league',
+        const <Map<String, dynamic>>[],
+      );
       return 0;
     }
 
@@ -78,6 +87,7 @@ class LeagueFixtureReminderService {
     final tzNow = tz.TZDateTime.from(now ?? DateTime.now(), tz.local);
     final scheduledIds = <int>[];
     final seenFixtureKeys = <String>{};
+    final messageRows = <Map<String, dynamic>>[];
 
     for (final snapshot in snapshots) {
       for (final entry in snapshot.entries) {
@@ -100,21 +110,38 @@ class LeagueFixtureReminderService {
         if (!scheduledAt.isAfter(tzNow)) continue;
 
         final id = _notificationIdForScope('league_fixture', fixtureKey);
+        final body = bodyBuilder(
+          entry,
+          favoriteMatch.teamName,
+          favoriteMatch.opponentName,
+        );
+        final payload = 'league_fixture:$fixtureKey';
         try {
           await _scheduleZonedReminder(
             id: id,
             title: title,
             androidChannelName: androidChannelName,
             androidChannelDescription: androidChannelDescription,
-            body: bodyBuilder(
-              entry,
-              favoriteMatch.teamName,
-              favoriteMatch.opponentName,
-            ),
+            body: body,
             scheduledAt: scheduledAt,
-            payload: fixtureKey,
+            payload: payload,
           );
           scheduledIds.add(id);
+          messageRows.add({
+            'id': payload,
+            'kind': 'league',
+            'payload': payload,
+            'createdAt': DateTime.now().toIso8601String(),
+            'scheduledAt': scheduledAt.toIso8601String(),
+            'kickoffAt': entry.kickoffAt.toIso8601String(),
+            'title': title,
+            'body': body,
+            'leagueType': snapshot.type.name,
+            'leagueName': snapshot.leagueName,
+            'teamName': favoriteMatch.teamName,
+            'opponentName': favoriteMatch.opponentName,
+            'venue': entry.venue,
+          });
         } catch (error) {
           debugPrint('League fixture reminder failed for $fixtureKey: $error');
         }
@@ -122,6 +149,7 @@ class LeagueFixtureReminderService {
     }
 
     await _options.setValue(reminderIdsKey, scheduledIds);
+    await _replaceFixtureMessagesForKind('league', messageRows);
     return scheduledIds.length;
   }
 
@@ -162,6 +190,10 @@ class LeagueFixtureReminderService {
         !_settings.reminderEnabled ||
         !_settings.leagueFixtureAlertEnabled ||
         kIsWeb) {
+      await _replaceFixtureMessagesForKind(
+        'worldCup',
+        const <Map<String, dynamic>>[],
+      );
       return 0;
     }
 
@@ -174,6 +206,7 @@ class LeagueFixtureReminderService {
     final tzNow = tz.TZDateTime.from(now ?? DateTime.now(), tz.local);
     final scheduledIds = <int>[];
     final seenFixtureKeys = <String>{};
+    final messageRows = <Map<String, dynamic>>[];
     for (final fixture in fixtures) {
       if (fixture.hasScore) continue;
       final match = _worldCupFavoriteMatch(fixture, countries);
@@ -187,23 +220,42 @@ class LeagueFixtureReminderService {
       }
       if (!scheduledAt.isAfter(tzNow)) continue;
       final id = _notificationIdForScope('world_cup_fixture', fixtureKey);
+      final body = bodyBuilder(fixture, match.teamName, match.opponentName);
+      final payload =
+          'worldcup_fixture:${fixture.matchNumber}:${match.teamName}';
       try {
         await _scheduleZonedReminder(
           id: id,
           title: title,
           androidChannelName: androidChannelName,
           androidChannelDescription: androidChannelDescription,
-          body: bodyBuilder(fixture, match.teamName, match.opponentName),
+          body: body,
           scheduledAt: scheduledAt,
-          payload: fixtureKey,
+          payload: payload,
         );
         scheduledIds.add(id);
+        messageRows.add({
+          'id': payload,
+          'kind': 'worldCup',
+          'payload': payload,
+          'createdAt': DateTime.now().toIso8601String(),
+          'scheduledAt': scheduledAt.toIso8601String(),
+          'kickoffAt': fixture.kickoffLocal.toIso8601String(),
+          'title': title,
+          'body': body,
+          'leagueType': 'worldCup',
+          'leagueName': 'FIFA World Cup 2026',
+          'teamName': match.teamName,
+          'opponentName': match.opponentName,
+          'venue': fixture.venue,
+        });
       } catch (error) {
         debugPrint('World Cup reminder failed for $fixtureKey: $error');
       }
     }
 
     await _options.setValue(worldCupReminderIdsKey, scheduledIds);
+    await _replaceFixtureMessagesForKind('worldCup', messageRows);
     return scheduledIds.length;
   }
 
@@ -242,7 +294,12 @@ class LeagueFixtureReminderService {
         requestSoundPermission: false,
       ),
     );
-    await _plugin.initialize(initSettings);
+    await _plugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (response) {
+        onNotificationPayloadTap?.call(response.payload);
+      },
+    );
 
     final androidImpl = _plugin
         .resolvePlatformSpecificImplementation<
@@ -338,6 +395,93 @@ class LeagueFixtureReminderService {
       if (rawId is num) return rawId.toInt() >= 0;
       return int.tryParse('$rawId') != null;
     });
+  }
+
+  int unreadFixtureMessageCountSync() {
+    final logs = _options.getValue<List>(fixtureMessageLogKey) ?? const [];
+    final readRaw =
+        _options.getValue<List>(fixtureMessageReadIdsKey) ?? const [];
+    final readIds = readRaw.map((e) => e.toString()).toSet();
+    return logs.whereType<Map>().where((item) {
+      final id = item['id']?.toString() ?? '';
+      if (id.isEmpty) return false;
+      return !readIds.contains(id);
+    }).length;
+  }
+
+  Future<void> markAllFixtureMessagesRead() async {
+    final ids = loadFixtureMessageLogSync()
+        .map((item) => item['id']?.toString() ?? '')
+        .where((id) => id.isNotEmpty)
+        .toList(growable: false);
+    await _options.setValue(fixtureMessageReadIdsKey, ids);
+  }
+
+  List<Map<String, dynamic>> loadFixtureMessageLogSync() {
+    final raw = _options.getValue<List>(fixtureMessageLogKey) ?? const [];
+    final logs =
+        raw
+            .whereType<Map>()
+            .map((item) => item.cast<String, dynamic>())
+            .toList(growable: false)
+          ..sort((a, b) {
+            final aAt =
+                DateTime.tryParse(a['scheduledAt']?.toString() ?? '') ??
+                DateTime.fromMillisecondsSinceEpoch(0);
+            final bAt =
+                DateTime.tryParse(b['scheduledAt']?.toString() ?? '') ??
+                DateTime.fromMillisecondsSinceEpoch(0);
+            return aAt.compareTo(bAt);
+          });
+    return logs;
+  }
+
+  Future<void> deleteFixtureMessage(String id) async {
+    final logs = loadFixtureMessageLogSync()
+        .where((item) => (item['id']?.toString() ?? '') != id)
+        .toList(growable: false);
+    await _options.setValue(fixtureMessageLogKey, logs);
+    final readRaw =
+        _options.getValue<List>(fixtureMessageReadIdsKey) ?? const [];
+    final readIds = readRaw.map((e) => e.toString()).toSet()..remove(id);
+    await _options.setValue(
+      fixtureMessageReadIdsKey,
+      readIds.toList(growable: false),
+    );
+  }
+
+  Future<void> _replaceFixtureMessagesForKind(
+    String kind,
+    List<Map<String, dynamic>> nextRows,
+  ) async {
+    final existing = loadFixtureMessageLogSync()
+        .where((item) => (item['kind']?.toString() ?? '') != kind)
+        .toList(growable: true);
+    final combined = <Map<String, dynamic>>[...nextRows, ...existing]
+      ..sort((a, b) {
+        final aAt =
+            DateTime.tryParse(a['scheduledAt']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        final bAt =
+            DateTime.tryParse(b['scheduledAt']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        return aAt.compareTo(bAt);
+      });
+    if (combined.length > 200) {
+      combined.removeRange(200, combined.length);
+    }
+    await _options.setValue(fixtureMessageLogKey, combined);
+    final activeIds = combined
+        .map((item) => item['id']?.toString() ?? '')
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    final readRaw =
+        _options.getValue<List>(fixtureMessageReadIdsKey) ?? const [];
+    final readIds = readRaw
+        .map((e) => e.toString())
+        .where(activeIds.contains)
+        .toList(growable: false);
+    await _options.setValue(fixtureMessageReadIdsKey, readIds);
   }
 
   _LeagueFavoriteMatch? _favoriteMatch({

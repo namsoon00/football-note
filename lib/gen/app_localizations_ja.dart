@@ -815,7 +815,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterSourceNote =>
-      '公式試合メンバーデータが接続されるまで、選手名はポジション枠として表示されます。';
+      'この国の公式2026年スカッドデータはまだアプリに含まれていないため、安定した合法的なソースが接続されるまでポジション枠を表示します。';
+
+  @override
+  String get worldCupTeamRosterCandidateSourceNote =>
+      '最近公開された代表チームの選手プールとして表示しており、FIFAの最終試合スカッドではありません。2026年の最終名簿はキックオフ前まで変わる可能性があります。';
 
   @override
   String get worldCupTeamRosterGoalkeepers => 'ゴールキーパー';
@@ -2545,6 +2549,84 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsGeneralSection => '一般設定';
 
   @override
+  String get settingsApiUsageTitle => 'このアプリで使用するAPI';
+
+  @override
+  String get settingsApiUsageSubtitle =>
+      'このアプリは以下の公開APIまたはユーザー同意ベースのAPIを使用します。プロバイダーごとに割り当ては変わる可能性があるため、可能な場所ではキャッシュし、バックグラウンド更新を制限します。';
+
+  @override
+  String get settingsApiTrafficLabel => 'トラフィック';
+
+  @override
+  String get settingsApiLegalLabel => '合法的な使用';
+
+  @override
+  String get settingsApiOpenMeteoProvider =>
+      'Open-Meteo 天気、大気質、ジオコーディング、過去天気API';
+
+  @override
+  String get settingsApiOpenMeteoTraffic =>
+      '公正利用を前提とした無料公開サービスです。天気画面のリクエストはキャッシュし、必要な時だけ更新します。';
+
+  @override
+  String get settingsApiOpenMeteoLegal =>
+      'Open-Meteoの公開API規約に従って使用し、天気機能で出典を表示します。';
+
+  @override
+  String get settingsApiKoreaPublicProvider => '韓国公共データの天気および大気質API';
+
+  @override
+  String get settingsApiKoreaPublicTraffic => '発行された公共データサービスキーと各機関の制限に従います。';
+
+  @override
+  String get settingsApiKoreaPublicLegal =>
+      '発行されたサービスキーと韓国公共データポータルの利用条件に従って使用します。';
+
+  @override
+  String get settingsApiKakaoProvider => 'Kakao Local 検索/ジオコーディングAPI';
+
+  @override
+  String get settingsApiKakaoTraffic =>
+      '登録されたKakao DevelopersアプリとREST APIキーの割り当てに従います。';
+
+  @override
+  String get settingsApiKakaoLegal =>
+      'アプリキーとプラットフォーム設定が許可する範囲でKakao Developers規約に従って使用します。';
+
+  @override
+  String get settingsApiFootballProvider => 'サッカー日程、順位、ワールドカップのソースページ/API';
+
+  @override
+  String get settingsApiFootballTraffic =>
+      '読み取り専用の取得はキャッシュし、控えめに再試行します。利用可否はソースサービスに依存します。';
+
+  @override
+  String get settingsApiFootballLegal =>
+      '公開されている日程/順位データをアプリ表示用に使用し、提供される場合はリンクと出典を表示します。';
+
+  @override
+  String get settingsApiNewsProvider => 'RSSフィードとニュース取得補助API';
+
+  @override
+  String get settingsApiNewsTraffic =>
+      'RSS/ニュース応答は繰り返し通信を減らすためにキャッシュし、フィルタリングします。';
+
+  @override
+  String get settingsApiNewsLegal => '記事全文を再公開せず、記事メタデータと元の出版社ページへのリンクを表示します。';
+
+  @override
+  String get settingsApiGoogleProvider => 'Google DriveおよびFirebaseサービス';
+
+  @override
+  String get settingsApiGoogleTraffic =>
+      '接続されたGoogle CloudプロジェクトとユーザーのDrive割り当てに従います。';
+
+  @override
+  String get settingsApiGoogleLegal =>
+      'ユーザーの同意を得て、ユーザー自身のバックアップファイルに必要なアプリバックアップ範囲でアクセスします。';
+
+  @override
   String get account => 'アカウント';
 
   @override
@@ -2805,6 +2887,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get notificationFamilyEmpty => '保護者同期アラートはまだありません。';
+
+  @override
+  String notificationFixtureSectionTitle(int count) {
+    return '$count 件の試合日程アラート';
+  }
+
+  @override
+  String get notificationFixtureEmpty => '試合日程アラートはまだありません。';
 
   @override
   String get notificationFamilySettingsTitle => '保護者同期アラート';

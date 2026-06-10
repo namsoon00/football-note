@@ -1581,8 +1581,14 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupTeamRosterSourceNote.
   ///
   /// In en, this message translates to:
-  /// **'Roster names are shown as position slots until official match squad data is connected.'**
+  /// **'Official 2026 squad data is not bundled for this country yet, so position slots are shown until a stable legal source is connected.'**
   String get worldCupTeamRosterSourceNote;
+
+  /// No description provided for @worldCupTeamRosterCandidateSourceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown as a recent public national-team player pool, not a final FIFA match squad. Final 2026 squad data can change before kickoff.'**
+  String get worldCupTeamRosterCandidateSourceNote;
 
   /// No description provided for @worldCupTeamRosterGoalkeepers.
   ///
@@ -4735,6 +4741,138 @@ abstract class AppLocalizations {
   /// **'General'**
   String get settingsGeneralSection;
 
+  /// No description provided for @settingsApiUsageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'APIs used in this app'**
+  String get settingsApiUsageTitle;
+
+  /// No description provided for @settingsApiUsageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This app uses the following public or consent-based APIs. Quotas can change by provider, so the app caches where possible and limits background refreshes.'**
+  String get settingsApiUsageSubtitle;
+
+  /// No description provided for @settingsApiTrafficLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic'**
+  String get settingsApiTrafficLabel;
+
+  /// No description provided for @settingsApiLegalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal use'**
+  String get settingsApiLegalLabel;
+
+  /// No description provided for @settingsApiOpenMeteoProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-Meteo weather, air quality, geocoding, and archive APIs'**
+  String get settingsApiOpenMeteoProvider;
+
+  /// No description provided for @settingsApiOpenMeteoTraffic.
+  ///
+  /// In en, this message translates to:
+  /// **'Free public service with fair-use expectations; requests are cached for weather views and refreshed only when needed.'**
+  String get settingsApiOpenMeteoTraffic;
+
+  /// No description provided for @settingsApiOpenMeteoLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Used under Open-Meteo public API terms with attribution/source surfaces in weather features.'**
+  String get settingsApiOpenMeteoLegal;
+
+  /// No description provided for @settingsApiKoreaPublicProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Korea public data APIs for weather and air quality'**
+  String get settingsApiKoreaPublicProvider;
+
+  /// No description provided for @settingsApiKoreaPublicTraffic.
+  ///
+  /// In en, this message translates to:
+  /// **'Quota depends on the issued public-data service key and agency limits.'**
+  String get settingsApiKoreaPublicTraffic;
+
+  /// No description provided for @settingsApiKoreaPublicLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Used with an issued service key under the Korean public data portal terms.'**
+  String get settingsApiKoreaPublicLegal;
+
+  /// No description provided for @settingsApiKakaoProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Kakao Local search/geocoding API'**
+  String get settingsApiKakaoProvider;
+
+  /// No description provided for @settingsApiKakaoTraffic.
+  ///
+  /// In en, this message translates to:
+  /// **'Quota depends on the registered Kakao Developers app and REST API key.'**
+  String get settingsApiKakaoTraffic;
+
+  /// No description provided for @settingsApiKakaoLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Used only when the app key/platform configuration permits it under Kakao Developers terms.'**
+  String get settingsApiKakaoLegal;
+
+  /// No description provided for @settingsApiFootballProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Football schedule, standings, and World Cup source pages/APIs'**
+  String get settingsApiFootballProvider;
+
+  /// No description provided for @settingsApiFootballTraffic.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-only fetches are cached and retried conservatively; availability depends on the source service.'**
+  String get settingsApiFootballTraffic;
+
+  /// No description provided for @settingsApiFootballLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses public fixture/standings data for in-app display and links/source labels where provided.'**
+  String get settingsApiFootballLegal;
+
+  /// No description provided for @settingsApiNewsProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'RSS feeds and news fetch helpers'**
+  String get settingsApiNewsProvider;
+
+  /// No description provided for @settingsApiNewsTraffic.
+  ///
+  /// In en, this message translates to:
+  /// **'RSS/news responses are cached and filtered to reduce repeated traffic.'**
+  String get settingsApiNewsTraffic;
+
+  /// No description provided for @settingsApiNewsLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows article metadata and opens the original publisher page instead of republishing full articles.'**
+  String get settingsApiNewsLegal;
+
+  /// No description provided for @settingsApiGoogleProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive and Firebase services'**
+  String get settingsApiGoogleProvider;
+
+  /// No description provided for @settingsApiGoogleTraffic.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic follows the connected Google Cloud project and user Drive quota.'**
+  String get settingsApiGoogleTraffic;
+
+  /// No description provided for @settingsApiGoogleLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive access uses user consent and app backup scopes for the user\'s own files.'**
+  String get settingsApiGoogleLegal;
+
   /// No description provided for @account.
   ///
   /// In en, this message translates to:
@@ -5232,6 +5370,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No parent sync alerts yet.'**
   String get notificationFamilyEmpty;
+
+  /// No description provided for @notificationFixtureSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} fixture alert(s)'**
+  String notificationFixtureSectionTitle(int count);
+
+  /// No description provided for @notificationFixtureEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No fixture alerts yet.'**
+  String get notificationFixtureEmpty;
 
   /// No description provided for @notificationFamilySettingsTitle.
   ///

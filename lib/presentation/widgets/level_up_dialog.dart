@@ -623,11 +623,6 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  _OrbitGemCelebration(
-                                    color: spec.color,
-                                    size: heroSize,
-                                  ),
-                                  SizedBox(height: compactHeight ? 14 : 22),
                                   Text(
                                     spec.title,
                                     textAlign: TextAlign.center,
@@ -648,7 +643,12 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
                                           height: 1.35,
                                         ),
                                   ),
-                                  SizedBox(height: compactHeight ? 18 : 26),
+                                  SizedBox(height: compactHeight ? 16 : 22),
+                                  _OrbitGemCelebration(
+                                    color: spec.color,
+                                    size: heroSize,
+                                  ),
+                                  SizedBox(height: compactHeight ? 16 : 24),
                                   _XpHeroAmount(
                                     color: spec.color,
                                     label: l10n.trainingXpDialogRewardLabel,
@@ -1176,7 +1176,7 @@ class _OrbitGemCelebrationState extends State<_OrbitGemCelebration>
                 scale: pulse,
                 child: _CuteGemIcon(
                   color: widget.color,
-                  size: widget.size * 0.38,
+                  size: widget.size * 0.48,
                   glint: (math.sin((progress * math.pi * 2) + 0.8) + 1) / 2,
                 ),
               ),
@@ -1983,6 +1983,16 @@ class _CuteGemIcon extends StatelessWidget {
               ),
             ),
           ),
+          Positioned(
+            top: size * 0.46,
+            left: size * 0.23,
+            child: _GemCheek(size: size * 0.07),
+          ),
+          Positioned(
+            top: size * 0.46,
+            right: size * 0.23,
+            child: _GemCheek(size: size * 0.07),
+          ),
         ],
       ),
     );
@@ -2000,24 +2010,27 @@ class _CuteGemPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
     final shadowPaint = Paint()
-      ..color = const Color(0x33000000)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+      ..color = const Color(0x40000000)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(w * 0.5, h * 0.84),
-        width: w * 0.62,
-        height: h * 0.18,
+        width: w * 0.74,
+        height: h * 0.20,
       ),
       shadowPaint,
     );
 
-    final top = Offset(w * 0.50, h * 0.05);
-    final upperLeft = Offset(w * 0.16, h * 0.34);
-    final upperRight = Offset(w * 0.84, h * 0.34);
-    final bottom = Offset(w * 0.50, h * 0.94);
-    final center = Offset(w * 0.50, h * 0.42);
+    final top = Offset(w * 0.50, h * 0.03);
+    final shoulderLeft = Offset(w * 0.30, h * 0.15);
+    final shoulderRight = Offset(w * 0.70, h * 0.15);
+    final upperLeft = Offset(w * 0.11, h * 0.36);
+    final upperRight = Offset(w * 0.89, h * 0.36);
+    final bottom = Offset(w * 0.50, h * 0.96);
+    final center = Offset(w * 0.50, h * 0.43);
     final leftFacet = Path()
       ..moveTo(top.dx, top.dy)
+      ..lineTo(shoulderLeft.dx, shoulderLeft.dy)
       ..lineTo(upperLeft.dx, upperLeft.dy)
       ..lineTo(center.dx, center.dy)
       ..close();
@@ -2025,6 +2038,7 @@ class _CuteGemPainter extends CustomPainter {
       ..moveTo(top.dx, top.dy)
       ..lineTo(center.dx, center.dy)
       ..lineTo(upperRight.dx, upperRight.dy)
+      ..lineTo(shoulderRight.dx, shoulderRight.dy)
       ..close();
     final lowerLeftFacet = Path()
       ..moveTo(upperLeft.dx, upperLeft.dy)
@@ -2038,9 +2052,11 @@ class _CuteGemPainter extends CustomPainter {
       ..close();
     final outline = Path()
       ..moveTo(top.dx, top.dy)
+      ..lineTo(shoulderRight.dx, shoulderRight.dy)
       ..lineTo(upperRight.dx, upperRight.dy)
       ..lineTo(bottom.dx, bottom.dy)
       ..lineTo(upperLeft.dx, upperLeft.dy)
+      ..lineTo(shoulderLeft.dx, shoulderLeft.dy)
       ..close();
 
     canvas.drawPath(
@@ -2055,6 +2071,16 @@ class _CuteGemPainter extends CustomPainter {
             Color.lerp(Colors.black, color, 0.70)!,
           ],
         ).createShader(Offset.zero & size),
+    );
+    canvas.drawPath(
+      Path()
+        ..moveTo(shoulderLeft.dx, shoulderLeft.dy)
+        ..lineTo(center.dx, center.dy)
+        ..lineTo(shoulderRight.dx, shoulderRight.dy),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, w * 0.018)
+        ..color = Colors.white.withValues(alpha: 0.34),
     );
     canvas.drawPath(
       leftFacet,
@@ -2094,6 +2120,11 @@ class _CuteGemPainter extends CustomPainter {
       w * (0.035 + glint * 0.018),
       shinePaint,
     );
+    canvas.drawCircle(
+      Offset(w * 0.36, h * 0.18),
+      w * (0.024 + glint * 0.012),
+      shinePaint..color = Colors.white.withValues(alpha: 0.46),
+    );
   }
 
   @override
@@ -2116,6 +2147,24 @@ class _FaceDot extends StatelessWidget {
         color: const Color(0xFF3A2A20).withValues(alpha: 0.78),
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white.withValues(alpha: 0.34)),
+      ),
+    );
+  }
+}
+
+class _GemCheek extends StatelessWidget {
+  final double size;
+
+  const _GemCheek({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size * 0.66,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFB6C8).withValues(alpha: 0.62),
+        borderRadius: BorderRadius.circular(size),
       ),
     );
   }

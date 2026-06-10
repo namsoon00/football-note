@@ -134,7 +134,10 @@ class ChallengeService {
     await _saveRuns(runs);
   }
 
-  Future<void> abandonActiveRun({DateTime? abandonedAt}) async {
+  Future<void> abandonActiveRun({
+    DateTime? abandonedAt,
+    List<int> completedRoundNumbers = const <int>[],
+  }) async {
     final active = activeRun();
     if (active == null) return;
     final endedAt = abandonedAt ?? DateTime.now();
@@ -145,6 +148,7 @@ class ChallengeService {
                   completedAt: endedAt,
                   abandoned: true,
                   result: ChallengeRunResult.abandoned,
+                  completedRoundNumbers: completedRoundNumbers,
                 )
               : run,
         )

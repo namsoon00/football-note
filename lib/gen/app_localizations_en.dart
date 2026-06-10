@@ -846,7 +846,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterSourceNote =>
-      'Roster names are shown as position slots until official match squad data is connected.';
+      'Official 2026 squad data is not bundled for this country yet, so position slots are shown until a stable legal source is connected.';
+
+  @override
+  String get worldCupTeamRosterCandidateSourceNote =>
+      'Shown as a recent public national-team player pool, not a final FIFA match squad. Final 2026 squad data can change before kickoff.';
 
   @override
   String get worldCupTeamRosterGoalkeepers => 'Goalkeepers';
@@ -2616,6 +2620,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsGeneralSection => 'General';
 
   @override
+  String get settingsApiUsageTitle => 'APIs used in this app';
+
+  @override
+  String get settingsApiUsageSubtitle =>
+      'This app uses the following public or consent-based APIs. Quotas can change by provider, so the app caches where possible and limits background refreshes.';
+
+  @override
+  String get settingsApiTrafficLabel => 'Traffic';
+
+  @override
+  String get settingsApiLegalLabel => 'Legal use';
+
+  @override
+  String get settingsApiOpenMeteoProvider =>
+      'Open-Meteo weather, air quality, geocoding, and archive APIs';
+
+  @override
+  String get settingsApiOpenMeteoTraffic =>
+      'Free public service with fair-use expectations; requests are cached for weather views and refreshed only when needed.';
+
+  @override
+  String get settingsApiOpenMeteoLegal =>
+      'Used under Open-Meteo public API terms with attribution/source surfaces in weather features.';
+
+  @override
+  String get settingsApiKoreaPublicProvider =>
+      'Korea public data APIs for weather and air quality';
+
+  @override
+  String get settingsApiKoreaPublicTraffic =>
+      'Quota depends on the issued public-data service key and agency limits.';
+
+  @override
+  String get settingsApiKoreaPublicLegal =>
+      'Used with an issued service key under the Korean public data portal terms.';
+
+  @override
+  String get settingsApiKakaoProvider => 'Kakao Local search/geocoding API';
+
+  @override
+  String get settingsApiKakaoTraffic =>
+      'Quota depends on the registered Kakao Developers app and REST API key.';
+
+  @override
+  String get settingsApiKakaoLegal =>
+      'Used only when the app key/platform configuration permits it under Kakao Developers terms.';
+
+  @override
+  String get settingsApiFootballProvider =>
+      'Football schedule, standings, and World Cup source pages/APIs';
+
+  @override
+  String get settingsApiFootballTraffic =>
+      'Read-only fetches are cached and retried conservatively; availability depends on the source service.';
+
+  @override
+  String get settingsApiFootballLegal =>
+      'Uses public fixture/standings data for in-app display and links/source labels where provided.';
+
+  @override
+  String get settingsApiNewsProvider => 'RSS feeds and news fetch helpers';
+
+  @override
+  String get settingsApiNewsTraffic =>
+      'RSS/news responses are cached and filtered to reduce repeated traffic.';
+
+  @override
+  String get settingsApiNewsLegal =>
+      'Shows article metadata and opens the original publisher page instead of republishing full articles.';
+
+  @override
+  String get settingsApiGoogleProvider => 'Google Drive and Firebase services';
+
+  @override
+  String get settingsApiGoogleTraffic =>
+      'Traffic follows the connected Google Cloud project and user Drive quota.';
+
+  @override
+  String get settingsApiGoogleLegal =>
+      'Drive access uses user consent and app backup scopes for the user\'s own files.';
+
+  @override
   String get account => 'Account';
 
   @override
@@ -2883,6 +2969,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationFamilyEmpty => 'No parent sync alerts yet.';
+
+  @override
+  String notificationFixtureSectionTitle(int count) {
+    return '$count fixture alert(s)';
+  }
+
+  @override
+  String get notificationFixtureEmpty => 'No fixture alerts yet.';
 
   @override
   String get notificationFamilySettingsTitle => 'Parent sync alerts';
