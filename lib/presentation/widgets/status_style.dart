@@ -53,7 +53,7 @@ TrainingStatusVisual trainingStatusVisual(String status) {
     case 'normal':
     default:
       return const TrainingStatusVisual(
-        icon: Icons.shield_rounded,
+        icon: Icons.check_circle_outline_rounded,
         color: Color(0xFF7EA8FF),
         gradientStart: Color(0xFF9EC5FF),
         gradientEnd: Color(0xFF5E7BFF),

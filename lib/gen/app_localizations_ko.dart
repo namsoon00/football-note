@@ -290,6 +290,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsLeagueFixturesSelectedTeamsEmpty => '이 리그 일정에 선택한 팀 경기가 없어요.';
 
   @override
+  String newsLeagueFixturesEmptyReason(String league) {
+    return '$league 일정 원본 피드가 비어 있거나 현재 시즌 일정이 아직 공개되지 않아 표시할 경기가 없어요.';
+  }
+
+  @override
   String get newsLeagueFixtureScheduled => '예정';
 
   @override
@@ -297,6 +302,30 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get newsLeagueFixtureFullTime => '종료';
+
+  @override
+  String newsLeagueTeamDetailTitle(String team) {
+    return '$team 정보';
+  }
+
+  @override
+  String get newsLeagueTeamDetailRosterTitle => '선수 명단';
+
+  @override
+  String get newsLeagueTeamDetailTacticsTitle => '전술';
+
+  @override
+  String get newsLeagueTeamDetailFixturesTitle => '팀 일정';
+
+  @override
+  String get newsLeagueTeamDetailNoFixtures => '불러온 일정 안에서 이 팀의 경기를 찾지 못했어요.';
+
+  @override
+  String get newsLeagueTeamDetailTacticsSummary =>
+      '현재 순위와 득실 데이터를 바탕으로 팀 흐름을 확인하세요. 공식 전술/선수 명단이 제공되면 이 화면에 함께 표시됩니다.';
+
+  @override
+  String get newsLeagueTeamDetailSourceNote => '공식 리그 피드에서 확인 가능한 정보만 표시합니다.';
 
   @override
   String get newsLeagueFavoriteTeamTitle => '좋아하는 팀';
@@ -660,7 +689,38 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupMatchScheduled => '예정';
 
   @override
+  String get worldCupMatchLive => '진행 중';
+
+  @override
   String get worldCupMatchResultFinal => '결과';
+
+  @override
+  String get worldCupMatchDetailTitle => '경기 상세';
+
+  @override
+  String get worldCupMatchComparisonTitle => '전력 비교';
+
+  @override
+  String get worldCupMatchRecordsTitle => '경기 기록';
+
+  @override
+  String get worldCupMatchRecordUnavailable =>
+      '실시간 경기 기록은 공식 데이터가 들어오는 대로 표시됩니다.';
+
+  @override
+  String worldCupPlayerProfileTitle(String player) {
+    return '$player 프로필';
+  }
+
+  @override
+  String get worldCupPlayerProfileTeamLabel => '대표팀';
+
+  @override
+  String get worldCupPlayerProfilePositionLabel => '포지션';
+
+  @override
+  String get worldCupPlayerProfileSourceNote =>
+      '공식 사진이 없을 때는 선수 얼굴 아이콘을 표시합니다.';
 
   @override
   String get worldCupScorePending => '- : -';
@@ -7030,6 +7090,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchRoutesButton => '이동선';
+
+  @override
+  String get trainingSketchPassDribbleMoveFlowButton => '패스·드리블 플로우';
+
+  @override
+  String get trainingSketchPassDribbleMoveFlowSnack =>
+      '1번 패스, 2번 드리블, 3번 이동 플로우를 적용했어요.';
 
   @override
   String get trainingSketchClearAllRoutesButton => '이동선 전체 지우기';

@@ -9,9 +9,9 @@ class FifaWorldOverviewService {
   static final Uri _kfaHomeUri = Uri.parse('https://www.kfa.or.kr/');
   static const int _rankingPageSize = 250;
   static const int _matchPageSize = 100;
-  static const int _matchPageLimit = 8;
+  static const int _matchPageLimit = 16;
   static const int _defaultRecentResultLimit = 12;
-  static const int _defaultUpcomingFixtureLimit = 12;
+  static const int _defaultUpcomingFixtureLimit = 80;
 
   final http.Client _client;
   final bool _ownsClient;
@@ -274,7 +274,7 @@ class FifaWorldOverviewService {
     final collected = <FifaAMatchEntry>[];
     final seenIds = <String>{};
     var cursor = anchor;
-    for (var window = 0; window < 12 && collected.length < limit; window++) {
+    for (var window = 0; window < 24 && collected.length < limit; window++) {
       final end = _endOfDayUtc(cursor);
       final start = end.subtract(const Duration(days: 6));
       final matches = await _fetchNationalMatchesWindow(
@@ -320,7 +320,7 @@ class FifaWorldOverviewService {
       }
       cursor = end.add(const Duration(seconds: 1));
     }
-    collected.sort((a, b) => a.kickoffAt.compareTo(b.kickoffAt));
+    collected.sort((a, b) => b.kickoffAt.compareTo(a.kickoffAt));
     return collected.take(limit).toList(growable: false);
   }
 
@@ -771,9 +771,33 @@ class FifaWorldOverviewService {
         awayCountryCode.isEmpty) {
       return null;
     }
-    final homeScore = _asInt(home['Score']);
-    final awayScore = _asInt(away['Score']);
+    final homeScore = _firstInt([
+      home['Score'],
+      home['TeamScore'],
+      home['Goals'],
+      home['Result'],
+      raw['HomeScore'],
+      raw['HomeTeamScore'],
+      raw['ScoreHome'],
+    ]);
+    final awayScore = _firstInt([
+      away['Score'],
+      away['TeamScore'],
+      away['Goals'],
+      away['Result'],
+      raw['AwayScore'],
+      raw['AwayTeamScore'],
+      raw['ScoreAway'],
+    ]);
     final period = _asInt(raw['Period']) ?? 0;
+    final statusText = _firstNonEmpty([
+      _localizedDescription(raw['Status']),
+      _localizedDescription(raw['MatchStatus']),
+      _localizedDescription(raw['MatchStatusName']),
+      _localizedDescription(raw['MatchStatusDescription']),
+      _localizedDescription(raw['PeriodName']),
+      _asString(raw['StatusText']),
+    ]);
     final stadium = _asMap(raw['Stadium']);
     return FifaAMatchEntry(
       matchId: matchId,
@@ -791,6 +815,7 @@ class FifaWorldOverviewService {
       awayScore: awayScore,
       status: _parseMatchStatus(
         period: period,
+        statusText: statusText,
         homeScore: homeScore,
         awayScore: awayScore,
       ),
@@ -799,9 +824,20 @@ class FifaWorldOverviewService {
 
   static FifaAMatchStatus _parseMatchStatus({
     required int period,
+    required String statusText,
     required int? homeScore,
     required int? awayScore,
   }) {
+    final normalizedStatus = statusText.toLowerCase();
+    if (_looksLiveStatus(normalizedStatus)) {
+      return FifaAMatchStatus.live;
+    }
+    if (_looksFinishedStatus(normalizedStatus)) {
+      return FifaAMatchStatus.finished;
+    }
+    if (_looksScheduledStatus(normalizedStatus)) {
+      return FifaAMatchStatus.scheduled;
+    }
     const livePeriods = <int>{3, 4, 5, 6, 7, 8, 9, 11, 14, 15, 16, 17};
     const finishedPeriods = <int>{10, 12, 13};
     if (livePeriods.contains(period)) {
@@ -812,6 +848,38 @@ class FifaWorldOverviewService {
       return FifaAMatchStatus.finished;
     }
     return FifaAMatchStatus.scheduled;
+  }
+
+  static bool _looksLiveStatus(String value) {
+    return value.contains('live') ||
+        value.contains('in progress') ||
+        value.contains('first half') ||
+        value.contains('second half') ||
+        value.contains('half-time') ||
+        value.contains('half time') ||
+        value.contains('extra time') ||
+        value.contains('penalty shootout') ||
+        value.contains('playing');
+  }
+
+  static bool _looksFinishedStatus(String value) {
+    return value.contains('finished') ||
+        value.contains('full-time') ||
+        value.contains('full time') ||
+        value == 'ft' ||
+        value.contains('final') ||
+        value.contains('ended') ||
+        value.contains('after penalties') ||
+        value == 'aet';
+  }
+
+  static bool _looksScheduledStatus(String value) {
+    return value.contains('scheduled') ||
+        value.contains('not started') ||
+        value.contains('pre-match') ||
+        value.contains('pre match') ||
+        value.contains('upcoming') ||
+        value == 'fixture';
   }
 
   static List<FifaMatchScorer> _parseGoalScorers(Map<String, dynamic> team) {
@@ -881,6 +949,14 @@ class FifaWorldOverviewService {
       if (value.trim().isNotEmpty) return value.trim();
     }
     return '';
+  }
+
+  static int? _firstInt(Iterable<dynamic> values) {
+    for (final value in values) {
+      final parsed = _asInt(value);
+      if (parsed != null) return parsed;
+    }
+    return null;
   }
 
   static bool _isSeniorNationalTeam(Map<String, dynamic> team) {

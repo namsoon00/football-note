@@ -299,6 +299,11 @@ class AppLocalizationsJa extends AppLocalizations {
       'このリーグのスケジュールでは、選択チームの試合はありません。';
 
   @override
+  String newsLeagueFixturesEmptyReason(String league) {
+    return '$league は、元の日程フィードが空か現在シーズンの日程がまだ公開されていないため、表示できる試合がありません。';
+  }
+
+  @override
   String get newsLeagueFixtureScheduled => '治具';
 
   @override
@@ -306,6 +311,30 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get newsLeagueFixtureFullTime => 'FT';
+
+  @override
+  String newsLeagueTeamDetailTitle(String team) {
+    return '$team 情報';
+  }
+
+  @override
+  String get newsLeagueTeamDetailRosterTitle => '選手名簿';
+
+  @override
+  String get newsLeagueTeamDetailTacticsTitle => '戦術';
+
+  @override
+  String get newsLeagueTeamDetailFixturesTitle => 'チーム日程';
+
+  @override
+  String get newsLeagueTeamDetailNoFixtures => '読み込んだ日程内で、このチームの試合は見つかりませんでした。';
+
+  @override
+  String get newsLeagueTeamDetailTacticsSummary =>
+      '現在の順位表と得失点データからチームの流れを確認できます。公式の戦術や選手名簿が提供された場合は、この画面に表示されます。';
+
+  @override
+  String get newsLeagueTeamDetailSourceNote => '公式リーグフィードで確認できる情報のみ表示します。';
 
   @override
   String get newsLeagueFavoriteTeamTitle => '好きなチーム';
@@ -667,7 +696,36 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupMatchScheduled => '予定';
 
   @override
+  String get worldCupMatchLive => 'ライブ';
+
+  @override
   String get worldCupMatchResultFinal => '結果';
+
+  @override
+  String get worldCupMatchDetailTitle => '試合詳細';
+
+  @override
+  String get worldCupMatchComparisonTitle => '戦力比較';
+
+  @override
+  String get worldCupMatchRecordsTitle => '試合記録';
+
+  @override
+  String get worldCupMatchRecordUnavailable => '公式データが利用可能になると、ライブ試合記録が表示されます。';
+
+  @override
+  String worldCupPlayerProfileTitle(String player) {
+    return '$player プロフィール';
+  }
+
+  @override
+  String get worldCupPlayerProfileTeamLabel => '代表チーム';
+
+  @override
+  String get worldCupPlayerProfilePositionLabel => 'ポジション';
+
+  @override
+  String get worldCupPlayerProfileSourceNote => '公式写真がない場合は、選手の顔アイコンを表示します。';
 
   @override
   String get worldCupScorePending => '- : -';
@@ -7019,6 +7077,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchRoutesButton => 'ルート';
+
+  @override
+  String get trainingSketchPassDribbleMoveFlowButton => 'パス・ドリブルフロー';
+
+  @override
+  String get trainingSketchPassDribbleMoveFlowSnack =>
+      '1番のパス、2番のドリブル、3番の移動フローを適用しました。';
 
   @override
   String get trainingSketchClearAllRoutesButton => '全ルートクリア';

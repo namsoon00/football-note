@@ -640,6 +640,12 @@ abstract class AppLocalizations {
   /// **'No selected-team fixtures are available in this league schedule.'**
   String get newsLeagueFixturesSelectedTeamsEmpty;
 
+  /// No description provided for @newsLeagueFixturesEmptyReason.
+  ///
+  /// In en, this message translates to:
+  /// **'{league} has no fixtures to show because the source fixture feed is empty or the current season schedule has not been published yet.'**
+  String newsLeagueFixturesEmptyReason(String league);
+
   /// No description provided for @newsLeagueFixtureScheduled.
   ///
   /// In en, this message translates to:
@@ -657,6 +663,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'FT'**
   String get newsLeagueFixtureFullTime;
+
+  /// No description provided for @newsLeagueTeamDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{team} info'**
+  String newsLeagueTeamDetailTitle(String team);
+
+  /// No description provided for @newsLeagueTeamDetailRosterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Roster'**
+  String get newsLeagueTeamDetailRosterTitle;
+
+  /// No description provided for @newsLeagueTeamDetailTacticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactics'**
+  String get newsLeagueTeamDetailTacticsTitle;
+
+  /// No description provided for @newsLeagueTeamDetailFixturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team fixtures'**
+  String get newsLeagueTeamDetailFixturesTitle;
+
+  /// No description provided for @newsLeagueTeamDetailNoFixtures.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches for this team were found in the loaded fixtures.'**
+  String get newsLeagueTeamDetailNoFixtures;
+
+  /// No description provided for @newsLeagueTeamDetailTacticsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the current table plus goal data to read the team trend. Official tactics and roster details will appear here when the feed provides them.'**
+  String get newsLeagueTeamDetailTacticsSummary;
+
+  /// No description provided for @newsLeagueTeamDetailSourceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Only information available from the official league feed is shown.'**
+  String get newsLeagueTeamDetailSourceNote;
 
   /// No description provided for @newsLeagueFavoriteTeamTitle.
   ///
@@ -1314,11 +1362,65 @@ abstract class AppLocalizations {
   /// **'Scheduled'**
   String get worldCupMatchScheduled;
 
+  /// No description provided for @worldCupMatchLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get worldCupMatchLive;
+
   /// No description provided for @worldCupMatchResultFinal.
   ///
   /// In en, this message translates to:
   /// **'Result'**
   String get worldCupMatchResultFinal;
+
+  /// No description provided for @worldCupMatchDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match details'**
+  String get worldCupMatchDetailTitle;
+
+  /// No description provided for @worldCupMatchComparisonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team comparison'**
+  String get worldCupMatchComparisonTitle;
+
+  /// No description provided for @worldCupMatchRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match records'**
+  String get worldCupMatchRecordsTitle;
+
+  /// No description provided for @worldCupMatchRecordUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Live match records will appear as official data becomes available.'**
+  String get worldCupMatchRecordUnavailable;
+
+  /// No description provided for @worldCupPlayerProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{player} profile'**
+  String worldCupPlayerProfileTitle(String player);
+
+  /// No description provided for @worldCupPlayerProfileTeamLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'National team'**
+  String get worldCupPlayerProfileTeamLabel;
+
+  /// No description provided for @worldCupPlayerProfilePositionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get worldCupPlayerProfilePositionLabel;
+
+  /// No description provided for @worldCupPlayerProfileSourceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'A player face icon is shown when an official photo is unavailable.'**
+  String get worldCupPlayerProfileSourceNote;
 
   /// No description provided for @worldCupScorePending.
   ///
@@ -12530,6 +12632,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Routes'**
   String get trainingSketchRoutesButton;
+
+  /// No description provided for @trainingSketchPassDribbleMoveFlowButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass-dribble flow'**
+  String get trainingSketchPassDribbleMoveFlowButton;
+
+  /// No description provided for @trainingSketchPassDribbleMoveFlowSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied the player 1 pass, player 2 dribble, player 3 move flow.'**
+  String get trainingSketchPassDribbleMoveFlowSnack;
 
   /// No description provided for @trainingSketchClearAllRoutesButton.
   ///
