@@ -387,7 +387,7 @@
     }
   },
   "worldCupTeamRosterSourceNote": "この国の公式2026年スカッドデータはまだアプリに含まれていないため、安定した合法的なソースが接続されるまでポジション枠を表示します。",
-  "worldCupTeamRosterCandidateSourceNote": "最近公開された代表チームの選手プールとして表示しており、FIFAの最終試合スカッドではありません。2026年の最終名簿はキックオフ前まで変わる可能性があります。",
+  "worldCupTeamRosterCandidateSourceNote": "公開された2026年スカッド情報と予想フォーメーションデータをもとに表示しています。負傷交代や試合当日の選択はキックオフ前まで変わる可能性があります。",
   "worldCupTeamRosterGoalkeepers": "ゴールキーパー",
   "worldCupTeamRosterDefenders": "ディフェンダー",
   "worldCupTeamRosterMidfielders": "ミッドフィルダー",

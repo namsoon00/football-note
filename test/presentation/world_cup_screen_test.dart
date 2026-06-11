@@ -42,7 +42,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.info_outline_rounded));
     await tester.pumpAndSettle();
 
-    expect(find.text('대회 개요'), findsOneWidget);
+    expect(find.text('대회 개요'), findsWidgets);
     expect(find.text('이번 월드컵 진행 방식'), findsOneWidget);
     expect(find.text('VAR과 경기 기술'), findsOneWidget);
     expect(find.text('결승까지의 흐름'), findsOneWidget);
@@ -113,6 +113,45 @@ void main() {
     expect(find.text('M73 승자'), findsOneWidget);
     expect(find.text('M73: A조 2위 대 B조 2위'), findsOneWidget);
     expect(find.text('결승'), findsOneWidget);
+  });
+
+  testWidgets('team roster sheet shows expanded squad and formation data', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const WorldCupScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('순위'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('순위'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.textContaining('Mexico'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('Mexico').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mexico 선수 명단'), findsOneWidget);
+    expect(find.text('4-3-3 포메이션'), findsOneWidget);
+    expect(find.text('Raul Rangel'), findsOneWidget);
+    expect(find.text('Cesar Huerta'), findsOneWidget);
   });
 
   testWidgets('interest country editor opens without layout exception', (
