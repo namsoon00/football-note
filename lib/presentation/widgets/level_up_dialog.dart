@@ -587,10 +587,11 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final compactHeight = constraints.maxHeight < 620;
+            final compactHeight = constraints.maxHeight < 660;
+            final narrow = constraints.maxWidth < 390;
             final heroSize = math.min(
-              constraints.maxWidth * 0.58,
-              compactHeight ? 178.0 : 236.0,
+              constraints.maxWidth * (narrow ? 0.72 : 0.60),
+              compactHeight ? 188.0 : 250.0,
             );
             return Stack(
               children: [
@@ -619,88 +620,133 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
                         child: Center(
                           child: SingleChildScrollView(
                             child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 540),
+                              constraints: const BoxConstraints(maxWidth: 560),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    spec.title,
-                                    textAlign: TextAlign.center,
-                                    style: theme.textTheme.headlineMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w900,
-                                          color: scheme.onSurface,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    spec.message,
-                                    textAlign: TextAlign.center,
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(
-                                          color: scheme.onSurfaceVariant,
-                                          fontWeight: FontWeight.w700,
-                                          height: 1.35,
-                                        ),
-                                  ),
-                                  SizedBox(height: compactHeight ? 16 : 22),
                                   _OrbitGemCelebration(
                                     color: spec.color,
                                     size: heroSize,
                                   ),
-                                  SizedBox(height: compactHeight ? 16 : 24),
-                                  _XpHeroAmount(
-                                    color: spec.color,
-                                    label: l10n.trainingXpDialogRewardLabel,
-                                    value: l10n.trainingXpDialogXp(
-                                      award.gainedXp,
+                                  SizedBox(height: compactHeight ? 14 : 20),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: EdgeInsets.all(
+                                      compactHeight ? 16 : 20,
                                     ),
-                                  ),
-                                  const SizedBox(height: 14),
-                                  _LevelProgressStrip(
-                                    progress: award.after.progress,
-                                    foreground: spec.color,
-                                    background: spec.color.withValues(
-                                      alpha: 0.16,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    progressText,
-                                    textAlign: TextAlign.center,
-                                    style: theme.textTheme.labelLarge?.copyWith(
-                                      color: scheme.onSurfaceVariant,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 14),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _RewardStatCard(
-                                          label:
-                                              l10n.trainingXpDialogTotalLabel,
-                                          value: l10n
-                                              .trainingXpDialogTotalValue(
-                                                award.after.totalXp,
-                                              ),
+                                    decoration: BoxDecoration(
+                                      color: scheme.surface.withValues(
+                                        alpha:
+                                            theme.brightness == Brightness.dark
+                                            ? 0.82
+                                            : 0.90,
+                                      ),
+                                      borderRadius: BorderRadius.circular(26),
+                                      border: Border.all(
+                                        color: spec.color.withValues(
+                                          alpha: 0.20,
                                         ),
                                       ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: _RewardStatCard(
-                                          label:
-                                              l10n.trainingXpDialogLevelLabel,
-                                          value: l10n
-                                              .trainingXpDialogLevelValue(
-                                                award.after.level,
-                                                l10n.playerLevelName(
-                                                  award.after.level,
-                                                ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: spec.color.withValues(
+                                            alpha: 0.12,
+                                          ),
+                                          blurRadius: 28,
+                                          offset: const Offset(0, 14),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          spec.title,
+                                          textAlign: TextAlign.center,
+                                          style:
+                                              (compactHeight
+                                                      ? theme
+                                                            .textTheme
+                                                            .headlineSmall
+                                                      : theme
+                                                            .textTheme
+                                                            .headlineMedium)
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w900,
+                                                    color: scheme.onSurface,
+                                                    height: 1.08,
+                                                  ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          spec.message,
+                                          textAlign: TextAlign.center,
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                                color: scheme.onSurfaceVariant,
+                                                fontWeight: FontWeight.w700,
+                                                height: 1.35,
                                               ),
                                         ),
-                                      ),
-                                    ],
+                                        SizedBox(
+                                          height: compactHeight ? 14 : 18,
+                                        ),
+                                        _XpHeroAmount(
+                                          color: spec.color,
+                                          label:
+                                              l10n.trainingXpDialogRewardLabel,
+                                          value: l10n.trainingXpDialogXp(
+                                            award.gainedXp,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 14),
+                                        _LevelProgressStrip(
+                                          progress: award.after.progress,
+                                          foreground: spec.color,
+                                          background: spec.color.withValues(
+                                            alpha: 0.16,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          progressText,
+                                          textAlign: TextAlign.center,
+                                          style: theme.textTheme.labelLarge
+                                              ?.copyWith(
+                                                color: scheme.onSurfaceVariant,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 14),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: _RewardStatCard(
+                                                label: l10n
+                                                    .trainingXpDialogTotalLabel,
+                                                value: l10n
+                                                    .trainingXpDialogTotalValue(
+                                                      award.after.totalXp,
+                                                    ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: _RewardStatCard(
+                                                label: l10n
+                                                    .trainingXpDialogLevelLabel,
+                                                value: l10n
+                                                    .trainingXpDialogLevelValue(
+                                                      award.after.level,
+                                                      l10n.playerLevelName(
+                                                        award.after.level,
+                                                      ),
+                                                    ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
@@ -1169,6 +1215,54 @@ class _OrbitGemCelebrationState extends State<_OrbitGemCelebration>
                   painter: _OrbitGemPainter(
                     color: widget.color,
                     progress: progress,
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: widget.size * 0.13,
+                child: Transform.scale(
+                  scale: 1 + math.sin(progress * math.pi * 2) * 0.035,
+                  child: Container(
+                    width: widget.size * 0.48,
+                    height: widget.size * 0.12,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      gradient: RadialGradient(
+                        colors: [
+                          widget.color.withValues(alpha: 0.26),
+                          widget.color.withValues(alpha: 0.10),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: widget.size * 0.13,
+                bottom:
+                    widget.size * 0.26 +
+                    math.sin((progress * math.pi * 2) + 0.4) * 4,
+                child: Transform.rotate(
+                  angle: -0.24 + math.sin(progress * math.pi * 2) * 0.05,
+                  child: _CuteGemIcon(
+                    color: Color.lerp(Colors.white, widget.color, 0.72)!,
+                    size: widget.size * 0.17,
+                    glint: (progress + 0.24) % 1,
+                  ),
+                ),
+              ),
+              Positioned(
+                right: widget.size * 0.12,
+                top:
+                    widget.size * 0.24 +
+                    math.cos((progress * math.pi * 2) + 0.7) * 4,
+                child: Transform.rotate(
+                  angle: 0.28 + math.cos(progress * math.pi * 2) * 0.05,
+                  child: _CuteGemIcon(
+                    color: Color.lerp(Colors.white, widget.color, 0.60)!,
+                    size: widget.size * 0.15,
+                    glint: (progress + 0.62) % 1,
                   ),
                 ),
               ),
