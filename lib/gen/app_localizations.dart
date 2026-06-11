@@ -4255,6 +4255,66 @@ abstract class AppLocalizations {
   /// **'Add a training program.'**
   String get entryProgramDurationEmpty;
 
+  /// No description provided for @entryProgramOptionAddTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add program option'**
+  String get entryProgramOptionAddTooltip;
+
+  /// No description provided for @entryDurationOptionAddTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add time option'**
+  String get entryDurationOptionAddTooltip;
+
+  /// No description provided for @entryTodayGoalsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s goals'**
+  String get entryTodayGoalsTitle;
+
+  /// No description provided for @entryTodayGoalAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add today\'s goal'**
+  String get entryTodayGoalAddTitle;
+
+  /// No description provided for @entryTodayGoalAddTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add goal'**
+  String get entryTodayGoalAddTooltip;
+
+  /// No description provided for @entryTodayGoalsSelectTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Select today\'s goals'**
+  String get entryTodayGoalsSelectTooltip;
+
+  /// No description provided for @entryTodayGoalsSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select today\'s goals'**
+  String get entryTodayGoalsSelectTitle;
+
+  /// No description provided for @entryTodayGoalsDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get entryTodayGoalsDone;
+
+  /// No description provided for @entryTodayGoalsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No goals selected'**
+  String get entryTodayGoalsNone;
+
+  /// No description provided for @entryTodayGoalsSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String entryTodayGoalsSelectedCount(int count);
+
   /// No description provided for @drills.
   ///
   /// In en, this message translates to:

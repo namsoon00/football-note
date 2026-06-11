@@ -2373,6 +2373,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryProgramDurationEmpty => 'Add a training program.';
 
   @override
+  String get entryProgramOptionAddTooltip => 'Add program option';
+
+  @override
+  String get entryDurationOptionAddTooltip => 'Add time option';
+
+  @override
+  String get entryTodayGoalsTitle => 'Today\'s goals';
+
+  @override
+  String get entryTodayGoalAddTitle => 'Add today\'s goal';
+
+  @override
+  String get entryTodayGoalAddTooltip => 'Add goal';
+
+  @override
+  String get entryTodayGoalsSelectTooltip => 'Select today\'s goals';
+
+  @override
+  String get entryTodayGoalsSelectTitle => 'Select today\'s goals';
+
+  @override
+  String get entryTodayGoalsDone => 'Done';
+
+  @override
+  String get entryTodayGoalsNone => 'No goals selected';
+
+  @override
+  String entryTodayGoalsSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
   String get drills => 'Session Drills';
 
   @override

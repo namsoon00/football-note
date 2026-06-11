@@ -1321,6 +1321,23 @@
   "entryProgramDurationAddAction": "プログラムを追加",
   "entryProgramDurationRemoveTooltip": "プログラム時間を削除",
   "entryProgramDurationEmpty": "トレーニングプログラムを追加しましょう。",
+  "entryProgramOptionAddTooltip": "プログラム項目を追加",
+  "entryDurationOptionAddTooltip": "時間項目を追加",
+  "entryTodayGoalsTitle": "今日の目標",
+  "entryTodayGoalAddTitle": "今日の目標を追加",
+  "entryTodayGoalAddTooltip": "目標を追加",
+  "entryTodayGoalsSelectTooltip": "今日の目標を選択",
+  "entryTodayGoalsSelectTitle": "今日の目標を選択",
+  "entryTodayGoalsDone": "完了",
+  "entryTodayGoalsNone": "選択された目標はありません",
+  "entryTodayGoalsSelectedCount": "{count}件選択中",
+  "@entryTodayGoalsSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "drills": "セッションドリル",
   "injury": "けが",
   "injuryPart": "損傷部位",

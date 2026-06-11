@@ -1321,6 +1321,23 @@
   "entryProgramDurationAddAction": "Add program",
   "entryProgramDurationRemoveTooltip": "Remove program time",
   "entryProgramDurationEmpty": "Add a training program.",
+  "entryProgramOptionAddTooltip": "Add program option",
+  "entryDurationOptionAddTooltip": "Add time option",
+  "entryTodayGoalsTitle": "Today's goals",
+  "entryTodayGoalAddTitle": "Add today's goal",
+  "entryTodayGoalAddTooltip": "Add goal",
+  "entryTodayGoalsSelectTooltip": "Select today's goals",
+  "entryTodayGoalsSelectTitle": "Select today's goals",
+  "entryTodayGoalsDone": "Done",
+  "entryTodayGoalsNone": "No goals selected",
+  "entryTodayGoalsSelectedCount": "{count} selected",
+  "@entryTodayGoalsSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "drills": "Session Drills",
   "injury": "Injury",
   "injuryPart": "Injury Part",
