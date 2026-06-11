@@ -1310,8 +1310,8 @@
   "condition": "状態",
   "location": "位置",
   "program": "プログラム",
-  "entryProgramDurationsTitle": "プログラム別トレーニング時間",
-  "entryProgramDurationsSubtitle": "1つのトレーニングノートでプログラムごとの時間を記録します。",
+  "entryProgramDurationsTitle": "トレーニングプログラム",
+  "entryProgramDurationsSubtitle": "プログラムと時間を一緒に記録します。",
   "entryProgramDurationTotal": "合計 {minutes}",
   "@entryProgramDurationTotal": {
     "placeholders": {
@@ -1320,7 +1320,7 @@
   },
   "entryProgramDurationAddAction": "プログラムを追加",
   "entryProgramDurationRemoveTooltip": "プログラム時間を削除",
-  "entryProgramDurationEmpty": "プログラム別の時間はまだありません。",
+  "entryProgramDurationEmpty": "トレーニングプログラムを追加しましょう。",
   "drills": "セッションドリル",
   "injury": "けが",
   "injuryPart": "損傷部位",

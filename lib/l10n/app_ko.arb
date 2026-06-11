@@ -1310,8 +1310,8 @@
   "condition": "컨디션",
   "location": "장소",
   "program": "훈련 프로그램",
-  "entryProgramDurationsTitle": "프로그램별 훈련 시간",
-  "entryProgramDurationsSubtitle": "한 훈련 노트 안에서 프로그램마다 시간을 나눠 기록하세요.",
+  "entryProgramDurationsTitle": "훈련 프로그램",
+  "entryProgramDurationsSubtitle": "프로그램과 시간을 함께 기록하세요.",
   "entryProgramDurationTotal": "합계 {minutes}",
   "@entryProgramDurationTotal": {
     "placeholders": {
@@ -1320,7 +1320,7 @@
   },
   "entryProgramDurationAddAction": "프로그램 추가",
   "entryProgramDurationRemoveTooltip": "프로그램 시간 삭제",
-  "entryProgramDurationEmpty": "아직 프로그램별 시간이 없어요.",
+  "entryProgramDurationEmpty": "훈련 프로그램을 추가해요.",
   "drills": "세션 드릴",
   "injury": "부상 여부",
   "injuryPart": "부상 부위",

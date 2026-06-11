@@ -2352,11 +2352,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get program => 'Program';
 
   @override
-  String get entryProgramDurationsTitle => 'Program training time';
+  String get entryProgramDurationsTitle => 'Training program';
 
   @override
   String get entryProgramDurationsSubtitle =>
-      'Split one training note into time for each program.';
+      'Record the program and time together.';
 
   @override
   String entryProgramDurationTotal(Object minutes) {
@@ -2370,7 +2370,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryProgramDurationRemoveTooltip => 'Remove program time';
 
   @override
-  String get entryProgramDurationEmpty => 'No program-specific time yet.';
+  String get entryProgramDurationEmpty => 'Add a training program.';
 
   @override
   String get drills => 'Session Drills';
