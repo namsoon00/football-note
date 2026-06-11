@@ -1890,10 +1890,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     setState(() {
       for (final track in _playbackTracks) {
         if (track.segments.isEmpty) continue;
-        final position = _samplePlaybackSegments(
-          track.segments,
-          routeElapsedSeconds,
-        );
+        final position = _samplePlaybackTrack(track, routeElapsedSeconds);
         track.item.x = position.dx.clamp(0.03, 0.97);
         track.item.y = position.dy.clamp(0.03, 0.97);
       }
@@ -2095,28 +2092,81 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     for (var i = 0; i < points.length - 1; i++) {
       segmentDistances.add(_segmentDistanceMeters(points[i], points[i + 1]));
     }
-    final baseDurationSeconds = totalDistanceMeters / speedMetersPerSecond;
-    final drawDurations = _normalizedRouteSegmentDurations(
-      pointCount: points.length,
-      rawDurationsMs: route.segmentDurationsMs,
-    );
-    final hasDrawTiming =
-        drawDurations.length == segmentDistances.length &&
-        drawDurations.any((duration) => duration > 0);
-    final drawDurationTotal = drawDurations.fold<int>(
-      0,
-      (sum, duration) => sum + duration,
-    );
-    return List<_PlaybackSegment>.generate(segmentDistances.length, (index) {
-      final durationSeconds = hasDrawTiming && drawDurationTotal > 0
-          ? baseDurationSeconds * (drawDurations[index] / drawDurationTotal)
-          : segmentDistances[index] / speedMetersPerSecond;
-      return _PlaybackSegment(
-        start: points[index],
-        end: points[index + 1],
-        durationSeconds: durationSeconds.clamp(0.04, 8.0).toDouble(),
+    final segments = <_PlaybackSegment>[];
+    for (var index = 0; index < segmentDistances.length; index++) {
+      final distanceMeters = segmentDistances[index];
+      if (distanceMeters <= _minPlaybackSegmentDistanceMeters) continue;
+      final durationSeconds = distanceMeters / speedMetersPerSecond;
+      segments.add(
+        _PlaybackSegment(
+          start: points[index],
+          end: points[index + 1],
+          durationSeconds: durationSeconds,
+        ),
       );
-    }, growable: false);
+    }
+    if (segments.isEmpty) {
+      return <_PlaybackSegment>[
+        _PlaybackSegment(
+          start: points.first,
+          end: points.last,
+          durationSeconds: totalDistanceMeters / speedMetersPerSecond,
+        ),
+      ];
+    }
+    return segments;
+  }
+
+  Offset _samplePlaybackTrack(_PlaybackTrack track, double elapsedSeconds) {
+    final durationSeconds = track.durationSeconds;
+    if (durationSeconds <= 0) return track.segments.last.end;
+    final acceleratedElapsedSeconds = _acceleratedPlaybackElapsedSeconds(
+      elapsedSeconds: elapsedSeconds,
+      durationSeconds: durationSeconds,
+      kind: track.route.kind,
+    );
+    return _samplePlaybackSegments(track.segments, acceleratedElapsedSeconds);
+  }
+
+  double _acceleratedPlaybackElapsedSeconds({
+    required double elapsedSeconds,
+    required double durationSeconds,
+    required _PathDrawMode kind,
+  }) {
+    if (durationSeconds <= 0) return 0;
+    final progress = (elapsedSeconds / durationSeconds)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final rampFraction = switch (kind) {
+      _PathDrawMode.player => _playerPlaybackAccelerationFraction,
+      _PathDrawMode.ball => _ballPlaybackAccelerationFraction,
+    };
+    return _acceleratedPlaybackProgress(progress, rampFraction: rampFraction) *
+        durationSeconds;
+  }
+
+  double _acceleratedPlaybackProgress(
+    double progress, {
+    required double rampFraction,
+  }) {
+    final t = progress.clamp(0.0, 1.0).toDouble();
+    final ramp = rampFraction.clamp(0.05, 0.35).toDouble();
+    final linearSpan = math.max(0.0, 1 - (ramp * 2));
+    final peakSpeed = 1 / (linearSpan + ramp);
+    if (t <= ramp) {
+      return (0.5 * peakSpeed * t * t / ramp).clamp(0.0, 1.0).toDouble();
+    }
+    final rampDistance = 0.5 * peakSpeed * ramp;
+    if (t <= ramp + linearSpan) {
+      return (rampDistance + peakSpeed * (t - ramp)).clamp(0.0, 1.0).toDouble();
+    }
+    final decelT = t - ramp - linearSpan;
+    final beforeDecel = rampDistance + peakSpeed * linearSpan;
+    return (beforeDecel +
+            peakSpeed * decelT -
+            (0.5 * peakSpeed * decelT * decelT / ramp))
+        .clamp(0.0, 1.0)
+        .toDouble();
   }
 
   Offset _samplePlaybackSegments(
@@ -3512,6 +3562,9 @@ const double _trainingBoardReferenceLengthMeters = 60.0;
 const double _trainingBoardReferenceWidthMeters = 40.0;
 const double _playerPlaybackSpeedMetersPerSecond = 6.2;
 const double _ballPlaybackSpeedMetersPerSecond = 9.2;
+const double _playerPlaybackAccelerationFraction = 0.20;
+const double _ballPlaybackAccelerationFraction = 0.05;
+const double _minPlaybackSegmentDistanceMeters = 0.05;
 const Duration _minPlaybackDuration = Duration(milliseconds: 900);
 
 const List<Color> _playerItemColors = <Color>[

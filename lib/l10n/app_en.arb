@@ -763,6 +763,8 @@
   "quizLibraryAction": "Questions",
   "quizHistoryAction": "History",
   "quizBackHomeTooltip": "Back to quiz home",
+  "quizResultMissReviewCountLabel": "Misses to review",
+  "quizResultNoMissedQuestions": "This run finished with no missed questions.",
   "quizXpSavedFeedback": "Quiz complete +{count} XP",
   "@quizXpSavedFeedback": {
     "placeholders": {
@@ -3961,6 +3963,7 @@
     }
   },
   "challengeCelebrationCompleteBodyNoXp": "All missions are recorded. Review the challenge completion screen.",
+  "challengeCelebrationMissionsTitle": "Completed missions",
   "challengeCelebrationAction": "Nice!",
   "challengeHistoryTitle": "Challenge history",
   "challengeHistorySummaryTitle": "Challenge summary",

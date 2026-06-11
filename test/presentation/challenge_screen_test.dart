@@ -74,20 +74,35 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('2. 미션 선택'), findsOneWidget);
-    expect(find.text('훈련 프로그램 편집'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('challenge-add-training-program-button')),
+      findsOneWidget,
+    );
     expect(find.text('미션별 목표량'), findsOneWidget);
     expect(find.text('3. 시작 준비'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsOneWidget);
     expect(find.text('라운드'), findsNothing);
     final defaultProgramChip = find.widgetWithText(FilterChip, '기본기');
     expect(defaultProgramChip, findsOneWidget);
-    expect(tester.widget<FilterChip>(defaultProgramChip).selected, isFalse);
+    expect(tester.widget<FilterChip>(defaultProgramChip).selected, isTrue);
+    expect(
+      tester
+          .widget<FilterChip>(find.widgetWithText(FilterChip, '줄넘기'))
+          .selected,
+      isTrue,
+    );
+    expect(
+      tester
+          .widget<FilterChip>(find.widgetWithText(FilterChip, '리프팅'))
+          .selected,
+      isFalse,
+    );
+    expect(
+      tester.widget<FilterChip>(find.widgetWithText(FilterChip, '식사')).selected,
+      isFalse,
+    );
     await tester.ensureVisible(defaultProgramChip);
     await tester.pump(const Duration(milliseconds: 300));
-    await tester.tap(defaultProgramChip);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(tester.widget<FilterChip>(defaultProgramChip).selected, isTrue);
     expect(
       tester
           .widgetList<ChoiceChip>(find.widgetWithText(ChoiceChip, '30분'))
@@ -112,7 +127,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));
-    expect(find.text('리프팅'), findsAtLeastNWidgets(1));
+    expect(find.text('리프팅'), findsNothing);
     expect(find.text('훈련 프로그램 편집'), findsNothing);
     expect(tester.takeException(), isNull);
 
