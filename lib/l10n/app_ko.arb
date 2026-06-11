@@ -1321,6 +1321,23 @@
   "entryProgramDurationAddAction": "프로그램 추가",
   "entryProgramDurationRemoveTooltip": "프로그램 시간 삭제",
   "entryProgramDurationEmpty": "훈련 프로그램을 추가해요.",
+  "entryProgramOptionAddTooltip": "프로그램 옵션 추가",
+  "entryDurationOptionAddTooltip": "시간 옵션 추가",
+  "entryTodayGoalsTitle": "오늘의 목표",
+  "entryTodayGoalAddTitle": "오늘의 목표 추가",
+  "entryTodayGoalAddTooltip": "목표 추가",
+  "entryTodayGoalsSelectTooltip": "오늘의 목표 선택",
+  "entryTodayGoalsSelectTitle": "오늘의 목표 선택",
+  "entryTodayGoalsDone": "완료",
+  "entryTodayGoalsNone": "선택된 목표 없음",
+  "entryTodayGoalsSelectedCount": "{count}개 선택됨",
+  "@entryTodayGoalsSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "drills": "세션 드릴",
   "injury": "부상 여부",
   "injuryPart": "부상 부위",

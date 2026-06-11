@@ -1101,109 +1101,53 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Widget _buildStatusRow(AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final baseChipBg = theme.colorScheme.surfaceContainerHighest;
-    final baseChipBorder = theme.colorScheme.outline.withValues(alpha: 0.45);
-    final disabledColor = theme.colorScheme.onSurface.withValues(alpha: 0.35);
-
-    final options = [
-      _StatusOption(
-        'great',
-        trainingStatusVisual('great').icon,
-        l10n.statusGreat,
-      ),
-      _StatusOption('good', trainingStatusVisual('good').icon, l10n.statusGood),
-      _StatusOption(
-        'normal',
-        trainingStatusVisual('normal').icon,
-        l10n.statusNormal,
-      ),
-      _StatusOption(
-        'tough',
-        trainingStatusVisual('tough').icon,
-        l10n.statusTough,
-      ),
-      _StatusOption(
-        'recovery',
-        trainingStatusVisual('recovery').icon,
-        l10n.statusRecovery,
-      ),
-    ];
-
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(l10n.status, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final option in options)
-              Builder(
-                builder: (context) {
-                  final selected = _status == option.value;
-                  final statusColor = trainingStatusColor(option.value);
-                  final iconColor = selected
-                      ? statusColor
-                      : statusColor.withAlpha(170);
-                  return ChoiceChip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(option.icon, size: 16, color: iconColor),
-                        const SizedBox(width: 6),
-                        Text(
-                          option.label,
-                          style: TextStyle(
-                            color: iconColor,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    selected: selected,
-                    onSelected: (_) {
-                      setState(() => _status = option.value);
-                      _scheduleAutoSave();
-                    },
-                    showCheckmark: false,
-                    backgroundColor: baseChipBg,
-                    selectedColor: statusColor.withValues(
-                      alpha: isDark ? 0.22 : 0.14,
-                    ),
-                    disabledColor: disabledColor,
-                    side: BorderSide(
-                      color: selected ? statusColor : baseChipBorder,
-                      width: selected ? 1.6 : 1.2,
-                    ),
-                  );
-                },
-              ),
-          ],
+        _buildTrainingSectionHeader(
+          icon: trainingStatusVisual(_status).icon,
+          title: l10n.status,
+          color: trainingStatusColor(_status),
+        ),
+        const SizedBox(height: 12),
+        _buildProgramDurationDropdown<String>(
+          label: l10n.status,
+          value: _status,
+          options: const ['great', 'good', 'normal', 'tough', 'recovery'],
+          icon: trainingStatusVisual(_status).icon,
+          iconForValue: (value) => trainingStatusVisual(value).icon,
+          optionLabel: (value) => _trainingStatusLabel(l10n, value),
+          onChanged: (value) {
+            setState(() => _status = value);
+            _scheduleAutoSave();
+          },
         ),
       ],
     );
   }
 
-  Widget _buildDailyGoalSelector() {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final title = isKo ? '오늘의 목표' : 'Today goals';
+  String _trainingStatusLabel(AppLocalizations l10n, String status) {
+    return switch (status) {
+      'great' => l10n.statusGreat,
+      'good' => l10n.statusGood,
+      'tough' => l10n.statusTough,
+      'recovery' => l10n.statusRecovery,
+      _ => l10n.statusNormal,
+    };
+  }
+
+  Widget _buildDailyGoalSelector(AppLocalizations l10n) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-            ),
-            IconButton(
+        _buildTrainingSectionHeader(
+          icon: Icons.flag_outlined,
+          title: l10n.entryTodayGoalsTitle,
+          actions: [
+            IconButton.filledTonal(
               onPressed: () => _addOption(
                 key: 'daily_goals',
-                title: isKo ? '오늘의 목표 추가' : 'Add Today Goal',
+                title: l10n.entryTodayGoalAddTitle,
                 options: _dailyGoalOptions,
                 onUpdated: (list) => setState(() => _dailyGoalOptions = list),
                 onSelected: (value) {
@@ -1213,73 +1157,40 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                   _scheduleAutoSave();
                 },
               ),
-              icon: const Icon(Icons.add),
-              tooltip: isKo ? '목표 추가' : 'Add goal',
+              icon: const Icon(Icons.add_rounded, size: 20),
+              tooltip: l10n.entryTodayGoalAddTooltip,
               visualDensity: VisualDensity.compact,
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
             ),
           ],
         ),
-        const SizedBox(height: 6),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: _dailyGoalOptions.isEmpty
-                ? null
-                : () => _openDailyGoalPicker(isKo),
-            borderRadius: BorderRadius.circular(12),
-            child: Ink(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _selectedDailyGoalsSummary(isKo),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: _dailyGoalOptions.isEmpty
-                        ? null
-                        : () => _openDailyGoalPicker(isKo),
-                    icon: const Icon(Icons.checklist, size: 18),
-                    label: Text(isKo ? '선택' : 'Select'),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        const SizedBox(height: 12),
+        _buildProgramLikeSelectionButton(
+          icon: Icons.checklist_rtl_rounded,
+          label: _selectedDailyGoalsSummary(l10n),
+          tooltip: l10n.entryTodayGoalsSelectTooltip,
+          onTap: _dailyGoalOptions.isEmpty
+              ? null
+              : () => _openDailyGoalPicker(l10n),
         ),
       ],
     );
   }
 
-  String _selectedDailyGoalsSummary(bool isKo) {
+  String _selectedDailyGoalsSummary(AppLocalizations l10n) {
     if (_selectedDailyGoals.isEmpty) {
-      return isKo ? '선택된 목표 없음' : 'No goals selected';
+      return l10n.entryTodayGoalsNone;
     }
     final selected = _dailyGoalOptions
         .where(_selectedDailyGoals.contains)
         .toList(growable: false);
     if (selected.isEmpty) {
-      return isKo
-          ? '${_selectedDailyGoals.length}개 선택됨'
-          : '${_selectedDailyGoals.length} selected';
+      return l10n.entryTodayGoalsSelectedCount(_selectedDailyGoals.length);
     }
     return selected.join(', ');
   }
 
-  Future<void> _openDailyGoalPicker(bool isKo) async {
+  Future<void> _openDailyGoalPicker(AppLocalizations l10n) async {
     final working = Set<String>.from(_selectedDailyGoals);
     final saved = await showModalBottomSheet<bool>(
       context: context,
@@ -1298,13 +1209,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            isKo ? '오늘의 목표 선택' : 'Select today goals',
+                            l10n.entryTodayGoalsSelectTitle,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(true),
-                          child: Text(isKo ? '완료' : 'Done'),
+                          child: Text(l10n.entryTodayGoalsDone),
                         ),
                       ],
                     ),
@@ -1881,7 +1792,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildDailyGoalSelector(),
+                                _buildDailyGoalSelector(l10n),
                                 const SizedBox(height: 12),
                                 _buildEmphasizedField(
                                   controller: _goodPointsController,
@@ -2289,6 +2200,108 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
   }
 
+  Widget _buildTrainingSectionHeader({
+    required IconData icon,
+    required String title,
+    Color? color,
+    List<Widget> actions = const <Widget>[],
+  }) {
+    final theme = Theme.of(context);
+    final accent = color ?? theme.colorScheme.primary;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 18, color: accent),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        if (actions.isNotEmpty) ...[
+          const SizedBox(width: 6),
+          Wrap(spacing: 4, runSpacing: 4, children: actions),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildProgramLikeSelectionButton({
+    required IconData icon,
+    required String label,
+    required String tooltip,
+    required VoidCallback? onTap,
+  }) {
+    final theme = Theme.of(context);
+    final enabled = onTap != null;
+    final foreground = enabled
+        ? theme.colorScheme.onSurface
+        : theme.colorScheme.onSurfaceVariant;
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Ink(
+            height: 44,
+            padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.38),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 17,
+                  color: enabled
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.expand_more_rounded,
+                  size: 18,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTrainingOverviewCard({
     required AppLocalizations l10n,
     required String dateText,
@@ -2299,10 +2312,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildTrainingDateButton(l10n: l10n, dateText: dateText),
-          const SizedBox(height: 12),
-          _buildTrainingWeatherRow(
+          _buildTrainingDateWeatherRow(
             l10n: l10n,
+            dateText: dateText,
             weatherStatusText: weatherStatusText,
             weatherHasValue: weatherHasValue,
           ),
@@ -2312,6 +2324,35 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           _buildProgramDurationSection(l10n),
         ],
       ),
+    );
+  }
+
+  Widget _buildTrainingDateWeatherRow({
+    required AppLocalizations l10n,
+    required String dateText,
+    required String weatherStatusText,
+    required bool weatherHasValue,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final weatherWidth = constraints.maxWidth < 360 ? 108.0 : 138.0;
+        return Row(
+          children: [
+            Expanded(
+              child: _buildTrainingDateButton(l10n: l10n, dateText: dateText),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: weatherWidth,
+              child: _buildTrainingWeatherChip(
+                l10n: l10n,
+                weatherStatusText: weatherStatusText,
+                weatherHasValue: weatherHasValue,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -2387,7 +2428,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
   }
 
-  Widget _buildTrainingWeatherRow({
+  Widget _buildTrainingWeatherChip({
     required AppLocalizations l10n,
     required String weatherStatusText,
     required bool weatherHasValue,
@@ -2397,60 +2438,66 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       theme,
       weatherHasValue: weatherHasValue,
     );
-    return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(12, 9, 6, 9),
-      decoration: BoxDecoration(
-        color: Color.alphaBlend(
-          color.withValues(
-            alpha: weatherHasValue
-                ? (theme.brightness == Brightness.dark ? 0.18 : 0.10)
-                : 0.04,
-          ),
-          theme.colorScheme.surfaceContainerHighest,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: weatherHasValue
-              ? color.withValues(alpha: 0.28)
-              : theme.colorScheme.outlineVariant.withValues(alpha: 0.72),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            _trainingWeatherIcon(weatherHasValue: weatherHasValue),
-            size: 18,
-            color: color,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              weatherStatusText,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
+    return Tooltip(
+      message: l10n.entryWeatherUseLocationTooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _weatherLoading ? null : _useCurrentLocationWeather,
+          borderRadius: BorderRadius.circular(12),
+          child: Ink(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: Color.alphaBlend(
+                color.withValues(
+                  alpha: weatherHasValue
+                      ? (theme.brightness == Brightness.dark ? 0.18 : 0.10)
+                      : 0.04,
+                ),
+                theme.colorScheme.surfaceContainerHighest,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
                 color: weatherHasValue
-                    ? theme.colorScheme.onPrimaryContainer
-                    : theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w800,
+                    ? color.withValues(alpha: 0.28)
+                    : theme.colorScheme.outlineVariant.withValues(alpha: 0.72),
               ),
             ),
+            child: Row(
+              children: [
+                _weatherLoading
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: color,
+                        ),
+                      )
+                    : Icon(
+                        _trainingWeatherIcon(weatherHasValue: weatherHasValue),
+                        size: 18,
+                        color: color,
+                      ),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    weatherStatusText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: weatherHasValue
+                          ? theme.colorScheme.onPrimaryContainer
+                          : theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            constraints: const BoxConstraints.tightFor(width: 34, height: 34),
-            padding: EdgeInsets.zero,
-            tooltip: l10n.entryWeatherUseLocationTooltip,
-            onPressed: _weatherLoading ? null : _useCurrentLocationWeather,
-            icon: _weatherLoading
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Icon(Icons.my_location_rounded, size: 18, color: color),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -3870,33 +3917,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.sports_soccer_outlined,
-                size: 18,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                l10n.entryProgramDurationsTitle,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
+        _buildTrainingSectionHeader(
+          icon: Icons.sports_soccer_outlined,
+          title: l10n.entryProgramDurationsTitle,
+          actions: [
             IconButton.filledTonal(
               onPressed: () {
                 setState(_addTrainingProgramDuration);
@@ -3907,37 +3931,19 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               visualDensity: VisualDensity.compact,
               constraints: const BoxConstraints.tightFor(width: 36, height: 36),
             ),
-            PopupMenuButton<_ProgramDurationMenuAction>(
-              tooltip: l10n.add,
-              icon: const Icon(Icons.tune_rounded, size: 20),
-              onSelected: (action) {
-                switch (action) {
-                  case _ProgramDurationMenuAction.programOption:
-                    _addProgramOptionFromDurationSection(l10n);
-                  case _ProgramDurationMenuAction.durationOption:
-                    _addDurationOptionFromDurationSection(l10n);
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: _ProgramDurationMenuAction.programOption,
-                  child: ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.playlist_add_rounded),
-                    title: Text('${l10n.add} ${l10n.program}'),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: _ProgramDurationMenuAction.durationOption,
-                  child: ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.more_time_rounded),
-                    title: Text('${l10n.add} ${l10n.trainingDuration}'),
-                  ),
-                ),
-              ],
+            IconButton.filledTonal(
+              onPressed: () => _addProgramOptionFromDurationSection(l10n),
+              icon: const Icon(Icons.playlist_add_rounded, size: 20),
+              tooltip: l10n.entryProgramOptionAddTooltip,
+              visualDensity: VisualDensity.compact,
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            ),
+            IconButton.filledTonal(
+              onPressed: () => _addDurationOptionFromDurationSection(l10n),
+              icon: const Icon(Icons.more_time_rounded, size: 20),
+              tooltip: l10n.entryDurationOptionAddTooltip,
+              visualDensity: VisualDensity.compact,
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
             ),
           ],
         ),
@@ -4486,14 +4492,4 @@ class _ProgramDurationSelectedValue extends StatelessWidget {
       ],
     );
   }
-}
-
-enum _ProgramDurationMenuAction { programOption, durationOption }
-
-class _StatusOption {
-  final String value;
-  final IconData icon;
-  final String label;
-
-  const _StatusOption(this.value, this.icon, this.label);
 }

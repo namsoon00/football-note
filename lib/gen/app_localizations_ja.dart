@@ -2302,6 +2302,38 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryProgramDurationEmpty => 'トレーニングプログラムを追加しましょう。';
 
   @override
+  String get entryProgramOptionAddTooltip => 'プログラム項目を追加';
+
+  @override
+  String get entryDurationOptionAddTooltip => '時間項目を追加';
+
+  @override
+  String get entryTodayGoalsTitle => '今日の目標';
+
+  @override
+  String get entryTodayGoalAddTitle => '今日の目標を追加';
+
+  @override
+  String get entryTodayGoalAddTooltip => '目標を追加';
+
+  @override
+  String get entryTodayGoalsSelectTooltip => '今日の目標を選択';
+
+  @override
+  String get entryTodayGoalsSelectTitle => '今日の目標を選択';
+
+  @override
+  String get entryTodayGoalsDone => '完了';
+
+  @override
+  String get entryTodayGoalsNone => '選択された目標はありません';
+
+  @override
+  String entryTodayGoalsSelectedCount(int count) {
+    return '$count件選択中';
+  }
+
+  @override
   String get drills => 'セッションドリル';
 
   @override

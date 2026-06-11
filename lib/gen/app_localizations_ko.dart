@@ -2297,6 +2297,38 @@ class AppLocalizationsKo extends AppLocalizations {
   String get entryProgramDurationEmpty => '훈련 프로그램을 추가해요.';
 
   @override
+  String get entryProgramOptionAddTooltip => '프로그램 옵션 추가';
+
+  @override
+  String get entryDurationOptionAddTooltip => '시간 옵션 추가';
+
+  @override
+  String get entryTodayGoalsTitle => '오늘의 목표';
+
+  @override
+  String get entryTodayGoalAddTitle => '오늘의 목표 추가';
+
+  @override
+  String get entryTodayGoalAddTooltip => '목표 추가';
+
+  @override
+  String get entryTodayGoalsSelectTooltip => '오늘의 목표 선택';
+
+  @override
+  String get entryTodayGoalsSelectTitle => '오늘의 목표 선택';
+
+  @override
+  String get entryTodayGoalsDone => '완료';
+
+  @override
+  String get entryTodayGoalsNone => '선택된 목표 없음';
+
+  @override
+  String entryTodayGoalsSelectedCount(int count) {
+    return '$count개 선택됨';
+  }
+
+  @override
   String get drills => '세션 드릴';
 
   @override
