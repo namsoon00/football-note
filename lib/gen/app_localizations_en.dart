@@ -850,7 +850,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterCandidateSourceNote =>
-      'Shown as a recent public national-team player pool, not a final FIFA match squad. Final 2026 squad data can change before kickoff.';
+      'Shown from published 2026 squad information and expected formation data. Injury replacements and match-day choices can still change before kickoff.';
 
   @override
   String get worldCupTeamRosterGoalkeepers => 'Goalkeepers';

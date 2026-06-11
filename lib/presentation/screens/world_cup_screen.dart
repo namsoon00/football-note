@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/league_fixture_reminder_service.dart';
 import '../../application/settings_service.dart';
+import '../../application/world_cup_roster_data.dart';
 import '../../application/world_cup_schedule.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
@@ -1625,20 +1626,6 @@ class _GroupTeamsCard extends StatelessWidget {
 
 enum _WorldCupRosterPosition { goalkeeper, defender, midfielder, forward }
 
-class _WorldCupRosterPool {
-  final List<String> goalkeepers;
-  final List<String> defenders;
-  final List<String> midfielders;
-  final List<String> forwards;
-
-  const _WorldCupRosterPool({
-    required this.goalkeepers,
-    required this.defenders,
-    required this.midfielders,
-    required this.forwards,
-  });
-}
-
 class _WorldCupRosterPlayer {
   final String name;
   final _WorldCupRosterPosition position;
@@ -1660,8 +1647,10 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final pool = worldCupRosterPoolForTeam(team);
     final players = _worldCupRosterPlayers(team, l10n);
-    final hasKnownPool = _worldCupRosterHasKnownPlayers(team);
+    final formation = pool?.formation ?? '4-3-3';
+    final hasKnownPool = pool != null;
     final flag = worldCupCountryFlag(team);
     return SafeArea(
       child: FractionallySizedBox(
@@ -1701,8 +1690,8 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             _WorldCupFormationPitch(
-              title: l10n.worldCupTeamRosterFormationLabel('4-3-3'),
-              players: _worldCupFormationPlayers(players),
+              title: l10n.worldCupTeamRosterFormationLabel(formation),
+              players: _worldCupFormationPlayers(players, formation),
             ),
             const SizedBox(height: 14),
             _WorldCupRosterPositionSection(
@@ -1751,192 +1740,6 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
     );
   }
 }
-
-const Map<String, _WorldCupRosterPool> _worldCupRosterPools =
-    <String, _WorldCupRosterPool>{
-      'Korea Republic': _WorldCupRosterPool(
-        goalkeepers: ['Jo Hyeon-woo', 'Kim Seung-gyu', 'Song Bum-keun'],
-        defenders: [
-          'Kim Min-jae',
-          'Kim Young-gwon',
-          'Seol Young-woo',
-          'Lee Ki-je',
-          'Kim Moon-hwan',
-          'Cho Yu-min',
-        ],
-        midfielders: [
-          'Hwang In-beom',
-          'Lee Kang-in',
-          'Lee Jae-sung',
-          'Park Yong-woo',
-          'Hong Hyun-seok',
-          'Paik Seung-ho',
-        ],
-        forwards: [
-          'Son Heung-min',
-          'Hwang Hee-chan',
-          'Cho Gue-sung',
-          'Oh Hyeon-gyu',
-          'Oh Se-hun',
-        ],
-      ),
-      'Japan': _WorldCupRosterPool(
-        goalkeepers: ['Zion Suzuki', 'Daiya Maekawa', 'Keisuke Osako'],
-        defenders: [
-          'Takehiro Tomiyasu',
-          'Ko Itakura',
-          'Hiroki Ito',
-          'Yukinari Sugawara',
-          'Shogo Taniguchi',
-          'Yuta Nakayama',
-        ],
-        midfielders: [
-          'Wataru Endo',
-          'Hidemasa Morita',
-          'Ao Tanaka',
-          'Daichi Kamada',
-          'Takefusa Kubo',
-          'Ritsu Doan',
-        ],
-        forwards: [
-          'Kaoru Mitoma',
-          'Takumi Minamino',
-          'Ayase Ueda',
-          'Daizen Maeda',
-          'Junya Ito',
-        ],
-      ),
-      'United States': _WorldCupRosterPool(
-        goalkeepers: ['Matt Turner', 'Ethan Horvath', 'Patrick Schulte'],
-        defenders: [
-          'Antonee Robinson',
-          'Chris Richards',
-          'Tim Ream',
-          'Cameron Carter-Vickers',
-          'Joe Scally',
-          'Sergino Dest',
-        ],
-        midfielders: [
-          'Tyler Adams',
-          'Weston McKennie',
-          'Yunus Musah',
-          'Gio Reyna',
-          'Malik Tillman',
-          'Luca de la Torre',
-        ],
-        forwards: [
-          'Christian Pulisic',
-          'Tim Weah',
-          'Folarin Balogun',
-          'Ricardo Pepi',
-          'Josh Sargent',
-        ],
-      ),
-      'England': _WorldCupRosterPool(
-        goalkeepers: ['Jordan Pickford', 'Aaron Ramsdale', 'Dean Henderson'],
-        defenders: [
-          'Kyle Walker',
-          'John Stones',
-          'Marc Guehi',
-          'Luke Shaw',
-          'Kieran Trippier',
-          'Ezri Konsa',
-        ],
-        midfielders: [
-          'Declan Rice',
-          'Jude Bellingham',
-          'Phil Foden',
-          'Kobbie Mainoo',
-          'Conor Gallagher',
-          'Trent Alexander-Arnold',
-        ],
-        forwards: [
-          'Harry Kane',
-          'Bukayo Saka',
-          'Cole Palmer',
-          'Anthony Gordon',
-          'Ollie Watkins',
-        ],
-      ),
-      'France': _WorldCupRosterPool(
-        goalkeepers: ['Mike Maignan', 'Brice Samba', 'Alphonse Areola'],
-        defenders: [
-          'William Saliba',
-          'Dayot Upamecano',
-          'Ibrahima Konate',
-          'Jules Kounde',
-          'Theo Hernandez',
-          'Benjamin Pavard',
-        ],
-        midfielders: [
-          'Aurelien Tchouameni',
-          'Adrien Rabiot',
-          'Eduardo Camavinga',
-          'Antoine Griezmann',
-          'Youssouf Fofana',
-          'Warren Zaire-Emery',
-        ],
-        forwards: [
-          'Kylian Mbappe',
-          'Ousmane Dembele',
-          'Marcus Thuram',
-          'Randal Kolo Muani',
-          'Kingsley Coman',
-        ],
-      ),
-      'Argentina': _WorldCupRosterPool(
-        goalkeepers: ['Emiliano Martinez', 'Geronimo Rulli', 'Franco Armani'],
-        defenders: [
-          'Cristian Romero',
-          'Nicolas Otamendi',
-          'Lisandro Martinez',
-          'Nahuel Molina',
-          'Marcos Acuna',
-          'Nicolas Tagliafico',
-        ],
-        midfielders: [
-          'Enzo Fernandez',
-          'Rodrigo De Paul',
-          'Alexis Mac Allister',
-          'Leandro Paredes',
-          'Giovani Lo Celso',
-          'Exequiel Palacios',
-        ],
-        forwards: [
-          'Lionel Messi',
-          'Julian Alvarez',
-          'Lautaro Martinez',
-          'Angel Di Maria',
-          'Nicolas Gonzalez',
-        ],
-      ),
-      'Brazil': _WorldCupRosterPool(
-        goalkeepers: ['Alisson', 'Ederson', 'Bento'],
-        defenders: [
-          'Marquinhos',
-          'Eder Militao',
-          'Gabriel Magalhaes',
-          'Danilo',
-          'Guilherme Arana',
-          'Wendell',
-        ],
-        midfielders: [
-          'Bruno Guimaraes',
-          'Lucas Paqueta',
-          'Joao Gomes',
-          'Douglas Luiz',
-          'Andreas Pereira',
-          'Andre',
-        ],
-        forwards: [
-          'Vinicius Junior',
-          'Rodrygo',
-          'Raphinha',
-          'Endrick',
-          'Gabriel Martinelli',
-        ],
-      ),
-    };
 
 class _WorldCupFormationPitch extends StatelessWidget {
   final String title;
@@ -2179,15 +1982,11 @@ List<_WorldCupRosterPlayer> _playersForPosition(
       .toList(growable: false);
 }
 
-bool _worldCupRosterHasKnownPlayers(String team) {
-  return _worldCupRosterPools.containsKey(team);
-}
-
 List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
   String team,
   AppLocalizations l10n,
 ) {
-  final pool = _worldCupRosterPools[team];
+  final pool = worldCupRosterPoolForTeam(team);
   if (pool != null) {
     return <_WorldCupRosterPlayer>[
       ..._playersFromNames(
@@ -2288,13 +2087,88 @@ List<_WorldCupRosterPlayer> _playersFromNames(
 
 List<_WorldCupRosterPlayer> _worldCupFormationPlayers(
   List<_WorldCupRosterPlayer> players,
+  String formation,
 ) {
-  return <_WorldCupRosterPlayer>[
-    ..._playersForPosition(players, _WorldCupRosterPosition.goalkeeper).take(1),
-    ..._playersForPosition(players, _WorldCupRosterPosition.defender).take(4),
-    ..._playersForPosition(players, _WorldCupRosterPosition.midfielder).take(3),
-    ..._playersForPosition(players, _WorldCupRosterPosition.forward).take(3),
+  final shape = _formationShape(formation);
+  final formationPlayers = <_WorldCupRosterPlayer>[];
+  final goalkeepers = _playersForPosition(
+    players,
+    _WorldCupRosterPosition.goalkeeper,
+  );
+  if (goalkeepers.isNotEmpty) {
+    formationPlayers.add(
+      _playerWithSpot(goalkeepers.first, const Offset(0.50, 0.88)),
+    );
+  }
+
+  final lineYs = _formationLineYs(shape.length);
+  for (var lineIndex = 0; lineIndex < shape.length; lineIndex += 1) {
+    final count = shape[lineIndex];
+    final position = _formationLinePosition(lineIndex, shape.length);
+    final linePlayers = _playersForPosition(players, position);
+    final spots = _formationLineSpots(count, lineYs[lineIndex]);
+    for (
+      var index = 0;
+      index < count && index < linePlayers.length;
+      index += 1
+    ) {
+      formationPlayers.add(_playerWithSpot(linePlayers[index], spots[index]));
+    }
+  }
+  return formationPlayers;
+}
+
+List<int> _formationShape(String formation) {
+  final parts = formation
+      .split('-')
+      .map((part) => int.tryParse(part.trim()))
+      .whereType<int>()
+      .where((count) => count > 0)
+      .toList(growable: false);
+  return parts.length >= 2 ? parts : const <int>[4, 3, 3];
+}
+
+List<double> _formationLineYs(int lineCount) {
+  if (lineCount <= 1) return const <double>[0.48];
+  const deepest = 0.72;
+  const highest = 0.17;
+  return <double>[
+    for (var index = 0; index < lineCount; index += 1)
+      deepest - (deepest - highest) * index / (lineCount - 1),
   ];
+}
+
+List<Offset> _formationLineSpots(int count, double y) {
+  if (count <= 1) return <Offset>[Offset(0.50, y)];
+  final edge = switch (count) {
+    >= 5 => 0.12,
+    4 => 0.17,
+    3 => 0.24,
+    2 => 0.34,
+    _ => 0.50,
+  };
+  final width = 1 - edge * 2;
+  return <Offset>[
+    for (var index = 0; index < count; index += 1)
+      Offset(edge + width * index / (count - 1), y),
+  ];
+}
+
+_WorldCupRosterPosition _formationLinePosition(int lineIndex, int lineCount) {
+  if (lineIndex == 0) return _WorldCupRosterPosition.defender;
+  if (lineIndex == lineCount - 1) return _WorldCupRosterPosition.forward;
+  return _WorldCupRosterPosition.midfielder;
+}
+
+_WorldCupRosterPlayer _playerWithSpot(
+  _WorldCupRosterPlayer player,
+  Offset spot,
+) {
+  return _WorldCupRosterPlayer(
+    name: player.name,
+    position: player.position,
+    spot: spot,
+  );
 }
 
 Color _positionColor(ThemeData theme, _WorldCupRosterPosition position) {

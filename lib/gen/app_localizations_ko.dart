@@ -812,7 +812,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterCandidateSourceNote =>
-      '최근 공개된 대표팀 선수 풀을 참고해 보여주며, FIFA 최종 경기 명단은 아닙니다. 2026 최종 명단은 경기 전까지 바뀔 수 있어요.';
+      '공개된 2026 선수단 정보와 예상 포메이션 데이터를 바탕으로 보여줘요. 부상 교체와 경기 당일 선택은 킥오프 전까지 바뀔 수 있어요.';
 
   @override
   String get worldCupTeamRosterGoalkeepers => '골키퍼';

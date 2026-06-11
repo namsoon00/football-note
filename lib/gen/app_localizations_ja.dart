@@ -819,7 +819,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterCandidateSourceNote =>
-      '最近公開された代表チームの選手プールとして表示しており、FIFAの最終試合スカッドではありません。2026年の最終名簿はキックオフ前まで変わる可能性があります。';
+      '公開された2026年スカッド情報と予想フォーメーションデータをもとに表示しています。負傷交代や試合当日の選択はキックオフ前まで変わる可能性があります。';
 
   @override
   String get worldCupTeamRosterGoalkeepers => 'ゴールキーパー';

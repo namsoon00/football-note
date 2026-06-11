@@ -1587,7 +1587,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupTeamRosterCandidateSourceNote.
   ///
   /// In en, this message translates to:
-  /// **'Shown as a recent public national-team player pool, not a final FIFA match squad. Final 2026 squad data can change before kickoff.'**
+  /// **'Shown from published 2026 squad information and expected formation data. Injury replacements and match-day choices can still change before kickoff.'**
   String get worldCupTeamRosterCandidateSourceNote;
 
   /// No description provided for @worldCupTeamRosterGoalkeepers.
