@@ -2299,88 +2299,91 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildTrainingOverviewGrid(l10n: l10n, dateText: dateText),
-          const SizedBox(height: 10),
+          _buildTrainingDateButton(l10n: l10n, dateText: dateText),
+          const SizedBox(height: 12),
           _buildTrainingWeatherRow(
             l10n: l10n,
             weatherStatusText: weatherStatusText,
             weatherHasValue: weatherHasValue,
           ),
-          const Divider(height: 28),
+          const SizedBox(height: 16),
           _buildStatusRow(l10n),
-          const SizedBox(height: 14),
+          const Divider(height: 28),
           _buildProgramDurationSection(l10n),
         ],
       ),
     );
   }
 
-  Widget _buildTrainingOverviewGrid({
+  Widget _buildTrainingDateButton({
     required AppLocalizations l10n,
     required String dateText,
   }) {
     final theme = Theme.of(context);
-    final normalizedPrograms = _normalizeProgramMinutes(
-      _trainingProgramMinutes,
-    );
-    final totalMinutes = _trainingProgramMinutesTotal(normalizedPrograms);
-    final statusVisual = trainingStatusVisual(_status);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 620
-            ? 4
-            : constraints.maxWidth >= 390
-            ? 2
-            : 1;
-        const spacing = 8.0;
-        final itemWidth =
-            (constraints.maxWidth - spacing * (columns - 1)) / columns;
-        return Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: [
-            SizedBox(
-              width: itemWidth,
-              child: _TrainingOverviewTile(
-                icon: statusVisual.icon,
-                color: statusVisual.color,
-                label: l10n.status,
-                value: _statusLabel(l10n, _status),
-              ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _pickDate,
+        borderRadius: BorderRadius.circular(12),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: theme.brightness == Brightness.dark ? 0.46 : 0.70,
             ),
-            SizedBox(
-              width: itemWidth,
-              child: _TrainingOverviewTile(
-                icon: Icons.timer_outlined,
-                color: theme.colorScheme.primary,
-                label: l10n.trainingDuration,
-                value: totalMinutes > 0
-                    ? l10n.minutes(totalMinutes)
-                    : l10n.notSet,
-              ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.58),
             ),
-            SizedBox(
-              width: itemWidth,
-              child: _TrainingOverviewTile(
-                icon: Icons.calendar_today_rounded,
-                color: theme.colorScheme.tertiary,
-                label: l10n.trainingDate,
-                value: dateText,
-                onTap: _pickDate,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.calendar_today_rounded,
+                  size: 17,
+                  color: theme.colorScheme.primary,
+                ),
               ),
-            ),
-            SizedBox(
-              width: itemWidth,
-              child: _TrainingOverviewTile(
-                icon: Icons.sports_soccer_outlined,
-                color: theme.colorScheme.secondary,
-                label: l10n.program,
-                value: _trainingProgramSummary(l10n, normalizedPrograms),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  l10n.trainingDate,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ),
-            ),
-          ],
-        );
-      },
+              const SizedBox(width: 10),
+              Text(
+                dateText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 22,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -2390,28 +2393,32 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required bool weatherHasValue,
   }) {
     final theme = Theme.of(context);
-    final color = weatherHasValue
-        ? theme.colorScheme.primary
-        : theme.colorScheme.onSurfaceVariant;
+    final color = _trainingWeatherAccentColor(
+      theme,
+      weatherHasValue: weatherHasValue,
+    );
     return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 6, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 9, 6, 9),
       decoration: BoxDecoration(
-        color: weatherHasValue
-            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.72)
-            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.62),
-        borderRadius: BorderRadius.circular(14),
+        color: Color.alphaBlend(
+          color.withValues(
+            alpha: weatherHasValue
+                ? (theme.brightness == Brightness.dark ? 0.18 : 0.10)
+                : 0.04,
+          ),
+          theme.colorScheme.surfaceContainerHighest,
+        ),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: weatherHasValue
-              ? theme.colorScheme.primary.withValues(alpha: 0.20)
-              : theme.colorScheme.outlineVariant,
+              ? color.withValues(alpha: 0.28)
+              : theme.colorScheme.outlineVariant.withValues(alpha: 0.72),
         ),
       ),
       child: Row(
         children: [
           Icon(
-            weatherHasValue
-                ? Icons.wb_sunny_outlined
-                : Icons.cloud_queue_rounded,
+            _trainingWeatherIcon(weatherHasValue: weatherHasValue),
             size: 18,
             color: color,
           ),
@@ -2448,37 +2455,71 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
   }
 
-  String _statusLabel(AppLocalizations l10n, String status) {
-    return switch (status) {
-      'great' => l10n.statusGreat,
-      'good' => l10n.statusGood,
-      'tough' => l10n.statusTough,
-      'recovery' => l10n.statusRecovery,
-      'normal' => l10n.statusNormal,
-      _ => l10n.statusNormal,
-    };
+  IconData _trainingWeatherIcon({required bool weatherHasValue}) {
+    if (!weatherHasValue) return Icons.cloud_queue_rounded;
+    switch (_weatherCode) {
+      case 0:
+        return Icons.wb_sunny_outlined;
+      case 1:
+      case 2:
+      case 3:
+        return Icons.cloud_outlined;
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+        return Icons.grain_rounded;
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        return Icons.ac_unit_rounded;
+      case 95:
+      case 96:
+      case 99:
+        return Icons.flash_on_rounded;
+      default:
+        return Icons.wb_cloudy_outlined;
+    }
   }
 
-  String _trainingProgramSummary(
-    AppLocalizations l10n,
-    Map<String, int> normalizedPrograms,
-  ) {
-    if (normalizedPrograms.isEmpty) {
-      final fallback = _type.trim();
-      return fallback.isEmpty ? l10n.notSet : fallback;
+  Color _trainingWeatherAccentColor(
+    ThemeData theme, {
+    required bool weatherHasValue,
+  }) {
+    if (!weatherHasValue) return theme.colorScheme.onSurfaceVariant;
+    switch (_weatherCode) {
+      case 0:
+        return const Color(0xFFE6A100);
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+        return const Color(0xFF2B6FF3);
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        return const Color(0xFF4E7FA8);
+      case 95:
+      case 96:
+      case 99:
+        return const Color(0xFF5B6DB8);
+      default:
+        return theme.colorScheme.primary;
     }
-    final entries = normalizedPrograms.entries.toList(growable: false);
-    final labels = entries
-        .take(2)
-        .map((entry) {
-          if (entry.value <= 0) return entry.key;
-          return '${entry.key} ${l10n.minutes(entry.value)}';
-        })
-        .toList(growable: true);
-    if (entries.length > labels.length) {
-      labels.add('+${entries.length - labels.length}');
-    }
-    return labels.join(' · ');
   }
 
   Widget _buildFeatureActionButton({
@@ -3826,9 +3867,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   Widget _buildProgramDurationSection(AppLocalizations l10n) {
     final theme = Theme.of(context);
     final entries = _trainingProgramMinutes.entries.toList(growable: false);
-    final totalMinutes = _trainingProgramMinutesTotal(
-      _normalizeProgramMinutes(_trainingProgramMinutes),
-    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -3844,7 +3882,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               ),
               alignment: Alignment.center,
               child: Icon(
-                Icons.timer_outlined,
+                Icons.sports_soccer_outlined,
                 size: 18,
                 color: theme.colorScheme.primary,
               ),
@@ -3858,14 +3896,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 ),
               ),
             ),
-            if (totalMinutes > 0) ...[
-              const SizedBox(width: 8),
-              _ProgramDurationTotalPill(
-                label: l10n.entryProgramDurationTotal(
-                  l10n.minutes(totalMinutes),
-                ),
-              ),
-            ],
             const SizedBox(width: 6),
             IconButton.filledTonal(
               onPressed: () {
@@ -3989,7 +4019,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       label: l10n.program,
       value: program,
       options: _programOptions,
-      icon: Icons.sports_soccer_outlined,
+      icon: _trainingProgramIconFor(program),
+      iconForValue: _trainingProgramIconFor,
       optionLabel: (value) => value,
       onChanged: (value) {
         setState(() => _changeTrainingProgramDurationProgram(program, value));
@@ -4058,11 +4089,77 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
   }
 
+  IconData _trainingProgramIconFor(String label) {
+    final normalized = label.trim().toLowerCase();
+    if (normalized.isEmpty) return Icons.sports_soccer;
+
+    bool hasAny(List<String> keywords) {
+      return keywords.any((keyword) => normalized.contains(keyword));
+    }
+
+    if (hasAny(const ['shoot', '슈팅', 'finishing', '마무리'])) {
+      return Icons.flag;
+    }
+    if (hasAny(const ['pass', '패스', 'cross', '크로스'])) {
+      return Icons.compare_arrows;
+    }
+    if (hasAny(const ['def', '수비', 'press', '압박'])) {
+      return Icons.security;
+    }
+    if (hasAny(const ['tactic', '전술', 'analysis', '분석'])) {
+      return Icons.account_tree;
+    }
+    if (hasAny(const [
+      '피지컬',
+      'fitness',
+      'strength',
+      '체력',
+      'conditioning',
+      'lifting',
+      '웨이트',
+      '근력',
+    ])) {
+      return Icons.fitness_center;
+    }
+    if (hasAny(const ['speed', 'agility', '민첩', 'sprint', '스프린트'])) {
+      return Icons.directions_run;
+    }
+    if (hasAny(const ['recovery', '회복', 'stretch', '스트레칭', 'yoga'])) {
+      return Icons.self_improvement;
+    }
+    if (hasAny(const ['keeper', 'gk', '골키퍼'])) {
+      return Icons.sports_handball;
+    }
+    if (hasAny(const ['match', 'game', '시합', '경기'])) {
+      return Icons.emoji_events;
+    }
+    if (hasAny(const ['jump', 'rope', '줄넘기'])) {
+      return Icons.loop;
+    }
+    if (hasAny(const ['rondo', '론도'])) {
+      return Icons.device_hub;
+    }
+    if (hasAny(const [
+      'dribble',
+      '드리블',
+      'touch',
+      '트래핑',
+      'trap',
+      '기본',
+      'fundamental',
+      'first touch',
+    ])) {
+      return Icons.sports_soccer;
+    }
+    return Icons.sports_soccer;
+  }
+
   Widget _buildProgramDurationDropdown<T>({
     required String label,
     required T value,
     required List<T> options,
     required IconData icon,
+    IconData Function(T value)? iconForValue,
     required String Function(T value) optionLabel,
     required ValueChanged<T> onChanged,
   }) {
@@ -4114,7 +4211,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             selectedItemBuilder: (context) => menuOptions
                 .map(
                   (option) => _ProgramDurationSelectedValue(
-                    icon: icon,
+                    icon: iconForValue?.call(option) ?? icon,
                     label: optionLabel(option),
                   ),
                 )
@@ -4124,7 +4221,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                   (option) => DropdownMenuItem<T>(
                     value: option,
                     child: _ProgramDurationSelectedValue(
-                      icon: icon,
+                      icon: iconForValue?.call(option) ?? icon,
                       label: optionLabel(option),
                     ),
                   ),
@@ -4360,83 +4457,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 }
 
-class _TrainingOverviewTile extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-  final String value;
-  final VoidCallback? onTap;
-
-  const _TrainingOverviewTile({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.value,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tile = Container(
-      constraints: const BoxConstraints(minHeight: 86),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Color.alphaBlend(
-          color.withValues(
-            alpha: theme.brightness == Brightness.dark ? 0.18 : 0.10,
-          ),
-          theme.colorScheme.surfaceContainerHighest,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.24)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: color),
-              const SizedBox(width: 7),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontWeight: FontWeight.w900,
-              height: 1.12,
-            ),
-          ),
-        ],
-      ),
-    );
-    if (onTap == null) return tile;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: tile,
-      ),
-    );
-  }
-}
-
 class _ProgramDurationSelectedValue extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -4469,34 +4489,6 @@ class _ProgramDurationSelectedValue extends StatelessWidget {
 }
 
 enum _ProgramDurationMenuAction { programOption, durationOption }
-
-class _ProgramDurationTotalPill extends StatelessWidget {
-  final String label;
-
-  const _ProgramDurationTotalPill({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 116),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.74),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onPrimaryContainer,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
-}
 
 class _StatusOption {
   final String value;

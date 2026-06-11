@@ -4222,13 +4222,13 @@ abstract class AppLocalizations {
   /// No description provided for @entryProgramDurationsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Program training time'**
+  /// **'Training program'**
   String get entryProgramDurationsTitle;
 
   /// No description provided for @entryProgramDurationsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Split one training note into time for each program.'**
+  /// **'Record the program and time together.'**
   String get entryProgramDurationsSubtitle;
 
   /// No description provided for @entryProgramDurationTotal.
@@ -4252,7 +4252,7 @@ abstract class AppLocalizations {
   /// No description provided for @entryProgramDurationEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No program-specific time yet.'**
+  /// **'Add a training program.'**
   String get entryProgramDurationEmpty;
 
   /// No description provided for @drills.

@@ -2277,11 +2277,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get program => '훈련 프로그램';
 
   @override
-  String get entryProgramDurationsTitle => '프로그램별 훈련 시간';
+  String get entryProgramDurationsTitle => '훈련 프로그램';
 
   @override
-  String get entryProgramDurationsSubtitle =>
-      '한 훈련 노트 안에서 프로그램마다 시간을 나눠 기록하세요.';
+  String get entryProgramDurationsSubtitle => '프로그램과 시간을 함께 기록하세요.';
 
   @override
   String entryProgramDurationTotal(Object minutes) {
@@ -2295,7 +2294,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get entryProgramDurationRemoveTooltip => '프로그램 시간 삭제';
 
   @override
-  String get entryProgramDurationEmpty => '아직 프로그램별 시간이 없어요.';
+  String get entryProgramDurationEmpty => '훈련 프로그램을 추가해요.';
 
   @override
   String get drills => '세션 드릴';

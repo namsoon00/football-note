@@ -2282,10 +2282,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get program => 'プログラム';
 
   @override
-  String get entryProgramDurationsTitle => 'プログラム別トレーニング時間';
+  String get entryProgramDurationsTitle => 'トレーニングプログラム';
 
   @override
-  String get entryProgramDurationsSubtitle => '1つのトレーニングノートでプログラムごとの時間を記録します。';
+  String get entryProgramDurationsSubtitle => 'プログラムと時間を一緒に記録します。';
 
   @override
   String entryProgramDurationTotal(Object minutes) {
@@ -2299,7 +2299,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryProgramDurationRemoveTooltip => 'プログラム時間を削除';
 
   @override
-  String get entryProgramDurationEmpty => 'プログラム別の時間はまだありません。';
+  String get entryProgramDurationEmpty => 'トレーニングプログラムを追加しましょう。';
 
   @override
   String get drills => 'セッションドリル';

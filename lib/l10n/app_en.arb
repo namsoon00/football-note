@@ -1310,8 +1310,8 @@
   "condition": "Condition",
   "location": "Location",
   "program": "Program",
-  "entryProgramDurationsTitle": "Program training time",
-  "entryProgramDurationsSubtitle": "Split one training note into time for each program.",
+  "entryProgramDurationsTitle": "Training program",
+  "entryProgramDurationsSubtitle": "Record the program and time together.",
   "entryProgramDurationTotal": "Total {minutes}",
   "@entryProgramDurationTotal": {
     "placeholders": {
@@ -1320,7 +1320,7 @@
   },
   "entryProgramDurationAddAction": "Add program",
   "entryProgramDurationRemoveTooltip": "Remove program time",
-  "entryProgramDurationEmpty": "No program-specific time yet.",
+  "entryProgramDurationEmpty": "Add a training program.",
   "drills": "Session Drills",
   "injury": "Injury",
   "injuryPart": "Injury Part",
