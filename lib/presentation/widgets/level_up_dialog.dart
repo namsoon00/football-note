@@ -1646,6 +1646,12 @@ class _FlameBurstState extends State<_FlameBurst>
         animation: _controller,
         builder: (context, _) {
           final progress = _controller.value;
+          final addedFlameRaw = ((progress - 0.42) / 0.58)
+              .clamp(0.0, 1.0)
+              .toDouble();
+          final addedFlameProgress = Curves.easeOutBack.transform(
+            addedFlameRaw,
+          );
           return CustomPaint(
             painter: _FlameBurstPainter(
               color: widget.color,
@@ -1660,6 +1666,17 @@ class _FlameBurstState extends State<_FlameBurst>
                     math.cos(progress * math.pi * 2) * 1.2,
                   ),
                   child: _CuteFlameIcon(color: widget.color, size: 88),
+                ),
+                Positioned(
+                  right: 32 - addedFlameProgress * 20,
+                  top: 56 - addedFlameProgress * 42,
+                  child: Opacity(
+                    opacity: addedFlameProgress.clamp(0.0, 1.0).toDouble(),
+                    child: Transform.scale(
+                      scale: 0.55 + addedFlameProgress * 0.55,
+                      child: _CuteFlameIcon(color: widget.color, size: 34),
+                    ),
+                  ),
                 ),
                 Positioned(
                   top: 10 + math.sin(progress * math.pi * 2) * 2,
@@ -1913,17 +1930,27 @@ class _CuteFlameIcon extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _FaceDot(size: size * 0.055),
-                SizedBox(width: size * 0.13),
-                _FaceDot(size: size * 0.055),
+                _FaceDot(size: size * 0.078),
+                SizedBox(width: size * 0.15),
+                _FaceDot(size: size * 0.078),
               ],
             ),
           ),
           Positioned(
+            top: size * 0.56,
+            left: size * 0.25,
+            child: _GemCheek(size: size * 0.078),
+          ),
+          Positioned(
+            top: size * 0.56,
+            right: size * 0.25,
+            child: _GemCheek(size: size * 0.078),
+          ),
+          Positioned(
             top: size * 0.59,
             child: Container(
-              width: size * 0.16,
-              height: size * 0.07,
+              width: size * 0.20,
+              height: size * 0.08,
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
@@ -2055,22 +2082,22 @@ class _CuteGemIcon extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _FaceDot(size: size * 0.05),
-                SizedBox(width: size * 0.14),
-                _FaceDot(size: size * 0.05),
+                _FaceDot(size: size * 0.075),
+                SizedBox(width: size * 0.16),
+                _FaceDot(size: size * 0.075),
               ],
             ),
           ),
           Positioned(
-            top: size * 0.49,
+            top: size * 0.50,
             child: Container(
-              width: size * 0.15,
-              height: size * 0.06,
+              width: size * 0.20,
+              height: size * 0.08,
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
                     color: Colors.white.withValues(alpha: 0.78),
-                    width: size * 0.016,
+                    width: size * 0.020,
                   ),
                 ),
                 borderRadius: BorderRadius.circular(999),
@@ -2078,14 +2105,14 @@ class _CuteGemIcon extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: size * 0.46,
-            left: size * 0.23,
-            child: _GemCheek(size: size * 0.07),
+            top: size * 0.47,
+            left: size * 0.20,
+            child: _GemCheek(size: size * 0.092),
           ),
           Positioned(
-            top: size * 0.46,
-            right: size * 0.23,
-            child: _GemCheek(size: size * 0.07),
+            top: size * 0.47,
+            right: size * 0.20,
+            child: _GemCheek(size: size * 0.092),
           ),
         ],
       ),
@@ -2115,12 +2142,12 @@ class _CuteGemPainter extends CustomPainter {
       shadowPaint,
     );
 
-    final top = Offset(w * 0.50, h * 0.03);
-    final shoulderLeft = Offset(w * 0.30, h * 0.15);
-    final shoulderRight = Offset(w * 0.70, h * 0.15);
-    final upperLeft = Offset(w * 0.11, h * 0.36);
-    final upperRight = Offset(w * 0.89, h * 0.36);
-    final bottom = Offset(w * 0.50, h * 0.96);
+    final top = Offset(w * 0.50, h * 0.06);
+    final shoulderLeft = Offset(w * 0.27, h * 0.15);
+    final shoulderRight = Offset(w * 0.73, h * 0.15);
+    final upperLeft = Offset(w * 0.08, h * 0.37);
+    final upperRight = Offset(w * 0.92, h * 0.37);
+    final bottom = Offset(w * 0.50, h * 0.94);
     final center = Offset(w * 0.50, h * 0.43);
     final leftFacet = Path()
       ..moveTo(top.dx, top.dy)
@@ -2146,11 +2173,26 @@ class _CuteGemPainter extends CustomPainter {
       ..close();
     final outline = Path()
       ..moveTo(top.dx, top.dy)
-      ..lineTo(shoulderRight.dx, shoulderRight.dy)
-      ..lineTo(upperRight.dx, upperRight.dy)
-      ..lineTo(bottom.dx, bottom.dy)
-      ..lineTo(upperLeft.dx, upperLeft.dy)
-      ..lineTo(shoulderLeft.dx, shoulderLeft.dy)
+      ..cubicTo(
+        w * 0.57,
+        h * 0.05,
+        w * 0.66,
+        h * 0.08,
+        shoulderRight.dx,
+        shoulderRight.dy,
+      )
+      ..quadraticBezierTo(w * 0.90, h * 0.21, upperRight.dx, upperRight.dy)
+      ..cubicTo(w * 0.98, h * 0.55, w * 0.78, h * 0.86, bottom.dx, bottom.dy)
+      ..cubicTo(
+        w * 0.22,
+        h * 0.86,
+        w * 0.02,
+        h * 0.55,
+        upperLeft.dx,
+        upperLeft.dy,
+      )
+      ..quadraticBezierTo(w * 0.10, h * 0.21, shoulderLeft.dx, shoulderLeft.dy)
+      ..cubicTo(w * 0.34, h * 0.08, w * 0.43, h * 0.05, top.dx, top.dy)
       ..close();
 
     canvas.drawPath(
@@ -2166,6 +2208,8 @@ class _CuteGemPainter extends CustomPainter {
           ],
         ).createShader(Offset.zero & size),
     );
+    canvas.save();
+    canvas.clipPath(outline);
     canvas.drawPath(
       Path()
         ..moveTo(shoulderLeft.dx, shoulderLeft.dy)
@@ -2192,6 +2236,7 @@ class _CuteGemPainter extends CustomPainter {
       lowerRightFacet,
       Paint()..color = Color.lerp(Colors.black, color, 0.64)!,
     );
+    canvas.restore();
     canvas.drawPath(
       outline,
       Paint()
@@ -2234,13 +2279,32 @@ class _FaceDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: const Color(0xFF3A2A20).withValues(alpha: 0.78),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.34)),
+    return SizedBox.square(
+      dimension: size,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color(0xFF3A2A20).withValues(alpha: 0.82),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withValues(alpha: 0.38)),
+              ),
+            ),
+          ),
+          Positioned(
+            top: size * 0.20,
+            left: size * 0.20,
+            child: Container(
+              width: size * 0.26,
+              height: size * 0.26,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.78),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

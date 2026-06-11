@@ -99,9 +99,31 @@
   "newsLeagueFixturesCollapse": "Collapse fixtures",
   "newsLeagueFixturesSelectedTeamsOnly": "Selected teams only",
   "newsLeagueFixturesSelectedTeamsEmpty": "No selected-team fixtures are available in this league schedule.",
+  "newsLeagueFixturesEmptyReason": "{league} has no fixtures to show because the source fixture feed is empty or the current season schedule has not been published yet.",
+  "@newsLeagueFixturesEmptyReason": {
+    "placeholders": {
+      "league": {
+        "type": "String"
+      }
+    }
+  },
   "newsLeagueFixtureScheduled": "Fixture",
   "newsLeagueFixtureLive": "Live",
   "newsLeagueFixtureFullTime": "FT",
+  "newsLeagueTeamDetailTitle": "{team} info",
+  "@newsLeagueTeamDetailTitle": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "newsLeagueTeamDetailRosterTitle": "Roster",
+  "newsLeagueTeamDetailTacticsTitle": "Tactics",
+  "newsLeagueTeamDetailFixturesTitle": "Team fixtures",
+  "newsLeagueTeamDetailNoFixtures": "No matches for this team were found in the loaded fixtures.",
+  "newsLeagueTeamDetailTacticsSummary": "Use the current table plus goal data to read the team trend. Official tactics and roster details will appear here when the feed provides them.",
+  "newsLeagueTeamDetailSourceNote": "Only information available from the official league feed is shown.",
   "newsLeagueFavoriteTeamTitle": "Favorite teams",
   "newsLeagueFavoriteTeamManage": "Select favorite teams",
   "newsLeagueFavoriteTeamSubtitle": "Choose favorite teams to receive alerts for their loaded fixtures.",
@@ -297,7 +319,23 @@
   },
   "worldCupVersusShort": "v",
   "worldCupMatchScheduled": "Scheduled",
+  "worldCupMatchLive": "Live",
   "worldCupMatchResultFinal": "Result",
+  "worldCupMatchDetailTitle": "Match details",
+  "worldCupMatchComparisonTitle": "Team comparison",
+  "worldCupMatchRecordsTitle": "Match records",
+  "worldCupMatchRecordUnavailable": "Live match records will appear as official data becomes available.",
+  "worldCupPlayerProfileTitle": "{player} profile",
+  "@worldCupPlayerProfileTitle": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupPlayerProfileTeamLabel": "National team",
+  "worldCupPlayerProfilePositionLabel": "Position",
+  "worldCupPlayerProfileSourceNote": "A player face icon is shown when an official photo is unavailable.",
   "worldCupScorePending": "- : -",
   "worldCupScoreLine": "{homeScore} : {awayScore}",
   "@worldCupScoreLine": {
@@ -3581,6 +3619,8 @@
   "trainingSketchAddPlayerFirst": "Add a player icon first.",
   "trainingSketchAddBallFirst": "Add a ball icon first.",
   "trainingSketchRoutesButton": "Routes",
+  "trainingSketchPassDribbleMoveFlowButton": "Pass-dribble flow",
+  "trainingSketchPassDribbleMoveFlowSnack": "Applied the player 1 pass, player 2 dribble, player 3 move flow.",
   "trainingSketchClearAllRoutesButton": "Clear all routes",
   "trainingSketchPlayerRoutesTitle": "Player routes",
   "trainingSketchBallRoutesTitle": "Ball routes",

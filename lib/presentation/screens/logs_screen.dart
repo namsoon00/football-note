@@ -1584,7 +1584,7 @@ class _ThumbPitchPainter extends CustomPainter {
 }
 
 String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
-  return '${l10n.status} ${_trainingStatusLabel(l10n, entry.status)}';
+  return _trainingStatusLabel(l10n, entry.status);
 }
 
 String _trainingStatusLabel(AppLocalizations l10n, String status) {

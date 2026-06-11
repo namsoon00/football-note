@@ -242,15 +242,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _goodPointsController.text = entry.goodPoints.isNotEmpty
-          ? entry.goodPoints
-          : entry.feedback;
+      _goodPointsController.text =
+          entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
       _improvementsController.text = entry.improvements.isNotEmpty
           ? entry.improvements
           : _stripWeatherFromNotes(entry.notes);
-      _nextGoalController.text = entry.nextGoal.isNotEmpty
-          ? entry.nextGoal
-          : entry.goal;
+      _nextGoalController.text =
+          entry.nextGoal.isNotEmpty ? entry.nextGoal : entry.goal;
       _linkedBoardIds
         ..clear()
         ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
@@ -272,8 +270,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _injuryPartController.text = entry.injuryPart;
       _painController.text = entry.painLevel?.toString() ?? '';
       _rehab = entry.rehab;
-      _liftingEnabled =
-          entry.liftingMinutes > 0 ||
+      _liftingEnabled = entry.liftingMinutes > 0 ||
           entry.liftingByPart.values.any((value) => value > 0);
       _selectedDailyGoals
         ..clear()
@@ -310,15 +307,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
-      _liftingMinutesController.text = entry.liftingMinutes > 0
-          ? entry.liftingMinutes.toString()
-          : '';
-      _jumpRopeController.text = entry.jumpRopeCount > 0
-          ? entry.jumpRopeCount.toString()
-          : '';
-      _jumpRopeMinutesController.text = entry.jumpRopeMinutes > 0
-          ? entry.jumpRopeMinutes.toString()
-          : '';
+      _liftingMinutesController.text =
+          entry.liftingMinutes > 0 ? entry.liftingMinutes.toString() : '';
+      _jumpRopeController.text =
+          entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
+      _jumpRopeMinutesController.text =
+          entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
       _jumpRopeEnabled = entry.jumpRopeEnabled;
       _jumpRopeNoteController.text = entry.jumpRopeNote;
       _breakfastDone = entry.breakfastDone;
@@ -697,13 +691,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   String _trainingProgramMinutesSnapshot() {
-    final keys =
-        _trainingProgramMinutes.keys
-            .map((program) => program.trim())
-            .where((program) => program.isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
+    final keys = _trainingProgramMinutes.keys
+        .map((program) => program.trim())
+        .where((program) => program.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
     return keys
         .map((program) => '$program:${_trainingProgramMinutes[program] ?? 0}')
         .join(',');
@@ -769,27 +762,23 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final source = widget.entry;
     if (source == null) return null;
 
-    final candidates = allEntries
-        .where((entry) {
-          final key = entry.key;
-          return key is int &&
-              entry.createdAt == source.createdAt &&
-              entry.date == source.date &&
-              entry.isMatch == source.isMatch;
-        })
-        .toList(growable: false);
+    final candidates = allEntries.where((entry) {
+      final key = entry.key;
+      return key is int &&
+          entry.createdAt == source.createdAt &&
+          entry.date == source.date &&
+          entry.isMatch == source.isMatch;
+    }).toList(growable: false);
     if (candidates.length == 1) {
       return candidates.single.key as int;
     }
 
-    final strictCandidates = candidates
-        .where((entry) {
-          return entry.durationMinutes == source.durationMinutes &&
-              entry.type == source.type &&
-              entry.program == source.program &&
-              entry.location == source.location;
-        })
-        .toList(growable: false);
+    final strictCandidates = candidates.where((entry) {
+      return entry.durationMinutes == source.durationMinutes &&
+          entry.type == source.type &&
+          entry.program == source.program &&
+          entry.location == source.location;
+    }).toList(growable: false);
     if (strictCandidates.length == 1) {
       return strictCandidates.single.key as int;
     }
@@ -1036,8 +1025,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           Text(
             feedbackText.isEmpty
                 ? (reaction.isEmpty
-                      ? l10n.parentFeedbackEmpty
-                      : l10n.parentFeedbackReactionOnly)
+                    ? l10n.parentFeedbackEmpty
+                    : l10n.parentFeedbackReactionOnly)
                 : feedbackText,
             maxLines: canEdit ? 3 : 5,
             overflow: TextOverflow.ellipsis,
@@ -1101,26 +1090,49 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Widget _buildStatusRow(AppLocalizations l10n) {
+    const values = ['great', 'good', 'normal', 'tough', 'recovery'];
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildTrainingSectionHeader(
-          icon: trainingStatusVisual(_status).icon,
-          title: l10n.status,
-          color: trainingStatusColor(_status),
-        ),
-        const SizedBox(height: 12),
-        _buildProgramDurationDropdown<String>(
-          label: l10n.status,
-          value: _status,
-          options: const ['great', 'good', 'normal', 'tough', 'recovery'],
-          icon: trainingStatusVisual(_status).icon,
-          iconForValue: (value) => trainingStatusVisual(value).icon,
-          optionLabel: (value) => _trainingStatusLabel(l10n, value),
-          onChanged: (value) {
-            setState(() => _status = value);
-            _scheduleAutoSave();
-          },
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: values.map((value) {
+            final visual = trainingStatusVisual(value);
+            final selected = _status == value;
+            final foreground = selected
+                ? theme.colorScheme.onPrimaryContainer
+                : theme.colorScheme.onSurface;
+            return ChoiceChip(
+              selected: selected,
+              showCheckmark: false,
+              avatar: Icon(
+                visual.icon,
+                size: 18,
+                color: selected ? visual.gradientEnd : visual.color,
+              ),
+              label: Text(_trainingStatusLabel(l10n, value)),
+              labelStyle: theme.textTheme.labelLarge?.copyWith(
+                color: foreground,
+                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+              ),
+              selectedColor: visual.gradientStart.withValues(alpha: 0.28),
+              backgroundColor: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.62),
+              side: BorderSide(
+                color: selected
+                    ? visual.gradientEnd.withValues(alpha: 0.72)
+                    : theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.62,
+                      ),
+              ),
+              onSelected: (_) {
+                setState(() => _status = value);
+                _scheduleAutoSave();
+              },
+            );
+          }).toList(growable: false),
         ),
       ],
     );
@@ -1444,9 +1456,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                     ),
                   )
                   .toList(growable: false),
-              onChanged: done
-                  ? (value) => onRiceBowlsChanged(value ?? 0)
-                  : null,
+              onChanged:
+                  done ? (value) => onRiceBowlsChanged(value ?? 0) : null,
               decoration: InputDecoration(
                 labelText: l10n.mealRiceLabel,
                 filled: true,
@@ -1541,8 +1552,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final weatherStatusText = _weatherLoading
         ? l10n.entryWeatherLoading
         : _weatherSummary.trim().isNotEmpty
-        ? _weatherSummary.trim()
-        : l10n.entryWeatherHomeMissing;
+            ? _weatherSummary.trim()
+            : l10n.entryWeatherHomeMissing;
     final weatherHasValue = _weatherSummary.trim().isNotEmpty;
     final isMatchEntry = widget.entry?.isMatch ?? false;
     if (isReadOnly && widget.entry == null) {
@@ -1665,8 +1676,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               ),
                               if (!isReadOnly)
                                 FilledButton.icon(
-                                  onPressed:
-                                      (_deleteInProgress ||
+                                  onPressed: (_deleteInProgress ||
                                           (_saveInProgress && !_autoSaving))
                                       ? null
                                       : _handleSavePressed,
@@ -1688,8 +1698,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                 OutlinedButton.icon(
                                   onPressed:
                                       (_saveInProgress || _deleteInProgress)
-                                      ? null
-                                      : _confirmAndDelete,
+                                          ? null
+                                          : _confirmAndDelete,
                                   icon: const Icon(
                                     Icons.delete_outline,
                                     size: 18,
@@ -1811,9 +1821,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   minLines: 3,
                                   maxLines: null,
                                   decoration: InputDecoration(
-                                    labelText: isKo
-                                        ? '아쉬운 점'
-                                        : 'What to improve',
+                                    labelText:
+                                        isKo ? '아쉬운 점' : 'What to improve',
                                     hintText: isKo
                                         ? '다음에 보완할 부분을 적어보세요.'
                                         : 'Write what needs improvement.',
@@ -1855,8 +1864,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                         label: l10n.injuryPart,
                                         value:
                                             _injuryPartController.text.isEmpty
-                                            ? l10n.notSet
-                                            : _injuryPartController.text,
+                                                ? l10n.notSet
+                                                : _injuryPartController.text,
                                         options: [
                                           l10n.notSet,
                                           ..._injuryPartOptions,
@@ -1865,8 +1874,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                           setState(() {
                                             _injuryPartController.text =
                                                 value == l10n.notSet
-                                                ? ''
-                                                : value;
+                                                    ? ''
+                                                    : value;
                                           });
                                           _scheduleAutoSave();
                                         },
@@ -2132,17 +2141,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             child: Text(
                               _autoSaving
                                   ? (Localizations.localeOf(
-                                              context,
-                                            ).languageCode ==
-                                            'ko'
-                                        ? '자동 저장 중...'
-                                        : 'Autosaving...')
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '자동 저장 중...'
+                                      : 'Autosaving...')
                                   : (Localizations.localeOf(
-                                              context,
-                                            ).languageCode ==
-                                            'ko'
-                                        ? '수정 내용이 자동 저장됩니다.'
-                                        : 'Changes are saved automatically.'),
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '수정 내용이 자동 저장됩니다.'
+                                      : 'Changes are saved automatically.'),
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
@@ -2335,7 +2344,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final weatherWidth = constraints.maxWidth < 360 ? 108.0 : 138.0;
         return Row(
           children: [
             Expanded(
@@ -2343,7 +2351,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             ),
             const SizedBox(width: 8),
             SizedBox(
-              width: weatherWidth,
+              width: 52,
               child: _buildTrainingWeatherChip(
                 l10n: l10n,
                 weatherStatusText: weatherStatusText,
@@ -2396,23 +2404,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  l10n.trainingDate,
+                  dateText,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w800,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w900,
                   ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                dateText,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.w900,
                 ),
               ),
               const SizedBox(width: 2),
@@ -2438,8 +2436,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       theme,
       weatherHasValue: weatherHasValue,
     );
+    final tooltip = weatherHasValue
+        ? weatherStatusText
+        : l10n.entryWeatherUseLocationTooltip;
     return Tooltip(
-      message: l10n.entryWeatherUseLocationTooltip,
+      message: tooltip,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -2465,6 +2466,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               ),
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _weatherLoading
                     ? SizedBox(
@@ -2480,20 +2482,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         size: 18,
                         color: color,
                       ),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: Text(
-                    weatherStatusText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: weatherHasValue
-                          ? theme.colorScheme.onPrimaryContainer
-                          : theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -2579,18 +2567,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final theme = Theme.of(context);
     final fg = active
         ? (emphasizePrimary
-              ? theme.colorScheme.onPrimary
-              : theme.colorScheme.onPrimaryContainer)
+            ? theme.colorScheme.onPrimary
+            : theme.colorScheme.onPrimaryContainer)
         : theme.colorScheme.onSurfaceVariant;
     final bg = active
         ? (emphasizePrimary
-              ? theme.colorScheme.primary
-              : theme.colorScheme.primaryContainer.withValues(alpha: 0.92))
+            ? theme.colorScheme.primary
+            : theme.colorScheme.primaryContainer.withValues(alpha: 0.92))
         : theme.colorScheme.surfaceContainerHighest;
     final border = active
         ? (emphasizePrimary
-              ? theme.colorScheme.primary
-              : theme.colorScheme.primary.withValues(alpha: 0.62))
+            ? theme.colorScheme.primary
+            : theme.colorScheme.primary.withValues(alpha: 0.62))
         : theme.colorScheme.outline.withValues(alpha: 0.28);
 
     return AppPressableScale(
@@ -2652,16 +2640,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic =
-        controller == _goodPointsController ||
+    final showMic = controller == _goodPointsController ||
         controller == _improvementsController ||
         controller == _nextGoalController ||
         controller == _jumpRopeNoteController;
     final isListeningFor = _isListening && _listeningController == controller;
     final isMultiline = maxLines == null || maxLines > 1 || minLines > 1;
-    final resolvedTextInputAction = isMultiline
-        ? TextInputAction.newline
-        : TextInputAction.done;
+    final resolvedTextInputAction =
+        isMultiline ? TextInputAction.newline : TextInputAction.done;
     final micButton = showMic && enabled
         ? IconButton(
             onPressed: () => _toggleListening(controller, l10n),
@@ -2855,8 +2841,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
 
-    final needsSpacing =
-        !isKoreanLocale &&
+    final needsSpacing = !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -3025,12 +3010,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) => WeatherLocationService.resolvePlaceName(
-    latitude: latitude,
-    longitude: longitude,
-    isKo: isKo,
-    koreaLabel: koreaLabel,
-  );
+  }) =>
+      WeatherLocationService.resolvePlaceName(
+        latitude: latitude,
+        longitude: longitude,
+        isKo: isKo,
+        koreaLabel: koreaLabel,
+      );
 
   List<Color> _weatherBackgroundColors(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
@@ -3129,8 +3115,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final trainingProgramMinutes = _persistedTrainingProgramMinutes();
     final durationMinutes =
         _trainingProgramMinutesTotal(trainingProgramMinutes) > 0
-        ? _trainingProgramMinutesTotal(trainingProgramMinutes)
-        : _durationMinutes;
+            ? _trainingProgramMinutesTotal(trainingProgramMinutes)
+            : _durationMinutes;
     final goodPoints = _goodPointsController.text.trim();
     final improvements = _improvementsController.text.trim();
     final notes = _withWeatherInNotes(improvements, isKo);
@@ -3214,8 +3200,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           initialBoardId: _linkedBoardIds.isNotEmpty
               ? _linkedBoardIds.first
               : (hasRecentBoard
-                    ? recentBoardId
-                    : (allBoards.isNotEmpty ? allBoards.first.id : null)),
+                  ? recentBoardId
+                  : (allBoards.isNotEmpty ? allBoards.first.id : null)),
           readOnly: isReadOnly,
         ),
       ),
@@ -3292,8 +3278,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final trainingProgramMinutes = _persistedTrainingProgramMinutes();
       final durationMinutes =
           _trainingProgramMinutesTotal(trainingProgramMinutes) > 0
-          ? _trainingProgramMinutesTotal(trainingProgramMinutes)
-          : _durationMinutes;
+              ? _trainingProgramMinutesTotal(trainingProgramMinutes)
+              : _durationMinutes;
       final profile = PlayerProfileService(widget.optionRepository).load();
       final allEntries = await widget.trainingService.allEntries();
       if (!mounted || _disposing) return;
@@ -3309,9 +3295,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : <String, int>{};
       final liftingMinutes = _liftingEnabled
           ? (_parseInt(
-                  _liftingMinutesController.text.trim(),
-                )?.clamp(0, 1000000) ??
-                0)
+                _liftingMinutesController.text.trim(),
+              )?.clamp(0, 1000000) ??
+              0)
           : 0;
       final selectedGoals = _selectedDailyGoals.toList()..sort();
       final goodPoints = _goodPointsController.text.trim();
@@ -3324,13 +3310,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : 0;
       final jumpRopeMinutes = _jumpRopeEnabled
           ? (_parseInt(
-                  _jumpRopeMinutesController.text.trim(),
-                )?.clamp(0, 1000000) ??
-                0)
+                _jumpRopeMinutesController.text.trim(),
+              )?.clamp(0, 1000000) ??
+              0)
           : 0;
-      final jumpRopeNote = _jumpRopeEnabled
-          ? _jumpRopeNoteController.text.trim()
-          : '';
+      final jumpRopeNote =
+          _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '';
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
@@ -3387,12 +3372,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _cachedFortuneRecommendedProgram = generatedFortune.recommendedProgram;
       }
       final fortuneComment = shouldPersistFortune ? _cachedFortuneComment : '';
-      final fortuneRecommendation = shouldPersistFortune
-          ? _cachedFortuneRecommendation
-          : '';
-      final fortuneRecommendedProgram = shouldPersistFortune
-          ? _cachedFortuneRecommendedProgram
-          : '';
+      final fortuneRecommendation =
+          shouldPersistFortune ? _cachedFortuneRecommendation : '';
+      final fortuneRecommendedProgram =
+          shouldPersistFortune ? _cachedFortuneRecommendedProgram : '';
 
       final entry = TrainingEntry(
         date: draftEntry.date,
@@ -3518,9 +3501,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       _initialSnapshot = _formSnapshot();
       if (!mounted) return;
-      final fortuneToShow = shouldShowFortuneOnSave
-          ? _cachedFortuneComment
-          : '';
+      final fortuneToShow =
+          shouldShowFortuneOnSave ? _cachedFortuneComment : '';
       if (fortuneToShow.trim().isNotEmpty && popAfterSave) {
         await _showFortuneRevealDialog(fortuneToShow);
         if (!mounted) return;
@@ -3567,8 +3549,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         Navigator.of(context).pop();
       }
     } finally {
-      final shouldRunQueuedManualSave =
-          silent &&
+      final shouldRunQueuedManualSave = silent &&
           _manualSaveQueuedAfterAutoSave &&
           mounted &&
           !_disposing &&

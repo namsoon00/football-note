@@ -99,9 +99,31 @@
   "newsLeagueFixturesCollapse": "器具を折りたたむ",
   "newsLeagueFixturesSelectedTeamsOnly": "選ばれたチームのみ",
   "newsLeagueFixturesSelectedTeamsEmpty": "このリーグのスケジュールでは、選択チームの試合はありません。",
+  "newsLeagueFixturesEmptyReason": "{league} は、元の日程フィードが空か現在シーズンの日程がまだ公開されていないため、表示できる試合がありません。",
+  "@newsLeagueFixturesEmptyReason": {
+    "placeholders": {
+      "league": {
+        "type": "String"
+      }
+    }
+  },
   "newsLeagueFixtureScheduled": "治具",
   "newsLeagueFixtureLive": "ライブ",
   "newsLeagueFixtureFullTime": "FT",
+  "newsLeagueTeamDetailTitle": "{team} 情報",
+  "@newsLeagueTeamDetailTitle": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "newsLeagueTeamDetailRosterTitle": "選手名簿",
+  "newsLeagueTeamDetailTacticsTitle": "戦術",
+  "newsLeagueTeamDetailFixturesTitle": "チーム日程",
+  "newsLeagueTeamDetailNoFixtures": "読み込んだ日程内で、このチームの試合は見つかりませんでした。",
+  "newsLeagueTeamDetailTacticsSummary": "現在の順位表と得失点データからチームの流れを確認できます。公式の戦術や選手名簿が提供された場合は、この画面に表示されます。",
+  "newsLeagueTeamDetailSourceNote": "公式リーグフィードで確認できる情報のみ表示します。",
   "newsLeagueFavoriteTeamTitle": "好きなチーム",
   "newsLeagueFavoriteTeamManage": "お気に入りのチームを選択してください",
   "newsLeagueFavoriteTeamSubtitle": "お気に入りのチームを選択して、ロードされた試合に関するアラートを受け取ります。",
@@ -297,7 +319,23 @@
   },
   "worldCupVersusShort": "対",
   "worldCupMatchScheduled": "予定",
+  "worldCupMatchLive": "ライブ",
   "worldCupMatchResultFinal": "結果",
+  "worldCupMatchDetailTitle": "試合詳細",
+  "worldCupMatchComparisonTitle": "戦力比較",
+  "worldCupMatchRecordsTitle": "試合記録",
+  "worldCupMatchRecordUnavailable": "公式データが利用可能になると、ライブ試合記録が表示されます。",
+  "worldCupPlayerProfileTitle": "{player} プロフィール",
+  "@worldCupPlayerProfileTitle": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupPlayerProfileTeamLabel": "代表チーム",
+  "worldCupPlayerProfilePositionLabel": "ポジション",
+  "worldCupPlayerProfileSourceNote": "公式写真がない場合は、選手の顔アイコンを表示します。",
   "worldCupScorePending": "- : -",
   "worldCupScoreLine": "{homeScore} : {awayScore}",
   "@worldCupScoreLine": {
@@ -3581,6 +3619,8 @@
   "trainingSketchAddPlayerFirst": "まずプレーヤーアイコンを追加します。",
   "trainingSketchAddBallFirst": "まずボールアイコンを追加します。",
   "trainingSketchRoutesButton": "ルート",
+  "trainingSketchPassDribbleMoveFlowButton": "パス・ドリブルフロー",
+  "trainingSketchPassDribbleMoveFlowSnack": "1番のパス、2番のドリブル、3番の移動フローを適用しました。",
   "trainingSketchClearAllRoutesButton": "全ルートクリア",
   "trainingSketchPlayerRoutesTitle": "プレイヤールート",
   "trainingSketchBallRoutesTitle": "ボールルート",

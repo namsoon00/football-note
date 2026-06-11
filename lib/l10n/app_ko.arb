@@ -99,9 +99,31 @@
   "newsLeagueFixturesCollapse": "일정 접기",
   "newsLeagueFixturesSelectedTeamsOnly": "선택한 팀 경기만",
   "newsLeagueFixturesSelectedTeamsEmpty": "이 리그 일정에 선택한 팀 경기가 없어요.",
+  "newsLeagueFixturesEmptyReason": "{league} 일정 원본 피드가 비어 있거나 현재 시즌 일정이 아직 공개되지 않아 표시할 경기가 없어요.",
+  "@newsLeagueFixturesEmptyReason": {
+    "placeholders": {
+      "league": {
+        "type": "String"
+      }
+    }
+  },
   "newsLeagueFixtureScheduled": "예정",
   "newsLeagueFixtureLive": "진행 중",
   "newsLeagueFixtureFullTime": "종료",
+  "newsLeagueTeamDetailTitle": "{team} 정보",
+  "@newsLeagueTeamDetailTitle": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "newsLeagueTeamDetailRosterTitle": "선수 명단",
+  "newsLeagueTeamDetailTacticsTitle": "전술",
+  "newsLeagueTeamDetailFixturesTitle": "팀 일정",
+  "newsLeagueTeamDetailNoFixtures": "불러온 일정 안에서 이 팀의 경기를 찾지 못했어요.",
+  "newsLeagueTeamDetailTacticsSummary": "현재 순위와 득실 데이터를 바탕으로 팀 흐름을 확인하세요. 공식 전술/선수 명단이 제공되면 이 화면에 함께 표시됩니다.",
+  "newsLeagueTeamDetailSourceNote": "공식 리그 피드에서 확인 가능한 정보만 표시합니다.",
   "newsLeagueFavoriteTeamTitle": "좋아하는 팀",
   "newsLeagueFavoriteTeamManage": "좋아하는 팀 선택",
   "newsLeagueFavoriteTeamSubtitle": "좋아하는 팀을 선택하면 불러온 일정 중 해당 팀 경기 알림을 받을 수 있어요.",
@@ -297,7 +319,23 @@
   },
   "worldCupVersusShort": "대",
   "worldCupMatchScheduled": "예정",
+  "worldCupMatchLive": "진행 중",
   "worldCupMatchResultFinal": "결과",
+  "worldCupMatchDetailTitle": "경기 상세",
+  "worldCupMatchComparisonTitle": "전력 비교",
+  "worldCupMatchRecordsTitle": "경기 기록",
+  "worldCupMatchRecordUnavailable": "실시간 경기 기록은 공식 데이터가 들어오는 대로 표시됩니다.",
+  "worldCupPlayerProfileTitle": "{player} 프로필",
+  "@worldCupPlayerProfileTitle": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupPlayerProfileTeamLabel": "대표팀",
+  "worldCupPlayerProfilePositionLabel": "포지션",
+  "worldCupPlayerProfileSourceNote": "공식 사진이 없을 때는 선수 얼굴 아이콘을 표시합니다.",
   "worldCupScorePending": "- : -",
   "worldCupScoreLine": "{homeScore} : {awayScore}",
   "@worldCupScoreLine": {
@@ -3581,6 +3619,8 @@
   "trainingSketchAddPlayerFirst": "먼저 사람 아이콘을 추가해 주세요.",
   "trainingSketchAddBallFirst": "먼저 공 아이콘을 추가해 주세요.",
   "trainingSketchRoutesButton": "이동선",
+  "trainingSketchPassDribbleMoveFlowButton": "패스·드리블 플로우",
+  "trainingSketchPassDribbleMoveFlowSnack": "1번 패스, 2번 드리블, 3번 이동 플로우를 적용했어요.",
   "trainingSketchClearAllRoutesButton": "이동선 전체 지우기",
   "trainingSketchPlayerRoutesTitle": "사람 이동선",
   "trainingSketchBallRoutesTitle": "공 이동선",

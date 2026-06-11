@@ -926,6 +926,130 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _scheduleAutoSave();
   }
 
+  void _applyPassDribbleMoveFlow() {
+    _stopRoutePlayback(restoreStart: false);
+    final playerColors = _colorChoicesForItemType(_BoardItemType.player);
+    final ballColors = _colorChoicesForItemType(_BoardItemType.ball);
+    final p1 = _flowBoardItem(
+      type: _BoardItemType.player,
+      x: 0.26,
+      y: 0.61,
+      color: playerColors[0],
+    );
+    final p2 = _flowBoardItem(
+      type: _BoardItemType.player,
+      x: 0.52,
+      y: 0.48,
+      color: playerColors[1 % playerColors.length],
+    );
+    final p3 = _flowBoardItem(
+      type: _BoardItemType.player,
+      x: 0.73,
+      y: 0.64,
+      color: playerColors[2 % playerColors.length],
+    );
+    final ball = _flowBoardItem(
+      type: _BoardItemType.ball,
+      x: 0.31,
+      y: 0.60,
+      color: ballColors.first,
+      size: 26,
+    );
+    setState(() {
+      _currentPage.items.addAll([p1, p2, p3, ball]);
+      _currentPage.routes.addAll([
+        _flowRoute(
+          kind: _PathDrawMode.player,
+          linkedItem: p1,
+          points: [
+            Offset(p1.x, p1.y),
+            Offset(p1.x, p1.y),
+            const Offset(0.34, 0.56),
+          ],
+          durationsMs: const [240, 620],
+        ),
+        _flowRoute(
+          kind: _PathDrawMode.ball,
+          linkedItem: ball,
+          points: [
+            Offset(ball.x, ball.y),
+            Offset(p2.x, p2.y),
+            const Offset(0.69, 0.45),
+          ],
+          durationsMs: const [900, 1050],
+        ),
+        _flowRoute(
+          kind: _PathDrawMode.player,
+          linkedItem: p2,
+          points: [
+            Offset(p2.x, p2.y),
+            Offset(p2.x, p2.y),
+            const Offset(0.69, 0.45),
+          ],
+          durationsMs: const [900, 1050],
+        ),
+        _flowRoute(
+          kind: _PathDrawMode.player,
+          linkedItem: p3,
+          points: [
+            Offset(p3.x, p3.y),
+            Offset(p3.x, p3.y),
+            const Offset(0.79, 0.36),
+          ],
+          durationsMs: const [1950, 900],
+        ),
+      ]);
+      _selectedItemId = p2.id;
+      _selectedRouteId = null;
+      _penMode = false;
+      _pathMode = false;
+      _routeReplaceMode = false;
+      _activeStroke = null;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
+    });
+    _scheduleAutoSave();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(_l10n.trainingSketchPassDribbleMoveFlowSnack)),
+    );
+  }
+
+  _BoardItem _flowBoardItem({
+    required _BoardItemType type,
+    required double x,
+    required double y,
+    required Color color,
+    double size = 34,
+  }) {
+    return _BoardItem(
+      id: _nextBoardItemId(),
+      type: type,
+      x: x,
+      y: y,
+      size: size,
+      rotationDeg: 0,
+      color: color,
+    );
+  }
+
+  _BoardRoute _flowRoute({
+    required _PathDrawMode kind,
+    required _BoardItem linkedItem,
+    required List<Offset> points,
+    required List<int> durationsMs,
+  }) {
+    return _BoardRoute(
+      id: _nextBoardRouteId(),
+      kind: kind,
+      linkedItemId: linkedItem.id,
+      points: points.toList(growable: true),
+      segmentDurationsMs: durationsMs.toList(growable: true),
+      color: linkedItem.color,
+      width: _defaultRouteWidth(kind),
+    );
+  }
+
   void _removeSelected() {
     final id = _selectedItemId;
     if (id == null) return;
@@ -2095,13 +2219,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final segments = <_PlaybackSegment>[];
     for (var index = 0; index < segmentDistances.length; index++) {
       final distanceMeters = segmentDistances[index];
-      if (distanceMeters <= _minPlaybackSegmentDistanceMeters) continue;
-      final durationSeconds = distanceMeters / speedMetersPerSecond;
+      final explicitDurationMs = index < route.segmentDurationsMs.length
+          ? route.segmentDurationsMs[index]
+          : 0;
+      if (distanceMeters <= _minPlaybackSegmentDistanceMeters &&
+          explicitDurationMs <= 0) {
+        continue;
+      }
+      final durationSeconds = explicitDurationMs > 0
+          ? explicitDurationMs / 1000
+          : distanceMeters / speedMetersPerSecond;
       segments.add(
         _PlaybackSegment(
           start: points[index],
           end: points[index + 1],
-          durationSeconds: durationSeconds,
+          durationSeconds: math.max(durationSeconds, 0.016),
         ),
       );
     }
@@ -2968,6 +3100,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         label: l10n.trainingSketchLadderButton,
         icon: Icons.view_week,
         onTap: () => _addItem(_BoardItemType.ladder),
+      ),
+      OutlinedButton.icon(
+        onPressed: _applyPassDribbleMoveFlow,
+        icon: const Icon(Icons.moving_rounded),
+        label: Text(l10n.trainingSketchPassDribbleMoveFlowButton),
+        style: _toolButtonStyle(),
       ),
       OutlinedButton.icon(
         onPressed: () => setState(() {

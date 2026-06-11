@@ -319,6 +319,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'No selected-team fixtures are available in this league schedule.';
 
   @override
+  String newsLeagueFixturesEmptyReason(String league) {
+    return '$league has no fixtures to show because the source fixture feed is empty or the current season schedule has not been published yet.';
+  }
+
+  @override
   String get newsLeagueFixtureScheduled => 'Fixture';
 
   @override
@@ -326,6 +331,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsLeagueFixtureFullTime => 'FT';
+
+  @override
+  String newsLeagueTeamDetailTitle(String team) {
+    return '$team info';
+  }
+
+  @override
+  String get newsLeagueTeamDetailRosterTitle => 'Roster';
+
+  @override
+  String get newsLeagueTeamDetailTacticsTitle => 'Tactics';
+
+  @override
+  String get newsLeagueTeamDetailFixturesTitle => 'Team fixtures';
+
+  @override
+  String get newsLeagueTeamDetailNoFixtures =>
+      'No matches for this team were found in the loaded fixtures.';
+
+  @override
+  String get newsLeagueTeamDetailTacticsSummary =>
+      'Use the current table plus goal data to read the team trend. Official tactics and roster details will appear here when the feed provides them.';
+
+  @override
+  String get newsLeagueTeamDetailSourceNote =>
+      'Only information available from the official league feed is shown.';
 
   @override
   String get newsLeagueFavoriteTeamTitle => 'Favorite teams';
@@ -693,7 +724,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupMatchScheduled => 'Scheduled';
 
   @override
+  String get worldCupMatchLive => 'Live';
+
+  @override
   String get worldCupMatchResultFinal => 'Result';
+
+  @override
+  String get worldCupMatchDetailTitle => 'Match details';
+
+  @override
+  String get worldCupMatchComparisonTitle => 'Team comparison';
+
+  @override
+  String get worldCupMatchRecordsTitle => 'Match records';
+
+  @override
+  String get worldCupMatchRecordUnavailable =>
+      'Live match records will appear as official data becomes available.';
+
+  @override
+  String worldCupPlayerProfileTitle(String player) {
+    return '$player profile';
+  }
+
+  @override
+  String get worldCupPlayerProfileTeamLabel => 'National team';
+
+  @override
+  String get worldCupPlayerProfilePositionLabel => 'Position';
+
+  @override
+  String get worldCupPlayerProfileSourceNote =>
+      'A player face icon is shown when an official photo is unavailable.';
 
   @override
   String get worldCupScorePending => '- : -';
@@ -7266,6 +7328,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchRoutesButton => 'Routes';
+
+  @override
+  String get trainingSketchPassDribbleMoveFlowButton => 'Pass-dribble flow';
+
+  @override
+  String get trainingSketchPassDribbleMoveFlowSnack =>
+      'Applied the player 1 pass, player 2 dribble, player 3 move flow.';
 
   @override
   String get trainingSketchClearAllRoutesButton => 'Clear all routes';
