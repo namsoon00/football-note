@@ -1272,6 +1272,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get quizBackHomeTooltip => 'クイズホームに戻る';
 
   @override
+  String get quizResultMissReviewCountLabel => '復習するミス';
+
+  @override
+  String get quizResultNoMissedQuestions => '今回のセットにミスした問題はありません。';
+
+  @override
   String quizXpSavedFeedback(int count) {
     return 'クイズ完了 +$count XP';
   }
@@ -7547,6 +7553,9 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get challengeCelebrationCompleteBodyNoXp =>
       'すべてのミッション記録が完了しました。チャレンジ完了画面で進行状況を確認してください。';
+
+  @override
+  String get challengeCelebrationMissionsTitle => '完了したミッション';
 
   @override
   String get challengeCelebrationAction => 'いいね!';

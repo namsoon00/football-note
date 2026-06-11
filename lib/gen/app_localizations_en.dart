@@ -1311,6 +1311,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizBackHomeTooltip => 'Back to quiz home';
 
   @override
+  String get quizResultMissReviewCountLabel => 'Misses to review';
+
+  @override
+  String get quizResultNoMissedQuestions =>
+      'This run finished with no missed questions.';
+
+  @override
   String quizXpSavedFeedback(int count) {
     return 'Quiz complete +$count XP';
   }
@@ -7810,6 +7817,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get challengeCelebrationCompleteBodyNoXp =>
       'All missions are recorded. Review the challenge completion screen.';
+
+  @override
+  String get challengeCelebrationMissionsTitle => 'Completed missions';
 
   @override
   String get challengeCelebrationAction => 'Nice!';

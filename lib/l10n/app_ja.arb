@@ -763,6 +763,8 @@
   "quizLibraryAction": "問題",
   "quizHistoryAction": "履歴",
   "quizBackHomeTooltip": "クイズホームに戻る",
+  "quizResultMissReviewCountLabel": "復習するミス",
+  "quizResultNoMissedQuestions": "今回のセットにミスした問題はありません。",
   "quizXpSavedFeedback": "クイズ完了 +{count} XP",
   "@quizXpSavedFeedback": {
     "placeholders": {
@@ -3961,6 +3963,7 @@
     }
   },
   "challengeCelebrationCompleteBodyNoXp": "すべてのミッション記録が完了しました。チャレンジ完了画面で進行状況を確認してください。",
+  "challengeCelebrationMissionsTitle": "完了したミッション",
   "challengeCelebrationAction": "いいね!",
   "challengeHistoryTitle": "チャレンジ履歴",
   "challengeHistorySummaryTitle": "チャレンジ概要",

@@ -2353,6 +2353,18 @@ abstract class AppLocalizations {
   /// **'Back to quiz home'**
   String get quizBackHomeTooltip;
 
+  /// No description provided for @quizResultMissReviewCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Misses to review'**
+  String get quizResultMissReviewCountLabel;
+
+  /// No description provided for @quizResultNoMissedQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'This run finished with no missed questions.'**
+  String get quizResultNoMissedQuestions;
+
   /// No description provided for @quizXpSavedFeedback.
   ///
   /// In en, this message translates to:
@@ -13412,6 +13424,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All missions are recorded. Review the challenge completion screen.'**
   String get challengeCelebrationCompleteBodyNoXp;
+
+  /// No description provided for @challengeCelebrationMissionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed missions'**
+  String get challengeCelebrationMissionsTitle;
 
   /// No description provided for @challengeCelebrationAction.
   ///

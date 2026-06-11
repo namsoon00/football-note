@@ -763,6 +763,8 @@
   "quizLibraryAction": "문제",
   "quizHistoryAction": "기록",
   "quizBackHomeTooltip": "퀴즈 홈으로",
+  "quizResultMissReviewCountLabel": "복기할 오답",
+  "quizResultNoMissedQuestions": "이번 세트는 놓친 문제가 없습니다.",
   "quizXpSavedFeedback": "퀴즈 완료 +{count} XP",
   "@quizXpSavedFeedback": {
     "placeholders": {
@@ -3961,6 +3963,7 @@
     }
   },
   "challengeCelebrationCompleteBodyNoXp": "모든 미션 기록이 끝났어요. 챌린지 완료 화면에서 진행을 확인하세요.",
+  "challengeCelebrationMissionsTitle": "수행한 미션",
   "challengeCelebrationAction": "좋아!",
   "challengeHistoryTitle": "챌린지 히스토리",
   "challengeHistorySummaryTitle": "챌린지 요약",

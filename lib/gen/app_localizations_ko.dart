@@ -1265,6 +1265,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get quizBackHomeTooltip => '퀴즈 홈으로';
 
   @override
+  String get quizResultMissReviewCountLabel => '복기할 오답';
+
+  @override
+  String get quizResultNoMissedQuestions => '이번 세트는 놓친 문제가 없습니다.';
+
+  @override
   String quizXpSavedFeedback(int count) {
     return '퀴즈 완료 +$count XP';
   }
@@ -7557,6 +7563,9 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get challengeCelebrationCompleteBodyNoXp =>
       '모든 미션 기록이 끝났어요. 챌린지 완료 화면에서 진행을 확인하세요.';
+
+  @override
+  String get challengeCelebrationMissionsTitle => '수행한 미션';
 
   @override
   String get challengeCelebrationAction => '좋아!';
