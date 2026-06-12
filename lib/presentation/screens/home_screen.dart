@@ -10,6 +10,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
+import '../../application/notification_app_link.dart';
 import '../../application/training_plan_reminder_service.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'calendar_screen.dart';
@@ -31,6 +32,7 @@ class HomeScreen extends StatefulWidget {
   final SettingsService settingsService;
   final BackupService? driveBackupService;
   final int initialIndex;
+  final DateTime? initialCalendarSelectedDay;
   final CalendarQuickCreateAction? calendarQuickCreateAction;
 
   const HomeScreen({
@@ -42,6 +44,7 @@ class HomeScreen extends StatefulWidget {
     required this.settingsService,
     this.driveBackupService,
     this.initialIndex = 0,
+    this.initialCalendarSelectedDay,
     this.calendarQuickCreateAction,
   });
 
@@ -70,6 +73,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _index = widget.initialIndex;
+    _calendarSelectedDay = widget.initialCalendarSelectedDay == null
+        ? null
+        : DateTime(
+            widget.initialCalendarSelectedDay!.year,
+            widget.initialCalendarSelectedDay!.month,
+            widget.initialCalendarSelectedDay!.day,
+          );
     _builtTabIndices = <int>{_index};
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_showTabGuideIfNeeded(_index));
@@ -117,17 +127,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       if (!result.hasUserVisibleChanges) return;
       final l10n = AppLocalizations.of(context)!;
-      final title = l10n.familySyncAlertTitle;
       final body = _familySyncAlertBody(result, l10n);
       if (body.trim().isEmpty) return;
+      final syncedAt = DateTime.now();
       await TrainingPlanReminderService(
         widget.optionRepository,
         widget.settingsService,
       ).showFamilySyncAlert(
-        title: title,
         body: body,
-        payload:
-            'family-sync:${result.role.name}:${DateTime.now().toIso8601String()}',
+        payload: NotificationAppLink.familySync(
+          role: result.role.name,
+          syncedAt: syncedAt,
+        ),
       );
       if (mounted) {
         setState(() {});
@@ -244,7 +255,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onEdit: _openEdit,
           onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
           onCreateMeal: () => _openMealLog(initialDate: _calendarSelectedDay),
-          quickCreateAction: _pendingCalendarQuickCreateAction ??
+          quickCreateAction:
+              _pendingCalendarQuickCreateAction ??
               widget.calendarQuickCreateAction,
           onQuickCreateHandled: _clearCalendarQuickCreateAction,
           onSelectedDayChanged: (day) {

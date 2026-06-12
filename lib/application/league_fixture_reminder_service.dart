@@ -6,6 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../domain/entities/league_standings.dart';
 import '../domain/repositories/option_repository.dart';
+import 'notification_app_link.dart';
 import 'settings_service.dart';
 import 'world_cup_schedule.dart';
 
@@ -53,7 +54,6 @@ class LeagueFixtureReminderService {
 
   Future<int> syncReminders({
     required Iterable<LeagueFixtureSnapshot> snapshots,
-    required String title,
     required String androidChannelName,
     required String androidChannelDescription,
     required String Function(
@@ -115,11 +115,15 @@ class LeagueFixtureReminderService {
           favoriteMatch.teamName,
           favoriteMatch.opponentName,
         );
-        final payload = 'league_fixture:$fixtureKey';
+        final payload = NotificationAppLink.leagueFixture(
+          leagueType: snapshot.type.name,
+          fixtureKey: fixtureKey,
+          kickoffAt: entry.kickoffAt,
+        );
         try {
           await _scheduleZonedReminder(
             id: id,
-            title: title,
+            title: NotificationAppLink.notificationTitle,
             androidChannelName: androidChannelName,
             androidChannelDescription: androidChannelDescription,
             body: body,
@@ -134,7 +138,7 @@ class LeagueFixtureReminderService {
             'createdAt': DateTime.now().toIso8601String(),
             'scheduledAt': scheduledAt.toIso8601String(),
             'kickoffAt': entry.kickoffAt.toIso8601String(),
-            'title': title,
+            'title': NotificationAppLink.notificationTitle,
             'body': body,
             'leagueType': snapshot.type.name,
             'leagueName': snapshot.leagueName,
@@ -169,7 +173,6 @@ class LeagueFixtureReminderService {
   Future<int> syncWorldCupReminders({
     required Iterable<WorldCupFixture> fixtures,
     required Set<String> selectedCountries,
-    required String title,
     required String androidChannelName,
     required String androidChannelDescription,
     required String Function(
@@ -221,12 +224,15 @@ class LeagueFixtureReminderService {
       if (!scheduledAt.isAfter(tzNow)) continue;
       final id = _notificationIdForScope('world_cup_fixture', fixtureKey);
       final body = bodyBuilder(fixture, match.teamName, match.opponentName);
-      final payload =
-          'worldcup_fixture:${fixture.matchNumber}:${match.teamName}';
+      final payload = NotificationAppLink.worldCupFixture(
+        matchNumber: fixture.matchNumber,
+        teamName: match.teamName,
+        kickoffAt: fixture.kickoffLocal,
+      );
       try {
         await _scheduleZonedReminder(
           id: id,
-          title: title,
+          title: NotificationAppLink.notificationTitle,
           androidChannelName: androidChannelName,
           androidChannelDescription: androidChannelDescription,
           body: body,
@@ -241,7 +247,7 @@ class LeagueFixtureReminderService {
           'createdAt': DateTime.now().toIso8601String(),
           'scheduledAt': scheduledAt.toIso8601String(),
           'kickoffAt': fixture.kickoffLocal.toIso8601String(),
-          'title': title,
+          'title': NotificationAppLink.notificationTitle,
           'body': body,
           'leagueType': 'worldCup',
           'leagueName': 'FIFA World Cup 2026',

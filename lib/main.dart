@@ -21,6 +21,7 @@ import 'application/backup_service.dart';
 import 'application/drive_backup_service.dart';
 import 'application/meal_log_service.dart';
 import 'application/league_fixture_reminder_service.dart';
+import 'application/notification_app_link.dart';
 import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
@@ -180,6 +181,15 @@ class FootballNoteApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget entryGate() => _EntryGate(
+      trainingService: trainingService,
+      mealLogService: mealLogService,
+      optionRepository: optionRepository,
+      localeService: localeService,
+      settingsService: settingsService,
+      driveBackupService: driveBackupService,
+    );
+
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       builder: (context, child) => AnimatedBuilder(
@@ -198,6 +208,20 @@ class FootballNoteApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
+          onGenerateRoute: (settings) {
+            final routeName = settings.name?.trim();
+            if (routeName == null ||
+                NotificationAppLink.tryParse(routeName) == null) {
+              return null;
+            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              NotificationTapRouter.handlePayload(routeName);
+            });
+            return MaterialPageRoute<void>(
+              settings: settings,
+              builder: (_) => entryGate(),
+            );
+          },
           builder: (context, child) {
             final isDark = Theme.of(context).brightness == Brightness.dark;
             final overlayStyle =
@@ -220,14 +244,7 @@ class FootballNoteApp extends StatelessWidget {
               ),
             );
           },
-          home: _EntryGate(
-            trainingService: trainingService,
-            mealLogService: mealLogService,
-            optionRepository: optionRepository,
-            localeService: localeService,
-            settingsService: settingsService,
-            driveBackupService: driveBackupService,
-          ),
+          home: entryGate(),
         ),
       ),
     );

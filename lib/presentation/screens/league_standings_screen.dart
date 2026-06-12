@@ -303,7 +303,6 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     final formatter = DateFormat.MMMd(locale).add_Hm();
     final count = await reminderService.syncReminders(
       snapshots: _cache.values.map((snapshot) => snapshot.fixtures),
-      title: l10n.notificationAppTitle,
       androidChannelName: l10n.newsLeagueFixtureNotificationChannelName,
       androidChannelDescription:
           l10n.newsLeagueFixtureNotificationChannelDescription,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/league_fixture_reminder_service.dart';
+import '../../application/notification_app_link.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_plan_badge_service.dart';
 import '../../application/training_plan_reminder_service.dart';
@@ -379,7 +380,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                     child: ListTile(
                                       onTap: () =>
                                           NotificationTapRouter.handlePayload(
-                                            'xp:${item.totalXp}',
+                                            NotificationAppLink.xpHistory(
+                                              totalXp: item.totalXp,
+                                            ),
                                           ),
                                       leading: const Icon(Icons.stars_rounded),
                                       title: Row(
@@ -592,7 +595,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                       ),
                                       onTap: () =>
                                           NotificationTapRouter.handlePayload(
-                                            item.id,
+                                            NotificationAppLink.calendarPlan(
+                                              planId: item.id,
+                                              scheduledAt: item.scheduledAt,
+                                              atStartTime: false,
+                                            ),
                                           ),
                                       trailing: IconButton(
                                         tooltip: isKo ? '삭제' : 'Delete',
