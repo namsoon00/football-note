@@ -94,6 +94,59 @@ void main() {
     expect(find.text('검색 결과가 없습니다.'), findsOneWidget);
   });
 
+  testWidgets('Logs screen summarizes training without duplicated program', (
+    WidgetTester tester,
+  ) async {
+    await clearTrainingBox();
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 1, 3),
+        durationMinutes: 50,
+        intensity: 3,
+        type: '볼터치',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '학교 운동장',
+        program: '볼터치',
+        trainingProgramMinutes: const {'볼터치': 50},
+        liftingByPart: const {'inside': 40},
+        jumpRopeCount: 120,
+        jumpRopeEnabled: true,
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: LogsScreen(
+            trainingService: service,
+            localeService: localeService,
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+            onEdit: (_) {},
+            onCreate: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('볼터치 · 50분'), findsOneWidget);
+    expect(find.textContaining('볼터치 50분'), findsNothing);
+    expect(find.textContaining('리프팅 40회'), findsOneWidget);
+    expect(find.textContaining('줄넘기 120회'), findsOneWidget);
+  });
+
   testWidgets('Logs screen hides match entries from training log list', (
     WidgetTester tester,
   ) async {
@@ -507,10 +560,11 @@ class _MemoryTrainingRepository implements TrainingRepository {
     required bool includeMatches,
   }) {
     if (limit <= 0) return const <TrainingEntry>[];
-    final entries = _entries
-        .where((entry) => includeMatches || !entry.isMatch)
-        .toList(growable: false)
-      ..sort(TrainingEntry.compareByRecentCreated);
+    final entries =
+        _entries
+            .where((entry) => includeMatches || !entry.isMatch)
+            .toList(growable: false)
+          ..sort(TrainingEntry.compareByRecentCreated);
     if (entries.length <= limit) return entries;
     return entries.take(limit).toList(growable: false);
   }

@@ -186,6 +186,28 @@ void main() {
     expect(find.textContaining('Mexico'), findsNothing);
   });
 
+  testWidgets('fixture calendar localizes month and weekday labels', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          initialSelectedDay: worldCupFixtures.first.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('2026년 6월'), findsOneWidget);
+    expect(find.text('월'), findsWidgets);
+    expect(find.text('June 2026'), findsNothing);
+    expect(find.text('Mon'), findsNothing);
+  });
+
   testWidgets('past unscored fixtures wait for result update', (tester) async {
     final fixture = worldCupFixtures.first;
     await tester.pumpWidget(

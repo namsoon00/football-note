@@ -29,6 +29,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
+import '../utils/training_entry_summary.dart';
 import '../theme/app_motion.dart';
 import 'settings_screen.dart';
 import 'profile_screen.dart';
@@ -1234,8 +1235,8 @@ class _EntryCard extends StatelessWidget {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final dateText = DateFormat.yMMMd(locale).add_E().format(entry.date);
     final l10n = AppLocalizations.of(context)!;
-    final titleProgram = _entryTitleLabel(entry, l10n);
-    final durationText = _entryProgramDurationLabel(entry, l10n);
+    final titleProgram = trainingEntryPrimaryLabel(entry, l10n);
+    final durationText = trainingEntryDurationLabel(entry, l10n);
     final secondaryText = _entrySecondaryText(entry, isKo: isKo);
     final titleText = [
       titleProgram,
@@ -1353,7 +1354,7 @@ class _EntryListItem extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     final dateText = DateFormat.yMMMd(locale).add_E().format(entry.date);
     final l10n = AppLocalizations.of(context)!;
-    final durationText = _entryProgramDurationLabel(entry, l10n);
+    final durationText = trainingEntryDurationLabel(entry, l10n);
     final focusText = _buildListFocusText(
       entry,
       l10n,
@@ -1362,7 +1363,7 @@ class _EntryListItem extends StatelessWidget {
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final titleText = [
-      _entryTitleLabel(entry, l10n),
+      trainingEntryPrimaryLabel(entry, l10n),
       durationText,
       _entrySecondaryText(entry, isKo: isKo),
     ].where((part) => part.trim().isNotEmpty).join(' · ');
@@ -1584,7 +1585,10 @@ class _ThumbPitchPainter extends CustomPainter {
 }
 
 String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
-  return _trainingStatusLabel(l10n, entry.status);
+  return [
+    _trainingStatusLabel(l10n, entry.status),
+    ...trainingEntryConditioningParts(entry, l10n),
+  ].join(' · ');
 }
 
 String _trainingStatusLabel(AppLocalizations l10n, String status) {
@@ -1595,28 +1599,6 @@ String _trainingStatusLabel(AppLocalizations l10n, String status) {
     'recovery' => l10n.statusRecovery,
     _ => l10n.statusNormal,
   };
-}
-
-String _entryTitleLabel(TrainingEntry entry, AppLocalizations l10n) {
-  final label = entry.type.trim();
-  if (label.isNotEmpty) return label;
-  final programs = entry.effectiveTrainingProgramMinutes.keys
-      .where((program) => program.trim().isNotEmpty)
-      .join(', ');
-  if (programs.isNotEmpty) return programs;
-  return entry.program.trim().isNotEmpty ? entry.program.trim() : l10n.program;
-}
-
-String _entryProgramDurationLabel(TrainingEntry entry, AppLocalizations l10n) {
-  final programs = entry.effectiveTrainingProgramMinutes;
-  if (programs.isEmpty) {
-    return entry.durationMinutes > 0
-        ? l10n.minutes(entry.durationMinutes)
-        : l10n.durationNotSet;
-  }
-  return programs.entries
-      .map((program) => '${program.key} ${l10n.minutes(program.value)}')
-      .join(' · ');
 }
 
 String _entrySecondaryText(TrainingEntry entry, {required bool isKo}) {
