@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/world_cup_schedule.dart';
+import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/world_cup_screen.dart';
 import 'package:football_note/presentation/theme/app_theme.dart';
@@ -140,18 +142,75 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
-      find.textContaining('Mexico'),
+      find.textContaining('멕시코'),
       180,
       scrollable: scrollable,
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('Mexico').hitTestable().first);
+    await tester.tap(find.textContaining('멕시코').hitTestable().first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Mexico 선수 명단'), findsOneWidget);
+    expect(find.text('멕시코 선수 명단'), findsOneWidget);
     expect(find.text('4-3-3 포메이션'), findsOneWidget);
     expect(find.text('Raul Rangel'), findsOneWidget);
     expect(find.text('Cesar Huerta'), findsOneWidget);
+  });
+
+  testWidgets('fixture calendar localizes teams and venue labels', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          initialSelectedDay: worldCupFixtures.first.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('에스타디오 아스테카, 멕시코시티'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('멕시코'), findsWidgets);
+    expect(find.textContaining('남아프리카공화국'), findsWidgets);
+    expect(find.text('에스타디오 아스테카, 멕시코시티'), findsOneWidget);
+    expect(find.textContaining('Mexico'), findsNothing);
+  });
+
+  testWidgets('past unscored fixtures wait for result update', (tester) async {
+    final fixture = worldCupFixtures.first;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          initialSelectedDay: fixture.localDay,
+          currentTime: fixture.kickoffUtc.add(const Duration(hours: 3)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('에스타디오 아스테카, 멕시코시티'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('결과 갱신 대기'), findsWidgets);
   });
 
   testWidgets('interest country editor opens without layout exception', (
@@ -175,6 +234,52 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(DraggableScrollableSheet), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('world-cup-country-editor-top-actions')),
+      findsOneWidget,
+    );
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('world-cup-country-editor-bottom-actions')),
+      320,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('world-cup-country-editor-bottom-actions')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('interest country editor saves on country tap', (tester) async {
+    final optionRepository = _MemoryOptionRepository();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(optionRepository: optionRepository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('국가 편집'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('국가 편집'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.textContaining('알제리').first);
+    await tester.pumpAndSettle();
+
+    expect(
+      optionRepository.getOptions(
+        'world_cup_interest_countries_v1',
+        const <String>[],
+      ),
+      contains('Algeria'),
+    );
   });
 
   testWidgets('interest country editor dismisses when dragged down', (
@@ -207,4 +312,42 @@ void main() {
 
     expect(find.byType(CheckboxListTile), findsNothing);
   });
+}
+
+class _MemoryOptionRepository implements OptionRepository {
+  final Map<String, dynamic> _values = <String, dynamic>{};
+
+  @override
+  List<String> getOptions(String key, List<String> defaults) {
+    final value = _values[key];
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+    return defaults;
+  }
+
+  @override
+  List<int> getIntOptions(String key, List<int> defaults) {
+    final value = _values[key];
+    if (value is List) {
+      return value.whereType<int>().toList();
+    }
+    return defaults;
+  }
+
+  @override
+  T? getValue<T>(String key) {
+    final value = _values[key];
+    return value is T ? value : null;
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    _values[key] = value;
+  }
+
+  @override
+  Future<void> saveOptions(String key, List<dynamic> options) async {
+    _values[key] = List<dynamic>.from(options);
+  }
 }

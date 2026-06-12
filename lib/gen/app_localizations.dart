@@ -1368,6 +1368,12 @@ abstract class AppLocalizations {
   /// **'Live'**
   String get worldCupMatchLive;
 
+  /// No description provided for @worldCupMatchAwaitingUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting result update'**
+  String get worldCupMatchAwaitingUpdate;
+
   /// No description provided for @worldCupMatchResultFinal.
   ///
   /// In en, this message translates to:
@@ -1517,6 +1523,390 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Final'**
   String get worldCupFinalLabel;
+
+  /// No description provided for @worldCupCountryAlgeria.
+  ///
+  /// In en, this message translates to:
+  /// **'Algeria'**
+  String get worldCupCountryAlgeria;
+
+  /// No description provided for @worldCupCountryArgentina.
+  ///
+  /// In en, this message translates to:
+  /// **'Argentina'**
+  String get worldCupCountryArgentina;
+
+  /// No description provided for @worldCupCountryAustralia.
+  ///
+  /// In en, this message translates to:
+  /// **'Australia'**
+  String get worldCupCountryAustralia;
+
+  /// No description provided for @worldCupCountryAustria.
+  ///
+  /// In en, this message translates to:
+  /// **'Austria'**
+  String get worldCupCountryAustria;
+
+  /// No description provided for @worldCupCountryBelgium.
+  ///
+  /// In en, this message translates to:
+  /// **'Belgium'**
+  String get worldCupCountryBelgium;
+
+  /// No description provided for @worldCupCountryBosniaAndHerzegovina.
+  ///
+  /// In en, this message translates to:
+  /// **'Bosnia and Herzegovina'**
+  String get worldCupCountryBosniaAndHerzegovina;
+
+  /// No description provided for @worldCupCountryBrazil.
+  ///
+  /// In en, this message translates to:
+  /// **'Brazil'**
+  String get worldCupCountryBrazil;
+
+  /// No description provided for @worldCupCountryCanada.
+  ///
+  /// In en, this message translates to:
+  /// **'Canada'**
+  String get worldCupCountryCanada;
+
+  /// No description provided for @worldCupCountryCapeVerde.
+  ///
+  /// In en, this message translates to:
+  /// **'Cape Verde'**
+  String get worldCupCountryCapeVerde;
+
+  /// No description provided for @worldCupCountryColombia.
+  ///
+  /// In en, this message translates to:
+  /// **'Colombia'**
+  String get worldCupCountryColombia;
+
+  /// No description provided for @worldCupCountryCongoDr.
+  ///
+  /// In en, this message translates to:
+  /// **'Congo DR'**
+  String get worldCupCountryCongoDr;
+
+  /// No description provided for @worldCupCountryCroatia.
+  ///
+  /// In en, this message translates to:
+  /// **'Croatia'**
+  String get worldCupCountryCroatia;
+
+  /// No description provided for @worldCupCountryCuracao.
+  ///
+  /// In en, this message translates to:
+  /// **'Curacao'**
+  String get worldCupCountryCuracao;
+
+  /// No description provided for @worldCupCountryCzechia.
+  ///
+  /// In en, this message translates to:
+  /// **'Czechia'**
+  String get worldCupCountryCzechia;
+
+  /// No description provided for @worldCupCountryEcuador.
+  ///
+  /// In en, this message translates to:
+  /// **'Ecuador'**
+  String get worldCupCountryEcuador;
+
+  /// No description provided for @worldCupCountryEgypt.
+  ///
+  /// In en, this message translates to:
+  /// **'Egypt'**
+  String get worldCupCountryEgypt;
+
+  /// No description provided for @worldCupCountryEngland.
+  ///
+  /// In en, this message translates to:
+  /// **'England'**
+  String get worldCupCountryEngland;
+
+  /// No description provided for @worldCupCountryFrance.
+  ///
+  /// In en, this message translates to:
+  /// **'France'**
+  String get worldCupCountryFrance;
+
+  /// No description provided for @worldCupCountryGermany.
+  ///
+  /// In en, this message translates to:
+  /// **'Germany'**
+  String get worldCupCountryGermany;
+
+  /// No description provided for @worldCupCountryGhana.
+  ///
+  /// In en, this message translates to:
+  /// **'Ghana'**
+  String get worldCupCountryGhana;
+
+  /// No description provided for @worldCupCountryHaiti.
+  ///
+  /// In en, this message translates to:
+  /// **'Haiti'**
+  String get worldCupCountryHaiti;
+
+  /// No description provided for @worldCupCountryIran.
+  ///
+  /// In en, this message translates to:
+  /// **'Iran'**
+  String get worldCupCountryIran;
+
+  /// No description provided for @worldCupCountryIraq.
+  ///
+  /// In en, this message translates to:
+  /// **'Iraq'**
+  String get worldCupCountryIraq;
+
+  /// No description provided for @worldCupCountryIvoryCoast.
+  ///
+  /// In en, this message translates to:
+  /// **'Ivory Coast'**
+  String get worldCupCountryIvoryCoast;
+
+  /// No description provided for @worldCupCountryJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Japan'**
+  String get worldCupCountryJapan;
+
+  /// No description provided for @worldCupCountryJordan.
+  ///
+  /// In en, this message translates to:
+  /// **'Jordan'**
+  String get worldCupCountryJordan;
+
+  /// No description provided for @worldCupCountryKoreaRepublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Korea Republic'**
+  String get worldCupCountryKoreaRepublic;
+
+  /// No description provided for @worldCupCountryMexico.
+  ///
+  /// In en, this message translates to:
+  /// **'Mexico'**
+  String get worldCupCountryMexico;
+
+  /// No description provided for @worldCupCountryMorocco.
+  ///
+  /// In en, this message translates to:
+  /// **'Morocco'**
+  String get worldCupCountryMorocco;
+
+  /// No description provided for @worldCupCountryNetherlands.
+  ///
+  /// In en, this message translates to:
+  /// **'Netherlands'**
+  String get worldCupCountryNetherlands;
+
+  /// No description provided for @worldCupCountryNewZealand.
+  ///
+  /// In en, this message translates to:
+  /// **'New Zealand'**
+  String get worldCupCountryNewZealand;
+
+  /// No description provided for @worldCupCountryNorway.
+  ///
+  /// In en, this message translates to:
+  /// **'Norway'**
+  String get worldCupCountryNorway;
+
+  /// No description provided for @worldCupCountryPanama.
+  ///
+  /// In en, this message translates to:
+  /// **'Panama'**
+  String get worldCupCountryPanama;
+
+  /// No description provided for @worldCupCountryParaguay.
+  ///
+  /// In en, this message translates to:
+  /// **'Paraguay'**
+  String get worldCupCountryParaguay;
+
+  /// No description provided for @worldCupCountryPortugal.
+  ///
+  /// In en, this message translates to:
+  /// **'Portugal'**
+  String get worldCupCountryPortugal;
+
+  /// No description provided for @worldCupCountryQatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Qatar'**
+  String get worldCupCountryQatar;
+
+  /// No description provided for @worldCupCountrySaudiArabia.
+  ///
+  /// In en, this message translates to:
+  /// **'Saudi Arabia'**
+  String get worldCupCountrySaudiArabia;
+
+  /// No description provided for @worldCupCountryScotland.
+  ///
+  /// In en, this message translates to:
+  /// **'Scotland'**
+  String get worldCupCountryScotland;
+
+  /// No description provided for @worldCupCountrySenegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Senegal'**
+  String get worldCupCountrySenegal;
+
+  /// No description provided for @worldCupCountrySouthAfrica.
+  ///
+  /// In en, this message translates to:
+  /// **'South Africa'**
+  String get worldCupCountrySouthAfrica;
+
+  /// No description provided for @worldCupCountrySpain.
+  ///
+  /// In en, this message translates to:
+  /// **'Spain'**
+  String get worldCupCountrySpain;
+
+  /// No description provided for @worldCupCountrySweden.
+  ///
+  /// In en, this message translates to:
+  /// **'Sweden'**
+  String get worldCupCountrySweden;
+
+  /// No description provided for @worldCupCountrySwitzerland.
+  ///
+  /// In en, this message translates to:
+  /// **'Switzerland'**
+  String get worldCupCountrySwitzerland;
+
+  /// No description provided for @worldCupCountryTunisia.
+  ///
+  /// In en, this message translates to:
+  /// **'Tunisia'**
+  String get worldCupCountryTunisia;
+
+  /// No description provided for @worldCupCountryTurkiye.
+  ///
+  /// In en, this message translates to:
+  /// **'Turkiye'**
+  String get worldCupCountryTurkiye;
+
+  /// No description provided for @worldCupCountryUsa.
+  ///
+  /// In en, this message translates to:
+  /// **'USA'**
+  String get worldCupCountryUsa;
+
+  /// No description provided for @worldCupCountryUruguay.
+  ///
+  /// In en, this message translates to:
+  /// **'Uruguay'**
+  String get worldCupCountryUruguay;
+
+  /// No description provided for @worldCupCountryUzbekistan.
+  ///
+  /// In en, this message translates to:
+  /// **'Uzbekistan'**
+  String get worldCupCountryUzbekistan;
+
+  /// No description provided for @worldCupVenueAttDallas.
+  ///
+  /// In en, this message translates to:
+  /// **'AT&T Stadium, Dallas'**
+  String get worldCupVenueAttDallas;
+
+  /// No description provided for @worldCupVenueBcPlaceVancouver.
+  ///
+  /// In en, this message translates to:
+  /// **'BC Place, Vancouver'**
+  String get worldCupVenueBcPlaceVancouver;
+
+  /// No description provided for @worldCupVenueBmoFieldToronto.
+  ///
+  /// In en, this message translates to:
+  /// **'BMO Field, Toronto'**
+  String get worldCupVenueBmoFieldToronto;
+
+  /// No description provided for @worldCupVenueEstadioAkronGuadalajara.
+  ///
+  /// In en, this message translates to:
+  /// **'Estadio Akron, Guadalajara'**
+  String get worldCupVenueEstadioAkronGuadalajara;
+
+  /// No description provided for @worldCupVenueEstadioAztecaMexicoCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Estadio Azteca, Mexico City'**
+  String get worldCupVenueEstadioAztecaMexicoCity;
+
+  /// No description provided for @worldCupVenueEstadioBbvaMonterrey.
+  ///
+  /// In en, this message translates to:
+  /// **'Estadio BBVA, Monterrey'**
+  String get worldCupVenueEstadioBbvaMonterrey;
+
+  /// No description provided for @worldCupVenueGehaArrowheadKansasCity.
+  ///
+  /// In en, this message translates to:
+  /// **'GEHA Field at Arrowhead Stadium, Kansas City'**
+  String get worldCupVenueGehaArrowheadKansasCity;
+
+  /// No description provided for @worldCupVenueGilletteBoston.
+  ///
+  /// In en, this message translates to:
+  /// **'Gillette Stadium, Boston'**
+  String get worldCupVenueGilletteBoston;
+
+  /// No description provided for @worldCupVenueHardRockMiami.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard Rock Stadium, Miami'**
+  String get worldCupVenueHardRockMiami;
+
+  /// No description provided for @worldCupVenueLevisSanFranciscoBayArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Levi\'s Stadium, San Francisco Bay Area'**
+  String get worldCupVenueLevisSanFranciscoBayArea;
+
+  /// No description provided for @worldCupVenueLincolnFinancialPhiladelphia.
+  ///
+  /// In en, this message translates to:
+  /// **'Lincoln Financial Field, Philadelphia'**
+  String get worldCupVenueLincolnFinancialPhiladelphia;
+
+  /// No description provided for @worldCupVenueLumenSeattle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lumen Field, Seattle'**
+  String get worldCupVenueLumenSeattle;
+
+  /// No description provided for @worldCupVenueMercedesBenzAtlanta.
+  ///
+  /// In en, this message translates to:
+  /// **'Mercedes-Benz Stadium, Atlanta'**
+  String get worldCupVenueMercedesBenzAtlanta;
+
+  /// No description provided for @worldCupVenueMetLifeNewYorkNewJersey.
+  ///
+  /// In en, this message translates to:
+  /// **'MetLife Stadium, New York/New Jersey'**
+  String get worldCupVenueMetLifeNewYorkNewJersey;
+
+  /// No description provided for @worldCupVenueNrgHouston.
+  ///
+  /// In en, this message translates to:
+  /// **'NRG Stadium, Houston'**
+  String get worldCupVenueNrgHouston;
+
+  /// No description provided for @worldCupVenueSofiLosAngeles.
+  ///
+  /// In en, this message translates to:
+  /// **'SoFi Stadium, Los Angeles'**
+  String get worldCupVenueSofiLosAngeles;
 
   /// No description provided for @worldCupKickoffLocal.
   ///

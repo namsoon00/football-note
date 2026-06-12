@@ -727,6 +727,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupMatchLive => 'Live';
 
   @override
+  String get worldCupMatchAwaitingUpdate => 'Awaiting result update';
+
+  @override
   String get worldCupMatchResultFinal => 'Result';
 
   @override
@@ -808,6 +811,205 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupFinalLabel => 'Final';
+
+  @override
+  String get worldCupCountryAlgeria => 'Algeria';
+
+  @override
+  String get worldCupCountryArgentina => 'Argentina';
+
+  @override
+  String get worldCupCountryAustralia => 'Australia';
+
+  @override
+  String get worldCupCountryAustria => 'Austria';
+
+  @override
+  String get worldCupCountryBelgium => 'Belgium';
+
+  @override
+  String get worldCupCountryBosniaAndHerzegovina => 'Bosnia and Herzegovina';
+
+  @override
+  String get worldCupCountryBrazil => 'Brazil';
+
+  @override
+  String get worldCupCountryCanada => 'Canada';
+
+  @override
+  String get worldCupCountryCapeVerde => 'Cape Verde';
+
+  @override
+  String get worldCupCountryColombia => 'Colombia';
+
+  @override
+  String get worldCupCountryCongoDr => 'Congo DR';
+
+  @override
+  String get worldCupCountryCroatia => 'Croatia';
+
+  @override
+  String get worldCupCountryCuracao => 'Curacao';
+
+  @override
+  String get worldCupCountryCzechia => 'Czechia';
+
+  @override
+  String get worldCupCountryEcuador => 'Ecuador';
+
+  @override
+  String get worldCupCountryEgypt => 'Egypt';
+
+  @override
+  String get worldCupCountryEngland => 'England';
+
+  @override
+  String get worldCupCountryFrance => 'France';
+
+  @override
+  String get worldCupCountryGermany => 'Germany';
+
+  @override
+  String get worldCupCountryGhana => 'Ghana';
+
+  @override
+  String get worldCupCountryHaiti => 'Haiti';
+
+  @override
+  String get worldCupCountryIran => 'Iran';
+
+  @override
+  String get worldCupCountryIraq => 'Iraq';
+
+  @override
+  String get worldCupCountryIvoryCoast => 'Ivory Coast';
+
+  @override
+  String get worldCupCountryJapan => 'Japan';
+
+  @override
+  String get worldCupCountryJordan => 'Jordan';
+
+  @override
+  String get worldCupCountryKoreaRepublic => 'Korea Republic';
+
+  @override
+  String get worldCupCountryMexico => 'Mexico';
+
+  @override
+  String get worldCupCountryMorocco => 'Morocco';
+
+  @override
+  String get worldCupCountryNetherlands => 'Netherlands';
+
+  @override
+  String get worldCupCountryNewZealand => 'New Zealand';
+
+  @override
+  String get worldCupCountryNorway => 'Norway';
+
+  @override
+  String get worldCupCountryPanama => 'Panama';
+
+  @override
+  String get worldCupCountryParaguay => 'Paraguay';
+
+  @override
+  String get worldCupCountryPortugal => 'Portugal';
+
+  @override
+  String get worldCupCountryQatar => 'Qatar';
+
+  @override
+  String get worldCupCountrySaudiArabia => 'Saudi Arabia';
+
+  @override
+  String get worldCupCountryScotland => 'Scotland';
+
+  @override
+  String get worldCupCountrySenegal => 'Senegal';
+
+  @override
+  String get worldCupCountrySouthAfrica => 'South Africa';
+
+  @override
+  String get worldCupCountrySpain => 'Spain';
+
+  @override
+  String get worldCupCountrySweden => 'Sweden';
+
+  @override
+  String get worldCupCountrySwitzerland => 'Switzerland';
+
+  @override
+  String get worldCupCountryTunisia => 'Tunisia';
+
+  @override
+  String get worldCupCountryTurkiye => 'Turkiye';
+
+  @override
+  String get worldCupCountryUsa => 'USA';
+
+  @override
+  String get worldCupCountryUruguay => 'Uruguay';
+
+  @override
+  String get worldCupCountryUzbekistan => 'Uzbekistan';
+
+  @override
+  String get worldCupVenueAttDallas => 'AT&T Stadium, Dallas';
+
+  @override
+  String get worldCupVenueBcPlaceVancouver => 'BC Place, Vancouver';
+
+  @override
+  String get worldCupVenueBmoFieldToronto => 'BMO Field, Toronto';
+
+  @override
+  String get worldCupVenueEstadioAkronGuadalajara =>
+      'Estadio Akron, Guadalajara';
+
+  @override
+  String get worldCupVenueEstadioAztecaMexicoCity =>
+      'Estadio Azteca, Mexico City';
+
+  @override
+  String get worldCupVenueEstadioBbvaMonterrey => 'Estadio BBVA, Monterrey';
+
+  @override
+  String get worldCupVenueGehaArrowheadKansasCity =>
+      'GEHA Field at Arrowhead Stadium, Kansas City';
+
+  @override
+  String get worldCupVenueGilletteBoston => 'Gillette Stadium, Boston';
+
+  @override
+  String get worldCupVenueHardRockMiami => 'Hard Rock Stadium, Miami';
+
+  @override
+  String get worldCupVenueLevisSanFranciscoBayArea =>
+      'Levi\'s Stadium, San Francisco Bay Area';
+
+  @override
+  String get worldCupVenueLincolnFinancialPhiladelphia =>
+      'Lincoln Financial Field, Philadelphia';
+
+  @override
+  String get worldCupVenueLumenSeattle => 'Lumen Field, Seattle';
+
+  @override
+  String get worldCupVenueMercedesBenzAtlanta =>
+      'Mercedes-Benz Stadium, Atlanta';
+
+  @override
+  String get worldCupVenueMetLifeNewYorkNewJersey =>
+      'MetLife Stadium, New York/New Jersey';
+
+  @override
+  String get worldCupVenueNrgHouston => 'NRG Stadium, Houston';
+
+  @override
+  String get worldCupVenueSofiLosAngeles => 'SoFi Stadium, Los Angeles';
 
   @override
   String worldCupKickoffLocal(String time) {
