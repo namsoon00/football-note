@@ -1149,6 +1149,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Widget _buildDailyGoalSelector(AppLocalizations l10n) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1177,97 +1178,62 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        _buildProgramLikeSelectionButton(
-          icon: Icons.checklist_rtl_rounded,
-          label: _selectedDailyGoalsSummary(l10n),
-          tooltip: l10n.entryTodayGoalsSelectTooltip,
-          onTap: _dailyGoalOptions.isEmpty
-              ? null
-              : () => _openDailyGoalPicker(l10n),
-        ),
+        if (_dailyGoalOptions.isEmpty)
+          Text(
+            l10n.entryTodayGoalsNone,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final option in _dailyGoalOptions)
+                FilterChip(
+                  selected: _selectedDailyGoals.contains(option),
+                  showCheckmark: false,
+                  avatar: Icon(
+                    _selectedDailyGoals.contains(option)
+                        ? Icons.flag_rounded
+                        : Icons.outlined_flag_rounded,
+                    size: 18,
+                  ),
+                  label: Text(option),
+                  labelStyle: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: _selectedDailyGoals.contains(option)
+                        ? FontWeight.w900
+                        : FontWeight.w700,
+                  ),
+                  selectedColor: theme.colorScheme.primaryContainer.withValues(
+                    alpha: 0.62,
+                  ),
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.62),
+                  side: BorderSide(
+                    color: _selectedDailyGoals.contains(option)
+                        ? theme.colorScheme.primary.withValues(alpha: 0.46)
+                        : theme.colorScheme.outlineVariant.withValues(
+                            alpha: 0.62,
+                          ),
+                  ),
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedDailyGoals.add(option);
+                      } else {
+                        _selectedDailyGoals.remove(option);
+                      }
+                    });
+                    _scheduleAutoSave();
+                  },
+                ),
+            ],
+          ),
       ],
     );
-  }
-
-  String _selectedDailyGoalsSummary(AppLocalizations l10n) {
-    if (_selectedDailyGoals.isEmpty) {
-      return l10n.entryTodayGoalsNone;
-    }
-    final selected = _dailyGoalOptions
-        .where(_selectedDailyGoals.contains)
-        .toList(growable: false);
-    if (selected.isEmpty) {
-      return l10n.entryTodayGoalsSelectedCount(_selectedDailyGoals.length);
-    }
-    return selected.join(', ');
-  }
-
-  Future<void> _openDailyGoalPicker(AppLocalizations l10n) async {
-    final working = Set<String>.from(_selectedDailyGoals);
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, sheetSetState) {
-            return SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.entryTodayGoalsSelectTitle,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: Text(l10n.entryTodayGoalsDone),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Flexible(
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: [
-                        for (final option in _dailyGoalOptions)
-                          CheckboxListTile(
-                            value: working.contains(option),
-                            title: Text(option),
-                            controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (checked) {
-                              sheetSetState(() {
-                                if (checked ?? false) {
-                                  working.add(option);
-                                } else {
-                                  working.remove(option);
-                                }
-                              });
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-    if (saved != true || !mounted) return;
-    setState(() {
-      _selectedDailyGoals
-        ..clear()
-        ..addAll(working);
-    });
-    _scheduleAutoSave();
   }
 
   // ignore: unused_element
@@ -2246,68 +2212,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           Wrap(spacing: 4, runSpacing: 4, children: actions),
         ],
       ],
-    );
-  }
-
-  Widget _buildProgramLikeSelectionButton({
-    required IconData icon,
-    required String label,
-    required String tooltip,
-    required VoidCallback? onTap,
-  }) {
-    final theme = Theme.of(context);
-    final enabled = onTap != null;
-    final foreground = enabled
-        ? theme.colorScheme.onSurface
-        : theme.colorScheme.onSurfaceVariant;
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Ink(
-            height: 44,
-            padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: theme.colorScheme.outline.withValues(alpha: 0.38),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 17,
-                  color: enabled
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: foreground,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.expand_more_rounded,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 

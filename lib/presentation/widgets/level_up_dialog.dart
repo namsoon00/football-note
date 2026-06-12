@@ -8,6 +8,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../application/player_level_service.dart';
 import '../localization/player_progression_localizations.dart';
 import 'player_level_visuals.dart';
+import 'rinzy_mascot.dart';
 
 Future<void> showXpGemRewardDialog(
   BuildContext context, {
@@ -513,12 +514,10 @@ class _TrainingXpDialogSpec {
     PlayerLevelAward award,
   ) {
     final reasons = award.reasons.toSet();
-    final hasJumpRopeGain =
-        reasons.contains('jump_rope_added') ||
+    final hasJumpRopeGain = reasons.contains('jump_rope_added') ||
         (!reasons.contains('jump_rope_missed') &&
             reasons.any((reason) => reason.contains('jump_rope')));
-    final hasLiftingGain =
-        reasons.contains('lifting_added') ||
+    final hasLiftingGain = reasons.contains('lifting_added') ||
         (!reasons.contains('lifting_missed') &&
             reasons.any((reason) => reason.contains('lifting')));
     if (hasJumpRopeGain) {
@@ -564,213 +563,212 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    return _ChallengeStyleCelebrationFullScreen(
+      accentColor: spec.color,
+      title: spec.title,
+      message: spec.message,
+      actionIcon: Icons.check_circle_outline_rounded,
+      actionLabel: l10n.trainingXpDialogAction,
+      details: Column(
+        children: [
+          _XpHeroAmount(
+            color: spec.color,
+            label: l10n.trainingXpDialogRewardLabel,
+            value: l10n.trainingXpDialogXp(award.gainedXp),
+          ),
+          const SizedBox(height: 14),
+          _LevelProgressStrip(
+            progress: award.after.progress,
+            foreground: spec.color,
+            background: spec.color.withValues(alpha: 0.16),
+          ),
+          const SizedBox(height: 10),
+          _CelebrationDetailText(text: progressText),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _RewardStatCard(
+                  label: l10n.trainingXpDialogTotalLabel,
+                  value: l10n.trainingXpDialogTotalValue(award.after.totalXp),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _RewardStatCard(
+                  label: l10n.trainingXpDialogLevelLabel,
+                  value: l10n.trainingXpDialogLevelValue(
+                    award.after.level,
+                    l10n.playerLevelName(award.after.level),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChallengeStyleCelebrationFullScreen extends StatelessWidget {
+  final Color accentColor;
+  final String title;
+  final String message;
+  final IconData actionIcon;
+  final String actionLabel;
+  final Widget? details;
+
+  const _ChallengeStyleCelebrationFullScreen({
+    required this.accentColor,
+    required this.title,
+    required this.message,
+    required this.actionIcon,
+    required this.actionLabel,
+    this.details,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final gradientStart = Color.alphaBlend(
-      spec.color.withValues(alpha: 0.18),
-      scheme.surface,
-    );
-    final gradientEnd = Color.alphaBlend(
-      scheme.tertiary.withValues(alpha: 0.16),
-      scheme.surfaceContainerHighest,
-    );
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [gradientStart, gradientEnd],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              scheme.primaryContainer.withValues(alpha: 0.58),
+              scheme.surface,
+              scheme.secondaryContainer.withValues(alpha: 0.42),
+            ],
           ),
-          border: Border.all(color: spec.color.withValues(alpha: 0.22)),
+          border: Border.all(color: accentColor.withValues(alpha: 0.18)),
         ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final compactHeight = constraints.maxHeight < 660;
-            final narrow = constraints.maxWidth < 390;
-            final heroSize = math.min(
-              constraints.maxWidth * (narrow ? 0.72 : 0.60),
-              compactHeight ? 188.0 : 250.0,
-            );
-            return Stack(
-              children: [
-                Positioned.fill(child: _OrbitGemBackdrop(color: spec.color)),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    compactHeight ? 18 : 28,
-                    20,
-                    18,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Align(
-                        alignment: AlignmentDirectional.centerEnd,
-                        child: IconButton.filledTonal(
-                          tooltip: MaterialLocalizations.of(
-                            context,
-                          ).closeButtonLabel,
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close_rounded),
-                        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final compactHeight = constraints.maxHeight < 660;
+              final mascotSize = MediaQuery.sizeOf(
+                context,
+              ).shortestSide.clamp(150, compactHeight ? 188 : 220).toDouble();
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: IconButton.filledTonal(
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).closeButtonLabel,
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded),
                       ),
-                      Expanded(
-                        child: Center(
-                          child: SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 560),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  _OrbitGemCelebration(
-                                    color: spec.color,
-                                    size: heroSize,
-                                  ),
-                                  SizedBox(height: compactHeight ? 14 : 20),
-                                  Container(
-                                    width: double.infinity,
-                                    padding: EdgeInsets.all(
-                                      compactHeight ? 16 : 20,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: scheme.surface.withValues(
-                                        alpha:
-                                            theme.brightness == Brightness.dark
-                                            ? 0.82
-                                            : 0.90,
-                                      ),
-                                      borderRadius: BorderRadius.circular(26),
-                                      border: Border.all(
-                                        color: spec.color.withValues(
-                                          alpha: 0.20,
-                                        ),
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: spec.color.withValues(
-                                            alpha: 0.12,
-                                          ),
-                                          blurRadius: 28,
-                                          offset: const Offset(0, 14),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Text(
-                                          spec.title,
-                                          textAlign: TextAlign.center,
-                                          style:
-                                              (compactHeight
-                                                      ? theme
-                                                            .textTheme
-                                                            .headlineSmall
-                                                      : theme
-                                                            .textTheme
-                                                            .headlineMedium)
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w900,
-                                                    color: scheme.onSurface,
-                                                    height: 1.08,
-                                                  ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          spec.message,
-                                          textAlign: TextAlign.center,
-                                          style: theme.textTheme.titleMedium
-                                              ?.copyWith(
-                                                color: scheme.onSurfaceVariant,
-                                                fontWeight: FontWeight.w700,
-                                                height: 1.35,
-                                              ),
-                                        ),
-                                        SizedBox(
-                                          height: compactHeight ? 14 : 18,
-                                        ),
-                                        _XpHeroAmount(
-                                          color: spec.color,
-                                          label:
-                                              l10n.trainingXpDialogRewardLabel,
-                                          value: l10n.trainingXpDialogXp(
-                                            award.gainedXp,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 14),
-                                        _LevelProgressStrip(
-                                          progress: award.after.progress,
-                                          foreground: spec.color,
-                                          background: spec.color.withValues(
-                                            alpha: 0.16,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Text(
-                                          progressText,
-                                          textAlign: TextAlign.center,
-                                          style: theme.textTheme.labelLarge
-                                              ?.copyWith(
-                                                color: scheme.onSurfaceVariant,
-                                                fontWeight: FontWeight.w800,
-                                              ),
-                                        ),
-                                        const SizedBox(height: 14),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: _RewardStatCard(
-                                                label: l10n
-                                                    .trainingXpDialogTotalLabel,
-                                                value: l10n
-                                                    .trainingXpDialogTotalValue(
-                                                      award.after.totalXp,
-                                                    ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Expanded(
-                                              child: _RewardStatCard(
-                                                label: l10n
-                                                    .trainingXpDialogLevelLabel,
-                                                value: l10n
-                                                    .trainingXpDialogLevelValue(
-                                                      award.after.level,
-                                                      l10n.playerLevelName(
-                                                        award.after.level,
-                                                      ),
-                                                    ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: SingleChildScrollView(
+                          child: Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.fromLTRB(
+                              18,
+                              compactHeight ? 18 : 20,
+                              18,
+                              18,
+                            ),
+                            decoration: BoxDecoration(
+                              color: scheme.surface.withValues(
+                                alpha: theme.brightness == Brightness.dark
+                                    ? 0.84
+                                    : 0.90,
                               ),
+                              borderRadius: BorderRadius.circular(26),
+                              border: Border.all(
+                                color: scheme.outlineVariant.withValues(
+                                  alpha: 0.56,
+                                ),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: accentColor.withValues(alpha: 0.12),
+                                  blurRadius: 28,
+                                  offset: const Offset(0, 16),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CheerRinzyMascot(size: mascotSize, progress: 1),
+                                SizedBox(height: compactHeight ? 14 : 18),
+                                Text(
+                                  title,
+                                  textAlign: TextAlign.center,
+                                  style:
+                                      theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.1,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  message,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.35,
+                                  ),
+                                ),
+                                if (details != null) ...[
+                                  SizedBox(height: compactHeight ? 16 : 18),
+                                  details!,
+                                ],
+                              ],
                             ),
                           ),
                         ),
                       ),
-                      FilledButton.icon(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.check_circle_outline_rounded),
-                        label: Text(l10n.trainingXpDialogAction),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                          backgroundColor: spec.color,
-                          foregroundColor: Colors.white,
-                        ),
+                    ),
+                    FilledButton.icon(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(actionIcon),
+                      label: Text(actionLabel),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                        backgroundColor: accentColor,
+                        foregroundColor: Colors.white,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            );
-          },
+              );
+            },
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _CelebrationDetailText extends StatelessWidget {
+  final String text;
+
+  const _CelebrationDetailText({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      style: theme.textTheme.labelLarge?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+        fontWeight: FontWeight.w800,
       ),
     );
   }
@@ -790,113 +788,14 @@ class _TrainingStreakFullScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     const flame = Color(0xFFF97316);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.alphaBlend(flame.withValues(alpha: 0.18), scheme.surface),
-              Color.alphaBlend(
-                scheme.primary.withValues(alpha: 0.14),
-                scheme.surfaceContainerHighest,
-              ),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomRight,
-          ),
-          border: Border.all(color: flame.withValues(alpha: 0.22)),
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final compactHeight = constraints.maxHeight < 620;
-            return Stack(
-              children: [
-                const Positioned.fill(child: _WarmPulseBackdrop(color: flame)),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    compactHeight ? 18 : 24,
-                    20,
-                    18,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Align(
-                        alignment: AlignmentDirectional.centerEnd,
-                        child: IconButton.filledTonal(
-                          tooltip: MaterialLocalizations.of(
-                            context,
-                          ).closeButtonLabel,
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close_rounded),
-                        ),
-                      ),
-                      Expanded(
-                        child: Center(
-                          child: SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 520),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    height: compactHeight ? 126 : 164,
-                                    child: const FittedBox(
-                                      child: _FlameBurst(color: flame),
-                                    ),
-                                  ),
-                                  SizedBox(height: compactHeight ? 16 : 22),
-                                  Text(
-                                    title,
-                                    textAlign: TextAlign.center,
-                                    style: theme.textTheme.headlineMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w900,
-                                          color: scheme.onSurface,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    message,
-                                    textAlign: TextAlign.center,
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(
-                                          color: scheme.onSurfaceVariant,
-                                          fontWeight: FontWeight.w700,
-                                          height: 1.35,
-                                        ),
-                                  ),
-                                  SizedBox(height: compactHeight ? 22 : 30),
-                                  _StreakTrail(days: streakDays, color: flame),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      FilledButton.icon(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.local_fire_department_rounded),
-                        label: Text(l10n.trainingStreakCheerAction),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                          backgroundColor: flame,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
+    return _ChallengeStyleCelebrationFullScreen(
+      accentColor: flame,
+      title: title,
+      message: message,
+      actionIcon: Icons.local_fire_department_rounded,
+      actionLabel: l10n.trainingStreakCheerAction,
+      details: _StreakTrail(days: streakDays, color: flame),
     );
   }
 }
@@ -1034,6 +933,7 @@ class _StreakTrail extends StatelessWidget {
             color: color,
             scale: 1 + math.min(index.toDouble(), 3) * 0.035,
             opacity: 0.12 + index * 0.018,
+            animateIn: index == visibleDays - 1,
           ),
         if (days > visibleDays)
           Container(
@@ -1064,17 +964,34 @@ class _MiniFlameToken extends StatelessWidget {
   final Color color;
   final double scale;
   final double opacity;
+  final bool animateIn;
 
   const _MiniFlameToken({
     required this.color,
     required this.scale,
     required this.opacity,
+    this.animateIn = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Transform.scale(
-      scale: scale,
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: animateIn ? 0 : 1, end: 1),
+      duration: animateIn ? const Duration(milliseconds: 720) : Duration.zero,
+      curve: Curves.easeOutBack,
+      builder: (context, progress, child) {
+        final eased = progress.clamp(0.0, 1.0);
+        return Opacity(
+          opacity: eased,
+          child: Transform.translate(
+            offset: Offset(0, (1 - eased) * 18),
+            child: Transform.scale(
+              scale: scale * (0.72 + eased * 0.28),
+              child: child,
+            ),
+          ),
+        );
+      },
       child: Container(
         width: 48,
         height: 58,
@@ -1167,337 +1084,6 @@ Future<void> _showCelebrationDialog(
       );
     },
   );
-}
-
-class _OrbitGemCelebration extends StatefulWidget {
-  final Color color;
-  final double size;
-
-  const _OrbitGemCelebration({required this.color, required this.size});
-
-  @override
-  State<_OrbitGemCelebration> createState() => _OrbitGemCelebrationState();
-}
-
-class _OrbitGemCelebrationState extends State<_OrbitGemCelebration>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: widget.size,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          final progress = _controller.value;
-          final pulse = 1 + math.sin(progress * math.pi * 2) * 0.035;
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _OrbitGemPainter(
-                    color: widget.color,
-                    progress: progress,
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: widget.size * 0.13,
-                child: Transform.scale(
-                  scale: 1 + math.sin(progress * math.pi * 2) * 0.035,
-                  child: Container(
-                    width: widget.size * 0.48,
-                    height: widget.size * 0.12,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(999),
-                      gradient: RadialGradient(
-                        colors: [
-                          widget.color.withValues(alpha: 0.26),
-                          widget.color.withValues(alpha: 0.10),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: widget.size * 0.13,
-                bottom:
-                    widget.size * 0.26 +
-                    math.sin((progress * math.pi * 2) + 0.4) * 4,
-                child: Transform.rotate(
-                  angle: -0.24 + math.sin(progress * math.pi * 2) * 0.05,
-                  child: _CuteGemIcon(
-                    color: Color.lerp(Colors.white, widget.color, 0.72)!,
-                    size: widget.size * 0.17,
-                    glint: (progress + 0.24) % 1,
-                  ),
-                ),
-              ),
-              Positioned(
-                right: widget.size * 0.12,
-                top:
-                    widget.size * 0.24 +
-                    math.cos((progress * math.pi * 2) + 0.7) * 4,
-                child: Transform.rotate(
-                  angle: 0.28 + math.cos(progress * math.pi * 2) * 0.05,
-                  child: _CuteGemIcon(
-                    color: Color.lerp(Colors.white, widget.color, 0.60)!,
-                    size: widget.size * 0.15,
-                    glint: (progress + 0.62) % 1,
-                  ),
-                ),
-              ),
-              Transform.scale(
-                scale: pulse,
-                child: _CuteGemIcon(
-                  color: widget.color,
-                  size: widget.size * 0.48,
-                  glint: (math.sin((progress * math.pi * 2) + 0.8) + 1) / 2,
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _OrbitGemPainter extends CustomPainter {
-  final Color color;
-  final double progress;
-
-  const _OrbitGemPainter({required this.color, required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (size.isEmpty) return;
-    final center = size.center(Offset.zero);
-    final radius = math.min(size.width, size.height) * 0.36;
-    final ringPaint = Paint()
-      ..color = color.withValues(alpha: 0.18)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center,
-        width: radius * 2.15,
-        height: radius * 1.08,
-      ),
-      ringPaint,
-    );
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center,
-        width: radius * 1.18,
-        height: radius * 2.10,
-      ),
-      ringPaint..color = color.withValues(alpha: 0.13),
-    );
-
-    for (var index = 0; index < 12; index += 1) {
-      final angle = progress * math.pi * 2 + (index * math.pi * 2 / 12);
-      final x =
-          center.dx + math.cos(angle) * radius * (index.isEven ? 1.04 : 0.74);
-      final y =
-          center.dy + math.sin(angle) * radius * (index.isEven ? 0.46 : 0.92);
-      final sizeFactor = 4.0 + (index % 3) * 1.6;
-      final path = Path()
-        ..moveTo(x, y - sizeFactor)
-        ..lineTo(x + sizeFactor, y)
-        ..lineTo(x, y + sizeFactor)
-        ..lineTo(x - sizeFactor, y)
-        ..close();
-      canvas.drawPath(
-        path,
-        Paint()..color = color.withValues(alpha: 0.24 + (index % 4) * 0.06),
-      );
-      canvas.drawPath(
-        path,
-        Paint()
-          ..color = Colors.white.withValues(alpha: 0.36)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.8,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _OrbitGemPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.progress != progress;
-  }
-}
-
-class _OrbitGemBackdrop extends StatefulWidget {
-  final Color color;
-
-  const _OrbitGemBackdrop({required this.color});
-
-  @override
-  State<_OrbitGemBackdrop> createState() => _OrbitGemBackdropState();
-}
-
-class _OrbitGemBackdropState extends State<_OrbitGemBackdrop>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3600),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        return CustomPaint(
-          painter: _RibbonBackdropPainter(
-            color: widget.color,
-            progress: _controller.value,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _WarmPulseBackdrop extends StatefulWidget {
-  final Color color;
-
-  const _WarmPulseBackdrop({required this.color});
-
-  @override
-  State<_WarmPulseBackdrop> createState() => _WarmPulseBackdropState();
-}
-
-class _WarmPulseBackdropState extends State<_WarmPulseBackdrop>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2400),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        return CustomPaint(
-          painter: _RibbonBackdropPainter(
-            color: widget.color,
-            progress: _controller.value,
-            warm: true,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _RibbonBackdropPainter extends CustomPainter {
-  final Color color;
-  final double progress;
-  final bool warm;
-
-  const _RibbonBackdropPainter({
-    required this.color,
-    required this.progress,
-    this.warm = false,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (size.isEmpty) return;
-    final ribbonPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    for (var index = 0; index < 6; index += 1) {
-      final offset = ((progress + index * 0.19) % 1.0) * size.width;
-      final y = size.height * (0.16 + index * 0.14);
-      final path = Path()
-        ..moveTo(offset - size.width * 0.55, y)
-        ..cubicTo(
-          offset - size.width * 0.24,
-          y - 48,
-          offset + size.width * 0.08,
-          y + 48,
-          offset + size.width * 0.42,
-          y - 12,
-        );
-      ribbonPaint
-        ..strokeWidth = warm ? 16.0 - index : 10.0 - index * 0.7
-        ..color = color.withValues(alpha: warm ? 0.08 : 0.065);
-      canvas.drawPath(path, ribbonPaint);
-    }
-
-    final sparklePaint = Paint()..color = color.withValues(alpha: 0.20);
-    for (var index = 0; index < 18; index += 1) {
-      final seed = ((index * 29) % 101) / 101.0;
-      final x = (seed * size.width + progress * 48) % size.width;
-      final y = ((index * 41) % 100) / 100.0 * size.height;
-      final radius = 1.8 + (index % 3);
-      final center = Offset(x, y);
-      canvas.drawLine(
-        center.translate(-radius, 0),
-        center.translate(radius, 0),
-        sparklePaint..strokeWidth = 1.2,
-      );
-      canvas.drawLine(
-        center.translate(0, -radius),
-        center.translate(0, radius),
-        sparklePaint..strokeWidth = 1.2,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _RibbonBackdropPainter oldDelegate) {
-    return oldDelegate.color != color ||
-        oldDelegate.progress != progress ||
-        oldDelegate.warm != warm;
-  }
 }
 
 class _FallingGemBackdrop extends StatefulWidget {
@@ -1606,185 +1192,6 @@ class _FallingGemPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _FallingGemPainter oldDelegate) {
     return oldDelegate.progress != progress || oldDelegate.colors != colors;
-  }
-}
-
-class _FlameBurst extends StatefulWidget {
-  final Color color;
-
-  const _FlameBurst({required this.color});
-
-  @override
-  State<_FlameBurst> createState() => _FlameBurstState();
-}
-
-class _FlameBurstState extends State<_FlameBurst>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1350),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 164,
-      height: 126,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          final progress = _controller.value;
-          final addedFlameRaw = ((progress - 0.42) / 0.58)
-              .clamp(0.0, 1.0)
-              .toDouble();
-          final addedFlameProgress = Curves.easeOutBack.transform(
-            addedFlameRaw,
-          );
-          return CustomPaint(
-            painter: _FlameBurstPainter(
-              color: widget.color,
-              progress: progress,
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Transform.translate(
-                  offset: Offset(
-                    math.sin(progress * math.pi * 2) * 1.8,
-                    math.cos(progress * math.pi * 2) * 1.2,
-                  ),
-                  child: _CuteFlameIcon(color: widget.color, size: 88),
-                ),
-                Positioned(
-                  right: 32 - addedFlameProgress * 20,
-                  top: 56 - addedFlameProgress * 42,
-                  child: Opacity(
-                    opacity: addedFlameProgress.clamp(0.0, 1.0).toDouble(),
-                    child: Transform.scale(
-                      scale: 0.55 + addedFlameProgress * 0.55,
-                      child: _CuteFlameIcon(color: widget.color, size: 34),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 10 + math.sin(progress * math.pi * 2) * 2,
-                  left: 42 + math.cos(progress * math.pi * 2) * 3,
-                  child: Icon(
-                    Icons.auto_awesome_rounded,
-                    color: const Color(0xFFFFD166).withValues(alpha: 0.78),
-                    size: 19,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _FlameBurstPainter extends CustomPainter {
-  final Color color;
-  final double progress;
-
-  const _FlameBurstPainter({required this.color, required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (size.isEmpty) return;
-    final center = Offset(size.width * 0.5, size.height * 0.68);
-    final glow = Paint()
-      ..shader =
-          RadialGradient(
-            colors: <Color>[
-              color.withValues(alpha: 0.34),
-              const Color(0xFFFFB703).withValues(alpha: 0.18),
-              Colors.transparent,
-            ],
-            stops: const <double>[0, 0.45, 1],
-          ).createShader(
-            Rect.fromCircle(center: center, radius: size.width * 0.42),
-          );
-    canvas.drawCircle(center, size.width * 0.42, glow);
-
-    for (var index = 0; index < 9; index++) {
-      final seed = ((index * 23) % 97) / 97.0;
-      final rise = (progress + seed) % 1.0;
-      final x =
-          size.width * (0.22 + seed * 0.56) +
-          math.sin((progress * math.pi * 2) + index) * 7;
-      final y = size.height * (0.90 - rise * 0.76);
-      final radius = 1.5 + (1 - rise) * 3.5;
-      canvas.drawCircle(
-        Offset(x, y),
-        radius,
-        Paint()
-          ..color = Color.lerp(
-            const Color(0xFFFFF3B0),
-            const Color(0xFFFF7A1A),
-            rise,
-          )!.withValues(alpha: (1 - rise).clamp(0.0, 1.0) * 0.78),
-      );
-    }
-
-    final flameColors = <Color>[
-      const Color(0xFFC2410C),
-      color,
-      const Color(0xFFFFD166),
-    ];
-    for (var layer = 0; layer < flameColors.length; layer++) {
-      final inset = layer * 10.0;
-      final height = size.height * (0.62 - layer * 0.10);
-      final width = size.width * (0.34 - layer * 0.055);
-      final phase = (progress * math.pi * 2) + layer;
-      final tip = Offset(
-        size.width * 0.5 + math.sin(phase) * (5 - layer),
-        size.height * 0.12 + inset * 0.30 + math.cos(phase) * 2.5,
-      );
-      final baseY = size.height * 0.88 - inset * 0.10;
-      final path = Path()
-        ..moveTo(size.width * 0.5 - width, baseY)
-        ..cubicTo(
-          size.width * 0.18 + inset,
-          baseY - height * 0.30,
-          tip.dx - width * 0.82,
-          tip.dy + height * 0.34,
-          tip.dx,
-          tip.dy,
-        )
-        ..cubicTo(
-          tip.dx + width * 0.74,
-          tip.dy + height * 0.36,
-          size.width * 0.82 - inset,
-          baseY - height * 0.34,
-          size.width * 0.5 + width,
-          baseY,
-        )
-        ..close();
-      canvas.drawPath(
-        path,
-        Paint()
-          ..color = flameColors[layer].withValues(alpha: 0.34 + layer * 0.19),
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _FlameBurstPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.progress != progress;
   }
 }
 

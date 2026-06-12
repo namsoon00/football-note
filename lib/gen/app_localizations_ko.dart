@@ -692,6 +692,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupMatchLive => '진행 중';
 
   @override
+  String get worldCupMatchAwaitingUpdate => '결과 갱신 대기';
+
+  @override
   String get worldCupMatchResultFinal => '결과';
 
   @override
@@ -775,6 +778,199 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupFinalLabel => '결승';
 
   @override
+  String get worldCupCountryAlgeria => '알제리';
+
+  @override
+  String get worldCupCountryArgentina => '아르헨티나';
+
+  @override
+  String get worldCupCountryAustralia => '호주';
+
+  @override
+  String get worldCupCountryAustria => '오스트리아';
+
+  @override
+  String get worldCupCountryBelgium => '벨기에';
+
+  @override
+  String get worldCupCountryBosniaAndHerzegovina => '보스니아 헤르체고비나';
+
+  @override
+  String get worldCupCountryBrazil => '브라질';
+
+  @override
+  String get worldCupCountryCanada => '캐나다';
+
+  @override
+  String get worldCupCountryCapeVerde => '카보베르데';
+
+  @override
+  String get worldCupCountryColombia => '콜롬비아';
+
+  @override
+  String get worldCupCountryCongoDr => '콩고민주공화국';
+
+  @override
+  String get worldCupCountryCroatia => '크로아티아';
+
+  @override
+  String get worldCupCountryCuracao => '퀴라소';
+
+  @override
+  String get worldCupCountryCzechia => '체코';
+
+  @override
+  String get worldCupCountryEcuador => '에콰도르';
+
+  @override
+  String get worldCupCountryEgypt => '이집트';
+
+  @override
+  String get worldCupCountryEngland => '잉글랜드';
+
+  @override
+  String get worldCupCountryFrance => '프랑스';
+
+  @override
+  String get worldCupCountryGermany => '독일';
+
+  @override
+  String get worldCupCountryGhana => '가나';
+
+  @override
+  String get worldCupCountryHaiti => '아이티';
+
+  @override
+  String get worldCupCountryIran => '이란';
+
+  @override
+  String get worldCupCountryIraq => '이라크';
+
+  @override
+  String get worldCupCountryIvoryCoast => '코트디부아르';
+
+  @override
+  String get worldCupCountryJapan => '일본';
+
+  @override
+  String get worldCupCountryJordan => '요르단';
+
+  @override
+  String get worldCupCountryKoreaRepublic => '대한민국';
+
+  @override
+  String get worldCupCountryMexico => '멕시코';
+
+  @override
+  String get worldCupCountryMorocco => '모로코';
+
+  @override
+  String get worldCupCountryNetherlands => '네덜란드';
+
+  @override
+  String get worldCupCountryNewZealand => '뉴질랜드';
+
+  @override
+  String get worldCupCountryNorway => '노르웨이';
+
+  @override
+  String get worldCupCountryPanama => '파나마';
+
+  @override
+  String get worldCupCountryParaguay => '파라과이';
+
+  @override
+  String get worldCupCountryPortugal => '포르투갈';
+
+  @override
+  String get worldCupCountryQatar => '카타르';
+
+  @override
+  String get worldCupCountrySaudiArabia => '사우디아라비아';
+
+  @override
+  String get worldCupCountryScotland => '스코틀랜드';
+
+  @override
+  String get worldCupCountrySenegal => '세네갈';
+
+  @override
+  String get worldCupCountrySouthAfrica => '남아프리카공화국';
+
+  @override
+  String get worldCupCountrySpain => '스페인';
+
+  @override
+  String get worldCupCountrySweden => '스웨덴';
+
+  @override
+  String get worldCupCountrySwitzerland => '스위스';
+
+  @override
+  String get worldCupCountryTunisia => '튀니지';
+
+  @override
+  String get worldCupCountryTurkiye => '튀르키예';
+
+  @override
+  String get worldCupCountryUsa => '미국';
+
+  @override
+  String get worldCupCountryUruguay => '우루과이';
+
+  @override
+  String get worldCupCountryUzbekistan => '우즈베키스탄';
+
+  @override
+  String get worldCupVenueAttDallas => 'AT&T 스타디움, 댈러스';
+
+  @override
+  String get worldCupVenueBcPlaceVancouver => 'BC 플레이스, 밴쿠버';
+
+  @override
+  String get worldCupVenueBmoFieldToronto => 'BMO 필드, 토론토';
+
+  @override
+  String get worldCupVenueEstadioAkronGuadalajara => '에스타디오 아크론, 과달라하라';
+
+  @override
+  String get worldCupVenueEstadioAztecaMexicoCity => '에스타디오 아스테카, 멕시코시티';
+
+  @override
+  String get worldCupVenueEstadioBbvaMonterrey => '에스타디오 BBVA, 몬테레이';
+
+  @override
+  String get worldCupVenueGehaArrowheadKansasCity => '애로헤드 스타디움 GEHA 필드, 캔자스시티';
+
+  @override
+  String get worldCupVenueGilletteBoston => '질레트 스타디움, 보스턴';
+
+  @override
+  String get worldCupVenueHardRockMiami => '하드록 스타디움, 마이애미';
+
+  @override
+  String get worldCupVenueLevisSanFranciscoBayArea =>
+      '리바이스 스타디움, 샌프란시스코 베이 에어리어';
+
+  @override
+  String get worldCupVenueLincolnFinancialPhiladelphia => '링컨 파이낸셜 필드, 필라델피아';
+
+  @override
+  String get worldCupVenueLumenSeattle => '루멘 필드, 시애틀';
+
+  @override
+  String get worldCupVenueMercedesBenzAtlanta => '메르세데스-벤츠 스타디움, 애틀랜타';
+
+  @override
+  String get worldCupVenueMetLifeNewYorkNewJersey => '메트라이프 스타디움, 뉴욕/뉴저지';
+
+  @override
+  String get worldCupVenueNrgHouston => 'NRG 스타디움, 휴스턴';
+
+  @override
+  String get worldCupVenueSofiLosAngeles => '소파이 스타디움, 로스앤젤레스';
+
+  @override
   String worldCupKickoffLocal(String time) {
     return '$time 현지 시간';
   }
@@ -801,7 +997,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupKoreaOpenerLabel => '첫 경기';
 
   @override
-  String get worldCupKoreaOpener => '대한민국 v 체코 · 에스타디오 과달라하라';
+  String get worldCupKoreaOpener => '대한민국 대 체코 · 에스타디오 과달라하라';
 
   @override
   String get worldCupMilestonesTitle => '결승까지의 흐름';
@@ -811,7 +1007,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupOpeningMatch =>
-      '멕시코 v 남아프리카공화국 · 2026년 6월 11일 · 멕시코시티 스타디움';
+      '멕시코 대 남아프리카공화국 · 2026년 6월 11일 · 멕시코시티 스타디움';
 
   @override
   String get worldCupMilestoneGroupLabel => '조별리그';
