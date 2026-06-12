@@ -10,6 +10,7 @@ import '../domain/entities/challenge.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
 import 'league_fixture_reminder_service.dart';
+import 'notification_app_link.dart';
 import 'settings_service.dart';
 
 class TrainingPlanReminderService {
@@ -36,7 +37,8 @@ class TrainingPlanReminderService {
   static const String _androidChannelIdVibrate =
       'training_plan_reminders_vibrate';
   static const String _androidRoutineChannelId = 'training_routine_alerts';
-  static const String _notificationTitle = '태오의 노트';
+  static const String _notificationTitle =
+      NotificationAppLink.notificationTitle;
   static const String _androidChannelName = 'Training Plan Reminders';
   static const String _androidChannelDescription =
       'Reminder notifications before scheduled training plans';
@@ -218,7 +220,11 @@ class TrainingPlanReminderService {
               ),
               iOS: const DarwinNotificationDetails(),
             ),
-            payload: plan.id,
+            payload: NotificationAppLink.calendarPlan(
+              planId: plan.id,
+              scheduledAt: item.at,
+              atStartTime: item.atStartTime,
+            ),
             matchDateTimeComponents: item.repeatsWeekly
                 ? DateTimeComponents.dayOfWeekAndTime
                 : null,
@@ -298,7 +304,10 @@ class TrainingPlanReminderService {
           ),
           iOS: const DarwinNotificationDetails(),
         ),
-        payload: 'habit:$daysSince',
+        payload: NotificationAppLink.inactivityReminder(
+          daysSince: daysSince,
+          targetDay: scheduledAt,
+        ),
       );
       await _options.setValue(inactivityReminderIdsKey, <int>[id]);
     } catch (_) {
@@ -380,7 +389,10 @@ class TrainingPlanReminderService {
             ),
             iOS: const DarwinNotificationDetails(),
           ),
-          payload: 'challenge:${progress.run.id}:${round.round.number}',
+          payload: NotificationAppLink.challengeRound(
+            runId: progress.run.id,
+            roundNumber: round.round.number,
+          ),
         );
         scheduledIds.add(id);
       } catch (_) {
@@ -471,7 +483,7 @@ class TrainingPlanReminderService {
           ),
           iOS: const DarwinNotificationDetails(),
         ),
-        payload: 'levelup:$level',
+        payload: NotificationAppLink.levelGuide(level: level),
       );
     } catch (_) {
       // Ignore immediate notification failures.
@@ -524,7 +536,7 @@ class TrainingPlanReminderService {
           ),
           iOS: const DarwinNotificationDetails(),
         ),
-        payload: 'xp:$totalXp',
+        payload: NotificationAppLink.xpHistory(totalXp: totalXp),
       );
     } catch (_) {
       // Ignore immediate notification failures.
@@ -532,7 +544,6 @@ class TrainingPlanReminderService {
   }
 
   Future<void> showFamilySyncAlert({
-    required String title,
     required String body,
     required String payload,
   }) async {
@@ -544,7 +555,7 @@ class TrainingPlanReminderService {
         'family:${DateTime.now().microsecondsSinceEpoch}:${payload.hashCode}';
     await _appendFamilyMessageLog(
       id: messageId,
-      title: title,
+      title: _notificationTitle,
       body: body,
       payload: payload,
     );
@@ -557,7 +568,7 @@ class TrainingPlanReminderService {
     try {
       await _plugin.show(
         id,
-        title,
+        _notificationTitle,
         body,
         NotificationDetails(
           android: AndroidNotificationDetails(

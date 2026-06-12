@@ -1,11 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/meal_log_service.dart';
+import '../../application/notification_app_link.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
+import '../../application/training_plan_reminder_service.dart';
+import '../../application/world_cup_schedule.dart';
 import '../../domain/entities/league_standings.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../screens/challenge_screen.dart';
@@ -56,6 +61,16 @@ class NotificationTapRouter {
       _openWhenReady('', _notificationCenterBuilder);
       return;
     }
+    final appLink = NotificationAppLink.tryParse(normalized);
+    if (appLink != null) {
+      _openWhenReady(
+        normalized,
+        (dependencies) =>
+            _screenForAppLink(appLink, dependencies) ??
+            _notificationCenterBuilder(dependencies),
+      );
+      return;
+    }
     _openWhenReady(normalized, (dependencies) {
       if (normalized.startsWith('xp:')) {
         return PlayerXpHistoryScreen(
@@ -64,7 +79,8 @@ class NotificationTapRouter {
       }
       if (normalized.startsWith('levelup:')) {
         final level = int.tryParse(normalized.split(':').last);
-        final currentLevel = level ??
+        final currentLevel =
+            level ??
             PlayerLevelService(dependencies.optionRepository).loadState().level;
         return PlayerLevelGuideScreen(
           currentLevel: currentLevel,
@@ -85,13 +101,15 @@ class NotificationTapRouter {
       if (normalized.startsWith('worldcup:') ||
           normalized.startsWith('worldcup_fixture:')) {
         return WorldCupScreen(
+          initialSelectedDay: _worldCupDayFromLegacyPayload(normalized),
           optionRepository: dependencies.optionRepository,
           settingsService: dependencies.settingsService,
         );
       }
       if (normalized.startsWith('league_fixture:')) {
         return LeagueStandingsScreen(
-          initialType: _leagueTypeFromPayload(normalized) ??
+          initialType:
+              _leagueTypeFromPayload(normalized) ??
               LeagueStandingsType.kLeague1,
           optionRepository: dependencies.optionRepository,
           settingsService: dependencies.settingsService,
@@ -108,16 +126,83 @@ class NotificationTapRouter {
       if (normalized.startsWith('family-sync:')) {
         return _notificationCenterBuilder(dependencies);
       }
-      return HomeScreen(
-        trainingService: dependencies.trainingService,
-        mealLogService: dependencies.mealLogService,
-        optionRepository: dependencies.optionRepository,
-        localeService: dependencies.localeService,
-        settingsService: dependencies.settingsService,
-        driveBackupService: dependencies.driveBackupService,
+      return _homeScreen(
+        dependencies,
         initialIndex: 2,
+        initialCalendarSelectedDay: _planDayForId(dependencies, normalized),
       );
     });
+  }
+
+  static Widget? _screenForAppLink(
+    Uri uri,
+    NotificationTapDependencies dependencies,
+  ) {
+    switch (uri.host) {
+      case 'calendar':
+        return _homeScreen(
+          dependencies,
+          initialIndex: 2,
+          initialCalendarSelectedDay: _dateFromQuery(uri),
+        );
+      case 'xp':
+        return PlayerXpHistoryScreen(
+          optionRepository: dependencies.optionRepository,
+        );
+      case 'level':
+        final level = int.tryParse(uri.queryParameters['level'] ?? '');
+        final currentLevel =
+            level ??
+            PlayerLevelService(dependencies.optionRepository).loadState().level;
+        return PlayerLevelGuideScreen(
+          currentLevel: currentLevel,
+          optionRepository: dependencies.optionRepository,
+          driveBackupService: dependencies.driveBackupService,
+        );
+      case 'challenge':
+        return ChallengeScreen(
+          trainingService: dependencies.trainingService,
+          mealLogService: dependencies.mealLogService,
+          optionRepository: dependencies.optionRepository,
+          localeService: dependencies.localeService,
+          settingsService: dependencies.settingsService,
+          driveBackupService: dependencies.driveBackupService,
+        );
+      case 'world-cup':
+        return WorldCupScreen(
+          initialSelectedDay: _dateFromQuery(uri),
+          optionRepository: dependencies.optionRepository,
+          settingsService: dependencies.settingsService,
+        );
+      case 'league':
+        return LeagueStandingsScreen(
+          initialType:
+              _leagueTypeFromName(uri.queryParameters['leagueType'] ?? '') ??
+              LeagueStandingsType.kLeague1,
+          optionRepository: dependencies.optionRepository,
+          settingsService: dependencies.settingsService,
+        );
+      case 'notifications':
+        return _notificationCenterBuilder(dependencies);
+    }
+    return null;
+  }
+
+  static Widget _homeScreen(
+    NotificationTapDependencies dependencies, {
+    int initialIndex = 0,
+    DateTime? initialCalendarSelectedDay,
+  }) {
+    return HomeScreen(
+      trainingService: dependencies.trainingService,
+      mealLogService: dependencies.mealLogService,
+      optionRepository: dependencies.optionRepository,
+      localeService: dependencies.localeService,
+      settingsService: dependencies.settingsService,
+      driveBackupService: dependencies.driveBackupService,
+      initialIndex: initialIndex,
+      initialCalendarSelectedDay: initialCalendarSelectedDay,
+    );
   }
 
   static Widget _notificationCenterBuilder(
@@ -156,6 +241,51 @@ class NotificationTapRouter {
     final parts = payload.split(':');
     if (parts.length < 2) return null;
     return _leagueTypeFromName(parts[1]);
+  }
+
+  static DateTime? _dateFromQuery(Uri uri) {
+    final raw = uri.queryParameters['date'] ?? uri.queryParameters['day'];
+    if (raw == null || raw.trim().isEmpty) return null;
+    final parsed = DateTime.tryParse(raw.trim());
+    if (parsed == null) return null;
+    return DateTime(parsed.year, parsed.month, parsed.day);
+  }
+
+  static DateTime? _planDayForId(
+    NotificationTapDependencies dependencies,
+    String planId,
+  ) {
+    if (planId.trim().isEmpty || planId.contains(':')) return null;
+    final raw = dependencies.optionRepository.getValue<String>(
+      TrainingPlanReminderService.plansStorageKey,
+    );
+    if (raw == null || raw.trim().isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return null;
+      for (final item in decoded.whereType<Map>()) {
+        if (item['id']?.toString() != planId) continue;
+        final scheduledAt = DateTime.tryParse(
+          item['scheduledAt']?.toString() ?? '',
+        );
+        if (scheduledAt == null) return null;
+        return DateTime(scheduledAt.year, scheduledAt.month, scheduledAt.day);
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
+  static DateTime? _worldCupDayFromLegacyPayload(String payload) {
+    final parts = payload.split(':');
+    if (parts.length < 2) return null;
+    final matchNumber = int.tryParse(parts[1]);
+    if (matchNumber == null) return null;
+    for (final fixture in worldCupFixtures) {
+      if (fixture.matchNumber == matchNumber) return fixture.localDay;
+    }
+    return null;
   }
 
   static LeagueStandingsType? _leagueTypeFromName(String value) {
