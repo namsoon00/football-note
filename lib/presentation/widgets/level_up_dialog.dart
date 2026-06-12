@@ -8,7 +8,6 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../application/player_level_service.dart';
 import '../localization/player_progression_localizations.dart';
 import 'player_level_visuals.dart';
-import 'rinzy_mascot.dart';
 
 Future<void> showXpGemRewardDialog(
   BuildContext context, {
@@ -514,10 +513,12 @@ class _TrainingXpDialogSpec {
     PlayerLevelAward award,
   ) {
     final reasons = award.reasons.toSet();
-    final hasJumpRopeGain = reasons.contains('jump_rope_added') ||
+    final hasJumpRopeGain =
+        reasons.contains('jump_rope_added') ||
         (!reasons.contains('jump_rope_missed') &&
             reasons.any((reason) => reason.contains('jump_rope')));
-    final hasLiftingGain = reasons.contains('lifting_added') ||
+    final hasLiftingGain =
+        reasons.contains('lifting_added') ||
         (!reasons.contains('lifting_missed') &&
             reasons.any((reason) => reason.contains('lifting')));
     if (hasJumpRopeGain) {
@@ -565,6 +566,7 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return _ChallengeStyleCelebrationFullScreen(
       accentColor: spec.color,
+      character: _CelebrationCharacter.gem,
       title: spec.title,
       message: spec.message,
       actionIcon: Icons.check_circle_outline_rounded,
@@ -611,8 +613,225 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
   }
 }
 
+enum _CelebrationCharacter { gem, flame }
+
+class _CelebrationCharacterView extends StatefulWidget {
+  final _CelebrationCharacter character;
+  final Color color;
+  final double size;
+
+  const _CelebrationCharacterView({
+    required this.character,
+    required this.color,
+    required this.size,
+  });
+
+  @override
+  State<_CelebrationCharacterView> createState() =>
+      _CelebrationCharacterViewState();
+}
+
+class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1150),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = widget.size;
+    final bodySize = size * 0.70;
+    final limbColor = Color.lerp(widget.color, const Color(0xFF111827), 0.20)!;
+    final shoeColor = Color.lerp(widget.color, const Color(0xFF111827), 0.48)!;
+    return SizedBox.square(
+      dimension: size,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final phase = _controller.value;
+          final bounce = math.sin(phase * math.pi * 2);
+          final cheer = math.sin(phase * math.pi * 4);
+          final lift = math.max(0.0, bounce) * size * 0.025;
+          return Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                bottom: size * 0.10,
+                child: Transform.scale(
+                  scaleX: 1 - math.max(0.0, bounce) * 0.14,
+                  child: Container(
+                    width: size * 0.52,
+                    height: size * 0.08,
+                    decoration: BoxDecoration(
+                      color: const Color(0x30111827),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: size * 0.18,
+                bottom: size * 0.17,
+                child: _CharacterLeg(color: limbColor, shoeColor: shoeColor),
+              ),
+              Positioned(
+                right: size * 0.18,
+                bottom: size * 0.17,
+                child: _CharacterLeg(
+                  color: limbColor,
+                  shoeColor: shoeColor,
+                  mirrored: true,
+                ),
+              ),
+              Positioned(
+                left: size * 0.08,
+                top: size * (0.38 - cheer * 0.018),
+                child: _CharacterArm(
+                  color: limbColor,
+                  angle: -0.64 - cheer * 0.18,
+                ),
+              ),
+              Positioned(
+                right: size * 0.08,
+                top: size * (0.38 + cheer * 0.018),
+                child: _CharacterArm(
+                  color: limbColor,
+                  angle: 0.64 + cheer * 0.18,
+                  mirrored: true,
+                ),
+              ),
+              Transform.translate(
+                offset: Offset(0, -lift),
+                child: Transform.rotate(
+                  angle: bounce * 0.035,
+                  child: widget.character == _CelebrationCharacter.flame
+                      ? _CuteFlameIcon(color: widget.color, size: bodySize)
+                      : _CuteGemIcon(
+                          color: widget.color,
+                          size: bodySize,
+                          glint: 0.72 + math.max(0.0, bounce) * 0.24,
+                        ),
+                ),
+              ),
+              Positioned(
+                top: size * 0.08,
+                right: size * 0.18,
+                child: Opacity(
+                  opacity: 0.50 + math.max(0.0, bounce) * 0.28,
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
+                    color: widget.color,
+                    size: size * 0.13,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CharacterArm extends StatelessWidget {
+  final Color color;
+  final double angle;
+  final bool mirrored;
+
+  const _CharacterArm({
+    required this.color,
+    required this.angle,
+    this.mirrored = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: angle,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        textDirection: mirrored ? TextDirection.rtl : TextDirection.ltr,
+        children: [
+          Container(
+            width: 42,
+            height: 10,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.78),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.46)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CharacterLeg extends StatelessWidget {
+  final Color color;
+  final Color shoeColor;
+  final bool mirrored;
+
+  const _CharacterLeg({
+    required this.color,
+    required this.shoeColor,
+    this.mirrored = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: mirrored ? -0.10 : 0.10,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 12,
+            height: 34,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.78),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+          Container(
+            width: 26,
+            height: 12,
+            decoration: BoxDecoration(
+              color: shoeColor,
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ChallengeStyleCelebrationFullScreen extends StatelessWidget {
   final Color accentColor;
+  final _CelebrationCharacter character;
   final String title;
   final String message;
   final IconData actionIcon;
@@ -621,6 +840,7 @@ class _ChallengeStyleCelebrationFullScreen extends StatelessWidget {
 
   const _ChallengeStyleCelebrationFullScreen({
     required this.accentColor,
+    this.character = _CelebrationCharacter.gem,
     required this.title,
     required this.message,
     required this.actionIcon,
@@ -703,16 +923,20 @@ class _ChallengeStyleCelebrationFullScreen extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                CheerRinzyMascot(size: mascotSize, progress: 1),
+                                _CelebrationCharacterView(
+                                  character: character,
+                                  color: accentColor,
+                                  size: mascotSize,
+                                ),
                                 SizedBox(height: compactHeight ? 14 : 18),
                                 Text(
                                   title,
                                   textAlign: TextAlign.center,
-                                  style:
-                                      theme.textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.w900,
-                                    height: 1.1,
-                                  ),
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        height: 1.1,
+                                      ),
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
@@ -791,6 +1015,7 @@ class _TrainingStreakFullScreen extends StatelessWidget {
     const flame = Color(0xFFF97316);
     return _ChallengeStyleCelebrationFullScreen(
       accentColor: flame,
+      character: _CelebrationCharacter.flame,
       title: title,
       message: message,
       actionIcon: Icons.local_fire_department_rounded,
@@ -1333,28 +1558,28 @@ class _CuteFlameIcon extends StatelessWidget {
             child: CustomPaint(painter: _CuteFlamePainter(color: color)),
           ),
           Positioned(
-            top: size * 0.48,
+            top: size * 0.46,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _FaceDot(size: size * 0.078),
-                SizedBox(width: size * 0.15),
-                _FaceDot(size: size * 0.078),
+                _FaceDot(size: size * 0.118),
+                SizedBox(width: size * 0.12),
+                _FaceDot(size: size * 0.118),
               ],
             ),
           ),
           Positioned(
-            top: size * 0.56,
-            left: size * 0.25,
-            child: _GemCheek(size: size * 0.078),
-          ),
-          Positioned(
-            top: size * 0.56,
-            right: size * 0.25,
-            child: _GemCheek(size: size * 0.078),
+            top: size * 0.59,
+            left: size * 0.22,
+            child: _GemCheek(size: size * 0.090),
           ),
           Positioned(
             top: size * 0.59,
+            right: size * 0.22,
+            child: _GemCheek(size: size * 0.090),
+          ),
+          Positioned(
+            top: size * 0.63,
             child: Container(
               width: size * 0.20,
               height: size * 0.08,
@@ -1485,18 +1710,18 @@ class _CuteGemIcon extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: size * 0.38,
+            top: size * 0.36,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _FaceDot(size: size * 0.075),
-                SizedBox(width: size * 0.16),
-                _FaceDot(size: size * 0.075),
+                _FaceDot(size: size * 0.115),
+                SizedBox(width: size * 0.13),
+                _FaceDot(size: size * 0.115),
               ],
             ),
           ),
           Positioned(
-            top: size * 0.50,
+            top: size * 0.53,
             child: Container(
               width: size * 0.20,
               height: size * 0.08,
@@ -1512,14 +1737,14 @@ class _CuteGemIcon extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: size * 0.47,
-            left: size * 0.20,
-            child: _GemCheek(size: size * 0.092),
+            top: size * 0.50,
+            left: size * 0.18,
+            child: _GemCheek(size: size * 0.104),
           ),
           Positioned(
-            top: size * 0.47,
-            right: size * 0.20,
-            child: _GemCheek(size: size * 0.092),
+            top: size * 0.50,
+            right: size * 0.18,
+            child: _GemCheek(size: size * 0.104),
           ),
         ],
       ),
