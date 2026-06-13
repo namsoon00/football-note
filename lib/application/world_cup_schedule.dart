@@ -199,6 +199,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Mexico',
     awayTeam: 'South Africa',
     venue: 'Estadio Azteca, Mexico City',
+    homeScore: 2,
+    awayScore: 0,
   ),
   WorldCupFixture(
     matchNumber: 2,
@@ -208,6 +210,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Korea Republic',
     awayTeam: 'Czechia',
     venue: 'Estadio Akron, Guadalajara',
+    homeScore: 2,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 3,
@@ -217,6 +221,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Canada',
     awayTeam: 'Bosnia and Herzegovina',
     venue: 'BMO Field, Toronto',
+    homeScore: 1,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 4,
@@ -226,6 +232,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'USA',
     awayTeam: 'Paraguay',
     venue: 'SoFi Stadium, Los Angeles',
+    homeScore: 4,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 5,
@@ -235,6 +243,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Qatar',
     awayTeam: 'Switzerland',
     venue: 'Levi\'s Stadium, San Francisco Bay Area',
+    homeScore: 1,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 6,

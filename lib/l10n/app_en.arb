@@ -336,6 +336,8 @@
   },
   "worldCupPlayerProfileTeamLabel": "National team",
   "worldCupPlayerProfilePositionLabel": "Position",
+  "worldCupPlayerProfileClubLabel": "Club",
+  "worldCupPlayerClubPending": "Club update pending",
   "worldCupPlayerProfileSourceNote": "A player face icon is shown when an official photo is unavailable.",
   "worldCupScorePending": "- : -",
   "worldCupScoreLine": "{homeScore} : {awayScore}",

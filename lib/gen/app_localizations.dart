@@ -1422,6 +1422,18 @@ abstract class AppLocalizations {
   /// **'Position'**
   String get worldCupPlayerProfilePositionLabel;
 
+  /// No description provided for @worldCupPlayerProfileClubLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Club'**
+  String get worldCupPlayerProfileClubLabel;
+
+  /// No description provided for @worldCupPlayerClubPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Club update pending'**
+  String get worldCupPlayerClubPending;
+
   /// No description provided for @worldCupPlayerProfileSourceNote.
   ///
   /// In en, this message translates to:
