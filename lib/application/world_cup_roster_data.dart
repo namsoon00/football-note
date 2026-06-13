@@ -18,6 +18,44 @@ WorldCupRosterPool? worldCupRosterPoolForTeam(String team) {
   return worldCupRosterPools[team.trim()];
 }
 
+String worldCupRosterClubForPlayer(String team, String playerName) {
+  final teamClubs = worldCupRosterPlayerClubs[team.trim()];
+  if (teamClubs == null) return '';
+  return teamClubs[playerName.trim()] ?? '';
+}
+
+const Map<String, Map<String, String>> worldCupRosterPlayerClubs =
+    <String, Map<String, String>>{
+      'Korea Republic': <String, String>{
+        'Jo Hyeon-woo': 'Ulsan HD',
+        'Kim Seung-gyu': 'FC Tokyo',
+        'Song Bum-keun': 'Jeonbuk Hyundai Motors',
+        'Kim Moon-hwan': 'Daejeon Hana Citizen',
+        'Kim Min-jae': 'Bayern Munich',
+        'Kim Tae-hyon': 'Kashima Antlers',
+        'Park Jin-seob': 'Zhejiang FC',
+        'Seol Young-woo': 'Red Star Belgrade',
+        'Jens Castrop': 'Borussia Monchengladbach',
+        'Lee Ki-hyuk': 'Gangwon FC',
+        'Lee Tae-seok': 'Austria Wien',
+        'Lee Han-beom': 'Midtjylland',
+        'Cho Wi-je': 'Jeonbuk Hyundai Motors',
+        'Kim Jin-gyu': 'Jeonbuk Hyundai Motors',
+        'Bae Jun-ho': 'Stoke City',
+        'Paik Seung-ho': 'Birmingham City',
+        'Yang Hyun-jun': 'Celtic',
+        'Eom Ji-sung': 'Swansea City',
+        'Lee Kang-in': 'Paris Saint-Germain',
+        'Lee Dong-gyeong': 'Ulsan HD',
+        'Lee Jae-sung': 'Mainz 05',
+        'Hwang In-beom': 'Feyenoord',
+        'Hwang Hee-chan': 'Wolverhampton Wanderers',
+        'Son Heung-min': 'Los Angeles FC',
+        'Oh Hyeon-gyu': 'Besiktas',
+        'Cho Gue-sung': 'Midtjylland',
+      },
+    };
+
 const Map<String, WorldCupRosterPool>
 worldCupRosterPools = <String, WorldCupRosterPool>{
   'Algeria': WorldCupRosterPool(

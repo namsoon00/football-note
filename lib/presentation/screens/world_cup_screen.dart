@@ -35,8 +35,10 @@ class WorldCupScreen extends StatefulWidget {
 }
 
 class _WorldCupScreenState extends State<WorldCupScreen> {
+  static const String _calendarFormatKey = 'calendar_format_v1';
   static const String _supportCountryKey = 'world_cup_support_country_v1';
   static const String _interestCountriesKey = 'world_cup_interest_countries_v1';
+  static const double _calendarDayNumberFontSize = 17;
   static final Uri _sourceUri = Uri.parse(
     'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums',
   );
@@ -52,12 +54,14 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   bool _showSelectedCountriesOnly = false;
   bool _showCountrySettings = true;
   _WorldCupView _selectedView = _WorldCupView.schedule;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
   Timer? _clockTimer;
 
   @override
   void initState() {
     super.initState();
     _countries = worldCupCountries();
+    _calendarFormat = _loadCalendarFormat();
     _focusedDay = _initialCalendarDay();
     _selectedDay = _focusedDay;
     final initialSelectedDay = widget.initialSelectedDay;
@@ -171,8 +175,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                     child: Text(
                       l10n.worldCupOverviewTitle,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                   ),
                 ],
@@ -310,7 +314,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                   const spacing = 8.0;
                   final width =
                       (constraints.maxWidth - spacing * (columns - 1)) /
-                      columns;
+                          columns;
                   return Wrap(
                     spacing: spacing,
                     runSpacing: spacing,
@@ -507,13 +511,13 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                             selectedSummary.isEmpty
                                 ? l10n.worldCupInterestCountriesEmpty
                                 : selectedSummary
-                                      .map(
-                                        (country) => _worldCupCountryLabelText(
-                                          l10n,
-                                          country,
-                                        ),
-                                      )
-                                      .join(' · '),
+                                    .map(
+                                      (country) => _worldCupCountryLabelText(
+                                        l10n,
+                                        country,
+                                      ),
+                                    )
+                                    .join(' · '),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -542,87 +546,113 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: _supportCountryRegistered
-                          ? _supportCountry
-                          : '',
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        labelText: l10n.worldCupSupportCountryLabel,
-                        border: const OutlineInputBorder(),
-                      ),
-                      items: [
-                        DropdownMenuItem<String>(
-                          value: '',
-                          child: Text(
-                            l10n.notSet,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w700,
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final columns = constraints.maxWidth >= 620 ? 2 : 1;
+                        const spacing = 10.0;
+                        final panelWidth =
+                            (constraints.maxWidth - spacing * (columns - 1)) /
+                                columns;
+                        return Wrap(
+                          spacing: spacing,
+                          runSpacing: spacing,
+                          children: [
+                            SizedBox(
+                              width: panelWidth,
+                              child: _WorldCupCountrySettingPanel(
+                                title: l10n.worldCupSupportCountryLabel,
+                                child: DropdownButtonFormField<String>(
+                                  initialValue: _supportCountryRegistered
+                                      ? _supportCountry
+                                      : '',
+                                  isExpanded: true,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items: [
+                                    DropdownMenuItem<String>(
+                                      value: '',
+                                      child: Text(
+                                        l10n.notSet,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                          color: theme
+                                              .colorScheme.onSurfaceVariant,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    for (final country in _countries)
+                                      DropdownMenuItem<String>(
+                                        value: country,
+                                        child: _CountryLabel(country: country),
+                                      ),
+                                  ],
+                                  onChanged: (value) {
+                                    if (value == null) return;
+                                    unawaited(_setSupportCountry(value));
+                                  },
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        for (final country in _countries)
-                          DropdownMenuItem<String>(
-                            value: country,
-                            child: _CountryLabel(country: country),
-                          ),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        unawaited(_setSupportCountry(value));
+                            SizedBox(
+                              width: panelWidth,
+                              child: _WorldCupCountrySettingPanel(
+                                title: l10n.worldCupInterestCountriesLabel,
+                                trailing: TextButton.icon(
+                                  onPressed: _editInterestCountries,
+                                  icon: const Icon(Icons.edit_outlined),
+                                  label: Text(
+                                    l10n.worldCupEditInterestCountriesAction,
+                                  ),
+                                ),
+                                child: interestCountries.isEmpty
+                                    ? Text(
+                                        l10n.worldCupInterestCountriesEmpty,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                          color: theme
+                                              .colorScheme.onSurfaceVariant,
+                                        ),
+                                      )
+                                    : Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: [
+                                          for (final country
+                                              in interestCountries)
+                                            InputChip(
+                                              label: _CountryLabel(
+                                                country: country,
+                                              ),
+                                              onDeleted: () =>
+                                                  _removeInterestCountry(
+                                                country,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ],
+                        );
                       },
                     ),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.worldCupInterestCountriesLabel,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: _editInterestCountries,
-                          icon: const Icon(Icons.edit_outlined),
-                          label: Text(l10n.worldCupEditInterestCountriesAction),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    if (interestCountries.isEmpty)
-                      Text(
-                        l10n.worldCupInterestCountriesEmpty,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      )
-                    else
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final country in interestCountries)
-                            InputChip(
-                              label: _CountryLabel(country: country),
-                              onDeleted: () => _removeInterestCountry(country),
-                            ),
-                        ],
-                      ),
                     const SizedBox(height: 16),
-                    FilterChip(
-                      avatar: const Icon(Icons.filter_alt_outlined, size: 18),
-                      label: Text(l10n.worldCupSelectedCountriesOnly),
-                      selected: _showSelectedCountriesOnly,
-                      onSelected: _selectedCountrySet.isEmpty
-                          ? null
-                          : (selected) {
-                              setState(
-                                () => _showSelectedCountriesOnly = selected,
-                              );
-                            },
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: FilterChip(
+                        avatar: const Icon(Icons.filter_alt_outlined, size: 18),
+                        label: Text(l10n.worldCupSelectedCountriesOnly),
+                        selected: _showSelectedCountriesOnly,
+                        onSelected: _selectedCountrySet.isEmpty
+                            ? null
+                            : (selected) {
+                                setState(
+                                  () => _showSelectedCountriesOnly = selected,
+                                );
+                              },
+                      ),
                     ),
                   ],
                 ),
@@ -664,43 +694,81 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             ],
           ),
           const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _WorldCupCalendarHeaderChipButton(
+                label: l10n.calendarFormatTwoWeeks,
+                selected: _calendarFormat == CalendarFormat.twoWeeks,
+                onPressed: () => _setCalendarFormat(CalendarFormat.twoWeeks),
+              ),
+              _WorldCupCalendarHeaderChipButton(
+                label: l10n.calendarFormatMonth,
+                selected: _calendarFormat == CalendarFormat.month,
+                onPressed: () => _setCalendarFormat(CalendarFormat.month),
+              ),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(72, 40),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                ),
+                onPressed: () {
+                  final today = _clampCalendarDay(DateTime.now());
+                  setState(() {
+                    _selectedDay = today;
+                    _focusedDay = today;
+                  });
+                },
+                icon: const Icon(Icons.today_outlined, size: 18),
+                label: Text(l10n.guideActionToday),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           TableCalendar<WorldCupFixture>(
+            key: ValueKey('world-cup-calendar-${_calendarFormat.name}'),
             firstDay: firstDay,
             lastDay: lastDay,
             focusedDay: _focusedDay,
             locale: localeName,
-            rowHeight: 48,
+            sixWeekMonthsEnforced: false,
+            rowHeight: 44,
+            daysOfWeekHeight: 20,
             selectedDayPredicate: (day) =>
                 normalizeWorldCupDay(day) == normalizeWorldCupDay(_selectedDay),
             eventLoader: _visibleFixturesForDay,
-            calendarFormat: CalendarFormat.month,
+            calendarFormat: _calendarFormat,
             availableCalendarFormats: {
+              CalendarFormat.twoWeeks: l10n.calendarFormatTwoWeeks,
               CalendarFormat.month: l10n.calendarFormatMonth,
             },
             availableGestures: AvailableGestures.horizontalSwipe,
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            headerStyle: HeaderStyle(
-              titleCentered: true,
+            startingDayOfWeek: StartingDayOfWeek.sunday,
+            headerStyle: const HeaderStyle(
               formatButtonVisible: false,
-              titleTextFormatter: (date, _) =>
-                  DateFormat.yMMMM(localeName).format(date),
-              titleTextStyle:
-                  theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ) ??
-                  const TextStyle(fontWeight: FontWeight.w900),
+              titleCentered: true,
+              titleTextStyle: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+              headerPadding: EdgeInsets.fromLTRB(0, 0, 0, 6),
             ),
             daysOfWeekStyle: DaysOfWeekStyle(
               dowTextFormatter: (date, _) =>
                   DateFormat.E(localeName).format(date),
-              weekdayStyle:
-                  theme.textTheme.labelLarge?.copyWith(
+              weekdayStyle: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w800,
                   ) ??
                   const TextStyle(fontWeight: FontWeight.w800),
-              weekendStyle:
-                  theme.textTheme.labelLarge?.copyWith(
+              weekendStyle: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w800,
                   ) ??
@@ -708,13 +776,11 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             ),
             calendarStyle: CalendarStyle(
               outsideDaysVisible: false,
-              defaultTextStyle:
-                  theme.textTheme.titleSmall?.copyWith(
+              defaultTextStyle: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ) ??
                   const TextStyle(fontWeight: FontWeight.w800),
-              weekendTextStyle:
-                  theme.textTheme.titleSmall?.copyWith(
+              weekendTextStyle: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ) ??
                   const TextStyle(fontWeight: FontWeight.w800),
@@ -742,36 +808,12 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
               ),
             ),
             calendarBuilders: CalendarBuilders<WorldCupFixture>(
-              markerBuilder: (context, day, fixtures) {
-                if (fixtures.isEmpty) return const SizedBox.shrink();
-                final selectedCount = _showSelectedCountriesOnly
-                    ? 0
-                    : fixtures
-                          .where(
-                            (fixture) =>
-                                _fixtureMatchesSelectedCountries(fixture),
-                          )
-                          .length;
-                return PositionedDirectional(
-                  bottom: 2,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _CalendarMarker(
-                        color: theme.colorScheme.primary,
-                        label: fixtures.length.toString(),
-                      ),
-                      if (selectedCount > 0) ...[
-                        const SizedBox(width: 2),
-                        _CalendarMarker(
-                          color: theme.colorScheme.tertiary,
-                          label: selectedCount.toString(),
-                        ),
-                      ],
-                    ],
-                  ),
-                );
-              },
+              defaultBuilder: (context, day, focusedDay) =>
+                  _buildCalendarDayCell(day),
+              todayBuilder: (context, day, focusedDay) =>
+                  _buildCalendarDayCell(day, isToday: true),
+              selectedBuilder: (context, day, focusedDay) =>
+                  _buildCalendarDayCell(day, isSelected: true),
             ),
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
@@ -919,7 +961,9 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                             children: [
                               Text(
                                 l10n.worldCupInterestCountriesLabel,
-                                style: Theme.of(context).textTheme.titleLarge
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
                                     ?.copyWith(fontWeight: FontWeight.w900),
                               ),
                               const SizedBox(height: 10),
@@ -993,6 +1037,34 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     );
   }
 
+  Future<void> _setCalendarFormat(CalendarFormat format) async {
+    if (_calendarFormat == format) return;
+    setState(() {
+      _calendarFormat = format;
+      _focusedDay = _selectedDay;
+    });
+    await widget.optionRepository?.setValue(
+      _calendarFormatKey,
+      _serializeCalendarFormat(format),
+    );
+  }
+
+  CalendarFormat _loadCalendarFormat() {
+    final raw =
+        widget.optionRepository?.getValue<String>(_calendarFormatKey) ?? '';
+    return switch (raw) {
+      'twoWeeks' => CalendarFormat.twoWeeks,
+      _ => CalendarFormat.month,
+    };
+  }
+
+  String _serializeCalendarFormat(CalendarFormat format) {
+    return switch (format) {
+      CalendarFormat.twoWeeks => 'twoWeeks',
+      _ => 'month',
+    };
+  }
+
   Future<void> _setSupportCountry(String country) async {
     setState(() {
       _supportCountry = country;
@@ -1013,9 +1085,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
 
   Future<void> _setInterestCountries(Set<String> countries) async {
     if (!mounted) return;
-    final normalized = countries
-        .where((country) => _countries.contains(country))
-        .toSet();
+    final normalized =
+        countries.where((country) => _countries.contains(country)).toSet();
     setState(() {
       _interestCountries = normalized;
       _showCountrySettings = !_hasRegisteredCountrySettings;
@@ -1049,10 +1120,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
           l10n.worldCupFixtureNotificationChannelDescription,
       bodyBuilder: (fixture, teamName, opponentName) =>
           l10n.worldCupFixtureNotificationBody(
-            teamName,
-            opponentName,
-            formatter.format(fixture.kickoffLocal),
-          ),
+        teamName,
+        opponentName,
+        formatter.format(fixture.kickoffLocal),
+      ),
     );
   }
 
@@ -1068,9 +1139,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       _supportCountry = storedSupport;
       _supportCountryRegistered = true;
     }
-    _interestCountries = storedInterest
-        .where((country) => _countries.contains(country))
-        .toSet();
+    _interestCountries =
+        storedInterest.where((country) => _countries.contains(country)).toSet();
     _showCountrySettings = !_hasRegisteredCountrySettings;
   }
 
@@ -1090,10 +1160,39 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     return worldCupFixturesForDayAndCountries(day, _selectedCountrySet);
   }
 
-  bool _fixtureMatchesSelectedCountries(WorldCupFixture fixture) {
-    final selected = _selectedCountrySet;
-    if (selected.isEmpty) return false;
-    return selected.any(fixture.involvesCountry);
+  Widget _buildCalendarDayCell(
+    DateTime day, {
+    bool isSelected = false,
+    bool isToday = false,
+  }) {
+    final fixtures = _visibleFixturesForDay(day);
+    final flags = _selectedCountryFlagsForDay(day);
+    return _WorldCupCalendarDayCell(
+      dayNumber: day.day,
+      hasFixture: fixtures.isNotEmpty,
+      flags: flags.take(3).toList(growable: false),
+      extraFlagCount: math.max(0, flags.length - 3),
+      isSelected: isSelected ||
+          normalizeWorldCupDay(day) == normalizeWorldCupDay(_selectedDay),
+      isToday: isToday ||
+          normalizeWorldCupDay(day) == normalizeWorldCupDay(DateTime.now()),
+    );
+  }
+
+  List<String> _selectedCountryFlagsForDay(DateTime day) {
+    final selectedCountries = _selectedCountrySet.toList()..sort();
+    if (selectedCountries.isEmpty) return const <String>[];
+    final fixtures = _fixturesForDay(day);
+    if (fixtures.isEmpty) return const <String>[];
+    final flags = <String>[];
+    for (final country in selectedCountries) {
+      if (!fixtures.any((fixture) => fixture.involvesCountry(country))) {
+        continue;
+      }
+      final flag = worldCupCountryFlag(country);
+      if (flag.isNotEmpty) flags.add(flag);
+    }
+    return flags;
   }
 
   Set<String> get _selectedCountrySet {
@@ -1323,8 +1422,8 @@ class _FixtureRow extends StatelessWidget {
     final borderColor = supportMatch
         ? theme.colorScheme.primary
         : interestMatch
-        ? theme.colorScheme.tertiary
-        : theme.colorScheme.outlineVariant;
+            ? theme.colorScheme.tertiary
+            : theme.colorScheme.outlineVariant;
     final backgroundColor = selected
         ? borderColor.withValues(alpha: 0.08)
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.42);
@@ -1456,14 +1555,12 @@ class _FixtureTeamBlock extends StatelessWidget {
       ],
     ];
     return Column(
-      crossAxisAlignment: alignEnd
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: alignEnd
-              ? MainAxisAlignment.end
-              : MainAxisAlignment.start,
+          mainAxisAlignment:
+              alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
           children: alignEnd ? children.reversed.toList() : children,
         ),
         const SizedBox(height: 3),
@@ -1528,10 +1625,11 @@ class _FixtureScoreBoard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final scoreText =
-        fixture.hasScore || status == _WorldCupFixtureRuntimeStatus.live
-        ? l10n.worldCupScoreLine(fixture.homeScore ?? 0, fixture.awayScore ?? 0)
-        : l10n.worldCupScorePending;
+    final scoreText = fixture.hasScore
+        ? l10n.worldCupScoreLine(fixture.homeScore!, fixture.awayScore!)
+        : status == _WorldCupFixtureRuntimeStatus.live
+            ? l10n.worldCupMatchLive
+            : l10n.worldCupScorePending;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1574,10 +1672,11 @@ class _WorldCupFixtureDetailSheet extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final status = _runtimeStatusForFixture(fixture, now: currentTime);
-    final scoreText =
-        fixture.hasScore || status == _WorldCupFixtureRuntimeStatus.live
-        ? l10n.worldCupScoreLine(fixture.homeScore ?? 0, fixture.awayScore ?? 0)
-        : l10n.worldCupScorePending;
+    final scoreText = fixture.hasScore
+        ? l10n.worldCupScoreLine(fixture.homeScore!, fixture.awayScore!)
+        : status == _WorldCupFixtureRuntimeStatus.live
+            ? l10n.worldCupMatchLive
+            : l10n.worldCupScorePending;
     return SafeArea(
       child: FractionallySizedBox(
         heightFactor: 0.82,
@@ -1640,6 +1739,7 @@ class _WorldCupFixtureDetailSheet extends StatelessWidget {
                   child: _WorldCupComparisonCard(
                     team: fixture.homeTeam,
                     result: fixture.resultForTeam(fixture.homeTeam),
+                    status: status,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1647,6 +1747,7 @@ class _WorldCupFixtureDetailSheet extends StatelessWidget {
                   child: _WorldCupComparisonCard(
                     team: fixture.awayTeam,
                     result: fixture.resultForTeam(fixture.awayTeam),
+                    status: status,
                   ),
                 ),
               ],
@@ -1692,8 +1793,13 @@ class _WorldCupFixtureDetailSheet extends StatelessWidget {
 class _WorldCupComparisonCard extends StatelessWidget {
   final String team;
   final WorldCupFixtureTeamResult result;
+  final _WorldCupFixtureRuntimeStatus status;
 
-  const _WorldCupComparisonCard({required this.team, required this.result});
+  const _WorldCupComparisonCard({
+    required this.team,
+    required this.result,
+    required this.status,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1711,19 +1817,24 @@ class _WorldCupComparisonCard extends StatelessWidget {
         children: [
           _CountryLabel(country: team),
           const SizedBox(height: 8),
-          _FixtureResultPill(
-            result: result,
-            label: switch (result) {
-              WorldCupFixtureTeamResult.win => l10n.worldCupResultWinSummary,
-              WorldCupFixtureTeamResult.draw => l10n.worldCupResultDrawSummary,
-              WorldCupFixtureTeamResult.loss => l10n.worldCupResultLossSummary,
-              WorldCupFixtureTeamResult.scheduled =>
-                l10n.worldCupResultPendingTeam,
-            },
-          ),
+          _FixtureResultPill(result: result, label: _summary(l10n)),
         ],
       ),
     );
+  }
+
+  String _summary(AppLocalizations l10n) {
+    return switch (result) {
+      WorldCupFixtureTeamResult.win => l10n.worldCupResultWinSummary,
+      WorldCupFixtureTeamResult.draw => l10n.worldCupResultDrawSummary,
+      WorldCupFixtureTeamResult.loss => l10n.worldCupResultLossSummary,
+      WorldCupFixtureTeamResult.scheduled => switch (status) {
+          _WorldCupFixtureRuntimeStatus.live => l10n.worldCupMatchLive,
+          _WorldCupFixtureRuntimeStatus.awaitingUpdate =>
+            l10n.worldCupMatchAwaitingUpdate,
+          _ => l10n.worldCupResultPendingTeam,
+        },
+    };
   }
 }
 
@@ -1866,6 +1977,55 @@ class _CountryLabel extends StatelessWidget {
   }
 }
 
+class _WorldCupCountrySettingPanel extends StatelessWidget {
+  final String title;
+  final Widget child;
+  final Widget? trailing;
+
+  const _WorldCupCountrySettingPanel({
+    required this.title,
+    required this.child,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.46,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+            ],
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
 class _TappableCountryLabel extends StatelessWidget {
   final String country;
   final TextAlign textAlign;
@@ -1933,27 +2093,184 @@ class _GuideBullet extends StatelessWidget {
   }
 }
 
-class _CalendarMarker extends StatelessWidget {
-  final Color color;
-  final String label;
+class _WorldCupCalendarDayCell extends StatelessWidget {
+  final int dayNumber;
+  final bool hasFixture;
+  final List<String> flags;
+  final int extraFlagCount;
+  final bool isSelected;
+  final bool isToday;
 
-  const _CalendarMarker({required this.color, required this.label});
+  const _WorldCupCalendarDayCell({
+    required this.dayNumber,
+    required this.hasFixture,
+    required this.flags,
+    required this.extraFlagCount,
+    required this.isSelected,
+    required this.isToday,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 16,
-      height: 16,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    final colorScheme = Theme.of(context).colorScheme;
+    final todayColor = colorScheme.tertiary;
+    final dayTextColor = isSelected
+        ? colorScheme.primary
+        : (isToday ? todayColor : colorScheme.onSurface);
+    final borderColor = isSelected
+        ? colorScheme.primary
+        : (isToday ? todayColor.withAlpha(210) : Colors.transparent);
+    final backgroundColor = isSelected
+        ? colorScheme.primary.withAlpha(28)
+        : (isToday ? todayColor.withAlpha(24) : Colors.transparent);
+
+    return Center(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOutCubic,
+        width: 40,
+        height: 44,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor, width: 1.2),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '$dayNumber',
+              style: TextStyle(
+                fontSize: _WorldCupScreenState._calendarDayNumberFontSize,
+                fontWeight: FontWeight.w800,
+                color: dayTextColor,
+                height: 1.0,
+              ),
+            ),
+            const SizedBox(height: 4),
+            if (flags.isNotEmpty)
+              _WorldCupCalendarFlagStrip(
+                flags: flags,
+                extraFlagCount: extraFlagCount,
+              )
+            else
+              _WorldCupCalendarMarkerSegment(
+                visible: hasFixture,
+                color: colorScheme.primary,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WorldCupCalendarFlagStrip extends StatelessWidget {
+  final List<String> flags;
+  final int extraFlagCount;
+
+  const _WorldCupCalendarFlagStrip({
+    required this.flags,
+    required this.extraFlagCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 12,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final flag in flags)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 1),
+              child: Text(flag, style: const TextStyle(fontSize: 10)),
+            ),
+          if (extraFlagCount > 0)
+            Text(
+              '+$extraFlagCount',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorldCupCalendarMarkerSegment extends StatelessWidget {
+  final bool visible;
+  final Color color;
+
+  const _WorldCupCalendarMarkerSegment({
+    required this.visible,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 4,
+      child: visible
+          ? Container(
+              width: 8,
+              height: 4,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(999),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.28),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+            )
+          : const SizedBox(width: 8, height: 4),
+    );
+  }
+}
+
+class _WorldCupCalendarHeaderChipButton extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  const _WorldCupCalendarHeaderChipButton({
+    required this.label,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: const Size(64, 40),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        backgroundColor: selected
+            ? colorScheme.primary.withValues(alpha: 0.12)
+            : colorScheme.surface.withValues(alpha: 0.68),
+        side: BorderSide(
+          color: selected
+              ? colorScheme.primary.withValues(alpha: 0.65)
+              : colorScheme.outlineVariant,
+        ),
+      ),
+      onPressed: onPressed,
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Colors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          height: 1,
-        ),
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: selected ? colorScheme.primary : colorScheme.onSurface,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }
@@ -2026,11 +2343,13 @@ enum _WorldCupRosterPosition { goalkeeper, defender, midfielder, forward }
 
 class _WorldCupRosterPlayer {
   final String name;
+  final String club;
   final _WorldCupRosterPosition position;
   final Offset spot;
 
   const _WorldCupRosterPlayer({
     required this.name,
+    required this.club,
     required this.position,
     required this.spot,
   });
@@ -2092,6 +2411,7 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
             _WorldCupFormationPitch(
               title: l10n.worldCupTeamRosterFormationLabel(formation),
               players: _worldCupFormationPlayers(players, formation),
+              onPlayerTap: (player) => _openPlayerProfile(context, player),
             ),
             const SizedBox(height: 14),
             _WorldCupRosterPositionSection(
@@ -2165,8 +2485,13 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
 class _WorldCupFormationPitch extends StatelessWidget {
   final String title;
   final List<_WorldCupRosterPlayer> players;
+  final ValueChanged<_WorldCupRosterPlayer> onPlayerTap;
 
-  const _WorldCupFormationPitch({required this.title, required this.players});
+  const _WorldCupFormationPitch({
+    required this.title,
+    required this.players,
+    required this.onPlayerTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -2211,7 +2536,10 @@ class _WorldCupFormationPitch extends StatelessWidget {
                           top: constraints.maxHeight * player.spot.dy,
                           child: FractionalTranslation(
                             translation: const Offset(-0.5, -0.5),
-                            child: _PitchPlayerChip(player: player),
+                            child: _PitchPlayerChip(
+                              player: player,
+                              onTap: () => onPlayerTap(player),
+                            ),
                           ),
                         ),
                     ],
@@ -2293,30 +2621,46 @@ class _WorldCupPitchPainter extends CustomPainter {
 
 class _PitchPlayerChip extends StatelessWidget {
   final _WorldCupRosterPlayer player;
+  final VoidCallback onTap;
 
-  const _PitchPlayerChip({required this.player});
+  const _PitchPlayerChip({required this.player, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 86),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: _positionColor(theme, player.position).withValues(alpha: 0.52),
-        ),
-      ),
-      child: Text(
-        player.name,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.center,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: _positionColor(theme, player.position),
-          fontWeight: FontWeight.w900,
+    return Tooltip(
+      message: player.name,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(999),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 86),
+            child: Ink(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: _positionColor(
+                    theme,
+                    player.position,
+                  ).withValues(alpha: 0.52),
+                ),
+              ),
+              child: Text(
+                player.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: _positionColor(theme, player.position),
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -2390,6 +2734,7 @@ class _RosterPlayerPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final color = _positionColor(theme, player.position);
     return Material(
       color: Colors.transparent,
@@ -2413,11 +2758,31 @@ class _RosterPlayerPill extends StatelessWidget {
                 size: 28,
               ),
               const SizedBox(width: 7),
-              Text(
-                player.name,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w900,
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 190),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      player.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      _worldCupPlayerClubLabel(l10n, player),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -2481,6 +2846,10 @@ class _WorldCupPlayerProfileSheet extends StatelessWidget {
                 _InfoItem(
                   l10n.worldCupPlayerProfilePositionLabel,
                   _worldCupRosterPositionLabel(l10n, player.position),
+                ),
+                _InfoItem(
+                  l10n.worldCupPlayerProfileClubLabel,
+                  _worldCupPlayerClubLabel(l10n, player),
                 ),
               ],
             ),
@@ -2594,6 +2963,14 @@ String _worldCupRosterPositionLabel(
   };
 }
 
+String _worldCupPlayerClubLabel(
+  AppLocalizations l10n,
+  _WorldCupRosterPlayer player,
+) {
+  final club = player.club.trim();
+  return club.isEmpty ? l10n.worldCupPlayerClubPending : club;
+}
+
 List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
   String team,
   AppLocalizations l10n,
@@ -2602,11 +2979,13 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
   if (pool != null) {
     return <_WorldCupRosterPlayer>[
       ..._playersFromNames(
+        team,
         pool.goalkeepers,
         _WorldCupRosterPosition.goalkeeper,
         const [Offset(0.50, 0.88)],
       ),
       ..._playersFromNames(
+        team,
         pool.defenders,
         _WorldCupRosterPosition.defender,
         const [
@@ -2617,11 +2996,13 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
         ],
       ),
       ..._playersFromNames(
+        team,
         pool.midfielders,
         _WorldCupRosterPosition.midfielder,
         const [Offset(0.25, 0.48), Offset(0.50, 0.42), Offset(0.75, 0.48)],
       ),
       ..._playersFromNames(
+        team,
         pool.forwards,
         _WorldCupRosterPosition.forward,
         const [Offset(0.24, 0.24), Offset(0.50, 0.17), Offset(0.76, 0.24)],
@@ -2634,6 +3015,7 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
         l10n.worldCupTeamRosterPositionGoalkeeper,
         1,
       ),
+      club: '',
       position: _WorldCupRosterPosition.goalkeeper,
       spot: const Offset(0.50, 0.88),
     ),
@@ -2643,6 +3025,7 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
           l10n.worldCupTeamRosterPositionDefender,
           index + 1,
         ),
+        club: '',
         position: _WorldCupRosterPosition.defender,
         spot: [
           const Offset(0.18, 0.70),
@@ -2657,6 +3040,7 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
           l10n.worldCupTeamRosterPositionMidfielder,
           index + 1,
         ),
+        club: '',
         position: _WorldCupRosterPosition.midfielder,
         spot: [
           const Offset(0.25, 0.48),
@@ -2670,6 +3054,7 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
           l10n.worldCupTeamRosterPositionForward,
           index + 1,
         ),
+        club: '',
         position: _WorldCupRosterPosition.forward,
         spot: [
           const Offset(0.24, 0.24),
@@ -2681,6 +3066,7 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
 }
 
 List<_WorldCupRosterPlayer> _playersFromNames(
+  String team,
   List<String> names,
   _WorldCupRosterPosition position,
   List<Offset> formationSpots,
@@ -2689,6 +3075,7 @@ List<_WorldCupRosterPlayer> _playersFromNames(
     for (var index = 0; index < names.length; index += 1)
       _WorldCupRosterPlayer(
         name: names[index],
+        club: worldCupRosterClubForPlayer(team, names[index]),
         position: position,
         spot: index < formationSpots.length
             ? formationSpots[index]
@@ -2719,11 +3106,9 @@ List<_WorldCupRosterPlayer> _worldCupFormationPlayers(
     final position = _formationLinePosition(lineIndex, shape.length);
     final linePlayers = _playersForPosition(players, position);
     final spots = _formationLineSpots(count, lineYs[lineIndex]);
-    for (
-      var index = 0;
-      index < count && index < linePlayers.length;
-      index += 1
-    ) {
+    for (var index = 0;
+        index < count && index < linePlayers.length;
+        index += 1) {
       formationPlayers.add(_playerWithSpot(linePlayers[index], spots[index]));
     }
   }
@@ -2778,6 +3163,7 @@ _WorldCupRosterPlayer _playerWithSpot(
 ) {
   return _WorldCupRosterPlayer(
     name: player.name,
+    club: player.club,
     position: player.position,
     spot: spot,
   );

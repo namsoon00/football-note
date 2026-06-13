@@ -336,6 +336,8 @@
   },
   "worldCupPlayerProfileTeamLabel": "대표팀",
   "worldCupPlayerProfilePositionLabel": "포지션",
+  "worldCupPlayerProfileClubLabel": "소속팀",
+  "worldCupPlayerClubPending": "소속팀 업데이트 대기",
   "worldCupPlayerProfileSourceNote": "공식 사진이 없을 때는 선수 얼굴 아이콘을 표시합니다.",
   "worldCupScorePending": "- : -",
   "worldCupScoreLine": "{homeScore} : {awayScore}",

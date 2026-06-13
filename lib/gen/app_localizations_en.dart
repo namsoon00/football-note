@@ -757,6 +757,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupPlayerProfilePositionLabel => 'Position';
 
   @override
+  String get worldCupPlayerProfileClubLabel => 'Club';
+
+  @override
+  String get worldCupPlayerClubPending => 'Club update pending';
+
+  @override
   String get worldCupPlayerProfileSourceNote =>
       'A player face icon is shown when an official photo is unavailable.';
 
