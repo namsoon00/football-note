@@ -997,6 +997,9 @@ class _TrainingGemStagePainter extends CustomPainter {
 
 enum _CelebrationCharacter { gem, flame }
 
+const _fairyTaleGemAsset = 'assets/images/celebration_gem_fairytale.png';
+const _fairyTaleFlameAsset = 'assets/images/celebration_flame_fairytale.png';
+
 class _CelebrationCharacterView extends StatefulWidget {
   final _CelebrationCharacter character;
   final Color color;
@@ -1771,147 +1774,12 @@ class _CuteFlameIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: size,
-      child: CustomPaint(painter: _CuteFlamePainter(color: color)),
+    return _StorybookCelebrationImage(
+      assetName: _fairyTaleFlameAsset,
+      glowColor: color,
+      glowStrength: 0.13,
+      size: size,
     );
-  }
-}
-
-class _CuteFlamePainter extends CustomPainter {
-  final Color color;
-
-  const _CuteFlamePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final shadowPaint = Paint()
-      ..color = const Color(0x33000000)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(w * 0.50, h * 0.88),
-        width: w * 0.70,
-        height: h * 0.18,
-      ),
-      shadowPaint,
-    );
-
-    final outer = Path()
-      ..moveTo(w * 0.50, h * 0.03)
-      ..cubicTo(w * 0.34, h * 0.17, w * 0.42, h * 0.29, w * 0.25, h * 0.42)
-      ..cubicTo(w * 0.03, h * 0.60, w * 0.10, h * 0.88, w * 0.37, h * 0.96)
-      ..cubicTo(w * 0.42, h * 0.98, w * 0.47, h * 0.99, w * 0.50, h * 0.98)
-      ..cubicTo(w * 0.56, h * 0.99, w * 0.64, h * 0.97, w * 0.71, h * 0.93)
-      ..cubicTo(w * 0.96, h * 0.80, w * 0.99, h * 0.57, w * 0.76, h * 0.40)
-      ..cubicTo(w * 0.61, h * 0.29, w * 0.68, h * 0.15, w * 0.50, h * 0.03)
-      ..close();
-    final outerShader = LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: <Color>[
-        const Color(0xFFFFF1A6),
-        Color.lerp(const Color(0xFFFFB703), color, 0.34)!,
-        color,
-        const Color(0xFFC2410C),
-      ],
-      stops: const <double>[0, 0.30, 0.70, 1],
-    ).createShader(Offset.zero & size);
-    canvas.drawPath(outer, Paint()..shader = outerShader);
-
-    final leftLobe = Path()
-      ..moveTo(w * 0.34, h * 0.26)
-      ..cubicTo(w * 0.19, h * 0.39, w * 0.16, h * 0.57, w * 0.28, h * 0.72)
-      ..cubicTo(w * 0.36, h * 0.82, w * 0.49, h * 0.78, w * 0.43, h * 0.60)
-      ..cubicTo(w * 0.38, h * 0.47, w * 0.45, h * 0.38, w * 0.34, h * 0.26)
-      ..close();
-    canvas.drawPath(
-      leftLobe,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[
-            Colors.white.withValues(alpha: 0.34),
-            const Color(0xFFFFD166).withValues(alpha: 0.72),
-            Colors.transparent,
-          ],
-        ).createShader(Offset.zero & size),
-    );
-
-    final rightLobe = Path()
-      ..moveTo(w * 0.66, h * 0.25)
-      ..cubicTo(w * 0.79, h * 0.38, w * 0.86, h * 0.57, w * 0.73, h * 0.74)
-      ..cubicTo(w * 0.64, h * 0.84, w * 0.51, h * 0.78, w * 0.59, h * 0.59)
-      ..cubicTo(w * 0.64, h * 0.47, w * 0.57, h * 0.37, w * 0.66, h * 0.25)
-      ..close();
-    canvas.drawPath(
-      rightLobe,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: <Color>[
-            Colors.white.withValues(alpha: 0.26),
-            Color.lerp(
-              const Color(0xFFFFB703),
-              color,
-              0.20,
-            )!.withValues(alpha: 0.58),
-            Colors.transparent,
-          ],
-        ).createShader(Offset.zero & size),
-    );
-
-    final rimPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.2, w * 0.035)
-      ..color = Colors.white.withValues(alpha: 0.42)
-      ..strokeJoin = StrokeJoin.round;
-    canvas.drawPath(outer, rimPaint);
-
-    final inner = Path()
-      ..moveTo(w * 0.54, h * 0.24)
-      ..cubicTo(w * 0.41, h * 0.40, w * 0.51, h * 0.51, w * 0.38, h * 0.62)
-      ..cubicTo(w * 0.22, h * 0.76, w * 0.34, h * 0.92, w * 0.53, h * 0.90)
-      ..cubicTo(w * 0.75, h * 0.88, w * 0.82, h * 0.72, w * 0.64, h * 0.56)
-      ..cubicTo(w * 0.55, h * 0.47, w * 0.64, h * 0.36, w * 0.54, h * 0.24)
-      ..close();
-    canvas.drawPath(
-      inner,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: <Color>[
-            Colors.white.withValues(alpha: 0.96),
-            const Color(0xFFFFD166),
-            const Color(0xFFFF8A2A),
-          ],
-        ).createShader(Offset.zero & size),
-    );
-
-    final highlight = Paint()
-      ..color = Colors.white.withValues(alpha: 0.46)
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = math.max(1.0, w * 0.035);
-    canvas.drawLine(
-      Offset(w * 0.36, h * 0.33),
-      Offset(w * 0.26, h * 0.54),
-      highlight,
-    );
-    canvas.drawLine(
-      Offset(w * 0.69, h * 0.48),
-      Offset(w * 0.77, h * 0.62),
-      highlight..color = Colors.white.withValues(alpha: 0.30),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _CuteFlamePainter oldDelegate) {
-    return oldDelegate.color != color;
   }
 }
 
@@ -1928,194 +1796,63 @@ class _CuteGemIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: size,
-      child: CustomPaint(
-        painter: _CuteGemPainter(color: color, glint: glint),
-      ),
+    return _StorybookCelebrationImage(
+      assetName: _fairyTaleGemAsset,
+      glowColor: color,
+      glowStrength: 0.07 + glint.clamp(0.0, 1.0) * 0.08,
+      size: size,
     );
   }
 }
 
-class _CuteGemPainter extends CustomPainter {
-  final Color color;
-  final double glint;
+class _StorybookCelebrationImage extends StatelessWidget {
+  final String assetName;
+  final Color glowColor;
+  final double glowStrength;
+  final double size;
 
-  const _CuteGemPainter({required this.color, required this.glint});
+  const _StorybookCelebrationImage({
+    required this.assetName,
+    required this.glowColor,
+    required this.glowStrength,
+    required this.size,
+  });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final shadowPaint = Paint()
-      ..color = const Color(0x40000000)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(w * 0.5, h * 0.86),
-        width: w * 0.86,
-        height: h * 0.22,
-      ),
-      shadowPaint,
-    );
-
-    final top = Offset(w * 0.50, h * 0.04);
-    final shoulderLeft = Offset(w * 0.22, h * 0.14);
-    final shoulderRight = Offset(w * 0.78, h * 0.14);
-    final upperLeft = Offset(w * 0.05, h * 0.38);
-    final upperRight = Offset(w * 0.95, h * 0.38);
-    final bottom = Offset(w * 0.50, h * 0.95);
-    final center = Offset(w * 0.50, h * 0.45);
-    final leftFacet = Path()
-      ..moveTo(shoulderLeft.dx, shoulderLeft.dy)
-      ..lineTo(shoulderLeft.dx, shoulderLeft.dy)
-      ..lineTo(upperLeft.dx, upperLeft.dy)
-      ..lineTo(center.dx, center.dy)
-      ..close();
-    final rightFacet = Path()
-      ..moveTo(shoulderRight.dx, shoulderRight.dy)
-      ..lineTo(center.dx, center.dy)
-      ..lineTo(upperRight.dx, upperRight.dy)
-      ..lineTo(shoulderRight.dx, shoulderRight.dy)
-      ..close();
-    final topFacet = Path()
-      ..moveTo(top.dx, top.dy)
-      ..lineTo(shoulderRight.dx, shoulderRight.dy)
-      ..lineTo(center.dx, center.dy)
-      ..lineTo(shoulderLeft.dx, shoulderLeft.dy)
-      ..close();
-    final lowerLeftFacet = Path()
-      ..moveTo(upperLeft.dx, upperLeft.dy)
-      ..lineTo(bottom.dx, bottom.dy)
-      ..lineTo(center.dx, center.dy)
-      ..close();
-    final lowerRightFacet = Path()
-      ..moveTo(center.dx, center.dy)
-      ..lineTo(bottom.dx, bottom.dy)
-      ..lineTo(upperRight.dx, upperRight.dy)
-      ..close();
-    final outline = Path()
-      ..moveTo(top.dx, top.dy)
-      ..cubicTo(
-        w * 0.58,
-        h * 0.05,
-        w * 0.70,
-        h * 0.08,
-        shoulderRight.dx,
-        shoulderRight.dy,
-      )
-      ..quadraticBezierTo(w * 0.93, h * 0.22, upperRight.dx, upperRight.dy)
-      ..cubicTo(w * 0.99, h * 0.55, w * 0.79, h * 0.86, bottom.dx, bottom.dy)
-      ..cubicTo(
-        w * 0.22,
-        h * 0.86,
-        w * 0.01,
-        h * 0.55,
-        upperLeft.dx,
-        upperLeft.dy,
-      )
-      ..quadraticBezierTo(w * 0.07, h * 0.22, shoulderLeft.dx, shoulderLeft.dy)
-      ..cubicTo(w * 0.30, h * 0.08, w * 0.42, h * 0.05, top.dx, top.dy)
-      ..close();
-
-    canvas.drawPath(
-      outline,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color.lerp(Colors.white, color, 0.18)!,
-            color,
-            Color.lerp(Colors.black, color, 0.70)!,
+  Widget build(BuildContext context) {
+    final glow = glowStrength.clamp(0.0, 0.24);
+    return ExcludeSemantics(
+      child: SizedBox.square(
+        dimension: size,
+        child: Stack(
+          fit: StackFit.expand,
+          alignment: Alignment.center,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [
+                    glowColor.withValues(alpha: glow),
+                    glowColor.withValues(alpha: glow * 0.34),
+                    Colors.transparent,
+                  ],
+                  stops: const [0, 0.56, 1],
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(size * 0.015),
+              child: Image.asset(
+                assetName,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+                gaplessPlayback: true,
+              ),
+            ),
           ],
-        ).createShader(Offset.zero & size),
-    );
-    canvas.save();
-    canvas.clipPath(outline);
-    canvas.drawPath(
-      topFacet,
-      Paint()..color = Color.lerp(Colors.white, color, 0.12)!,
-    );
-    canvas.drawPath(
-      leftFacet,
-      Paint()..color = Color.lerp(Colors.white, color, 0.24)!,
-    );
-    canvas.drawPath(
-      rightFacet,
-      Paint()..color = Color.lerp(Colors.white, color, 0.34)!,
-    );
-    canvas.drawPath(
-      lowerLeftFacet,
-      Paint()..color = Color.lerp(Colors.black, color, 0.78)!,
-    );
-    canvas.drawPath(
-      lowerRightFacet,
-      Paint()..color = Color.lerp(Colors.black, color, 0.64)!,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(shoulderLeft.dx, shoulderLeft.dy)
-        ..lineTo(center.dx, center.dy)
-        ..lineTo(shoulderRight.dx, shoulderRight.dy)
-        ..moveTo(upperLeft.dx, upperLeft.dy)
-        ..lineTo(center.dx, center.dy)
-        ..lineTo(upperRight.dx, upperRight.dy)
-        ..moveTo(center.dx, center.dy)
-        ..lineTo(bottom.dx, bottom.dy),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.0, w * 0.020)
-        ..color = Colors.white.withValues(alpha: 0.38),
-    );
-    canvas.restore();
-    canvas.drawPath(
-      outline,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.2, w * 0.035)
-        ..color = Colors.white.withValues(alpha: 0.50 + glint * 0.22),
-    );
-
-    final shinePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.38 + glint * 0.32);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * 0.23, h * 0.22, w * 0.28, h * 0.08),
-        Radius.circular(w * 0.06),
+        ),
       ),
-      shinePaint,
     );
-    canvas.drawCircle(
-      Offset(w * 0.68, h * 0.23),
-      w * (0.038 + glint * 0.020),
-      shinePaint,
-    );
-    canvas.drawCircle(
-      Offset(w * 0.36, h * 0.17),
-      w * (0.024 + glint * 0.012),
-      shinePaint..color = Colors.white.withValues(alpha: 0.46),
-    );
-    final glintPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.34 + glint * 0.34)
-      ..strokeWidth = math.max(1.0, w * 0.018)
-      ..strokeCap = StrokeCap.round;
-    final glintCenter = Offset(w * 0.73, h * 0.36);
-    canvas.drawLine(
-      Offset(glintCenter.dx - w * 0.07, glintCenter.dy),
-      Offset(glintCenter.dx + w * 0.07, glintCenter.dy),
-      glintPaint,
-    );
-    canvas.drawLine(
-      Offset(glintCenter.dx, glintCenter.dy - h * 0.07),
-      Offset(glintCenter.dx, glintCenter.dy + h * 0.07),
-      glintPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _CuteGemPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.glint != glint;
   }
 }
 
