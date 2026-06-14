@@ -44,6 +44,23 @@ class WorldCupFixture {
 
   bool get hasScore => homeScore != null && awayScore != null;
 
+  WorldCupFixture copyWithScore({
+    required int? homeScore,
+    required int? awayScore,
+  }) {
+    return WorldCupFixture(
+      matchNumber: matchNumber,
+      kickoffUtcIso: kickoffUtcIso,
+      stage: stage,
+      group: group,
+      homeTeam: homeTeam,
+      awayTeam: awayTeam,
+      venue: venue,
+      homeScore: homeScore,
+      awayScore: awayScore,
+    );
+  }
+
   bool involvesCountry(String country) {
     final normalized = country.trim().toLowerCase();
     if (normalized.isEmpty) return false;
@@ -176,23 +193,27 @@ List<String> worldCupCountries() {
   return countries.toList()..sort();
 }
 
-List<WorldCupFixture> worldCupFixturesForDay(DateTime day) {
+List<WorldCupFixture> worldCupFixturesForDay(
+  DateTime day, {
+  List<WorldCupFixture>? fixtures,
+}) {
   final normalized = normalizeWorldCupDay(day);
-  return worldCupFixtures
+  return (fixtures ?? worldCupFixtures)
       .where((fixture) => fixture.localDay == normalized)
       .toList(growable: false);
 }
 
 List<WorldCupFixture> worldCupFixturesForDayAndCountries(
   DateTime day,
-  Iterable<String> countries,
-) {
+  Iterable<String> countries, {
+  List<WorldCupFixture>? fixtures,
+}) {
   final selected = countries
       .map((country) => country.trim().toLowerCase())
       .where((country) => country.isNotEmpty)
       .toSet();
   if (selected.isEmpty) return const <WorldCupFixture>[];
-  return worldCupFixturesForDay(day)
+  return worldCupFixturesForDay(day, fixtures: fixtures)
       .where(
         (fixture) =>
             selected.contains(fixture.homeTeam.toLowerCase()) ||
@@ -201,13 +222,16 @@ List<WorldCupFixture> worldCupFixturesForDayAndCountries(
       .toList(growable: false);
 }
 
-List<WorldCupFixture> worldCupFixturesForCountries(Iterable<String> countries) {
+List<WorldCupFixture> worldCupFixturesForCountries(
+  Iterable<String> countries, {
+  List<WorldCupFixture>? fixtures,
+}) {
   final selected = countries
       .map((country) => country.trim().toLowerCase())
       .where((country) => country.isNotEmpty)
       .toSet();
   if (selected.isEmpty) return const <WorldCupFixture>[];
-  return worldCupFixtures
+  return (fixtures ?? worldCupFixtures)
       .where(
         (fixture) =>
             selected.contains(fixture.homeTeam.toLowerCase()) ||
@@ -216,9 +240,11 @@ List<WorldCupFixture> worldCupFixturesForCountries(Iterable<String> countries) {
       .toList(growable: false);
 }
 
-Map<String, List<WorldCupGroupStanding>> worldCupGroupStandings() {
+Map<String, List<WorldCupGroupStanding>> worldCupGroupStandings({
+  List<WorldCupFixture>? fixtures,
+}) {
   final groups = <String, Map<String, _WorldCupGroupStandingAccumulator>>{};
-  for (final fixture in worldCupFixtures) {
+  for (final fixture in fixtures ?? worldCupFixtures) {
     final group = fixture.group;
     if (!fixture.isGroupStage || group == null) continue;
     final groupStats = groups.putIfAbsent(

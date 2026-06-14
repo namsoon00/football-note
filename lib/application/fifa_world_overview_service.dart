@@ -153,6 +153,14 @@ class FifaWorldOverviewService {
     }
   }
 
+  Future<List<FifaAMatchEntry>> fetchNationalMatches({
+    required FifaRankingGender gender,
+    required DateTime start,
+    required DateTime end,
+  }) {
+    return _fetchNationalMatchesWindow(gender: gender, start: start, end: end);
+  }
+
   Future<_FifaRankingSnapshot> _fetchRankingSnapshot(
     FifaRankingGender gender,
   ) async {
@@ -472,8 +480,13 @@ class FifaWorldOverviewService {
       match: _parseNationalMatch(item) ?? fallback,
       homeScorers: _parseGoalScorers(home),
       awayScorers: _parseGoalScorers(away),
+      homePlayers: _parseMatchPlayers(home),
+      awayPlayers: _parseMatchPlayers(away),
+      homeTactics: _asString(home['Tactics']),
+      awayTactics: _asString(away['Tactics']),
       homePossession: possession[0],
       awayPossession: possession[1],
+      attendance: _asInt(item['Attendance']),
     );
   }
 
@@ -801,6 +814,7 @@ class FifaWorldOverviewService {
     final stadium = _asMap(raw['Stadium']);
     return FifaAMatchEntry(
       matchId: matchId,
+      matchNumber: _asInt(raw['MatchNumber']),
       gender: gender,
       competition: competition,
       stage: _localizedDescription(raw['StageName']),
@@ -820,6 +834,52 @@ class FifaWorldOverviewService {
         awayScore: awayScore,
       ),
     );
+  }
+
+  static List<FifaMatchPlayer> _parseMatchPlayers(Map<String, dynamic> team) {
+    final rawPlayers = team['Players'];
+    if (rawPlayers is! List) return const <FifaMatchPlayer>[];
+    final players = <FifaMatchPlayer>[];
+    for (final raw in rawPlayers) {
+      if (raw is! Map) continue;
+      final player = raw.cast<String, dynamic>();
+      final playerId = _asString(player['IdPlayer']);
+      final shortName = _localizedDescription(player['ShortName']);
+      final fullName = _localizedDescription(player['PlayerName']);
+      final playerName = shortName.isNotEmpty ? shortName : fullName;
+      if (playerId.isEmpty || playerName.isEmpty) continue;
+      players.add(
+        FifaMatchPlayer(
+          playerId: playerId,
+          playerName: playerName,
+          shirtNumber: _asInt(player['ShirtNumber']),
+          position: _parsePlayerPosition(_asInt(player['Position'])),
+          isStarting: _asInt(player['Status']) == 1,
+          isCaptain: player['Captain'] == true,
+          pictureUrl: _asString(_asMap(player['PlayerPicture'])['PictureUrl']),
+        ),
+      );
+    }
+    players.sort((a, b) {
+      final starting = (b.isStarting ? 1 : 0).compareTo(a.isStarting ? 1 : 0);
+      if (starting != 0) return starting;
+      final shirtA = a.shirtNumber ?? 999;
+      final shirtB = b.shirtNumber ?? 999;
+      final shirt = shirtA.compareTo(shirtB);
+      if (shirt != 0) return shirt;
+      return a.playerName.compareTo(b.playerName);
+    });
+    return players.toList(growable: false);
+  }
+
+  static FifaMatchPlayerPosition _parsePlayerPosition(int? raw) {
+    return switch (raw) {
+      0 => FifaMatchPlayerPosition.goalkeeper,
+      1 => FifaMatchPlayerPosition.defender,
+      2 => FifaMatchPlayerPosition.midfielder,
+      3 => FifaMatchPlayerPosition.forward,
+      _ => FifaMatchPlayerPosition.unknown,
+    };
   }
 
   static FifaAMatchStatus _parseMatchStatus({

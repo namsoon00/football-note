@@ -326,6 +326,27 @@
   "worldCupMatchComparisonTitle": "戦力比較",
   "worldCupMatchRecordsTitle": "試合記録",
   "worldCupMatchRecordUnavailable": "公式データが利用可能になると、ライブ試合記録が表示されます。",
+  "worldCupMatchDetailLoading": "FIFAの試合データを読み込んでいます...",
+  "worldCupMatchScorersTitle": "得点者",
+  "worldCupMatchLineupsTitle": "ラインアップ",
+  "worldCupStartingPlayersLabel": "先発",
+  "worldCupBenchPlayersLabel": "ベンチ",
+  "worldCupCaptainAbbreviation": "(C)",
+  "worldCupOfficialSourceNote": "スコア、選手リスト、試合記録は、このページを開くたびにFIFAデータから更新されます。",
+  "worldCupMatchPossessionLabel": "ポゼッション",
+  "worldCupMatchPossessionValue": "{home}% · {away}%",
+  "@worldCupMatchPossessionValue": {
+    "placeholders": {
+      "home": {
+        "type": "int"
+      },
+      "away": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupMatchAttendanceLabel": "観客数",
+  "worldCupMatchTacticsLabel": "戦術",
   "worldCupPlayerProfileTitle": "{player} プロフィール",
   "@worldCupPlayerProfileTitle": {
     "placeholders": {
@@ -607,6 +628,17 @@
     }
   },
   "worldCupSourceAction": "FIFA日程を開く",
+  "worldCupOfficialRefreshAction": "FIFAデータを更新",
+  "worldCupOfficialRefreshing": "FIFA更新中",
+  "worldCupOfficialUnavailable": "FIFA利用不可",
+  "worldCupOfficialUpdatedAt": "FIFA {time}",
+  "@worldCupOfficialUpdatedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "homeTodayPlanCardTitle": "今日のトレーニングプラン",
   "homeTodayPlanCardSummary": "今日: {count} プラン",
   "@homeTodayPlanCardSummary": {

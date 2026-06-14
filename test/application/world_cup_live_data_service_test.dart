@@ -1,0 +1,166 @@
+import 'dart:convert';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/fifa_world_overview_service.dart';
+import 'package:football_note/application/world_cup_live_data_service.dart';
+import 'package:football_note/domain/entities/fifa_world_overview.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+
+void main() {
+  test(
+    'fetchLatest overlays FIFA World Cup results onto local fixtures',
+    () async {
+      final parsed = FifaWorldOverviewService.parseNationalMatches([
+        _worldCupMatch(
+          matchId: 'parse-check',
+          matchNumber: 7,
+          period: 10,
+          date: '2026-06-13T22:00:00Z',
+          homeName: 'Brazil',
+          homeCode: 'BRA',
+          awayName: 'Morocco',
+          awayCode: 'MAR',
+          homeScore: 1,
+          awayScore: 1,
+        ),
+      ], gender: FifaRankingGender.men);
+      expect(parsed, hasLength(1));
+
+      final requestedRanges = <Map<String, String>>[];
+      final client = MockClient((request) async {
+        if (request.url.host == 'api.fifa.com' &&
+            request.url.path.endsWith('/live/football/range')) {
+          requestedRanges.add(request.url.queryParameters);
+          return http.Response(
+            jsonEncode({
+              'Results': [
+                _worldCupMatch(
+                  matchId: 'official-mexico',
+                  matchNumber: 1,
+                  period: 0,
+                  date: '2026-06-11T19:00:00Z',
+                  homeName: 'Mexico',
+                  homeCode: 'MEX',
+                  awayName: 'South Africa',
+                  awayCode: 'RSA',
+                ),
+                _worldCupMatch(
+                  matchId: 'official-brazil',
+                  matchNumber: 7,
+                  period: 10,
+                  date: '2026-06-13T22:00:00Z',
+                  homeName: 'Brazil',
+                  homeCode: 'BRA',
+                  awayName: 'Morocco',
+                  awayCode: 'MAR',
+                  homeScore: 1,
+                  awayScore: 1,
+                ),
+                _worldCupMatch(
+                  matchId: 'official-australia',
+                  matchNumber: 6,
+                  period: 10,
+                  date: '2026-06-14T04:00:00Z',
+                  homeName: 'Australia',
+                  homeCode: 'AUS',
+                  awayName: 'Türkiye',
+                  awayCode: 'TUR',
+                  homeScore: 2,
+                  awayScore: 0,
+                ),
+              ],
+            }),
+            200,
+          );
+        }
+        return http.Response('Not found', 404);
+      });
+      final fifaService = FifaWorldOverviewService(client: client);
+      final fetchedMatches = await fifaService.fetchNationalMatches(
+        gender: FifaRankingGender.men,
+        start: DateTime.utc(2026, 6, 11, 7),
+        end: DateTime.utc(2026, 6, 15, 5),
+      );
+      expect(fetchedMatches, hasLength(3));
+      final service = WorldCupLiveDataService(fifaService: fifaService);
+
+      final data = await service.fetchLatest(now: DateTime.utc(2026, 6, 14, 5));
+
+      final brazil = data.fixtures.firstWhere(
+        (fixture) =>
+            fixture.homeTeam == 'Brazil' && fixture.awayTeam == 'Morocco',
+      );
+      final australia = data.fixtures.firstWhere(
+        (fixture) =>
+            fixture.homeTeam == 'Australia' && fixture.awayTeam == 'Turkiye',
+      );
+
+      expect(brazil.homeScore, 1);
+      expect(brazil.awayScore, 1);
+      expect(australia.homeScore, 2);
+      expect(australia.awayScore, 0);
+      expect(
+        data.officialMatchesByFixtureNumber[brazil.matchNumber]?.matchNumber,
+        7,
+      );
+      expect(requestedRanges, isNotEmpty);
+
+      service.dispose();
+    },
+  );
+}
+
+Map<String, dynamic> _worldCupMatch({
+  required String matchId,
+  required int matchNumber,
+  required int period,
+  required String date,
+  required String homeName,
+  required String homeCode,
+  required String awayName,
+  required String awayCode,
+  int? homeScore,
+  int? awayScore,
+}) {
+  return {
+    'IdMatch': matchId,
+    'MatchNumber': matchNumber,
+    'Date': date,
+    'Period': period,
+    'CompetitionName': [
+      {'Locale': 'en-GB', 'Description': 'FIFA World Cup'},
+    ],
+    'StageName': [
+      {'Locale': 'en-GB', 'Description': 'First Stage'},
+    ],
+    'Stadium': {
+      'Name': [
+        {'Locale': 'en-GB', 'Description': 'Test Stadium'},
+      ],
+      'CityName': [
+        {'Locale': 'en-GB', 'Description': 'Test City'},
+      ],
+    },
+    'HomeTeam': _team(name: homeName, countryCode: homeCode, score: homeScore),
+    'AwayTeam': _team(name: awayName, countryCode: awayCode, score: awayScore),
+  };
+}
+
+Map<String, dynamic> _team({
+  required String name,
+  required String countryCode,
+  required int? score,
+}) {
+  return {
+    'Gender': 1,
+    'TeamType': 1,
+    'AgeType': 7,
+    'FootballType': 0,
+    'IdCountry': countryCode,
+    'Score': score,
+    'TeamName': [
+      {'Locale': 'en-GB', 'Description': name},
+    ],
+  };
+}
