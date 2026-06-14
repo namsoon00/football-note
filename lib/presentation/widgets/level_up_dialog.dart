@@ -638,11 +638,11 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
                                   Text(
                                     spec.title,
                                     textAlign: TextAlign.center,
-                                    style:
-                                        theme.textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.w900,
-                                      height: 1.08,
-                                    ),
+                                    style: theme.textTheme.headlineSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                          height: 1.08,
+                                        ),
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
@@ -944,15 +944,16 @@ class _TrainingGemStagePainter extends CustomPainter {
     if (size.isEmpty) return;
     final center = Offset(size.width / 2, size.height * 0.44);
     final glowPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          color.withValues(alpha: 0.26),
-          color.withValues(alpha: 0.08),
-          Colors.transparent,
-        ],
-      ).createShader(
-        Rect.fromCircle(center: center, radius: size.shortestSide * 0.62),
-      );
+      ..shader =
+          RadialGradient(
+            colors: [
+              color.withValues(alpha: 0.26),
+              color.withValues(alpha: 0.08),
+              Colors.transparent,
+            ],
+          ).createShader(
+            Rect.fromCircle(center: center, radius: size.shortestSide * 0.62),
+          );
     canvas.drawCircle(center, size.shortestSide * 0.62, glowPaint);
 
     final platformRect = Rect.fromLTWH(
@@ -1034,9 +1035,7 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
   @override
   Widget build(BuildContext context) {
     final size = widget.size;
-    final bodySize = size * 0.70;
-    final limbColor = Color.lerp(widget.color, const Color(0xFF111827), 0.20)!;
-    final shoeColor = Color.lerp(widget.color, const Color(0xFF111827), 0.48)!;
+    final bodySize = size * 0.78;
     return SizedBox.square(
       dimension: size,
       child: AnimatedBuilder(
@@ -1044,7 +1043,7 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
         builder: (context, _) {
           final phase = _controller.value;
           final bounce = math.sin(phase * math.pi * 2);
-          final cheer = math.sin(phase * math.pi * 4);
+          final shimmer = (math.sin(phase * math.pi * 2.0) + 1) / 2;
           final lift = math.max(0.0, bounce) * size * 0.025;
           return Stack(
             alignment: Alignment.center,
@@ -1065,34 +1064,50 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
                 ),
               ),
               Positioned(
-                left: size * 0.18,
-                bottom: size * 0.17,
-                child: _CharacterLeg(color: limbColor, shoeColor: shoeColor),
-              ),
-              Positioned(
-                right: size * 0.18,
-                bottom: size * 0.17,
-                child: _CharacterLeg(
-                  color: limbColor,
-                  shoeColor: shoeColor,
-                  mirrored: true,
+                left: size * 0.12,
+                top: size * (0.30 + shimmer * 0.02),
+                child: Transform.rotate(
+                  angle: -0.22,
+                  child: _CelebrationAccentIcon(
+                    character: widget.character,
+                    color: Color.lerp(
+                      widget.color,
+                      Colors.white,
+                      0.18,
+                    )!.withValues(alpha: 0.76),
+                    size: size * 0.20,
+                    glint: 0.54 + shimmer * 0.24,
+                  ),
                 ),
               ),
               Positioned(
-                left: size * 0.08,
-                top: size * (0.38 - cheer * 0.018),
-                child: _CharacterArm(
-                  color: limbColor,
-                  angle: -0.64 - cheer * 0.18,
+                right: size * 0.10,
+                top: size * (0.48 - shimmer * 0.025),
+                child: Transform.rotate(
+                  angle: 0.26,
+                  child: _CelebrationAccentIcon(
+                    character: widget.character,
+                    color: Color.lerp(
+                      widget.color,
+                      const Color(0xFF38BDF8),
+                      widget.character == _CelebrationCharacter.gem ? 0.34 : 0,
+                    )!.withValues(alpha: 0.72),
+                    size: size * 0.17,
+                    glint: 0.68,
+                  ),
                 ),
               ),
               Positioned(
-                right: size * 0.08,
-                top: size * (0.38 + cheer * 0.018),
-                child: _CharacterArm(
-                  color: limbColor,
-                  angle: 0.64 + cheer * 0.18,
-                  mirrored: true,
+                left: size * 0.25,
+                bottom: size * (0.12 + shimmer * 0.018),
+                child: Transform.rotate(
+                  angle: 0.18,
+                  child: _CelebrationAccentIcon(
+                    character: widget.character,
+                    color: widget.color.withValues(alpha: 0.64),
+                    size: size * 0.14,
+                    glint: 0.42 + shimmer * 0.22,
+                  ),
                 ),
               ),
               Transform.translate(
@@ -1128,85 +1143,24 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
   }
 }
 
-class _CharacterArm extends StatelessWidget {
+class _CelebrationAccentIcon extends StatelessWidget {
+  final _CelebrationCharacter character;
   final Color color;
-  final double angle;
-  final bool mirrored;
+  final double size;
+  final double glint;
 
-  const _CharacterArm({
+  const _CelebrationAccentIcon({
+    required this.character,
     required this.color,
-    required this.angle,
-    this.mirrored = false,
+    required this.size,
+    required this.glint,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: angle,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        textDirection: mirrored ? TextDirection.rtl : TextDirection.ltr,
-        children: [
-          Container(
-            width: 42,
-            height: 10,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.78),
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.46)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CharacterLeg extends StatelessWidget {
-  final Color color;
-  final Color shoeColor;
-  final bool mirrored;
-
-  const _CharacterLeg({
-    required this.color,
-    required this.shoeColor,
-    this.mirrored = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: mirrored ? -0.10 : 0.10,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 12,
-            height: 34,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.78),
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
-          Container(
-            width: 26,
-            height: 12,
-            decoration: BoxDecoration(
-              color: shoeColor,
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
-        ],
-      ),
-    );
+    return character == _CelebrationCharacter.flame
+        ? _CuteFlameIcon(color: color, size: size)
+        : _CuteGemIcon(color: color, size: size, glint: glint);
   }
 }
 
@@ -1313,11 +1267,11 @@ class _ChallengeStyleCelebrationFullScreen extends StatelessWidget {
                                 Text(
                                   title,
                                   textAlign: TextAlign.center,
-                                  style:
-                                      theme.textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.w900,
-                                    height: 1.1,
-                                  ),
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        height: 1.1,
+                                      ),
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
@@ -1819,51 +1773,7 @@ class _CuteFlameIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned.fill(
-            child: CustomPaint(painter: _CuteFlamePainter(color: color)),
-          ),
-          Positioned(
-            top: size * 0.46,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _FaceDot(size: size * 0.118),
-                SizedBox(width: size * 0.12),
-                _FaceDot(size: size * 0.118),
-              ],
-            ),
-          ),
-          Positioned(
-            top: size * 0.59,
-            left: size * 0.22,
-            child: _GemCheek(size: size * 0.090),
-          ),
-          Positioned(
-            top: size * 0.59,
-            right: size * 0.22,
-            child: _GemCheek(size: size * 0.090),
-          ),
-          Positioned(
-            top: size * 0.63,
-            child: Container(
-              width: size * 0.20,
-              height: size * 0.08,
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: const Color(0xFF5A260A).withValues(alpha: 0.72),
-                    width: size * 0.018,
-                  ),
-                ),
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-          ),
-        ],
-      ),
+      child: CustomPaint(painter: _CuteFlamePainter(color: color)),
     );
   }
 }
@@ -1882,19 +1792,21 @@ class _CuteFlamePainter extends CustomPainter {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(w * 0.50, h * 0.86),
-        width: w * 0.58,
-        height: h * 0.16,
+        center: Offset(w * 0.50, h * 0.88),
+        width: w * 0.70,
+        height: h * 0.18,
       ),
       shadowPaint,
     );
 
     final outer = Path()
-      ..moveTo(w * 0.50, h * 0.05)
-      ..cubicTo(w * 0.33, h * 0.20, w * 0.43, h * 0.34, w * 0.27, h * 0.47)
-      ..cubicTo(w * 0.05, h * 0.66, w * 0.19, h * 0.96, w * 0.50, h * 0.96)
-      ..cubicTo(w * 0.82, h * 0.96, w * 0.98, h * 0.68, w * 0.72, h * 0.43)
-      ..cubicTo(w * 0.58, h * 0.30, w * 0.64, h * 0.18, w * 0.50, h * 0.05)
+      ..moveTo(w * 0.50, h * 0.03)
+      ..cubicTo(w * 0.34, h * 0.17, w * 0.42, h * 0.29, w * 0.25, h * 0.42)
+      ..cubicTo(w * 0.03, h * 0.60, w * 0.10, h * 0.88, w * 0.37, h * 0.96)
+      ..cubicTo(w * 0.42, h * 0.98, w * 0.47, h * 0.99, w * 0.50, h * 0.98)
+      ..cubicTo(w * 0.56, h * 0.99, w * 0.64, h * 0.97, w * 0.71, h * 0.93)
+      ..cubicTo(w * 0.96, h * 0.80, w * 0.99, h * 0.57, w * 0.76, h * 0.40)
+      ..cubicTo(w * 0.61, h * 0.29, w * 0.68, h * 0.15, w * 0.50, h * 0.03)
       ..close();
     final outerShader = LinearGradient(
       begin: Alignment.topCenter,
@@ -1909,6 +1821,50 @@ class _CuteFlamePainter extends CustomPainter {
     ).createShader(Offset.zero & size);
     canvas.drawPath(outer, Paint()..shader = outerShader);
 
+    final leftLobe = Path()
+      ..moveTo(w * 0.34, h * 0.26)
+      ..cubicTo(w * 0.19, h * 0.39, w * 0.16, h * 0.57, w * 0.28, h * 0.72)
+      ..cubicTo(w * 0.36, h * 0.82, w * 0.49, h * 0.78, w * 0.43, h * 0.60)
+      ..cubicTo(w * 0.38, h * 0.47, w * 0.45, h * 0.38, w * 0.34, h * 0.26)
+      ..close();
+    canvas.drawPath(
+      leftLobe,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            Colors.white.withValues(alpha: 0.34),
+            const Color(0xFFFFD166).withValues(alpha: 0.72),
+            Colors.transparent,
+          ],
+        ).createShader(Offset.zero & size),
+    );
+
+    final rightLobe = Path()
+      ..moveTo(w * 0.66, h * 0.25)
+      ..cubicTo(w * 0.79, h * 0.38, w * 0.86, h * 0.57, w * 0.73, h * 0.74)
+      ..cubicTo(w * 0.64, h * 0.84, w * 0.51, h * 0.78, w * 0.59, h * 0.59)
+      ..cubicTo(w * 0.64, h * 0.47, w * 0.57, h * 0.37, w * 0.66, h * 0.25)
+      ..close();
+    canvas.drawPath(
+      rightLobe,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: <Color>[
+            Colors.white.withValues(alpha: 0.26),
+            Color.lerp(
+              const Color(0xFFFFB703),
+              color,
+              0.20,
+            )!.withValues(alpha: 0.58),
+            Colors.transparent,
+          ],
+        ).createShader(Offset.zero & size),
+    );
+
     final rimPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = math.max(1.2, w * 0.035)
@@ -1917,11 +1873,11 @@ class _CuteFlamePainter extends CustomPainter {
     canvas.drawPath(outer, rimPaint);
 
     final inner = Path()
-      ..moveTo(w * 0.54, h * 0.28)
-      ..cubicTo(w * 0.42, h * 0.42, w * 0.51, h * 0.52, w * 0.39, h * 0.62)
-      ..cubicTo(w * 0.25, h * 0.74, w * 0.34, h * 0.90, w * 0.52, h * 0.90)
-      ..cubicTo(w * 0.72, h * 0.89, w * 0.80, h * 0.73, w * 0.64, h * 0.58)
-      ..cubicTo(w * 0.55, h * 0.49, w * 0.63, h * 0.40, w * 0.54, h * 0.28)
+      ..moveTo(w * 0.54, h * 0.24)
+      ..cubicTo(w * 0.41, h * 0.40, w * 0.51, h * 0.51, w * 0.38, h * 0.62)
+      ..cubicTo(w * 0.22, h * 0.76, w * 0.34, h * 0.92, w * 0.53, h * 0.90)
+      ..cubicTo(w * 0.75, h * 0.88, w * 0.82, h * 0.72, w * 0.64, h * 0.56)
+      ..cubicTo(w * 0.55, h * 0.47, w * 0.64, h * 0.36, w * 0.54, h * 0.24)
       ..close();
     canvas.drawPath(
       inner,
@@ -1942,9 +1898,14 @@ class _CuteFlamePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = math.max(1.0, w * 0.035);
     canvas.drawLine(
-      Offset(w * 0.37, h * 0.35),
-      Offset(w * 0.29, h * 0.50),
+      Offset(w * 0.36, h * 0.33),
+      Offset(w * 0.26, h * 0.54),
       highlight,
+    );
+    canvas.drawLine(
+      Offset(w * 0.69, h * 0.48),
+      Offset(w * 0.77, h * 0.62),
+      highlight..color = Colors.white.withValues(alpha: 0.30),
     );
   }
 
@@ -1969,52 +1930,8 @@ class _CuteGemIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _CuteGemPainter(color: color, glint: glint),
-            ),
-          ),
-          Positioned(
-            top: size * 0.36,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _FaceDot(size: size * 0.115),
-                SizedBox(width: size * 0.13),
-                _FaceDot(size: size * 0.115),
-              ],
-            ),
-          ),
-          Positioned(
-            top: size * 0.53,
-            child: Container(
-              width: size * 0.20,
-              height: size * 0.08,
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.78),
-                    width: size * 0.020,
-                  ),
-                ),
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-          ),
-          Positioned(
-            top: size * 0.50,
-            left: size * 0.18,
-            child: _GemCheek(size: size * 0.104),
-          ),
-          Positioned(
-            top: size * 0.50,
-            right: size * 0.18,
-            child: _GemCheek(size: size * 0.104),
-          ),
-        ],
+      child: CustomPaint(
+        painter: _CuteGemPainter(color: color, glint: glint),
       ),
     );
   }
@@ -2035,31 +1952,37 @@ class _CuteGemPainter extends CustomPainter {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(w * 0.5, h * 0.84),
-        width: w * 0.74,
-        height: h * 0.20,
+        center: Offset(w * 0.5, h * 0.86),
+        width: w * 0.86,
+        height: h * 0.22,
       ),
       shadowPaint,
     );
 
-    final top = Offset(w * 0.50, h * 0.06);
-    final shoulderLeft = Offset(w * 0.27, h * 0.15);
-    final shoulderRight = Offset(w * 0.73, h * 0.15);
-    final upperLeft = Offset(w * 0.08, h * 0.37);
-    final upperRight = Offset(w * 0.92, h * 0.37);
-    final bottom = Offset(w * 0.50, h * 0.94);
-    final center = Offset(w * 0.50, h * 0.43);
+    final top = Offset(w * 0.50, h * 0.04);
+    final shoulderLeft = Offset(w * 0.22, h * 0.14);
+    final shoulderRight = Offset(w * 0.78, h * 0.14);
+    final upperLeft = Offset(w * 0.05, h * 0.38);
+    final upperRight = Offset(w * 0.95, h * 0.38);
+    final bottom = Offset(w * 0.50, h * 0.95);
+    final center = Offset(w * 0.50, h * 0.45);
     final leftFacet = Path()
-      ..moveTo(top.dx, top.dy)
+      ..moveTo(shoulderLeft.dx, shoulderLeft.dy)
       ..lineTo(shoulderLeft.dx, shoulderLeft.dy)
       ..lineTo(upperLeft.dx, upperLeft.dy)
       ..lineTo(center.dx, center.dy)
       ..close();
     final rightFacet = Path()
-      ..moveTo(top.dx, top.dy)
+      ..moveTo(shoulderRight.dx, shoulderRight.dy)
       ..lineTo(center.dx, center.dy)
       ..lineTo(upperRight.dx, upperRight.dy)
       ..lineTo(shoulderRight.dx, shoulderRight.dy)
+      ..close();
+    final topFacet = Path()
+      ..moveTo(top.dx, top.dy)
+      ..lineTo(shoulderRight.dx, shoulderRight.dy)
+      ..lineTo(center.dx, center.dy)
+      ..lineTo(shoulderLeft.dx, shoulderLeft.dy)
       ..close();
     final lowerLeftFacet = Path()
       ..moveTo(upperLeft.dx, upperLeft.dy)
@@ -2074,25 +1997,25 @@ class _CuteGemPainter extends CustomPainter {
     final outline = Path()
       ..moveTo(top.dx, top.dy)
       ..cubicTo(
-        w * 0.57,
+        w * 0.58,
         h * 0.05,
-        w * 0.66,
+        w * 0.70,
         h * 0.08,
         shoulderRight.dx,
         shoulderRight.dy,
       )
-      ..quadraticBezierTo(w * 0.90, h * 0.21, upperRight.dx, upperRight.dy)
-      ..cubicTo(w * 0.98, h * 0.55, w * 0.78, h * 0.86, bottom.dx, bottom.dy)
+      ..quadraticBezierTo(w * 0.93, h * 0.22, upperRight.dx, upperRight.dy)
+      ..cubicTo(w * 0.99, h * 0.55, w * 0.79, h * 0.86, bottom.dx, bottom.dy)
       ..cubicTo(
         w * 0.22,
         h * 0.86,
-        w * 0.02,
+        w * 0.01,
         h * 0.55,
         upperLeft.dx,
         upperLeft.dy,
       )
-      ..quadraticBezierTo(w * 0.10, h * 0.21, shoulderLeft.dx, shoulderLeft.dy)
-      ..cubicTo(w * 0.34, h * 0.08, w * 0.43, h * 0.05, top.dx, top.dy)
+      ..quadraticBezierTo(w * 0.07, h * 0.22, shoulderLeft.dx, shoulderLeft.dy)
+      ..cubicTo(w * 0.30, h * 0.08, w * 0.42, h * 0.05, top.dx, top.dy)
       ..close();
 
     canvas.drawPath(
@@ -2111,22 +2034,16 @@ class _CuteGemPainter extends CustomPainter {
     canvas.save();
     canvas.clipPath(outline);
     canvas.drawPath(
-      Path()
-        ..moveTo(shoulderLeft.dx, shoulderLeft.dy)
-        ..lineTo(center.dx, center.dy)
-        ..lineTo(shoulderRight.dx, shoulderRight.dy),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.0, w * 0.018)
-        ..color = Colors.white.withValues(alpha: 0.34),
+      topFacet,
+      Paint()..color = Color.lerp(Colors.white, color, 0.12)!,
     );
     canvas.drawPath(
       leftFacet,
-      Paint()..color = Color.lerp(Colors.white, color, 0.22)!,
+      Paint()..color = Color.lerp(Colors.white, color, 0.24)!,
     );
     canvas.drawPath(
       rightFacet,
-      Paint()..color = Color.lerp(Colors.white, color, 0.38)!,
+      Paint()..color = Color.lerp(Colors.white, color, 0.34)!,
     );
     canvas.drawPath(
       lowerLeftFacet,
@@ -2135,6 +2052,21 @@ class _CuteGemPainter extends CustomPainter {
     canvas.drawPath(
       lowerRightFacet,
       Paint()..color = Color.lerp(Colors.black, color, 0.64)!,
+    );
+    canvas.drawPath(
+      Path()
+        ..moveTo(shoulderLeft.dx, shoulderLeft.dy)
+        ..lineTo(center.dx, center.dy)
+        ..lineTo(shoulderRight.dx, shoulderRight.dy)
+        ..moveTo(upperLeft.dx, upperLeft.dy)
+        ..lineTo(center.dx, center.dy)
+        ..lineTo(upperRight.dx, upperRight.dy)
+        ..moveTo(center.dx, center.dy)
+        ..lineTo(bottom.dx, bottom.dy),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, w * 0.020)
+        ..color = Colors.white.withValues(alpha: 0.38),
     );
     canvas.restore();
     canvas.drawPath(
@@ -2149,82 +2081,41 @@ class _CuteGemPainter extends CustomPainter {
       ..color = Colors.white.withValues(alpha: 0.38 + glint * 0.32);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * 0.28, h * 0.22, w * 0.22, h * 0.08),
+        Rect.fromLTWH(w * 0.23, h * 0.22, w * 0.28, h * 0.08),
         Radius.circular(w * 0.06),
       ),
       shinePaint,
     );
     canvas.drawCircle(
-      Offset(w * 0.66, h * 0.24),
-      w * (0.035 + glint * 0.018),
+      Offset(w * 0.68, h * 0.23),
+      w * (0.038 + glint * 0.020),
       shinePaint,
     );
     canvas.drawCircle(
-      Offset(w * 0.36, h * 0.18),
+      Offset(w * 0.36, h * 0.17),
       w * (0.024 + glint * 0.012),
       shinePaint..color = Colors.white.withValues(alpha: 0.46),
+    );
+    final glintPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.34 + glint * 0.34)
+      ..strokeWidth = math.max(1.0, w * 0.018)
+      ..strokeCap = StrokeCap.round;
+    final glintCenter = Offset(w * 0.73, h * 0.36);
+    canvas.drawLine(
+      Offset(glintCenter.dx - w * 0.07, glintCenter.dy),
+      Offset(glintCenter.dx + w * 0.07, glintCenter.dy),
+      glintPaint,
+    );
+    canvas.drawLine(
+      Offset(glintCenter.dx, glintCenter.dy - h * 0.07),
+      Offset(glintCenter.dx, glintCenter.dy + h * 0.07),
+      glintPaint,
     );
   }
 
   @override
   bool shouldRepaint(covariant _CuteGemPainter oldDelegate) {
     return oldDelegate.color != color || oldDelegate.glint != glint;
-  }
-}
-
-class _FaceDot extends StatelessWidget {
-  final double size;
-
-  const _FaceDot({required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: size,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: const Color(0xFF3A2A20).withValues(alpha: 0.82),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.38)),
-              ),
-            ),
-          ),
-          Positioned(
-            top: size * 0.20,
-            left: size * 0.20,
-            child: Container(
-              width: size * 0.26,
-              height: size * 0.26,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.78),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GemCheek extends StatelessWidget {
-  final double size;
-
-  const _GemCheek({required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size * 0.66,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFB6C8).withValues(alpha: 0.62),
-        borderRadius: BorderRadius.circular(size),
-      ),
-    );
   }
 }
 
