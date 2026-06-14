@@ -35,7 +35,6 @@ class WorldCupScreen extends StatefulWidget {
 }
 
 class _WorldCupScreenState extends State<WorldCupScreen> {
-  static const String _calendarFormatKey = 'calendar_format_v1';
   static const String _supportCountryKey = 'world_cup_support_country_v1';
   static const String _interestCountriesKey = 'world_cup_interest_countries_v1';
   static const double _calendarDayNumberFontSize = 17;
@@ -54,14 +53,12 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   bool _showSelectedCountriesOnly = false;
   bool _showCountrySettings = true;
   _WorldCupView _selectedView = _WorldCupView.schedule;
-  CalendarFormat _calendarFormat = CalendarFormat.month;
   Timer? _clockTimer;
 
   @override
   void initState() {
     super.initState();
     _countries = worldCupCountries();
-    _calendarFormat = _loadCalendarFormat();
     _focusedDay = _initialCalendarDay();
     _selectedDay = _focusedDay;
     final initialSelectedDay = widget.initialSelectedDay;
@@ -731,34 +728,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
               ),
               const SizedBox(width: 8),
               _SmallPill(label: _countdownLabel(context)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              _WorldCupCalendarHeaderChipButton(
-                label: l10n.calendarFormatTwoWeeks,
-                selected: _calendarFormat == CalendarFormat.twoWeeks,
-                onPressed: () => _setCalendarFormat(CalendarFormat.twoWeeks),
-              ),
-              _WorldCupCalendarHeaderChipButton(
-                label: l10n.calendarFormatMonth,
-                selected: _calendarFormat == CalendarFormat.month,
-                onPressed: () => _setCalendarFormat(CalendarFormat.month),
-              ),
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  minimumSize: const Size(72, 40),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                ),
+              const SizedBox(width: 4),
+              IconButton.outlined(
+                tooltip: l10n.guideActionToday,
+                visualDensity: VisualDensity.compact,
                 onPressed: () {
                   final today = _clampCalendarDay(DateTime.now());
                   setState(() {
@@ -767,13 +740,12 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                   });
                 },
                 icon: const Icon(Icons.today_outlined, size: 18),
-                label: Text(l10n.guideActionToday),
               ),
             ],
           ),
           const SizedBox(height: 10),
           TableCalendar<WorldCupFixture>(
-            key: ValueKey('world-cup-calendar-${_calendarFormat.name}'),
+            key: const ValueKey('world-cup-calendar-month'),
             firstDay: firstDay,
             lastDay: lastDay,
             focusedDay: _focusedDay,
@@ -783,12 +755,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             daysOfWeekHeight: 20,
             selectedDayPredicate: (day) =>
                 normalizeWorldCupDay(day) == normalizeWorldCupDay(_selectedDay),
-            eventLoader: _visibleFixturesForDay,
-            calendarFormat: _calendarFormat,
-            availableCalendarFormats: {
-              CalendarFormat.twoWeeks: l10n.calendarFormatTwoWeeks,
-              CalendarFormat.month: l10n.calendarFormatMonth,
-            },
+            calendarFormat: CalendarFormat.month,
+            availableCalendarFormats: const {CalendarFormat.month: ''},
             availableGestures: AvailableGestures.horizontalSwipe,
             startingDayOfWeek: StartingDayOfWeek.sunday,
             headerStyle: const HeaderStyle(
@@ -818,6 +786,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             ),
             calendarStyle: CalendarStyle(
               outsideDaysVisible: false,
+              markersMaxCount: 0,
               defaultTextStyle:
                   theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
@@ -828,10 +797,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                     fontWeight: FontWeight.w800,
                   ) ??
                   const TextStyle(fontWeight: FontWeight.w800),
-              markerDecoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                borderRadius: BorderRadius.circular(999),
-              ),
               selectedDecoration: BoxDecoration(
                 color: theme.colorScheme.primary,
                 shape: BoxShape.circle,
@@ -858,6 +823,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                   _buildCalendarDayCell(day, isToday: true),
               selectedBuilder: (context, day, focusedDay) =>
                   _buildCalendarDayCell(day, isSelected: true),
+              markerBuilder: (context, day, events) => const SizedBox.shrink(),
             ),
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
@@ -1079,34 +1045,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     );
   }
 
-  Future<void> _setCalendarFormat(CalendarFormat format) async {
-    if (_calendarFormat == format) return;
-    setState(() {
-      _calendarFormat = format;
-      _focusedDay = _selectedDay;
-    });
-    await widget.optionRepository?.setValue(
-      _calendarFormatKey,
-      _serializeCalendarFormat(format),
-    );
-  }
-
-  CalendarFormat _loadCalendarFormat() {
-    final raw =
-        widget.optionRepository?.getValue<String>(_calendarFormatKey) ?? '';
-    return switch (raw) {
-      'twoWeeks' => CalendarFormat.twoWeeks,
-      _ => CalendarFormat.month,
-    };
-  }
-
-  String _serializeCalendarFormat(CalendarFormat format) {
-    return switch (format) {
-      CalendarFormat.twoWeeks => 'twoWeeks',
-      _ => 'month',
-    };
-  }
-
   Future<void> _setSupportCountry(String country) async {
     setState(() {
       _supportCountry = country;
@@ -1211,14 +1149,18 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   }) {
     final fixtures = _visibleFixturesForDay(day);
     final selectedCountryFixtures = _selectedCountryFixturesForDay(day);
-    final flags = _selectedCountryFlagsForFixtures(selectedCountryFixtures);
+    final showsSelectedCountryFlags = selectedCountryFixtures.isNotEmpty;
+    final flags = showsSelectedCountryFlags
+        ? _selectedCountryFlagsForFixtures(selectedCountryFixtures)
+        : _fixtureFlagsForFixtures(fixtures);
     return _WorldCupCalendarDayCell(
       day: normalizeWorldCupDay(day),
       dayNumber: day.day,
       fixtureCount: fixtures.length,
-      selectedFixtureCount: selectedCountryFixtures.length,
-      flags: flags.take(3).toList(growable: false),
-      extraFlagCount: math.max(0, flags.length - 3),
+      badgeCount: showsSelectedCountryFlags
+          ? selectedCountryFixtures.length
+          : fixtures.length,
+      flags: flags.take(2).toList(growable: false),
       isSelected:
           isSelected ||
           normalizeWorldCupDay(day) == normalizeWorldCupDay(_selectedDay),
@@ -1252,6 +1194,20 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       if (flag.isNotEmpty) flags.add(flag);
     }
     return flags;
+  }
+
+  List<String> _fixtureFlagsForFixtures(List<WorldCupFixture> fixtures) {
+    if (fixtures.isEmpty) return const <String>[];
+    final countries = <String>[];
+    for (final fixture in fixtures) {
+      for (final country in [fixture.homeTeam, fixture.awayTeam]) {
+        if (!countries.contains(country)) countries.add(country);
+      }
+    }
+    return countries
+        .map(worldCupCountryFlag)
+        .where((flag) => flag.isNotEmpty)
+        .toList(growable: false);
   }
 
   Set<String> get _selectedCountrySet {
@@ -2158,9 +2114,8 @@ class _WorldCupCalendarDayCell extends StatelessWidget {
   final DateTime day;
   final int dayNumber;
   final int fixtureCount;
-  final int selectedFixtureCount;
+  final int badgeCount;
   final List<String> flags;
-  final int extraFlagCount;
   final bool isSelected;
   final bool isToday;
 
@@ -2168,9 +2123,8 @@ class _WorldCupCalendarDayCell extends StatelessWidget {
     required this.day,
     required this.dayNumber,
     required this.fixtureCount,
-    required this.selectedFixtureCount,
+    required this.badgeCount,
     required this.flags,
-    required this.extraFlagCount,
     required this.isSelected,
     required this.isToday,
   });
@@ -2217,8 +2171,7 @@ class _WorldCupCalendarDayCell extends StatelessWidget {
               _WorldCupCalendarFlagStrip(
                 countKey: _calendarMatchCountKey(day),
                 flags: flags,
-                extraFlagCount: extraFlagCount,
-                fixtureCount: selectedFixtureCount,
+                fixtureCount: badgeCount,
               )
             else if (fixtureCount > 0)
               _WorldCupCalendarCountBadge(
@@ -2245,13 +2198,11 @@ class _WorldCupCalendarDayCell extends StatelessWidget {
 class _WorldCupCalendarFlagStrip extends StatelessWidget {
   final Key countKey;
   final List<String> flags;
-  final int extraFlagCount;
   final int fixtureCount;
 
   const _WorldCupCalendarFlagStrip({
     required this.countKey,
     required this.flags,
-    required this.extraFlagCount,
     required this.fixtureCount,
   });
 
@@ -2269,15 +2220,6 @@ class _WorldCupCalendarFlagStrip extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 1),
                 child: Text(flag, style: const TextStyle(fontSize: 10)),
-              ),
-            if (extraFlagCount > 0)
-              Text(
-                '+$extraFlagCount',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontSize: 8,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
-                ),
               ),
             if (fixtureCount > 0) ...[
               const SizedBox(width: 2),
@@ -2486,47 +2428,6 @@ class _GroupStandingRow extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _WorldCupCalendarHeaderChipButton extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onPressed;
-
-  const _WorldCupCalendarHeaderChipButton({
-    required this.label,
-    required this.selected,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return OutlinedButton(
-      style: OutlinedButton.styleFrom(
-        visualDensity: VisualDensity.compact,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        minimumSize: const Size(64, 40),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        backgroundColor: selected
-            ? colorScheme.primary.withValues(alpha: 0.12)
-            : colorScheme.surface.withValues(alpha: 0.68),
-        side: BorderSide(
-          color: selected
-              ? colorScheme.primary.withValues(alpha: 0.65)
-              : colorScheme.outlineVariant,
-        ),
-      ),
-      onPressed: onPressed,
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: selected ? colorScheme.primary : colorScheme.onSurface,
-          fontWeight: FontWeight.w800,
         ),
       ),
     );

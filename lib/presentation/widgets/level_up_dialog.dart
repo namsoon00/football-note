@@ -564,25 +564,285 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return _ChallengeStyleCelebrationFullScreen(
-      accentColor: spec.color,
-      character: _CelebrationCharacter.gem,
-      title: spec.title,
-      message: spec.message,
-      actionIcon: Icons.check_circle_outline_rounded,
-      actionLabel: l10n.trainingXpDialogAction,
-      details: Column(
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final accent = spec.color;
+    final topColor = Color.alphaBlend(
+      accent.withValues(
+        alpha: theme.brightness == Brightness.dark ? 0.28 : 0.18,
+      ),
+      scheme.surface,
+    );
+    final bottomColor = Color.alphaBlend(
+      scheme.secondary.withValues(
+        alpha: theme.brightness == Brightness.dark ? 0.18 : 0.10,
+      ),
+      scheme.surface,
+    );
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [topColor, scheme.surface, bottomColor],
+        ),
+      ),
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compactHeight = constraints.maxHeight < 660;
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                Opacity(
+                  opacity: theme.brightness == Brightness.dark ? 0.24 : 0.18,
+                  child: _FallingGemBackdrop(color: accent),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    18,
+                    12,
+                    18,
+                    compactHeight ? 16 : 22,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: IconButton.filledTonal(
+                          tooltip: MaterialLocalizations.of(
+                            context,
+                          ).closeButtonLabel,
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 520),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _TrainingGemRewardStage(
+                                    color: accent,
+                                    compact: compactHeight,
+                                    label: l10n.trainingXpDialogRewardLabel,
+                                    value: l10n.trainingXpDialogXp(
+                                      award.gainedXp,
+                                    ),
+                                  ),
+                                  SizedBox(height: compactHeight ? 14 : 20),
+                                  Text(
+                                    spec.title,
+                                    textAlign: TextAlign.center,
+                                    style:
+                                        theme.textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      height: 1.08,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    spec.message,
+                                    textAlign: TextAlign.center,
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      color: scheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                  SizedBox(height: compactHeight ? 16 : 22),
+                                  _TrainingGemProgressPanel(
+                                    award: award,
+                                    color: accent,
+                                    progressText: progressText,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      FilledButton.icon(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.check_circle_outline_rounded),
+                        label: Text(l10n.trainingXpDialogAction),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                          backgroundColor: accent,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _TrainingGemRewardStage extends StatelessWidget {
+  final Color color;
+  final bool compact;
+  final String label;
+  final String value;
+
+  const _TrainingGemRewardStage({
+    required this.color,
+    required this.compact,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final stageHeight = compact ? 206.0 : 246.0;
+    final heroSize = compact ? 112.0 : 138.0;
+    return SizedBox(
+      height: stageHeight,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
         children: [
-          _XpHeroAmount(
-            color: spec.color,
-            label: l10n.trainingXpDialogRewardLabel,
-            value: l10n.trainingXpDialogXp(award.gainedXp),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TrainingGemStagePainter(
+                color: color,
+                surface: scheme.surface,
+              ),
+            ),
           ),
-          const SizedBox(height: 14),
+          Positioned(
+            left: 30,
+            top: compact ? 36 : 46,
+            child: Transform.rotate(
+              angle: -0.18,
+              child: _CuteGemIcon(
+                color: Color.lerp(color, scheme.secondary, 0.38)!,
+                size: compact ? 50 : 60,
+                glint: 0.58,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 28,
+            top: compact ? 48 : 62,
+            child: Transform.rotate(
+              angle: 0.22,
+              child: _CuteGemIcon(
+                color: Color.lerp(color, const Color(0xFF38BDF8), 0.46)!,
+                size: compact ? 46 : 56,
+                glint: 0.66,
+              ),
+            ),
+          ),
+          Positioned(
+            top: compact ? 20 : 26,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.88, end: 1),
+              duration: const Duration(milliseconds: 620),
+              curve: Curves.easeOutBack,
+              builder: (context, scale, child) {
+                return Transform.scale(scale: scale, child: child);
+              },
+              child: _CuteGemIcon(color: color, size: heroSize, glint: 0.92),
+            ),
+          ),
+          Positioned(
+            left: 22,
+            right: 22,
+            bottom: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: scheme.surface.withValues(
+                  alpha: theme.brightness == Brightness.dark ? 0.86 : 0.92,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: color.withValues(alpha: 0.24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.18),
+                    blurRadius: 22,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrainingGemProgressPanel extends StatelessWidget {
+  final PlayerLevelAward award;
+  final Color color;
+  final String progressText;
+
+  const _TrainingGemProgressPanel({
+    required this.award,
+    required this.color,
+    required this.progressText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(
+          alpha: theme.brightness == Brightness.dark ? 0.82 : 0.90,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.7)),
+      ),
+      child: Column(
+        children: [
           _LevelProgressStrip(
             progress: award.after.progress,
-            foreground: spec.color,
-            background: spec.color.withValues(alpha: 0.16),
+            foreground: color,
+            background: color.withValues(alpha: 0.16),
           ),
           const SizedBox(height: 10),
           _CelebrationDetailText(text: progressText),
@@ -590,14 +850,18 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _RewardStatCard(
+                child: _GemRewardMetric(
+                  icon: Icons.auto_awesome_rounded,
+                  color: color,
                   label: l10n.trainingXpDialogTotalLabel,
                   value: l10n.trainingXpDialogTotalValue(award.after.totalXp),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _RewardStatCard(
+                child: _GemRewardMetric(
+                  icon: Icons.workspace_premium_rounded,
+                  color: color,
                   label: l10n.trainingXpDialogLevelLabel,
                   value: l10n.trainingXpDialogLevelValue(
                     award.after.level,
@@ -610,6 +874,123 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _GemRewardMetric extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final String value;
+
+  const _GemRewardMetric({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 94),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(color.withValues(alpha: 0.08), scheme.surface),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 22),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrainingGemStagePainter extends CustomPainter {
+  final Color color;
+  final Color surface;
+
+  const _TrainingGemStagePainter({required this.color, required this.surface});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final center = Offset(size.width / 2, size.height * 0.44);
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color.withValues(alpha: 0.26),
+          color.withValues(alpha: 0.08),
+          Colors.transparent,
+        ],
+      ).createShader(
+        Rect.fromCircle(center: center, radius: size.shortestSide * 0.62),
+      );
+    canvas.drawCircle(center, size.shortestSide * 0.62, glowPaint);
+
+    final platformRect = Rect.fromLTWH(
+      size.width * 0.17,
+      size.height * 0.69,
+      size.width * 0.66,
+      size.height * 0.16,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(platformRect, const Radius.circular(999)),
+      Paint()..color = color.withValues(alpha: 0.10),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        platformRect.deflate(1.2),
+        const Radius.circular(999),
+      ),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2
+        ..color = Colors.white.withValues(alpha: 0.38),
+    );
+
+    final rayPaint = Paint()
+      ..color = color.withValues(alpha: 0.18)
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+    for (var index = 0; index < 9; index += 1) {
+      final angle = (-math.pi * 0.82) + index * (math.pi * 1.64 / 8);
+      final start = center + Offset(math.cos(angle), math.sin(angle)) * 70;
+      final end = center + Offset(math.cos(angle), math.sin(angle)) * 98;
+      canvas.drawLine(start, end, rayPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _TrainingGemStagePainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.surface != surface;
   }
 }
 
@@ -932,11 +1313,11 @@ class _ChallengeStyleCelebrationFullScreen extends StatelessWidget {
                                 Text(
                                   title,
                                   textAlign: TextAlign.center,
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w900,
-                                        height: 1.1,
-                                      ),
+                                  style:
+                                      theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.1,
+                                  ),
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
@@ -1021,119 +1402,6 @@ class _TrainingStreakFullScreen extends StatelessWidget {
       actionIcon: Icons.local_fire_department_rounded,
       actionLabel: l10n.trainingStreakCheerAction,
       details: _StreakTrail(days: streakDays, color: flame),
-    );
-  }
-}
-
-class _XpHeroAmount extends StatelessWidget {
-  final Color color;
-  final String label;
-  final String value;
-
-  const _XpHeroAmount({
-    required this.color,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Color.alphaBlend(color.withValues(alpha: 0.12), scheme.surface),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.24)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.10),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _CuteGemIcon(color: color, size: 54, glint: 0.86),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    value,
-                    style: theme.textTheme.displaySmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.auto_awesome_rounded,
-            color: color.withValues(alpha: 0.68),
-            size: 22,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RewardStatCard extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _RewardStatCard({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        color: scheme.surface.withValues(alpha: 0.74),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: scheme.onSurface,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
