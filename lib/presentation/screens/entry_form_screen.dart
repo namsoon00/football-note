@@ -182,6 +182,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final List<String> _imagePaths = [];
   bool _weatherLoading = false;
   String _weatherSummary = '';
+  String _weatherLocation = '';
   int? _weatherCode;
   String _cachedFortuneComment = '';
   String _cachedFortuneRecommendation = '';
@@ -344,6 +345,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _cachedFortuneRecommendation = entry.fortuneRecommendation;
       _cachedFortuneRecommendedProgram = entry.fortuneRecommendedProgram;
       _weatherSummary = _extractWeatherFromNotes(entry.notes);
+      _weatherLocation = entry.location.trim();
       final parentFeedback = _parentSharedFeedbackService.feedbackForEntry(
         entry,
       );
@@ -390,6 +392,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _cachedFortuneRecommendation = '';
       _cachedFortuneRecommendedProgram = '';
       _weatherSummary = '';
+      _weatherLocation = '';
       _savedParentFeedback = '';
       _savedParentFeedbackReaction = '';
       _savedParentFeedbackUpdatedAt = null;
@@ -458,11 +461,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       });
     }
     if (widget.entry == null && _weatherSummary.trim().isEmpty) {
-      _applyCachedHomeWeather(
+      final appliedCachedWeather = _applyCachedHomeWeather(
         WeatherSharedResource.cachedSnapshot(
           locale: Localizations.localeOf(context),
         ),
       );
+      if (appliedCachedWeather) {
+        _initialSnapshot = _formSnapshot();
+      }
     }
   }
 
@@ -544,6 +550,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return false;
     }
     _weatherSummary = cachedSnapshot.summary.trim();
+    _weatherLocation = cachedSnapshot.location.trim();
     _weatherCode = cachedSnapshot.weatherCode;
     return true;
   }
@@ -628,6 +635,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _nextGoalController.text.trim(),
       _fortuneEnabled.toString(),
       _weatherSummary.trim(),
+      _weatherLocation.trim(),
       _jumpRopeController.text.trim(),
       _jumpRopeMinutesController.text.trim(),
       _jumpRopeEnabled.toString(),
@@ -895,7 +903,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         .trim();
   }
 
-  String get _locationForSave => widget.entry?.location ?? '';
+  String get _locationForSave {
+    final weatherLocation = _weatherLocation.trim();
+    if (weatherLocation.isNotEmpty) return weatherLocation;
+    return widget.entry?.location ?? '';
+  }
 
   int _defaultInt(String key, int fallback) {
     final value = widget.optionRepository.getValue<int>(key);
@@ -1609,12 +1621,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       widget.optionRepository,
     ).loadState().isParentMode;
     final isReadOnly = isParentMode;
+    final weatherSummary = _weatherSummary.trim();
+    final weatherLocation = _weatherLocation.trim();
     final weatherStatusText = _weatherLoading
         ? l10n.entryWeatherLoading
-        : _weatherSummary.trim().isNotEmpty
-        ? _weatherSummary.trim()
+        : weatherSummary.isNotEmpty
+        ? [
+            weatherLocation,
+            weatherSummary,
+          ].where((part) => part.isNotEmpty).join(' · ')
         : l10n.entryWeatherHomeMissing;
-    final weatherHasValue = _weatherSummary.trim().isNotEmpty;
+    final weatherHasValue = weatherSummary.isNotEmpty;
     final isMatchEntry = widget.entry?.isMatch ?? false;
     if (isReadOnly && widget.entry == null) {
       return Scaffold(
@@ -2491,7 +2508,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   IconData _trainingWeatherIcon({required bool weatherHasValue}) {
-    if (!weatherHasValue) return Icons.cloud_queue_rounded;
+    if (!weatherHasValue) return Icons.add_location_alt_outlined;
     switch (_weatherCode) {
       case 0:
         return Icons.wb_sunny_outlined;
@@ -2887,7 +2904,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (!fromAuto) {
-          await _showLocationServiceDialog(isKo);
+          await _showLocationServiceDialog();
         }
         return;
       }
@@ -2900,11 +2917,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           permission == LocationPermission.deniedForever) {
         if (!fromAuto) {
           if (permission == LocationPermission.deniedForever) {
-            await _showLocationPermissionDialog(isKo);
+            await _showLocationPermissionDialog();
           } else {
-            _showWeatherSnack(
-              isKo ? '위치 권한이 필요합니다.' : 'Location permission is required.',
-            );
+            _showWeatherSnack(l10n.entryWeatherPermissionRequired);
           }
         }
         return;
@@ -2933,12 +2948,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       setState(() {
         _weatherCode = weather.weatherCode;
         _weatherSummary = weather.summary.trim();
+        _weatherLocation = place.trim();
       });
       _scheduleAutoSave();
     } catch (_) {
       if (!mounted || _disposing) return;
       if (!fromAuto) {
-        _showWeatherSnack(isKo ? '날씨를 불러오지 못했어요.' : 'Failed to load weather.');
+        _showWeatherSnack(l10n.entryWeatherLoadFailed);
       }
     } finally {
       if (mounted && !_disposing) {
@@ -2952,25 +2968,22 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
-  Future<void> _showLocationServiceDialog(bool isKo) async {
+  Future<void> _showLocationServiceDialog() async {
     if (!mounted || _disposing) return;
+    final l10n = AppLocalizations.of(context)!;
     final open = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '위치 서비스 필요' : 'Location Service Needed'),
-        content: Text(
-          isKo
-              ? '현재 위치 날씨를 불러오려면 위치 서비스를 켜주세요.'
-              : 'Please enable location services to load local weather.',
-        ),
+        title: Text(l10n.entryWeatherLocationServiceTitle),
+        content: Text(l10n.entryWeatherLocationServiceBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(isKo ? '닫기' : 'Close'),
+            child: Text(MaterialLocalizations.of(context).closeButtonLabel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(isKo ? '설정 열기' : 'Open settings'),
+            child: Text(l10n.entryWeatherOpenSettings),
           ),
         ],
       ),
@@ -2980,25 +2993,22 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     }
   }
 
-  Future<void> _showLocationPermissionDialog(bool isKo) async {
+  Future<void> _showLocationPermissionDialog() async {
     if (!mounted || _disposing) return;
+    final l10n = AppLocalizations.of(context)!;
     final open = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '위치 권한 필요' : 'Location Permission Needed'),
-        content: Text(
-          isKo
-              ? '위치 권한이 꺼져 있어요. 설정에서 권한을 허용해주세요.'
-              : 'Location permission is turned off. Allow it in app settings.',
-        ),
+        title: Text(l10n.entryWeatherPermissionTitle),
+        content: Text(l10n.entryWeatherPermissionBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(isKo ? '닫기' : 'Close'),
+            child: Text(MaterialLocalizations.of(context).closeButtonLabel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(isKo ? '권한 설정 열기' : 'Open permission settings'),
+            child: Text(l10n.entryWeatherOpenSettings),
           ),
         ],
       ),

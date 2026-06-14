@@ -1395,9 +1395,9 @@ class _EntryListItem extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: scheme.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                   if (hasParentFeedback) ...[
@@ -1421,9 +1421,7 @@ class _EntryListItem extends StatelessWidget {
                           titleText,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
+                          style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 3),
@@ -1431,9 +1429,7 @@ class _EntryListItem extends StatelessWidget {
                           summaryText,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: scheme.onSurfaceVariant),
                         ),
                         if (focusText.isNotEmpty) ...[
@@ -1442,11 +1438,11 @@ class _EntryListItem extends StatelessWidget {
                             focusText,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: focusTextColor,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: focusTextColor,
+                                  fontWeight: FontWeight.w700,
+                                ),
                           ),
                         ],
                       ],
@@ -1638,19 +1634,9 @@ class _ThumbPitchPainter extends CustomPainter {
 
 String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
   return [
-    _trainingStatusLabel(l10n, entry.status),
     ...trainingEntryConditioningParts(entry, l10n),
-  ].join(' · ');
-}
-
-String _trainingStatusLabel(AppLocalizations l10n, String status) {
-  return switch (status) {
-    'great' => l10n.statusGreat,
-    'good' => l10n.statusGood,
-    'tough' => l10n.statusTough,
-    'recovery' => l10n.statusRecovery,
-    _ => l10n.statusNormal,
-  };
+    trainingEntryLocationWeatherLabel(entry),
+  ].where((part) => part.trim().isNotEmpty).join(' · ');
 }
 
 String _entrySecondaryText(TrainingEntry entry, {required bool isKo}) {
@@ -1687,19 +1673,9 @@ String _buildListFocusText(
   if (entry.jumpRopeNote.trim().isNotEmpty) return entry.jumpRopeNote.trim();
   if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
   if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
-  final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
+  final notesWithoutWeather = trainingEntryNotesWithoutWeather(entry);
   if (notesWithoutWeather.isNotEmpty) return notesWithoutWeather;
   return '';
-}
-
-String _stripWeatherMetaFromNotes(String notes) {
-  return notes
-      .split('\n')
-      .map((line) => line.trim())
-      .where((line) => line.isNotEmpty)
-      .where((line) => !line.startsWith('[Weather]'))
-      .where((line) => !line.startsWith('[날씨]'))
-      .join(' ');
 }
 
 class _EntryImage extends StatelessWidget {

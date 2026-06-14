@@ -10,6 +10,7 @@ class FifaWorldOverviewService {
   static const int _rankingPageSize = 250;
   static const int _matchPageSize = 100;
   static const int _matchPageLimit = 16;
+  static const int _competitionMatchPageLimit = 6;
   static const int _defaultRecentResultLimit = 12;
   static const int _defaultUpcomingFixtureLimit = 80;
 
@@ -159,6 +160,75 @@ class FifaWorldOverviewService {
     required DateTime end,
   }) {
     return _fetchNationalMatchesWindow(gender: gender, start: start, end: end);
+  }
+
+  Future<List<FifaAMatchEntry>> fetchCompetitionMatches({
+    required FifaRankingGender gender,
+    required String competitionId,
+    required String seasonId,
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final baseUri = _baseApiUri.replace(
+      path: '${_baseApiUri.path}/calendar/matches',
+      queryParameters: {
+        'idCompetition': competitionId,
+        'idSeason': seasonId,
+        'from': _formatApiDay(start),
+        'to': _formatApiDay(end),
+        'count': '$_matchPageSize',
+        'language': 'en',
+      },
+    );
+    var nextToken = '';
+    var nextHash = '';
+    var page = 0;
+    final deduped = <String, FifaAMatchEntry>{};
+
+    while (page < _competitionMatchPageLimit) {
+      final uri = nextHash.isEmpty
+          ? baseUri
+          : baseUri.replace(
+              queryParameters: {
+                ...baseUri.queryParameters,
+                'continuationHash': nextHash,
+              },
+            );
+      try {
+        final response = await _client
+            .get(
+              uri,
+              headers: nextToken.isEmpty
+                  ? null
+                  : {'x-mdp-continuation-token': nextToken},
+            )
+            .timeout(const Duration(seconds: 8));
+        if (response.statusCode != 200) {
+          break;
+        }
+        final decoded = jsonDecode(response.body);
+        final matches = parseNationalMatches(decoded, gender: gender);
+        for (final match in matches) {
+          deduped[match.matchId] = match;
+        }
+        nextToken = _asString(
+          decoded is Map ? decoded['ContinuationToken'] : null,
+        );
+        nextHash = _asString(
+          decoded is Map ? decoded['ContinuationHash'] : null,
+        );
+        if (nextToken.isEmpty || nextHash.isEmpty) {
+          break;
+        }
+      } catch (_) {
+        break;
+      }
+      page++;
+    }
+
+    final matches = deduped.values.toList(growable: false)
+      ..sort((a, b) => a.kickoffAt.compareTo(b.kickoffAt));
+    return matches;
   }
 
   Future<_FifaRankingSnapshot> _fetchRankingSnapshot(
@@ -755,8 +825,8 @@ class FifaWorldOverviewService {
   }
 
   static FifaAMatchEntry? _parseNationalMatch(Map<String, dynamic> raw) {
-    final home = _asMap(raw['HomeTeam']);
-    final away = _asMap(raw['AwayTeam']);
+    final home = _firstMap([raw['HomeTeam'], raw['Home']]);
+    final away = _firstMap([raw['AwayTeam'], raw['Away']]);
     if (!_isSeniorNationalTeam(home) || !_isSeniorNationalTeam(away)) {
       return null;
     }
@@ -1033,6 +1103,13 @@ class FifaWorldOverviewService {
   static String _formatApiDate(DateTime value) =>
       '${value.toUtc().toIso8601String().split('.').first}Z';
 
+  static String _formatApiDay(DateTime value) {
+    final utc = value.toUtc();
+    final month = utc.month.toString().padLeft(2, '0');
+    final day = utc.day.toString().padLeft(2, '0');
+    return '${utc.year}-$month-$day';
+  }
+
   static DateTime? _parseDateOnlyUtc(dynamic raw) {
     final value = _asString(raw);
     if (value.isEmpty) return null;
@@ -1097,6 +1174,14 @@ class FifaWorldOverviewService {
     }
     if (raw is Map) {
       return raw.cast<String, dynamic>();
+    }
+    return const <String, dynamic>{};
+  }
+
+  static Map<String, dynamic> _firstMap(Iterable<dynamic> values) {
+    for (final value in values) {
+      final map = _asMap(value);
+      if (map.isNotEmpty) return map;
     }
     return const <String, dynamic>{};
   }

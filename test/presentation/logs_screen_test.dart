@@ -45,7 +45,7 @@ void main() {
       type: '기술',
       mood: 3,
       injury: false,
-      notes: '메모',
+      notes: '메모\n[날씨] 맑음 21°C',
       location: '학교 운동장',
       goodPoints: '압박을 잘 벗어남',
       improvements: '왼발 패스 템포가 느렸음',
@@ -79,7 +79,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('기술 · 60분'), findsOneWidget);
-    expect(find.text('학교 운동장'), findsNothing);
+    expect(find.textContaining('학교 운동장 · 맑음 21°C'), findsOneWidget);
     expect(find.text('터치 수 줄이기'), findsOneWidget);
     expect(find.byTooltip('다이어리'), findsNothing);
 
@@ -109,7 +109,7 @@ void main() {
         notes: '',
         location: '학교 운동장',
         program: '볼터치',
-        trainingProgramMinutes: const {'볼터치': 50},
+        trainingProgramMinutes: const {'볼터치': 30, '패스': 20},
         liftingByPart: const {'inside': 40},
         jumpRopeCount: 120,
         jumpRopeEnabled: true,
@@ -141,7 +141,7 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('볼터치 · 50분'), findsOneWidget);
+    expect(find.text('볼터치, 패스 · 50분'), findsOneWidget);
     expect(find.textContaining('볼터치 50분'), findsNothing);
     expect(find.textContaining('리프팅 40회'), findsOneWidget);
     expect(find.textContaining('줄넘기 120회'), findsOneWidget);

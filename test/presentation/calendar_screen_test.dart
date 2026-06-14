@@ -197,14 +197,19 @@ void main() {
         type: '드리블',
         mood: 3,
         injury: false,
-        notes: '퍼스트 터치',
+        notes: '퍼스트 터치\n[날씨] 흐림 18°C',
         location: '학교 운동장',
+        program: '드리블',
+        trainingProgramMinutes: const {'드리블': 30, '패스': 15},
       ),
     );
 
     await pumpCalendar(tester, onEdit: (entry) => editedEntry = entry);
 
-    await tester.tap(find.text('드리블 · 45분 · 학교 운동장'));
+    expect(find.text('드리블, 패스 · 45분'), findsOneWidget);
+    expect(find.textContaining('학교 운동장 · 흐림 18°C'), findsOneWidget);
+
+    await tester.tap(find.text('드리블, 패스 · 45분'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 

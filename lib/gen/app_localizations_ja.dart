@@ -3614,6 +3614,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryWeatherUseLocationTooltip => '現在地の天気を使う';
 
   @override
+  String get entryWeatherLocationServiceTitle => '位置情報サービスが必要です';
+
+  @override
+  String get entryWeatherLocationServiceBody =>
+      '現在地の天気を読み込むには位置情報サービスをオンにしてください。';
+
+  @override
+  String get entryWeatherPermissionTitle => '位置情報の権限が必要です';
+
+  @override
+  String get entryWeatherPermissionBody =>
+      '位置情報の権限がオフです。設定で許可すると現在地の天気を読み込めます。';
+
+  @override
+  String get entryWeatherPermissionRequired => '位置情報の権限が必要です。';
+
+  @override
+  String get entryWeatherLoadFailed => '天気を読み込めませんでした。';
+
+  @override
+  String get entryWeatherOpenSettings => '設定を開く';
+
+  @override
   String get homeWeatherRetryTitle => '天気を再試行';
 
   @override
