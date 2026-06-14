@@ -1083,7 +1083,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupStandingsPlanBody =>
-      'Once results are available, this view will sort groups by FIFA\'s 2026 order: points, head-to-head checks, overall goal difference and goals, team conduct, then FIFA ranking. For now, use it to review each group setup.';
+      'Group rankings update from the fixture scores already in the schedule. Teams are ordered by points, goal difference, goals, wins, losses, then country name until official tie-break data is available.';
 
   @override
   String get worldCupStandingsRuleLabel => 'Tiebreak order';
@@ -1091,6 +1091,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get worldCupStandingsRuleValue =>
       'Points · head-to-head · goal difference · goals · conduct · FIFA ranking';
+
+  @override
+  String get worldCupStandingsTableTitle => 'Group table';
+
+  @override
+  String get worldCupStandingsRankColumn => 'Rk';
+
+  @override
+  String get worldCupStandingsTeamColumn => 'Team';
+
+  @override
+  String get worldCupStandingsRecordColumn => 'W-D-L';
+
+  @override
+  String get worldCupStandingsPointsColumn => 'Pts';
+
+  @override
+  String worldCupStandingsRecordValue(int wins, int draws, int losses) {
+    return '$wins-$draws-$losses';
+  }
 
   @override
   String get worldCupGroupTeamsTitle => 'Group teams';

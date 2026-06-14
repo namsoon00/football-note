@@ -74,4 +74,27 @@ void main() {
       isTrue,
     );
   });
+
+  test('group standings derive rank and record from scored fixtures', () {
+    final standings = worldCupGroupStandings();
+    final groupA = standings['A']!;
+
+    expect(groupA.map((standing) => standing.team).take(2), [
+      'Mexico',
+      'Korea Republic',
+    ]);
+    expect(groupA.first.played, 1);
+    expect(groupA.first.wins, 1);
+    expect(groupA.first.draws, 0);
+    expect(groupA.first.losses, 0);
+    expect(groupA.first.points, 3);
+
+    final korea = groupA.singleWhere(
+      (standing) => standing.team == 'Korea Republic',
+    );
+    expect(korea.played, 1);
+    expect(korea.wins, 1);
+    expect(korea.losses, 0);
+    expect(korea.goalDifference, 1);
+  });
 }

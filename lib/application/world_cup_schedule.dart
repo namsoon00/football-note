@@ -66,6 +66,32 @@ class WorldCupFixture {
 
 enum WorldCupFixtureTeamResult { scheduled, win, draw, loss }
 
+class WorldCupGroupStanding {
+  final String group;
+  final String team;
+  final int played;
+  final int wins;
+  final int draws;
+  final int losses;
+  final int goalsFor;
+  final int goalsAgainst;
+
+  const WorldCupGroupStanding({
+    required this.group,
+    required this.team,
+    required this.played,
+    required this.wins,
+    required this.draws,
+    required this.losses,
+    required this.goalsFor,
+    required this.goalsAgainst,
+  });
+
+  int get goalDifference => goalsFor - goalsAgainst;
+
+  int get points => wins * 3 + draws;
+}
+
 const Map<String, String> _worldCupCountryCodes = <String, String>{
   'Algeria': 'DZ',
   'Argentina': 'AR',
@@ -188,6 +214,97 @@ List<WorldCupFixture> worldCupFixturesForCountries(Iterable<String> countries) {
             selected.contains(fixture.awayTeam.toLowerCase()),
       )
       .toList(growable: false);
+}
+
+Map<String, List<WorldCupGroupStanding>> worldCupGroupStandings() {
+  final groups = <String, Map<String, _WorldCupGroupStandingAccumulator>>{};
+  for (final fixture in worldCupFixtures) {
+    final group = fixture.group;
+    if (!fixture.isGroupStage || group == null) continue;
+    final groupStats = groups.putIfAbsent(
+      group,
+      () => <String, _WorldCupGroupStandingAccumulator>{},
+    );
+    groupStats.putIfAbsent(
+      fixture.homeTeam,
+      () => _WorldCupGroupStandingAccumulator(group, fixture.homeTeam),
+    );
+    groupStats.putIfAbsent(
+      fixture.awayTeam,
+      () => _WorldCupGroupStandingAccumulator(group, fixture.awayTeam),
+    );
+    if (!fixture.hasScore) continue;
+    final home = groupStats[fixture.homeTeam]!;
+    final away = groupStats[fixture.awayTeam]!;
+    home.record(fixture.homeScore!, fixture.awayScore!);
+    away.record(fixture.awayScore!, fixture.homeScore!);
+  }
+
+  final entries = groups.entries.toList()
+    ..sort((a, b) => a.key.compareTo(b.key));
+  return {
+    for (final entry in entries)
+      entry.key:
+          (entry.value.values.map((stats) => stats.toStanding()).toList()
+                ..sort(_compareWorldCupGroupStandings))
+              .toList(growable: false),
+  };
+}
+
+int _compareWorldCupGroupStandings(
+  WorldCupGroupStanding a,
+  WorldCupGroupStanding b,
+) {
+  final points = b.points.compareTo(a.points);
+  if (points != 0) return points;
+  final goalDifference = b.goalDifference.compareTo(a.goalDifference);
+  if (goalDifference != 0) return goalDifference;
+  final goalsFor = b.goalsFor.compareTo(a.goalsFor);
+  if (goalsFor != 0) return goalsFor;
+  final wins = b.wins.compareTo(a.wins);
+  if (wins != 0) return wins;
+  final losses = a.losses.compareTo(b.losses);
+  if (losses != 0) return losses;
+  return a.team.compareTo(b.team);
+}
+
+class _WorldCupGroupStandingAccumulator {
+  final String group;
+  final String team;
+  int played = 0;
+  int wins = 0;
+  int draws = 0;
+  int losses = 0;
+  int goalsFor = 0;
+  int goalsAgainst = 0;
+
+  _WorldCupGroupStandingAccumulator(this.group, this.team);
+
+  void record(int teamScore, int opponentScore) {
+    played += 1;
+    goalsFor += teamScore;
+    goalsAgainst += opponentScore;
+    if (teamScore > opponentScore) {
+      wins += 1;
+    } else if (teamScore < opponentScore) {
+      losses += 1;
+    } else {
+      draws += 1;
+    }
+  }
+
+  WorldCupGroupStanding toStanding() {
+    return WorldCupGroupStanding(
+      group: group,
+      team: team,
+      played: played,
+      wins: wins,
+      draws: draws,
+      losses: losses,
+      goalsFor: goalsFor,
+      goalsAgainst: goalsAgainst,
+    );
+  }
 }
 
 const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[

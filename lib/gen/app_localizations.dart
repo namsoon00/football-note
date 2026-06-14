@@ -2037,7 +2037,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupStandingsPlanBody.
   ///
   /// In en, this message translates to:
-  /// **'Once results are available, this view will sort groups by FIFA\'s 2026 order: points, head-to-head checks, overall goal difference and goals, team conduct, then FIFA ranking. For now, use it to review each group setup.'**
+  /// **'Group rankings update from the fixture scores already in the schedule. Teams are ordered by points, goal difference, goals, wins, losses, then country name until official tie-break data is available.'**
   String get worldCupStandingsPlanBody;
 
   /// No description provided for @worldCupStandingsRuleLabel.
@@ -2051,6 +2051,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Points · head-to-head · goal difference · goals · conduct · FIFA ranking'**
   String get worldCupStandingsRuleValue;
+
+  /// No description provided for @worldCupStandingsTableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Group table'**
+  String get worldCupStandingsTableTitle;
+
+  /// No description provided for @worldCupStandingsRankColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Rk'**
+  String get worldCupStandingsRankColumn;
+
+  /// No description provided for @worldCupStandingsTeamColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get worldCupStandingsTeamColumn;
+
+  /// No description provided for @worldCupStandingsRecordColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'W-D-L'**
+  String get worldCupStandingsRecordColumn;
+
+  /// No description provided for @worldCupStandingsPointsColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Pts'**
+  String get worldCupStandingsPointsColumn;
+
+  /// No description provided for @worldCupStandingsRecordValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{wins}-{draws}-{losses}'**
+  String worldCupStandingsRecordValue(int wins, int draws, int losses);
 
   /// No description provided for @worldCupGroupTeamsTitle.
   ///

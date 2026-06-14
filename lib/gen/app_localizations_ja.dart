@@ -1046,7 +1046,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupStandingsPlanBody =>
-      '試合結果が入ったら、2026年のFIFA基準に合わせて、勝点、直接対決、全体の得失点差と得点、チーム行動スコア、FIFAランキングの順でグループ順位を整理します。今は各グループ構成を確認できます。';
+      '日程に入った試合結果をもとに、グループ順位をすぐ整理します。公式の詳細タイブレークが確定するまでは、勝点、得失点差、得点、勝利、敗戦、国名の順で並べます。';
 
   @override
   String get worldCupStandingsRuleLabel => '順位基準';
@@ -1054,6 +1054,26 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get worldCupStandingsRuleValue =>
       '勝点 · 直接対決 · 得失点差 · 得点 · 行動スコア · FIFAランキング';
+
+  @override
+  String get worldCupStandingsTableTitle => 'グループ順位表';
+
+  @override
+  String get worldCupStandingsRankColumn => '順位';
+
+  @override
+  String get worldCupStandingsTeamColumn => '国';
+
+  @override
+  String get worldCupStandingsRecordColumn => '勝-分-敗';
+
+  @override
+  String get worldCupStandingsPointsColumn => '勝点';
+
+  @override
+  String worldCupStandingsRecordValue(int wins, int draws, int losses) {
+    return '$wins-$draws-$losses';
+  }
 
   @override
   String get worldCupGroupTeamsTitle => 'グループ別チーム';

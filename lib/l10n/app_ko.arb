@@ -462,9 +462,28 @@
   "worldCupMilestoneFinalLabel": "결승",
   "worldCupFinalMatch": "2026년 7월 19일 · 뉴욕 뉴저지 스타디움",
   "worldCupStandingsTitle": "조별 순위",
-  "worldCupStandingsPlanBody": "경기 결과가 쌓이면 2026 FIFA 기준에 맞춰 승점, 맞대결, 전체 득실차와 득점, 팀 페어플레이 점수, FIFA 랭킹 순서로 조별 순위를 정리할 예정이에요. 지금은 각 조 구성을 먼저 확인하세요.",
+  "worldCupStandingsPlanBody": "일정에 들어온 경기 결과를 바탕으로 조별 순위를 바로 정리해요. 공식 세부 순위 기준이 확정되기 전까지는 승점, 득실차, 득점, 승리, 패배, 국가명 순서로 정렬합니다.",
   "worldCupStandingsRuleLabel": "순위 기준",
   "worldCupStandingsRuleValue": "승점 · 맞대결 · 득실차 · 득점 · 페어플레이 · FIFA 랭킹",
+  "worldCupStandingsTableTitle": "조별 순위표",
+  "worldCupStandingsRankColumn": "순위",
+  "worldCupStandingsTeamColumn": "국가",
+  "worldCupStandingsRecordColumn": "승-무-패",
+  "worldCupStandingsPointsColumn": "승점",
+  "worldCupStandingsRecordValue": "{wins}-{draws}-{losses}",
+  "@worldCupStandingsRecordValue": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupGroupTeamsTitle": "조별 팀 구성",
   "worldCupTeamRosterOpenTooltip": "{team} 선수 명단 열기",
   "@worldCupTeamRosterOpenTooltip": {

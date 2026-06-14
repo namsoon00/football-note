@@ -1038,7 +1038,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupStandingsPlanBody =>
-      '경기 결과가 쌓이면 2026 FIFA 기준에 맞춰 승점, 맞대결, 전체 득실차와 득점, 팀 페어플레이 점수, FIFA 랭킹 순서로 조별 순위를 정리할 예정이에요. 지금은 각 조 구성을 먼저 확인하세요.';
+      '일정에 들어온 경기 결과를 바탕으로 조별 순위를 바로 정리해요. 공식 세부 순위 기준이 확정되기 전까지는 승점, 득실차, 득점, 승리, 패배, 국가명 순서로 정렬합니다.';
 
   @override
   String get worldCupStandingsRuleLabel => '순위 기준';
@@ -1046,6 +1046,26 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get worldCupStandingsRuleValue =>
       '승점 · 맞대결 · 득실차 · 득점 · 페어플레이 · FIFA 랭킹';
+
+  @override
+  String get worldCupStandingsTableTitle => '조별 순위표';
+
+  @override
+  String get worldCupStandingsRankColumn => '순위';
+
+  @override
+  String get worldCupStandingsTeamColumn => '국가';
+
+  @override
+  String get worldCupStandingsRecordColumn => '승-무-패';
+
+  @override
+  String get worldCupStandingsPointsColumn => '승점';
+
+  @override
+  String worldCupStandingsRecordValue(int wins, int draws, int losses) {
+    return '$wins-$draws-$losses';
+  }
 
   @override
   String get worldCupGroupTeamsTitle => '조별 팀 구성';
