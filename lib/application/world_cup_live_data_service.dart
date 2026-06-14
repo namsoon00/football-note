@@ -19,13 +19,15 @@ class WorldCupLiveData {
 class WorldCupLiveDataService {
   static const Duration _windowSize = Duration(days: 6);
   static const Duration _fixtureMatchTolerance = Duration(hours: 4);
+  static const String _worldCupCompetitionId = '17';
+  static const String _worldCupSeasonId = '285023';
 
   final FifaWorldOverviewService _fifaService;
   final bool _ownsFifaService;
 
   WorldCupLiveDataService({FifaWorldOverviewService? fifaService})
-    : _fifaService = fifaService ?? FifaWorldOverviewService(),
-      _ownsFifaService = fifaService == null;
+      : _fifaService = fifaService ?? FifaWorldOverviewService(),
+        _ownsFifaService = fifaService == null;
 
   void dispose() {
     if (_ownsFifaService) {
@@ -103,6 +105,19 @@ class WorldCupLiveDataService {
     required DateTime start,
     required DateTime end,
   }) async {
+    final competitionMatches = await _fifaService.fetchCompetitionMatches(
+      gender: FifaRankingGender.men,
+      competitionId: _worldCupCompetitionId,
+      seasonId: _worldCupSeasonId,
+      start: start,
+      end: end,
+    );
+    final worldCupCompetitionMatches =
+        competitionMatches.where(_isWorldCupMatch).toList(growable: false);
+    if (worldCupCompetitionMatches.isNotEmpty) {
+      return worldCupCompetitionMatches;
+    }
+
     final matches = <String, FifaAMatchEntry>{};
     var cursor = start.toUtc();
     final endUtc = end.toUtc();
@@ -169,7 +184,7 @@ class WorldCupLiveDataService {
     }
     final sameDirection =
         _teamKey(fixture.homeTeam) == _teamKey(officialMatch.homeTeamName) &&
-        _teamKey(fixture.awayTeam) == _teamKey(officialMatch.awayTeamName);
+            _teamKey(fixture.awayTeam) == _teamKey(officialMatch.awayTeamName);
     if (sameDirection) {
       return fixture.copyWithScore(
         homeScore: officialMatch.homeScore,

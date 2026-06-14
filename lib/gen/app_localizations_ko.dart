@@ -3609,6 +3609,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String get entryWeatherUseLocationTooltip => '현재 위치 날씨';
 
   @override
+  String get entryWeatherLocationServiceTitle => '위치 서비스 필요';
+
+  @override
+  String get entryWeatherLocationServiceBody => '현재 위치 날씨를 불러오려면 위치 서비스를 켜주세요.';
+
+  @override
+  String get entryWeatherPermissionTitle => '위치 권한 필요';
+
+  @override
+  String get entryWeatherPermissionBody => '위치 권한이 꺼져 있어요. 설정에서 권한을 허용해주세요.';
+
+  @override
+  String get entryWeatherPermissionRequired => '위치 권한이 필요합니다.';
+
+  @override
+  String get entryWeatherLoadFailed => '날씨를 불러오지 못했어요.';
+
+  @override
+  String get entryWeatherOpenSettings => '설정 열기';
+
+  @override
   String get homeWeatherRetryTitle => '날씨 다시 시도';
 
   @override

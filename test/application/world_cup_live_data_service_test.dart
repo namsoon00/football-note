@@ -23,12 +23,62 @@ void main() {
           awayCode: 'MAR',
           homeScore: 1,
           awayScore: 1,
+          calendarShape: true,
         ),
       ], gender: FifaRankingGender.men);
       expect(parsed, hasLength(1));
 
       final requestedRanges = <Map<String, String>>[];
+      final requestedCompetitionMatches = <Map<String, String>>[];
       final client = MockClient((request) async {
+        if (request.url.host == 'api.fifa.com' &&
+            request.url.path.endsWith('/calendar/matches')) {
+          requestedCompetitionMatches.add(request.url.queryParameters);
+          return http.Response(
+            jsonEncode({
+              'Results': [
+                _worldCupMatch(
+                  matchId: 'official-mexico-calendar',
+                  matchNumber: 1,
+                  period: 0,
+                  date: '2026-06-11T19:00:00Z',
+                  homeName: 'Mexico',
+                  homeCode: 'MEX',
+                  awayName: 'South Africa',
+                  awayCode: 'RSA',
+                  calendarShape: true,
+                ),
+                _worldCupMatch(
+                  matchId: 'official-brazil-calendar',
+                  matchNumber: 7,
+                  period: 10,
+                  date: '2026-06-13T22:00:00Z',
+                  homeName: 'Brazil',
+                  homeCode: 'BRA',
+                  awayName: 'Morocco',
+                  awayCode: 'MAR',
+                  homeScore: 1,
+                  awayScore: 1,
+                  calendarShape: true,
+                ),
+                _worldCupMatch(
+                  matchId: 'official-australia-calendar',
+                  matchNumber: 6,
+                  period: 10,
+                  date: '2026-06-14T04:00:00Z',
+                  homeName: 'Australia',
+                  homeCode: 'AUS',
+                  awayName: 'Turkiye',
+                  awayCode: 'TUR',
+                  homeScore: 2,
+                  awayScore: 0,
+                  calendarShape: true,
+                ),
+              ],
+            }),
+            200,
+          );
+        }
         if (request.url.host == 'api.fifa.com' &&
             request.url.path.endsWith('/live/football/range')) {
           requestedRanges.add(request.url.queryParameters);
@@ -104,6 +154,7 @@ void main() {
         data.officialMatchesByFixtureNumber[brazil.matchNumber]?.matchNumber,
         7,
       );
+      expect(requestedCompetitionMatches, isNotEmpty);
       expect(requestedRanges, isNotEmpty);
 
       service.dispose();
@@ -122,7 +173,10 @@ Map<String, dynamic> _worldCupMatch({
   required String awayCode,
   int? homeScore,
   int? awayScore,
+  bool calendarShape = false,
 }) {
+  final home = _team(name: homeName, countryCode: homeCode, score: homeScore);
+  final away = _team(name: awayName, countryCode: awayCode, score: awayScore);
   return {
     'IdMatch': matchId,
     'MatchNumber': matchNumber,
@@ -142,8 +196,8 @@ Map<String, dynamic> _worldCupMatch({
         {'Locale': 'en-GB', 'Description': 'Test City'},
       ],
     },
-    'HomeTeam': _team(name: homeName, countryCode: homeCode, score: homeScore),
-    'AwayTeam': _team(name: awayName, countryCode: awayCode, score: awayScore),
+    if (calendarShape) 'Home': home else 'HomeTeam': home,
+    if (calendarShape) 'Away': away else 'AwayTeam': away,
   };
 }
 

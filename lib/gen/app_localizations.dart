@@ -6733,6 +6733,48 @@ abstract class AppLocalizations {
   /// **'Use location weather'**
   String get entryWeatherUseLocationTooltip;
 
+  /// No description provided for @entryWeatherLocationServiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Location service needed'**
+  String get entryWeatherLocationServiceTitle;
+
+  /// No description provided for @entryWeatherLocationServiceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location services to load current-location weather.'**
+  String get entryWeatherLocationServiceBody;
+
+  /// No description provided for @entryWeatherPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission needed'**
+  String get entryWeatherPermissionTitle;
+
+  /// No description provided for @entryWeatherPermissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is off. Allow it in settings to load current-location weather.'**
+  String get entryWeatherPermissionBody;
+
+  /// No description provided for @entryWeatherPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is required.'**
+  String get entryWeatherPermissionRequired;
+
+  /// No description provided for @entryWeatherLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load weather.'**
+  String get entryWeatherLoadFailed;
+
+  /// No description provided for @entryWeatherOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get entryWeatherOpenSettings;
+
   /// No description provided for @homeWeatherRetryTitle.
   ///
   /// In en, this message translates to:

@@ -3709,8 +3709,11 @@ class _EntryTile extends StatelessWidget {
         : <String>[
             _trainingTitle(entry, l10n),
             _trainingProgramDurationText(entry, l10n: l10n),
-            entry.location.trim().isNotEmpty ? entry.location.trim() : '-',
-          ];
+          ].where((part) => part.trim().isNotEmpty).toList(growable: false);
+    final trainingSummaryParts = [
+      ...trainingEntryConditioningParts(entry, l10n),
+      trainingEntryLocationWeatherLabel(entry),
+    ].where((part) => part.trim().isNotEmpty).toList(growable: false);
     final hasParentFeedback = parentFeedbackMessage.trim().isNotEmpty;
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -3746,12 +3749,9 @@ class _EntryTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: _calendarTimelineSubtitleStyle(context),
                     ),
-                ] else
+                ] else if (trainingSummaryParts.isNotEmpty)
                   Text(
-                    [
-                      '${l10n.status} ${_trainingStatusLabel(l10n, entry.status)}',
-                      ...trainingEntryConditioningParts(entry, l10n),
-                    ].join(' · '),
+                    trainingSummaryParts.join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: _calendarTimelineSubtitleStyle(context),
@@ -3790,33 +3790,13 @@ class _EntryTile extends StatelessWidget {
     if (entry.goodPoints.trim().isNotEmpty) return entry.goodPoints.trim();
     if (entry.improvements.trim().isNotEmpty) return entry.improvements.trim();
     if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
-    final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
+    final notesWithoutWeather = trainingEntryNotesWithoutWeather(entry);
     if (notesWithoutWeather.isNotEmpty) return notesWithoutWeather;
     return '';
   }
 
-  String _stripWeatherMetaFromNotes(String notes) {
-    return notes
-        .split('\n')
-        .map((line) => line.trim())
-        .where((line) => line.isNotEmpty)
-        .where((line) => !line.startsWith('[Weather]'))
-        .where((line) => !line.startsWith('[날씨]'))
-        .join(' ');
-  }
-
   String _trainingTitle(TrainingEntry entry, AppLocalizations l10n) {
     return trainingEntryPrimaryLabel(entry, l10n);
-  }
-
-  String _trainingStatusLabel(AppLocalizations l10n, String status) {
-    return switch (status) {
-      'great' => l10n.statusGreat,
-      'good' => l10n.statusGood,
-      'tough' => l10n.statusTough,
-      'recovery' => l10n.statusRecovery,
-      _ => l10n.statusNormal,
-    };
   }
 
   String _trainingProgramDurationText(

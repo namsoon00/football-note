@@ -24,6 +24,65 @@ String worldCupRosterClubForPlayer(String team, String playerName) {
   return teamClubs[playerName.trim()] ?? '';
 }
 
+Uri? worldCupOfficialSquadUri(String team) {
+  final slug = _worldCupOfficialSquadSlugs[team.trim()];
+  if (slug == null || slug.isEmpty) return null;
+  return Uri.parse(
+    'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/teams/$slug/squad',
+  );
+}
+
+const Map<String, String> _worldCupOfficialSquadSlugs = <String, String>{
+  'Algeria': 'algeria',
+  'Argentina': 'argentina',
+  'Australia': 'australia',
+  'Austria': 'austria',
+  'Belgium': 'belgium',
+  'Bosnia and Herzegovina': 'bosnia-and-herzegovina',
+  'Brazil': 'brazil',
+  'Canada': 'canada',
+  'Cape Verde': 'cape-verde',
+  'Colombia': 'colombia',
+  'Congo DR': 'congo-dr',
+  'Croatia': 'croatia',
+  'Curacao': 'curacao',
+  'Czechia': 'czechia',
+  'Ecuador': 'ecuador',
+  'Egypt': 'egypt',
+  'England': 'england',
+  'France': 'france',
+  'Germany': 'germany',
+  'Ghana': 'ghana',
+  'Haiti': 'haiti',
+  'Iran': 'iran',
+  'Iraq': 'iraq',
+  'Ivory Coast': 'cote-d-ivoire',
+  'Japan': 'japan',
+  'Jordan': 'jordan',
+  'Korea Republic': 'korea-republic',
+  'Mexico': 'mexico',
+  'Morocco': 'morocco',
+  'Netherlands': 'netherlands',
+  'New Zealand': 'new-zealand',
+  'Norway': 'norway',
+  'Panama': 'panama',
+  'Paraguay': 'paraguay',
+  'Portugal': 'portugal',
+  'Qatar': 'qatar',
+  'Saudi Arabia': 'saudi-arabia',
+  'Scotland': 'scotland',
+  'Senegal': 'senegal',
+  'South Africa': 'south-africa',
+  'Spain': 'spain',
+  'Sweden': 'sweden',
+  'Switzerland': 'switzerland',
+  'Tunisia': 'tunisia',
+  'Turkiye': 'turkiye',
+  'Uruguay': 'uruguay',
+  'USA': 'usa',
+  'Uzbekistan': 'uzbekistan',
+};
+
 const Map<String, Map<String, String>> worldCupRosterPlayerClubs =
     <String, Map<String, String>>{
       'Korea Republic': <String, String>{

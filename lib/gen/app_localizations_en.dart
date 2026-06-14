@@ -3719,6 +3719,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryWeatherUseLocationTooltip => 'Use location weather';
 
   @override
+  String get entryWeatherLocationServiceTitle => 'Location service needed';
+
+  @override
+  String get entryWeatherLocationServiceBody =>
+      'Turn on location services to load current-location weather.';
+
+  @override
+  String get entryWeatherPermissionTitle => 'Location permission needed';
+
+  @override
+  String get entryWeatherPermissionBody =>
+      'Location permission is off. Allow it in settings to load current-location weather.';
+
+  @override
+  String get entryWeatherPermissionRequired =>
+      'Location permission is required.';
+
+  @override
+  String get entryWeatherLoadFailed => 'Failed to load weather.';
+
+  @override
+  String get entryWeatherOpenSettings => 'Open settings';
+
+  @override
   String get homeWeatherRetryTitle => 'Retry weather';
 
   @override
