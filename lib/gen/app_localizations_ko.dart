@@ -711,6 +711,42 @@ class AppLocalizationsKo extends AppLocalizations {
       '실시간 경기 기록은 공식 데이터가 들어오는 대로 표시됩니다.';
 
   @override
+  String get worldCupMatchDetailLoading => 'FIFA 경기 데이터를 불러오는 중...';
+
+  @override
+  String get worldCupMatchScorersTitle => '득점 선수';
+
+  @override
+  String get worldCupMatchLineupsTitle => '출전 명단';
+
+  @override
+  String get worldCupStartingPlayersLabel => '선발';
+
+  @override
+  String get worldCupBenchPlayersLabel => '교체 명단';
+
+  @override
+  String get worldCupCaptainAbbreviation => '(주장)';
+
+  @override
+  String get worldCupOfficialSourceNote =>
+      '점수, 선수 명단, 경기 기록은 이 페이지를 열 때 FIFA 데이터로 갱신됩니다.';
+
+  @override
+  String get worldCupMatchPossessionLabel => '점유율';
+
+  @override
+  String worldCupMatchPossessionValue(int home, int away) {
+    return '$home% · $away%';
+  }
+
+  @override
+  String get worldCupMatchAttendanceLabel => '관중';
+
+  @override
+  String get worldCupMatchTacticsLabel => '전술';
+
+  @override
   String worldCupPlayerProfileTitle(String player) {
     return '$player 프로필';
   }
@@ -1174,6 +1210,20 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupSourceAction => 'FIFA 일정 열기';
+
+  @override
+  String get worldCupOfficialRefreshAction => 'FIFA 데이터 새로고침';
+
+  @override
+  String get worldCupOfficialRefreshing => 'FIFA 갱신 중';
+
+  @override
+  String get worldCupOfficialUnavailable => 'FIFA 연결 불가';
+
+  @override
+  String worldCupOfficialUpdatedAt(String time) {
+    return 'FIFA $time';
+  }
 
   @override
   String get homeTodayPlanCardTitle => '오늘의 훈련 계획';

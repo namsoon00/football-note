@@ -16,7 +16,7 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const WorldCupScreen(),
+        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
       ),
     );
     await tester.pumpAndSettle();
@@ -59,7 +59,7 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const WorldCupScreen(),
+        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
       ),
     );
     await tester.pumpAndSettle();
@@ -89,6 +89,7 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
           optionRepository: optionRepository,
           initialSelectedDay: day,
         ),
@@ -118,7 +119,7 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const WorldCupScreen(),
+        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
       ),
     );
     await tester.pumpAndSettle();
@@ -166,7 +167,7 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const WorldCupScreen(),
+        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
       ),
     );
     await tester.pumpAndSettle();
@@ -206,6 +207,7 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
           initialSelectedDay: worldCupFixtures.first.localDay,
         ),
       ),
@@ -236,6 +238,7 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
           initialSelectedDay: worldCupFixtures.first.localDay,
         ),
       ),
@@ -257,6 +260,7 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
           initialSelectedDay: fixture.localDay,
           currentTime: fixture.kickoffUtc.add(const Duration(hours: 3)),
         ),
@@ -284,7 +288,7 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const WorldCupScreen(),
+        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
       ),
     );
     await tester.pumpAndSettle();
@@ -322,7 +326,10 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: WorldCupScreen(optionRepository: optionRepository),
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          optionRepository: optionRepository,
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -353,7 +360,7 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const WorldCupScreen(),
+        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
       ),
     );
     await tester.pumpAndSettle();

@@ -326,6 +326,27 @@
   "worldCupMatchComparisonTitle": "Team comparison",
   "worldCupMatchRecordsTitle": "Match records",
   "worldCupMatchRecordUnavailable": "Live match records will appear as official data becomes available.",
+  "worldCupMatchDetailLoading": "Loading FIFA match data...",
+  "worldCupMatchScorersTitle": "Scorers",
+  "worldCupMatchLineupsTitle": "Lineups",
+  "worldCupStartingPlayersLabel": "Starting XI",
+  "worldCupBenchPlayersLabel": "Bench",
+  "worldCupCaptainAbbreviation": "(C)",
+  "worldCupOfficialSourceNote": "Scores, player lists, and match records are refreshed from FIFA data when this page opens.",
+  "worldCupMatchPossessionLabel": "Possession",
+  "worldCupMatchPossessionValue": "{home}% · {away}%",
+  "@worldCupMatchPossessionValue": {
+    "placeholders": {
+      "home": {
+        "type": "int"
+      },
+      "away": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupMatchAttendanceLabel": "Attendance",
+  "worldCupMatchTacticsLabel": "Tactics",
   "worldCupPlayerProfileTitle": "{player} profile",
   "@worldCupPlayerProfileTitle": {
     "placeholders": {
@@ -607,6 +628,17 @@
     }
   },
   "worldCupSourceAction": "Open FIFA schedule",
+  "worldCupOfficialRefreshAction": "Refresh FIFA data",
+  "worldCupOfficialRefreshing": "Updating FIFA",
+  "worldCupOfficialUnavailable": "FIFA unavailable",
+  "worldCupOfficialUpdatedAt": "FIFA {time}",
+  "@worldCupOfficialUpdatedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "homeTodayPlanCardTitle": "Today training plan",
   "homeTodayPlanCardSummary": "Today: {count} plan(s)",
   "@homeTodayPlanCardSummary": {

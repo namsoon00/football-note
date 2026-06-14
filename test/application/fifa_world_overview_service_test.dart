@@ -148,6 +148,10 @@ void main() {
     homeTeam['Players'] = [
       {
         'IdPlayer': 'home-9',
+        'ShirtNumber': 7,
+        'Status': 1,
+        'Captain': true,
+        'Position': 3,
         'ShortName': [
           {'Locale': 'en-gb', 'Description': 'S. Son'},
         ],
@@ -163,6 +167,10 @@ void main() {
     awayTeam['Players'] = [
       {
         'IdPlayer': 'away-10',
+        'ShirtNumber': 20,
+        'Status': 2,
+        'Captain': false,
+        'Position': 2,
         'ShortName': [
           {'Locale': 'en-gb', 'Description': 'T. Kubo'},
         ],
@@ -186,6 +194,15 @@ void main() {
     expect(detail.homeScorers.first.playerName, 'S. Son');
     expect(detail.homeScorers.first.minute, "21'");
     expect(detail.awayScorers.single.playerName, 'T. Kubo');
+    expect(detail.homePlayers.single.playerName, 'S. Son');
+    expect(detail.homePlayers.single.shirtNumber, 7);
+    expect(detail.homePlayers.single.isStarting, isTrue);
+    expect(detail.homePlayers.single.isCaptain, isTrue);
+    expect(detail.homePlayers.single.position, FifaMatchPlayerPosition.forward);
+    expect(
+      detail.awayPlayers.single.position,
+      FifaMatchPlayerPosition.midfielder,
+    );
     expect(detail.homePossession, 58.2);
     expect(detail.awayPossession, 41.8);
   });

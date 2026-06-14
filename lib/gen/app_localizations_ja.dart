@@ -717,6 +717,42 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupMatchRecordUnavailable => '公式データが利用可能になると、ライブ試合記録が表示されます。';
 
   @override
+  String get worldCupMatchDetailLoading => 'FIFAの試合データを読み込んでいます...';
+
+  @override
+  String get worldCupMatchScorersTitle => '得点者';
+
+  @override
+  String get worldCupMatchLineupsTitle => 'ラインアップ';
+
+  @override
+  String get worldCupStartingPlayersLabel => '先発';
+
+  @override
+  String get worldCupBenchPlayersLabel => 'ベンチ';
+
+  @override
+  String get worldCupCaptainAbbreviation => '(C)';
+
+  @override
+  String get worldCupOfficialSourceNote =>
+      'スコア、選手リスト、試合記録は、このページを開くたびにFIFAデータから更新されます。';
+
+  @override
+  String get worldCupMatchPossessionLabel => 'ポゼッション';
+
+  @override
+  String worldCupMatchPossessionValue(int home, int away) {
+    return '$home% · $away%';
+  }
+
+  @override
+  String get worldCupMatchAttendanceLabel => '観客数';
+
+  @override
+  String get worldCupMatchTacticsLabel => '戦術';
+
+  @override
   String worldCupPlayerProfileTitle(String player) {
     return '$player プロフィール';
   }
@@ -1182,6 +1218,20 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupSourceAction => 'FIFA日程を開く';
+
+  @override
+  String get worldCupOfficialRefreshAction => 'FIFAデータを更新';
+
+  @override
+  String get worldCupOfficialRefreshing => 'FIFA更新中';
+
+  @override
+  String get worldCupOfficialUnavailable => 'FIFA利用不可';
+
+  @override
+  String worldCupOfficialUpdatedAt(String time) {
+    return 'FIFA $time';
+  }
 
   @override
   String get homeTodayPlanCardTitle => '今日のトレーニングプラン';

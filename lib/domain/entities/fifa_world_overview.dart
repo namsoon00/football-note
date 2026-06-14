@@ -139,6 +139,7 @@ class FifaTeamDetail {
 
 class FifaAMatchEntry {
   final String matchId;
+  final int? matchNumber;
   final FifaRankingGender gender;
   final String competition;
   final String stage;
@@ -155,6 +156,7 @@ class FifaAMatchEntry {
 
   const FifaAMatchEntry({
     required this.matchId,
+    this.matchNumber,
     required this.gender,
     required this.competition,
     required this.stage,
@@ -177,20 +179,41 @@ class FifaAMatchDetail {
   final FifaAMatchEntry match;
   final List<FifaMatchScorer> homeScorers;
   final List<FifaMatchScorer> awayScorers;
+  final List<FifaMatchPlayer> homePlayers;
+  final List<FifaMatchPlayer> awayPlayers;
+  final String homeTactics;
+  final String awayTactics;
   final double? homePossession;
   final double? awayPossession;
+  final int? attendance;
 
   const FifaAMatchDetail({
     required this.match,
     required this.homeScorers,
     required this.awayScorers,
+    this.homePlayers = const <FifaMatchPlayer>[],
+    this.awayPlayers = const <FifaMatchPlayer>[],
+    this.homeTactics = '',
+    this.awayTactics = '',
     required this.homePossession,
     required this.awayPossession,
+    this.attendance,
   });
 
   bool get hasScorers => homeScorers.isNotEmpty || awayScorers.isNotEmpty;
 
+  bool get hasPlayers => homePlayers.isNotEmpty || awayPlayers.isNotEmpty;
+
   bool get hasPossession => homePossession != null && awayPossession != null;
+
+  bool get hasTactics => homeTactics.isNotEmpty || awayTactics.isNotEmpty;
+
+  bool get hasOfficialRecords =>
+      hasScorers ||
+      hasPlayers ||
+      hasPossession ||
+      hasTactics ||
+      attendance != null;
 }
 
 class FifaMatchScorer {
@@ -198,6 +221,34 @@ class FifaMatchScorer {
   final String minute;
 
   const FifaMatchScorer({required this.playerName, required this.minute});
+}
+
+enum FifaMatchPlayerPosition {
+  goalkeeper,
+  defender,
+  midfielder,
+  forward,
+  unknown,
+}
+
+class FifaMatchPlayer {
+  final String playerId;
+  final String playerName;
+  final int? shirtNumber;
+  final FifaMatchPlayerPosition position;
+  final bool isStarting;
+  final bool isCaptain;
+  final String pictureUrl;
+
+  const FifaMatchPlayer({
+    required this.playerId,
+    required this.playerName,
+    required this.shirtNumber,
+    required this.position,
+    required this.isStarting,
+    required this.isCaptain,
+    required this.pictureUrl,
+  });
 }
 
 class KfaMatchOverview {

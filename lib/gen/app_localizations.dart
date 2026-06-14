@@ -1404,6 +1404,72 @@ abstract class AppLocalizations {
   /// **'Live match records will appear as official data becomes available.'**
   String get worldCupMatchRecordUnavailable;
 
+  /// No description provided for @worldCupMatchDetailLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading FIFA match data...'**
+  String get worldCupMatchDetailLoading;
+
+  /// No description provided for @worldCupMatchScorersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scorers'**
+  String get worldCupMatchScorersTitle;
+
+  /// No description provided for @worldCupMatchLineupsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lineups'**
+  String get worldCupMatchLineupsTitle;
+
+  /// No description provided for @worldCupStartingPlayersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting XI'**
+  String get worldCupStartingPlayersLabel;
+
+  /// No description provided for @worldCupBenchPlayersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bench'**
+  String get worldCupBenchPlayersLabel;
+
+  /// No description provided for @worldCupCaptainAbbreviation.
+  ///
+  /// In en, this message translates to:
+  /// **'(C)'**
+  String get worldCupCaptainAbbreviation;
+
+  /// No description provided for @worldCupOfficialSourceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Scores, player lists, and match records are refreshed from FIFA data when this page opens.'**
+  String get worldCupOfficialSourceNote;
+
+  /// No description provided for @worldCupMatchPossessionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Possession'**
+  String get worldCupMatchPossessionLabel;
+
+  /// No description provided for @worldCupMatchPossessionValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{home}% · {away}%'**
+  String worldCupMatchPossessionValue(int home, int away);
+
+  /// No description provided for @worldCupMatchAttendanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get worldCupMatchAttendanceLabel;
+
+  /// No description provided for @worldCupMatchTacticsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactics'**
+  String get worldCupMatchTacticsLabel;
+
   /// No description provided for @worldCupPlayerProfileTitle.
   ///
   /// In en, this message translates to:
@@ -2249,6 +2315,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open FIFA schedule'**
   String get worldCupSourceAction;
+
+  /// No description provided for @worldCupOfficialRefreshAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh FIFA data'**
+  String get worldCupOfficialRefreshAction;
+
+  /// No description provided for @worldCupOfficialRefreshing.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating FIFA'**
+  String get worldCupOfficialRefreshing;
+
+  /// No description provided for @worldCupOfficialUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA unavailable'**
+  String get worldCupOfficialUnavailable;
+
+  /// No description provided for @worldCupOfficialUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA {time}'**
+  String worldCupOfficialUpdatedAt(String time);
 
   /// No description provided for @homeTodayPlanCardTitle.
   ///

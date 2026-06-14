@@ -326,6 +326,27 @@
   "worldCupMatchComparisonTitle": "전력 비교",
   "worldCupMatchRecordsTitle": "경기 기록",
   "worldCupMatchRecordUnavailable": "실시간 경기 기록은 공식 데이터가 들어오는 대로 표시됩니다.",
+  "worldCupMatchDetailLoading": "FIFA 경기 데이터를 불러오는 중...",
+  "worldCupMatchScorersTitle": "득점 선수",
+  "worldCupMatchLineupsTitle": "출전 명단",
+  "worldCupStartingPlayersLabel": "선발",
+  "worldCupBenchPlayersLabel": "교체 명단",
+  "worldCupCaptainAbbreviation": "(주장)",
+  "worldCupOfficialSourceNote": "점수, 선수 명단, 경기 기록은 이 페이지를 열 때 FIFA 데이터로 갱신됩니다.",
+  "worldCupMatchPossessionLabel": "점유율",
+  "worldCupMatchPossessionValue": "{home}% · {away}%",
+  "@worldCupMatchPossessionValue": {
+    "placeholders": {
+      "home": {
+        "type": "int"
+      },
+      "away": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupMatchAttendanceLabel": "관중",
+  "worldCupMatchTacticsLabel": "전술",
   "worldCupPlayerProfileTitle": "{player} 프로필",
   "@worldCupPlayerProfileTitle": {
     "placeholders": {
@@ -607,6 +628,17 @@
     }
   },
   "worldCupSourceAction": "FIFA 일정 열기",
+  "worldCupOfficialRefreshAction": "FIFA 데이터 새로고침",
+  "worldCupOfficialRefreshing": "FIFA 갱신 중",
+  "worldCupOfficialUnavailable": "FIFA 연결 불가",
+  "worldCupOfficialUpdatedAt": "FIFA {time}",
+  "@worldCupOfficialUpdatedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "homeTodayPlanCardTitle": "오늘의 훈련 계획",
   "homeTodayPlanCardSummary": "오늘 계획 {count}개",
   "@homeTodayPlanCardSummary": {

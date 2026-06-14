@@ -746,6 +746,42 @@ class AppLocalizationsEn extends AppLocalizations {
       'Live match records will appear as official data becomes available.';
 
   @override
+  String get worldCupMatchDetailLoading => 'Loading FIFA match data...';
+
+  @override
+  String get worldCupMatchScorersTitle => 'Scorers';
+
+  @override
+  String get worldCupMatchLineupsTitle => 'Lineups';
+
+  @override
+  String get worldCupStartingPlayersLabel => 'Starting XI';
+
+  @override
+  String get worldCupBenchPlayersLabel => 'Bench';
+
+  @override
+  String get worldCupCaptainAbbreviation => '(C)';
+
+  @override
+  String get worldCupOfficialSourceNote =>
+      'Scores, player lists, and match records are refreshed from FIFA data when this page opens.';
+
+  @override
+  String get worldCupMatchPossessionLabel => 'Possession';
+
+  @override
+  String worldCupMatchPossessionValue(int home, int away) {
+    return '$home% · $away%';
+  }
+
+  @override
+  String get worldCupMatchAttendanceLabel => 'Attendance';
+
+  @override
+  String get worldCupMatchTacticsLabel => 'Tactics';
+
+  @override
   String worldCupPlayerProfileTitle(String player) {
     return '$player profile';
   }
@@ -1220,6 +1256,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupSourceAction => 'Open FIFA schedule';
+
+  @override
+  String get worldCupOfficialRefreshAction => 'Refresh FIFA data';
+
+  @override
+  String get worldCupOfficialRefreshing => 'Updating FIFA';
+
+  @override
+  String get worldCupOfficialUnavailable => 'FIFA unavailable';
+
+  @override
+  String worldCupOfficialUpdatedAt(String time) {
+    return 'FIFA $time';
+  }
 
   @override
   String get homeTodayPlanCardTitle => 'Today training plan';
