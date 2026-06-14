@@ -1361,6 +1361,8 @@ class _EntryListItem extends StatelessWidget {
       mealCoachingService: mealCoachingService,
     );
     final focusTextColor = Theme.of(context).colorScheme.primary;
+    final scheme = Theme.of(context).colorScheme;
+    final summaryText = _buildSummaryLine(l10n, entry);
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final titleText = [
       trainingEntryPrimaryLabel(entry, l10n),
@@ -1369,47 +1371,97 @@ class _EntryListItem extends StatelessWidget {
     ].where((part) => part.trim().isNotEmpty).join(' · ');
     final hasParentFeedback = parentFeedbackMessage.trim().isNotEmpty;
 
-    return WatchCartCard(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Stack(
-        children: [
-          ListTile(
-            contentPadding: EdgeInsets.fromLTRB(
-              6,
-              2,
-              hasParentFeedback ? 30 : 6,
-              2,
-            ),
-            leading: _StatusIcon(status: entry.status),
-            title: Text(titleText),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${_buildSummaryLine(l10n, entry)} · $dateText',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (focusText.isNotEmpty)
-                  Text(
-                    focusText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: focusTextColor),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onEdit,
+        child: WatchCartCard(
+          padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    size: 14,
+                    color: scheme.primary,
                   ),
-              ],
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: onEdit,
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      dateText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                  ),
+                  if (hasParentFeedback) ...[
+                    const SizedBox(width: 8),
+                    _ParentFeedbackCornerMark(onTap: onOpenParentFeedback),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _StatusIcon(status: entry.status),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          titleText,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          summaryText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: scheme.onSurfaceVariant),
+                        ),
+                        if (focusText.isNotEmpty) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            focusText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: focusTextColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ],
           ),
-          if (hasParentFeedback)
-            Positioned(
-              top: 2,
-              right: 2,
-              child: _ParentFeedbackCornerMark(onTap: onOpenParentFeedback),
-            ),
-        ],
+        ),
       ),
     );
   }
