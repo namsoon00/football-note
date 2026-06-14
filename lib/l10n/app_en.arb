@@ -462,9 +462,28 @@
   "worldCupMilestoneFinalLabel": "Final",
   "worldCupFinalMatch": "19 Jul 2026 · New York New Jersey Stadium",
   "worldCupStandingsTitle": "Group standings",
-  "worldCupStandingsPlanBody": "Once results are available, this view will sort groups by FIFA's 2026 order: points, head-to-head checks, overall goal difference and goals, team conduct, then FIFA ranking. For now, use it to review each group setup.",
+  "worldCupStandingsPlanBody": "Group rankings update from the fixture scores already in the schedule. Teams are ordered by points, goal difference, goals, wins, losses, then country name until official tie-break data is available.",
   "worldCupStandingsRuleLabel": "Tiebreak order",
   "worldCupStandingsRuleValue": "Points · head-to-head · goal difference · goals · conduct · FIFA ranking",
+  "worldCupStandingsTableTitle": "Group table",
+  "worldCupStandingsRankColumn": "Rk",
+  "worldCupStandingsTeamColumn": "Team",
+  "worldCupStandingsRecordColumn": "W-D-L",
+  "worldCupStandingsPointsColumn": "Pts",
+  "worldCupStandingsRecordValue": "{wins}-{draws}-{losses}",
+  "@worldCupStandingsRecordValue": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupGroupTeamsTitle": "Group teams",
   "worldCupTeamRosterOpenTooltip": "Open {team} roster",
   "@worldCupTeamRosterOpenTooltip": {

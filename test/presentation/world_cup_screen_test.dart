@@ -71,6 +71,44 @@ void main() {
     expect(find.text('선택 국가 경기'), findsNothing);
   });
 
+  testWidgets('calendar marks interest country fixture count', (tester) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.saveOptions(
+      'world_cup_interest_countries_v1',
+      const <String>['Korea Republic'],
+    );
+    final fixture = worldCupFixturesForCountries(const {
+      'Korea Republic',
+    }).first;
+    final day = fixture.localDay;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          optionRepository: optionRepository,
+          initialSelectedDay: day,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final countBadge = find.byKey(
+      ValueKey<String>(
+        'world-cup-calendar-day-count-${day.year}-${day.month}-${day.day}',
+      ),
+    );
+
+    expect(countBadge, findsOneWidget);
+    expect(
+      find.descendant(of: countBadge, matching: find.text('1')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('standings and tournament views show structured plan cards', (
     tester,
   ) async {
@@ -96,6 +134,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('조별 순위'), findsOneWidget);
+    expect(find.text('조별 순위표'), findsOneWidget);
+    expect(find.text('승-무-패'), findsWidgets);
     expect(find.text('조별 팀 구성'), findsOneWidget);
     expect(find.text('A조'), findsWidgets);
 
@@ -142,7 +182,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
-      find.textContaining('멕시코'),
+      find.text('조별 순위표'),
       180,
       scrollable: scrollable,
     );
@@ -209,7 +249,7 @@ void main() {
   });
 
   testWidgets('past unscored fixtures wait for result update', (tester) async {
-    final fixture = worldCupFixtures.first;
+    final fixture = worldCupFixtures.firstWhere((fixture) => !fixture.hasScore);
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko', 'KR'),
@@ -226,7 +266,7 @@ void main() {
 
     final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
-      find.text('에스타디오 아스테카, 멕시코시티'),
+      find.text('메트라이프 스타디움, 뉴욕/뉴저지'),
       180,
       scrollable: scrollable,
     );
