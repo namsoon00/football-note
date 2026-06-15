@@ -328,12 +328,14 @@ class ChallengeRinzyMascot extends StatelessWidget {
   final double size;
   final double progress;
   final bool animate;
+  final bool useImage;
 
   const ChallengeRinzyMascot({
     super.key,
     this.size = 112,
     this.progress = 0,
     this.animate = true,
+    this.useImage = false,
   });
 
   @override
@@ -343,6 +345,7 @@ class ChallengeRinzyMascot extends StatelessWidget {
       progress: progress,
       animate: animate,
       pose: _ChallengeRinzyPose.ready,
+      useImage: useImage,
     );
   }
 }
@@ -353,12 +356,14 @@ class ChallengeCheerRinzyMascot extends StatelessWidget {
   final double size;
   final double progress;
   final bool animate;
+  final bool useImage;
 
   const ChallengeCheerRinzyMascot({
     super.key,
     this.size = 112,
     this.progress = 1,
     this.animate = true,
+    this.useImage = false,
   });
 
   @override
@@ -368,6 +373,7 @@ class ChallengeCheerRinzyMascot extends StatelessWidget {
       progress: progress,
       animate: animate,
       pose: _ChallengeRinzyPose.cheer,
+      useImage: useImage,
     );
   }
 }
@@ -378,12 +384,14 @@ class ChallengeSadRinzyMascot extends StatelessWidget {
   final double size;
   final double progress;
   final bool animate;
+  final bool useImage;
 
   const ChallengeSadRinzyMascot({
     super.key,
     this.size = 112,
     this.progress = 0,
     this.animate = true,
+    this.useImage = false,
   });
 
   @override
@@ -393,6 +401,7 @@ class ChallengeSadRinzyMascot extends StatelessWidget {
       progress: progress,
       animate: animate,
       pose: _ChallengeRinzyPose.sad,
+      useImage: useImage,
     );
   }
 }
@@ -404,12 +413,14 @@ class _ChallengeRinzyCharacter extends StatefulWidget {
   final double progress;
   final bool animate;
   final _ChallengeRinzyPose pose;
+  final bool useImage;
 
   const _ChallengeRinzyCharacter({
     required this.size,
     required this.progress,
     required this.animate,
     required this.pose,
+    required this.useImage,
   });
 
   @override
@@ -449,6 +460,14 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  String get _assetPath {
+    return switch (widget.pose) {
+      _ChallengeRinzyPose.ready => ChallengeRinzyMascot.assetPath,
+      _ChallengeRinzyPose.cheer => ChallengeCheerRinzyMascot.assetPath,
+      _ChallengeRinzyPose.sad => ChallengeSadRinzyMascot.assetPath,
+    };
   }
 
   @override
@@ -504,18 +523,28 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
                           angle: motion.rotation,
                           child: Transform.scale(
                             scale: motion.scale,
-                            child: CustomPaint(
-                              key: ValueKey(
-                                'challenge-rinzy-${widget.pose.name}',
-                              ),
-                              painter: _RinzyChibiPainter(
-                                progress: progress,
-                                phase: phase,
-                                cheer: widget.pose == _ChallengeRinzyPose.cheer,
-                                sad: widget.pose == _ChallengeRinzyPose.sad,
-                                challenge: true,
-                              ),
-                            ),
+                            child: widget.useImage
+                                ? Image.asset(
+                                    _assetPath,
+                                    key: ValueKey(
+                                      'challenge-rinzy-${widget.pose.name}-image',
+                                    ),
+                                    fit: BoxFit.contain,
+                                    filterQuality: FilterQuality.high,
+                                    gaplessPlayback: true,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _PaintedChallengeRinzyPose(
+                                        pose: widget.pose,
+                                        progress: progress,
+                                        phase: phase,
+                                      );
+                                    },
+                                  )
+                                : _PaintedChallengeRinzyPose(
+                                    pose: widget.pose,
+                                    progress: progress,
+                                    phase: phase,
+                                  ),
                           ),
                         ),
                       ),
@@ -526,6 +555,32 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PaintedChallengeRinzyPose extends StatelessWidget {
+  final _ChallengeRinzyPose pose;
+  final double progress;
+  final double phase;
+
+  const _PaintedChallengeRinzyPose({
+    required this.pose,
+    required this.progress,
+    required this.phase,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      key: ValueKey('challenge-rinzy-${pose.name}'),
+      painter: _RinzyChibiPainter(
+        progress: progress,
+        phase: phase,
+        cheer: pose == _ChallengeRinzyPose.cheer,
+        sad: pose == _ChallengeRinzyPose.sad,
+        challenge: true,
       ),
     );
   }
