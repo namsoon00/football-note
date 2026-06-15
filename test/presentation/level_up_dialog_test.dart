@@ -60,9 +60,15 @@ void main() {
     final foregroundColor = laterButton.style?.foregroundColor?.resolve(
       <WidgetState>{},
     );
+    final celebrationImage = tester.widget<Image>(find.byType(Image));
+    final imageProvider = celebrationImage.image as AssetImage;
 
     expect(backgroundColor, isNotNull);
     expect(backgroundColor, isNot(Colors.white));
     expect(foregroundColor, Colors.white);
+    expect(
+      imageProvider.assetName,
+      'assets/images/celebration_gem_flame_fairytale.png',
+    );
   });
 }
