@@ -2625,49 +2625,49 @@ abstract class AppLocalizations {
   /// No description provided for @trainingXpDialogMessage.
   ///
   /// In en, this message translates to:
-  /// **'Your saved training log added XP and growth gems.'**
+  /// **'Training log saved.'**
   String get trainingXpDialogMessage;
 
   /// No description provided for @trainingRecordSavedDialogMessage.
   ///
   /// In en, this message translates to:
-  /// **'Your training log was saved. Even when today\'s gem reward limit is reached, the effort stays recorded for the next session.'**
+  /// **'Record saved.'**
   String get trainingRecordSavedDialogMessage;
 
   /// No description provided for @trainingXpDialogJumpRopeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Jump rope rhythm saved'**
+  /// **'Jump rope saved'**
   String get trainingXpDialogJumpRopeTitle;
 
   /// No description provided for @trainingXpDialogJumpRopeMessage.
   ///
   /// In en, this message translates to:
-  /// **'The added jump rope work became quick-foot growth gems.'**
+  /// **'Jump rope log saved.'**
   String get trainingXpDialogJumpRopeMessage;
 
   /// No description provided for @trainingXpDialogLiftingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Lifting effort saved'**
+  /// **'Lifting saved'**
   String get trainingXpDialogLiftingTitle;
 
   /// No description provided for @trainingXpDialogLiftingMessage.
   ///
   /// In en, this message translates to:
-  /// **'The added lifting work became stronger-body growth gems.'**
+  /// **'Lifting log saved.'**
   String get trainingXpDialogLiftingMessage;
 
   /// No description provided for @trainingXpDialogMealTitle.
   ///
   /// In en, this message translates to:
-  /// **'Recovery routine saved'**
+  /// **'Recovery saved'**
   String get trainingXpDialogMealTitle;
 
   /// No description provided for @trainingXpDialogMealMessage.
   ///
   /// In en, this message translates to:
-  /// **'The meal and recovery record added steady growth gems.'**
+  /// **'Meal and recovery log saved.'**
   String get trainingXpDialogMealMessage;
 
   /// No description provided for @diaryXpDialogTitle.

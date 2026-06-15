@@ -1387,31 +1387,28 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingXpDialogTitle => '훈련 기록 완료';
 
   @override
-  String get trainingXpDialogMessage => '저장한 훈련 기록이 경험치와 성장 보석으로 쌓였어요.';
+  String get trainingXpDialogMessage => '훈련 기록이 저장됐어요.';
 
   @override
-  String get trainingRecordSavedDialogMessage =>
-      '훈련 기록이 저장됐어요. 보석 보상 한도에 닿아도 오늘의 노력은 기록으로 남아 다음 훈련에 이어집니다.';
+  String get trainingRecordSavedDialogMessage => '기록이 저장됐어요.';
 
   @override
-  String get trainingXpDialogJumpRopeTitle => '줄넘기 리듬 저장';
+  String get trainingXpDialogJumpRopeTitle => '줄넘기 기록 완료';
 
   @override
-  String get trainingXpDialogJumpRopeMessage =>
-      '추가한 줄넘기 기록이 빠른 발 성장 보석으로 쌓였어요.';
+  String get trainingXpDialogJumpRopeMessage => '줄넘기 기록이 저장됐어요.';
 
   @override
-  String get trainingXpDialogLiftingTitle => '리프팅 노력 저장';
+  String get trainingXpDialogLiftingTitle => '리프팅 기록 완료';
 
   @override
-  String get trainingXpDialogLiftingMessage =>
-      '추가한 리프팅 기록이 더 강한 몸 성장 보석으로 쌓였어요.';
+  String get trainingXpDialogLiftingMessage => '리프팅 기록이 저장됐어요.';
 
   @override
-  String get trainingXpDialogMealTitle => '회복 루틴 저장';
+  String get trainingXpDialogMealTitle => '회복 기록 완료';
 
   @override
-  String get trainingXpDialogMealMessage => '식사와 회복 기록이 꾸준한 성장 보석으로 이어졌어요.';
+  String get trainingXpDialogMealMessage => '식사와 회복 기록이 저장됐어요.';
 
   @override
   String get diaryXpDialogTitle => '다이어리 사파이어';
