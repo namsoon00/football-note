@@ -1235,20 +1235,22 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
                   ),
                 ),
               ),
-              Positioned(
-                bottom: size * 0.10,
-                child: Transform.scale(
-                  scaleX: 1 - math.max(0.0, bounce) * 0.14,
-                  child: Container(
-                    width: size * 0.52,
-                    height: size * 0.08,
-                    decoration: BoxDecoration(
-                      color: const Color(0x30111827),
-                      borderRadius: BorderRadius.circular(999),
+              if (!isFlame)
+                Positioned(
+                  bottom: size * 0.10,
+                  child: Transform.scale(
+                    scaleX: 1 - math.max(0.0, bounce) * 0.14,
+                    child: Container(
+                      key: const ValueKey('celebration-character-shadow'),
+                      width: size * 0.52,
+                      height: size * 0.08,
+                      decoration: BoxDecoration(
+                        color: const Color(0x30111827),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
                     ),
                   ),
                 ),
-              ),
               Positioned(
                 left: size * 0.08,
                 top: size * (0.20 + shimmer * 0.018),
@@ -1540,7 +1542,7 @@ class _StreakTrail extends StatelessWidget {
       runSpacing: 8,
       children: [
         for (var index = 0; index < visibleDays; index += 1)
-          _MiniFlameToken(
+          _StreakCheckToken(
             color: color,
             scale: 1 + math.min(index.toDouble(), 3) * 0.035,
             opacity: 0.12 + index * 0.018,
@@ -1571,13 +1573,13 @@ class _StreakTrail extends StatelessWidget {
   }
 }
 
-class _MiniFlameToken extends StatelessWidget {
+class _StreakCheckToken extends StatelessWidget {
   final Color color;
   final double scale;
   final double opacity;
   final bool animateIn;
 
-  const _MiniFlameToken({
+  const _StreakCheckToken({
     required this.color,
     required this.scale,
     required this.opacity,
@@ -1619,7 +1621,11 @@ class _MiniFlameToken extends StatelessWidget {
             ),
           ],
         ),
-        child: _CuteFlameIcon(color: color, size: 34),
+        child: Icon(
+          Icons.check_rounded,
+          color: Color.lerp(color, Colors.white, 0.10),
+          size: 30,
+        ),
       ),
     );
   }
