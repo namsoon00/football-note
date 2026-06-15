@@ -7,8 +7,10 @@ import 'package:football_note/application/challenge_service.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
+import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
+import 'package:football_note/domain/entities/challenge.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
@@ -335,6 +337,90 @@ void main() {
     await tester.pump();
     await mealLogService.dispose();
   });
+
+  testWidgets('mission completion after record return shows celebration', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    final challengeService = ChallengeService(optionRepository);
+    final template = challengeService.templateById('starter_3')!;
+    final today = DateTime.now();
+    await challengeService.startChallenge(
+      template,
+      selectedSkillIds: const <String>['passing'],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 1,
+        jumpRopeMinutes: 0,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
+      startedAt: DateTime(today.year, today.month, today.day, 9),
+    );
+    final trainingRepository = _MemoryTrainingRepository();
+    final trainingService = TrainingService(trainingRepository);
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byKey(const ValueKey('challenge-mission-training')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(EntryFormScreen), findsOneWidget);
+
+    await trainingService.add(
+      _trainingEntry(day: DateTime.now(), minutes: 1, program: '패스'),
+    );
+    final challengeDay = normalizeDay(DateTime.now());
+    final updatedProgress = challengeService.activeProgress(
+      trainingEntries: await trainingService.entriesInRange(
+        challengeDay,
+        challengeDay.add(const Duration(days: 3)),
+      ),
+      mealEntries: const [],
+    );
+    expect(updatedProgress?.completedRoundCount, 1);
+    Navigator.of(tester.element(find.byType(EntryFormScreen))).pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(PlayerLevelService(optionRepository).loadState().totalXp, 10);
+    expect(find.text('미션 완료!'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
 }
 
 Future<Size> _pumpActiveChallengeRoundCard(
@@ -384,6 +470,24 @@ Future<Size> _pumpActiveChallengeRoundCard(
   return size;
 }
 
+TrainingEntry _trainingEntry({
+  required DateTime day,
+  required int minutes,
+  String program = '패스',
+}) {
+  return TrainingEntry(
+    date: day,
+    durationMinutes: minutes,
+    intensity: 3,
+    type: program,
+    mood: 3,
+    injury: false,
+    notes: '',
+    location: '운동장',
+    program: program,
+  );
+}
+
 class _MemoryOptionRepository implements OptionRepository {
   final Map<String, dynamic> _values = <String, dynamic>{};
 
@@ -391,14 +495,14 @@ class _MemoryOptionRepository implements OptionRepository {
   List<String> getOptions(String key, List<String> defaults) {
     final value = _values[key];
     if (value is List<String>) return value;
-    return defaults;
+    return List<String>.from(defaults);
   }
 
   @override
   List<int> getIntOptions(String key, List<int> defaults) {
     final value = _values[key];
     if (value is List<int>) return value;
-    return defaults;
+    return List<int>.from(defaults);
   }
 
   @override

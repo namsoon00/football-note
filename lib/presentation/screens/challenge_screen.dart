@@ -65,6 +65,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   String? _lastFinalizeSignature;
   String? _lastRoundAwardSignature;
   String? _lastReminderSignature;
+  String? _pendingFinalizeSignature;
+  String? _pendingRoundAwardSignature;
 
   @override
   void initState() {
@@ -181,33 +183,94 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   void _scheduleFinalizeSync(ChallengeProgress progress) {
     if (!progress.readyToFinalize()) return;
     final signature = _finalizationSignature(progress);
-    if (_finalizeInFlight || _lastFinalizeSignature == signature) return;
-    _lastFinalizeSignature = signature;
+    if (_finalizeInFlight ||
+        _pendingFinalizeSignature == signature ||
+        _lastFinalizeSignature == signature) {
+      return;
+    }
+    _pendingFinalizeSignature = signature;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      unawaited(_syncFinalization(progress, signature));
+      if (!mounted) {
+        if (_pendingFinalizeSignature == signature) {
+          _pendingFinalizeSignature = null;
+        }
+        return;
+      }
+      unawaited(_runScheduledFinalization(progress, signature));
     });
   }
 
   void _scheduleRoundAwardSync(ChallengeProgress progress) {
     if (progress.readyToFinalize()) return;
-    final completedRounds = progress.rounds
+    final signature = _roundAwardSignature(progress);
+    if (_roundAwardInFlight ||
+        _pendingRoundAwardSignature == signature ||
+        _lastRoundAwardSignature == signature) {
+      return;
+    }
+    _pendingRoundAwardSignature = signature;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        if (_pendingRoundAwardSignature == signature) {
+          _pendingRoundAwardSignature = null;
+        }
+        return;
+      }
+      unawaited(_runScheduledRoundAwardSync(progress, signature));
+    });
+  }
+
+  Future<void> _runScheduledFinalization(
+    ChallengeProgress progress,
+    String signature,
+  ) async {
+    try {
+      if (_pendingFinalizeSignature != signature ||
+          _lastFinalizeSignature == signature) {
+        return;
+      }
+      await _syncFinalization(progress, signature);
+    } finally {
+      if (_pendingFinalizeSignature == signature) {
+        _pendingFinalizeSignature = null;
+      }
+    }
+  }
+
+  Future<void> _runScheduledRoundAwardSync(
+    ChallengeProgress progress,
+    String signature,
+  ) async {
+    try {
+      if (_pendingRoundAwardSignature != signature ||
+          _lastRoundAwardSignature == signature) {
+        return;
+      }
+      final completedRounds = _completedRoundNumbersToken(progress);
+      if (completedRounds.isEmpty) {
+        await _syncRoundAwardRevocations(progress, signature);
+      } else {
+        await _syncRoundAwards(progress, signature);
+      }
+    } finally {
+      if (_pendingRoundAwardSignature == signature) {
+        _pendingRoundAwardSignature = null;
+      }
+    }
+  }
+
+  String _roundAwardSignature(ChallengeProgress progress) {
+    final completedRounds = _completedRoundNumbersToken(progress);
+    return completedRounds.isEmpty
+        ? '${progress.run.id}:rounds:none'
+        : '${progress.run.id}:rounds:$completedRounds';
+  }
+
+  String _completedRoundNumbersToken(ChallengeProgress progress) {
+    return progress.rounds
         .where((round) => round.completed)
         .map((round) => round.round.number)
         .join(',');
-    final signature = completedRounds.isEmpty
-        ? '${progress.run.id}:rounds:none'
-        : '${progress.run.id}:rounds:$completedRounds';
-    if (_roundAwardInFlight || _lastRoundAwardSignature == signature) return;
-    _lastRoundAwardSignature = signature;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (completedRounds.isEmpty) {
-        unawaited(_syncRoundAwardRevocations(progress, signature));
-      } else {
-        unawaited(_syncRoundAwards(progress, signature));
-      }
-    });
   }
 
   Future<void> _syncRoundAwardRevocations(
@@ -245,8 +308,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         (sum, award) => sum + award.gainedXp,
       );
       if (gainedXp <= 0 || !mounted) return;
-      await _showChallengeXpAlerts(awards, gainedXp);
-      if (!mounted) return;
+      _showChallengeXpAlertsInBackground(awards, gainedXp);
       _playChallengeSuccessFeedback();
       final awardedRoundCount = awards
           .where((award) => award.reasons.contains('challenge_round_completed'))
@@ -327,8 +389,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       if (gainedXp > 0) {
-        await _showChallengeXpAlerts(awards, gainedXp);
-        if (!mounted) return;
+        _showChallengeXpAlertsInBackground(awards, gainedXp);
       }
       if (!progress.allRoundsCompleted) {
         _playChallengeSuccessFeedback();
@@ -374,8 +435,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     return '${progress.run.id}:finalize:$completedRounds:${progress.rounds.length}';
   }
 
-  Future<void> _finalizeChallengeIfReadyNow() async {
-    if (_isParentReadOnlyMode || _finalizeInFlight) return;
+  Future<void> _syncChallengeProgressAfterMissionReturn() async {
+    if (_isParentReadOnlyMode) return;
     final trainingEntries = (await _activeChallengeTrainingEntries())
         .where((entry) => !entry.isMatch)
         .toList(growable: false);
@@ -387,10 +448,25 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       trainingEntries: trainingEntries,
       mealEntries: mealEntries,
     );
-    if (progress == null || !progress.readyToFinalize()) return;
-    final signature = _finalizationSignature(progress);
-    if (_lastFinalizeSignature == signature) return;
-    await _syncFinalization(progress, signature);
+    if (progress == null) return;
+    if (progress.readyToFinalize()) {
+      if (_finalizeInFlight) return;
+      final signature = _finalizationSignature(progress);
+      if (_lastFinalizeSignature == signature) return;
+      _pendingFinalizeSignature = null;
+      await _syncFinalization(progress, signature);
+      return;
+    }
+    if (_roundAwardInFlight) return;
+    final signature = _roundAwardSignature(progress);
+    if (_lastRoundAwardSignature == signature) return;
+    _pendingRoundAwardSignature = null;
+    final completedRounds = _completedRoundNumbersToken(progress);
+    if (completedRounds.isEmpty) {
+      await _syncRoundAwardRevocations(progress, signature);
+    } else {
+      await _syncRoundAwards(progress, signature);
+    }
   }
 
   Future<void> _showChallengeXpAlerts(
@@ -418,6 +494,15 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     await _reminderService.showLevelUpAlert(
       level: leveledAward.after.level,
       isKo: isKo,
+    );
+  }
+
+  void _showChallengeXpAlertsInBackground(
+    List<PlayerLevelAward> awards,
+    int gainedXp,
+  ) {
+    unawaited(
+      _showChallengeXpAlerts(awards, gainedXp).catchError((Object _) {}),
     );
   }
 
@@ -561,7 +646,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           .clamp(0, progress.rounds.length)
           .toInt();
       if (gainedXp > 0) {
-        await _showChallengeXpAlerts(awards, gainedXp);
+        _showChallengeXpAlertsInBackground(awards, gainedXp);
       }
     }
     await _challengeService.abandonActiveRun(
@@ -677,7 +762,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       ),
     );
     if (!mounted) return;
-    await _finalizeChallengeIfReadyNow();
+    await _syncChallengeProgressAfterMissionReturn();
     if (!mounted) return;
     setState(() {});
   }
@@ -728,7 +813,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       ),
     );
     if (!mounted) return;
-    await _finalizeChallengeIfReadyNow();
+    await _syncChallengeProgressAfterMissionReturn();
     if (mounted) setState(() {});
   }
 
@@ -3109,6 +3194,7 @@ class _RoundFocusCard extends StatelessWidget {
             const SizedBox(height: 12),
             if (round.trainingPrograms.isEmpty)
               _MissionProgressRow(
+                key: const ValueKey('challenge-mission-training'),
                 label: l10n.challengeTrainingProgramMissionLabel,
                 subtitle: selectedPrograms.isEmpty
                     ? null
@@ -3128,6 +3214,9 @@ class _RoundFocusCard extends StatelessWidget {
             else
               for (final program in round.trainingPrograms) ...[
                 _MissionProgressRow(
+                  key: ValueKey(
+                    'challenge-mission-program-${program.programId}',
+                  ),
                   label: program.label,
                   subtitle: l10n.challengeTrainingProgramMissionLabel,
                   value: _minutesGoalValue(
@@ -3148,6 +3237,7 @@ class _RoundFocusCard extends StatelessWidget {
           if (round.round.targetJumpRopeMinutes > 0) ...[
             const SizedBox(height: 10),
             _MissionProgressRow(
+              key: const ValueKey('challenge-mission-jump-rope'),
               icon: Icons.sports_gymnastics_rounded,
               label: l10n.challengeJumpRopeLabel,
               value: _minutesGoalValue(
@@ -3166,6 +3256,7 @@ class _RoundFocusCard extends StatelessWidget {
           if (round.round.targetLiftingMinutes > 0) ...[
             const SizedBox(height: 10),
             _MissionProgressRow(
+              key: const ValueKey('challenge-mission-lifting'),
               icon: Icons.sports_soccer,
               label: l10n.challengeLiftingLabel,
               value: _minutesGoalValue(
@@ -3184,6 +3275,7 @@ class _RoundFocusCard extends StatelessWidget {
           if (round.round.targetRiceBowls > 0) ...[
             const SizedBox(height: 10),
             _MissionProgressRow(
+              key: const ValueKey('challenge-mission-meal'),
               icon: Icons.rice_bowl_outlined,
               label: l10n.challengeMealLabel,
               value: l10n.challengeMealGoalValue(
@@ -3680,6 +3772,7 @@ class _MissionProgressRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _MissionProgressRow({
+    super.key,
     this.icon,
     required this.label,
     this.subtitle,
