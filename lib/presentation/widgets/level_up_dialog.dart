@@ -1161,22 +1161,23 @@ class _GemFlameCelebrationScene extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sceneSize = size * 0.86;
     return SizedBox(
-      width: size * 0.78,
-      height: size * 0.98,
+      width: sceneSize,
+      height: sceneSize,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(size * 0.09),
+          borderRadius: BorderRadius.circular(sceneSize * 0.12),
           boxShadow: [
             BoxShadow(
               color: color.withValues(alpha: 0.18),
-              blurRadius: size * 0.10,
-              offset: Offset(0, size * 0.05),
+              blurRadius: sceneSize * 0.10,
+              offset: Offset(0, sceneSize * 0.06),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(size * 0.09),
+          borderRadius: BorderRadius.circular(sceneSize * 0.12),
           child: Image.asset(
             _fairyTaleGemFlameAsset,
             fit: BoxFit.cover,
