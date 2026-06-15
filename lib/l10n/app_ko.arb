@@ -4157,6 +4157,7 @@
       }
     }
   },
+  "challengeCelebrationBodyNoXp": "라운드 미션을 완료했어요. 기록을 확인하세요.",
   "challengeCelebrationCompleteTitle": "챌린지 완주!",
   "challengeCelebrationCompleteBody": "모든 라운드를 끝냈어요. +{xp} XP를 받았어요.",
   "@challengeCelebrationCompleteBody": {

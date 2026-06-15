@@ -8235,6 +8235,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get challengeCelebrationBodyNoXp =>
+      'Round missions complete. Review the record.';
+
+  @override
   String get challengeCelebrationCompleteTitle => 'Challenge complete!';
 
   @override

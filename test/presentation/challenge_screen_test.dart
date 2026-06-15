@@ -128,6 +128,10 @@ void main() {
       find.byKey(const ValueKey('challenge-calendar-round-1')),
       findsOneWidget,
     );
+    expect(
+      find.byKey(const ValueKey('challenge-current-round-badge-1')),
+      findsOneWidget,
+    );
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));
     expect(find.text('리프팅'), findsNothing);
     expect(find.text('훈련 프로그램 편집'), findsNothing);
@@ -422,6 +426,98 @@ void main() {
     await mealLogService.dispose();
   });
 
+  testWidgets(
+      'record return shows completion screen after reward is already synced', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    final challengeService = ChallengeService(optionRepository);
+    final template = challengeService.templateById('starter_3')!;
+    final today = DateTime.now();
+    await challengeService.startChallenge(
+      template,
+      selectedSkillIds: const <String>['passing'],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 1,
+        jumpRopeMinutes: 0,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
+      startedAt: DateTime(today.year, today.month, today.day, 9),
+    );
+    final trainingRepository = _MemoryTrainingRepository();
+    final trainingService = TrainingService(trainingRepository);
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byKey(const ValueKey('challenge-mission-training')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(EntryFormScreen), findsOneWidget);
+
+    await trainingService.add(
+      _trainingEntry(day: DateTime.now(), minutes: 1, program: '패스'),
+    );
+    final challengeDay = normalizeDay(DateTime.now());
+    final updatedProgress = challengeService.activeProgress(
+      trainingEntries: await trainingService.entriesInRange(
+        challengeDay,
+        challengeDay.add(const Duration(days: 3)),
+      ),
+      mealEntries: const [],
+    );
+    expect(updatedProgress?.completedRoundCount, 1);
+    await challengeService.awardCompletedRounds(
+      progress: updatedProgress!,
+      playerLevelService: PlayerLevelService(optionRepository),
+    );
+    expect(PlayerLevelService(optionRepository).loadState().totalXp, 10);
+
+    Navigator.of(tester.element(find.byType(EntryFormScreen))).pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(PlayerLevelService(optionRepository).loadState().totalXp, 10);
+    expect(find.text('미션 완료!'), findsOneWidget);
+    expect(find.text('라운드 미션을 완료했어요. 기록을 확인하세요.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+
   testWidgets('opening challenge page does not show completion screen', (
     WidgetTester tester,
   ) async {
@@ -682,11 +778,10 @@ class _MemoryTrainingRepository implements TrainingRepository {
     required bool includeMatches,
   }) {
     if (limit <= 0) return const <TrainingEntry>[];
-    final entries =
-        _entries
-            .where((entry) => includeMatches || !entry.isMatch)
-            .toList(growable: false)
-          ..sort(TrainingEntry.compareByRecentCreated);
+    final entries = _entries
+        .where((entry) => includeMatches || !entry.isMatch)
+        .toList(growable: false)
+      ..sort(TrainingEntry.compareByRecentCreated);
     if (entries.length <= limit) return entries;
     return entries.take(limit).toList(growable: false);
   }

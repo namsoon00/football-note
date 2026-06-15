@@ -551,6 +551,16 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
                       ),
                     ),
                   ),
+                  if (widget.useImage &&
+                      widget.pose == _ChallengeRinzyPose.cheer)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          key: const ValueKey('challenge-rinzy-cheer-sticks'),
+                          painter: _ChallengeCheerSticksPainter(phase: phase),
+                        ),
+                      ),
+                    ),
                 ],
               );
             },
@@ -584,6 +594,79 @@ class _PaintedChallengeRinzyPose extends StatelessWidget {
         challenge: true,
       ),
     );
+  }
+}
+
+class _ChallengeCheerSticksPainter extends CustomPainter {
+  final double phase;
+
+  const _ChallengeCheerSticksPainter({required this.phase});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final unit = size.shortestSide;
+    if (unit <= 0) return;
+
+    _drawStick(
+      canvas,
+      center: Offset(size.width * 0.26, size.height * 0.41),
+      angle: phase * math.pi * 2 + math.pi * 0.12,
+      color: const Color(0xFFFFC857),
+      unit: unit,
+    );
+    _drawStick(
+      canvas,
+      center: Offset(size.width * 0.74, size.height * 0.41),
+      angle: -(phase * math.pi * 2) + math.pi * 0.88,
+      color: const Color(0xFF7DD3FC),
+      unit: unit,
+    );
+  }
+
+  void _drawStick(
+    Canvas canvas, {
+    required Offset center,
+    required double angle,
+    required Color color,
+    required double unit,
+  }) {
+    final orbitRadius = unit * 0.095;
+    final orbitPaint = Paint()
+      ..color = color.withValues(alpha: 0.30)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * 0.010
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: orbitRadius),
+      angle,
+      math.pi * 1.18,
+      false,
+      orbitPaint,
+    );
+
+    final direction = Offset(math.cos(angle), math.sin(angle));
+    final start = center - direction * unit * 0.070;
+    final end = center + direction * unit * 0.070;
+    final glowPaint = Paint()
+      ..color = color.withValues(alpha: 0.24)
+      ..strokeWidth = unit * 0.050
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    final stickPaint = Paint()
+      ..color = color
+      ..strokeWidth = unit * 0.026
+      ..strokeCap = StrokeCap.round;
+    final capPaint = Paint()..color = Colors.white.withValues(alpha: 0.88);
+
+    canvas.drawLine(start, end, glowPaint);
+    canvas.drawLine(start, end, stickPaint);
+    canvas.drawCircle(start, unit * 0.022, capPaint);
+    canvas.drawCircle(end, unit * 0.022, capPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ChallengeCheerSticksPainter oldDelegate) {
+    return oldDelegate.phase != phase;
   }
 }
 
@@ -690,9 +773,8 @@ class _RinzyChibiPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-    final bodyColor = challenge
-        ? const Color(0xFFF8C94B)
-        : const Color(0xFFFBD35F);
+    final bodyColor =
+        challenge ? const Color(0xFFF8C94B) : const Color(0xFFFBD35F);
     final bodyPaint = Paint()..color = bodyColor;
     final facePaint = Paint()
       ..color = challenge ? const Color(0xFFFFDC85) : const Color(0xFFFFD978);

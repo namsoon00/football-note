@@ -14199,6 +14199,12 @@ abstract class AppLocalizations {
   /// **'Round {rounds} complete. Rinzy is cheering. You earned +{xp} XP.'**
   String challengeCelebrationBody(int rounds, int xp);
 
+  /// No description provided for @challengeCelebrationBodyNoXp.
+  ///
+  /// In en, this message translates to:
+  /// **'Round missions complete. Review the record.'**
+  String get challengeCelebrationBodyNoXp;
+
   /// No description provided for @challengeCelebrationCompleteTitle.
   ///
   /// In en, this message translates to:

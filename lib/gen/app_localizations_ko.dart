@@ -7971,6 +7971,9 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get challengeCelebrationBodyNoXp => '라운드 미션을 완료했어요. 기록을 확인하세요.';
+
+  @override
   String get challengeCelebrationCompleteTitle => '챌린지 완주!';
 
   @override
