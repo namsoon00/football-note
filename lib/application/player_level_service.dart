@@ -102,7 +102,6 @@ class PlayerLevelService {
     required TrainingEntry entry,
     required List<TrainingEntry> existingEntries,
   }) async {
-    final before = loadState();
     final mealXp = _mealCoachingService.xpValueForEntry(entry);
     final mealReason = _mealCoachingService.xpReasonForEntry(entry);
     final awardedStreaks = _getStringSet(awardedStreaksKey);
@@ -119,39 +118,21 @@ class PlayerLevelService {
       awardedRoutineDays: awardedRoutineDays,
     );
     final reasons = progression.reasons.toList(growable: true);
-    final gainedXp = _applyDailyPositiveXpCap(
-      requestedXp: progression.requestedXp,
-      awardedAt: entry.createdAt,
-      reasons: reasons,
-    );
 
     awardedStreaks.addAll(progression.streakTokensToAward);
     awardedRoutineDays.addAll(progression.routineDayTokensToAward);
 
-    final nextTotal = (before.totalXp + gainedXp).clamp(0, 1000000).toInt();
-    await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(awardedStreaksKey, awardedStreaks.toList()..sort());
     await _options.setValue(
       awardedRoutineDaysKey,
       awardedRoutineDays.toList()..sort(),
     );
-    final after = PlayerLevelState.fromXp(nextTotal);
-    await _appendXpHistory(
-      PlayerXpHistoryEntry(
-        awardedAt: entry.createdAt,
-        deltaXp: gainedXp,
-        totalXp: nextTotal,
-        beforeLevel: before.level,
-        afterLevel: after.level,
-        category: PlayerXpHistoryCategory.training,
-        label: _trainingProgramSummary(entry),
-        reasons: reasons,
-      ),
-    );
-    return PlayerLevelAward(
-      gainedXp: gainedXp,
-      before: before,
-      after: after,
+    return _appendSourceDelta(
+      sourceId: _trainingSourceId(entry),
+      category: PlayerXpHistoryCategory.training,
+      awardedAt: entry.createdAt,
+      requestedXp: progression.requestedXp,
+      label: _trainingProgramSummary(entry),
       reasons: reasons,
     );
   }
@@ -160,7 +141,6 @@ class PlayerLevelService {
     required TrainingEntry previousEntry,
     required TrainingEntry updatedEntry,
   }) async {
-    final before = loadState();
     final previousMealXp = _mealCoachingService.xpValueForEntry(previousEntry);
     final updatedMealXp = _mealCoachingService.xpValueForEntry(updatedEntry);
     final updatedMealReason = _mealCoachingService.xpReasonForEntry(
@@ -176,46 +156,31 @@ class PlayerLevelService {
       awardedRoutineDays: awardedRoutineDays,
     );
     final reasons = progression.reasons.toList(growable: true);
-    final gainedXp = _applyDailyPositiveXpCap(
-      requestedXp: progression.requestedXp,
-      awardedAt: updatedEntry.createdAt,
-      reasons: reasons,
-    );
 
-    awardedRoutineDays.addAll(progression.routineDayTokensToAward);
-
-    if (gainedXp == 0) {
-      return PlayerLevelAward(
-        gainedXp: 0,
-        before: before,
-        after: before,
-        reasons: const <String>[],
+    if (PlayerProgressionRules.isRoutineComplete(
+          previousEntry,
+          previousMealXp,
+        ) &&
+        !PlayerProgressionRules.isRoutineComplete(
+            updatedEntry, updatedMealXp)) {
+      awardedRoutineDays.remove(
+        PlayerProgressionRules.dayKey(
+          PlayerProgressionRules.normalizeDay(previousEntry.date),
+        ),
       );
     }
+    awardedRoutineDays.addAll(progression.routineDayTokensToAward);
 
-    final nextTotal = before.totalXp + gainedXp;
-    await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(
       awardedRoutineDaysKey,
       awardedRoutineDays.toList()..sort(),
     );
-    final after = PlayerLevelState.fromXp(nextTotal);
-    await _appendXpHistory(
-      PlayerXpHistoryEntry(
-        awardedAt: updatedEntry.createdAt,
-        deltaXp: gainedXp,
-        totalXp: nextTotal,
-        beforeLevel: before.level,
-        afterLevel: after.level,
-        category: PlayerXpHistoryCategory.training,
-        label: _trainingProgramSummary(updatedEntry),
-        reasons: reasons,
-      ),
-    );
-    return PlayerLevelAward(
-      gainedXp: gainedXp,
-      before: before,
-      after: after,
+    return _appendSourceDelta(
+      sourceId: _trainingSourceId(previousEntry),
+      category: PlayerXpHistoryCategory.training,
+      awardedAt: updatedEntry.createdAt,
+      requestedXp: progression.requestedXp,
+      label: _trainingProgramSummary(updatedEntry),
       reasons: reasons,
     );
   }
@@ -224,57 +189,22 @@ class PlayerLevelService {
     MealEntry? previousEntry,
     required MealEntry updatedEntry,
   }) async {
-    final before = loadState();
-    final previousMealXp = previousEntry == null
-        ? 0
-        : _mealCoachingService.xpValueForMealEntry(previousEntry);
     final updatedMealXp = _mealCoachingService.xpValueForMealEntry(
       updatedEntry,
     );
-    final gainedXp = updatedMealXp - previousMealXp;
-    if (gainedXp <= 0) {
-      return PlayerLevelAward(
-        gainedXp: 0,
-        before: before,
-        after: before,
-        reasons: const <String>[],
-      );
-    }
     final reason = _mealCoachingService.xpReasonForMealEntry(updatedEntry);
     final reasons = reason.isEmpty ? <String>[] : <String>[reason];
-    final appliedXp = _applyDailyPositiveXpCap(
-      requestedXp: gainedXp,
+    return _replaceSourceAward(
+      sourceId: _mealSourceIdForDay(updatedEntry.date),
+      category: PlayerXpHistoryCategory.meal,
       awardedAt: updatedEntry.createdAt,
+      requestedXp: updatedEntry.hasRecords ? updatedMealXp : 0,
+      label: '',
       reasons: reasons,
-    );
-    if (appliedXp <= 0) {
-      return PlayerLevelAward(
-        gainedXp: 0,
-        before: before,
-        after: before,
-        reasons: reasons,
-      );
-    }
-    final nextTotal = before.totalXp + appliedXp;
-    await _options.setValue(totalXpKey, nextTotal);
-    final after = PlayerLevelState.fromXp(nextTotal);
-    await _appendXpHistory(
-      PlayerXpHistoryEntry(
-        awardedAt: updatedEntry.createdAt,
-        deltaXp: appliedXp,
-        totalXp: nextTotal,
-        beforeLevel: before.level,
-        afterLevel: after.level,
-        category: PlayerXpHistoryCategory.meal,
-        label: '',
-        reasons: reasons,
-      ),
-    );
-    return PlayerLevelAward(
-      gainedXp: appliedXp,
-      before: before,
-      after: after,
-      reasons: reasons,
+      legacyMatches: [
+        if (previousEntry != null) _legacyMealHistoryMatcher(previousEntry),
+        _legacyMealHistoryMatcher(updatedEntry),
+      ],
     );
   }
 
@@ -284,21 +214,19 @@ class PlayerLevelService {
     int totalQuestions = 10,
   }) async {
     final before = loadState();
+    final awardedAt = completedAt ?? DateTime.now();
     final normalizedTotal = totalQuestions < 0 ? 0 : totalQuestions;
     final normalizedCorrect = normalizedTotal > 0
         ? correctAnswers.clamp(0, normalizedTotal).toInt()
         : (correctAnswers < 0 ? 0 : correctAnswers);
     final perfectBonus =
         normalizedTotal > 0 && normalizedCorrect >= normalizedTotal
-        ? quizPerfectBonusXp
-        : 0;
-    final requestedXp =
-        quizCompletionBaseXp +
+            ? quizPerfectBonusXp
+            : 0;
+    final requestedXp = quizCompletionBaseXp +
         normalizedCorrect * quizCorrectAnswerXp +
         perfectBonus;
-    final day = PlayerProgressionRules.normalizeDay(
-      completedAt ?? DateTime.now(),
-    );
+    final day = PlayerProgressionRules.normalizeDay(awardedAt);
     final token = PlayerProgressionRules.dayKey(day);
     if ((_options.getValue<String>(quizRewardDayKey) ?? '') == token) {
       return PlayerLevelAward(
@@ -310,35 +238,13 @@ class PlayerLevelService {
     }
 
     final reasons = <String>['quiz_complete'];
-    final gainedXp = _applyDailyPositiveXpCap(
-      requestedXp: requestedXp,
-      awardedAt: completedAt ?? DateTime.now(),
-      reasons: reasons,
-    );
-    final nextTotal = before.totalXp + gainedXp;
-    await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(quizRewardDayKey, token);
-    final after = PlayerLevelState.fromXp(nextTotal);
-    if (gainedXp > 0) {
-      await _appendXpHistory(
-        PlayerXpHistoryEntry(
-          awardedAt: completedAt ?? DateTime.now(),
-          deltaXp: gainedXp,
-          totalXp: nextTotal,
-          beforeLevel: before.level,
-          afterLevel: after.level,
-          category: PlayerXpHistoryCategory.quiz,
-          label: normalizedTotal > 0
-              ? '$normalizedCorrect/$normalizedTotal'
-              : '',
-          reasons: reasons,
-        ),
-      );
-    }
-    return PlayerLevelAward(
-      gainedXp: gainedXp,
-      before: before,
-      after: after,
+    return _appendSourceDelta(
+      sourceId: _quizSourceId(awardedAt),
+      category: PlayerXpHistoryCategory.quiz,
+      awardedAt: awardedAt,
+      requestedXp: requestedXp,
+      label: normalizedTotal > 0 ? '$normalizedCorrect/$normalizedTotal' : '',
       reasons: reasons,
     );
   }
@@ -375,38 +281,35 @@ class PlayerLevelService {
     awardedPlanIds.addAll(newPlanIds);
 
     final additionalPlans = (newPlanIds.length - 1).clamp(0, 4);
-    final reasons = <String>[
-      'plan_created',
-      if (newPlanIds.length > 1) 'plan_group_created:${newPlanIds.length}',
-    ];
-    final gainedXp = _applyDailyPositiveXpCap(
-      requestedXp: 6 + (additionalPlans * 3),
-      awardedAt: DateTime.now(),
-      reasons: reasons,
-    );
-    final nextTotal = before.totalXp + gainedXp;
-    await _options.setValue(totalXpKey, nextTotal);
+    final awardedAt = DateTime.now();
     await _options.setValue(awardedPlanIdsKey, awardedPlanIds.toList()..sort());
-    final after = PlayerLevelState.fromXp(nextTotal);
-    if (gainedXp > 0) {
-      await _appendXpHistory(
-        PlayerXpHistoryEntry(
-          awardedAt: DateTime.now(),
-          deltaXp: gainedXp,
-          totalXp: nextTotal,
-          beforeLevel: before.level,
-          afterLevel: after.level,
-          category: PlayerXpHistoryCategory.plan,
-          label: '',
-          reasons: reasons,
-        ),
+    var totalGainedXp = 0;
+    PlayerLevelAward? lastAward;
+    for (var index = 0; index < newPlanIds.length; index += 1) {
+      final reasons = <String>[
+        'plan_created',
+        if (newPlanIds.length > 1) 'plan_group_created:${newPlanIds.length}',
+      ];
+      final requestedXp = index == 0 ? 6 : (index <= additionalPlans ? 3 : 0);
+      final award = await _appendSourceDelta(
+        sourceId: _planSourceId(newPlanIds[index]),
+        category: PlayerXpHistoryCategory.plan,
+        awardedAt: awardedAt.add(Duration(microseconds: index)),
+        requestedXp: requestedXp,
+        label: '',
+        reasons: reasons,
       );
+      totalGainedXp += award.gainedXp;
+      lastAward = award;
     }
     return PlayerLevelAward(
-      gainedXp: gainedXp,
+      gainedXp: totalGainedXp,
       before: before,
-      after: after,
-      reasons: reasons,
+      after: lastAward?.after ?? before,
+      reasons: <String>[
+        'plan_created',
+        if (newPlanIds.length > 1) 'plan_group_created:${newPlanIds.length}',
+      ],
     );
   }
 
@@ -439,51 +342,28 @@ class PlayerLevelService {
 
     awardedTokens.add(token);
     final progression = PlayerProgressionRules.evaluateMatchLog(
-      previousEntry: previousEntry,
+      previousEntry: null,
       updatedEntry: updatedEntry,
-      isNewMatchToken: isNewMatchToken,
+      isNewMatchToken: true,
     );
     final reasons = progression.reasons.toList(growable: true);
-    final gainedXp = _applyDailyPositiveXpCap(
-      requestedXp: progression.requestedXp,
-      awardedAt: updatedEntry.createdAt,
-      reasons: reasons,
-    );
     await _options.setValue(
       awardedMatchLogTokensKey,
       awardedTokens.toList()..sort(),
     );
-    if (gainedXp <= 0) {
-      return PlayerLevelAward(
-        gainedXp: 0,
-        before: before,
-        after: before,
-        reasons: reasons,
-      );
-    }
-
-    final nextTotal = before.totalXp + gainedXp;
-    await _options.setValue(totalXpKey, nextTotal);
-    final after = PlayerLevelState.fromXp(nextTotal);
-    await _appendXpHistory(
-      PlayerXpHistoryEntry(
-        awardedAt: updatedEntry.createdAt,
-        deltaXp: gainedXp,
-        totalXp: nextTotal,
-        beforeLevel: before.level,
-        afterLevel: after.level,
-        category: PlayerXpHistoryCategory.match,
-        label: updatedEntry.opponentTeam.trim().isNotEmpty
-            ? updatedEntry.opponentTeam.trim()
-            : updatedEntry.club.trim(),
-        reasons: reasons,
-      ),
-    );
-    return PlayerLevelAward(
-      gainedXp: gainedXp,
-      before: before,
-      after: after,
+    return _replaceSourceAward(
+      sourceId: _matchSourceId(previousEntry ?? updatedEntry),
+      category: PlayerXpHistoryCategory.match,
+      awardedAt: updatedEntry.createdAt,
+      requestedXp: progression.requestedXp,
+      label: updatedEntry.opponentTeam.trim().isNotEmpty
+          ? updatedEntry.opponentTeam.trim()
+          : updatedEntry.club.trim(),
       reasons: reasons,
+      legacyMatches: [
+        if (previousEntry != null) _legacyMatchHistoryMatcher(previousEntry),
+        _legacyMatchHistoryMatcher(updatedEntry),
+      ],
     );
   }
 
@@ -507,36 +387,16 @@ class PlayerLevelService {
     }
 
     final reasons = <String>[created ? 'board_created' : 'board_saved'];
-    final gainedXp = _applyDailyPositiveXpCap(
-      requestedXp: created ? 5 : 2,
-      awardedAt: now,
-      reasons: reasons,
-    );
-    final nextTotal = before.totalXp + gainedXp;
-    await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(
       awardedBoardSaveTokensKey,
       awardedTokens.toList()..sort(),
     );
-    final after = PlayerLevelState.fromXp(nextTotal);
-    if (gainedXp > 0) {
-      await _appendXpHistory(
-        PlayerXpHistoryEntry(
-          awardedAt: now,
-          deltaXp: gainedXp,
-          totalXp: nextTotal,
-          beforeLevel: before.level,
-          afterLevel: after.level,
-          category: PlayerXpHistoryCategory.board,
-          label: boardTitle.trim(),
-          reasons: reasons,
-        ),
-      );
-    }
-    return PlayerLevelAward(
-      gainedXp: gainedXp,
-      before: before,
-      after: after,
+    return _appendSourceDelta(
+      sourceId: _boardSourceId(boardId, now),
+      category: PlayerXpHistoryCategory.board,
+      awardedAt: now,
+      requestedXp: created ? 5 : 2,
+      label: boardTitle.trim(),
       reasons: reasons,
     );
   }
@@ -556,33 +416,13 @@ class PlayerLevelService {
     }
 
     final reasons = <String>['diary_created'];
-    final gainedXp = _applyDailyPositiveXpCap(
-      requestedXp: 3,
-      awardedAt: createdAt ?? DateTime.now(),
-      reasons: reasons,
-    );
-    final nextTotal = before.totalXp + gainedXp;
-    await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(diaryCreatedDayKey, token);
-    final after = PlayerLevelState.fromXp(nextTotal);
-    if (gainedXp > 0) {
-      await _appendXpHistory(
-        PlayerXpHistoryEntry(
-          awardedAt: createdAt ?? DateTime.now(),
-          deltaXp: gainedXp,
-          totalXp: nextTotal,
-          beforeLevel: before.level,
-          afterLevel: after.level,
-          category: PlayerXpHistoryCategory.diary,
-          label: '',
-          reasons: reasons,
-        ),
-      );
-    }
-    return PlayerLevelAward(
-      gainedXp: gainedXp,
-      before: before,
-      after: after,
+    return _appendSourceDelta(
+      sourceId: _diarySourceId(target),
+      category: PlayerXpHistoryCategory.diary,
+      awardedAt: target,
+      requestedXp: 3,
+      label: '',
       reasons: reasons,
     );
   }
@@ -605,43 +445,16 @@ class PlayerLevelService {
     }
 
     final reasons = <String>['daily_tasks_completed'];
-    final gainedXp = _applyDailyPositiveXpCap(
-      requestedXp: dailyTaskCompletionXp,
-      awardedAt: awardedAt,
-      reasons: reasons,
-    );
     await _options.setValue(
       awardedDailyTaskCompletionDaysKey,
       awardedDays.toList()..sort(),
     );
-    if (gainedXp <= 0) {
-      return PlayerLevelAward(
-        gainedXp: 0,
-        before: before,
-        after: before,
-        reasons: reasons,
-      );
-    }
-
-    final nextTotal = before.totalXp + gainedXp;
-    await _options.setValue(totalXpKey, nextTotal);
-    final after = PlayerLevelState.fromXp(nextTotal);
-    await _appendXpHistory(
-      PlayerXpHistoryEntry(
-        awardedAt: awardedAt,
-        deltaXp: gainedXp,
-        totalXp: nextTotal,
-        beforeLevel: before.level,
-        afterLevel: after.level,
-        category: PlayerXpHistoryCategory.dailyTasks,
-        label: '',
-        reasons: reasons,
-      ),
-    );
-    return PlayerLevelAward(
-      gainedXp: gainedXp,
-      before: before,
-      after: after,
+    return _appendSourceDelta(
+      sourceId: _dailyTasksSourceId(awardedAt),
+      category: PlayerXpHistoryCategory.dailyTasks,
+      awardedAt: awardedAt,
+      requestedXp: dailyTaskCompletionXp,
+      label: '',
       reasons: reasons,
     );
   }
@@ -679,43 +492,16 @@ class PlayerLevelService {
       'challenge_round_completed',
       if (streakBonusXp > 0) 'challenge_round_streak_bonus',
     ];
-    final gainedXp = _applyDailyPositiveXpCap(
-      requestedXp: rewardXp,
-      awardedAt: completedAt,
-      reasons: reasons,
-    );
     await _options.setValue(
       awardedChallengeRoundsKey,
       awardedRounds.toList()..sort(),
     );
-    if (gainedXp <= 0) {
-      return PlayerLevelAward(
-        gainedXp: 0,
-        before: before,
-        after: before,
-        reasons: reasons,
-      );
-    }
-
-    final nextTotal = before.totalXp + gainedXp;
-    await _options.setValue(totalXpKey, nextTotal);
-    final after = PlayerLevelState.fromXp(nextTotal);
-    await _appendXpHistory(
-      PlayerXpHistoryEntry(
-        awardedAt: completedAt,
-        deltaXp: gainedXp,
-        totalXp: nextTotal,
-        beforeLevel: before.level,
-        afterLevel: after.level,
-        category: PlayerXpHistoryCategory.challenge,
-        label: '$challengeLabel:$roundNumber',
-        reasons: reasons,
-      ),
-    );
-    return PlayerLevelAward(
-      gainedXp: gainedXp,
-      before: before,
-      after: after,
+    return _appendSourceDelta(
+      sourceId: _challengeRoundSourceId(normalizedRunId, roundNumber),
+      category: PlayerXpHistoryCategory.challenge,
+      awardedAt: completedAt,
+      requestedXp: rewardXp,
+      label: '$challengeLabel:$roundNumber',
       reasons: reasons,
     );
   }
@@ -751,26 +537,14 @@ class PlayerLevelService {
       awardedRuns.toList()..sort(),
     );
     final reasons = <String>['challenge_completed_bonus'];
-    final nextTotal = before.totalXp + rewardXp;
-    await _options.setValue(totalXpKey, nextTotal);
-    final after = PlayerLevelState.fromXp(nextTotal);
-    await _appendXpHistory(
-      PlayerXpHistoryEntry(
-        awardedAt: completedAt,
-        deltaXp: rewardXp,
-        totalXp: nextTotal,
-        beforeLevel: before.level,
-        afterLevel: after.level,
-        category: PlayerXpHistoryCategory.challenge,
-        label: '$challengeLabel:complete',
-        reasons: reasons,
-      ),
-    );
-    return PlayerLevelAward(
-      gainedXp: rewardXp,
-      before: before,
-      after: after,
+    return _appendSourceDelta(
+      sourceId: _challengeCompletionSourceId(normalizedRunId),
+      category: PlayerXpHistoryCategory.challenge,
+      awardedAt: completedAt,
+      requestedXp: rewardXp,
+      label: '$challengeLabel:complete',
       reasons: reasons,
+      applyDailyCap: false,
     );
   }
 
@@ -864,12 +638,204 @@ class PlayerLevelService {
       (item) => _sameXpHistoryEntry(item, target),
     );
     if (targetIndex < 0) return;
-    history.removeAt(targetIndex);
-    await _saveXpHistory(history);
+    final removed = history.removeAt(targetIndex);
+    final nextTotal =
+        (loadState().totalXp - removed.deltaXp).clamp(0, 1000000).toInt();
+    await _options.setValue(totalXpKey, nextTotal);
+    await _saveTrimmedXpHistory(history);
   }
 
   Future<void> clearXpHistory() async {
     await _saveXpHistory(const <PlayerXpHistoryEntry>[]);
+    await _options.setValue(totalXpKey, 0);
+    await _clearAwardDeduplicationTokens();
+  }
+
+  Future<PlayerLevelAward> revokeTrainingEntryAward(TrainingEntry entry) async {
+    if (entry.isMatch) {
+      return revokeMatchEntryAward(entry);
+    }
+    final removed = await _revokeSourceAward(
+      sourceId: _trainingSourceId(entry),
+      legacyMatches: [_legacyTrainingHistoryMatcher(entry)],
+      reasons: const <String>['log'],
+    );
+    final dayToken = PlayerProgressionRules.dayKey(
+      PlayerProgressionRules.normalizeDay(entry.date),
+    );
+    final awardedRoutineDays = _getStringSet(awardedRoutineDaysKey)
+      ..remove(dayToken);
+    final awardedStreaks = _getStringSet(awardedStreaksKey)
+      ..remove('$dayToken:3')
+      ..remove('$dayToken:7');
+    await _options.setValue(
+      awardedRoutineDaysKey,
+      awardedRoutineDays.toList()..sort(),
+    );
+    await _options.setValue(awardedStreaksKey, awardedStreaks.toList()..sort());
+    return removed;
+  }
+
+  Future<PlayerLevelAward> revokeMatchEntryAward(TrainingEntry entry) async {
+    final removed = await _revokeSourceAward(
+      sourceId: _matchSourceId(entry),
+      legacyMatches: [_legacyMatchHistoryMatcher(entry)],
+      reasons: const <String>['match_logged'],
+    );
+    final awardedTokens = _getStringSet(awardedMatchLogTokensKey)
+      ..remove(_matchAwardToken(entry));
+    await _options.setValue(
+      awardedMatchLogTokensKey,
+      awardedTokens.toList()..sort(),
+    );
+    return removed;
+  }
+
+  Future<PlayerLevelAward> revokeMealLogAward(MealEntry entry) {
+    return _revokeSourceAward(
+      sourceId: _mealSourceIdForDay(entry.date),
+      legacyMatches: [_legacyMealHistoryMatcher(entry)],
+    );
+  }
+
+  Future<PlayerLevelAward> revokePlanAward(String planId) async {
+    final normalizedPlanId = planId.trim();
+    if (normalizedPlanId.isEmpty) {
+      final before = loadState();
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    final removed = await _revokeSourceAward(
+      sourceId: _planSourceId(normalizedPlanId),
+      reasons: const <String>['plan_created'],
+    );
+    final awardedPlanIds = _getStringSet(awardedPlanIdsKey)
+      ..remove(normalizedPlanId);
+    await _options.setValue(
+      awardedPlanIdsKey,
+      awardedPlanIds.toList()..sort(),
+    );
+    return removed;
+  }
+
+  Future<PlayerLevelAward> revokeBoardAwards({
+    required String boardId,
+    required String boardTitle,
+  }) async {
+    final prefix = _boardSourcePrefix(boardId);
+    final removed = await _revokeSourceAward(
+      sourceId: '',
+      legacyMatches: [
+        (history) => history.sourceId.startsWith(prefix),
+        _legacyBoardHistoryMatcher(boardTitle),
+      ],
+      reasons: const <String>['board_saved'],
+    );
+    final awardedTokens = _getStringSet(awardedBoardSaveTokensKey)
+      ..removeWhere((token) => token.startsWith('$boardId:'));
+    await _options.setValue(
+      awardedBoardSaveTokensKey,
+      awardedTokens.toList()..sort(),
+    );
+    return removed;
+  }
+
+  Future<PlayerLevelAward> revokeDailyTasksCompleted(
+      DateTime completedAt) async {
+    final dayToken = PlayerProgressionRules.dayKey(completedAt);
+    final removed = await _revokeSourceAward(
+      sourceId: _dailyTasksSourceId(completedAt),
+      reasons: const <String>['daily_tasks_completed'],
+    );
+    final awardedDays = _getStringSet(awardedDailyTaskCompletionDaysKey)
+      ..remove(dayToken);
+    await _options.setValue(
+      awardedDailyTaskCompletionDaysKey,
+      awardedDays.toList()..sort(),
+    );
+    return removed;
+  }
+
+  Future<PlayerLevelAward> revokeQuizCompletion(DateTime completedAt) async {
+    final dayToken = PlayerProgressionRules.dayKey(completedAt);
+    final removed = await _revokeSourceAward(
+      sourceId: _quizSourceId(completedAt),
+      reasons: const <String>['quiz_complete'],
+    );
+    if ((_options.getValue<String>(quizRewardDayKey) ?? '') == dayToken) {
+      await _options.setValue(quizRewardDayKey, '');
+    }
+    return removed;
+  }
+
+  Future<PlayerLevelAward> revokeDiaryCreated(DateTime createdAt) async {
+    final dayToken = PlayerProgressionRules.dayKey(createdAt);
+    final removed = await _revokeSourceAward(
+      sourceId: _diarySourceId(createdAt),
+      reasons: const <String>['diary_created'],
+    );
+    if ((_options.getValue<String>(diaryCreatedDayKey) ?? '') == dayToken) {
+      await _options.setValue(diaryCreatedDayKey, '');
+    }
+    return removed;
+  }
+
+  Future<PlayerLevelAward> revokeChallengeRound({
+    required String challengeRunId,
+    required int roundNumber,
+  }) async {
+    final normalizedRunId = challengeRunId.trim();
+    if (normalizedRunId.isEmpty || roundNumber <= 0) {
+      final before = loadState();
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    final token = '$normalizedRunId:$roundNumber';
+    final removed = await _revokeSourceAward(
+      sourceId: _challengeRoundSourceId(normalizedRunId, roundNumber),
+      reasons: const <String>['challenge_round_completed'],
+    );
+    final awardedRounds = _getStringSet(awardedChallengeRoundsKey)
+      ..remove(token);
+    await _options.setValue(
+      awardedChallengeRoundsKey,
+      awardedRounds.toList()..sort(),
+    );
+    return removed;
+  }
+
+  Future<PlayerLevelAward> revokeChallengeCompletion({
+    required String challengeRunId,
+  }) async {
+    final normalizedRunId = challengeRunId.trim();
+    if (normalizedRunId.isEmpty) {
+      final before = loadState();
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    final removed = await _revokeSourceAward(
+      sourceId: _challengeCompletionSourceId(normalizedRunId),
+      reasons: const <String>['challenge_completed_bonus'],
+    );
+    final awardedRuns = _getStringSet(awardedChallengeCompletionsKey)
+      ..remove(normalizedRunId);
+    await _options.setValue(
+      awardedChallengeCompletionsKey,
+      awardedRuns.toList()..sort(),
+    );
+    return removed;
   }
 
   PlayerLevelRewardStatus? nextRewardStatus({
@@ -947,6 +913,109 @@ class PlayerLevelService {
     ].join(':');
   }
 
+  String _trainingSourceId(TrainingEntry entry) {
+    final key = entry.key;
+    if (key is int) return 'training:$key';
+    return [
+      'training',
+      PlayerProgressionRules.dayKey(entry.date),
+      entry.createdAt.microsecondsSinceEpoch,
+      _trainingProgramSummary(entry),
+    ].join(':');
+  }
+
+  String _matchSourceId(TrainingEntry entry) {
+    final key = entry.key;
+    if (key is int) return 'match:$key';
+    return [
+      'match',
+      PlayerProgressionRules.dayKey(entry.date),
+      entry.createdAt.microsecondsSinceEpoch,
+      entry.opponentTeam.trim().isNotEmpty
+          ? entry.opponentTeam.trim()
+          : entry.club.trim(),
+    ].join(':');
+  }
+
+  String _mealSourceIdForDay(DateTime day) {
+    return 'meal:${PlayerProgressionRules.dayKey(day)}';
+  }
+
+  String _boardSourcePrefix(String boardId) => 'board:$boardId:';
+
+  String _boardSourceId(String boardId, DateTime savedAt) {
+    return '${_boardSourcePrefix(boardId)}${PlayerProgressionRules.dayKey(savedAt)}';
+  }
+
+  String _diarySourceId(DateTime createdAt) {
+    return 'diary:${PlayerProgressionRules.dayKey(createdAt)}';
+  }
+
+  String _quizSourceId(DateTime completedAt) {
+    return 'quiz:${PlayerProgressionRules.dayKey(completedAt)}';
+  }
+
+  String _dailyTasksSourceId(DateTime completedAt) {
+    return 'daily_tasks:${PlayerProgressionRules.dayKey(completedAt)}';
+  }
+
+  String _planSourceId(String planId) => 'plan:${planId.trim()}';
+
+  String _challengeRoundSourceId(String challengeRunId, int roundNumber) {
+    return 'challenge_round:${challengeRunId.trim()}:$roundNumber';
+  }
+
+  String _challengeCompletionSourceId(String challengeRunId) {
+    return 'challenge_complete:${challengeRunId.trim()}';
+  }
+
+  bool Function(PlayerXpHistoryEntry) _legacyTrainingHistoryMatcher(
+    TrainingEntry entry,
+  ) {
+    final summary = _trainingProgramSummary(entry);
+    return (history) {
+      return history.sourceId.isEmpty &&
+          history.category == PlayerXpHistoryCategory.training &&
+          history.awardedAt == entry.createdAt &&
+          history.label == summary;
+    };
+  }
+
+  bool Function(PlayerXpHistoryEntry) _legacyMatchHistoryMatcher(
+    TrainingEntry entry,
+  ) {
+    final label = entry.opponentTeam.trim().isNotEmpty
+        ? entry.opponentTeam.trim()
+        : entry.club.trim();
+    return (history) {
+      return history.sourceId.isEmpty &&
+          history.category == PlayerXpHistoryCategory.match &&
+          history.awardedAt == entry.createdAt &&
+          history.label == label;
+    };
+  }
+
+  bool Function(PlayerXpHistoryEntry) _legacyMealHistoryMatcher(
+    MealEntry entry,
+  ) {
+    return (history) {
+      return history.sourceId.isEmpty &&
+          history.category == PlayerXpHistoryCategory.meal &&
+          history.awardedAt == entry.createdAt;
+    };
+  }
+
+  bool Function(PlayerXpHistoryEntry) _legacyBoardHistoryMatcher(
+    String boardTitle,
+  ) {
+    final label = boardTitle.trim();
+    return (history) {
+      return history.sourceId.isEmpty &&
+          history.category == PlayerXpHistoryCategory.board &&
+          history.label == label;
+    };
+  }
+
   int _applyDailyPositiveXpCap({
     required int requestedXp,
     required DateTime awardedAt,
@@ -965,22 +1034,235 @@ class PlayerLevelService {
     return cappedXp;
   }
 
+  int _applyDailyPositiveXpCapFromHistory({
+    required int requestedXp,
+    required DateTime awardedAt,
+    required Iterable<PlayerXpHistoryEntry> history,
+    List<String>? reasons,
+  }) {
+    if (requestedXp <= 0) return requestedXp;
+    final normalizedDay = PlayerProgressionRules.normalizeDay(awardedAt);
+    final awardedToday = history
+        .where(
+          (entry) =>
+              PlayerProgressionRules.normalizeDay(entry.awardedAt) ==
+              normalizedDay,
+        )
+        .fold(0, (sum, entry) => sum + entry.deltaXp)
+        .clamp(0, dailyPositiveXpCap)
+        .toInt();
+    final remaining = (dailyPositiveXpCap - awardedToday).clamp(
+      0,
+      dailyPositiveXpCap,
+    );
+    final cappedXp = requestedXp > remaining ? remaining : requestedXp;
+    if (cappedXp < requestedXp) {
+      reasons?.add('daily_xp_cap');
+    }
+    return cappedXp;
+  }
+
+  Future<PlayerLevelAward> _appendSourceDelta({
+    required String sourceId,
+    required PlayerXpHistoryCategory category,
+    required DateTime awardedAt,
+    required int requestedXp,
+    required String label,
+    required List<String> reasons,
+    bool applyDailyCap = true,
+  }) async {
+    final before = loadState();
+    final resolvedReasons = reasons.toList(growable: true);
+    final gainedXp = applyDailyCap
+        ? _applyDailyPositiveXpCap(
+            requestedXp: requestedXp,
+            awardedAt: awardedAt,
+            reasons: resolvedReasons,
+          )
+        : requestedXp;
+    if (gainedXp == 0) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: resolvedReasons,
+      );
+    }
+
+    final nextTotal = (before.totalXp + gainedXp).clamp(0, 1000000).toInt();
+    await _options.setValue(totalXpKey, nextTotal);
+    final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: awardedAt,
+        deltaXp: gainedXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: category,
+        label: label,
+        reasons: resolvedReasons,
+        sourceId: sourceId,
+      ),
+    );
+    return PlayerLevelAward(
+      gainedXp: gainedXp,
+      before: before,
+      after: after,
+      reasons: resolvedReasons,
+    );
+  }
+
+  Future<PlayerLevelAward> _replaceSourceAward({
+    required String sourceId,
+    required PlayerXpHistoryCategory category,
+    required DateTime awardedAt,
+    required int requestedXp,
+    required String label,
+    required List<String> reasons,
+    List<bool Function(PlayerXpHistoryEntry)> legacyMatches = const [],
+  }) async {
+    final before = loadState();
+    final history = loadXpHistory().toList(growable: true);
+    final removed = <PlayerXpHistoryEntry>[];
+    history.removeWhere((entry) {
+      final matches = _matchesSourceOrLegacy(
+        entry,
+        sourceId: sourceId,
+        legacyMatches: legacyMatches,
+      );
+      if (matches) removed.add(entry);
+      return matches;
+    });
+    final removedXp = removed.fold<int>(0, (sum, entry) => sum + entry.deltaXp);
+    final baseTotal = (before.totalXp - removedXp).clamp(0, 1000000).toInt();
+    final resolvedReasons = reasons.toList(growable: true);
+    final appliedXp = requestedXp <= 0
+        ? 0
+        : _applyDailyPositiveXpCapFromHistory(
+            requestedXp: requestedXp,
+            awardedAt: awardedAt,
+            history: history,
+            reasons: resolvedReasons,
+          );
+    final nextTotal = (baseTotal + appliedXp).clamp(0, 1000000).toInt();
+    final baseState = PlayerLevelState.fromXp(baseTotal);
+    final after = PlayerLevelState.fromXp(nextTotal);
+    if (appliedXp != 0) {
+      history.insert(
+        0,
+        PlayerXpHistoryEntry(
+          awardedAt: awardedAt,
+          deltaXp: appliedXp,
+          totalXp: nextTotal,
+          beforeLevel: baseState.level,
+          afterLevel: after.level,
+          category: category,
+          label: label,
+          reasons: resolvedReasons,
+          sourceId: sourceId,
+        ),
+      );
+    }
+    await _options.setValue(totalXpKey, nextTotal);
+    await _saveTrimmedXpHistory(history);
+    return PlayerLevelAward(
+      gainedXp: nextTotal - before.totalXp,
+      before: before,
+      after: after,
+      reasons: resolvedReasons,
+    );
+  }
+
+  Future<PlayerLevelAward> _revokeSourceAward({
+    required String sourceId,
+    List<bool Function(PlayerXpHistoryEntry)> legacyMatches = const [],
+    List<String> reasons = const <String>[],
+  }) async {
+    final before = loadState();
+    final history = loadXpHistory().toList(growable: true);
+    var removedXp = 0;
+    var removedCount = 0;
+    history.removeWhere((entry) {
+      final matches = _matchesSourceOrLegacy(
+        entry,
+        sourceId: sourceId,
+        legacyMatches: legacyMatches,
+      );
+      if (matches) {
+        removedCount += 1;
+        removedXp += entry.deltaXp;
+      }
+      return matches;
+    });
+    if (removedCount == 0) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: reasons,
+      );
+    }
+    final nextTotal = (before.totalXp - removedXp).clamp(0, 1000000).toInt();
+    await _options.setValue(totalXpKey, nextTotal);
+    await _saveTrimmedXpHistory(history);
+    return PlayerLevelAward(
+      gainedXp: nextTotal - before.totalXp,
+      before: before,
+      after: PlayerLevelState.fromXp(nextTotal),
+      reasons: reasons,
+    );
+  }
+
+  bool _matchesSourceOrLegacy(
+    PlayerXpHistoryEntry entry, {
+    required String sourceId,
+    required List<bool Function(PlayerXpHistoryEntry)> legacyMatches,
+  }) {
+    if (sourceId.isNotEmpty && entry.sourceId == sourceId) return true;
+    for (final matches in legacyMatches) {
+      if (matches(entry)) return true;
+    }
+    return false;
+  }
+
   int _loadAwardedPositiveXpForDay(DateTime awardedAt) {
     final normalizedDay = PlayerProgressionRules.normalizeDay(awardedAt);
     return loadXpHistory()
         .where(
           (entry) =>
-              entry.deltaXp > 0 &&
               PlayerProgressionRules.normalizeDay(entry.awardedAt) ==
-                  normalizedDay,
+              normalizedDay,
         )
-        .fold(0, (sum, entry) => sum + entry.deltaXp);
+        .fold(0, (sum, entry) => sum + entry.deltaXp)
+        .clamp(0, dailyPositiveXpCap)
+        .toInt();
   }
 
   Future<void> _appendXpHistory(PlayerXpHistoryEntry entry) async {
     final history = loadXpHistory().take(199).toList(growable: true);
     history.insert(0, entry);
     await _saveXpHistory(history);
+  }
+
+  Future<void> _saveTrimmedXpHistory(List<PlayerXpHistoryEntry> history) async {
+    history.sort((a, b) => b.awardedAt.compareTo(a.awardedAt));
+    await _saveXpHistory(history.take(200).toList(growable: false));
+  }
+
+  Future<void> _clearAwardDeduplicationTokens() async {
+    await Future.wait([
+      _options.setValue(quizRewardDayKey, ''),
+      _options.setValue(awardedPlanIdsKey, <String>[]),
+      _options.setValue(awardedMatchLogTokensKey, <String>[]),
+      _options.setValue(awardedStreaksKey, <String>[]),
+      _options.setValue(awardedBoardSaveTokensKey, <String>[]),
+      _options.setValue(awardedRoutineDaysKey, <String>[]),
+      _options.setValue(awardedDailyTaskCompletionDaysKey, <String>[]),
+      _options.setValue(awardedChallengeRoundsKey, <String>[]),
+      _options.setValue(awardedChallengeCompletionsKey, <String>[]),
+      _options.setValue(diaryCreatedDayKey, ''),
+    ]);
   }
 
   Future<void> _appendRewardClaimMessage({
@@ -1019,7 +1301,8 @@ class PlayerLevelService {
         a.beforeLevel != b.beforeLevel ||
         a.afterLevel != b.afterLevel ||
         a.category != b.category ||
-        a.label != b.label) {
+        a.label != b.label ||
+        a.sourceId != b.sourceId) {
       return false;
     }
     if (a.reasons.length != b.reasons.length) return false;
@@ -1086,9 +1369,8 @@ class PlayerLevelState {
         xpToNextMasteryStar: xpToNextMasteryStar,
       );
     }
-    final nextLevelXp = level >= thresholds.length
-        ? currentLevelXp + 2100
-        : thresholds[level];
+    final nextLevelXp =
+        level >= thresholds.length ? currentLevelXp + 2100 : thresholds[level];
     final span = (nextLevelXp - currentLevelXp).clamp(1, 1000000);
     final progress = ((totalXp - currentLevelXp) / span).clamp(0.0, 1.0);
     return PlayerLevelState(
@@ -1185,6 +1467,7 @@ class PlayerXpHistoryEntry {
   final PlayerXpHistoryCategory category;
   final String label;
   final List<String> reasons;
+  final String sourceId;
 
   const PlayerXpHistoryEntry({
     required this.awardedAt,
@@ -1195,12 +1478,12 @@ class PlayerXpHistoryEntry {
     required this.category,
     required this.label,
     required this.reasons,
+    this.sourceId = '',
   });
 
   factory PlayerXpHistoryEntry.fromMap(Map<String, dynamic> map) {
     return PlayerXpHistoryEntry(
-      awardedAt:
-          DateTime.tryParse(map['awardedAt']?.toString() ?? '') ??
+      awardedAt: DateTime.tryParse(map['awardedAt']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
       deltaXp: (map['deltaXp'] as num?)?.toInt() ?? 0,
       totalXp: (map['totalXp'] as num?)?.toInt() ?? 0,
@@ -1211,11 +1494,11 @@ class PlayerXpHistoryEntry {
         orElse: () => PlayerXpHistoryCategory.training,
       ),
       label: map['label']?.toString() ?? '',
-      reasons:
-          (map['reasons'] as List?)
+      reasons: (map['reasons'] as List?)
               ?.map((item) => item.toString())
               .toList(growable: false) ??
           const <String>[],
+      sourceId: map['sourceId']?.toString() ?? '',
     );
   }
 
@@ -1229,6 +1512,7 @@ class PlayerXpHistoryEntry {
       'category': category.name,
       'label': label,
       'reasons': reasons,
+      'sourceId': sourceId,
     };
   }
 

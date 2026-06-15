@@ -163,45 +163,43 @@ class ChallengeService {
   }) {
     final template = templateById(run.templateId);
     if (template == null) return null;
-    final rounds = template.rounds
-        .map((round) {
-          final levelRound = roundForLevel(round, run.trainingLevel);
-          final targets = missionTargetsForRun(levelRound, run);
-          final effectiveRound = roundWithMissionTargets(
-            levelRound,
-            targets,
-            selectedSkillIds: run.selectedSkillIds,
-          );
-          final date = run.dayForRound(round.number);
-          final trainingPrograms = trainingProgramProgressForDay(
-            trainingEntries,
-            date,
-            selectedSkillIds: run.selectedSkillIds,
-            targetTrainingMinutes: effectiveRound.targetTrainingMinutes,
-            targetMinutesByProgram: targets.trainingProgramTargetsFor(
-              run.selectedSkillIds,
-            ),
-          );
-          return ChallengeRoundProgress(
-            round: effectiveRound,
-            date: date,
-            trainingMinutes: trainingPrograms.isEmpty
-                ? trainingMinutesForDay(
-                    trainingEntries,
-                    date,
-                    selectedSkillIds: run.selectedSkillIds,
-                  )
-                : trainingPrograms.fold<int>(
-                    0,
-                    (sum, program) => sum + program.currentMinutes,
-                  ),
-            jumpRopeMinutes: jumpRopeMinutesForDay(trainingEntries, date),
-            liftingMinutes: liftingMinutesForDay(trainingEntries, date),
-            riceBowls: riceBowlsForDay(mealEntries, date),
-            trainingPrograms: trainingPrograms,
-          );
-        })
-        .toList(growable: false);
+    final rounds = template.rounds.map((round) {
+      final levelRound = roundForLevel(round, run.trainingLevel);
+      final targets = missionTargetsForRun(levelRound, run);
+      final effectiveRound = roundWithMissionTargets(
+        levelRound,
+        targets,
+        selectedSkillIds: run.selectedSkillIds,
+      );
+      final date = run.dayForRound(round.number);
+      final trainingPrograms = trainingProgramProgressForDay(
+        trainingEntries,
+        date,
+        selectedSkillIds: run.selectedSkillIds,
+        targetTrainingMinutes: effectiveRound.targetTrainingMinutes,
+        targetMinutesByProgram: targets.trainingProgramTargetsFor(
+          run.selectedSkillIds,
+        ),
+      );
+      return ChallengeRoundProgress(
+        round: effectiveRound,
+        date: date,
+        trainingMinutes: trainingPrograms.isEmpty
+            ? trainingMinutesForDay(
+                trainingEntries,
+                date,
+                selectedSkillIds: run.selectedSkillIds,
+              )
+            : trainingPrograms.fold<int>(
+                0,
+                (sum, program) => sum + program.currentMinutes,
+              ),
+        jumpRopeMinutes: jumpRopeMinutesForDay(trainingEntries, date),
+        liftingMinutes: liftingMinutesForDay(trainingEntries, date),
+        riceBowls: riceBowlsForDay(mealEntries, date),
+        trainingPrograms: trainingPrograms,
+      );
+    }).toList(growable: false);
     return ChallengeProgress(run: run, template: template, rounds: rounds);
   }
 
@@ -224,6 +222,12 @@ class ChallengeService {
     DateTime? awardedAt,
   }) async {
     final awards = <PlayerLevelAward>[];
+    awards.addAll(
+      await revokeIncompleteAwards(
+        progress: progress,
+        playerLevelService: playerLevelService,
+      ),
+    );
     var consecutiveRoundNumber = 0;
     for (final round in progress.rounds) {
       if (!round.completed) {
@@ -250,6 +254,30 @@ class ChallengeService {
     return awards;
   }
 
+  Future<List<PlayerLevelAward>> revokeIncompleteAwards({
+    required ChallengeProgress progress,
+    required PlayerLevelService playerLevelService,
+  }) async {
+    final awards = <PlayerLevelAward>[];
+    for (final round in progress.rounds) {
+      if (round.completed) continue;
+      awards.add(
+        await playerLevelService.revokeChallengeRound(
+          challengeRunId: progress.run.id,
+          roundNumber: round.round.number,
+        ),
+      );
+    }
+    if (!progress.allRoundsCompleted) {
+      awards.add(
+        await playerLevelService.revokeChallengeCompletion(
+          challengeRunId: progress.run.id,
+        ),
+      );
+    }
+    return awards;
+  }
+
   Future<List<PlayerLevelAward>> finalizeRun({
     required ChallengeProgress progress,
     required PlayerLevelService playerLevelService,
@@ -261,6 +289,12 @@ class ChallengeService {
     }
 
     final awards = <PlayerLevelAward>[];
+    awards.addAll(
+      await revokeIncompleteAwards(
+        progress: progress,
+        playerLevelService: playerLevelService,
+      ),
+    );
     var consecutiveRoundNumber = 0;
     for (final round in progress.rounds) {
       if (!round.completed) {
@@ -286,16 +320,16 @@ class ChallengeService {
     }
 
     if (progress.allRoundsCompleted) {
-      final completionAward = await playerLevelService
-          .awardForChallengeCompletion(
-            challengeRunId: progress.run.id,
-            challengeLabel: progress.template.id,
-            completedAt: endedAt,
-            rewardXp: challengeCompletionBonusXpFor(
-              progress.template,
-              progress.run.trainingLevel,
-            ),
-          );
+      final completionAward =
+          await playerLevelService.awardForChallengeCompletion(
+        challengeRunId: progress.run.id,
+        challengeLabel: progress.template.id,
+        completedAt: endedAt,
+        rewardXp: challengeCompletionBonusXpFor(
+          progress.template,
+          progress.run.trainingLevel,
+        ),
+      );
       awards.add(completionAward);
       await completeRun(
         progress.run.id,
@@ -447,34 +481,34 @@ ChallengeMissionTargets challengeMissionTargetsFromRound(ChallengeRound round) {
 
 const List<ChallengeTrainingLevelConfig> challengeTrainingLevelConfigs =
     <ChallengeTrainingLevelConfig>[
-      ChallengeTrainingLevelConfig(
-        level: ChallengeTrainingLevel.rookie,
-        targetTrainingMinutes: 30,
-        targetJumpRopeMinutes: 10,
-        targetLiftingMinutes: 10,
-        targetRiceBowls: 3,
-        rewardXpPerRound: 10,
-        completionBonusXpPerDay: 40,
-      ),
-      ChallengeTrainingLevelConfig(
-        level: ChallengeTrainingLevel.growth,
-        targetTrainingMinutes: 90,
-        targetJumpRopeMinutes: 20,
-        targetLiftingMinutes: 20,
-        targetRiceBowls: 3.5,
-        rewardXpPerRound: 16,
-        completionBonusXpPerDay: 70,
-      ),
-      ChallengeTrainingLevelConfig(
-        level: ChallengeTrainingLevel.ace,
-        targetTrainingMinutes: 120,
-        targetJumpRopeMinutes: 30,
-        targetLiftingMinutes: 30,
-        targetRiceBowls: 4,
-        rewardXpPerRound: 24,
-        completionBonusXpPerDay: 110,
-      ),
-    ];
+  ChallengeTrainingLevelConfig(
+    level: ChallengeTrainingLevel.rookie,
+    targetTrainingMinutes: 30,
+    targetJumpRopeMinutes: 10,
+    targetLiftingMinutes: 10,
+    targetRiceBowls: 3,
+    rewardXpPerRound: 10,
+    completionBonusXpPerDay: 40,
+  ),
+  ChallengeTrainingLevelConfig(
+    level: ChallengeTrainingLevel.growth,
+    targetTrainingMinutes: 90,
+    targetJumpRopeMinutes: 20,
+    targetLiftingMinutes: 20,
+    targetRiceBowls: 3.5,
+    rewardXpPerRound: 16,
+    completionBonusXpPerDay: 70,
+  ),
+  ChallengeTrainingLevelConfig(
+    level: ChallengeTrainingLevel.ace,
+    targetTrainingMinutes: 120,
+    targetJumpRopeMinutes: 30,
+    targetLiftingMinutes: 30,
+    targetRiceBowls: 4,
+    rewardXpPerRound: 24,
+    completionBonusXpPerDay: 110,
+  ),
+];
 
 ChallengeTrainingLevelConfig trainingLevelConfig(ChallengeTrainingLevel level) {
   for (final config in challengeTrainingLevelConfigs) {
@@ -529,10 +563,10 @@ int challengeTotalPotentialXpFor(
 
 final List<ChallengeTemplate> defaultChallengeTemplates =
     List<ChallengeTemplate>.unmodifiable(<ChallengeTemplate>[
-      _defaultChallengeTemplate(id: 'starter_3', dayCount: 3),
-      _defaultChallengeTemplate(id: 'weekly_7', dayCount: 7),
-      _defaultChallengeTemplate(id: 'focus_14', dayCount: 14),
-    ]);
+  _defaultChallengeTemplate(id: 'starter_3', dayCount: 3),
+  _defaultChallengeTemplate(id: 'weekly_7', dayCount: 7),
+  _defaultChallengeTemplate(id: 'focus_14', dayCount: 14),
+]);
 
 ChallengeTemplate _defaultChallengeTemplate({
   required String id,

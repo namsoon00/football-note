@@ -2149,6 +2149,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         '',
       );
     }
+    await PlayerLevelService(widget.optionRepository).revokeDiaryCreated(date);
     await _persistCustomDiaryEntries();
     if (!mounted) return;
     setState(() {});
@@ -2181,6 +2182,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       CoachLessonScreen.todayViewedDiaryDayKey,
       dayToken,
     );
+    await PlayerLevelService(
+      widget.optionRepository,
+    ).awardForDiaryCreated(createdAt: date);
     await _persistCustomDiaryEntries();
     if (!mounted) return;
     setState(() {});

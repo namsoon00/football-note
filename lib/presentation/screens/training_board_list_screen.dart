@@ -224,13 +224,13 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (!mounted) return;
     await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
     if (!mounted) return;
-    final award = await PlayerLevelService(widget.optionRepository)
-        .awardForBoardSaved(
-          boardId: created.id,
-          boardTitle: created.title,
-          savedAt: created.updatedAt,
-          created: true,
-        );
+    final award =
+        await PlayerLevelService(widget.optionRepository).awardForBoardSaved(
+      boardId: created.id,
+      boardTitle: created.title,
+      savedAt: created.updatedAt,
+      created: true,
+    );
     await _presentBoardXpAward(award, isKo: isKo);
     if (!mounted) return;
     AppFeedback.showSuccess(
@@ -281,9 +281,8 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       ),
     );
     if (!mounted || source == null) return;
-    final defaultCopyTitle = isKo
-        ? '${source.title} 복사본'
-        : '${source.title} Copy';
+    final defaultCopyTitle =
+        isKo ? '${source.title} 복사본' : '${source.title} Copy';
     final copiedTitle = await _promptTitle(initialValue: defaultCopyTitle);
     if (!mounted || copiedTitle == null) return;
     final created = await _boardService.createBoard(
@@ -293,13 +292,13 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (!mounted) return;
     await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
     if (!mounted) return;
-    final award = await PlayerLevelService(widget.optionRepository)
-        .awardForBoardSaved(
-          boardId: created.id,
-          boardTitle: created.title,
-          savedAt: created.updatedAt,
-          created: true,
-        );
+    final award =
+        await PlayerLevelService(widget.optionRepository).awardForBoardSaved(
+      boardId: created.id,
+      boardTitle: created.title,
+      savedAt: created.updatedAt,
+      created: true,
+    );
     await _presentBoardXpAward(award, isKo: isKo);
     if (!mounted) return;
     AppFeedback.showSuccess(
@@ -338,6 +337,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       ),
     );
     if (shouldDelete != true) return;
+    await PlayerLevelService(widget.optionRepository).revokeBoardAwards(
+      boardId: board.id,
+      boardTitle: board.title,
+    );
     await _boardService.deleteBoard(board.id);
     _selectedIds.remove(board.id);
     if (widget.optionRepository.getValue<String>(_recentBoardIdKey) ==
@@ -350,7 +353,15 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       text: isKo ? '보드를 삭제했어요.' : 'Board deleted.',
       undoLabel: isKo ? '되돌리기' : 'Undo',
       onUndo: () {
-        unawaited(_boardService.saveBoard(board));
+        unawaited(() async {
+          await _boardService.saveBoard(board);
+          await PlayerLevelService(widget.optionRepository).awardForBoardSaved(
+            boardId: board.id,
+            boardTitle: board.title,
+            savedAt: board.updatedAt,
+            created: true,
+          );
+        }());
         AppFeedback.showSuccess(
           context,
           text: isKo ? '삭제를 되돌렸어요.' : 'Delete undone.',
@@ -378,12 +389,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
 
   List<TrainingBoard> _visibleBoards() {
     final query = _searchQuery.trim().toLowerCase();
-    final filtered = _boards
-        .where((board) {
-          if (query.isEmpty) return true;
-          return board.title.toLowerCase().contains(query);
-        })
-        .toList(growable: false);
+    final filtered = _boards.where((board) {
+      if (query.isEmpty) return true;
+      return board.title.toLowerCase().contains(query);
+    }).toList(growable: false);
     final sorted = [...filtered];
     switch (_sort) {
       case _BoardListSort.updatedDesc:
@@ -716,13 +725,13 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (!mounted) return;
     await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
     if (!mounted) return;
-    final award = await PlayerLevelService(widget.optionRepository)
-        .awardForBoardSaved(
-          boardId: created.id,
-          boardTitle: created.title,
-          savedAt: created.updatedAt,
-          created: true,
-        );
+    final award =
+        await PlayerLevelService(widget.optionRepository).awardForBoardSaved(
+      boardId: created.id,
+      boardTitle: created.title,
+      savedAt: created.updatedAt,
+      created: true,
+    );
     await _presentBoardXpAward(award, isKo: isKo);
     if (!mounted) return;
     AppFeedback.showSuccess(
