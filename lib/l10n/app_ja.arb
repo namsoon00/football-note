@@ -321,6 +321,7 @@
   "worldCupMatchScheduled": "予定",
   "worldCupMatchLive": "ライブ",
   "worldCupMatchAwaitingUpdate": "結果更新待ち",
+  "worldCupMatchAwaitingUpdateReason": "試合終了予定時刻を過ぎましたが、FIFA公式結果はまだ反映されていません。更新するか公式ページを確認してください。",
   "worldCupMatchResultFinal": "結果",
   "worldCupMatchDetailTitle": "試合詳細",
   "worldCupMatchComparisonTitle": "戦力比較",
@@ -770,6 +771,24 @@
   "trainingXpDialogTitle": "トレーニング記録完了",
   "trainingXpDialogMessage": "記録を保存しました。",
   "trainingRecordSavedDialogMessage": "記録を保存しました。",
+  "trainingEntryConditioningEmpty": "縄跳び/リフティングの記録なし",
+  "trainingEntryInjuryPresent": "けがの記録あり",
+  "trainingEntryInjurySummary": "けが: {detail}",
+  "@trainingEntryInjurySummary": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "trainingEntryInjuryPainSummary": "痛み {pain}/10",
+  "@trainingEntryInjuryPainSummary": {
+    "placeholders": {
+      "pain": {
+        "type": "int"
+      }
+    }
+  },
   "trainingXpDialogJumpRopeTitle": "縄跳び記録完了",
   "trainingXpDialogJumpRopeMessage": "縄跳び記録を保存しました。",
   "trainingXpDialogLiftingTitle": "リフティング記録完了",

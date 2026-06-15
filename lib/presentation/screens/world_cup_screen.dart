@@ -44,6 +44,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   static const String _supportCountryKey = 'world_cup_support_country_v1';
   static const String _interestCountriesKey = 'world_cup_interest_countries_v1';
   static const double _calendarDayNumberFontSize = 17;
+  static const double _selectedDaySwipeThreshold = 72;
   static final Uri _sourceUri = Uri.parse(
     'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums',
   );
@@ -67,6 +68,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   DateTime? _officialDataRefreshedAt;
   bool _officialDataRefreshing = false;
   bool _officialDataRefreshFailed = false;
+  double _selectedDaySwipeOffset = 0;
   Timer? _clockTimer;
 
   @override
@@ -128,7 +130,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             message: l10n.worldCupSourceAction,
             child: TextButton.icon(
               onPressed: () => unawaited(
-                launchUrl(_sourceUri, mode: LaunchMode.externalApplication),
+                launchUrl(_sourceUri, mode: LaunchMode.inAppBrowserView),
               ),
               style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.onSurface,
@@ -195,8 +197,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                     child: Text(
                       l10n.worldCupOverviewTitle,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                   ),
                 ],
@@ -335,7 +337,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                   const spacing = 8.0;
                   final width =
                       (constraints.maxWidth - spacing * (columns - 1)) /
-                      columns;
+                          columns;
                   return Wrap(
                     spacing: spacing,
                     runSpacing: spacing,
@@ -372,7 +374,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                   const spacing = 8.0;
                   final width =
                       (constraints.maxWidth - spacing * (columns - 1)) /
-                      columns;
+                          columns;
                   return Wrap(
                     spacing: spacing,
                     runSpacing: spacing,
@@ -569,13 +571,13 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                             selectedSummary.isEmpty
                                 ? l10n.worldCupInterestCountriesEmpty
                                 : selectedSummary
-                                      .map(
-                                        (country) => _worldCupCountryLabelText(
-                                          l10n,
-                                          country,
-                                        ),
-                                      )
-                                      .join(' · '),
+                                    .map(
+                                      (country) => _worldCupCountryLabelText(
+                                        l10n,
+                                        country,
+                                      ),
+                                    )
+                                    .join(' · '),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -610,7 +612,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                         const spacing = 10.0;
                         final panelWidth =
                             (constraints.maxWidth - spacing * (columns - 1)) /
-                            columns;
+                                columns;
                         return Wrap(
                           spacing: spacing,
                           runSpacing: spacing,
@@ -634,11 +636,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                                         l10n.notSet,
                                         style: theme.textTheme.bodyMedium
                                             ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                              fontWeight: FontWeight.w700,
-                                            ),
+                                          color: theme
+                                              .colorScheme.onSurfaceVariant,
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                       ),
                                     ),
                                     for (final country in _countries)
@@ -670,10 +671,9 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                                         l10n.worldCupInterestCountriesEmpty,
                                         style: theme.textTheme.bodyMedium
                                             ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
+                                          color: theme
+                                              .colorScheme.onSurfaceVariant,
+                                        ),
                                       )
                                     : Wrap(
                                         spacing: 8,
@@ -687,8 +687,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                                               ),
                                               onDeleted: () =>
                                                   _removeInterestCountry(
-                                                    country,
-                                                  ),
+                                                country,
+                                              ),
                                             ),
                                         ],
                                       ),
@@ -741,51 +741,77 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: _SectionTitle(
-                  icon: Icons.calendar_month_rounded,
-                  title: l10n.worldCupCalendarTitle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              _SmallPill(label: _countdownLabel(context)),
-              if (_showsOfficialDataStatus) ...[
-                const SizedBox(width: 4),
-                _SmallPill(label: _officialDataStatusLabel(context)),
-              ],
-              const SizedBox(width: 4),
-              IconButton.outlined(
-                tooltip: l10n.worldCupOfficialRefreshAction,
-                visualDensity: VisualDensity.compact,
-                onPressed: _officialDataRefreshing
-                    ? null
-                    : () => unawaited(_refreshOfficialWorldCupData()),
-                icon: _officialDataRefreshing
-                    ? SizedBox.square(
-                        dimension: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: theme.colorScheme.primary,
-                        ),
-                      )
-                    : const Icon(Icons.sync_rounded, size: 18),
-              ),
-              const SizedBox(width: 4),
-              IconButton.outlined(
-                tooltip: l10n.guideActionToday,
-                visualDensity: VisualDensity.compact,
-                onPressed: () {
-                  final today = _clampCalendarDay(DateTime.now());
-                  setState(() {
-                    _selectedDay = today;
-                    _focusedDay = today;
-                  });
-                },
-                icon: const Icon(Icons.today_outlined, size: 18),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final actions = Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 4,
+                runSpacing: 4,
+                children: [
+                  _SmallPill(label: _countdownLabel(context)),
+                  if (_showsOfficialDataStatus)
+                    _SmallPill(label: _officialDataStatusLabel(context)),
+                  IconButton.outlined(
+                    tooltip: l10n.worldCupOfficialRefreshAction,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: _officialDataRefreshing
+                        ? null
+                        : () => unawaited(_refreshOfficialWorldCupData()),
+                    icon: _officialDataRefreshing
+                        ? SizedBox.square(
+                            dimension: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.colorScheme.primary,
+                            ),
+                          )
+                        : const Icon(Icons.sync_rounded, size: 18),
+                  ),
+                  IconButton.outlined(
+                    tooltip: l10n.guideActionToday,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () {
+                      final today = _clampCalendarDay(DateTime.now());
+                      setState(() {
+                        _selectedDay = today;
+                        _focusedDay = today;
+                      });
+                    },
+                    icon: const Icon(Icons.today_outlined, size: 18),
+                  ),
+                ],
+              );
+              final title = _SectionTitle(
+                icon: Icons.calendar_month_rounded,
+                title: l10n.worldCupCalendarTitle,
+              );
+              if (constraints.maxWidth < 460) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    title,
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: actions,
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: title),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: actions,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 10),
           TableCalendar<WorldCupFixture>(
@@ -815,14 +841,12 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             daysOfWeekStyle: DaysOfWeekStyle(
               dowTextFormatter: (date, _) =>
                   DateFormat.E(localeName).format(date),
-              weekdayStyle:
-                  theme.textTheme.labelLarge?.copyWith(
+              weekdayStyle: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w800,
                   ) ??
                   const TextStyle(fontWeight: FontWeight.w800),
-              weekendStyle:
-                  theme.textTheme.labelLarge?.copyWith(
+              weekendStyle: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w800,
                   ) ??
@@ -831,13 +855,11 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             calendarStyle: CalendarStyle(
               outsideDaysVisible: false,
               markersMaxCount: 0,
-              defaultTextStyle:
-                  theme.textTheme.titleSmall?.copyWith(
+              defaultTextStyle: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ) ??
                   const TextStyle(fontWeight: FontWeight.w800),
-              weekendTextStyle:
-                  theme.textTheme.titleSmall?.copyWith(
+              weekendTextStyle: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ) ??
                   const TextStyle(fontWeight: FontWeight.w800),
@@ -890,35 +912,57 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     final formattedDay = DateFormat.yMMMd(localeName).format(_selectedDay);
     final matches = _visibleFixturesForDay(_selectedDay);
     final theme = Theme.of(context);
-    return WatchCartCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SectionTitle(
-            icon: Icons.event_note_rounded,
-            title: l10n.worldCupDayMatchesTitle(formattedDay, matches.length),
-          ),
-          const SizedBox(height: 10),
-          if (matches.isEmpty)
-            Text(
-              l10n.worldCupNoMatchesOnDay,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            )
-          else
-            for (final fixture in matches) ...[
-              _FixtureRow(
-                fixture: fixture,
-                supportCountry: _supportCountry,
-                interestCountries: _interestCountries,
-                currentTime: widget.currentTime,
-                onTeamTap: _openTeamRoster,
-                onScoreTap: _openFixtureDetail,
-              ),
-              if (fixture != matches.last) const SizedBox(height: 8),
-            ],
-        ],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onHorizontalDragStart: (_) {
+        _selectedDaySwipeOffset = 0;
+      },
+      onHorizontalDragUpdate: (details) {
+        _selectedDaySwipeOffset += details.primaryDelta ?? 0;
+      },
+      onHorizontalDragCancel: () {
+        _selectedDaySwipeOffset = 0;
+      },
+      onHorizontalDragEnd: (details) {
+        final velocity = details.primaryVelocity ?? 0;
+        final offset = _selectedDaySwipeOffset;
+        _selectedDaySwipeOffset = 0;
+        if (velocity < -120 || offset < -_selectedDaySwipeThreshold) {
+          _moveSelectedDayBy(1);
+        } else if (velocity > 120 || offset > _selectedDaySwipeThreshold) {
+          _moveSelectedDayBy(-1);
+        }
+      },
+      child: WatchCartCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionTitle(
+              icon: Icons.event_note_rounded,
+              title: l10n.worldCupDayMatchesTitle(formattedDay, matches.length),
+            ),
+            const SizedBox(height: 10),
+            if (matches.isEmpty)
+              Text(
+                l10n.worldCupNoMatchesOnDay,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              )
+            else
+              for (final fixture in matches) ...[
+                _FixtureRow(
+                  fixture: fixture,
+                  supportCountry: _supportCountry,
+                  interestCountries: _interestCountries,
+                  currentTime: widget.currentTime,
+                  onTeamTap: _openTeamRoster,
+                  onScoreTap: _openFixtureDetail,
+                ),
+                if (fixture != matches.last) const SizedBox(height: 8),
+              ],
+          ],
+        ),
       ),
     );
   }
@@ -1015,7 +1059,9 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                             children: [
                               Text(
                                 l10n.worldCupInterestCountriesLabel,
-                                style: Theme.of(context).textTheme.titleLarge
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
                                     ?.copyWith(fontWeight: FontWeight.w900),
                               ),
                               const SizedBox(height: 10),
@@ -1111,9 +1157,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
 
   Future<void> _setInterestCountries(Set<String> countries) async {
     if (!mounted) return;
-    final normalized = countries
-        .where((country) => _countries.contains(country))
-        .toSet();
+    final normalized =
+        countries.where((country) => _countries.contains(country)).toSet();
     setState(() {
       _interestCountries = normalized;
       _showCountrySettings = !_hasRegisteredCountrySettings;
@@ -1175,10 +1220,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
           l10n.worldCupFixtureNotificationChannelDescription,
       bodyBuilder: (fixture, teamName, opponentName) =>
           l10n.worldCupFixtureNotificationBody(
-            teamName,
-            opponentName,
-            formatter.format(fixture.kickoffLocal),
-          ),
+        teamName,
+        opponentName,
+        formatter.format(fixture.kickoffLocal),
+      ),
     );
   }
 
@@ -1194,9 +1239,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       _supportCountry = storedSupport;
       _supportCountryRegistered = true;
     }
-    _interestCountries = storedInterest
-        .where((country) => _countries.contains(country))
-        .toSet();
+    _interestCountries =
+        storedInterest.where((country) => _countries.contains(country)).toSet();
     _showCountrySettings = !_hasRegisteredCountrySettings;
   }
 
@@ -1239,11 +1283,9 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
           ? selectedCountryFixtures.length
           : fixtures.length,
       flags: flags.take(2).toList(growable: false),
-      isSelected:
-          isSelected ||
+      isSelected: isSelected ||
           normalizeWorldCupDay(day) == normalizeWorldCupDay(_selectedDay),
-      isToday:
-          isToday ||
+      isToday: isToday ||
           normalizeWorldCupDay(day) == normalizeWorldCupDay(DateTime.now()),
     );
   }
@@ -1468,6 +1510,19 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     }
     return null;
   }
+
+  void _moveSelectedDayBy(int dayDelta) {
+    final nextDay = _clampCalendarDay(
+      _selectedDay.add(Duration(days: dayDelta)),
+    );
+    if (normalizeWorldCupDay(nextDay) == normalizeWorldCupDay(_selectedDay)) {
+      return;
+    }
+    setState(() {
+      _selectedDay = nextDay;
+      _focusedDay = nextDay;
+    });
+  }
 }
 
 enum _WorldCupView { schedule, standings, tournament }
@@ -1545,8 +1600,8 @@ class _FixtureRow extends StatelessWidget {
     final borderColor = supportMatch
         ? theme.colorScheme.primary
         : interestMatch
-        ? theme.colorScheme.tertiary
-        : theme.colorScheme.outlineVariant;
+            ? theme.colorScheme.tertiary
+            : theme.colorScheme.outlineVariant;
     final backgroundColor = selected
         ? borderColor.withValues(alpha: 0.08)
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.42);
@@ -1627,6 +1682,18 @@ class _FixtureRow extends StatelessWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
+          if (runtimeStatus ==
+              _WorldCupFixtureRuntimeStatus.awaitingUpdate) ...[
+            const SizedBox(height: 6),
+            Text(
+              l10n.worldCupMatchAwaitingUpdateReason,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                height: 1.3,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -1678,25 +1745,25 @@ class _FixtureTeamBlock extends StatelessWidget {
       ],
     ];
     return Column(
-      crossAxisAlignment: alignEnd
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: alignEnd
-              ? MainAxisAlignment.end
-              : MainAxisAlignment.start,
+          mainAxisAlignment:
+              alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
           children: alignEnd ? children.reversed.toList() : children,
         ),
-        const SizedBox(height: 3),
-        Text(
-          _teamStatusSummary(l10n),
-          textAlign: alignEnd ? TextAlign.right : TextAlign.left,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w700,
+        if (_teamStatusSummary(l10n).isNotEmpty) ...[
+          const SizedBox(height: 3),
+          Text(
+            _teamStatusSummary(l10n),
+            textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -1710,21 +1777,9 @@ class _FixtureTeamBlock extends StatelessWidget {
     };
   }
 
-  String _resultSummary(
-    AppLocalizations l10n,
-    WorldCupFixtureTeamResult result,
-  ) {
-    return switch (result) {
-      WorldCupFixtureTeamResult.win => l10n.worldCupResultWinSummary,
-      WorldCupFixtureTeamResult.draw => l10n.worldCupResultDrawSummary,
-      WorldCupFixtureTeamResult.loss => l10n.worldCupResultLossSummary,
-      WorldCupFixtureTeamResult.scheduled => l10n.worldCupResultPendingTeam,
-    };
-  }
-
   String _teamStatusSummary(AppLocalizations l10n) {
     if (result != WorldCupFixtureTeamResult.scheduled) {
-      return _resultSummary(l10n, result);
+      return '';
     }
     return switch (status) {
       _WorldCupFixtureRuntimeStatus.live => l10n.worldCupMatchLive,
@@ -1753,8 +1808,8 @@ class _FixtureScoreBoard extends StatelessWidget {
     final scoreText = fixture.hasScore
         ? l10n.worldCupScoreLine(fixture.homeScore!, fixture.awayScore!)
         : status == _WorldCupFixtureRuntimeStatus.live
-        ? l10n.worldCupMatchLive
-        : l10n.worldCupScorePending;
+            ? l10n.worldCupMatchLive
+            : l10n.worldCupScorePending;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1790,7 +1845,7 @@ class _WorldCupFixtureDetailSheet extends StatefulWidget {
   final WorldCupFixture fixture;
   final FifaAMatchEntry? officialMatch;
   final Future<FifaAMatchDetail?> Function(FifaAMatchEntry match)?
-  fetchOfficialDetail;
+      fetchOfficialDetail;
   final DateTime? currentTime;
 
   const _WorldCupFixtureDetailSheet({
@@ -1828,8 +1883,8 @@ class _WorldCupFixtureDetailSheetState
     final scoreText = fixture.hasScore
         ? l10n.worldCupScoreLine(fixture.homeScore!, fixture.awayScore!)
         : status == _WorldCupFixtureRuntimeStatus.live
-        ? l10n.worldCupMatchLive
-        : l10n.worldCupScorePending;
+            ? l10n.worldCupMatchLive
+            : l10n.worldCupScorePending;
     return SafeArea(
       child: FractionallySizedBox(
         heightFactor: 0.82,
@@ -1930,6 +1985,12 @@ class _WorldCupFixtureDetailSheetState
             ),
             const SizedBox(height: 10),
             _buildOfficialRecords(context),
+            if (status == _WorldCupFixtureRuntimeStatus.awaitingUpdate) ...[
+              const SizedBox(height: 10),
+              _WorldCupOfficialRecordMessage(
+                message: l10n.worldCupMatchAwaitingUpdateReason,
+              ),
+            ],
           ],
         ),
       ),
@@ -2136,9 +2197,14 @@ class _WorldCupOfficialMatchRecords extends StatelessWidget {
   ) {
     final minute = scorer.minute.trim();
     final prefix = _worldCupCountryName(l10n, team);
+    final playerName = worldCupRosterDisplayNameForPlayer(
+      team,
+      scorer.playerName,
+      l10n.localeName,
+    );
     return minute.isEmpty
-        ? '$prefix · ${scorer.playerName}'
-        : '$prefix · ${scorer.playerName} $minute';
+        ? '$prefix · $playerName'
+        : '$prefix · $playerName $minute';
   }
 }
 
@@ -2157,12 +2223,10 @@ class _WorldCupOfficialLineupCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final starters = players
-        .where((player) => player.isStarting)
-        .toList(growable: false);
-    final bench = players
-        .where((player) => !player.isStarting)
-        .toList(growable: false);
+    final starters =
+        players.where((player) => player.isStarting).toList(growable: false);
+    final bench =
+        players.where((player) => !player.isStarting).toList(growable: false);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -2185,12 +2249,14 @@ class _WorldCupOfficialLineupCard extends StatelessWidget {
           const SizedBox(height: 10),
           _WorldCupPlayerGroup(
             title: l10n.worldCupStartingPlayersLabel,
+            team: team,
             players: starters,
           ),
           if (bench.isNotEmpty) ...[
             const SizedBox(height: 10),
             _WorldCupPlayerGroup(
               title: l10n.worldCupBenchPlayersLabel,
+              team: team,
               players: bench,
             ),
           ],
@@ -2202,9 +2268,14 @@ class _WorldCupOfficialLineupCard extends StatelessWidget {
 
 class _WorldCupPlayerGroup extends StatelessWidget {
   final String title;
+  final String team;
   final List<FifaMatchPlayer> players;
 
-  const _WorldCupPlayerGroup({required this.title, required this.players});
+  const _WorldCupPlayerGroup({
+    required this.title,
+    required this.team,
+    required this.players,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -2224,7 +2295,8 @@ class _WorldCupPlayerGroup extends StatelessWidget {
           spacing: 6,
           runSpacing: 6,
           children: [
-            for (final player in players) _FifaMatchPlayerPill(player: player),
+            for (final player in players)
+              _FifaMatchPlayerPill(team: team, player: player),
           ],
         ),
       ],
@@ -2233,9 +2305,10 @@ class _WorldCupPlayerGroup extends StatelessWidget {
 }
 
 class _FifaMatchPlayerPill extends StatelessWidget {
+  final String team;
   final FifaMatchPlayer player;
 
-  const _FifaMatchPlayerPill({required this.player});
+  const _FifaMatchPlayerPill({required this.team, required this.player});
 
   @override
   Widget build(BuildContext context) {
@@ -2243,9 +2316,13 @@ class _FifaMatchPlayerPill extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final positionLabel = _fifaMatchPlayerPositionLabel(l10n, player.position);
     final shirt = player.shirtNumber == null ? '' : '${player.shirtNumber} · ';
-    final captain = player.isCaptain
-        ? ' ${l10n.worldCupCaptainAbbreviation}'
-        : '';
+    final captain =
+        player.isCaptain ? ' ${l10n.worldCupCaptainAbbreviation}' : '';
+    final playerName = worldCupRosterDisplayNameForPlayer(
+      team,
+      player.playerName,
+      l10n.localeName,
+    );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
@@ -2254,7 +2331,7 @@ class _FifaMatchPlayerPill extends StatelessWidget {
         border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Text(
-        '$shirt${player.playerName}$captain · $positionLabel',
+        '$shirt$playerName$captain · $positionLabel',
         style: theme.textTheme.labelSmall?.copyWith(
           fontWeight: FontWeight.w800,
         ),
@@ -2298,15 +2375,15 @@ class _WorldCupComparisonCard extends StatelessWidget {
 
   String _summary(AppLocalizations l10n) {
     return switch (result) {
-      WorldCupFixtureTeamResult.win => l10n.worldCupResultWinSummary,
-      WorldCupFixtureTeamResult.draw => l10n.worldCupResultDrawSummary,
-      WorldCupFixtureTeamResult.loss => l10n.worldCupResultLossSummary,
+      WorldCupFixtureTeamResult.win => l10n.worldCupResultWin,
+      WorldCupFixtureTeamResult.draw => l10n.worldCupResultDraw,
+      WorldCupFixtureTeamResult.loss => l10n.worldCupResultLoss,
       WorldCupFixtureTeamResult.scheduled => switch (status) {
-        _WorldCupFixtureRuntimeStatus.live => l10n.worldCupMatchLive,
-        _WorldCupFixtureRuntimeStatus.awaitingUpdate =>
-          l10n.worldCupMatchAwaitingUpdate,
-        _ => l10n.worldCupResultPendingTeam,
-      },
+          _WorldCupFixtureRuntimeStatus.live => l10n.worldCupMatchLive,
+          _WorldCupFixtureRuntimeStatus.awaitingUpdate =>
+            l10n.worldCupMatchAwaitingUpdate,
+          _ => l10n.worldCupResultPendingTeam,
+        },
     };
   }
 }
@@ -2720,11 +2797,11 @@ class _WorldCupCalendarCountBadge extends StatelessWidget {
         '$count',
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: foregroundColor,
-          fontSize: 8,
-          fontWeight: FontWeight.w900,
-          height: 1,
-        ),
+              color: foregroundColor,
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
       ),
     );
   }
@@ -2957,12 +3034,14 @@ enum _WorldCupRosterPosition { goalkeeper, defender, midfielder, forward }
 
 class _WorldCupRosterPlayer {
   final String name;
+  final String displayName;
   final String club;
   final _WorldCupRosterPosition position;
   final Offset spot;
 
   const _WorldCupRosterPlayer({
     required this.name,
+    required this.displayName,
     required this.club,
     required this.position,
     required this.spot,
@@ -3030,7 +3109,7 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
                   onPressed: () => unawaited(
                     launchUrl(
                       officialSquadUri,
-                      mode: LaunchMode.externalApplication,
+                      mode: LaunchMode.inAppBrowserView,
                     ),
                   ),
                   icon: const Icon(Icons.open_in_new_rounded, size: 18),
@@ -3260,7 +3339,7 @@ class _PitchPlayerChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Tooltip(
-      message: player.name,
+      message: player.displayName,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -3281,7 +3360,7 @@ class _PitchPlayerChip extends StatelessWidget {
                 ),
               ),
               child: Text(
-                player.name,
+                player.displayName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
@@ -3384,7 +3463,7 @@ class _RosterPlayerPill extends StatelessWidget {
             children: [
               _WorldCupPlayerAvatar(
                 team: team,
-                playerName: player.name,
+                playerName: player.displayName,
                 position: player.position,
                 size: 28,
               ),
@@ -3396,7 +3475,7 @@ class _RosterPlayerPill extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      player.name,
+                      player.displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelMedium?.copyWith(
@@ -3404,15 +3483,16 @@ class _RosterPlayerPill extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    Text(
-                      _worldCupPlayerClubLabel(l10n, player),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
+                    if (_worldCupPlayerClubLabel(l10n, player).isNotEmpty)
+                      Text(
+                        _worldCupPlayerClubLabel(l10n, player),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -3445,7 +3525,7 @@ class _WorldCupPlayerProfileSheet extends StatelessWidget {
               children: [
                 _WorldCupPlayerAvatar(
                   team: team,
-                  playerName: player.name,
+                  playerName: player.displayName,
                   position: player.position,
                   size: 76,
                 ),
@@ -3455,7 +3535,7 @@ class _WorldCupPlayerProfileSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.worldCupPlayerProfileTitle(player.name),
+                        l10n.worldCupPlayerProfileTitle(player.displayName),
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w900,
                         ),
@@ -3478,10 +3558,11 @@ class _WorldCupPlayerProfileSheet extends StatelessWidget {
                   l10n.worldCupPlayerProfilePositionLabel,
                   _worldCupRosterPositionLabel(l10n, player.position),
                 ),
-                _InfoItem(
-                  l10n.worldCupPlayerProfileClubLabel,
-                  _worldCupPlayerClubLabel(l10n, player),
-                ),
+                if (_worldCupPlayerClubLabel(l10n, player).isNotEmpty)
+                  _InfoItem(
+                    l10n.worldCupPlayerProfileClubLabel,
+                    _worldCupPlayerClubLabel(l10n, player),
+                  ),
               ],
             ),
             const SizedBox(height: 14),
@@ -3614,7 +3695,7 @@ String _worldCupPlayerClubLabel(
   _WorldCupRosterPlayer player,
 ) {
   final club = player.club.trim();
-  return club.isEmpty ? l10n.worldCupPlayerClubPending : club;
+  return club;
 }
 
 List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
@@ -3629,6 +3710,7 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
         pool.goalkeepers,
         _WorldCupRosterPosition.goalkeeper,
         const [Offset(0.50, 0.88)],
+        l10n,
       ),
       ..._playersFromNames(
         team,
@@ -3640,24 +3722,31 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
           Offset(0.60, 0.72),
           Offset(0.82, 0.70),
         ],
+        l10n,
       ),
       ..._playersFromNames(
         team,
         pool.midfielders,
         _WorldCupRosterPosition.midfielder,
         const [Offset(0.25, 0.48), Offset(0.50, 0.42), Offset(0.75, 0.48)],
+        l10n,
       ),
       ..._playersFromNames(
         team,
         pool.forwards,
         _WorldCupRosterPosition.forward,
         const [Offset(0.24, 0.24), Offset(0.50, 0.17), Offset(0.76, 0.24)],
+        l10n,
       ),
     ];
   }
   return <_WorldCupRosterPlayer>[
     _WorldCupRosterPlayer(
       name: l10n.worldCupTeamRosterPlayerSlot(
+        l10n.worldCupTeamRosterPositionGoalkeeper,
+        1,
+      ),
+      displayName: l10n.worldCupTeamRosterPlayerSlot(
         l10n.worldCupTeamRosterPositionGoalkeeper,
         1,
       ),
@@ -3668,6 +3757,10 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
     for (var index = 0; index < 4; index++)
       _WorldCupRosterPlayer(
         name: l10n.worldCupTeamRosterPlayerSlot(
+          l10n.worldCupTeamRosterPositionDefender,
+          index + 1,
+        ),
+        displayName: l10n.worldCupTeamRosterPlayerSlot(
           l10n.worldCupTeamRosterPositionDefender,
           index + 1,
         ),
@@ -3686,6 +3779,10 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
           l10n.worldCupTeamRosterPositionMidfielder,
           index + 1,
         ),
+        displayName: l10n.worldCupTeamRosterPlayerSlot(
+          l10n.worldCupTeamRosterPositionMidfielder,
+          index + 1,
+        ),
         club: '',
         position: _WorldCupRosterPosition.midfielder,
         spot: [
@@ -3697,6 +3794,10 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
     for (var index = 0; index < 3; index++)
       _WorldCupRosterPlayer(
         name: l10n.worldCupTeamRosterPlayerSlot(
+          l10n.worldCupTeamRosterPositionForward,
+          index + 1,
+        ),
+        displayName: l10n.worldCupTeamRosterPlayerSlot(
           l10n.worldCupTeamRosterPositionForward,
           index + 1,
         ),
@@ -3716,11 +3817,17 @@ List<_WorldCupRosterPlayer> _playersFromNames(
   List<String> names,
   _WorldCupRosterPosition position,
   List<Offset> formationSpots,
+  AppLocalizations l10n,
 ) {
   return [
     for (var index = 0; index < names.length; index += 1)
       _WorldCupRosterPlayer(
         name: names[index],
+        displayName: worldCupRosterDisplayNameForPlayer(
+          team,
+          names[index],
+          l10n.localeName,
+        ),
         club: worldCupRosterClubForPlayer(team, names[index]),
         position: position,
         spot: index < formationSpots.length
@@ -3752,11 +3859,9 @@ List<_WorldCupRosterPlayer> _worldCupFormationPlayers(
     final position = _formationLinePosition(lineIndex, shape.length);
     final linePlayers = _playersForPosition(players, position);
     final spots = _formationLineSpots(count, lineYs[lineIndex]);
-    for (
-      var index = 0;
-      index < count && index < linePlayers.length;
-      index += 1
-    ) {
+    for (var index = 0;
+        index < count && index < linePlayers.length;
+        index += 1) {
       formationPlayers.add(_playerWithSpot(linePlayers[index], spots[index]));
     }
   }
@@ -3811,6 +3916,7 @@ _WorldCupRosterPlayer _playerWithSpot(
 ) {
   return _WorldCupRosterPlayer(
     name: player.name,
+    displayName: player.displayName,
     club: player.club,
     position: player.position,
     spot: spot,

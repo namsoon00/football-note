@@ -321,6 +321,7 @@
   "worldCupMatchScheduled": "Scheduled",
   "worldCupMatchLive": "Live",
   "worldCupMatchAwaitingUpdate": "Awaiting result update",
+  "worldCupMatchAwaitingUpdateReason": "The estimated final whistle has passed, but FIFA official results have not been reflected yet. Refresh or check the official page.",
   "worldCupMatchResultFinal": "Result",
   "worldCupMatchDetailTitle": "Match details",
   "worldCupMatchComparisonTitle": "Team comparison",
@@ -770,6 +771,24 @@
   "trainingXpDialogTitle": "Training log saved",
   "trainingXpDialogMessage": "Training log saved.",
   "trainingRecordSavedDialogMessage": "Record saved.",
+  "trainingEntryConditioningEmpty": "No jump rope/lifting record",
+  "trainingEntryInjuryPresent": "Injury recorded",
+  "trainingEntryInjurySummary": "Injury: {detail}",
+  "@trainingEntryInjurySummary": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "trainingEntryInjuryPainSummary": "Pain {pain}/10",
+  "@trainingEntryInjuryPainSummary": {
+    "placeholders": {
+      "pain": {
+        "type": "int"
+      }
+    }
+  },
   "trainingXpDialogJumpRopeTitle": "Jump rope saved",
   "trainingXpDialogJumpRopeMessage": "Jump rope log saved.",
   "trainingXpDialogLiftingTitle": "Lifting saved",

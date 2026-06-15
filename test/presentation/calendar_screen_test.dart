@@ -207,7 +207,8 @@ void main() {
     await pumpCalendar(tester, onEdit: (entry) => editedEntry = entry);
 
     expect(find.text('드리블, 패스 · 45분'), findsOneWidget);
-    expect(find.textContaining('학교 운동장 · 흐림 18°C'), findsOneWidget);
+    expect(find.textContaining('줄넘기/리프팅 기록 없음 · 흐림 18°C'), findsOneWidget);
+    expect(find.textContaining('학교 운동장'), findsNothing);
 
     await tester.tap(find.text('드리블, 패스 · 45분'));
     await tester.pump();

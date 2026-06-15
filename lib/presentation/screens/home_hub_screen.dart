@@ -397,10 +397,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         _QuickActionGrid(
                           weatherOutfitLabel: l10n.homeWeatherOutfitButton,
                           runningCoachLabel: l10n.drawerRunningCoach,
-                          onQuickLogs: _trackedAction(
-                            'quick_open_logs',
-                            widget.onOpenLogs,
-                          ),
                           onQuickMatch: _trackedAction(
                             'quick_create_match',
                             widget.onQuickMatch,
@@ -2574,7 +2570,6 @@ String _formatPlanTime(DateTime value, {required AppLocalizations l10n}) {
 class _QuickActionGrid extends StatelessWidget {
   final String weatherOutfitLabel;
   final String runningCoachLabel;
-  final VoidCallback? onQuickLogs;
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickPlan;
   final VoidCallback? onQuickWeatherOutfit;
@@ -2583,7 +2578,6 @@ class _QuickActionGrid extends StatelessWidget {
   const _QuickActionGrid({
     required this.weatherOutfitLabel,
     required this.runningCoachLabel,
-    required this.onQuickLogs,
     required this.onQuickMatch,
     required this.onQuickPlan,
     required this.onQuickWeatherOutfit,
@@ -2594,12 +2588,6 @@ class _QuickActionGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final primaryItems = <_QuickActionItem>[
-      _QuickActionItem(
-        key: const ValueKey('home-quick-action-logs'),
-        icon: Icons.list_alt_outlined,
-        title: l10n.tabLogs,
-        onTap: onQuickLogs,
-      ),
       _QuickActionItem(
         icon: Icons.sports_soccer_outlined,
         title: l10n.homeQuickActionMatch,
@@ -2863,13 +2851,11 @@ class _ContinueItem extends StatelessWidget {
 }
 
 class _QuickActionItem {
-  final Key? key;
   final IconData icon;
   final String title;
   final VoidCallback? onTap;
 
   const _QuickActionItem({
-    this.key,
     required this.icon,
     required this.title,
     required this.onTap,
@@ -2884,7 +2870,6 @@ class _QuickActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      key: item.key,
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),

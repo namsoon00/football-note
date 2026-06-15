@@ -321,6 +321,7 @@
   "worldCupMatchScheduled": "예정",
   "worldCupMatchLive": "진행 중",
   "worldCupMatchAwaitingUpdate": "결과 갱신 대기",
+  "worldCupMatchAwaitingUpdateReason": "경기 종료 예상 시간이 지났지만 FIFA 공식 결과가 아직 반영되지 않았어요. 새로고침하거나 공식 페이지를 확인해 주세요.",
   "worldCupMatchResultFinal": "결과",
   "worldCupMatchDetailTitle": "경기 상세",
   "worldCupMatchComparisonTitle": "전력 비교",
@@ -770,6 +771,24 @@
   "trainingXpDialogTitle": "훈련 기록 완료",
   "trainingXpDialogMessage": "훈련 기록이 저장됐어요.",
   "trainingRecordSavedDialogMessage": "기록이 저장됐어요.",
+  "trainingEntryConditioningEmpty": "줄넘기/리프팅 기록 없음",
+  "trainingEntryInjuryPresent": "부상 있음",
+  "trainingEntryInjurySummary": "부상: {detail}",
+  "@trainingEntryInjurySummary": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "trainingEntryInjuryPainSummary": "통증 {pain}/10",
+  "@trainingEntryInjuryPainSummary": {
+    "placeholders": {
+      "pain": {
+        "type": "int"
+      }
+    }
+  },
   "trainingXpDialogJumpRopeTitle": "줄넘기 기록 완료",
   "trainingXpDialogJumpRopeMessage": "줄넘기 기록이 저장됐어요.",
   "trainingXpDialogLiftingTitle": "리프팅 기록 완료",

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:football_note/application/world_cup_schedule.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -7,6 +9,10 @@ import 'package:football_note/presentation/screens/world_cup_screen.dart';
 import 'package:football_note/presentation/theme/app_theme.dart';
 
 void main() {
+  setUpAll(() async {
+    await initializeDateFormatting('ko_KR');
+  });
+
   testWidgets('overview and road to final open from title action', (
     tester,
   ) async {
@@ -197,6 +203,47 @@ void main() {
     expect(find.text('Cesar Huerta'), findsOneWidget);
   });
 
+  testWidgets('Korean roster names render in Korean locale', (tester) async {
+    final koreaFixture = worldCupFixtures.firstWhere(
+      (fixture) => fixture.involvesCountry('Korea Republic'),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          initialSelectedDay: koreaFixture.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.textContaining('대한민국'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('대한민국').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('대한민국 선수 명단'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('손흥민'),
+      240,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('손흥민'), findsOneWidget);
+    expect(find.text('Son Heung-min'), findsNothing);
+  });
+
   testWidgets('fixture calendar localizes teams and venue labels', (
     tester,
   ) async {
@@ -277,6 +324,41 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('결과 갱신 대기'), findsWidgets);
+    expect(find.textContaining('FIFA 공식 결과가 아직 반영되지 않았어요'), findsWidgets);
+  });
+
+  testWidgets('swiping match list moves selected date', (tester) async {
+    final firstDay = worldCupFixtures.first.localDay;
+    final nextDay = firstDay.add(const Duration(days: 1));
+    final dayFormatter = DateFormat.yMMMd('ko-KR');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          initialSelectedDay: firstDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.drag(scrollable, const Offset(0, -720));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining(dayFormatter.format(firstDay)), findsOneWidget);
+
+    await tester.drag(
+      find.textContaining(dayFormatter.format(firstDay)).first,
+      const Offset(-260, 0),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining(dayFormatter.format(nextDay)), findsOneWidget);
   });
 
   testWidgets('interest country editor opens without layout exception', (

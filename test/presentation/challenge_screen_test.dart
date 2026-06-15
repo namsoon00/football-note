@@ -421,6 +421,75 @@ void main() {
     await tester.pump();
     await mealLogService.dispose();
   });
+
+  testWidgets('opening challenge page does not show completion screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    final challengeService = ChallengeService(optionRepository);
+    final template = challengeService.templateById('starter_3')!;
+    final today = DateTime.now();
+    await challengeService.startChallenge(
+      template,
+      selectedSkillIds: const <String>['passing'],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 1,
+        jumpRopeMinutes: 0,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
+      startedAt: DateTime(today.year, today.month, today.day, 9),
+    );
+    final trainingRepository = _MemoryTrainingRepository();
+    final trainingService = TrainingService(trainingRepository);
+    await trainingService.add(
+      _trainingEntry(day: DateTime.now(), minutes: 1, program: '패스'),
+    );
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('미션 완료!'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsOneWidget,
+    );
+    expect(PlayerLevelService(optionRepository).loadState().totalXp, 10);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
 }
 
 Future<Size> _pumpActiveChallengeRoundCard(
@@ -613,10 +682,11 @@ class _MemoryTrainingRepository implements TrainingRepository {
     required bool includeMatches,
   }) {
     if (limit <= 0) return const <TrainingEntry>[];
-    final entries = _entries
-        .where((entry) => includeMatches || !entry.isMatch)
-        .toList(growable: false)
-      ..sort(TrainingEntry.compareByRecentCreated);
+    final entries =
+        _entries
+            .where((entry) => includeMatches || !entry.isMatch)
+            .toList(growable: false)
+          ..sort(TrainingEntry.compareByRecentCreated);
     if (entries.length <= limit) return entries;
     return entries.take(limit).toList(growable: false);
   }

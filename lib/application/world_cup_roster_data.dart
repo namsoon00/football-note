@@ -24,6 +24,20 @@ String worldCupRosterClubForPlayer(String team, String playerName) {
   return teamClubs[playerName.trim()] ?? '';
 }
 
+String worldCupRosterDisplayNameForPlayer(
+  String team,
+  String playerName,
+  String localeName,
+) {
+  final normalizedPlayerName = playerName.trim();
+  if (!localeName.toLowerCase().startsWith('ko')) {
+    return normalizedPlayerName;
+  }
+  final teamNames = worldCupRosterPlayerKoreanNames[team.trim()];
+  if (teamNames == null) return normalizedPlayerName;
+  return teamNames[normalizedPlayerName] ?? normalizedPlayerName;
+}
+
 Uri? worldCupOfficialSquadUri(String team) {
   final slug = _worldCupOfficialSquadSlugs[team.trim()];
   if (slug == null || slug.isEmpty) return null;
@@ -112,6 +126,40 @@ const Map<String, Map<String, String>> worldCupRosterPlayerClubs =
         'Son Heung-min': 'Los Angeles FC',
         'Oh Hyeon-gyu': 'Besiktas',
         'Cho Gue-sung': 'Midtjylland',
+      },
+    };
+
+const Map<String, Map<String, String>> worldCupRosterPlayerKoreanNames =
+    <String, Map<String, String>>{
+      'Korea Republic': <String, String>{
+        'Jo Hyeon-woo': '조현우',
+        'Kim Seung-gyu': '김승규',
+        'Song Bum-keun': '송범근',
+        'Kim Moon-hwan': '김문환',
+        'Kim Min-jae': '김민재',
+        'Kim Tae-hyon': '김태현',
+        'Park Jin-seob': '박진섭',
+        'Seol Young-woo': '설영우',
+        'Jens Castrop': '옌스 카스트로프',
+        'Lee Ki-hyuk': '이기혁',
+        'Lee Tae-seok': '이태석',
+        'Lee Han-beom': '이한범',
+        'Cho Wi-je': '조위제',
+        'Kim Jin-gyu': '김진규',
+        'Bae Jun-ho': '배준호',
+        'Paik Seung-ho': '백승호',
+        'Yang Hyun-jun': '양현준',
+        'Eom Ji-sung': '엄지성',
+        'Lee Kang-in': '이강인',
+        'Lee Dong-gyeong': '이동경',
+        'Lee Jae-sung': '이재성',
+        'Hwang In-beom': '황인범',
+        'Hwang Hee-chan': '황희찬',
+        'Son Heung-min': '손흥민',
+        'Oh Hyeon-gyu': '오현규',
+        'Cho Gue-sung': '조규성',
+        'S. Son': '손흥민',
+        'H. Son': '손흥민',
       },
     };
 

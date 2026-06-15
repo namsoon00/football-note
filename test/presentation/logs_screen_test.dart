@@ -79,7 +79,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('기술 · 60분'), findsOneWidget);
-    expect(find.textContaining('학교 운동장 · 맑음 21°C'), findsOneWidget);
+    expect(find.textContaining('줄넘기/리프팅 기록 없음 · 맑음 21°C'), findsOneWidget);
+    expect(find.textContaining('학교 운동장'), findsNothing);
     expect(find.text('터치 수 줄이기'), findsOneWidget);
     expect(find.byTooltip('다이어리'), findsNothing);
 
@@ -247,6 +248,7 @@ void main() {
     final activeIndicatorKey = ValueKey(
       'home-option-active-${Icons.tune.codePoint}',
     );
+    expect(find.textContaining('부상 있음'), findsOneWidget);
     expect(find.byKey(activeIndicatorKey), findsNothing);
 
     await tester.tap(find.byIcon(Icons.tune));

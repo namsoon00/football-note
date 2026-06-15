@@ -25,7 +25,6 @@ import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
-import '../localization/player_progression_localizations.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/app_pressable_scale.dart';
@@ -1723,39 +1722,50 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        IconButton(
+                          onPressed: _attemptExit,
+                          icon: const Icon(Icons.arrow_back),
+                          tooltip: l10n.cancel,
+                        ),
+                        const SizedBox(width: 4),
                         Expanded(
-                          child: Wrap(
-                            spacing: 4,
-                            runSpacing: 4,
+                          child: Text(
+                            '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        if (!isReadOnly) ...[
+                          const SizedBox(width: 8),
+                          Wrap(
+                            alignment: WrapAlignment.end,
+                            spacing: 6,
+                            runSpacing: 6,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
-                              IconButton(
-                                onPressed: _attemptExit,
-                                icon: const Icon(Icons.arrow_back),
-                                tooltip: l10n.cancel,
-                              ),
-                              if (!isReadOnly)
-                                FilledButton.icon(
-                                  onPressed: (_deleteInProgress ||
-                                          (_saveInProgress && !_autoSaving))
-                                      ? null
-                                      : _handleSavePressed,
-                                  icon: const Icon(
-                                    Icons.save_outlined,
-                                    size: 18,
-                                  ),
-                                  label: Text(l10n.save),
-                                  style: FilledButton.styleFrom(
-                                    visualDensity: VisualDensity.compact,
-                                    minimumSize: const Size(0, 40),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
+                              FilledButton.icon(
+                                onPressed: (_deleteInProgress ||
+                                        (_saveInProgress && !_autoSaving))
+                                    ? null
+                                    : _handleSavePressed,
+                                icon: const Icon(Icons.save_outlined, size: 18),
+                                label: Text(l10n.save),
+                                style: FilledButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                  minimumSize: const Size(0, 40),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
                                   ),
                                 ),
-                              if (isEdit && !isReadOnly)
+                              ),
+                              if (isEdit)
                                 OutlinedButton.icon(
                                   onPressed:
                                       (_saveInProgress || _deleteInProgress)
@@ -1783,7 +1793,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                 ),
                             ],
                           ),
-                        ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -1805,45 +1815,32 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       ),
                       const SizedBox(height: 12),
                     ],
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
-                            textAlign: TextAlign.left,
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                            softWrap: true,
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Wrap(
+                        alignment: WrapAlignment.end,
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _buildFeatureActionButton(
+                            icon: _fortuneEnabled
+                                ? Icons.auto_awesome
+                                : Icons.auto_awesome_outlined,
+                            label: l10n.fortuneDialogTitle,
+                            active: _fortuneEnabled,
+                            onPressed: () =>
+                                unawaited(_handleFortuneButtonPressed()),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: [
-                            _buildFeatureActionButton(
-                              icon: _fortuneEnabled
-                                  ? Icons.auto_awesome
-                                  : Icons.auto_awesome_outlined,
-                              label: l10n.fortuneDialogTitle,
-                              active: _fortuneEnabled,
-                              onPressed: () =>
-                                  unawaited(_handleFortuneButtonPressed()),
-                            ),
-                            _buildFeatureActionButton(
-                              icon: _linkedBoardIds.isNotEmpty
-                                  ? Icons.developer_board
-                                  : Icons.developer_board_outlined,
-                              label: l10n.drawerAddTrainingSketch,
-                              active: _linkedBoardIds.isNotEmpty,
-                              onPressed: _openTrainingBoardEditor,
-                            ),
-                          ],
-                        ),
-                      ],
+                          _buildFeatureActionButton(
+                            icon: _linkedBoardIds.isNotEmpty
+                                ? Icons.developer_board
+                                : Icons.developer_board_outlined,
+                            label: l10n.drawerAddTrainingSketch,
+                            active: _linkedBoardIds.isNotEmpty,
+                            onPressed: _openTrainingBoardEditor,
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 12),
                     AbsorbPointer(
@@ -3435,12 +3432,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           widget.settingsService,
         );
         await reminderService.recordTrainingLog(entry.createdAt);
-        await reminderService.showXpGainAlert(
-          gainedXp: levelAward.gainedXp,
-          totalXp: levelAward.after.totalXp,
-          isKo: isKo,
-          sourceLabel: l10n.trainingXpSourceTrainingLog,
-        );
         if (levelAward.didLevelUp) {
           await reminderService.showLevelUpAlert(
             level: levelAward.after.level,
@@ -3472,23 +3463,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           updatedEntry: entry,
         );
         _persistedEntryForXp = entry;
-        if (levelAward.gainedXp > 0) {
+        if (levelAward.didLevelUp) {
           final reminderService = TrainingPlanReminderService(
             widget.optionRepository,
             widget.settingsService,
           );
-          await reminderService.showXpGainAlert(
-            gainedXp: levelAward.gainedXp,
-            totalXp: levelAward.after.totalXp,
+          await reminderService.showLevelUpAlert(
+            level: levelAward.after.level,
             isKo: isKo,
-            sourceLabel: _trainingUpdateXpSourceLabel(l10n, levelAward),
           );
-          if (levelAward.didLevelUp) {
-            await reminderService.showLevelUpAlert(
-              level: levelAward.after.level,
-              isKo: isKo,
-            );
-          }
         }
       }
       _initialSnapshot = _formSnapshot();
@@ -3537,10 +3520,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         if (!mounted) return;
       }
       if (popAfterSave) {
-        AppFeedback.showSuccess(
-          context,
-          text: _buildSaveFeedback(l10n: l10n, levelAward: levelAward),
-        );
+        AppFeedback.showSuccess(context, text: l10n.trainingSaveToastPlain);
         Navigator.of(context).pop();
       }
     } finally {
@@ -3562,103 +3542,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         });
       }
     }
-  }
-
-  String _buildSaveFeedback({
-    required AppLocalizations l10n,
-    required PlayerLevelAward levelAward,
-  }) {
-    if (levelAward.gainedXp <= 0) return l10n.trainingSaveToastPlain;
-    final details = _trainingXpToastDetails(l10n, levelAward);
-    if (!levelAward.didLevelUp) {
-      return l10n.trainingSaveToastWithXp(levelAward.gainedXp, details);
-    }
-    final levelName = l10n.playerLevelName(levelAward.after.level);
-    return l10n.trainingSaveToastLevelUp(
-      levelAward.gainedXp,
-      details,
-      levelAward.after.level,
-      levelName,
-    );
-  }
-
-  String _trainingXpToastDetails(
-    AppLocalizations l10n,
-    PlayerLevelAward award,
-  ) {
-    final labels = award.reasons
-        .map((reason) => _trainingXpReasonToastLabel(l10n, reason))
-        .where((label) => label.isNotEmpty)
-        .toList(growable: false);
-    if (labels.isEmpty) return l10n.trainingXpSourceTrainingLog;
-    const visibleLimit = 4;
-    if (labels.length <= visibleLimit) {
-      return labels.join(' · ');
-    }
-    return [
-      ...labels.take(visibleLimit),
-      l10n.trainingXpToastMoreReasons(labels.length - visibleLimit),
-    ].join(' · ');
-  }
-
-  String _trainingXpReasonToastLabel(AppLocalizations l10n, String reason) {
-    switch (reason) {
-      case 'log':
-        return '${l10n.playerXpGuideTrainingLogSaved} +${PlayerLevelService.trainingLogSavedXp} XP';
-      case 'first_daily_log':
-        return '${l10n.playerXpGuideFirstDailyLog} +${PlayerLevelService.firstDailyTrainingLogXp} XP';
-      case 'plan_completed':
-        return '${l10n.playerXpGuidePlannedDayComplete} +${PlayerLevelService.plannedTrainingDayXp} XP';
-      case 'lifting_recorded':
-      case 'lifting_added':
-        return '${l10n.playerXpGuideLiftingRecorded} +${PlayerLevelService.conditioningRecordedXp} XP';
-      case 'jump_rope_recorded':
-      case 'jump_rope_added':
-        return '${l10n.playerXpGuideJumpRopeRecorded} +${PlayerLevelService.conditioningRecordedXp} XP';
-      case 'lifting_missed':
-        return '${l10n.trainingXpToastReasonLiftingMissed} -${PlayerLevelService.missingConditioningPenaltyXp} XP';
-      case 'jump_rope_missed':
-        return '${l10n.trainingXpToastReasonJumpRopeMissed} -${PlayerLevelService.missingConditioningPenaltyXp} XP';
-      case 'meal_two_plus':
-        return '${l10n.playerXpGuideMealTwoPlus} +3 XP';
-      case 'meal_full_day':
-        return '${l10n.playerXpGuideMealFull} +8 XP';
-      case 'meal_full_day_bonus':
-        return '${l10n.trainingXpToastReasonMealFullBonus} +10 XP';
-      case 'routine_complete_day':
-        return '${l10n.trainingXpToastReasonRoutineComplete} +${PlayerLevelService.routineCompleteXp} XP';
-      case 'streak_daily_2_3':
-        return '${l10n.trainingXpToastReasonStreakDaily2} +${PlayerLevelService.streakDaily2To3Xp} XP';
-      case 'streak_daily_4_6':
-        return '${l10n.trainingXpToastReasonStreakDaily4} +${PlayerLevelService.streakDaily4To6Xp} XP';
-      case 'streak_daily_7_plus':
-        return '${l10n.trainingXpToastReasonStreakDaily7} +${PlayerLevelService.streakDaily7PlusXp} XP';
-      case 'streak_3':
-        return '${l10n.trainingXpToastReasonStreak3} +${PlayerLevelService.streak3DaysXp} XP';
-      case 'streak_7':
-        return '${l10n.trainingXpToastReasonStreak7} +${PlayerLevelService.streak7DaysXp} XP';
-      case 'weekly_3':
-        return '${l10n.trainingXpToastReasonWeekly3} +${PlayerLevelService.weekly3LogsXp} XP';
-      case 'weekly_5':
-        return '${l10n.trainingXpToastReasonWeekly5} +${PlayerLevelService.weekly5LogsXp} XP';
-      case 'daily_xp_cap':
-        return l10n.trainingXpToastReasonDailyCap;
-      default:
-        return '';
-    }
-  }
-
-  String _trainingUpdateXpSourceLabel(
-    AppLocalizations l10n,
-    PlayerLevelAward award,
-  ) {
-    final parts = <String>[
-      if (award.reasons.contains('lifting_added')) l10n.trainingXpSourceLifting,
-      if (award.reasons.contains('jump_rope_added'))
-        l10n.trainingXpSourceJumpRope,
-    ];
-    if (parts.isEmpty) return l10n.trainingXpSourceTrainingUpdate;
-    return parts.join(', ');
   }
 
   Future<void> _showFortuneRevealDialog(String fortuneComment) async {

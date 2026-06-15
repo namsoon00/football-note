@@ -730,6 +730,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupMatchAwaitingUpdate => 'Awaiting result update';
 
   @override
+  String get worldCupMatchAwaitingUpdateReason =>
+      'The estimated final whistle has passed, but FIFA official results have not been reflected yet. Refresh or check the official page.';
+
+  @override
   String get worldCupMatchResultFinal => 'Result';
 
   @override
@@ -1440,6 +1444,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingRecordSavedDialogMessage => 'Record saved.';
+
+  @override
+  String get trainingEntryConditioningEmpty => 'No jump rope/lifting record';
+
+  @override
+  String get trainingEntryInjuryPresent => 'Injury recorded';
+
+  @override
+  String trainingEntryInjurySummary(String detail) {
+    return 'Injury: $detail';
+  }
+
+  @override
+  String trainingEntryInjuryPainSummary(int pain) {
+    return 'Pain $pain/10';
+  }
 
   @override
   String get trainingXpDialogJumpRopeTitle => 'Jump rope saved';
