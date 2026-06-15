@@ -22,7 +22,8 @@ void main() {
     expect(find.byType(CustomPaint), findsWidgets);
   });
 
-  testWidgets('challenge Rinzy widgets use painted challenge characters', (
+  testWidgets(
+      'challenge Rinzy widgets use painted challenge characters by default', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -41,5 +42,24 @@ void main() {
     expect(find.byKey(const ValueKey('challenge-rinzy-ready')), findsOneWidget);
     expect(find.byKey(const ValueKey('challenge-rinzy-cheer')), findsOneWidget);
     expect(find.byKey(const ValueKey('challenge-rinzy-sad')), findsOneWidget);
+  });
+
+  testWidgets('challenge cheer Rinzy can use the image asset', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ChallengeCheerRinzyMascot(
+          size: 120,
+          animate: false,
+          useImage: true,
+        ),
+      ),
+    );
+
+    expect(
+      find.byKey(const ValueKey('challenge-rinzy-cheer-image')),
+      findsOneWidget,
+    );
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.byKey(const ValueKey('challenge-rinzy-cheer')), findsNothing);
   });
 }

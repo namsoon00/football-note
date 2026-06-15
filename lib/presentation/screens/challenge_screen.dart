@@ -4157,6 +4157,7 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
                             ChallengeCheerRinzyMascot(
                               size: mascotSize,
                               progress: 1,
+                              useImage: true,
                             ),
                             const SizedBox(height: 18),
                             Text(
