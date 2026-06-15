@@ -1292,7 +1292,7 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
                 ),
               ),
               Transform.translate(
-                offset: Offset(0, -lift),
+                offset: Offset(0, isFlame ? 0 : -lift),
                 child: Transform.rotate(
                   angle: isFlame ? 0 : bounce * 0.035,
                   child: isFlame
@@ -1968,10 +1968,6 @@ class _BurningFlameIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final flicker = (math.sin(phase * math.pi * 8.2) + 1) / 2;
     final slowBreath = (math.sin(phase * math.pi * 2.0) + 1) / 2;
-    final innerFlicker = (math.sin((phase + 0.18) * math.pi * 11.6) + 1) / 2;
-    final scaleX = 0.96 + flicker * 0.055 - innerFlicker * 0.018;
-    final scaleY = 1.00 + slowBreath * 0.085 + flicker * 0.044;
-    final lift = (slowBreath * 0.018 + flicker * 0.014) * size;
     final glow = 0.18 + slowBreath * 0.16 + flicker * 0.08;
 
     return SizedBox.square(
@@ -2012,9 +2008,7 @@ class _BurningFlameIcon extends StatelessWidget {
           Transform(
             key: const ValueKey('burning-flame-body-transform'),
             alignment: Alignment.bottomCenter,
-            transform: Matrix4.identity()
-              ..translateByDouble(0.0, -lift, 0.0, 1.0)
-              ..scaleByDouble(scaleX, scaleY, 1.0, 1.0),
+            transform: Matrix4.identity(),
             child: _CuteFlameIcon(color: color, size: size * 0.92),
           ),
         ],
