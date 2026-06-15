@@ -353,7 +353,7 @@ Future<void> showLevelUpCelebrationDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _GemFlameCelebrationScene(color: spec.colors.first, size: 172),
+          _CuteGemIcon(color: spec.colors.first, size: 150, glint: 0.92),
           const SizedBox(height: 12),
           Text(
             l10n.levelUpDialogTitle,
@@ -999,10 +999,8 @@ class _TrainingGemStagePainter extends CustomPainter {
 
 enum _CelebrationCharacter { gem, flame }
 
-const _fairyTaleGemAsset = 'assets/images/celebration_gem_fairytale.png';
-const _fairyTaleFlameAsset = 'assets/images/celebration_flame_fairytale.png';
-const _fairyTaleGemFlameAsset =
-    'assets/images/celebration_gem_flame_fairytale.png';
+const _recordRewardGemAsset = 'assets/images/record_reward_gem_character.png';
+const _passionFlameAsset = 'assets/images/passion_flame_character.png';
 
 class _CelebrationCharacterView extends StatefulWidget {
   final _CelebrationCharacter character;
@@ -1129,10 +1127,13 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
                 offset: Offset(0, -lift),
                 child: Transform.rotate(
                   angle: bounce * 0.035,
-                  child: _GemFlameCelebrationScene(
-                    color: widget.color,
-                    size: size,
-                  ),
+                  child: widget.character == _CelebrationCharacter.flame
+                      ? _CuteFlameIcon(color: widget.color, size: size * 0.86)
+                      : _CuteGemIcon(
+                          color: widget.color,
+                          size: size * 0.86,
+                          glint: 0.82 + math.max(0.0, bounce) * 0.12,
+                        ),
                 ),
               ),
               Positioned(
@@ -1150,46 +1151,6 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class _GemFlameCelebrationScene extends StatelessWidget {
-  final Color color;
-  final double size;
-
-  const _GemFlameCelebrationScene({
-    required this.color,
-    required this.size,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final sceneSize = size * 0.86;
-    return SizedBox(
-      width: sceneSize,
-      height: sceneSize,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(sceneSize * 0.12),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.18),
-              blurRadius: sceneSize * 0.10,
-              offset: Offset(0, sceneSize * 0.06),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(sceneSize * 0.12),
-          child: Image.asset(
-            _fairyTaleGemFlameAsset,
-            fit: BoxFit.cover,
-            filterQuality: FilterQuality.high,
-            gaplessPlayback: true,
-          ),
-        ),
       ),
     );
   }
@@ -1803,7 +1764,7 @@ class _CuteFlameIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _StorybookCelebrationImage(
-      assetName: _fairyTaleFlameAsset,
+      assetName: _passionFlameAsset,
       glowColor: color,
       glowStrength: 0.13,
       size: size,
@@ -1825,7 +1786,7 @@ class _CuteGemIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _StorybookCelebrationImage(
-      assetName: _fairyTaleGemAsset,
+      assetName: _recordRewardGemAsset,
       glowColor: color,
       glowStrength: 0.07 + glint.clamp(0.0, 1.0) * 0.08,
       size: size,
