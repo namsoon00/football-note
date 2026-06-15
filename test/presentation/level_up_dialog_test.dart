@@ -68,7 +68,109 @@ void main() {
     expect(foregroundColor, Colors.white);
     expect(
       imageProvider.assetName,
-      'assets/images/celebration_gem_flame_fairytale.png',
+      'assets/images/record_reward_gem_character.png',
+    );
+  });
+
+  testWidgets('training record reward screen uses receiving gem character', (
+    tester,
+  ) async {
+    final before = PlayerLevelState.fromXp(20);
+    final after = PlayerLevelState.fromXp(33);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: FilledButton(
+                onPressed: () {
+                  showTrainingXpRewardDialog(
+                    context,
+                    award: PlayerLevelAward(
+                      gainedXp: 13,
+                      before: before,
+                      after: after,
+                      reasons: const <String>['log'],
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final imageAssets = tester
+        .widgetList<Image>(find.byType(Image))
+        .map((image) => (image.image as AssetImage).assetName);
+
+    expect(
+      imageAssets,
+      contains('assets/images/record_reward_gem_character.png'),
+    );
+    expect(
+      imageAssets,
+      isNot(contains('assets/images/celebration_gem_flame_fairytale.png')),
+    );
+  });
+
+  testWidgets('training streak screen uses passion flame character', (
+    tester,
+  ) async {
+    final state = PlayerLevelState.fromXp(80);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: FilledButton(
+                onPressed: () {
+                  showTrainingStreakCheerDialog(
+                    context,
+                    award: PlayerLevelAward(
+                      gainedXp: 12,
+                      before: state,
+                      after: state,
+                      reasons: const <String>['streak_3'],
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final imageAssets = tester
+        .widgetList<Image>(find.byType(Image))
+        .map((image) => (image.image as AssetImage).assetName);
+
+    expect(imageAssets, contains('assets/images/passion_flame_character.png'));
+    expect(
+      imageAssets,
+      isNot(contains('assets/images/celebration_gem_flame_fairytale.png')),
     );
   });
 }
