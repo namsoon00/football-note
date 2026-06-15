@@ -2628,6 +2628,12 @@ abstract class AppLocalizations {
   /// **'Your saved training log added XP and growth gems.'**
   String get trainingXpDialogMessage;
 
+  /// No description provided for @trainingRecordSavedDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your training log was saved. Even when today\'s gem reward limit is reached, the effort stays recorded for the next session.'**
+  String get trainingRecordSavedDialogMessage;
+
   /// No description provided for @trainingXpDialogJumpRopeTitle.
   ///
   /// In en, this message translates to:
@@ -2699,6 +2705,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'XP earned'**
   String get trainingXpDialogRewardLabel;
+
+  /// No description provided for @trainingRecordSavedDialogLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Record complete'**
+  String get trainingRecordSavedDialogLabel;
+
+  /// No description provided for @trainingRecordSavedDialogValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get trainingRecordSavedDialogValue;
 
   /// No description provided for @trainingXpDialogTotalLabel.
   ///

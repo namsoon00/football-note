@@ -1440,6 +1440,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your saved training log added XP and growth gems.';
 
   @override
+  String get trainingRecordSavedDialogMessage =>
+      'Your training log was saved. Even when today\'s gem reward limit is reached, the effort stays recorded for the next session.';
+
+  @override
   String get trainingXpDialogJumpRopeTitle => 'Jump rope rhythm saved';
 
   @override
@@ -1481,6 +1485,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingXpDialogRewardLabel => 'XP earned';
+
+  @override
+  String get trainingRecordSavedDialogLabel => 'Record complete';
+
+  @override
+  String get trainingRecordSavedDialogValue => 'Saved';
 
   @override
   String get trainingXpDialogTotalLabel => 'Total XP';

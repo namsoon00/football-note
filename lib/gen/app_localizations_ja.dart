@@ -1398,6 +1398,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingXpDialogMessage => '保存されたトレーニング ログにより、XP と成長ジェムが追加されました。';
 
   @override
+  String get trainingRecordSavedDialogMessage =>
+      'トレーニングログが保存されました。今日のジェム報酬上限に達していても、努力は次の練習につながる記録として残ります。';
+
+  @override
   String get trainingXpDialogJumpRopeTitle => '縄跳びのリズムが保存されました';
 
   @override
@@ -1437,6 +1441,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingXpDialogRewardLabel => '獲得XP';
+
+  @override
+  String get trainingRecordSavedDialogLabel => '記録完了';
+
+  @override
+  String get trainingRecordSavedDialogValue => '保存済み';
 
   @override
   String get trainingXpDialogTotalLabel => '累計XP';

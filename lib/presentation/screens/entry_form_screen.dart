@@ -3523,7 +3523,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         await _showFortuneRevealDialog(fortuneToShow);
         if (!mounted) return;
       }
-      if (popAfterSave && levelAward.gainedXp > 0) {
+      if (popAfterSave && widget.entry == null) {
+        await showTrainingRecordSavedDialog(context, award: levelAward);
+        if (!mounted) return;
+      } else if (popAfterSave && levelAward.gainedXp > 0) {
         await showTrainingXpRewardDialog(context, award: levelAward);
         if (!mounted) return;
       }

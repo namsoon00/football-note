@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/presentation/widgets/rinzy_mascot.dart';
 
 void main() {
-  testWidgets('challenge Rinzy widgets use challenge-specific assets', (
+  testWidgets('challenge Rinzy widgets use painted challenge characters', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -18,13 +18,9 @@ void main() {
       ),
     );
 
-    final imageAssets = tester
-        .widgetList<Image>(find.byType(Image))
-        .map((image) => (image.image as AssetImage).assetName);
-
-    expect(imageAssets, contains(ChallengeRinzyMascot.assetPath));
-    expect(imageAssets, contains(ChallengeCheerRinzyMascot.assetPath));
-    expect(imageAssets, contains(ChallengeSadRinzyMascot.assetPath));
-    expect(imageAssets, isNot(contains(RinzyMascot.assetPath)));
+    expect(find.byType(Image), findsNothing);
+    expect(find.byKey(const ValueKey('challenge-rinzy-ready')), findsOneWidget);
+    expect(find.byKey(const ValueKey('challenge-rinzy-cheer')), findsOneWidget);
+    expect(find.byKey(const ValueKey('challenge-rinzy-sad')), findsOneWidget);
   });
 }

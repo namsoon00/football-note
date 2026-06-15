@@ -769,6 +769,7 @@
   "dailyTasksXpDialogAction": "続けて",
   "trainingXpDialogTitle": "トレーニングログが保存されました",
   "trainingXpDialogMessage": "保存されたトレーニング ログにより、XP と成長ジェムが追加されました。",
+  "trainingRecordSavedDialogMessage": "トレーニングログが保存されました。今日のジェム報酬上限に達していても、努力は次の練習につながる記録として残ります。",
   "trainingXpDialogJumpRopeTitle": "縄跳びのリズムが保存されました",
   "trainingXpDialogJumpRopeMessage": "追加された縄跳びのワークは、足の速い成長の宝石になりました。",
   "trainingXpDialogLiftingTitle": "持ち上げる労力を節約",
@@ -788,6 +789,8 @@
     }
   },
   "trainingXpDialogRewardLabel": "獲得XP",
+  "trainingRecordSavedDialogLabel": "記録完了",
+  "trainingRecordSavedDialogValue": "保存済み",
   "trainingXpDialogTotalLabel": "累計XP",
   "trainingXpDialogTotalValue": "{totalXp} XP",
   "@trainingXpDialogTotalValue": {
