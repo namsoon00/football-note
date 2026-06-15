@@ -629,19 +629,19 @@ class _RinzyChibiPainter extends CustomPainter {
     }
 
     final outlinePaint = Paint()
-      ..color = const Color(0xFF6B4A25)
+      ..color = const Color(0xFF5E3E1E)
       ..strokeWidth = unit * 0.014
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     final bodyColor =
-        challenge ? const Color(0xFFF5C45D) : const Color(0xFFF7C95E);
+        challenge ? const Color(0xFFF8C94B) : const Color(0xFFFBD35F);
     final bodyPaint = Paint()..color = bodyColor;
     final facePaint = Paint()
-      ..color = challenge ? const Color(0xFFFFD98A) : const Color(0xFFFFD681);
+      ..color = challenge ? const Color(0xFFFFDC85) : const Color(0xFFFFD978);
     final snoutPaint = Paint()..color = const Color(0xFFFFE8B5);
     final spotPaint = Paint()
-      ..color = const Color(0xFFA96B2A).withValues(alpha: 0.78);
+      ..color = const Color(0xFF8E5521).withValues(alpha: 0.84);
     final blushPaint = Paint()
       ..color = (sad ? const Color(0xFF8FB9FF) : const Color(0xFFFF8FB3))
           .withValues(alpha: 0.34 + progress * 0.14);
@@ -655,19 +655,19 @@ class _RinzyChibiPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final bodyRect = Rect.fromCenter(
-      center: Offset(size.width * 0.50, size.height * 0.70),
-      width: unit * 0.35,
-      height: unit * 0.26,
+      center: Offset(size.width * 0.50, size.height * 0.715),
+      width: unit * 0.36,
+      height: unit * 0.25,
     );
     final neckRect = Rect.fromCenter(
-      center: Offset(size.width * 0.50, size.height * 0.52),
-      width: unit * 0.17,
-      height: unit * 0.34,
+      center: Offset(size.width * 0.50, size.height * 0.515),
+      width: unit * 0.19,
+      height: unit * 0.38,
     );
     final headRect = Rect.fromCenter(
-      center: Offset(size.width * 0.50, size.height * 0.27),
+      center: Offset(size.width * 0.50, size.height * 0.255),
       width: unit * 0.58,
-      height: unit * 0.42,
+      height: unit * 0.40,
     );
 
     _drawTail(canvas, size, unit, outlinePaint);
@@ -777,38 +777,38 @@ class _RinzyChibiPainter extends CustomPainter {
     Paint blushPaint,
   ) {
     final leftEar = Rect.fromCenter(
-      center: Offset(size.width * 0.26, size.height * 0.19),
-      width: unit * 0.17,
-      height: unit * 0.21,
+      center: Offset(size.width * 0.245, size.height * 0.18),
+      width: unit * 0.18,
+      height: unit * 0.22,
     );
     final rightEar = Rect.fromCenter(
-      center: Offset(size.width * 0.74, size.height * 0.19),
-      width: unit * 0.17,
-      height: unit * 0.21,
+      center: Offset(size.width * 0.755, size.height * 0.18),
+      width: unit * 0.18,
+      height: unit * 0.22,
     );
     canvas.drawOval(leftEar, facePaint);
     canvas.drawOval(rightEar, facePaint);
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(size.width * 0.27, size.height * 0.20),
-        width: unit * 0.08,
-        height: unit * 0.12,
+        center: Offset(size.width * 0.25, size.height * 0.19),
+        width: unit * 0.09,
+        height: unit * 0.13,
       ),
       Paint()..color = const Color(0xFFFFC4A0).withValues(alpha: 0.48),
     );
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(size.width * 0.73, size.height * 0.20),
-        width: unit * 0.08,
-        height: unit * 0.12,
+        center: Offset(size.width * 0.75, size.height * 0.19),
+        width: unit * 0.09,
+        height: unit * 0.13,
       ),
       Paint()..color = const Color(0xFFFFC4A0).withValues(alpha: 0.48),
     );
     canvas.drawOval(leftEar, outlinePaint);
     canvas.drawOval(rightEar, outlinePaint);
 
-    _drawHorn(canvas, Offset(size.width * 0.41, size.height * 0.105), unit);
-    _drawHorn(canvas, Offset(size.width * 0.59, size.height * 0.105), unit);
+    _drawHorn(canvas, Offset(size.width * 0.405, size.height * 0.095), unit);
+    _drawHorn(canvas, Offset(size.width * 0.595, size.height * 0.095), unit);
 
     final head = RRect.fromRectAndRadius(
       headRect,
@@ -817,23 +817,23 @@ class _RinzyChibiPainter extends CustomPainter {
     canvas.drawRRect(head, facePaint);
     canvas.drawRRect(head, outlinePaint);
     canvas.drawCircle(
-      Offset(size.width * 0.34, size.height * 0.22),
-      unit * 0.038,
+      Offset(size.width * 0.33, size.height * 0.205),
+      unit * 0.044,
       spotPaint,
     );
     canvas.drawCircle(
-      Offset(size.width * 0.64, size.height * 0.18),
+      Offset(size.width * 0.65, size.height * 0.175),
+      unit * 0.036,
+      spotPaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.70, size.height * 0.305),
       unit * 0.030,
-      spotPaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.70, size.height * 0.32),
-      unit * 0.026,
       spotPaint,
     );
 
     final snout = Rect.fromCenter(
-      center: Offset(size.width * 0.50, size.height * 0.365),
+      center: Offset(size.width * 0.50, size.height * 0.355),
       width: unit * 0.34,
       height: unit * 0.19,
     );
@@ -842,14 +842,14 @@ class _RinzyChibiPainter extends CustomPainter {
 
     _drawEye(
       canvas,
-      Offset(size.width * 0.40, size.height * 0.285),
+      Offset(size.width * 0.40, size.height * 0.275),
       unit,
       eyePaint,
       eyeHighlightPaint,
     );
     _drawEye(
       canvas,
-      Offset(size.width * 0.60, size.height * 0.285),
+      Offset(size.width * 0.60, size.height * 0.275),
       unit,
       eyePaint,
       eyeHighlightPaint,
@@ -963,13 +963,13 @@ class _RinzyChibiPainter extends CustomPainter {
 
   void _drawHorn(Canvas canvas, Offset base, double unit) {
     final paint = Paint()
-      ..color = const Color(0xFF8A5A24)
-      ..strokeWidth = unit * 0.020
+      ..color = const Color(0xFF6F431C)
+      ..strokeWidth = unit * 0.022
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(base, Offset(base.dx, base.dy - unit * 0.082), paint);
+    canvas.drawLine(base, Offset(base.dx, base.dy - unit * 0.095), paint);
     canvas.drawCircle(
-      Offset(base.dx, base.dy - unit * 0.094),
-      unit * 0.030,
+      Offset(base.dx, base.dy - unit * 0.110),
+      unit * 0.034,
       paint,
     );
   }
@@ -991,46 +991,56 @@ class _RinzyChibiPainter extends CustomPainter {
 
   void _drawBodySpots(Canvas canvas, Size size, double unit, Paint spotPaint) {
     canvas.drawCircle(
-      Offset(size.width * 0.41, size.height * 0.67),
-      unit * 0.030,
+      Offset(size.width * 0.40, size.height * 0.685),
+      unit * 0.038,
       spotPaint,
     );
     canvas.drawCircle(
-      Offset(size.width * 0.58, size.height * 0.72),
-      unit * 0.034,
+      Offset(size.width * 0.59, size.height * 0.735),
+      unit * 0.042,
       spotPaint,
     );
     canvas.drawCircle(
-      Offset(size.width * 0.50, size.height * 0.62),
-      unit * 0.022,
+      Offset(size.width * 0.50, size.height * 0.625),
+      unit * 0.026,
+      spotPaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.48, size.height * 0.765),
+      unit * 0.020,
       spotPaint,
     );
   }
 
   void _drawNeckSpots(Canvas canvas, Size size, double unit, Paint spotPaint) {
     canvas.drawCircle(
-      Offset(size.width * 0.46, size.height * 0.43),
-      unit * 0.020,
+      Offset(size.width * 0.455, size.height * 0.405),
+      unit * 0.026,
       spotPaint,
     );
     canvas.drawCircle(
-      Offset(size.width * 0.55, size.height * 0.51),
-      unit * 0.024,
+      Offset(size.width * 0.555, size.height * 0.500),
+      unit * 0.030,
+      spotPaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.465, size.height * 0.580),
+      unit * 0.022,
       spotPaint,
     );
   }
 
   void _drawMane(Canvas canvas, Size size, double unit) {
     final manePaint = Paint()
-      ..color = const Color(0xFF8A5A24).withValues(alpha: 0.82);
+      ..color = const Color(0xFF6F431C).withValues(alpha: 0.88);
     final path = Path()
-      ..moveTo(size.width * 0.585, size.height * 0.36)
-      ..lineTo(size.width * 0.635, size.height * 0.405)
-      ..lineTo(size.width * 0.585, size.height * 0.445)
-      ..lineTo(size.width * 0.635, size.height * 0.490)
-      ..lineTo(size.width * 0.585, size.height * 0.535)
-      ..lineTo(size.width * 0.635, size.height * 0.580)
-      ..lineTo(size.width * 0.570, size.height * 0.600)
+      ..moveTo(size.width * 0.595, size.height * 0.330)
+      ..lineTo(size.width * 0.655, size.height * 0.380)
+      ..lineTo(size.width * 0.595, size.height * 0.430)
+      ..lineTo(size.width * 0.655, size.height * 0.480)
+      ..lineTo(size.width * 0.595, size.height * 0.530)
+      ..lineTo(size.width * 0.650, size.height * 0.585)
+      ..lineTo(size.width * 0.575, size.height * 0.615)
       ..close();
     canvas.drawPath(path, manePaint);
   }
@@ -1065,8 +1075,8 @@ class _RinzyChibiPainter extends CustomPainter {
       canvas.drawLine(start, end, outlinePaint);
       canvas.drawCircle(
         Offset(start.dx, start.dy + unit * 0.030),
-        unit * 0.014,
-        Paint()..color = const Color(0xFFA96B2A).withValues(alpha: 0.58),
+        unit * 0.018,
+        Paint()..color = const Color(0xFF8E5521).withValues(alpha: 0.68),
       );
       canvas.drawLine(
         end,
