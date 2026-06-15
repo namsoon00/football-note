@@ -1189,6 +1189,7 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
           final bounce = math.sin(phase * math.pi * 2);
           final shimmer = (math.sin(phase * math.pi * 2.0) + 1) / 2;
           final lift = math.max(0.0, bounce) * size * 0.025;
+          final isFlame = widget.character == _CelebrationCharacter.flame;
           return Stack(
             alignment: Alignment.center,
             clipBehavior: Clip.none,
@@ -1266,8 +1267,8 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
               Transform.translate(
                 offset: Offset(0, -lift),
                 child: Transform.rotate(
-                  angle: bounce * 0.035,
-                  child: widget.character == _CelebrationCharacter.flame
+                  angle: isFlame ? 0 : bounce * 0.035,
+                  child: isFlame
                       ? _BurningFlameIcon(
                           color: widget.color,
                           size: size * 0.92,
@@ -1940,9 +1941,9 @@ class _BurningFlameIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final flicker = (math.sin(phase * math.pi * 8.2) + 1) / 2;
     final slowBreath = (math.sin(phase * math.pi * 2.0) + 1) / 2;
-    final lean = math.sin(phase * math.pi * 4.4) * 0.045;
-    final scaleX = 0.98 + flicker * 0.055;
-    final scaleY = 1.00 + slowBreath * 0.075 + flicker * 0.035;
+    final innerFlicker = (math.sin((phase + 0.18) * math.pi * 11.6) + 1) / 2;
+    final scaleX = 0.96 + flicker * 0.055 - innerFlicker * 0.018;
+    final scaleY = 1.00 + slowBreath * 0.085 + flicker * 0.044;
     final lift = (slowBreath * 0.018 + flicker * 0.014) * size;
     final glow = 0.18 + slowBreath * 0.16 + flicker * 0.08;
 
@@ -1982,10 +1983,10 @@ class _BurningFlameIcon extends StatelessWidget {
             ),
           ),
           Transform(
+            key: const ValueKey('burning-flame-body-transform'),
             alignment: Alignment.bottomCenter,
             transform: Matrix4.identity()
               ..translateByDouble(0.0, -lift, 0.0, 1.0)
-              ..rotateZ(lean)
               ..scaleByDouble(scaleX, scaleY, 1.0, 1.0),
             child: _CuteFlameIcon(color: color, size: size * 0.92),
           ),

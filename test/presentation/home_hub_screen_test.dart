@@ -29,6 +29,7 @@ void main() {
     final settingsService = SettingsService(optionRepository)..load();
     final trainingService = TrainingService(_MemoryTrainingRepository());
     final mealLogService = MealLogService(optionRepository);
+    var openedLogs = false;
 
     await tester.pumpWidget(
       _buildApp(
@@ -45,7 +46,7 @@ void main() {
           onQuickMeal: () {},
           onQuickBoard: () {},
           onOpenPlans: () {},
-          onOpenLogs: () {},
+          onOpenLogs: () => openedLogs = true,
           onOpenDiary: () {},
           onOpenWeeklyStats: () {},
           onEdit: (_) {},
@@ -59,11 +60,24 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('クイック操作'), findsOneWidget);
+    expect(
+        find.byKey(const ValueKey('home-quick-action-logs')), findsOneWidget);
+    expect(find.text('ログ'), findsWidgets);
     expect(find.text('試合を記録'), findsOneWidget);
     expect(find.text('練習計画を追加'), findsOneWidget);
     expect(find.text('続きから'), findsOneWidget);
     expect(find.text('Quick actions'), findsNothing);
     expect(find.text('Continue'), findsNothing);
+
+    final logsQuickAction = find.byKey(
+      const ValueKey('home-quick-action-logs'),
+    );
+    await tester.ensureVisible(logsQuickAction);
+    await tester.pump();
+    await tester.tap(logsQuickAction);
+    await tester.pump();
+
+    expect(openedLogs, isTrue);
 
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpWidget(const SizedBox.shrink());
