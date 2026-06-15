@@ -598,8 +598,13 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 Opacity(
-                  opacity: theme.brightness == Brightness.dark ? 0.24 : 0.18,
-                  child: _FallingGemBackdrop(color: accent),
+                  opacity: theme.brightness == Brightness.dark ? 0.34 : 0.28,
+                  child: _FallingGemBackdrop(
+                    color: accent,
+                    count: 44,
+                    speed: 1.38,
+                    gemScale: 1.18,
+                  ),
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(
@@ -722,6 +727,11 @@ class _TrainingGemRewardStage extends StatelessWidget {
                 color: color,
                 surface: scheme.surface,
               ),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: _GemCascadeLayer(color: color, compact: compact),
             ),
           ),
           Positioned(
@@ -997,6 +1007,136 @@ class _TrainingGemStagePainter extends CustomPainter {
   }
 }
 
+class _GemCascadeLayer extends StatefulWidget {
+  final Color color;
+  final bool compact;
+
+  const _GemCascadeLayer({required this.color, required this.compact});
+
+  @override
+  State<_GemCascadeLayer> createState() => _GemCascadeLayerState();
+}
+
+class _GemCascadeLayerState extends State<_GemCascadeLayer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1450),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return CustomPaint(
+          painter: _GemCascadePainter(
+            progress: _controller.value,
+            compact: widget.compact,
+            colors: <Color>[
+              widget.color,
+              Color.lerp(widget.color, scheme.secondary, 0.42)!,
+              const Color(0xFF38BDF8),
+              const Color(0xFFFBBF24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GemCascadePainter extends CustomPainter {
+  final double progress;
+  final bool compact;
+  final List<Color> colors;
+
+  const _GemCascadePainter({
+    required this.progress,
+    required this.compact,
+    required this.colors,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final count = compact ? 24 : 32;
+    for (var index = 0; index < count; index += 1) {
+      final seed = ((index * 53) % 100) / 100.0;
+      final lane = ((index * 17) % 9) / 8.0;
+      final fall = (progress * 1.85 + seed * 1.21) % 1.0;
+      final wave = math.sin((progress * math.pi * 4.2) + index * 0.74);
+      final x = size.width * (0.10 + lane * 0.80) + wave * size.width * 0.035;
+      final y = -size.height * 0.18 + fall * size.height * 0.92;
+      final fadeIn = (fall / 0.14).clamp(0.0, 1.0);
+      final fadeOut = ((0.86 - fall) / 0.18).clamp(0.0, 1.0);
+      final opacity = math.min(fadeIn, fadeOut) * (0.24 + (index % 4) * 0.08);
+      if (opacity <= 0) continue;
+
+      final gemSize = (7.5 + (index % 5) * 2.8) * (compact ? 0.88 : 1.0);
+      final center = Offset(x, y);
+      final color = colors[index % colors.length];
+      final halfWidth = gemSize * 0.58;
+      final halfHeight = gemSize * 0.78;
+      final rotation = progress * math.pi * 2.2 + seed * math.pi * 2;
+      final path = Path()
+        ..moveTo(0, -halfHeight)
+        ..lineTo(halfWidth, 0)
+        ..lineTo(0, halfHeight)
+        ..lineTo(-halfWidth, 0)
+        ..close();
+
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.rotate(rotation);
+      canvas.drawPath(
+        path.shift(const Offset(0, 1.3)),
+        Paint()..color = Colors.black.withValues(alpha: opacity * 0.22),
+      );
+      canvas.drawPath(
+        path,
+        Paint()..color = color.withValues(alpha: opacity),
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8
+          ..color = Colors.white.withValues(alpha: opacity * 0.72),
+      );
+      canvas.drawLine(
+        Offset(-halfWidth * 0.42, -halfHeight * 0.12),
+        Offset(halfWidth * 0.34, -halfHeight * 0.48),
+        Paint()
+          ..color = Colors.white.withValues(alpha: opacity)
+          ..strokeWidth = 1.1
+          ..strokeCap = StrokeCap.round,
+      );
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GemCascadePainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.compact != compact ||
+        oldDelegate.colors != colors;
+  }
+}
+
 enum _CelebrationCharacter { gem, flame }
 
 const _recordRewardGemAsset = 'assets/images/record_reward_gem_character.png';
@@ -1128,7 +1268,11 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
                 child: Transform.rotate(
                   angle: bounce * 0.035,
                   child: widget.character == _CelebrationCharacter.flame
-                      ? _CuteFlameIcon(color: widget.color, size: size * 0.86)
+                      ? _BurningFlameIcon(
+                          color: widget.color,
+                          size: size * 0.92,
+                          phase: phase,
+                        )
                       : _CuteGemIcon(
                           color: widget.color,
                           size: size * 0.86,
@@ -1527,8 +1671,16 @@ Future<void> _showCelebrationDialog(
 
 class _FallingGemBackdrop extends StatefulWidget {
   final Color color;
+  final int count;
+  final double speed;
+  final double gemScale;
 
-  const _FallingGemBackdrop({required this.color});
+  const _FallingGemBackdrop({
+    required this.color,
+    this.count = 18,
+    this.speed = 1,
+    this.gemScale = 1,
+  });
 
   @override
   State<_FallingGemBackdrop> createState() => _FallingGemBackdropState();
@@ -1569,6 +1721,9 @@ class _FallingGemBackdropState extends State<_FallingGemBackdrop>
               const Color(0xFF38BDF8),
               const Color(0xFFFBBF24),
             ],
+            count: widget.count,
+            speed: widget.speed,
+            gemScale: widget.gemScale,
           ),
         );
       },
@@ -1579,21 +1734,32 @@ class _FallingGemBackdropState extends State<_FallingGemBackdrop>
 class _FallingGemPainter extends CustomPainter {
   final double progress;
   final List<Color> colors;
+  final int count;
+  final double speed;
+  final double gemScale;
 
-  const _FallingGemPainter({required this.progress, required this.colors});
+  const _FallingGemPainter({
+    required this.progress,
+    required this.colors,
+    required this.count,
+    required this.speed,
+    required this.gemScale,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
-    for (var index = 0; index < 18; index++) {
+    for (var index = 0; index < count; index++) {
       final seed = ((index * 37) % 100) / 100.0;
-      final fall = (progress + seed * 1.37) % 1.0;
-      final sway = math.sin((progress * math.pi * 2) + index) * 24;
+      final depth = 0.72 + ((index % 6) * 0.07);
+      final fall = (progress * speed + seed * 1.37) % 1.0;
+      final sway =
+          math.sin((progress * math.pi * 2 * speed) + index) * 24 * depth;
       final x = ((seed * size.width) + sway).clamp(8.0, size.width - 8);
       final y = (fall * (size.height + 140)) - 70;
-      final gemSize = 10.0 + ((index % 4) * 4);
+      final gemSize = (9.0 + ((index % 5) * 3.6)) * gemScale * depth;
       final color = colors[index % colors.length];
-      final opacity = 0.28 + ((index % 5) * 0.055);
+      final opacity = (0.24 + ((index % 5) * 0.055)) * depth;
       final center = Offset(x.toDouble(), y);
       final halfWidth = gemSize * 0.58;
       final halfHeight = gemSize * 0.82;
@@ -1630,7 +1796,11 @@ class _FallingGemPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _FallingGemPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.colors != colors;
+    return oldDelegate.progress != progress ||
+        oldDelegate.colors != colors ||
+        oldDelegate.count != count ||
+        oldDelegate.speed != speed ||
+        oldDelegate.gemScale != gemScale;
   }
 }
 
@@ -1752,6 +1922,152 @@ class _GemClusterState extends State<_GemCluster>
         },
       ),
     );
+  }
+}
+
+class _BurningFlameIcon extends StatelessWidget {
+  final Color color;
+  final double size;
+  final double phase;
+
+  const _BurningFlameIcon({
+    required this.color,
+    required this.size,
+    required this.phase,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final flicker = (math.sin(phase * math.pi * 8.2) + 1) / 2;
+    final slowBreath = (math.sin(phase * math.pi * 2.0) + 1) / 2;
+    final lean = math.sin(phase * math.pi * 4.4) * 0.045;
+    final scaleX = 0.98 + flicker * 0.055;
+    final scaleY = 1.00 + slowBreath * 0.075 + flicker * 0.035;
+    final lift = (slowBreath * 0.018 + flicker * 0.014) * size;
+    final glow = 0.18 + slowBreath * 0.16 + flicker * 0.08;
+
+    return SizedBox.square(
+      dimension: size,
+      child: Stack(
+        fit: StackFit.expand,
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _FlameEmberPainter(
+                color: color,
+                progress: phase,
+                intensity: 1,
+              ),
+            ),
+          ),
+          Center(
+            child: Transform.scale(
+              scale: 1 + slowBreath * 0.08,
+              child: Container(
+                width: size * 0.68,
+                height: size * 0.76,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFFFFF3B0).withValues(alpha: glow),
+                      color.withValues(alpha: glow * 0.48),
+                      Colors.transparent,
+                    ],
+                    stops: const [0, 0.44, 1],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Transform(
+            alignment: Alignment.bottomCenter,
+            transform: Matrix4.identity()
+              ..translateByDouble(0.0, -lift, 0.0, 1.0)
+              ..rotateZ(lean)
+              ..scaleByDouble(scaleX, scaleY, 1.0, 1.0),
+            child: _CuteFlameIcon(color: color, size: size * 0.92),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FlameEmberPainter extends CustomPainter {
+  final Color color;
+  final double progress;
+  final double intensity;
+
+  const _FlameEmberPainter({
+    required this.color,
+    required this.progress,
+    required this.intensity,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final emberCount = (18 * intensity).round().clamp(8, 24);
+    for (var index = 0; index < emberCount; index += 1) {
+      final seed = ((index * 41) % 100) / 100.0;
+      final rise = (progress * (0.86 + (index % 5) * 0.11) + seed) % 1.0;
+      final horizontalSeed = ((index * 29) % 100) / 100.0;
+      final sway =
+          math.sin(progress * math.pi * 5.4 + index * 0.86) * size.width * 0.05;
+      final x = size.width * (0.22 + horizontalSeed * 0.56) + sway;
+      final y = size.height * (0.86 - rise * 0.78);
+      final fadeIn = (rise / 0.18).clamp(0.0, 1.0);
+      final fadeOut = ((1 - rise) / 0.28).clamp(0.0, 1.0);
+      final opacity =
+          math.min(fadeIn, fadeOut) * (0.26 + (index % 4) * 0.06) * intensity;
+      if (opacity <= 0) continue;
+
+      final emberSize = size.shortestSide * (0.016 + (index % 4) * 0.004);
+      final emberColor = Color.lerp(
+        color,
+        index.isEven ? const Color(0xFFFFF7AD) : const Color(0xFFFFB020),
+        0.48,
+      )!;
+      final center = Offset(x, y);
+      final path = Path()
+        ..moveTo(center.dx, center.dy - emberSize * 1.45)
+        ..cubicTo(
+          center.dx + emberSize,
+          center.dy - emberSize * 0.64,
+          center.dx + emberSize * 0.78,
+          center.dy + emberSize * 0.78,
+          center.dx,
+          center.dy + emberSize * 1.12,
+        )
+        ..cubicTo(
+          center.dx - emberSize * 0.82,
+          center.dy + emberSize * 0.74,
+          center.dx - emberSize,
+          center.dy - emberSize * 0.62,
+          center.dx,
+          center.dy - emberSize * 1.45,
+        )
+        ..close();
+
+      canvas.drawCircle(
+        center,
+        emberSize * 2.1,
+        Paint()..color = emberColor.withValues(alpha: opacity * 0.16),
+      );
+      canvas.drawPath(
+        path,
+        Paint()..color = emberColor.withValues(alpha: opacity),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FlameEmberPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.color != color ||
+        oldDelegate.intensity != intensity;
   }
 }
 

@@ -123,6 +123,13 @@ void main() {
       imageAssets,
       isNot(contains('assets/images/celebration_gem_flame_fairytale.png')),
     );
+
+    final painterTypes = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .map((paint) => paint.painter?.runtimeType.toString());
+
+    expect(painterTypes, contains('_FallingGemPainter'));
+    expect(painterTypes, contains('_GemCascadePainter'));
   });
 
   testWidgets('training streak screen uses passion flame character', (
@@ -172,5 +179,11 @@ void main() {
       imageAssets,
       isNot(contains('assets/images/celebration_gem_flame_fairytale.png')),
     );
+
+    final painterTypes = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .map((paint) => paint.painter?.runtimeType.toString());
+
+    expect(painterTypes, contains('_FlameEmberPainter'));
   });
 }
