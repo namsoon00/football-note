@@ -183,7 +183,12 @@ void main() {
     final painterTypes = tester
         .widgetList<CustomPaint>(find.byType(CustomPaint))
         .map((paint) => paint.painter?.runtimeType.toString());
+    final flameBodyTransform = tester.widget<Transform>(
+      find.byKey(const ValueKey('burning-flame-body-transform')),
+    );
 
     expect(painterTypes, contains('_FlameEmberPainter'));
+    expect(flameBodyTransform.transform.entry(0, 1), 0);
+    expect(flameBodyTransform.transform.entry(1, 0), 0);
   });
 }
