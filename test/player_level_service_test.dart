@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/player_level_service.dart';
+import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations_ko.dart';
@@ -297,6 +298,52 @@ void main() {
   );
 
   test(
+    'training log update deducts xp when conditioning records are removed',
+    () async {
+      final repository = _MemoryOptionRepository()
+        ..seed(PlayerLevelService.totalXpKey, 100);
+      final service = PlayerLevelService(repository);
+
+      final award = await service.awardForTrainingLogUpdate(
+        previousEntry: TrainingEntry(
+          date: today,
+          durationMinutes: 55,
+          intensity: 4,
+          type: '패스',
+          program: '원터치 패스',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+          liftingByPart: const {'inside': 40},
+          jumpRopeCount: 120,
+          jumpRopeEnabled: true,
+        ),
+        updatedEntry: TrainingEntry(
+          date: today,
+          createdAt: DateTime(today.year, today.month, today.day, 19),
+          durationMinutes: 55,
+          intensity: 4,
+          type: '패스',
+          program: '원터치 패스',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+        ),
+      );
+
+      expect(award.gainedXp, -12);
+      expect(
+        award.reasons,
+        containsAll(<String>['lifting_missed', 'jump_rope_missed']),
+      );
+      expect(service.loadState().totalXp, 88);
+      expect(service.loadXpHistory().single.deltaXp, -12);
+    },
+  );
+
+  test(
     'training log update awards meal bonus when meal records are added',
     () async {
       final repository = _MemoryOptionRepository()
@@ -337,6 +384,135 @@ void main() {
     },
   );
 
+  test('meal log edits and deletion reconcile source xp', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 100);
+    final service = PlayerLevelService(repository);
+    final fullMeal = MealEntry(
+      date: today,
+      breakfastRiceBowls: 1,
+      lunchRiceBowls: 1,
+      dinnerRiceBowls: 2,
+      createdAt: DateTime(today.year, today.month, today.day, 8),
+    );
+    final partialMeal = MealEntry(
+      date: today,
+      breakfastRiceBowls: 1,
+      lunchRiceBowls: 1,
+      createdAt: DateTime(today.year, today.month, today.day, 20),
+    );
+
+    final createAward = await service.awardForMealLog(updatedEntry: fullMeal);
+    final editAward = await service.awardForMealLog(
+      previousEntry: fullMeal,
+      updatedEntry: partialMeal,
+    );
+    final deleteAward = await service.revokeMealLogAward(partialMeal);
+
+    expect(createAward.gainedXp, 8);
+    expect(editAward.gainedXp, -5);
+    expect(deleteAward.gainedXp, -3);
+    expect(service.loadState().totalXp, 100);
+    expect(service.loadXpHistory(), isEmpty);
+  });
+
+  test('training log deletion revokes every source delta', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 100);
+    final service = PlayerLevelService(repository);
+    final baseEntry = TrainingEntry(
+      date: today,
+      durationMinutes: 55,
+      intensity: 4,
+      type: '패스',
+      program: '원터치 패스',
+      mood: 4,
+      injury: false,
+      notes: '',
+      location: '운동장',
+    );
+    final updatedEntry = TrainingEntry(
+      date: today,
+      durationMinutes: 55,
+      intensity: 4,
+      type: '패스',
+      program: '원터치 패스',
+      mood: 4,
+      injury: false,
+      notes: '',
+      location: '운동장',
+      createdAt: baseEntry.createdAt,
+      liftingByPart: const {'inside': 40},
+      jumpRopeCount: 120,
+      jumpRopeEnabled: true,
+    );
+
+    await service.awardForTrainingLog(
+      entry: baseEntry,
+      existingEntries: const <TrainingEntry>[],
+    );
+    await service.awardForTrainingLogUpdate(
+      previousEntry: baseEntry,
+      updatedEntry: updatedEntry,
+    );
+
+    expect(service.loadState().totalXp, 122);
+    expect(service.loadXpHistory(), hasLength(2));
+
+    final deleteAward = await service.revokeTrainingEntryAward(baseEntry);
+
+    expect(deleteAward.gainedXp, -22);
+    expect(service.loadState().totalXp, 100);
+    expect(service.loadXpHistory(), isEmpty);
+  });
+
+  test('match log edits and deletion reconcile match xp', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 100);
+    final service = PlayerLevelService(repository);
+    final match = TrainingEntry(
+      date: today,
+      durationMinutes: 90,
+      intensity: 4,
+      type: '경기',
+      mood: 4,
+      injury: false,
+      notes: '',
+      location: '운동장',
+      club: '상대팀',
+      opponentTeam: '상대팀',
+      scoredGoals: 2,
+      concededGoals: 1,
+      playerGoals: 1,
+    );
+    final editedMatch = TrainingEntry(
+      date: today,
+      durationMinutes: 90,
+      intensity: 4,
+      type: '경기',
+      mood: 4,
+      injury: false,
+      notes: '',
+      location: '운동장',
+      club: '상대팀',
+      opponentTeam: '상대팀',
+      createdAt: match.createdAt,
+    );
+
+    final createAward = await service.awardForMatchLog(updatedEntry: match);
+    final editAward = await service.awardForMatchLog(
+      previousEntry: match,
+      updatedEntry: editedMatch,
+    );
+    final deleteAward = await service.revokeMatchEntryAward(editedMatch);
+
+    expect(createAward.gainedXp, 18);
+    expect(editAward.gainedXp, -8);
+    expect(deleteAward.gainedXp, -10);
+    expect(service.loadState().totalXp, 100);
+    expect(service.loadXpHistory(), isEmpty);
+  });
+
   test(
     'board save and diary creation awards are tracked once per day',
     () async {
@@ -371,6 +547,17 @@ void main() {
       expect(history, hasLength(2));
       expect(history.first.category, PlayerXpHistoryCategory.diary);
       expect(history.last.category, PlayerXpHistoryCategory.board);
+
+      final boardRevoke = await service.revokeBoardAwards(
+        boardId: 'board-1',
+        boardTitle: '측면 전개',
+      );
+      final diaryRevoke = await service.revokeDiaryCreated(
+        DateTime(today.year, today.month, today.day, 21),
+      );
+      expect(boardRevoke.gainedXp, -5);
+      expect(diaryRevoke.gainedXp, -3);
+      expect(service.loadState().totalXp, 0);
     },
   );
 
@@ -432,6 +619,24 @@ void main() {
     expect(history.last.awardedAt.day, 24);
   });
 
+  test('daily task completion can be revoked when tasks become incomplete',
+      () async {
+    final repository = _MemoryOptionRepository();
+    final service = PlayerLevelService(repository);
+    final completedAt = DateTime(2026, 3, 24, 20);
+
+    await service.awardForDailyTasksCompleted(completedAt: completedAt);
+    final revoked = await service.revokeDailyTasksCompleted(completedAt);
+    final reawarded = await service.awardForDailyTasksCompleted(
+      completedAt: completedAt.add(const Duration(minutes: 5)),
+    );
+
+    expect(revoked.gainedXp, -PlayerLevelService.dailyTaskCompletionXp);
+    expect(reawarded.gainedXp, PlayerLevelService.dailyTaskCompletionXp);
+    expect(
+        service.loadState().totalXp, PlayerLevelService.dailyTaskCompletionXp);
+  });
+
   test('grouped training plan creation awards bonus xp once', () async {
     final repository = _MemoryOptionRepository();
     final service = PlayerLevelService(repository);
@@ -451,9 +656,19 @@ void main() {
     expect(duplicateAward.gainedXp, 0);
 
     final history = service.loadXpHistory();
-    expect(history, hasLength(1));
-    expect(history.first.category, PlayerXpHistoryCategory.plan);
+    expect(history, hasLength(3));
+    expect(
+      history.map((entry) => entry.category).toSet(),
+      {PlayerXpHistoryCategory.plan},
+    );
     expect(history.first.reasons, contains('plan_group_created:3'));
+
+    final revoked = await service.revokePlanAward('plan-2');
+    final reawarded = await service.awardForPlanCreated(planId: 'plan-2');
+
+    expect(revoked.gainedXp, -3);
+    expect(reawarded.gainedXp, 6);
+    expect(service.loadState().totalXp, 15);
   });
 
   test('challenge round awards xp once per run and round', () async {
@@ -489,6 +704,18 @@ void main() {
       repository.getValue<List>(PlayerLevelService.awardedChallengeRoundsKey),
       contains('starter_3-1:1'),
     );
+
+    final revokedAward = await service.revokeChallengeRound(
+      challengeRunId: 'starter_3-1',
+      roundNumber: 1,
+    );
+
+    expect(revokedAward.gainedXp, -11);
+    expect(service.loadState().totalXp, 0);
+    expect(
+      repository.getValue<List>(PlayerLevelService.awardedChallengeRoundsKey),
+      isNot(contains('starter_3-1:1')),
+    );
   });
 
   test('challenge completion bonus awards large xp once per run', () async {
@@ -521,6 +748,19 @@ void main() {
         PlayerLevelService.awardedChallengeCompletionsKey,
       ),
       contains('starter_3-1'),
+    );
+
+    final revokedAward = await service.revokeChallengeCompletion(
+      challengeRunId: 'starter_3-1',
+    );
+
+    expect(revokedAward.gainedXp, -120);
+    expect(service.loadState().totalXp, 0);
+    expect(
+      repository.getValue<List>(
+        PlayerLevelService.awardedChallengeCompletionsKey,
+      ),
+      isNot(contains('starter_3-1')),
     );
   });
 
@@ -568,12 +808,15 @@ void main() {
 
       final history = service.loadXpHistory();
       expect(history, hasLength(2));
+      expect(service.loadState().totalXp, 8);
 
       await service.deleteXpHistoryEntry(history.first);
       expect(service.loadXpHistory(), hasLength(1));
+      expect(service.loadState().totalXp, 5);
 
       await service.clearXpHistory();
       expect(service.loadXpHistory(), isEmpty);
+      expect(service.loadState().totalXp, 0);
     },
   );
 }

@@ -62,9 +62,8 @@ class PlayerProgressionRules {
     final routineDayTokensToAward = <String>[];
     var gainedXp = 0;
     final entryDay = normalizeDay(entry.date);
-    final existingTrainingEntries = existingEntries
-        .where((item) => !item.isMatch)
-        .toList(growable: false);
+    final existingTrainingEntries =
+        existingEntries.where((item) => !item.isMatch).toList(growable: false);
     final sameDayEntries = existingTrainingEntries
         .where((item) => normalizeDay(item.date) == entryDay)
         .toList(growable: false);
@@ -143,9 +142,8 @@ class PlayerProgressionRules {
     final beforeWeeklyCount = existingTrainingEntries
         .where((item) => isSameWeek(item.date, entryDay))
         .length;
-    final afterWeeklyCount = updatedEntries
-        .where((item) => isSameWeek(item.date, entryDay))
-        .length;
+    final afterWeeklyCount =
+        updatedEntries.where((item) => isSameWeek(item.date, entryDay)).length;
     if (beforeWeeklyCount < 3 && afterWeeklyCount >= 3) {
       gainedXp += weekly3LogsXp;
       reasons.add('weekly_3');
@@ -178,15 +176,28 @@ class PlayerProgressionRules {
     if (!hasLiftingRecord(previousEntry) && hasLiftingRecord(updatedEntry)) {
       gainedXp += conditioningRecordedXp;
       reasons.add('lifting_added');
+    } else if (hasLiftingRecord(previousEntry) &&
+        !hasLiftingRecord(updatedEntry)) {
+      gainedXp -= conditioningRecordedXp;
+      reasons.add('lifting_missed');
     }
 
     if (!hasJumpRopeRecord(previousEntry) && hasJumpRopeRecord(updatedEntry)) {
       gainedXp += conditioningRecordedXp;
       reasons.add('jump_rope_added');
+    } else if (hasJumpRopeRecord(previousEntry) &&
+        !hasJumpRopeRecord(updatedEntry)) {
+      gainedXp -= conditioningRecordedXp;
+      reasons.add('jump_rope_missed');
     }
 
     if (updatedMealXp > previousMealXp) {
       gainedXp += updatedMealXp - previousMealXp;
+      if (updatedMealReason.isNotEmpty) {
+        reasons.add(updatedMealReason);
+      }
+    } else if (updatedMealXp < previousMealXp) {
+      gainedXp -= previousMealXp - updatedMealXp;
       if (updatedMealReason.isNotEmpty) {
         reasons.add(updatedMealReason);
       }
@@ -206,6 +217,9 @@ class PlayerProgressionRules {
         !awardedRoutineDays.contains(dayToken)) {
       routineDayTokensToAward.add(dayToken);
       gainedXp += routineCompleteXp;
+      reasons.add('routine_complete_day');
+    } else if (previousRoutineComplete && !updatedRoutineComplete) {
+      gainedXp -= routineCompleteXp;
       reasons.add('routine_complete_day');
     }
 

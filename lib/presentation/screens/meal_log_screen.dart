@@ -286,6 +286,12 @@ class _MealLogScreenState extends State<MealLogScreen> {
       ),
     );
     if (confirmed != true) return;
+    final deletedEntry = _persistedEntry;
+    if (deletedEntry != null) {
+      await PlayerLevelService(
+        widget.optionRepository,
+      ).revokeMealLogAward(deletedEntry);
+    }
     await widget.mealLogService.deleteDay(_date);
     if (!mounted) return;
     AppFeedback.showSuccess(context, text: l10n.mealDeletedFeedback);
@@ -503,8 +509,8 @@ class _MealBowlPreview extends StatelessWidget {
             value <= 0
                 ? AppLocalizations.of(context)!.homeRiceBowlEmpty
                 : value == value.truncateToDouble()
-                ? value.toStringAsFixed(0)
-                : value.toStringAsFixed(1),
+                    ? value.toStringAsFixed(0)
+                    : value.toStringAsFixed(1),
             style: theme.textTheme.labelLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w800,

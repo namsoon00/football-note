@@ -112,7 +112,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   Timer? _initialWeatherTimer;
   late Stream<List<TrainingEntry>> _trainingEntriesStream;
   bool _dailyTaskAwardInFlight = false;
+  bool _dailyTaskRevokeInFlight = false;
   String? _lastDailyTaskAwardToken;
+  String? _lastDailyTaskRevokeToken;
   bool _challengeFinalizeInFlight = false;
   String? _lastChallengeFinalizeSignature;
 
@@ -220,7 +222,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     ),
                     openedNewsToday: _openedNewsToday(),
                   );
-                  _scheduleDailyTaskCompletionAwardIfNeeded(data);
+                  _syncDailyTaskCompletionAward(data);
                   if (challengeProgress != null) {
                     _scheduleChallengeFinalizeIfNeeded(challengeProgress);
                   }
@@ -712,9 +714,21 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         initialAction: WeatherDetailInitialAction.outfitGuide,
       );
 
-  void _scheduleDailyTaskCompletionAwardIfNeeded(_HomeHubData data) {
-    if (_isParentMode || !data.completedDailyTasks) return;
+  void _syncDailyTaskCompletionAward(_HomeHubData data) {
+    if (_isParentMode) return;
     final token = CoachLessonScreen.todayViewedDayToken(DateTime.now());
+    if (!data.completedDailyTasks) {
+      if (_lastDailyTaskRevokeToken == token || _dailyTaskRevokeInFlight) {
+        return;
+      }
+      _lastDailyTaskRevokeToken = token;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(_revokeDailyTaskCompletion(DateTime.now()));
+      });
+      return;
+    }
+    _lastDailyTaskRevokeToken = null;
     if (_lastDailyTaskAwardToken == token || _dailyTaskAwardInFlight) return;
     _lastDailyTaskAwardToken = token;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -750,6 +764,19 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       }
     } finally {
       _dailyTaskAwardInFlight = false;
+    }
+  }
+
+  Future<void> _revokeDailyTaskCompletion(DateTime completedAt) async {
+    if (_dailyTaskRevokeInFlight || !mounted) return;
+    _dailyTaskRevokeInFlight = true;
+    try {
+      await PlayerLevelService(
+        widget.optionRepository,
+      ).revokeDailyTasksCompleted(completedAt);
+      _lastDailyTaskAwardToken = null;
+    } finally {
+      _dailyTaskRevokeInFlight = false;
     }
   }
 
