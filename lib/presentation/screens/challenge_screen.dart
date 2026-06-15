@@ -28,11 +28,10 @@ import 'entry_form_screen.dart';
 import 'meal_log_screen.dart';
 import 'settings_screen.dart';
 
-typedef _OpenChallengeTrainingMission =
-    Future<void> Function(
-      ChallengeRoundProgress round, {
-      ChallengeTrainingProgramProgress? program,
-    });
+typedef _OpenChallengeTrainingMission = Future<void> Function(
+  ChallengeRoundProgress round, {
+  ChallengeTrainingProgramProgress? program,
+});
 
 class ChallengeScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -309,18 +308,23 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         0,
         (sum, award) => sum + award.gainedXp,
       );
-      if (gainedXp <= 0 || !mounted) return;
-      _showChallengeXpAlertsInBackground(awards, gainedXp);
+      if (!mounted) return;
+      if (gainedXp > 0) {
+        _showChallengeXpAlertsInBackground(awards, gainedXp);
+      }
       if (!presentResult) {
         setState(() {});
         return;
       }
       _playChallengeSuccessFeedback();
-      final awardedRoundCount = awards
+      final newlyAwardedRoundCount = awards
           .where((award) => award.reasons.contains('challenge_round_completed'))
-          .length
-          .clamp(1, progress.rounds.length)
-          .toInt();
+          .length;
+      final awardedRoundCount = newlyAwardedRoundCount > 0
+          ? newlyAwardedRoundCount.clamp(1, progress.rounds.length).toInt()
+          : progress.completedRoundCount
+              .clamp(1, progress.rounds.length)
+              .toInt();
       final l10n = AppLocalizations.of(context)!;
       await Navigator.of(context).push(
         AppPageRoute<void>(
@@ -349,8 +353,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     final signature = progress == null
         ? 'none'
         : '${progress.run.id}:'
-              '${progress.rounds.where((round) => round.completed).map((round) => round.round.number).join(',')}:'
-              '${progress.rounds.length}';
+            '${progress.rounds.where((round) => round.completed).map((round) => round.round.number).join(',')}:'
+            '${progress.rounds.length}';
     if (_reminderSyncInFlight || _lastReminderSignature == signature) return;
     _lastReminderSignature = signature;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -642,9 +646,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     final completedRoundNumbers = progress == null
         ? const <int>[]
         : progress.rounds
-              .where((round) => round.completed)
-              .map((round) => round.round.number)
-              .toList(growable: false);
+            .where((round) => round.completed)
+            .map((round) => round.round.number)
+            .toList(growable: false);
     if (progress != null && completedRoundNumbers.isNotEmpty) {
       final awards = await _challengeService.awardCompletedRounds(
         progress: progress,
@@ -736,8 +740,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         (targetTrainingMinutes - currentTrainingMinutes)
             .clamp(0, targetTrainingMinutes)
             .toInt();
-    final initialPlanContext =
-        initialFocusTarget == null &&
+    final initialPlanContext = initialFocusTarget == null &&
             targetTrainingMinutes > 0 &&
             (existingEntry == null || remainingTrainingMinutes > 0)
         ? EntryFormInitialPlanContext(
@@ -748,8 +751,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                 : targetTrainingMinutes,
           )
         : null;
-    final initialConditioningOnly =
-        existingEntry == null &&
+    final initialConditioningOnly = existingEntry == null &&
         initialPlanContext == null &&
         initialFocusTarget != null;
     await navigator.push(
@@ -767,11 +769,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           initialPlanContext: initialPlanContext,
           initialFocusTarget: initialFocusTarget,
           initialConditioningOnly: initialConditioningOnly,
-          initialEnableJumpRope:
-              initialFocusTarget != null &&
+          initialEnableJumpRope: initialFocusTarget != null &&
               round.round.targetJumpRopeMinutes > 0,
-          initialEnableLifting:
-              initialFocusTarget != null &&
+          initialEnableLifting: initialFocusTarget != null &&
               round.round.targetLiftingMinutes > 0,
         ),
       ),
@@ -792,14 +792,13 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       normalizedDay,
       normalizedDay.add(const Duration(days: 1)),
     );
-    final sameDayEntries =
-        entries
-            .where(
-              (entry) =>
-                  !entry.isMatch && normalizeDay(entry.date) == normalizedDay,
-            )
-            .toList(growable: false)
-          ..sort(TrainingEntry.compareByRecentCreated);
+    final sameDayEntries = entries
+        .where(
+          (entry) =>
+              !entry.isMatch && normalizeDay(entry.date) == normalizedDay,
+        )
+        .toList(growable: false)
+      ..sort(TrainingEntry.compareByRecentCreated);
     if (sameDayEntries.isEmpty) return null;
     if (targetProgram == null || targetProgram.isEmpty) {
       return sameDayEntries.first;
@@ -961,8 +960,7 @@ class _ChallengeStartSection extends StatefulWidget {
     ChallengeTemplate template,
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
-  )
-  onStart;
+  ) onStart;
 
   const _ChallengeStartSection({
     required this.templates,
@@ -997,12 +995,10 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
       oldWidget.skillOptions,
       widget.skillOptions,
     )) {
-      final availableIds = widget.skillOptions
-          .map((option) => option.id)
-          .toSet();
-      _selectedSkillIds = _selectedSkillIds
-          .where(availableIds.contains)
-          .toSet();
+      final availableIds =
+          widget.skillOptions.map((option) => option.id).toSet();
+      _selectedSkillIds =
+          _selectedSkillIds.where(availableIds.contains).toSet();
     }
     final selectedTemplate = _selectedTemplate;
     if (selectedTemplate != null &&
@@ -1312,9 +1308,8 @@ class _ChallengeTemplateCard extends StatelessWidget {
                     selected
                         ? Icons.check_circle
                         : Icons.radio_button_unchecked,
-                    color: selected
-                        ? accent
-                        : theme.colorScheme.onSurfaceVariant,
+                    color:
+                        selected ? accent : theme.colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
@@ -2077,12 +2072,12 @@ class _ChallengeRewardBreakdownCard extends StatelessWidget {
     final activeProgress = progress;
     final earnedRoundXp = activeProgress == null
         ? completedRoundNumbers.isEmpty
-              ? null
-              : _challengeEarnedRoundXpForCompletedRounds(
-                  template: template,
-                  level: level,
-                  completedRoundNumbers: completedRoundNumbers,
-                )
+            ? null
+            : _challengeEarnedRoundXpForCompletedRounds(
+                template: template,
+                level: level,
+                completedRoundNumbers: completedRoundNumbers,
+              )
         : _challengeEarnedRoundXp(activeProgress);
     final remainingXp = earnedRoundXp == null
         ? null
@@ -2286,8 +2281,8 @@ class _ChallengeRewardRoundGrid extends StatelessWidget {
         final columns = constraints.maxWidth >= 560
             ? 4
             : constraints.maxWidth >= 380
-            ? 3
-            : 2;
+                ? 3
+                : 2;
         const spacing = 8.0;
         final width =
             (constraints.maxWidth - spacing * (columns - 1)) / columns;
@@ -2454,9 +2449,8 @@ class _ChallengeHistorySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final shownRuns = limit == null
-        ? runs
-        : runs.take(limit!).toList(growable: false);
+    final shownRuns =
+        limit == null ? runs : runs.take(limit!).toList(growable: false);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -2591,9 +2585,8 @@ class _ChallengeHistoryTile extends StatelessWidget {
             completedRounds,
             template!.dayCount,
           );
-    final earnedXp = template == null
-        ? 0
-        : _historyEarnedXpForRun(run, template!);
+    final earnedXp =
+        template == null ? 0 : _historyEarnedXpForRun(run, template!);
     final detailParts = <String>[
       run.isFailed && run.failedRoundNumber != null
           ? l10n.challengeHistoryFailedRound(started, run.failedRoundNumber!)
@@ -2626,11 +2619,11 @@ class _ChallengeHistoryTile extends StatelessWidget {
                   child: run.isCompleted
                       ? const ChallengeCheerRinzyMascot(size: 34, progress: 1)
                       : run.isFailed
-                      ? const ChallengeSadRinzyMascot(size: 34)
-                      : Icon(
-                          Icons.stop_circle_outlined,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                          ? const ChallengeSadRinzyMascot(size: 34)
+                          : Icon(
+                              Icons.stop_circle_outlined,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -2680,14 +2673,12 @@ class _ChallengeHistoryDetailScreen extends StatelessWidget {
     final template = _challengeTemplateForRun(run);
     final localeName = Localizations.localeOf(context).toLanguageTag();
     final start = DateFormat.yMMMd(localeName).format(run.startDay);
-    final endDay = run.completedAt == null
-        ? run.startDay
-        : normalizeDay(run.completedAt!);
+    final endDay =
+        run.completedAt == null ? run.startDay : normalizeDay(run.completedAt!);
     final end = DateFormat.yMMMd(localeName).format(endDay);
     final missionLabels = _challengeSkillLabels(l10n, run.selectedSkillIds);
-    final earnedXp = template == null
-        ? 0
-        : _historyEarnedXpForRun(run, template);
+    final earnedXp =
+        template == null ? 0 : _historyEarnedXpForRun(run, template);
     final completedRoundCount = _historyCompletedRoundCount(run, template);
     final failedRoundCount = _historyFailedRoundCount(run, template);
     return Scaffold(
@@ -2863,8 +2854,8 @@ class _ChallengeHistoryRoundTile extends StatelessWidget {
     final statusColor = completed
         ? theme.colorScheme.primary
         : failed
-        ? theme.colorScheme.error
-        : theme.colorScheme.onSurfaceVariant;
+            ? theme.colorScheme.error
+            : theme.colorScheme.onSurfaceVariant;
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -2876,8 +2867,8 @@ class _ChallengeHistoryRoundTile extends StatelessWidget {
           color: completed
               ? theme.colorScheme.primary.withValues(alpha: 0.34)
               : failed
-              ? theme.colorScheme.error.withValues(alpha: 0.34)
-              : theme.colorScheme.outlineVariant,
+                  ? theme.colorScheme.error.withValues(alpha: 0.34)
+                  : theme.colorScheme.outlineVariant,
         ),
       ),
       child: Row(
@@ -2886,8 +2877,8 @@ class _ChallengeHistoryRoundTile extends StatelessWidget {
             completed
                 ? Icons.check_circle_rounded
                 : failed
-                ? Icons.cancel_rounded
-                : Icons.circle_outlined,
+                    ? Icons.cancel_rounded
+                    : Icons.circle_outlined,
             size: 20,
             color: statusColor,
           ),
@@ -3018,9 +3009,8 @@ class _ChallengeIntroCard extends StatelessWidget {
             progress: progress,
           );
           final text = Column(
-            crossAxisAlignment: compact
-                ? CrossAxisAlignment.center
-                : CrossAxisAlignment.start,
+            crossAxisAlignment:
+                compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
             children: [
               Text(
                 title,
@@ -3599,30 +3589,29 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
     final bgColor = completed
         ? scheme.primaryContainer.withValues(alpha: 0.68)
         : missed
-        ? scheme.errorContainer.withValues(alpha: 0.62)
-        : current
-        ? activeGreenContainer
-        : scheme.surfaceContainerHighest.withValues(alpha: 0.62);
+            ? scheme.errorContainer.withValues(alpha: 0.62)
+            : current
+                ? activeGreenContainer
+                : scheme.surfaceContainerHighest.withValues(alpha: 0.62);
     final borderColor = completed
         ? scheme.primary.withValues(alpha: 0.62)
         : missed
-        ? scheme.error.withValues(alpha: 0.60)
-        : current
-        ? activeGreen.withValues(alpha: 0.72)
-        : scheme.outline.withValues(alpha: 0.32);
+            ? scheme.error.withValues(alpha: 0.60)
+            : current
+                ? activeGreen.withValues(alpha: 0.72)
+                : scheme.outline.withValues(alpha: 0.32);
     final foreground = completed
         ? scheme.onPrimaryContainer
         : missed
-        ? scheme.onErrorContainer
-        : current
-        ? activeGreenForeground
-        : scheme.onSurfaceVariant;
+            ? scheme.onErrorContainer
+            : current
+                ? activeGreenForeground
+                : scheme.onSurfaceVariant;
     final localeName = Localizations.localeOf(context).toLanguageTag();
     final weekday = DateFormat.E(localeName).format(round.date);
 
     return Semantics(
-      label:
-          '${l10n.challengeRoundTitle(round.round.number)}, '
+      label: '${l10n.challengeRoundTitle(round.round.number)}, '
           '${_roundSubtitle(context, round)}',
       child: AnimatedContainer(
         key: ValueKey('challenge-calendar-round-${round.round.number}'),
@@ -3735,6 +3724,9 @@ class _RoundCalendarRinzyStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final progress = round.missionCompletionRate;
     if (failed) {
       return SizedBox.square(
@@ -3744,10 +3736,95 @@ class _RoundCalendarRinzyStatus extends StatelessWidget {
     }
     return SizedBox.square(
       dimension: size,
-      child: ChallengeRinzyMascot(
-        size: size,
-        progress: progress,
-        animate: false,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: size * 0.14, bottom: size * 0.12),
+            child: ChallengeRinzyMascot(
+              size: size * 0.78,
+              progress: progress,
+              animate: false,
+            ),
+          ),
+          PositionedDirectional(
+            top: 0,
+            start: 0,
+            end: 0,
+            child: _RoundCalendarStatusBadge(
+              key: ValueKey(
+                'challenge-current-round-badge-${round.round.number}',
+              ),
+              label: l10n.challengePendingBadge,
+            ),
+          ),
+          PositionedDirectional(
+            bottom: 0,
+            start: 0,
+            end: 0,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                l10n.challengeRoundTitle(round.round.number),
+                maxLines: 1,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoundCalendarStatusBadge extends StatelessWidget {
+  final String label;
+
+  const _RoundCalendarStatusBadge({super.key, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.primary,
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.primary.withValues(alpha: 0.22),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.play_arrow_rounded, size: 12, color: scheme.onPrimary),
+            const SizedBox(width: 2),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.onPrimary,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -3767,7 +3844,7 @@ class _RoundCalendarRinzyCelebration extends StatelessWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          ChallengeRinzyMascot(size: size, progress: 1, animate: false),
+          ChallengeCheerRinzyMascot(size: size, progress: 1, animate: false),
         ],
       ),
     );
@@ -3873,8 +3950,8 @@ class _MissionProgressRow extends StatelessWidget {
                     completed
                         ? Icons.check_circle_rounded
                         : onTap == null
-                        ? Icons.visibility_outlined
-                        : Icons.chevron_right_rounded,
+                            ? Icons.visibility_outlined
+                            : Icons.chevron_right_rounded,
                     color: color,
                     size: completed ? 18 : 20,
                   ),
@@ -3912,9 +3989,9 @@ class _SmallStatusPill extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: scheme.onSurfaceVariant,
-          fontWeight: FontWeight.w800,
-        ),
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }
@@ -4105,9 +4182,11 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
         : l10n.challengeCelebrationTitle;
     final body = challengeCompleted
         ? (gainedXp > 0
-              ? l10n.challengeCelebrationCompleteBody(gainedXp)
-              : l10n.challengeCelebrationCompleteBodyNoXp)
-        : l10n.challengeCelebrationBody(awardedRoundCount, gainedXp);
+            ? l10n.challengeCelebrationCompleteBody(gainedXp)
+            : l10n.challengeCelebrationCompleteBodyNoXp)
+        : (gainedXp > 0
+            ? l10n.challengeCelebrationBody(awardedRoundCount, gainedXp)
+            : l10n.challengeCelebrationBodyNoXp);
     final mascotSize = MediaQuery.sizeOf(
       context,
     ).shortestSide.clamp(154, 220).toDouble();
@@ -4447,9 +4526,8 @@ Set<int> _historyCompletedRoundNumbers(
     );
   }
   if (run.isFailed && run.failedRoundNumber != null) {
-    final lastCompleted = (run.failedRoundNumber! - 1)
-        .clamp(0, template.dayCount)
-        .toInt();
+    final lastCompleted =
+        (run.failedRoundNumber! - 1).clamp(0, template.dayCount).toInt();
     return Set<int>.from(
       List<int>.generate(lastCompleted, (index) => index + 1),
     );

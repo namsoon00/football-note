@@ -4157,6 +4157,7 @@
       }
     }
   },
+  "challengeCelebrationBodyNoXp": "Round missions complete. Review the record.",
   "challengeCelebrationCompleteTitle": "Challenge complete!",
   "challengeCelebrationCompleteBody": "All rounds are done. You earned +{xp} XP.",
   "@challengeCelebrationCompleteBody": {

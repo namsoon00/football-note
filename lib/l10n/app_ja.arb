@@ -4157,6 +4157,7 @@
       }
     }
   },
+  "challengeCelebrationBodyNoXp": "ラウンドミッションを完了しました。記録を確認してください。",
   "challengeCelebrationCompleteTitle": "チャレンジ完走!",
   "challengeCelebrationCompleteBody": "すべてのラウンドが終わりました。+{xp} XP を受け取りました。",
   "@challengeCelebrationCompleteBody": {

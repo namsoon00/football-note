@@ -7965,6 +7965,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get challengeCelebrationBodyNoXp => 'ラウンドミッションを完了しました。記録を確認してください。';
+
+  @override
   String get challengeCelebrationCompleteTitle => 'チャレンジ完走!';
 
   @override
