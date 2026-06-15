@@ -513,12 +513,10 @@ class _TrainingXpDialogSpec {
     PlayerLevelAward award,
   ) {
     final reasons = award.reasons.toSet();
-    final hasJumpRopeGain =
-        reasons.contains('jump_rope_added') ||
+    final hasJumpRopeGain = reasons.contains('jump_rope_added') ||
         (!reasons.contains('jump_rope_missed') &&
             reasons.any((reason) => reason.contains('jump_rope')));
-    final hasLiftingGain =
-        reasons.contains('lifting_added') ||
+    final hasLiftingGain = reasons.contains('lifting_added') ||
         (!reasons.contains('lifting_missed') &&
             reasons.any((reason) => reason.contains('lifting')));
     if (hasJumpRopeGain) {
@@ -638,11 +636,11 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
                                   Text(
                                     spec.title,
                                     textAlign: TextAlign.center,
-                                    style: theme.textTheme.headlineSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w900,
-                                          height: 1.08,
-                                        ),
+                                    style:
+                                        theme.textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      height: 1.08,
+                                    ),
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
@@ -944,16 +942,15 @@ class _TrainingGemStagePainter extends CustomPainter {
     if (size.isEmpty) return;
     final center = Offset(size.width / 2, size.height * 0.44);
     final glowPaint = Paint()
-      ..shader =
-          RadialGradient(
-            colors: [
-              color.withValues(alpha: 0.26),
-              color.withValues(alpha: 0.08),
-              Colors.transparent,
-            ],
-          ).createShader(
-            Rect.fromCircle(center: center, radius: size.shortestSide * 0.62),
-          );
+      ..shader = RadialGradient(
+        colors: [
+          color.withValues(alpha: 0.26),
+          color.withValues(alpha: 0.08),
+          Colors.transparent,
+        ],
+      ).createShader(
+        Rect.fromCircle(center: center, radius: size.shortestSide * 0.62),
+      );
     canvas.drawCircle(center, size.shortestSide * 0.62, glowPaint);
 
     final platformRect = Rect.fromLTWH(
@@ -999,6 +996,8 @@ enum _CelebrationCharacter { gem, flame }
 
 const _fairyTaleGemAsset = 'assets/images/celebration_gem_fairytale.png';
 const _fairyTaleFlameAsset = 'assets/images/celebration_flame_fairytale.png';
+const _fairyTaleGemFlameAsset =
+    'assets/images/celebration_gem_flame_fairytale.png';
 
 class _CelebrationCharacterView extends StatefulWidget {
   final _CelebrationCharacter character;
@@ -1038,7 +1037,6 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
   @override
   Widget build(BuildContext context) {
     final size = widget.size;
-    final bodySize = size * 0.78;
     return SizedBox.square(
       dimension: size,
       child: AnimatedBuilder(
@@ -1052,6 +1050,20 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
             alignment: Alignment.center,
             clipBehavior: Clip.none,
             children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      colors: [
+                        widget.color.withValues(alpha: 0.18),
+                        widget.color.withValues(alpha: 0.06),
+                        Colors.transparent,
+                      ],
+                      stops: const [0, 0.58, 1],
+                    ),
+                  ),
+                ),
+              ),
               Positioned(
                 bottom: size * 0.10,
                 child: Transform.scale(
@@ -1067,49 +1079,44 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
                 ),
               ),
               Positioned(
-                left: size * 0.12,
-                top: size * (0.30 + shimmer * 0.02),
+                left: size * 0.08,
+                top: size * (0.20 + shimmer * 0.018),
                 child: Transform.rotate(
                   angle: -0.22,
-                  child: _CelebrationAccentIcon(
-                    character: widget.character,
-                    color: Color.lerp(
-                      widget.color,
-                      Colors.white,
-                      0.18,
-                    )!.withValues(alpha: 0.76),
-                    size: size * 0.20,
-                    glint: 0.54 + shimmer * 0.24,
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
+                    color: Color.lerp(widget.color, Colors.white, 0.18)!
+                        .withValues(alpha: 0.76),
+                    size: size * 0.13,
                   ),
                 ),
               ),
               Positioned(
-                right: size * 0.10,
-                top: size * (0.48 - shimmer * 0.025),
+                right: size * 0.09,
+                top: size * (0.32 - shimmer * 0.025),
                 child: Transform.rotate(
                   angle: 0.26,
-                  child: _CelebrationAccentIcon(
-                    character: widget.character,
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
                     color: Color.lerp(
                       widget.color,
                       const Color(0xFF38BDF8),
                       widget.character == _CelebrationCharacter.gem ? 0.34 : 0,
-                    )!.withValues(alpha: 0.72),
-                    size: size * 0.17,
-                    glint: 0.68,
+                    )!
+                        .withValues(alpha: 0.72),
+                    size: size * 0.10,
                   ),
                 ),
               ),
               Positioned(
-                left: size * 0.25,
-                bottom: size * (0.12 + shimmer * 0.018),
+                left: size * 0.19,
+                bottom: size * (0.18 + shimmer * 0.018),
                 child: Transform.rotate(
                   angle: 0.18,
-                  child: _CelebrationAccentIcon(
-                    character: widget.character,
+                  child: Icon(
+                    Icons.star_rounded,
                     color: widget.color.withValues(alpha: 0.64),
-                    size: size * 0.14,
-                    glint: 0.42 + shimmer * 0.22,
+                    size: size * 0.08,
                   ),
                 ),
               ),
@@ -1117,13 +1124,10 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
                 offset: Offset(0, -lift),
                 child: Transform.rotate(
                   angle: bounce * 0.035,
-                  child: widget.character == _CelebrationCharacter.flame
-                      ? _CuteFlameIcon(color: widget.color, size: bodySize)
-                      : _CuteGemIcon(
-                          color: widget.color,
-                          size: bodySize,
-                          glint: 0.72 + math.max(0.0, bounce) * 0.24,
-                        ),
+                  child: _GemFlameCelebrationScene(
+                    color: widget.color,
+                    size: size,
+                  ),
                 ),
               ),
               Positioned(
@@ -1146,24 +1150,42 @@ class _CelebrationCharacterViewState extends State<_CelebrationCharacterView>
   }
 }
 
-class _CelebrationAccentIcon extends StatelessWidget {
-  final _CelebrationCharacter character;
+class _GemFlameCelebrationScene extends StatelessWidget {
   final Color color;
   final double size;
-  final double glint;
 
-  const _CelebrationAccentIcon({
-    required this.character,
+  const _GemFlameCelebrationScene({
     required this.color,
     required this.size,
-    required this.glint,
   });
 
   @override
   Widget build(BuildContext context) {
-    return character == _CelebrationCharacter.flame
-        ? _CuteFlameIcon(color: color, size: size)
-        : _CuteGemIcon(color: color, size: size, glint: glint);
+    return SizedBox(
+      width: size * 0.78,
+      height: size * 0.98,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(size * 0.09),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.18),
+              blurRadius: size * 0.10,
+              offset: Offset(0, size * 0.05),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(size * 0.09),
+          child: Image.asset(
+            _fairyTaleGemFlameAsset,
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.high,
+            gaplessPlayback: true,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -1270,11 +1292,11 @@ class _ChallengeStyleCelebrationFullScreen extends StatelessWidget {
                                 Text(
                                   title,
                                   textAlign: TextAlign.center,
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w900,
-                                        height: 1.1,
-                                      ),
+                                  style:
+                                      theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.1,
+                                  ),
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
