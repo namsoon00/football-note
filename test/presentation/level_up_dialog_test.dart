@@ -232,7 +232,11 @@ void main() {
     );
 
     expect(painterTypes, contains('_FlameEmberPainter'));
+    expect(flameBodyTransform.transform.entry(0, 0), 1);
+    expect(flameBodyTransform.transform.entry(1, 1), 1);
     expect(flameBodyTransform.transform.entry(0, 1), 0);
     expect(flameBodyTransform.transform.entry(1, 0), 0);
+    expect(flameBodyTransform.transform.entry(0, 3), 0);
+    expect(flameBodyTransform.transform.entry(1, 3), 0);
   });
 }

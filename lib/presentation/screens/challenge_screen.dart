@@ -195,14 +195,38 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         .where((round) => round.completed)
         .map((round) => round.round.number)
         .join(',');
-    if (completedRounds.isEmpty) return;
-    final signature = '${progress.run.id}:rounds:$completedRounds';
+    final signature = completedRounds.isEmpty
+        ? '${progress.run.id}:rounds:none'
+        : '${progress.run.id}:rounds:$completedRounds';
     if (_roundAwardInFlight || _lastRoundAwardSignature == signature) return;
     _lastRoundAwardSignature = signature;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      unawaited(_syncRoundAwards(progress, signature));
+      if (completedRounds.isEmpty) {
+        unawaited(_syncRoundAwardRevocations(progress, signature));
+      } else {
+        unawaited(_syncRoundAwards(progress, signature));
+      }
     });
+  }
+
+  Future<void> _syncRoundAwardRevocations(
+    ChallengeProgress progress,
+    String signature,
+  ) async {
+    if (_roundAwardInFlight) return;
+    _roundAwardInFlight = true;
+    try {
+      await _challengeService.revokeIncompleteAwards(
+        progress: progress,
+        playerLevelService: PlayerLevelService(widget.optionRepository),
+      );
+      if (!mounted) return;
+      setState(() {});
+    } finally {
+      _roundAwardInFlight = false;
+      _lastRoundAwardSignature = signature;
+    }
   }
 
   Future<void> _syncRoundAwards(

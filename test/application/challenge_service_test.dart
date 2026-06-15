@@ -563,6 +563,73 @@ void main() {
   );
 
   test(
+    'round award can be revoked and awarded again after mission records change',
+    () async {
+      final repository = _MemoryOptionRepository();
+      final service = ChallengeService(repository);
+      final levelService = PlayerLevelService(repository);
+      final template = service.templateById('starter_3')!;
+      final run = await service.startChallenge(
+        template,
+        startedAt: DateTime(2026, 6, 1, 9),
+      );
+      final completedProgress = service.progressForRun(
+        run: run,
+        trainingEntries: <TrainingEntry>[
+          _trainingEntry(
+            day: DateTime(2026, 6, 1),
+            minutes: 30,
+            jumpRopeMinutes: 10,
+            liftingMinutes: 10,
+          ),
+        ],
+        mealEntries: <MealEntry>[
+          MealEntry(
+            date: DateTime(2026, 6, 1),
+            breakfastRiceBowls: 1,
+            lunchRiceBowls: 1,
+            dinnerRiceBowls: 1,
+          ),
+        ],
+      )!;
+      final incompleteProgress = service.progressForRun(
+        run: run,
+        trainingEntries: const <TrainingEntry>[],
+        mealEntries: const <MealEntry>[],
+      )!;
+
+      final firstAwards = await service.awardCompletedRounds(
+        progress: completedProgress,
+        playerLevelService: levelService,
+        awardedAt: DateTime(2026, 6, 1, 20),
+      );
+      final revokedAwards = await service.revokeIncompleteAwards(
+        progress: incompleteProgress,
+        playerLevelService: levelService,
+      );
+      final secondAwards = await service.awardCompletedRounds(
+        progress: completedProgress,
+        playerLevelService: levelService,
+        awardedAt: DateTime(2026, 6, 1, 21),
+      );
+
+      expect(
+        firstAwards.map((award) => award.gainedXp).where((xp) => xp != 0),
+        <int>[10],
+      );
+      expect(
+        revokedAwards.map((award) => award.gainedXp).where((xp) => xp != 0),
+        <int>[-10],
+      );
+      expect(
+        secondAwards.map((award) => award.gainedXp).where((xp) => xp != 0),
+        <int>[10],
+      );
+      expect(levelService.loadState().totalXp, 10);
+    },
+  );
+
+  test(
     'partially completed challenge continues and settles after final day',
     () async {
       final repository = _MemoryOptionRepository();
