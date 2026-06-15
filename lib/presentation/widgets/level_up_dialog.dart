@@ -462,9 +462,14 @@ Future<void> showLevelUpCelebrationDialog(
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.black.withValues(alpha: 0.14),
                     foregroundColor: foreground,
+                    disabledForegroundColor: foreground.withValues(alpha: 0.54),
                     side: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: Colors.white.withValues(alpha: 0.62),
+                    ),
+                    textStyle: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                   child: Text(l10n.levelUpDialogLater),
