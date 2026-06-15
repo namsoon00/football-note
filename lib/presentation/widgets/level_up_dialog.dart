@@ -353,8 +353,8 @@ Future<void> showLevelUpCelebrationDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const _CelebrationBurst(),
-          const SizedBox(height: 14),
+          _GemFlameCelebrationScene(color: spec.colors.first, size: 172),
+          const SizedBox(height: 12),
           Text(
             l10n.levelUpDialogTitle,
             style: theme.textTheme.headlineMedium?.copyWith(
@@ -1999,61 +1999,6 @@ class _LevelProgressStrip extends StatelessWidget {
         value: progress,
         backgroundColor: background,
         valueColor: AlwaysStoppedAnimation<Color>(foreground),
-      ),
-    );
-  }
-}
-
-class _CelebrationBurst extends StatelessWidget {
-  const _CelebrationBurst();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(
-      width: 132,
-      height: 88,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          _BurstDot(left: 10, top: 30, color: Color(0xFFFF7A59)),
-          _BurstDot(left: 28, top: 10, color: Color(0xFFFFC145)),
-          _BurstDot(right: 26, top: 12, color: Color(0xFF57CC99)),
-          _BurstDot(right: 8, top: 34, color: Color(0xFF3FA7D6)),
-          _BurstDot(left: 34, bottom: 2, color: Color(0xFFF59E0B)),
-          _BurstDot(right: 34, bottom: 6, color: Color(0xFF0EA5E9)),
-          Icon(Icons.celebration_rounded, size: 54, color: Colors.white),
-        ],
-      ),
-    );
-  }
-}
-
-class _BurstDot extends StatelessWidget {
-  final double? left;
-  final double? right;
-  final double? top;
-  final double? bottom;
-  final Color color;
-
-  const _BurstDot({
-    this.left,
-    this.right,
-    this.top,
-    this.bottom,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      left: left,
-      right: right,
-      top: top,
-      bottom: bottom,
-      child: Container(
-        width: 14,
-        height: 14,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
     );
   }
