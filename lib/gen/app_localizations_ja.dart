@@ -1392,34 +1392,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dailyTasksXpDialogAction => '続けて';
 
   @override
-  String get trainingXpDialogTitle => 'トレーニングログが保存されました';
+  String get trainingXpDialogTitle => 'トレーニング記録完了';
 
   @override
-  String get trainingXpDialogMessage => '保存されたトレーニング ログにより、XP と成長ジェムが追加されました。';
+  String get trainingXpDialogMessage => '記録を保存しました。';
 
   @override
-  String get trainingRecordSavedDialogMessage =>
-      'トレーニングログが保存されました。今日のジェム報酬上限に達していても、努力は次の練習につながる記録として残ります。';
+  String get trainingRecordSavedDialogMessage => '記録を保存しました。';
 
   @override
-  String get trainingXpDialogJumpRopeTitle => '縄跳びのリズムが保存されました';
+  String get trainingXpDialogJumpRopeTitle => '縄跳び記録完了';
 
   @override
-  String get trainingXpDialogJumpRopeMessage =>
-      '追加された縄跳びのワークは、足の速い成長の宝石になりました。';
+  String get trainingXpDialogJumpRopeMessage => '縄跳び記録を保存しました。';
 
   @override
-  String get trainingXpDialogLiftingTitle => '持ち上げる労力を節約';
+  String get trainingXpDialogLiftingTitle => 'リフティング記録完了';
 
   @override
-  String get trainingXpDialogLiftingMessage =>
-      '追加されたリフティング作業は、より強い体の成長の宝石となりました。';
+  String get trainingXpDialogLiftingMessage => 'リフティング記録を保存しました。';
 
   @override
-  String get trainingXpDialogMealTitle => '回復ルーチンが保存されました';
+  String get trainingXpDialogMealTitle => '回復記録完了';
 
   @override
-  String get trainingXpDialogMealMessage => '食事と回復の記録により、着実な成長の宝石が追加されました。';
+  String get trainingXpDialogMealMessage => '食事と回復の記録を保存しました。';
 
   @override
   String get diaryXpDialogTitle => 'ダイアリーサファイア';

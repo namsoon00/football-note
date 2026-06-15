@@ -1436,33 +1436,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingXpDialogTitle => 'Training log saved';
 
   @override
-  String get trainingXpDialogMessage =>
-      'Your saved training log added XP and growth gems.';
+  String get trainingXpDialogMessage => 'Training log saved.';
 
   @override
-  String get trainingRecordSavedDialogMessage =>
-      'Your training log was saved. Even when today\'s gem reward limit is reached, the effort stays recorded for the next session.';
+  String get trainingRecordSavedDialogMessage => 'Record saved.';
 
   @override
-  String get trainingXpDialogJumpRopeTitle => 'Jump rope rhythm saved';
+  String get trainingXpDialogJumpRopeTitle => 'Jump rope saved';
 
   @override
-  String get trainingXpDialogJumpRopeMessage =>
-      'The added jump rope work became quick-foot growth gems.';
+  String get trainingXpDialogJumpRopeMessage => 'Jump rope log saved.';
 
   @override
-  String get trainingXpDialogLiftingTitle => 'Lifting effort saved';
+  String get trainingXpDialogLiftingTitle => 'Lifting saved';
 
   @override
-  String get trainingXpDialogLiftingMessage =>
-      'The added lifting work became stronger-body growth gems.';
+  String get trainingXpDialogLiftingMessage => 'Lifting log saved.';
 
   @override
-  String get trainingXpDialogMealTitle => 'Recovery routine saved';
+  String get trainingXpDialogMealTitle => 'Recovery saved';
 
   @override
-  String get trainingXpDialogMealMessage =>
-      'The meal and recovery record added steady growth gems.';
+  String get trainingXpDialogMealMessage => 'Meal and recovery log saved.';
 
   @override
   String get diaryXpDialogTitle => 'Diary sapphire';
