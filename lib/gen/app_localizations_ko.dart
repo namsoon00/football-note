@@ -1390,6 +1390,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingXpDialogMessage => '저장한 훈련 기록이 경험치와 성장 보석으로 쌓였어요.';
 
   @override
+  String get trainingRecordSavedDialogMessage =>
+      '훈련 기록이 저장됐어요. 보석 보상 한도에 닿아도 오늘의 노력은 기록으로 남아 다음 훈련에 이어집니다.';
+
+  @override
   String get trainingXpDialogJumpRopeTitle => '줄넘기 리듬 저장';
 
   @override
@@ -1429,6 +1433,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingXpDialogRewardLabel => '오늘 얻은 경험치';
+
+  @override
+  String get trainingRecordSavedDialogLabel => '기록 완료';
+
+  @override
+  String get trainingRecordSavedDialogValue => '저장 완료';
 
   @override
   String get trainingXpDialogTotalLabel => '누적 경험치';

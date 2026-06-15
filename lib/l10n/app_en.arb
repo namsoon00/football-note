@@ -769,6 +769,7 @@
   "dailyTasksXpDialogAction": "Keep going",
   "trainingXpDialogTitle": "Training log saved",
   "trainingXpDialogMessage": "Your saved training log added XP and growth gems.",
+  "trainingRecordSavedDialogMessage": "Your training log was saved. Even when today's gem reward limit is reached, the effort stays recorded for the next session.",
   "trainingXpDialogJumpRopeTitle": "Jump rope rhythm saved",
   "trainingXpDialogJumpRopeMessage": "The added jump rope work became quick-foot growth gems.",
   "trainingXpDialogLiftingTitle": "Lifting effort saved",
@@ -788,6 +789,8 @@
     }
   },
   "trainingXpDialogRewardLabel": "XP earned",
+  "trainingRecordSavedDialogLabel": "Record complete",
+  "trainingRecordSavedDialogValue": "Saved",
   "trainingXpDialogTotalLabel": "Total XP",
   "trainingXpDialogTotalValue": "{totalXp} XP",
   "@trainingXpDialogTotalValue": {

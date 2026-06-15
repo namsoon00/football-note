@@ -338,8 +338,7 @@ class ChallengeRinzyMascot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ChallengeRinzyAsset(
-      assetPath: assetPath,
+    return _ChallengeRinzyCharacter(
       size: size,
       progress: progress,
       animate: animate,
@@ -364,8 +363,7 @@ class ChallengeCheerRinzyMascot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ChallengeRinzyAsset(
-      assetPath: assetPath,
+    return _ChallengeRinzyCharacter(
       size: size,
       progress: progress,
       animate: animate,
@@ -390,8 +388,7 @@ class ChallengeSadRinzyMascot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ChallengeRinzyAsset(
-      assetPath: assetPath,
+    return _ChallengeRinzyCharacter(
       size: size,
       progress: progress,
       animate: animate,
@@ -402,15 +399,13 @@ class ChallengeSadRinzyMascot extends StatelessWidget {
 
 enum _ChallengeRinzyPose { ready, cheer, sad }
 
-class _ChallengeRinzyAsset extends StatefulWidget {
-  final String assetPath;
+class _ChallengeRinzyCharacter extends StatefulWidget {
   final double size;
   final double progress;
   final bool animate;
   final _ChallengeRinzyPose pose;
 
-  const _ChallengeRinzyAsset({
-    required this.assetPath,
+  const _ChallengeRinzyCharacter({
     required this.size,
     required this.progress,
     required this.animate,
@@ -418,10 +413,11 @@ class _ChallengeRinzyAsset extends StatefulWidget {
   });
 
   @override
-  State<_ChallengeRinzyAsset> createState() => _ChallengeRinzyAssetState();
+  State<_ChallengeRinzyCharacter> createState() =>
+      _ChallengeRinzyCharacterState();
 }
 
-class _ChallengeRinzyAssetState extends State<_ChallengeRinzyAsset>
+class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
@@ -440,7 +436,7 @@ class _ChallengeRinzyAssetState extends State<_ChallengeRinzyAsset>
   }
 
   @override
-  void didUpdateWidget(_ChallengeRinzyAsset oldWidget) {
+  void didUpdateWidget(_ChallengeRinzyCharacter oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.animate && !_controller.isAnimating) {
       _controller.repeat();
@@ -508,16 +504,17 @@ class _ChallengeRinzyAssetState extends State<_ChallengeRinzyAsset>
                           angle: motion.rotation,
                           child: Transform.scale(
                             scale: motion.scale,
-                            child: Image.asset(
-                              widget.assetPath,
-                              fit: BoxFit.contain,
-                              filterQuality: FilterQuality.high,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.sports_soccer,
-                                  size: widget.size * 0.58,
-                                );
-                              },
+                            child: CustomPaint(
+                              key: ValueKey(
+                                'challenge-rinzy-${widget.pose.name}',
+                              ),
+                              painter: _RinzyChibiPainter(
+                                progress: progress,
+                                phase: phase,
+                                cheer: widget.pose == _ChallengeRinzyPose.cheer,
+                                sad: widget.pose == _ChallengeRinzyPose.sad,
+                                challenge: true,
+                              ),
                             ),
                           ),
                         ),
@@ -595,6 +592,7 @@ class _RinzyChibiPainter extends CustomPainter {
   final bool cheer;
   final bool sad;
   final bool crying;
+  final bool challenge;
 
   const _RinzyChibiPainter({
     required this.progress,
@@ -602,6 +600,7 @@ class _RinzyChibiPainter extends CustomPainter {
     this.cheer = false,
     this.sad = false,
     this.crying = false,
+    this.challenge = false,
   });
 
   @override
@@ -630,13 +629,15 @@ class _RinzyChibiPainter extends CustomPainter {
     }
 
     final outlinePaint = Paint()
-      ..color = const Color(0xFF7F552A)
-      ..strokeWidth = unit * 0.016
+      ..color = const Color(0xFF6F4D2A)
+      ..strokeWidth = unit * 0.015
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-    final bodyPaint = Paint()..color = const Color(0xFFF3B64A);
-    final facePaint = Paint()..color = const Color(0xFFFFCF6E);
+    final bodyPaint = Paint()
+      ..color = challenge ? const Color(0xFFF6BD4C) : const Color(0xFFF3B64A);
+    final facePaint = Paint()
+      ..color = challenge ? const Color(0xFFFFD67A) : const Color(0xFFFFCF6E);
     final snoutPaint = Paint()..color = const Color(0xFFFFE1A3);
     final spotPaint = Paint()
       ..color = const Color(0xFFB8792E).withValues(alpha: 0.76);
@@ -645,7 +646,8 @@ class _RinzyChibiPainter extends CustomPainter {
           .withValues(alpha: 0.34 + progress * 0.14);
     final eyePaint = Paint()..color = const Color(0xFF33251B);
     final eyeHighlightPaint = Paint()..color = Colors.white;
-    final scarfPaint = Paint()..color = const Color(0xFF40B8A8);
+    final scarfPaint = Paint()
+      ..color = challenge ? const Color(0xFF38BDF8) : const Color(0xFF40B8A8);
     final armPaint = Paint()
       ..color = const Color(0xFFE7A53E)
       ..strokeWidth = unit * 0.032
@@ -695,6 +697,19 @@ class _RinzyChibiPainter extends CustomPainter {
       Radius.circular(unit * 0.05),
     );
     canvas.drawRRect(scarf, scarfPaint);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: Offset(size.width * 0.56, size.height * 0.59),
+          width: unit * 0.16,
+          height: unit * 0.055,
+        ),
+        Radius.circular(unit * 0.045),
+      ),
+      Paint()
+        ..color = (challenge ? const Color(0xFF2563EB) : scarfPaint.color)
+            .withValues(alpha: 0.86),
+    );
 
     _drawHeadDetails(
       canvas,
@@ -733,6 +748,13 @@ class _RinzyChibiPainter extends CustomPainter {
         center: Offset(size.width * 0.72, size.height * 0.18),
         radius: unit * 0.026,
         alpha: 0.42 + progress * 0.18,
+      );
+    }
+    if (!sad) {
+      _drawSoccerBall(
+        canvas,
+        center: Offset(size.width * 0.73, size.height * 0.78),
+        radius: unit * (challenge ? 0.070 : 0.058),
       );
     }
     canvas.restore();
@@ -1050,6 +1072,49 @@ class _RinzyChibiPainter extends CustomPainter {
     canvas.drawCircle(center, radius * 0.24, Paint()..color = Colors.white);
   }
 
+  void _drawSoccerBall(
+    Canvas canvas, {
+    required Offset center,
+    required double radius,
+  }) {
+    final outline = Paint()
+      ..color = const Color(0xFF263241)
+      ..strokeWidth = radius * 0.12
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawCircle(
+      center.translate(radius * 0.10, radius * 0.16),
+      radius,
+      Paint()..color = const Color(0x2A111827),
+    );
+    canvas.drawCircle(center, radius, Paint()..color = Colors.white);
+    canvas.drawCircle(center, radius, outline);
+
+    final patch = Path();
+    for (var index = 0; index < 5; index += 1) {
+      final angle = -math.pi / 2 + index * math.pi * 2 / 5;
+      final point =
+          center + Offset(math.cos(angle), math.sin(angle)) * radius * 0.36;
+      if (index == 0) {
+        patch.moveTo(point.dx, point.dy);
+      } else {
+        patch.lineTo(point.dx, point.dy);
+      }
+    }
+    patch.close();
+    canvas.drawPath(patch, Paint()..color = const Color(0xFF263241));
+
+    for (var index = 0; index < 5; index += 1) {
+      final angle = -math.pi / 2 + index * math.pi * 2 / 5;
+      final start =
+          center + Offset(math.cos(angle), math.sin(angle)) * radius * 0.38;
+      final end =
+          center + Offset(math.cos(angle), math.sin(angle)) * radius * 0.82;
+      canvas.drawLine(start, end, outline);
+    }
+  }
+
   void _drawSparkle(
     Canvas canvas, {
     required Offset center,
@@ -1078,6 +1143,7 @@ class _RinzyChibiPainter extends CustomPainter {
         oldDelegate.phase != phase ||
         oldDelegate.cheer != cheer ||
         oldDelegate.sad != sad ||
-        oldDelegate.crying != crying;
+        oldDelegate.crying != crying ||
+        oldDelegate.challenge != challenge;
   }
 }

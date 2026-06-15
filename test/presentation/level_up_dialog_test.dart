@@ -132,6 +132,50 @@ void main() {
     expect(painterTypes, contains('_GemCascadePainter'));
   });
 
+  testWidgets('training record saved screen opens when no xp is earned', (
+    tester,
+  ) async {
+    final state = PlayerLevelState.fromXp(65);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: FilledButton(
+                onPressed: () {
+                  showTrainingRecordSavedDialog(
+                    context,
+                    award: PlayerLevelAward(
+                      gainedXp: 0,
+                      before: state,
+                      after: state,
+                      reasons: const <String>['daily_xp_cap'],
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('훈련 기록 완료'), findsOneWidget);
+    expect(find.text('기록 완료'), findsOneWidget);
+    expect(find.text('저장 완료'), findsOneWidget);
+    expect(find.text('+0 XP'), findsNothing);
+  });
+
   testWidgets('training streak screen uses passion flame character', (
     tester,
   ) async {

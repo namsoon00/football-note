@@ -130,6 +130,28 @@ Future<void> showTrainingXpRewardDialog(
   );
 }
 
+Future<void> showTrainingRecordSavedDialog(
+  BuildContext context, {
+  required PlayerLevelAward award,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  final theme = Theme.of(context);
+  final scheme = theme.colorScheme;
+  final spec = award.gainedXp > 0
+      ? _TrainingXpDialogSpec.fromAward(l10n, scheme, award)
+      : _TrainingXpDialogSpec(
+          title: l10n.trainingXpDialogTitle,
+          message: l10n.trainingRecordSavedDialogMessage,
+          color: const Color(0xFF2563EB),
+        );
+  await _showTrainingXpRewardDialog(
+    context,
+    award: award,
+    spec: spec,
+    immersive: true,
+  );
+}
+
 Future<void> showDiaryXpRewardDialog(
   BuildContext context, {
   required PlayerLevelAward award,
@@ -570,6 +592,7 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final accent = spec.color;
+    final hasXpReward = award.gainedXp > 0;
     final topColor = Color.alphaBlend(
       accent.withValues(
         alpha: theme.brightness == Brightness.dark ? 0.28 : 0.18,
@@ -637,10 +660,14 @@ class _TrainingXpRewardFullScreen extends StatelessWidget {
                                   _TrainingGemRewardStage(
                                     color: accent,
                                     compact: compactHeight,
-                                    label: l10n.trainingXpDialogRewardLabel,
-                                    value: l10n.trainingXpDialogXp(
-                                      award.gainedXp,
-                                    ),
+                                    label: hasXpReward
+                                        ? l10n.trainingXpDialogRewardLabel
+                                        : l10n.trainingRecordSavedDialogLabel,
+                                    value: hasXpReward
+                                        ? l10n.trainingXpDialogXp(
+                                            award.gainedXp,
+                                          )
+                                        : l10n.trainingRecordSavedDialogValue,
                                   ),
                                   SizedBox(height: compactHeight ? 14 : 20),
                                   Text(
