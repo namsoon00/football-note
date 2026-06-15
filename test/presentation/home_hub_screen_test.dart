@@ -20,69 +20,59 @@ import 'package:football_note/presentation/screens/home_hub_screen.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
 
 void main() {
-  testWidgets('home quick actions and continue card use Japanese localization',
-      (
-    WidgetTester tester,
-  ) async {
-    final optionRepository = _MemoryOptionRepository();
-    final localeService = LocaleService(optionRepository)..load();
-    final settingsService = SettingsService(optionRepository)..load();
-    final trainingService = TrainingService(_MemoryTrainingRepository());
-    final mealLogService = MealLogService(optionRepository);
-    var openedLogs = false;
+  testWidgets(
+    'home quick actions and continue card use Japanese localization',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final trainingService = TrainingService(_MemoryTrainingRepository());
+      final mealLogService = MealLogService(optionRepository);
 
-    await tester.pumpWidget(
-      _buildApp(
-        HomeHubScreen(
-          trainingService: trainingService,
-          mealLogService: mealLogService,
-          localeService: localeService,
-          optionRepository: optionRepository,
-          settingsService: settingsService,
-          onCreate: () {},
-          onQuickPlan: () {},
-          onQuickMatch: () {},
-          onQuickQuiz: () {},
-          onQuickMeal: () {},
-          onQuickBoard: () {},
-          onOpenPlans: () {},
-          onOpenLogs: () => openedLogs = true,
-          onOpenDiary: () {},
-          onOpenWeeklyStats: () {},
-          onEdit: (_) {},
-          onEditTrainingBoard: (_) {},
-          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+      await tester.pumpWidget(
+        _buildApp(
+          HomeHubScreen(
+            trainingService: trainingService,
+            mealLogService: mealLogService,
+            localeService: localeService,
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+            onCreate: () {},
+            onQuickPlan: () {},
+            onQuickMatch: () {},
+            onQuickQuiz: () {},
+            onQuickMeal: () {},
+            onQuickBoard: () {},
+            onOpenPlans: () {},
+            onOpenLogs: () {},
+            onOpenDiary: () {},
+            onOpenWeeklyStats: () {},
+            onEdit: (_) {},
+            onEditTrainingBoard: (_) {},
+            onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+          ),
+          locale: const Locale('ja'),
         ),
-        locale: const Locale('ja'),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('クイック操作'), findsOneWidget);
-    expect(
-        find.byKey(const ValueKey('home-quick-action-logs')), findsOneWidget);
-    expect(find.text('ログ'), findsWidgets);
-    expect(find.text('試合を記録'), findsOneWidget);
-    expect(find.text('練習計画を追加'), findsOneWidget);
-    expect(find.text('続きから'), findsOneWidget);
-    expect(find.text('Quick actions'), findsNothing);
-    expect(find.text('Continue'), findsNothing);
+      expect(find.text('クイック操作'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('home-quick-action-logs')),
+        findsNothing,
+      );
+      expect(find.text('試合を記録'), findsOneWidget);
+      expect(find.text('練習計画を追加'), findsOneWidget);
+      expect(find.text('続きから'), findsOneWidget);
+      expect(find.text('Quick actions'), findsNothing);
+      expect(find.text('Continue'), findsNothing);
 
-    final logsQuickAction = find.byKey(
-      const ValueKey('home-quick-action-logs'),
-    );
-    await tester.ensureVisible(logsQuickAction);
-    await tester.pump();
-    await tester.tap(logsQuickAction);
-    await tester.pump();
-
-    expect(openedLogs, isTrue);
-
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump();
-  });
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
 
   testWidgets('today plan section can start a training log from plan', (
     WidgetTester tester,
@@ -829,10 +819,11 @@ class _MemoryTrainingRepository implements TrainingRepository {
     required bool includeMatches,
   }) {
     if (limit <= 0) return const <TrainingEntry>[];
-    final entries = _entries
-        .where((entry) => includeMatches || !entry.isMatch)
-        .toList(growable: false)
-      ..sort(TrainingEntry.compareByRecentCreated);
+    final entries =
+        _entries
+            .where((entry) => includeMatches || !entry.isMatch)
+            .toList(growable: false)
+          ..sort(TrainingEntry.compareByRecentCreated);
     if (entries.length <= limit) return entries;
     return entries.take(limit).toList(growable: false);
   }

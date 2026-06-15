@@ -24,8 +24,9 @@ String trainingEntryDurationLabel(TrainingEntry entry, AppLocalizations l10n) {
 
 List<String> trainingEntryConditioningParts(
   TrainingEntry entry,
-  AppLocalizations l10n,
-) {
+  AppLocalizations l10n, {
+  bool includeEmptyMessage = false,
+}) {
   final lifting = _liftingPartTotal(entry);
   final parts = <String>[];
   if (lifting > 0) {
@@ -49,6 +50,9 @@ List<String> trainingEntryConditioningParts(
       parts.add(l10n.challengeJumpRopeLabel);
     }
   }
+  if (parts.isEmpty && includeEmptyMessage) {
+    parts.add(l10n.trainingEntryConditioningEmpty);
+  }
   return parts;
 }
 
@@ -64,9 +68,18 @@ String trainingEntryWeatherLabel(TrainingEntry entry) {
 }
 
 String trainingEntryLocationWeatherLabel(TrainingEntry entry) {
-  final location = entry.location.trim();
-  final weather = trainingEntryWeatherLabel(entry);
-  return [location, weather].where((part) => part.isNotEmpty).join(' · ');
+  return trainingEntryWeatherLabel(entry);
+}
+
+String trainingEntryInjuryLabel(TrainingEntry entry, AppLocalizations l10n) {
+  if (!entry.injury) return '';
+  final parts = <String>[
+    entry.injuryPart.trim(),
+    if (entry.painLevel != null)
+      l10n.trainingEntryInjuryPainSummary(entry.painLevel!),
+  ].where((part) => part.isNotEmpty).toList(growable: false);
+  if (parts.isEmpty) return l10n.trainingEntryInjuryPresent;
+  return l10n.trainingEntryInjurySummary(parts.join(' · '));
 }
 
 String trainingEntryNotesWithoutWeather(TrainingEntry entry) {

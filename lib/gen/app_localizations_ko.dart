@@ -695,6 +695,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupMatchAwaitingUpdate => '결과 갱신 대기';
 
   @override
+  String get worldCupMatchAwaitingUpdateReason =>
+      '경기 종료 예상 시간이 지났지만 FIFA 공식 결과가 아직 반영되지 않았어요. 새로고침하거나 공식 페이지를 확인해 주세요.';
+
+  @override
   String get worldCupMatchResultFinal => '결과';
 
   @override
@@ -1391,6 +1395,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingRecordSavedDialogMessage => '기록이 저장됐어요.';
+
+  @override
+  String get trainingEntryConditioningEmpty => '줄넘기/리프팅 기록 없음';
+
+  @override
+  String get trainingEntryInjuryPresent => '부상 있음';
+
+  @override
+  String trainingEntryInjurySummary(String detail) {
+    return '부상: $detail';
+  }
+
+  @override
+  String trainingEntryInjuryPainSummary(int pain) {
+    return '통증 $pain/10';
+  }
 
   @override
   String get trainingXpDialogJumpRopeTitle => '줄넘기 기록 완료';

@@ -702,6 +702,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupMatchAwaitingUpdate => '結果更新待ち';
 
   @override
+  String get worldCupMatchAwaitingUpdateReason =>
+      '試合終了予定時刻を過ぎましたが、FIFA公式結果はまだ反映されていません。更新するか公式ページを確認してください。';
+
+  @override
   String get worldCupMatchResultFinal => '結果';
 
   @override
@@ -1399,6 +1403,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingRecordSavedDialogMessage => '記録を保存しました。';
+
+  @override
+  String get trainingEntryConditioningEmpty => '縄跳び/リフティングの記録なし';
+
+  @override
+  String get trainingEntryInjuryPresent => 'けがの記録あり';
+
+  @override
+  String trainingEntryInjurySummary(String detail) {
+    return 'けが: $detail';
+  }
+
+  @override
+  String trainingEntryInjuryPainSummary(int pain) {
+    return '痛み $pain/10';
+  }
 
   @override
   String get trainingXpDialogJumpRopeTitle => '縄跳び記録完了';

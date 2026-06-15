@@ -1374,6 +1374,12 @@ abstract class AppLocalizations {
   /// **'Awaiting result update'**
   String get worldCupMatchAwaitingUpdate;
 
+  /// No description provided for @worldCupMatchAwaitingUpdateReason.
+  ///
+  /// In en, this message translates to:
+  /// **'The estimated final whistle has passed, but FIFA official results have not been reflected yet. Refresh or check the official page.'**
+  String get worldCupMatchAwaitingUpdateReason;
+
   /// No description provided for @worldCupMatchResultFinal.
   ///
   /// In en, this message translates to:
@@ -2633,6 +2639,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Record saved.'**
   String get trainingRecordSavedDialogMessage;
+
+  /// No description provided for @trainingEntryConditioningEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No jump rope/lifting record'**
+  String get trainingEntryConditioningEmpty;
+
+  /// No description provided for @trainingEntryInjuryPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Injury recorded'**
+  String get trainingEntryInjuryPresent;
+
+  /// No description provided for @trainingEntryInjurySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Injury: {detail}'**
+  String trainingEntryInjurySummary(String detail);
+
+  /// No description provided for @trainingEntryInjuryPainSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Pain {pain}/10'**
+  String trainingEntryInjuryPainSummary(int pain);
 
   /// No description provided for @trainingXpDialogJumpRopeTitle.
   ///

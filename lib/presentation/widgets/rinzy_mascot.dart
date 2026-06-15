@@ -493,27 +493,28 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
                 alignment: Alignment.bottomCenter,
                 clipBehavior: Clip.none,
                 children: [
-                  Positioned(
-                    bottom: widget.size * 0.02,
-                    child: Transform.scale(
-                      scaleX: motion.shadowScale,
-                      child: Container(
-                        width: widget.size * 0.42,
-                        height: widget.size * 0.06,
-                        decoration: BoxDecoration(
-                          color: const Color(0x24152033),
-                          borderRadius: BorderRadius.circular(999),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x17152033),
-                              blurRadius: 10,
-                              spreadRadius: 1,
-                            ),
-                          ],
+                  if (!widget.useImage)
+                    Positioned(
+                      bottom: widget.size * 0.02,
+                      child: Transform.scale(
+                        scaleX: motion.shadowScale,
+                        child: Container(
+                          width: widget.size * 0.42,
+                          height: widget.size * 0.06,
+                          decoration: BoxDecoration(
+                            color: const Color(0x24152033),
+                            borderRadius: BorderRadius.circular(999),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x17152033),
+                                blurRadius: 10,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
                   Positioned.fill(
                     child: Padding(
                       padding: EdgeInsets.all(widget.size * 0.01),
@@ -689,8 +690,9 @@ class _RinzyChibiPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-    final bodyColor =
-        challenge ? const Color(0xFFF8C94B) : const Color(0xFFFBD35F);
+    final bodyColor = challenge
+        ? const Color(0xFFF8C94B)
+        : const Color(0xFFFBD35F);
     final bodyPaint = Paint()..color = bodyColor;
     final facePaint = Paint()
       ..color = challenge ? const Color(0xFFFFDC85) : const Color(0xFFFFD978);
