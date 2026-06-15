@@ -322,6 +322,273 @@ class _CryingRinzyMascotState extends State<CryingRinzyMascot>
   }
 }
 
+class ChallengeRinzyMascot extends StatelessWidget {
+  static const String assetPath = 'assets/images/challenge_rinzy_ready.png';
+
+  final double size;
+  final double progress;
+  final bool animate;
+
+  const ChallengeRinzyMascot({
+    super.key,
+    this.size = 112,
+    this.progress = 0,
+    this.animate = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _ChallengeRinzyAsset(
+      assetPath: assetPath,
+      size: size,
+      progress: progress,
+      animate: animate,
+      pose: _ChallengeRinzyPose.ready,
+    );
+  }
+}
+
+class ChallengeCheerRinzyMascot extends StatelessWidget {
+  static const String assetPath = 'assets/images/challenge_rinzy_cheer.png';
+
+  final double size;
+  final double progress;
+  final bool animate;
+
+  const ChallengeCheerRinzyMascot({
+    super.key,
+    this.size = 112,
+    this.progress = 1,
+    this.animate = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _ChallengeRinzyAsset(
+      assetPath: assetPath,
+      size: size,
+      progress: progress,
+      animate: animate,
+      pose: _ChallengeRinzyPose.cheer,
+    );
+  }
+}
+
+class ChallengeSadRinzyMascot extends StatelessWidget {
+  static const String assetPath = 'assets/images/challenge_rinzy_sad.png';
+
+  final double size;
+  final double progress;
+  final bool animate;
+
+  const ChallengeSadRinzyMascot({
+    super.key,
+    this.size = 112,
+    this.progress = 0,
+    this.animate = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _ChallengeRinzyAsset(
+      assetPath: assetPath,
+      size: size,
+      progress: progress,
+      animate: animate,
+      pose: _ChallengeRinzyPose.sad,
+    );
+  }
+}
+
+enum _ChallengeRinzyPose { ready, cheer, sad }
+
+class _ChallengeRinzyAsset extends StatefulWidget {
+  final String assetPath;
+  final double size;
+  final double progress;
+  final bool animate;
+  final _ChallengeRinzyPose pose;
+
+  const _ChallengeRinzyAsset({
+    required this.assetPath,
+    required this.size,
+    required this.progress,
+    required this.animate,
+    required this.pose,
+  });
+
+  @override
+  State<_ChallengeRinzyAsset> createState() => _ChallengeRinzyAssetState();
+}
+
+class _ChallengeRinzyAssetState extends State<_ChallengeRinzyAsset>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(
+        milliseconds: widget.pose == _ChallengeRinzyPose.cheer ? 900 : 1500,
+      ),
+    );
+    if (widget.animate) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(_ChallengeRinzyAsset oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.animate && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!widget.animate && _controller.isAnimating) {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      image: true,
+      child: RepaintBoundary(
+        child: SizedBox.square(
+          dimension: widget.size,
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              final phase = widget.animate ? _controller.value : 0.0;
+              final progress = widget.progress.clamp(0, 1).toDouble();
+              final motion = _challengeRinzyMotion(
+                widget.pose,
+                phase,
+                progress,
+                widget.size,
+              );
+
+              return Stack(
+                alignment: Alignment.bottomCenter,
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    bottom: widget.size * 0.02,
+                    child: Transform.scale(
+                      scaleX: motion.shadowScale,
+                      child: Container(
+                        width: widget.size * 0.42,
+                        height: widget.size * 0.06,
+                        decoration: BoxDecoration(
+                          color: const Color(0x24152033),
+                          borderRadius: BorderRadius.circular(999),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x17152033),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Padding(
+                      padding: EdgeInsets.all(widget.size * 0.01),
+                      child: Transform.translate(
+                        offset: Offset(motion.dx, motion.dy),
+                        child: Transform.rotate(
+                          angle: motion.rotation,
+                          child: Transform.scale(
+                            scale: motion.scale,
+                            child: Image.asset(
+                              widget.assetPath,
+                              fit: BoxFit.contain,
+                              filterQuality: FilterQuality.high,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.sports_soccer,
+                                  size: widget.size * 0.58,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+_ChallengeRinzyMotion _challengeRinzyMotion(
+  _ChallengeRinzyPose pose,
+  double phase,
+  double progress,
+  double size,
+) {
+  final wave = math.sin(phase * math.pi * 2);
+  switch (pose) {
+    case _ChallengeRinzyPose.ready:
+      final stride = math.sin(phase * math.pi * 4);
+      final hop = math.max(0.0, math.sin((phase + 0.08) * math.pi * 4));
+      return _ChallengeRinzyMotion(
+        dx: stride * size * 0.014,
+        dy: -hop * size * 0.036,
+        rotation: wave * (0.025 + progress * 0.01),
+        scale: 1 + hop * 0.016 + progress * 0.008,
+        shadowScale: 1 - hop * 0.10,
+      );
+    case _ChallengeRinzyPose.cheer:
+      final hop = math.max(0.0, math.sin(phase * math.pi * 4));
+      return _ChallengeRinzyMotion(
+        dx: wave * size * 0.012,
+        dy: -hop * size * 0.07,
+        rotation: wave * 0.045,
+        scale: 1 + hop * 0.026,
+        shadowScale: 1 - hop * 0.16,
+      );
+    case _ChallengeRinzyPose.sad:
+      final sigh = math.sin((phase + 0.15) * math.pi * 2);
+      return _ChallengeRinzyMotion(
+        dx: math.sin(phase * math.pi * 6) * size * 0.003,
+        dy: -((sigh + 1) * 0.5) * size * 0.012,
+        rotation: sigh * 0.012,
+        scale: 1,
+        shadowScale: 0.96,
+      );
+  }
+}
+
+class _ChallengeRinzyMotion {
+  final double dx;
+  final double dy;
+  final double rotation;
+  final double scale;
+  final double shadowScale;
+
+  const _ChallengeRinzyMotion({
+    required this.dx,
+    required this.dy,
+    required this.rotation,
+    required this.scale,
+    required this.shadowScale,
+  });
+}
+
 class _RinzyChibiPainter extends CustomPainter {
   final double progress;
   final double phase;
