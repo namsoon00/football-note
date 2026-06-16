@@ -345,61 +345,6 @@ class TrainingPlanReminderService {
       return;
     }
     if (await isAlarmMutedNow()) return;
-
-    final now = tz.TZDateTime.now(tz.local);
-    final reminderTime = _settings.reminderTime;
-    final isKo = _isKoLocale();
-    final scheduledIds = <int>[];
-    for (final round in progress.rounds) {
-      if (round.completed) continue;
-      final localDate = round.date;
-      final scheduledAt = tz.TZDateTime(
-        tz.local,
-        localDate.year,
-        localDate.month,
-        localDate.day,
-        reminderTime.hour,
-        reminderTime.minute,
-      );
-      if (!scheduledAt.isAfter(now)) continue;
-      final id = _notificationIdForScope(
-        'challenge',
-        '${progress.run.id}:${round.round.number}:'
-            '${localDate.year}${localDate.month}${localDate.day}',
-      );
-      try {
-        await _scheduleZonedReminder(
-          id: id,
-          title: _notificationTitle,
-          body: _challengeReminderBody(round, isKo: isKo),
-          scheduledAt: scheduledAt,
-          details: NotificationDetails(
-            android: AndroidNotificationDetails(
-              _settings.reminderVibrationEnabled
-                  ? _androidChannelIdVibrate
-                  : _androidChannelId,
-              _androidChannelName,
-              channelDescription: _androidChannelDescription,
-              importance: Importance.high,
-              priority: Priority.high,
-              enableVibration: _settings.reminderVibrationEnabled,
-              vibrationPattern: _settings.reminderVibrationEnabled
-                  ? _vibrationPattern
-                  : null,
-            ),
-            iOS: const DarwinNotificationDetails(),
-          ),
-          payload: NotificationAppLink.challengeRound(
-            runId: progress.run.id,
-            roundNumber: round.round.number,
-          ),
-        );
-        scheduledIds.add(id);
-      } catch (_) {
-        // Keep scheduling later challenge rounds even if one reminder fails.
-      }
-    }
-    await _options.setValue(challengeReminderIdsKey, scheduledIds);
   }
 
   Future<void> clearChallengeReminders() async {
@@ -889,75 +834,6 @@ class TrainingPlanReminderService {
     return isKo
         ? '훈련 기록을 남긴 지 시간이 지났어요.'
         : 'It has been a while since your last training log.';
-  }
-
-  String _challengeReminderBody(
-    ChallengeRoundProgress round, {
-    required bool isKo,
-  }) {
-    final missionParts = <String>[];
-    if (round.trainingPrograms.isEmpty) {
-      final remainingTraining =
-          (round.round.targetTrainingMinutes - round.trainingMinutes).clamp(
-            0,
-            round.round.targetTrainingMinutes,
-          );
-      if (remainingTraining > 0) {
-        missionParts.add(
-          isKo ? '훈련 $remainingTraining분' : 'training $remainingTraining min',
-        );
-      }
-    } else {
-      for (final program in round.trainingPrograms) {
-        final remaining = (program.targetMinutes - program.currentMinutes)
-            .clamp(0, program.targetMinutes);
-        if (remaining <= 0) continue;
-        missionParts.add(
-          isKo
-              ? '${program.label} $remaining분'
-              : '${program.label} $remaining min',
-        );
-      }
-    }
-    final remainingJumpRope =
-        (round.round.targetJumpRopeMinutes - round.jumpRopeMinutes).clamp(
-          0,
-          round.round.targetJumpRopeMinutes,
-        );
-    if (remainingJumpRope > 0) {
-      missionParts.add(
-        isKo ? '줄넘기 $remainingJumpRope분' : 'jump rope $remainingJumpRope min',
-      );
-    }
-    final remainingLifting =
-        (round.round.targetLiftingMinutes - round.liftingMinutes).clamp(
-          0,
-          round.round.targetLiftingMinutes,
-        );
-    if (remainingLifting > 0) {
-      missionParts.add(
-        isKo ? '리프팅 $remainingLifting분' : 'lifting $remainingLifting min',
-      );
-    }
-    final remainingMeal = (round.round.targetRiceBowls - round.riceBowls).clamp(
-      0,
-      round.round.targetRiceBowls,
-    );
-    if (remainingMeal > 0) {
-      final meal = _formatBowls(remainingMeal.toDouble());
-      missionParts.add(isKo ? '식사 $meal그릇' : 'meals $meal bowls');
-    }
-    final missionSummary = missionParts.isEmpty
-        ? (isKo ? '마지막 확인' : 'final check')
-        : missionParts.join(isKo ? ', ' : ', ');
-    return isKo
-        ? '린지가 기다려요. 오늘 ${round.round.number}라운드 남은 미션: $missionSummary.'
-        : 'Rinzy is waiting. Round ${round.round.number} remaining missions: $missionSummary.';
-  }
-
-  String _formatBowls(double value) {
-    final fixed = value.toStringAsFixed(1);
-    return fixed.endsWith('.0') ? fixed.substring(0, fixed.length - 2) : fixed;
   }
 
   int unreadReminderCountSync() {

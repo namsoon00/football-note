@@ -310,9 +310,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         (sum, award) => sum + award.gainedXp,
       );
       if (!mounted) return;
-      if (gainedXp > 0) {
-        _showChallengeXpAlertsInBackground(awards, gainedXp);
-      }
       if (!presentResult) {
         setState(() {});
         return;
@@ -400,7 +397,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       final roundGainedXp = gainedXp - completionGainedXp;
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      if (gainedXp > 0) {
+      if (gainedXp > 0 && progress.allRoundsCompleted) {
         _showChallengeXpAlertsInBackground(awards, gainedXp);
       }
       if (!presentResult) {
@@ -661,9 +658,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           .length
           .clamp(0, progress.rounds.length)
           .toInt();
-      if (gainedXp > 0) {
-        _showChallengeXpAlertsInBackground(awards, gainedXp);
-      }
     }
     await _challengeService.abandonActiveRun(
       completedRoundNumbers: completedRoundNumbers,

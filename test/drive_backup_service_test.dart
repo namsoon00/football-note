@@ -800,6 +800,38 @@ void main() {
     },
   );
 
+  test('role mode change resets local backup status', () async {
+    final familyService = FamilyAccessService(HiveOptionRepository(optionBox));
+    await optionBox.put('drive_last_backup', '2026-04-18T09:00:00.000');
+    await optionBox.put(
+      'drive_last_record_backup_v1',
+      '2026-04-18T09:00:00.000',
+    );
+    await optionBox.put(
+      'drive_previous_backup_created_at_v1',
+      '2026-04-17T09:00:00.000',
+    );
+    await service.recordFamilySyncPushForTesting(DateTime(2026, 4, 18, 10));
+    await service.recordFamilySyncPullForTesting(DateTime(2026, 4, 18, 11));
+    await service.markParentSharedDataDirtyForTesting();
+    await familyService.recordSharedBackupSync(
+      role: FamilyRole.child,
+      syncedAt: DateTime(2026, 4, 18, 12),
+    );
+
+    await service.setCurrentFamilyRole(FamilyRole.parent);
+
+    final state = familyService.loadState();
+    expect(state.currentRole, FamilyRole.parent);
+    expect(service.getLastBackup(), isNull);
+    expect(service.getPreviousBackupCreatedAt(), isNull);
+    expect(service.getLastFamilySyncPush(), isNull);
+    expect(service.getLastFamilyRefresh(), isNull);
+    expect(service.hasPendingParentSharedChanges(), isFalse);
+    expect(state.lastSharedSyncAt, isNull);
+    expect(state.lastSharedSyncRole, isNull);
+  });
+
   test(
     'parent merge keeps remote entries and updates family layer only',
     () async {
@@ -1372,6 +1404,9 @@ void main() {
   test(
     'player account switch without remote backup clears stale local data',
     () async {
+      final familyService = FamilyAccessService(
+        HiveOptionRepository(optionBox),
+      );
       await optionBox.put(
         DriveBackupService.recordDriveEmailLocalKey,
         'old@example.com',
@@ -1397,6 +1432,22 @@ void main() {
         'custom_diary_entries_v3',
         '{"2026-04-18":{"body":"old diary"}}',
       );
+      await optionBox.put('drive_last_backup', '2026-04-18T09:00:00.000');
+      await optionBox.put(
+        'drive_last_record_backup_v1',
+        '2026-04-18T09:00:00.000',
+      );
+      await optionBox.put(
+        'drive_previous_backup_created_at_v1',
+        '2026-04-17T09:00:00.000',
+      );
+      await service.recordFamilySyncPushForTesting(DateTime(2026, 4, 18, 10));
+      await service.recordFamilySyncPullForTesting(DateTime(2026, 4, 18, 11));
+      await service.markParentSharedDataDirtyForTesting();
+      await familyService.recordSharedBackupSync(
+        role: FamilyRole.child,
+        syncedAt: DateTime(2026, 4, 18, 12),
+      );
 
       final switchedAccount = await service.syncConnectedPlayerBackupForTesting(
         connectedAccount: const DriveConnectionInfo(
@@ -1420,6 +1471,14 @@ void main() {
         'new@example.com',
       );
       expect(service.hasLocalPreRestoreBackup(), isTrue);
+      expect(service.getLastBackup(), isNull);
+      expect(service.getPreviousBackupCreatedAt(), isNull);
+      expect(service.getLastFamilySyncPush(), isNull);
+      expect(service.getLastFamilyRefresh(), isNull);
+      expect(service.hasPendingParentSharedChanges(), isFalse);
+      final state = familyService.loadState();
+      expect(state.lastSharedSyncAt, isNull);
+      expect(state.lastSharedSyncRole, isNull);
     },
   );
 }
