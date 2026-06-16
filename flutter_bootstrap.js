@@ -43,9 +43,9 @@ const removeLoadingIndicator = () => {
   }
 };
 
-const webAssetVersion = '20260616f';
-const legacyCleanupKey = 'football-note:legacy-flutter-cleanup:v4';
-const legacyCleanupReloadKey = 'football-note:legacy-flutter-cleanup-reload:v4';
+const webAssetVersion = '20260616g';
+const legacyCleanupKey = 'football-note:legacy-flutter-cleanup:v5';
+const legacyCleanupReloadKey = 'football-note:legacy-flutter-cleanup-reload:v5';
 
 if (window._flutter?.buildConfig?.builds) {
   window._flutter.buildConfig.builds = window._flutter.buildConfig.builds.map(
@@ -95,7 +95,7 @@ const installSelfRemovingServiceWorker = async () => {
 
   try {
     const cleanupWorkerUrl = new URL(
-      'flutter_service_worker.js?cleanup=v4',
+      'flutter_service_worker.js?cleanup=v5',
       document.baseURI
     ).toString();
     const registration = await navigator.serviceWorker.register(
