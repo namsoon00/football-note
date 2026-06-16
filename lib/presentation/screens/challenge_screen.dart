@@ -3736,42 +3736,64 @@ class _RoundCalendarRinzyStatus extends StatelessWidget {
     }
     return SizedBox.square(
       dimension: size,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
+      child: Column(
         children: [
+          Expanded(
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: size * 0.08,
+                    bottom: size * 0.02,
+                  ),
+                  child: ChallengeRinzyMascot(
+                    size: size * 0.70,
+                    progress: progress,
+                    animate: false,
+                  ),
+                ),
+                PositionedDirectional(
+                  top: size * 0.03,
+                  end: size * 0.03,
+                  child: _RoundCalendarCurrentIndicator(
+                    key: ValueKey(
+                      'challenge-current-round-indicator-'
+                      '${round.round.number}',
+                    ),
+                    label: l10n.challengePendingBadge,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Padding(
-            padding: EdgeInsets.only(top: size * 0.14, bottom: size * 0.12),
-            child: ChallengeRinzyMascot(
-              size: size * 0.78,
-              progress: progress,
-              animate: false,
-            ),
-          ),
-          PositionedDirectional(
-            top: 0,
-            start: 0,
-            end: 0,
-            child: _RoundCalendarStatusBadge(
-              key: ValueKey(
-                'challenge-current-round-badge-${round.round.number}',
+            padding: EdgeInsets.only(bottom: size * 0.03),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.primary.withValues(alpha: 0.11),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: scheme.primary.withValues(alpha: 0.20),
+                ),
               ),
-              label: l10n.challengePendingBadge,
-            ),
-          ),
-          PositionedDirectional(
-            bottom: 0,
-            start: 0,
-            end: 0,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                l10n.challengeRoundTitle(round.round.number),
-                maxLines: 1,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: size * 0.08,
+                  vertical: size * 0.025,
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    l10n.challengeRoundTitle(round.round.number),
+                    maxLines: 1,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                      height: 1,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -3782,48 +3804,38 @@ class _RoundCalendarRinzyStatus extends StatelessWidget {
   }
 }
 
-class _RoundCalendarStatusBadge extends StatelessWidget {
+class _RoundCalendarCurrentIndicator extends StatelessWidget {
   final String label;
 
-  const _RoundCalendarStatusBadge({super.key, required this.label});
+  const _RoundCalendarCurrentIndicator({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.primary,
-        borderRadius: BorderRadius.circular(999),
-        boxShadow: [
-          BoxShadow(
-            color: scheme.primary.withValues(alpha: 0.22),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.play_arrow_rounded, size: 12, color: scheme.onPrimary),
-            const SizedBox(width: 2),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: scheme.onPrimary,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
-                ),
+    final scheme = Theme.of(context).colorScheme;
+    return Semantics(
+      label: label,
+      child: Tooltip(
+        message: label,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: scheme.primary,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: scheme.primary.withValues(alpha: 0.22),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Icon(
+              Icons.play_arrow_rounded,
+              size: 13,
+              color: scheme.onPrimary,
             ),
-          ],
+          ),
         ),
       ),
     );
