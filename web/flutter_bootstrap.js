@@ -2,10 +2,14 @@
 {{flutter_build_config}}
 
 const removeLoadingIndicator = () => {
-  document.getElementById('app-loading')?.remove();
+  const loadingIndicator = document.getElementById('app-loading');
+  if (loadingIndicator) {
+    loadingIndicator.remove();
+  }
 };
 
-const legacyCleanupKey = 'football-note:legacy-flutter-cleanup:v1';
+const legacyCleanupKey = 'football-note:legacy-flutter-cleanup:v2';
+const legacyCleanupReloadKey = 'football-note:legacy-flutter-cleanup-reload:v2';
 
 const shouldRunLegacyCleanup = () => {
   try {
@@ -23,36 +27,82 @@ const markLegacyCleanupDone = () => {
   }
 };
 
-const clearLegacyFlutterServiceWorker = async () => {
+const shouldReloadAfterLegacyCleanup = () => {
+  try {
+    return window.sessionStorage.getItem(legacyCleanupReloadKey) !== 'done';
+  } catch (_) {
+    return true;
+  }
+};
+
+const markLegacyCleanupReloaded = () => {
+  try {
+    window.sessionStorage.setItem(legacyCleanupReloadKey, 'done');
+  } catch (_) {
+    // A reload loop guard is best effort only.
+  }
+};
+
+const installSelfRemovingServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) {
-    return;
+    return false;
+  }
+
+  try {
+    const cleanupWorkerUrl = new URL(
+      'flutter_service_worker.js?cleanup=v2',
+      document.baseURI
+    ).toString();
+    const registration = await navigator.serviceWorker.register(
+      cleanupWorkerUrl
+    );
+    await registration.update();
+    return true;
+  } catch (error) {
+    console.warn('Unable to install Flutter service worker cleanup.', error);
+    return false;
+  }
+};
+
+const clearLegacyFlutterServiceWorker = async () => {
+  let removedLegacyState = false;
+
+  if (!('serviceWorker' in navigator)) {
+    return removedLegacyState;
   }
 
   try {
     const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(
-      registrations.map((registration) => registration.unregister()),
-    );
+    removedLegacyState =
+      registrations.length > 0 || Boolean(navigator.serviceWorker.controller);
+    if (removedLegacyState) {
+      const installedCleanupWorker = await installSelfRemovingServiceWorker();
+      if (!installedCleanupWorker) {
+        await Promise.all(
+          registrations.map((registration) => registration.unregister()),
+        );
+      }
+    }
   } catch (error) {
     console.warn('Unable to unregister legacy Flutter service worker.', error);
   }
 
   if (!window.caches) {
-    return;
+    return removedLegacyState;
   }
 
   try {
     const cacheNames = await caches.keys();
-    await Promise.all(
-      cacheNames
-        .filter(
-          (name) => name.includes('flutter') || name.includes('football-note'),
-        )
-        .map((name) => caches.delete(name)),
+    const flutterCacheNames = cacheNames.filter(
+      (name) => name.includes('flutter') || name.includes('football-note'),
     );
+    removedLegacyState = removedLegacyState || flutterCacheNames.length > 0;
+    await Promise.all(flutterCacheNames.map((name) => caches.delete(name)));
   } catch (error) {
     console.warn('Unable to clear legacy Flutter caches.', error);
   }
+
+  return removedLegacyState;
 };
 
 const loadFlutterApp = () => {
@@ -61,15 +111,30 @@ const loadFlutterApp = () => {
       useLocalCanvasKit: false,
     },
     onEntrypointLoaded: async (engineInitializer) => {
+      const loadingOverlayWatchdog = window.setTimeout(
+        removeLoadingIndicator,
+        12000
+      );
       const appRunner = await engineInitializer.initializeEngine();
-      await appRunner.runApp();
+      const runApp = appRunner.runApp();
+      window.setTimeout(removeLoadingIndicator, 1500);
+      await runApp;
+      window.clearTimeout(loadingOverlayWatchdog);
       removeLoadingIndicator();
     },
   });
 };
 
 const startupCleanup = shouldRunLegacyCleanup()
-  ? clearLegacyFlutterServiceWorker().finally(markLegacyCleanupDone)
+  ? clearLegacyFlutterServiceWorker().then((removedLegacyState) => {
+      markLegacyCleanupDone();
+      if (removedLegacyState && shouldReloadAfterLegacyCleanup()) {
+        markLegacyCleanupReloaded();
+        window.location.reload();
+        return new Promise(() => {});
+      }
+      return undefined;
+    })
   : Promise.resolve();
 
 startupCleanup
