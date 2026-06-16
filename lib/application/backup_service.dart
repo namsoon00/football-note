@@ -247,6 +247,14 @@ class BackupService {
     }
   }
 
+  Future<bool> setCurrentFamilyRole(FamilyRole role) async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.setCurrentFamilyRole(role);
+      return true;
+    }
+    return false;
+  }
+
   Future<void> markParentSharedDataDirty() async {
     if (_repository case final DriveBackupService drive) {
       await drive.markParentSharedDataDirty();

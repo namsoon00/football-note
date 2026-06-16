@@ -1796,7 +1796,12 @@ class _SettingsScreenState extends State<SettingsScreen>
         : FamilyRole.child;
     final familyService = FamilyAccessService(widget.optionRepository);
     final currentState = familyService.loadState();
-    await familyService.setCurrentRole(targetRole);
+    final roleHandledByBackup =
+        await widget.driveBackupService?.setCurrentFamilyRole(targetRole) ??
+        false;
+    if (!roleHandledByBackup) {
+      await familyService.setCurrentRole(targetRole);
+    }
     if (!mounted) return;
     _scrollToTopAfterLayout();
     setState(() {});

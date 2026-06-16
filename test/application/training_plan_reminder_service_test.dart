@@ -16,13 +16,12 @@ void main() {
 
   setUp(() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      timezoneChannel,
-      (call) async {
-        if (call.method == 'getLocalTimezone') return 'Asia/Seoul';
-        return <String>[];
-      },
-    );
+    binding.defaultBinaryMessenger.setMockMethodCallHandler(timezoneChannel, (
+      call,
+    ) async {
+      if (call.method == 'getLocalTimezone') return 'Asia/Seoul';
+      return <String>[];
+    });
     binding.defaultBinaryMessenger.setMockMethodCallHandler(
       notificationsChannel,
       (call) async {
@@ -53,31 +52,33 @@ void main() {
     );
   });
 
-  test('settings-driven reminder sync does not reload settings recursively',
-      () async {
-    final repository = _MemoryOptionRepository()
-      ..seed('reminder_enabled', false);
-    final settings = SettingsService(repository)..load();
-    final reminderService = TrainingPlanReminderService(repository, settings);
-    final syncs = <Future<void>>[];
-    var notifications = 0;
+  test(
+    'settings-driven reminder sync does not reload settings recursively',
+    () async {
+      final repository = _MemoryOptionRepository()
+        ..seed('reminder_enabled', false);
+      final settings = SettingsService(repository)..load();
+      final reminderService = TrainingPlanReminderService(repository, settings);
+      final syncs = <Future<void>>[];
+      var notifications = 0;
 
-    settings.addListener(() {
-      notifications += 1;
-      syncs.add(reminderService.syncSettingsDrivenReminders());
-    });
+      settings.addListener(() {
+        notifications += 1;
+        syncs.add(reminderService.syncSettingsDrivenReminders());
+      });
 
-    settings.load();
-    await Future.wait(syncs);
+      settings.load();
+      await Future.wait(syncs);
 
-    expect(notifications, 1);
-  });
+      expect(notifications, 1);
+    },
+  );
 
-  test('challenge reminders schedule one notification per remaining round',
-      () async {
+  test('challenge reminders do not schedule per-round notifications', () async {
     final repository = _MemoryOptionRepository()
       ..seed('reminder_enabled', true)
-      ..seed('reminder_time', '07:30');
+      ..seed('reminder_time', '07:30')
+      ..seed(TrainingPlanReminderService.challengeReminderIdsKey, <int>[1, 2]);
     final settings = SettingsService(repository)..load();
     final reminderService = TrainingPlanReminderService(repository, settings);
     final startDay = DateTime.now().add(const Duration(days: 2));
@@ -109,26 +110,31 @@ void main() {
     final ids = repository.getValue<List>(
       TrainingPlanReminderService.challengeReminderIdsKey,
     );
-    expect(ids, hasLength(3));
+    expect(ids, isEmpty);
   });
 
-  test('challenge reminder sync clears stored ids when there is no active run',
-      () async {
-    final repository = _MemoryOptionRepository()
-      ..seed('reminder_enabled', true)
-      ..seed(TrainingPlanReminderService.challengeReminderIdsKey, <int>[1, 2]);
-    final settings = SettingsService(repository)..load();
-    final reminderService = TrainingPlanReminderService(repository, settings);
+  test(
+    'challenge reminder sync clears stored ids when there is no active run',
+    () async {
+      final repository = _MemoryOptionRepository()
+        ..seed('reminder_enabled', true)
+        ..seed(TrainingPlanReminderService.challengeReminderIdsKey, <int>[
+          1,
+          2,
+        ]);
+      final settings = SettingsService(repository)..load();
+      final reminderService = TrainingPlanReminderService(repository, settings);
 
-    await reminderService.syncChallengeReminders(null);
+      await reminderService.syncChallengeReminders(null);
 
-    expect(
-      repository.getValue<List>(
-        TrainingPlanReminderService.challengeReminderIdsKey,
-      ),
-      isEmpty,
-    );
-  });
+      expect(
+        repository.getValue<List>(
+          TrainingPlanReminderService.challengeReminderIdsKey,
+        ),
+        isEmpty,
+      );
+    },
+  );
 }
 
 class _MemoryOptionRepository implements OptionRepository {
