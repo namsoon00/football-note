@@ -3856,7 +3856,7 @@ class _RoundCalendarRinzyCelebration extends StatelessWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          ChallengeCheerRinzyMascot(size: size, progress: 1, animate: false),
+          ChallengeCheerRinzyMascot(size: size, progress: 1),
         ],
       ),
     );
