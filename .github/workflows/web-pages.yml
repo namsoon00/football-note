@@ -44,7 +44,12 @@ jobs:
         run: flutter gen-l10n
 
       - name: Build web
-        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+        run: >
+          flutter build web
+          --release
+          --base-href "/${{ github.event.repository.name }}/"
+          --web-resources-cdn
+          --no-wasm-dry-run
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
