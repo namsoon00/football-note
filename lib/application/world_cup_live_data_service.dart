@@ -180,7 +180,7 @@ class WorldCupLiveDataService {
     if (officialMatch == null) return fixture;
     if (officialMatch.status != FifaAMatchStatus.finished ||
         !officialMatch.hasScore) {
-      return fixture.copyWithScore(homeScore: null, awayScore: null);
+      return fixture;
     }
     final sameDirection =
         _teamKey(fixture.homeTeam) == _teamKey(officialMatch.homeTeamName) &&
@@ -218,20 +218,44 @@ class WorldCupLiveDataService {
     final normalized = value
         .trim()
         .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('à', 'a')
+        .replaceAll('â', 'a')
+        .replaceAll('ã', 'a')
+        .replaceAll('å', 'a')
         .replaceAll('é', 'e')
         .replaceAll('è', 'e')
         .replaceAll('ê', 'e')
         .replaceAll('í', 'i')
         .replaceAll('ï', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ò', 'o')
         .replaceAll('ô', 'o')
         .replaceAll('ö', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ù', 'u')
         .replaceAll('ü', 'u')
+        .replaceAll('ı', 'i')
         .replaceAll('ç', 'c')
+        .replaceAll('’', "'")
         .replaceAll(RegExp(r'\s+'), ' ');
     return switch (normalized) {
       "cote d'ivoire" => 'ivory coast',
       'cote divoire' => 'ivory coast',
+      'cabo verde' => 'cape verde',
+      'cape verde' => 'cape verde',
+      'czech republic' => 'czechia',
+      'czechia' => 'czechia',
+      'dr congo' => 'congo dr',
+      'congo dr' => 'congo dr',
+      'democratic republic of congo' => 'congo dr',
+      'iran' => 'iran',
+      'ir iran' => 'iran',
+      'turkey' => 'turkiye',
+      'turkiye' => 'turkiye',
       'united states' => 'usa',
+      'united states of america' => 'usa',
+      'usa' => 'usa',
       _ => normalized,
     };
   }

@@ -18,8 +18,8 @@ class FifaWorldOverviewService {
   final bool _ownsClient;
 
   FifaWorldOverviewService({http.Client? client})
-    : _client = client ?? http.Client(),
-      _ownsClient = client == null;
+      : _client = client ?? http.Client(),
+        _ownsClient = client == null;
 
   void dispose() {
     if (_ownsClient) {
@@ -54,9 +54,8 @@ class FifaWorldOverviewService {
 
   Future<KfaMatchOverview> fetchKfaMatchOverview({int limit = 8}) async {
     try {
-      final response = await _client
-          .get(_kfaHomeUri)
-          .timeout(const Duration(seconds: 8));
+      final response =
+          await _client.get(_kfaHomeUri).timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
         return const KfaMatchOverview(
           recentResults: <KfaMatchEntry>[],
@@ -75,12 +74,21 @@ class FifaWorldOverviewService {
   Future<FifaWorldOverview> fetchRankingOverview({
     required FifaRankingGender gender,
   }) async {
-    final rankings = await _fetchRankings(gender);
+    final scheduleFuture = _fetchRankingSchedules(gender);
+    final metadataFuture = _fetchRankingPageMetadata(gender);
+
+    final schedules = await scheduleFuture;
+    final rankings = await _fetchLatestRankings(gender, schedules);
+    final metadata = await metadataFuture;
+
     return FifaWorldOverview(
       gender: gender,
       rankings: rankings,
-      lastUpdatedAt: rankings.firstOrNull?.publishedAt,
-      nextUpdatedAt: null,
+      lastUpdatedAt: metadata.lastUpdatedAt ??
+          rankings.firstOrNull?.publishedAt ??
+          schedules.firstOrNull?.visibilityDate ??
+          schedules.firstOrNull?.officialDate,
+      nextUpdatedAt: metadata.nextUpdatedAt,
       recentResults: const <FifaAMatchEntry>[],
       upcomingFixtures: const <FifaAMatchEntry>[],
     );
@@ -122,9 +130,8 @@ class FifaWorldOverviewService {
       queryParameters: {'language': 'en'},
     );
     try {
-      final response = await _client
-          .get(uri)
-          .timeout(const Duration(seconds: 8));
+      final response =
+          await _client.get(uri).timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
         return null;
       }
@@ -142,9 +149,8 @@ class FifaWorldOverviewService {
       queryParameters: {'language': 'en'},
     );
     try {
-      final response = await _client
-          .get(uri)
-          .timeout(const Duration(seconds: 8));
+      final response =
+          await _client.get(uri).timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
         return null;
       }
@@ -234,17 +240,16 @@ class FifaWorldOverviewService {
   Future<_FifaRankingSnapshot> _fetchRankingSnapshot(
     FifaRankingGender gender,
   ) async {
-    final rankingFuture = _fetchRankings(gender);
     final scheduleFuture = _fetchRankingSchedules(gender);
     final metadataFuture = _fetchRankingPageMetadata(gender);
 
-    final rankings = await rankingFuture;
     final schedules = await scheduleFuture;
+    final rankings = await _fetchLatestRankings(gender, schedules);
     final metadata = await metadataFuture;
 
-    final lastUpdatedAt =
-        metadata.lastUpdatedAt ??
+    final lastUpdatedAt = metadata.lastUpdatedAt ??
         rankings.firstOrNull?.publishedAt ??
+        schedules.firstOrNull?.visibilityDate ??
         schedules.firstOrNull?.officialDate;
     final nextUpdatedAt = metadata.nextUpdatedAt;
 
@@ -280,20 +285,23 @@ class FifaWorldOverviewService {
   }
 
   Future<List<FifaRankingEntry>> _fetchRankings(
-    FifaRankingGender gender,
-  ) async {
+    FifaRankingGender gender, {
+    String? scheduleId,
+  }) async {
+    final queryParameters = {
+      'gender': '${gender.apiValue}',
+      'count': '$_rankingPageSize',
+      'language': 'en',
+      if (scheduleId != null && scheduleId.trim().isNotEmpty)
+        'idSchedule': scheduleId.trim(),
+    };
     final uri = _baseApiUri.replace(
       path: '${_baseApiUri.path}/rankings/',
-      queryParameters: {
-        'gender': '${gender.apiValue}',
-        'count': '$_rankingPageSize',
-        'language': 'en',
-      },
+      queryParameters: queryParameters,
     );
     try {
-      final response = await _client
-          .get(uri)
-          .timeout(const Duration(seconds: 8));
+      final response =
+          await _client.get(uri).timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
         return const <FifaRankingEntry>[];
       }
@@ -301,6 +309,23 @@ class FifaWorldOverviewService {
     } catch (_) {
       return const <FifaRankingEntry>[];
     }
+  }
+
+  Future<List<FifaRankingEntry>> _fetchLatestRankings(
+    FifaRankingGender gender,
+    List<_FifaRankingSchedule> schedules,
+  ) async {
+    final latestScheduleId = schedules.firstOrNull?.id;
+    if (latestScheduleId != null && latestScheduleId.isNotEmpty) {
+      final scheduledRankings = await _fetchRankings(
+        gender,
+        scheduleId: latestScheduleId,
+      );
+      if (scheduledRankings.isNotEmpty) {
+        return scheduledRankings;
+      }
+    }
+    return _fetchRankings(gender);
   }
 
   Future<List<_FifaRankingSchedule>> _fetchRankingSchedules(
@@ -316,9 +341,8 @@ class FifaWorldOverviewService {
       },
     );
     try {
-      final response = await _client
-          .get(uri)
-          .timeout(const Duration(seconds: 8));
+      final response =
+          await _client.get(uri).timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) {
         return const <_FifaRankingSchedule>[];
       }
@@ -771,8 +795,15 @@ class FifaWorldOverviewService {
     for (final raw in decoded['Results'] as List<dynamic>) {
       if (raw is! Map) continue;
       final item = raw.cast<String, dynamic>();
+      final id = _firstNonEmpty([
+        _asString(item['IdRankingSchedule']),
+        _asString(item['IdSchedule']),
+      ]);
       final officialDate = DateTime.tryParse(
         _asString(item['OfficialDate']),
+      ).toUtcOrNull();
+      final visibilityDate = DateTime.tryParse(
+        _asString(item['VisibilityDate']),
       ).toUtcOrNull();
       final matchWindowEndDate = _parseDateOnlyUtc(item['MatchWindowEndDate']);
       if (officialDate == null || matchWindowEndDate == null) {
@@ -780,7 +811,9 @@ class FifaWorldOverviewService {
       }
       items.add(
         _FifaRankingSchedule(
+          id: id,
           officialDate: officialDate,
+          visibilityDate: visibilityDate,
           matchWindowEndDate: matchWindowEndDate,
         ),
       );
@@ -1021,8 +1054,7 @@ class FifaWorldOverviewService {
       if (raw is! Map) continue;
       final goal = raw.cast<String, dynamic>();
       final playerId = _asString(goal['IdPlayer']);
-      final playerName =
-          playerNames[playerId] ??
+      final playerName = playerNames[playerId] ??
           _firstNonEmpty([
             _localizedDescription(goal['PlayerName']),
             _localizedDescription(goal['ScorerName']),
@@ -1205,11 +1237,15 @@ class FifaWorldOverviewService {
 }
 
 class _FifaRankingSchedule {
+  final String id;
   final DateTime officialDate;
+  final DateTime? visibilityDate;
   final DateTime matchWindowEndDate;
 
   const _FifaRankingSchedule({
+    required this.id,
     required this.officialDate,
+    required this.visibilityDate,
     required this.matchWindowEndDate,
   });
 }

@@ -183,7 +183,8 @@ void main() {
 
     final fallback = FifaWorldOverviewService.parseNationalMatches([
       raw,
-    ], gender: FifaRankingGender.men).single;
+    ], gender: FifaRankingGender.men)
+        .single;
     final detail = FifaWorldOverviewService.parseFifaMatchDetail(
       raw,
       fallback: fallback,
@@ -365,13 +366,16 @@ void main() {
     },
   );
 
-  test('fetchRankingOverview only requests the ranking endpoint', () async {
+  test('fetchRankingOverview requests the latest official ranking schedule',
+      () async {
     var scheduleRequested = false;
     var metadataRequested = false;
     var liveFeedRequested = false;
+    String? requestedScheduleId;
     final client = MockClient((request) async {
       if (request.url.host == 'api.fifa.com' &&
           request.url.path.endsWith('/rankings/')) {
+        requestedScheduleId = request.url.queryParameters['idSchedule'];
         return http.Response(
           jsonEncode({
             'Results': [
@@ -380,10 +384,10 @@ void main() {
                 'IdCountry': 'ARG',
                 'ConfederationName': 'CONMEBOL',
                 'Rank': 1,
-                'PrevRank': 1,
-                'DecimalTotalPoints': 2040.71,
-                'DecimalPrevPoints': 2040.71,
-                'PubDate': '2026-04-03T00:00:00Z',
+                'PrevRank': 3,
+                'DecimalTotalPoints': 1877.27,
+                'DecimalPrevPoints': 1874.81,
+                'PubDate': '2026-06-11T10:00:00Z',
                 'TeamName': [
                   {'Locale': 'en', 'Description': 'Argentina'},
                 ],
@@ -401,8 +405,16 @@ void main() {
           jsonEncode({
             'Results': [
               {
-                'OfficialDate': '2026-04-03T00:00:00Z',
-                'MatchWindowEndDate': '2026-04-01',
+                'IdRankingSchedule': 'id15136',
+                'OfficialDate': '2026-06-11T00:00:00Z',
+                'VisibilityDate': '2026-06-11T10:00:00Z',
+                'MatchWindowEndDate': '2026-06-10',
+              },
+              {
+                'IdRankingSchedule': 'id15065',
+                'OfficialDate': '2026-04-01T00:00:00Z',
+                'VisibilityDate': '2026-04-01T13:00:00Z',
+                'MatchWindowEndDate': '2026-03-31',
               },
             ],
           }),
@@ -412,7 +424,13 @@ void main() {
 
       if (request.url.host == 'inside.fifa.com') {
         metadataRequested = true;
-        return http.Response('"lastUpdateDate":"2026-04-03T00:00:00Z"', 200);
+        return http.Response(
+          '''
+          "lastUpdateDate":"2026-06-11T10:00:59.636Z",
+          "nextUpdateDate":"2026-07-20T00:00:00.000Z"
+          ''',
+          200,
+        );
       }
 
       if (request.url.host == 'api.fifa.com' &&
@@ -430,10 +448,13 @@ void main() {
 
     expect(overview.rankings, hasLength(1));
     expect(overview.leader?.teamName, 'Argentina');
+    expect(overview.lastUpdatedAt, DateTime.utc(2026, 6, 11, 10, 0, 59, 636));
+    expect(overview.nextUpdatedAt, DateTime.utc(2026, 7, 20));
     expect(overview.recentResults, isEmpty);
     expect(overview.upcomingFixtures, isEmpty);
-    expect(scheduleRequested, isFalse);
-    expect(metadataRequested, isFalse);
+    expect(scheduleRequested, isTrue);
+    expect(metadataRequested, isTrue);
+    expect(requestedScheduleId, 'id15136');
     expect(liveFeedRequested, isFalse);
   });
 
