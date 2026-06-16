@@ -74,6 +74,32 @@ void main() {
                   awayScore: 0,
                   calendarShape: true,
                 ),
+                _worldCupMatch(
+                  matchId: 'official-spain-calendar',
+                  matchNumber: 14,
+                  period: 10,
+                  date: '2026-06-15T16:00:00Z',
+                  homeName: 'Spain',
+                  homeCode: 'ESP',
+                  awayName: 'Cabo Verde',
+                  awayCode: 'CPV',
+                  homeScore: 0,
+                  awayScore: 0,
+                  calendarShape: true,
+                ),
+                _worldCupMatch(
+                  matchId: 'official-iran-calendar',
+                  matchNumber: 15,
+                  period: 10,
+                  date: '2026-06-16T01:00:00Z',
+                  homeName: 'IR Iran',
+                  homeCode: 'IRN',
+                  awayName: 'New Zealand',
+                  awayCode: 'NZL',
+                  homeScore: 2,
+                  awayScore: 2,
+                  calendarShape: true,
+                ),
               ],
             }),
             200,
@@ -119,6 +145,30 @@ void main() {
                   homeScore: 2,
                   awayScore: 0,
                 ),
+                _worldCupMatch(
+                  matchId: 'official-spain',
+                  matchNumber: 14,
+                  period: 10,
+                  date: '2026-06-15T16:00:00Z',
+                  homeName: 'Spain',
+                  homeCode: 'ESP',
+                  awayName: 'Cabo Verde',
+                  awayCode: 'CPV',
+                  homeScore: 0,
+                  awayScore: 0,
+                ),
+                _worldCupMatch(
+                  matchId: 'official-iran',
+                  matchNumber: 15,
+                  period: 10,
+                  date: '2026-06-16T01:00:00Z',
+                  homeName: 'IR Iran',
+                  homeCode: 'IRN',
+                  awayName: 'New Zealand',
+                  awayCode: 'NZL',
+                  homeScore: 2,
+                  awayScore: 2,
+                ),
               ],
             }),
             200,
@@ -132,10 +182,10 @@ void main() {
         start: DateTime.utc(2026, 6, 11, 7),
         end: DateTime.utc(2026, 6, 15, 5),
       );
-      expect(fetchedMatches, hasLength(3));
+      expect(fetchedMatches, hasLength(5));
       final service = WorldCupLiveDataService(fifaService: fifaService);
 
-      final data = await service.fetchLatest(now: DateTime.utc(2026, 6, 14, 5));
+      final data = await service.fetchLatest(now: DateTime.utc(2026, 6, 16, 5));
 
       final brazil = data.fixtures.firstWhere(
         (fixture) =>
@@ -145,14 +195,34 @@ void main() {
         (fixture) =>
             fixture.homeTeam == 'Australia' && fixture.awayTeam == 'Turkiye',
       );
+      final spain = data.fixtures.firstWhere(
+        (fixture) =>
+            fixture.homeTeam == 'Spain' && fixture.awayTeam == 'Cape Verde',
+      );
+      final iran = data.fixtures.firstWhere(
+        (fixture) =>
+            fixture.homeTeam == 'Iran' && fixture.awayTeam == 'New Zealand',
+      );
 
       expect(brazil.homeScore, 1);
       expect(brazil.awayScore, 1);
       expect(australia.homeScore, 2);
       expect(australia.awayScore, 0);
+      expect(spain.homeScore, 0);
+      expect(spain.awayScore, 0);
+      expect(iran.homeScore, 2);
+      expect(iran.awayScore, 2);
       expect(
         data.officialMatchesByFixtureNumber[brazil.matchNumber]?.matchNumber,
         7,
+      );
+      expect(
+        data.officialMatchesByFixtureNumber[spain.matchNumber]?.matchNumber,
+        14,
+      );
+      expect(
+        data.officialMatchesByFixtureNumber[iran.matchNumber]?.matchNumber,
+        15,
       );
       expect(requestedCompetitionMatches, isNotEmpty);
       expect(requestedRanges, isNotEmpty);
