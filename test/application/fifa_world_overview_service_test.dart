@@ -47,6 +47,34 @@ void main() {
     expect(entries.last.rankMovement, 1);
   });
 
+  test('parseRankingEntries accepts live FIFA ranking fields', () {
+    final entries = FifaWorldOverviewService.parseRankingEntries({
+      'Results': [
+        {
+          'IdTeam': '43822',
+          'IdCountry': 'KOR',
+          'ConfederationName': 'AFC',
+          'Rank': 21,
+          'PrevRank': 25,
+          'TotalPoints': 1612.547459,
+          'PrevPoints': 1591.630886,
+          'TeamName': [
+            {'Locale': 'en-GB', 'Description': 'Korea Republic'},
+          ],
+        },
+      ],
+    });
+
+    expect(entries, hasLength(1));
+    expect(entries.single.teamName, 'Korea Republic');
+    expect(entries.single.rank, 21);
+    expect(entries.single.previousRank, 25);
+    expect(entries.single.rankMovement, 4);
+    expect(entries.single.points, closeTo(1612.547459, 0.000001));
+    expect(entries.single.previousPoints, closeTo(1591.630886, 0.000001));
+    expect(entries.single.publishedAt, isNull);
+  });
+
   test('parseNationalMatches keeps only senior national-team fixtures', () {
     final menMatches = FifaWorldOverviewService.parseNationalMatches([
       _match(
@@ -366,13 +394,105 @@ void main() {
     },
   );
 
-  test('fetchRankingOverview requests the latest official ranking schedule',
+  test('fetchRankingOverview prefers the official live ranking feed', () async {
+    var scheduleRequested = false;
+    var metadataRequested = false;
+    var liveRankingRequested = false;
+    var scheduledRankingRequested = false;
+    final client = MockClient((request) async {
+      if (request.url.host == 'api.fifa.com' &&
+          request.url.path.endsWith('/fifarankings/rankings/live')) {
+        liveRankingRequested = true;
+        return http.Response(
+          jsonEncode({
+            'Results': [
+              {
+                'IdTeam': '43822',
+                'IdCountry': 'KOR',
+                'ConfederationName': 'AFC',
+                'Rank': 21,
+                'PrevRank': 25,
+                'TotalPoints': 1612.547459,
+                'PrevPoints': 1591.630886,
+                'TeamName': [
+                  {'Locale': 'en', 'Description': 'Korea Republic'},
+                ],
+              },
+            ],
+          }),
+          200,
+        );
+      }
+
+      if (request.url.host == 'api.fifa.com' &&
+          request.url.path.endsWith('/rankings/')) {
+        scheduledRankingRequested = true;
+        return http.Response('Unexpected scheduled ranking request', 500);
+      }
+
+      if (request.url.host == 'api.fifa.com' &&
+          request.url.path.endsWith('/rankingschedules/all')) {
+        scheduleRequested = true;
+        return http.Response(
+          jsonEncode({
+            'Results': [
+              {
+                'IdRankingSchedule': 'id15136',
+                'OfficialDate': '2026-06-11T00:00:00Z',
+                'VisibilityDate': '2026-06-11T10:00:00Z',
+                'MatchWindowEndDate': '2026-06-10',
+              },
+            ],
+          }),
+          200,
+        );
+      }
+
+      if (request.url.host == 'inside.fifa.com') {
+        metadataRequested = true;
+        return http.Response(
+          '''
+          "lastUpdateDate":"2026-06-11T10:00:59.636Z",
+          "nextUpdateDate":"2026-07-20T00:00:00.000Z"
+          ''',
+          200,
+        );
+      }
+
+      return http.Response('Not found', 404);
+    });
+
+    final service = FifaWorldOverviewService(client: client);
+    final overview = await service.fetchRankingOverview(
+      gender: FifaRankingGender.men,
+    );
+
+    expect(overview.rankings, hasLength(1));
+    expect(overview.rankings.single.teamName, 'Korea Republic');
+    expect(overview.rankings.single.rank, 21);
+    expect(overview.rankings.single.rankMovement, 4);
+    expect(overview.lastUpdatedAt, DateTime.utc(2026, 6, 11, 10, 0, 59, 636));
+    expect(overview.nextUpdatedAt, DateTime.utc(2026, 7, 20));
+    expect(scheduleRequested, isTrue);
+    expect(metadataRequested, isTrue);
+    expect(liveRankingRequested, isTrue);
+    expect(scheduledRankingRequested, isFalse);
+  });
+
+  test('fetchRankingOverview falls back to the latest official schedule',
       () async {
     var scheduleRequested = false;
     var metadataRequested = false;
+    var liveRankingRequested = false;
     var liveFeedRequested = false;
     String? requestedScheduleId;
     final client = MockClient((request) async {
+      if (request.url.host == 'api.fifa.com' &&
+          request.url.path.endsWith('/fifarankings/rankings/live')) {
+        liveRankingRequested = true;
+        return http.Response('Unavailable', 503);
+      }
+
       if (request.url.host == 'api.fifa.com' &&
           request.url.path.endsWith('/rankings/')) {
         requestedScheduleId = request.url.queryParameters['idSchedule'];
@@ -454,6 +574,7 @@ void main() {
     expect(overview.upcomingFixtures, isEmpty);
     expect(scheduleRequested, isTrue);
     expect(metadataRequested, isTrue);
+    expect(liveRankingRequested, isTrue);
     expect(requestedScheduleId, 'id15136');
     expect(liveFeedRequested, isFalse);
   });

@@ -8,6 +8,7 @@ class FifaWorldOverviewService {
   static final Uri _baseApiUri = Uri.parse('https://api.fifa.com/api/v3');
   static final Uri _kfaHomeUri = Uri.parse('https://www.kfa.or.kr/');
   static const int _rankingPageSize = 250;
+  static const int _footballSportType = 0;
   static const int _matchPageSize = 100;
   static const int _matchPageLimit = 16;
   static const int _competitionMatchPageLimit = 6;
@@ -311,10 +312,38 @@ class FifaWorldOverviewService {
     }
   }
 
+  Future<List<FifaRankingEntry>> _fetchLiveRankings(
+    FifaRankingGender gender,
+  ) async {
+    final uri = _baseApiUri.replace(
+      path: '${_baseApiUri.path}/fifarankings/rankings/live',
+      queryParameters: {
+        'gender': '${gender.apiValue}',
+        'sportType': '$_footballSportType',
+        'language': 'en',
+      },
+    );
+    try {
+      final response =
+          await _client.get(uri).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) {
+        return const <FifaRankingEntry>[];
+      }
+      return parseRankingEntries(jsonDecode(response.body));
+    } catch (_) {
+      return const <FifaRankingEntry>[];
+    }
+  }
+
   Future<List<FifaRankingEntry>> _fetchLatestRankings(
     FifaRankingGender gender,
     List<_FifaRankingSchedule> schedules,
   ) async {
+    final liveRankings = await _fetchLiveRankings(gender);
+    if (liveRankings.isNotEmpty) {
+      return liveRankings;
+    }
+
     final latestScheduleId = schedules.firstOrNull?.id;
     if (latestScheduleId != null && latestScheduleId.isNotEmpty) {
       final scheduledRankings = await _fetchRankings(
@@ -503,8 +532,10 @@ class FifaWorldOverviewService {
       final confederation = _asString(item['ConfederationName']);
       final rank = _asInt(item['Rank']);
       final previousRank = _asInt(item['PrevRank']);
-      final points = _asDouble(item['DecimalTotalPoints']);
-      final previousPoints = _asDouble(item['DecimalPrevPoints']);
+      final points = _asDouble(item['DecimalTotalPoints']) ??
+          _asDouble(item['TotalPoints']);
+      final previousPoints =
+          _asDouble(item['DecimalPrevPoints']) ?? _asDouble(item['PrevPoints']);
       if (teamName.isEmpty ||
           countryCode.isEmpty ||
           teamId.isEmpty ||
