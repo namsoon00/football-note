@@ -3725,121 +3725,297 @@ class _RoundCalendarRinzyStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final progress = round.missionCompletionRate;
     if (failed) {
       return SizedBox.square(
         dimension: size,
         child: ChallengeSadRinzyMascot(size: size),
       );
     }
+    return _RoundCalendarActiveRinzy(round: round, size: size);
+  }
+}
+
+class _RoundCalendarActiveRinzy extends StatefulWidget {
+  final ChallengeRoundProgress round;
+  final double size;
+
+  const _RoundCalendarActiveRinzy({required this.round, required this.size});
+
+  @override
+  State<_RoundCalendarActiveRinzy> createState() =>
+      _RoundCalendarActiveRinzyState();
+}
+
+class _RoundCalendarActiveRinzyState extends State<_RoundCalendarActiveRinzy>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final progress = widget.round.missionCompletionRate.clamp(0, 1).toDouble();
     return SizedBox.square(
-      dimension: size,
-      child: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: size * 0.08,
-                    bottom: size * 0.02,
-                  ),
-                  child: ChallengeRinzyMascot(
-                    size: size * 0.70,
-                    progress: progress,
-                    animate: false,
-                  ),
-                ),
-                PositionedDirectional(
-                  top: size * 0.03,
-                  end: size * 0.03,
-                  child: _RoundCalendarCurrentIndicator(
-                    key: ValueKey(
-                      'challenge-current-round-indicator-'
-                      '${round.round.number}',
-                    ),
-                    label: l10n.challengePendingBadge,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(bottom: size * 0.03),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: scheme.primary.withValues(alpha: 0.11),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: scheme.primary.withValues(alpha: 0.20),
-                ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: size * 0.08,
-                  vertical: size * 0.025,
-                ),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    l10n.challengeRoundTitle(round.round.number),
-                    maxLines: 1,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w900,
-                      height: 1,
+      dimension: widget.size,
+      child: Semantics(
+        label: '${l10n.challengePendingBadge}, '
+            '${l10n.challengeRoundTitle(widget.round.round.number)}',
+        image: true,
+        child: RepaintBoundary(
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              return Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: _RoundCalendarActiveBackdropPainter(
+                          progress: progress,
+                          phase: _controller.value,
+                          primary: scheme.primary,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: widget.size * 0.04,
+                      bottom: widget.size * 0.09,
+                    ),
+                    child: ChallengeRinzyMascot(
+                      size: widget.size * 0.82,
+                      progress: progress,
+                      showSoccerBall: false,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _RoundCalendarCurrentIndicator extends StatelessWidget {
-  final String label;
+class _RoundCalendarActiveBackdropPainter extends CustomPainter {
+  final double progress;
+  final double phase;
+  final Color primary;
 
-  const _RoundCalendarCurrentIndicator({super.key, required this.label});
+  const _RoundCalendarActiveBackdropPainter({
+    required this.progress,
+    required this.phase,
+    required this.primary,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Semantics(
-      label: label,
-      child: Tooltip(
-        message: label,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: scheme.primary,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: scheme.primary.withValues(alpha: 0.22),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(4),
-            child: Icon(
-              Icons.play_arrow_rounded,
-              size: 13,
-              color: scheme.onPrimary,
-            ),
-          ),
-        ),
-      ),
+  void paint(Canvas canvas, Size size) {
+    final unit = size.shortestSide;
+    if (unit <= 0) return;
+
+    final safeProgress = progress.clamp(0, 1).toDouble();
+    final pulse = 0.5 + math.sin(phase * math.pi * 2) * 0.5;
+    final center = Offset(size.width * 0.50, size.height * 0.47);
+    final activeGreen = Color.lerp(primary, const Color(0xFF22C55E), 0.72)!;
+    final activeBlue = Color.lerp(primary, const Color(0xFF38BDF8), 0.62)!;
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          activeGreen.withValues(alpha: 0.26 + pulse * 0.08),
+          activeBlue.withValues(alpha: 0.14),
+          Colors.transparent,
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: unit * 0.50));
+    canvas.drawCircle(center, unit * 0.50, glowPaint);
+
+    final ringRect = Rect.fromCircle(
+      center: center,
+      radius: unit * (0.37 + pulse * 0.010),
     );
+    final ringTrack = Paint()
+      ..color = Colors.white.withValues(alpha: 0.55)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * 0.026
+      ..strokeCap = StrokeCap.round;
+    final ringProgress = Paint()
+      ..shader = SweepGradient(
+        startAngle: -math.pi * 0.82,
+        endAngle: math.pi * 1.02,
+        colors: [activeBlue, activeGreen],
+      ).createShader(ringRect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * 0.030
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(ringRect, -math.pi * 0.82, math.pi * 1.64, false, ringTrack);
+    canvas.drawArc(
+      ringRect,
+      -math.pi * 0.82,
+      math.pi * 1.64 * (0.22 + safeProgress * 0.78),
+      false,
+      ringProgress,
+    );
+
+    _drawPlaySignal(canvas, size, unit, activeGreen, pulse);
+    _drawMissionTrail(
+        canvas, size, unit, activeGreen, activeBlue, safeProgress);
+    _drawMotionLine(
+      canvas,
+      size,
+      unit,
+      y: 0.35,
+      width: 0.18,
+      alpha: 0.18 + pulse * 0.08,
+      color: activeBlue,
+    );
+    _drawMotionLine(
+      canvas,
+      size,
+      unit,
+      y: 0.42,
+      width: 0.13,
+      alpha: 0.16,
+      color: activeGreen,
+    );
+  }
+
+  void _drawPlaySignal(
+    Canvas canvas,
+    Size size,
+    double unit,
+    Color color,
+    double pulse,
+  ) {
+    final center = Offset(size.width * 0.77, size.height * 0.21);
+    canvas.drawCircle(
+      center,
+      unit * (0.074 + pulse * 0.007),
+      Paint()..color = color.withValues(alpha: 0.18 + pulse * 0.08),
+    );
+    canvas.drawCircle(
+      center,
+      unit * 0.050,
+      Paint()..color = color.withValues(alpha: 0.92),
+    );
+
+    final triangle = Path()
+      ..moveTo(center.dx - unit * 0.012, center.dy - unit * 0.018)
+      ..lineTo(center.dx - unit * 0.012, center.dy + unit * 0.018)
+      ..lineTo(center.dx + unit * 0.020, center.dy)
+      ..close();
+    canvas.drawPath(
+      triangle,
+      Paint()..color = Colors.white.withValues(alpha: 0.94),
+    );
+  }
+
+  void _drawMissionTrail(
+    Canvas canvas,
+    Size size,
+    double unit,
+    Color activeGreen,
+    Color activeBlue,
+    double safeProgress,
+  ) {
+    final start = Offset(size.width * 0.24, size.height * 0.82);
+    final end = Offset(size.width * 0.76, size.height * 0.82);
+    final trackPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.52)
+      ..strokeWidth = unit * 0.030
+      ..strokeCap = StrokeCap.round;
+    final progressPaint = Paint()
+      ..color = activeGreen.withValues(alpha: 0.78)
+      ..strokeWidth = unit * 0.030
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(start, end, trackPaint);
+    canvas.drawLine(
+        start, Offset.lerp(start, end, safeProgress)!, progressPaint);
+
+    for (var index = 0; index < 3; index += 1) {
+      final threshold = index / 2;
+      final nodeProgress = index == 0 ? 0.0 : (index == 1 ? 0.5 : 1.0);
+      final nodeCenter = Offset.lerp(start, end, nodeProgress)!;
+      final filled = safeProgress >= threshold || index == 0;
+      final paint = Paint()
+        ..color = filled
+            ? Color.lerp(activeGreen, activeBlue, index * 0.20)!.withValues(
+                alpha: 0.94,
+              )
+            : Colors.white.withValues(alpha: 0.78);
+      canvas.drawCircle(nodeCenter, unit * 0.055, paint);
+      canvas.drawCircle(
+        nodeCenter,
+        unit * 0.055,
+        Paint()
+          ..color = activeGreen.withValues(alpha: filled ? 0.18 : 0.10)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = unit * 0.012,
+      );
+      if (filled) {
+        final checkPaint = Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = unit * 0.010
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round;
+        final check = Path()
+          ..moveTo(nodeCenter.dx - unit * 0.020, nodeCenter.dy)
+          ..lineTo(nodeCenter.dx - unit * 0.006, nodeCenter.dy + unit * 0.014)
+          ..lineTo(nodeCenter.dx + unit * 0.023, nodeCenter.dy - unit * 0.018);
+        canvas.drawPath(check, checkPaint);
+      }
+    }
+  }
+
+  void _drawMotionLine(
+    Canvas canvas,
+    Size size,
+    double unit, {
+    required double y,
+    required double width,
+    required double alpha,
+    required Color color,
+  }) {
+    final start = Offset(size.width * 0.19, size.height * y);
+    final end = Offset(size.width * (0.19 + width), size.height * (y - 0.04));
+    final paint = Paint()
+      ..color = color.withValues(alpha: alpha)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * 0.014
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromPoints(start, end),
+      math.pi * 0.08,
+      math.pi * 0.82,
+      false,
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(
+      covariant _RoundCalendarActiveBackdropPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.phase != phase ||
+        oldDelegate.primary != primary;
   }
 }
 

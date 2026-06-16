@@ -329,6 +329,7 @@ class ChallengeRinzyMascot extends StatelessWidget {
   final double progress;
   final bool animate;
   final bool useImage;
+  final bool showSoccerBall;
 
   const ChallengeRinzyMascot({
     super.key,
@@ -336,6 +337,7 @@ class ChallengeRinzyMascot extends StatelessWidget {
     this.progress = 0,
     this.animate = true,
     this.useImage = false,
+    this.showSoccerBall = true,
   });
 
   @override
@@ -346,6 +348,7 @@ class ChallengeRinzyMascot extends StatelessWidget {
       animate: animate,
       pose: _ChallengeRinzyPose.ready,
       useImage: useImage,
+      showSoccerBall: showSoccerBall,
     );
   }
 }
@@ -418,6 +421,7 @@ class _ChallengeRinzyCharacter extends StatefulWidget {
   final _ChallengeRinzyPose pose;
   final bool useImage;
   final bool showCheerSticks;
+  final bool showSoccerBall;
 
   const _ChallengeRinzyCharacter({
     required this.size,
@@ -426,6 +430,7 @@ class _ChallengeRinzyCharacter extends StatefulWidget {
     required this.pose,
     required this.useImage,
     this.showCheerSticks = true,
+    this.showSoccerBall = true,
   });
 
   @override
@@ -544,6 +549,7 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
                                         progress: progress,
                                         phase: phase,
                                         showCheerSticks: widget.showCheerSticks,
+                                        showSoccerBall: widget.showSoccerBall,
                                       );
                                     },
                                   )
@@ -552,6 +558,7 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
                                     progress: progress,
                                     phase: phase,
                                     showCheerSticks: widget.showCheerSticks,
+                                    showSoccerBall: widget.showSoccerBall,
                                   ),
                           ),
                         ),
@@ -584,12 +591,14 @@ class _PaintedChallengeRinzyPose extends StatelessWidget {
   final double progress;
   final double phase;
   final bool showCheerSticks;
+  final bool showSoccerBall;
 
   const _PaintedChallengeRinzyPose({
     required this.pose,
     required this.progress,
     required this.phase,
     this.showCheerSticks = true,
+    this.showSoccerBall = true,
   });
 
   @override
@@ -604,6 +613,7 @@ class _PaintedChallengeRinzyPose extends StatelessWidget {
         sad: pose == _ChallengeRinzyPose.sad,
         crying: pose == _ChallengeRinzyPose.sad,
         challenge: true,
+        showSoccerBall: showSoccerBall,
       ),
     );
   }
@@ -745,6 +755,7 @@ class _RinzyChibiPainter extends CustomPainter {
   final bool sad;
   final bool crying;
   final bool challenge;
+  final bool showSoccerBall;
 
   const _RinzyChibiPainter({
     required this.progress,
@@ -754,6 +765,7 @@ class _RinzyChibiPainter extends CustomPainter {
     this.sad = false,
     this.crying = false,
     this.challenge = false,
+    this.showSoccerBall = true,
   });
 
   @override
@@ -918,7 +930,7 @@ class _RinzyChibiPainter extends CustomPainter {
         alpha: 0.42 + progress * 0.18,
       );
     }
-    if (!sad && !cheer) {
+    if (!sad && !cheer && showSoccerBall) {
       _drawSoccerBall(
         canvas,
         center: Offset(size.width * 0.73, size.height * 0.78),
@@ -1393,6 +1405,7 @@ class _RinzyChibiPainter extends CustomPainter {
         oldDelegate.showCheerSticks != showCheerSticks ||
         oldDelegate.sad != sad ||
         oldDelegate.crying != crying ||
-        oldDelegate.challenge != challenge;
+        oldDelegate.challenge != challenge ||
+        oldDelegate.showSoccerBall != showSoccerBall;
   }
 }
