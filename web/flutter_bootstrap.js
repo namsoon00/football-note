@@ -1,0 +1,58 @@
+{{flutter_js}}
+{{flutter_build_config}}
+
+const removeLoadingIndicator = () => {
+  document.getElementById('app-loading')?.remove();
+};
+
+const clearLegacyFlutterServiceWorker = async () => {
+  if (!('serviceWorker' in navigator)) {
+    return;
+  }
+
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(
+      registrations.map((registration) => registration.unregister()),
+    );
+  } catch (error) {
+    console.warn('Unable to unregister legacy Flutter service worker.', error);
+  }
+
+  if (!window.caches) {
+    return;
+  }
+
+  try {
+    const cacheNames = await caches.keys();
+    await Promise.all(
+      cacheNames
+        .filter(
+          (name) => name.includes('flutter') || name.includes('football-note'),
+        )
+        .map((name) => caches.delete(name)),
+    );
+  } catch (error) {
+    console.warn('Unable to clear legacy Flutter caches.', error);
+  }
+};
+
+const loadFlutterApp = () => {
+  return _flutter.loader.load({
+    config: {
+      useLocalCanvasKit: false,
+    },
+    onEntrypointLoaded: async (engineInitializer) => {
+      const appRunner = await engineInitializer.initializeEngine();
+      await appRunner.runApp();
+      removeLoadingIndicator();
+    },
+  });
+};
+
+clearLegacyFlutterServiceWorker()
+  .then(loadFlutterApp)
+  .catch((error) => {
+    console.warn('Flutter web startup cleanup failed.', error);
+    return loadFlutterApp();
+  });
