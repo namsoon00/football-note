@@ -591,6 +591,7 @@ class _PaintedChallengeRinzyPose extends StatelessWidget {
         phase: phase,
         cheer: pose == _ChallengeRinzyPose.cheer,
         sad: pose == _ChallengeRinzyPose.sad,
+        crying: pose == _ChallengeRinzyPose.sad,
         challenge: true,
       ),
     );
@@ -756,7 +757,7 @@ class _RinzyChibiPainter extends CustomPainter {
       size.height * (1 - cheerPulse) / (2 * cheerPulse),
     );
 
-    if (cheer) {
+    if (cheer && !challenge) {
       canvas.drawOval(
         Rect.fromCenter(
           center: Offset(size.width * 0.50, size.height * 0.90),
@@ -868,16 +869,28 @@ class _RinzyChibiPainter extends CustomPainter {
     );
 
     if (cheer) {
-      final leftPom = Offset(
-        size.width * 0.22,
-        size.height * (0.39 + cheerWave * 0.035),
+      final leftStick = Offset(
+        size.width * 0.25,
+        size.height * (0.43 + cheerWave * 0.018),
       );
-      final rightPom = Offset(
-        size.width * 0.78,
-        size.height * (0.39 - cheerWave * 0.035),
+      final rightStick = Offset(
+        size.width * 0.75,
+        size.height * (0.43 - cheerWave * 0.018),
       );
-      _drawPomPom(canvas, leftPom, unit * 0.13, phase + 0.10);
-      _drawPomPom(canvas, rightPom, unit * 0.13, phase + 0.60);
+      _drawSpinningCheerStick(
+        canvas,
+        center: leftStick,
+        unit: unit,
+        spin: phase + 0.10,
+        color: const Color(0xFFFFC857),
+      );
+      _drawSpinningCheerStick(
+        canvas,
+        center: rightStick,
+        unit: unit,
+        spin: -phase + 0.35,
+        color: const Color(0xFF7DD3FC),
+      );
       _drawSparkle(
         canvas,
         center: Offset(size.width * 0.50, size.height * 0.10),
@@ -1252,30 +1265,46 @@ class _RinzyChibiPainter extends CustomPainter {
     }
   }
 
-  void _drawPomPom(Canvas canvas, Offset center, double radius, double spin) {
-    final colors = <Color>[
-      const Color(0xFFFFD85C),
-      const Color(0xFFFF7AAE),
-      const Color(0xFF66D9FF),
-      Colors.white,
-    ];
-    for (var i = 0; i < 18; i++) {
-      final angle = spin * math.pi * 2 + i * math.pi * 2 / 18;
-      final color = colors[i % colors.length];
-      final paint = Paint()
-        ..color = color.withValues(alpha: 0.86)
-        ..strokeWidth = radius * 0.12
-        ..strokeCap = StrokeCap.round;
-      canvas.drawLine(
-        center,
-        Offset(
-          center.dx + math.cos(angle) * radius,
-          center.dy + math.sin(angle) * radius,
-        ),
-        paint,
-      );
-    }
-    canvas.drawCircle(center, radius * 0.24, Paint()..color = Colors.white);
+  void _drawSpinningCheerStick(
+    Canvas canvas, {
+    required Offset center,
+    required double unit,
+    required double spin,
+    required Color color,
+  }) {
+    final angle = spin * math.pi * 2;
+    final orbitRadius = unit * 0.105;
+    final orbitPaint = Paint()
+      ..color = color.withValues(alpha: 0.24)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * 0.012
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: orbitRadius),
+      angle - math.pi * 0.70,
+      math.pi * 1.42,
+      false,
+      orbitPaint,
+    );
+
+    final direction = Offset(math.cos(angle), math.sin(angle));
+    final start = center - direction * unit * 0.090;
+    final end = center + direction * unit * 0.090;
+    final glowPaint = Paint()
+      ..color = color.withValues(alpha: 0.28)
+      ..strokeWidth = unit * 0.052
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7);
+    final stickPaint = Paint()
+      ..color = color
+      ..strokeWidth = unit * 0.025
+      ..strokeCap = StrokeCap.round;
+    final capPaint = Paint()..color = Colors.white.withValues(alpha: 0.90);
+
+    canvas.drawLine(start, end, glowPaint);
+    canvas.drawLine(start, end, stickPaint);
+    canvas.drawCircle(start, unit * 0.020, capPaint);
+    canvas.drawCircle(end, unit * 0.020, capPaint);
   }
 
   void _drawSoccerBall(

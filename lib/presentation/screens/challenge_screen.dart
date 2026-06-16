@@ -3731,7 +3731,7 @@ class _RoundCalendarRinzyStatus extends StatelessWidget {
     if (failed) {
       return SizedBox.square(
         dimension: size,
-        child: ChallengeSadRinzyMascot(size: size, animate: false),
+        child: ChallengeSadRinzyMascot(size: size),
       );
     }
     return SizedBox.square(
