@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -3842,24 +3843,143 @@ class _RoundCalendarCurrentIndicator extends StatelessWidget {
   }
 }
 
-class _RoundCalendarRinzyCelebration extends StatelessWidget {
+class _RoundCalendarRinzyCelebration extends StatefulWidget {
   final double size;
 
   const _RoundCalendarRinzyCelebration({required this.size});
 
   @override
+  State<_RoundCalendarRinzyCelebration> createState() =>
+      _RoundCalendarRinzyCelebrationState();
+}
+
+class _RoundCalendarRinzyCelebrationState
+    extends State<_RoundCalendarRinzyCelebration>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 760),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          ChallengeCheerRinzyMascot(size: size, progress: 1),
-        ],
+      width: widget.size,
+      height: widget.size,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          return Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              ChallengeCheerRinzyMascot(
+                size: widget.size,
+                progress: 1,
+                animate: false,
+                showCheerSticks: false,
+              ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: _RoundCalendarCheerStickSpinnerPainter(
+                      phase: _controller.value,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
+  }
+}
+
+class _RoundCalendarCheerStickSpinnerPainter extends CustomPainter {
+  final double phase;
+
+  const _RoundCalendarCheerStickSpinnerPainter({required this.phase});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final unit = size.shortestSide;
+    if (unit <= 0) return;
+
+    _drawSpinnerStick(
+      canvas,
+      center: Offset(size.width * 0.25, size.height * 0.43),
+      angle: phase * math.pi * 2,
+      color: const Color(0xFFFFC857),
+      unit: unit,
+    );
+    _drawSpinnerStick(
+      canvas,
+      center: Offset(size.width * 0.75, size.height * 0.43),
+      angle: -phase * math.pi * 2 + math.pi * 0.72,
+      color: const Color(0xFF7DD3FC),
+      unit: unit,
+    );
+  }
+
+  void _drawSpinnerStick(
+    Canvas canvas, {
+    required Offset center,
+    required double angle,
+    required Color color,
+    required double unit,
+  }) {
+    final orbitRadius = unit * 0.13;
+    final orbitPaint = Paint()
+      ..color = color.withValues(alpha: 0.28)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * 0.014
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: orbitRadius),
+      angle - math.pi * 0.80,
+      math.pi * 1.55,
+      false,
+      orbitPaint,
+    );
+
+    final direction = Offset(math.cos(angle), math.sin(angle));
+    final start = center - direction * unit * 0.10;
+    final end = center + direction * unit * 0.10;
+    final glowPaint = Paint()
+      ..color = color.withValues(alpha: 0.30)
+      ..strokeWidth = unit * 0.060
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7);
+    final stickPaint = Paint()
+      ..color = color
+      ..strokeWidth = unit * 0.030
+      ..strokeCap = StrokeCap.round;
+    final capPaint = Paint()..color = Colors.white.withValues(alpha: 0.92);
+
+    canvas.drawLine(start, end, glowPaint);
+    canvas.drawLine(start, end, stickPaint);
+    canvas.drawCircle(start, unit * 0.022, capPaint);
+    canvas.drawCircle(end, unit * 0.022, capPaint);
+  }
+
+  @override
+  bool shouldRepaint(
+    covariant _RoundCalendarCheerStickSpinnerPainter oldDelegate,
+  ) {
+    return oldDelegate.phase != phase;
   }
 }
 

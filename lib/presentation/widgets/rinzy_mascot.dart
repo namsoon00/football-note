@@ -357,6 +357,7 @@ class ChallengeCheerRinzyMascot extends StatelessWidget {
   final double progress;
   final bool animate;
   final bool useImage;
+  final bool showCheerSticks;
 
   const ChallengeCheerRinzyMascot({
     super.key,
@@ -364,6 +365,7 @@ class ChallengeCheerRinzyMascot extends StatelessWidget {
     this.progress = 1,
     this.animate = true,
     this.useImage = false,
+    this.showCheerSticks = true,
   });
 
   @override
@@ -374,6 +376,7 @@ class ChallengeCheerRinzyMascot extends StatelessWidget {
       animate: animate,
       pose: _ChallengeRinzyPose.cheer,
       useImage: useImage,
+      showCheerSticks: showCheerSticks,
     );
   }
 }
@@ -414,6 +417,7 @@ class _ChallengeRinzyCharacter extends StatefulWidget {
   final bool animate;
   final _ChallengeRinzyPose pose;
   final bool useImage;
+  final bool showCheerSticks;
 
   const _ChallengeRinzyCharacter({
     required this.size,
@@ -421,6 +425,7 @@ class _ChallengeRinzyCharacter extends StatefulWidget {
     required this.animate,
     required this.pose,
     required this.useImage,
+    this.showCheerSticks = true,
   });
 
   @override
@@ -538,6 +543,7 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
                                         pose: widget.pose,
                                         progress: progress,
                                         phase: phase,
+                                        showCheerSticks: widget.showCheerSticks,
                                       );
                                     },
                                   )
@@ -545,6 +551,7 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
                                     pose: widget.pose,
                                     progress: progress,
                                     phase: phase,
+                                    showCheerSticks: widget.showCheerSticks,
                                   ),
                           ),
                         ),
@@ -552,7 +559,8 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
                     ),
                   ),
                   if (widget.useImage &&
-                      widget.pose == _ChallengeRinzyPose.cheer)
+                      widget.pose == _ChallengeRinzyPose.cheer &&
+                      widget.showCheerSticks)
                     Positioned.fill(
                       child: IgnorePointer(
                         child: CustomPaint(
@@ -575,11 +583,13 @@ class _PaintedChallengeRinzyPose extends StatelessWidget {
   final _ChallengeRinzyPose pose;
   final double progress;
   final double phase;
+  final bool showCheerSticks;
 
   const _PaintedChallengeRinzyPose({
     required this.pose,
     required this.progress,
     required this.phase,
+    this.showCheerSticks = true,
   });
 
   @override
@@ -590,6 +600,7 @@ class _PaintedChallengeRinzyPose extends StatelessWidget {
         progress: progress,
         phase: phase,
         cheer: pose == _ChallengeRinzyPose.cheer,
+        showCheerSticks: showCheerSticks,
         sad: pose == _ChallengeRinzyPose.sad,
         crying: pose == _ChallengeRinzyPose.sad,
         challenge: true,
@@ -730,6 +741,7 @@ class _RinzyChibiPainter extends CustomPainter {
   final double progress;
   final double phase;
   final bool cheer;
+  final bool showCheerSticks;
   final bool sad;
   final bool crying;
   final bool challenge;
@@ -738,6 +750,7 @@ class _RinzyChibiPainter extends CustomPainter {
     required this.progress,
     required this.phase,
     this.cheer = false,
+    this.showCheerSticks = true,
     this.sad = false,
     this.crying = false,
     this.challenge = false,
@@ -868,7 +881,7 @@ class _RinzyChibiPainter extends CustomPainter {
       blushPaint,
     );
 
-    if (cheer) {
+    if (cheer && showCheerSticks) {
       final leftStick = Offset(
         size.width * 0.25,
         size.height * (0.43 + cheerWave * 0.018),
@@ -905,7 +918,7 @@ class _RinzyChibiPainter extends CustomPainter {
         alpha: 0.42 + progress * 0.18,
       );
     }
-    if (!sad) {
+    if (!sad && !cheer) {
       _drawSoccerBall(
         canvas,
         center: Offset(size.width * 0.73, size.height * 0.78),
@@ -1377,6 +1390,7 @@ class _RinzyChibiPainter extends CustomPainter {
     return oldDelegate.progress != progress ||
         oldDelegate.phase != phase ||
         oldDelegate.cheer != cheer ||
+        oldDelegate.showCheerSticks != showCheerSticks ||
         oldDelegate.sad != sad ||
         oldDelegate.crying != crying ||
         oldDelegate.challenge != challenge;
