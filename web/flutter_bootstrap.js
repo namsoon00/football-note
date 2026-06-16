@@ -5,6 +5,24 @@ const removeLoadingIndicator = () => {
   document.getElementById('app-loading')?.remove();
 };
 
+const legacyCleanupKey = 'football-note:legacy-flutter-cleanup:v1';
+
+const shouldRunLegacyCleanup = () => {
+  try {
+    return window.localStorage.getItem(legacyCleanupKey) !== 'done';
+  } catch (_) {
+    return true;
+  }
+};
+
+const markLegacyCleanupDone = () => {
+  try {
+    window.localStorage.setItem(legacyCleanupKey, 'done');
+  } catch (_) {
+    // Ignore storage failures; startup should never depend on persistence.
+  }
+};
+
 const clearLegacyFlutterServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) {
     return;
@@ -50,7 +68,11 @@ const loadFlutterApp = () => {
   });
 };
 
-clearLegacyFlutterServiceWorker()
+const startupCleanup = shouldRunLegacyCleanup()
+  ? clearLegacyFlutterServiceWorker().finally(markLegacyCleanupDone)
+  : Promise.resolve();
+
+startupCleanup
   .then(loadFlutterApp)
   .catch((error) => {
     console.warn('Flutter web startup cleanup failed.', error);
