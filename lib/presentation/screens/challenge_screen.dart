@@ -3885,6 +3885,15 @@ class _RoundCalendarRinzyCelebrationState
             clipBehavior: Clip.none,
             alignment: Alignment.center,
             children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: _RoundCalendarCompletionBackdropPainter(
+                      phase: _controller.value,
+                    ),
+                  ),
+                ),
+              ),
               ChallengeCheerRinzyMascot(
                 size: widget.size,
                 progress: 1,
@@ -3905,6 +3914,129 @@ class _RoundCalendarRinzyCelebrationState
         },
       ),
     );
+  }
+}
+
+class _RoundCalendarCompletionBackdropPainter extends CustomPainter {
+  final double phase;
+
+  const _RoundCalendarCompletionBackdropPainter({required this.phase});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final unit = size.shortestSide;
+    if (unit <= 0) return;
+
+    final center = Offset(size.width * 0.50, size.height * 0.49);
+    final pulse = 0.5 + math.sin(phase * math.pi * 2) * 0.5;
+    final ringRadius = unit * (0.37 + pulse * 0.012);
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFFF7CC).withValues(alpha: 0.58),
+          const Color(0xFFBFDBFE).withValues(alpha: 0.18),
+          Colors.transparent,
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: unit * 0.49));
+    canvas.drawCircle(center, unit * 0.49, glowPaint);
+
+    final ringPaint = Paint()
+      ..color = const Color(0xFF34C759).withValues(alpha: 0.34)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * 0.030
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: ringRadius),
+      -math.pi * 0.72,
+      math.pi * 1.56,
+      false,
+      ringPaint,
+    );
+
+    final checkPaint = Paint()
+      ..color = const Color(0xFF16A34A).withValues(alpha: 0.82)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * 0.045
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final checkPath = Path()
+      ..moveTo(size.width * 0.35, size.height * 0.51)
+      ..lineTo(size.width * 0.46, size.height * 0.61)
+      ..lineTo(size.width * 0.67, size.height * 0.38);
+    canvas.drawPath(checkPath, checkPaint);
+
+    _drawCompletionDot(
+      canvas,
+      Offset(size.width * 0.22, size.height * 0.24),
+      unit * 0.025,
+      const Color(0xFFFFB020),
+    );
+    _drawCompletionDot(
+      canvas,
+      Offset(size.width * 0.76, size.height * 0.25),
+      unit * 0.020,
+      const Color(0xFF38BDF8),
+    );
+    _drawCompletionDot(
+      canvas,
+      Offset(size.width * 0.22, size.height * 0.73),
+      unit * 0.018,
+      const Color(0xFF60A5FA),
+    );
+    _drawCompletionDot(
+      canvas,
+      Offset(size.width * 0.80, size.height * 0.69),
+      unit * 0.023,
+      const Color(0xFFFFD166),
+    );
+    _drawCompletionSparkle(
+      canvas,
+      center: Offset(size.width * 0.50, size.height * 0.18),
+      radius: unit * (0.030 + pulse * 0.006),
+      color: const Color(0xFFFFD166),
+    );
+  }
+
+  void _drawCompletionDot(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    Color color,
+  ) {
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()..color = color.withValues(alpha: 0.76),
+    );
+  }
+
+  void _drawCompletionSparkle(
+    Canvas canvas, {
+    required Offset center,
+    required double radius,
+    required Color color,
+  }) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.76)
+      ..strokeWidth = radius * 0.28
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(center.dx, center.dy - radius),
+      Offset(center.dx, center.dy + radius),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(center.dx - radius, center.dy),
+      Offset(center.dx + radius, center.dy),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(
+    covariant _RoundCalendarCompletionBackdropPainter oldDelegate,
+  ) {
+    return oldDelegate.phase != phase;
   }
 }
 
