@@ -1386,6 +1386,12 @@ abstract class AppLocalizations {
   /// **'Result'**
   String get worldCupMatchResultFinal;
 
+  /// No description provided for @worldCupFifaRankingCompactLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA #{rank}'**
+  String worldCupFifaRankingCompactLabel(int rank);
+
   /// No description provided for @worldCupMatchDetailTitle.
   ///
   /// In en, this message translates to:

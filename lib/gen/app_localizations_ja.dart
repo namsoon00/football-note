@@ -709,6 +709,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupMatchResultFinal => '結果';
 
   @override
+  String worldCupFifaRankingCompactLabel(int rank) {
+    return 'FIFA $rank位';
+  }
+
+  @override
   String get worldCupMatchDetailTitle => '試合詳細';
 
   @override
