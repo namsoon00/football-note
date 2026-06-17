@@ -7322,6 +7322,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchControlsPanel => 'ツールと選択';
 
   @override
+  String get trainingSketchTacticalOverlay => '戦術ゾーンを表示';
+
+  @override
   String get trainingSketchPlayTooltip => '遊ぶ';
 
   @override

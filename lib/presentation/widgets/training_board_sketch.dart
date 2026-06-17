@@ -13,6 +13,7 @@ class TrainingBoardSketch extends StatelessWidget {
   final bool showStrokes;
   final bool showPlayerPath;
   final bool showBallPath;
+  final bool showTacticalOverlay;
 
   const TrainingBoardSketch({
     super.key,
@@ -24,6 +25,7 @@ class TrainingBoardSketch extends StatelessWidget {
     this.showStrokes = true,
     this.showPlayerPath = true,
     this.showBallPath = true,
+    this.showTacticalOverlay = true,
   });
 
   @override
@@ -47,6 +49,8 @@ class TrainingBoardSketch extends StatelessWidget {
             builder: (context, constraints) {
               final width = constraints.maxWidth;
               final height = constraints.maxHeight;
+              final visibleItems =
+                  page.items.take(maxVisibleItems).toList(growable: false);
               return Stack(
                 children: [
                   CustomPaint(
@@ -56,9 +60,10 @@ class TrainingBoardSketch extends StatelessWidget {
                       showStrokes: showStrokes,
                       showPlayerPath: showPlayerPath,
                       showBallPath: showBallPath,
+                      showTacticalOverlay: showTacticalOverlay,
                     ),
                   ),
-                  ...page.items.take(maxVisibleItems).map((item) {
+                  ...visibleItems.map((item) {
                     final tokenSize = switch (item.type) {
                       'ball' => (item.size * 0.9).clamp(24.0, 34.0),
                       'player' => (item.size * 0.82).clamp(24.0, 36.0),
@@ -78,6 +83,7 @@ class TrainingBoardSketch extends StatelessWidget {
                         child: _TrainingBoardSketchToken(
                           item: item,
                           size: tokenSize,
+                          label: _sketchTokenLabelFor(visibleItems, item),
                         ),
                       ),
                     );
@@ -115,11 +121,28 @@ class TrainingBoardSketch extends StatelessWidget {
   }
 }
 
+String? _sketchTokenLabelFor(
+  List<TrainingMethodItem> items,
+  TrainingMethodItem item,
+) {
+  if (item.type != 'player') return null;
+  final index = items
+      .where((entry) => entry.type == 'player')
+      .toList(growable: false)
+      .indexWhere((entry) => identical(entry, item));
+  return index < 0 ? null : '${index + 1}';
+}
+
 class _TrainingBoardSketchToken extends StatelessWidget {
   final TrainingMethodItem item;
   final double size;
+  final String? label;
 
-  const _TrainingBoardSketchToken({required this.item, required this.size});
+  const _TrainingBoardSketchToken({
+    required this.item,
+    required this.size,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -149,14 +172,57 @@ class _TrainingBoardSketchToken extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(
-        icon,
-        size: switch (item.type) {
-          'ball' => size * 0.58,
-          'player' => size * 0.56,
-          _ => size * 0.50,
-        },
-        color: Color(item.colorValue).withValues(alpha: 0.98),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Icon(
+            icon,
+            size: switch (item.type) {
+              'ball' => size * 0.58,
+              'player' => size * 0.56,
+              _ => size * 0.50,
+            },
+            color: Color(item.colorValue).withValues(alpha: 0.98),
+          ),
+          if (label != null)
+            Positioned(
+              right: -size * 0.09,
+              bottom: -size * 0.09,
+              child: _SketchTokenNumberBadge(label: label!, size: size),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SketchTokenNumberBadge extends StatelessWidget {
+  final String label;
+  final double size;
+
+  const _SketchTokenNumberBadge({required this.label, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    final badgeSize = (size * 0.46).clamp(13.0, 17.0);
+    return Container(
+      width: badgeSize,
+      height: badgeSize,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.96),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.black.withValues(alpha: 0.42)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: Colors.black87,
+          fontSize: (badgeSize * 0.52).clamp(7.0, 9.0),
+          fontWeight: FontWeight.w800,
+          height: 1,
+        ),
       ),
     );
   }
@@ -167,12 +233,14 @@ class _TrainingBoardSketchPainter extends CustomPainter {
   final bool showStrokes;
   final bool showPlayerPath;
   final bool showBallPath;
+  final bool showTacticalOverlay;
 
   const _TrainingBoardSketchPainter({
     required this.page,
     required this.showStrokes,
     required this.showPlayerPath,
     required this.showBallPath,
+    required this.showTacticalOverlay,
   });
 
   @override
@@ -240,6 +308,9 @@ class _TrainingBoardSketchPainter extends CustomPainter {
         stripePaint,
       );
     }
+    if (showTacticalOverlay) {
+      _drawTacticalOverlay(canvas, fieldRect);
+    }
 
     final centerX = size.width / 2;
     final centerY = size.height / 2;
@@ -291,6 +362,82 @@ class _TrainingBoardSketchPainter extends CustomPainter {
       ..color = Colors.white.withValues(alpha: 0.65)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(centerX, centerY), 2, spotPaint);
+  }
+
+  void _drawTacticalOverlay(Canvas canvas, Rect fieldRect) {
+    final halfSpacePaint = Paint()
+      ..color = const Color(0xFFFFF59D).withValues(alpha: 0.06)
+      ..style = PaintingStyle.fill;
+    final centralPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.028)
+      ..style = PaintingStyle.fill;
+    final laneYs = _sketchLaneFractions
+        .map((fraction) => fieldRect.top + fieldRect.height * fraction)
+        .toList(growable: false);
+    canvas.drawRect(
+      Rect.fromLTRB(fieldRect.left, laneYs[0], fieldRect.right, laneYs[1]),
+      halfSpacePaint,
+    );
+    canvas.drawRect(
+      Rect.fromLTRB(fieldRect.left, laneYs[2], fieldRect.right, laneYs[3]),
+      halfSpacePaint,
+    );
+    canvas.drawRect(
+      Rect.fromLTRB(fieldRect.left, laneYs[1], fieldRect.right, laneYs[2]),
+      centralPaint,
+    );
+
+    final thirdPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.22)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(0.8, fieldRect.shortestSide * 0.004);
+    for (final fraction in const [1 / 3, 2 / 3]) {
+      final x = fieldRect.left + fieldRect.width * fraction;
+      _drawDashedLine(
+        canvas,
+        Offset(x, fieldRect.top),
+        Offset(x, fieldRect.bottom),
+        thirdPaint,
+        dash: 8,
+        gap: 6,
+      );
+    }
+
+    final lanePaint = Paint()
+      ..color = const Color(0xFFE0F7FA).withValues(alpha: 0.25)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(0.7, fieldRect.shortestSide * 0.003);
+    for (final y in laneYs) {
+      _drawDashedLine(
+        canvas,
+        Offset(fieldRect.left, y),
+        Offset(fieldRect.right, y),
+        lanePaint,
+        dash: 7,
+        gap: 5,
+      );
+    }
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint, {
+    required double dash,
+    required double gap,
+  }) {
+    final vector = end - start;
+    final distance = vector.distance;
+    if (distance <= 0) return;
+    final direction = vector / distance;
+    var drawn = 0.0;
+    while (drawn < distance) {
+      final segmentStart = start + direction * drawn;
+      final segmentEnd = start + direction * math.min(drawn + dash, distance);
+      canvas.drawLine(segmentStart, segmentEnd, paint);
+      drawn += dash + gap;
+    }
   }
 
   void _drawRoute(Canvas canvas, Size size, TrainingMethodRoute route) {
@@ -415,6 +562,9 @@ class _TrainingBoardSketchPainter extends CustomPainter {
     return oldDelegate.page != page ||
         oldDelegate.showStrokes != showStrokes ||
         oldDelegate.showPlayerPath != showPlayerPath ||
-        oldDelegate.showBallPath != showBallPath;
+        oldDelegate.showBallPath != showBallPath ||
+        oldDelegate.showTacticalOverlay != showTacticalOverlay;
   }
 }
+
+const List<double> _sketchLaneFractions = <double>[0.18, 0.38, 0.62, 0.82];

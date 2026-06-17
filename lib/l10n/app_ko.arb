@@ -3739,6 +3739,7 @@
     }
   },
   "trainingSketchControlsPanel": "도구와 선택",
+  "trainingSketchTacticalOverlay": "전술 구역 표시",
   "trainingSketchPlayTooltip": "플레이",
   "trainingSketchPlaybackSpeedTooltip": "재생 속도",
   "trainingSketchAddSketchTooltip": "스케치 추가",

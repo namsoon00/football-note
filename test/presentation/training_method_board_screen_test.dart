@@ -613,6 +613,35 @@ void main() {
     expect(memoRect.left, greaterThan(boardRectWithMemo.right));
   });
 
+  testWidgets('tactical overlay can be toggled from the sketch menu', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        const TrainingMethodBoardScreen(
+          boardTitle: '전술 보드',
+          initialLayoutJson: '',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester
+        .tap(find.byKey(const ValueKey('training-landscape-topbar-menu')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('전술 구역 표시'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('training-topbar-menu-tactical-overlay')).last,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('training-board-canvas')), findsOneWidget);
+  });
+
   testWidgets('portrait inspector starts open and both panels are foldable', (
     WidgetTester tester,
   ) async {

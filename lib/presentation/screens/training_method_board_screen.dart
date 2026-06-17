@@ -80,6 +80,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _showLandscapeMemo = false;
   bool _showPortraitMemo = false;
   bool _showPortraitInspector = true;
+  bool _showTacticalOverlay = true;
   Timer? _autoSaveTimer;
   bool _autoSaveInProgress = false;
 
@@ -2665,7 +2666,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               children: [
                 CustomPaint(
                   size: Size(width, height),
-                  painter: const _PitchPainter(),
+                  painter: _PitchPainter(
+                    showTacticalOverlay: _showTacticalOverlay,
+                  ),
                 ),
                 CustomPaint(
                   size: Size(width, height),
@@ -2766,6 +2769,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                 child: _BoardToken(
                                   item: item,
                                   selected: item.id == _selectedItemId,
+                                  label: _boardTokenLabelFor(item),
                                 ),
                               ),
                             ),
@@ -2780,6 +2784,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         );
       },
     );
+  }
+
+  String? _boardTokenLabelFor(_BoardItem item) {
+    if (item.type != _BoardItemType.player) return null;
+    final playerIndex = _currentPage.items
+        .where((entry) => entry.type == _BoardItemType.player)
+        .toList(growable: false)
+        .indexWhere((entry) => entry.id == item.id);
+    return playerIndex < 0 ? null : '${playerIndex + 1}';
   }
 
   List<Widget> _buildTopBarActions(bool isKo, {required bool isLandscape}) {
@@ -2822,6 +2835,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         );
       },
       itemBuilder: (_) => [
+        PopupMenuItem<_TopBarMenuAction>(
+          key: const ValueKey('training-topbar-menu-tactical-overlay'),
+          value: _TopBarMenuAction.toggleTacticalOverlay,
+          child: _buildTopBarMenuEntry(
+            icon: _showTacticalOverlay
+                ? Icons.grid_on_rounded
+                : Icons.grid_off_rounded,
+            label: l10n.trainingSketchTacticalOverlay,
+          ),
+        ),
         PopupMenuItem<_TopBarMenuAction>(
           key: const ValueKey('training-topbar-menu-notes'),
           value: _TopBarMenuAction.toggleNotes,
@@ -2937,6 +2960,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required bool isLandscape,
   }) async {
     switch (action) {
+      case _TopBarMenuAction.toggleTacticalOverlay:
+        setState(() => _showTacticalOverlay = !_showTacticalOverlay);
+        break;
       case _TopBarMenuAction.toggleNotes:
         setState(() {
           if (isLandscape) {
@@ -3632,6 +3658,7 @@ class _PlaybackSegment {
 enum _PendingBoardAction { save, discard, cancel }
 
 enum _TopBarMenuAction {
+  toggleTacticalOverlay,
   toggleNotes,
   viewTemplates,
   toggleControls,
@@ -3705,6 +3732,7 @@ const double _playerPlaybackAccelerationFraction = 0.20;
 const double _ballPlaybackAccelerationFraction = 0.05;
 const double _minPlaybackSegmentDistanceMeters = 0.05;
 const Duration _minPlaybackDuration = Duration(milliseconds: 900);
+const List<double> _laneFractions = <double>[0.18, 0.38, 0.62, 0.82];
 
 const List<Color> _playerItemColors = <Color>[
   Color(0xFF42A5F5),
@@ -3745,8 +3773,13 @@ const List<Color> _penColors = <Color>[
 class _BoardToken extends StatelessWidget {
   final _BoardItem item;
   final bool selected;
+  final String? label;
 
-  const _BoardToken({required this.item, required this.selected});
+  const _BoardToken({
+    required this.item,
+    required this.selected,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -3781,7 +3814,48 @@ class _BoardToken extends StatelessWidget {
                 ]
               : null,
         ),
-        child: Icon(icon, size: 18, color: item.color),
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Icon(icon, size: 18, color: item.color),
+            if (label != null)
+              Positioned(
+                right: -5,
+                bottom: -5,
+                child: _TokenNumberBadge(label: label!),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TokenNumberBadge extends StatelessWidget {
+  final String label;
+
+  const _TokenNumberBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 17,
+      height: 17,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.96),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.black.withValues(alpha: 0.42)),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.black87,
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          height: 1,
+        ),
       ),
     );
   }
@@ -4080,7 +4154,9 @@ class _InkPainter extends CustomPainter {
 }
 
 class _PitchPainter extends CustomPainter {
-  const _PitchPainter();
+  final bool showTacticalOverlay;
+
+  const _PitchPainter({required this.showTacticalOverlay});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -4103,6 +4179,9 @@ class _PitchPainter extends CustomPainter {
         ),
         stripePaint,
       );
+    }
+    if (showTacticalOverlay) {
+      _drawTacticalOverlay(canvas, fieldRect);
     }
 
     final centerX = size.width / 2;
@@ -4159,9 +4238,85 @@ class _PitchPainter extends CustomPainter {
     canvas.drawCircle(Offset(centerX, centerY), 2.6, spotPaint);
   }
 
+  void _drawTacticalOverlay(Canvas canvas, Rect fieldRect) {
+    final halfSpacePaint = Paint()
+      ..color = const Color(0xFFFFF59D).withValues(alpha: 0.075)
+      ..style = PaintingStyle.fill;
+    final centralPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.035)
+      ..style = PaintingStyle.fill;
+    final laneYs = _laneFractions
+        .map((fraction) => fieldRect.top + fieldRect.height * fraction)
+        .toList(growable: false);
+    canvas.drawRect(
+      Rect.fromLTRB(fieldRect.left, laneYs[0], fieldRect.right, laneYs[1]),
+      halfSpacePaint,
+    );
+    canvas.drawRect(
+      Rect.fromLTRB(fieldRect.left, laneYs[2], fieldRect.right, laneYs[3]),
+      halfSpacePaint,
+    );
+    canvas.drawRect(
+      Rect.fromLTRB(fieldRect.left, laneYs[1], fieldRect.right, laneYs[2]),
+      centralPaint,
+    );
+
+    final thirdPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.28)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    for (final fraction in const [1 / 3, 2 / 3]) {
+      final x = fieldRect.left + fieldRect.width * fraction;
+      _drawDashedLine(
+        canvas,
+        Offset(x, fieldRect.top),
+        Offset(x, fieldRect.bottom),
+        thirdPaint,
+        dash: 12,
+        gap: 8,
+      );
+    }
+
+    final lanePaint = Paint()
+      ..color = const Color(0xFFE0F7FA).withValues(alpha: 0.32)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    for (final y in laneYs) {
+      _drawDashedLine(
+        canvas,
+        Offset(fieldRect.left, y),
+        Offset(fieldRect.right, y),
+        lanePaint,
+        dash: 9,
+        gap: 7,
+      );
+    }
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint, {
+    required double dash,
+    required double gap,
+  }) {
+    final vector = end - start;
+    final distance = vector.distance;
+    if (distance <= 0) return;
+    final direction = vector / distance;
+    var drawn = 0.0;
+    while (drawn < distance) {
+      final segmentStart = start + direction * drawn;
+      final segmentEnd = start + direction * math.min(drawn + dash, distance);
+      canvas.drawLine(segmentStart, segmentEnd, paint);
+      drawn += dash + gap;
+    }
+  }
+
   @override
   bool shouldRepaint(covariant _PitchPainter oldDelegate) {
-    return false;
+    return oldDelegate.showTacticalOverlay != showTacticalOverlay;
   }
 }
 
