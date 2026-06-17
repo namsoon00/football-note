@@ -323,6 +323,14 @@
   "worldCupMatchAwaitingUpdate": "Awaiting result update",
   "worldCupMatchAwaitingUpdateReason": "The estimated final whistle has passed, but FIFA official results have not been reflected yet. Refresh or check the official page.",
   "worldCupMatchResultFinal": "Result",
+  "worldCupFifaRankingCompactLabel": "FIFA #{rank}",
+  "@worldCupFifaRankingCompactLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupMatchDetailTitle": "Match details",
   "worldCupMatchComparisonTitle": "Team comparison",
   "worldCupMatchRecordsTitle": "Match records",

@@ -333,8 +333,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('FIFA #12'), findsOneWidget);
-    expect(find.text('FIFA #56'), findsOneWidget);
+    expect(find.text('FIFA 12위'), findsOneWidget);
+    expect(find.text('FIFA 56위'), findsOneWidget);
     expect(find.text('진행 중'), findsWidgets);
     expect(find.text('1 : 0'), findsOneWidget);
   });

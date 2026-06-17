@@ -1839,7 +1839,7 @@ class _FixtureTeamBlock extends StatelessWidget {
         ],
         if (ranking != null) ...[
           const SizedBox(height: 4),
-          _SmallPill(label: _fifaRankingCompactLabel(ranking!)),
+          _SmallPill(label: _fifaRankingCompactLabel(l10n, ranking!)),
         ],
       ],
     );
@@ -2625,8 +2625,11 @@ String _worldCupCountryLabelText(AppLocalizations l10n, String country) {
   return flag.isEmpty ? label : '$flag $label';
 }
 
-String _fifaRankingCompactLabel(FifaRankingEntry ranking) {
-  return 'FIFA #${ranking.rank}';
+String _fifaRankingCompactLabel(
+  AppLocalizations l10n,
+  FifaRankingEntry ranking,
+) {
+  return l10n.worldCupFifaRankingCompactLabel(ranking.rank);
 }
 
 String _fifaApiLanguageForLocale(Locale locale) {
@@ -3380,7 +3383,7 @@ class _WorldCupTeamRosterSheet extends StatelessWidget {
                 items: [
                   _InfoItem(
                     l10n.newsFifaRankingTitle,
-                    _fifaRankingCompactLabel(ranking!),
+                    _fifaRankingCompactLabel(l10n, ranking!),
                   ),
                 ],
               ),

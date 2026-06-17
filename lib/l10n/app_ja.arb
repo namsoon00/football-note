@@ -323,6 +323,14 @@
   "worldCupMatchAwaitingUpdate": "結果更新待ち",
   "worldCupMatchAwaitingUpdateReason": "試合終了予定時刻を過ぎましたが、FIFA公式結果はまだ反映されていません。更新するか公式ページを確認してください。",
   "worldCupMatchResultFinal": "結果",
+  "worldCupFifaRankingCompactLabel": "FIFA {rank}位",
+  "@worldCupFifaRankingCompactLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupMatchDetailTitle": "試合詳細",
   "worldCupMatchComparisonTitle": "戦力比較",
   "worldCupMatchRecordsTitle": "試合記録",

@@ -702,6 +702,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupMatchResultFinal => '결과';
 
   @override
+  String worldCupFifaRankingCompactLabel(int rank) {
+    return 'FIFA $rank위';
+  }
+
+  @override
   String get worldCupMatchDetailTitle => '경기 상세';
 
   @override
