@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../application/family_access_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
+import '../../application/sport_service.dart';
 import '../../application/training_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
@@ -212,7 +213,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       return;
     }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final template = await showTrainingBoardTemplatePicker(context);
+    final template = await showTrainingBoardTemplatePicker(
+      context,
+      sportId: SportService(widget.optionRepository).currentSportId(),
+    );
     if (!mounted || template == null) return;
     final title = await _promptTitle();
     if (!mounted || title == null) return;

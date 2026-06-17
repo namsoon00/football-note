@@ -17,6 +17,7 @@ import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/parent_shared_feedback_service.dart';
 import '../../application/settings_service.dart';
+import '../../application/sport_capabilities.dart';
 import '../../application/sport_defaults.dart';
 import '../../application/sport_service.dart';
 import '../../application/training_plan_reminder_service.dart';
@@ -207,7 +208,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<List<TrainingEntry>> _contextEntries() {
-    return widget.trainingService.recentEntries(limit: _sheetContextEntryLimit);
+    return widget.trainingService.recentEntries(
+      limit: _sheetContextEntryLimit,
+      sportId: SportService(widget.optionRepository).currentSportId(),
+    );
   }
 
   void _watchFocusedTrainingRange() {
@@ -221,7 +225,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
       if (!mounted || !_sameDateTimeRange(_loadedTrainingRange, range)) {
         return;
       }
-      setState(() => _visibleTrainingEntries = entries);
+      final sportId = SportService(widget.optionRepository).currentSportId();
+      setState(
+        () => _visibleTrainingEntries = filterEntriesForSport(entries, sportId),
+      );
     });
   }
 
@@ -335,6 +342,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           child: Builder(
             builder: (context) {
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
+              final sportCapabilities = SportCapabilities.forSport(
+                SportService(widget.optionRepository).currentSportId(),
+              );
               final entries = _visibleTrainingEntries;
               return StreamBuilder<List<MealEntry>>(
                 stream: _mealEntriesStream,
@@ -391,9 +401,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                               onLeadingTap: () =>
                                   Scaffold.of(context).openDrawer(),
-                              onNewsTap: () => _openNews(context),
-                              newsBadgeCount: newsCount,
-                              onQuizTap: () => _openQuiz(context),
+                              onNewsTap:
+                                  sportCapabilities.supportsFootballContent
+                                      ? () => _openNews(context)
+                                      : null,
+                              newsBadgeCount:
+                                  sportCapabilities.supportsFootballContent
+                                      ? newsCount
+                                      : 0,
+                              onQuizTap:
+                                  sportCapabilities.supportsFootballContent
+                                      ? () => _openQuiz(context)
+                                      : null,
                               onNotificationTap: () =>
                                   _openNotifications(context),
                               notificationBadgeCount: reminderUnreadCount,
@@ -1890,6 +1909,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
+    final sportId = editingEntry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
+    final matchLabels = SportMatchLabels.forSport(
+      l10n: l10n,
+      sportId: sportId,
+    );
     final initialDay = editingEntry?.date ?? day;
     var matchDay = DateTime(initialDay.year, initialDay.month, initialDay.day);
     var matchKind = editingEntry?.isLeagueMatch == true ? 'league' : 'friendly';
@@ -2162,7 +2187,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         _calendarInputDecorationWithDone(
                                       context,
                                       InputDecoration(
-                                        labelText: l10n.matchGoalsLabel,
+                                        labelText: matchLabels.primary.label,
                                       ),
                                       enabled: !readOnly,
                                     ),
@@ -2186,7 +2211,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         _calendarInputDecorationWithDone(
                                       context,
                                       InputDecoration(
-                                        labelText: l10n.matchAssistsLabel,
+                                        labelText: matchLabels.secondary.label,
                                       ),
                                       enabled: !readOnly,
                                     ),
@@ -2214,7 +2239,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         _calendarInputDecorationWithDone(
                                       context,
                                       InputDecoration(
-                                        labelText: l10n.matchShotsOnTargetLabel,
+                                        labelText: matchLabels.tertiary.label,
                                       ),
                                       enabled: !readOnly,
                                     ),
@@ -2237,7 +2262,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         _calendarInputDecorationWithDone(
                                       context,
                                       InputDecoration(
-                                        labelText: l10n.matchBallsWonLabel,
+                                        labelText: matchLabels.quaternary.label,
                                       ),
                                       enabled: !readOnly,
                                     ),
@@ -2361,6 +2386,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     leagueResultMode == 'tournamentWins'
                                         ? _parseSheetInt(tournamentWinsText)
                                         : null,
+                                sportId: sportId,
                               ),
                             );
                           },
@@ -3855,19 +3881,11 @@ class _EntryTile extends StatelessWidget {
     required AppLocalizations l10n,
     required bool isKo,
   }) {
-    final parts = <String>[];
-    if (entry.playerGoals != null) {
-      parts.add('${l10n.matchGoalsLabel} ${entry.playerGoals}');
-    }
-    if (entry.playerAssists != null) {
-      parts.add('${l10n.matchAssistsLabel} ${entry.playerAssists}');
-    }
-    if (entry.shotsOnTarget != null) {
-      parts.add('${l10n.matchShotsOnTargetLabel} ${entry.shotsOnTarget}');
-    }
-    if (entry.ballsWon != null) {
-      parts.add('${l10n.matchBallsWonLabel} ${entry.ballsWon}');
-    }
+    final matchLabels = SportMatchLabels.forSport(
+      l10n: l10n,
+      sportId: entry.sportId,
+    );
+    final parts = matchLabels.personalRecordParts(entry);
     if (entry.minutesPlayed != null) {
       parts.add(
         isKo

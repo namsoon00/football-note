@@ -14,6 +14,7 @@ import '../../application/localized_option_defaults.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
+import '../../application/sport_capabilities.dart';
 import '../../application/sport_defaults.dart';
 import '../../application/sport_service.dart';
 import '../../application/training_service.dart';
@@ -116,10 +117,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: _watchChallengeTrainingEntries(),
             builder: (context, trainingSnapshot) {
-              final trainingEntries =
-                  (trainingSnapshot.data ?? const <TrainingEntry>[])
-                      .where((entry) => !entry.isMatch)
-                      .toList(growable: false);
+              final sportId =
+                  SportService(widget.optionRepository).currentSportId();
+              final trainingEntries = filterEntriesForSport(
+                trainingSnapshot.data ?? const <TrainingEntry>[],
+                sportId,
+              ).where((entry) => !entry.isMatch).toList(growable: false);
               return StreamBuilder<List<MealEntry>>(
                 stream: widget.mealLogService.watchEntries(),
                 builder: (context, mealSnapshot) {
@@ -545,7 +548,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   Future<List<TrainingEntry>> _activeChallengeTrainingEntries() async {
     final range = _activeChallengeTrainingRange();
     if (range == null) return const <TrainingEntry>[];
-    return widget.trainingService.entriesInRange(range.start, range.end);
+    final entries = await widget.trainingService.entriesInRange(
+      range.start,
+      range.end,
+    );
+    return filterEntriesForSport(
+      entries,
+      SportService(widget.optionRepository).currentSportId(),
+    );
   }
 
   DateTimeRange? _activeChallengeTrainingRange() {

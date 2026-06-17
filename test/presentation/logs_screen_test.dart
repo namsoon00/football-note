@@ -474,6 +474,7 @@ class _MemoryTrainingRepository implements TrainingRepository {
   Future<List<TrainingEntry>> getRecent({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   }) async {
     return _recentEntries(limit: limit, includeMatches: includeMatches);
   }
@@ -523,6 +524,7 @@ class _MemoryTrainingRepository implements TrainingRepository {
   Stream<List<TrainingEntry>> watchRecent({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   }) {
     return Stream<List<TrainingEntry>>.multi((controller) {
       void emit() {
@@ -562,11 +564,10 @@ class _MemoryTrainingRepository implements TrainingRepository {
     required bool includeMatches,
   }) {
     if (limit <= 0) return const <TrainingEntry>[];
-    final entries =
-        _entries
-            .where((entry) => includeMatches || !entry.isMatch)
-            .toList(growable: false)
-          ..sort(TrainingEntry.compareByRecentCreated);
+    final entries = _entries
+        .where((entry) => includeMatches || !entry.isMatch)
+        .toList(growable: false)
+      ..sort(TrainingEntry.compareByRecentCreated);
     if (entries.length <= limit) return entries;
     return entries.take(limit).toList(growable: false);
   }

@@ -15,6 +15,8 @@ import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
+import '../../application/sport_capabilities.dart';
+import '../../application/sport_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
@@ -183,14 +185,20 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: _trainingEntriesStream,
             builder: (context, snapshot) {
-              final allEntries = (snapshot.data ?? const <TrainingEntry>[])
-                  .where((entry) => !entry.isMatch)
-                  .toList()
+              final sportId =
+                  SportService(widget.optionRepository).currentSportId();
+              final sportCapabilities = SportCapabilities.forSport(sportId);
+              final allEntries = filterEntriesForSport(
+                snapshot.data ?? const <TrainingEntry>[],
+                sportId,
+              ).where((entry) => !entry.isMatch).toList()
                 ..sort(TrainingEntry.compareByRecentCreated);
               return StreamBuilder<List<MealEntry>>(
                 stream: widget.mealLogService.watchEntries(),
                 builder: (context, mealSnapshot) {
                   final l10n = AppLocalizations.of(context)!;
+                  final supportsFootballContent =
+                      sportCapabilities.supportsFootballContent;
                   final boardsById = TrainingBoardService(
                     widget.optionRepository,
                   ).boardMap();
@@ -215,9 +223,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     mealEntries: mealEntries,
                     plans: _loadPlans(widget.optionRepository),
                     boards: boards,
-                    quizCompletedAt: _loadQuizCompletedAt(
-                      widget.optionRepository,
-                    ),
+                    quizCompletedAt: supportsFootballContent
+                        ? _loadQuizCompletedAt(widget.optionRepository)
+                        : DateTime.now(),
                     viewedDiaryDayToken:
                         widget.optionRepository.getValue<String>(
                       CoachLessonScreen.todayViewedDiaryDayKey,
@@ -225,7 +233,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     quizResumeSummary: SkillQuizScreen.loadResumeSummary(
                       widget.optionRepository,
                     ),
-                    openedNewsToday: _openedNewsToday(),
+                    openedNewsToday:
+                        supportsFootballContent ? _openedNewsToday() : true,
                   );
                   _syncDailyTaskCompletionAward(data);
                   if (challengeProgress != null) {
@@ -259,9 +268,18 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                           'profile_photo_url',
                                         ) ??
                                         '',
-                                onNewsTap: _openNews,
-                                newsBadgeCount: newsCount,
-                                onQuizTap: _openQuizShortcut,
+                                onNewsTap:
+                                    sportCapabilities.supportsFootballContent
+                                        ? _openNews
+                                        : null,
+                                newsBadgeCount:
+                                    sportCapabilities.supportsFootballContent
+                                        ? newsCount
+                                        : 0,
+                                onQuizTap:
+                                    sportCapabilities.supportsFootballContent
+                                        ? _openQuizShortcut
+                                        : null,
                                 onProfileTap: () => _openProfile(context),
                                 onNotificationTap: _openNotifications,
                                 notificationBadgeCount: reminderUnreadCount,
@@ -382,13 +400,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           ),
                           onQuiz: _trackedAction(
                             'daily_flow_quiz',
-                            widget.onQuickQuiz,
+                            supportsFootballContent ? widget.onQuickQuiz : null,
                           ),
                           onReview: _trackedAction(
                             'daily_flow_review',
                             widget.onOpenDiary,
                           ),
-                          onNews: _trackedAction('daily_flow_news', _openNews),
+                          onNews: _trackedAction(
+                            'daily_flow_news',
+                            supportsFootballContent ? _openNews : null,
+                          ),
                           onBoard: _trackedAction(
                             'daily_flow_board',
                             () => _openTodayBoardSketch(data),
@@ -397,6 +418,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                             'daily_flow_meal',
                             widget.onQuickMeal,
                           ),
+                          showFootballTasks: supportsFootballContent,
                         ),
                         const SizedBox(height: 12),
                         _QuickActionGrid(
@@ -422,7 +444,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         const SizedBox(height: 12),
                         _ContinueCard(
                           data: data,
-                          onContinueQuiz: widget.onQuickQuiz,
+                          showQuiz: supportsFootballContent,
+                          onContinueQuiz: supportsFootballContent
+                              ? widget.onQuickQuiz
+                              : null,
                           onContinueTraining: () =>
                               _openTodayEntryOrCreate(data),
                           onContinueMatch: widget.onQuickMatch,
@@ -1593,6 +1618,7 @@ class _DailyFlowCard extends StatelessWidget {
   final VoidCallback? onReview;
   final VoidCallback? onNews;
   final VoidCallback? onBoard;
+  final bool showFootballTasks;
 
   const _DailyFlowCard({
     required this.data,
@@ -1605,12 +1631,23 @@ class _DailyFlowCard extends StatelessWidget {
     required this.onReview,
     required this.onNews,
     required this.onBoard,
+    required this.showFootballTasks,
   });
 
   @override
   Widget build(BuildContext context) {
-    final completedCount = data.dailyTaskCompletedCount;
-    final totalCount = data.dailyTaskTotalCount;
+    final visibleTaskStates = <bool>[
+      data.loggedTrainingToday,
+      data.loggedLiftingToday,
+      data.loggedJumpRopeToday,
+      data.loggedMealsToday,
+      if (showFootballTasks) data.quizCompletedToday,
+      if (showFootballTasks) data.openedNewsToday,
+      data.reviewedTodayDiary,
+      data.loggedBoardToday,
+    ];
+    final completedCount = visibleTaskStates.where((done) => done).length;
+    final totalCount = visibleTaskStates.length;
     final progress = completedCount / totalCount;
     return WatchCartCard(
       child: Column(
@@ -1675,18 +1712,20 @@ class _DailyFlowCard extends StatelessWidget {
                 label: l10n.mealShortLabel,
                 onTap: onMeal,
               ),
-              _TodoChip(
-                done: data.quizCompletedToday,
-                icon: Icons.quiz_rounded,
-                label: l10n.homeTodoQuizShort,
-                onTap: onQuiz,
-              ),
-              _TodoChip(
-                done: data.openedNewsToday,
-                icon: Icons.article_outlined,
-                label: l10n.homeTodoNewsShort,
-                onTap: onNews,
-              ),
+              if (showFootballTasks)
+                _TodoChip(
+                  done: data.quizCompletedToday,
+                  icon: Icons.quiz_rounded,
+                  label: l10n.homeTodoQuizShort,
+                  onTap: onQuiz,
+                ),
+              if (showFootballTasks)
+                _TodoChip(
+                  done: data.openedNewsToday,
+                  icon: Icons.article_outlined,
+                  label: l10n.homeTodoNewsShort,
+                  onTap: onNews,
+                ),
               _TodoChip(
                 done: data.reviewedTodayDiary,
                 icon: Icons.auto_stories_rounded,
@@ -2335,6 +2374,7 @@ class _QuickActionGrid extends StatelessWidget {
 
 class _ContinueCard extends StatelessWidget {
   final _HomeHubData data;
+  final bool showQuiz;
   final VoidCallback? onContinueQuiz;
   final VoidCallback? onContinueTraining;
   final VoidCallback? onContinueMatch;
@@ -2343,6 +2383,7 @@ class _ContinueCard extends StatelessWidget {
 
   const _ContinueCard({
     required this.data,
+    required this.showQuiz,
     required this.onContinueQuiz,
     required this.onContinueTraining,
     required this.onContinueMatch,
@@ -2355,7 +2396,7 @@ class _ContinueCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final shortDateFormat = DateFormat('M/d', l10n.localeName);
     final quizSummary = data.quizResumeSummary;
-    final hasQuizSession = quizSummary.hasActiveSession;
+    final hasQuizSession = showQuiz && quizSummary.hasActiveSession;
     final latestTrainingEntry = data.latestTrainingEntry;
     final latestTrainingIsToday = latestTrainingEntry != null &&
         DateTime(

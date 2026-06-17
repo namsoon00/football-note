@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import '../../application/benchmark_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
+import '../../application/sport_capabilities.dart';
+import '../../application/sport_service.dart';
 import '../../application/training_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
@@ -83,8 +85,7 @@ class _StatsScreenState extends State<StatsScreen> {
     final previousRange = oldWidget.initialRange;
     final forceApplyRange =
         widget.initialRangeRequestKey != oldWidget.initialRangeRequestKey;
-    final rangeChanged =
-        nextRange != null &&
+    final rangeChanged = nextRange != null &&
         (forceApplyRange || !_sameRange(previousRange, nextRange));
     if (rangeChanged) {
       _selectedRange = nextRange;
@@ -194,6 +195,9 @@ class _StatsScreenState extends State<StatsScreen> {
     String? topMessage,
   }) {
     final l10n = AppLocalizations.of(context)!;
+    final sportId = SportService(widget.optionRepository).currentSportId();
+    final sportCapabilities = SportCapabilities.forSport(sportId);
+    final sportEntries = filterEntriesForSport(entries, sportId);
     final profileService = PlayerProfileService(widget.optionRepository);
     final reminderUnreadCount = TrainingPlanReminderService(
       widget.optionRepository,
@@ -203,10 +207,12 @@ class _StatsScreenState extends State<StatsScreen> {
     final now = DateTime.now();
     final ageYears = profileService.ageInYears(profile, now);
     final soccerYears = profileService.soccerYears(profile, now);
-    final canShowAverage = ageYears != null && soccerYears != null;
+    final canShowAverage = sportCapabilities.supportsFootballContent &&
+        ageYears != null &&
+        soccerYears != null;
     final rangeStart = _rangeStartFor(_selectedRange);
     final rangeEndExclusive = _rangeEndExclusiveFor(_selectedRange);
-    final filteredEntries = entries
+    final filteredEntries = sportEntries
         .where(
           (entry) =>
               !entry.date.isBefore(rangeStart) &&
@@ -227,9 +233,8 @@ class _StatsScreenState extends State<StatsScreen> {
               entry.date.isBefore(rangeEndExclusive),
         )
         .toList(growable: false);
-    final matchEntries = filteredEntries
-        .where((entry) => entry.isMatch)
-        .toList(growable: false);
+    final matchEntries =
+        filteredEntries.where((entry) => entry.isMatch).toList(growable: false);
     final plansInRange = _loadPlansInRange(
       rangeStart: rangeStart,
       rangeEndExclusive: rangeEndExclusive,
@@ -248,13 +253,17 @@ class _StatsScreenState extends State<StatsScreen> {
               builder: (context) => SharedTabHeader(
                 padding: EdgeInsets.zero,
                 onLeadingTap: () => Scaffold.of(context).openDrawer(),
-                onNewsTap: () => _openNews(context),
-                newsBadgeCount: newsCount,
-                onQuizTap: () => _openQuiz(context),
+                onNewsTap: sportCapabilities.supportsFootballContent
+                    ? () => _openNews(context)
+                    : null,
+                newsBadgeCount:
+                    sportCapabilities.supportsFootballContent ? newsCount : 0,
+                onQuizTap: sportCapabilities.supportsFootballContent
+                    ? () => _openQuiz(context)
+                    : null,
                 onNotificationTap: () => _openNotifications(context),
                 notificationBadgeCount: reminderUnreadCount,
-                profilePhotoSource:
-                    widget.optionRepository.getValue<String>(
+                profilePhotoSource: widget.optionRepository.getValue<String>(
                       'profile_photo_url',
                     ) ??
                     '',
@@ -312,6 +321,7 @@ class _StatsScreenState extends State<StatsScreen> {
               ageYears: ageYears,
               soccerYears: soccerYears,
               canShowAverage: canShowAverage,
+              averageHiddenBySport: !sportCapabilities.supportsFootballContent,
               trainingEntries: trainingEntries,
               mealEntries: filteredMealEntries,
               plansInRange: plansInRange,
@@ -359,13 +369,15 @@ class _StatsScreenState extends State<StatsScreen> {
     required int? ageYears,
     required int? soccerYears,
     required bool canShowAverage,
+    required bool averageHiddenBySport,
     required List<TrainingEntry> trainingEntries,
     required List<MealEntry> mealEntries,
     required List<_StatsPlanLite> plansInRange,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     if (trainingEntries.isEmpty && mealEntries.isEmpty) {
       return _InlineNotice(
-        text: AppLocalizations.of(context)!.mealStatsNoTrainingOrMealEntries,
+        text: l10n.mealStatsNoTrainingOrMealEntries,
       );
     }
 
@@ -391,12 +403,12 @@ class _StatsScreenState extends State<StatsScreen> {
         ],
         if (!canShowAverage) ...[
           _InlineNotice(
-            text: isKo
-                ? '현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.'
-                : 'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.',
-            title: isKo
-                ? '나이/구력 정보를 입력해 주세요'
-                : 'Enter age and soccer experience',
+            text: averageHiddenBySport
+                ? l10n.averageComparisonFootballOnlyMessage
+                : l10n.averageComparisonProfileMissingMessage,
+            title: averageHiddenBySport
+                ? l10n.averageComparisonFootballOnlyTitle
+                : l10n.averageComparisonProfileMissingTitle,
             trailing: Align(
               alignment: Alignment.centerLeft,
               child: OutlinedButton.icon(
@@ -430,11 +442,11 @@ class _StatsScreenState extends State<StatsScreen> {
               showAverage: canShowAverage,
               onReferenceTap: canShowAverage
                   ? () => _openAverageBenchmark(
-                      context,
-                      trainingEntries,
-                      ageYears,
-                      soccerYears,
-                    )
+                        context,
+                        trainingEntries,
+                        ageYears,
+                        soccerYears,
+                      )
                   : null,
             ),
           ),
@@ -531,12 +543,10 @@ class _StatsScreenState extends State<StatsScreen> {
   String _rangeLabel(bool isKo) {
     final start = _selectedRange.start;
     final end = _selectedRange.end;
-    final startText = isKo
-        ? '${start.month}/${start.day}'
-        : '${start.month}/${start.day}';
-    final endText = isKo
-        ? '${end.month}/${end.day}'
-        : '${end.month}/${end.day}';
+    final startText =
+        isKo ? '${start.month}/${start.day}' : '${start.month}/${start.day}';
+    final endText =
+        isKo ? '${end.month}/${end.day}' : '${end.month}/${end.day}';
     return isKo ? '$startText~$endText' : '$startText-$endText';
   }
 
@@ -562,10 +572,10 @@ class _StatsScreenState extends State<StatsScreen> {
       DateTime(range.start.year, range.start.month, range.start.day);
 
   DateTime _rangeEndExclusiveFor(DateTimeRange range) => DateTime(
-    range.end.year,
-    range.end.month,
-    range.end.day,
-  ).add(const Duration(days: 1));
+        range.end.year,
+        range.end.month,
+        range.end.day,
+      ).add(const Duration(days: 1));
 
   DateTimeRange _recentWeekRange() {
     final today = DateTime.now();
@@ -720,9 +730,8 @@ class _TargetGrowthChart extends StatelessWidget {
     final labels = <int, String>{};
     final workedDays = <DateTime>{};
     final dailyTarget = (target.weeklyMinutesTarget / 7).round();
-    final labelStep = dayPoints.length <= 10
-        ? 1
-        : (dayPoints.length <= 20 ? 2 : 3);
+    final labelStep =
+        dayPoints.length <= 10 ? 1 : (dayPoints.length <= 20 ? 2 : 3);
 
     for (var i = 0; i < dayPoints.length; i++) {
       final start = dayPoints[i];
@@ -743,8 +752,8 @@ class _TargetGrowthChart extends StatelessWidget {
     final workedLabel = workedDateText.isEmpty
         ? (isKo ? '운동한 날: 없음' : 'Workout days: none')
         : (isKo
-              ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
-              : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
+            ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
+            : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -889,9 +898,8 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           sum +
           e.liftingByPart.values.fold<int>(0, (acc, count) => acc + count),
     );
-    final avgLiftPerSession = entries.isEmpty
-        ? 0
-        : (totalLifts / entries.length).round();
+    final avgLiftPerSession =
+        entries.isEmpty ? 0 : (totalLifts / entries.length).round();
     final benchmark = benchmarkService.physicalBenchmarkForAge(ageYears);
 
     return Column(
@@ -938,10 +946,9 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           gap: latestHeight == null
               ? (isKo ? '비교 불가' : 'N/A')
               : showAverage
-              ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
-              : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+                  ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
+                  : (isKo ? '비교 숨김' : 'Hidden'),
+          isPositive: showAverage &&
               latestHeight != null &&
               latestHeight - benchmark.heightCmAvg >= 0,
         ),
@@ -958,10 +965,9 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           gap: latestWeight == null
               ? (isKo ? '비교 불가' : 'N/A')
               : showAverage
-              ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
-              : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+                  ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
+                  : (isKo ? '비교 숨김' : 'Hidden'),
+          isPositive: showAverage &&
               latestWeight != null &&
               latestWeight - benchmark.weightKgAvg >= 0,
         ),
@@ -979,8 +985,7 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
                   isKo,
                 )
               : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+          isPositive: showAverage &&
               avgLiftPerSession - benchmark.liftsPerSessionAvg >= 0,
         ),
       ],
@@ -1152,27 +1157,23 @@ class _LiftingSummaryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                barGroups: trendEntries
-                    .asMap()
-                    .entries
-                    .map((entry) {
-                      return BarChartGroupData(
-                        x: entry.key,
-                        barRods: [
-                          BarChartRodData(
-                            toY: entry.value.value.toDouble(),
-                            width: 16,
-                            borderRadius: BorderRadius.circular(6),
-                            gradient: const LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [Color(0xFF2F80ED), Color(0xFF6FCF97)],
-                            ),
-                          ),
-                        ],
-                      );
-                    })
-                    .toList(growable: false),
+                barGroups: trendEntries.asMap().entries.map((entry) {
+                  return BarChartGroupData(
+                    x: entry.key,
+                    barRods: [
+                      BarChartRodData(
+                        toY: entry.value.value.toDouble(),
+                        width: 16,
+                        borderRadius: BorderRadius.circular(6),
+                        gradient: const LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [Color(0xFF2F80ED), Color(0xFF6FCF97)],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(growable: false),
               ),
             ),
           ),
@@ -1214,8 +1215,8 @@ class _LiftingSummaryCard extends StatelessWidget {
                   Text(
                     _dateText(entry.value.date),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
                 ],
               ),
@@ -1302,11 +1303,9 @@ class _JumpRopeSummaryCard extends StatelessWidget {
     );
     final end = DateTime(range.end.year, range.end.month, range.end.day);
     final days = <DateTime>[];
-    for (
-      var current = start;
-      !current.isAfter(end);
-      current = current.add(const Duration(days: 1))
-    ) {
+    for (var current = start;
+        !current.isAfter(end);
+        current = current.add(const Duration(days: 1))) {
       days.add(current);
     }
     final countByDay = <DateTime, int>{for (final day in days) day: 0};
@@ -1322,16 +1321,14 @@ class _JumpRopeSummaryCard extends StatelessWidget {
         .map((day) => MapEntry(day, countByDay[day] ?? 0))
         .toList(growable: false);
     final totalCount = points.fold<int>(0, (sum, item) => sum + item.value);
-    final bestCount = points.isEmpty
-        ? 0
-        : points.map((item) => item.value).reduce(math.max);
+    final bestCount =
+        points.isEmpty ? 0 : points.map((item) => item.value).reduce(math.max);
     final bestDay = points.firstWhere(
       (item) => item.value == bestCount,
       orElse: () => MapEntry(start, 0),
     );
-    final maxY = bestCount <= 0
-        ? 5.0
-        : (bestCount * 1.25).clamp(5, 1000000).toDouble();
+    final maxY =
+        bestCount <= 0 ? 5.0 : (bestCount * 1.25).clamp(5, 1000000).toDouble();
     final labelStride = math.max(1, (days.length / 6).ceil());
 
     return Column(
@@ -1607,9 +1604,8 @@ class _TrainingOverviewSection extends StatelessWidget {
               ),
             ],
           ),
-          crossFadeState: expanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
+          crossFadeState:
+              expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 180),
           firstCurve: Curves.easeOut,
           secondCurve: Curves.easeOut,
@@ -1635,11 +1631,9 @@ class _MealTrendCard extends StatelessWidget {
     );
     final dayEnd = DateTime(range.end.year, range.end.month, range.end.day);
     final days = <DateTime>[];
-    for (
-      var cursor = dayStart;
-      !cursor.isAfter(dayEnd);
-      cursor = cursor.add(const Duration(days: 1))
-    ) {
+    for (var cursor = dayStart;
+        !cursor.isAfter(dayEnd);
+        cursor = cursor.add(const Duration(days: 1))) {
       days.add(cursor);
     }
 
@@ -1941,6 +1935,11 @@ class _MatchOverviewSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final labels = SportMatchLabels.forSport(
+      l10n: l10n,
+      sportId: entries.isEmpty ? null : entries.first.sportId,
+    );
     final wins = entries.where((entry) => _matchOutcome(entry) == 1).length;
     final losses = entries.where((entry) => _matchOutcome(entry) == -1).length;
     final playerGoals = entries.fold<int>(
@@ -1952,8 +1951,8 @@ class _MatchOverviewSection extends StatelessWidget {
       (sum, entry) => sum + (entry.playerAssists ?? 0),
     );
     final direction = wins >= losses
-        ? (isKo ? '최근 흐름이 무너지지 않았습니다.' : 'Recent match trend is stable.')
-        : (isKo ? '결과 흐름 관리가 필요합니다.' : 'Result trend needs attention.');
+        ? l10n.statsMatchTrendStable
+        : l10n.statsMatchTrendNeedsAttention;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1966,9 +1965,14 @@ class _MatchOverviewSection extends StatelessWidget {
         _CoachMessage(
           icon: Icons.tips_and_updates_outlined,
           title: isKo ? '기간 해석' : 'Period Insight',
-          message: isKo
-              ? '${entries.length}경기 동안 개인 기록은 $playerGoals골 $playerAssists도움입니다. $direction'
-              : 'Across ${entries.length} matches you produced $playerGoals goals and $playerAssists assists. $direction',
+          message: l10n.statsMatchInsightMessage(
+            entries.length,
+            labels.primary.label,
+            playerGoals,
+            labels.secondary.label,
+            playerAssists,
+            direction,
+          ),
         ),
       ],
     );
@@ -1984,6 +1988,10 @@ class _MatchSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
+    final labels = SportMatchLabels.forSport(
+      l10n: l10n,
+      sportId: entries.isEmpty ? null : entries.first.sportId,
+    );
     final wins = entries.where((entry) => _matchOutcome(entry) == 1).length;
     final draws = entries.where((entry) => _matchOutcome(entry) == 0).length;
     final losses = entries.where((entry) => _matchOutcome(entry) == -1).length;
@@ -2046,9 +2054,9 @@ class _MatchSummaryCard extends StatelessWidget {
             ),
             _MetricCard(
               label: isKo ? '개인 기록' : 'Personal',
-              value: isKo
-                  ? '$playerGoals골 $playerAssists도움\n${l10n.matchShotsOnTargetLabel} $shotsOnTarget · ${l10n.matchBallsWonLabel} $ballsWon'
-                  : '$playerGoals G / $playerAssists A\n${l10n.matchShotsOnTargetLabel} $shotsOnTarget · ${l10n.matchBallsWonLabel} $ballsWon',
+              value:
+                  '${labels.primary.label} $playerGoals · ${labels.secondary.label} $playerAssists\n'
+                  '${labels.tertiary.label} $shotsOnTarget · ${labels.quaternary.label} $ballsWon',
             ),
           ],
         ),
@@ -2095,18 +2103,15 @@ class _MatchHistoryTile extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
+    final labels = SportMatchLabels.forSport(
+      l10n: l10n,
+      sportId: entry.sportId,
+    );
     final opponent = entry.opponentTeam.trim().isEmpty
         ? (isKo ? '상대 미입력' : 'Opponent unset')
         : entry.opponentTeam.trim();
     final detailLine = [
-      if (entry.playerGoals != null)
-        '${l10n.matchGoalsLabel} ${entry.playerGoals}',
-      if (entry.playerAssists != null)
-        '${l10n.matchAssistsLabel} ${entry.playerAssists}',
-      if (entry.shotsOnTarget != null)
-        '${l10n.matchShotsOnTargetLabel} ${entry.shotsOnTarget}',
-      if (entry.ballsWon != null)
-        '${l10n.matchBallsWonLabel} ${entry.ballsWon}',
+      ...labels.personalRecordParts(entry),
       if (entry.minutesPlayed != null)
         isKo ? '${entry.minutesPlayed}분 출전' : '${entry.minutesPlayed} min',
       if (entry.isLeagueMatch && entry.leaguePoints != null)
@@ -2351,8 +2356,7 @@ class _StatsPlanLite {
 
   factory _StatsPlanLite.fromMap(Map<String, dynamic> map) {
     return _StatsPlanLite(
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
@@ -2381,15 +2385,13 @@ String _topFocusLabel(List<TrainingEntry> entries, bool isKo) {
 }
 
 int _currentTrainingStreak(List<TrainingEntry> entries) {
-  final workedDays =
-      entries
-          .map(
-            (entry) =>
-                DateTime(entry.date.year, entry.date.month, entry.date.day),
-          )
-          .toSet()
-          .toList(growable: false)
-        ..sort((a, b) => b.compareTo(a));
+  final workedDays = entries
+      .map(
+        (entry) => DateTime(entry.date.year, entry.date.month, entry.date.day),
+      )
+      .toSet()
+      .toList(growable: false)
+    ..sort((a, b) => b.compareTo(a));
   if (workedDays.isEmpty) return 0;
   var streak = 1;
   for (var i = 1; i < workedDays.length; i++) {
@@ -2437,9 +2439,9 @@ class _SectionTitle extends StatelessWidget {
           child: Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.1,
-            ),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.1,
+                ),
           ),
         ),
         if (trailing != null) ...[const SizedBox(width: 8), trailing!],
@@ -2524,9 +2526,9 @@ class _CoachMessage extends StatelessWidget {
                 Text(
                   message,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    height: 1.45,
-                    fontWeight: FontWeight.w500,
-                  ),
+                        height: 1.45,
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
               ],
             ),

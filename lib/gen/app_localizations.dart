@@ -103,7 +103,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Football Training Log'**
+  /// **'Taeo\'s Note'**
   String get appTitle;
 
   /// No description provided for @tabHome.
@@ -5359,6 +5359,54 @@ abstract class AppLocalizations {
   /// **'Overview'**
   String get statsHeadline2;
 
+  /// No description provided for @statsMatchTrendStable.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent match trend is stable.'**
+  String get statsMatchTrendStable;
+
+  /// No description provided for @statsMatchTrendNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Result trend needs attention.'**
+  String get statsMatchTrendNeedsAttention;
+
+  /// No description provided for @statsMatchInsightMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Across {count} matches: {primaryLabel} {primaryValue} · {secondaryLabel} {secondaryValue}. {direction}'**
+  String statsMatchInsightMessage(
+      int count,
+      Object primaryLabel,
+      int primaryValue,
+      Object secondaryLabel,
+      int secondaryValue,
+      Object direction);
+
+  /// No description provided for @averageComparisonProfileMissingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter age and soccer experience'**
+  String get averageComparisonProfileMissingTitle;
+
+  /// No description provided for @averageComparisonProfileMissingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.'**
+  String get averageComparisonProfileMissingMessage;
+
+  /// No description provided for @averageComparisonFootballOnlyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Football average comparison hidden'**
+  String get averageComparisonFootballOnlyTitle;
+
+  /// No description provided for @averageComparisonFootballOnlyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This average comparison uses soccer juggling reference ranges, so it is not shown for the current sport.'**
+  String get averageComparisonFootballOnlyMessage;
+
   /// No description provided for @durationNotSet.
   ///
   /// In en, this message translates to:
@@ -7282,7 +7330,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeWeatherOutfitTitle.
   ///
   /// In en, this message translates to:
-  /// **'Recommended football outfit'**
+  /// **'Recommended training outfit'**
   String get homeWeatherOutfitTitle;
 
   /// No description provided for @homeWeatherOutfitBaseHot.
@@ -13353,6 +13401,78 @@ abstract class AppLocalizations {
   /// **'Balls won'**
   String get matchBallsWonLabel;
 
+  /// No description provided for @baseballMatchHitsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hits'**
+  String get baseballMatchHitsLabel;
+
+  /// No description provided for @baseballMatchRbisLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'RBIs'**
+  String get baseballMatchRbisLabel;
+
+  /// No description provided for @baseballMatchRunsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs'**
+  String get baseballMatchRunsLabel;
+
+  /// No description provided for @baseballMatchDefensivePlaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Defensive plays'**
+  String get baseballMatchDefensivePlaysLabel;
+
+  /// No description provided for @basketballMatchPointsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Points'**
+  String get basketballMatchPointsLabel;
+
+  /// No description provided for @basketballMatchAssistsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Assists'**
+  String get basketballMatchAssistsLabel;
+
+  /// No description provided for @basketballMatchReboundsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebounds'**
+  String get basketballMatchReboundsLabel;
+
+  /// No description provided for @basketballMatchStealsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Steals'**
+  String get basketballMatchStealsLabel;
+
+  /// No description provided for @tennisMatchGamesWonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Games won'**
+  String get tennisMatchGamesWonLabel;
+
+  /// No description provided for @tennisMatchAcesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Aces'**
+  String get tennisMatchAcesLabel;
+
+  /// No description provided for @tennisMatchFirstServesInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First serves in'**
+  String get tennisMatchFirstServesInLabel;
+
+  /// No description provided for @tennisMatchBreakPointsWonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Break points won'**
+  String get tennisMatchBreakPointsWonLabel;
+
   /// No description provided for @calendarMatchXpSourceLabel.
   ///
   /// In en, this message translates to:
@@ -13832,6 +13952,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attack forward within six seconds of the regain'**
   String get trainingSketchTemplateTransitionAttackMethod;
+
+  /// No description provided for @trainingSketchTemplateBaseballThrowingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Throwing relay'**
+  String get trainingSketchTemplateBaseballThrowingLabel;
+
+  /// No description provided for @trainingSketchTemplateBaseballThrowingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic catch-and-throw connection'**
+  String get trainingSketchTemplateBaseballThrowingDescription;
+
+  /// No description provided for @trainingSketchTemplateBaseballThrowingMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive cleanly and throw quickly to the target'**
+  String get trainingSketchTemplateBaseballThrowingMethod;
+
+  /// No description provided for @trainingSketchTemplateBaseballBattingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hit and run'**
+  String get trainingSketchTemplateBaseballBattingLabel;
+
+  /// No description provided for @trainingSketchTemplateBaseballBattingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Batting direction and first-base run'**
+  String get trainingSketchTemplateBaseballBattingDescription;
+
+  /// No description provided for @trainingSketchTemplateBaseballBattingMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Check contact direction, then sprint through first base'**
+  String get trainingSketchTemplateBaseballBattingMethod;
+
+  /// No description provided for @trainingSketchTemplateBaseballFieldingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fielding play'**
+  String get trainingSketchTemplateBaseballFieldingLabel;
+
+  /// No description provided for @trainingSketchTemplateBaseballFieldingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Batted-ball reaction and relay throw'**
+  String get trainingSketchTemplateBaseballFieldingDescription;
+
+  /// No description provided for @trainingSketchTemplateBaseballFieldingMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'React, field the ball, and throw accurately to the relay spot'**
+  String get trainingSketchTemplateBaseballFieldingMethod;
+
+  /// No description provided for @trainingSketchTemplateBasketballShootingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shooting spots'**
+  String get trainingSketchTemplateBasketballShootingLabel;
+
+  /// No description provided for @trainingSketchTemplateBasketballShootingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive path and shot locations'**
+  String get trainingSketchTemplateBasketballShootingDescription;
+
+  /// No description provided for @trainingSketchTemplateBasketballShootingMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch, set the feet, and shoot from the assigned spot'**
+  String get trainingSketchTemplateBasketballShootingMethod;
+
+  /// No description provided for @trainingSketchTemplateBasketballPassingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass and cut'**
+  String get trainingSketchTemplateBasketballPassingLabel;
+
+  /// No description provided for @trainingSketchTemplateBasketballPassingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Cut timing and pass connection'**
+  String get trainingSketchTemplateBasketballPassingDescription;
+
+  /// No description provided for @trainingSketchTemplateBasketballPassingMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Time the pass with the cutter\'s movement'**
+  String get trainingSketchTemplateBasketballPassingMethod;
+
+  /// No description provided for @trainingSketchTemplateBasketballDefenseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Defensive slides'**
+  String get trainingSketchTemplateBasketballDefenseLabel;
+
+  /// No description provided for @trainingSketchTemplateBasketballDefenseDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Lateral slide and pressure positions'**
+  String get trainingSketchTemplateBasketballDefenseDescription;
+
+  /// No description provided for @trainingSketchTemplateBasketballDefenseMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay in front and repeat controlled lateral slides'**
+  String get trainingSketchTemplateBasketballDefenseMethod;
+
+  /// No description provided for @trainingSketchTemplateTennisServeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Serve targets'**
+  String get trainingSketchTemplateTennisServeLabel;
+
+  /// No description provided for @trainingSketchTemplateTennisServeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Serve direction and recovery position'**
+  String get trainingSketchTemplateTennisServeDescription;
+
+  /// No description provided for @trainingSketchTemplateTennisServeMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Serve to the target, then recover to the middle'**
+  String get trainingSketchTemplateTennisServeMethod;
+
+  /// No description provided for @trainingSketchTemplateTennisRallyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cross-court rally'**
+  String get trainingSketchTemplateTennisRallyLabel;
+
+  /// No description provided for @trainingSketchTemplateTennisRallyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Cross-court rally and recovery'**
+  String get trainingSketchTemplateTennisRallyDescription;
+
+  /// No description provided for @trainingSketchTemplateTennisRallyMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Send cross-court and recover to center for the next ball'**
+  String get trainingSketchTemplateTennisRallyMethod;
+
+  /// No description provided for @trainingSketchTemplateTennisFootworkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Footwork pattern'**
+  String get trainingSketchTemplateTennisFootworkLabel;
+
+  /// No description provided for @trainingSketchTemplateTennisFootworkDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Split step and side-to-side movement'**
+  String get trainingSketchTemplateTennisFootworkDescription;
+
+  /// No description provided for @trainingSketchTemplateTennisFootworkMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Split step, move side to side, and recover balance'**
+  String get trainingSketchTemplateTennisFootworkMethod;
 
   /// No description provided for @trainingSketchTemplateGalleryAction.
   ///

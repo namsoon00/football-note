@@ -7,12 +7,14 @@ import '../widgets/training_board_sketch.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 
 class TrainingBoardTemplateGalleryScreen extends StatelessWidget {
-  const TrainingBoardTemplateGalleryScreen({super.key});
+  final String? sportId;
+
+  const TrainingBoardTemplateGalleryScreen({super.key, this.sportId});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final templates = buildTrainingBoardTemplateOptions(l10n);
+    final templates = buildTrainingBoardTemplateOptions(l10n, sportId: sportId);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.trainingSketchTemplateGalleryTitle)),
       body: AppBackground(
@@ -58,8 +60,8 @@ class _TemplatePreviewCard extends StatelessWidget {
                 child: Text(
                   template.label,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
             ],
