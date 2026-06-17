@@ -2134,7 +2134,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         await widget.driveBackupService!.signOut();
       } else {
         await widget.driveBackupService!.signIn();
-        await widget.driveBackupService!.rememberCurrentRoleDriveConnection();
+        await _rememberSignedInDriveConnectionIfSafe();
       }
       await _refreshDriveUi(
         allowCachedConnection: !wasSignedIn,
@@ -2172,6 +2172,24 @@ class _SettingsScreenState extends State<SettingsScreen>
         setState(() => _signInBusy = false);
       }
     }
+  }
+
+  Future<void> _rememberSignedInDriveConnectionIfSafe() async {
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    final familyState =
+        FamilyAccessService(widget.optionRepository).loadState();
+    if (familyState.isChildMode) {
+      final current = await backup.getDriveConnectionInfo();
+      final savedEmail = backup.getSavedRecordDriveEmail().trim();
+      final currentEmail = current?.email.trim() ?? '';
+      if (savedEmail.isNotEmpty &&
+          currentEmail.isNotEmpty &&
+          savedEmail.toLowerCase() != currentEmail.toLowerCase()) {
+        return;
+      }
+    }
+    await backup.rememberCurrentRoleDriveConnection();
   }
 
   Future<void> _restoreFromDrive(
