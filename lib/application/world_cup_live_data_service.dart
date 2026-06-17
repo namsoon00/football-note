@@ -5,11 +5,13 @@ import 'world_cup_schedule.dart';
 class WorldCupLiveData {
   final List<WorldCupFixture> fixtures;
   final Map<int, FifaAMatchEntry> officialMatchesByFixtureNumber;
+  final Map<String, FifaRankingEntry> rankingsByTeam;
   final DateTime refreshedAt;
 
   const WorldCupLiveData({
     required this.fixtures,
     required this.officialMatchesByFixtureNumber,
+    this.rankingsByTeam = const <String, FifaRankingEntry>{},
     required this.refreshedAt,
   });
 
@@ -57,7 +59,12 @@ class WorldCupLiveDataService {
       firstKickoff: firstKickoff,
       lastKickoff: lastKickoff,
     );
-    final officialMatches = await _fetchWorldCupMatches(start: start, end: end);
+    final officialMatchesFuture = _fetchWorldCupMatches(start: start, end: end);
+    final rankingsFuture = _fifaService.fetchRankingOverview(
+      gender: FifaRankingGender.men,
+    );
+    final officialMatches = await officialMatchesFuture;
+    final rankingOverview = await rankingsFuture;
     final matchesByFixtureNumber = _matchOfficialMatches(
       fixtures,
       officialMatches,
@@ -75,12 +82,21 @@ class WorldCupLiveDataService {
       officialMatchesByFixtureNumber: Map<int, FifaAMatchEntry>.unmodifiable(
         matchesByFixtureNumber,
       ),
+      rankingsByTeam: Map<String, FifaRankingEntry>.unmodifiable(
+        _rankingsByWorldCupTeam(
+          rankings: rankingOverview.rankings,
+          fixtures: fixtures,
+        ),
+      ),
       refreshedAt: DateTime.now().toUtc(),
     );
   }
 
-  Future<FifaAMatchDetail?> fetchMatchDetail(FifaAMatchEntry match) {
-    return _fifaService.fetchMatchDetail(match: match);
+  Future<FifaAMatchDetail?> fetchMatchDetail(
+    FifaAMatchEntry match, {
+    String language = 'en',
+  }) {
+    return _fifaService.fetchMatchDetail(match: match, language: language);
   }
 
   DateTime _fetchEnd({
@@ -171,6 +187,27 @@ class WorldCupLiveDataService {
     }
 
     return matchesByFixtureNumber;
+  }
+
+  Map<String, FifaRankingEntry> _rankingsByWorldCupTeam({
+    required List<FifaRankingEntry> rankings,
+    required List<WorldCupFixture> fixtures,
+  }) {
+    final teams = <String>{};
+    for (final fixture in fixtures) {
+      if (!fixture.isGroupStage) continue;
+      teams
+        ..add(fixture.homeTeam)
+        ..add(fixture.awayTeam);
+    }
+    final rankingsByKey = <String, FifaRankingEntry>{
+      for (final entry in rankings) _teamKey(entry.teamName): entry,
+    };
+    return <String, FifaRankingEntry>{
+      for (final team in teams)
+        if (rankingsByKey[_teamKey(team)] != null)
+          team: rankingsByKey[_teamKey(team)]!,
+    };
   }
 
   WorldCupFixture _fixtureWithOfficialResult(

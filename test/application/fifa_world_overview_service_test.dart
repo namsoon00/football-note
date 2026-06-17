@@ -156,6 +156,30 @@ void main() {
     expect(womenMatches.single.status, FifaAMatchStatus.scheduled);
   });
 
+  test('parseNationalMatches treats numeric FIFA live status as live', () {
+    final matches = FifaWorldOverviewService.parseNationalMatches([
+      _match(
+        matchId: 'live-score',
+        gender: 1,
+        period: 0,
+        matchStatus: 3,
+        competition: 'FIFA World Cup',
+        stage: 'First Stage',
+        homeName: 'England',
+        homeCode: 'ENG',
+        awayName: 'Croatia',
+        awayCode: 'CRO',
+        date: '2026-06-17T20:00:00Z',
+        homeScore: 3,
+        awayScore: 2,
+      ),
+    ], gender: FifaRankingGender.men);
+
+    expect(matches, hasLength(1));
+    expect(matches.single.hasScore, isTrue);
+    expect(matches.single.status, FifaAMatchStatus.live);
+  });
+
   test('parseFifaMatchDetail extracts scorers and possession', () {
     final raw = _match(
       matchId: 'detail-match',
@@ -186,6 +210,7 @@ void main() {
         'PlayerName': [
           {'Locale': 'en-gb', 'Description': 'Son Heungmin'},
         ],
+        'PlayerPicture': {'PictureUrl': 'https://example.com/son.png'},
       },
     ];
     homeTeam['Goals'] = [
@@ -224,6 +249,8 @@ void main() {
     expect(detail.homeScorers.first.minute, "21'");
     expect(detail.awayScorers.single.playerName, 'T. Kubo');
     expect(detail.homePlayers.single.playerName, 'S. Son');
+    expect(detail.homePlayers.single.fullName, 'Son Heungmin');
+    expect(detail.homePlayers.single.pictureUrl, 'https://example.com/son.png');
     expect(detail.homePlayers.single.shirtNumber, 7);
     expect(detail.homePlayers.single.isStarting, isTrue);
     expect(detail.homePlayers.single.isCaptain, isTrue);
@@ -689,6 +716,7 @@ Map<String, dynamic> _match({
   required String matchId,
   required int gender,
   required int period,
+  int? matchStatus,
   required String competition,
   required String stage,
   required String homeName,
@@ -707,6 +735,7 @@ Map<String, dynamic> _match({
     'IdMatch': matchId,
     'Date': date,
     'Period': period,
+    if (matchStatus != null) 'MatchStatus': matchStatus,
     'CompetitionName': [
       {'Locale': 'en', 'Description': competition},
     ],

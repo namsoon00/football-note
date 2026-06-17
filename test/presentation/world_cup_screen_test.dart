@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:football_note/application/world_cup_live_data_service.dart';
 import 'package:football_note/application/world_cup_schedule.dart';
+import 'package:football_note/domain/entities/fifa_world_overview.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/world_cup_screen.dart';
@@ -275,6 +277,154 @@ void main() {
     expect(find.textContaining('Mexico'), findsNothing);
   });
 
+  testWidgets('fixture team blocks show FIFA ranking and keep live status', (
+    tester,
+  ) async {
+    final fixture = worldCupFixtures.first;
+    final officialMatch = FifaAMatchEntry(
+      matchId: 'live-match',
+      matchNumber: fixture.matchNumber,
+      gender: FifaRankingGender.men,
+      competition: 'FIFA World Cup',
+      stage: 'First Stage',
+      venue: fixture.venue,
+      city: 'Mexico City',
+      kickoffAt: fixture.kickoffUtc,
+      homeTeamName: fixture.homeTeam,
+      homeCountryCode: 'MEX',
+      awayTeamName: fixture.awayTeam,
+      awayCountryCode: 'RSA',
+      homeScore: 1,
+      awayScore: 0,
+      status: FifaAMatchStatus.live,
+    );
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: worldCupFixtures,
+        officialMatchesByFixtureNumber: {fixture.matchNumber: officialMatch},
+        rankingsByTeam: {
+          fixture.homeTeam: _rankingEntry(fixture.homeTeam, 'MEX', 12),
+          fixture.awayTeam: _rankingEntry(fixture.awayTeam, 'RSA', 56),
+        },
+        refreshedAt: DateTime.utc(2026, 6, 11, 19, 30),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          initialSelectedDay: fixture.localDay,
+          currentTime: fixture.kickoffUtc.add(const Duration(minutes: 30)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('1 : 0'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('FIFA #12'), findsOneWidget);
+    expect(find.text('FIFA #56'), findsOneWidget);
+    expect(find.text('진행 중'), findsWidgets);
+    expect(find.text('1 : 0'), findsOneWidget);
+  });
+
+  testWidgets('match detail localizes lineup players and shows club and image',
+      (
+    tester,
+  ) async {
+    final fixture = worldCupFixtures.firstWhere(
+      (fixture) => fixture.involvesCountry('Korea Republic'),
+    );
+    final officialMatch = FifaAMatchEntry(
+      matchId: 'korea-detail-match',
+      matchNumber: fixture.matchNumber,
+      gender: FifaRankingGender.men,
+      competition: 'FIFA World Cup',
+      stage: 'First Stage',
+      venue: fixture.venue,
+      city: 'Guadalajara',
+      kickoffAt: fixture.kickoffUtc,
+      homeTeamName: fixture.homeTeam,
+      homeCountryCode: 'KOR',
+      awayTeamName: fixture.awayTeam,
+      awayCountryCode: 'CZE',
+      homeScore: 2,
+      awayScore: 1,
+      status: FifaAMatchStatus.finished,
+    );
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: worldCupFixtures,
+        officialMatchesByFixtureNumber: {fixture.matchNumber: officialMatch},
+        refreshedAt: DateTime.utc(2026, 6, 12, 4),
+      ),
+      detail: FifaAMatchDetail(
+        match: officialMatch,
+        homeScorers: const <FifaMatchScorer>[],
+        awayScorers: const <FifaMatchScorer>[],
+        homePlayers: const [
+          FifaMatchPlayer(
+            playerId: 'son',
+            playerName: '손흥민',
+            fullName: '손흥민',
+            shirtNumber: 7,
+            position: FifaMatchPlayerPosition.forward,
+            isStarting: true,
+            isCaptain: true,
+            pictureUrl: 'https://example.com/son.png',
+          ),
+        ],
+        awayPlayers: const <FifaMatchPlayer>[],
+        homeTactics: '4-3-3',
+        awayTactics: '',
+        homePossession: null,
+        awayPossession: null,
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          initialSelectedDay: fixture.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('2 : 1'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('2 : 1').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    expect(liveDataService.lastDetailLanguage, 'ko');
+    expect(find.text('출전 명단'), findsOneWidget);
+    expect(find.textContaining('손흥민'), findsWidgets);
+    expect(find.text('Los Angeles FC'), findsOneWidget);
+    expect(find.byType(Image), findsWidgets);
+  });
+
   testWidgets('fixture calendar localizes month and weekday labels', (
     tester,
   ) async {
@@ -316,11 +466,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final scrollable = find.byType(Scrollable).first;
-    await tester.scrollUntilVisible(
-      find.text('메트라이프 스타디움, 뉴욕/뉴저지'),
-      180,
-      scrollable: scrollable,
-    );
+    await tester.scrollUntilVisible(find.textContaining('가나'), 180,
+        scrollable: scrollable);
     await tester.pumpAndSettle();
 
     expect(find.text('결과 갱신 대기'), findsWidgets);
@@ -463,6 +610,48 @@ void main() {
 
     expect(find.byType(CheckboxListTile), findsNothing);
   });
+}
+
+class _FakeWorldCupLiveDataService extends WorldCupLiveDataService {
+  final WorldCupLiveData data;
+  final FifaAMatchDetail? detail;
+  String lastDetailLanguage = '';
+
+  _FakeWorldCupLiveDataService({required this.data, this.detail});
+
+  @override
+  Future<WorldCupLiveData> fetchLatest({
+    List<WorldCupFixture> baseFixtures = worldCupFixtures,
+    DateTime? now,
+  }) async {
+    return data;
+  }
+
+  @override
+  Future<FifaAMatchDetail?> fetchMatchDetail(
+    FifaAMatchEntry match, {
+    String language = 'en',
+  }) async {
+    lastDetailLanguage = language;
+    return detail;
+  }
+
+  @override
+  void dispose() {}
+}
+
+FifaRankingEntry _rankingEntry(String teamName, String countryCode, int rank) {
+  return FifaRankingEntry(
+    teamId: '$countryCode-team',
+    teamName: teamName,
+    countryCode: countryCode,
+    confederation: 'TEST',
+    rank: rank,
+    previousRank: rank,
+    points: 1600,
+    previousPoints: 1600,
+    publishedAt: null,
+  );
 }
 
 class _MemoryOptionRepository implements OptionRepository {
