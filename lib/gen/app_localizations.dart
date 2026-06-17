@@ -190,6 +190,42 @@ abstract class AppLocalizations {
   /// **'Coach mark'**
   String get welcomeGuideCoachMarkLabel;
 
+  /// No description provided for @tabGuideCoachMarkStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String tabGuideCoachMarkStep(int current, int total);
+
+  /// No description provided for @tabGuideCoachMarkSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get tabGuideCoachMarkSkip;
+
+  /// No description provided for @tabGuideCoachMarkBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get tabGuideCoachMarkBack;
+
+  /// No description provided for @tabGuideCoachMarkNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tabGuideCoachMarkNext;
+
+  /// No description provided for @tabGuideCoachMarkDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tabGuideCoachMarkDone;
+
+  /// No description provided for @tabGuideCoachMarkTry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try this'**
+  String get tabGuideCoachMarkTry;
+
   /// No description provided for @parentWelcomeGuideTitle.
   ///
   /// In en, this message translates to:

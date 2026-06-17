@@ -57,6 +57,26 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeGuideCoachMarkLabel => '코치마크';
 
   @override
+  String tabGuideCoachMarkStep(int current, int total) {
+    return '$total단계 중 $current단계';
+  }
+
+  @override
+  String get tabGuideCoachMarkSkip => '건너뛰기';
+
+  @override
+  String get tabGuideCoachMarkBack => '이전';
+
+  @override
+  String get tabGuideCoachMarkNext => '다음';
+
+  @override
+  String get tabGuideCoachMarkDone => '완료';
+
+  @override
+  String get tabGuideCoachMarkTry => '바로 해보기';
+
+  @override
   String get parentWelcomeGuideTitle => '보호자 모드 안내';
 
   @override
