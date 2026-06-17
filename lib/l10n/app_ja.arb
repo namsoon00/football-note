@@ -19,6 +19,22 @@
   "welcomeGuideNextTabHint": "上の別のタブを選択して、そのボタンをプレビューします。",
   "welcomeGuidePreviewLabel": "画面ハイライト",
   "welcomeGuideCoachMarkLabel": "コーチマーク",
+  "tabGuideCoachMarkStep": "{total}ステップ中{current}ステップ目",
+  "@tabGuideCoachMarkStep": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tabGuideCoachMarkSkip": "スキップ",
+  "tabGuideCoachMarkBack": "戻る",
+  "tabGuideCoachMarkNext": "次へ",
+  "tabGuideCoachMarkDone": "完了",
+  "tabGuideCoachMarkTry": "試してみる",
   "parentWelcomeGuideTitle": "保護者モードガイド",
   "parentWelcomeGuideIntro": "親モードは、プレーヤーの記録を確認し、既存のトレーニング ログにフィードバックを残すためのものです。",
   "parentWelcomeGuideStepLogs": "まず [ログ] タブを開いて、プレーヤーによって保存されたレコードを確認します。",

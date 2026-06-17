@@ -56,6 +56,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeGuideCoachMarkLabel => 'コーチマーク';
 
   @override
+  String tabGuideCoachMarkStep(int current, int total) {
+    return '$totalステップ中$currentステップ目';
+  }
+
+  @override
+  String get tabGuideCoachMarkSkip => 'スキップ';
+
+  @override
+  String get tabGuideCoachMarkBack => '戻る';
+
+  @override
+  String get tabGuideCoachMarkNext => '次へ';
+
+  @override
+  String get tabGuideCoachMarkDone => '完了';
+
+  @override
+  String get tabGuideCoachMarkTry => '試してみる';
+
+  @override
   String get parentWelcomeGuideTitle => '保護者モードガイド';
 
   @override
