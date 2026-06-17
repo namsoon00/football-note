@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/backup_service.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
@@ -11,15 +12,51 @@ import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/domain/entities/training_board.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
+import 'package:football_note/domain/repositories/backup_repository.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/models/training_method_layout.dart';
 import 'package:football_note/presentation/screens/entry_form_screen.dart';
 import 'package:football_note/presentation/screens/home_hub_screen.dart';
+import 'package:football_note/presentation/screens/home_screen.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
 
 void main() {
+  testWidgets(
+    'home startup sync checks daily backup before family refresh',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      await optionRepository.setValue('tab_quick_guide_seen_v1_0', true);
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final trainingService = TrainingService(_MemoryTrainingRepository());
+      final mealLogService = MealLogService(optionRepository);
+      final backupService = _TrackingBackupService();
+
+      await tester.pumpWidget(
+        _buildApp(
+          HomeScreen(
+            trainingService: trainingService,
+            mealLogService: mealLogService,
+            localeService: localeService,
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(backupService.autoBackupDailyCalls, 1);
+      expect(backupService.refreshFamilySharedDataIfNeededCalls, 1);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
+
   testWidgets(
     'home quick actions and continue card use Japanese localization',
     (WidgetTester tester) async {
@@ -686,6 +723,55 @@ Widget _buildApp(Widget home, {Locale locale = const Locale('ko', 'KR')}) {
     supportedLocales: AppLocalizations.supportedLocales,
     home: home,
   );
+}
+
+class _TrackingBackupService extends BackupService {
+  int autoBackupDailyCalls = 0;
+  int refreshFamilySharedDataIfNeededCalls = 0;
+
+  _TrackingBackupService() : super(const _NoopBackupRepository());
+
+  @override
+  Future<void> autoBackupDaily() async {
+    autoBackupDailyCalls += 1;
+  }
+
+  @override
+  Future<FamilySharedSyncResult> refreshFamilySharedDataIfNeeded() async {
+    refreshFamilySharedDataIfNeededCalls += 1;
+    return const FamilySharedSyncResult.none(role: FamilyRole.child);
+  }
+}
+
+class _NoopBackupRepository implements BackupRepository {
+  const _NoopBackupRepository();
+
+  @override
+  Future<void> autoBackupDaily() async {}
+
+  @override
+  Future<void> backup() async {}
+
+  @override
+  Future<bool> backupIfSignedIn({bool requireAutoOnSave = false}) async => true;
+
+  @override
+  DateTime? getLastBackup() => null;
+
+  @override
+  bool isAutoDailyEnabled() => true;
+
+  @override
+  bool isAutoOnSaveEnabled() => true;
+
+  @override
+  Future<void> restoreLatest() async {}
+
+  @override
+  Future<void> setAutoDailyEnabled(bool value) async {}
+
+  @override
+  Future<void> setAutoOnSaveEnabled(bool value) async {}
 }
 
 class _MemoryOptionRepository implements OptionRepository {

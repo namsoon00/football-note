@@ -2185,7 +2185,11 @@ class _SettingsScreenState extends State<SettingsScreen>
       await restoreAction();
       widget.localeService.load();
       widget.settingsService.load();
-      await _refreshSignInState();
+      await _refreshDriveUi(
+        allowCachedConnection: true,
+        allowRemoteStatusLookup: true,
+        showLoading: false,
+      );
       if (!mounted) return;
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
