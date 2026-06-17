@@ -7330,6 +7330,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchControlsPanel => '도구와 선택';
 
   @override
+  String get trainingSketchTacticalOverlay => '전술 구역 표시';
+
+  @override
   String get trainingSketchPlayTooltip => '플레이';
 
   @override

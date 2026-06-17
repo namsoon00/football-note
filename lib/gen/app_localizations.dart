@@ -13089,6 +13089,12 @@ abstract class AppLocalizations {
   /// **'Tools and selection'**
   String get trainingSketchControlsPanel;
 
+  /// No description provided for @trainingSketchTacticalOverlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Show tactical zones'**
+  String get trainingSketchTacticalOverlay;
+
   /// No description provided for @trainingSketchPlayTooltip.
   ///
   /// In en, this message translates to:

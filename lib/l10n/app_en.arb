@@ -3739,6 +3739,7 @@
     }
   },
   "trainingSketchControlsPanel": "Tools and selection",
+  "trainingSketchTacticalOverlay": "Show tactical zones",
   "trainingSketchPlayTooltip": "Play",
   "trainingSketchPlaybackSpeedTooltip": "Playback speed",
   "trainingSketchAddSketchTooltip": "Add sketch",

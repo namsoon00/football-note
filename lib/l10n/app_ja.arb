@@ -3739,6 +3739,7 @@
     }
   },
   "trainingSketchControlsPanel": "ツールと選択",
+  "trainingSketchTacticalOverlay": "戦術ゾーンを表示",
   "trainingSketchPlayTooltip": "遊ぶ",
   "trainingSketchPlaybackSpeedTooltip": "再生速度",
   "trainingSketchAddSketchTooltip": "スケッチを追加",
