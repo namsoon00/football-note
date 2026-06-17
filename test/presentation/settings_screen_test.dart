@@ -761,6 +761,79 @@ void main() {
     },
   );
 
+  testWidgets(
+    'player sign in with changed Google account keeps latest import available',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: false,
+        connectionInfo: null,
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        savedRecordDriveLabel: '민수 · player@example.com',
+        savedRecordDriveEmail: 'player@example.com',
+        signInConnectionInfo: const DriveConnectionInfo(
+          email: 'new-player@example.com',
+          displayName: '민수',
+          subjectId: 'subject-new',
+        ),
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.widgetWithText(OutlinedButton, 'Google Drive 연결'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Google Drive 연결'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(backupService.getSavedRecordDriveEmail(), 'player@example.com');
+      expect(find.text('민수 · new-player@example.com'), findsWidgets);
+      expect(
+        find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
+        findsOneWidget,
+      );
+
+      final backupButtonFinder = find.widgetWithText(
+        OutlinedButton,
+        '데이터 백업하기',
+      );
+      final backupButton = tester.widget<OutlinedButton>(backupButtonFinder);
+      expect(backupButton.onPressed, isNull);
+
+      await tester.tap(find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.pumpAndSettle();
+      expect(find.text('복원 재확인'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(backupService.restoreLatestCalled, isTrue);
+    },
+  );
+
   testWidgets('settings reacts immediately to external Drive account changes', (
     WidgetTester tester,
   ) async {

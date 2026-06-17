@@ -176,9 +176,7 @@ class DriveBackupService implements BackupRepository {
     try {
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
       await _syncConnectedDriveAccountCache();
-      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole(
-        driveApi: driveApi,
-      );
+      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole();
       if (switchedAccount) {
         return;
       }
@@ -192,9 +190,7 @@ class DriveBackupService implements BackupRepository {
       await _reauthenticateForDriveScope();
       final retriedApi = await _driveApi(requireInteractive: false);
       await _syncConnectedDriveAccountCache();
-      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole(
-        driveApi: retriedApi,
-      );
+      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole();
       if (switchedAccount) {
         return;
       }
@@ -219,9 +215,8 @@ class DriveBackupService implements BackupRepository {
       try {
         final driveApi = await _driveApi(requireInteractive: false);
         await _syncConnectedDriveAccountCache();
-        final switchedAccount = await _prepareConnectedDriveDataForCurrentRole(
-          driveApi: driveApi,
-        );
+        final switchedAccount =
+            await _prepareConnectedDriveDataForCurrentRole();
         if (switchedAccount) {
           return false;
         }
@@ -249,9 +244,7 @@ class DriveBackupService implements BackupRepository {
       final authHeaders = await account.authHeaders;
       final driveApi = drive.DriveApi(_GoogleAuthClient(authHeaders));
       await _syncConnectedDriveAccountCache();
-      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole(
-        driveApi: driveApi,
-      );
+      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole();
       if (switchedAccount) {
         return false;
       }
@@ -487,8 +480,7 @@ class DriveBackupService implements BackupRepository {
     if (kIsWeb) {
       await _ensureWebAccessToken(requireInteractive: true);
       await _syncConnectedDriveAccountCache();
-      final driveApi = await _driveApi(requireInteractive: false);
-      await _prepareConnectedDriveDataForCurrentRole(driveApi: driveApi);
+      await _prepareConnectedDriveDataForCurrentRole();
       return;
     }
     final account = await _ensureSignedIn(requireInteractive: true);
@@ -502,9 +494,7 @@ class DriveBackupService implements BackupRepository {
       ),
     );
     await _syncConnectedDriveAccountCache();
-    final authHeaders = await account.authHeaders;
-    final driveApi = drive.DriveApi(_GoogleAuthClient(authHeaders));
-    await _prepareConnectedDriveDataForCurrentRole(driveApi: driveApi);
+    await _prepareConnectedDriveDataForCurrentRole();
   }
 
   Future<bool> isSignedIn() async {
@@ -1265,18 +1255,10 @@ class DriveBackupService implements BackupRepository {
     }
   }
 
-  Future<bool> _prepareConnectedDriveDataForCurrentRole({
-    required drive.DriveApi driveApi,
-  }) async {
+  Future<bool> _prepareConnectedDriveDataForCurrentRole() async {
     if (_familyService.loadState().currentRole != FamilyRole.child) {
       return false;
     }
-    return _syncConnectedPlayerBackupIfNeeded(driveApi: driveApi);
-  }
-
-  Future<bool> _syncConnectedPlayerBackupIfNeeded({
-    required drive.DriveApi driveApi,
-  }) async {
     final current = _loadCachedDriveConnectionInfo();
     if (current == null || current.email.trim().isEmpty) {
       return false;
@@ -1288,8 +1270,7 @@ class DriveBackupService implements BackupRepository {
       await _syncSharedChildDriveMetadataIfNeeded();
       return false;
     }
-    final remoteBackup = await _loadLatestRemoteBackupMapWithApi(driveApi);
-    return _adoptConnectedPlayerBackup(remoteBackup: remoteBackup);
+    return true;
   }
 
   Future<String> _findOrCreateFolder(drive.DriveApi api) async {
