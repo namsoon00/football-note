@@ -45,12 +45,16 @@ class HiveTrainingRepository implements TrainingRepository {
   Stream<List<TrainingEntry>> watchRecent({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   }) {
     return Stream<List<TrainingEntry>>.multi((controller) {
       void emit() {
         if (!controller.isClosed) {
-          controller.add(
-              _recentEntries(limit: limit, includeMatches: includeMatches));
+          controller.add(_recentEntries(
+            limit: limit,
+            includeMatches: includeMatches,
+            sportId: sportId,
+          ));
         }
       }
 
@@ -77,8 +81,13 @@ class HiveTrainingRepository implements TrainingRepository {
   Future<List<TrainingEntry>> getRecent({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   }) async {
-    return _recentEntries(limit: limit, includeMatches: includeMatches);
+    return _recentEntries(
+      limit: limit,
+      includeMatches: includeMatches,
+      sportId: sportId,
+    );
   }
 
   @override
@@ -113,10 +122,15 @@ class HiveTrainingRepository implements TrainingRepository {
   List<TrainingEntry> _recentEntries({
     required int limit,
     required bool includeMatches,
+    String? sportId,
   }) {
     if (limit <= 0) return const <TrainingEntry>[];
     final entries = _box.values
-        .where((entry) => includeMatches || !entry.isMatch)
+        .where(
+          (entry) =>
+              (sportId == null || entry.sportId == sportId) &&
+              (includeMatches || !entry.isMatch),
+        )
         .toList(growable: false)
       ..sort(TrainingEntry.compareByRecentCreated);
     if (entries.length <= limit) return entries;

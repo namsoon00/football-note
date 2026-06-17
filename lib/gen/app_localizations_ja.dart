@@ -9,7 +9,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'サッカートレーニングログ';
+  String get appTitle => 'テオのノート';
 
   @override
   String get tabHome => '家';
@@ -2881,6 +2881,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String get statsHeadline2 => '概要';
 
   @override
+  String get statsMatchTrendStable => '最近の試合の流れは安定しています。';
+
+  @override
+  String get statsMatchTrendNeedsAttention => '結果の流れを管理する必要があります。';
+
+  @override
+  String statsMatchInsightMessage(
+      int count,
+      Object primaryLabel,
+      int primaryValue,
+      Object secondaryLabel,
+      int secondaryValue,
+      Object direction) {
+    return '$count試合の個人記録は $primaryLabel $primaryValue · $secondaryLabel $secondaryValue です。$direction';
+  }
+
+  @override
+  String get averageComparisonProfileMissingTitle => '年齢と競技歴を入力してください';
+
+  @override
+  String get averageComparisonProfileMissingMessage =>
+      '年齢とサッカー経験が未入力のため、平均比較を表示できません。プロフィールで生年月日とサッカー開始日を入力してください。';
+
+  @override
+  String get averageComparisonFootballOnlyTitle => 'サッカー平均比較は非表示です';
+
+  @override
+  String get averageComparisonFootballOnlyMessage =>
+      'この平均比較はサッカーのリフティング基準を使用するため、現在の競技では表示しません。';
+
+  @override
   String get durationNotSet => '時間がない';
 
   @override
@@ -3892,7 +3923,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeWeatherUvIndex => '紫外線指数';
 
   @override
-  String get homeWeatherOutfitTitle => 'おすすめのサッカー服装';
+  String get homeWeatherOutfitTitle => 'おすすめのトレーニング服装';
 
   @override
   String get homeWeatherOutfitBaseHot => '半袖キット、薄手のショーツ、通気性のあるソックス。';
@@ -7452,6 +7483,42 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchBallsWonLabel => '獲得したボール';
 
   @override
+  String get baseballMatchHitsLabel => '安打';
+
+  @override
+  String get baseballMatchRbisLabel => '打点';
+
+  @override
+  String get baseballMatchRunsLabel => '得点';
+
+  @override
+  String get baseballMatchDefensivePlaysLabel => '守備処理';
+
+  @override
+  String get basketballMatchPointsLabel => '得点';
+
+  @override
+  String get basketballMatchAssistsLabel => 'アシスト';
+
+  @override
+  String get basketballMatchReboundsLabel => 'リバウンド';
+
+  @override
+  String get basketballMatchStealsLabel => 'スティール';
+
+  @override
+  String get tennisMatchGamesWonLabel => '取ったゲーム';
+
+  @override
+  String get tennisMatchAcesLabel => 'エース';
+
+  @override
+  String get tennisMatchFirstServesInLabel => 'ファーストサーブ成功';
+
+  @override
+  String get tennisMatchBreakPointsWonLabel => 'ブレーク成功';
+
+  @override
   String get calendarMatchXpSourceLabel => '対戦成績';
 
   @override
@@ -7711,6 +7778,98 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get trainingSketchTemplateTransitionAttackMethod =>
       '取り戻してから6秒以内に前方に攻撃する';
+
+  @override
+  String get trainingSketchTemplateBaseballThrowingLabel => '送球リレー';
+
+  @override
+  String get trainingSketchTemplateBaseballThrowingDescription =>
+      'キャッチボールと送球の基本配置';
+
+  @override
+  String get trainingSketchTemplateBaseballThrowingMethod => '捕球後、目標へ素早く送球する';
+
+  @override
+  String get trainingSketchTemplateBaseballBattingLabel => '打撃後の走塁';
+
+  @override
+  String get trainingSketchTemplateBaseballBattingDescription => '打球方向と一塁への流れ';
+
+  @override
+  String get trainingSketchTemplateBaseballBattingMethod =>
+      'コンタクト後に打球方向を確認し、一塁まで走る';
+
+  @override
+  String get trainingSketchTemplateBaseballFieldingLabel => '守備処理';
+
+  @override
+  String get trainingSketchTemplateBaseballFieldingDescription => '打球反応と中継送球';
+
+  @override
+  String get trainingSketchTemplateBaseballFieldingMethod =>
+      '反応して捕球し、中継地点へ正確に送球する';
+
+  @override
+  String get trainingSketchTemplateBasketballShootingLabel => 'シュートスポット';
+
+  @override
+  String get trainingSketchTemplateBasketballShootingDescription =>
+      'ドライブ経路とシュート位置';
+
+  @override
+  String get trainingSketchTemplateBasketballShootingMethod =>
+      '受けて足を整え、指定スポットでシュートする';
+
+  @override
+  String get trainingSketchTemplateBasketballPassingLabel => 'パス＆カット';
+
+  @override
+  String get trainingSketchTemplateBasketballPassingDescription =>
+      'カットインとパスのタイミング';
+
+  @override
+  String get trainingSketchTemplateBasketballPassingMethod =>
+      'カッターの動きに合わせてパスを出す';
+
+  @override
+  String get trainingSketchTemplateBasketballDefenseLabel => '守備スライド';
+
+  @override
+  String get trainingSketchTemplateBasketballDefenseDescription =>
+      '左右スライドとプレッシャー位置';
+
+  @override
+  String get trainingSketchTemplateBasketballDefenseMethod =>
+      '相手の前を保ち、左右スライドを繰り返す';
+
+  @override
+  String get trainingSketchTemplateTennisServeLabel => 'サーブコース';
+
+  @override
+  String get trainingSketchTemplateTennisServeDescription => 'サーブ方向とリカバリー位置';
+
+  @override
+  String get trainingSketchTemplateTennisServeMethod => '目標コースへサーブし、中央へ戻る';
+
+  @override
+  String get trainingSketchTemplateTennisRallyLabel => 'クロスラリー';
+
+  @override
+  String get trainingSketchTemplateTennisRallyDescription => 'クロス方向のラリーと復帰';
+
+  @override
+  String get trainingSketchTemplateTennisRallyMethod => 'クロスへ返し、次のボールに備えて中央へ戻る';
+
+  @override
+  String get trainingSketchTemplateTennisFootworkLabel => 'フットワークパターン';
+
+  @override
+  String get trainingSketchTemplateTennisFootworkDescription =>
+      'スプリットステップと左右移動';
+
+  @override
+  String get trainingSketchTemplateTennisFootworkMethod =>
+      'スプリットステップ後に左右へ動き、バランスを戻す';
 
   @override
   String get trainingSketchTemplateGalleryAction => 'テンプレートを表示する';

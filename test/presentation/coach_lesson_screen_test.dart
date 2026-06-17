@@ -1355,6 +1355,7 @@ class _FakeTrainingRepository implements TrainingRepository {
   Future<List<TrainingEntry>> getRecent({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   }) async =>
       _recentEntries(limit: limit, includeMatches: includeMatches);
 
@@ -1378,6 +1379,7 @@ class _FakeTrainingRepository implements TrainingRepository {
   Stream<List<TrainingEntry>> watchRecent({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   }) =>
       Stream<List<TrainingEntry>>.value(
         _recentEntries(limit: limit, includeMatches: includeMatches),

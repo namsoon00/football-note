@@ -250,6 +250,7 @@ class _MemoryTrainingRepository implements TrainingRepository {
   Future<List<TrainingEntry>> getRecent({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   }) async =>
       _recentEntries(limit: limit, includeMatches: includeMatches);
 
@@ -278,6 +279,7 @@ class _MemoryTrainingRepository implements TrainingRepository {
   Stream<List<TrainingEntry>> watchRecent({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   }) async* {
     yield _recentEntries(limit: limit, includeMatches: includeMatches);
     yield* _controller.stream.map(

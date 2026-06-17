@@ -181,9 +181,8 @@ void main() {
       find.byKey(_viewedHistoryActionKey),
     );
     final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
-    final translateX = tester
-        .getTopLeft(find.byKey(_translateToggleActionKey))
-        .dx;
+    final translateX =
+        tester.getTopLeft(find.byKey(_translateToggleActionKey)).dx;
     final searchX = tester.getTopLeft(find.byKey(_searchActionKey)).dx;
 
     expect(channelRect.top, moreOrLessEquals(scrapRect.top));
@@ -414,8 +413,8 @@ class _FakeNewsRepository implements NewsRepository {
   _FakeNewsRepository({
     required List<NewsChannel> channels,
     required Map<String, List<NewsArticle>> articlesByChannelId,
-  }) : _channels = channels,
-       _articlesByChannelId = articlesByChannelId;
+  })  : _channels = channels,
+        _articlesByChannelId = articlesByChannelId;
 
   @override
   List<NewsChannel> channels() => _channels;
@@ -444,13 +443,16 @@ class _FakeTrainingRepository implements TrainingRepository {
   Future<List<TrainingEntry>> getRange(
     DateTime startInclusive,
     DateTime endExclusive,
-  ) async => const <TrainingEntry>[];
+  ) async =>
+      const <TrainingEntry>[];
 
   @override
   Future<List<TrainingEntry>> getRecent({
     required int limit,
     bool includeMatches = true,
-  }) async => const <TrainingEntry>[];
+    String? sportId,
+  }) async =>
+      const <TrainingEntry>[];
 
   @override
   Future<void> update(int key, TrainingEntry entry) async {}
@@ -463,13 +465,16 @@ class _FakeTrainingRepository implements TrainingRepository {
   Stream<List<TrainingEntry>> watchRange(
     DateTime startInclusive,
     DateTime endExclusive,
-  ) => Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
+  ) =>
+      Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
 
   @override
   Stream<List<TrainingEntry>> watchRecent({
     required int limit,
     bool includeMatches = true,
-  }) => Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
+    String? sportId,
+  }) =>
+      Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
 }
 
 class _MemoryOptionRepository implements OptionRepository {

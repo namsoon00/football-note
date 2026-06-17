@@ -20,6 +20,7 @@ import '../../application/training_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
 import '../../application/localized_option_defaults.dart';
+import '../../application/sport_capabilities.dart';
 import '../../application/sport_defaults.dart';
 import '../../application/sport_service.dart';
 import '../../application/training_board_service.dart';
@@ -187,6 +188,9 @@ class _LogsScreenState extends State<LogsScreen> {
               final sourceEntries = snapshot.data ?? const <TrainingEntry>[];
               final hasMoreLoadedEntries =
                   sourceEntries.length >= _loadedEntryLimit;
+              final sportCapabilities = SportCapabilities.forSport(
+                SportService(widget.optionRepository).currentSportId(),
+              );
               final allEntries = sourceEntries.toList(growable: false)
                 ..sort(TrainingEntry.compareByRecentCreated);
               if (snapshot.hasData && allEntries.isEmpty) {
@@ -244,9 +248,16 @@ class _LogsScreenState extends State<LogsScreen> {
                             padding: EdgeInsets.zero,
                             onLeadingTap: () =>
                                 Scaffold.of(context).openDrawer(),
-                            onNewsTap: () => _openNews(context),
-                            newsBadgeCount: newsCount,
-                            onQuizTap: () => _openQuiz(context),
+                            onNewsTap: sportCapabilities.supportsFootballContent
+                                ? () => _openNews(context)
+                                : null,
+                            newsBadgeCount:
+                                sportCapabilities.supportsFootballContent
+                                    ? newsCount
+                                    : 0,
+                            onQuizTap: sportCapabilities.supportsFootballContent
+                                ? () => _openQuiz(context)
+                                : null,
                             onNotificationTap: () =>
                                 _openNotifications(context),
                             notificationBadgeCount: reminderUnreadCount,
@@ -1093,9 +1104,11 @@ class _LogsScreenState extends State<LogsScreen> {
   }
 
   Stream<List<TrainingEntry>> _watchLoadedEntries() {
+    final sportId = SportService(widget.optionRepository).currentSportId();
     return widget.trainingService.watchRecentEntries(
       limit: _loadedEntryLimit,
       includeMatches: false,
+      sportId: sportId,
     );
   }
 

@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Football Training Log';
+  String get appTitle => 'Taeo\'s Note';
 
   @override
   String get tabHome => 'Home';
@@ -2958,6 +2958,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsHeadline2 => 'Overview';
 
   @override
+  String get statsMatchTrendStable => 'Recent match trend is stable.';
+
+  @override
+  String get statsMatchTrendNeedsAttention => 'Result trend needs attention.';
+
+  @override
+  String statsMatchInsightMessage(
+      int count,
+      Object primaryLabel,
+      int primaryValue,
+      Object secondaryLabel,
+      int secondaryValue,
+      Object direction) {
+    return 'Across $count matches: $primaryLabel $primaryValue · $secondaryLabel $secondaryValue. $direction';
+  }
+
+  @override
+  String get averageComparisonProfileMissingTitle =>
+      'Enter age and soccer experience';
+
+  @override
+  String get averageComparisonProfileMissingMessage =>
+      'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.';
+
+  @override
+  String get averageComparisonFootballOnlyTitle =>
+      'Football average comparison hidden';
+
+  @override
+  String get averageComparisonFootballOnlyMessage =>
+      'This average comparison uses soccer juggling reference ranges, so it is not shown for the current sport.';
+
+  @override
   String get durationNotSet => 'No time';
 
   @override
@@ -4000,7 +4033,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherUvIndex => 'UV index';
 
   @override
-  String get homeWeatherOutfitTitle => 'Recommended football outfit';
+  String get homeWeatherOutfitTitle => 'Recommended training outfit';
 
   @override
   String get homeWeatherOutfitBaseHot =>
@@ -7703,6 +7736,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchBallsWonLabel => 'Balls won';
 
   @override
+  String get baseballMatchHitsLabel => 'Hits';
+
+  @override
+  String get baseballMatchRbisLabel => 'RBIs';
+
+  @override
+  String get baseballMatchRunsLabel => 'Runs';
+
+  @override
+  String get baseballMatchDefensivePlaysLabel => 'Defensive plays';
+
+  @override
+  String get basketballMatchPointsLabel => 'Points';
+
+  @override
+  String get basketballMatchAssistsLabel => 'Assists';
+
+  @override
+  String get basketballMatchReboundsLabel => 'Rebounds';
+
+  @override
+  String get basketballMatchStealsLabel => 'Steals';
+
+  @override
+  String get tennisMatchGamesWonLabel => 'Games won';
+
+  @override
+  String get tennisMatchAcesLabel => 'Aces';
+
+  @override
+  String get tennisMatchFirstServesInLabel => 'First serves in';
+
+  @override
+  String get tennisMatchBreakPointsWonLabel => 'Break points won';
+
+  @override
   String get calendarMatchXpSourceLabel => 'Match record';
 
   @override
@@ -7977,6 +8046,105 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get trainingSketchTemplateTransitionAttackMethod =>
       'Attack forward within six seconds of the regain';
+
+  @override
+  String get trainingSketchTemplateBaseballThrowingLabel => 'Throwing relay';
+
+  @override
+  String get trainingSketchTemplateBaseballThrowingDescription =>
+      'Basic catch-and-throw connection';
+
+  @override
+  String get trainingSketchTemplateBaseballThrowingMethod =>
+      'Receive cleanly and throw quickly to the target';
+
+  @override
+  String get trainingSketchTemplateBaseballBattingLabel => 'Hit and run';
+
+  @override
+  String get trainingSketchTemplateBaseballBattingDescription =>
+      'Batting direction and first-base run';
+
+  @override
+  String get trainingSketchTemplateBaseballBattingMethod =>
+      'Check contact direction, then sprint through first base';
+
+  @override
+  String get trainingSketchTemplateBaseballFieldingLabel => 'Fielding play';
+
+  @override
+  String get trainingSketchTemplateBaseballFieldingDescription =>
+      'Batted-ball reaction and relay throw';
+
+  @override
+  String get trainingSketchTemplateBaseballFieldingMethod =>
+      'React, field the ball, and throw accurately to the relay spot';
+
+  @override
+  String get trainingSketchTemplateBasketballShootingLabel => 'Shooting spots';
+
+  @override
+  String get trainingSketchTemplateBasketballShootingDescription =>
+      'Drive path and shot locations';
+
+  @override
+  String get trainingSketchTemplateBasketballShootingMethod =>
+      'Catch, set the feet, and shoot from the assigned spot';
+
+  @override
+  String get trainingSketchTemplateBasketballPassingLabel => 'Pass and cut';
+
+  @override
+  String get trainingSketchTemplateBasketballPassingDescription =>
+      'Cut timing and pass connection';
+
+  @override
+  String get trainingSketchTemplateBasketballPassingMethod =>
+      'Time the pass with the cutter\'s movement';
+
+  @override
+  String get trainingSketchTemplateBasketballDefenseLabel => 'Defensive slides';
+
+  @override
+  String get trainingSketchTemplateBasketballDefenseDescription =>
+      'Lateral slide and pressure positions';
+
+  @override
+  String get trainingSketchTemplateBasketballDefenseMethod =>
+      'Stay in front and repeat controlled lateral slides';
+
+  @override
+  String get trainingSketchTemplateTennisServeLabel => 'Serve targets';
+
+  @override
+  String get trainingSketchTemplateTennisServeDescription =>
+      'Serve direction and recovery position';
+
+  @override
+  String get trainingSketchTemplateTennisServeMethod =>
+      'Serve to the target, then recover to the middle';
+
+  @override
+  String get trainingSketchTemplateTennisRallyLabel => 'Cross-court rally';
+
+  @override
+  String get trainingSketchTemplateTennisRallyDescription =>
+      'Cross-court rally and recovery';
+
+  @override
+  String get trainingSketchTemplateTennisRallyMethod =>
+      'Send cross-court and recover to center for the next ball';
+
+  @override
+  String get trainingSketchTemplateTennisFootworkLabel => 'Footwork pattern';
+
+  @override
+  String get trainingSketchTemplateTennisFootworkDescription =>
+      'Split step and side-to-side movement';
+
+  @override
+  String get trainingSketchTemplateTennisFootworkMethod =>
+      'Split step, move side to side, and recover balance';
 
   @override
   String get trainingSketchTemplateGalleryAction => 'View templates';

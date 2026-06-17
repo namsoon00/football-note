@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../domain/entities/sport_definition.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/training_repository.dart';
 import 'backup_service.dart';
@@ -22,8 +23,13 @@ class TrainingService {
   Stream<List<TrainingEntry>> watchRecentEntries({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   }) =>
-      _repository.watchRecent(limit: limit, includeMatches: includeMatches);
+      _repository.watchRecent(
+        limit: limit,
+        includeMatches: includeMatches,
+        sportId: _normalizedSportIdOrNull(sportId),
+      );
 
   Future<List<TrainingEntry>> allEntries() => _repository.getAll();
 
@@ -36,8 +42,13 @@ class TrainingService {
   Future<List<TrainingEntry>> recentEntries({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   }) =>
-      _repository.getRecent(limit: limit, includeMatches: includeMatches);
+      _repository.getRecent(
+        limit: limit,
+        includeMatches: includeMatches,
+        sportId: _normalizedSportIdOrNull(sportId),
+      );
 
   Future<TrainingEntry?> latestEntry() async {
     final entries = await _repository.getRecent(limit: 1);
@@ -84,6 +95,12 @@ class TrainingService {
     final backup = _backupService;
     if (backup == null) return;
     unawaited(backup.backupIfSignedIn(requireAutoOnSave: true));
+  }
+
+  String? _normalizedSportIdOrNull(String? sportId) {
+    final normalized = SportCatalog.normalizeSportId(sportId);
+    if (sportId == null || sportId.trim().isEmpty) return null;
+    return normalized;
   }
 
   TrainingEntry? _latestWithGrowth(List<TrainingEntry> entries) {

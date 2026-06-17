@@ -14,10 +14,12 @@ abstract class TrainingRepository {
   Future<List<TrainingEntry>> getRecent({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   });
   Stream<List<TrainingEntry>> watchRecent({
     required int limit,
     bool includeMatches = true,
+    String? sportId,
   });
   Future<void> add(TrainingEntry entry);
   Future<void> update(int key, TrainingEntry entry);

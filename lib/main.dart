@@ -182,20 +182,20 @@ class FootballNoteApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget entryGate() => _EntryGate(
-      trainingService: trainingService,
-      mealLogService: mealLogService,
-      optionRepository: optionRepository,
-      localeService: localeService,
-      settingsService: settingsService,
-      driveBackupService: driveBackupService,
-    );
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+          driveBackupService: driveBackupService,
+        );
 
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       builder: (context, child) => AnimatedBuilder(
         animation: Listenable.merge([localeService, settingsService]),
         builder: (context, _) => MaterialApp(
-          title: 'Football Training Log',
+          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
           themeMode: settingsService.themeMode,
@@ -224,19 +224,16 @@ class FootballNoteApp extends StatelessWidget {
           },
           builder: (context, child) {
             final isDark = Theme.of(context).brightness == Brightness.dark;
-            final overlayStyle =
-                (isDark
-                        ? SystemUiOverlayStyle.light
-                        : SystemUiOverlayStyle.dark)
-                    .copyWith(
-                      statusBarColor: Colors.transparent,
-                      systemNavigationBarColor: isDark
-                          ? const Color(0xFF0F131A)
-                          : const Color(0xFFF6F8FC),
-                      systemNavigationBarIconBrightness: isDark
-                          ? Brightness.light
-                          : Brightness.dark,
-                    );
+            final overlayStyle = (isDark
+                    ? SystemUiOverlayStyle.light
+                    : SystemUiOverlayStyle.dark)
+                .copyWith(
+              statusBarColor: Colors.transparent,
+              systemNavigationBarColor:
+                  isDark ? const Color(0xFF0F131A) : const Color(0xFFF6F8FC),
+              systemNavigationBarIconBrightness:
+                  isDark ? Brightness.light : Brightness.dark,
+            );
             return AnnotatedRegion<SystemUiOverlayStyle>(
               value: overlayStyle,
               child: KeyboardDismissOverlay(
