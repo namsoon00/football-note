@@ -6166,8 +6166,74 @@ abstract class AppLocalizations {
   /// No description provided for @driveBackupLockedAccountChanged.
   ///
   /// In en, this message translates to:
-  /// **'The Google account changed. Import the latest data before backing up with this account.'**
+  /// **'The Google account changed. Choose how this device should use the connected account before any backup can run.'**
   String get driveBackupLockedAccountChanged;
+
+  /// No description provided for @driveAccountSwitchImportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Import this account\'s backup'**
+  String get driveAccountSwitchImportAction;
+
+  /// No description provided for @driveAccountSwitchStartEmptyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start empty with this account'**
+  String get driveAccountSwitchStartEmptyAction;
+
+  /// No description provided for @driveAccountSwitchImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use connected account data?'**
+  String get driveAccountSwitchImportTitle;
+
+  /// No description provided for @driveAccountSwitchImportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The connected Google account is different from the saved player backup account. Import this account\'s latest Drive backup first; current device data will be replaced after a local safety copy is kept.'**
+  String get driveAccountSwitchImportBody;
+
+  /// No description provided for @driveAccountSwitchStartEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start as a new player account?'**
+  String get driveAccountSwitchStartEmptyTitle;
+
+  /// No description provided for @driveAccountSwitchStartEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will clear player data on this device and connect the current Google account as the player backup account. A local safety copy is kept so you can undo the import from this device.'**
+  String get driveAccountSwitchStartEmptyBody;
+
+  /// No description provided for @driveAccountSwitchImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'This account\'s backup was imported.'**
+  String get driveAccountSwitchImportSuccess;
+
+  /// No description provided for @driveAccountSwitchStartEmptySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Started with an empty player dataset for this account.'**
+  String get driveAccountSwitchStartEmptySuccess;
+
+  /// No description provided for @driveAccountSwitchImportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not import this account\'s backup. Please try again.'**
+  String get driveAccountSwitchImportFailed;
+
+  /// No description provided for @driveAccountSwitchStartEmptyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start with this account. Please try again.'**
+  String get driveAccountSwitchStartEmptyFailed;
+
+  /// No description provided for @driveAccountSwitchNoRemoteBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'No Drive backup was found for the connected account. Start empty with this account or reconnect the saved player account.'**
+  String get driveAccountSwitchNoRemoteBackup;
 
   /// No description provided for @backupVersionUnsupported.
   ///

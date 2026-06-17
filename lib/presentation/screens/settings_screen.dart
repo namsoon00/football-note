@@ -147,7 +147,6 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _autoDaily = true;
   bool _autoOnSave = true;
   String _connectedDriveLabel = '';
-  String _connectedDriveEmail = '';
   String _sharedChildDriveLabel = '';
   String _sharedChildDriveEmail = '';
   bool _hasRemotePlayerBackup = false;
@@ -329,7 +328,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       }
     }
     final cachedConnectedDriveLabel = _cachedConnectedDriveLabel();
-    final cachedConnectedDriveEmail = _cachedConnectedDriveEmail();
     if (!mounted) return;
     setState(() {
       _signedIn = signedIn ||
@@ -338,9 +336,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
           ? connection!.label.trim()
           : cachedConnectedDriveLabel;
-      _connectedDriveEmail = connection?.email.trim().isNotEmpty == true
-          ? connection!.email.trim()
-          : cachedConnectedDriveEmail;
       _sharedChildDriveLabel = sharedChildConnection?.label.trim() ?? '';
       _sharedChildDriveEmail = sharedChildConnection?.email.trim() ?? '';
       _hasRemotePlayerBackup = hasRemotePlayerBackup;
@@ -366,13 +361,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     return '$cachedLabel · $cachedEmail';
   }
 
-  String _cachedConnectedDriveEmail() {
-    return widget.optionRepository
-            .getValue<String>(DriveBackupService.connectedDriveEmailLocalKey)
-            ?.trim() ??
-        '';
-  }
-
   bool _driveLabelMatchesEmail(String label, String email) {
     final normalizedEmail = email.trim().toLowerCase();
     if (normalizedEmail.isEmpty || label.trim().isEmpty) {
@@ -383,17 +371,14 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   bool _backupLockedByChangedPlayerDrive(FamilyAccessState familyState) {
     if (!familyState.isChildMode || !_signedIn) return false;
-    final savedEmail =
-        widget.driveBackupService?.getSavedRecordDriveEmail().trim() ?? '';
-    final connectedEmail = _connectedDriveEmail.trim();
-    if (savedEmail.isEmpty || connectedEmail.isEmpty) return false;
-    return savedEmail.toLowerCase() != connectedEmail.toLowerCase();
+    return widget.driveBackupService?.hasChangedPlayerDriveConnection() ??
+        false;
   }
 
   bool _shouldShowLatestRestoreAction(FamilyAccessState familyState) {
     if (!_signedIn) return false;
     if (familyState.isSupportMode) return true;
-    return _backupLockedByChangedPlayerDrive(familyState);
+    return false;
   }
 
   @override
@@ -1115,6 +1100,34 @@ class _SettingsScreenState extends State<SettingsScreen>
                         isSupportMode ? l10n.familySharedRestoreSuccess : null,
                     failedMessage:
                         isSupportMode ? l10n.familySharedRestoreFailed : null,
+                  ),
+        ),
+      );
+    }
+    if (backupLocked) {
+      actions.add(
+        _buildDriveQuickActionButton(
+          icon: Icons.cloud_download_outlined,
+          label: l10n.driveAccountSwitchImportAction,
+          tone: _DriveQuickActionTone.restore,
+          onPressed: (_backupBusy || _restoreBusy)
+              ? null
+              : () => _resolveChangedPlayerDrive(
+                    l10n,
+                    startWithEmptyData: false,
+                  ),
+        ),
+      );
+      actions.add(
+        _buildDriveQuickActionButton(
+          icon: Icons.person_add_alt_1_outlined,
+          label: l10n.driveAccountSwitchStartEmptyAction,
+          tone: _DriveQuickActionTone.neutral,
+          onPressed: (_backupBusy || _restoreBusy)
+              ? null
+              : () => _resolveChangedPlayerDrive(
+                    l10n,
+                    startWithEmptyData: true,
                   ),
         ),
       );
@@ -2320,6 +2333,95 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
   }
 
+  Future<void> _resolveChangedPlayerDrive(
+    AppLocalizations l10n, {
+    required bool startWithEmptyData,
+  }) async {
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          startWithEmptyData
+              ? l10n.driveAccountSwitchStartEmptyTitle
+              : l10n.driveAccountSwitchImportTitle,
+        ),
+        content: Text(
+          startWithEmptyData
+              ? l10n.driveAccountSwitchStartEmptyBody
+              : l10n.driveAccountSwitchImportBody,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).pop(true),
+            icon: Icon(
+              startWithEmptyData
+                  ? Icons.person_add_alt_1_outlined
+                  : Icons.cloud_download_outlined,
+            ),
+            label: Text(
+              startWithEmptyData
+                  ? l10n.driveAccountSwitchStartEmptyAction
+                  : l10n.driveAccountSwitchImportAction,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _restoreBusy = true);
+    try {
+      if (startWithEmptyData) {
+        await backup.startChangedPlayerDriveWithEmptyData();
+      } else {
+        await backup.importChangedPlayerDriveBackup();
+      }
+      widget.localeService.load();
+      widget.settingsService.load();
+      if (!mounted) return;
+      SportScope.read(context)?.reloadFromStorage();
+      await _refreshDriveUi(
+        allowCachedConnection: true,
+        allowRemoteStatusLookup: true,
+        showLoading: false,
+      );
+      if (!mounted) return;
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            startWithEmptyData
+                ? l10n.driveAccountSwitchStartEmptySuccess
+                : l10n.driveAccountSwitchImportSuccess,
+          ),
+        ),
+      );
+    } catch (e, st) {
+      debugPrint('Drive changed player account resolution failed: $e');
+      debugPrintStack(stackTrace: st);
+      if (!mounted) return;
+      final message = _driveFailureMessage(
+        l10n,
+        e,
+        fallback: startWithEmptyData
+            ? l10n.driveAccountSwitchStartEmptyFailed
+            : l10n.driveAccountSwitchImportFailed,
+      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() => _restoreBusy = false);
+      }
+    }
+  }
+
   Future<void> _showPreviousBackupRestoreInfo(AppLocalizations l10n) async {
     final runRestore = await showDialog<bool>(
       context: context,
@@ -2413,6 +2515,11 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     if (raw.contains(DriveBackupService.invalidBackupPayloadErrorCode)) {
       return l10n.backupPayloadInvalid;
+    }
+    if (raw.contains(
+      DriveBackupService.changedPlayerRemoteBackupMissingErrorCode,
+    )) {
+      return l10n.driveAccountSwitchNoRemoteBackup;
     }
     if (raw.contains('parent_drive_mismatch')) {
       return l10n.familyParentUsesChildDriveWarning;

@@ -3311,7 +3311,46 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get driveBackupLockedAccountChanged =>
-      'Googleアカウントが変わりました。このアカウントでバックアップする前に、最新のデータをインポートしてください。';
+      'Googleアカウントが変わりました。このアカウントでバックアップする前に、このデバイスでどのデータから始めるかを選択してください。';
+
+  @override
+  String get driveAccountSwitchImportAction => 'このアカウントのバックアップをインポート';
+
+  @override
+  String get driveAccountSwitchStartEmptyAction => 'このアカウントで新しく始める';
+
+  @override
+  String get driveAccountSwitchImportTitle => '接続中のアカウントのデータを使いますか?';
+
+  @override
+  String get driveAccountSwitchImportBody =>
+      '接続中の Google アカウントは、保存済みのプレーヤー バックアップ アカウントと異なります。まずこのアカウントの最新 Drive バックアップをインポートします。ローカルの安全バックアップを残したうえで、現在のデバイス データが置き換えられます。';
+
+  @override
+  String get driveAccountSwitchStartEmptyTitle => '新しいプレーヤー アカウントとして始めますか?';
+
+  @override
+  String get driveAccountSwitchStartEmptyBody =>
+      'このデバイスのプレーヤー データを消去し、現在の Google アカウントをプレーヤー バックアップ アカウントとして接続します。このデバイスで元に戻せるように、ローカルの安全バックアップは保持されます。';
+
+  @override
+  String get driveAccountSwitchImportSuccess => 'このアカウントのバックアップをインポートしました。';
+
+  @override
+  String get driveAccountSwitchStartEmptySuccess =>
+      'このアカウントの空のプレーヤー データで開始しました。';
+
+  @override
+  String get driveAccountSwitchImportFailed =>
+      'このアカウントのバックアップをインポートできませんでした。もう一度試してください。';
+
+  @override
+  String get driveAccountSwitchStartEmptyFailed =>
+      'このアカウントで開始できませんでした。もう一度試してください。';
+
+  @override
+  String get driveAccountSwitchNoRemoteBackup =>
+      '接続中のアカウントに Drive バックアップが見つかりません。このアカウントで新しく始めるか、保存済みのプレーヤー アカウントに再接続してください。';
 
   @override
   String get backupVersionUnsupported =>

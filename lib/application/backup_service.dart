@@ -139,6 +139,27 @@ class BackupService {
     return false;
   }
 
+  bool hasChangedPlayerDriveConnection() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.hasChangedPlayerDriveConnection();
+    }
+    return false;
+  }
+
+  Future<bool> importChangedPlayerDriveBackup() async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.importChangedPlayerDriveBackup();
+    }
+    return false;
+  }
+
+  Future<bool> startChangedPlayerDriveWithEmptyData() async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.startChangedPlayerDriveWithEmptyData();
+    }
+    return false;
+  }
+
   Stream<void> driveAccountStateChanges() {
     if (_repository case final DriveBackupService drive) {
       return drive.driveAccountStateChanges();

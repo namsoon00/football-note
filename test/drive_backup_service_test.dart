@@ -1586,6 +1586,90 @@ void main() {
     },
   );
 
+  test('changed player drive detection prefers subject id', () async {
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'player@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'saved-subject',
+    );
+    await optionBox.put(
+      DriveBackupService.connectedDriveEmailLocalKey,
+      'player@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.connectedDriveSubjectLocalKey,
+      'connected-subject',
+    );
+
+    expect(service.hasChangedPlayerDriveConnection(), isTrue);
+
+    await optionBox.delete(DriveBackupService.recordDriveSubjectLocalKey);
+
+    expect(service.hasChangedPlayerDriveConnection(), isFalse);
+  });
+
+  test(
+    'public empty start flow clears stale data and adopts changed drive',
+    () async {
+      service = DriveBackupService(
+        trainingBox,
+        optionBox,
+        backupAssetFileStore: assetStore,
+        driveConnectionLoader: () async => const DriveConnectionInfo(
+          email: 'new@example.com',
+          displayName: 'New Player',
+          subjectId: 'new-subject',
+        ),
+      );
+      await optionBox.put(
+        DriveBackupService.recordDriveEmailLocalKey,
+        'old@example.com',
+      );
+      await optionBox.put(
+        DriveBackupService.recordDriveLabelLocalKey,
+        'Old Player · old@example.com',
+      );
+      await trainingBox.add(
+        TrainingEntry(
+          date: DateTime(2026, 4, 20),
+          createdAt: DateTime(2026, 4, 20, 7),
+          durationMinutes: 45,
+          intensity: 3,
+          type: 'passing',
+          mood: 3,
+          injury: false,
+          notes: 'old local player data',
+          location: 'old field',
+        ),
+      );
+      await optionBox.put(
+        'custom_diary_entries_v3',
+        '{"2026-04-18":{"body":"old diary"}}',
+      );
+
+      final switchedAccount =
+          await service.startChangedPlayerDriveWithEmptyData();
+
+      expect(switchedAccount, isTrue);
+      expect(trainingBox.length, 0);
+      expect(optionBox.get('custom_diary_entries_v3'), isNull);
+      expect(service.getSavedRecordDriveEmail(), 'new@example.com');
+      expect(
+        service.getSavedRecordDriveLabel(),
+        'New Player · new@example.com',
+      );
+      expect(
+        optionBox.get(DriveBackupService.sharedChildDriveEmailKey),
+        'new@example.com',
+      );
+      expect(service.hasLocalPreRestoreBackup(), isTrue);
+      expect(service.hasChangedPlayerDriveConnection(), isFalse);
+    },
+  );
+
   test(
     'player account switch without remote backup clears stale local data',
     () async {

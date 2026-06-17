@@ -3397,7 +3397,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get driveBackupLockedAccountChanged =>
-      'The Google account changed. Import the latest data before backing up with this account.';
+      'The Google account changed. Choose how this device should use the connected account before any backup can run.';
+
+  @override
+  String get driveAccountSwitchImportAction => 'Import this account\'s backup';
+
+  @override
+  String get driveAccountSwitchStartEmptyAction =>
+      'Start empty with this account';
+
+  @override
+  String get driveAccountSwitchImportTitle => 'Use connected account data?';
+
+  @override
+  String get driveAccountSwitchImportBody =>
+      'The connected Google account is different from the saved player backup account. Import this account\'s latest Drive backup first; current device data will be replaced after a local safety copy is kept.';
+
+  @override
+  String get driveAccountSwitchStartEmptyTitle =>
+      'Start as a new player account?';
+
+  @override
+  String get driveAccountSwitchStartEmptyBody =>
+      'This will clear player data on this device and connect the current Google account as the player backup account. A local safety copy is kept so you can undo the import from this device.';
+
+  @override
+  String get driveAccountSwitchImportSuccess =>
+      'This account\'s backup was imported.';
+
+  @override
+  String get driveAccountSwitchStartEmptySuccess =>
+      'Started with an empty player dataset for this account.';
+
+  @override
+  String get driveAccountSwitchImportFailed =>
+      'Could not import this account\'s backup. Please try again.';
+
+  @override
+  String get driveAccountSwitchStartEmptyFailed =>
+      'Could not start with this account. Please try again.';
+
+  @override
+  String get driveAccountSwitchNoRemoteBackup =>
+      'No Drive backup was found for the connected account. Start empty with this account or reconnect the saved player account.';
 
   @override
   String get backupVersionUnsupported =>
