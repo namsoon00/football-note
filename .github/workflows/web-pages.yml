@@ -12,6 +12,7 @@ on:
       - "pubspec.lock"
       - "l10n.yaml"
       - "assets/**"
+      - "scripts/stamp_web_asset_version.sh"
 
 permissions:
   contents: read
@@ -50,6 +51,9 @@ jobs:
           --base-href "/${{ github.event.repository.name }}/"
           --web-resources-cdn
           --no-wasm-dry-run
+
+      - name: Stamp web asset version
+        run: ./scripts/stamp_web_asset_version.sh build/web "${GITHUB_SHA}"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
