@@ -111,6 +111,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   static const int _focusCount = 8;
   static const int _speedCount = 10;
   static const int _speedLimitSec = 12;
+  static const int _minimumMixedSetCategories = 4;
+  static const int _minimumMixedSetStyles = 3;
 
   late final Map<String, _FootballQuizQuestion> _questionMap;
   late final List<_FootballQuizQuestion> _allQuestions;
@@ -2112,7 +2114,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       );
     }
 
-    return picked..shuffle(random);
+    return _rebalanceSessionVariety(
+      picked: picked,
+      source: source,
+      random: random,
+    );
   }
 
   List<_FootballQuizQuestion> _pickDailyQuestions(math.Random random) {
@@ -2208,7 +2214,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         usedQuestionKeys: usedQuestionKeys,
       );
     }
-    return picked.take(_dailyCount).toList(growable: false);
+    return _rebalanceSessionVariety(
+      picked: picked.take(_dailyCount).toList(growable: false),
+      source: _allQuestions.where((q) => !excludedIds.contains(q.id)),
+      random: random,
+      protectedIds: reviewQuestions.map((question) => question.id).toSet(),
+    );
   }
 
   List<_FootballQuizQuestion> _loadDueReviewQuestions() {
@@ -2249,6 +2260,145 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       target.add(question);
       added += 1;
     }
+  }
+
+  List<_FootballQuizQuestion> _rebalanceSessionVariety({
+    required List<_FootballQuizQuestion> picked,
+    required Iterable<_FootballQuizQuestion> source,
+    required math.Random random,
+    Set<String> protectedIds = const <String>{},
+  }) {
+    if (picked.length < 2) {
+      return picked;
+    }
+
+    final target = picked.toList(growable: true);
+    final sourcePool = source.toList(growable: false)..shuffle(random);
+
+    Map<_QuizCategory, int> categoryCounts() {
+      final counts = <_QuizCategory, int>{};
+      for (final question in target) {
+        counts[question.category] = (counts[question.category] ?? 0) + 1;
+      }
+      return counts;
+    }
+
+    Map<_QuestionStyle, int> styleCounts() {
+      final counts = <_QuestionStyle, int>{};
+      for (final question in target) {
+        counts[question.style] = (counts[question.style] ?? 0) + 1;
+      }
+      return counts;
+    }
+
+    bool candidateFitsAt(_FootballQuizQuestion candidate, int replaceIndex) {
+      final concepts = <String>{};
+      final contentKeys = <String>{};
+      for (var index = 0; index < target.length; index++) {
+        final question = index == replaceIndex ? candidate : target[index];
+        if (!concepts.add(question.conceptKey)) {
+          return false;
+        }
+        if (!contentKeys.add(_sessionQuestionContentKey(question))) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    bool tryReplace({
+      required bool Function(_FootballQuizQuestion question) candidateMatches,
+      required bool Function(_FootballQuizQuestion question) canReplace,
+    }) {
+      for (final candidate in sourcePool) {
+        if (!candidateMatches(candidate)) {
+          continue;
+        }
+        if (target.any((question) => question.id == candidate.id)) {
+          continue;
+        }
+        for (var index = 0; index < target.length; index++) {
+          final current = target[index];
+          if (protectedIds.contains(current.id) || !canReplace(current)) {
+            continue;
+          }
+          if (!candidateFitsAt(candidate, index)) {
+            continue;
+          }
+          target[index] = candidate;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    void ensureCategoryCoverage() {
+      final availableCategories =
+          sourcePool.map((question) => question.category).toSet();
+      final desiredCategoryCount = math.min(
+        _minimumMixedSetCategories,
+        math.min(target.length, availableCategories.length),
+      );
+      while (target.map((question) => question.category).toSet().length <
+          desiredCategoryCount) {
+        final selectedCategories =
+            target.map((question) => question.category).toSet();
+        final missingCategories = availableCategories
+            .where((category) => !selectedCategories.contains(category))
+            .toList(growable: false)
+          ..shuffle(random);
+        var changed = false;
+        for (final category in missingCategories) {
+          final counts = categoryCounts();
+          changed = tryReplace(
+            candidateMatches: (question) => question.category == category,
+            canReplace: (question) => (counts[question.category] ?? 0) > 1,
+          );
+          if (changed) {
+            break;
+          }
+        }
+        if (!changed) {
+          break;
+        }
+      }
+    }
+
+    void ensureStyleCoverage() {
+      final availableStyles =
+          sourcePool.map((question) => question.style).toSet();
+      final desiredStyleCount = math.min(
+        _minimumMixedSetStyles,
+        math.min(target.length, availableStyles.length),
+      );
+      while (target.map((question) => question.style).toSet().length <
+          desiredStyleCount) {
+        final selectedStyles = target.map((question) => question.style).toSet();
+        final missingStyles = availableStyles
+            .where((style) => !selectedStyles.contains(style))
+            .toList(growable: false)
+          ..shuffle(random);
+        var changed = false;
+        for (final style in missingStyles) {
+          final counts = styleCounts();
+          changed = tryReplace(
+            candidateMatches: (question) => question.style == style,
+            canReplace: (question) => (counts[question.style] ?? 0) > 1,
+          );
+          if (changed) {
+            break;
+          }
+        }
+        if (!changed) {
+          break;
+        }
+      }
+    }
+
+    ensureCategoryCoverage();
+    ensureStyleCoverage();
+    ensureCategoryCoverage();
+    return target..shuffle(random);
   }
 
   List<_FootballQuizQuestion> _dedupeSessionQuestions(
@@ -4525,6 +4675,7 @@ List<_OxFactSeed> _buildOxSeedPool300() {
     ..._historyAndFifaRecordOxFacts(),
     ..._issue276FormationOxFacts(),
     ..._issue279FormationScenarioOxFacts(),
+    ..._qualityScenarioOxFacts(),
   ];
 }
 
@@ -4537,6 +4688,7 @@ List<_McqSeed> _buildMcqSeedPool300() {
     ..._issue271CoreCategoryMcqSeeds(),
     ..._issue276FormationMcqSeeds(),
     ..._issue279FormationScenarioMcqSeeds(),
+    ..._qualityScenarioMcqSeeds(),
   ];
 }
 
@@ -4547,6 +4699,7 @@ List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
     ..._issue260CategoryBoosterShortAnswerSeeds(),
     ..._issue276FormationShortAnswerSeeds(),
     ..._issue279FormationScenarioShortAnswerSeeds(),
+    ..._qualityScenarioShortAnswerSeeds(),
   ];
   final seeded = keywords.asMap().entries.map((entry) {
     final i = entry.key;
@@ -5630,6 +5783,659 @@ List<_ShortAnswerKnowledgeSeed> _issue279FormationScenarioShortAnswerSeeds() {
       koNextPoint: '풀백이 안으로 들어올 때 누가 측면 폭을 유지하는지도 함께 확인하세요.',
       enNextPoint:
           'When a fullback moves inside, also check who keeps the wide lane.',
+    ),
+  ];
+}
+
+List<_OxFactSeed> _qualityScenarioOxFacts() {
+  return const <_OxFactSeed>[
+    _OxFactSeed(
+      id: 'quality_pressing_angle_lanes',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koTrueStatement: '좋은 압박은 공 가진 선수만 쫓는 것이 아니라 다음 패스 길을 닫는 각도까지 포함합니다.',
+      enTrueStatement:
+          'Good pressing includes the angle that closes the next passing lane, not only chasing the ball carrier.',
+      koFalseStatement: '좋은 압박은 공 가진 선수만 전력 질주로 따라가면 되고 다음 패스 길은 상관없습니다.',
+      enFalseStatement:
+          'Good pressing is only a full-speed chase of the ball carrier; the next passing lane does not matter.',
+      koExplain: '압박은 속도, 각도, 뒤 공간 커버가 함께 맞아야 탈출 패스를 줄일 수 있습니다.',
+      enExplain:
+          'Pressing works when speed, angle, and cover behind the press fit together.',
+      koNextPoint: '압박 문제는 누가 뛰는지보다 어떤 길을 닫는지 먼저 보세요.',
+      enNextPoint:
+          'For pressing questions, identify which lane is being closed first.',
+    ),
+    _OxFactSeed(
+      id: 'quality_first_touch_next_action',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koTrueStatement: '좋은 퍼스트 터치는 공을 멈추는 것뿐 아니라 다음 플레이 방향을 미리 만듭니다.',
+      enTrueStatement:
+          'A good first touch does not only stop the ball; it prepares the direction of the next action.',
+      koFalseStatement: '퍼스트 터치는 공만 완전히 멈추면 충분하고 다음 플레이 방향은 상관없습니다.',
+      enFalseStatement:
+          'A first touch is complete if the ball stops dead; the next direction does not matter.',
+      koExplain: '첫 터치가 다음 공간으로 이어지면 압박을 받기 전 패스, 드리블, 슈팅 선택지가 살아납니다.',
+      enExplain:
+          'A first touch into the next space keeps passing, dribbling, and shooting options alive before pressure arrives.',
+      koNextPoint: '터치 문제는 접촉 순간과 두 번째 행동을 한 묶음으로 판단하세요.',
+      enNextPoint:
+          'Judge touch questions by connecting contact with the second action.',
+    ),
+    _OxFactSeed(
+      id: 'quality_recovery_day_load',
+      difficulty: 2,
+      category: _QuizCategory.training,
+      koTrueStatement: '회복일에는 피로 신호에 따라 강도와 양을 낮추는 선택이 다음 훈련 질을 지킬 수 있습니다.',
+      enTrueStatement:
+          'On recovery days, lowering intensity and volume based on fatigue signs can protect the next session.',
+      koFalseStatement: '회복일에는 피로가 있어도 강도와 양을 더 올려야 항상 성장 속도가 빨라집니다.',
+      enFalseStatement:
+          'On recovery days, increasing intensity and volume always speeds up growth even when fatigue is clear.',
+      koExplain: '회복은 쉬기만 하는 뜻이 아니라 다음 고강도 훈련을 준비하도록 부하를 조절하는 과정입니다.',
+      enExplain:
+          'Recovery is not just rest; it is load control that prepares the next high-quality session.',
+      koNextPoint: '훈련 문제는 오늘 강도와 다음 세션의 질을 함께 연결하세요.',
+      enNextPoint:
+          'In training questions, link today’s load with the next session’s quality.',
+    ),
+    _OxFactSeed(
+      id: 'quality_pregame_routine_repeatable',
+      difficulty: 1,
+      category: _QuizCategory.mindset,
+      koTrueStatement: '경기 전 루틴은 짧고 반복 가능하며 바로 행동으로 이어질수록 실전에서 쓰기 쉽습니다.',
+      enTrueStatement:
+          'A pregame routine is easier to use in matches when it is short, repeatable, and linked to action.',
+      koFalseStatement: '경기 전 루틴은 매번 길고 즉흥적으로 바뀔수록 실전 집중에 가장 안정적입니다.',
+      enFalseStatement:
+          'A pregame routine is most stable when it is long and improvised differently every time.',
+      koExplain: '루틴은 긴 설명보다 호흡, 시선, 첫 행동처럼 바로 실행되는 cue가 중요합니다.',
+      enExplain:
+          'A routine works best as executable cues such as breath, gaze, and first action.',
+      koNextPoint: '마인드 문제는 감정보다 행동으로 돌아오는 절차를 찾으세요.',
+      enNextPoint:
+          'For mindset questions, look for the procedure that returns attention to action.',
+    ),
+    _OxFactSeed(
+      id: 'quality_hydration_planned',
+      difficulty: 2,
+      category: _QuizCategory.nutrition,
+      koTrueStatement:
+          '수분 보충은 갈증만 기다리기보다 훈련 시간, 더위, 땀 양을 함께 보고 미리 계획하는 편이 좋습니다.',
+      enTrueStatement:
+          'Hydration is better planned from session length, heat, and sweat rate instead of waiting only for thirst.',
+      koFalseStatement: '수분 보충은 어떤 환경에서도 갈증이 날 때만 마시면 항상 충분합니다.',
+      enFalseStatement:
+          'Hydration is always sufficient in every environment if you drink only when thirsty.',
+      koExplain: '긴 훈련이나 더운 환경에서는 갈증이 늦게 느껴질 수 있어 미리 마시는 계획이 필요합니다.',
+      enExplain:
+          'In long or hot sessions, thirst can arrive late, so a simple drinking plan helps.',
+      koNextPoint: '영양/회복 문제는 타이밍, 환경, 몸 반응을 같이 보세요.',
+      enNextPoint:
+          'For nutrition and recovery, connect timing, environment, and body response.',
+    ),
+    _OxFactSeed(
+      id: 'quality_position_role_context',
+      difficulty: 1,
+      category: _QuizCategory.positions,
+      koTrueStatement: '포지션은 시작 위치뿐 아니라 압박, 커버, 연결 같은 역할로 함께 이해해야 합니다.',
+      enTrueStatement:
+          'Positions should be understood through roles such as pressing, covering, and connecting, not only starting spots.',
+      koFalseStatement: '포지션은 경기 시작 위치만 알면 되고 압박, 커버, 연결 역할은 볼 필요가 없습니다.',
+      enFalseStatement:
+          'Positions only require knowing kickoff spots; pressing, covering, and linking roles do not matter.',
+      koExplain: '같은 포지션 이름도 팀 전술과 경기 단계에 따라 맡는 일이 달라질 수 있습니다.',
+      enExplain:
+          'The same position name can carry different jobs depending on the team plan and game phase.',
+      koNextPoint: '포지션 문제는 위치 이름과 실제 임무를 같이 묶어 보세요.',
+      enNextPoint:
+          'In position questions, pair the position name with the actual job.',
+    ),
+  ];
+}
+
+List<_McqSeed> _qualityScenarioMcqSeeds() {
+  return const <_McqSeed>[
+    _McqSeed(
+      id: 'quality_scan_before_receive',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koStem: '중앙에서 공을 받기 직전 가장 먼저 확인하면 좋은 정보는 무엇일까요?',
+      enStem:
+          'Just before receiving in central midfield, what is the best information to check first?',
+      options: [
+        _FootballQuizOption(
+          koText: '압박 방향과 다음 패스 선택지',
+          enText: 'Pressure direction and next passing options',
+        ),
+        _FootballQuizOption(
+          koText: '벤치의 물병 위치',
+          enText: 'Where the bench water bottles are',
+        ),
+        _FootballQuizOption(
+          koText: '심판의 등번호',
+          enText: 'The referee’s shirt number',
+        ),
+        _FootballQuizOption(
+          koText: '관중석 빈자리',
+          enText: 'Empty seats in the stands',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '받기 전 스캔은 압박이 어느 쪽에서 오는지와 공을 받은 뒤 어디로 연결할지를 미리 정하게 해 줍니다.',
+      enExplain:
+          'Scanning before receiving helps you pre-read pressure and choose the next connection.',
+      koNextPoint: '스캔은 고개 돌리기보다 다음 행동을 정하는 정보 수집입니다.',
+      enNextPoint:
+          'Scanning is information gathering for the next action, not just head movement.',
+    ),
+    _McqSeed(
+      id: 'quality_cover_shadow_press',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem:
+          '상대 센터백을 압박하면서 뒤의 수비형 미드필더에게 들어가는 패스도 막고 싶습니다. 가장 알맞은 압박 원칙은 무엇일까요?',
+      enStem:
+          'You press a center back while also wanting to block the pass into the holding midfielder behind you. Which pressing principle fits best?',
+      options: [
+        _FootballQuizOption(
+          koText: '몸의 그림자로 패스 길을 가리며 접근한다',
+          enText: 'Approach while using the body shadow to block the lane',
+        ),
+        _FootballQuizOption(
+          koText: '공만 보고 정면으로 뛴다',
+          enText: 'Run straight at the ball while watching only the ball',
+        ),
+        _FootballQuizOption(
+          koText: '압박을 포기하고 골문 안으로 내려간다',
+          enText: 'Give up pressing and drop into the goal',
+        ),
+        _FootballQuizOption(
+          koText: '동료 위치와 관계없이 태클부터 시도한다',
+          enText: 'Try a tackle first regardless of teammate positions',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '커버 섀도를 쓰면 압박하는 선수 한 명이 공 소유자와 뒤 패스 길을 동시에 제한할 수 있습니다.',
+      enExplain:
+          'Cover shadow lets one presser restrict both the ball carrier and the pass behind them.',
+      koNextPoint: '압박 문항에서는 몸 방향이 어떤 패스 길을 지우는지 보세요.',
+      enNextPoint:
+          'In pressing items, read which passing lane the body shape removes.',
+    ),
+    _McqSeed(
+      id: 'quality_rest_defense_counter',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem:
+          '우리 팀이 박스 근처까지 공격 숫자를 많이 올렸습니다. 공을 잃었을 때 역습을 줄이려면 무엇을 미리 남겨야 할까요?',
+      enStem:
+          'Your team has committed many players near the box. What should remain in place to reduce counterattacks if the ball is lost?',
+      options: [
+        _FootballQuizOption(
+          koText: '중앙과 반대편을 보호하는 레스트 디펜스',
+          enText: 'Rest defense protecting the center and far side',
+        ),
+        _FootballQuizOption(
+          koText: '모든 선수를 골문 앞에만 세우기',
+          enText: 'Put every player only in front of goal',
+        ),
+        _FootballQuizOption(
+          koText: '수비수 전원이 코너 플래그로 이동하기',
+          enText: 'Move all defenders to the corner flag',
+        ),
+        _FootballQuizOption(
+          koText: '공을 잃은 뒤에만 처음 생각하기',
+          enText: 'Think about defending only after losing the ball',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '레스트 디펜스는 공격 중에도 역습 첫 패스와 중앙 전진을 막을 수 있도록 남겨 두는 균형입니다.',
+      enExplain:
+          'Rest defense is the balance left behind during attack to control the first counter pass and central progress.',
+      koNextPoint: '공격 전술은 슈팅 장면과 잃었을 때의 첫 수비를 같이 봐야 합니다.',
+      enNextPoint:
+          'Read attacking tactics together with the first defending moment after loss.',
+    ),
+    _McqSeed(
+      id: 'quality_second_ball_shape',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koStem: '긴 패스 경합 뒤 세컨드 볼을 자주 따내려면 주변 선수들은 어떤 준비가 좋을까요?',
+      enStem:
+          'After a long-ball duel, what should nearby players do to win more second balls?',
+      options: [
+        _FootballQuizOption(
+          koText: '낙하지점 주변에 삼각형으로 미리 간격을 잡는다',
+          enText: 'Set a triangle around the drop zone early',
+        ),
+        _FootballQuizOption(
+          koText: '모두 공중볼 선수와 같은 자리에 선다',
+          enText: 'All stand in the exact same spot as the aerial player',
+        ),
+        _FootballQuizOption(
+          koText: '공이 떨어질 때까지 등을 돌린다',
+          enText: 'Turn away until the ball lands',
+        ),
+        _FootballQuizOption(
+          koText: '가장 가까운 선수가 라인 밖으로 나간다',
+          enText: 'The nearest player steps outside the field',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '세컨드 볼은 첫 경합자보다 주변 간격과 반응 준비가 결과를 크게 좌우합니다.',
+      enExplain:
+          'Second balls are often decided by nearby spacing and readiness, not only by the first duel.',
+      koNextPoint: '경합 문제는 첫 헤더와 다음 낙하지점 지원을 같이 보세요.',
+      enNextPoint:
+          'For duel questions, connect the first header with support around the next drop.',
+    ),
+    _McqSeed(
+      id: 'quality_first_defender_delay',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koStem: '역습을 맞아 첫 수비수가 홀로 서 있을 때 가장 먼저 해야 할 일은 무엇일까요?',
+      enStem:
+          'When the first defender is alone against a counterattack, what is the first priority?',
+      options: [
+        _FootballQuizOption(
+          koText: '상대를 지연시키며 동료 복귀 시간을 번다',
+          enText: 'Delay the attacker and buy time for teammates',
+        ),
+        _FootballQuizOption(
+          koText: '무조건 태클로 한 번에 끝낸다',
+          enText: 'End it with a tackle immediately every time',
+        ),
+        _FootballQuizOption(
+          koText: '등을 돌리고 골문으로만 달린다',
+          enText: 'Turn away and run only toward goal',
+        ),
+        _FootballQuizOption(
+          koText: '상대에게 중앙을 열어준다',
+          enText: 'Open the central lane for the attacker',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '첫 수비수는 뺏기보다 상대 속도를 늦추고 방향을 제한해 팀이 정렬할 시간을 만들어야 합니다.',
+      enExplain:
+          'The first defender often needs to slow and guide the attacker so the team can recover shape.',
+      koNextPoint: '1대1 수비는 공 탈취보다 시간과 방향 통제가 먼저일 때가 많습니다.',
+      enNextPoint:
+          'In 1v1 defending, time and direction control often come before winning the ball.',
+    ),
+    _McqSeed(
+      id: 'quality_goalkeeper_buildout',
+      difficulty: 2,
+      category: _QuizCategory.positions,
+      koStem: '빌드업에서 골키퍼가 센터백 사이 또는 옆으로 내려와 패스 옵션이 되는 장점은 무엇일까요?',
+      enStem:
+          'What is the advantage when a goalkeeper joins build-up between or beside center backs?',
+      options: [
+        _FootballQuizOption(
+          koText: '후방에서 수적 우위를 만들고 압박 탈출 각도를 넓힌다',
+          enText: 'Create a back-line overload and widen escape angles',
+        ),
+        _FootballQuizOption(
+          koText: '오프사이드 규칙을 없앤다',
+          enText: 'Remove the offside law',
+        ),
+        _FootballQuizOption(
+          koText: '상대 골키퍼를 자동으로 끌어낸다',
+          enText: 'Automatically pull out the opposing goalkeeper',
+        ),
+        _FootballQuizOption(
+          koText: '팀의 필드 플레이어 수를 늘린다',
+          enText: 'Increase the number of outfield players',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '골키퍼가 빌드업에 참여하면 첫 압박을 상대로 여분의 패스 선택지와 각도를 만들 수 있습니다.',
+      enExplain:
+          'A goalkeeper in build-up can add an extra passing option and change the angle against the first press.',
+      koNextPoint: '골키퍼 역할은 선방뿐 아니라 전개 시작점까지 포함합니다.',
+      enNextPoint:
+          'Goalkeeper roles include the starting point of build-up, not only saves.',
+    ),
+    _McqSeed(
+      id: 'quality_pre_match_meal',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koStem: '경기 몇 시간 전 식사로 일반적으로 더 적절한 방향은 무엇일까요?',
+      enStem:
+          'A few hours before a match, which meal direction is generally more suitable?',
+      options: [
+        _FootballQuizOption(
+          koText: '소화가 쉬운 탄수화물 중심에 수분을 함께 챙긴다',
+          enText: 'Easy-to-digest carbohydrates with fluids',
+        ),
+        _FootballQuizOption(
+          koText: '처음 먹어보는 매운 음식을 많이 먹는다',
+          enText: 'Eat a lot of spicy food you have never tried',
+        ),
+        _FootballQuizOption(
+          koText: '아무것도 먹지 않고 물도 마시지 않는다',
+          enText: 'Eat nothing and drink no water',
+        ),
+        _FootballQuizOption(
+          koText: '기름진 음식만 크게 먹는다',
+          enText: 'Eat only a large greasy meal',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '경기 전에는 익숙하고 소화가 쉬운 음식으로 에너지와 수분을 안정적으로 준비하는 편이 좋습니다.',
+      enExplain:
+          'Before a match, familiar and digestible food helps prepare energy and hydration more reliably.',
+      koNextPoint: '경기 전 영양은 새로움보다 익숙함과 소화 안정성이 중요합니다.',
+      enNextPoint:
+          'Prematch nutrition values familiarity and digestive comfort over novelty.',
+    ),
+    _McqSeed(
+      id: 'quality_rpe_adjustment',
+      difficulty: 2,
+      category: _QuizCategory.training,
+      koStem: '오늘 선수의 RPE가 평소보다 훨씬 높고 움직임 질이 떨어졌습니다. 코치가 가장 먼저 고려할 조정은 무엇일까요?',
+      enStem:
+          'A player’s RPE is much higher than usual today and movement quality has dropped. What adjustment should the coach consider first?',
+      options: [
+        _FootballQuizOption(
+          koText: '볼륨이나 강도를 낮추고 회복 신호를 확인한다',
+          enText: 'Reduce volume or intensity and check recovery signs',
+        ),
+        _FootballQuizOption(
+          koText: '반복 횟수를 즉시 두 배로 늘린다',
+          enText: 'Immediately double the repetitions',
+        ),
+        _FootballQuizOption(
+          koText: '기술이 무너져도 같은 강도로 밀어붙인다',
+          enText: 'Keep the same intensity even as technique breaks down',
+        ),
+        _FootballQuizOption(
+          koText: '물 섭취를 제한한다',
+          enText: 'Restrict fluid intake',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: 'RPE와 움직임 질은 부하 조절 신호입니다. 피로가 큰 날에는 질을 지키는 조정이 필요합니다.',
+      enExplain:
+          'RPE and movement quality are load-management signals. Heavy fatigue calls for adjustments that protect quality.',
+      koNextPoint: '훈련 판단은 계획표와 현장 반응을 함께 읽어야 합니다.',
+      enNextPoint:
+          'Training decisions should read both the plan and the live response.',
+    ),
+    _McqSeed(
+      id: 'quality_sleep_recovery',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koStem: '회복을 높이기 위한 수면 습관으로 가장 적절한 것은 무엇일까요?',
+      enStem: 'Which sleep habit best supports recovery?',
+      options: [
+        _FootballQuizOption(
+          koText: '비슷한 시간에 자고 일어나며 잠들기 전 화면 자극을 줄인다',
+          enText:
+              'Keep consistent sleep and wake times while reducing screens before bed',
+        ),
+        _FootballQuizOption(
+          koText: '매일 취침 시간을 크게 바꾼다',
+          enText: 'Change bedtime dramatically every day',
+        ),
+        _FootballQuizOption(
+          koText: '늦은 밤 고강도 게임으로 각성을 올린다',
+          enText: 'Increase arousal with intense late-night gaming',
+        ),
+        _FootballQuizOption(
+          koText: '잠이 부족해도 회복에는 영향이 없다고 본다',
+          enText: 'Assume sleep loss has no recovery effect',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '수면은 회복의 핵심 요소라 일정성과 잠들기 전 자극 관리가 다음 날 훈련 질에 영향을 줍니다.',
+      enExplain:
+          'Sleep is central to recovery, so consistency and lower pre-bed stimulation affect next-day training quality.',
+      koNextPoint: '회복 문제는 음식뿐 아니라 수면 리듬까지 함께 보세요.',
+      enNextPoint: 'Recovery questions include sleep rhythm as well as food.',
+    ),
+    _McqSeed(
+      id: 'quality_if_then_reset',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koStem: '실수 후 바로 다음 플레이로 돌아가기 위한 계획으로 가장 실전적인 것은 무엇일까요?',
+      enStem:
+          'Which plan is most practical for returning to the next action after a mistake?',
+      options: [
+        _FootballQuizOption(
+          koText: '실수하면 한 번 숨을 내쉬고 다음 압박 위치를 말한다',
+          enText:
+              'If I make a mistake, exhale once and name my next pressing spot',
+        ),
+        _FootballQuizOption(
+          koText: '실수하면 경기 끝까지 그 장면만 생각한다',
+          enText:
+              'If I make a mistake, think only about it until the match ends',
+        ),
+        _FootballQuizOption(
+          koText: '실수하면 동료 지시를 모두 무시한다',
+          enText: 'If I make a mistake, ignore every teammate cue',
+        ),
+        _FootballQuizOption(
+          koText: '실수하면 다음 장면을 포기한다',
+          enText: 'If I make a mistake, give up on the next phase',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '실행 의도처럼 "만약-그러면" 계획을 정해두면 감정 대신 다음 행동으로 돌아오기 쉽습니다.',
+      enExplain:
+          'An if-then plan makes it easier to move from emotion back to the next action.',
+      koNextPoint: '멘탈 루틴은 상황과 행동을 짧게 연결할수록 경기에서 살아남습니다.',
+      enNextPoint:
+          'Mental routines survive match speed when situation and action are linked briefly.',
+    ),
+    _McqSeed(
+      id: 'quality_inverted_winger_read',
+      difficulty: 2,
+      category: _QuizCategory.positions,
+      koStem: '오른발잡이 윙어가 왼쪽에서 안쪽으로 들어오며 슈팅 각도를 만드는 역할을 무엇으로 이해하면 좋을까요?',
+      enStem:
+          'How should you understand a right-footed winger on the left who cuts inside to create a shooting angle?',
+      options: [
+        _FootballQuizOption(
+          koText: '인버티드 윙어',
+          enText: 'Inverted winger',
+        ),
+        _FootballQuizOption(
+          koText: '스위퍼 키퍼',
+          enText: 'Sweeper keeper',
+        ),
+        _FootballQuizOption(
+          koText: '센터백 스토퍼',
+          enText: 'Center-back stopper',
+        ),
+        _FootballQuizOption(
+          koText: '타깃 골키퍼',
+          enText: 'Target goalkeeper',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '인버티드 윙어는 반대발 측면에서 안쪽으로 들어오며 슈팅, 패스, 하프스페이스 연결을 만듭니다.',
+      enExplain:
+          'An inverted winger starts on the opposite flank and moves inside to shoot, pass, or connect in the half-space.',
+      koNextPoint: '측면 포지션은 어느 발과 어느 방향으로 들어오는지 함께 보세요.',
+      enNextPoint:
+          'For wide roles, connect strong foot with the direction of movement.',
+    ),
+    _McqSeed(
+      id: 'quality_transition_foul_choice',
+      difficulty: 2,
+      category: _QuizCategory.rules,
+      koStem: '상대 역습을 막으려고 명백히 유망한 공격을 잡아끌어 끊었습니다. 가장 관련 깊은 판정 기준은 무엇일까요?',
+      enStem:
+          'A player pulls an opponent to stop a promising counterattack. Which decision concept is most relevant?',
+      options: [
+        _FootballQuizOption(
+          koText: '유망한 공격 저지와 경고 가능성',
+          enText: 'Stopping a promising attack and a possible caution',
+        ),
+        _FootballQuizOption(
+          koText: '항상 골킥으로 재개',
+          enText: 'Always restart with a goal kick',
+        ),
+        _FootballQuizOption(
+          koText: '오프사이드 자동 취소',
+          enText: 'Automatic offside cancellation',
+        ),
+        _FootballQuizOption(
+          koText: '스로인만 다시 하기',
+          enText: 'Only retake the throw-in',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '유망한 공격을 반칙으로 끊는 장면은 재개 방법뿐 아니라 경고 여부까지 함께 판단합니다.',
+      enExplain:
+          'A foul that stops a promising attack is judged by the restart and by whether a caution is needed.',
+      koNextPoint: '규칙 문제는 반칙, 재개, 징계 가능성을 한 줄로 연결하세요.',
+      enNextPoint:
+          'For law items, connect foul, restart, and disciplinary outcome.',
+    ),
+  ];
+}
+
+List<_ShortAnswerKnowledgeSeed> _qualityScenarioShortAnswerSeeds() {
+  return const <_ShortAnswerKnowledgeSeed>[
+    _ShortAnswerKnowledgeSeed(
+      id: 'quality_cover_shadow',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koClue: '압박하는 선수가 자기 몸 뒤쪽의 패스 길을 가리며 상대 선택지를 줄이는 개념',
+      enClue:
+          'Pressing concept where a player uses the space behind their body to block a passing lane',
+      acceptedAnswers: [
+        '커버 섀도',
+        '커버쉐도',
+        '커버 섀도우',
+        'cover shadow',
+        'covershadow',
+      ],
+      koExplain: '정답은 "커버 섀도"입니다. 공 소유자와 뒤 패스 길을 동시에 제한하는 압박 디테일입니다.',
+      enExplain:
+          'The answer is "cover shadow." It restricts the ball carrier and a passing lane behind the presser at once.',
+      koNextPoint: '압박은 뛰는 방향과 몸이 가리는 길을 같이 읽어야 합니다.',
+      enNextPoint:
+          'Read pressing through both run direction and the lane blocked by the body.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'quality_rest_defense_term',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koClue: '공격 중에도 공을 잃었을 때 역습을 막기 위해 뒤에 남겨 두는 균형 구조',
+      enClue:
+          'Team balance left behind during attack to control counterattacks after losing the ball',
+      acceptedAnswers: ['레스트 디펜스', 'rest defense', 'rest defence'],
+      koExplain: '정답은 "레스트 디펜스"입니다. 공격 장면에서도 다음 수비를 미리 준비하는 구조입니다.',
+      enExplain:
+          'The answer is "rest defense." It prepares the next defensive moment while the team attacks.',
+      koNextPoint: '공격 문제에서도 잃었을 때 누가 중앙과 뒤 공간을 지키는지 확인하세요.',
+      enNextPoint:
+          'Even in attacking questions, check who protects the center and space behind.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'quality_second_ball',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '공중볼이나 경합 뒤 곧바로 떨어지는 다음 공을 가리키는 표현',
+      enClue:
+          'Term for the loose ball that drops immediately after an aerial duel or contest',
+      acceptedAnswers: ['세컨드 볼', 'second ball', 'secondball'],
+      koExplain: '정답은 "세컨드 볼"입니다. 주변 간격과 반응 준비가 경합 이후 소유권을 좌우합니다.',
+      enExplain:
+          'The answer is "second ball." Nearby spacing and readiness often decide who owns it.',
+      koNextPoint: '경합 상황은 첫 접촉 다음에 누가 더 빨리 준비됐는지를 보세요.',
+      enNextPoint:
+          'In duels, look at who is prepared for the moment after first contact.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'quality_rpe',
+      difficulty: 2,
+      category: _QuizCategory.training,
+      koClue: '선수가 주관적으로 느끼는 운동 강도 지표. 영어 약어 세 글자로도 답할 수 있습니다',
+      enClue:
+          'Rating of perceived exertion. You can answer with the three-letter abbreviation',
+      acceptedAnswers: ['RPE', 'rpe', '운동자각도', '자각운동강도'],
+      koExplain: '정답은 "RPE"입니다. 계획된 부하와 실제 체감 피로를 비교할 때 유용한 지표입니다.',
+      enExplain:
+          'The answer is "RPE." It helps compare planned load with how hard the session actually felt.',
+      koNextPoint: '훈련 기록은 거리나 시간뿐 아니라 체감 강도도 함께 남기면 좋습니다.',
+      enNextPoint:
+          'Training logs improve when perceived intensity is tracked with distance and time.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'quality_inverted_winger',
+      difficulty: 2,
+      category: _QuizCategory.positions,
+      koClue: '주발의 반대 측면에서 안쪽으로 들어오며 슈팅과 하프스페이스 연결을 만드는 윙어 역할',
+      enClue:
+          'Wide role that starts on the opposite side of the strong foot and cuts inside to shoot or connect',
+      acceptedAnswers: [
+        '인버티드 윙어',
+        'inverted winger',
+        'invertedwinger',
+      ],
+      koExplain: '정답은 "인버티드 윙어"입니다. 측면에서 중앙으로 들어오며 직접 슈팅과 안쪽 패스 각도를 만듭니다.',
+      enExplain:
+          'The answer is "inverted winger." This role cuts inside to shoot or connect through inner lanes.',
+      koNextPoint: '윙어 문제는 어느 발로 어느 공간에 들어오는지 함께 판단하세요.',
+      enNextPoint:
+          'For winger questions, connect strong foot with the space they attack.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'quality_implementation_intention',
+      difficulty: 3,
+      category: _QuizCategory.mindset,
+      koClue: '"실수하면 숨을 한 번 내쉬고 다음 압박 위치를 말한다"처럼 상황과 행동을 미리 연결하는 계획',
+      enClue:
+          'If-then plan that links a situation with a specific action before it happens',
+      acceptedAnswers: [
+        '실행 의도',
+        '실행의도',
+        'implementation intention',
+        'if then plan',
+        'if-then plan',
+      ],
+      koExplain: '정답은 "실행 의도"입니다. 상황과 행동을 미리 묶으면 경기 중 감정에서 행동으로 복귀하기 쉽습니다.',
+      enExplain:
+          'The answer is "implementation intention." Linking situation and action beforehand makes reset behavior easier.',
+      koNextPoint: '멘탈 루틴은 좋은 말보다 바로 실행할 문장으로 만들어 보세요.',
+      enNextPoint:
+          'Build mental routines as executable sentences, not just good ideas.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'quality_glycogen_window',
+      difficulty: 2,
+      category: _QuizCategory.nutrition,
+      koClue: '고강도 운동 후 탄수화물 보충으로 다시 채우려는 근육과 간의 에너지 저장 형태',
+      enClue:
+          'Stored energy form in muscles and liver that post-training carbohydrate intake helps refill',
+      acceptedAnswers: ['글리코겐', 'glycogen'],
+      koExplain: '정답은 "글리코겐"입니다. 훈련 후 탄수화물은 다음 고강도 움직임을 위한 저장고를 다시 채웁니다.',
+      enExplain:
+          'The answer is "glycogen." Post-training carbohydrates help refill the store used for high-intensity work.',
+      koNextPoint: '회복 영양은 음식 이름과 몸 안에서 채우는 저장고를 같이 보세요.',
+      enNextPoint:
+          'For recovery nutrition, connect the food with the body store it refills.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'quality_advantage_rule',
+      difficulty: 2,
+      category: _QuizCategory.rules,
+      koClue: '반칙이 있어도 공격 팀 이익이 더 크면 심판이 바로 끊지 않고 이어가게 하는 규칙 운용',
+      enClue:
+          'Referee application that allows play to continue when the attacking benefit is greater despite a foul',
+      acceptedAnswers: ['어드밴티지', 'advantage'],
+      koExplain: '정답은 "어드밴티지"입니다. 단순히 반칙 여부가 아니라 끊는 것이 어느 팀에 유리한지도 봅니다.',
+      enExplain:
+          'The answer is "advantage." The referee considers not only the foul but also who benefits if play stops.',
+      koNextPoint: '규칙 문제는 판정 이름과 경기 이익을 함께 판단하세요.',
+      enNextPoint:
+          'In law questions, connect the decision name with match benefit.',
     ),
   ];
 }
@@ -9454,7 +10260,10 @@ Map<String, _FootballQuizQuestion> _legacyQuestionAliases(
 ) {
   if (question.style == _QuestionStyle.ox) {
     final truthSuffix = question.correctIndex == 0 ? 't' : 'f';
-    return {'${question.id}_${question.correctIndex}_$truthSuffix': question};
+    return {
+      '${question.id}_${question.correctIndex}_$truthSuffix': question,
+      '${question.id}_0_${question.correctIndex}_$truthSuffix': question,
+    };
   }
   return const <String, _FootballQuizQuestion>{};
 }
