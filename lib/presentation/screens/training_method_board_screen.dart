@@ -2676,6 +2676,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     selectedRouteId: _selectedRouteId,
                     activeRoutePoints: _activeRoutePoints,
                     activeRouteColor: _activeRoutePreviewColor(),
+                    activeRouteKind: _pathDrawMode,
                   ),
                 ),
                 CustomPaint(
@@ -3791,12 +3792,14 @@ class _PlayerPathPainter extends CustomPainter {
   final String? selectedRouteId;
   final List<Offset>? activeRoutePoints;
   final Color activeRouteColor;
+  final _PathDrawMode activeRouteKind;
 
   const _PlayerPathPainter({
     required this.routes,
     required this.selectedRouteId,
     required this.activeRoutePoints,
     required this.activeRouteColor,
+    required this.activeRouteKind,
   });
 
   @override
@@ -3808,12 +3811,15 @@ class _PlayerPathPainter extends CustomPainter {
         selectedRoute = route;
         continue;
       }
-      _draw(
-        canvas: canvas,
-        size: size,
+      _drawRoute(
+        canvas,
+        size,
+        kind: route.kind,
         points: route.points,
-        color: route.color.withValues(alpha: 0.34),
+        color: route.color,
         width: route.width,
+        alpha: 0.38,
+        selected: false,
       );
     }
     if (selectedRoute != null) {
@@ -3821,73 +3827,184 @@ class _PlayerPathPainter extends CustomPainter {
     }
     final active = activeRoutePoints;
     if (active != null && active.length > 1) {
-      _draw(
-        canvas: canvas,
-        size: size,
+      _drawRoute(
+        canvas,
+        size,
+        kind: activeRouteKind,
         points: active,
-        color: activeRouteColor.withValues(alpha: 0.72),
-        width: 3.6,
+        color: activeRouteColor,
+        width: _defaultRouteWidth(activeRouteKind),
+        alpha: 0.78,
+        selected: false,
       );
     }
   }
 
   void _drawSelectedRoute(Canvas canvas, Size size, _BoardRoute route) {
-    _draw(
-      canvas: canvas,
-      size: size,
+    _drawRoute(
+      canvas,
+      size,
+      kind: route.kind,
       points: route.points,
-      color: route.color.withValues(alpha: 0.94),
+      color: route.color,
       width: route.width,
-    );
-    _drawMarker(
-      canvas: canvas,
-      size: size,
-      point: route.points.first,
-      color: route.color,
-      radius: 6.8,
-      filled: true,
-    );
-    _drawMarker(
-      canvas: canvas,
-      size: size,
-      point: route.points.last,
-      color: route.color,
-      radius: 7.8,
-      filled: false,
+      alpha: 0.96,
+      selected: true,
     );
   }
 
-  void _draw({
-    required Canvas canvas,
-    required Size size,
+  void _drawRoute(
+    Canvas canvas,
+    Size size, {
+    required _PathDrawMode kind,
     required List<Offset> points,
     required Color color,
     required double width,
+    required double alpha,
+    required bool selected,
   }) {
+    final scaled = points
+        .map((point) => Offset(point.dx * size.width, point.dy * size.height))
+        .toList(growable: false);
+    final lineColor = color.withValues(alpha: alpha);
     final paint = Paint()
-      ..color = color.withValues(alpha: 0.95)
+      ..color = lineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = width
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-    final path = Path()
-      ..moveTo(points.first.dx * size.width, points.first.dy * size.height);
-    for (var i = 1; i < points.length; i++) {
-      final p = points[i];
-      path.lineTo(p.dx * size.width, p.dy * size.height);
+
+    if (kind == _PathDrawMode.ball) {
+      _drawDashedPolyline(canvas, scaled, paint);
+    } else {
+      canvas.drawPath(_smoothPath(scaled), paint);
     }
-    canvas.drawPath(path, paint);
+
+    _drawArrowHead(canvas, scaled, lineColor, width);
+    if (selected) {
+      _drawMarker(
+        canvas: canvas,
+        center: scaled.first,
+        color: color,
+        radius: 6.8,
+        filled: true,
+      );
+      _drawMarker(
+        canvas: canvas,
+        center: scaled.last,
+        color: color,
+        radius: 7.8,
+        filled: false,
+      );
+    } else {
+      _drawRouteStart(canvas, scaled.first, lineColor, width);
+    }
+  }
+
+  Path _smoothPath(List<Offset> points) {
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    if (points.length == 2) {
+      return path..lineTo(points.last.dx, points.last.dy);
+    }
+    for (var i = 1; i < points.length; i++) {
+      if (i == points.length - 1) {
+        path.lineTo(points[i].dx, points[i].dy);
+        break;
+      }
+      final current = points[i];
+      final next = points[i + 1];
+      final mid = Offset(
+        (current.dx + next.dx) / 2,
+        (current.dy + next.dy) / 2,
+      );
+      path.quadraticBezierTo(current.dx, current.dy, mid.dx, mid.dy);
+    }
+    return path;
+  }
+
+  void _drawDashedPolyline(Canvas canvas, List<Offset> points, Paint paint) {
+    const dash = 14.0;
+    const gap = 9.0;
+    for (var i = 1; i < points.length; i++) {
+      final start = points[i - 1];
+      final end = points[i];
+      final vector = end - start;
+      final distance = vector.distance;
+      if (distance < 0.1) continue;
+      final direction = vector / distance;
+      var drawn = 0.0;
+      while (drawn < distance) {
+        final segmentStart = start + direction * drawn;
+        final segmentEnd = start + direction * math.min(drawn + dash, distance);
+        canvas.drawLine(segmentStart, segmentEnd, paint);
+        drawn += dash + gap;
+      }
+    }
+  }
+
+  void _drawRouteStart(
+    Canvas canvas,
+    Offset center,
+    Color color,
+    double width,
+  ) {
+    final outerPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.82)
+      ..style = PaintingStyle.fill;
+    final innerPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, math.max(3.6, width * 1.15), outerPaint);
+    canvas.drawCircle(center, math.max(2.0, width * 0.62), innerPaint);
+  }
+
+  void _drawArrowHead(
+    Canvas canvas,
+    List<Offset> points,
+    Color color,
+    double width,
+  ) {
+    if (points.length < 2) return;
+    final tip = points.last;
+    Offset? tail;
+    for (var i = points.length - 2; i >= 0; i--) {
+      if ((tip - points[i]).distance > 0.5) {
+        tail = points[i];
+        break;
+      }
+    }
+    if (tail == null) return;
+    final angle = math.atan2(tip.dy - tail.dy, tip.dx - tail.dx);
+    final length = math.max(12.0, width * 3.2);
+    const spread = math.pi / 6;
+    final left = Offset(
+      tip.dx - math.cos(angle - spread) * length,
+      tip.dy - math.sin(angle - spread) * length,
+    );
+    final right = Offset(
+      tip.dx - math.cos(angle + spread) * length,
+      tip.dy - math.sin(angle + spread) * length,
+    );
+    final arrowPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(
+      Path()
+        ..moveTo(tip.dx, tip.dy)
+        ..lineTo(left.dx, left.dy)
+        ..lineTo(right.dx, right.dy)
+        ..close(),
+      arrowPaint,
+    );
   }
 
   void _drawMarker({
     required Canvas canvas,
-    required Size size,
-    required Offset point,
+    required Offset center,
     required Color color,
     required double radius,
     required bool filled,
   }) {
-    final center = Offset(point.dx * size.width, point.dy * size.height);
     final ringPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.98)
       ..style = PaintingStyle.fill;
@@ -3970,21 +4087,76 @@ class _PitchPainter extends CustomPainter {
     final line = Paint()
       ..color = Colors.white.withValues(alpha: 0.72)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = math.max(1.5, math.min(size.width, size.height) * 0.004);
+    final fieldRect = Rect.fromLTWH(8, 8, size.width - 16, size.height - 16);
+    final stripePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.045)
+      ..style = PaintingStyle.fill;
+    final stripeWidth = fieldRect.width / 10;
+    for (var i = 0; i < 10; i += 2) {
+      canvas.drawRect(
+        Rect.fromLTWH(
+          fieldRect.left + stripeWidth * i,
+          fieldRect.top,
+          stripeWidth,
+          fieldRect.height,
+        ),
+        stripePaint,
+      );
+    }
+
     final centerX = size.width / 2;
     final centerY = size.height / 2;
 
-    canvas.drawRect(
-      Rect.fromLTWH(8, 8, size.width - 16, size.height - 16),
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(fieldRect, const Radius.circular(12)),
       line,
     );
-    canvas.drawLine(Offset(centerX, 8), Offset(centerX, size.height - 8), line);
-    canvas.drawCircle(Offset(centerX, centerY), 42, line);
-    canvas.drawRect(Rect.fromLTWH(8, (size.height / 2) - 56, 74, 112), line);
-    canvas.drawRect(
-      Rect.fromLTWH(size.width - 82, (size.height / 2) - 56, 74, 112),
+    canvas.drawLine(
+      Offset(centerX, fieldRect.top),
+      Offset(centerX, fieldRect.bottom),
       line,
     );
+    canvas.drawCircle(
+      Offset(centerX, centerY),
+      math.min(42, fieldRect.shortestSide * 0.13),
+      line,
+    );
+    final boxDepth = math.min(fieldRect.width * 0.17, 92.0);
+    final boxHeight = math.min(fieldRect.height * 0.42, 136.0);
+    final boxTop = centerY - boxHeight / 2;
+    canvas.drawRect(
+      Rect.fromLTWH(fieldRect.left, boxTop, boxDepth, boxHeight),
+      line,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(fieldRect.right - boxDepth, boxTop, boxDepth, boxHeight),
+      line,
+    );
+    final goalDepth = math.min(fieldRect.width * 0.022, 12.0);
+    final goalHeight = math.min(fieldRect.height * 0.18, 58.0);
+    canvas.drawRect(
+      Rect.fromLTWH(
+        fieldRect.left - goalDepth,
+        centerY - goalHeight / 2,
+        goalDepth,
+        goalHeight,
+      ),
+      line,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(
+        fieldRect.right,
+        centerY - goalHeight / 2,
+        goalDepth,
+        goalHeight,
+      ),
+      line,
+    );
+    final spotPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.72)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(centerX, centerY), 2.6, spotPaint);
   }
 
   @override
