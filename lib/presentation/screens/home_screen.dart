@@ -114,6 +114,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (backup == null || _familySyncInFlight) return;
     _familySyncInFlight = true;
     try {
+      try {
+        await backup.autoBackupDaily();
+      } catch (_) {
+        // Daily backup can retry on the next timer tick or resume.
+      }
       final pushedPending = backup.hasPendingParentSharedChanges()
           ? await backup.backupIfSignedIn()
           : false;

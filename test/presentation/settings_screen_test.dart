@@ -272,6 +272,69 @@ void main() {
     },
   );
 
+  testWidgets(
+    'parent restore refreshes remote Drive status after latest import',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      await optionRepository.setValue(
+        FamilyAccessService.currentRoleLocalKey,
+        FamilyRole.parent.name,
+      );
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: true,
+        connectionInfo: const DriveConnectionInfo(
+          email: 'parent@example.com',
+          displayName: '부모',
+          subjectId: 'parent-1',
+        ),
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        hasRemotePlayerBackup: true,
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      backupService.resetStatusCounters();
+      await tester.tap(find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Google Drive의 최신 선수 데이터를'),
+        findsOneWidget,
+      );
+      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.pumpAndSettle();
+      expect(find.text('복원 재확인'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(backupService.restoreLatestCalled, isTrue);
+      expect(backupService.hasRemotePlayerBackupChecks, greaterThan(0));
+    },
+  );
+
   testWidgets('enabling parent mode keeps current player Drive connected', (
     WidgetTester tester,
   ) async {
@@ -835,8 +898,10 @@ class _FakeDriveBackupService extends BackupService {
   bool throwNextIsSignedIn;
   final bool throwIsSignedInAfterSignInOnce;
   bool signOutCalled;
+  bool restoreLatestCalled;
   bool restorePreviousBackupCalled;
   bool refreshParentSharedDataIfNeededCalled;
+  int hasRemotePlayerBackupChecks;
   final StreamController<void> _driveAccountStateController =
       StreamController<void>.broadcast();
 
@@ -860,8 +925,10 @@ class _FakeDriveBackupService extends BackupService {
     DateTime? lastBackupAt,
   })  : _signedIn = signedIn,
         signOutCalled = false,
+        restoreLatestCalled = false,
         restorePreviousBackupCalled = false,
         refreshParentSharedDataIfNeededCalled = false,
+        hasRemotePlayerBackupChecks = 0,
         throwNextIsSignedIn = false,
         _connectionInfo = connectionInfo,
         _sharedChildDriveLabel = sharedChildDriveLabel,
@@ -891,6 +958,10 @@ class _FakeDriveBackupService extends BackupService {
 
   void emitDriveAccountStateChanged() {
     _driveAccountStateController.add(null);
+  }
+
+  void resetStatusCounters() {
+    hasRemotePlayerBackupChecks = 0;
   }
 
   @override
@@ -937,7 +1008,10 @@ class _FakeDriveBackupService extends BackupService {
   }
 
   @override
-  Future<bool> hasRemotePlayerBackup() async => _hasRemotePlayerBackup;
+  Future<bool> hasRemotePlayerBackup() async {
+    hasRemotePlayerBackupChecks += 1;
+    return _hasRemotePlayerBackup;
+  }
 
   @override
   String getSavedRecordDriveEmail() => _savedRecordDriveEmail;
@@ -1055,6 +1129,11 @@ class _FakeDriveBackupService extends BackupService {
   Future<FamilySharedSyncResult> refreshFamilySharedDataIfNeeded() async {
     refreshParentSharedDataIfNeededCalled = true;
     return const FamilySharedSyncResult.none(role: FamilyRole.parent);
+  }
+
+  @override
+  Future<void> restoreLatest() async {
+    restoreLatestCalled = true;
   }
 
   @override
