@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../application/running_coach_history_service.dart';
 import '../../application/running_coaching_service.dart';
+import '../../application/running_growth_service.dart';
 import '../../application/running_video_analysis_service.dart';
 import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
@@ -12,6 +13,8 @@ import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
 import '../models/sample_runner_pose.dart';
 import 'running_coach_insight_copy.dart';
+import 'running_live_coach_screen.dart';
+import 'sprint_live_coaching_screen.dart';
 import '../widgets/app_feedback.dart';
 
 class RunningCoachScreen extends StatefulWidget {
@@ -29,14 +32,21 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       const RunningVideoAnalysisService();
   final RunningCoachingService _coachingService =
       const RunningCoachingService();
+  final TextEditingController _recordSecondsController =
+      TextEditingController();
 
   RunningCoachHistoryService? _historyService;
+  RunningGrowthService? _growthService;
   XFile? _selectedVideo;
   RunningVideoAnalysisResult? _analysisResult;
   RunningCoachingReport? _coachingReport;
+  RunningGrowthSnapshot? _growthSnapshot;
   List<RunningCoachSessionAnalysis> _recentSessions =
       const <RunningCoachSessionAnalysis>[];
+  RunningSprintDistance _selectedSprintDistance =
+      RunningSprintDistance.twentyMeters;
   bool _isAnalyzing = false;
+  bool _isSavingRecord = false;
 
   @override
   void initState() {
@@ -44,8 +54,16 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     final optionRepository = widget.optionRepository;
     if (optionRepository != null) {
       _historyService = RunningCoachHistoryService(optionRepository);
+      _growthService = RunningGrowthService(optionRepository);
       _recentSessions = _historyService!.allSessions();
+      _growthSnapshot = _growthService!.snapshot();
     }
+  }
+
+  @override
+  void dispose() {
+    _recordSecondsController.dispose();
+    super.dispose();
   }
 
   @override
@@ -60,6 +78,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     final mistakeSampleReport = _coachingService.buildReport(
       mistakeSampleResult,
     );
+    final mission = _missionForToday(DateTime.now());
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -76,6 +95,25 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
             title: l10n.runningCoachHeroTitle,
             body: l10n.runningCoachHeroBody,
           ),
+          const SizedBox(height: 12),
+          _RunningMissionCard(
+            mission: mission,
+            onStartLiveCoach: _openLiveCoach,
+            onStartSprintCoach: _openSprintCoach,
+          ),
+          if (_growthSnapshot case final growthSnapshot?) ...[
+            const SizedBox(height: 12),
+            _RunningGrowthRecordCard(
+              snapshot: growthSnapshot,
+              selectedDistance: _selectedSprintDistance,
+              secondsController: _recordSecondsController,
+              isSaving: _isSavingRecord,
+              onDistanceChanged: (distance) {
+                setState(() => _selectedSprintDistance = distance);
+              },
+              onSave: _saveSprintRecord,
+            ),
+          ],
           const SizedBox(height: 12),
           _RunningCoachUploadGuideCard(
             title: l10n.runningCoachUploadGuideTitle,
@@ -112,11 +150,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            for (
-              var sectionIndex = 0;
-              sectionIndex < insightSections.length;
-              sectionIndex += 1
-            ) ...[
+            for (var sectionIndex = 0;
+                sectionIndex < insightSections.length;
+                sectionIndex += 1) ...[
               _InsightRegionSectionCard(
                 title: insightSections[sectionIndex].title,
                 insights: insightSections[sectionIndex].insights,
@@ -132,6 +168,50 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   }
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
+
+  void _openLiveCoach() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const RunningLiveCoachScreen()),
+    );
+  }
+
+  void _openSprintCoach() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SprintLiveCoachingScreen()),
+    );
+  }
+
+  Future<void> _saveSprintRecord() async {
+    final growthService = _growthService;
+    if (growthService == null || _isSavingRecord) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final rawSeconds =
+        _recordSecondsController.text.trim().replaceAll(',', '.');
+    final seconds = double.tryParse(rawSeconds);
+    if (seconds == null || seconds <= 0 || seconds > 60) {
+      AppFeedback.showMessage(context, text: l10n.runningCoachRecordInvalid);
+      return;
+    }
+
+    setState(() => _isSavingRecord = true);
+    try {
+      final snapshot = await growthService.saveRecord(
+        distance: _selectedSprintDistance,
+        seconds: seconds,
+      );
+      if (!mounted) return;
+      setState(() {
+        _growthSnapshot = snapshot;
+        _recordSecondsController.clear();
+      });
+      AppFeedback.showMessage(context, text: l10n.runningCoachRecordSaved);
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingRecord = false);
+      }
+    }
+  }
 
   Future<void> _showSampleAnalysis(
     AppLocalizations l10n, {
@@ -352,6 +432,641 @@ class _InsightRegionSection {
   final List<RunningCoachingInsight> insights;
 
   const _InsightRegionSection({required this.title, required this.insights});
+}
+
+enum _RunningMissionKind {
+  breakaway,
+  pressureEscape,
+  looseBall,
+  firstThreeSteps,
+}
+
+class _RunningMission {
+  final _RunningMissionKind kind;
+  final int distanceMeters;
+  final IconData icon;
+
+  const _RunningMission({
+    required this.kind,
+    required this.distanceMeters,
+    required this.icon,
+  });
+
+  String title(AppLocalizations l10n) {
+    return switch (kind) {
+      _RunningMissionKind.breakaway => l10n.runningCoachMissionBreakawayTitle,
+      _RunningMissionKind.pressureEscape =>
+        l10n.runningCoachMissionPressureTitle,
+      _RunningMissionKind.looseBall => l10n.runningCoachMissionLooseBallTitle,
+      _RunningMissionKind.firstThreeSteps =>
+        l10n.runningCoachMissionFirstStepsTitle,
+    };
+  }
+
+  String body(AppLocalizations l10n) {
+    return switch (kind) {
+      _RunningMissionKind.breakaway => l10n.runningCoachMissionBreakawayBody,
+      _RunningMissionKind.pressureEscape =>
+        l10n.runningCoachMissionPressureBody,
+      _RunningMissionKind.looseBall => l10n.runningCoachMissionLooseBallBody,
+      _RunningMissionKind.firstThreeSteps =>
+        l10n.runningCoachMissionFirstStepsBody,
+    };
+  }
+
+  String focus(AppLocalizations l10n) {
+    return switch (kind) {
+      _RunningMissionKind.breakaway => l10n.runningCoachMissionBreakawayFocus,
+      _RunningMissionKind.pressureEscape =>
+        l10n.runningCoachMissionPressureFocus,
+      _RunningMissionKind.looseBall => l10n.runningCoachMissionLooseBallFocus,
+      _RunningMissionKind.firstThreeSteps =>
+        l10n.runningCoachMissionFirstStepsFocus,
+    };
+  }
+
+  String reward(AppLocalizations l10n) {
+    return switch (kind) {
+      _RunningMissionKind.breakaway => l10n.runningCoachMissionBreakawayReward,
+      _RunningMissionKind.pressureEscape =>
+        l10n.runningCoachMissionPressureReward,
+      _RunningMissionKind.looseBall => l10n.runningCoachMissionLooseBallReward,
+      _RunningMissionKind.firstThreeSteps =>
+        l10n.runningCoachMissionFirstStepsReward,
+    };
+  }
+}
+
+_RunningMission _missionForToday(DateTime now) {
+  const missions = <_RunningMission>[
+    _RunningMission(
+      kind: _RunningMissionKind.breakaway,
+      distanceMeters: 20,
+      icon: Icons.keyboard_double_arrow_right_rounded,
+    ),
+    _RunningMission(
+      kind: _RunningMissionKind.pressureEscape,
+      distanceMeters: 10,
+      icon: Icons.change_circle_outlined,
+    ),
+    _RunningMission(
+      kind: _RunningMissionKind.looseBall,
+      distanceMeters: 30,
+      icon: Icons.sports_soccer_outlined,
+    ),
+    _RunningMission(
+      kind: _RunningMissionKind.firstThreeSteps,
+      distanceMeters: 10,
+      icon: Icons.bolt_outlined,
+    ),
+  ];
+  final daySeed = DateTime(now.year, now.month, now.day)
+      .difference(DateTime(2026))
+      .inDays
+      .abs();
+  return missions[daySeed % missions.length];
+}
+
+class _RunningMissionCard extends StatelessWidget {
+  final _RunningMission mission;
+  final VoidCallback onStartLiveCoach;
+  final VoidCallback onStartSprintCoach;
+
+  const _RunningMissionCard({
+    required this.mission,
+    required this.onStartLiveCoach,
+    required this.onStartSprintCoach,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      key: const ValueKey('running-coach-today-mission-card'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(mission.icon, color: scheme.onPrimaryContainer),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.runningCoachMissionCardTitle,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w900,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        mission.title(l10n),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(mission.body(l10n),
+                style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _MissionChip(
+                  icon: Icons.straighten_rounded,
+                  label: l10n.runningCoachMissionDistance(
+                    mission.distanceMeters,
+                  ),
+                ),
+                _MissionChip(
+                  icon: Icons.center_focus_strong_rounded,
+                  label: mission.focus(l10n),
+                ),
+                _MissionChip(
+                  icon: Icons.auto_awesome_outlined,
+                  label: mission.reward(l10n),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                FilledButton.icon(
+                  onPressed: onStartSprintCoach,
+                  icon: const Icon(Icons.bolt_outlined),
+                  label: Text(l10n.runningCoachMissionStartSprint),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onStartLiveCoach,
+                  icon: const Icon(Icons.videocam_outlined),
+                  label: Text(l10n.runningCoachMissionStartLive),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MissionChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _MissionChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer.withValues(alpha: 0.68),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: scheme.secondary.withValues(alpha: 0.18)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: scheme.secondary),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RunningGrowthRecordCard extends StatelessWidget {
+  final RunningGrowthSnapshot snapshot;
+  final RunningSprintDistance selectedDistance;
+  final TextEditingController secondsController;
+  final bool isSaving;
+  final ValueChanged<RunningSprintDistance> onDistanceChanged;
+  final VoidCallback onSave;
+
+  const _RunningGrowthRecordCard({
+    required this.snapshot,
+    required this.selectedDistance,
+    required this.secondsController,
+    required this.isSaving,
+    required this.onDistanceChanged,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final selectedBest = snapshot.bestFor(selectedDistance);
+    final selectedDelta = snapshot.latestDeltaFor(selectedDistance);
+    return Card(
+      key: const ValueKey('running-coach-growth-record-card'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.flag_outlined, color: scheme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.runningCoachGrowthTitle,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.runningCoachGrowthBody,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _GrowthStatsRow(snapshot: snapshot),
+            const SizedBox(height: 14),
+            _BestRecordGrid(snapshot: snapshot),
+            const SizedBox(height: 14),
+            Text(
+              l10n.runningCoachRecordInputTitle,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            SegmentedButton<RunningSprintDistance>(
+              showSelectedIcon: false,
+              segments: [
+                for (final distance in RunningSprintDistance.values)
+                  ButtonSegment<RunningSprintDistance>(
+                    value: distance,
+                    icon: const Icon(Icons.straighten_rounded),
+                    label: Text(
+                      l10n.runningCoachRecordDistance(distance.meters),
+                    ),
+                  ),
+              ],
+              selected: {selectedDistance},
+              onSelectionChanged: isSaving
+                  ? null
+                  : (selection) => onDistanceChanged(selection.first),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              key: const ValueKey('running-coach-record-seconds-field'),
+              controller: secondsController,
+              enabled: !isSaving,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: l10n.runningCoachRecordSecondsLabel,
+                hintText: l10n.runningCoachRecordSecondsHint,
+                suffixText: l10n.runningCoachRecordSecondsSuffix,
+                border: const OutlineInputBorder(),
+              ),
+              onSubmitted: (_) => onSave(),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                key: const ValueKey('running-coach-record-save-button'),
+                onPressed: isSaving ? null : onSave,
+                icon: isSaving
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.add_task_outlined),
+                label: Text(l10n.runningCoachRecordSaveAction),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _GhostRunnerDeltaPanel(
+              distance: selectedDistance,
+              best: selectedBest,
+              delta: selectedDelta,
+            ),
+            const SizedBox(height: 14),
+            _RunningBadgePanel(snapshot: snapshot),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GrowthStatsRow extends StatelessWidget {
+  final RunningGrowthSnapshot snapshot;
+
+  const _GrowthStatsRow({required this.snapshot});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _StatChip(
+          label: l10n.runningCoachGrowthAttemptsLabel,
+          value: l10n.runningCoachGrowthAttempts(snapshot.totalAttempts),
+        ),
+        _StatChip(
+          label: l10n.runningCoachGrowthStreakLabel,
+          value: l10n.runningCoachGrowthStreak(snapshot.currentStreakDays),
+        ),
+        _StatChip(
+          label: l10n.runningCoachGrowthDistancesLabel,
+          value:
+              l10n.runningCoachGrowthDistances(snapshot.completedDistanceCount),
+        ),
+      ],
+    );
+  }
+}
+
+class _BestRecordGrid extends StatelessWidget {
+  final RunningGrowthSnapshot snapshot;
+
+  const _BestRecordGrid({required this.snapshot});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final itemWidth = width >= 520 ? (width - 20) / 3 : width;
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (final distance in RunningSprintDistance.values)
+              SizedBox(
+                width: itemWidth,
+                child: _BestRecordTile(
+                  distance: distance,
+                  record: snapshot.bestFor(distance),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _BestRecordTile extends StatelessWidget {
+  final RunningSprintDistance distance;
+  final RunningSprintRecord? record;
+
+  const _BestRecordTile({required this.distance, required this.record});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.runningCoachRecordDistance(distance.meters),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              record == null
+                  ? l10n.runningCoachRecordEmpty
+                  : l10n.runningCoachRecordSecondsValue(
+                      record!.seconds.toStringAsFixed(2),
+                    ),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GhostRunnerDeltaPanel extends StatelessWidget {
+  final RunningSprintDistance distance;
+  final RunningSprintRecord? best;
+  final RunningRecordDelta? delta;
+
+  const _GhostRunnerDeltaPanel({
+    required this.distance,
+    required this.best,
+    required this.delta,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final title = best == null
+        ? l10n.runningCoachGhostEmptyTitle
+        : l10n.runningCoachGhostTitle(distance.meters);
+    final body = _bodyText(l10n);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(alpha: 0.58),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.compare_arrows_rounded,
+                color: scheme.onPrimaryContainer),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(body, style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _bodyText(AppLocalizations l10n) {
+    if (best == null) {
+      return l10n.runningCoachGhostEmptyBody;
+    }
+    final resolvedDelta = delta;
+    if (resolvedDelta == null) {
+      return l10n.runningCoachGhostFirstRecordBody(
+        best!.seconds.toStringAsFixed(2),
+      );
+    }
+    final gap = resolvedDelta.secondsImproved.abs().toStringAsFixed(2);
+    if (resolvedDelta.isPersonalBest) {
+      return l10n.runningCoachGhostImprovedBody(gap);
+    }
+    return l10n.runningCoachGhostChaseBody(gap);
+  }
+}
+
+class _RunningBadgePanel extends StatelessWidget {
+  final RunningGrowthSnapshot snapshot;
+
+  const _RunningBadgePanel({required this.snapshot});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final earned = snapshot.earnedBadges.toSet();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.runningCoachBadgesTitle,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final badge in RunningGrowthBadge.values)
+              _RunningBadgeChip(
+                badge: badge,
+                earned: earned.contains(badge),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _RunningBadgeChip extends StatelessWidget {
+  final RunningGrowthBadge badge;
+  final bool earned;
+
+  const _RunningBadgeChip({required this.badge, required this.earned});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color:
+            earned ? scheme.tertiaryContainer : scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: earned
+              ? scheme.tertiary.withValues(alpha: 0.36)
+              : scheme.outlineVariant,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              earned ? Icons.workspace_premium_outlined : Icons.lock_outline,
+              size: 16,
+              color: earned ? scheme.onTertiaryContainer : scheme.outline,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              _badgeTitle(l10n, badge),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: earned
+                        ? scheme.onTertiaryContainer
+                        : scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _badgeTitle(AppLocalizations l10n, RunningGrowthBadge badge) {
+    return switch (badge) {
+      RunningGrowthBadge.firstRun => l10n.runningCoachBadgeFirstRun,
+      RunningGrowthBadge.recordBreaker => l10n.runningCoachBadgeRecordBreaker,
+      RunningGrowthBadge.threeDaySpark => l10n.runningCoachBadgeThreeDaySpark,
+      RunningGrowthBadge.allRounder => l10n.runningCoachBadgeAllRounder,
+    };
+  }
 }
 
 class _RunningCoachUploadGuideCard extends StatelessWidget {
@@ -813,9 +1528,9 @@ class _SampleGuideStep extends StatelessWidget {
               child: Text(
                 '$number',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.w900,
-                ),
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
             ),
           ),
@@ -860,8 +1575,8 @@ class _SampleFrameCueChip extends StatelessWidget {
                 child: Text(
                   cue.text,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ),
             ],
@@ -957,9 +1672,9 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                   builder: (context, _) {
                     final frameNumber =
                         ((_controller.value * _sampleTimelineFrameCount)
-                                .floor() %
-                            _sampleTimelineFrameCount) +
-                        1;
+                                    .floor() %
+                                _sampleTimelineFrameCount) +
+                            1;
                     return _VideoOverlayPill(
                       text: l10n.runningCoachSampleFrameLabel(
                         frameNumber,
@@ -1051,9 +1766,9 @@ class _VideoOverlayLabel extends StatelessWidget {
         child: Text(
           text,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: scheme.onSurface,
-            fontWeight: FontWeight.w900,
-          ),
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w900,
+              ),
         ),
       ),
     );
@@ -1079,9 +1794,9 @@ class _VideoOverlayPill extends StatelessWidget {
         child: Text(
           text,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: scheme.onSurface,
-            fontWeight: FontWeight.w900,
-          ),
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w900,
+              ),
         ),
       ),
     );
@@ -1238,13 +1953,12 @@ class _SampleRunnerPainter extends CustomPainter {
       color,
       Colors.black,
       0.34,
-    )!.withValues(alpha: baseAlpha);
-    final skinColor = isGhost
-        ? color.withValues(alpha: 0.16)
-        : const Color(0xFFE8B98E);
-    final hairColor = isGhost
-        ? color.withValues(alpha: 0.12)
-        : const Color(0xFF3A2A24);
+    )!
+        .withValues(alpha: baseAlpha);
+    final skinColor =
+        isGhost ? color.withValues(alpha: 0.16) : const Color(0xFFE8B98E);
+    final hairColor =
+        isGhost ? color.withValues(alpha: 0.12) : const Color(0xFF3A2A24);
     final outlineColor = isGhost
         ? color.withValues(alpha: 0.10)
         : Color.lerp(color, Colors.black, 0.20)!.withValues(alpha: 0.72);
@@ -1598,8 +2312,7 @@ class _SampleRunnerPainter extends CustomPainter {
       ..color = markerColor.withValues(alpha: 0.26)
       ..style = PaintingStyle.stroke
       ..strokeWidth = math.max(1.0, size.height * 0.008);
-    final contactLeg =
-        (groundY - frontLeg.ankle.dy).abs() <=
+    final contactLeg = (groundY - frontLeg.ankle.dy).abs() <=
             (groundY - rearLeg.ankle.dy).abs()
         ? frontLeg
         : rearLeg;
@@ -2081,9 +2794,9 @@ class _HeroCard extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: scheme.onPrimary,
-                  fontWeight: FontWeight.w800,
-                ),
+                      color: scheme.onPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -2116,8 +2829,8 @@ class _ResultsSummaryCard extends StatelessWidget {
     final headline = score >= 85
         ? l10n.runningCoachOverallHeadlineStrong
         : score >= 70
-        ? l10n.runningCoachOverallHeadlineSolid
-        : l10n.runningCoachOverallHeadlineNeedsWork;
+            ? l10n.runningCoachOverallHeadlineSolid
+            : l10n.runningCoachOverallHeadlineNeedsWork;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -2160,11 +2873,9 @@ class _ResultsSummaryCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
-            for (
-              var index = 0;
-              index < prioritizedInsights.length;
-              index += 1
-            ) ...[
+            for (var index = 0;
+                index < prioritizedInsights.length;
+                index += 1) ...[
               _MetricScoreRow(
                 insight: prioritizedInsights[index],
                 priority: focusPriorities[prioritizedInsights[index].metric],
@@ -2322,9 +3033,9 @@ class _InsightCard extends StatelessWidget {
                     child: Text(
                       copy.statusLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: badgeTextColor,
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: badgeTextColor,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                   ),
                 ),
@@ -2340,9 +3051,9 @@ class _InsightCard extends StatelessWidget {
               Text(
                 _qualityReasonText(context, insight.quality),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: Theme.of(context).colorScheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
             const SizedBox(height: 12),
@@ -2489,16 +3200,18 @@ class _PrimaryFocusCard extends StatelessWidget {
                             ? l10n.runningCoachFocusTitle
                             : l10n.runningCoachMaintainTitle,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: isFix
-                              ? scheme.onPrimaryContainer
-                              : scheme.onTertiaryContainer,
-                          fontWeight: FontWeight.w800,
-                        ),
+                              color: isFix
+                                  ? scheme.onPrimaryContainer
+                                  : scheme.onTertiaryContainer,
+                              fontWeight: FontWeight.w800,
+                            ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         copy.title,
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ],
@@ -2524,9 +3237,9 @@ class _PrimaryFocusCard extends StatelessWidget {
               Text(
                 _qualityReasonText(context, insight.quality),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: scheme.error,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: scheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
           ],
@@ -2611,9 +3324,9 @@ class _QualityBadge extends StatelessWidget {
         child: Text(
           '${_confidenceLabel(context)} ${quality.confidencePercent}%',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: isLow ? scheme.onErrorContainer : null,
-            fontWeight: FontWeight.w700,
-          ),
+                color: isLow ? scheme.onErrorContainer : null,
+                fontWeight: FontWeight.w700,
+              ),
         ),
       ),
     );
@@ -2639,9 +3352,9 @@ class _PriorityBadge extends StatelessWidget {
         child: Text(
           l10n.runningCoachPriorityLabel(priority),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: scheme.onPrimaryContainer,
-            fontWeight: FontWeight.w700,
-          ),
+                color: scheme.onPrimaryContainer,
+                fontWeight: FontWeight.w700,
+              ),
         ),
       ),
     );
@@ -2657,22 +3370,18 @@ String _confidenceLabel(BuildContext context) {
 String _qualityReasonText(BuildContext context, RunningMetricQuality quality) {
   final isKorean = Localizations.localeOf(context).languageCode == 'ko';
   return switch (quality.reason) {
-    'low_coverage' =>
-      isKorean
-          ? '추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.'
-          : 'Tracking coverage is low, so treat this metric conservatively.',
-    'limited_samples' =>
-      isKorean
-          ? '안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.'
-          : 'Only a small set of stable frames was read; confirm once more from the same angle.',
-    'contact_phase_proxy' =>
-      isKorean
-          ? '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.'
-          : 'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.',
-    _ =>
-      isKorean
-          ? '촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.'
-          : 'Capture quality is low; confirm again from the same angle.',
+    'low_coverage' => isKorean
+        ? '추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.'
+        : 'Tracking coverage is low, so treat this metric conservatively.',
+    'limited_samples' => isKorean
+        ? '안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.'
+        : 'Only a small set of stable frames was read; confirm once more from the same angle.',
+    'contact_phase_proxy' => isKorean
+        ? '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.'
+        : 'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.',
+    _ => isKorean
+        ? '촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.'
+        : 'Capture quality is low; confirm again from the same angle.',
   };
 }
 

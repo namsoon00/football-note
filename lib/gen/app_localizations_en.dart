@@ -5166,7 +5166,181 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachHeroBody =>
-      'Upload a short side-view running clip and get strict feedback on posture, bounce, foot strike, knee flexion, and arm carriage.';
+      'Make running feel like a weapon for the next match: take a tiny football sprint mission, log a time, then use form coaching to find the next tenth of a second.';
+
+  @override
+  String get runningCoachMissionCardTitle => 'Today\'s speed mission';
+
+  @override
+  String runningCoachMissionDistance(int meters) {
+    return '${meters}m mission';
+  }
+
+  @override
+  String get runningCoachMissionStartSprint => 'Start sprint coach';
+
+  @override
+  String get runningCoachMissionStartLive => 'Check form live';
+
+  @override
+  String get runningCoachMissionBreakawayTitle => 'Break the defensive line';
+
+  @override
+  String get runningCoachMissionBreakawayBody =>
+      'Run 20m as if you are attacking the space behind the back line. Keep it to three sharp attempts.';
+
+  @override
+  String get runningCoachMissionBreakawayFocus => 'First 3 steps';
+
+  @override
+  String get runningCoachMissionBreakawayReward => 'Beat yesterday\'s start';
+
+  @override
+  String get runningCoachMissionPressureTitle => 'Escape pressure';
+
+  @override
+  String get runningCoachMissionPressureBody =>
+      'Turn out of pressure and burst for 10m. The goal is a fast first push, not a long workout.';
+
+  @override
+  String get runningCoachMissionPressureFocus => 'Low body lean';
+
+  @override
+  String get runningCoachMissionPressureReward => 'Sharper getaway';
+
+  @override
+  String get runningCoachMissionLooseBallTitle => 'Win the loose ball';
+
+  @override
+  String get runningCoachMissionLooseBallBody =>
+      'Chase a 30m loose ball with match energy. Log the best attempt and try to trim one small piece off it next time.';
+
+  @override
+  String get runningCoachMissionLooseBallFocus => 'Hold speed late';
+
+  @override
+  String get runningCoachMissionLooseBallReward => 'New chase target';
+
+  @override
+  String get runningCoachMissionFirstStepsTitle => 'Own the first three steps';
+
+  @override
+  String get runningCoachMissionFirstStepsBody =>
+      'Sprint only the first 10m and stop. Make the start feel quick, light, and repeatable.';
+
+  @override
+  String get runningCoachMissionFirstStepsFocus => 'Explosive start';
+
+  @override
+  String get runningCoachMissionFirstStepsReward => 'Start badge progress';
+
+  @override
+  String get runningCoachGrowthTitle => 'Beat your own runner';
+
+  @override
+  String get runningCoachGrowthBody =>
+      'Record simple 10m, 20m, and 30m times. The app celebrates personal bests, streaks, and steady attempts so running stays fun even before a new record.';
+
+  @override
+  String get runningCoachGrowthAttemptsLabel => 'Attempts';
+
+  @override
+  String runningCoachGrowthAttempts(int count) {
+    return '$count total';
+  }
+
+  @override
+  String get runningCoachGrowthStreakLabel => 'Streak';
+
+  @override
+  String runningCoachGrowthStreak(int count) {
+    return '$count days';
+  }
+
+  @override
+  String get runningCoachGrowthDistancesLabel => 'Distances';
+
+  @override
+  String runningCoachGrowthDistances(int count) {
+    return '$count/3 logged';
+  }
+
+  @override
+  String get runningCoachRecordInputTitle => 'Log a sprint time';
+
+  @override
+  String runningCoachRecordDistance(int meters) {
+    return '${meters}m';
+  }
+
+  @override
+  String get runningCoachRecordSecondsLabel => 'Time';
+
+  @override
+  String get runningCoachRecordSecondsHint => 'Example 4.32';
+
+  @override
+  String get runningCoachRecordSecondsSuffix => 'sec';
+
+  @override
+  String get runningCoachRecordSaveAction => 'Save time';
+
+  @override
+  String get runningCoachRecordInvalid =>
+      'Enter a sprint time between 0 and 60 seconds.';
+
+  @override
+  String get runningCoachRecordSaved => 'Sprint time saved.';
+
+  @override
+  String get runningCoachRecordEmpty => 'No time yet';
+
+  @override
+  String runningCoachRecordSecondsValue(String seconds) {
+    return '${seconds}s';
+  }
+
+  @override
+  String get runningCoachGhostEmptyTitle => 'Create your first ghost runner';
+
+  @override
+  String get runningCoachGhostEmptyBody =>
+      'Run once and save the time. Next time, the target is simply to catch your own previous run.';
+
+  @override
+  String runningCoachGhostTitle(int meters) {
+    return '${meters}m ghost runner';
+  }
+
+  @override
+  String runningCoachGhostFirstRecordBody(String seconds) {
+    return 'Your first target is ${seconds}s. Try to trim just 0.05s next time.';
+  }
+
+  @override
+  String runningCoachGhostImprovedBody(String seconds) {
+    return 'Personal best by ${seconds}s. Save this feeling and try to repeat it once.';
+  }
+
+  @override
+  String runningCoachGhostChaseBody(String seconds) {
+    return 'You are ${seconds}s away from the best ghost. One cleaner start can close that gap.';
+  }
+
+  @override
+  String get runningCoachBadgesTitle => 'Running badges';
+
+  @override
+  String get runningCoachBadgeFirstRun => 'First sprint';
+
+  @override
+  String get runningCoachBadgeRecordBreaker => 'Record breaker';
+
+  @override
+  String get runningCoachBadgeThreeDaySpark => '3-day spark';
+
+  @override
+  String get runningCoachBadgeAllRounder => '10/20/30m runner';
 
   @override
   String get runningCoachAnalyzeBody =>
