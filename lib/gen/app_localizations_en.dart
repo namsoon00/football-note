@@ -8231,13 +8231,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchRoutesButton => 'Routes';
 
   @override
-  String get trainingSketchPassDribbleMoveFlowButton => 'Pass-dribble flow';
-
-  @override
-  String get trainingSketchPassDribbleMoveFlowSnack =>
-      'Applied the player 1 pass, player 2 dribble, player 3 move flow.';
-
-  @override
   String get trainingSketchLinkRoutesInOrderButton => 'Chain all in order';
 
   @override

@@ -4084,8 +4084,6 @@
   "trainingSketchAddPlayerFirst": "Add a player icon first.",
   "trainingSketchAddBallFirst": "Add a ball icon first.",
   "trainingSketchRoutesButton": "Routes",
-  "trainingSketchPassDribbleMoveFlowButton": "Pass-dribble flow",
-  "trainingSketchPassDribbleMoveFlowSnack": "Applied the player 1 pass, player 2 dribble, player 3 move flow.",
   "trainingSketchLinkRoutesInOrderButton": "Chain all in order",
   "trainingSketchLinkRoutesInOrderSnack": "Routes now start one by one in the order they were drawn.",
   "trainingSketchLinkRoutesNeedTwoSnack": "Add at least two routes to chain them.",

@@ -4084,8 +4084,6 @@
   "trainingSketchAddPlayerFirst": "まずプレーヤーアイコンを追加します。",
   "trainingSketchAddBallFirst": "まずボールアイコンを追加します。",
   "trainingSketchRoutesButton": "ルート",
-  "trainingSketchPassDribbleMoveFlowButton": "パス・ドリブルフロー",
-  "trainingSketchPassDribbleMoveFlowSnack": "1番のパス、2番のドリブル、3番の移動フローを適用しました。",
   "trainingSketchLinkRoutesInOrderButton": "すべて順番につなぐ",
   "trainingSketchLinkRoutesInOrderSnack": "描いた順番で、ルートが1つずつ始まるようにつなぎました。",
   "trainingSketchLinkRoutesNeedTwoSnack": "つなぐにはルートが2つ以上必要です。",

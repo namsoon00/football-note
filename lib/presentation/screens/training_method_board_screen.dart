@@ -956,131 +956,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _scheduleAutoSave();
   }
 
-  void _applyPassDribbleMoveFlow() {
-    _stopRoutePlayback(restoreStart: false);
-    final playerColors = _colorChoicesForItemType(_BoardItemType.player);
-    final ballColors = _colorChoicesForItemType(_BoardItemType.ball);
-    final p1 = _flowBoardItem(
-      type: _BoardItemType.player,
-      x: 0.26,
-      y: 0.61,
-      color: playerColors[0],
-    );
-    final p2 = _flowBoardItem(
-      type: _BoardItemType.player,
-      x: 0.52,
-      y: 0.48,
-      color: playerColors[1 % playerColors.length],
-    );
-    final p3 = _flowBoardItem(
-      type: _BoardItemType.player,
-      x: 0.73,
-      y: 0.64,
-      color: playerColors[2 % playerColors.length],
-    );
-    final ball = _flowBoardItem(
-      type: _BoardItemType.ball,
-      x: 0.31,
-      y: 0.60,
-      color: ballColors.first,
-      size: 26,
-    );
-    setState(() {
-      _currentPage.items.addAll([p1, p2, p3, ball]);
-      _currentPage.routes.addAll([
-        _flowRoute(
-          kind: _PathDrawMode.player,
-          linkedItem: p1,
-          points: [
-            Offset(p1.x, p1.y),
-            Offset(p1.x, p1.y),
-            const Offset(0.34, 0.56),
-          ],
-          durationsMs: const [240, 620],
-        ),
-        _flowRoute(
-          kind: _PathDrawMode.ball,
-          linkedItem: ball,
-          points: [
-            Offset(ball.x, ball.y),
-            Offset(p2.x, p2.y),
-            const Offset(0.69, 0.45),
-          ],
-          durationsMs: const [900, 1050],
-        ),
-        _flowRoute(
-          kind: _PathDrawMode.player,
-          linkedItem: p2,
-          points: [
-            Offset(p2.x, p2.y),
-            Offset(p2.x, p2.y),
-            const Offset(0.69, 0.45),
-          ],
-          durationsMs: const [900, 1050],
-        ),
-        _flowRoute(
-          kind: _PathDrawMode.player,
-          linkedItem: p3,
-          points: [
-            Offset(p3.x, p3.y),
-            Offset(p3.x, p3.y),
-            const Offset(0.79, 0.36),
-          ],
-          durationsMs: const [1950, 900],
-        ),
-      ]);
-      _selectedItemId = p2.id;
-      _selectedRouteId = null;
-      _penMode = false;
-      _pathMode = false;
-      _routeReplaceMode = false;
-      _activeStroke = null;
-      _activeRoutePoints = null;
-      _activeRouteSegmentDurationsMs = null;
-      _activeRouteLastPointAt = null;
-    });
-    _scheduleAutoSave();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_l10n.trainingSketchPassDribbleMoveFlowSnack)),
-    );
-  }
-
-  _BoardItem _flowBoardItem({
-    required _BoardItemType type,
-    required double x,
-    required double y,
-    required Color color,
-    double size = 34,
-  }) {
-    return _BoardItem(
-      id: _nextBoardItemId(),
-      type: type,
-      x: x,
-      y: y,
-      size: size,
-      rotationDeg: 0,
-      color: color,
-    );
-  }
-
-  _BoardRoute _flowRoute({
-    required _PathDrawMode kind,
-    required _BoardItem linkedItem,
-    required List<Offset> points,
-    required List<int> durationsMs,
-  }) {
-    return _BoardRoute(
-      id: _nextBoardRouteId(),
-      kind: kind,
-      linkedItemId: linkedItem.id,
-      points: points.toList(growable: true),
-      segmentDurationsMs: durationsMs.toList(growable: true),
-      stageIndex: 1,
-      color: linkedItem.color,
-      width: _defaultRouteWidth(kind),
-    );
-  }
-
   void _removeSelected() {
     final id = _selectedItemId;
     if (id == null) return;
@@ -2214,9 +2089,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         track.item.x = firstPoint.dx.clamp(0.03, 0.97);
         track.item.y = firstPoint.dy.clamp(0.03, 0.97);
       }
-      final leadTrack = _playbackTracks.first;
-      _selectedRouteId = leadTrack.route.id;
-      _pathDrawMode = leadTrack.route.kind;
     });
     _playController.duration = playbackDuration;
     _playController
@@ -3005,12 +2877,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   String? _boardTokenLabelFor(_BoardItem item) {
-    if (item.type != _BoardItemType.player) return null;
-    final playerIndex = _currentPage.items
-        .where((entry) => entry.type == _BoardItemType.player)
+    if (item.type != _BoardItemType.player &&
+        item.type != _BoardItemType.ball) {
+      return null;
+    }
+    final typeIndex = _currentPage.items
+        .where((entry) => entry.type == item.type)
         .toList(growable: false)
         .indexWhere((entry) => entry.id == item.id);
-    return playerIndex < 0 ? null : '${playerIndex + 1}';
+    return typeIndex < 0 ? null : '${typeIndex + 1}';
   }
 
   List<Widget> _buildTopBarActions(bool isKo, {required bool isLandscape}) {
@@ -3344,12 +3219,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         label: l10n.trainingSketchLadderButton,
         icon: Icons.view_week,
         onTap: () => _addItem(_BoardItemType.ladder),
-      ),
-      OutlinedButton.icon(
-        onPressed: _applyPassDribbleMoveFlow,
-        icon: const Icon(Icons.moving_rounded),
-        label: Text(l10n.trainingSketchPassDribbleMoveFlowButton),
-        style: _toolButtonStyle(),
       ),
       OutlinedButton.icon(
         onPressed: () => setState(() {
@@ -4300,7 +4169,6 @@ class _PlayerPathPainter extends CustomPainter {
       canvas.drawPath(_smoothPath(scaled), paint);
     }
 
-    _drawArrowHead(canvas, scaled, lineColor, width);
     if (selected) {
       _drawMarker(
         canvas: canvas,
@@ -4319,6 +4187,7 @@ class _PlayerPathPainter extends CustomPainter {
     } else {
       _drawRouteStart(canvas, scaled.first, lineColor, width);
     }
+    _drawArrowHead(canvas, scaled, lineColor, width);
   }
 
   Path _smoothPath(List<Offset> points) {
@@ -4386,13 +4255,7 @@ class _PlayerPathPainter extends CustomPainter {
   ) {
     if (points.length < 2) return;
     final tip = points.last;
-    Offset? tail;
-    for (var i = points.length - 2; i >= 0; i--) {
-      if ((tip - points[i]).distance > 0.5) {
-        tail = points[i];
-        break;
-      }
-    }
+    final tail = _arrowTailPoint(points, math.max(18.0, width * 4.0));
     if (tail == null) return;
     final angle = math.atan2(tip.dy - tail.dy, tip.dx - tail.dx);
     final length = math.max(12.0, width * 3.2);
@@ -4416,6 +4279,28 @@ class _PlayerPathPainter extends CustomPainter {
         ..close(),
       arrowPaint,
     );
+  }
+
+  Offset? _arrowTailPoint(List<Offset> points, double lookbackDistance) {
+    final tip = points.last;
+    var cursor = tip;
+    var remaining = lookbackDistance;
+    for (var i = points.length - 2; i >= 0; i--) {
+      final start = points[i];
+      final vector = cursor - start;
+      final distance = vector.distance;
+      if (distance <= 0.5) {
+        cursor = start;
+        continue;
+      }
+      final direction = vector / distance;
+      if (distance >= remaining) {
+        return cursor - direction * remaining;
+      }
+      remaining -= distance;
+      cursor = start;
+    }
+    return (tip - cursor).distance > 0.5 ? cursor : null;
   }
 
   void _drawMarker({

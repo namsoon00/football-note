@@ -14277,18 +14277,6 @@ abstract class AppLocalizations {
   /// **'Routes'**
   String get trainingSketchRoutesButton;
 
-  /// No description provided for @trainingSketchPassDribbleMoveFlowButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Pass-dribble flow'**
-  String get trainingSketchPassDribbleMoveFlowButton;
-
-  /// No description provided for @trainingSketchPassDribbleMoveFlowSnack.
-  ///
-  /// In en, this message translates to:
-  /// **'Applied the player 1 pass, player 2 dribble, player 3 move flow.'**
-  String get trainingSketchPassDribbleMoveFlowSnack;
-
   /// No description provided for @trainingSketchLinkRoutesInOrderButton.
   ///
   /// In en, this message translates to:

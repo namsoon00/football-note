@@ -7979,13 +7979,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchRoutesButton => '이동선';
 
   @override
-  String get trainingSketchPassDribbleMoveFlowButton => '패스·드리블 플로우';
-
-  @override
-  String get trainingSketchPassDribbleMoveFlowSnack =>
-      '1번 패스, 2번 드리블, 3번 이동 플로우를 적용했어요.';
-
-  @override
   String get trainingSketchLinkRoutesInOrderButton => '전체 차례대로 연결';
 
   @override
