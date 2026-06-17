@@ -4618,8 +4618,38 @@ List<_FootballQuizQuestion> _buildFootballQuizPool() {
     );
   }
   final deduplicated = _deduplicateQuizQuestions(questions);
-  _runQuizPoolQualityChecks(deduplicated);
-  return deduplicated;
+  final curated = deduplicated
+      .where((question) => !_isObviousQuizQuestion(question))
+      .toList(growable: false);
+  _runQuizPoolQualityChecks(curated);
+  return curated;
+}
+
+bool _isObviousQuizQuestion(_FootballQuizQuestion question) {
+  const obviousConceptKeys = <String>{
+    'match_starts_11',
+    'team_size',
+    'clean_sheet',
+    'hat_trick',
+    'half_time_length',
+    'penalty_distance',
+    'yellow_card_meaning',
+    'red_card_meaning',
+    'throw_in_restart',
+    'goal_kick_restart',
+    'corner_restart',
+    'body_part_field_player',
+    'premier_league',
+    'laliga',
+    'messi',
+    'modric',
+    'quality_glycogen_window',
+    'quality_advantage_rule',
+  };
+  if (question.id.startsWith('mcq_gen_')) {
+    return true;
+  }
+  return obviousConceptKeys.contains(question.conceptKey);
 }
 
 List<_FootballQuizQuestion> _deduplicateQuizQuestions(
@@ -4683,12 +4713,12 @@ List<_McqSeed> _buildMcqSeedPool300() {
   return <_McqSeed>[
     ..._mcqSeeds(),
     ..._historyAndFifaRecordMcqSeeds(),
-    ..._generatedGlobalFootballMcqSeeds(),
     ..._issue260CategoryBoosterMcqSeeds(),
     ..._issue271CoreCategoryMcqSeeds(),
     ..._issue276FormationMcqSeeds(),
     ..._issue279FormationScenarioMcqSeeds(),
     ..._qualityScenarioMcqSeeds(),
+    ..._deepCoreScenarioMcqSeeds(),
   ];
 }
 
@@ -4700,6 +4730,7 @@ List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
     ..._issue276FormationShortAnswerSeeds(),
     ..._issue279FormationScenarioShortAnswerSeeds(),
     ..._qualityScenarioShortAnswerSeeds(),
+    ..._deepCoreScenarioShortAnswerSeeds(),
   ];
   final seeded = keywords.asMap().entries.map((entry) {
     final i = entry.key;
@@ -5910,16 +5941,16 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
           enText: 'Pressure direction and next passing options',
         ),
         _FootballQuizOption(
-          koText: '벤치의 물병 위치',
-          enText: 'Where the bench water bottles are',
+          koText: '공을 받은 뒤 첫 터치가 끝나고 나서만 주변을 본다',
+          enText: 'Look around only after the first touch is already finished',
         ),
         _FootballQuizOption(
-          koText: '심판의 등번호',
-          enText: 'The referee’s shirt number',
+          koText: '가장 먼 공격수 위치만 보고 압박은 무시한다',
+          enText: 'Check only the farthest forward and ignore pressure',
         ),
         _FootballQuizOption(
-          koText: '관중석 빈자리',
-          enText: 'Empty seats in the stands',
+          koText: '패스가 오는 발만 보고 몸 방향은 고정한다',
+          enText: 'Watch only the arriving foot and keep the body fixed',
         ),
       ],
       correctIndex: 0,
@@ -5944,16 +5975,16 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
           enText: 'Approach while using the body shadow to block the lane',
         ),
         _FootballQuizOption(
-          koText: '공만 보고 정면으로 뛴다',
-          enText: 'Run straight at the ball while watching only the ball',
+          koText: '직선으로 접근해 속도만 높인다',
+          enText: 'Approach in a straight line and rely only on speed',
         ),
         _FootballQuizOption(
-          koText: '압박을 포기하고 골문 안으로 내려간다',
-          enText: 'Give up pressing and drop into the goal',
+          koText: '뒤 패스 길을 열어 둔 채 볼 소유자만 본다',
+          enText: 'Leave the pass behind open and watch only the ball carrier',
         ),
         _FootballQuizOption(
-          koText: '동료 위치와 관계없이 태클부터 시도한다',
-          enText: 'Try a tackle first regardless of teammate positions',
+          koText: '동료 커버가 오기 전에 먼저 발을 뻗는다',
+          enText: 'Stab a foot in before teammate cover arrives',
         ),
       ],
       correctIndex: 0,
@@ -5978,16 +6009,16 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
           enText: 'Rest defense protecting the center and far side',
         ),
         _FootballQuizOption(
-          koText: '모든 선수를 골문 앞에만 세우기',
-          enText: 'Put every player only in front of goal',
+          koText: '박스 안 침투 숫자를 끝까지 늘린다',
+          enText: 'Keep adding runners into the box until the end',
         ),
         _FootballQuizOption(
-          koText: '수비수 전원이 코너 플래그로 이동하기',
-          enText: 'Move all defenders to the corner flag',
+          koText: '센터백 한 명만 넓은 공간에 남긴다',
+          enText: 'Leave only one center back in a large space',
         ),
         _FootballQuizOption(
-          koText: '공을 잃은 뒤에만 처음 생각하기',
-          enText: 'Think about defending only after losing the ball',
+          koText: '가까운 선수 한 명의 즉흥 압박에만 맡긴다',
+          enText: 'Rely only on one nearby player improvising pressure',
         ),
       ],
       correctIndex: 0,
@@ -6011,16 +6042,16 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
           enText: 'Set a triangle around the drop zone early',
         ),
         _FootballQuizOption(
-          koText: '모두 공중볼 선수와 같은 자리에 선다',
-          enText: 'All stand in the exact same spot as the aerial player',
+          koText: '첫 경합자 바로 뒤에만 일렬로 선다',
+          enText: 'Stand in one line only behind the first dueler',
         ),
         _FootballQuizOption(
-          koText: '공이 떨어질 때까지 등을 돌린다',
-          enText: 'Turn away until the ball lands',
+          koText: '낙하지점에서 멀리 벌려 다음 패스만 기다린다',
+          enText: 'Spread far away and wait only for the next pass',
         ),
         _FootballQuizOption(
-          koText: '가장 가까운 선수가 라인 밖으로 나간다',
-          enText: 'The nearest player steps outside the field',
+          koText: '첫 헤더 이후 반응으로만 따라간다',
+          enText: 'React only after the first header is already complete',
         ),
       ],
       correctIndex: 0,
@@ -6044,16 +6075,16 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
           enText: 'Delay the attacker and buy time for teammates',
         ),
         _FootballQuizOption(
-          koText: '무조건 태클로 한 번에 끝낸다',
-          enText: 'End it with a tackle immediately every time',
+          koText: '바로 발을 뻗어 한 번에 뺏으려 한다',
+          enText: 'Reach in immediately and try to win it in one action',
         ),
         _FootballQuizOption(
-          koText: '등을 돌리고 골문으로만 달린다',
-          enText: 'Turn away and run only toward goal',
+          koText: '뒷걸음만 치며 상대 속도를 그대로 둔다',
+          enText: 'Backpedal passively and let the attacker keep full speed',
         ),
         _FootballQuizOption(
-          koText: '상대에게 중앙을 열어준다',
-          enText: 'Open the central lane for the attacker',
+          koText: '안쪽 길을 열고 바깥쪽만 막는다',
+          enText: 'Open the inside lane and protect only the outside',
         ),
       ],
       correctIndex: 0,
@@ -6077,16 +6108,16 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
           enText: 'Create a back-line overload and widen escape angles',
         ),
         _FootballQuizOption(
-          koText: '오프사이드 규칙을 없앤다',
-          enText: 'Remove the offside law',
+          koText: '센터백 사이 간격을 더 좁혀 압박을 모은다',
+          enText: 'Narrow the center backs and invite pressure into one lane',
         ),
         _FootballQuizOption(
-          koText: '상대 골키퍼를 자동으로 끌어낸다',
-          enText: 'Automatically pull out the opposing goalkeeper',
+          koText: '롱킥 선택지만 남겨 두고 짧은 전개는 포기한다',
+          enText: 'Keep only the long kick and give up short build-up',
         ),
         _FootballQuizOption(
-          koText: '팀의 필드 플레이어 수를 늘린다',
-          enText: 'Increase the number of outfield players',
+          koText: '풀백을 모두 낮게 고정해 전진 각도를 없앤다',
+          enText: 'Pin both fullbacks deep and remove forward angles',
         ),
       ],
       correctIndex: 0,
@@ -6110,16 +6141,16 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
           enText: 'Easy-to-digest carbohydrates with fluids',
         ),
         _FootballQuizOption(
-          koText: '처음 먹어보는 매운 음식을 많이 먹는다',
-          enText: 'Eat a lot of spicy food you have never tried',
+          koText: '소화가 느린 음식을 많이 먹고 새 메뉴를 시험한다',
+          enText: 'Eat a large slow-digesting meal and test new foods',
         ),
         _FootballQuizOption(
-          koText: '아무것도 먹지 않고 물도 마시지 않는다',
-          enText: 'Eat nothing and drink no water',
+          koText: '식사는 줄이고 카페인만으로 에너지를 맞춘다',
+          enText: 'Reduce food and rely only on caffeine for energy',
         ),
         _FootballQuizOption(
-          koText: '기름진 음식만 크게 먹는다',
-          enText: 'Eat only a large greasy meal',
+          koText: '경기 직전에 섬유질과 지방을 크게 늘린다',
+          enText: 'Greatly increase fiber and fat right before kickoff',
         ),
       ],
       correctIndex: 0,
@@ -6143,16 +6174,17 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
           enText: 'Reduce volume or intensity and check recovery signs',
         ),
         _FootballQuizOption(
-          koText: '반복 횟수를 즉시 두 배로 늘린다',
-          enText: 'Immediately double the repetitions',
+          koText: '계획표의 반복 수를 그대로 밀어붙인다',
+          enText: 'Force the planned repetitions exactly as written',
         ),
         _FootballQuizOption(
           koText: '기술이 무너져도 같은 강도로 밀어붙인다',
           enText: 'Keep the same intensity even as technique breaks down',
         ),
         _FootballQuizOption(
-          koText: '물 섭취를 제한한다',
-          enText: 'Restrict fluid intake',
+          koText: '피로 원인을 기록하지 않고 다음 세션으로 넘긴다',
+          enText:
+              'Skip recording the fatigue source and move to the next session',
         ),
       ],
       correctIndex: 0,
@@ -6176,16 +6208,17 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
               'Keep consistent sleep and wake times while reducing screens before bed',
         ),
         _FootballQuizOption(
-          koText: '매일 취침 시간을 크게 바꾼다',
-          enText: 'Change bedtime dramatically every day',
+          koText: '부족한 잠을 경기 당일 낮잠 하나로만 해결한다',
+          enText: 'Try to fix poor sleep only with one match-day nap',
         ),
         _FootballQuizOption(
-          koText: '늦은 밤 고강도 게임으로 각성을 올린다',
-          enText: 'Increase arousal with intense late-night gaming',
+          koText: '취침 전 전술 영상을 길게 보며 각성을 높인다',
+          enText: 'Raise arousal with long tactical video sessions before bed',
         ),
         _FootballQuizOption(
-          koText: '잠이 부족해도 회복에는 영향이 없다고 본다',
-          enText: 'Assume sleep loss has no recovery effect',
+          koText: '기상 시간은 유지하지 않고 취침 전 루틴만 바꾼다',
+          enText:
+              'Change only the pre-bed routine without keeping wake time stable',
         ),
       ],
       correctIndex: 0,
@@ -6209,17 +6242,19 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
               'If I make a mistake, exhale once and name my next pressing spot',
         ),
         _FootballQuizOption(
-          koText: '실수하면 경기 끝까지 그 장면만 생각한다',
+          koText: '실수하면 원인을 길게 분석한 뒤 다음 장면에 늦게 들어간다',
           enText:
-              'If I make a mistake, think only about it until the match ends',
+              'If I make a mistake, analyze it for a long time and enter the next phase late',
         ),
         _FootballQuizOption(
-          koText: '실수하면 동료 지시를 모두 무시한다',
-          enText: 'If I make a mistake, ignore every teammate cue',
+          koText: '실수하면 바로 만회하려고 포지션을 벗어난다',
+          enText:
+              'If I make a mistake, leave position immediately to make up for it',
         ),
         _FootballQuizOption(
-          koText: '실수하면 다음 장면을 포기한다',
-          enText: 'If I make a mistake, give up on the next phase',
+          koText: '실수하면 동료의 정보보다 감정 표현을 먼저 한다',
+          enText:
+              'If I make a mistake, express emotion before using teammate information',
         ),
       ],
       correctIndex: 0,
@@ -6243,16 +6278,16 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
           enText: 'Inverted winger',
         ),
         _FootballQuizOption(
-          koText: '스위퍼 키퍼',
-          enText: 'Sweeper keeper',
+          koText: '터치라인에 고정된 정발 윙어',
+          enText: 'Strong-foot winger fixed on the touchline',
         ),
         _FootballQuizOption(
-          koText: '센터백 스토퍼',
-          enText: 'Center-back stopper',
+          koText: '바깥쪽만 도는 오버래핑 풀백',
+          enText: 'Overlapping fullback staying only outside',
         ),
         _FootballQuizOption(
-          koText: '타깃 골키퍼',
-          enText: 'Target goalkeeper',
+          koText: '등지고 버티는 타깃 스트라이커',
+          enText: 'Back-to-goal target striker',
         ),
       ],
       correctIndex: 0,
@@ -6276,16 +6311,17 @@ List<_McqSeed> _qualityScenarioMcqSeeds() {
           enText: 'Stopping a promising attack and a possible caution',
         ),
         _FootballQuizOption(
-          koText: '항상 골킥으로 재개',
-          enText: 'Always restart with a goal kick',
+          koText: '단순 접촉이라 보고 경고 가능성을 제외한다',
+          enText:
+              'Treat it as simple contact and exclude any caution possibility',
         ),
         _FootballQuizOption(
-          koText: '오프사이드 자동 취소',
-          enText: 'Automatic offside cancellation',
+          koText: '어드밴티지가 끝난 뒤에는 반칙을 아예 잊는다',
+          enText: 'Forget the foul completely after advantage ends',
         ),
         _FootballQuizOption(
-          koText: '스로인만 다시 하기',
-          enText: 'Only retake the throw-in',
+          koText: '공 위치만 보고 공격 가능성은 판단하지 않는다',
+          enText: 'Judge only ball location and ignore attacking potential',
         ),
       ],
       correctIndex: 0,
@@ -6436,6 +6472,832 @@ List<_ShortAnswerKnowledgeSeed> _qualityScenarioShortAnswerSeeds() {
       koNextPoint: '규칙 문제는 판정 이름과 경기 이익을 함께 판단하세요.',
       enNextPoint:
           'In law questions, connect the decision name with match benefit.',
+    ),
+  ];
+}
+
+List<_McqSeed> _deepCoreScenarioMcqSeeds() {
+  return const <_McqSeed>[
+    _McqSeed(
+      id: 'deep_man_press_third_man',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '상대가 미드필더를 강하게 맨마킹해 직접 전진 패스가 막혔습니다. 압박을 벗기는 가장 좋은 전개 원칙은 무엇일까요?',
+      enStem:
+          'The opponent tightly man-marks midfield and blocks the direct forward pass. Which build-up principle best escapes the pressure?',
+      options: [
+        _FootballQuizOption(
+          koText: '가까운 선수에게 튕긴 뒤 제3자가 전진 공간을 받는다',
+          enText:
+              'Bounce through a nearby player so a third player receives forward',
+        ),
+        _FootballQuizOption(
+          koText: '등진 선수가 혼자 턴할 때까지 같은 패스를 반복한다',
+          enText: 'Repeat the same pass until the marked player turns alone',
+        ),
+        _FootballQuizOption(
+          koText: '센터백 둘이 같은 선상에서만 천천히 주고받는다',
+          enText:
+              'Keep the center backs flat and circulate slowly only between them',
+        ),
+        _FootballQuizOption(
+          koText: '전방으로 긴 패스만 선택해 중원을 건너뛴다',
+          enText: 'Use only long balls forward and skip midfield every time',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '서드맨 조합은 직접 길이 막혔을 때 압박 시선을 비틀어 전진 받을 선수를 만들어 줍니다.',
+      enExplain:
+          'A third-man combination shifts the pressure and creates a player who can receive facing forward.',
+      koNextPoint: '압박 탈출은 공 받는 선수와 다음에 열릴 선수를 함께 읽으세요.',
+      enNextPoint:
+          'When escaping pressure, read both the receiver and the next player who can open.',
+    ),
+    _McqSeed(
+      id: 'deep_overload_to_isolation',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '상대가 볼 쪽으로 크게 좁혀 왔고 반대편 윙어가 넓게 남아 있습니다. 가장 날카로운 공격 연결은 무엇일까요?',
+      enStem:
+          'The opponent has shifted heavily to the ball side and your far winger stays wide. Which attacking link is sharpest?',
+      options: [
+        _FootballQuizOption(
+          koText: '한쪽 오버로드로 끌어모은 뒤 반대편 1대1로 빠르게 전환한다',
+          enText:
+              'Use the overload to attract pressure, then switch quickly to the far-side 1v1',
+        ),
+        _FootballQuizOption(
+          koText: '과밀 지역에서 같은 짧은 패스만 반복한다',
+          enText: 'Repeat the same short passes inside the crowded zone',
+        ),
+        _FootballQuizOption(
+          koText: '반대편 윙어도 중앙으로 들어와 밀집을 더 만든다',
+          enText: 'Bring the far winger inside and make the crowd tighter',
+        ),
+        _FootballQuizOption(
+          koText: '풀백 둘을 같은 높이로 올려 뒤 균형을 비운다',
+          enText:
+              'Push both fullbacks to the same height and empty the balance behind',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '오버로드의 목적은 한쪽에 묶어 둔 수비를 반대편 아이솔레이션으로 벌리는 데 있습니다.',
+      enExplain:
+          'The value of an overload often appears when it creates isolation on the far side.',
+      koNextPoint: '오버로드는 몰아넣는 장면과 빠져나가는 장면을 한 세트로 보세요.',
+      enNextPoint:
+          'Read overloads as a pair: attracting pressure and escaping it.',
+    ),
+    _McqSeed(
+      id: 'deep_counterpress_cover_balance',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '상대 진영에서 공을 잃었습니다. 가까운 선수들이 압박할 때 뒤 선수들의 핵심 임무는 무엇일까요?',
+      enStem:
+          'Your team loses the ball high up the pitch. As nearby players press, what is the key job for the players behind them?',
+      options: [
+        _FootballQuizOption(
+          koText: '탈출 패스 길과 중앙 전진 공간을 먼저 막는다',
+          enText: 'Block escape passes and central forward space first',
+        ),
+        _FootballQuizOption(
+          koText: '모두 공 주변으로 동시에 돌진한다',
+          enText: 'All rush to the ball at the same time',
+        ),
+        _FootballQuizOption(
+          koText: '압박과 무관하게 자기 자리에서 멈춘다',
+          enText: 'Freeze in the original position regardless of the press',
+        ),
+        _FootballQuizOption(
+          koText: '가장 먼 윙어만 수비 책임을 진다',
+          enText: 'Leave the defending responsibility only to the far winger',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '카운터프레스는 첫 압박과 뒤 커버가 함께 있어야 상대의 첫 전진 패스를 끊을 수 있습니다.',
+      enExplain:
+          'Counterpressing needs first pressure and cover behind it to stop the opponent’s first forward pass.',
+      koNextPoint: '압박 성공은 뛰는 선수보다 뒤에서 지우는 길까지 같이 판단하세요.',
+      enNextPoint:
+          'Judge pressing success by the lanes removed behind the runner.',
+    ),
+    _McqSeed(
+      id: 'deep_low_block_halfspace_cutback',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '상대가 낮은 블록으로 중앙을 단단히 닫았습니다. 더 좋은 공략 순서는 무엇일까요?',
+      enStem:
+          'The opponent sits in a low block and protects the center tightly. Which attacking sequence is stronger?',
+      options: [
+        _FootballQuizOption(
+          koText: '폭으로 블록을 흔든 뒤 하프스페이스 침투와 컷백을 노린다',
+          enText:
+              'Move the block with width, then attack the half-space and cutback',
+        ),
+        _FootballQuizOption(
+          koText: '중앙 수비 숫자가 많은 곳으로만 계속 찔러 넣는다',
+          enText: 'Keep forcing passes only into the crowded central defenders',
+        ),
+        _FootballQuizOption(
+          koText: '박스 밖 먼 거리 슈팅만 반복한다',
+          enText: 'Repeat only low-quality long shots from outside the box',
+        ),
+        _FootballQuizOption(
+          koText: '모든 공격수가 같은 선에 서서 패스 각도를 없앤다',
+          enText:
+              'Put every attacker on the same line and remove passing angles',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '낮은 블록은 좌우 이동과 라인 뒤/옆 공간을 함께 흔들 때 균열이 생깁니다.',
+      enExplain:
+          'Low blocks crack more often when width moves them and the half-space or cutback lane is attacked.',
+      koNextPoint: '낮은 블록 문제는 폭, 하프스페이스, 컷백을 함께 떠올리세요.',
+      enNextPoint:
+          'Against low blocks, connect width, half-space, and cutback options.',
+    ),
+    _McqSeed(
+      id: 'deep_pressing_trap_curve_run',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '터치라인 쪽으로 압박 함정을 만들고 싶습니다. 첫 압박자의 뛰는 길로 가장 적절한 것은 무엇일까요?',
+      enStem:
+          'You want to set a pressing trap toward the touchline. Which path should the first presser usually take?',
+      options: [
+        _FootballQuizOption(
+          koText: '중앙 패스 길을 가리며 곡선으로 접근한다',
+          enText: 'Curve the run while blocking the central passing lane',
+        ),
+        _FootballQuizOption(
+          koText: '중앙을 열고 볼만 향해 직선으로 달린다',
+          enText: 'Run straight at the ball while opening the center',
+        ),
+        _FootballQuizOption(
+          koText: '상대가 등진 뒤에만 천천히 따라간다',
+          enText: 'Follow slowly only after the opponent turns away',
+        ),
+        _FootballQuizOption(
+          koText: '옆 동료와 같은 길로 겹쳐 들어간다',
+          enText: 'Overlap the same pressing lane as the nearby teammate',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '곡선 압박은 중앙 탈출구를 닫고 터치라인을 추가 수비수처럼 쓰게 만듭니다.',
+      enExplain:
+          'A curved pressing run closes the central exit and turns the touchline into an extra defender.',
+      koNextPoint: '압박 각도는 공을 향하는 선이 아니라 상대 선택지를 줄이는 선입니다.',
+      enNextPoint:
+          'Pressing angle is the path that removes choices, not just the line to the ball.',
+    ),
+    _McqSeed(
+      id: 'deep_rest_defense_pivot_stagger',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '한 풀백이 높게 올라간 공격 구조에서 역습 대비를 안정시키려면 피벗과 반대 풀백은 어떻게 움직이는 편이 좋을까요?',
+      enStem:
+          'One fullback pushes high in attack. How should the pivot and opposite fullback usually behave to stabilize rest defense?',
+      options: [
+        _FootballQuizOption(
+          koText: '피벗은 중앙을 지키고 반대 풀백은 안쪽으로 좁혀 균형을 잡는다',
+          enText:
+              'The pivot protects the center and the opposite fullback narrows inside',
+        ),
+        _FootballQuizOption(
+          koText: '둘 다 동시에 박스 안으로 침투한다',
+          enText: 'Both run into the box at the same time',
+        ),
+        _FootballQuizOption(
+          koText: '피벗은 터치라인으로 빠지고 중앙은 비워 둔다',
+          enText:
+              'The pivot drifts to the touchline and leaves the center empty',
+        ),
+        _FootballQuizOption(
+          koText: '반대 풀백도 같은 높이로 끝까지 올라간다',
+          enText:
+              'The opposite fullback also pushes all the way to the same height',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '한쪽이 올라가면 반대쪽과 중앙에 균형을 남겨야 첫 역습 패스와 반대 전환을 제어할 수 있습니다.',
+      enExplain:
+          'When one side pushes high, far-side and central balance control the first counter pass and switch.',
+      koNextPoint: '레스트 디펜스는 남는 선수 숫자보다 어느 공간을 남겨 지키는지가 핵심입니다.',
+      enNextPoint:
+          'Rest defense is about which spaces remain protected, not only how many players stay.',
+    ),
+    _McqSeed(
+      id: 'deep_oriented_touch_between_lines',
+      difficulty: 3,
+      category: _QuizCategory.technique,
+      koStem: '라인 사이에서 공을 받는 선수가 등 뒤 압박을 느낍니다. 가장 좋은 첫 터치 기준은 무엇일까요?',
+      enStem:
+          'A player receives between the lines with pressure arriving from behind. Which first-touch criterion is best?',
+      options: [
+        _FootballQuizOption(
+          koText: '압박 반대 대각 공간으로 다음 행동을 열어 둔다',
+          enText:
+              'Take it diagonally away from pressure to open the next action',
+        ),
+        _FootballQuizOption(
+          koText: '발밑에 세워 수비수가 붙을 시간을 준다',
+          enText: 'Stop it under the feet and give the defender time to arrive',
+        ),
+        _FootballQuizOption(
+          koText: '무조건 뒤로만 첫 터치를 둔다',
+          enText: 'Always take the first touch backward only',
+        ),
+        _FootballQuizOption(
+          koText: '몸 방향과 상관없이 강하게 멀리 친다',
+          enText: 'Hit it far away regardless of body shape',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '오리엔티드 터치는 공을 받는 순간 다음 패스, 턴, 운반 각도를 동시에 준비합니다.',
+      enExplain:
+          'An oriented touch prepares the next pass, turn, or carry at the receiving moment.',
+      koNextPoint: '첫 터치는 멈춤보다 다음 행동을 만드는 방향으로 평가하세요.',
+      enNextPoint: 'Evaluate the first touch by the next action it creates.',
+    ),
+    _McqSeed(
+      id: 'deep_scan_sequence',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koStem: '스캔을 한 번만 하는 선수보다 더 안정적인 습관은 무엇일까요?',
+      enStem:
+          'What habit is more stable than scanning only once before receiving?',
+      options: [
+        _FootballQuizOption(
+          koText: '공 이동 중, 패스 직전, 터치 직전에 정보를 나눠 확인한다',
+          enText:
+              'Check information across ball travel, just before the pass, and before touch',
+        ),
+        _FootballQuizOption(
+          koText: '고개를 오래 돌린 뒤 공은 보지 않는다',
+          enText: 'Turn the head for a long time and stop seeing the ball',
+        ),
+        _FootballQuizOption(
+          koText: '공을 받은 뒤에만 주변을 확인한다',
+          enText: 'Check the surroundings only after receiving',
+        ),
+        _FootballQuizOption(
+          koText: '가까운 수비수 한 명만 보고 결정한다',
+          enText: 'Look only at one nearby defender before deciding',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '좋은 스캔은 한 번의 고개 돌림이 아니라 시간대별 정보 업데이트에 가깝습니다.',
+      enExplain:
+          'Good scanning is closer to repeated information updates than a single head turn.',
+      koNextPoint: '스캔은 타이밍별로 무엇이 바뀌는지 확인하는 습관입니다.',
+      enNextPoint:
+          'Scanning is the habit of checking what changes across timing windows.',
+    ),
+    _McqSeed(
+      id: 'deep_shield_release',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koStem: '등진 상태에서 압박을 버틴 뒤 가장 좋은 다음 선택은 무엇일까요?',
+      enStem:
+          'After holding off pressure with your back to play, what is usually the best next choice?',
+      options: [
+        _FootballQuizOption(
+          koText: '먼 발로 보호하며 가까운 지원각이나 턴 공간으로 연결한다',
+          enText:
+              'Shield with the far foot and connect to support or turning space',
+        ),
+        _FootballQuizOption(
+          koText: '압박이 붙을수록 공을 몸 앞쪽에 노출한다',
+          enText: 'Expose the ball in front of the body as pressure arrives',
+        ),
+        _FootballQuizOption(
+          koText: '지원 선수를 보지 않고 혼자 힘으로만 돌아선다',
+          enText: 'Turn alone without checking supporting players',
+        ),
+        _FootballQuizOption(
+          koText: '공을 멈춘 뒤 접촉을 기다린다',
+          enText: 'Stop the ball and wait for contact',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '볼 보호는 버티는 기술에서 끝나지 않고 다음 연결이나 턴으로 이어져야 가치가 큽니다.',
+      enExplain:
+          'Shielding has more value when it leads into a connection or turn, not just survival.',
+      koNextPoint: '보호, 스캔, 연결을 하나의 기술 세트로 보세요.',
+      enNextPoint:
+          'Treat shielding, scanning, and release as one technical set.',
+    ),
+    _McqSeed(
+      id: 'deep_disguised_pass_timing',
+      difficulty: 3,
+      category: _QuizCategory.technique,
+      koStem: '수비 라인이 패스 방향을 읽고 먼저 움직입니다. 디스가이즈 패스가 효과적인 이유는 무엇일까요?',
+      enStem:
+          'The defensive line starts reading the pass direction early. Why can a disguised pass be effective?',
+      options: [
+        _FootballQuizOption(
+          koText: '몸과 시선으로 한 길을 보여주고 실제로는 다른 길을 열기 때문',
+          enText:
+              'It shows one lane with body and eyes while opening another lane',
+        ),
+        _FootballQuizOption(
+          koText: '공 속도를 항상 낮추기 때문',
+          enText: 'It always lowers the ball speed',
+        ),
+        _FootballQuizOption(
+          koText: '패스 전 스캔을 하지 않아도 되기 때문',
+          enText: 'It removes the need to scan before passing',
+        ),
+        _FootballQuizOption(
+          koText: '수비수가 가까울수록 무조건 성공하기 때문',
+          enText: 'It succeeds automatically when defenders are close',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '위장 동작은 수비의 예측 타이밍을 흔들어 실제 패스 길을 늦게 보이게 만듭니다.',
+      enExplain:
+          'Disguise disrupts defensive anticipation and hides the real passing lane until later.',
+      koNextPoint: '패스 기술은 발뿐 아니라 시선, 골반, 타이밍까지 포함합니다.',
+      enNextPoint:
+          'Passing technique includes eyes, hips, and timing, not only foot contact.',
+    ),
+    _McqSeed(
+      id: 'deep_defensive_jockey_angle',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koStem: '빠른 윙어를 측면에서 막을 때 자키 수비의 핵심은 무엇일까요?',
+      enStem:
+          'When defending a fast winger wide, what is the key of jockeying?',
+      options: [
+        _FootballQuizOption(
+          koText: '속도를 조절하며 안쪽 길을 닫고 원하는 방향으로 유도한다',
+          enText:
+              'Control speed, close the inside lane, and guide the attacker',
+        ),
+        _FootballQuizOption(
+          koText: '첫 동작에 무조건 발을 던진다',
+          enText: 'Throw a foot at the first movement every time',
+        ),
+        _FootballQuizOption(
+          koText: '상체를 세우고 뒤로만 물러난다',
+          enText: 'Stay upright and only keep retreating',
+        ),
+        _FootballQuizOption(
+          koText: '공을 보지 않고 상대 발만 끝까지 따라간다',
+          enText: 'Ignore the ball and follow only the opponent’s feet',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '자키는 탈취보다 지연, 각도, 유도 방향을 관리하는 1대1 수비 기술입니다.',
+      enExplain:
+          'Jockeying manages delay, angle, and guiding direction before trying to win the ball.',
+      koNextPoint: '수비 기술은 뺏는 순간보다 선택지를 줄이는 과정으로 보세요.',
+      enNextPoint:
+          'See defending as reducing options before the winning moment.',
+    ),
+    _McqSeed(
+      id: 'deep_finish_cutback_read',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koStem: '박스 안 컷백을 받을 때 슈팅 질을 높이는 준비는 무엇일까요?',
+      enStem:
+          'When receiving a cutback in the box, what preparation improves shot quality?',
+      options: [
+        _FootballQuizOption(
+          koText: '수비와 골키퍼 위치를 먼저 확인하고 몸을 열어 마무리 각도를 만든다',
+          enText:
+              'Check defenders and goalkeeper first, then open the body for the finish',
+        ),
+        _FootballQuizOption(
+          koText: '공이 올 때까지 골대 반대편을 전혀 보지 않는다',
+          enText: 'Avoid looking across goal until the ball arrives',
+        ),
+        _FootballQuizOption(
+          koText: '첫 터치를 항상 뒤로 빼서 슈팅 시간을 늘린다',
+          enText: 'Always take the first touch backward to add time',
+        ),
+        _FootballQuizOption(
+          koText: '힘만 우선하고 발 표면 선택은 나중에 생각한다',
+          enText: 'Prioritize power and think about contact surface later',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '컷백 마무리는 공이 오기 전 정보 확인과 몸 방향이 슈팅 선택지를 결정합니다.',
+      enExplain:
+          'Cutback finishing depends on pre-scan and body shape before the ball arrives.',
+      koNextPoint: '마무리는 공을 차는 순간보다 받기 전 준비가 먼저입니다.',
+      enNextPoint: 'Finishing begins with preparation before the strike.',
+    ),
+    _McqSeed(
+      id: 'deep_pressure_action_cue',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koStem: '중요한 경기에서 긴장이 올라올 때 가장 쓸모 있는 자기 대화는 무엇일까요?',
+      enStem:
+          'In an important match, which self-talk is most useful when tension rises?',
+      options: [
+        _FootballQuizOption(
+          koText: '결과보다 "첫 압박 각도", "받기 전 스캔" 같은 행동 단서',
+          enText:
+              'Action cues such as “pressing angle” or “scan before receiving”',
+        ),
+        _FootballQuizOption(
+          koText: '반드시 이겨야 한다는 결과 문장만 반복',
+          enText: 'Repeating only that you must win',
+        ),
+        _FootballQuizOption(
+          koText: '실수하지 말라는 금지 문장을 계속 반복',
+          enText: 'Repeating only “do not make mistakes”',
+        ),
+        _FootballQuizOption(
+          koText: '관중 반응을 기준으로 자신감을 판단',
+          enText: 'Judging confidence by crowd reaction',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '압박 상황에서는 결과 언어보다 바로 실행할 행동 단서가 주의를 현재 장면으로 돌립니다.',
+      enExplain:
+          'Under pressure, action cues return attention to the current play better than result language.',
+      koNextPoint: '마인드 문항은 감정을 없애는 답보다 행동으로 연결되는 답을 고르세요.',
+      enNextPoint:
+          'For mindset items, choose the answer that links emotion back to action.',
+    ),
+    _McqSeed(
+      id: 'deep_after_miss_reset_sequence',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koStem: '결정적 찬스를 놓친 직후 다음 수비 전환에 늦지 않으려면 어떤 순서가 좋을까요?',
+      enStem:
+          'Right after missing a big chance, what sequence helps avoid being late to defensive transition?',
+      options: [
+        _FootballQuizOption(
+          koText: '짧게 숨을 정리하고 주변 정보를 확인한 뒤 다음 역할로 복귀한다',
+          enText:
+              'Reset breath, check information, then return to the next role',
+        ),
+        _FootballQuizOption(
+          koText: '장면을 오래 분석하며 수비 전환을 늦춘다',
+          enText: 'Analyze the miss for a long time and delay transition',
+        ),
+        _FootballQuizOption(
+          koText: '무조건 만회하려고 포지션 밖으로 압박한다',
+          enText: 'Press out of position immediately to make up for it',
+        ),
+        _FootballQuizOption(
+          koText: '동료에게 먼저 감정을 표현한 뒤 경기로 돌아온다',
+          enText: 'Express emotion to teammates first, then return to play',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '리셋 루틴은 감정을 무시하는 것이 아니라 다음 장면에 늦지 않도록 순서를 짧게 정하는 기술입니다.',
+      enExplain:
+          'A reset routine is a short sequence that keeps the player on time for the next phase.',
+      koNextPoint: '실수 후 루틴은 호흡, 정보, 다음 역할로 짧게 설계하세요.',
+      enNextPoint:
+          'After mistakes, build a short breath, information, next-role routine.',
+    ),
+    _McqSeed(
+      id: 'deep_confidence_evidence_log',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koStem: '최근 경기력이 흔들린 선수에게 가장 현실적인 자신감 회복 방식은 무엇일까요?',
+      enStem:
+          'For a player whose form has dipped recently, which confidence strategy is most realistic?',
+      options: [
+        _FootballQuizOption(
+          koText: '성공했던 행동 증거를 짧게 기록하고 다음 경기 행동 목표로 바꾼다',
+          enText:
+              'Record evidence of successful actions and turn it into next-match action goals',
+        ),
+        _FootballQuizOption(
+          koText: '좋은 결과만 상상하고 훈련 기준은 바꾸지 않는다',
+          enText:
+              'Visualize only good outcomes and leave training standards unchanged',
+        ),
+        _FootballQuizOption(
+          koText: '실수 영상을 길게 반복해 불안을 더 세밀하게 만든다',
+          enText:
+              'Replay mistake clips repeatedly until anxiety becomes more detailed',
+        ),
+        _FootballQuizOption(
+          koText: '한 번의 골이나 도움만 기다린다',
+          enText: 'Wait only for one goal or assist to restore confidence',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '자신감은 막연한 긍정보다 내가 반복할 수 있는 행동 증거를 쌓을 때 안정됩니다.',
+      enExplain:
+          'Confidence becomes sturdier when it is built from repeatable action evidence.',
+      koNextPoint: '마인드는 결과 기대보다 반복 가능한 행동 증거로 관리하세요.',
+      enNextPoint:
+          'Manage confidence through repeatable action evidence, not only outcome hope.',
+    ),
+    _McqSeed(
+      id: 'deep_substitute_first_actions',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koStem: '교체 투입을 앞둔 선수가 경기 속도에 빨리 들어가기 위해 준비하면 좋은 것은 무엇일까요?',
+      enStem: 'What should a substitute prepare to enter match speed quickly?',
+      options: [
+        _FootballQuizOption(
+          koText: '첫 3가지 행동 역할을 구체적으로 정한다',
+          enText: 'Set the first three action roles clearly',
+        ),
+        _FootballQuizOption(
+          koText: '투입 직후 결과만 상상하고 위치 정보는 보지 않는다',
+          enText: 'Imagine only the result and ignore positional information',
+        ),
+        _FootballQuizOption(
+          koText: '감정이 올라올 때까지 워밍업 강도를 늦춘다',
+          enText: 'Keep warm-up low until emotion rises',
+        ),
+        _FootballQuizOption(
+          koText: '상대 구조보다 내 첫 터치 장면만 기다린다',
+          enText:
+              'Wait only for the first touch instead of reading the opponent shape',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '교체 선수는 첫 압박 위치, 첫 지원각, 첫 수비 복귀처럼 바로 실행할 기준이 있으면 적응이 빨라집니다.',
+      enExplain:
+          'A substitute adapts faster with immediate cues such as first press, first support angle, and first recovery run.',
+      koNextPoint: '교체 준비는 감정이 아니라 첫 행동 기준을 정하는 일입니다.',
+      enNextPoint:
+          'Substitution readiness is about first-action standards, not just emotion.',
+    ),
+    _McqSeed(
+      id: 'deep_referee_attention_control',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koStem: '판정에 아쉬움이 남은 직후 경기력을 지키는 가장 좋은 주의 전환은 무엇일까요?',
+      enStem:
+          'Right after a frustrating decision, which attention shift best protects performance?',
+      options: [
+        _FootballQuizOption(
+          koText: '판정 해석보다 다음 위치, 마크, 패스 길처럼 통제 가능한 정보로 옮긴다',
+          enText:
+              'Move from judging the call to controllable information such as position, mark, and passing lane',
+        ),
+        _FootballQuizOption(
+          koText: '다음 플레이가 시작돼도 판정 이유를 계속 따진다',
+          enText: 'Keep arguing the reason even after the next play begins',
+        ),
+        _FootballQuizOption(
+          koText: '감정이 가라앉을 때까지 첫 압박을 멈춘다',
+          enText: 'Stop the first press until emotion settles',
+        ),
+        _FootballQuizOption(
+          koText: '동료에게도 같은 불만을 길게 공유한다',
+          enText: 'Share the same complaint with teammates at length',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '통제 불가능한 판정에서 통제 가능한 다음 정보로 주의를 옮기는 것이 실전 멘탈의 핵심입니다.',
+      enExplain:
+          'A key mindset skill is shifting from uncontrollable calls to controllable next information.',
+      koNextPoint: '통제 가능/불가능을 빠르게 나누는 습관을 들이세요.',
+      enNextPoint:
+          'Build the habit of separating controllable and uncontrollable information quickly.',
+    ),
+  ];
+}
+
+List<_ShortAnswerKnowledgeSeed> _deepCoreScenarioShortAnswerSeeds() {
+  return const <_ShortAnswerKnowledgeSeed>[
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_oriented_touch',
+      difficulty: 3,
+      category: _QuizCategory.technique,
+      koClue: '공을 멈추는 대신 다음 플레이 방향으로 잡아 두는 목적 있는 첫 터치',
+      enClue:
+          'Purposeful first touch that sets the ball toward the next action instead of simply stopping it',
+      acceptedAnswers: [
+        '오리엔티드 터치',
+        '방향성 터치',
+        'oriented touch',
+        'directional first touch',
+      ],
+      koExplain: '정답은 "오리엔티드 터치"입니다. 받는 순간 다음 패스, 턴, 운반 각도를 동시에 만듭니다.',
+      enExplain:
+          'The answer is "oriented touch." It prepares the next pass, turn, or carry at the receiving moment.',
+      koNextPoint: '첫 터치는 정지보다 다음 행동을 여는 방향으로 보세요.',
+      enNextPoint:
+          'View first touch by how it opens the next action, not only by control.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_disguised_pass',
+      difficulty: 3,
+      category: _QuizCategory.technique,
+      koClue: '몸과 시선으로 한 방향을 보여준 뒤 다른 패스 길을 쓰는 기술',
+      enClue:
+          'Passing skill that shows one direction with body and eyes before using another lane',
+      acceptedAnswers: [
+        '디스가이즈 패스',
+        '위장 패스',
+        'disguised pass',
+        'disguise pass',
+      ],
+      koExplain: '정답은 "디스가이즈 패스"입니다. 수비의 예측 타이밍을 흔들어 실제 패스 길을 늦게 보이게 합니다.',
+      enExplain:
+          'The answer is "disguised pass." It delays the defender’s read of the real passing lane.',
+      koNextPoint: '패스는 발 표면뿐 아니라 시선과 골반 방향도 함께 봅니다.',
+      enNextPoint:
+          'Passing includes eyes and hip direction, not just foot contact.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_decoy_run',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '직접 공을 받지 않더라도 수비를 끌어내 동료 공간을 만드는 움직임',
+      enClue:
+          'Run that may not receive the ball but drags a defender away to create space for a teammate',
+      acceptedAnswers: [
+        '디코이 런',
+        '미끼 움직임',
+        'decoy run',
+        'decoy movement',
+      ],
+      koExplain: '정답은 "디코이 런"입니다. 공 없는 움직임도 수비 선택을 바꾸며 공간을 만듭니다.',
+      enExplain:
+          'The answer is "decoy run." Off-ball movement can change defenders’ choices and open space.',
+      koNextPoint: '공 없는 움직임이 누구의 공간을 여는지 함께 보세요.',
+      enNextPoint: 'Check whose space is opened by the off-ball run.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_counter_movement',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koClue: '수비의 중심을 한쪽으로 흔든 뒤 반대 방향으로 빠져나가는 움직임',
+      enClue:
+          'Movement that shifts a defender’s balance one way before escaping the other way',
+      acceptedAnswers: [
+        '역동작',
+        '역동작 움직임',
+        'counter movement',
+        'countermovement',
+      ],
+      koExplain: '정답은 "역동작"입니다. 방향 전환은 수비의 중심 이동을 먼저 만들 때 더 날카로워집니다.',
+      enExplain:
+          'The answer is "counter movement." Changes of direction are sharper when they first move the defender’s balance.',
+      koNextPoint: '드리블과 탈압박은 공 터치와 수비 중심을 함께 보세요.',
+      enNextPoint:
+          'For dribbling and escape, read both ball contact and defender balance.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_overload',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '한 구역에 의도적으로 숫자를 더 만들어 패스 선택지와 압박 탈출 가능성을 높이는 전술 개념',
+      enClue:
+          'Tactical concept of adding numbers in one zone to create passing options and escape pressure',
+      acceptedAnswers: ['오버로드', '수적 우위', 'overload'],
+      koExplain: '정답은 "오버로드"입니다. 한쪽에 수비를 끌어 모은 뒤 반대편을 열기 위한 준비가 될 수 있습니다.',
+      enExplain:
+          'The answer is "overload." It can attract defenders on one side before opening the other side.',
+      koNextPoint: '오버로드는 어디로 빠져나갈지까지 같이 설계해야 합니다.',
+      enNextPoint:
+          'An overload needs the escape route planned together with the crowding.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_isolation',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '강한 드리블러나 윙어를 넓은 공간의 1대1 상황에 남겨 두는 공격 설계',
+      enClue:
+          'Attacking design that leaves a strong dribbler or winger in a wide 1v1 space',
+      acceptedAnswers: [
+        '아이솔레이션',
+        '고립',
+        '1대1 고립',
+        'isolation',
+        '1v1 isolation',
+      ],
+      koExplain: '정답은 "아이솔레이션"입니다. 오버로드와 전환 뒤 반대편에서 자주 노리는 장면입니다.',
+      enExplain:
+          'The answer is "isolation." It often appears on the far side after overload and switch.',
+      koNextPoint: '아이솔레이션은 누가 1대1 우위를 갖는지까지 함께 판단하세요.',
+      enNextPoint: 'For isolation, identify who has the 1v1 advantage.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_jockey',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koClue: '1대1 수비에서 바로 발을 뻗기보다 속도와 각도를 조절하며 상대를 유도하는 기술',
+      enClue:
+          '1v1 defending skill of controlling speed and angle instead of stabbing for the ball immediately',
+      acceptedAnswers: ['자키', '자키 수비', 'jockey', 'jockeying'],
+      koExplain: '정답은 "자키"입니다. 지연과 유도 방향을 관리해 상대 선택지를 줄입니다.',
+      enExplain:
+          'The answer is "jockeying." It manages delay and guiding direction to reduce options.',
+      koNextPoint: '수비 기술은 탈취보다 선택지 제한부터 보세요.',
+      enNextPoint:
+          'For defending skill, read option control before the tackle.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_action_cue',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koClue: '"첫 압박 각도", "받기 전 스캔"처럼 긴장 상황에서 바로 실행할 짧은 행동 문장',
+      enClue:
+          'Short action phrase used under pressure, such as “pressing angle” or “scan before receiving”',
+      acceptedAnswers: ['행동 단서', '액션 큐', 'action cue', 'cue'],
+      koExplain: '정답은 "행동 단서"입니다. 결과 생각을 줄이고 지금 할 일로 주의를 돌립니다.',
+      enExplain:
+          'The answer is "action cue." It shifts attention from outcomes to the task right now.',
+      koNextPoint: '마인드 루틴은 바로 실행할 수 있는 짧은 단서로 만드세요.',
+      enNextPoint:
+          'Build mindset routines from short cues that can be executed immediately.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_process_goal',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koClue: '골 수나 승패보다 스캔, 압박, 복귀처럼 내가 직접 실행할 행동에 둔 목표',
+      enClue:
+          'Goal focused on controllable actions such as scanning, pressing, or recovery runs instead of score or result',
+      acceptedAnswers: [
+        '과정 목표',
+        '프로세스 목표',
+        'process goal',
+        'process goals',
+      ],
+      koExplain: '정답은 "과정 목표"입니다. 압박이 큰 경기에서 통제 가능한 행동을 붙잡게 해 줍니다.',
+      enExplain:
+          'The answer is "process goal." It anchors attention to controllable action under pressure.',
+      koNextPoint: '결과 목표를 경기 중 행동 목표로 번역해 보세요.',
+      enNextPoint: 'Translate outcome goals into match-action goals.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_self_talk',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koClue: '경기 중 자신에게 짧게 말해 주의를 정리하고 다음 행동을 연결하는 심리 기술',
+      enClue:
+          'Mental skill of using short phrases to organize attention and link to the next action during play',
+      acceptedAnswers: ['셀프토크', '자기 대화', 'self-talk', 'self talk'],
+      koExplain: '정답은 "셀프토크"입니다. 좋은 자기 대화는 감정 설명이 아니라 다음 행동 단서로 작동합니다.',
+      enExplain:
+          'The answer is "self-talk." Good self-talk works as an action cue, not just emotion description.',
+      koNextPoint: '셀프토크는 짧고 구체적인 행동 언어로 만드세요.',
+      enNextPoint: 'Make self-talk short, specific, and action based.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_preperformance_routine',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koClue: '킥오프, 페널티킥, 교체 투입 전처럼 수행 직전에 반복하는 짧은 준비 절차',
+      enClue:
+          'Short preparation sequence repeated right before performance moments such as kickoff, penalties, or substitutions',
+      acceptedAnswers: [
+        '프리퍼포먼스 루틴',
+        '수행 전 루틴',
+        'pre-performance routine',
+        'preperformance routine',
+      ],
+      koExplain: '정답은 "프리퍼포먼스 루틴"입니다. 몸, 시선, 첫 행동을 일정하게 연결합니다.',
+      enExplain:
+          'The answer is "pre-performance routine." It links body, gaze, and first action consistently.',
+      koNextPoint: '루틴은 길고 멋진 절차보다 경기 속도에서 반복 가능한지가 중요합니다.',
+      enNextPoint:
+          'A routine matters because it is repeatable at match speed, not because it is elaborate.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_trigger_word',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koClue: '"스캔", "각도", "복귀"처럼 복잡한 생각을 하나의 행동으로 압축하는 짧은 단어',
+      enClue:
+          'Short word such as “scan,” “angle,” or “recover” that compresses complex thought into one action',
+      acceptedAnswers: [
+        '트리거 워드',
+        '큐 워드',
+        'trigger word',
+        'cue word',
+      ],
+      koExplain: '정답은 "트리거 워드"입니다. 압박 상황에서 생각을 줄이고 행동 전환을 빠르게 합니다.',
+      enExplain:
+          'The answer is "trigger word." It reduces thinking load and speeds up action under pressure.',
+      koNextPoint: '긴 설명은 훈련 때, 경기 중에는 짧은 단어로 압축하세요.',
+      enNextPoint:
+          'Use longer explanations in training and short words during matches.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'deep_pressing_trigger',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '상대의 큰 터치, 뒤돌아선 몸 방향, 느린 패스처럼 팀이 압박을 시작하기로 정한 신호',
+      enClue:
+          'Cue such as a heavy touch, closed body shape, or slow pass that tells a team to start pressing',
+      acceptedAnswers: [
+        '압박 트리거',
+        '프레싱 트리거',
+        'pressing trigger',
+        'press trigger',
+      ],
+      koExplain: '정답은 "압박 트리거"입니다. 좋은 압박은 감정이 아니라 공유된 신호에서 시작됩니다.',
+      enExplain:
+          'The answer is "pressing trigger." Good pressing starts from shared cues, not emotion.',
+      koNextPoint: '압박은 언제 들어갈지 정한 신호와 함께 익히세요.',
+      enNextPoint: 'Learn pressing together with the cues that start it.',
     ),
   ];
 }
