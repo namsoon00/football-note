@@ -1617,7 +1617,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get xpGuideDailyTasksCompleteTitle => '今日のタスクはすべて完了しました';
 
   @override
-  String get quizXpSourceLabel => 'サッカークイズ';
+  String get quizXpSourceLabel => 'スポーツクイズ';
 
   @override
   String get quizScreenTitle => '今日のクイズ';

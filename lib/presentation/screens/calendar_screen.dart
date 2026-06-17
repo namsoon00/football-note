@@ -342,9 +342,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
           child: Builder(
             builder: (context) {
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
-              final sportCapabilities = SportCapabilities.forSport(
-                SportService(widget.optionRepository).currentSportId(),
-              );
               final entries = _visibleTrainingEntries;
               return StreamBuilder<List<MealEntry>>(
                 stream: _mealEntriesStream,
@@ -401,18 +398,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                               onLeadingTap: () =>
                                   Scaffold.of(context).openDrawer(),
-                              onNewsTap:
-                                  sportCapabilities.supportsFootballContent
-                                      ? () => _openNews(context)
-                                      : null,
-                              newsBadgeCount:
-                                  sportCapabilities.supportsFootballContent
-                                      ? newsCount
-                                      : 0,
-                              onQuizTap:
-                                  sportCapabilities.supportsFootballContent
-                                      ? () => _openQuiz(context)
-                                      : null,
+                              onNewsTap: () => _openNews(context),
+                              newsBadgeCount: newsCount,
+                              onQuizTap: () => _openQuiz(context),
                               onNotificationTap: () =>
                                   _openNotifications(context),
                               notificationBadgeCount: reminderUnreadCount,

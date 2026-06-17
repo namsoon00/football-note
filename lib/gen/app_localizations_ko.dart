@@ -1609,7 +1609,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get xpGuideDailyTasksCompleteTitle => '오늘 할일 모두 완료';
 
   @override
-  String get quizXpSourceLabel => '축구 퀴즈';
+  String get quizXpSourceLabel => '스포츠 퀴즈';
 
   @override
   String get quizScreenTitle => '오늘의 퀴즈';

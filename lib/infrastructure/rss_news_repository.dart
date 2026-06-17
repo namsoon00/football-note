@@ -7,8 +7,10 @@ import 'package:xml/xml.dart';
 
 import '../domain/entities/news_article.dart';
 import '../domain/entities/news_channel.dart';
+import '../domain/entities/sport_definition.dart';
 import '../domain/repositories/news_repository.dart';
 import '../domain/repositories/option_repository.dart';
+import '../application/sport_service.dart';
 
 class RssNewsRepository implements NewsRepository {
   final OptionRepository? _optionRepository;
@@ -108,29 +110,82 @@ class RssNewsRepository implements NewsRepository {
     '화성fc',
   ];
 
+  static const List<String> _domesticBaseballKeywords = [
+    '야구',
+    '프로야구',
+    'kbo',
+    '한국시리즈',
+    '두산',
+    'lg 트윈스',
+    'kt 위즈',
+    'ssg',
+    'kia',
+    '삼성 라이온즈',
+    '롯데 자이언츠',
+    '한화 이글스',
+    '키움 히어로즈',
+    'nc 다이노스',
+    'mlb',
+    '메이저리그',
+  ];
+
+  static const List<String> _domesticBasketballKeywords = [
+    '농구',
+    '프로농구',
+    'kbl',
+    'wkbl',
+    'nba',
+    '농구대표팀',
+    '서울 sk',
+    '원주 db',
+    '부산 kcc',
+    '창원 lg',
+    '울산 현대모비스',
+    '안양 정관장',
+    '대구 한국가스공사',
+  ];
+
+  static const List<String> _domesticTennisKeywords = [
+    '테니스',
+    '권순우',
+    '정현',
+    'atp',
+    'wta',
+    '그랜드슬램',
+    '윔블던',
+    '프랑스오픈',
+    '호주오픈',
+    'us오픈',
+    '데이비스컵',
+  ];
+
   static const List<_FeedConfig> _feeds = [
     _FeedConfig(
       id: 'sports_khan_domestic_soccer_ko',
       name: '스포츠경향 · 국내축구',
       url: 'https://sports.khan.co.kr/rss/soccer_korea-soccer',
+      sportId: SportCatalog.footballId,
       requireImage: false,
     ),
     _FeedConfig(
       id: 'sports_khan_soccer_ko',
       name: '스포츠경향 · 축구',
       url: 'https://sports.khan.co.kr/rss/soccer',
+      sportId: SportCatalog.footballId,
       requireImage: false,
     ),
     _FeedConfig(
       id: 'sportschosun_soccer_ko',
       name: '스포츠조선 · 축구',
       url: 'https://www.sportschosun.com/rss/index_sc.htm',
+      sportId: SportCatalog.footballId,
       requireImage: false,
     ),
     _FeedConfig(
       id: 'newsis_sports_domestic_soccer_ko',
       name: '뉴시스 · 국내축구',
       url: 'https://www.newsis.com/RSS/sports.xml',
+      sportId: SportCatalog.footballId,
       requireImage: false,
       keywords: _domesticFootballKeywords,
     ),
@@ -138,47 +193,128 @@ class RssNewsRepository implements NewsRepository {
       id: 'bbc_football_en',
       name: 'BBC Sport',
       url: 'https://feeds.bbci.co.uk/sport/football/rss.xml',
+      sportId: SportCatalog.footballId,
     ),
     _FeedConfig(
       id: 'bbc_premier_league_en',
       name: 'BBC Sport · Premier League',
       url: 'https://feeds.bbci.co.uk/sport/football/premier-league/rss.xml',
+      sportId: SportCatalog.footballId,
     ),
     _FeedConfig(
       id: 'bbc_champions_league_en',
       name: 'BBC Sport · Champions League',
       url: 'https://feeds.bbci.co.uk/sport/football/champions-league/rss.xml',
+      sportId: SportCatalog.footballId,
     ),
     _FeedConfig(
       id: 'skysports_football_en',
       name: 'Sky Sports · Football',
       url: 'https://www.skysports.com/rss/12040',
+      sportId: SportCatalog.footballId,
     ),
     _FeedConfig(
       id: 'espn_fc_en',
       name: 'ESPN FC',
       url: 'https://www.espn.com/espn/rss/soccer/news',
+      sportId: SportCatalog.footballId,
     ),
     _FeedConfig(
       id: 'guardian_football_en',
       name: 'The Guardian · Football',
       url: 'https://www.theguardian.com/football/rss',
+      sportId: SportCatalog.footballId,
     ),
     _FeedConfig(
       id: 'cbs_soccer_en',
       name: 'CBS Sports · Soccer',
       url: 'https://www.cbssports.com/rss/headlines/soccer/',
+      sportId: SportCatalog.footballId,
+    ),
+    _FeedConfig(
+      id: 'newsis_sports_baseball_ko',
+      name: '뉴시스 · 야구',
+      url: 'https://www.newsis.com/RSS/sports.xml',
+      sportId: SportCatalog.baseballId,
+      requireImage: false,
+      keywords: _domesticBaseballKeywords,
+    ),
+    _FeedConfig(
+      id: 'espn_mlb_en',
+      name: 'ESPN · MLB',
+      url: 'https://www.espn.com/espn/rss/mlb/news',
+      sportId: SportCatalog.baseballId,
+    ),
+    _FeedConfig(
+      id: 'cbs_mlb_en',
+      name: 'CBS Sports · MLB',
+      url: 'https://www.cbssports.com/rss/headlines/mlb/',
+      sportId: SportCatalog.baseballId,
+    ),
+    _FeedConfig(
+      id: 'newsis_sports_basketball_ko',
+      name: '뉴시스 · 농구',
+      url: 'https://www.newsis.com/RSS/sports.xml',
+      sportId: SportCatalog.basketballId,
+      requireImage: false,
+      keywords: _domesticBasketballKeywords,
+    ),
+    _FeedConfig(
+      id: 'espn_nba_en',
+      name: 'ESPN · NBA',
+      url: 'https://www.espn.com/espn/rss/nba/news',
+      sportId: SportCatalog.basketballId,
+    ),
+    _FeedConfig(
+      id: 'cbs_nba_en',
+      name: 'CBS Sports · NBA',
+      url: 'https://www.cbssports.com/rss/headlines/nba/',
+      sportId: SportCatalog.basketballId,
+    ),
+    _FeedConfig(
+      id: 'newsis_sports_tennis_ko',
+      name: '뉴시스 · 테니스',
+      url: 'https://www.newsis.com/RSS/sports.xml',
+      sportId: SportCatalog.tennisId,
+      requireImage: false,
+      keywords: _domesticTennisKeywords,
+    ),
+    _FeedConfig(
+      id: 'espn_tennis_en',
+      name: 'ESPN · Tennis',
+      url: 'https://www.espn.com/espn/rss/tennis/news',
+      sportId: SportCatalog.tennisId,
+    ),
+    _FeedConfig(
+      id: 'bbc_tennis_en',
+      name: 'BBC Sport · Tennis',
+      url: 'https://feeds.bbci.co.uk/sport/tennis/rss.xml',
+      sportId: SportCatalog.tennisId,
+    ),
+    _FeedConfig(
+      id: 'cbs_tennis_en',
+      name: 'CBS Sports · Tennis',
+      url: 'https://www.cbssports.com/rss/headlines/tennis/',
+      sportId: SportCatalog.tennisId,
     ),
   ];
 
   @override
-  List<NewsChannel> channels() {
+  List<NewsChannel> channels({String? sportId}) {
+    final normalizedSportId = SportCatalog.normalizeSportId(
+      sportId ??
+          (_optionRepository == null
+              ? SportCatalog.defaultSportId
+              : SportService(_optionRepository).currentSportId()),
+    );
     return _feeds
+        .where((feed) => feed.sportId == normalizedSportId)
         .map(
           (feed) => NewsChannel(
             id: feed.id,
             name: feed.name,
             isDomestic: feed.id.endsWith('_ko'),
+            sportId: feed.sportId,
           ),
         )
         .toList(growable: false);
@@ -219,7 +355,7 @@ class RssNewsRepository implements NewsRepository {
     if (cached != null && cached.articles.isNotEmpty) {
       return cached.articles;
     }
-    throw StateError('Failed to fetch football news.');
+    throw StateError('Failed to fetch sports news.');
   }
 
   _CachedNewsFeed? _loadCachedFeed(String channelId) {
@@ -376,7 +512,7 @@ class RssNewsRepository implements NewsRepository {
     final merged = <String>{..._defaultBlockedDomains};
     final custom =
         _optionRepository?.getOptions('news_blocked_domains', const []) ??
-        const <String>[];
+            const <String>[];
     for (final domain in custom) {
       final normalized = _normalizeDomain(domain);
       if (normalized.isNotEmpty) {
@@ -611,6 +747,7 @@ class _FeedConfig {
   final String id;
   final String name;
   final String url;
+  final String sportId;
   final bool requireImage;
   final List<String> keywords;
 
@@ -618,6 +755,7 @@ class _FeedConfig {
     required this.id,
     required this.name,
     required this.url,
+    required this.sportId,
     this.requireImage = true,
     this.keywords = const [],
   });

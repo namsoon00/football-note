@@ -41,7 +41,6 @@ class SpaceSpeedGameScreen extends StatefulWidget {
 class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   static const _weeklyBestPrefix = 'space_speed_weekly_best_';
   static const _rankingHistoryKey = 'space_speed_ranking_history_v1';
-  static const _quizCompletedAtKey = SkillQuizScreen.completionKey;
   static const _gamePlayedCountKey = 'space_speed_played_count_v1';
   static const _playsPerTrainingNote = 5;
 
@@ -3763,8 +3762,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final noteCount = entries.where((entry) => !entry.isMatch).length;
     final played =
         widget.optionRepository.getValue<int>(_gamePlayedCountKey) ?? 0;
-    final completedAt =
-        widget.optionRepository.getValue<String>(_quizCompletedAtKey) ?? '';
+    final completedAt = widget.optionRepository.getValue<String>(
+          SkillQuizScreen.storageKey(
+            widget.optionRepository,
+            SkillQuizScreen.completionKey,
+          ),
+        ) ??
+        '';
     setState(() {
       _trainingNoteCount = noteCount;
       _playedGameCount = played;

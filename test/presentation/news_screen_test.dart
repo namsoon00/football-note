@@ -48,6 +48,7 @@ void main() {
           id: 'issue271_domestic_soccer_ko',
           name: '테스트 · 국내축구',
           isDomestic: true,
+          sportId: 'football',
         ),
       ],
       articlesByChannelId: <String, List<NewsArticle>>{
@@ -92,6 +93,7 @@ void main() {
           id: 'issue_world_cup_header_domestic_soccer_ko',
           name: '테스트 · 국내축구',
           isDomestic: true,
+          sportId: 'football',
         ),
       ],
       articlesByChannelId: <String, List<NewsArticle>>{
@@ -137,8 +139,13 @@ void main() {
           id: 'issue260_order_domestic_soccer_ko',
           name: '테스트 · 국내축구',
           isDomestic: true,
+          sportId: 'football',
         ),
-        NewsChannel(id: 'issue260_order_world_en', name: 'Test World'),
+        NewsChannel(
+          id: 'issue260_order_world_en',
+          name: 'Test World',
+          sportId: 'football',
+        ),
       ],
       articlesByChannelId: <String, List<NewsArticle>>{
         'issue260_order_domestic_soccer_ko': const [
@@ -205,8 +212,13 @@ void main() {
             id: 'issue260_domestic_fast_soccer_ko',
             name: '테스트 · 국내축구',
             isDomestic: true,
+            sportId: 'football',
           ),
-          NewsChannel(id: 'issue260_world_fast_en', name: 'Test World'),
+          NewsChannel(
+            id: 'issue260_world_fast_en',
+            name: 'Test World',
+            sportId: 'football',
+          ),
         ],
         articlesByChannelId: <String, List<NewsArticle>>{
           'issue260_domestic_fast_soccer_ko': const [
@@ -271,6 +283,7 @@ void main() {
           id: 'issue272_domestic_soccer_ko',
           name: '테스트 · 국내축구',
           isDomestic: true,
+          sportId: 'football',
         ),
       ],
       articlesByChannelId: const <String, List<NewsArticle>>{
@@ -306,6 +319,7 @@ void main() {
             id: 'issue284_seen_domestic_soccer_ko',
             name: '테스트 · 국내축구',
             isDomestic: true,
+            sportId: 'football',
           ),
         ],
         articlesByChannelId: const <String, List<NewsArticle>>{
@@ -356,6 +370,7 @@ void main() {
           id: 'issue284_history_domestic_soccer_ko',
           name: '테스트 · 국내축구',
           isDomestic: true,
+          sportId: 'football',
         ),
       ],
       articlesByChannelId: const <String, List<NewsArticle>>{
@@ -417,7 +432,9 @@ class _FakeNewsRepository implements NewsRepository {
         _articlesByChannelId = articlesByChannelId;
 
   @override
-  List<NewsChannel> channels() => _channels;
+  List<NewsChannel> channels({String? sportId}) => _channels
+      .where((channel) => sportId == null || channel.sportId == sportId)
+      .toList(growable: false);
 
   @override
   Future<List<NewsArticle>> fetchLatest(
