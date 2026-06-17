@@ -7640,6 +7640,37 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchLinkRoutesNeedTwoSnack => '연결하려면 이동선이 2개 이상 필요해요.';
 
   @override
+  String get trainingSketchAutoStagesButton => '단계 자동 나누기';
+
+  @override
+  String get trainingSketchAutoStagesSnack => '이동선을 1단계부터 자동으로 나눴어요.';
+
+  @override
+  String get trainingSketchAutoStagesNeedTwoSnack =>
+      '단계를 나누려면 이동선이 2개 이상 필요해요.';
+
+  @override
+  String get trainingSketchRouteStageTitle => '동작 단계';
+
+  @override
+  String trainingSketchRouteStageChip(Object stage) {
+    return '$stage단계';
+  }
+
+  @override
+  String get trainingSketchSelectRouteForStageHint =>
+      '사람이나 공을 선택하면 이동선 단계를 바꿀 수 있어요.';
+
+  @override
+  String get trainingSketchPreviousStageButton => '이전 단계';
+
+  @override
+  String get trainingSketchNextStageButton => '다음 단계';
+
+  @override
+  String get trainingSketchRouteAfterBallButton => '공 뒤에 시작';
+
+  @override
   String get trainingSketchClearAllRoutesButton => '이동선 전체 지우기';
 
   @override

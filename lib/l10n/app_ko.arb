@@ -3854,6 +3854,20 @@
   "trainingSketchLinkRoutesInOrderButton": "전체 차례대로 연결",
   "trainingSketchLinkRoutesInOrderSnack": "이동선을 그린 순서대로 하나씩 시작하게 연결했어요.",
   "trainingSketchLinkRoutesNeedTwoSnack": "연결하려면 이동선이 2개 이상 필요해요.",
+  "trainingSketchAutoStagesButton": "단계 자동 나누기",
+  "trainingSketchAutoStagesSnack": "이동선을 1단계부터 자동으로 나눴어요.",
+  "trainingSketchAutoStagesNeedTwoSnack": "단계를 나누려면 이동선이 2개 이상 필요해요.",
+  "trainingSketchRouteStageTitle": "동작 단계",
+  "trainingSketchRouteStageChip": "{stage}단계",
+  "@trainingSketchRouteStageChip": {
+    "placeholders": {
+      "stage": {}
+    }
+  },
+  "trainingSketchSelectRouteForStageHint": "사람이나 공을 선택하면 이동선 단계를 바꿀 수 있어요.",
+  "trainingSketchPreviousStageButton": "이전 단계",
+  "trainingSketchNextStageButton": "다음 단계",
+  "trainingSketchRouteAfterBallButton": "공 뒤에 시작",
   "trainingSketchClearAllRoutesButton": "이동선 전체 지우기",
   "trainingSketchPlayerRoutesTitle": "사람 이동선",
   "trainingSketchBallRoutesTitle": "공 이동선",

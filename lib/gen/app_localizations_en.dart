@@ -7888,6 +7888,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add at least two routes to chain them.';
 
   @override
+  String get trainingSketchAutoStagesButton => 'Auto stages';
+
+  @override
+  String get trainingSketchAutoStagesSnack =>
+      'Routes were split into stages starting from stage 1.';
+
+  @override
+  String get trainingSketchAutoStagesNeedTwoSnack =>
+      'Add at least two routes to split stages.';
+
+  @override
+  String get trainingSketchRouteStageTitle => 'Movement stage';
+
+  @override
+  String trainingSketchRouteStageChip(Object stage) {
+    return 'Stage $stage';
+  }
+
+  @override
+  String get trainingSketchSelectRouteForStageHint =>
+      'Select a player or ball to change its route stage.';
+
+  @override
+  String get trainingSketchPreviousStageButton => 'Previous stage';
+
+  @override
+  String get trainingSketchNextStageButton => 'Next stage';
+
+  @override
+  String get trainingSketchRouteAfterBallButton => 'After ball';
+
+  @override
   String get trainingSketchClearAllRoutesButton => 'Clear all routes';
 
   @override

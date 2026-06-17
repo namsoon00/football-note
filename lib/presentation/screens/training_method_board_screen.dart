@@ -234,6 +234,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 segmentDurationsMs: route.segmentDurationsMs.toList(
                   growable: true,
                 ),
+                stageIndex: route.stageIndex,
                 color: Color(route.colorValue),
                 width: route.width,
               ),
@@ -326,6 +327,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 segmentDurationsMs: route.segmentDurationsMs.toList(
                   growable: true,
                 ),
+                stageIndex: route.stageIndex,
                 color: Color(route.colorValue),
                 width: route.width,
               ),
@@ -528,6 +530,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   segmentDurationsMs: route.segmentDurationsMs.toList(
                     growable: false,
                   ),
+                  stageIndex: route.stageIndex,
                   colorValue: route.color.toARGB32(),
                   width: route.width,
                 ),
@@ -719,6 +722,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       if (linkedItem == null) continue;
       route.linkedItemId = linkedItem.id;
       route.color = linkedItem.color;
+      route.stageIndex = _normalizedRouteStageIndex(route.stageIndex);
       assignedItemIds.add(linkedItem.id);
       normalizedRoutes.add(route);
     }
@@ -857,25 +861,52 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   List<_PlaybackTrack> _resolvePlaybackTracks() {
     final assignedItemIds = <String>{};
     final tracks = <_PlaybackTrack>[];
-    for (final route in _orderedPlaybackRoutes()) {
+    final orderedRoutes = _orderedPlaybackRoutes();
+    final usesStages = _usesRouteStages(orderedRoutes);
+    final stageStartOffsetsMs =
+        usesStages ? _stageStartOffsetsMs(orderedRoutes) : const <int, int>{};
+    for (final route in orderedRoutes) {
       final item = _resolvePlaybackItemForRoute(
         route,
         assignedItemIds: assignedItemIds,
       );
       if (item == null || !assignedItemIds.add(item.id)) continue;
-      final totalDistanceMeters = _pathDistanceMeters(route.points);
+      final timing = usesStages
+          ? _routeTimingWithoutLeadingWait(route)
+          : _RouteTiming(
+              points: route.points,
+              segmentDurationsMs: route.segmentDurationsMs,
+            );
+      final totalDistanceMeters = _pathDistanceMeters(timing.points);
       if (totalDistanceMeters <= 0.01) continue;
       final speedMetersPerSecond = _playbackSpeedMetersPerSecond(route.kind);
+      final segments = _playbackSegmentsForRoute(
+        points: timing.points,
+        segmentDurationsMs: timing.segmentDurationsMs,
+        totalDistanceMeters: totalDistanceMeters,
+        speedMetersPerSecond: speedMetersPerSecond,
+      ).toList(growable: true);
+      if (usesStages && segments.isNotEmpty) {
+        final waitMs =
+            stageStartOffsetsMs[_normalizedRouteStageIndex(route.stageIndex)] ??
+                0;
+        if (waitMs > 0) {
+          segments.insert(
+            0,
+            _PlaybackSegment(
+              start: timing.points.first,
+              end: timing.points.first,
+              durationSeconds: waitMs / 1000,
+            ),
+          );
+        }
+      }
       tracks.add(
         _PlaybackTrack(
           item: item,
           route: route,
           startPosition: Offset(item.x, item.y),
-          segments: _playbackSegmentsForRoute(
-            route,
-            totalDistanceMeters: totalDistanceMeters,
-            speedMetersPerSecond: speedMetersPerSecond,
-          ),
+          segments: segments,
         ),
       );
     }
@@ -1044,6 +1075,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       linkedItemId: linkedItem.id,
       points: points.toList(growable: true),
       segmentDurationsMs: durationsMs.toList(growable: true),
+      stageIndex: 1,
       color: linkedItem.color,
       width: _defaultRouteWidth(kind),
     );
@@ -1397,6 +1429,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               segmentDurationsMs: route.segmentDurationsMs.toList(
                 growable: true,
               ),
+              stageIndex: route.stageIndex,
               color: Color(route.colorValue),
               width: route.width,
             ),
@@ -1781,6 +1814,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           linkedItemId: nextLinkedItemId,
           points: List<Offset>.from(points),
           segmentDurationsMs: List<int>.from(segmentDurationsMs),
+          stageIndex: 1,
           color: _routeColorFor(
             kind: _pathDrawMode,
             linkedItemId: nextLinkedItemId,
@@ -1872,6 +1906,38 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         .toList(growable: false);
   }
 
+  int _normalizedRouteStageIndex(int value) {
+    return value.clamp(1, _maxRouteStageIndex).toInt();
+  }
+
+  int _maxRouteStageInPage() {
+    var maxStage = 1;
+    for (final route in _currentPage.routes) {
+      maxStage =
+          math.max(maxStage, _normalizedRouteStageIndex(route.stageIndex));
+    }
+    return maxStage;
+  }
+
+  List<int> _visibleRouteStages() {
+    final count = math.min(
+      _maxRouteStageIndex,
+      math.max(3, _maxRouteStageInPage() + 1),
+    );
+    return List<int>.generate(count, (index) => index + 1, growable: false);
+  }
+
+  bool _usesRouteStages(List<_BoardRoute> routes) {
+    return routes
+        .any((route) => _normalizedRouteStageIndex(route.stageIndex) > 1);
+  }
+
+  String _routeStageLabel(int stageIndex) {
+    return _l10n.trainingSketchRouteStageChip(
+      _normalizedRouteStageIndex(stageIndex),
+    );
+  }
+
   void _trimRouteDurations(_BoardRoute route) {
     final expectedCount = math.max(0, route.points.length - 1);
     if (route.segmentDurationsMs.length > expectedCount) {
@@ -1894,12 +1960,34 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _trimRouteDurations(route);
   }
 
-  int _routePlaybackDurationMs(_BoardRoute route) {
-    final totalDistanceMeters = _pathDistanceMeters(route.points);
+  _RouteTiming _routeTimingWithoutLeadingWait(_BoardRoute route) {
+    final points = route.points.toList(growable: true);
+    final durations = route.segmentDurationsMs.toList(growable: true);
+    while (points.length >= 2 &&
+        _segmentDistanceMeters(points[0], points[1]) <=
+            _minPlaybackSegmentDistanceMeters) {
+      points.removeAt(0);
+      if (durations.isNotEmpty) {
+        durations.removeAt(0);
+      }
+    }
+    final expectedCount = math.max(0, points.length - 1);
+    if (durations.length > expectedCount) {
+      durations.removeRange(expectedCount, durations.length);
+    }
+    return _RouteTiming(points: points, segmentDurationsMs: durations);
+  }
+
+  int _routeTimingPlaybackDurationMs({
+    required _PathDrawMode kind,
+    required _RouteTiming timing,
+  }) {
+    final totalDistanceMeters = _pathDistanceMeters(timing.points);
     final segments = _playbackSegmentsForRoute(
-      route,
+      points: timing.points,
+      segmentDurationsMs: timing.segmentDurationsMs,
       totalDistanceMeters: totalDistanceMeters,
-      speedMetersPerSecond: _playbackSpeedMetersPerSecond(route.kind),
+      speedMetersPerSecond: _playbackSpeedMetersPerSecond(kind),
     );
     return segments.fold<int>(
       0,
@@ -1907,28 +1995,89 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  void _prependRouteWait(_BoardRoute route, int waitMs) {
-    if (waitMs <= 0 || route.points.isEmpty) return;
-    route.points.insert(0, route.points.first);
-    route.segmentDurationsMs.insert(0, math.max(waitMs, 16));
+  int _routePlaybackDurationMs(_BoardRoute route) {
+    return _routeTimingPlaybackDurationMs(
+      kind: route.kind,
+      timing: _routeTimingWithoutLeadingWait(route),
+    );
   }
 
-  void _linkAllRoutesInOrder() {
+  Map<int, int> _stageStartOffsetsMs(List<_BoardRoute> routes) {
+    final stageDurationsMs = <int, int>{};
+    for (final route in routes) {
+      if (route.points.length < 2) continue;
+      final stageIndex = _normalizedRouteStageIndex(route.stageIndex);
+      final durationMs = _routePlaybackDurationMs(route);
+      if (durationMs <= 0) continue;
+      stageDurationsMs[stageIndex] = math.max(
+        stageDurationsMs[stageIndex] ?? 0,
+        durationMs,
+      );
+    }
+    final stages = stageDurationsMs.keys.toList(growable: false)..sort();
+    final offsets = <int, int>{};
+    var elapsedMs = 0;
+    for (final stage in stages) {
+      offsets[stage] = elapsedMs;
+      elapsedMs += stageDurationsMs[stage] ?? 0;
+    }
+    return offsets;
+  }
+
+  void _setRouteStage(_BoardRoute route, int stageIndex) {
+    route.stageIndex = _normalizedRouteStageIndex(stageIndex);
+    _removeLeadingRouteWait(route);
+  }
+
+  void _setSelectedRouteStage(int stageIndex) {
+    final route = _selectedRoute;
+    if (route == null) return;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      _setRouteStage(route, stageIndex);
+      _routeReplaceMode = false;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
+    });
+    _scheduleAutoSave();
+  }
+
+  void _shiftSelectedRouteStage(int delta) {
+    final route = _selectedRoute;
+    if (route == null) return;
+    _setSelectedRouteStage(route.stageIndex + delta);
+  }
+
+  void _moveSelectedRouteAfterBall() {
+    final route = _selectedRoute;
+    if (route == null || route.kind != _PathDrawMode.player) return;
+    final ballStages = _currentPage.routes
+        .where(
+          (entry) =>
+              entry.kind == _PathDrawMode.ball && entry.points.length >= 2,
+        )
+        .map((entry) => _normalizedRouteStageIndex(entry.stageIndex))
+        .toList(growable: false);
+    if (ballStages.isEmpty) return;
+    final nextStage = ballStages.fold<int>(1, math.max) + 1;
+    _setSelectedRouteStage(nextStage);
+  }
+
+  void _splitRoutesIntoStages() {
     final routes = _sequenceableRoutes();
     if (routes.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_l10n.trainingSketchLinkRoutesNeedTwoSnack)),
+        SnackBar(content: Text(_l10n.trainingSketchAutoStagesNeedTwoSnack)),
       );
       return;
     }
     _stopRoutePlayback(restoreStart: false);
     setState(() {
-      var elapsedMs = 0;
-      for (final route in routes) {
+      for (var index = 0; index < routes.length; index++) {
+        final route = routes[index];
         _removeLeadingRouteWait(route);
-        final routeDurationMs = _routePlaybackDurationMs(route);
-        _prependRouteWait(route, elapsedMs);
-        elapsedMs += routeDurationMs;
+        route.stageIndex = _normalizedRouteStageIndex(index + 1);
       }
       _selectedRouteId = routes.first.id;
       _pathDrawMode = routes.first.kind;
@@ -1939,7 +2088,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
     _scheduleAutoSave();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_l10n.trainingSketchLinkRoutesInOrderSnack)),
+      SnackBar(content: Text(_l10n.trainingSketchAutoStagesSnack)),
     );
   }
 
@@ -2274,12 +2423,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }, growable: false);
   }
 
-  List<_PlaybackSegment> _playbackSegmentsForRoute(
-    _BoardRoute route, {
+  List<_PlaybackSegment> _playbackSegmentsForRoute({
+    required List<Offset> points,
+    required List<int> segmentDurationsMs,
     required double totalDistanceMeters,
     required double speedMetersPerSecond,
   }) {
-    final points = route.points;
     if (points.length < 2 || totalDistanceMeters <= 0) {
       return const <_PlaybackSegment>[];
     }
@@ -2290,9 +2439,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final segments = <_PlaybackSegment>[];
     for (var index = 0; index < segmentDistances.length; index++) {
       final distanceMeters = segmentDistances[index];
-      final explicitDurationMs = index < route.segmentDurationsMs.length
-          ? route.segmentDurationsMs[index]
-          : 0;
+      final explicitDurationMs =
+          index < segmentDurationsMs.length ? segmentDurationsMs[index] : 0;
       if (distanceMeters <= _minPlaybackSegmentDistanceMeters &&
           explicitDurationMs <= 0) {
         continue;
@@ -3413,6 +3561,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       final hasSelectedCurrentRoute =
           selectedRoute != null && selectedRoute.kind == _pathDrawMode;
       final accentColor = _routeGroupAccentColor(_pathDrawMode);
+      final selectedRouteStage = hasSelectedCurrentRoute
+          ? _normalizedRouteStageIndex(selectedRoute.stageIndex)
+          : 1;
+      final visibleStages = _visibleRouteStages();
+      final canMoveSelectedAfterBall = hasSelectedCurrentRoute &&
+          selectedRoute.kind == _PathDrawMode.player &&
+          _currentPage.routes.any(
+            (route) =>
+                route.kind == _PathDrawMode.ball && route.points.length >= 2,
+          );
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -3498,6 +3656,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                         size: 14,
                         color: route?.color ?? accentColor,
                       ),
+                      if (route != null) ...[
+                        const SizedBox(width: 4),
+                        _RouteStageBadge(
+                          label:
+                              '${_normalizedRouteStageIndex(route.stageIndex)}',
+                          color: route.color,
+                        ),
+                      ],
                     ],
                   ),
                   selectedColor: accentColor.withValues(alpha: 0.18),
@@ -3517,15 +3683,85 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               l10n.trainingSketchRoutesEmpty,
               style: Theme.of(context).textTheme.bodySmall,
             ),
+          if (routes.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              l10n.trainingSketchRouteStageTitle,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: visibleStages
+                  .map(
+                    (stage) => ChoiceChip(
+                      selected: hasSelectedCurrentRoute &&
+                          selectedRouteStage == stage,
+                      showCheckmark: false,
+                      label: Text(_routeStageLabel(stage)),
+                      avatar: CircleAvatar(
+                        radius: 10,
+                        backgroundColor: stage == selectedRouteStage
+                            ? accentColor
+                            : accentColor.withValues(alpha: 0.18),
+                        child: Text(
+                          '$stage',
+                          style: TextStyle(
+                            color: stage == selectedRouteStage
+                                ? Colors.white
+                                : accentColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      onSelected: hasSelectedCurrentRoute
+                          ? (_) => _setSelectedRouteStage(stage)
+                          : null,
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+            if (!hasSelectedCurrentRoute) ...[
+              const SizedBox(height: 6),
+              Text(
+                l10n.trainingSketchSelectRouteForStageHint,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ],
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
               OutlinedButton.icon(
-                onPressed: _linkAllRoutesInOrder,
-                icon: const Icon(Icons.link),
-                label: Text(l10n.trainingSketchLinkRoutesInOrderButton),
+                onPressed: _splitRoutesIntoStages,
+                icon: const Icon(Icons.view_timeline_outlined),
+                label: Text(l10n.trainingSketchAutoStagesButton),
+              ),
+              OutlinedButton.icon(
+                onPressed: hasSelectedCurrentRoute && selectedRouteStage > 1
+                    ? () => _shiftSelectedRouteStage(-1)
+                    : null,
+                icon: const Icon(Icons.chevron_left),
+                label: Text(l10n.trainingSketchPreviousStageButton),
+              ),
+              OutlinedButton.icon(
+                onPressed: hasSelectedCurrentRoute &&
+                        selectedRouteStage < _maxRouteStageIndex
+                    ? () => _shiftSelectedRouteStage(1)
+                    : null,
+                icon: const Icon(Icons.chevron_right),
+                label: Text(l10n.trainingSketchNextStageButton),
+              ),
+              OutlinedButton.icon(
+                onPressed: canMoveSelectedAfterBall
+                    ? _moveSelectedRouteAfterBall
+                    : null,
+                icon: const Icon(Icons.sports_soccer_outlined),
+                label: Text(l10n.trainingSketchRouteAfterBallButton),
               ),
               OutlinedButton.icon(
                 onPressed: hasSelectedCurrentRoute
@@ -3660,6 +3896,7 @@ class _BoardRoute {
   String? linkedItemId;
   final List<Offset> points;
   final List<int> segmentDurationsMs;
+  int stageIndex;
   Color color;
   final double width;
 
@@ -3668,6 +3905,7 @@ class _BoardRoute {
     required this.kind,
     required this.points,
     required this.segmentDurationsMs,
+    this.stageIndex = 1,
     required this.color,
     required this.width,
     this.linkedItemId,
@@ -3708,6 +3946,16 @@ class _PlaybackTrack {
 
   double get durationSeconds =>
       segments.fold<double>(0, (sum, segment) => sum + segment.durationSeconds);
+}
+
+class _RouteTiming {
+  final List<Offset> points;
+  final List<int> segmentDurationsMs;
+
+  const _RouteTiming({
+    required this.points,
+    required this.segmentDurationsMs,
+  });
 }
 
 class _PlaybackSegment {
@@ -3798,6 +4046,7 @@ const double _ballPlaybackSpeedMetersPerSecond = 9.2;
 const double _playerPlaybackAccelerationFraction = 0.20;
 const double _ballPlaybackAccelerationFraction = 0.05;
 const double _minPlaybackSegmentDistanceMeters = 0.05;
+const int _maxRouteStageIndex = 9;
 const Duration _minPlaybackDuration = Duration(milliseconds: 900);
 const List<double> _laneFractions = <double>[0.18, 0.38, 0.62, 0.82];
 
@@ -3919,6 +4168,37 @@ class _TokenNumberBadge extends StatelessWidget {
         style: const TextStyle(
           color: Colors.black87,
           fontSize: 9,
+          fontWeight: FontWeight.w800,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
+class _RouteStageBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _RouteStageBadge({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 18),
+      height: 18,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.55)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color.computeLuminance() < 0.35 ? color : Colors.black87,
+          fontSize: 10,
           fontWeight: FontWeight.w800,
           height: 1,
         ),
