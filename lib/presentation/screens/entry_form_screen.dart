@@ -1237,6 +1237,180 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         color: Color(0xFF9333EA),
       );
     }
+    if (_goalTextContains(normalized, const [
+      '송구',
+      'throw',
+      '送球',
+      '캐치볼',
+      'catch',
+      'キャッチ',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.sports_baseball_outlined,
+        selectedIcon: Icons.sports_baseball,
+        color: Color(0xFFB45309),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '타격',
+      'batting',
+      'contact',
+      '打撃',
+      'コンタクト',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.sports_baseball_outlined,
+        selectedIcon: Icons.sports_baseball,
+        color: Color(0xFFDC2626),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '글러브',
+      'fielding',
+      'glove',
+      'グラブ',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.back_hand_outlined,
+        selectedIcon: Icons.back_hand_rounded,
+        color: Color(0xFF64748B),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '주루',
+      'base',
+      'running',
+      '走塁',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.directions_run_outlined,
+        selectedIcon: Icons.directions_run_rounded,
+        color: Color(0xFF0891B2),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '반응',
+      'reaction',
+      '反応',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.speed_outlined,
+        selectedIcon: Icons.speed_rounded,
+        color: Color(0xFF7C3AED),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '이해',
+      'awareness',
+      'strategy',
+      '戦略',
+      '理解',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.psychology_alt_outlined,
+        selectedIcon: Icons.psychology_alt_rounded,
+        color: Color(0xFF2563EB),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '볼핸들링',
+      'ballhandling',
+      'ボールハンドリング',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.sports_basketball_outlined,
+        selectedIcon: Icons.sports_basketball,
+        color: Color(0xFFEA580C),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '폼',
+      'form',
+      'フォーム',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.center_focus_strong_outlined,
+        selectedIcon: Icons.center_focus_strong_rounded,
+        color: Color(0xFFE11D48),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '선택',
+      'choice',
+      '選択',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.account_tree_outlined,
+        selectedIcon: Icons.account_tree_rounded,
+        color: Color(0xFF2563EB),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '스텝',
+      'footwork',
+      'フットワーク',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.directions_run_outlined,
+        selectedIcon: Icons.directions_run_rounded,
+        color: Color(0xFF059669),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '리바운드',
+      'rebound',
+      'リバウンド',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.vertical_align_top_outlined,
+        selectedIcon: Icons.vertical_align_top_rounded,
+        color: Color(0xFF7C2D12),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '서브',
+      'serve',
+      'サーブ',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.sports_tennis_outlined,
+        selectedIcon: Icons.sports_tennis,
+        color: Color(0xFF16A34A),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '포핸드',
+      'forehand',
+      'フォアハンド',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.sports_tennis_outlined,
+        selectedIcon: Icons.sports_tennis,
+        color: Color(0xFF0D9488),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '백핸드',
+      'backhand',
+      'バックハンド',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.sports_tennis_outlined,
+        selectedIcon: Icons.sports_tennis,
+        color: Color(0xFF4F46E5),
+      );
+    }
+    if (_goalTextContains(normalized, const [
+      '랠리',
+      'rally',
+      'ラリー',
+    ])) {
+      return const _DailyGoalVisual(
+        icon: Icons.sync_alt_rounded,
+        selectedIcon: Icons.sync_alt_rounded,
+        color: Color(0xFF9333EA),
+      );
+    }
     return _DailyGoalVisual(
       icon: Icons.flag_outlined,
       selectedIcon: Icons.flag_rounded,
@@ -1305,10 +1479,20 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                     return FilterChip(
                       selected: selected,
                       showCheckmark: false,
-                      avatar: Icon(
-                        selected ? visual.selectedIcon : visual.icon,
-                        size: 18,
-                        color: foreground,
+                      avatar: AnimatedContainer(
+                        duration: const Duration(milliseconds: 160),
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: selected ? visual.color : Colors.transparent,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          selected ? visual.selectedIcon : visual.icon,
+                          size: 17,
+                          color: selected ? Colors.white : foreground,
+                        ),
                       ),
                       label: Text(option),
                       labelStyle: theme.textTheme.labelLarge?.copyWith(
@@ -1318,7 +1502,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       ),
                       selectedColor: visual.color.withValues(
                         alpha:
-                            theme.brightness == Brightness.dark ? 0.28 : 0.16,
+                            theme.brightness == Brightness.dark ? 0.36 : 0.22,
                       ),
                       backgroundColor: Color.alphaBlend(
                         visual.color.withValues(alpha: 0.07),
@@ -1326,10 +1510,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       ),
                       side: BorderSide(
                         color: selected
-                            ? visual.color.withValues(alpha: 0.58)
+                            ? visual.color.withValues(alpha: 0.92)
                             : theme.colorScheme.outlineVariant.withValues(
                                 alpha: 0.62,
                               ),
+                        width: selected ? 1.6 : 1,
                       ),
                       onSelected: (selected) {
                         setState(() {
@@ -1641,6 +1826,20 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             : l10n.entryWeatherHomeMissing;
     final weatherHasValue = weatherSummary.isNotEmpty;
     final isMatchEntry = widget.entry?.isMatch ?? false;
+    final sportId = _activeSportId();
+    final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
+    final secondaryConditioningLabel = SportDefaults.secondaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
+    final secondaryConditioningDetailLabels =
+        SportDefaults.secondaryConditioningDetailLabels(
+      l10n: l10n,
+      sportId: sportId,
+    );
     if (isReadOnly && widget.entry == null) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
@@ -2008,7 +2207,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               children: [
                                 SwitchListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  title: Text(l10n.liftingRecord),
+                                  title: Text(
+                                    l10n.sportConditioningRecordTitle(
+                                      secondaryConditioningLabel,
+                                    ),
+                                  ),
                                   value: _liftingEnabled,
                                   onChanged: (value) {
                                     setState(() => _liftingEnabled = value);
@@ -2022,7 +2225,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        l10n.liftingByPart,
+                                        SportDefaults
+                                            .secondaryConditioningDetailTitle(
+                                          l10n: l10n,
+                                          sportId: sportId,
+                                        ),
                                         style: Theme.of(
                                           context,
                                         ).textTheme.titleSmall,
@@ -2035,7 +2242,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                         enabled: _liftingEnabled,
                                         keyboardType: TextInputType.number,
                                         decoration: InputDecoration(
-                                          labelText: l10n.liftingMinutesLabel,
+                                          labelText: l10n
+                                              .sportConditioningMinutesLabel(
+                                            secondaryConditioningLabel,
+                                          ),
                                           hintText: '0',
                                         ),
                                       ),
@@ -2050,7 +2260,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                                   TextInputType.number,
                                               decoration: InputDecoration(
                                                 labelText:
-                                                    l10n.liftingPartInfront,
+                                                    secondaryConditioningDetailLabels[
+                                                        0],
                                                 hintText: '0',
                                               ),
                                             ),
@@ -2064,7 +2275,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                                   TextInputType.number,
                                               decoration: InputDecoration(
                                                 labelText:
-                                                    l10n.liftingPartInside,
+                                                    secondaryConditioningDetailLabels[
+                                                        1],
                                                 hintText: '0',
                                               ),
                                             ),
@@ -2082,7 +2294,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                                   TextInputType.number,
                                               decoration: InputDecoration(
                                                 labelText:
-                                                    l10n.liftingPartOutside,
+                                                    secondaryConditioningDetailLabels[
+                                                        2],
                                                 hintText: '0',
                                               ),
                                             ),
@@ -2097,7 +2310,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                                   TextInputType.number,
                                               decoration: InputDecoration(
                                                 labelText:
-                                                    l10n.liftingPartMuple,
+                                                    secondaryConditioningDetailLabels[
+                                                        3],
                                                 hintText: '0',
                                               ),
                                             ),
@@ -2114,7 +2328,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                               keyboardType:
                                                   TextInputType.number,
                                               decoration: InputDecoration(
-                                                labelText: l10n.liftingPartHead,
+                                                labelText:
+                                                    secondaryConditioningDetailLabels[
+                                                        4],
                                                 hintText: '0',
                                               ),
                                             ),
@@ -2128,7 +2344,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                                   TextInputType.number,
                                               decoration: InputDecoration(
                                                 labelText:
-                                                    l10n.liftingPartChest,
+                                                    secondaryConditioningDetailLabels[
+                                                        5],
                                                 hintText: '0',
                                               ),
                                             ),
@@ -2148,7 +2365,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               children: [
                                 SwitchListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  title: Text(l10n.jumpRopeRecordTitle),
+                                  title: Text(
+                                    l10n.sportConditioningRecordTitle(
+                                      primaryConditioningLabel,
+                                    ),
+                                  ),
                                   value: _jumpRopeEnabled,
                                   onChanged: (value) {
                                     setState(() => _jumpRopeEnabled = value);
@@ -2172,8 +2393,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                               keyboardType:
                                                   TextInputType.number,
                                               decoration: InputDecoration(
-                                                labelText:
-                                                    l10n.jumpRopeMinutesLabel,
+                                                labelText: l10n
+                                                    .sportConditioningMinutesLabel(
+                                                  primaryConditioningLabel,
+                                                ),
                                                 hintText: '0',
                                               ),
                                             ),
@@ -2186,8 +2409,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                               keyboardType:
                                                   TextInputType.number,
                                               decoration: InputDecoration(
-                                                labelText:
-                                                    l10n.jumpRopeCountLabel,
+                                                labelText: l10n
+                                                    .sportConditioningCountLabel(
+                                                  primaryConditioningLabel,
+                                                ),
                                                 hintText: '0',
                                               ),
                                             ),
@@ -2201,8 +2426,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                         minLines: 3,
                                         maxLines: 5,
                                         decoration: InputDecoration(
-                                          labelText: l10n.jumpRopeMemoLabel,
-                                          hintText: l10n.jumpRopeMemoHint,
+                                          labelText:
+                                              l10n.sportConditioningMemoLabel(
+                                            primaryConditioningLabel,
+                                          ),
+                                          hintText:
+                                              l10n.sportConditioningMemoHint(
+                                            primaryConditioningLabel,
+                                          ),
                                         ),
                                       ),
                                     ],

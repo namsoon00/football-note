@@ -25,6 +25,7 @@ import '../../domain/entities/sport_definition.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_motion.dart';
+import '../utils/sport_conditioning_visuals.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/progress_star_gauge.dart';
@@ -152,6 +153,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                         const _ChallengeReadOnlyEmptySection()
                       else if (progress == null)
                         _ChallengeStartSection(
+                          sportId: sportId,
                           templates: _challengeService.templates(),
                           templateTitle: (template) =>
                               _templateTitle(l10n, template),
@@ -163,6 +165,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                         )
                       else
                         _ActiveChallengeSection(
+                          sportId: sportId,
                           progress: progress,
                           templateTitle: _templateTitle(
                             l10n,
@@ -340,6 +343,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             completionGainedXp: 0,
             missionSummaries: _completedMissionSummariesForRounds(
               l10n,
+              SportService(widget.optionRepository).currentSportId(),
               progress.rounds.where((round) => round.completed),
             ),
           ),
@@ -432,6 +436,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               completionGainedXp: completionGainedXp,
               missionSummaries: _completedMissionSummariesForRounds(
                 l10n,
+                SportService(widget.optionRepository).currentSportId(),
                 progress.rounds.where((round) => round.completed),
               ),
             ),
@@ -688,6 +693,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             completionGainedXp: 0,
             missionSummaries: _completedMissionSummariesForRounds(
               l10n,
+              SportService(widget.optionRepository).currentSportId(),
               progress?.rounds.where((round) => round.completed) ??
                   const <ChallengeRoundProgress>[],
             ),
@@ -959,6 +965,7 @@ class _ParentReadOnlyChallengeNotice extends StatelessWidget {
 }
 
 class _ChallengeStartSection extends StatefulWidget {
+  final String sportId;
   final List<ChallengeTemplate> templates;
   final String Function(ChallengeTemplate template) templateTitle;
   final String Function(ChallengeTemplate template) templateDescription;
@@ -971,6 +978,7 @@ class _ChallengeStartSection extends StatefulWidget {
   ) onStart;
 
   const _ChallengeStartSection({
+    required this.sportId,
     required this.templates,
     required this.templateTitle,
     required this.templateDescription,
@@ -1064,6 +1072,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
           ),
           const SizedBox(height: 10),
           _ChallengeMissionPicker(
+            sportId: widget.sportId,
             trainingProgramOptions: widget.skillOptions,
             selectedTrainingProgramIds: _selectedSkillIds,
             missionTargets: _effectiveMissionTargets,
@@ -1074,6 +1083,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
           ),
           const SizedBox(height: 10),
           _ChallengeMissionTargetSection(
+            sportId: widget.sportId,
             selectedTrainingPrograms: widget.skillOptions
                 .where((option) => _selectedSkillIds.contains(option.id))
                 .toList(growable: false),
@@ -1373,6 +1383,7 @@ const List<double> _challengeMealTargetOptions = <double>[
 ];
 
 class _ChallengeMissionPicker extends StatelessWidget {
+  final String sportId;
   final List<_ChallengeSkillOption> trainingProgramOptions;
   final Set<String> selectedTrainingProgramIds;
   final ChallengeMissionTargets missionTargets;
@@ -1382,6 +1393,7 @@ class _ChallengeMissionPicker extends StatelessWidget {
   final ValueChanged<ChallengeMissionTargets> onMissionTargetsChanged;
 
   const _ChallengeMissionPicker({
+    required this.sportId,
     required this.trainingProgramOptions,
     required this.selectedTrainingProgramIds,
     required this.missionTargets,
@@ -1395,6 +1407,14 @@ class _ChallengeMissionPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
+    final secondaryConditioningLabel = SportDefaults.secondaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1443,14 +1463,14 @@ class _ChallengeMissionPicker extends StatelessWidget {
             runSpacing: 8,
             children: [
               _MissionToggleChip(
-                icon: Icons.sports_gymnastics_rounded,
-                label: l10n.challengeJumpRopeLabel,
+                icon: sportPrimaryConditioningIcon(sportId),
+                label: primaryConditioningLabel,
                 selected: missionTargets.hasJumpRopeMission,
                 onSelected: (selected) => _toggleJumpRope(selected),
               ),
               _MissionToggleChip(
-                icon: Icons.sports_soccer_outlined,
-                label: l10n.challengeLiftingLabel,
+                icon: sportSecondaryConditioningIcon(sportId),
+                label: secondaryConditioningLabel,
                 selected: missionTargets.hasLiftingMission,
                 onSelected: (selected) => _toggleLifting(selected),
               ),
@@ -1601,22 +1621,44 @@ class _MissionToggleChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final selectedColor = theme.colorScheme.primary;
     return FilterChip(
-      avatar: Icon(
-        icon,
-        size: 18,
-        color: selected
-            ? theme.colorScheme.primary
-            : theme.colorScheme.onSurfaceVariant,
+      avatar: AnimatedContainer(
+        duration: AppMotion.fast(context),
+        curve: AppMotion.curveEmphasis,
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: selected
+              ? selectedColor
+              : theme.colorScheme.surfaceContainerHighest,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: selected ? selectedColor : theme.colorScheme.outlineVariant,
+          ),
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: selected
+              ? theme.colorScheme.onPrimary
+              : theme.colorScheme.onSurfaceVariant,
+        ),
       ),
-      label: Text(label),
+      label: Text(
+        label,
+        style: TextStyle(
+          fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+        ),
+      ),
       selected: selected,
-      selectedColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-      checkmarkColor: theme.colorScheme.primary,
+      selectedColor: selectedColor.withValues(alpha: 0.18),
+      checkmarkColor: selectedColor,
       side: BorderSide(
         color: selected
-            ? theme.colorScheme.primary.withValues(alpha: 0.45)
+            ? selectedColor.withValues(alpha: 0.72)
             : theme.colorScheme.outlineVariant,
+        width: selected ? 1.4 : 1,
       ),
       onSelected: onSelected,
     );
@@ -1624,11 +1666,13 @@ class _MissionToggleChip extends StatelessWidget {
 }
 
 class _ChallengeMissionTargetSection extends StatelessWidget {
+  final String sportId;
   final List<_ChallengeSkillOption> selectedTrainingPrograms;
   final ChallengeMissionTargets missionTargets;
   final ValueChanged<ChallengeMissionTargets> onChanged;
 
   const _ChallengeMissionTargetSection({
+    required this.sportId,
     required this.selectedTrainingPrograms,
     required this.missionTargets,
     required this.onChanged,
@@ -1638,6 +1682,14 @@ class _ChallengeMissionTargetSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
+    final secondaryConditioningLabel = SportDefaults.secondaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1679,8 +1731,8 @@ class _ChallengeMissionTargetSection extends StatelessWidget {
           ],
           if (missionTargets.hasJumpRopeMission) ...[
             _MissionTargetChoiceRow<int>(
-              icon: Icons.sports_gymnastics_rounded,
-              title: l10n.challengeJumpRopeLabel,
+              icon: sportPrimaryConditioningIcon(sportId),
+              title: primaryConditioningLabel,
               value: missionTargets.jumpRopeMinutes,
               values: _challengeConditioningTargetOptions,
               labelBuilder: l10n.minutes,
@@ -1691,8 +1743,8 @@ class _ChallengeMissionTargetSection extends StatelessWidget {
           ],
           if (missionTargets.hasLiftingMission) ...[
             _MissionTargetChoiceRow<int>(
-              icon: Icons.sports_soccer_outlined,
-              title: l10n.challengeLiftingLabel,
+              icon: sportSecondaryConditioningIcon(sportId),
+              title: secondaryConditioningLabel,
               value: missionTargets.liftingMinutes,
               values: _challengeConditioningTargetOptions,
               labelBuilder: l10n.minutes,
@@ -3053,6 +3105,7 @@ class _ChallengeIntroCard extends StatelessWidget {
 }
 
 class _ActiveChallengeSection extends StatelessWidget {
+  final String sportId;
   final ChallengeProgress progress;
   final String templateTitle;
   final bool readOnly;
@@ -3064,6 +3117,7 @@ class _ActiveChallengeSection extends StatelessWidget {
   final VoidCallback onOpenTrainingPrograms;
 
   const _ActiveChallengeSection({
+    required this.sportId,
     required this.progress,
     required this.templateTitle,
     required this.readOnly,
@@ -3092,6 +3146,7 @@ class _ActiveChallengeSection extends StatelessWidget {
         const SizedBox(height: 18),
         if (activeRound != null)
           _RoundFocusCard(
+            sportId: sportId,
             progress: progress,
             round: activeRound,
             readOnly: readOnly,
@@ -3109,6 +3164,7 @@ class _ActiveChallengeSection extends StatelessWidget {
 }
 
 class _RoundFocusCard extends StatelessWidget {
+  final String sportId;
   final ChallengeProgress progress;
   final ChallengeRoundProgress round;
   final bool readOnly;
@@ -3119,6 +3175,7 @@ class _RoundFocusCard extends StatelessWidget {
   final VoidCallback onOpenTrainingPrograms;
 
   const _RoundFocusCard({
+    required this.sportId,
     required this.progress,
     required this.round,
     required this.readOnly,
@@ -3139,6 +3196,14 @@ class _RoundFocusCard extends StatelessWidget {
     final selectedPrograms = _challengeSkillLabels(
       l10n,
       progress.run.selectedSkillIds,
+    );
+    final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
+    final secondaryConditioningLabel = SportDefaults.secondaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
     );
     final isCurrentRound = round.isToday && !round.completed;
     final activeGreen = theme.brightness == Brightness.dark
@@ -3261,8 +3326,8 @@ class _RoundFocusCard extends StatelessWidget {
             const SizedBox(height: 10),
             _MissionProgressRow(
               key: const ValueKey('challenge-mission-jump-rope'),
-              icon: Icons.sports_gymnastics_rounded,
-              label: l10n.challengeJumpRopeLabel,
+              icon: sportPrimaryConditioningIcon(sportId),
+              label: primaryConditioningLabel,
               value: _minutesGoalValue(
                 l10n,
                 round.jumpRopeMinutes,
@@ -3280,8 +3345,8 @@ class _RoundFocusCard extends StatelessWidget {
             const SizedBox(height: 10),
             _MissionProgressRow(
               key: const ValueKey('challenge-mission-lifting'),
-              icon: Icons.sports_soccer,
-              label: l10n.challengeLiftingLabel,
+              icon: sportSecondaryConditioningIcon(sportId),
+              label: secondaryConditioningLabel,
               value: _minutesGoalValue(
                 l10n,
                 round.liftingMinutes,
@@ -3778,6 +3843,9 @@ class _RoundCalendarActiveRinzyState extends State<_RoundCalendarActiveRinzy>
     final scheme = Theme.of(context).colorScheme;
     final progress = widget.round.missionCompletionRate.clamp(0, 1).toDouble();
     return SizedBox.square(
+      key: ValueKey(
+        'challenge-current-round-badge-${widget.round.round.number}',
+      ),
       dimension: widget.size,
       child: Semantics(
         label: '${l10n.challengePendingBadge}, '
@@ -4794,9 +4862,18 @@ String _minutesGoalValue(AppLocalizations l10n, int current, int target) {
 
 List<_ChallengeCompletedMissionSummary> _completedMissionSummariesForRounds(
   AppLocalizations l10n,
+  String sportId,
   Iterable<ChallengeRoundProgress> rounds,
 ) {
   final summaries = <String, _ChallengeCompletedMissionSummary>{};
+  final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
+    l10n: l10n,
+    sportId: sportId,
+  );
+  final secondaryConditioningLabel = SportDefaults.secondaryConditioningLabel(
+    l10n: l10n,
+    sportId: sportId,
+  );
 
   void put({
     required String key,
@@ -4843,8 +4920,8 @@ List<_ChallengeCompletedMissionSummary> _completedMissionSummariesForRounds(
     if (round.round.targetJumpRopeMinutes > 0 && round.jumpRopeCompleted) {
       put(
         key: 'jumpRope',
-        icon: Icons.sports_gymnastics_rounded,
-        label: l10n.challengeJumpRopeLabel,
+        icon: sportPrimaryConditioningIcon(sportId),
+        label: primaryConditioningLabel,
         value: _minutesGoalValue(
           l10n,
           round.jumpRopeMinutes,
@@ -4855,8 +4932,8 @@ List<_ChallengeCompletedMissionSummary> _completedMissionSummariesForRounds(
     if (round.round.targetLiftingMinutes > 0 && round.liftingCompleted) {
       put(
         key: 'lifting',
-        icon: Icons.sports_soccer,
-        label: l10n.challengeLiftingLabel,
+        icon: sportSecondaryConditioningIcon(sportId),
+        label: secondaryConditioningLabel,
         value: _minutesGoalValue(
           l10n,
           round.liftingMinutes,
@@ -5161,9 +5238,19 @@ List<_ChallengeSkillOption> _challengeProgramSkillOptions(
   }
   final seen = <String>{};
   final programs = <String>[];
+  final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
+    l10n: l10n,
+    sportId: sportId,
+  );
+  final secondaryConditioningLabel = SportDefaults.secondaryConditioningLabel(
+    l10n: l10n,
+    sportId: sportId,
+  );
   final standaloneMissionLabels = <String>{
     l10n.challengeJumpRopeLabel.trim(),
     l10n.challengeLiftingLabel.trim(),
+    primaryConditioningLabel.trim(),
+    secondaryConditioningLabel.trim(),
   };
   for (final program in normalized) {
     final trimmed = program.trim();

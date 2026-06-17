@@ -3156,6 +3156,117 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tennisGoalMatchStrategy => 'Match Strategy';
 
   @override
+  String get baseballConditioningPrimary => 'Sprint work';
+
+  @override
+  String get baseballConditioningSecondary => 'Catch play';
+
+  @override
+  String get baseballConditioningDetailTitle => 'Catch play details';
+
+  @override
+  String get baseballConditioningDetailShortThrow => 'Short throws';
+
+  @override
+  String get baseballConditioningDetailLongThrow => 'Long throws';
+
+  @override
+  String get baseballConditioningDetailGrounder => 'Grounders';
+
+  @override
+  String get baseballConditioningDetailFlyBall => 'Fly balls';
+
+  @override
+  String get baseballConditioningDetailTransfer => 'Quick transfer';
+
+  @override
+  String get baseballConditioningDetailCore => 'Core balance';
+
+  @override
+  String get basketballConditioningPrimary => 'Shuttle run';
+
+  @override
+  String get basketballConditioningSecondary => 'Ball handling';
+
+  @override
+  String get basketballConditioningDetailTitle => 'Ball handling details';
+
+  @override
+  String get basketballConditioningDetailRightHand => 'Right hand';
+
+  @override
+  String get basketballConditioningDetailLeftHand => 'Left hand';
+
+  @override
+  String get basketballConditioningDetailCrossover => 'Crossover';
+
+  @override
+  String get basketballConditioningDetailChangePace => 'Change of pace';
+
+  @override
+  String get basketballConditioningDetailShootingPocket => 'Shooting pocket';
+
+  @override
+  String get basketballConditioningDetailPressure => 'Under pressure';
+
+  @override
+  String get tennisConditioningPrimary => 'Footwork';
+
+  @override
+  String get tennisConditioningSecondary => 'Wall rally';
+
+  @override
+  String get tennisConditioningDetailTitle => 'Wall rally details';
+
+  @override
+  String get tennisConditioningDetailForehand => 'Forehand';
+
+  @override
+  String get tennisConditioningDetailBackhand => 'Backhand';
+
+  @override
+  String get tennisConditioningDetailServeToss => 'Serve toss';
+
+  @override
+  String get tennisConditioningDetailVolley => 'Volley';
+
+  @override
+  String get tennisConditioningDetailApproach => 'Approach';
+
+  @override
+  String get tennisConditioningDetailRecovery => 'Recovery step';
+
+  @override
+  String sportConditioningRecordTitle(String label) {
+    return '$label Record';
+  }
+
+  @override
+  String sportConditioningMinutesLabel(String label) {
+    return '$label time (min)';
+  }
+
+  @override
+  String sportConditioningCountLabel(String label) {
+    return '$label count';
+  }
+
+  @override
+  String sportConditioningMemoLabel(String label) {
+    return '$label memo';
+  }
+
+  @override
+  String sportConditioningMemoHint(String label) {
+    return 'Write what you felt during $label.';
+  }
+
+  @override
+  String sportConditioningEmpty(String primary, String secondary) {
+    return 'No $primary/$secondary record';
+  }
+
+  @override
   String get defaultDrill1 => 'Rondo 5:2';
 
   @override
@@ -8500,7 +8611,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeSkillSelectSubtitle =>
-      'Choose training programs, jump rope, lifting, and meal missions for this challenge, then adjust each daily target.';
+      'Choose training programs, auxiliary drills, and meal missions for this challenge, then adjust each daily target.';
 
   @override
   String get challengeMissionOtherSectionTitle => 'Extra missions';

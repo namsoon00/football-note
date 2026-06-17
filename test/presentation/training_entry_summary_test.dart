@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/utils/training_entry_summary.dart';
@@ -37,6 +38,31 @@ void main() {
       ]);
     },
   );
+
+  test('training entry summary localizes conditioning by sport', () async {
+    final l10n = await AppLocalizations.delegate.load(
+      const Locale('ko', 'KR'),
+    );
+    final entry = TrainingEntry(
+      date: DateTime(2024, 1, 5),
+      durationMinutes: 40,
+      intensity: 3,
+      type: '수비',
+      mood: 3,
+      injury: false,
+      notes: '',
+      location: '야구장',
+      liftingByPart: const {'shortThrow': 40},
+      jumpRopeCount: 120,
+      jumpRopeEnabled: true,
+      sportId: SportCatalog.baseballId,
+    );
+
+    expect(trainingEntryConditioningParts(entry, l10n), const [
+      '캐치볼 40회',
+      '스프린트 120회',
+    ]);
+  });
 
   test(
     'training entry summary can show empty conditioning and injury',

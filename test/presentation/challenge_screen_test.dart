@@ -11,6 +11,7 @@ import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/domain/entities/challenge.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
@@ -135,6 +136,69 @@ void main() {
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));
     expect(find.text('리프팅'), findsNothing);
     expect(find.text('훈련 프로그램 편집'), findsNothing);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+
+  testWidgets('challenge screen uses sport-specific conditioning missions', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      SportCatalog.currentSportOptionKey,
+      SportCatalog.baseballId,
+    );
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(
+      find.byKey(const ValueKey('challenge-template-starter_3')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final sprintChip = find.widgetWithText(FilterChip, '스프린트');
+    final catchPlayChip = find.widgetWithText(FilterChip, '캐치볼');
+    expect(sprintChip, findsOneWidget);
+    expect(catchPlayChip, findsOneWidget);
+    expect(tester.widget<FilterChip>(sprintChip).selected, isTrue);
+    expect(tester.widget<FilterChip>(catchPlayChip).selected, isFalse);
+    expect(find.text('줄넘기'), findsNothing);
+    expect(find.text('리프팅'), findsNothing);
+    expect(find.text('스프린트'), findsAtLeastNWidgets(1));
+    expect(find.text('캐치볼'), findsAtLeastNWidgets(1));
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());

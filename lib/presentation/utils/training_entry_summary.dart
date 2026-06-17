@@ -1,5 +1,6 @@
 import 'package:football_note/gen/app_localizations.dart';
 
+import '../../application/sport_defaults.dart';
 import '../../domain/entities/training_entry.dart';
 
 String trainingEntryPrimaryLabel(TrainingEntry entry, AppLocalizations l10n) {
@@ -29,29 +30,42 @@ List<String> trainingEntryConditioningParts(
 }) {
   final lifting = _liftingPartTotal(entry);
   final parts = <String>[];
+  final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
+    l10n: l10n,
+    sportId: entry.sportId,
+  );
+  final secondaryConditioningLabel = SportDefaults.secondaryConditioningLabel(
+    l10n: l10n,
+    sportId: entry.sportId,
+  );
   if (lifting > 0) {
-    parts.add('${l10n.challengeLiftingLabel} ${l10n.diaryReps(lifting)}');
+    parts.add('$secondaryConditioningLabel ${l10n.diaryReps(lifting)}');
   } else if (entry.liftingMinutes > 0) {
     parts.add(
-      '${l10n.challengeLiftingLabel} ${l10n.minutes(entry.liftingMinutes)}',
+      '$secondaryConditioningLabel ${l10n.minutes(entry.liftingMinutes)}',
     );
   }
 
   if (_hasJumpRopeRecord(entry)) {
     if (entry.jumpRopeCount > 0) {
       parts.add(
-        '${l10n.challengeJumpRopeLabel} ${l10n.diaryReps(entry.jumpRopeCount)}',
+        '$primaryConditioningLabel ${l10n.diaryReps(entry.jumpRopeCount)}',
       );
     } else if (entry.jumpRopeMinutes > 0) {
       parts.add(
-        '${l10n.challengeJumpRopeLabel} ${l10n.minutes(entry.jumpRopeMinutes)}',
+        '$primaryConditioningLabel ${l10n.minutes(entry.jumpRopeMinutes)}',
       );
     } else {
-      parts.add(l10n.challengeJumpRopeLabel);
+      parts.add(primaryConditioningLabel);
     }
   }
   if (parts.isEmpty && includeEmptyMessage) {
-    parts.add(l10n.trainingEntryConditioningEmpty);
+    parts.add(
+      l10n.sportConditioningEmpty(
+        primaryConditioningLabel,
+        secondaryConditioningLabel,
+      ),
+    );
   }
   return parts;
 }
