@@ -1679,6 +1679,84 @@
   "tennisGoalFootwork": "Footwork",
   "tennisGoalRallyConsistency": "Rally Consistency",
   "tennisGoalMatchStrategy": "Match Strategy",
+  "baseballConditioningPrimary": "Sprint work",
+  "baseballConditioningSecondary": "Catch play",
+  "baseballConditioningDetailTitle": "Catch play details",
+  "baseballConditioningDetailShortThrow": "Short throws",
+  "baseballConditioningDetailLongThrow": "Long throws",
+  "baseballConditioningDetailGrounder": "Grounders",
+  "baseballConditioningDetailFlyBall": "Fly balls",
+  "baseballConditioningDetailTransfer": "Quick transfer",
+  "baseballConditioningDetailCore": "Core balance",
+  "basketballConditioningPrimary": "Shuttle run",
+  "basketballConditioningSecondary": "Ball handling",
+  "basketballConditioningDetailTitle": "Ball handling details",
+  "basketballConditioningDetailRightHand": "Right hand",
+  "basketballConditioningDetailLeftHand": "Left hand",
+  "basketballConditioningDetailCrossover": "Crossover",
+  "basketballConditioningDetailChangePace": "Change of pace",
+  "basketballConditioningDetailShootingPocket": "Shooting pocket",
+  "basketballConditioningDetailPressure": "Under pressure",
+  "tennisConditioningPrimary": "Footwork",
+  "tennisConditioningSecondary": "Wall rally",
+  "tennisConditioningDetailTitle": "Wall rally details",
+  "tennisConditioningDetailForehand": "Forehand",
+  "tennisConditioningDetailBackhand": "Backhand",
+  "tennisConditioningDetailServeToss": "Serve toss",
+  "tennisConditioningDetailVolley": "Volley",
+  "tennisConditioningDetailApproach": "Approach",
+  "tennisConditioningDetailRecovery": "Recovery step",
+  "sportConditioningRecordTitle": "{label} Record",
+  "@sportConditioningRecordTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sportConditioningMinutesLabel": "{label} time (min)",
+  "@sportConditioningMinutesLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sportConditioningCountLabel": "{label} count",
+  "@sportConditioningCountLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sportConditioningMemoLabel": "{label} memo",
+  "@sportConditioningMemoLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sportConditioningMemoHint": "Write what you felt during {label}.",
+  "@sportConditioningMemoHint": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sportConditioningEmpty": "No {primary}/{secondary} record",
+  "@sportConditioningEmpty": {
+    "placeholders": {
+      "primary": {
+        "type": "String"
+      },
+      "secondary": {
+        "type": "String"
+      }
+    }
+  },
   "defaultDrill1": "Rondo 5:2",
   "defaultDrill2": "1v1 defense",
   "defaultDrill3": "Shooting reps",
@@ -4139,7 +4217,7 @@
   "challengeTrainingLevelAceDescription": "A challenging target for older players with more soccer experience.",
   "challengeRecommendedLevelBadge": "Recommended",
   "challengeSkillSelectTitle": "2. Choose missions",
-  "challengeSkillSelectSubtitle": "Choose training programs, jump rope, lifting, and meal missions for this challenge, then adjust each daily target.",
+  "challengeSkillSelectSubtitle": "Choose training programs, auxiliary drills, and meal missions for this challenge, then adjust each daily target.",
   "challengeMissionOtherSectionTitle": "Extra missions",
   "challengeMissionTargetsTitle": "Mission targets",
   "challengeMissionTargetsSubtitle": "Choose the daily amount for each selected mission.",

@@ -3102,6 +3102,117 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tennisGoalMatchStrategy => '試合戦略';
 
   @override
+  String get baseballConditioningPrimary => 'スプリント';
+
+  @override
+  String get baseballConditioningSecondary => 'キャッチボール';
+
+  @override
+  String get baseballConditioningDetailTitle => 'キャッチボール詳細記録';
+
+  @override
+  String get baseballConditioningDetailShortThrow => '短い送球';
+
+  @override
+  String get baseballConditioningDetailLongThrow => '長い送球';
+
+  @override
+  String get baseballConditioningDetailGrounder => 'ゴロ処理';
+
+  @override
+  String get baseballConditioningDetailFlyBall => 'フライ処理';
+
+  @override
+  String get baseballConditioningDetailTransfer => '素早い送球切替';
+
+  @override
+  String get baseballConditioningDetailCore => '体幹バランス';
+
+  @override
+  String get basketballConditioningPrimary => 'シャトルラン';
+
+  @override
+  String get basketballConditioningSecondary => 'ボールハンドリング';
+
+  @override
+  String get basketballConditioningDetailTitle => 'ボールハンドリング詳細記録';
+
+  @override
+  String get basketballConditioningDetailRightHand => '右手';
+
+  @override
+  String get basketballConditioningDetailLeftHand => '左手';
+
+  @override
+  String get basketballConditioningDetailCrossover => 'クロスオーバー';
+
+  @override
+  String get basketballConditioningDetailChangePace => '緩急';
+
+  @override
+  String get basketballConditioningDetailShootingPocket => 'シュートポケット';
+
+  @override
+  String get basketballConditioningDetailPressure => 'プレッシャー下';
+
+  @override
+  String get tennisConditioningPrimary => 'フットワーク';
+
+  @override
+  String get tennisConditioningSecondary => '壁打ち';
+
+  @override
+  String get tennisConditioningDetailTitle => '壁打ち詳細記録';
+
+  @override
+  String get tennisConditioningDetailForehand => 'フォアハンド';
+
+  @override
+  String get tennisConditioningDetailBackhand => 'バックハンド';
+
+  @override
+  String get tennisConditioningDetailServeToss => 'サーブトス';
+
+  @override
+  String get tennisConditioningDetailVolley => 'ボレー';
+
+  @override
+  String get tennisConditioningDetailApproach => 'アプローチ';
+
+  @override
+  String get tennisConditioningDetailRecovery => 'リカバリーステップ';
+
+  @override
+  String sportConditioningRecordTitle(String label) {
+    return '$label記録';
+  }
+
+  @override
+  String sportConditioningMinutesLabel(String label) {
+    return '$label時間（分）';
+  }
+
+  @override
+  String sportConditioningCountLabel(String label) {
+    return '$label回数';
+  }
+
+  @override
+  String sportConditioningMemoLabel(String label) {
+    return '$labelメモ';
+  }
+
+  @override
+  String sportConditioningMemoHint(String label) {
+    return '$labelで感じたことを書いてください。';
+  }
+
+  @override
+  String sportConditioningEmpty(String primary, String secondary) {
+    return '$primary/$secondary記録なし';
+  }
+
+  @override
   String get defaultDrill1 => 'ロンド 5:2';
 
   @override
@@ -8241,7 +8352,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeSkillSelectSubtitle =>
-      'このチャレンジに入れるトレーニングプログラム、縄跳び、リフティング、食事ミッションを選び、毎日の目標量を調整します。';
+      'このチャレンジに入れるトレーニングプログラム、補助練習、食事ミッションを選び、毎日の目標量を調整します。';
 
   @override
   String get challengeMissionOtherSectionTitle => '追加ミッション';

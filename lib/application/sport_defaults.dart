@@ -111,4 +111,100 @@ class SportDefaults {
         ];
     }
   }
+
+  static String primaryConditioningLabel({
+    required AppLocalizations l10n,
+    String sportId = SportCatalog.defaultSportId,
+  }) {
+    switch (SportCatalog.normalizeSportId(sportId)) {
+      case SportCatalog.baseballId:
+        return l10n.baseballConditioningPrimary;
+      case SportCatalog.basketballId:
+        return l10n.basketballConditioningPrimary;
+      case SportCatalog.tennisId:
+        return l10n.tennisConditioningPrimary;
+      case SportCatalog.footballId:
+      default:
+        return l10n.challengeJumpRopeLabel;
+    }
+  }
+
+  static String secondaryConditioningLabel({
+    required AppLocalizations l10n,
+    String sportId = SportCatalog.defaultSportId,
+  }) {
+    switch (SportCatalog.normalizeSportId(sportId)) {
+      case SportCatalog.baseballId:
+        return l10n.baseballConditioningSecondary;
+      case SportCatalog.basketballId:
+        return l10n.basketballConditioningSecondary;
+      case SportCatalog.tennisId:
+        return l10n.tennisConditioningSecondary;
+      case SportCatalog.footballId:
+      default:
+        return l10n.challengeLiftingLabel;
+    }
+  }
+
+  static String secondaryConditioningDetailTitle({
+    required AppLocalizations l10n,
+    String sportId = SportCatalog.defaultSportId,
+  }) {
+    switch (SportCatalog.normalizeSportId(sportId)) {
+      case SportCatalog.baseballId:
+        return l10n.baseballConditioningDetailTitle;
+      case SportCatalog.basketballId:
+        return l10n.basketballConditioningDetailTitle;
+      case SportCatalog.tennisId:
+        return l10n.tennisConditioningDetailTitle;
+      case SportCatalog.footballId:
+      default:
+        return l10n.liftingByPart;
+    }
+  }
+
+  static List<String> secondaryConditioningDetailLabels({
+    required AppLocalizations l10n,
+    String sportId = SportCatalog.defaultSportId,
+  }) {
+    switch (SportCatalog.normalizeSportId(sportId)) {
+      case SportCatalog.baseballId:
+        return [
+          l10n.baseballConditioningDetailShortThrow,
+          l10n.baseballConditioningDetailLongThrow,
+          l10n.baseballConditioningDetailGrounder,
+          l10n.baseballConditioningDetailFlyBall,
+          l10n.baseballConditioningDetailTransfer,
+          l10n.baseballConditioningDetailCore,
+        ];
+      case SportCatalog.basketballId:
+        return [
+          l10n.basketballConditioningDetailRightHand,
+          l10n.basketballConditioningDetailLeftHand,
+          l10n.basketballConditioningDetailCrossover,
+          l10n.basketballConditioningDetailChangePace,
+          l10n.basketballConditioningDetailShootingPocket,
+          l10n.basketballConditioningDetailPressure,
+        ];
+      case SportCatalog.tennisId:
+        return [
+          l10n.tennisConditioningDetailForehand,
+          l10n.tennisConditioningDetailBackhand,
+          l10n.tennisConditioningDetailServeToss,
+          l10n.tennisConditioningDetailVolley,
+          l10n.tennisConditioningDetailApproach,
+          l10n.tennisConditioningDetailRecovery,
+        ];
+      case SportCatalog.footballId:
+      default:
+        return [
+          l10n.liftingPartInfront,
+          l10n.liftingPartInside,
+          l10n.liftingPartOutside,
+          l10n.liftingPartMuple,
+          l10n.liftingPartHead,
+          l10n.liftingPartChest,
+        ];
+    }
+  }
 }

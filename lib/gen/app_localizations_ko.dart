@@ -3096,6 +3096,117 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tennisGoalMatchStrategy => '경기 전략';
 
   @override
+  String get baseballConditioningPrimary => '스프린트';
+
+  @override
+  String get baseballConditioningSecondary => '캐치볼';
+
+  @override
+  String get baseballConditioningDetailTitle => '캐치볼 세부 기록';
+
+  @override
+  String get baseballConditioningDetailShortThrow => '짧은 송구';
+
+  @override
+  String get baseballConditioningDetailLongThrow => '긴 송구';
+
+  @override
+  String get baseballConditioningDetailGrounder => '땅볼 처리';
+
+  @override
+  String get baseballConditioningDetailFlyBall => '플라이 처리';
+
+  @override
+  String get baseballConditioningDetailTransfer => '빠른 송구 전환';
+
+  @override
+  String get baseballConditioningDetailCore => '코어 밸런스';
+
+  @override
+  String get basketballConditioningPrimary => '셔틀런';
+
+  @override
+  String get basketballConditioningSecondary => '볼 핸들링';
+
+  @override
+  String get basketballConditioningDetailTitle => '볼 핸들링 세부 기록';
+
+  @override
+  String get basketballConditioningDetailRightHand => '오른손';
+
+  @override
+  String get basketballConditioningDetailLeftHand => '왼손';
+
+  @override
+  String get basketballConditioningDetailCrossover => '크로스오버';
+
+  @override
+  String get basketballConditioningDetailChangePace => '속도 변화';
+
+  @override
+  String get basketballConditioningDetailShootingPocket => '슈팅 포켓';
+
+  @override
+  String get basketballConditioningDetailPressure => '압박 상황';
+
+  @override
+  String get tennisConditioningPrimary => '풋워크';
+
+  @override
+  String get tennisConditioningSecondary => '벽치기';
+
+  @override
+  String get tennisConditioningDetailTitle => '벽치기 세부 기록';
+
+  @override
+  String get tennisConditioningDetailForehand => '포핸드';
+
+  @override
+  String get tennisConditioningDetailBackhand => '백핸드';
+
+  @override
+  String get tennisConditioningDetailServeToss => '서브 토스';
+
+  @override
+  String get tennisConditioningDetailVolley => '발리';
+
+  @override
+  String get tennisConditioningDetailApproach => '어프로치';
+
+  @override
+  String get tennisConditioningDetailRecovery => '리커버리 스텝';
+
+  @override
+  String sportConditioningRecordTitle(String label) {
+    return '$label 기록';
+  }
+
+  @override
+  String sportConditioningMinutesLabel(String label) {
+    return '$label 시간(분)';
+  }
+
+  @override
+  String sportConditioningCountLabel(String label) {
+    return '$label 횟수';
+  }
+
+  @override
+  String sportConditioningMemoLabel(String label) {
+    return '$label 메모';
+  }
+
+  @override
+  String sportConditioningMemoHint(String label) {
+    return '$label을 하면서 느낀 점을 적어보세요.';
+  }
+
+  @override
+  String sportConditioningEmpty(String primary, String secondary) {
+    return '$primary/$secondary 기록 없음';
+  }
+
+  @override
   String get defaultDrill1 => '5:2 론도';
 
   @override
@@ -8250,7 +8361,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeSkillSelectSubtitle =>
-      '챌린지에 넣을 훈련 프로그램, 줄넘기, 리프팅, 식사 미션을 고르고 목표 훈련량을 조정하세요.';
+      '챌린지에 넣을 훈련 프로그램, 보조 훈련, 식사 미션을 고르고 목표 훈련량을 조정하세요.';
 
   @override
   String get challengeMissionOtherSectionTitle => '추가 미션';

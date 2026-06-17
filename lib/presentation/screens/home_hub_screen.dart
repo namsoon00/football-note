@@ -16,6 +16,7 @@ import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/sport_capabilities.dart';
+import '../../application/sport_defaults.dart';
 import '../../application/sport_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
@@ -28,6 +29,7 @@ import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
+import '../utils/sport_conditioning_visuals.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
@@ -365,6 +367,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         _DailyFlowCard(
                           data: data,
                           l10n: l10n,
+                          sportId: sportId,
                           onLog: _trackedAction(
                             'daily_flow_log',
                             () => _openTodayEntryOrCreate(data),
@@ -1578,6 +1581,7 @@ class _LevelHeroCard extends StatelessWidget {
 class _DailyFlowCard extends StatelessWidget {
   final _HomeHubData data;
   final AppLocalizations l10n;
+  final String sportId;
   final VoidCallback? onLog;
   final VoidCallback? onLifting;
   final VoidCallback? onJumpRope;
@@ -1590,6 +1594,7 @@ class _DailyFlowCard extends StatelessWidget {
   const _DailyFlowCard({
     required this.data,
     required this.l10n,
+    required this.sportId,
     required this.onLog,
     required this.onLifting,
     required this.onJumpRope,
@@ -1602,6 +1607,14 @@ class _DailyFlowCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
+    final secondaryConditioningLabel = SportDefaults.secondaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
     final visibleTaskStates = <bool>[
       data.loggedTrainingToday,
       data.loggedLiftingToday,
@@ -1662,14 +1675,14 @@ class _DailyFlowCard extends StatelessWidget {
               ),
               _TodoChip(
                 done: data.loggedLiftingToday,
-                icon: Icons.fitness_center_rounded,
-                label: l10n.homeTodoLiftingShort,
+                icon: sportSecondaryConditioningIcon(sportId),
+                label: secondaryConditioningLabel,
                 onTap: onLifting,
               ),
               _TodoChip(
                 done: data.loggedJumpRopeToday,
-                icon: Icons.sports_gymnastics_rounded,
-                label: l10n.homeTodoJumpRopeShort,
+                icon: sportPrimaryConditioningIcon(sportId),
+                label: primaryConditioningLabel,
                 onTap: onJumpRope,
               ),
               _TodoChip(

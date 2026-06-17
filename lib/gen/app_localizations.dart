@@ -5779,6 +5779,204 @@ abstract class AppLocalizations {
   /// **'Match Strategy'**
   String get tennisGoalMatchStrategy;
 
+  /// No description provided for @baseballConditioningPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprint work'**
+  String get baseballConditioningPrimary;
+
+  /// No description provided for @baseballConditioningSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch play'**
+  String get baseballConditioningSecondary;
+
+  /// No description provided for @baseballConditioningDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch play details'**
+  String get baseballConditioningDetailTitle;
+
+  /// No description provided for @baseballConditioningDetailShortThrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Short throws'**
+  String get baseballConditioningDetailShortThrow;
+
+  /// No description provided for @baseballConditioningDetailLongThrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Long throws'**
+  String get baseballConditioningDetailLongThrow;
+
+  /// No description provided for @baseballConditioningDetailGrounder.
+  ///
+  /// In en, this message translates to:
+  /// **'Grounders'**
+  String get baseballConditioningDetailGrounder;
+
+  /// No description provided for @baseballConditioningDetailFlyBall.
+  ///
+  /// In en, this message translates to:
+  /// **'Fly balls'**
+  String get baseballConditioningDetailFlyBall;
+
+  /// No description provided for @baseballConditioningDetailTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick transfer'**
+  String get baseballConditioningDetailTransfer;
+
+  /// No description provided for @baseballConditioningDetailCore.
+  ///
+  /// In en, this message translates to:
+  /// **'Core balance'**
+  String get baseballConditioningDetailCore;
+
+  /// No description provided for @basketballConditioningPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuttle run'**
+  String get basketballConditioningPrimary;
+
+  /// No description provided for @basketballConditioningSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball handling'**
+  String get basketballConditioningSecondary;
+
+  /// No description provided for @basketballConditioningDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball handling details'**
+  String get basketballConditioningDetailTitle;
+
+  /// No description provided for @basketballConditioningDetailRightHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Right hand'**
+  String get basketballConditioningDetailRightHand;
+
+  /// No description provided for @basketballConditioningDetailLeftHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Left hand'**
+  String get basketballConditioningDetailLeftHand;
+
+  /// No description provided for @basketballConditioningDetailCrossover.
+  ///
+  /// In en, this message translates to:
+  /// **'Crossover'**
+  String get basketballConditioningDetailCrossover;
+
+  /// No description provided for @basketballConditioningDetailChangePace.
+  ///
+  /// In en, this message translates to:
+  /// **'Change of pace'**
+  String get basketballConditioningDetailChangePace;
+
+  /// No description provided for @basketballConditioningDetailShootingPocket.
+  ///
+  /// In en, this message translates to:
+  /// **'Shooting pocket'**
+  String get basketballConditioningDetailShootingPocket;
+
+  /// No description provided for @basketballConditioningDetailPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Under pressure'**
+  String get basketballConditioningDetailPressure;
+
+  /// No description provided for @tennisConditioningPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Footwork'**
+  String get tennisConditioningPrimary;
+
+  /// No description provided for @tennisConditioningSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall rally'**
+  String get tennisConditioningSecondary;
+
+  /// No description provided for @tennisConditioningDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall rally details'**
+  String get tennisConditioningDetailTitle;
+
+  /// No description provided for @tennisConditioningDetailForehand.
+  ///
+  /// In en, this message translates to:
+  /// **'Forehand'**
+  String get tennisConditioningDetailForehand;
+
+  /// No description provided for @tennisConditioningDetailBackhand.
+  ///
+  /// In en, this message translates to:
+  /// **'Backhand'**
+  String get tennisConditioningDetailBackhand;
+
+  /// No description provided for @tennisConditioningDetailServeToss.
+  ///
+  /// In en, this message translates to:
+  /// **'Serve toss'**
+  String get tennisConditioningDetailServeToss;
+
+  /// No description provided for @tennisConditioningDetailVolley.
+  ///
+  /// In en, this message translates to:
+  /// **'Volley'**
+  String get tennisConditioningDetailVolley;
+
+  /// No description provided for @tennisConditioningDetailApproach.
+  ///
+  /// In en, this message translates to:
+  /// **'Approach'**
+  String get tennisConditioningDetailApproach;
+
+  /// No description provided for @tennisConditioningDetailRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery step'**
+  String get tennisConditioningDetailRecovery;
+
+  /// No description provided for @sportConditioningRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} Record'**
+  String sportConditioningRecordTitle(String label);
+
+  /// No description provided for @sportConditioningMinutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} time (min)'**
+  String sportConditioningMinutesLabel(String label);
+
+  /// No description provided for @sportConditioningCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} count'**
+  String sportConditioningCountLabel(String label);
+
+  /// No description provided for @sportConditioningMemoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} memo'**
+  String sportConditioningMemoLabel(String label);
+
+  /// No description provided for @sportConditioningMemoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write what you felt during {label}.'**
+  String sportConditioningMemoHint(String label);
+
+  /// No description provided for @sportConditioningEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No {primary}/{secondary} record'**
+  String sportConditioningEmpty(String primary, String secondary);
+
   /// No description provided for @defaultDrill1.
   ///
   /// In en, this message translates to:
@@ -14766,7 +14964,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeSkillSelectSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose training programs, jump rope, lifting, and meal missions for this challenge, then adjust each daily target.'**
+  /// **'Choose training programs, auxiliary drills, and meal missions for this challenge, then adjust each daily target.'**
   String get challengeSkillSelectSubtitle;
 
   /// No description provided for @challengeMissionOtherSectionTitle.

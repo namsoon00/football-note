@@ -1679,6 +1679,84 @@
   "tennisGoalFootwork": "フットワーク",
   "tennisGoalRallyConsistency": "ラリー継続",
   "tennisGoalMatchStrategy": "試合戦略",
+  "baseballConditioningPrimary": "スプリント",
+  "baseballConditioningSecondary": "キャッチボール",
+  "baseballConditioningDetailTitle": "キャッチボール詳細記録",
+  "baseballConditioningDetailShortThrow": "短い送球",
+  "baseballConditioningDetailLongThrow": "長い送球",
+  "baseballConditioningDetailGrounder": "ゴロ処理",
+  "baseballConditioningDetailFlyBall": "フライ処理",
+  "baseballConditioningDetailTransfer": "素早い送球切替",
+  "baseballConditioningDetailCore": "体幹バランス",
+  "basketballConditioningPrimary": "シャトルラン",
+  "basketballConditioningSecondary": "ボールハンドリング",
+  "basketballConditioningDetailTitle": "ボールハンドリング詳細記録",
+  "basketballConditioningDetailRightHand": "右手",
+  "basketballConditioningDetailLeftHand": "左手",
+  "basketballConditioningDetailCrossover": "クロスオーバー",
+  "basketballConditioningDetailChangePace": "緩急",
+  "basketballConditioningDetailShootingPocket": "シュートポケット",
+  "basketballConditioningDetailPressure": "プレッシャー下",
+  "tennisConditioningPrimary": "フットワーク",
+  "tennisConditioningSecondary": "壁打ち",
+  "tennisConditioningDetailTitle": "壁打ち詳細記録",
+  "tennisConditioningDetailForehand": "フォアハンド",
+  "tennisConditioningDetailBackhand": "バックハンド",
+  "tennisConditioningDetailServeToss": "サーブトス",
+  "tennisConditioningDetailVolley": "ボレー",
+  "tennisConditioningDetailApproach": "アプローチ",
+  "tennisConditioningDetailRecovery": "リカバリーステップ",
+  "sportConditioningRecordTitle": "{label}記録",
+  "@sportConditioningRecordTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sportConditioningMinutesLabel": "{label}時間（分）",
+  "@sportConditioningMinutesLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sportConditioningCountLabel": "{label}回数",
+  "@sportConditioningCountLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sportConditioningMemoLabel": "{label}メモ",
+  "@sportConditioningMemoLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sportConditioningMemoHint": "{label}で感じたことを書いてください。",
+  "@sportConditioningMemoHint": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sportConditioningEmpty": "{primary}/{secondary}記録なし",
+  "@sportConditioningEmpty": {
+    "placeholders": {
+      "primary": {
+        "type": "String"
+      },
+      "secondary": {
+        "type": "String"
+      }
+    }
+  },
   "defaultDrill1": "ロンド 5:2",
   "defaultDrill2": "1対1のディフェンス",
   "defaultDrill3": "射撃回数",
@@ -4139,7 +4217,7 @@
   "challengeTrainingLevelAceDescription": "年齢とサッカー経験がある選手向けの挑戦的な目標です。",
   "challengeRecommendedLevelBadge": "おすすめ",
   "challengeSkillSelectTitle": "2. ミッションを選択",
-  "challengeSkillSelectSubtitle": "このチャレンジに入れるトレーニングプログラム、縄跳び、リフティング、食事ミッションを選び、毎日の目標量を調整します。",
+  "challengeSkillSelectSubtitle": "このチャレンジに入れるトレーニングプログラム、補助練習、食事ミッションを選び、毎日の目標量を調整します。",
   "challengeMissionOtherSectionTitle": "追加ミッション",
   "challengeMissionTargetsTitle": "ミッション別目標",
   "challengeMissionTargetsSubtitle": "選択したミッションごとに毎日の達成量を選びます。",
