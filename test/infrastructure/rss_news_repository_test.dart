@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/news_article.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/infrastructure/rss_news_repository.dart';
 
 void main() {
@@ -56,6 +57,41 @@ void main() {
     final ids = channels.map((channel) => channel.id).toList();
 
     expect(ids.toSet(), hasLength(ids.length));
+  });
+
+  test('defaults to football news channels only', () {
+    final channels = RssNewsRepository().channels();
+
+    expect(channels, isNotEmpty);
+    expect(
+      channels.every((channel) => channel.sportId == SportCatalog.footballId),
+      isTrue,
+    );
+  });
+
+  test('provides baseball, basketball, and tennis news channels by sport', () {
+    final repository = RssNewsRepository();
+    final baseball = repository.channels(sportId: SportCatalog.baseballId);
+    final basketball = repository.channels(sportId: SportCatalog.basketballId);
+    final tennis = repository.channels(sportId: SportCatalog.tennisId);
+
+    expect(baseball.map((channel) => channel.id), contains('espn_mlb_en'));
+    expect(basketball.map((channel) => channel.id), contains('espn_nba_en'));
+    expect(tennis.map((channel) => channel.id), contains('espn_tennis_en'));
+    expect(
+      baseball.every((channel) => channel.sportId == SportCatalog.baseballId),
+      isTrue,
+    );
+    expect(
+      basketball.every(
+        (channel) => channel.sportId == SportCatalog.basketballId,
+      ),
+      isTrue,
+    );
+    expect(
+      tennis.every((channel) => channel.sportId == SportCatalog.tennisId),
+      isTrue,
+    );
   });
 
   test('domestic football channels use Korean suffix for picker grouping', () {

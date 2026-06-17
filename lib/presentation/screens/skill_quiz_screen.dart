@@ -12,7 +12,9 @@ import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/skill_quiz_resume_summary.dart';
+import '../../application/sport_service.dart';
 import '../../application/training_plan_reminder_service.dart';
+import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_feedback.dart';
 
@@ -36,18 +38,25 @@ class SkillQuizScreen extends StatefulWidget {
   const SkillQuizScreen({super.key, required this.optionRepository});
 
   static SkillQuizResumeSummary loadResumeSummary(
-    OptionRepository optionRepository,
-  ) {
+    OptionRepository optionRepository, {
+    String? sportId,
+  }) {
     final session = _QuizSessionSnapshot.tryParse(
-      optionRepository.getValue<String>(sessionKey),
+      optionRepository.getValue<String>(
+        storageKey(optionRepository, sessionKey, sportId: sportId),
+      ),
     );
     final now = DateTime.now();
     final pendingDueCount = _countDueScheduledWrongItemsLight(
-      optionRepository.getValue<String>(pendingWrongScheduleKey),
+      optionRepository.getValue<String>(
+        storageKey(optionRepository, pendingWrongScheduleKey, sportId: sportId),
+      ),
       now,
     ).length;
 
-    final rawCompletedAt = optionRepository.getValue<String>(completionKey);
+    final rawCompletedAt = optionRepository.getValue<String>(
+      storageKey(optionRepository, completionKey, sportId: sportId),
+    );
     final completedAt =
         rawCompletedAt == null ? null : DateTime.tryParse(rawCompletedAt);
     final completedToday = completedAt != null &&
@@ -63,6 +72,20 @@ class SkillQuizScreen extends StatefulWidget {
       pendingWrongCount: pendingDueCount,
       completedToday: completedToday,
     );
+  }
+
+  static String storageKey(
+    OptionRepository optionRepository,
+    String baseKey, {
+    String? sportId,
+  }) {
+    final normalizedSportId = SportCatalog.normalizeSportId(
+      sportId ?? SportService(optionRepository).currentSportId(),
+    );
+    if (normalizedSportId == SportCatalog.footballId) {
+      return baseKey;
+    }
+    return '${baseKey}_$normalizedSportId';
   }
 
   @override
@@ -117,6 +140,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   late final Map<String, _FootballQuizQuestion> _questionMap;
   late final List<_FootballQuizQuestion> _allQuestions;
   late final PlayerProfileService _profileService;
+  late final String _sportId;
   _QuizSessionSnapshot? _pendingResumeSnapshot;
   late SkillQuizResumeSummary _resumeSummary;
 
@@ -154,15 +178,21 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   @override
   void initState() {
     super.initState();
-    _allQuestions = _footballQuizPoolCache;
+    _sportId = SportService(widget.optionRepository).currentSportId();
+    _allQuestions = _quizPoolForSport(_sportId);
     _questionMap = {
       for (final question in _allQuestions) question.id: question,
       for (final question in _allQuestions) ..._legacyQuestionAliases(question),
     };
     _profileService = PlayerProfileService(widget.optionRepository);
-    _resumeSummary = SkillQuizScreen.loadResumeSummary(widget.optionRepository);
+    _resumeSummary = SkillQuizScreen.loadResumeSummary(
+      widget.optionRepository,
+      sportId: _sportId,
+    );
     _pendingResumeSnapshot = _QuizSessionSnapshot.tryParse(
-      widget.optionRepository.getValue<String>(SkillQuizScreen.sessionKey),
+      widget.optionRepository.getValue<String>(
+        _storageKey(SkillQuizScreen.sessionKey),
+      ),
     );
   }
 
@@ -174,7 +204,18 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 
   void _refreshResumeSummary() {
-    _resumeSummary = SkillQuizScreen.loadResumeSummary(widget.optionRepository);
+    _resumeSummary = SkillQuizScreen.loadResumeSummary(
+      widget.optionRepository,
+      sportId: _sportId,
+    );
+  }
+
+  String _storageKey(String baseKey) {
+    return SkillQuizScreen.storageKey(
+      widget.optionRepository,
+      baseKey,
+      sportId: _sportId,
+    );
   }
 
   bool get _isParentMode =>
@@ -258,12 +299,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   void _startDailySession() {
     final token = _todayToken();
     final savedToken = widget.optionRepository.getValue<String>(
-      SkillQuizScreen.dailyQuestionsDayKey,
+      _storageKey(SkillQuizScreen.dailyQuestionsDayKey),
     );
     if (savedToken == token) {
       final savedIds = _decodeStringList(
         widget.optionRepository.getValue<String>(
-          SkillQuizScreen.dailyQuestionsKey,
+          _storageKey(SkillQuizScreen.dailyQuestionsKey),
         ),
       );
       final savedQuestions = savedIds
@@ -280,13 +321,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final picked = _pickDailyQuestions(random);
     unawaited(
       widget.optionRepository.setValue(
-        SkillQuizScreen.dailyQuestionsDayKey,
+        _storageKey(SkillQuizScreen.dailyQuestionsDayKey),
         token,
       ),
     );
     unawaited(
       widget.optionRepository.setValue(
-        SkillQuizScreen.dailyQuestionsKey,
+        _storageKey(SkillQuizScreen.dailyQuestionsKey),
         jsonEncode(picked.map((q) => q.id).toList(growable: false)),
       ),
     );
@@ -802,11 +843,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
     if (_mode == _QuizMode.daily) {
       await widget.optionRepository.setValue(
-        SkillQuizScreen.completionKey,
+        _storageKey(SkillQuizScreen.completionKey),
         completedAt.toIso8601String(),
       );
     }
-    await widget.optionRepository.setValue(SkillQuizScreen.sessionKey, '');
+    await widget.optionRepository.setValue(
+      _storageKey(SkillQuizScreen.sessionKey),
+      '',
+    );
     _refreshResumeSummary();
 
     if (!mounted) return;
@@ -1514,7 +1558,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   Future<void> _appendQuizHistory(DateTime finishedAt) async {
     if (_questions.isEmpty) return;
     final existing = _QuizHistoryEntry.decodeList(
-      widget.optionRepository.getValue<String>(SkillQuizScreen.historyKey),
+      widget.optionRepository.getValue<String>(
+        _storageKey(SkillQuizScreen.historyKey),
+      ),
     ).take(19).toList(growable: true);
     final allQuestions = _questions
         .map(
@@ -1562,14 +1608,16 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       ),
     );
     await widget.optionRepository.setValue(
-      SkillQuizScreen.historyKey,
+      _storageKey(SkillQuizScreen.historyKey),
       _QuizHistoryEntry.encodeList(existing),
     );
   }
 
   List<_QuizHistoryEntry> _loadQuizHistory() {
     return _QuizHistoryEntry.decodeList(
-      widget.optionRepository.getValue<String>(SkillQuizScreen.historyKey),
+      widget.optionRepository.getValue<String>(
+        _storageKey(SkillQuizScreen.historyKey),
+      ),
     );
   }
 
@@ -1607,7 +1655,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       );
       _pendingResumeSnapshot = snapshot;
       await widget.optionRepository.setValue(
-        SkillQuizScreen.sessionKey,
+        _storageKey(SkillQuizScreen.sessionKey),
         snapshot.encode(),
       );
     }
@@ -1862,7 +1910,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Future<void> _persistSession() async {
     if (_finished || _questions.isEmpty) {
-      await widget.optionRepository.setValue(SkillQuizScreen.sessionKey, '');
+      await widget.optionRepository.setValue(
+        _storageKey(SkillQuizScreen.sessionKey),
+        '',
+      );
       _refreshResumeSummary();
       return;
     }
@@ -1886,7 +1937,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       speedLeft: _speedLeft,
     );
     await widget.optionRepository.setValue(
-      SkillQuizScreen.sessionKey,
+      _storageKey(SkillQuizScreen.sessionKey),
       snapshot.encode(),
     );
     _pendingResumeSnapshot = snapshot;
@@ -1895,11 +1946,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Future<void> _trackMetric(String key) async {
     final current = _QuizMetrics.parse(
-      widget.optionRepository.getValue<String>(SkillQuizScreen.metricsKey),
+      widget.optionRepository.getValue<String>(
+        _storageKey(SkillQuizScreen.metricsKey),
+      ),
     );
     current[key] = (current[key] ?? 0) + 1;
     await widget.optionRepository.setValue(
-      SkillQuizScreen.metricsKey,
+      _storageKey(SkillQuizScreen.metricsKey),
       jsonEncode(current),
     );
   }
@@ -1911,7 +1964,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         _answerCount == 0 ? 8.0 : (_responseMillisSum / _answerCount) / 1000;
     final perf = _RecentPerformance(accuracy: accuracy, avgSeconds: avgSec);
     await widget.optionRepository.setValue(
-      SkillQuizScreen.recentPerformanceKey,
+      _storageKey(SkillQuizScreen.recentPerformanceKey),
       perf.encode(),
     );
   }
@@ -1920,7 +1973,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     if (_questions.isEmpty) return;
     final current = _QuizCategoryAggregate.decodeMap(
       widget.optionRepository.getValue<String>(
-        SkillQuizScreen.categoryStatsKey,
+        _storageKey(SkillQuizScreen.categoryStatsKey),
       ),
     );
     final session = _sessionCategoryStats();
@@ -1929,7 +1982,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       current[entry.key] = previous.merge(entry.value);
     }
     await widget.optionRepository.setValue(
-      SkillQuizScreen.categoryStatsKey,
+      _storageKey(SkillQuizScreen.categoryStatsKey),
       _QuizCategoryAggregate.encodeMap(current),
     );
   }
@@ -1979,7 +2032,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final latestHistory = history.isEmpty ? null : history.first;
     final categoryStats = _QuizCategoryAggregate.decodeMap(
       widget.optionRepository.getValue<String>(
-        SkillQuizScreen.categoryStatsKey,
+        _storageKey(SkillQuizScreen.categoryStatsKey),
       ),
     );
     _QuizCategory? weakest;
@@ -2044,7 +2097,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
     final perf = _RecentPerformance.tryParse(
       widget.optionRepository.getValue<String>(
-        SkillQuizScreen.recentPerformanceKey,
+        _storageKey(SkillQuizScreen.recentPerformanceKey),
       ),
     );
     final targetDifficulty = perf?.targetDifficulty ?? 2;
@@ -2225,7 +2278,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   List<_FootballQuizQuestion> _loadDueReviewQuestions() {
     final scheduled = _normalizeScheduledWrongItems(
       widget.optionRepository.getValue<String>(
-        SkillQuizScreen.pendingWrongScheduleKey,
+        _storageKey(SkillQuizScreen.pendingWrongScheduleKey),
       ),
     );
     final now = DateTime.now();
@@ -2444,18 +2497,18 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final concepts = questions.map((question) => question.conceptKey).toSet();
     final current = _normalizeScheduledWrongItems(
       widget.optionRepository.getValue<String>(
-        SkillQuizScreen.pendingWrongScheduleKey,
+        _storageKey(SkillQuizScreen.pendingWrongScheduleKey),
       ),
     );
     final next = current
         .where((item) => !concepts.contains(item.conceptKey))
         .toList(growable: false);
     await widget.optionRepository.setValue(
-      SkillQuizScreen.pendingWrongScheduleKey,
+      _storageKey(SkillQuizScreen.pendingWrongScheduleKey),
       _ScheduledWrongItem.encodeList(next),
     );
     await widget.optionRepository.setValue(
-      SkillQuizScreen.pendingWrongQuestionsKey,
+      _storageKey(SkillQuizScreen.pendingWrongQuestionsKey),
       '',
     );
   }
@@ -2465,7 +2518,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   ) async {
     final current = _normalizeScheduledWrongItems(
       widget.optionRepository.getValue<String>(
-        SkillQuizScreen.pendingWrongScheduleKey,
+        _storageKey(SkillQuizScreen.pendingWrongScheduleKey),
       ),
     );
     final map = <String, _ScheduledWrongItem>{
@@ -2485,11 +2538,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     }
 
     await widget.optionRepository.setValue(
-      SkillQuizScreen.pendingWrongScheduleKey,
+      _storageKey(SkillQuizScreen.pendingWrongScheduleKey),
       _ScheduledWrongItem.encodeList(map.values.toList(growable: false)),
     );
     await widget.optionRepository.setValue(
-      SkillQuizScreen.pendingWrongQuestionsKey,
+      _storageKey(SkillQuizScreen.pendingWrongQuestionsKey),
       '',
     );
   }
@@ -10964,6 +11017,826 @@ bool _answerMatchesQuestion(_FootballQuizQuestion question, String answer) {
   return correct == normalized;
 }
 
+_FootballQuizQuestion _sportQuizQuestion({
+  required String id,
+  required String conceptKey,
+  required int difficulty,
+  required _QuestionStyle style,
+  required _QuizCategory category,
+  required String koPrompt,
+  required String enPrompt,
+  List<_FootballQuizOption> options = const <_FootballQuizOption>[],
+  int correctIndex = -1,
+  List<String> acceptedAnswers = const <String>[],
+  required String koExplain,
+  required String enExplain,
+  required String koNextPoint,
+  required String enNextPoint,
+}) {
+  return _FootballQuizQuestion(
+    id: id,
+    conceptKey: conceptKey,
+    difficulty: difficulty,
+    style: style,
+    category: category,
+    koPrompt: koPrompt,
+    enPrompt: enPrompt,
+    options: options,
+    correctIndex: correctIndex,
+    acceptedAnswers: acceptedAnswers,
+    koExplain: koExplain,
+    enExplain: enExplain,
+    koNextPoint: koNextPoint,
+    enNextPoint: enNextPoint,
+  );
+}
+
+List<_FootballQuizQuestion> _buildBaseballQuizPool() {
+  return <_FootballQuizQuestion>[
+    _sportQuizQuestion(
+      id: 'baseball_mcq_strike_zone',
+      conceptKey: 'baseball_strike_zone',
+      difficulty: 1,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.rules,
+      koPrompt: '타자가 치지 않았을 때 스트라이크가 되는 가장 기본 조건은?',
+      enPrompt: 'When a batter does not swing, what makes the pitch a strike?',
+      options: const [
+        _FootballQuizOption(
+            koText: '스트라이크존을 통과한다',
+            enText: 'It passes through the strike zone'),
+        _FootballQuizOption(
+            koText: '포수가 크게 외친다', enText: 'The catcher calls loudly'),
+        _FootballQuizOption(koText: '공이 빠르게 온다', enText: 'The pitch is fast'),
+        _FootballQuizOption(
+            koText: '타자가 한 발 움직인다', enText: 'The batter moves one foot'),
+      ],
+      correctIndex: 0,
+      koExplain: '스트라이크존을 통과한 투구는 타자가 치지 않아도 스트라이크입니다.',
+      enExplain:
+          'A pitch through the strike zone is a strike even if the batter does not swing.',
+      koNextPoint: '존을 숫자로 외우기보다 무릎-가슴 사이 높이를 먼저 보세요.',
+      enNextPoint:
+          'Read the height window first instead of memorizing it mechanically.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_mcq_force_out',
+      conceptKey: 'baseball_force_out',
+      difficulty: 1,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.rules,
+      koPrompt: '포스 아웃 상황에서 수비가 가장 먼저 확인할 것은?',
+      enPrompt:
+          'In a force-out situation, what should the defense confirm first?',
+      options: const [
+        _FootballQuizOption(
+            koText: '주자가 반드시 가야 하는 베이스',
+            enText: 'The base the runner is forced to reach'),
+        _FootballQuizOption(
+            koText: '외야 펜스 거리', enText: 'The outfield fence distance'),
+        _FootballQuizOption(koText: '투수의 구속', enText: 'The pitcher speed'),
+        _FootballQuizOption(koText: '타자의 등번호', enText: 'The batter number'),
+      ],
+      correctIndex: 0,
+      koExplain: '포스 아웃은 주자가 밀려서 반드시 가야 하는 베이스를 공보다 늦게 밟으면 아웃입니다.',
+      enExplain:
+          'A force out happens when the ball reaches the forced base before the runner.',
+      koNextPoint: '상황을 보기 전 아웃카운트와 주자 위치를 먼저 말해보세요.',
+      enNextPoint: 'Call the outs and runner positions before the pitch.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_mcq_tag_up',
+      conceptKey: 'baseball_tag_up',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '플라이볼이 잡혔을 때 태그업을 하려면 주자는 어떻게 해야 할까?',
+      enPrompt: 'After a fly ball is caught, what must a runner do to tag up?',
+      options: const [
+        _FootballQuizOption(
+            koText: '원래 베이스를 다시 밟고 출발한다',
+            enText: 'Retouch the original base before leaving'),
+        _FootballQuizOption(
+            koText: '바로 다음 베이스로 뛴다',
+            enText: 'Run immediately to the next base'),
+        _FootballQuizOption(
+            koText: '타석으로 돌아간다', enText: 'Return to home plate'),
+        _FootballQuizOption(
+            koText: '주심에게 허락을 받는다',
+            enText: 'Ask the plate umpire for permission'),
+      ],
+      correctIndex: 0,
+      koExplain: '잡힌 플라이볼에서는 포구 이후 원래 베이스를 밟은 뒤 진루해야 합니다.',
+      enExplain:
+          'On a caught fly ball, the runner must retouch the base before advancing.',
+      koNextPoint: '외야수의 어깨와 포구 위치를 함께 보고 뛰는 결정을 하세요.',
+      enNextPoint:
+          'Judge both the outfielder arm and catch location before going.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_mcq_infield_fly',
+      conceptKey: 'baseball_infield_fly',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.rules,
+      koPrompt: '인필드 플라이 규칙의 핵심 목적은?',
+      enPrompt: 'What is the core purpose of the infield fly rule?',
+      options: const [
+        _FootballQuizOption(
+            koText: '고의 낙구로 병살을 노리는 상황을 막는다',
+            enText: 'Prevent an intentional drop to create a double play'),
+        _FootballQuizOption(
+            koText: '홈런을 더 많이 만들게 한다', enText: 'Create more home runs'),
+        _FootballQuizOption(
+            koText: '투수 교체를 줄인다', enText: 'Reduce pitching changes'),
+        _FootballQuizOption(
+            koText: '외야수만 공을 잡게 한다',
+            enText: 'Force only outfielders to catch the ball'),
+      ],
+      correctIndex: 0,
+      koExplain: '인필드 플라이는 쉬운 내야 뜬공을 일부러 떨어뜨려 주자를 속이는 플레이를 제한합니다.',
+      enExplain:
+          'The rule limits intentional drops on easy infield popups that could trap runners.',
+      koNextPoint: '무사/1사, 1·2루 또는 만루 상황을 함께 확인하세요.',
+      enNextPoint: 'Pair the rule with outs and runner configuration.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_mcq_cutoff',
+      conceptKey: 'baseball_cutoff_throw',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.positions,
+      koPrompt: '외야 송구에서 컷오프맨의 가장 중요한 역할은?',
+      enPrompt: 'What is the key role of a cutoff player on an outfield throw?',
+      options: const [
+        _FootballQuizOption(
+            koText: '송구 거리를 줄이고 다음 플레이 방향을 결정한다',
+            enText: 'Shorten the throw and redirect the next play'),
+        _FootballQuizOption(koText: '타자에게 사인을 낸다', enText: 'Signal the batter'),
+        _FootballQuizOption(
+            koText: '공을 오래 들고 시간을 끈다', enText: 'Hold the ball to waste time'),
+        _FootballQuizOption(koText: '항상 홈으로만 던진다', enText: 'Always throw home'),
+      ],
+      correctIndex: 0,
+      koExplain: '컷오프는 긴 송구를 안전하게 연결하고 주자의 추가 진루를 제어합니다.',
+      enExplain:
+          'The cutoff connects long throws safely and controls extra bases.',
+      koNextPoint: '공을 받기 전 몸 방향을 목표 베이스 쪽으로 열어두세요.',
+      enNextPoint: 'Open your body toward the target base before receiving.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_mcq_count_3_0',
+      conceptKey: 'baseball_count_3_0',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.mindset,
+      koPrompt: '볼카운트 3-0에서 어린 타자에게 가장 안전한 기본 선택은?',
+      enPrompt:
+          'On a 3-0 count, what is the safest default for a young hitter?',
+      options: const [
+        _FootballQuizOption(
+            koText: '좋은 공이 아니면 기다린다',
+            enText: 'Take unless it is a very good pitch'),
+        _FootballQuizOption(koText: '무조건 번트한다', enText: 'Always bunt'),
+        _FootballQuizOption(koText: '아무 공이나 친다', enText: 'Swing at anything'),
+        _FootballQuizOption(
+            koText: '타석 밖으로 나간다', enText: 'Step out of the box'),
+      ],
+      correctIndex: 0,
+      koExplain: '3-0은 타자에게 유리한 카운트라 존 관리와 선구안이 우선입니다.',
+      enExplain: 'A 3-0 count favors the hitter, so discipline comes first.',
+      koNextPoint: '코치 사인이 없다면 자기 존 한가운데만 노리세요.',
+      enNextPoint: 'Without a coach sign, look only for your best zone.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_mcq_bunt_use',
+      conceptKey: 'baseball_sacrifice_bunt',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '희생번트를 쓰기 좋은 대표 상황은?',
+      enPrompt: 'What is a common situation for a sacrifice bunt?',
+      options: const [
+        _FootballQuizOption(
+            koText: '주자를 한 베이스 진루시키는 것이 중요한 상황',
+            enText: 'When advancing a runner one base is valuable'),
+        _FootballQuizOption(
+            koText: '무조건 장타가 필요한 상황',
+            enText: 'When only an extra-base hit matters'),
+        _FootballQuizOption(
+            koText: '수비수가 모두 외야에 없을 때',
+            enText: 'When all defenders are outside the outfield'),
+        _FootballQuizOption(
+            koText: '투수가 타석에 없을 때만',
+            enText: 'Only when the pitcher is not batting'),
+      ],
+      correctIndex: 0,
+      koExplain: '희생번트는 아웃 하나를 감수하고 주자의 위치 가치를 높이는 선택입니다.',
+      enExplain: 'A sacrifice bunt trades an out to improve runner position.',
+      koNextPoint: '번트 각도는 공을 죽이는 것보다 1루/3루 방향 선택이 중요합니다.',
+      enNextPoint: 'The bunt direction often matters as much as soft contact.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_mcq_steal_timing',
+      conceptKey: 'baseball_steal_timing',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.technique,
+      koPrompt: '도루 스타트에서 가장 먼저 읽어야 할 단서는?',
+      enPrompt: 'What cue should a base stealer read first?',
+      options: const [
+        _FootballQuizOption(
+            koText: '투수의 첫 움직임과 견제 습관',
+            enText: 'The pitcher first move and pickoff habit'),
+        _FootballQuizOption(koText: '관중의 함성', enText: 'The crowd noise'),
+        _FootballQuizOption(koText: '타자의 배트 색', enText: 'The bat color'),
+        _FootballQuizOption(
+            koText: '외야 잔디 길이', enText: 'The outfield grass length'),
+      ],
+      correctIndex: 0,
+      koExplain: '도루는 투수의 움직임, 포수 송구, 카운트가 함께 맞아야 성공률이 올라갑니다.',
+      enExplain:
+          'Steals improve when pitcher move, catcher arm, and count all line up.',
+      koNextPoint: '리드 폭보다 되돌아갈 수 있는 균형부터 확인하세요.',
+      enNextPoint: 'Balance for returning matters before lead size.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_mcq_double_play',
+      conceptKey: 'baseball_double_play_priority',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '병살을 노릴 때 내야수가 먼저 생각할 기준은?',
+      enPrompt:
+          'When turning a double play, what should an infielder decide first?',
+      options: const [
+        _FootballQuizOption(
+            koText: '가장 확실한 첫 아웃 위치', enText: 'The most secure first out'),
+        _FootballQuizOption(
+            koText: '가장 멋진 송구 자세', enText: 'The most stylish throw'),
+        _FootballQuizOption(
+            koText: '외야수의 위치만', enText: 'Only the outfielder position'),
+        _FootballQuizOption(koText: '타자의 표정', enText: 'The batter expression'),
+      ],
+      correctIndex: 0,
+      koExplain: '첫 아웃을 안정적으로 잡아야 두 번째 아웃 기회가 이어집니다.',
+      enExplain: 'A secure first out creates the chance for the second out.',
+      koNextPoint: '공을 받기 전 발 위치와 송구 방향을 미리 정하세요.',
+      enNextPoint: 'Set feet and throwing lane before the ball arrives.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_ox_foul_two_strikes',
+      conceptKey: 'baseball_foul_two_strikes',
+      difficulty: 1,
+      style: _QuestionStyle.ox,
+      category: _QuizCategory.rules,
+      koPrompt: '일반적으로 2스트라이크 이후 파울은 삼진이 되지 않는다. O/X',
+      enPrompt:
+          'In general, a foul ball with two strikes is not strike three. True/False',
+      options: const [
+        _FootballQuizOption(koText: 'O', enText: 'True'),
+        _FootballQuizOption(koText: 'X', enText: 'False'),
+      ],
+      correctIndex: 0,
+      koExplain: '일반 파울은 2스트라이크 이후 카운트가 유지됩니다. 단, 번트 파울 등 예외가 있습니다.',
+      enExplain:
+          'A normal foul keeps the count at two strikes, with exceptions such as foul bunts.',
+      koNextPoint: '예외 상황까지 같이 외워두면 경기 이해가 빨라집니다.',
+      enNextPoint: 'Learn the exceptions together with the base rule.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_sa_sacrifice_bunt',
+      conceptKey: 'baseball_sacrifice_bunt_term',
+      difficulty: 1,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.fun,
+      koPrompt: '아웃을 감수하고 주자를 진루시키는 번트를 무엇이라고 할까?',
+      enPrompt: 'What bunt intentionally trades an out to advance a runner?',
+      acceptedAnswers: const ['희생번트', 'sacrifice bunt', 'sac bunt'],
+      koExplain: '희생번트는 팀 득점 기대를 위해 개인 기록보다 상황을 선택하는 플레이입니다.',
+      enExplain:
+          'A sacrifice bunt prioritizes the team situation over individual batting results.',
+      koNextPoint: '번트 성공 후 다음 타자가 어떤 득점 기회를 갖는지 연결해서 보세요.',
+      enNextPoint:
+          'Connect the bunt to the scoring chance for the next hitter.',
+    ),
+  ];
+}
+
+List<_FootballQuizQuestion> _buildBasketballQuizPool() {
+  return <_FootballQuizQuestion>[
+    _sportQuizQuestion(
+      id: 'basketball_mcq_shot_clock',
+      conceptKey: 'basketball_shot_clock',
+      difficulty: 1,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.rules,
+      koPrompt: '샷클락의 기본 목적은?',
+      enPrompt: 'What is the basic purpose of the shot clock?',
+      options: const [
+        _FootballQuizOption(
+            koText: '공격이 제한 시간 안에 슛하도록 만든다',
+            enText: 'Force the offense to shoot within a time limit'),
+        _FootballQuizOption(koText: '수비수를 쉬게 한다', enText: 'Let defenders rest'),
+        _FootballQuizOption(koText: '자유투를 줄인다', enText: 'Reduce free throws'),
+        _FootballQuizOption(koText: '드리블을 금지한다', enText: 'Ban dribbling'),
+      ],
+      correctIndex: 0,
+      koExplain: '샷클락은 공격 시간을 제한해 경기 템포를 유지합니다.',
+      enExplain: 'The shot clock limits possession time and keeps tempo.',
+      koNextPoint: '남은 시간이 적을수록 빠른 결정과 리바운드 준비가 중요합니다.',
+      enNextPoint: 'Low clock means quick decisions and rebound readiness.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_mcq_backcourt',
+      conceptKey: 'basketball_backcourt_violation',
+      difficulty: 1,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.rules,
+      koPrompt: '백코트 바이얼레이션은 언제 발생할까?',
+      enPrompt: 'When does a backcourt violation occur?',
+      options: const [
+        _FootballQuizOption(
+            koText: '프런트코트로 넘어간 공을 공격팀이 다시 백코트에서 잡을 때',
+            enText:
+                'The offense regains the ball in backcourt after establishing frontcourt'),
+        _FootballQuizOption(
+            koText: '수비가 리바운드를 잡을 때', enText: 'The defense gets a rebound'),
+        _FootballQuizOption(
+            koText: '자유투가 빗나갈 때', enText: 'A free throw misses'),
+        _FootballQuizOption(
+            koText: '감독이 작전을 부를 때', enText: 'A coach calls a play'),
+      ],
+      correctIndex: 0,
+      koExplain: '공격권을 가진 팀이 프런트코트 확립 후 다시 백코트에서 공을 잡으면 위반입니다.',
+      enExplain:
+          'After frontcourt is established, the offense cannot be first to control it in backcourt.',
+      koNextPoint: '하프라인 근처에서는 패스 각도와 발 위치를 같이 확인하세요.',
+      enNextPoint:
+          'Near half court, check passing angle and foot position together.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_mcq_legal_screen',
+      conceptKey: 'basketball_legal_screen',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.rules,
+      koPrompt: '합법적인 스크린의 핵심은?',
+      enPrompt: 'What is the key to a legal screen?',
+      options: const [
+        _FootballQuizOption(
+            koText: '멈춘 자세로 상대에게 피할 공간을 준다',
+            enText:
+                'Be stationary and give the defender space to avoid contact'),
+        _FootballQuizOption(
+            koText: '몸으로 계속 밀어낸다', enText: 'Keep pushing with the body'),
+        _FootballQuizOption(
+            koText: '팔을 벌려 붙잡는다', enText: 'Use arms to hold the defender'),
+        _FootballQuizOption(
+            koText: '상대 뒤에서 무조건 부딪힌다',
+            enText: 'Hit the defender from behind every time'),
+      ],
+      correctIndex: 0,
+      koExplain: '움직이며 밀거나 팔로 막으면 공격자 파울이 될 수 있습니다.',
+      enExplain:
+          'Moving into contact or using arms can become an offensive foul.',
+      koNextPoint: '스크린 후에는 멈추고, 방향을 열어 롤 또는 팝을 준비하세요.',
+      enNextPoint: 'After setting, hold position and prepare to roll or pop.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_mcq_pick_roll',
+      conceptKey: 'basketball_pick_and_roll_read',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '픽앤롤에서 볼 핸들러가 먼저 읽어야 할 것은?',
+      enPrompt: 'In pick-and-roll, what should the ball handler read first?',
+      options: const [
+        _FootballQuizOption(
+            koText: '스크린 수비의 대응 방식', enText: 'How the screen defender reacts'),
+        _FootballQuizOption(
+            koText: '벤치의 물병 위치', enText: 'Where the bench bottles are'),
+        _FootballQuizOption(koText: '심판의 손목시계', enText: 'The referee watch'),
+        _FootballQuizOption(koText: '관중석 색깔', enText: 'The crowd colors'),
+      ],
+      correctIndex: 0,
+      koExplain: '드롭, 스위치, 헤지에 따라 슛, 패스, 돌파 선택이 달라집니다.',
+      enExplain:
+          'Drop, switch, or hedge coverage changes the shot, pass, or drive choice.',
+      koNextPoint: '스크린을 받기 전 속도를 줄여 수비 반응을 보세요.',
+      enNextPoint: 'Slow slightly before the screen to read coverage.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_mcq_box_out',
+      conceptKey: 'basketball_box_out',
+      difficulty: 1,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.technique,
+      koPrompt: '박스아웃의 기본 목적은?',
+      enPrompt: 'What is the basic purpose of boxing out?',
+      options: const [
+        _FootballQuizOption(
+            koText: '상대의 리바운드 진입 길을 막는다',
+            enText: 'Block the opponent path to the rebound'),
+        _FootballQuizOption(koText: '더 멀리 드리블한다', enText: 'Dribble farther'),
+        _FootballQuizOption(koText: '슛 폼을 바꾼다', enText: 'Change shooting form'),
+        _FootballQuizOption(koText: '코트 밖으로 나간다', enText: 'Step out of bounds'),
+      ],
+      correctIndex: 0,
+      koExplain: '박스아웃은 공만 보는 것이 아니라 먼저 몸으로 위치를 잡는 기술입니다.',
+      enExplain:
+          'Boxing out is about claiming position before watching only the ball.',
+      koNextPoint: '슛이 올라가면 먼저 상대를 찾고 그다음 공을 보세요.',
+      enNextPoint: 'On the shot, find your opponent first, then the ball.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_mcq_closeout',
+      conceptKey: 'basketball_closeout',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.training,
+      koPrompt: '클로즈아웃 수비에서 좋은 마지막 동작은?',
+      enPrompt: 'What is a good final action in a closeout?',
+      options: const [
+        _FootballQuizOption(
+            koText: '짧은 스텝으로 속도를 줄이고 한 손으로 슛을 방해한다',
+            enText: 'Chop steps, slow down, and contest with one hand'),
+        _FootballQuizOption(
+            koText: '무조건 점프해서 지나친다', enText: 'Always jump past the shooter'),
+        _FootballQuizOption(
+            koText: '등을 보이고 뛴다', enText: 'Turn your back while running'),
+        _FootballQuizOption(
+            koText: '양팔로 상대를 민다', enText: 'Push with both arms'),
+      ],
+      correctIndex: 0,
+      koExplain: '클로즈아웃은 슛을 방해하면서도 돌파를 허용하지 않는 균형이 핵심입니다.',
+      enExplain:
+          'A closeout balances contesting the shot and containing the drive.',
+      koNextPoint: '마지막 두 걸음은 작게 줄여 방향 전환을 준비하세요.',
+      enNextPoint:
+          'Shorten the last two steps to prepare for a change of direction.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_mcq_spacing_corner',
+      conceptKey: 'basketball_corner_spacing',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '코너 스페이싱이 공격에 주는 가장 큰 효과는?',
+      enPrompt: 'What is the biggest offensive value of corner spacing?',
+      options: const [
+        _FootballQuizOption(
+            koText: '수비를 넓혀 돌파와 킥아웃 공간을 만든다',
+            enText: 'Stretch the defense and open drive or kick-out space'),
+        _FootballQuizOption(koText: '샷클락을 멈춘다', enText: 'Stop the shot clock'),
+        _FootballQuizOption(koText: '리바운드를 금지한다', enText: 'Ban rebounds'),
+        _FootballQuizOption(
+            koText: '센터만 슛하게 한다', enText: 'Make only the center shoot'),
+      ],
+      correctIndex: 0,
+      koExplain: '좋은 스페이싱은 수비 도움 위치를 어렵게 만들어 공격 선택지를 늘립니다.',
+      enExplain:
+          'Good spacing makes help defense harder and increases options.',
+      koNextPoint: '공을 보되 수비수가 도움을 갈 때 패스 라인을 준비하세요.',
+      enNextPoint: 'Watch the ball and be ready when your defender helps.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_mcq_transition_defense',
+      conceptKey: 'basketball_transition_defense',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.positions,
+      koPrompt: '속공 수비에서 첫 번째 우선순위는?',
+      enPrompt: 'What is the first priority in transition defense?',
+      options: const [
+        _FootballQuizOption(
+            koText: '공을 멈추고 림으로 가는 길을 막는다',
+            enText: 'Stop the ball and protect the path to the rim'),
+        _FootballQuizOption(
+            koText: '공격 리바운드를 계속 노린다',
+            enText: 'Keep chasing the offensive rebound'),
+        _FootballQuizOption(
+            koText: '벤치로 돌아간다', enText: 'Run back to the bench'),
+        _FootballQuizOption(koText: '천천히 걸어간다', enText: 'Walk back slowly'),
+      ],
+      correctIndex: 0,
+      koExplain: '속공은 먼저 공을 늦추고 중앙 레인을 막아 쉬운 득점을 줄여야 합니다.',
+      enExplain:
+          'Transition defense starts by slowing the ball and protecting the middle lane.',
+      koNextPoint: '누가 공을 막고 누가 림을 지킬지 짧게 콜하세요.',
+      enNextPoint: 'Call who stops ball and who protects the rim.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_ox_line_three',
+      conceptKey: 'basketball_three_point_line',
+      difficulty: 1,
+      style: _QuestionStyle.ox,
+      category: _QuizCategory.rules,
+      koPrompt: '3점 라인을 밟고 던진 슛은 일반적으로 2점이다. O/X',
+      enPrompt:
+          'A shot with a foot on the three-point line is generally worth two points. True/False',
+      options: const [
+        _FootballQuizOption(koText: 'O', enText: 'True'),
+        _FootballQuizOption(koText: 'X', enText: 'False'),
+      ],
+      correctIndex: 0,
+      koExplain: '라인을 밟으면 3점 라인 밖에서 던진 것으로 인정되지 않습니다.',
+      enExplain:
+          'A foot on the line means the shot is not fully behind the three-point line.',
+      koNextPoint: '캐치 전 발 위치를 먼저 정하면 슛 판정이 안정됩니다.',
+      enNextPoint: 'Set feet before the catch for cleaner shot location.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_sa_triple_double',
+      conceptKey: 'basketball_triple_double_term',
+      difficulty: 1,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.fun,
+      koPrompt: '득점, 리바운드, 어시스트 등 세 기록에서 두 자릿수를 달성하는 것을 무엇이라고 할까?',
+      enPrompt:
+          'What is it called when a player reaches double digits in three stat categories?',
+      acceptedAnswers: const ['트리플 더블', 'triple double', 'triple-double'],
+      koExplain: '트리플 더블은 한 선수가 여러 영역에서 경기에 크게 기여했다는 지표입니다.',
+      enExplain:
+          'A triple-double shows broad impact across multiple stat categories.',
+      koNextPoint: '기록 이름보다 어떤 플레이가 팀에 도움을 줬는지 함께 보세요.',
+      enNextPoint: 'Pair the stat with the plays that helped the team.',
+    ),
+  ];
+}
+
+List<_FootballQuizQuestion> _buildTennisQuizPool() {
+  return <_FootballQuizQuestion>[
+    _sportQuizQuestion(
+      id: 'tennis_mcq_deuce',
+      conceptKey: 'tennis_deuce_two_points',
+      difficulty: 1,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.rules,
+      koPrompt: '듀스 이후 게임을 따려면 기본적으로 어떻게 해야 할까?',
+      enPrompt: 'After deuce, what is normally needed to win the game?',
+      options: const [
+        _FootballQuizOption(
+            koText: '연속 두 포인트를 따야 한다', enText: 'Win two points in a row'),
+        _FootballQuizOption(
+            koText: '한 포인트만 따면 된다', enText: 'Win only one point'),
+        _FootballQuizOption(koText: '서브를 바꿔야 한다', enText: 'Change server'),
+        _FootballQuizOption(koText: '코트를 떠나야 한다', enText: 'Leave the court'),
+      ],
+      correctIndex: 0,
+      koExplain: '듀스에서는 어드밴티지를 얻고 다음 포인트까지 따야 게임을 가져갑니다.',
+      enExplain:
+          'From deuce, a player must earn advantage and then win the next point.',
+      koNextPoint: '듀스 포인트에서는 첫 서브 확률과 리턴 깊이가 중요합니다.',
+      enNextPoint: 'At deuce, first-serve percentage and return depth matter.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_mcq_let_serve',
+      conceptKey: 'tennis_let_serve',
+      difficulty: 1,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.rules,
+      koPrompt: '서브가 네트를 맞고 올바른 서비스 박스에 들어가면 일반적으로?',
+      enPrompt:
+          'If a serve touches the net and lands in the correct service box, what usually happens?',
+      options: const [
+        _FootballQuizOption(
+            koText: '렛으로 다시 서브한다',
+            enText: 'It is a let and the serve is replayed'),
+        _FootballQuizOption(
+            koText: '무조건 실점이다', enText: 'It is always a lost point'),
+        _FootballQuizOption(
+            koText: '상대가 두 점을 얻는다', enText: 'The opponent gets two points'),
+        _FootballQuizOption(koText: '게임이 끝난다', enText: 'The game ends'),
+      ],
+      correctIndex: 0,
+      koExplain: '정상 박스에 들어간 네트 터치 서브는 렛으로 다시 진행합니다.',
+      enExplain:
+          'A net-touch serve landing in the correct box is replayed as a let.',
+      koNextPoint: '렛 뒤에도 루틴을 유지해 다음 서브 리듬을 지키세요.',
+      enNextPoint: 'Keep the same routine after a let.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_mcq_double_fault',
+      conceptKey: 'tennis_double_fault',
+      difficulty: 1,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.rules,
+      koPrompt: '더블 폴트는 어떤 상황일까?',
+      enPrompt: 'What is a double fault?',
+      options: const [
+        _FootballQuizOption(
+            koText: '첫 서브와 두 번째 서브를 모두 실패한다',
+            enText: 'Missing both the first and second serve'),
+        _FootballQuizOption(
+            koText: '한 랠리에서 두 번 친다', enText: 'Hitting twice in one rally'),
+        _FootballQuizOption(
+            koText: '두 게임을 연속으로 이긴다', enText: 'Winning two games in a row'),
+        _FootballQuizOption(
+            koText: '복식에서만 생긴다', enText: 'It happens only in doubles'),
+      ],
+      correctIndex: 0,
+      koExplain: '두 번의 서브 기회를 모두 놓치면 상대가 포인트를 얻습니다.',
+      enExplain: 'If both serve attempts fail, the opponent wins the point.',
+      koNextPoint: '두 번째 서브는 속도보다 회전과 높이를 우선하세요.',
+      enNextPoint: 'Prioritize spin and net clearance on second serve.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_mcq_break_point',
+      conceptKey: 'tennis_break_point',
+      difficulty: 1,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '브레이크 포인트는 어떤 의미일까?',
+      enPrompt: 'What does break point mean?',
+      options: const [
+        _FootballQuizOption(
+            koText: '리시버가 다음 포인트를 따면 상대 서브 게임을 가져가는 상황',
+            enText: 'The receiver can win the server game with the next point'),
+        _FootballQuizOption(
+            koText: '라켓이 부러진 상황', enText: 'A broken racket situation'),
+        _FootballQuizOption(
+            koText: '무조건 타이브레이크 상황', enText: 'Always a tiebreak situation'),
+        _FootballQuizOption(
+            koText: '서브를 두 번 더 주는 상황',
+            enText: 'The server gets two more serves'),
+      ],
+      correctIndex: 0,
+      koExplain: '브레이크 포인트는 리턴 게임에서 흐름을 바꿀 수 있는 중요한 포인트입니다.',
+      enExplain:
+          'Break point is a key chance for the receiver to take the server game.',
+      koNextPoint: '리턴은 강타보다 코트 안 깊게 넣는 선택이 먼저입니다.',
+      enNextPoint: 'A deep return in court often beats forcing a winner.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_mcq_crosscourt',
+      conceptKey: 'tennis_crosscourt_percentage',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '크로스코트 랠리가 안정적인 선택인 이유는?',
+      enPrompt: 'Why is a crosscourt rally often a high-percentage choice?',
+      options: const [
+        _FootballQuizOption(
+            koText: '코트 길이가 길고 네트 중앙이 낮다',
+            enText:
+                'The court is longer diagonally and the net is lower in the middle'),
+        _FootballQuizOption(
+            koText: '항상 포인트가 바로 끝난다',
+            enText: 'It always ends the point immediately'),
+        _FootballQuizOption(
+            koText: '상대가 칠 수 없다', enText: 'The opponent cannot hit it'),
+        _FootballQuizOption(
+            koText: '규칙상 두 점이다', enText: 'It is worth two points by rule'),
+      ],
+      correctIndex: 0,
+      koExplain: '크로스코트는 대각선 길이와 낮은 네트 지점 덕분에 실수 위험이 상대적으로 낮습니다.',
+      enExplain:
+          'Crosscourt gives more court length and crosses the lower middle of the net.',
+      koNextPoint: '무리한 다운더라인보다 깊은 크로스코트로 균형을 잡아보세요.',
+      enNextPoint: 'Use deep crosscourt before forcing down-the-line.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_mcq_split_step',
+      conceptKey: 'tennis_split_step',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.technique,
+      koPrompt: '스플릿 스텝의 핵심 목적은?',
+      enPrompt: 'What is the main purpose of a split step?',
+      options: const [
+        _FootballQuizOption(
+            koText: '상대 타격 순간에 어느 방향이든 출발할 준비를 한다',
+            enText: 'Prepare to move either direction as the opponent hits'),
+        _FootballQuizOption(
+            koText: '공을 더 세게 만든다', enText: 'Make the ball faster'),
+        _FootballQuizOption(koText: '라켓을 바꾼다', enText: 'Change rackets'),
+        _FootballQuizOption(koText: '점수를 숨긴다', enText: 'Hide the score'),
+      ],
+      correctIndex: 0,
+      koExplain: '스플릿 스텝은 반응 시간을 줄이고 첫 발을 빠르게 만드는 준비 동작입니다.',
+      enExplain:
+          'The split step reduces reaction time and improves the first step.',
+      koNextPoint: '상대가 공을 맞히는 순간 가볍게 착지하는 타이밍을 맞추세요.',
+      enNextPoint: 'Land lightly as the opponent contacts the ball.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_mcq_topspin',
+      conceptKey: 'tennis_topspin',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.technique,
+      koPrompt: '탑스핀을 주면 공에 어떤 장점이 생길까?',
+      enPrompt: 'What advantage does topspin give the ball?',
+      options: const [
+        _FootballQuizOption(
+            koText: '네트를 넘은 뒤 코트 안으로 떨어질 가능성이 커진다',
+            enText:
+                'It helps the ball dip into the court after clearing the net'),
+        _FootballQuizOption(
+            koText: '공이 반드시 멈춘다', enText: 'The ball always stops'),
+        _FootballQuizOption(
+            koText: '서브권이 바뀐다', enText: 'The serve changes hands'),
+        _FootballQuizOption(
+            koText: '라인 판정이 사라진다', enText: 'Line calls disappear'),
+      ],
+      correctIndex: 0,
+      koExplain: '탑스핀은 공을 아래로 끌어내려 안정적인 높이와 깊이를 만들기 좋습니다.',
+      enExplain: 'Topspin helps the ball dip, giving safer height and depth.',
+      koNextPoint: '라켓을 아래에서 위로 통과시키는 감각을 천천히 익히세요.',
+      enNextPoint: 'Practice the low-to-high racket path slowly.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_mcq_approach_shot',
+      conceptKey: 'tennis_approach_shot',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.positions,
+      koPrompt: '어프로치 샷 후 좋은 다음 움직임은?',
+      enPrompt: 'After an approach shot, what is a good next move?',
+      options: const [
+        _FootballQuizOption(
+            koText: '네트 쪽으로 전진해 발리 준비를 한다',
+            enText: 'Move forward and prepare for a volley'),
+        _FootballQuizOption(
+            koText: '베이스라인 뒤로 더 물러난다',
+            enText: 'Retreat farther behind the baseline'),
+        _FootballQuizOption(
+            koText: '공을 보지 않는다', enText: 'Stop watching the ball'),
+        _FootballQuizOption(
+            koText: '서브 위치로 돌아간다', enText: 'Return to the service position'),
+      ],
+      correctIndex: 0,
+      koExplain: '어프로치 샷은 상대 시간을 줄이고 네트에서 마무리하기 위한 전진 샷입니다.',
+      enExplain:
+          'An approach shot is used to take time away and finish near the net.',
+      koNextPoint: '상대 백핸드 쪽 깊은 코스로 접근하면 다음 발리가 쉬워집니다.',
+      enNextPoint:
+          'A deep approach to the weaker side can simplify the volley.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_mcq_unforced_error',
+      conceptKey: 'tennis_unforced_error',
+      difficulty: 1,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.mindset,
+      koPrompt: '언포스드 에러에 가장 가까운 설명은?',
+      enPrompt: 'Which best describes an unforced error?',
+      options: const [
+        _FootballQuizOption(
+            koText: '상대 압박이 크지 않은데 스스로 한 실수',
+            enText: 'A mistake made without heavy opponent pressure'),
+        _FootballQuizOption(
+            koText: '상대가 친 완벽한 위너', enText: 'A perfect winner by the opponent'),
+        _FootballQuizOption(
+            koText: '서브 순서 변경', enText: 'A service order change'),
+        _FootballQuizOption(
+            koText: '비 때문에 중단된 경기', enText: 'A match stopped by rain'),
+      ],
+      correctIndex: 0,
+      koExplain: '언포스드 에러를 줄이는 것은 경기 운영 안정성의 핵심입니다.',
+      enExplain: 'Reducing unforced errors is central to stable match play.',
+      koNextPoint: '실수 후에는 다음 포인트의 첫 두 타구를 안전하게 가져가세요.',
+      enNextPoint: 'After an error, make the next two shots safe.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_ox_line_in',
+      conceptKey: 'tennis_line_is_in',
+      difficulty: 1,
+      style: _QuestionStyle.ox,
+      category: _QuizCategory.rules,
+      koPrompt: '공이 라인에 조금이라도 닿으면 인이다. O/X',
+      enPrompt:
+          'If the ball touches any part of the line, it is in. True/False',
+      options: const [
+        _FootballQuizOption(koText: 'O', enText: 'True'),
+        _FootballQuizOption(koText: 'X', enText: 'False'),
+      ],
+      correctIndex: 0,
+      koExplain: '테니스에서 라인은 코트 안으로 간주합니다.',
+      enExplain: 'In tennis, the line is part of the court.',
+      koNextPoint: '라인 근처 공은 끝까지 보고 판정을 서두르지 마세요.',
+      enNextPoint: 'Track balls near the line fully before reacting.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_sa_break_point',
+      conceptKey: 'tennis_break_point_term',
+      difficulty: 1,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.fun,
+      koPrompt: '리시버가 다음 포인트를 따면 상대 서브 게임을 가져가는 상황을 무엇이라고 할까?',
+      enPrompt:
+          'What is the situation called when the receiver can win the server game with the next point?',
+      acceptedAnswers: const ['브레이크 포인트', 'break point', 'breakpoint'],
+      koExplain: '브레이크 포인트는 리턴 게임에서 가장 중요한 승부처 중 하나입니다.',
+      enExplain:
+          'Break point is one of the most important moments in a return game.',
+      koNextPoint: '브레이크 포인트에서는 리턴 성공률을 먼저 높이는 선택을 하세요.',
+      enNextPoint: 'On break point, prioritize putting the return in play.',
+    ),
+  ];
+}
+
 String _canonicalQuizConceptKey(String raw) {
   const aliases = <String, String>{
     'counterpress_first_action': 'counterpress',
@@ -10994,7 +11867,7 @@ String _canonicalQuizConceptKey(String raw) {
 
 final Map<String, String> _quizConceptKeyByQuestionId = () {
   final map = <String, String>{};
-  for (final question in _footballQuizPoolCache) {
+  for (final question in _allSportQuizPoolCache) {
     map[question.id] = question.conceptKey;
     for (final entry in _legacyQuestionAliases(question).entries) {
       map[entry.key] = entry.value.conceptKey;
@@ -11008,7 +11881,7 @@ final Set<String> _quizKnownConceptKeys =
 
 final Map<String, _FootballQuizQuestion> _quizQuestionById = () {
   final map = <String, _FootballQuizQuestion>{};
-  for (final question in _footballQuizPoolCache) {
+  for (final question in _allSportQuizPoolCache) {
     map[question.id] = question;
     for (final entry in _legacyQuestionAliases(question).entries) {
       map[entry.key] = entry.value;
@@ -11019,7 +11892,7 @@ final Map<String, _FootballQuizQuestion> _quizQuestionById = () {
 
 final Map<String, _FootballQuizQuestion> _quizQuestionByConcept = () {
   final map = <String, _FootballQuizQuestion>{};
-  for (final question in _footballQuizPoolCache) {
+  for (final question in _allSportQuizPoolCache) {
     map.putIfAbsent(question.conceptKey, () => question);
   }
   return map;
@@ -11027,6 +11900,32 @@ final Map<String, _FootballQuizQuestion> _quizQuestionByConcept = () {
 
 final List<_FootballQuizQuestion> _footballQuizPoolCache =
     List<_FootballQuizQuestion>.unmodifiable(_buildFootballQuizPool());
+
+final List<_FootballQuizQuestion> _baseballQuizPoolCache =
+    List<_FootballQuizQuestion>.unmodifiable(_buildBaseballQuizPool());
+
+final List<_FootballQuizQuestion> _basketballQuizPoolCache =
+    List<_FootballQuizQuestion>.unmodifiable(_buildBasketballQuizPool());
+
+final List<_FootballQuizQuestion> _tennisQuizPoolCache =
+    List<_FootballQuizQuestion>.unmodifiable(_buildTennisQuizPool());
+
+final List<_FootballQuizQuestion> _allSportQuizPoolCache =
+    List<_FootballQuizQuestion>.unmodifiable([
+  ..._footballQuizPoolCache,
+  ..._baseballQuizPoolCache,
+  ..._basketballQuizPoolCache,
+  ..._tennisQuizPoolCache,
+]);
+
+List<_FootballQuizQuestion> _quizPoolForSport(String? sportId) {
+  return switch (SportCatalog.normalizeSportId(sportId)) {
+    SportCatalog.baseballId => _baseballQuizPoolCache,
+    SportCatalog.basketballId => _basketballQuizPoolCache,
+    SportCatalog.tennisId => _tennisQuizPoolCache,
+    _ => _footballQuizPoolCache,
+  };
+}
 
 String _quizConceptKeyForQuestionId(String raw) {
   if (raw.isEmpty) return raw;

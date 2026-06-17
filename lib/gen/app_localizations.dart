@@ -3004,7 +3004,7 @@ abstract class AppLocalizations {
   /// No description provided for @quizXpSourceLabel.
   ///
   /// In en, this message translates to:
-  /// **'Football quiz'**
+  /// **'Sports quiz'**
   String get quizXpSourceLabel;
 
   /// No description provided for @quizScreenTitle.

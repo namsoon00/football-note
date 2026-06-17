@@ -253,14 +253,9 @@ class _StatsScreenState extends State<StatsScreen> {
               builder: (context) => SharedTabHeader(
                 padding: EdgeInsets.zero,
                 onLeadingTap: () => Scaffold.of(context).openDrawer(),
-                onNewsTap: sportCapabilities.supportsFootballContent
-                    ? () => _openNews(context)
-                    : null,
-                newsBadgeCount:
-                    sportCapabilities.supportsFootballContent ? newsCount : 0,
-                onQuizTap: sportCapabilities.supportsFootballContent
-                    ? () => _openQuiz(context)
-                    : null,
+                onNewsTap: () => _openNews(context),
+                newsBadgeCount: newsCount,
+                onQuizTap: () => _openQuiz(context),
                 onNotificationTap: () => _openNotifications(context),
                 notificationBadgeCount: reminderUnreadCount,
                 profilePhotoSource: widget.optionRepository.getValue<String>(

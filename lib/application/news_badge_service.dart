@@ -3,10 +3,12 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 
 import '../domain/entities/news_article.dart';
+import '../domain/entities/sport_definition.dart';
 import '../domain/repositories/option_repository.dart';
 import '../infrastructure/rss_news_repository.dart';
 import 'news_read_state.dart';
 import 'news_service.dart';
+import 'sport_service.dart';
 
 class NewsBadgeService {
   static const String seenArticleKeysKey = 'news_badge_seen_article_keys_v1';
@@ -21,8 +23,9 @@ class NewsBadgeService {
   }
 
   static Future<int> unreadCount(OptionRepository optionRepository) async {
+    final sportId = SportService(optionRepository).currentSportId();
     final service = NewsService(RssNewsRepository(optionRepository));
-    final channels = service.channels();
+    final channels = service.channels(sportId: sportId);
     final articles = <NewsArticle>[];
     final seenKeys = <String>{};
 
@@ -41,19 +44,20 @@ class NewsBadgeService {
       }),
     );
 
-    return _unreadCount(optionRepository, articles);
+    return _unreadCount(optionRepository, articles, sportId: sportId);
   }
 
   static Future<void> refresh(
     OptionRepository optionRepository, {
     bool force = false,
   }) async {
-    if (!force && !_shouldRefresh(optionRepository)) {
+    final sportId = SportService(optionRepository).currentSportId();
+    if (!force && !_shouldRefresh(optionRepository, sportId: sportId)) {
       return;
     }
     final count = await unreadCount(optionRepository);
     await optionRepository.setValue(
-      lastRefreshAtKey,
+      _scopedKey(lastRefreshAtKey, sportId),
       DateTime.now().toIso8601String(),
     );
     if (_unreadCountNotifier.value != count) {
@@ -68,8 +72,9 @@ class NewsBadgeService {
   }
 
   static Future<void> markFeedOpened(OptionRepository optionRepository) async {
+    final sportId = SportService(optionRepository).currentSportId();
     await optionRepository.setValue(
-      lastOpenedAtKey,
+      _scopedKey(lastOpenedAtKey, sportId),
       DateTime.now().toIso8601String(),
     );
     clearUnreadCount();
@@ -97,12 +102,27 @@ class NewsBadgeService {
     await optionRepository.saveOptions(seenArticleKeysKey, merged.toList());
   }
 
+  static bool openedToday(OptionRepository optionRepository, {DateTime? now}) {
+    final current = now ?? DateTime.now();
+    final sportId = SportService(optionRepository).currentSportId();
+    final lastOpenedAt = DateTime.tryParse(
+      optionRepository.getValue<String>(_scopedKey(lastOpenedAtKey, sportId)) ??
+          '',
+    );
+    return lastOpenedAt != null &&
+        lastOpenedAt.year == current.year &&
+        lastOpenedAt.month == current.month &&
+        lastOpenedAt.day == current.day;
+  }
+
   static int _unreadCount(
     OptionRepository optionRepository,
-    Iterable<NewsArticle> articles,
-  ) {
+    Iterable<NewsArticle> articles, {
+    required String sportId,
+  }) {
     final lastOpenedAt = DateTime.tryParse(
-      optionRepository.getValue<String>(lastOpenedAtKey) ?? '',
+      optionRepository.getValue<String>(_scopedKey(lastOpenedAtKey, sportId)) ??
+          '',
     );
     final seenKeys = {
       ...optionRepository
@@ -125,9 +145,14 @@ class NewsBadgeService {
     return articleKeys.where((key) => !seenKeys.contains(key)).length;
   }
 
-  static bool _shouldRefresh(OptionRepository optionRepository) {
+  static bool _shouldRefresh(
+    OptionRepository optionRepository, {
+    required String sportId,
+  }) {
     final lastRefreshAt = DateTime.tryParse(
-      optionRepository.getValue<String>(lastRefreshAtKey) ?? '',
+      optionRepository
+              .getValue<String>(_scopedKey(lastRefreshAtKey, sportId)) ??
+          '',
     );
     if (lastRefreshAt == null) return true;
     return DateTime.now().difference(lastRefreshAt) >= _refreshInterval;
@@ -137,5 +162,11 @@ class NewsBadgeService {
     final link = article.link.trim();
     if (link.isNotEmpty) return link;
     return '${article.source.trim()}::${article.title.trim().toLowerCase()}';
+  }
+
+  static String _scopedKey(String baseKey, String sportId) {
+    final normalizedSportId = SportCatalog.normalizeSportId(sportId);
+    if (normalizedSportId == SportCatalog.footballId) return baseKey;
+    return '${baseKey}_$normalizedSportId';
   }
 }

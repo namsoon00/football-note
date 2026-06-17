@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
-import '../../application/sport_capabilities.dart';
-import '../../application/sport_service.dart';
 import '../../application/training_service.dart';
 import '../../application/backup_service.dart';
 import '../../application/meal_log_service.dart';
@@ -44,9 +42,6 @@ class AppDrawer extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final familyState = FamilyAccessService(optionRepository).loadState();
     final isParentMode = familyState.isParentMode;
-    final sportCapabilities = SportCapabilities.forSport(
-      SportService(optionRepository).currentSportId(),
-    );
     return Drawer(
       child: SafeArea(
         child: ListView(
@@ -195,27 +190,25 @@ class AppDrawer extends StatelessWidget {
               title: l10n.drawerToolsContent,
               icon: Icons.dashboard_customize_outlined,
               children: [
-                if (sportCapabilities.supportsFootballContent) ...[
-                  _DrawerActionTile(
-                    icon: Icons.newspaper_outlined,
-                    label: l10n.tabNews,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).push(
-                        AppPageRoute(
-                          builder: (_) => NewsScreen(
-                            trainingService: trainingService,
-                            localeService: localeService,
-                            optionRepository: optionRepository,
-                            settingsService: settingsService,
-                            driveBackupService: driveBackupService,
-                            isActive: true,
-                          ),
+                _DrawerActionTile(
+                  icon: Icons.newspaper_outlined,
+                  label: l10n.tabNews,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      AppPageRoute(
+                        builder: (_) => NewsScreen(
+                          trainingService: trainingService,
+                          localeService: localeService,
+                          optionRepository: optionRepository,
+                          settingsService: settingsService,
+                          driveBackupService: driveBackupService,
+                          isActive: true,
                         ),
-                      );
-                    },
-                  ),
-                ],
+                      ),
+                    );
+                  },
+                ),
                 _DrawerActionTile(
                   icon: Icons.notifications_outlined,
                   label: l10n.drawerNotifications,
@@ -231,21 +224,20 @@ class AppDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                if (sportCapabilities.supportsFootballContent)
-                  _DrawerActionTile(
-                    icon: Icons.quiz_outlined,
-                    label: l10n.drawerQuiz,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).push(
-                        AppPageRoute(
-                          builder: (_) => SkillQuizScreen(
-                            optionRepository: optionRepository,
-                          ),
+                _DrawerActionTile(
+                  icon: Icons.quiz_outlined,
+                  label: l10n.drawerQuiz,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      AppPageRoute(
+                        builder: (_) => SkillQuizScreen(
+                          optionRepository: optionRepository,
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
+                ),
                 _DrawerActionTile(
                   icon: Icons.directions_run_outlined,
                   label: l10n.drawerRunningCoach,

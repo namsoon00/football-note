@@ -187,7 +187,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             builder: (context, snapshot) {
               final sportId =
                   SportService(widget.optionRepository).currentSportId();
-              final sportCapabilities = SportCapabilities.forSport(sportId);
               final allEntries = filterEntriesForSport(
                 snapshot.data ?? const <TrainingEntry>[],
                 sportId,
@@ -197,8 +196,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                 stream: widget.mealLogService.watchEntries(),
                 builder: (context, mealSnapshot) {
                   final l10n = AppLocalizations.of(context)!;
-                  final supportsFootballContent =
-                      sportCapabilities.supportsFootballContent;
                   final boardsById = TrainingBoardService(
                     widget.optionRepository,
                   ).boardMap();
@@ -223,9 +220,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     mealEntries: mealEntries,
                     plans: _loadPlans(widget.optionRepository),
                     boards: boards,
-                    quizCompletedAt: supportsFootballContent
-                        ? _loadQuizCompletedAt(widget.optionRepository)
-                        : DateTime.now(),
+                    quizCompletedAt: _loadQuizCompletedAt(
+                      widget.optionRepository,
+                    ),
                     viewedDiaryDayToken:
                         widget.optionRepository.getValue<String>(
                       CoachLessonScreen.todayViewedDiaryDayKey,
@@ -233,8 +230,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     quizResumeSummary: SkillQuizScreen.loadResumeSummary(
                       widget.optionRepository,
                     ),
-                    openedNewsToday:
-                        supportsFootballContent ? _openedNewsToday() : true,
+                    openedNewsToday: _openedNewsToday(),
                   );
                   _syncDailyTaskCompletionAward(data);
                   if (challengeProgress != null) {
@@ -268,18 +264,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                           'profile_photo_url',
                                         ) ??
                                         '',
-                                onNewsTap:
-                                    sportCapabilities.supportsFootballContent
-                                        ? _openNews
-                                        : null,
-                                newsBadgeCount:
-                                    sportCapabilities.supportsFootballContent
-                                        ? newsCount
-                                        : 0,
-                                onQuizTap:
-                                    sportCapabilities.supportsFootballContent
-                                        ? _openQuizShortcut
-                                        : null,
+                                onNewsTap: _openNews,
+                                newsBadgeCount: newsCount,
+                                onQuizTap: _openQuizShortcut,
                                 onProfileTap: () => _openProfile(context),
                                 onNotificationTap: _openNotifications,
                                 notificationBadgeCount: reminderUnreadCount,
@@ -400,7 +387,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           ),
                           onQuiz: _trackedAction(
                             'daily_flow_quiz',
-                            supportsFootballContent ? widget.onQuickQuiz : null,
+                            widget.onQuickQuiz,
                           ),
                           onReview: _trackedAction(
                             'daily_flow_review',
@@ -408,7 +395,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           ),
                           onNews: _trackedAction(
                             'daily_flow_news',
-                            supportsFootballContent ? _openNews : null,
+                            _openNews,
                           ),
                           onBoard: _trackedAction(
                             'daily_flow_board',
@@ -418,7 +405,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                             'daily_flow_meal',
                             widget.onQuickMeal,
                           ),
-                          showFootballTasks: supportsFootballContent,
                         ),
                         const SizedBox(height: 12),
                         _QuickActionGrid(
@@ -444,10 +430,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         const SizedBox(height: 12),
                         _ContinueCard(
                           data: data,
-                          showQuiz: supportsFootballContent,
-                          onContinueQuiz: supportsFootballContent
-                              ? widget.onQuickQuiz
-                              : null,
+                          showQuiz: true,
+                          onContinueQuiz: widget.onQuickQuiz,
                           onContinueTraining: () =>
                               _openTodayEntryOrCreate(data),
                           onContinueMatch: widget.onQuickMatch,
@@ -861,7 +845,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
 
   static DateTime? _loadQuizCompletedAt(OptionRepository optionRepository) {
     final raw = optionRepository.getValue<String>(
-      SkillQuizScreen.completionKey,
+      SkillQuizScreen.storageKey(
+        optionRepository,
+        SkillQuizScreen.completionKey,
+      ),
     );
     if (raw == null || raw.isEmpty) return null;
     return DateTime.tryParse(raw);
@@ -1213,26 +1200,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   }
 
   bool _openedNewsToday() {
-    final raw = widget.optionRepository.getValue<String>(
-      NewsScreen.openedItemsKey,
-    );
-    if (raw == null || raw.trim().isEmpty) return false;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is! List) return false;
-      for (final item in decoded) {
-        if (item is! Map) continue;
-        final openedAt = DateTime.tryParse(item['openedAt']?.toString() ?? '');
-        if (openedAt == null) continue;
-        final openedDay = DateTime(openedAt.year, openedAt.month, openedAt.day);
-        if (openedDay == today) return true;
-      }
-    } catch (_) {
-      return false;
-    }
-    return false;
+    return NewsBadgeService.openedToday(widget.optionRepository);
   }
 }
 
@@ -1618,7 +1586,6 @@ class _DailyFlowCard extends StatelessWidget {
   final VoidCallback? onReview;
   final VoidCallback? onNews;
   final VoidCallback? onBoard;
-  final bool showFootballTasks;
 
   const _DailyFlowCard({
     required this.data,
@@ -1631,7 +1598,6 @@ class _DailyFlowCard extends StatelessWidget {
     required this.onReview,
     required this.onNews,
     required this.onBoard,
-    required this.showFootballTasks,
   });
 
   @override
@@ -1641,8 +1607,8 @@ class _DailyFlowCard extends StatelessWidget {
       data.loggedLiftingToday,
       data.loggedJumpRopeToday,
       data.loggedMealsToday,
-      if (showFootballTasks) data.quizCompletedToday,
-      if (showFootballTasks) data.openedNewsToday,
+      data.quizCompletedToday,
+      data.openedNewsToday,
       data.reviewedTodayDiary,
       data.loggedBoardToday,
     ];
@@ -1712,20 +1678,18 @@ class _DailyFlowCard extends StatelessWidget {
                 label: l10n.mealShortLabel,
                 onTap: onMeal,
               ),
-              if (showFootballTasks)
-                _TodoChip(
-                  done: data.quizCompletedToday,
-                  icon: Icons.quiz_rounded,
-                  label: l10n.homeTodoQuizShort,
-                  onTap: onQuiz,
-                ),
-              if (showFootballTasks)
-                _TodoChip(
-                  done: data.openedNewsToday,
-                  icon: Icons.article_outlined,
-                  label: l10n.homeTodoNewsShort,
-                  onTap: onNews,
-                ),
+              _TodoChip(
+                done: data.quizCompletedToday,
+                icon: Icons.quiz_rounded,
+                label: l10n.homeTodoQuizShort,
+                onTap: onQuiz,
+              ),
+              _TodoChip(
+                done: data.openedNewsToday,
+                icon: Icons.article_outlined,
+                label: l10n.homeTodoNewsShort,
+                onTap: onNews,
+              ),
               _TodoChip(
                 done: data.reviewedTodayDiary,
                 icon: Icons.auto_stories_rounded,

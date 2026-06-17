@@ -3368,7 +3368,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   _DiaryQuizSummary? _quizHistoryForDay(DateTime day) {
     final raw = widget.optionRepository.getValue<String>(
-      SkillQuizScreen.historyKey,
+      SkillQuizScreen.storageKey(
+        widget.optionRepository,
+        SkillQuizScreen.historyKey,
+      ),
     );
     if (raw == null || raw.trim().isEmpty) return null;
     try {
