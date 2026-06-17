@@ -138,6 +138,8 @@ class DriveBackupService implements BackupRepository {
   static const recordDriveMismatchErrorCode = 'record_drive_mismatch';
   static const playerDriveMismatchErrorCode = recordDriveMismatchErrorCode;
   static const parentModeDriveMismatchErrorCode = 'parent_mode_drive_mismatch';
+  static const changedPlayerRemoteBackupMissingErrorCode =
+      'changed_player_remote_backup_missing';
   static const invalidBackupPayloadErrorCode = 'invalid_backup_payload';
   static const unsupportedBackupVersionErrorCode = 'unsupported_backup_version';
   static const unsupportedBackupValueErrorCode = 'unsupported_backup_value';
@@ -549,6 +551,39 @@ class DriveBackupService implements BackupRepository {
       debugPrintStack(stackTrace: st);
       return false;
     }
+  }
+
+  bool hasChangedPlayerDriveConnection() {
+    if (_familyService.loadState().currentRole != FamilyRole.child) {
+      return false;
+    }
+    final saved = _loadSavedRecordDriveConnectionInfo();
+    final current =
+        _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
+    if (saved == null || current == null || saved.isEmpty || current.isEmpty) {
+      return false;
+    }
+    return !_sameDriveAccount(saved, current);
+  }
+
+  Future<bool> importChangedPlayerDriveBackup() async {
+    final driveApi = await _driveApi(requireInteractive: false);
+    await _syncConnectedDriveAccountCache();
+    if (!hasChangedPlayerDriveConnection()) {
+      await rememberRecordDriveConnection();
+      await _syncSharedChildDriveMetadataIfNeeded();
+      return false;
+    }
+    final remote = await _loadLatestRemoteBackupMapWithApi(driveApi);
+    if (remote == null) {
+      throw StateError(changedPlayerRemoteBackupMissingErrorCode);
+    }
+    return _adoptConnectedPlayerBackup(remoteBackup: remote);
+  }
+
+  Future<bool> startChangedPlayerDriveWithEmptyData() async {
+    await _syncConnectedDriveAccountCache();
+    return _adoptConnectedPlayerBackup(remoteBackup: null);
   }
 
   String getSharedChildDriveEmail() {
@@ -1169,6 +1204,16 @@ class DriveBackupService implements BackupRepository {
     DriveConnectionInfo? previous,
     DriveConnectionInfo? current,
   ) {
+    final previousSubject = previous?.subjectId.trim().toLowerCase() ?? '';
+    final currentSubject = current?.subjectId.trim().toLowerCase() ?? '';
+    if (previousSubject.isNotEmpty && currentSubject.isNotEmpty) {
+      return previousSubject == currentSubject;
+    }
+    final previousEmail = _normalizedEmail(previous?.email);
+    final currentEmail = _normalizedEmail(current?.email);
+    if (previousEmail.isNotEmpty && currentEmail.isNotEmpty) {
+      return previousEmail == currentEmail;
+    }
     return _driveAccountIdentity(previous) == _driveAccountIdentity(current);
   }
 
@@ -1352,6 +1397,23 @@ class DriveBackupService implements BackupRepository {
     );
   }
 
+  DriveConnectionInfo? _loadSavedRecordDriveConnectionInfo() {
+    final email =
+        (_optionBox.get(recordDriveEmailLocalKey) as String?)?.trim() ?? '';
+    final displayName =
+        (_optionBox.get(recordDriveLabelLocalKey) as String?)?.trim() ?? '';
+    final subjectId =
+        (_optionBox.get(recordDriveSubjectLocalKey) as String?)?.trim() ?? '';
+    if (email.isEmpty && displayName.isEmpty && subjectId.isEmpty) {
+      return null;
+    }
+    return DriveConnectionInfo(
+      email: email,
+      displayName: displayName,
+      subjectId: subjectId,
+    );
+  }
+
   DriveConnectionInfo? _loadSavedDriveConnectionInfoForCurrentRole() {
     final supportMode = _familyService.loadState().isSupportMode;
     final emailKey =
@@ -1440,9 +1502,7 @@ class DriveBackupService implements BackupRepository {
     if (current == null || current.email.trim().isEmpty) {
       return false;
     }
-    final currentEmail = _normalizedEmail(current.email);
-    final savedEmail = _normalizedEmail(getSavedRecordDriveEmail());
-    if (savedEmail.isEmpty || savedEmail == currentEmail) {
+    if (!hasChangedPlayerDriveConnection()) {
       await rememberRecordDriveConnection();
       await _syncSharedChildDriveMetadataIfNeeded();
       return false;
@@ -2316,9 +2376,7 @@ class DriveBackupService implements BackupRepository {
     if (current == null || current.email.trim().isEmpty) {
       return false;
     }
-    final currentEmail = _normalizedEmail(current.email);
-    final savedEmail = _normalizedEmail(getSavedRecordDriveEmail());
-    if (savedEmail.isEmpty || savedEmail == currentEmail) {
+    if (!hasChangedPlayerDriveConnection()) {
       await rememberRecordDriveConnection();
       await _syncSharedChildDriveMetadataIfNeeded();
       return false;

@@ -3305,7 +3305,45 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get driveBackupLockedAccountChanged =>
-      'Google 계정이 바뀌었어요. 최근 데이터 가져오기를 완료한 뒤 이 계정으로 백업할 수 있어요.';
+      'Google 계정이 바뀌었어요. 이 계정으로 백업하기 전에 이 기기에서 어떤 데이터로 시작할지 선택해야 해요.';
+
+  @override
+  String get driveAccountSwitchImportAction => '이 계정 백업 가져오기';
+
+  @override
+  String get driveAccountSwitchStartEmptyAction => '이 계정으로 새로 시작';
+
+  @override
+  String get driveAccountSwitchImportTitle => '연결된 계정의 데이터를 사용할까요?';
+
+  @override
+  String get driveAccountSwitchImportBody =>
+      '현재 연결된 Google 계정이 저장된 선수 백업 계정과 달라요. 먼저 이 계정의 최신 Drive 백업을 가져옵니다. 로컬 안전 백업을 남긴 뒤 현재 기기 데이터가 교체됩니다.';
+
+  @override
+  String get driveAccountSwitchStartEmptyTitle => '새 선수 계정으로 시작할까요?';
+
+  @override
+  String get driveAccountSwitchStartEmptyBody =>
+      '이 기기의 선수 데이터를 비우고 현재 Google 계정을 선수 백업 계정으로 연결합니다. 이 기기에서 되돌릴 수 있도록 로컬 안전 백업은 남겨둡니다.';
+
+  @override
+  String get driveAccountSwitchImportSuccess => '이 계정의 백업을 가져왔어요.';
+
+  @override
+  String get driveAccountSwitchStartEmptySuccess => '이 계정의 빈 선수 데이터로 시작했어요.';
+
+  @override
+  String get driveAccountSwitchImportFailed =>
+      '이 계정의 백업 가져오기에 실패했어요. 다시 시도해 주세요.';
+
+  @override
+  String get driveAccountSwitchStartEmptyFailed =>
+      '이 계정으로 새로 시작하지 못했어요. 다시 시도해 주세요.';
+
+  @override
+  String get driveAccountSwitchNoRemoteBackup =>
+      '연결된 계정에서 Drive 백업을 찾지 못했어요. 이 계정으로 새로 시작하거나 저장된 선수 계정으로 다시 연결해 주세요.';
 
   @override
   String get backupVersionUnsupported =>
