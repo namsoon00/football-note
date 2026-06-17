@@ -11,6 +11,7 @@ import '../../application/family_access_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../application/settings_service.dart';
+import '../../application/skill_quiz_resume_summary.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_feedback.dart';
@@ -2360,24 +2361,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       return const <String>[];
     }
   }
-}
-
-class SkillQuizResumeSummary {
-  final bool hasActiveSession;
-  final bool reviewMode;
-  final int currentIndex;
-  final int totalQuestions;
-  final int pendingWrongCount;
-  final bool completedToday;
-
-  const SkillQuizResumeSummary({
-    required this.hasActiveSession,
-    required this.reviewMode,
-    required this.currentIndex,
-    required this.totalQuestions,
-    required this.pendingWrongCount,
-    this.completedToday = false,
-  });
 }
 
 enum _QuizEntryAction {

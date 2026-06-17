@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/challenge_service.dart';
+import '../../application/daily_loop/daily_loop_snapshot.dart';
 import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/meal_log_service.dart';
@@ -47,6 +48,10 @@ import 'player_level_guide_screen.dart';
 import 'running_coach_screen.dart';
 import 'training_method_board_screen.dart';
 import 'weather_detail_screen.dart';
+
+typedef _HomeHubData = DailyLoopSnapshot;
+typedef _DashboardPlan = DailyLoopPlan;
+typedef _RecentTrainingMarker = DailyLoopTrainingMarker;
 
 class HomeHubScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -205,7 +210,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     trainingEntries: allEntries,
                     mealEntries: mealEntries,
                   );
-                  final data = _HomeHubData.build(
+                  final data = DailyLoopSnapshot.build(
                     entries: allEntries,
                     mealEntries: mealEntries,
                     plans: _loadPlans(widget.optionRepository),
@@ -822,7 +827,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       if (decoded is! List) return const <_DashboardPlan>[];
       return decoded
           .whereType<Map>()
-          .map((item) => _DashboardPlan.fromMap(item.cast<String, dynamic>()))
+          .map((item) => DailyLoopPlan.fromMap(item.cast<String, dynamic>()))
           .toList(growable: false);
     } catch (_) {
       return const <_DashboardPlan>[];
@@ -1204,315 +1209,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     }
     return false;
   }
-}
-
-class _HomeHubData {
-  final int weeklyTrainingCount;
-  final int weeklyMinutes;
-  final int streakDays;
-  final DateTime? latestTrainingDay;
-  final int? latestTrainingGapDays;
-  final List<_RecentTrainingMarker> recentTrainingMarkers;
-  final int boardCount;
-  final DateTime? latestBoardUpdatedAt;
-  final TrainingBoard? latestBoard;
-  final int todayPlanCount;
-  final List<_DashboardPlan> todayPlans;
-  final TrainingEntry? latestTrainingEntry;
-  final TrainingEntry? latestCreatedTrainingEntry;
-  final bool loggedTrainingToday;
-  final bool loggedLiftingToday;
-  final bool loggedJumpRopeToday;
-  final bool loggedMealsToday;
-  final bool openedNewsToday;
-  final bool reviewedTodayDiary;
-  final bool quizCompletedToday;
-  final bool loggedBoardToday;
-  final MealEntry? todayMealEntry;
-  final SkillQuizResumeSummary quizResumeSummary;
-
-  const _HomeHubData({
-    required this.weeklyTrainingCount,
-    required this.weeklyMinutes,
-    required this.streakDays,
-    required this.latestTrainingDay,
-    required this.latestTrainingGapDays,
-    required this.recentTrainingMarkers,
-    required this.boardCount,
-    required this.latestBoardUpdatedAt,
-    required this.latestBoard,
-    required this.todayPlanCount,
-    required this.todayPlans,
-    required this.latestTrainingEntry,
-    required this.latestCreatedTrainingEntry,
-    required this.loggedTrainingToday,
-    required this.loggedLiftingToday,
-    required this.loggedJumpRopeToday,
-    required this.loggedMealsToday,
-    required this.openedNewsToday,
-    required this.reviewedTodayDiary,
-    required this.quizCompletedToday,
-    required this.loggedBoardToday,
-    required this.todayMealEntry,
-    required this.quizResumeSummary,
-  });
-
-  bool get showStreakHighlight =>
-      streakDays >= 2 &&
-      latestTrainingGapDays != null &&
-      latestTrainingGapDays! <= 5;
-
-  bool get streakIsActive =>
-      latestTrainingGapDays != null && latestTrainingGapDays! <= 1;
-
-  int get dailyTaskTotalCount => 8;
-
-  int get dailyTaskCompletedCount => <bool>[
-        loggedTrainingToday,
-        loggedLiftingToday,
-        loggedJumpRopeToday,
-        loggedMealsToday,
-        openedNewsToday,
-        quizCompletedToday,
-        reviewedTodayDiary,
-        loggedBoardToday,
-      ].where((done) => done).length;
-
-  bool get completedDailyTasks =>
-      dailyTaskCompletedCount >= dailyTaskTotalCount;
-
-  factory _HomeHubData.build({
-    required List<TrainingEntry> entries,
-    required List<MealEntry> mealEntries,
-    required List<_DashboardPlan> plans,
-    required List<TrainingBoard> boards,
-    required DateTime? quizCompletedAt,
-    required String? viewedDiaryDayToken,
-    required SkillQuizResumeSummary quizResumeSummary,
-    required bool openedNewsToday,
-  }) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final weekStart = today.subtract(Duration(days: today.weekday - 1));
-    final weekEndExclusive = weekStart.add(const Duration(days: 7));
-    final weeklyEntries = entries
-        .where(
-          (entry) =>
-              !entry.date.isBefore(weekStart) &&
-              entry.date.isBefore(weekEndExclusive),
-        )
-        .toList(growable: false);
-    final weeklyMinutes = weeklyEntries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.durationMinutes,
-    );
-    final latestTrainingEntry = entries.isEmpty ? null : entries.first;
-    final latestCreatedTrainingEntry = entries.where((entry) {
-      final createdDay = DateTime(
-        entry.createdAt.year,
-        entry.createdAt.month,
-        entry.createdAt.day,
-      );
-      return createdDay == today;
-    }).fold<TrainingEntry?>(
-      null,
-      (latest, entry) =>
-          latest == null || entry.createdAt.isAfter(latest.createdAt)
-              ? entry
-              : latest,
-    );
-    final todayEntries = entries.where((entry) {
-      final day = DateTime(
-        entry.date.year,
-        entry.date.month,
-        entry.date.day,
-      );
-      return day == today;
-    }).toList(growable: false);
-    final loggedTrainingToday = todayEntries.isNotEmpty;
-    final loggedLiftingToday = todayEntries.any(
-      (entry) =>
-          entry.liftingMinutes > 0 ||
-          entry.liftingByPart.values.any((value) => value > 0),
-    );
-    final loggedJumpRopeToday = todayEntries.any(_hasCompletedJumpRope);
-    final todayMealEntry = mealEntries.where((entry) {
-      final day = DateTime(
-        entry.date.year,
-        entry.date.month,
-        entry.date.day,
-      );
-      return day == today;
-    }).fold<MealEntry?>(
-      null,
-      (latest, entry) =>
-          latest == null || entry.createdAt.isAfter(latest.createdAt)
-              ? entry
-              : latest,
-    );
-    final loggedMealsToday =
-        todayMealEntry != null && todayMealEntry.hasRecords;
-
-    final entryDays = entries
-        .map(
-          (entry) =>
-              DateTime(entry.date.year, entry.date.month, entry.date.day),
-        )
-        .toSet();
-    final latestTrainingDay = entryDays.isEmpty
-        ? null
-        : entryDays.reduce((latest, day) => day.isAfter(latest) ? day : latest);
-    var streakDays = 0;
-    DateTime? cursor = latestTrainingDay;
-    while (cursor != null && entryDays.contains(cursor)) {
-      streakDays++;
-      cursor = cursor.subtract(const Duration(days: 1));
-    }
-    final latestTrainingGapDays = latestTrainingDay == null
-        ? null
-        : today.difference(latestTrainingDay).inDays;
-    final recentTrainingMarkers = List<_RecentTrainingMarker>.generate(5, (
-      index,
-    ) {
-      final day = today.subtract(Duration(days: 4 - index));
-      return _RecentTrainingMarker(day: day, recorded: entryDays.contains(day));
-    });
-
-    final todayPlans = plans.where((plan) {
-      final day = DateTime(
-        plan.scheduledAt.year,
-        plan.scheduledAt.month,
-        plan.scheduledAt.day,
-      );
-      return day == today;
-    }).toList(growable: false)
-      ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
-    final remainingTodayPlans = todayPlans
-        .where((plan) => !_isPlanCoveredByTrainingEntry(plan, entries))
-        .toList(growable: false);
-    final todayPlanCount = remainingTodayPlans.length;
-    final quizCompletedToday = quizCompletedAt != null &&
-        quizCompletedAt.year == now.year &&
-        quizCompletedAt.month == now.month &&
-        quizCompletedAt.day == now.day;
-    final reviewedTodayDiary =
-        viewedDiaryDayToken == CoachLessonScreen.todayViewedDayToken(now);
-    final loggedBoardToday = boards.isNotEmpty &&
-        boards.first.updatedAt.year == now.year &&
-        boards.first.updatedAt.month == now.month &&
-        boards.first.updatedAt.day == now.day;
-
-    return _HomeHubData(
-      weeklyTrainingCount: weeklyEntries.length,
-      weeklyMinutes: weeklyMinutes,
-      streakDays: streakDays,
-      latestTrainingDay: latestTrainingDay,
-      latestTrainingGapDays: latestTrainingGapDays,
-      recentTrainingMarkers: recentTrainingMarkers,
-      boardCount: boards.length,
-      latestBoardUpdatedAt: boards.isEmpty ? null : boards.first.updatedAt,
-      latestBoard: boards.isEmpty ? null : boards.first,
-      todayPlanCount: todayPlanCount,
-      todayPlans: remainingTodayPlans,
-      latestTrainingEntry: latestTrainingEntry,
-      latestCreatedTrainingEntry: latestCreatedTrainingEntry,
-      loggedTrainingToday: loggedTrainingToday,
-      loggedLiftingToday: loggedLiftingToday,
-      loggedJumpRopeToday: loggedJumpRopeToday,
-      loggedMealsToday: loggedMealsToday,
-      openedNewsToday: openedNewsToday,
-      reviewedTodayDiary: reviewedTodayDiary,
-      quizCompletedToday: quizCompletedToday,
-      loggedBoardToday: loggedBoardToday,
-      todayMealEntry: todayMealEntry,
-      quizResumeSummary: quizResumeSummary,
-    );
-  }
-
-  static bool _isPlanCoveredByTrainingEntry(
-    _DashboardPlan plan,
-    Iterable<TrainingEntry> entries,
-  ) {
-    final planDay = DateTime(
-      plan.scheduledAt.year,
-      plan.scheduledAt.month,
-      plan.scheduledAt.day,
-    );
-    final normalizedCategory = plan.category.trim().toLowerCase();
-    var hasTrainingEntryOnPlanDay = false;
-    for (final entry in entries) {
-      if (entry.isMatch) continue;
-      final entryDay = DateTime(
-        entry.date.year,
-        entry.date.month,
-        entry.date.day,
-      );
-      if (entryDay != planDay) continue;
-      hasTrainingEntryOnPlanDay = true;
-      if (normalizedCategory.isEmpty) {
-        return true;
-      }
-      final entryType = entry.type.trim().toLowerCase();
-      final entryProgram = entry.program.trim().toLowerCase();
-      final entryPrograms = entry.effectiveTrainingProgramMinutes.keys
-          .map((program) => program.trim().toLowerCase())
-          .where((program) => program.isNotEmpty)
-          .toSet();
-      final categoryMatches = normalizedCategory.isEmpty ||
-          entryType == normalizedCategory ||
-          entryProgram == normalizedCategory ||
-          entryPrograms.contains(normalizedCategory);
-      if (categoryMatches) {
-        return true;
-      }
-    }
-    return hasTrainingEntryOnPlanDay && DateTime.now().isAfter(plan.endsAt);
-  }
-}
-
-class _DashboardPlan {
-  final String id;
-  final DateTime scheduledAt;
-  final String category;
-  final int durationMinutes;
-  final String location;
-  final String note;
-
-  const _DashboardPlan({
-    required this.id,
-    required this.scheduledAt,
-    required this.category,
-    required this.durationMinutes,
-    required this.location,
-    required this.note,
-  });
-
-  DateTime get endsAt => scheduledAt.add(Duration(minutes: durationMinutes));
-
-  factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
-    return _DashboardPlan(
-      id: map['id']?.toString() ??
-          DateTime.now().microsecondsSinceEpoch.toString(),
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
-          DateTime.now(),
-      category: map['category']?.toString() ?? '',
-      durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,
-      location: map['location']?.toString() ?? '',
-      note: map['note']?.toString() ?? '',
-    );
-  }
-}
-
-class _RecentTrainingMarker {
-  final DateTime day;
-  final bool recorded;
-
-  const _RecentTrainingMarker({required this.day, required this.recorded});
-}
-
-bool _hasCompletedJumpRope(TrainingEntry entry) {
-  if (!entry.jumpRopeEnabled) return false;
-  return entry.jumpRopeCount > 0 || entry.jumpRopeMinutes > 0;
 }
 
 String _challengeTemplateTitle(
