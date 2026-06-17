@@ -1,4 +1,4 @@
-# football_note
+# 태오의 노트
 
 A new Flutter project.
 
