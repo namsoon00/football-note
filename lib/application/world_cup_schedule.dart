@@ -270,10 +270,9 @@ Map<String, List<WorldCupGroupStanding>> worldCupGroupStandings({
     ..sort((a, b) => a.key.compareTo(b.key));
   return {
     for (final entry in entries)
-      entry.key:
-          (entry.value.values.map((stats) => stats.toStanding()).toList()
-                ..sort(_compareWorldCupGroupStandings))
-              .toList(growable: false),
+      entry.key: (entry.value.values.map((stats) => stats.toStanding()).toList()
+            ..sort(_compareWorldCupGroupStandings))
+          .toList(growable: false),
   };
 }
 
@@ -397,6 +396,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Brazil',
     awayTeam: 'Morocco',
     venue: 'MetLife Stadium, New York/New Jersey',
+    homeScore: 1,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 7,
@@ -406,6 +407,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Haiti',
     awayTeam: 'Scotland',
     venue: 'Gillette Stadium, Boston',
+    homeScore: 0,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 8,
@@ -415,6 +418,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Australia',
     awayTeam: 'Turkiye',
     venue: 'BC Place, Vancouver',
+    homeScore: 2,
+    awayScore: 0,
   ),
   WorldCupFixture(
     matchNumber: 9,
@@ -424,6 +429,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Germany',
     awayTeam: 'Curacao',
     venue: 'NRG Stadium, Houston',
+    homeScore: 7,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 10,
@@ -433,6 +440,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Netherlands',
     awayTeam: 'Japan',
     venue: 'AT&T Stadium, Dallas',
+    homeScore: 2,
+    awayScore: 2,
   ),
   WorldCupFixture(
     matchNumber: 11,
@@ -442,6 +451,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Ivory Coast',
     awayTeam: 'Ecuador',
     venue: 'Lincoln Financial Field, Philadelphia',
+    homeScore: 1,
+    awayScore: 0,
   ),
   WorldCupFixture(
     matchNumber: 12,
@@ -451,6 +462,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Sweden',
     awayTeam: 'Tunisia',
     venue: 'Estadio BBVA, Monterrey',
+    homeScore: 5,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 13,
@@ -460,6 +473,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Spain',
     awayTeam: 'Cape Verde',
     venue: 'Mercedes-Benz Stadium, Atlanta',
+    homeScore: 0,
+    awayScore: 0,
   ),
   WorldCupFixture(
     matchNumber: 14,
@@ -469,6 +484,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Belgium',
     awayTeam: 'Egypt',
     venue: 'Lumen Field, Seattle',
+    homeScore: 1,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 15,
@@ -478,6 +495,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Saudi Arabia',
     awayTeam: 'Uruguay',
     venue: 'Hard Rock Stadium, Miami',
+    homeScore: 1,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 16,
@@ -487,6 +506,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Iran',
     awayTeam: 'New Zealand',
     venue: 'SoFi Stadium, Los Angeles',
+    homeScore: 2,
+    awayScore: 2,
   ),
   WorldCupFixture(
     matchNumber: 17,
@@ -496,6 +517,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'France',
     awayTeam: 'Senegal',
     venue: 'MetLife Stadium, New York/New Jersey',
+    homeScore: 3,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 18,
@@ -505,6 +528,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Iraq',
     awayTeam: 'Norway',
     venue: 'Gillette Stadium, Boston',
+    homeScore: 1,
+    awayScore: 4,
   ),
   WorldCupFixture(
     matchNumber: 19,
@@ -514,6 +539,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Argentina',
     awayTeam: 'Algeria',
     venue: 'GEHA Field at Arrowhead Stadium, Kansas City',
+    homeScore: 3,
+    awayScore: 0,
   ),
   WorldCupFixture(
     matchNumber: 20,
@@ -523,6 +550,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Austria',
     awayTeam: 'Jordan',
     venue: 'Levi\'s Stadium, San Francisco Bay Area',
+    homeScore: 3,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 21,
@@ -532,6 +561,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'Portugal',
     awayTeam: 'Congo DR',
     venue: 'NRG Stadium, Houston',
+    homeScore: 1,
+    awayScore: 1,
   ),
   WorldCupFixture(
     matchNumber: 22,
@@ -541,6 +572,8 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     homeTeam: 'England',
     awayTeam: 'Croatia',
     venue: 'AT&T Stadium, Dallas',
+    homeScore: 2,
+    awayScore: 2,
   ),
   WorldCupFixture(
     matchNumber: 23,
