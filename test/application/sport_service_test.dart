@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/sport_service.dart';
+import 'package:football_note/application/sport_state_controller.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 
@@ -54,6 +55,50 @@ void main() {
       ),
       'default_program_tennis',
     );
+  });
+
+  test('sport controller writes normalized sport and notifies listeners',
+      () async {
+    final repository = _MemoryOptionRepository();
+    final controller = SportStateController(repository);
+    var notificationCount = 0;
+    controller.addListener(() => notificationCount++);
+
+    final changed = await controller.setCurrentSportId(
+      SportCatalog.basketballId,
+    );
+    final unchanged = await controller.setCurrentSportId(
+      SportCatalog.basketballId,
+    );
+
+    expect(changed, isTrue);
+    expect(unchanged, isFalse);
+    expect(controller.currentSportId, SportCatalog.basketballId);
+    expect(
+      repository.getValue<String>(SportCatalog.currentSportOptionKey),
+      SportCatalog.basketballId,
+    );
+    expect(notificationCount, 1);
+  });
+
+  test('sport controller reloads storage changes from backup restore',
+      () async {
+    final repository = _MemoryOptionRepository();
+    final controller = SportStateController(repository);
+    var notificationCount = 0;
+    controller.addListener(() => notificationCount++);
+
+    await repository.setValue(
+      SportCatalog.currentSportOptionKey,
+      SportCatalog.tennisId,
+    );
+    final reloaded = controller.reloadFromStorage();
+    final unchanged = controller.reloadFromStorage();
+
+    expect(reloaded, isTrue);
+    expect(unchanged, isFalse);
+    expect(controller.currentSportId, SportCatalog.tennisId);
+    expect(notificationCount, 1);
   });
 }
 

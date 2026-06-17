@@ -10,11 +10,13 @@ import '../../application/drive_backup_service.dart';
 import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
+import '../../application/news_badge_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/sport_defaults.dart';
 import '../../application/sport_service.dart';
 import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../widgets/sport_scope.dart';
 import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 
@@ -240,6 +242,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (pushedPending || result.refreshed) {
       widget.localeService.load();
       widget.settingsService.load();
+      if (!mounted) return;
+      SportScope.read(context)?.reloadFromStorage();
     }
   }
 
@@ -424,7 +428,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       'durations',
       const [0, 30, 45, 60, 75, 90, 120],
     );
-    final sportId = SportService(widget.optionRepository).currentSportId();
+    final sportId = SportScope.maybeOf(context)?.currentSportId ??
+        SportService(widget.optionRepository).currentSportId();
     final programOptionsKey = SportCatalog.optionKey(
       'programs',
       sportId: sportId,
@@ -548,8 +553,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                             l10n: l10n,
                             sportId: value,
                           ),
-                          onChanged: (value) =>
-                              unawaited(_changeCurrentSport(value)),
+                          onChanged: parentSettingsReadOnly
+                              ? null
+                              : (value) =>
+                                  unawaited(_changeCurrentSport(value)),
                           height: 56,
                         ),
                       ),
@@ -610,6 +617,17 @@ class _SettingsScreenState extends State<SettingsScreen>
                   );
                 },
               ),
+              if (parentSettingsReadOnly)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 2, 4, 4),
+                  child: Text(
+                    l10n.parentReadOnlySettingsOptions,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -1220,7 +1238,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     required T value,
     required List<T> options,
     required String Function(T value) optionLabel,
-    required ValueChanged<T> onChanged,
+    required ValueChanged<T>? onChanged,
     double height = 60,
     double topSpacing = 6,
     double bottomSpacing = 8,
@@ -1243,6 +1261,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 : MediaQuery.of(context).size.width - 32;
             return DropdownMenu<T>(
               width: availableWidth.clamp(160.0, 720.0),
+              enabled: onChanged != null,
               initialSelection: value,
               label: Text(label),
               textStyle: TextStyle(fontSize: 14, color: onSurface),
@@ -1278,9 +1297,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ),
                   )
                   .toList(),
-              onSelected: (value) {
-                if (value != null) onChanged(value);
-              },
+              onSelected: onChanged == null
+                  ? null
+                  : (value) {
+                      if (value != null) onChanged(value);
+                    },
             );
           },
         ),
@@ -1911,12 +1932,40 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> _changeCurrentSport(String sportId) async {
-    final service = SportService(widget.optionRepository);
+    final familyState = FamilyAccessService(
+      widget.optionRepository,
+    ).loadState();
+    if (familyState.isSupportMode) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.parentReadOnlySettingsOptions,
+          ),
+        ),
+      );
+      return;
+    }
     final normalizedSportId = SportCatalog.normalizeSportId(sportId);
-    if (service.currentSportId() == normalizedSportId) return;
-    await service.setCurrentSportId(normalizedSportId);
+    final controller = SportScope.read(context);
+    final changed = controller == null
+        ? await _setSportWithoutController(normalizedSportId)
+        : await controller.setCurrentSportId(normalizedSportId);
+    if (!changed) return;
+    NewsBadgeService.clearUnreadCount();
+    unawaited(NewsBadgeService.refresh(widget.optionRepository, force: true));
     if (!mounted) return;
     setState(() {});
+  }
+
+  Future<bool> _setSportWithoutController(String sportId) async {
+    final service = SportService(widget.optionRepository);
+    final normalizedSportId = SportCatalog.normalizeSportId(sportId);
+    if (service.currentSportId() == normalizedSportId) {
+      return false;
+    }
+    await service.setCurrentSportId(normalizedSportId);
+    return true;
   }
 
   List<String> _defaultDailyGoals(AppLocalizations l10n, {String? sportId}) {

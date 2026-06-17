@@ -11,6 +11,7 @@ import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
 import '../../application/notification_app_link.dart';
+import '../../application/sport_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'calendar_screen.dart';
@@ -19,6 +20,7 @@ import 'stats_screen.dart';
 import 'entry_form_screen.dart';
 import 'meal_log_screen.dart';
 import '../widgets/app_page_route.dart';
+import '../widgets/sport_scope.dart';
 import 'skill_quiz_screen.dart';
 import 'home_hub_screen.dart';
 import 'training_board_list_screen.dart';
@@ -128,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         widget.localeService.load();
         widget.settingsService.load();
         widget.mealLogService.reloadFromStorage();
+        SportScope.read(context)?.reloadFromStorage();
         setState(() {});
       }
       if (!result.hasUserVisibleChanges) return;
@@ -159,6 +162,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     widget.localeService.load();
     widget.settingsService.load();
     widget.mealLogService.reloadFromStorage();
+    SportScope.read(context)?.reloadFromStorage();
     if (mounted) {
       setState(() => _dataRevision++);
     } else {
@@ -201,10 +205,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final sportId = SportScope.maybeOf(context)?.currentSportId ??
+        SportService(widget.optionRepository).currentSportId();
     final navBackground = Theme.of(context).colorScheme.surface;
     final pages = <Widget>[
       _buildTabChild(
         0,
+        sportId,
         HomeHubScreen(
           trainingService: widget.trainingService,
           mealLogService: widget.mealLogService,
@@ -232,6 +239,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
       _buildTabChild(
         1,
+        sportId,
         LogsScreen(
           trainingService: widget.trainingService,
           localeService: widget.localeService,
@@ -249,6 +257,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
       _buildTabChild(
         2,
+        sportId,
         CalendarScreen(
           trainingService: widget.trainingService,
           mealLogService: widget.mealLogService,
@@ -260,8 +269,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onEdit: _openEdit,
           onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
           onCreateMeal: () => _openMealLog(initialDate: _calendarSelectedDay),
-          quickCreateAction:
-              _pendingCalendarQuickCreateAction ??
+          quickCreateAction: _pendingCalendarQuickCreateAction ??
               widget.calendarQuickCreateAction,
           onQuickCreateHandled: _clearCalendarQuickCreateAction,
           onSelectedDayChanged: (day) {
@@ -271,6 +279,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
       _buildTabChild(
         3,
+        sportId,
         StatsScreen(
           trainingService: widget.trainingService,
           mealLogService: widget.mealLogService,
@@ -285,6 +294,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
       _buildTabChild(
         4,
+        sportId,
         CoachLessonScreen(
           optionRepository: widget.optionRepository,
           trainingService: widget.trainingService,
@@ -340,11 +350,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildTabChild(int index, Widget child) {
+  Widget _buildTabChild(int index, String sportId, Widget child) {
     if (!_builtTabIndices.contains(index)) {
       return const SizedBox.shrink();
     }
-    return TickerMode(enabled: _index == index, child: child);
+    return TickerMode(
+      enabled: _index == index,
+      child: KeyedSubtree(
+        key: ValueKey<String>('home-tab-$index-$sportId'),
+        child: child,
+      ),
+    );
   }
 
   void _onDestinationSelected(int value) {

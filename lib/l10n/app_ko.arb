@@ -3671,7 +3671,7 @@
   "moreInfoAction": "자세히 보기",
   "parentReadOnlyProfileSummary": "프로필은 읽기 전용이에요.",
   "parentReadOnlyProfileDescription": "보호자 모드에서는 프로필이 읽기 전용입니다. 훈련 피드백은 훈련기록에서, 레벨 선물 입력은 레벨 가이드에서 진행해 주세요.",
-  "parentReadOnlySettingsOptions": "보호자 모드에서는 기본값과 뉴스 필터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.",
+  "parentReadOnlySettingsOptions": "보호자 모드에서는 종목, 기본값, 뉴스 필터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.",
   "benchmarkReferencesTitle": "평균 기준",
   "benchmarkRefreshAction": "평균 새로고침",
   "benchmarkRefreshInProgress": "새로고침 중",

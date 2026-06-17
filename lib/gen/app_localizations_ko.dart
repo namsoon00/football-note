@@ -7185,7 +7185,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get parentReadOnlySettingsOptions =>
-      '보호자 모드에서는 기본값과 뉴스 필터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.';
+      '보호자 모드에서는 종목, 기본값, 뉴스 필터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.';
 
   @override
   String get benchmarkReferencesTitle => '평균 기준';

@@ -7418,7 +7418,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parentReadOnlySettingsOptions =>
-      'Parent mode cannot edit default values or news filters. Change them in player mode.';
+      'Parent mode cannot edit the sport, default values, or news filters. Change them in player mode.';
 
   @override
   String get benchmarkReferencesTitle => 'Average benchmarks';

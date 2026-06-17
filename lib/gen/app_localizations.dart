@@ -12840,7 +12840,7 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlySettingsOptions.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode cannot edit default values or news filters. Change them in player mode.'**
+  /// **'Parent mode cannot edit the sport, default values, or news filters. Change them in player mode.'**
   String get parentReadOnlySettingsOptions;
 
   /// No description provided for @benchmarkReferencesTitle.

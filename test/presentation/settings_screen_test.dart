@@ -5,10 +5,13 @@ import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/settings_service.dart';
+import 'package:football_note/application/sport_state_controller.dart';
 import 'package:football_note/domain/repositories/backup_repository.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/settings_screen.dart';
+import 'package:football_note/presentation/widgets/sport_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -158,6 +161,90 @@ void main() {
       findsNothing,
     );
     expect(find.text('백업, 자동 백업, 복원을 한 곳에서 관리합니다.'), findsNothing);
+  });
+
+  testWidgets('player mode sport selector updates shared sport state', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final sportController = SportStateController(optionRepository);
+
+    await tester.pumpWidget(
+      SportScope(
+        controller: sportController,
+        child: MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('일반 설정'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownMenu<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('농구').last);
+    await tester.pumpAndSettle();
+
+    expect(sportController.currentSportId, SportCatalog.basketballId);
+    expect(
+      optionRepository.getValue<String>(SportCatalog.currentSportOptionKey),
+      SportCatalog.basketballId,
+    );
+  });
+
+  testWidgets('parent mode disables sport selector', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final sportController = SportStateController(optionRepository);
+
+    await tester.pumpWidget(
+      SportScope(
+        controller: sportController,
+        child: MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('일반 설정'));
+    await tester.pumpAndSettle();
+
+    final sportMenu = tester
+        .widgetList<DropdownMenu<String>>(find.byType(DropdownMenu<String>))
+        .firstWhere((menu) {
+      final label = menu.label;
+      return label is Text && label.data == '종목';
+    });
+    expect(sportMenu.enabled, isFalse);
+    expect(
+      find.text('보호자 모드에서는 종목, 기본값, 뉴스 필터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.'),
+      findsWidgets,
+    );
   });
 
   testWidgets(
