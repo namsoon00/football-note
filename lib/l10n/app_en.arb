@@ -2665,6 +2665,9 @@
   "runningCoachScreenTitle": "Running Coach",
   "runningCoachHeroTitle": "Side-view running form coach",
   "runningCoachHeroBody": "Make running feel like a weapon for the next match: take a tiny football sprint mission, log a time, then use form coaching to find the next tenth of a second.",
+  "runningCoachSectionToday": "Today",
+  "runningCoachSectionRecords": "Records",
+  "runningCoachSectionAnalysis": "Analysis",
   "runningCoachMissionCardTitle": "Today's speed mission",
   "runningCoachMissionDistance": "{meters}m mission",
   "@runningCoachMissionDistance": {

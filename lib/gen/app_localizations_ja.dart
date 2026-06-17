@@ -5018,6 +5018,15 @@ class AppLocalizationsJa extends AppLocalizations {
       '走ることを次の試合の武器にします。短いサッカー型スプリントミッションを走って記録し、フォームコーチで次の0.1秒を探します。';
 
   @override
+  String get runningCoachSectionToday => '今日';
+
+  @override
+  String get runningCoachSectionRecords => '記録';
+
+  @override
+  String get runningCoachSectionAnalysis => '分析';
+
+  @override
   String get runningCoachMissionCardTitle => '今日のスピードミッション';
 
   @override

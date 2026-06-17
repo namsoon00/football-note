@@ -2665,6 +2665,9 @@
   "runningCoachScreenTitle": "달리기 코치",
   "runningCoachHeroTitle": "측면 달리기 자세 코칭",
   "runningCoachHeroBody": "달리기를 다음 경기의 무기로 느끼게 해요. 짧은 축구형 스프린트 미션을 뛰고 기록을 남긴 뒤, 자세 코칭으로 다음 0.1초를 찾습니다.",
+  "runningCoachSectionToday": "오늘",
+  "runningCoachSectionRecords": "기록",
+  "runningCoachSectionAnalysis": "분석",
   "runningCoachMissionCardTitle": "오늘의 스피드 미션",
   "runningCoachMissionDistance": "{meters}m 미션",
   "@runningCoachMissionDistance": {

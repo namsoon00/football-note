@@ -9206,6 +9206,24 @@ abstract class AppLocalizations {
   /// **'Make running feel like a weapon for the next match: take a tiny football sprint mission, log a time, then use form coaching to find the next tenth of a second.'**
   String get runningCoachHeroBody;
 
+  /// No description provided for @runningCoachSectionToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get runningCoachSectionToday;
+
+  /// No description provided for @runningCoachSectionRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get runningCoachSectionRecords;
+
+  /// No description provided for @runningCoachSectionAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis'**
+  String get runningCoachSectionAnalysis;
+
   /// No description provided for @runningCoachMissionCardTitle.
   ///
   /// In en, this message translates to:

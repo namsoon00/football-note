@@ -17,6 +17,8 @@ import 'running_live_coach_screen.dart';
 import 'sprint_live_coaching_screen.dart';
 import '../widgets/app_feedback.dart';
 
+enum _RunningCoachSection { today, records, analysis }
+
 class RunningCoachScreen extends StatefulWidget {
   final OptionRepository? optionRepository;
 
@@ -45,6 +47,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       const <RunningCoachSessionAnalysis>[];
   RunningSprintDistance _selectedSprintDistance =
       RunningSprintDistance.twentyMeters;
+  _RunningCoachSection _selectedSection = _RunningCoachSection.today;
   bool _isAnalyzing = false;
   bool _isSavingRecord = false;
 
@@ -69,16 +72,10 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final insightSections = _coachingReport == null
-        ? const <_InsightRegionSection>[]
-        : _buildInsightSections(l10n, _coachingReport!);
-    final sampleResult = _sampleAnalysisResult();
-    final sampleReport = _coachingService.buildReport(sampleResult);
-    final mistakeSampleResult = _mistakeSampleAnalysisResult();
-    final mistakeSampleReport = _coachingService.buildReport(
-      mistakeSampleResult,
-    );
-    final mission = _missionForToday(DateTime.now());
+    final sections = _availableSections;
+    final selectedSection =
+        sections.contains(_selectedSection) ? _selectedSection : sections.first;
+    final selectedIndex = sections.indexOf(selectedSection);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -88,83 +85,176 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         ),
         title: Text(l10n.runningCoachScreenTitle),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      body: IndexedStack(
+        index: selectedIndex,
         children: [
-          _HeroCard(
-            title: l10n.runningCoachHeroTitle,
-            body: l10n.runningCoachHeroBody,
-          ),
-          const SizedBox(height: 12),
-          _RunningMissionCard(
-            mission: mission,
-            onStartLiveCoach: _openLiveCoach,
-            onStartSprintCoach: _openSprintCoach,
-          ),
-          if (_growthSnapshot case final growthSnapshot?) ...[
-            const SizedBox(height: 12),
-            _RunningGrowthRecordCard(
-              snapshot: growthSnapshot,
-              selectedDistance: _selectedSprintDistance,
-              secondsController: _recordSecondsController,
-              isSaving: _isSavingRecord,
-              onDistanceChanged: (distance) {
-                setState(() => _selectedSprintDistance = distance);
-              },
-              onSave: _saveSprintRecord,
+          for (final section in sections) _buildSectionPage(section, l10n),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() => _selectedSection = sections[index]);
+        },
+        destinations: [
+          for (final section in sections)
+            NavigationDestination(
+              icon: Icon(_sectionIcon(section)),
+              selectedIcon: Icon(_sectionSelectedIcon(section)),
+              label: _sectionLabel(l10n, section),
             ),
-          ],
-          const SizedBox(height: 12),
-          _RunningCoachUploadGuideCard(
-            title: l10n.runningCoachUploadGuideTitle,
-            body: l10n.runningCoachUploadGuideBody,
-            onShowSampleGuide: () => _showSampleAnalysis(
-              l10n,
-              result: sampleResult,
-              report: sampleReport,
-              mistakeResult: mistakeSampleResult,
-              mistakeReport: mistakeSampleReport,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _VideoAnalysisIntentCard(
-            selectedVideoName: _selectedVideo?.name,
-            isAnalyzing: _isAnalyzing,
-            canAnalyze: _canAnalyze,
-            onPickVideo: _pickVideo,
-            onAnalyzeVideo: _analyzeVideo,
-          ),
-          if (_recentSessions.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _RecentSessionsCard(sessions: _recentSessions.take(3).toList()),
-          ],
-          if (_analysisResult != null && _coachingReport != null) ...[
-            const SizedBox(height: 12),
-            _ResultsSummaryCard(
-              result: _analysisResult!,
-              report: _coachingReport!,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.runningCoachResultsTitle,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            for (var sectionIndex = 0;
-                sectionIndex < insightSections.length;
-                sectionIndex += 1) ...[
-              _InsightRegionSectionCard(
-                title: insightSections[sectionIndex].title,
-                insights: insightSections[sectionIndex].insights,
-                priorities: _coachingReport!.focusPriorityByMetric,
-              ),
-              if (sectionIndex != insightSections.length - 1)
-                const SizedBox(height: 12),
-            ],
-          ],
         ],
       ),
     );
+  }
+
+  List<_RunningCoachSection> get _availableSections => [
+        _RunningCoachSection.today,
+        if (_growthSnapshot != null) _RunningCoachSection.records,
+        _RunningCoachSection.analysis,
+      ];
+
+  Widget _buildSectionPage(
+    _RunningCoachSection section,
+    AppLocalizations l10n,
+  ) {
+    return switch (section) {
+      _RunningCoachSection.today => _buildTodayMissionPage(l10n),
+      _RunningCoachSection.records => _buildRecordsPage(),
+      _RunningCoachSection.analysis => _buildAnalysisPage(l10n),
+    };
+  }
+
+  Widget _buildTodayMissionPage(AppLocalizations l10n) {
+    final mission = _missionForToday(DateTime.now());
+    return ListView(
+      key: const PageStorageKey('running-coach-today-page'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        _HeroCard(
+          title: l10n.runningCoachHeroTitle,
+          body: l10n.runningCoachHeroBody,
+        ),
+        const SizedBox(height: 12),
+        _RunningMissionCard(
+          mission: mission,
+          onStartLiveCoach: _openLiveCoach,
+          onStartSprintCoach: _openSprintCoach,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecordsPage() {
+    final growthSnapshot = _growthSnapshot;
+    if (growthSnapshot == null) {
+      return const SizedBox.shrink();
+    }
+    return ListView(
+      key: const PageStorageKey('running-coach-records-page'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        _RunningGrowthRecordCard(
+          snapshot: growthSnapshot,
+          selectedDistance: _selectedSprintDistance,
+          secondsController: _recordSecondsController,
+          isSaving: _isSavingRecord,
+          onDistanceChanged: (distance) {
+            setState(() => _selectedSprintDistance = distance);
+          },
+          onSave: _saveSprintRecord,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnalysisPage(AppLocalizations l10n) {
+    final insightSections = _coachingReport == null
+        ? const <_InsightRegionSection>[]
+        : _buildInsightSections(l10n, _coachingReport!);
+    final sampleResult = _sampleAnalysisResult();
+    final sampleReport = _coachingService.buildReport(sampleResult);
+    final mistakeSampleResult = _mistakeSampleAnalysisResult();
+    final mistakeSampleReport = _coachingService.buildReport(
+      mistakeSampleResult,
+    );
+    return ListView(
+      key: const PageStorageKey('running-coach-analysis-page'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        _RunningCoachUploadGuideCard(
+          title: l10n.runningCoachUploadGuideTitle,
+          body: l10n.runningCoachUploadGuideBody,
+          onShowSampleGuide: () => _showSampleAnalysis(
+            l10n,
+            result: sampleResult,
+            report: sampleReport,
+            mistakeResult: mistakeSampleResult,
+            mistakeReport: mistakeSampleReport,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _VideoAnalysisIntentCard(
+          selectedVideoName: _selectedVideo?.name,
+          isAnalyzing: _isAnalyzing,
+          canAnalyze: _canAnalyze,
+          onPickVideo: _pickVideo,
+          onAnalyzeVideo: _analyzeVideo,
+        ),
+        if (_recentSessions.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _RecentSessionsCard(sessions: _recentSessions.take(3).toList()),
+        ],
+        if (_analysisResult != null && _coachingReport != null) ...[
+          const SizedBox(height: 12),
+          _ResultsSummaryCard(
+            result: _analysisResult!,
+            report: _coachingReport!,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.runningCoachResultsTitle,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 12),
+          for (var sectionIndex = 0;
+              sectionIndex < insightSections.length;
+              sectionIndex += 1) ...[
+            _InsightRegionSectionCard(
+              title: insightSections[sectionIndex].title,
+              insights: insightSections[sectionIndex].insights,
+              priorities: _coachingReport!.focusPriorityByMetric,
+            ),
+            if (sectionIndex != insightSections.length - 1)
+              const SizedBox(height: 12),
+          ],
+        ],
+      ],
+    );
+  }
+
+  IconData _sectionIcon(_RunningCoachSection section) {
+    return switch (section) {
+      _RunningCoachSection.today => Icons.flag_outlined,
+      _RunningCoachSection.records => Icons.show_chart_outlined,
+      _RunningCoachSection.analysis => Icons.video_camera_back_outlined,
+    };
+  }
+
+  IconData _sectionSelectedIcon(_RunningCoachSection section) {
+    return switch (section) {
+      _RunningCoachSection.today => Icons.flag_rounded,
+      _RunningCoachSection.records => Icons.show_chart_rounded,
+      _RunningCoachSection.analysis => Icons.video_camera_back_rounded,
+    };
+  }
+
+  String _sectionLabel(AppLocalizations l10n, _RunningCoachSection section) {
+    return switch (section) {
+      _RunningCoachSection.today => l10n.runningCoachSectionToday,
+      _RunningCoachSection.records => l10n.runningCoachSectionRecords,
+      _RunningCoachSection.analysis => l10n.runningCoachSectionAnalysis,
+    };
   }
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;

@@ -31,6 +31,12 @@ void main() {
       findsOneWidget,
     );
     expect(find.text("Today's speed mission"), findsOneWidget);
+    expect(find.text('Records'), findsOneWidget);
+    expect(find.text('Analysis'), findsOneWidget);
+
+    await tester.tap(find.text('Records'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Beat your own runner'), findsOneWidget);
     expect(find.text('No time yet'), findsWidgets);
 
@@ -72,6 +78,9 @@ void main() {
         home: RunningCoachScreen(),
       ),
     );
+
+    await tester.tap(find.text('Analysis'));
+    await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
       find.text('Open sample video guide'),

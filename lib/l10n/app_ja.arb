@@ -2665,6 +2665,9 @@
   "runningCoachScreenTitle": "ランニングコーチ",
   "runningCoachHeroTitle": "サイドビューランニングフォームコーチ",
   "runningCoachHeroBody": "走ることを次の試合の武器にします。短いサッカー型スプリントミッションを走って記録し、フォームコーチで次の0.1秒を探します。",
+  "runningCoachSectionToday": "今日",
+  "runningCoachSectionRecords": "記録",
+  "runningCoachSectionAnalysis": "分析",
   "runningCoachMissionCardTitle": "今日のスピードミッション",
   "runningCoachMissionDistance": "{meters}mミッション",
   "@runningCoachMissionDistance": {

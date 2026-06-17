@@ -5169,6 +5169,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Make running feel like a weapon for the next match: take a tiny football sprint mission, log a time, then use form coaching to find the next tenth of a second.';
 
   @override
+  String get runningCoachSectionToday => 'Today';
+
+  @override
+  String get runningCoachSectionRecords => 'Records';
+
+  @override
+  String get runningCoachSectionAnalysis => 'Analysis';
+
+  @override
   String get runningCoachMissionCardTitle => 'Today\'s speed mission';
 
   @override
