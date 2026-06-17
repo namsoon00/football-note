@@ -4006,8 +4006,6 @@
   "trainingSketchAddPlayerFirst": "먼저 사람 아이콘을 추가해 주세요.",
   "trainingSketchAddBallFirst": "먼저 공 아이콘을 추가해 주세요.",
   "trainingSketchRoutesButton": "이동선",
-  "trainingSketchPassDribbleMoveFlowButton": "패스·드리블 플로우",
-  "trainingSketchPassDribbleMoveFlowSnack": "1번 패스, 2번 드리블, 3번 이동 플로우를 적용했어요.",
   "trainingSketchLinkRoutesInOrderButton": "전체 차례대로 연결",
   "trainingSketchLinkRoutesInOrderSnack": "이동선을 그린 순서대로 하나씩 시작하게 연결했어요.",
   "trainingSketchLinkRoutesNeedTwoSnack": "연결하려면 이동선이 2개 이상 필요해요.",

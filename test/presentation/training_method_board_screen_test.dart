@@ -80,24 +80,89 @@ void main() {
   ) async {
     _setLandscapeSurface(tester);
     String? savedLayout;
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(
+                id: 'player-1', type: 'player', x: 0.26, y: 0.61),
+            TrainingMethodItem(
+              id: 'player-2',
+              type: 'player',
+              x: 0.52,
+              y: 0.48,
+              colorValue: 0xFF1E88E5,
+            ),
+            TrainingMethodItem(
+              id: 'player-3',
+              type: 'player',
+              x: 0.73,
+              y: 0.64,
+              colorValue: 0xFF26C6DA,
+            ),
+            TrainingMethodItem(
+              id: 'ball-1',
+              type: 'ball',
+              x: 0.31,
+              y: 0.60,
+              colorValue: 0xFFFFCA28,
+            ),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-player-1',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-1',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.26, y: 0.61),
+                TrainingMethodPoint(x: 0.34, y: 0.56),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-ball-1',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.31, y: 0.60),
+                TrainingMethodPoint(x: 0.52, y: 0.48),
+                TrainingMethodPoint(x: 0.69, y: 0.45),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-player-2',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-2',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.52, y: 0.48),
+                TrainingMethodPoint(x: 0.69, y: 0.45),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-player-3',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-3',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.73, y: 0.64),
+                TrainingMethodPoint(x: 0.79, y: 0.36),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
 
     await tester.pumpWidget(
       _buildApp(
         TrainingMethodBoardScreen(
           boardTitle: '연계 스케치',
-          initialLayoutJson: const TrainingMethodLayout(
-            pages: <TrainingMethodPage>[
-              TrainingMethodPage(name: 'Board', items: <TrainingMethodItem>[]),
-            ],
-          ).encode(),
+          initialLayoutJson: initialLayout,
           onSaved: (value) => savedLayout = value,
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '패스·드리블 플로우'));
-    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const ValueKey('training-player-path-mode-button')),
     );
@@ -115,6 +180,58 @@ void main() {
     expect(_samePoint(routes[2].points[0], routes[2].points[1]), isFalse);
     expect(_samePoint(routes[3].points[0], routes[3].points[1]), isFalse);
     expect(routes.map((route) => route.stageIndex), [2, 2, 3, 4]);
+  });
+
+  testWidgets('ball tokens show their own numbers', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '번호 스케치',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.2,
+                    y: 0.4,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.36,
+                    y: 0.4,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-2',
+                    type: 'ball',
+                    x: 0.52,
+                    y: 0.4,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    expect(
+      find.descendant(of: boardFinder, matching: find.text('1')),
+      findsNWidgets(2),
+    );
+    expect(
+      find.descendant(of: boardFinder, matching: find.text('2')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('training sketch auto saves after memo edit', (
@@ -611,6 +728,7 @@ void main() {
     expect((ballRouteRect.top - ballRect.top).abs(), lessThan(2));
     expect(ballRouteRect.left - ballRect.right, lessThan(20));
     expect(ballRouteRect.left, greaterThan(ballRect.left));
+    expect(find.text('패스·드리블 플로우'), findsNothing);
   });
 
   testWidgets('landscape controls and memo stay beside the board', (
@@ -973,6 +1091,80 @@ void main() {
       expect((ballAfter - ballBefore).distance, greaterThan(1));
     },
   );
+
+  testWidgets('playback keeps the previously selected route tool', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.5),
+            TrainingMethodItem(id: 'ball-1', type: 'ball', x: 0.34, y: 0.5),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-player-1',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-1',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.5),
+                TrainingMethodPoint(x: 0.38, y: 0.5),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-ball-1',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.34, y: 0.5),
+                TrainingMethodPoint(x: 0.56, y: 0.44),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '패스 워밍업',
+          initialLayoutJson: initialLayout,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.sports_soccer),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-ball-path-mode-button')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('training-route-target-ball-ball-1')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byIcon(Icons.play_circle_outline).first);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-route-target-ball-ball-1')),
+      findsOneWidget,
+    );
+  });
 
   testWidgets(
     'playback moves the ball farther than the player over equal time',

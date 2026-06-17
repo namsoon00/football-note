@@ -7861,13 +7861,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchRoutesButton => 'ルート';
 
   @override
-  String get trainingSketchPassDribbleMoveFlowButton => 'パス・ドリブルフロー';
-
-  @override
-  String get trainingSketchPassDribbleMoveFlowSnack =>
-      '1番のパス、2番のドリブル、3番の移動フローを適用しました。';
-
-  @override
   String get trainingSketchLinkRoutesInOrderButton => 'すべて順番につなぐ';
 
   @override
