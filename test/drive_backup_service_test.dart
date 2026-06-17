@@ -9,6 +9,7 @@ import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/infrastructure/hive_option_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -91,10 +92,13 @@ void main() {
 
     final backup = service.buildBackupForTesting();
     final backupOptions = backup['options'] as Map<String, dynamic>;
+    final backedUpEntry =
+        (backup['entries'] as List).single as Map<String, dynamic>;
     final family = backup['family'] as Map<String, dynamic>;
 
     expect(backup['format'], 'football_note_backup');
     expect(backup['version'], 6);
+    expect(backedUpEntry['sportId'], SportCatalog.footballId);
     expect(backupOptions['profile_name'], 'Lee');
     expect(backupOptions['theme_mode'], 'dark');
     expect(backupOptions['reminder_enabled'], false);
@@ -113,6 +117,7 @@ void main() {
 
     expect(trainingBox.length, 1);
     expect(trainingBox.values.first.durationMinutes, 75);
+    expect(trainingBox.values.first.sportId, SportCatalog.footballId);
     expect(trainingBox.values.first.opponentTeam, 'Blue FC');
     expect(trainingBox.values.first.scoredGoals, 2);
     expect(trainingBox.values.first.concededGoals, 1);
@@ -272,6 +277,31 @@ void main() {
 
     expect(optionBox.get('theme_mode'), 'dark');
     expect(optionBox.get('type_options'), ['technique', 'tactics']);
+  });
+
+  test('restores legacy entries without sport id as football', () async {
+    final legacy = <String, dynamic>{
+      'version': 5,
+      'createdAt': '2026-01-01T00:00:00.000',
+      'entries': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'date': '2026-01-01T00:00:00.000',
+          'createdAt': '2026-01-01T09:00:00.000',
+          'durationMinutes': 60,
+          'intensity': 3,
+          'type': 'passing',
+          'mood': 4,
+          'injury': false,
+          'notes': '',
+          'location': 'main field',
+        },
+      ],
+      'options': const <String, dynamic>{},
+    };
+
+    await service.restoreFromMapForTesting(legacy);
+
+    expect(trainingBox.values.single.sportId, SportCatalog.footballId);
   });
 
   test('rejects backups created by a newer schema version', () async {

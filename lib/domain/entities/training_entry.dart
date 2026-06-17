@@ -1,5 +1,7 @@
 import 'package:hive/hive.dart';
 
+import 'sport_definition.dart';
+
 @HiveType(typeId: 1)
 class TrainingEntry extends HiveObject {
   @HiveField(0)
@@ -173,6 +175,9 @@ class TrainingEntry extends HiveObject {
   @HiveField(62)
   final Map<String, int> trainingProgramMinutes;
 
+  @HiveField(63)
+  final String sportId;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -231,7 +236,9 @@ class TrainingEntry extends HiveObject {
     this.leaguePoints,
     this.tournamentWins,
     this.trainingProgramMinutes = const <String, int>{},
-  }) : createdAt = createdAt ?? DateTime.now();
+    String sportId = SportCatalog.defaultSportId,
+  })  : sportId = SportCatalog.normalizeSportId(sportId),
+        createdAt = createdAt ?? DateTime.now();
 
   String get effectiveMatchLocation =>
       matchLocation.trim().isNotEmpty ? matchLocation : location;
@@ -371,13 +378,14 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       leaguePoints: (fields[60] as num?)?.toInt(),
       tournamentWins: (fields[61] as num?)?.toInt(),
       trainingProgramMinutes: _readProgramMinutes(fields[62]),
+      sportId: SportCatalog.normalizeSportId(fields[63] as String?),
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(57)
+      ..writeByte(58)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -491,7 +499,9 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(61)
       ..write(obj.tournamentWins)
       ..writeByte(62)
-      ..write(obj.trainingProgramMinutes);
+      ..write(obj.trainingProgramMinutes)
+      ..writeByte(63)
+      ..write(obj.sportId);
   }
 
   Map<String, int> _readProgramMinutes(Object? raw) {

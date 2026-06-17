@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/infrastructure/hive_training_repository.dart';
 import 'package:football_note/application/training_service.dart';
@@ -95,5 +96,27 @@ void main() {
     expect(latest, isNotNull);
     expect(latest!.isMatch, isFalse);
     expect(latest.location, '학교 운동장');
+  });
+
+  test('training entries default unknown sport ids to football', () async {
+    await box.clear();
+
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 2, 1),
+        durationMinutes: 45,
+        intensity: 3,
+        type: '기본기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '학교 운동장',
+        sportId: 'unknown_sport',
+      ),
+    );
+
+    final saved = (await service.allEntries()).single;
+
+    expect(saved.sportId, SportCatalog.footballId);
   });
 }

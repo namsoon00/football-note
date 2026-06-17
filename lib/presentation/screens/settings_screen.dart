@@ -11,6 +11,8 @@ import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/settings_service.dart';
+import '../../application/sport_defaults.dart';
+import '../../application/sport_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
@@ -426,22 +428,15 @@ class _SettingsScreenState extends State<SettingsScreen>
       'durations',
       const [0, 30, 45, 60, 75, 90, 120],
     );
-    _programOptions = widget.optionRepository.getOptions('programs', [
-      l10n.defaultProgram1,
-      l10n.defaultProgram2,
-      l10n.defaultProgram3,
-      l10n.defaultProgram4,
-      l10n.challengeLiftingLabel,
-      l10n.challengeJumpRopeLabel,
-    ]);
-    final localizedProgramDefaults = [
-      l10n.defaultProgram1,
-      l10n.defaultProgram2,
-      l10n.defaultProgram3,
-      l10n.defaultProgram4,
-      l10n.challengeLiftingLabel,
-      l10n.challengeJumpRopeLabel,
-    ];
+    final sportId = SportService(widget.optionRepository).currentSportId();
+    final localizedProgramDefaults = SportDefaults.programOptions(
+      l10n: l10n,
+      sportId: sportId,
+    );
+    _programOptions = widget.optionRepository.getOptions(
+      'programs',
+      localizedProgramDefaults,
+    );
     final normalizedPrograms = LocalizedOptionDefaults.normalizeOptions(
       key: 'programs',
       stored: _programOptions,
@@ -462,7 +457,10 @@ class _SettingsScreenState extends State<SettingsScreen>
       'daily_goals',
       _defaultDailyGoals(isKo),
     );
-    final localizedDailyGoalDefaults = _defaultDailyGoals(isKo);
+    final localizedDailyGoalDefaults = _defaultDailyGoals(
+      isKo,
+      sportId: sportId,
+    );
     final normalizedDailyGoals = LocalizedOptionDefaults.normalizeOptions(
       key: 'daily_goals',
       stored: _dailyGoalOptions,
@@ -1877,18 +1875,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     return host;
   }
 
-  List<String> _defaultDailyGoals(bool isKo) {
-    if (isKo) {
-      return const ['드리블', '패스 정확도', '슈팅', '체력', '수비 위치 선정', '퍼스트 터치'];
-    }
-    return const [
-      'Dribbling',
-      'Passing Accuracy',
-      'Shooting',
-      'Fitness',
-      'Defensive Positioning',
-      'First Touch',
-    ];
+  List<String> _defaultDailyGoals(bool isKo, {String? sportId}) {
+    return SportDefaults.dailyGoals(
+      languageCode: isKo ? 'ko' : 'en',
+      sportId:
+          sportId ?? SportService(widget.optionRepository).currentSportId(),
+    );
   }
 
   Widget _buildDriveAccountTile({
