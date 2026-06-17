@@ -112,7 +112,8 @@ class DriveBackupService implements BackupRepository {
   static const parentDriveSubjectLocalKey = 'drive_parent_subject_local_v1';
   static const sharedChildDriveEmailKey = 'drive_child_email_v1';
   static const sharedChildDriveLabelKey = 'drive_child_label_v1';
-  static const backupFolderName = 'Football Note';
+  static const backupFolderName = '태오의 노트';
+  static const _legacyBackupFolderName = 'Football Note';
   static const backupFileName = 'football_note_backup.json';
   static const previousBackupFileName = 'football_note_backup_previous.json';
   static String get backupDisplayPath =>
@@ -1292,9 +1293,22 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<String> _findOrCreateFolder(drive.DriveApi api) async {
-    final existingId = await _findFolderId(api);
+    final existingId = await _findFolderIdByName(api, _folderName);
     if (existingId != null) {
       return existingId;
+    }
+    final legacyId = await _findFolderIdByName(api, _legacyBackupFolderName);
+    if (legacyId != null) {
+      try {
+        await api.files.update(
+          drive.File(name: _folderName),
+          legacyId,
+          $fields: 'id,name',
+        );
+      } catch (_) {
+        // Keep using the existing folder if Drive refuses the rename.
+      }
+      return legacyId;
     }
     final folder = await api.files.create(
       drive.File(
@@ -1306,9 +1320,17 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<String?> _findFolderId(drive.DriveApi api) async {
+    return await _findFolderIdByName(api, _folderName) ??
+        await _findFolderIdByName(api, _legacyBackupFolderName);
+  }
+
+  Future<String?> _findFolderIdByName(
+    drive.DriveApi api,
+    String folderName,
+  ) async {
     final result = await api.files.list(
       q: "mimeType='application/vnd.google-apps.folder' and "
-          "name='$_folderName' and trashed=false",
+          "name='$folderName' and trashed=false",
       spaces: 'drive',
       $fields: 'files(id,name)',
     );

@@ -53,6 +53,14 @@ void main() {
     await tempDir.delete(recursive: true);
   });
 
+  test('uses Taeo note as the user-facing Drive backup folder name', () {
+    expect(DriveBackupService.backupFolderName, '태오의 노트');
+    expect(
+      DriveBackupService.backupDisplayPath,
+      contains('Google Drive > 태오의 노트 >'),
+    );
+  });
+
   test('backs up and restores profile, settings, and option values', () async {
     await trainingBox.add(
       TrainingEntry(
