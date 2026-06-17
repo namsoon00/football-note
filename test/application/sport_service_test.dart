@@ -24,6 +24,37 @@ void main() {
     );
     expect(service.currentSportId(), SportCatalog.footballId);
   });
+
+  test('current sport can be set to supported sports', () async {
+    final repository = _MemoryOptionRepository();
+    final service = SportService(repository);
+
+    await service.setCurrentSportId(SportCatalog.baseballId);
+
+    expect(service.currentSportId(), SportCatalog.baseballId);
+    expect(
+      repository.getValue<String>(SportCatalog.currentSportOptionKey),
+      SportCatalog.baseballId,
+    );
+  });
+
+  test('football keeps legacy option keys while other sports are scoped', () {
+    expect(
+      SportCatalog.optionKey('programs', sportId: SportCatalog.footballId),
+      'programs',
+    );
+    expect(
+      SportCatalog.optionKey('programs', sportId: SportCatalog.basketballId),
+      'programs_basketball',
+    );
+    expect(
+      SportCatalog.optionKey(
+        'default_program',
+        sportId: SportCatalog.tennisId,
+      ),
+      'default_program_tennis',
+    );
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {

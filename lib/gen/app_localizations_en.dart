@@ -2982,6 +2982,147 @@ class AppLocalizationsEn extends AppLocalizations {
   String get defaultProgram4 => 'Recovery';
 
   @override
+  String get sport => 'Sport';
+
+  @override
+  String get sportFootball => 'Football';
+
+  @override
+  String get sportBaseball => 'Baseball';
+
+  @override
+  String get sportBasketball => 'Basketball';
+
+  @override
+  String get sportTennis => 'Tennis';
+
+  @override
+  String get footballGoalDribbling => 'Dribbling';
+
+  @override
+  String get footballGoalPassingAccuracy => 'Passing Accuracy';
+
+  @override
+  String get footballGoalShooting => 'Shooting';
+
+  @override
+  String get footballGoalFitness => 'Fitness';
+
+  @override
+  String get footballGoalDefensivePositioning => 'Defensive Positioning';
+
+  @override
+  String get footballGoalFirstTouch => 'First Touch';
+
+  @override
+  String get baseballProgramThrowing => 'Throwing';
+
+  @override
+  String get baseballProgramBatting => 'Batting';
+
+  @override
+  String get baseballProgramFielding => 'Fielding';
+
+  @override
+  String get baseballProgramBaseRunning => 'Base Running';
+
+  @override
+  String get baseballProgramConditioning => 'Conditioning';
+
+  @override
+  String get baseballProgramRecovery => 'Recovery';
+
+  @override
+  String get baseballGoalThrowingAccuracy => 'Throwing Accuracy';
+
+  @override
+  String get baseballGoalBattingContact => 'Batting Contact';
+
+  @override
+  String get baseballGoalFieldingGlove => 'Fielding Glove';
+
+  @override
+  String get baseballGoalBaseRunning => 'Base Running';
+
+  @override
+  String get baseballGoalReactionSpeed => 'Reaction Speed';
+
+  @override
+  String get baseballGoalGameAwareness => 'Game Awareness';
+
+  @override
+  String get basketballProgramBallHandling => 'Ball Handling';
+
+  @override
+  String get basketballProgramShooting => 'Shooting';
+
+  @override
+  String get basketballProgramPassing => 'Passing';
+
+  @override
+  String get basketballProgramDefense => 'Defense';
+
+  @override
+  String get basketballProgramConditioning => 'Conditioning';
+
+  @override
+  String get basketballProgramRecovery => 'Recovery';
+
+  @override
+  String get basketballGoalBallHandling => 'Ball Handling';
+
+  @override
+  String get basketballGoalShootingForm => 'Shooting Form';
+
+  @override
+  String get basketballGoalPassingChoices => 'Passing Choices';
+
+  @override
+  String get basketballGoalDefensiveFootwork => 'Defensive Footwork';
+
+  @override
+  String get basketballGoalRebounding => 'Rebounding';
+
+  @override
+  String get basketballGoalFitness => 'Fitness';
+
+  @override
+  String get tennisProgramStroke => 'Stroke';
+
+  @override
+  String get tennisProgramServe => 'Serve';
+
+  @override
+  String get tennisProgramFootwork => 'Footwork';
+
+  @override
+  String get tennisProgramMatchPlay => 'Match Play';
+
+  @override
+  String get tennisProgramConditioning => 'Conditioning';
+
+  @override
+  String get tennisProgramRecovery => 'Recovery';
+
+  @override
+  String get tennisGoalServeConsistency => 'Serve Consistency';
+
+  @override
+  String get tennisGoalForehand => 'Forehand';
+
+  @override
+  String get tennisGoalBackhand => 'Backhand';
+
+  @override
+  String get tennisGoalFootwork => 'Footwork';
+
+  @override
+  String get tennisGoalRallyConsistency => 'Rally Consistency';
+
+  @override
+  String get tennisGoalMatchStrategy => 'Match Strategy';
+
+  @override
   String get defaultDrill1 => 'Rondo 5:2';
 
   @override

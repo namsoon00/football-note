@@ -4,7 +4,7 @@ class LocalizedOptionDefaults {
     ['School field', 'Community field', 'Indoor gym'],
   ];
 
-  static const List<List<String>> _programVariants = [
+  static const List<List<String>> _footballProgramVariants = [
     ['기본기', '피지컬', '전술', '회복', '리프팅', '줄넘기'],
     [
       'Fundamentals',
@@ -17,7 +17,39 @@ class LocalizedOptionDefaults {
     ['基本', '物理的な', '戦術的', '回復', 'リフティング', '縄跳び'],
   ];
 
-  static const List<List<String>> _dailyGoalVariants = [
+  static const List<List<String>> _baseballProgramVariants = [
+    ['송구', '타격', '수비', '주루', '컨디셔닝', '회복'],
+    [
+      'Throwing',
+      'Batting',
+      'Fielding',
+      'Base Running',
+      'Conditioning',
+      'Recovery',
+    ],
+    ['送球', '打撃', '守備', '走塁', 'コンディショニング', '回復'],
+  ];
+
+  static const List<List<String>> _basketballProgramVariants = [
+    ['볼 핸들링', '슈팅', '패스', '수비', '컨디셔닝', '회복'],
+    [
+      'Ball Handling',
+      'Shooting',
+      'Passing',
+      'Defense',
+      'Conditioning',
+      'Recovery',
+    ],
+    ['ボールハンドリング', 'シュート', 'パス', '守備', 'コンディショニング', '回復'],
+  ];
+
+  static const List<List<String>> _tennisProgramVariants = [
+    ['스트로크', '서브', '풋워크', '매치 플레이', '컨디셔닝', '회복'],
+    ['Stroke', 'Serve', 'Footwork', 'Match Play', 'Conditioning', 'Recovery'],
+    ['ストローク', 'サーブ', 'フットワーク', 'マッチプレー', 'コンディショニング', '回復'],
+  ];
+
+  static const List<List<String>> _footballDailyGoalVariants = [
     ['드리블', '패스 정확도', '슈팅', '체력', '수비 위치 선정', '퍼스트 터치'],
     [
       'Dribbling',
@@ -27,6 +59,46 @@ class LocalizedOptionDefaults {
       'Defensive Positioning',
       'First Touch',
     ],
+    ['ドリブル', 'パス精度', 'シュート', '体力', '守備位置取り', 'ファーストタッチ'],
+  ];
+
+  static const List<List<String>> _baseballDailyGoalVariants = [
+    ['송구 정확도', '타격 컨택', '수비 글러브', '주루 판단', '반응 속도', '경기 이해'],
+    [
+      'Throwing Accuracy',
+      'Batting Contact',
+      'Fielding Glove',
+      'Base Running',
+      'Reaction Speed',
+      'Game Awareness',
+    ],
+    ['送球精度', '打撃コンタクト', '守備グラブ', '走塁判断', '反応速度', '試合理解'],
+  ];
+
+  static const List<List<String>> _basketballDailyGoalVariants = [
+    ['볼 핸들링', '슈팅 폼', '패스 선택', '수비 스텝', '리바운드', '체력'],
+    [
+      'Ball Handling',
+      'Shooting Form',
+      'Passing Choices',
+      'Defensive Footwork',
+      'Rebounding',
+      'Fitness',
+    ],
+    ['ボールハンドリング', 'シュートフォーム', 'パス選択', '守備ステップ', 'リバウンド', '体力'],
+  ];
+
+  static const List<List<String>> _tennisDailyGoalVariants = [
+    ['서브 안정성', '포핸드', '백핸드', '풋워크', '랠리 지속', '경기 전략'],
+    [
+      'Serve Consistency',
+      'Forehand',
+      'Backhand',
+      'Footwork',
+      'Rally Consistency',
+      'Match Strategy',
+    ],
+    ['サーブ安定性', 'フォアハンド', 'バックハンド', 'フットワーク', 'ラリー継続', '試合戦略'],
   ];
 
   static const List<List<String>> _nextGoalVariants = [
@@ -62,7 +134,7 @@ class LocalizedOptionDefaults {
         normalized.add(mapped);
       }
     }
-    if (key == 'programs') {
+    if (_isProgramOptionsKey(key)) {
       for (final item in localizedDefaults) {
         final value = item.trim();
         if (value.isNotEmpty && !normalized.contains(value)) {
@@ -109,14 +181,36 @@ class LocalizedOptionDefaults {
         return _locationVariants;
       case 'programs':
       case 'default_program':
-        return _programVariants;
+        return _footballProgramVariants;
+      case 'programs_baseball':
+      case 'default_program_baseball':
+        return _baseballProgramVariants;
+      case 'programs_basketball':
+      case 'default_program_basketball':
+        return _basketballProgramVariants;
+      case 'programs_tennis':
+      case 'default_program_tennis':
+        return _tennisProgramVariants;
       case 'daily_goals':
-        return _dailyGoalVariants;
+        return _footballDailyGoalVariants;
+      case 'daily_goals_baseball':
+        return _baseballDailyGoalVariants;
+      case 'daily_goals_basketball':
+        return _basketballDailyGoalVariants;
+      case 'daily_goals_tennis':
+        return _tennisDailyGoalVariants;
       case 'next_goals':
         return _nextGoalVariants;
       default:
         return null;
     }
+  }
+
+  static bool _isProgramOptionsKey(String key) {
+    return key == 'programs' ||
+        key == 'programs_baseball' ||
+        key == 'programs_basketball' ||
+        key == 'programs_tennis';
   }
 
   static String? _translateKnownValue({

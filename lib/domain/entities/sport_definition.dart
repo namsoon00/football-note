@@ -8,11 +8,22 @@ class SportDefinition {
 
 class SportCatalog {
   static const String footballId = 'football';
+  static const String baseballId = 'baseball';
+  static const String basketballId = 'basketball';
+  static const String tennisId = 'tennis';
   static const String currentSportOptionKey = 'current_sport_id';
   static const String defaultSportId = footballId;
 
   static const SportDefinition football = SportDefinition(id: footballId);
-  static const List<SportDefinition> all = <SportDefinition>[football];
+  static const SportDefinition baseball = SportDefinition(id: baseballId);
+  static const SportDefinition basketball = SportDefinition(id: basketballId);
+  static const SportDefinition tennis = SportDefinition(id: tennisId);
+  static const List<SportDefinition> all = <SportDefinition>[
+    football,
+    baseball,
+    basketball,
+    tennis,
+  ];
 
   const SportCatalog._();
 
@@ -27,4 +38,12 @@ class SportCatalog {
   }
 
   static String normalizeSportId(String? rawId) => byId(rawId).id;
+
+  static String optionKey(String baseKey, {String? sportId}) {
+    final normalizedSportId = normalizeSportId(sportId);
+    if (normalizedSportId == footballId) {
+      return baseKey;
+    }
+    return '${baseKey}_$normalizedSportId';
+  }
 }

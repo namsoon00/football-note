@@ -17,6 +17,7 @@ import '../../application/training_board_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../application/weather_location_service.dart';
 import '../../application/weather_shared_resource.dart';
+import '../../domain/entities/sport_definition.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -207,28 +208,36 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (_optionsLoaded) return;
     _optionsLoaded = true;
     final l10n = AppLocalizations.of(context)!;
-    final sportId = SportService(widget.optionRepository).currentSportId();
+    final sportId = _activeSportId();
+    final programOptionsKey = SportCatalog.optionKey(
+      'programs',
+      sportId: sportId,
+    );
+    final dailyGoalsKey = SportCatalog.optionKey(
+      'daily_goals',
+      sportId: sportId,
+    );
     final programDefaults = SportDefaults.programOptions(
       l10n: l10n,
       sportId: sportId,
     );
 
     _programOptions = _loadOptions(
-      key: 'programs',
+      key: programOptionsKey,
       defaults: programDefaults,
     );
     _dailyGoalOptions = _loadOptions(
-      key: 'daily_goals',
+      key: dailyGoalsKey,
       defaults: _defaultDailyGoals(sportId: sportId),
     );
     final normalizedDailyGoals = LocalizedOptionDefaults.normalizeOptions(
-      key: 'daily_goals',
+      key: dailyGoalsKey,
       stored: _dailyGoalOptions,
       localizedDefaults: _defaultDailyGoals(sportId: sportId),
     );
     if (!_sameStringList(_dailyGoalOptions, normalizedDailyGoals)) {
       _dailyGoalOptions = normalizedDailyGoals;
-      widget.optionRepository.saveOptions('daily_goals', normalizedDailyGoals);
+      widget.optionRepository.saveOptions(dailyGoalsKey, normalizedDailyGoals);
     }
     _durationOptions = _loadIntOptions(
       key: 'durations',
@@ -267,7 +276,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _syncDrillsPayloadFromBoardLinks();
       _intensity = entry.intensity;
       _mood = entry.mood;
-      _type = _initSelection('programs', _programOptions, entry.program);
+      _type = _initSelection(programOptionsKey, _programOptions, entry.program);
       _trainingProgramMinutes
         ..clear()
         ..addAll(
@@ -295,7 +304,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         }
       }
       if (hasNewDailyGoalOption) {
-        widget.optionRepository.saveOptions('daily_goals', _dailyGoalOptions);
+        widget.optionRepository.saveOptions(dailyGoalsKey, _dailyGoalOptions);
       }
       if (entry.goalFocuses.isEmpty && entry.goal.trim().isNotEmpty) {
         final legacyGoal = entry.goal.trim();
@@ -362,7 +371,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       _intensity = 3;
       _mood = 3;
-      _type = _defaultString('default_program', _programOptions, 'programs');
+      _type = _defaultString(
+        SportCatalog.optionKey('default_program', sportId: sportId),
+        _programOptions,
+        programOptionsKey,
+        localizedDefaultsKey: 'default_program',
+        sportId: sportId,
+      );
       _trainingProgramMinutes
         ..clear()
         ..addAll(
@@ -398,7 +413,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         );
         if (planContext.program.trim().isNotEmpty) {
           _type = _initSelection(
-            'programs',
+            programOptionsKey,
             _programOptions,
             planContext.program.trim(),
           );
@@ -549,11 +564,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   List<String> _defaultDailyGoals({String? sportId}) {
+    final l10n = AppLocalizations.of(context)!;
     return SportDefaults.dailyGoals(
-      languageCode: Localizations.localeOf(context).languageCode,
-      sportId:
-          sportId ?? SportService(widget.optionRepository).currentSportId(),
+      l10n: l10n,
+      sportId: sportId ?? _activeSportId(),
     );
+  }
+
+  String _activeSportId() {
+    return widget.entry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
   }
 
   void _syncDrillsPayloadFromBoardLinks() {
@@ -671,7 +691,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       updated = true;
     }
     if (updated) {
-      widget.optionRepository.saveOptions('programs', _programOptions);
+      widget.optionRepository.saveOptions(
+        SportCatalog.optionKey('programs', sportId: _activeSportId()),
+        _programOptions,
+      );
     }
   }
 
@@ -896,13 +919,23 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     return value;
   }
 
-  String _defaultString(String key, List<String> options, String optionsKey) {
+  String _defaultString(
+    String key,
+    List<String> options,
+    String optionsKey, {
+    String? normalizeKey,
+    String? localizedDefaultsKey,
+    String? sportId,
+  }) {
     if (options.isEmpty) return '';
     final value = widget.optionRepository.getValue<String>(key);
     final normalized = LocalizedOptionDefaults.normalizeDefaultValue(
-      key: key,
+      key: normalizeKey ?? key,
       storedValue: value,
-      localizedDefaults: _localizedDefaultsForDefaultKey(key),
+      localizedDefaults: _localizedDefaultsForDefaultKey(
+        localizedDefaultsKey ?? normalizeKey ?? key,
+        sportId: sportId,
+      ),
       options: options,
       preserveCustomValue: true,
     );
@@ -917,13 +950,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     return normalized;
   }
 
-  List<String> _localizedDefaultsForDefaultKey(String key) {
+  List<String> _localizedDefaultsForDefaultKey(String key, {String? sportId}) {
     final l10n = AppLocalizations.of(context)!;
     switch (key) {
       case 'default_program':
         return SportDefaults.programOptions(
           l10n: l10n,
-          sportId: SportService(widget.optionRepository).currentSportId(),
+          sportId: sportId ?? _activeSportId(),
         );
       default:
         return const <String>[];
@@ -1226,7 +1259,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           actions: [
             IconButton.filledTonal(
               onPressed: () => _addOption(
-                key: 'daily_goals',
+                key: SportCatalog.optionKey(
+                  'daily_goals',
+                  sportId: _activeSportId(),
+                ),
                 title: l10n.entryTodayGoalAddTitle,
                 options: _dailyGoalOptions,
                 onUpdated: (list) => setState(() => _dailyGoalOptions = list),
@@ -4117,7 +4153,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   void _addProgramOptionFromDurationSection(AppLocalizations l10n) {
     _addOption(
-      key: 'programs',
+      key: SportCatalog.optionKey('programs', sportId: _activeSportId()),
       title: l10n.program,
       options: _programOptions,
       onUpdated: (list) => setState(() => _programOptions = list),
