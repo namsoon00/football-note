@@ -119,4 +119,26 @@ void main() {
 
     expect(saved.sportId, SportCatalog.footballId);
   });
+
+  test('training entries keep supported sport ids', () async {
+    await box.clear();
+
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 2, 2),
+        durationMinutes: 45,
+        intensity: 3,
+        type: '슈팅',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '체육관',
+        sportId: SportCatalog.basketballId,
+      ),
+    );
+
+    final saved = (await service.allEntries()).single;
+
+    expect(saved.sportId, SportCatalog.basketballId);
+  });
 }

@@ -5407,6 +5407,288 @@ abstract class AppLocalizations {
   /// **'Recovery'**
   String get defaultProgram4;
 
+  /// No description provided for @sport.
+  ///
+  /// In en, this message translates to:
+  /// **'Sport'**
+  String get sport;
+
+  /// No description provided for @sportFootball.
+  ///
+  /// In en, this message translates to:
+  /// **'Football'**
+  String get sportFootball;
+
+  /// No description provided for @sportBaseball.
+  ///
+  /// In en, this message translates to:
+  /// **'Baseball'**
+  String get sportBaseball;
+
+  /// No description provided for @sportBasketball.
+  ///
+  /// In en, this message translates to:
+  /// **'Basketball'**
+  String get sportBasketball;
+
+  /// No description provided for @sportTennis.
+  ///
+  /// In en, this message translates to:
+  /// **'Tennis'**
+  String get sportTennis;
+
+  /// No description provided for @footballGoalDribbling.
+  ///
+  /// In en, this message translates to:
+  /// **'Dribbling'**
+  String get footballGoalDribbling;
+
+  /// No description provided for @footballGoalPassingAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Passing Accuracy'**
+  String get footballGoalPassingAccuracy;
+
+  /// No description provided for @footballGoalShooting.
+  ///
+  /// In en, this message translates to:
+  /// **'Shooting'**
+  String get footballGoalShooting;
+
+  /// No description provided for @footballGoalFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitness'**
+  String get footballGoalFitness;
+
+  /// No description provided for @footballGoalDefensivePositioning.
+  ///
+  /// In en, this message translates to:
+  /// **'Defensive Positioning'**
+  String get footballGoalDefensivePositioning;
+
+  /// No description provided for @footballGoalFirstTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'First Touch'**
+  String get footballGoalFirstTouch;
+
+  /// No description provided for @baseballProgramThrowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Throwing'**
+  String get baseballProgramThrowing;
+
+  /// No description provided for @baseballProgramBatting.
+  ///
+  /// In en, this message translates to:
+  /// **'Batting'**
+  String get baseballProgramBatting;
+
+  /// No description provided for @baseballProgramFielding.
+  ///
+  /// In en, this message translates to:
+  /// **'Fielding'**
+  String get baseballProgramFielding;
+
+  /// No description provided for @baseballProgramBaseRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Running'**
+  String get baseballProgramBaseRunning;
+
+  /// No description provided for @baseballProgramConditioning.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditioning'**
+  String get baseballProgramConditioning;
+
+  /// No description provided for @baseballProgramRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get baseballProgramRecovery;
+
+  /// No description provided for @baseballGoalThrowingAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Throwing Accuracy'**
+  String get baseballGoalThrowingAccuracy;
+
+  /// No description provided for @baseballGoalBattingContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Batting Contact'**
+  String get baseballGoalBattingContact;
+
+  /// No description provided for @baseballGoalFieldingGlove.
+  ///
+  /// In en, this message translates to:
+  /// **'Fielding Glove'**
+  String get baseballGoalFieldingGlove;
+
+  /// No description provided for @baseballGoalBaseRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Running'**
+  String get baseballGoalBaseRunning;
+
+  /// No description provided for @baseballGoalReactionSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reaction Speed'**
+  String get baseballGoalReactionSpeed;
+
+  /// No description provided for @baseballGoalGameAwareness.
+  ///
+  /// In en, this message translates to:
+  /// **'Game Awareness'**
+  String get baseballGoalGameAwareness;
+
+  /// No description provided for @basketballProgramBallHandling.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball Handling'**
+  String get basketballProgramBallHandling;
+
+  /// No description provided for @basketballProgramShooting.
+  ///
+  /// In en, this message translates to:
+  /// **'Shooting'**
+  String get basketballProgramShooting;
+
+  /// No description provided for @basketballProgramPassing.
+  ///
+  /// In en, this message translates to:
+  /// **'Passing'**
+  String get basketballProgramPassing;
+
+  /// No description provided for @basketballProgramDefense.
+  ///
+  /// In en, this message translates to:
+  /// **'Defense'**
+  String get basketballProgramDefense;
+
+  /// No description provided for @basketballProgramConditioning.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditioning'**
+  String get basketballProgramConditioning;
+
+  /// No description provided for @basketballProgramRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get basketballProgramRecovery;
+
+  /// No description provided for @basketballGoalBallHandling.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball Handling'**
+  String get basketballGoalBallHandling;
+
+  /// No description provided for @basketballGoalShootingForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Shooting Form'**
+  String get basketballGoalShootingForm;
+
+  /// No description provided for @basketballGoalPassingChoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Passing Choices'**
+  String get basketballGoalPassingChoices;
+
+  /// No description provided for @basketballGoalDefensiveFootwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Defensive Footwork'**
+  String get basketballGoalDefensiveFootwork;
+
+  /// No description provided for @basketballGoalRebounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebounding'**
+  String get basketballGoalRebounding;
+
+  /// No description provided for @basketballGoalFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitness'**
+  String get basketballGoalFitness;
+
+  /// No description provided for @tennisProgramStroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Stroke'**
+  String get tennisProgramStroke;
+
+  /// No description provided for @tennisProgramServe.
+  ///
+  /// In en, this message translates to:
+  /// **'Serve'**
+  String get tennisProgramServe;
+
+  /// No description provided for @tennisProgramFootwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Footwork'**
+  String get tennisProgramFootwork;
+
+  /// No description provided for @tennisProgramMatchPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Match Play'**
+  String get tennisProgramMatchPlay;
+
+  /// No description provided for @tennisProgramConditioning.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditioning'**
+  String get tennisProgramConditioning;
+
+  /// No description provided for @tennisProgramRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get tennisProgramRecovery;
+
+  /// No description provided for @tennisGoalServeConsistency.
+  ///
+  /// In en, this message translates to:
+  /// **'Serve Consistency'**
+  String get tennisGoalServeConsistency;
+
+  /// No description provided for @tennisGoalForehand.
+  ///
+  /// In en, this message translates to:
+  /// **'Forehand'**
+  String get tennisGoalForehand;
+
+  /// No description provided for @tennisGoalBackhand.
+  ///
+  /// In en, this message translates to:
+  /// **'Backhand'**
+  String get tennisGoalBackhand;
+
+  /// No description provided for @tennisGoalFootwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Footwork'**
+  String get tennisGoalFootwork;
+
+  /// No description provided for @tennisGoalRallyConsistency.
+  ///
+  /// In en, this message translates to:
+  /// **'Rally Consistency'**
+  String get tennisGoalRallyConsistency;
+
+  /// No description provided for @tennisGoalMatchStrategy.
+  ///
+  /// In en, this message translates to:
+  /// **'Match Strategy'**
+  String get tennisGoalMatchStrategy;
+
   /// No description provided for @defaultDrill1.
   ///
   /// In en, this message translates to:

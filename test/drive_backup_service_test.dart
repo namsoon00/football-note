@@ -304,6 +304,32 @@ void main() {
     expect(trainingBox.values.single.sportId, SportCatalog.footballId);
   });
 
+  test('restores supported sport ids from backup entries', () async {
+    final backup = <String, dynamic>{
+      'version': 6,
+      'createdAt': '2026-01-01T00:00:00.000',
+      'entries': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'date': '2026-01-01T00:00:00.000',
+          'createdAt': '2026-01-01T09:00:00.000',
+          'sportId': SportCatalog.tennisId,
+          'durationMinutes': 60,
+          'intensity': 3,
+          'type': 'Serve',
+          'mood': 4,
+          'injury': false,
+          'notes': '',
+          'location': 'court',
+        },
+      ],
+      'options': const <String, dynamic>{},
+    };
+
+    await service.restoreFromMapForTesting(backup);
+
+    expect(trainingBox.values.single.sportId, SportCatalog.tennisId);
+  });
+
   test('rejects backups created by a newer schema version', () async {
     expect(
       () => service.restoreFromMapForTesting(<String, dynamic>{

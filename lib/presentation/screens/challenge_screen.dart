@@ -14,10 +14,13 @@ import '../../application/localized_option_defaults.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
+import '../../application/sport_defaults.dart';
+import '../../application/sport_service.dart';
 import '../../application/training_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/challenge.dart';
 import '../../domain/entities/meal_entry.dart';
+import '../../domain/entities/sport_definition.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_motion.dart';
@@ -5131,20 +5134,20 @@ List<_ChallengeSkillOption> _challengeProgramSkillOptions(
   AppLocalizations l10n,
   OptionRepository optionRepository,
 ) {
-  final defaults = <String>[
-    l10n.defaultProgram1,
-    l10n.defaultProgram2,
-    l10n.defaultProgram3,
-    l10n.defaultProgram4,
-  ];
-  final stored = optionRepository.getOptions('programs', defaults);
+  final sportId = SportService(optionRepository).currentSportId();
+  final programOptionsKey = SportCatalog.optionKey(
+    'programs',
+    sportId: sportId,
+  );
+  final defaults = SportDefaults.programOptions(l10n: l10n, sportId: sportId);
+  final stored = optionRepository.getOptions(programOptionsKey, defaults);
   final normalized = LocalizedOptionDefaults.normalizeOptions(
-    key: 'programs',
+    key: programOptionsKey,
     stored: stored,
     localizedDefaults: defaults,
   );
   if (!_sameStringList(stored, normalized)) {
-    unawaited(optionRepository.saveOptions('programs', normalized));
+    unawaited(optionRepository.saveOptions(programOptionsKey, normalized));
   }
   final seen = <String>{};
   final programs = <String>[];

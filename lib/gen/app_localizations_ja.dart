@@ -2905,6 +2905,147 @@ class AppLocalizationsJa extends AppLocalizations {
   String get defaultProgram4 => '回復';
 
   @override
+  String get sport => '競技';
+
+  @override
+  String get sportFootball => 'サッカー';
+
+  @override
+  String get sportBaseball => '野球';
+
+  @override
+  String get sportBasketball => 'バスケットボール';
+
+  @override
+  String get sportTennis => 'テニス';
+
+  @override
+  String get footballGoalDribbling => 'ドリブル';
+
+  @override
+  String get footballGoalPassingAccuracy => 'パス精度';
+
+  @override
+  String get footballGoalShooting => 'シュート';
+
+  @override
+  String get footballGoalFitness => '体力';
+
+  @override
+  String get footballGoalDefensivePositioning => '守備位置取り';
+
+  @override
+  String get footballGoalFirstTouch => 'ファーストタッチ';
+
+  @override
+  String get baseballProgramThrowing => '送球';
+
+  @override
+  String get baseballProgramBatting => '打撃';
+
+  @override
+  String get baseballProgramFielding => '守備';
+
+  @override
+  String get baseballProgramBaseRunning => '走塁';
+
+  @override
+  String get baseballProgramConditioning => 'コンディショニング';
+
+  @override
+  String get baseballProgramRecovery => '回復';
+
+  @override
+  String get baseballGoalThrowingAccuracy => '送球精度';
+
+  @override
+  String get baseballGoalBattingContact => '打撃コンタクト';
+
+  @override
+  String get baseballGoalFieldingGlove => '守備グラブ';
+
+  @override
+  String get baseballGoalBaseRunning => '走塁判断';
+
+  @override
+  String get baseballGoalReactionSpeed => '反応速度';
+
+  @override
+  String get baseballGoalGameAwareness => '試合理解';
+
+  @override
+  String get basketballProgramBallHandling => 'ボールハンドリング';
+
+  @override
+  String get basketballProgramShooting => 'シュート';
+
+  @override
+  String get basketballProgramPassing => 'パス';
+
+  @override
+  String get basketballProgramDefense => '守備';
+
+  @override
+  String get basketballProgramConditioning => 'コンディショニング';
+
+  @override
+  String get basketballProgramRecovery => '回復';
+
+  @override
+  String get basketballGoalBallHandling => 'ボールハンドリング';
+
+  @override
+  String get basketballGoalShootingForm => 'シュートフォーム';
+
+  @override
+  String get basketballGoalPassingChoices => 'パス選択';
+
+  @override
+  String get basketballGoalDefensiveFootwork => '守備ステップ';
+
+  @override
+  String get basketballGoalRebounding => 'リバウンド';
+
+  @override
+  String get basketballGoalFitness => '体力';
+
+  @override
+  String get tennisProgramStroke => 'ストローク';
+
+  @override
+  String get tennisProgramServe => 'サーブ';
+
+  @override
+  String get tennisProgramFootwork => 'フットワーク';
+
+  @override
+  String get tennisProgramMatchPlay => 'マッチプレー';
+
+  @override
+  String get tennisProgramConditioning => 'コンディショニング';
+
+  @override
+  String get tennisProgramRecovery => '回復';
+
+  @override
+  String get tennisGoalServeConsistency => 'サーブ安定性';
+
+  @override
+  String get tennisGoalForehand => 'フォアハンド';
+
+  @override
+  String get tennisGoalBackhand => 'バックハンド';
+
+  @override
+  String get tennisGoalFootwork => 'フットワーク';
+
+  @override
+  String get tennisGoalRallyConsistency => 'ラリー継続';
+
+  @override
+  String get tennisGoalMatchStrategy => '試合戦略';
+
+  @override
   String get defaultDrill1 => 'ロンド 5:2';
 
   @override

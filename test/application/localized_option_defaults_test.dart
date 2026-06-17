@@ -29,4 +29,49 @@ void main() {
 
     expect(normalized, const ['학교 운동장']);
   });
+
+  test('sport-scoped program defaults translate within the selected sport', () {
+    final normalized = LocalizedOptionDefaults.normalizeOptions(
+      key: 'programs_basketball',
+      stored: const ['볼 핸들링', '슈팅', '패스', '수비'],
+      localizedDefaults: const [
+        'Ball Handling',
+        'Shooting',
+        'Passing',
+        'Defense',
+        'Conditioning',
+        'Recovery',
+      ],
+    );
+
+    expect(normalized, const [
+      'Ball Handling',
+      'Shooting',
+      'Passing',
+      'Defense',
+      'Conditioning',
+      'Recovery',
+    ]);
+  });
+
+  test('sport-scoped daily goals translate within the selected sport', () {
+    final normalized = LocalizedOptionDefaults.normalizeOptions(
+      key: 'daily_goals_tennis',
+      stored: const ['서브 안정성', '포핸드', '백핸드'],
+      localizedDefaults: const [
+        'Serve Consistency',
+        'Forehand',
+        'Backhand',
+        'Footwork',
+        'Rally Consistency',
+        'Match Strategy',
+      ],
+    );
+
+    expect(normalized, const [
+      'Serve Consistency',
+      'Forehand',
+      'Backhand',
+    ]);
+  });
 }
