@@ -7563,6 +7563,16 @@ class AppLocalizationsKo extends AppLocalizations {
       '1번 패스, 2번 드리블, 3번 이동 플로우를 적용했어요.';
 
   @override
+  String get trainingSketchLinkRoutesInOrderButton => '전체 차례대로 연결';
+
+  @override
+  String get trainingSketchLinkRoutesInOrderSnack =>
+      '이동선을 그린 순서대로 하나씩 시작하게 연결했어요.';
+
+  @override
+  String get trainingSketchLinkRoutesNeedTwoSnack => '연결하려면 이동선이 2개 이상 필요해요.';
+
+  @override
   String get trainingSketchClearAllRoutesButton => '이동선 전체 지우기';
 
   @override

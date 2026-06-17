@@ -1870,6 +1870,83 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _scheduleAutoSave();
   }
 
+  List<_BoardRoute> _sequenceableRoutes() {
+    return _currentPage.routes
+        .where((route) => route.points.length >= 2)
+        .toList(growable: false);
+  }
+
+  void _trimRouteDurations(_BoardRoute route) {
+    final expectedCount = math.max(0, route.points.length - 1);
+    if (route.segmentDurationsMs.length > expectedCount) {
+      route.segmentDurationsMs.removeRange(
+        expectedCount,
+        route.segmentDurationsMs.length,
+      );
+    }
+  }
+
+  void _removeLeadingRouteWait(_BoardRoute route) {
+    while (route.points.length >= 2 &&
+        _segmentDistanceMeters(route.points[0], route.points[1]) <=
+            _minPlaybackSegmentDistanceMeters) {
+      route.points.removeAt(0);
+      if (route.segmentDurationsMs.isNotEmpty) {
+        route.segmentDurationsMs.removeAt(0);
+      }
+    }
+    _trimRouteDurations(route);
+  }
+
+  int _routePlaybackDurationMs(_BoardRoute route) {
+    final totalDistanceMeters = _pathDistanceMeters(route.points);
+    final segments = _playbackSegmentsForRoute(
+      route,
+      totalDistanceMeters: totalDistanceMeters,
+      speedMetersPerSecond: _playbackSpeedMetersPerSecond(route.kind),
+    );
+    return segments.fold<int>(
+      0,
+      (sum, segment) => sum + (segment.durationSeconds * 1000).round(),
+    );
+  }
+
+  void _prependRouteWait(_BoardRoute route, int waitMs) {
+    if (waitMs <= 0 || route.points.isEmpty) return;
+    route.points.insert(0, route.points.first);
+    route.segmentDurationsMs.insert(0, math.max(waitMs, 16));
+  }
+
+  void _linkAllRoutesInOrder() {
+    final routes = _sequenceableRoutes();
+    if (routes.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_l10n.trainingSketchLinkRoutesNeedTwoSnack)),
+      );
+      return;
+    }
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      var elapsedMs = 0;
+      for (final route in routes) {
+        _removeLeadingRouteWait(route);
+        final routeDurationMs = _routePlaybackDurationMs(route);
+        _prependRouteWait(route, elapsedMs);
+        elapsedMs += routeDurationMs;
+      }
+      _selectedRouteId = routes.first.id;
+      _pathDrawMode = routes.first.kind;
+      _routeReplaceMode = false;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
+    });
+    _scheduleAutoSave();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(_l10n.trainingSketchLinkRoutesInOrderSnack)),
+    );
+  }
+
   void _clearAllRoutes() {
     _stopRoutePlayback(restoreStart: false);
     setState(() {
@@ -3457,6 +3534,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             spacing: 8,
             runSpacing: 8,
             children: [
+              OutlinedButton.icon(
+                onPressed: _linkAllRoutesInOrder,
+                icon: const Icon(Icons.link),
+                label: Text(l10n.trainingSketchLinkRoutesInOrderButton),
+              ),
               OutlinedButton.icon(
                 onPressed: hasSelectedCurrentRoute
                     ? _prepareSelectedRouteRedraw

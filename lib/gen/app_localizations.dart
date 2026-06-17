@@ -13551,6 +13551,24 @@ abstract class AppLocalizations {
   /// **'Applied the player 1 pass, player 2 dribble, player 3 move flow.'**
   String get trainingSketchPassDribbleMoveFlowSnack;
 
+  /// No description provided for @trainingSketchLinkRoutesInOrderButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Chain all in order'**
+  String get trainingSketchLinkRoutesInOrderButton;
+
+  /// No description provided for @trainingSketchLinkRoutesInOrderSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Routes now start one by one in the order they were drawn.'**
+  String get trainingSketchLinkRoutesInOrderSnack;
+
+  /// No description provided for @trainingSketchLinkRoutesNeedTwoSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least two routes to chain them.'**
+  String get trainingSketchLinkRoutesNeedTwoSnack;
+
   /// No description provided for @trainingSketchClearAllRoutesButton.
   ///
   /// In en, this message translates to:

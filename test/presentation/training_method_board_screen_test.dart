@@ -49,6 +49,57 @@ void main() {
     expect(decoded.pages.single.routes.single.segmentDurationsMs, [80, 460]);
   });
 
+  testWidgets('routes can be chained in the order they were created', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '연계 스케치',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(name: 'Board', items: <TrainingMethodItem>[]),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(OutlinedButton, '패스·드리블 플로우'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-path-mode-button')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, '전체 차례대로 연결'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final routes = saved.pages.single.routes;
+    expect(routes, hasLength(4));
+    expect(_samePoint(routes[0].points[0], routes[0].points[1]), isFalse);
+    expect(_samePoint(routes[1].points[0], routes[1].points[1]), isTrue);
+    expect(_samePoint(routes[2].points[0], routes[2].points[1]), isTrue);
+    expect(_samePoint(routes[3].points[0], routes[3].points[1]), isTrue);
+    expect(routes[1].segmentDurationsMs.first, greaterThan(0));
+    expect(
+      routes[2].segmentDurationsMs.first,
+      greaterThan(routes[1].segmentDurationsMs.first),
+    );
+    expect(
+      routes[3].segmentDurationsMs.first,
+      greaterThan(routes[2].segmentDurationsMs.first),
+    );
+  });
+
   testWidgets('training sketch auto saves after memo edit', (
     WidgetTester tester,
   ) async {
@@ -991,6 +1042,10 @@ void main() {
       expect(ballDelta, greaterThan(playerDelta + 8));
     },
   );
+}
+
+bool _samePoint(TrainingMethodPoint a, TrainingMethodPoint b) {
+  return (a.x - b.x).abs() < 0.0001 && (a.y - b.y).abs() < 0.0001;
 }
 
 Widget _buildApp(Widget home) {
