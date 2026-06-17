@@ -10,6 +10,48 @@ void main() {
     expect(worldCupFixtures.last.venue, 'MetLife Stadium, New York/New Jersey');
   });
 
+  test('fixture list includes seeded group-stage results', () {
+    const expectedScores = <int, (int, int)>{
+      1: (2, 0),
+      2: (2, 1),
+      3: (1, 1),
+      4: (4, 1),
+      5: (1, 1),
+      6: (1, 1),
+      7: (0, 1),
+      8: (2, 0),
+      9: (7, 1),
+      10: (2, 2),
+      11: (1, 0),
+      12: (5, 1),
+      13: (0, 0),
+      14: (1, 1),
+      15: (1, 1),
+      16: (2, 2),
+      17: (3, 1),
+      18: (1, 4),
+      19: (3, 0),
+      20: (3, 1),
+      21: (1, 1),
+      22: (2, 2),
+    };
+
+    for (final entry in expectedScores.entries) {
+      final fixture = worldCupFixtures.singleWhere(
+        (fixture) => fixture.matchNumber == entry.key,
+      );
+      expect(fixture.homeScore, entry.value.$1, reason: 'M${entry.key}');
+      expect(fixture.awayScore, entry.value.$2, reason: 'M${entry.key}');
+    }
+
+    expect(
+      worldCupFixtures
+          .singleWhere((fixture) => fixture.matchNumber == 23)
+          .hasScore,
+      isFalse,
+    );
+  });
+
   test('country helpers expose Korea Republic group fixtures', () {
     final countries = worldCupCountries();
     final koreaFixtures = worldCupFixturesForCountries(const {
