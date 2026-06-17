@@ -9,6 +9,8 @@ import '../../application/meal_coaching_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/player_level_service.dart';
 import '../../application/parent_shared_feedback_service.dart';
+import '../../application/sport_defaults.dart';
+import '../../application/sport_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
 import '../../application/training_board_service.dart';
@@ -205,26 +207,24 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (_optionsLoaded) return;
     _optionsLoaded = true;
     final l10n = AppLocalizations.of(context)!;
+    final sportId = SportService(widget.optionRepository).currentSportId();
+    final programDefaults = SportDefaults.programOptions(
+      l10n: l10n,
+      sportId: sportId,
+    );
 
     _programOptions = _loadOptions(
       key: 'programs',
-      defaults: [
-        l10n.defaultProgram1,
-        l10n.defaultProgram2,
-        l10n.defaultProgram3,
-        l10n.defaultProgram4,
-        l10n.challengeLiftingLabel,
-        l10n.challengeJumpRopeLabel,
-      ],
+      defaults: programDefaults,
     );
     _dailyGoalOptions = _loadOptions(
       key: 'daily_goals',
-      defaults: _defaultDailyGoals(),
+      defaults: _defaultDailyGoals(sportId: sportId),
     );
     final normalizedDailyGoals = LocalizedOptionDefaults.normalizeOptions(
       key: 'daily_goals',
       stored: _dailyGoalOptions,
-      localizedDefaults: _defaultDailyGoals(),
+      localizedDefaults: _defaultDailyGoals(sportId: sportId),
     );
     if (!_sameStringList(_dailyGoalOptions, normalizedDailyGoals)) {
       _dailyGoalOptions = normalizedDailyGoals;
@@ -548,19 +548,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     return true;
   }
 
-  List<String> _defaultDailyGoals() {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    if (isKo) {
-      return const ['드리블', '패스 정확도', '슈팅', '체력', '수비 위치 선정', '퍼스트 터치'];
-    }
-    return const [
-      'Dribbling',
-      'Passing Accuracy',
-      'Shooting',
-      'Fitness',
-      'Defensive Positioning',
-      'First Touch',
-    ];
+  List<String> _defaultDailyGoals({String? sportId}) {
+    return SportDefaults.dailyGoals(
+      languageCode: Localizations.localeOf(context).languageCode,
+      sportId:
+          sportId ?? SportService(widget.optionRepository).currentSportId(),
+    );
   }
 
   void _syncDrillsPayloadFromBoardLinks() {
@@ -928,14 +921,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final l10n = AppLocalizations.of(context)!;
     switch (key) {
       case 'default_program':
-        return [
-          l10n.defaultProgram1,
-          l10n.defaultProgram2,
-          l10n.defaultProgram3,
-          l10n.defaultProgram4,
-          l10n.challengeLiftingLabel,
-          l10n.challengeJumpRopeLabel,
-        ];
+        return SportDefaults.programOptions(
+          l10n: l10n,
+          sportId: SportService(widget.optionRepository).currentSportId(),
+        );
       default:
         return const <String>[];
     }
@@ -3102,6 +3091,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final allEntries = await widget.trainingService.allEntries();
     if (!mounted || _disposing) return;
     final trainingProgramMinutes = _persistedTrainingProgramMinutes();
+    final sportId = widget.entry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
     final durationMinutes =
         _trainingProgramMinutesTotal(trainingProgramMinutes) > 0
             ? _trainingProgramMinutesTotal(trainingProgramMinutes)
@@ -3111,6 +3102,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final notes = _withWeatherInNotes(improvements, isKo);
     final draft = TrainingEntry(
       date: DateTime(_date.year, _date.month, _date.day),
+      sportId: sportId,
       durationMinutes: durationMinutes,
       intensity: _intensity,
       type: _type,
@@ -3261,6 +3253,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     try {
       final isKo = Localizations.localeOf(context).languageCode == 'ko';
       final l10n = AppLocalizations.of(context)!;
+      final sportId = widget.entry?.sportId ??
+          SportService(widget.optionRepository).currentSportId();
       _syncDrillsPayloadFromBoardLinks();
       final injuryPart = _injury ? _injuryPartController.text.trim() : '';
       final painLevel = _injury ? _parseInt(_painController.text) : null;
@@ -3308,6 +3302,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
+        sportId: sportId,
         durationMinutes: durationMinutes,
         intensity: _intensity,
         type: _type,
@@ -3368,6 +3363,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
       final entry = TrainingEntry(
         date: draftEntry.date,
+        sportId: draftEntry.sportId,
         durationMinutes: draftEntry.durationMinutes,
         intensity: draftEntry.intensity,
         type: draftEntry.type,

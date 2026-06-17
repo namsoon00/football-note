@@ -1,0 +1,62 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/sport_service.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
+import 'package:football_note/domain/repositories/option_repository.dart';
+
+void main() {
+  test('current sport defaults to football', () {
+    final repository = _MemoryOptionRepository();
+    final service = SportService(repository);
+
+    expect(service.currentSportId(), SportCatalog.footballId);
+    expect(service.currentSport().isFootball, isTrue);
+  });
+
+  test('unknown sport ids normalize back to football', () async {
+    final repository = _MemoryOptionRepository();
+    final service = SportService(repository);
+
+    await service.setCurrentSportId('unknown_sport');
+
+    expect(
+      repository.getValue<String>(SportCatalog.currentSportOptionKey),
+      SportCatalog.footballId,
+    );
+    expect(service.currentSportId(), SportCatalog.footballId);
+  });
+}
+
+class _MemoryOptionRepository implements OptionRepository {
+  final Map<String, dynamic> _values = <String, dynamic>{};
+
+  @override
+  List<String> getOptions(String key, List<String> defaults) {
+    final value = _values[key];
+    if (value is List<String>) {
+      return List<String>.of(value);
+    }
+    return List<String>.of(defaults);
+  }
+
+  @override
+  List<int> getIntOptions(String key, List<int> defaults) {
+    final value = _values[key];
+    if (value is List<int>) {
+      return List<int>.of(value);
+    }
+    return List<int>.of(defaults);
+  }
+
+  @override
+  T? getValue<T>(String key) => _values[key] as T?;
+
+  @override
+  Future<void> saveOptions(String key, List<dynamic> options) async {
+    _values[key] = options;
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    _values[key] = value;
+  }
+}

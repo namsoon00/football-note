@@ -1819,6 +1819,7 @@ class DriveBackupService implements BackupRepository {
             (restoredPaths.isNotEmpty ? restoredPaths.first : entry.imagePath);
     return TrainingEntry(
       date: entry.date,
+      sportId: entry.sportId,
       durationMinutes: entry.durationMinutes,
       intensity: entry.intensity,
       type: entry.type,
@@ -2751,6 +2752,7 @@ class DriveBackupService implements BackupRepository {
     return {
       'date': entry.date.toIso8601String(),
       'createdAt': entry.createdAt.toIso8601String(),
+      'sportId': entry.sportId,
       'durationMinutes': entry.durationMinutes,
       'intensity': entry.intensity,
       'type': entry.type,
@@ -2830,6 +2832,7 @@ class DriveBackupService implements BackupRepository {
 
     return TrainingEntry(
       date: date,
+      sportId: map['sportId'] as String? ?? '',
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 0,
       intensity: (map['intensity'] as num?)?.toInt() ?? 3,
       type: map['type'] as String? ?? '',
