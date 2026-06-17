@@ -5014,6 +5014,15 @@ class AppLocalizationsKo extends AppLocalizations {
       '달리기를 다음 경기의 무기로 느끼게 해요. 짧은 축구형 스프린트 미션을 뛰고 기록을 남긴 뒤, 자세 코칭으로 다음 0.1초를 찾습니다.';
 
   @override
+  String get runningCoachSectionToday => '오늘';
+
+  @override
+  String get runningCoachSectionRecords => '기록';
+
+  @override
+  String get runningCoachSectionAnalysis => '분석';
+
+  @override
   String get runningCoachMissionCardTitle => '오늘의 스피드 미션';
 
   @override
