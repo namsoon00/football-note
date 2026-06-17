@@ -5011,7 +5011,180 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachHeroBody =>
-      '짧은 측면 달리기 영상을 올리면 상체 자세, 바운스, 발 착지, 무릎 굴곡, 팔 각도까지 엄격하게 코칭해 줍니다.';
+      '달리기를 다음 경기의 무기로 느끼게 해요. 짧은 축구형 스프린트 미션을 뛰고 기록을 남긴 뒤, 자세 코칭으로 다음 0.1초를 찾습니다.';
+
+  @override
+  String get runningCoachMissionCardTitle => '오늘의 스피드 미션';
+
+  @override
+  String runningCoachMissionDistance(int meters) {
+    return '${meters}m 미션';
+  }
+
+  @override
+  String get runningCoachMissionStartSprint => '스프린트 코치 시작';
+
+  @override
+  String get runningCoachMissionStartLive => '자세 실시간 확인';
+
+  @override
+  String get runningCoachMissionBreakawayTitle => '수비 라인 깨기';
+
+  @override
+  String get runningCoachMissionBreakawayBody =>
+      '수비 뒤 공간으로 침투한다고 생각하고 20m를 뛰어요. 길게 하지 말고 날카로운 3번이면 충분해요.';
+
+  @override
+  String get runningCoachMissionBreakawayFocus => '첫 3보';
+
+  @override
+  String get runningCoachMissionBreakawayReward => '어제 출발 넘기';
+
+  @override
+  String get runningCoachMissionPressureTitle => '압박 벗어나기';
+
+  @override
+  String get runningCoachMissionPressureBody =>
+      '압박에서 돌아나와 10m만 폭발해요. 오래 뛰는 것보다 첫 밀어내기를 빠르게 만드는 게 목표예요.';
+
+  @override
+  String get runningCoachMissionPressureFocus => '낮은 전경사';
+
+  @override
+  String get runningCoachMissionPressureReward => '더 빠른 탈압박';
+
+  @override
+  String get runningCoachMissionLooseBallTitle => '루즈볼 먼저 잡기';
+
+  @override
+  String get runningCoachMissionLooseBallBody =>
+      '경기처럼 30m 루즈볼을 쫓아가요. 가장 좋은 기록을 남기고 다음엔 아주 조금만 줄여 봅니다.';
+
+  @override
+  String get runningCoachMissionLooseBallFocus => '후반 속도 유지';
+
+  @override
+  String get runningCoachMissionLooseBallReward => '새 추격 목표';
+
+  @override
+  String get runningCoachMissionFirstStepsTitle => '첫 세 걸음 잡기';
+
+  @override
+  String get runningCoachMissionFirstStepsBody =>
+      '처음 10m만 전력으로 뛰고 멈춰요. 출발이 빠르고 가볍고 반복 가능하게 느껴지는 게 목표예요.';
+
+  @override
+  String get runningCoachMissionFirstStepsFocus => '폭발적인 출발';
+
+  @override
+  String get runningCoachMissionFirstStepsReward => '출발 배지 진도';
+
+  @override
+  String get runningCoachGrowthTitle => '내 기록 깨기';
+
+  @override
+  String get runningCoachGrowthBody =>
+      '10m, 20m, 30m 기록을 간단히 남겨요. 최고 기록뿐 아니라 연속 도전과 꾸준한 시도도 축하해서 새 기록 전에도 달리기가 재밌게 느껴지게 합니다.';
+
+  @override
+  String get runningCoachGrowthAttemptsLabel => '시도';
+
+  @override
+  String runningCoachGrowthAttempts(int count) {
+    return '총 $count회';
+  }
+
+  @override
+  String get runningCoachGrowthStreakLabel => '연속';
+
+  @override
+  String runningCoachGrowthStreak(int count) {
+    return '$count일';
+  }
+
+  @override
+  String get runningCoachGrowthDistancesLabel => '거리';
+
+  @override
+  String runningCoachGrowthDistances(int count) {
+    return '$count/3 기록';
+  }
+
+  @override
+  String get runningCoachRecordInputTitle => '스프린트 기록 남기기';
+
+  @override
+  String runningCoachRecordDistance(int meters) {
+    return '${meters}m';
+  }
+
+  @override
+  String get runningCoachRecordSecondsLabel => '기록';
+
+  @override
+  String get runningCoachRecordSecondsHint => '예: 4.32';
+
+  @override
+  String get runningCoachRecordSecondsSuffix => '초';
+
+  @override
+  String get runningCoachRecordSaveAction => '기록 저장';
+
+  @override
+  String get runningCoachRecordInvalid => '0초보다 크고 60초 이하인 스프린트 기록을 입력해 주세요.';
+
+  @override
+  String get runningCoachRecordSaved => '스프린트 기록을 저장했어요.';
+
+  @override
+  String get runningCoachRecordEmpty => '아직 기록 없음';
+
+  @override
+  String runningCoachRecordSecondsValue(String seconds) {
+    return '$seconds초';
+  }
+
+  @override
+  String get runningCoachGhostEmptyTitle => '첫 고스트 러너 만들기';
+
+  @override
+  String get runningCoachGhostEmptyBody =>
+      '한 번 뛰고 기록을 저장해 주세요. 다음 목표는 이전의 나를 따라잡는 것부터 시작해요.';
+
+  @override
+  String runningCoachGhostTitle(int meters) {
+    return '${meters}m 고스트 러너';
+  }
+
+  @override
+  String runningCoachGhostFirstRecordBody(String seconds) {
+    return '첫 목표는 $seconds초예요. 다음에는 0.05초만 줄여 봐요.';
+  }
+
+  @override
+  String runningCoachGhostImprovedBody(String seconds) {
+    return '개인 최고 기록을 $seconds초 줄였어요. 이 느낌을 기억하고 한 번 더 반복해 봐요.';
+  }
+
+  @override
+  String runningCoachGhostChaseBody(String seconds) {
+    return '최고 고스트와 $seconds초 차이예요. 출발 하나만 더 깔끔해져도 좁힐 수 있어요.';
+  }
+
+  @override
+  String get runningCoachBadgesTitle => '러닝 배지';
+
+  @override
+  String get runningCoachBadgeFirstRun => '첫 질주';
+
+  @override
+  String get runningCoachBadgeRecordBreaker => '기록 단축';
+
+  @override
+  String get runningCoachBadgeThreeDaySpark => '3일 불씨';
+
+  @override
+  String get runningCoachBadgeAllRounder => '10/20/30m 러너';
 
   @override
   String get runningCoachAnalyzeBody =>

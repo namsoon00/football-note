@@ -2664,7 +2664,126 @@
   "drawerRunningCoach": "ランニングコーチ",
   "runningCoachScreenTitle": "ランニングコーチ",
   "runningCoachHeroTitle": "サイドビューランニングフォームコーチ",
-  "runningCoachHeroBody": "短い横から見たランニング クリップをアップロードすると、姿勢、バウンス、足の着地、膝の屈曲、腕の動きに関する厳密なフィードバックが得られます。",
+  "runningCoachHeroBody": "走ることを次の試合の武器にします。短いサッカー型スプリントミッションを走って記録し、フォームコーチで次の0.1秒を探します。",
+  "runningCoachMissionCardTitle": "今日のスピードミッション",
+  "runningCoachMissionDistance": "{meters}mミッション",
+  "@runningCoachMissionDistance": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachMissionStartSprint": "スプリントコーチ開始",
+  "runningCoachMissionStartLive": "フォームをライブ確認",
+  "runningCoachMissionBreakawayTitle": "守備ラインを破る",
+  "runningCoachMissionBreakawayBody": "最終ラインの裏へ抜けるつもりで20m走ります。長くせず、鋭い3本で十分です。",
+  "runningCoachMissionBreakawayFocus": "最初の3歩",
+  "runningCoachMissionBreakawayReward": "昨日の出だしを超える",
+  "runningCoachMissionPressureTitle": "プレッシャーから抜ける",
+  "runningCoachMissionPressureBody": "プレッシャーを外して10mだけ加速します。長い練習ではなく、最初の押し出しを速くすることが目標です。",
+  "runningCoachMissionPressureFocus": "低い前傾",
+  "runningCoachMissionPressureReward": "鋭い抜け出し",
+  "runningCoachMissionLooseBallTitle": "ルーズボールを先に取る",
+  "runningCoachMissionLooseBallBody": "試合の強度で30mのルーズボールを追います。ベストを残し、次は少しだけ縮めます。",
+  "runningCoachMissionLooseBallFocus": "後半の速度維持",
+  "runningCoachMissionLooseBallReward": "新しい追走目標",
+  "runningCoachMissionFirstStepsTitle": "最初の3歩をものにする",
+  "runningCoachMissionFirstStepsBody": "最初の10mだけ全力で走って止まります。スタートが速く、軽く、繰り返せる感覚を作ります。",
+  "runningCoachMissionFirstStepsFocus": "爆発的なスタート",
+  "runningCoachMissionFirstStepsReward": "スタートバッジ進行",
+  "runningCoachGrowthTitle": "自分の記録を破る",
+  "runningCoachGrowthBody": "10m、20m、30mのタイムを簡単に残します。自己ベストだけでなく連続チャレンジや安定した挑戦も祝うので、新記録の前でも走る楽しさが残ります。",
+  "runningCoachGrowthAttemptsLabel": "挑戦",
+  "runningCoachGrowthAttempts": "合計{count}回",
+  "@runningCoachGrowthAttempts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachGrowthStreakLabel": "連続",
+  "runningCoachGrowthStreak": "{count}日",
+  "@runningCoachGrowthStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachGrowthDistancesLabel": "距離",
+  "runningCoachGrowthDistances": "{count}/3記録",
+  "@runningCoachGrowthDistances": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachRecordInputTitle": "スプリントタイムを記録",
+  "runningCoachRecordDistance": "{meters}m",
+  "@runningCoachRecordDistance": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachRecordSecondsLabel": "タイム",
+  "runningCoachRecordSecondsHint": "例 4.32",
+  "runningCoachRecordSecondsSuffix": "秒",
+  "runningCoachRecordSaveAction": "タイムを保存",
+  "runningCoachRecordInvalid": "0秒より大きく60秒以下のスプリントタイムを入力してください。",
+  "runningCoachRecordSaved": "スプリントタイムを保存しました。",
+  "runningCoachRecordEmpty": "まだ記録なし",
+  "runningCoachRecordSecondsValue": "{seconds}秒",
+  "@runningCoachRecordSecondsValue": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGhostEmptyTitle": "最初のゴーストランナーを作る",
+  "runningCoachGhostEmptyBody": "一度走ってタイムを保存してください。次の目標は、前回の自分を追いかけることです。",
+  "runningCoachGhostTitle": "{meters}mゴーストランナー",
+  "@runningCoachGhostTitle": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachGhostFirstRecordBody": "最初の目標は{seconds}秒です。次は0.05秒だけ縮めてみましょう。",
+  "@runningCoachGhostFirstRecordBody": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGhostImprovedBody": "自己ベストを{seconds}秒更新しました。この感覚を覚えて、もう一度再現してみましょう。",
+  "@runningCoachGhostImprovedBody": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGhostChaseBody": "ベストのゴーストまで{seconds}秒です。スタートを一つ整えるだけで差を縮められます。",
+  "@runningCoachGhostChaseBody": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachBadgesTitle": "ランニングバッジ",
+  "runningCoachBadgeFirstRun": "初スプリント",
+  "runningCoachBadgeRecordBreaker": "記録更新",
+  "runningCoachBadgeThreeDaySpark": "3日連続",
+  "runningCoachBadgeAllRounder": "10/20/30mランナー",
   "runningCoachAnalyzeBody": "横から撮ったクリップを選ぶと、スコア、関節角度、接地の目安、最初に直す動きが一緒に表示されます。",
   "runningCoachTipsTitle": "録音方法",
   "runningCoachTipWholeBody": "頭から接地する足まで全身を入れ、肩、腰、膝、足首、肘、手首が見えるようにします。",

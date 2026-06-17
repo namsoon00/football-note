@@ -9203,8 +9203,302 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Upload a short side-view running clip and get strict feedback on posture, bounce, foot strike, knee flexion, and arm carriage.'**
+  /// **'Make running feel like a weapon for the next match: take a tiny football sprint mission, log a time, then use form coaching to find the next tenth of a second.'**
   String get runningCoachHeroBody;
+
+  /// No description provided for @runningCoachMissionCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s speed mission'**
+  String get runningCoachMissionCardTitle;
+
+  /// No description provided for @runningCoachMissionDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'{meters}m mission'**
+  String runningCoachMissionDistance(int meters);
+
+  /// No description provided for @runningCoachMissionStartSprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start sprint coach'**
+  String get runningCoachMissionStartSprint;
+
+  /// No description provided for @runningCoachMissionStartLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Check form live'**
+  String get runningCoachMissionStartLive;
+
+  /// No description provided for @runningCoachMissionBreakawayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Break the defensive line'**
+  String get runningCoachMissionBreakawayTitle;
+
+  /// No description provided for @runningCoachMissionBreakawayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Run 20m as if you are attacking the space behind the back line. Keep it to three sharp attempts.'**
+  String get runningCoachMissionBreakawayBody;
+
+  /// No description provided for @runningCoachMissionBreakawayFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'First 3 steps'**
+  String get runningCoachMissionBreakawayFocus;
+
+  /// No description provided for @runningCoachMissionBreakawayReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Beat yesterday\'s start'**
+  String get runningCoachMissionBreakawayReward;
+
+  /// No description provided for @runningCoachMissionPressureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Escape pressure'**
+  String get runningCoachMissionPressureTitle;
+
+  /// No description provided for @runningCoachMissionPressureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn out of pressure and burst for 10m. The goal is a fast first push, not a long workout.'**
+  String get runningCoachMissionPressureBody;
+
+  /// No description provided for @runningCoachMissionPressureFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Low body lean'**
+  String get runningCoachMissionPressureFocus;
+
+  /// No description provided for @runningCoachMissionPressureReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharper getaway'**
+  String get runningCoachMissionPressureReward;
+
+  /// No description provided for @runningCoachMissionLooseBallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Win the loose ball'**
+  String get runningCoachMissionLooseBallTitle;
+
+  /// No description provided for @runningCoachMissionLooseBallBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Chase a 30m loose ball with match energy. Log the best attempt and try to trim one small piece off it next time.'**
+  String get runningCoachMissionLooseBallBody;
+
+  /// No description provided for @runningCoachMissionLooseBallFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold speed late'**
+  String get runningCoachMissionLooseBallFocus;
+
+  /// No description provided for @runningCoachMissionLooseBallReward.
+  ///
+  /// In en, this message translates to:
+  /// **'New chase target'**
+  String get runningCoachMissionLooseBallReward;
+
+  /// No description provided for @runningCoachMissionFirstStepsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Own the first three steps'**
+  String get runningCoachMissionFirstStepsTitle;
+
+  /// No description provided for @runningCoachMissionFirstStepsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprint only the first 10m and stop. Make the start feel quick, light, and repeatable.'**
+  String get runningCoachMissionFirstStepsBody;
+
+  /// No description provided for @runningCoachMissionFirstStepsFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Explosive start'**
+  String get runningCoachMissionFirstStepsFocus;
+
+  /// No description provided for @runningCoachMissionFirstStepsReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Start badge progress'**
+  String get runningCoachMissionFirstStepsReward;
+
+  /// No description provided for @runningCoachGrowthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Beat your own runner'**
+  String get runningCoachGrowthTitle;
+
+  /// No description provided for @runningCoachGrowthBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record simple 10m, 20m, and 30m times. The app celebrates personal bests, streaks, and steady attempts so running stays fun even before a new record.'**
+  String get runningCoachGrowthBody;
+
+  /// No description provided for @runningCoachGrowthAttemptsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Attempts'**
+  String get runningCoachGrowthAttemptsLabel;
+
+  /// No description provided for @runningCoachGrowthAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} total'**
+  String runningCoachGrowthAttempts(int count);
+
+  /// No description provided for @runningCoachGrowthStreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get runningCoachGrowthStreakLabel;
+
+  /// No description provided for @runningCoachGrowthStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days'**
+  String runningCoachGrowthStreak(int count);
+
+  /// No description provided for @runningCoachGrowthDistancesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Distances'**
+  String get runningCoachGrowthDistancesLabel;
+
+  /// No description provided for @runningCoachGrowthDistances.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/3 logged'**
+  String runningCoachGrowthDistances(int count);
+
+  /// No description provided for @runningCoachRecordInputTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a sprint time'**
+  String get runningCoachRecordInputTitle;
+
+  /// No description provided for @runningCoachRecordDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'{meters}m'**
+  String runningCoachRecordDistance(int meters);
+
+  /// No description provided for @runningCoachRecordSecondsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get runningCoachRecordSecondsLabel;
+
+  /// No description provided for @runningCoachRecordSecondsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Example 4.32'**
+  String get runningCoachRecordSecondsHint;
+
+  /// No description provided for @runningCoachRecordSecondsSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'sec'**
+  String get runningCoachRecordSecondsSuffix;
+
+  /// No description provided for @runningCoachRecordSaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save time'**
+  String get runningCoachRecordSaveAction;
+
+  /// No description provided for @runningCoachRecordInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a sprint time between 0 and 60 seconds.'**
+  String get runningCoachRecordInvalid;
+
+  /// No description provided for @runningCoachRecordSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprint time saved.'**
+  String get runningCoachRecordSaved;
+
+  /// No description provided for @runningCoachRecordEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No time yet'**
+  String get runningCoachRecordEmpty;
+
+  /// No description provided for @runningCoachRecordSecondsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s'**
+  String runningCoachRecordSecondsValue(String seconds);
+
+  /// No description provided for @runningCoachGhostEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first ghost runner'**
+  String get runningCoachGhostEmptyTitle;
+
+  /// No description provided for @runningCoachGhostEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Run once and save the time. Next time, the target is simply to catch your own previous run.'**
+  String get runningCoachGhostEmptyBody;
+
+  /// No description provided for @runningCoachGhostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{meters}m ghost runner'**
+  String runningCoachGhostTitle(int meters);
+
+  /// No description provided for @runningCoachGhostFirstRecordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first target is {seconds}s. Try to trim just 0.05s next time.'**
+  String runningCoachGhostFirstRecordBody(String seconds);
+
+  /// No description provided for @runningCoachGhostImprovedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal best by {seconds}s. Save this feeling and try to repeat it once.'**
+  String runningCoachGhostImprovedBody(String seconds);
+
+  /// No description provided for @runningCoachGhostChaseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You are {seconds}s away from the best ghost. One cleaner start can close that gap.'**
+  String runningCoachGhostChaseBody(String seconds);
+
+  /// No description provided for @runningCoachBadgesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Running badges'**
+  String get runningCoachBadgesTitle;
+
+  /// No description provided for @runningCoachBadgeFirstRun.
+  ///
+  /// In en, this message translates to:
+  /// **'First sprint'**
+  String get runningCoachBadgeFirstRun;
+
+  /// No description provided for @runningCoachBadgeRecordBreaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Record breaker'**
+  String get runningCoachBadgeRecordBreaker;
+
+  /// No description provided for @runningCoachBadgeThreeDaySpark.
+  ///
+  /// In en, this message translates to:
+  /// **'3-day spark'**
+  String get runningCoachBadgeThreeDaySpark;
+
+  /// No description provided for @runningCoachBadgeAllRounder.
+  ///
+  /// In en, this message translates to:
+  /// **'10/20/30m runner'**
+  String get runningCoachBadgeAllRounder;
 
   /// No description provided for @runningCoachAnalyzeBody.
   ///

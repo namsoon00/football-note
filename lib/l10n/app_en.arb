@@ -2664,7 +2664,126 @@
   "drawerRunningCoach": "Running Coach",
   "runningCoachScreenTitle": "Running Coach",
   "runningCoachHeroTitle": "Side-view running form coach",
-  "runningCoachHeroBody": "Upload a short side-view running clip and get strict feedback on posture, bounce, foot strike, knee flexion, and arm carriage.",
+  "runningCoachHeroBody": "Make running feel like a weapon for the next match: take a tiny football sprint mission, log a time, then use form coaching to find the next tenth of a second.",
+  "runningCoachMissionCardTitle": "Today's speed mission",
+  "runningCoachMissionDistance": "{meters}m mission",
+  "@runningCoachMissionDistance": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachMissionStartSprint": "Start sprint coach",
+  "runningCoachMissionStartLive": "Check form live",
+  "runningCoachMissionBreakawayTitle": "Break the defensive line",
+  "runningCoachMissionBreakawayBody": "Run 20m as if you are attacking the space behind the back line. Keep it to three sharp attempts.",
+  "runningCoachMissionBreakawayFocus": "First 3 steps",
+  "runningCoachMissionBreakawayReward": "Beat yesterday's start",
+  "runningCoachMissionPressureTitle": "Escape pressure",
+  "runningCoachMissionPressureBody": "Turn out of pressure and burst for 10m. The goal is a fast first push, not a long workout.",
+  "runningCoachMissionPressureFocus": "Low body lean",
+  "runningCoachMissionPressureReward": "Sharper getaway",
+  "runningCoachMissionLooseBallTitle": "Win the loose ball",
+  "runningCoachMissionLooseBallBody": "Chase a 30m loose ball with match energy. Log the best attempt and try to trim one small piece off it next time.",
+  "runningCoachMissionLooseBallFocus": "Hold speed late",
+  "runningCoachMissionLooseBallReward": "New chase target",
+  "runningCoachMissionFirstStepsTitle": "Own the first three steps",
+  "runningCoachMissionFirstStepsBody": "Sprint only the first 10m and stop. Make the start feel quick, light, and repeatable.",
+  "runningCoachMissionFirstStepsFocus": "Explosive start",
+  "runningCoachMissionFirstStepsReward": "Start badge progress",
+  "runningCoachGrowthTitle": "Beat your own runner",
+  "runningCoachGrowthBody": "Record simple 10m, 20m, and 30m times. The app celebrates personal bests, streaks, and steady attempts so running stays fun even before a new record.",
+  "runningCoachGrowthAttemptsLabel": "Attempts",
+  "runningCoachGrowthAttempts": "{count} total",
+  "@runningCoachGrowthAttempts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachGrowthStreakLabel": "Streak",
+  "runningCoachGrowthStreak": "{count} days",
+  "@runningCoachGrowthStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachGrowthDistancesLabel": "Distances",
+  "runningCoachGrowthDistances": "{count}/3 logged",
+  "@runningCoachGrowthDistances": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachRecordInputTitle": "Log a sprint time",
+  "runningCoachRecordDistance": "{meters}m",
+  "@runningCoachRecordDistance": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachRecordSecondsLabel": "Time",
+  "runningCoachRecordSecondsHint": "Example 4.32",
+  "runningCoachRecordSecondsSuffix": "sec",
+  "runningCoachRecordSaveAction": "Save time",
+  "runningCoachRecordInvalid": "Enter a sprint time between 0 and 60 seconds.",
+  "runningCoachRecordSaved": "Sprint time saved.",
+  "runningCoachRecordEmpty": "No time yet",
+  "runningCoachRecordSecondsValue": "{seconds}s",
+  "@runningCoachRecordSecondsValue": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGhostEmptyTitle": "Create your first ghost runner",
+  "runningCoachGhostEmptyBody": "Run once and save the time. Next time, the target is simply to catch your own previous run.",
+  "runningCoachGhostTitle": "{meters}m ghost runner",
+  "@runningCoachGhostTitle": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachGhostFirstRecordBody": "Your first target is {seconds}s. Try to trim just 0.05s next time.",
+  "@runningCoachGhostFirstRecordBody": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGhostImprovedBody": "Personal best by {seconds}s. Save this feeling and try to repeat it once.",
+  "@runningCoachGhostImprovedBody": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGhostChaseBody": "You are {seconds}s away from the best ghost. One cleaner start can close that gap.",
+  "@runningCoachGhostChaseBody": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachBadgesTitle": "Running badges",
+  "runningCoachBadgeFirstRun": "First sprint",
+  "runningCoachBadgeRecordBreaker": "Record breaker",
+  "runningCoachBadgeThreeDaySpark": "3-day spark",
+  "runningCoachBadgeAllRounder": "10/20/30m runner",
   "runningCoachAnalyzeBody": "Choose a side-view clip to see the score, measured joint angles, contact cues, and the first movement issue to fix.",
   "runningCoachTipsTitle": "How to record",
   "runningCoachTipWholeBody": "Keep the full body in frame from head to foot strike, with shoulders, hips, knees, ankles, elbows, and wrists visible.",
