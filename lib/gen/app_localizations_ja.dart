@@ -7632,6 +7632,36 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchLinkRoutesNeedTwoSnack => 'つなぐにはルートが2つ以上必要です。';
 
   @override
+  String get trainingSketchAutoStagesButton => 'ステージ自動分け';
+
+  @override
+  String get trainingSketchAutoStagesSnack => 'ルートをステージ1から自動で分けました。';
+
+  @override
+  String get trainingSketchAutoStagesNeedTwoSnack => 'ステージ分けにはルートが2つ以上必要です。';
+
+  @override
+  String get trainingSketchRouteStageTitle => '動きのステージ';
+
+  @override
+  String trainingSketchRouteStageChip(Object stage) {
+    return 'ステージ $stage';
+  }
+
+  @override
+  String get trainingSketchSelectRouteForStageHint =>
+      '選手またはボールを選ぶと、ルートのステージを変更できます。';
+
+  @override
+  String get trainingSketchPreviousStageButton => '前のステージ';
+
+  @override
+  String get trainingSketchNextStageButton => '次のステージ';
+
+  @override
+  String get trainingSketchRouteAfterBallButton => 'ボールの後';
+
+  @override
   String get trainingSketchClearAllRoutesButton => '全ルートクリア';
 
   @override

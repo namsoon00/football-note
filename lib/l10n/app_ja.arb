@@ -3854,6 +3854,20 @@
   "trainingSketchLinkRoutesInOrderButton": "すべて順番につなぐ",
   "trainingSketchLinkRoutesInOrderSnack": "描いた順番で、ルートが1つずつ始まるようにつなぎました。",
   "trainingSketchLinkRoutesNeedTwoSnack": "つなぐにはルートが2つ以上必要です。",
+  "trainingSketchAutoStagesButton": "ステージ自動分け",
+  "trainingSketchAutoStagesSnack": "ルートをステージ1から自動で分けました。",
+  "trainingSketchAutoStagesNeedTwoSnack": "ステージ分けにはルートが2つ以上必要です。",
+  "trainingSketchRouteStageTitle": "動きのステージ",
+  "trainingSketchRouteStageChip": "ステージ {stage}",
+  "@trainingSketchRouteStageChip": {
+    "placeholders": {
+      "stage": {}
+    }
+  },
+  "trainingSketchSelectRouteForStageHint": "選手またはボールを選ぶと、ルートのステージを変更できます。",
+  "trainingSketchPreviousStageButton": "前のステージ",
+  "trainingSketchNextStageButton": "次のステージ",
+  "trainingSketchRouteAfterBallButton": "ボールの後",
   "trainingSketchClearAllRoutesButton": "全ルートクリア",
   "trainingSketchPlayerRoutesTitle": "プレイヤールート",
   "trainingSketchBallRoutesTitle": "ボールルート",

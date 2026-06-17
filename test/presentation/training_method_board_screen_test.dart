@@ -49,7 +49,33 @@ void main() {
     expect(decoded.pages.single.routes.single.segmentDurationsMs, [80, 460]);
   });
 
-  testWidgets('routes can be chained in the order they were created', (
+  test('training sketch routes preserve movement stages', () {
+    final encoded = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Staged route',
+          items: <TrainingMethodItem>[],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'staged-player',
+              kind: TrainingMethodRouteKind.player,
+              stageIndex: 3,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.2),
+                TrainingMethodPoint(x: 0.4, y: 0.3),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    final decoded = TrainingMethodLayout.decode(encoded);
+
+    expect(decoded.pages.single.routes.single.stageIndex, 3);
+  });
+
+  testWidgets('routes can be split into editable movement stages', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -76,8 +102,8 @@ void main() {
       find.byKey(const ValueKey('training-player-path-mode-button')),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(OutlinedButton, '전체 차례대로 연결'));
-    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '단계 자동 나누기');
+    await _tapVisibleOutlinedButton(tester, '다음 단계');
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -86,18 +112,9 @@ void main() {
     final routes = saved.pages.single.routes;
     expect(routes, hasLength(4));
     expect(_samePoint(routes[0].points[0], routes[0].points[1]), isFalse);
-    expect(_samePoint(routes[1].points[0], routes[1].points[1]), isTrue);
-    expect(_samePoint(routes[2].points[0], routes[2].points[1]), isTrue);
-    expect(_samePoint(routes[3].points[0], routes[3].points[1]), isTrue);
-    expect(routes[1].segmentDurationsMs.first, greaterThan(0));
-    expect(
-      routes[2].segmentDurationsMs.first,
-      greaterThan(routes[1].segmentDurationsMs.first),
-    );
-    expect(
-      routes[3].segmentDurationsMs.first,
-      greaterThan(routes[2].segmentDurationsMs.first),
-    );
+    expect(_samePoint(routes[2].points[0], routes[2].points[1]), isFalse);
+    expect(_samePoint(routes[3].points[0], routes[3].points[1]), isFalse);
+    expect(routes.map((route) => route.stageIndex), [2, 2, 3, 4]);
   });
 
   testWidgets('training sketch auto saves after memo edit', (
@@ -1089,6 +1106,17 @@ Future<void> _drawRoute(
   );
   await tester.pump(const Duration(milliseconds: 16));
   detector.onPanEnd!(DragEndDetails());
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapVisibleOutlinedButton(
+  WidgetTester tester,
+  String label,
+) async {
+  final finder = find.widgetWithText(OutlinedButton, label);
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
   await tester.pumpAndSettle();
 }
 

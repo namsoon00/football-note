@@ -3854,6 +3854,20 @@
   "trainingSketchLinkRoutesInOrderButton": "Chain all in order",
   "trainingSketchLinkRoutesInOrderSnack": "Routes now start one by one in the order they were drawn.",
   "trainingSketchLinkRoutesNeedTwoSnack": "Add at least two routes to chain them.",
+  "trainingSketchAutoStagesButton": "Auto stages",
+  "trainingSketchAutoStagesSnack": "Routes were split into stages starting from stage 1.",
+  "trainingSketchAutoStagesNeedTwoSnack": "Add at least two routes to split stages.",
+  "trainingSketchRouteStageTitle": "Movement stage",
+  "trainingSketchRouteStageChip": "Stage {stage}",
+  "@trainingSketchRouteStageChip": {
+    "placeholders": {
+      "stage": {}
+    }
+  },
+  "trainingSketchSelectRouteForStageHint": "Select a player or ball to change its route stage.",
+  "trainingSketchPreviousStageButton": "Previous stage",
+  "trainingSketchNextStageButton": "Next stage",
+  "trainingSketchRouteAfterBallButton": "After ball",
   "trainingSketchClearAllRoutesButton": "Clear all routes",
   "trainingSketchPlayerRoutesTitle": "Player routes",
   "trainingSketchBallRoutesTitle": "Ball routes",

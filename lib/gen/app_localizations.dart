@@ -13689,6 +13689,60 @@ abstract class AppLocalizations {
   /// **'Add at least two routes to chain them.'**
   String get trainingSketchLinkRoutesNeedTwoSnack;
 
+  /// No description provided for @trainingSketchAutoStagesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto stages'**
+  String get trainingSketchAutoStagesButton;
+
+  /// No description provided for @trainingSketchAutoStagesSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Routes were split into stages starting from stage 1.'**
+  String get trainingSketchAutoStagesSnack;
+
+  /// No description provided for @trainingSketchAutoStagesNeedTwoSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least two routes to split stages.'**
+  String get trainingSketchAutoStagesNeedTwoSnack;
+
+  /// No description provided for @trainingSketchRouteStageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement stage'**
+  String get trainingSketchRouteStageTitle;
+
+  /// No description provided for @trainingSketchRouteStageChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage {stage}'**
+  String trainingSketchRouteStageChip(Object stage);
+
+  /// No description provided for @trainingSketchSelectRouteForStageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a player or ball to change its route stage.'**
+  String get trainingSketchSelectRouteForStageHint;
+
+  /// No description provided for @trainingSketchPreviousStageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous stage'**
+  String get trainingSketchPreviousStageButton;
+
+  /// No description provided for @trainingSketchNextStageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stage'**
+  String get trainingSketchNextStageButton;
+
+  /// No description provided for @trainingSketchRouteAfterBallButton.
+  ///
+  /// In en, this message translates to:
+  /// **'After ball'**
+  String get trainingSketchRouteAfterBallButton;
+
   /// No description provided for @trainingSketchClearAllRoutesButton.
   ///
   /// In en, this message translates to:
