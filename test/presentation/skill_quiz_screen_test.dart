@@ -154,6 +154,42 @@ void main() {
     expect(find.textContaining('RPE'), findsWidgets);
   });
 
+  testWidgets('quiz library removes obvious trivia and adds deep core items', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '해트트릭');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('한 선수가 한 경기에서 3골'), findsNothing);
+    expect(find.text('조건에 맞는 문제가 없습니다.'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '오리엔티드 터치');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('오리엔티드 터치'), findsWidgets);
+
+    await tester.enterText(find.byType(TextField), '아이솔레이션');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('아이솔레이션'), findsWidgets);
+
+    await tester.enterText(find.byType(TextField), '트리거 워드');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('트리거 워드'), findsWidgets);
+  });
+
   testWidgets('challenge quiz persists a mixed style question set', (
     WidgetTester tester,
   ) async {
@@ -449,7 +485,7 @@ void main() {
       await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), 'support angle');
+      await tester.enterText(find.byType(TextField), '지원 각도');
       await tester.pumpAndSettle();
 
       expect(find.textContaining('현재 필터 1문제'), findsOneWidget);
