@@ -11,13 +11,22 @@ import 'package:http/http.dart' as http;
 
 import 'backup_asset_store.dart';
 import 'backup_asset_store_types.dart';
+import 'challenge_service.dart';
 import 'drive_connection_info.dart';
+import 'league_fixture_reminder_service.dart';
+import 'meal_log_service.dart';
+import 'news_badge_service.dart';
+import 'news_read_state.dart';
 import '../domain/entities/training_entry.dart';
+import '../domain/entities/sport_definition.dart';
 import '../domain/repositories/backup_repository.dart';
 import '../infrastructure/hive_option_repository.dart';
 import 'family_access_service.dart';
 import 'parent_shared_feedback_service.dart';
 import 'player_level_service.dart';
+import 'running_coach_history_service.dart';
+import 'training_board_service.dart';
+import 'training_plan_reminder_service.dart';
 
 class DriveBackupService implements BackupRepository {
   DriveBackupService(
@@ -156,6 +165,174 @@ class DriveBackupService implements BackupRepository {
     parentDriveSubjectLocalKey,
     ...FamilyAccessService.localOnlyOptionKeys,
   };
+  static const Set<String> _backedUpOptionKeys = {
+    // Profile and app-owned player state.
+    'profile_name',
+    _profilePhotoOptionKey,
+    'profile_birth_date',
+    'profile_soccer_start_date',
+    'profile_height_cm',
+    'profile_weight_kg',
+    'profile_gender',
+    'profile_mbti_result',
+    'profile_position_test_result',
+    'profile_mbti_answers',
+    'profile_position_test_answers',
+    SportCatalog.currentSportOptionKey,
+
+    // Training entry defaults and user-managed option lists.
+    'durations',
+    'default_duration',
+    'default_location',
+    'type_options',
+    'programs',
+    'daily_goals',
+    'default_program',
+    'injury_parts',
+    'match_locations',
+
+    // Primary user records stored in the option box.
+    TrainingPlanReminderService.plansStorageKey,
+    MealLogService.storageKey,
+    TrainingBoardService.storageKey,
+    ChallengeService.storageKey,
+    RunningCoachHistoryService.storageKey,
+    'custom_diary_entries_v3',
+    'coach_diary_completed_day_v2',
+    'diary_theme_v1',
+
+    // Progression and reward state.
+    PlayerLevelService.totalXpKey,
+    PlayerLevelService.xpHistoryKey,
+    PlayerLevelService.quizRewardDayKey,
+    PlayerLevelService.awardedPlanIdsKey,
+    PlayerLevelService.awardedMatchLogTokensKey,
+    PlayerLevelService.awardedStreaksKey,
+    PlayerLevelService.awardedBoardSaveTokensKey,
+    PlayerLevelService.awardedRoutineDaysKey,
+    PlayerLevelService.awardedDailyTaskCompletionDaysKey,
+    PlayerLevelService.awardedChallengeRoundsKey,
+    PlayerLevelService.awardedChallengeCompletionsKey,
+    PlayerLevelService.diaryCreatedDayKey,
+    PlayerLevelService.claimedRewardLevelsKey,
+    PlayerLevelService.customRewardNamesKey,
+    PlayerLevelService.rewardClaimMessagesKey,
+
+    // Family-shared record layer.
+    FamilyAccessService.linkedRoleKey,
+    FamilyAccessService.familyIdKey,
+    FamilyAccessService.childNameKey,
+    FamilyAccessService.parentNameKey,
+    FamilyAccessService.parentTrainingFeedbackKey,
+    FamilyAccessService.lastSharedSyncAtKey,
+    FamilyAccessService.lastSharedSyncRoleKey,
+    sharedChildDriveEmailKey,
+    sharedChildDriveLabelKey,
+
+    // Quiz and game progress that is meaningful across devices.
+    'skill_quiz_completed_at',
+    'skill_quiz_session_v1',
+    'skill_quiz_pending_wrong_v1',
+    'skill_quiz_pending_wrong_schedule_v1',
+    'skill_quiz_pending_wrong_schedule_v2',
+    'skill_quiz_metrics_v1',
+    'skill_quiz_recent_performance_v1',
+    'skill_quiz_daily_questions_v2',
+    'skill_quiz_daily_questions_day_v2',
+    'skill_quiz_cleared_sets_v1',
+    'skill_quiz_category_stats_v1',
+    'skill_quiz_history_v1',
+    'space_speed_ranking_history_v1',
+    'space_speed_played_count_v1',
+
+    // News, fixture, and tournament user state used by diary or favorites.
+    'news_opened_items_v1',
+    'news_scrapped_links',
+    'news_scrapped_items_v1',
+    'news_source_open_counts_v1',
+    'news_blocked_domains',
+    NewsReadState.readArticleKeysKey,
+    LeagueFixtureReminderService.favoriteTeamKeysKey,
+    'world_cup_support_country_v1',
+    'world_cup_interest_countries_v1',
+  };
+  static const List<String> _backedUpOptionKeyPrefixes = [
+    'programs_',
+    'daily_goals_',
+    'default_program_',
+    'space_speed_weekly_best_',
+  ];
+  static const Set<String> _localDeviceOptionKeys = {
+    _autoDailyKey,
+    _autoOnSaveKey,
+    'theme_mode',
+    'locale',
+    'reminder_enabled',
+    'reminder_vibration_enabled',
+    'reminder_time',
+    'level_up_alert_enabled',
+    'xp_alert_enabled',
+    'inactivity_alert_enabled',
+    'family_sync_alert_enabled',
+    'league_fixture_alert_enabled',
+    'inactivity_alert_days',
+    TrainingPlanReminderService.reminderIdsKey,
+    TrainingPlanReminderService.reminderReadIdsKey,
+    TrainingPlanReminderService.dismissedMessageKeysKey,
+    TrainingPlanReminderService.xpMessageLogKey,
+    TrainingPlanReminderService.xpMessageReadIdsKey,
+    TrainingPlanReminderService.familyMessageLogKey,
+    TrainingPlanReminderService.familyMessageReadIdsKey,
+    TrainingPlanReminderService.alarmMutedUntilKey,
+    TrainingPlanReminderService.inactivityReminderIdsKey,
+    TrainingPlanReminderService.challengeReminderIdsKey,
+    TrainingPlanReminderService.lastTrainingLogAtKey,
+    LeagueFixtureReminderService.reminderIdsKey,
+    LeagueFixtureReminderService.worldCupReminderIdsKey,
+    LeagueFixtureReminderService.fixtureMessageLogKey,
+    LeagueFixtureReminderService.fixtureMessageReadIdsKey,
+    NewsBadgeService.seenArticleKeysKey,
+    NewsBadgeService.lastOpenedAtKey,
+    NewsBadgeService.lastRefreshAtKey,
+    'notification_seen_xp_ids_v1',
+    'notification_show_inactivity_section_v1',
+    'notification_show_xp_section_v1',
+    'notification_show_plan_section_v1',
+    'notification_show_family_section_v1',
+    'notification_show_fixture_section_v1',
+    'home_weather_snapshot_v1',
+    'benchmark_physical_by_age_v2',
+    'benchmark_lifting_by_age_v2',
+    'benchmark_synced_at_v2',
+    'calendar_expanded_v1',
+    'calendar_format_v1',
+    'last_training_plan_reminder_minutes_v1',
+    'training_plan_last_reminder_minutes_before_v1',
+    'last_training_plan_template_v1',
+    'recent_board_id',
+    'logs_layout',
+    'logs_filter_status',
+    'logs_filter_program',
+    'logs_filter_injury_only',
+    'logs_filter_jump_rope_only',
+    'logs_filter_feedback_only',
+    'logs_quick_guide_seen_v1',
+    'league_standings_last_selected_league_v1',
+    'league_standings_last_selected_type_v1',
+    'league_standings_favorite_fixture_filter_types_v1',
+    'news_title_translate_enabled',
+  };
+  static const List<String> _localDeviceOptionKeyPrefixes = [
+    'drive_',
+    'local_pre_restore_',
+    'benchmark_',
+    'news_badge_',
+    'notification_',
+    'family_sync_message_',
+    'xp_alert_message_',
+    'league_fixture_message_',
+    'logs_filter_',
+  ];
   static const _backupVersion = 6;
   static const _typedValueKey = '__type';
   static const _typedDataKey = 'data';
@@ -1551,18 +1728,16 @@ class DriveBackupService implements BackupRepository {
     final options = <String, dynamic>{};
     final optionRecords = <Map<String, dynamic>>[];
     for (final key in _optionBox.keys) {
-      if (key is String && _excludedOptionKeys.contains(key)) {
+      if (!_shouldBackUpOptionKey(key)) {
         continue;
       }
       final encodedKey = _toBackupValue(key);
-      final encodedValue = key is String
-          ? _encodeOptionValueForBackup(
-              key: key,
-              value: _optionBox.get(key),
-              assetRecords: assetRecords,
-              assetIdBySourcePath: assetIdBySourcePath,
-            )
-          : _toBackupValue(_optionBox.get(key));
+      final encodedValue = _encodeOptionValueForBackup(
+        key: key as String,
+        value: _optionBox.get(key),
+        assetRecords: assetRecords,
+        assetIdBySourcePath: assetIdBySourcePath,
+      );
       if (encodedKey == _unsupportedValue ||
           encodedValue == _unsupportedValue) {
         throw StateError('$unsupportedBackupValueErrorCode:${key.toString()}');
@@ -1571,9 +1746,7 @@ class DriveBackupService implements BackupRepository {
         'key': encodedKey,
         'value': encodedValue,
       });
-      if (key is String) {
-        options[key] = encodedValue;
-      }
+      options[key] = encodedValue;
     }
     final familyState = _familyService.loadState();
     return {
@@ -1628,38 +1801,52 @@ class DriveBackupService implements BackupRepository {
     return _adoptConnectedPlayerBackup(remoteBackup: remoteBackup);
   }
 
+  bool _shouldBackUpOptionKey(dynamic key) {
+    if (key is! String) return false;
+    if (_excludedOptionKeys.contains(key)) return false;
+    if (_backedUpOptionKeys.contains(key)) return true;
+    return _startsWithAny(key, _backedUpOptionKeyPrefixes);
+  }
+
+  bool _canRestoreOptionKey(dynamic key) => _shouldBackUpOptionKey(key);
+
+  bool _shouldPreserveLocalOptionKey(dynamic key) {
+    if (key is! String) return false;
+    if (_excludedOptionKeys.contains(key) ||
+        _localDeviceOptionKeys.contains(key)) {
+      return true;
+    }
+    if (_backedUpOptionKeys.contains(key) ||
+        _startsWithAny(key, _backedUpOptionKeyPrefixes)) {
+      return false;
+    }
+    return _startsWithAny(key, _localDeviceOptionKeyPrefixes);
+  }
+
+  bool _startsWithAny(String key, List<String> prefixes) {
+    for (final prefix in prefixes) {
+      if (key.startsWith(prefix)) return true;
+    }
+    return false;
+  }
+
+  Map<String, dynamic> _localOptionSnapshotForRestore() {
+    final snapshot = <String, dynamic>{};
+    for (final key in _optionBox.keys) {
+      if (key is String && _shouldPreserveLocalOptionKey(key)) {
+        snapshot[key] = _optionBox.get(key);
+      }
+    }
+    return snapshot;
+  }
+
   Future<void> _restoreFromMap(Map<String, dynamic> data) async {
     final version = (data['version'] as num?)?.toInt() ?? 1;
     final entries = (data['entries'] as List?) ?? const [];
     final optionRecords = (data[_optionRecordsKey] as List?) ?? const [];
     final options = (data['options'] as Map?) ?? const {};
     final assetRecords = _extractAssetRecords(data);
-    final lastBackupRaw = _optionBox.get(_lastBackupKey);
-    final lastRecordBackupRaw = _optionBox.get(_lastRecordBackupKey);
-    final lastFamilySyncPushRaw = _optionBox.get(_lastFamilySyncPushAtKey);
-    final lastFamilySyncPullRaw = _optionBox.get(_lastFamilySyncPullAtKey);
-    final parentSharedDirtyRaw = _optionBox.get(_parentSharedDataDirtyKey);
-    final localPreRestoreRaw = _optionBox.get(_localPreRestoreKey);
-    final localPreRestoreAtRaw = _optionBox.get(_localPreRestoreAtKey);
-    final preservedLocalOnly = <String, dynamic>{
-      for (final key in FamilyAccessService.localOnlyOptionKeys)
-        key: _optionBox.get(key),
-      connectedDriveEmailLocalKey: _optionBox.get(connectedDriveEmailLocalKey),
-      connectedDriveLabelLocalKey: _optionBox.get(connectedDriveLabelLocalKey),
-      connectedDriveSubjectLocalKey: _optionBox.get(
-        connectedDriveSubjectLocalKey,
-      ),
-      recordDriveEmailLocalKey: _optionBox.get(recordDriveEmailLocalKey),
-      recordDriveLabelLocalKey: _optionBox.get(recordDriveLabelLocalKey),
-      recordDriveSubjectLocalKey: _optionBox.get(recordDriveSubjectLocalKey),
-      parentDriveEmailLocalKey: _optionBox.get(parentDriveEmailLocalKey),
-      parentDriveLabelLocalKey: _optionBox.get(parentDriveLabelLocalKey),
-      parentDriveSubjectLocalKey: _optionBox.get(parentDriveSubjectLocalKey),
-      _lastRecordBackupKey: lastRecordBackupRaw,
-      _lastFamilySyncPushAtKey: lastFamilySyncPushRaw,
-      _lastFamilySyncPullAtKey: lastFamilySyncPullRaw,
-      _parentSharedDataDirtyKey: parentSharedDirtyRaw,
-    };
+    final preservedLocalOnly = _localOptionSnapshotForRestore();
 
     final stagedEntries = <TrainingEntry>[];
     for (final raw in entries) {
@@ -1678,29 +1865,25 @@ class DriveBackupService implements BackupRepository {
       for (final raw in optionRecords) {
         if (raw is! Map) continue;
         final key = _fromBackupValue(raw['key'], version: version);
-        if (key is String && _excludedOptionKeys.contains(key)) {
+        if (!_canRestoreOptionKey(key)) {
           continue;
         }
-        if (key == null) continue;
         var value = _fromBackupValue(raw['value'], version: version);
-        if (key is String) {
-          value = await _restoreOptionAssetValue(key, value, assetRecords);
-        }
+        value =
+            await _restoreOptionAssetValue(key as String, value, assetRecords);
         stagedOptions[key] = value;
       }
     } else {
       for (final entry in options.entries) {
-        if (entry.key is String && _excludedOptionKeys.contains(entry.key)) {
+        if (!_canRestoreOptionKey(entry.key)) {
           continue;
         }
         var value = _fromBackupValue(entry.value, version: version);
-        if (entry.key is String) {
-          value = await _restoreOptionAssetValue(
-            entry.key as String,
-            value,
-            assetRecords,
-          );
-        }
+        value = await _restoreOptionAssetValue(
+          entry.key as String,
+          value,
+          assetRecords,
+        );
         stagedOptions[entry.key] = value;
       }
     }
@@ -1713,15 +1896,6 @@ class DriveBackupService implements BackupRepository {
     await _optionBox.clear();
     for (final entry in stagedOptions.entries) {
       await _optionBox.put(entry.key, entry.value);
-    }
-    if (localPreRestoreRaw is String) {
-      await _optionBox.put(_localPreRestoreKey, localPreRestoreRaw);
-    }
-    if (localPreRestoreAtRaw is String) {
-      await _optionBox.put(_localPreRestoreAtKey, localPreRestoreAtRaw);
-    }
-    if (lastBackupRaw is String) {
-      await _optionBox.put(_lastBackupKey, lastBackupRaw);
     }
     for (final entry in preservedLocalOnly.entries) {
       if (entry.value != null) {
@@ -2650,7 +2824,8 @@ class DriveBackupService implements BackupRepository {
   }) {
     final remoteVersion = (remote['version'] as num?)?.toInt() ?? 1;
     final localVersion = (local['version'] as num?)?.toInt() ?? _backupVersion;
-    final mergedOptions = _copyStringOptions(remote);
+    final mergedOptions = _copyStringOptions(remote)
+      ..removeWhere((key, value) => !_canRestoreOptionKey(key));
     final localOptions = _copyStringOptions(local);
     for (final key in FamilyAccessService.sharedBackupOptionKeys) {
       if (localOptions.containsKey(key)) {
@@ -2695,12 +2870,15 @@ class DriveBackupService implements BackupRepository {
   }) {
     final keptRemote = _extractOptionRecords(remote).where((record) {
       final key = _fromBackupValue(record['key'], version: remoteVersion);
-      return key is! String ||
+      return key is String &&
+          _canRestoreOptionKey(key) &&
           !FamilyAccessService.isSharedBackupOptionKey(key);
     });
     final localShared = _extractOptionRecords(local).where((record) {
       final key = _fromBackupValue(record['key'], version: localVersion);
-      return key is String && FamilyAccessService.isSharedBackupOptionKey(key);
+      return key is String &&
+          _canRestoreOptionKey(key) &&
+          FamilyAccessService.isSharedBackupOptionKey(key);
     });
     return <Map<String, dynamic>>[...keptRemote, ...localShared];
   }
