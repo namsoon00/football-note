@@ -7555,6 +7555,16 @@ class AppLocalizationsJa extends AppLocalizations {
       '1番のパス、2番のドリブル、3番の移動フローを適用しました。';
 
   @override
+  String get trainingSketchLinkRoutesInOrderButton => 'すべて順番につなぐ';
+
+  @override
+  String get trainingSketchLinkRoutesInOrderSnack =>
+      '描いた順番で、ルートが1つずつ始まるようにつなぎました。';
+
+  @override
+  String get trainingSketchLinkRoutesNeedTwoSnack => 'つなぐにはルートが2つ以上必要です。';
+
+  @override
   String get trainingSketchClearAllRoutesButton => '全ルートクリア';
 
   @override

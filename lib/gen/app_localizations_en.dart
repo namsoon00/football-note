@@ -7808,6 +7808,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Applied the player 1 pass, player 2 dribble, player 3 move flow.';
 
   @override
+  String get trainingSketchLinkRoutesInOrderButton => 'Chain all in order';
+
+  @override
+  String get trainingSketchLinkRoutesInOrderSnack =>
+      'Routes now start one by one in the order they were drawn.';
+
+  @override
+  String get trainingSketchLinkRoutesNeedTwoSnack =>
+      'Add at least two routes to chain them.';
+
+  @override
   String get trainingSketchClearAllRoutesButton => 'Clear all routes';
 
   @override
