@@ -8,6 +8,7 @@ import 'package:football_note/application/drive_backup_service.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/player_level_service.dart';
+import 'package:football_note/application/training_plan_reminder_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
@@ -61,7 +62,8 @@ void main() {
     );
   });
 
-  test('backs up and restores profile, settings, and option values', () async {
+  test('backs up and restores player data while skipping local device settings',
+      () async {
     await trainingBox.add(
       TrainingEntry(
         date: DateTime(2026, 1, 5),
@@ -108,10 +110,11 @@ void main() {
     expect(backup['version'], 6);
     expect(backedUpEntry['sportId'], SportCatalog.footballId);
     expect(backupOptions['profile_name'], 'Lee');
-    expect(backupOptions['theme_mode'], 'dark');
-    expect(backupOptions['reminder_enabled'], false);
     expect(backupOptions['default_duration'], 90);
     expect(backupOptions['type_options'], ['technique', 'tactics']);
+    expect(backupOptions.containsKey('theme_mode'), isFalse);
+    expect(backupOptions.containsKey('reminder_enabled'), isFalse);
+    expect(backupOptions.containsKey('reminder_time'), isFalse);
     expect(backupOptions.containsKey('drive_last_backup'), isFalse);
     expect(backupOptions.containsKey('local_pre_restore_backup'), isFalse);
     expect(backupOptions.containsKey('local_pre_restore_backup_at'), isFalse);
@@ -132,9 +135,9 @@ void main() {
 
     expect(optionBox.get('profile_name'), 'Lee');
     expect(optionBox.get('profile_height_cm'), '160.5');
-    expect(optionBox.get('theme_mode'), 'dark');
-    expect(optionBox.get('reminder_enabled'), false);
-    expect(optionBox.get('reminder_time'), '07:30');
+    expect(optionBox.get('theme_mode'), isNull);
+    expect(optionBox.get('reminder_enabled'), isNull);
+    expect(optionBox.get('reminder_time'), isNull);
     expect(optionBox.get('default_duration'), 90);
     expect(optionBox.get('type_options'), ['technique', 'tactics']);
   });
@@ -165,6 +168,7 @@ void main() {
           },
         ],
         'skill_quiz_history_v1': '[{"id":"quiz-1"}]',
+        'skill_quiz_pending_wrong_schedule_v2': '[{"id":"wrong-1"}]',
         'news_opened_items_v1': '[{"id":"news-1"}]',
       });
 
@@ -190,6 +194,10 @@ void main() {
         isA<List>(),
       );
       expect(backupOptions['skill_quiz_history_v1'], '[{"id":"quiz-1"}]');
+      expect(
+        backupOptions['skill_quiz_pending_wrong_schedule_v2'],
+        '[{"id":"wrong-1"}]',
+      );
       expect(backupOptions['news_opened_items_v1'], '[{"id":"news-1"}]');
     },
   );
@@ -202,10 +210,12 @@ void main() {
       'entries': const [],
       'options': <String, dynamic>{
         'drive_last_backup': '2026-01-01T08:00:00.000',
+        'default_location': 'Remote Ground',
         'theme_mode': 'dark',
       },
       'optionRecords': const [
         {'key': 'drive_last_backup', 'value': '2026-01-01T08:00:00.000'},
+        {'key': 'default_location', 'value': 'Remote Ground'},
         {'key': 'theme_mode', 'value': 'dark'},
       ],
       'family': const <String, dynamic>{
@@ -217,29 +227,107 @@ void main() {
     await service.restoreFromMapForTesting(backup);
 
     expect(optionBox.get('drive_last_backup'), '2026-02-01T08:00:00.000');
+    expect(optionBox.get('default_location'), 'Remote Ground');
+    expect(optionBox.get('theme_mode'), isNull);
+  });
+
+  test('restore preserves local device settings and notification caches',
+      () async {
+    await optionBox.put('theme_mode', 'dark');
+    await optionBox.put('locale', 'ko');
+    await optionBox.put(TrainingPlanReminderService.reminderIdsKey, <int>[77]);
+    await optionBox.put('benchmark_synced_at_v2', 'local-cache');
+    await optionBox.put('training_plan_last_reminder_minutes_before_v1', 60);
+    await optionBox.put('league_standings_last_selected_type_v1', 'epl');
+
+    await service.restoreFromMapForTesting(<String, dynamic>{
+      'version': 6,
+      'createdAt': '2026-02-02T08:00:00.000',
+      'entries': const <dynamic>[],
+      'options': <String, dynamic>{
+        'profile_name': 'Remote player',
+        'theme_mode': 'light',
+        'locale': 'en',
+        TrainingPlanReminderService.reminderIdsKey: <int>[1],
+        'benchmark_synced_at_v2': 'remote-cache',
+        'training_plan_last_reminder_minutes_before_v1': 15,
+        'league_standings_last_selected_type_v1': 'kLeague1',
+      },
+      'optionRecords': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'key': 'profile_name',
+          'value': 'Remote player',
+        },
+        <String, dynamic>{'key': 'theme_mode', 'value': 'light'},
+        <String, dynamic>{'key': 'locale', 'value': 'en'},
+        <String, dynamic>{
+          'key': TrainingPlanReminderService.reminderIdsKey,
+          'value': <int>[1],
+        },
+        <String, dynamic>{
+          'key': 'benchmark_synced_at_v2',
+          'value': 'remote-cache',
+        },
+        <String, dynamic>{
+          'key': 'training_plan_last_reminder_minutes_before_v1',
+          'value': 15,
+        },
+        <String, dynamic>{
+          'key': 'league_standings_last_selected_type_v1',
+          'value': 'kLeague1',
+        },
+      ],
+      'family': const <String, dynamic>{
+        'updatedByRole': 'child',
+        'familyLayerOnly': false,
+      },
+    });
+
+    expect(optionBox.get('profile_name'), 'Remote player');
     expect(optionBox.get('theme_mode'), 'dark');
+    expect(optionBox.get('locale'), 'ko');
+    expect(optionBox.get(TrainingPlanReminderService.reminderIdsKey), <int>[
+      77,
+    ]);
+    expect(optionBox.get('benchmark_synced_at_v2'), 'local-cache');
+    expect(optionBox.get('training_plan_last_reminder_minutes_before_v1'), 60);
+    expect(optionBox.get('league_standings_last_selected_type_v1'), 'epl');
   });
 
   test('backs up and restores typed option values in v2 schema', () async {
     final bytes = Uint8List.fromList([1, 2, 3, 4]);
     final timestamp = DateTime(2026, 1, 6, 7, 30);
-    await optionBox.put('binary_blob', bytes);
-    await optionBox.put('session_started_at', timestamp);
+    await optionBox.put(
+      PlayerLevelService.rewardClaimMessagesKey,
+      <Map<String, Object>>[
+        <String, Object>{
+          'id': 'reward-typed',
+          'claimedAt': timestamp,
+          'payload': bytes,
+        },
+      ],
+    );
 
     final backup = service.buildBackupForTesting();
     await optionBox.clear();
 
     await service.restoreFromMapForTesting(backup);
 
-    expect(optionBox.get('binary_blob'), bytes);
-    expect(optionBox.get('session_started_at'), timestamp);
+    final restored =
+        optionBox.get(PlayerLevelService.rewardClaimMessagesKey) as List;
+    final restoredItem = restored.single as Map;
+    expect(restoredItem['claimedAt'], timestamp);
+    expect(restoredItem['payload'], bytes);
   });
 
   test(
     'backs up and restores map option values with non-string keys',
     () async {
-      await optionBox.put('numeric_keyed_map', <int, String>{7: 'seven'});
-      await optionBox.put('typed_marker_map', <String, Object>{
+      await optionBox.put(
+        PlayerLevelService.customRewardNamesKey,
+        <int, String>{7: 'seven'},
+      );
+      await optionBox.put(PlayerLevelService.xpHistoryKey, <String, Object>{
         '__type': 'plain-user-data',
         'data': <int, String>{9: 'nine'},
       });
@@ -249,25 +337,60 @@ void main() {
 
       await service.restoreFromMapForTesting(backup);
 
-      expect(optionBox.get('numeric_keyed_map'), <int, String>{7: 'seven'});
-      expect(optionBox.get('typed_marker_map'), <String, Object>{
+      expect(
+        optionBox.get(PlayerLevelService.customRewardNamesKey),
+        <int, String>{7: 'seven'},
+      );
+      expect(optionBox.get(PlayerLevelService.xpHistoryKey), <String, Object>{
         '__type': 'plain-user-data',
         'data': <int, String>{9: 'nine'},
       });
     },
   );
 
-  test('backs up and restores non-string option keys with v3 schema', () async {
+  test('skips unknown and non-string option keys', () async {
     await optionBox.put(404, 'legacy_key_data');
     await optionBox.put(405, 123);
+    await optionBox.put('experimental_temp', 'local experimental data');
 
     final backup = service.buildBackupForTesting();
+    final backupOptions = backup['options'] as Map<String, dynamic>;
+    final optionRecords = backup['optionRecords'] as List;
+
+    expect(backupOptions.containsKey('experimental_temp'), isFalse);
+    expect(
+      optionRecords.any((record) => record is Map && record['key'] == 404),
+      isFalse,
+    );
+
     await optionBox.clear();
 
-    await service.restoreFromMapForTesting(backup);
+    await service.restoreFromMapForTesting(<String, dynamic>{
+      'version': 6,
+      'createdAt': '2026-01-01T00:00:00.000',
+      'entries': const <dynamic>[],
+      'options': const <String, dynamic>{
+        'experimental_temp': 'remote experimental data',
+        'profile_name': 'Remote player',
+      },
+      'optionRecords': const <Map<String, dynamic>>[
+        <String, dynamic>{
+          'key': 'experimental_temp',
+          'value': 'remote experimental data',
+        },
+        <String, dynamic>{'key': 'profile_name', 'value': 'Remote player'},
+        <String, dynamic>{'key': 404, 'value': 'remote legacy key'},
+      ],
+      'family': const <String, dynamic>{
+        'updatedByRole': 'child',
+        'familyLayerOnly': false,
+      },
+    });
 
-    expect(optionBox.get(404), 'legacy_key_data');
-    expect(optionBox.get(405), 123);
+    expect(optionBox.get('profile_name'), 'Remote player');
+    expect(optionBox.get('experimental_temp'), isNull);
+    expect(optionBox.get(404), isNull);
+    expect(optionBox.get(405), isNull);
   });
 
   test('restores legacy v1 backup payload', () async {
@@ -283,7 +406,7 @@ void main() {
 
     await service.restoreFromMapForTesting(legacy);
 
-    expect(optionBox.get('theme_mode'), 'dark');
+    expect(optionBox.get('theme_mode'), isNull);
     expect(optionBox.get('type_options'), ['technique', 'tactics']);
   });
 
@@ -547,8 +670,7 @@ void main() {
       );
       expect(
         ((optionBox.get(FamilyAccessService.parentTrainingFeedbackKey)
-                as Map)['training_1713427800000000']
-            as Map)['message'],
+            as Map)['training_1713427800000000'] as Map)['message'],
         'Remote parent feedback',
       );
       expect(
@@ -652,8 +774,8 @@ void main() {
       final mealLogService = MealLogService(optionRepository);
       final observedMeals = <List<MealEntry>>[];
       final mealSubscription = mealLogService.watchEntries().listen(
-        observedMeals.add,
-      );
+            observedMeals.add,
+          );
       final dataSubscription = service.dataChanges().listen((_) {
         mealLogService.reloadFromStorage();
       });
@@ -777,9 +899,12 @@ void main() {
         'version': 5,
         'createdAt': '2026-04-19T08:00:00.000',
         'entries': const <dynamic>[],
-        'options': <String, dynamic>{'theme_mode': 'dark'},
+        'options': <String, dynamic>{'default_location': 'Remote Ground'},
         'optionRecords': const <Map<String, dynamic>>[
-          <String, dynamic>{'key': 'theme_mode', 'value': 'dark'},
+          <String, dynamic>{
+            'key': 'default_location',
+            'value': 'Remote Ground',
+          },
         ],
         'family': const <String, dynamic>{
           'updatedByRole': 'child',
@@ -803,7 +928,7 @@ void main() {
         optionBox.get(DriveBackupService.parentDriveLabelLocalKey),
         'Parent · parent@example.com',
       );
-      expect(optionBox.get('theme_mode'), 'dark');
+      expect(optionBox.get('default_location'), 'Remote Ground');
     },
   );
 
@@ -1057,14 +1182,12 @@ void main() {
       ]);
       expect(
         ((mergedOptions[PlayerLevelService.rewardClaimMessagesKey] as List)
-                .single
-            as Map)['rewardName'],
+            .single as Map)['rewardName'],
         'Ball',
       );
       expect(
         ((mergedOptions[FamilyAccessService.parentTrainingFeedbackKey]
-                as Map)['training_1713427800000000']
-            as Map)['message'],
+            as Map)['training_1713427800000000'] as Map)['message'],
         'Check the first touch after scanning.',
       );
       expect(family['updatedByRole'], 'parent');
@@ -1128,8 +1251,7 @@ void main() {
       expect(result.rewardNamesChanged, isTrue);
       expect(
         ((optionBox.get(FamilyAccessService.parentTrainingFeedbackKey)
-                as Map)['training_1713427800000000']
-            as Map)['message'],
+            as Map)['training_1713427800000000'] as Map)['message'],
         'Great first touch.',
       );
       expect(
@@ -1138,8 +1260,7 @@ void main() {
       );
       expect(
         ((optionBox.get(PlayerLevelService.rewardClaimMessagesKey) as List)
-                .single
-            as Map)['rewardName'],
+            .single as Map)['rewardName'],
         'Local claim',
       );
     },
