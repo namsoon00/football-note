@@ -3671,7 +3671,7 @@
   "moreInfoAction": "More info",
   "parentReadOnlyProfileSummary": "Profile is view only here.",
   "parentReadOnlyProfileDescription": "Parent mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.",
-  "parentReadOnlySettingsOptions": "Parent mode cannot edit default values or news filters. Change them in player mode.",
+  "parentReadOnlySettingsOptions": "Parent mode cannot edit the sport, default values, or news filters. Change them in player mode.",
   "benchmarkReferencesTitle": "Average benchmarks",
   "benchmarkRefreshAction": "Refresh average",
   "benchmarkRefreshInProgress": "Refreshing",

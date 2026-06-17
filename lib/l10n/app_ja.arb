@@ -3671,7 +3671,7 @@
   "moreInfoAction": "詳細情報",
   "parentReadOnlyProfileSummary": "プロフィールはここでのみ閲覧可能です。",
   "parentReadOnlyProfileDescription": "親モードでは、プロファイルは読み取り専用に保たれます。トレーニング ログからトレーニング フィードバックを残し、レベル ガイドから報酬名を設定します。",
-  "parentReadOnlySettingsOptions": "親モードでは、デフォルト値やニュース フィルターを編集できません。プレイヤーモードで変更してください。",
+  "parentReadOnlySettingsOptions": "親モードでは、スポーツ、デフォルト値、ニュース フィルターを編集できません。プレイヤーモードで変更してください。",
   "benchmarkReferencesTitle": "平均基準",
   "benchmarkRefreshAction": "平均を更新",
   "benchmarkRefreshInProgress": "更新中",

@@ -22,6 +22,7 @@ import 'application/drive_backup_service.dart';
 import 'application/meal_log_service.dart';
 import 'application/league_fixture_reminder_service.dart';
 import 'application/notification_app_link.dart';
+import 'application/sport_state_controller.dart';
 import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
@@ -29,6 +30,7 @@ import 'presentation/screens/welcome_screen.dart';
 import 'presentation/theme/app_theme.dart';
 import 'presentation/navigation/notification_tap_router.dart';
 import 'presentation/widgets/keyboard_dismiss_overlay.dart';
+import 'presentation/widgets/sport_scope.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,6 +69,7 @@ Future<void> main() async {
   localeService.load();
   final settingsService = SettingsService(optionRepository);
   settingsService.load();
+  final sportController = SportStateController(optionRepository);
   final mealLogService = MealLogService(optionRepository);
   final trainingService = TrainingService(
     trainingRepository,
@@ -111,6 +114,7 @@ Future<void> main() async {
       optionRepository: optionRepository,
       localeService: localeService,
       settingsService: settingsService,
+      sportController: sportController,
       driveBackupService: backupService,
     ),
   );
@@ -167,6 +171,7 @@ class FootballNoteApp extends StatelessWidget {
   final OptionRepository optionRepository;
   final LocaleService localeService;
   final SettingsService settingsService;
+  final SportStateController sportController;
   final BackupService? driveBackupService;
 
   const FootballNoteApp({
@@ -176,6 +181,7 @@ class FootballNoteApp extends StatelessWidget {
     required this.optionRepository,
     required this.localeService,
     required this.settingsService,
+    required this.sportController,
     this.driveBackupService,
   });
 
@@ -190,58 +196,62 @@ class FootballNoteApp extends StatelessWidget {
           driveBackupService: driveBackupService,
         );
 
-    return ScreenUtilInit(
-      designSize: const Size(375, 812),
-      builder: (context, child) => AnimatedBuilder(
-        animation: Listenable.merge([localeService, settingsService]),
-        builder: (context, _) => MaterialApp(
-          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: settingsService.themeMode,
-          navigatorKey: NotificationTapRouter.navigatorKey,
-          locale: localeService.locale,
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          onGenerateRoute: (settings) {
-            final routeName = settings.name?.trim();
-            if (routeName == null ||
-                NotificationAppLink.tryParse(routeName) == null) {
-              return null;
-            }
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              NotificationTapRouter.handlePayload(routeName);
-            });
-            return MaterialPageRoute<void>(
-              settings: settings,
-              builder: (_) => entryGate(),
-            );
-          },
-          builder: (context, child) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            final overlayStyle = (isDark
-                    ? SystemUiOverlayStyle.light
-                    : SystemUiOverlayStyle.dark)
-                .copyWith(
-              statusBarColor: Colors.transparent,
-              systemNavigationBarColor:
-                  isDark ? const Color(0xFF0F131A) : const Color(0xFFF6F8FC),
-              systemNavigationBarIconBrightness:
-                  isDark ? Brightness.light : Brightness.dark,
-            );
-            return AnnotatedRegion<SystemUiOverlayStyle>(
-              value: overlayStyle,
-              child: KeyboardDismissOverlay(
-                child: child ?? const SizedBox.shrink(),
-              ),
-            );
-          },
-          home: entryGate(),
+    return SportScope(
+      controller: sportController,
+      child: ScreenUtilInit(
+        designSize: const Size(375, 812),
+        builder: (context, child) => AnimatedBuilder(
+          animation: Listenable.merge([localeService, settingsService]),
+          builder: (context, _) => MaterialApp(
+            onGenerateTitle: (context) =>
+                AppLocalizations.of(context)!.appTitle,
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: settingsService.themeMode,
+            navigatorKey: NotificationTapRouter.navigatorKey,
+            locale: localeService.locale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            onGenerateRoute: (settings) {
+              final routeName = settings.name?.trim();
+              if (routeName == null ||
+                  NotificationAppLink.tryParse(routeName) == null) {
+                return null;
+              }
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                NotificationTapRouter.handlePayload(routeName);
+              });
+              return MaterialPageRoute<void>(
+                settings: settings,
+                builder: (_) => entryGate(),
+              );
+            },
+            builder: (context, child) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final overlayStyle = (isDark
+                      ? SystemUiOverlayStyle.light
+                      : SystemUiOverlayStyle.dark)
+                  .copyWith(
+                statusBarColor: Colors.transparent,
+                systemNavigationBarColor:
+                    isDark ? const Color(0xFF0F131A) : const Color(0xFFF6F8FC),
+                systemNavigationBarIconBrightness:
+                    isDark ? Brightness.light : Brightness.dark,
+              );
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: overlayStyle,
+                child: KeyboardDismissOverlay(
+                  child: child ?? const SizedBox.shrink(),
+                ),
+              );
+            },
+            home: entryGate(),
+          ),
         ),
       ),
     );
@@ -321,9 +331,11 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
       }
       widget.localeService.load();
       widget.settingsService.load();
-      if (mounted) {
-        setState(() {});
+      if (!mounted) {
+        return;
       }
+      SportScope.read(context)?.reloadFromStorage();
+      setState(() {});
     } finally {
       _parentRefreshBusy = false;
     }

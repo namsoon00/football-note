@@ -7176,7 +7176,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get parentReadOnlySettingsOptions =>
-      '親モードでは、デフォルト値やニュース フィルターを編集できません。プレイヤーモードで変更してください。';
+      '親モードでは、スポーツ、デフォルト値、ニュース フィルターを編集できません。プレイヤーモードで変更してください。';
 
   @override
   String get benchmarkReferencesTitle => '平均基準';
