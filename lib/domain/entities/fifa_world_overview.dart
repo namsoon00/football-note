@@ -234,6 +234,7 @@ enum FifaMatchPlayerPosition {
 class FifaMatchPlayer {
   final String playerId;
   final String playerName;
+  final String fullName;
   final int? shirtNumber;
   final FifaMatchPlayerPosition position;
   final bool isStarting;
@@ -243,6 +244,7 @@ class FifaMatchPlayer {
   const FifaMatchPlayer({
     required this.playerId,
     required this.playerName,
+    required this.fullName,
     required this.shirtNumber,
     required this.position,
     required this.isStarting,

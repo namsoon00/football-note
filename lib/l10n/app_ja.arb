@@ -19,6 +19,22 @@
   "welcomeGuideNextTabHint": "上の別のタブを選択して、そのボタンをプレビューします。",
   "welcomeGuidePreviewLabel": "画面ハイライト",
   "welcomeGuideCoachMarkLabel": "コーチマーク",
+  "tabGuideCoachMarkStep": "{total}ステップ中{current}ステップ目",
+  "@tabGuideCoachMarkStep": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tabGuideCoachMarkSkip": "スキップ",
+  "tabGuideCoachMarkBack": "戻る",
+  "tabGuideCoachMarkNext": "次へ",
+  "tabGuideCoachMarkDone": "完了",
+  "tabGuideCoachMarkTry": "試してみる",
   "parentWelcomeGuideTitle": "保護者モードガイド",
   "parentWelcomeGuideIntro": "親モードは、プレーヤーの記録を確認し、既存のトレーニング ログにフィードバックを残すためのものです。",
   "parentWelcomeGuideStepLogs": "まず [ログ] タブを開いて、プレーヤーによって保存されたレコードを確認します。",
@@ -323,6 +339,14 @@
   "worldCupMatchAwaitingUpdate": "結果更新待ち",
   "worldCupMatchAwaitingUpdateReason": "試合終了予定時刻を過ぎましたが、FIFA公式結果はまだ反映されていません。更新するか公式ページを確認してください。",
   "worldCupMatchResultFinal": "結果",
+  "worldCupFifaRankingCompactLabel": "FIFA {rank}位",
+  "@worldCupFifaRankingCompactLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupMatchDetailTitle": "試合詳細",
   "worldCupMatchComparisonTitle": "戦力比較",
   "worldCupMatchRecordsTitle": "試合記録",

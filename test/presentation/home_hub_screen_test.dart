@@ -20,6 +20,7 @@ import 'package:football_note/presentation/models/training_method_layout.dart';
 import 'package:football_note/presentation/screens/entry_form_screen.dart';
 import 'package:football_note/presentation/screens/home_hub_screen.dart';
 import 'package:football_note/presentation/screens/home_screen.dart';
+import 'package:football_note/presentation/screens/meal_log_screen.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
 
 void main() {
@@ -56,6 +57,60 @@ void main() {
       await tester.pump();
     },
   );
+
+  testWidgets('home first-run guide uses coach marks and starts an action', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      find.byKey(const ValueKey('tab-coach-mark-dialog')),
+      findsOneWidget,
+    );
+    expect(find.text('3단계 중 1단계'), findsOneWidget);
+    expect(
+      optionRepository.getValue<bool>('tab_quick_guide_seen_v1_0'),
+      isTrue,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('tab-coach-mark-next-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(find.text('3단계 중 2단계'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('tab-coach-mark-try-button')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('tab-coach-mark-try-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(find.byType(MealLogScreen), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
 
   testWidgets(
     'home quick actions and continue card use Japanese localization',

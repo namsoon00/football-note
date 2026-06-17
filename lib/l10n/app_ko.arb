@@ -19,6 +19,22 @@
   "welcomeGuideNextTabHint": "위 탭을 바꾸면 다른 화면의 버튼 흐름을 볼 수 있어요.",
   "welcomeGuidePreviewLabel": "화면 하이라이트",
   "welcomeGuideCoachMarkLabel": "코치마크",
+  "tabGuideCoachMarkStep": "{total}단계 중 {current}단계",
+  "@tabGuideCoachMarkStep": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tabGuideCoachMarkSkip": "건너뛰기",
+  "tabGuideCoachMarkBack": "이전",
+  "tabGuideCoachMarkNext": "다음",
+  "tabGuideCoachMarkDone": "완료",
+  "tabGuideCoachMarkTry": "바로 해보기",
   "parentWelcomeGuideTitle": "보호자 모드 안내",
   "parentWelcomeGuideIntro": "보호자 모드에서는 선수 기록을 확인하고, 기존 훈련기록에 피드백만 남길 수 있어요.",
   "parentWelcomeGuideStepLogs": "훈련기록 탭에서 선수가 저장한 기록을 먼저 열어보세요.",
@@ -323,6 +339,14 @@
   "worldCupMatchAwaitingUpdate": "결과 갱신 대기",
   "worldCupMatchAwaitingUpdateReason": "경기 종료 예상 시간이 지났지만 FIFA 공식 결과가 아직 반영되지 않았어요. 새로고침하거나 공식 페이지를 확인해 주세요.",
   "worldCupMatchResultFinal": "결과",
+  "worldCupFifaRankingCompactLabel": "FIFA {rank}위",
+  "@worldCupFifaRankingCompactLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupMatchDetailTitle": "경기 상세",
   "worldCupMatchComparisonTitle": "전력 비교",
   "worldCupMatchRecordsTitle": "경기 기록",

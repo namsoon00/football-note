@@ -439,19 +439,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final guide = _tabGuideData(tabIndex, l10n, isParentMode: isParentMode);
-    await showDialog<void>(
+    final action = await showDialog<VoidCallback>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(guide.title),
-        content: _TabGuideDialogContent(guide: guide),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(MaterialLocalizations.of(context).okButtonLabel),
-          ),
-        ],
-      ),
+      builder: (context) => _TabCoachMarkDialog(guide: guide),
     );
+    if (!mounted || action == null) return;
+    action();
   }
 
   _TabGuideData _tabGuideData(
@@ -497,11 +490,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.rice_bowl_outlined,
               actionLabel: l10n.guideActionMeal,
               description: l10n.welcomeHomeStepMeal,
+              onTry: () => unawaited(_openMealLog(initialDate: DateTime.now())),
             ),
             _TabGuideStep(
               icon: Icons.bar_chart_outlined,
               actionLabel: l10n.homePriorityStatsAction,
               description: l10n.welcomeHomeStepStats,
+              onTry: _openWeeklyStatsForCurrentWeek,
             ),
           ],
         );
@@ -514,11 +509,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.add_circle_outline,
               actionLabel: l10n.addEntry,
               description: l10n.welcomeLogsStepAdd,
+              onTry: () => unawaited(_openCreate()),
             ),
             _TabGuideStep(
               icon: Icons.developer_board_outlined,
               actionLabel: l10n.homePriorityBoardAction,
               description: l10n.welcomeLogsStepBoard,
+              onTry: () => unawaited(_openCreateTrainingBoard()),
             ),
             _TabGuideStep(
               icon: Icons.view_agenda_outlined,
@@ -546,6 +543,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.rice_bowl_outlined,
               actionLabel: l10n.guideActionMeal,
               description: l10n.welcomeCalendarStepMeal,
+              onTry: () =>
+                  unawaited(_openMealLog(initialDate: _calendarSelectedDay)),
             ),
           ],
         );
@@ -580,6 +579,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.today_outlined,
               actionLabel: l10n.guideActionOpenToday,
               description: l10n.welcomeDiaryStepToday,
+              onTry: _openTodayDiary,
             ),
             _TabGuideStep(
               icon: Icons.sticky_note_2_outlined,
@@ -742,118 +742,254 @@ class _TabGuideStep {
   final IconData icon;
   final String actionLabel;
   final String description;
+  final VoidCallback? onTry;
 
   const _TabGuideStep({
     required this.icon,
     required this.actionLabel,
     required this.description,
+    this.onTry,
   });
 }
 
-class _TabGuideDialogContent extends StatelessWidget {
+class _TabCoachMarkDialog extends StatefulWidget {
   final _TabGuideData guide;
 
-  const _TabGuideDialogContent({required this.guide});
+  const _TabCoachMarkDialog({required this.guide});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 360),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(guide.intro, style: theme.textTheme.bodyMedium),
-          const SizedBox(height: 14),
-          for (var index = 0; index < guide.steps.length; index += 1) ...[
-            _TabGuideStepTile(number: index + 1, step: guide.steps[index]),
-            if (index != guide.steps.length - 1) const SizedBox(height: 8),
-          ],
-        ],
-      ),
-    );
-  }
+  State<_TabCoachMarkDialog> createState() => _TabCoachMarkDialogState();
 }
 
-class _TabGuideStepTile extends StatelessWidget {
-  final int number;
-  final _TabGuideStep step;
-
-  const _TabGuideStepTile({required this.number, required this.step});
+class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
+  int _stepIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer.withValues(alpha: 0.28),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 12,
-            backgroundColor: scheme.primary,
-            child: Text(
-              '$number',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: scheme.onPrimary,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: scheme.surface,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: scheme.primary.withValues(alpha: 0.24),
+    final l10n = AppLocalizations.of(context)!;
+    final steps = widget.guide.steps;
+    final step = steps[_stepIndex];
+    final isLast = _stepIndex == steps.length - 1;
+    return Dialog(
+      key: const ValueKey('tab-coach-mark-dialog'),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: scheme.primaryContainer,
+                      shape: BoxShape.circle,
                     ),
+                    child: Icon(step.icon, color: scheme.onPrimaryContainer),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(step.icon, size: 15, color: scheme.primary),
-                        const SizedBox(width: 5),
-                        Flexible(
-                          child: Text(
-                            step.actionLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.w900,
-                            ),
+                        Text(
+                          widget.guide.title,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.tabGuideCoachMarkStep(
+                            _stepIndex + 1,
+                            steps.length,
+                          ),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                       ],
                     ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                widget.guide.intro,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.35,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  step.description,
-                  style: theme.textTheme.bodySmall?.copyWith(height: 1.35),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 14),
+              _CoachMarkStepSpotlight(step: step),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  for (var index = 0; index < steps.length; index += 1) ...[
+                    Expanded(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: index <= _stepIndex
+                              ? scheme.primary
+                              : scheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    if (index != steps.length - 1) const SizedBox(width: 6),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  TextButton(
+                    key: const ValueKey('tab-coach-mark-skip-button'),
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(l10n.tabGuideCoachMarkSkip),
+                  ),
+                  if (_stepIndex > 0)
+                    TextButton(
+                      key: const ValueKey('tab-coach-mark-back-button'),
+                      onPressed: () => setState(() => _stepIndex -= 1),
+                      child: Text(l10n.tabGuideCoachMarkBack),
+                    ),
+                  if (step.onTry != null)
+                    FilledButton.tonalIcon(
+                      key: const ValueKey('tab-coach-mark-try-button'),
+                      onPressed: () => Navigator.of(context).pop(step.onTry),
+                      icon: const Icon(Icons.touch_app_rounded),
+                      label: Text(l10n.tabGuideCoachMarkTry),
+                    ),
+                  FilledButton.icon(
+                    key: const ValueKey('tab-coach-mark-next-button'),
+                    onPressed: isLast
+                        ? () => Navigator.of(context).pop()
+                        : () => setState(() => _stepIndex += 1),
+                    icon: Icon(
+                      isLast
+                          ? Icons.check_rounded
+                          : Icons.arrow_forward_rounded,
+                    ),
+                    label: Text(
+                      isLast
+                          ? l10n.tabGuideCoachMarkDone
+                          : l10n.tabGuideCoachMarkNext,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoachMarkStepSpotlight extends StatelessWidget {
+  final _TabGuideStep step;
+
+  const _CoachMarkStepSpotlight({required this.step});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(alpha: 0.42),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.28)),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.primary.withValues(alpha: 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
           ),
         ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: scheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(step.icon, color: scheme.onPrimary, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: scheme.surface,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: scheme.primary.withValues(alpha: 0.32),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.touch_app_rounded,
+                            color: scheme.primary,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              step.actionLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: scheme.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    step.description,
+                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.35),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

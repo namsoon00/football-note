@@ -32,6 +32,37 @@ void main() {
       final requestedCompetitionMatches = <Map<String, String>>[];
       final client = MockClient((request) async {
         if (request.url.host == 'api.fifa.com' &&
+            request.url.path.endsWith('/rankingschedules/all')) {
+          return http.Response(jsonEncode({'Results': []}), 200);
+        }
+        if (request.url.host == 'api.fifa.com' &&
+            request.url.path.endsWith('/fifarankings/rankings/live')) {
+          return http.Response(
+            jsonEncode({
+              'Results': [
+                _rankingEntry(
+                  teamId: '43822',
+                  countryCode: 'KOR',
+                  teamName: 'Korea Republic',
+                  rank: 21,
+                  previousRank: 25,
+                ),
+                _rankingEntry(
+                  teamId: '43924',
+                  countryCode: 'CPV',
+                  teamName: 'Cabo Verde',
+                  rank: 70,
+                  previousRank: 72,
+                ),
+              ],
+            }),
+            200,
+          );
+        }
+        if (request.url.host == 'inside.fifa.com') {
+          return http.Response('', 200);
+        }
+        if (request.url.host == 'api.fifa.com' &&
             request.url.path.endsWith('/calendar/matches')) {
           requestedCompetitionMatches.add(request.url.queryParameters);
           return http.Response(
@@ -224,12 +255,35 @@ void main() {
         data.officialMatchesByFixtureNumber[iran.matchNumber]?.matchNumber,
         15,
       );
+      expect(data.rankingsByTeam['Korea Republic']?.rank, 21);
+      expect(data.rankingsByTeam['Cape Verde']?.rank, 70);
       expect(requestedCompetitionMatches, isNotEmpty);
       expect(requestedRanges, isNotEmpty);
 
       service.dispose();
     },
   );
+}
+
+Map<String, dynamic> _rankingEntry({
+  required String teamId,
+  required String countryCode,
+  required String teamName,
+  required int rank,
+  required int previousRank,
+}) {
+  return {
+    'IdTeam': teamId,
+    'IdCountry': countryCode,
+    'ConfederationName': 'TEST',
+    'Rank': rank,
+    'PrevRank': previousRank,
+    'TotalPoints': 1600.0,
+    'PrevPoints': 1500.0,
+    'TeamName': [
+      {'Locale': 'en-GB', 'Description': teamName},
+    ],
+  };
 }
 
 Map<String, dynamic> _worldCupMatch({

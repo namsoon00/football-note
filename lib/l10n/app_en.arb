@@ -19,6 +19,22 @@
   "welcomeGuideNextTabHint": "Pick another tab above to preview its buttons.",
   "welcomeGuidePreviewLabel": "Screen highlight",
   "welcomeGuideCoachMarkLabel": "Coach mark",
+  "tabGuideCoachMarkStep": "Step {current} of {total}",
+  "@tabGuideCoachMarkStep": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tabGuideCoachMarkSkip": "Skip",
+  "tabGuideCoachMarkBack": "Back",
+  "tabGuideCoachMarkNext": "Next",
+  "tabGuideCoachMarkDone": "Done",
+  "tabGuideCoachMarkTry": "Try this",
   "parentWelcomeGuideTitle": "Parent Mode Guide",
   "parentWelcomeGuideIntro": "Parent mode is for reviewing player records and leaving feedback on existing training logs.",
   "parentWelcomeGuideStepLogs": "Open the Logs tab first to review records saved by the player.",
@@ -323,6 +339,14 @@
   "worldCupMatchAwaitingUpdate": "Awaiting result update",
   "worldCupMatchAwaitingUpdateReason": "The estimated final whistle has passed, but FIFA official results have not been reflected yet. Refresh or check the official page.",
   "worldCupMatchResultFinal": "Result",
+  "worldCupFifaRankingCompactLabel": "FIFA #{rank}",
+  "@worldCupFifaRankingCompactLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupMatchDetailTitle": "Match details",
   "worldCupMatchComparisonTitle": "Team comparison",
   "worldCupMatchRecordsTitle": "Match records",

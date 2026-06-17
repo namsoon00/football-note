@@ -58,6 +58,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeGuideCoachMarkLabel => 'Coach mark';
 
   @override
+  String tabGuideCoachMarkStep(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get tabGuideCoachMarkSkip => 'Skip';
+
+  @override
+  String get tabGuideCoachMarkBack => 'Back';
+
+  @override
+  String get tabGuideCoachMarkNext => 'Next';
+
+  @override
+  String get tabGuideCoachMarkDone => 'Done';
+
+  @override
+  String get tabGuideCoachMarkTry => 'Try this';
+
+  @override
   String get parentWelcomeGuideTitle => 'Parent Mode Guide';
 
   @override
@@ -735,6 +755,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupMatchResultFinal => 'Result';
+
+  @override
+  String worldCupFifaRankingCompactLabel(int rank) {
+    return 'FIFA #$rank';
+  }
 
   @override
   String get worldCupMatchDetailTitle => 'Match details';

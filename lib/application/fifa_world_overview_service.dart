@@ -144,10 +144,11 @@ class FifaWorldOverviewService {
 
   Future<FifaAMatchDetail?> fetchMatchDetail({
     required FifaAMatchEntry match,
+    String language = 'en',
   }) async {
     final uri = _baseApiUri.replace(
       path: '${_baseApiUri.path}/live/football/${match.matchId}',
-      queryParameters: {'language': 'en'},
+      queryParameters: {'language': language.trim().isEmpty ? 'en' : language},
     );
     try {
       final response =
@@ -937,6 +938,11 @@ class FifaWorldOverviewService {
       raw['ScoreAway'],
     ]);
     final period = _asInt(raw['Period']) ?? 0;
+    final statusCode = _firstInt([
+      raw['MatchStatus'],
+      raw['Status'],
+      raw['StatusCode'],
+    ]);
     final statusText = _firstNonEmpty([
       _localizedDescription(raw['Status']),
       _localizedDescription(raw['MatchStatus']),
@@ -963,6 +969,7 @@ class FifaWorldOverviewService {
       awayScore: awayScore,
       status: _parseMatchStatus(
         period: period,
+        statusCode: statusCode,
         statusText: statusText,
         homeScore: homeScore,
         awayScore: awayScore,
@@ -986,6 +993,7 @@ class FifaWorldOverviewService {
         FifaMatchPlayer(
           playerId: playerId,
           playerName: playerName,
+          fullName: fullName,
           shirtNumber: _asInt(player['ShirtNumber']),
           position: _parsePlayerPosition(_asInt(player['Position'])),
           isStarting: _asInt(player['Status']) == 1,
@@ -1018,6 +1026,7 @@ class FifaWorldOverviewService {
 
   static FifaAMatchStatus _parseMatchStatus({
     required int period,
+    required int? statusCode,
     required String statusText,
     required int? homeScore,
     required int? awayScore,
@@ -1030,6 +1039,15 @@ class FifaWorldOverviewService {
       return FifaAMatchStatus.finished;
     }
     if (_looksScheduledStatus(normalizedStatus)) {
+      return FifaAMatchStatus.scheduled;
+    }
+    if (statusCode == 3) {
+      return FifaAMatchStatus.live;
+    }
+    if (statusCode == 0) {
+      return FifaAMatchStatus.finished;
+    }
+    if (statusCode == 1) {
       return FifaAMatchStatus.scheduled;
     }
     const livePeriods = <int>{3, 4, 5, 6, 7, 8, 9, 11, 14, 15, 16, 17};

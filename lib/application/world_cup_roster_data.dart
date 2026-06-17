@@ -21,7 +21,27 @@ WorldCupRosterPool? worldCupRosterPoolForTeam(String team) {
 String worldCupRosterClubForPlayer(String team, String playerName) {
   final teamClubs = worldCupRosterPlayerClubs[team.trim()];
   if (teamClubs == null) return '';
-  return teamClubs[playerName.trim()] ?? '';
+  final normalizedPlayerName = playerName.trim();
+  final exactClub = teamClubs[normalizedPlayerName];
+  if (exactClub != null) return exactClub;
+
+  final normalizedKey = _normalizeRosterLookupKey(normalizedPlayerName);
+  for (final entry in teamClubs.entries) {
+    if (_normalizeRosterLookupKey(entry.key) == normalizedKey) {
+      return entry.value;
+    }
+  }
+
+  final localizedNames = worldCupRosterPlayerKoreanNames[team.trim()];
+  if (localizedNames != null) {
+    for (final entry in localizedNames.entries) {
+      if (_normalizeRosterLookupKey(entry.value) == normalizedKey ||
+          _normalizeRosterLookupKey(entry.key) == normalizedKey) {
+        return teamClubs[entry.key] ?? '';
+      }
+    }
+  }
+  return '';
 }
 
 String worldCupRosterDisplayNameForPlayer(
@@ -36,6 +56,15 @@ String worldCupRosterDisplayNameForPlayer(
   final teamNames = worldCupRosterPlayerKoreanNames[team.trim()];
   if (teamNames == null) return normalizedPlayerName;
   return teamNames[normalizedPlayerName] ?? normalizedPlayerName;
+}
+
+String _normalizeRosterLookupKey(String value) {
+  return value
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[\s._-]+'), ' ')
+      .replaceAll(RegExp(r'[^a-z0-9가-힣 ]'), '')
+      .replaceAll(RegExp(r'\s+'), ' ');
 }
 
 Uri? worldCupOfficialSquadUri(String team) {
@@ -99,72 +128,72 @@ const Map<String, String> _worldCupOfficialSquadSlugs = <String, String>{
 
 const Map<String, Map<String, String>> worldCupRosterPlayerClubs =
     <String, Map<String, String>>{
-      'Korea Republic': <String, String>{
-        'Jo Hyeon-woo': 'Ulsan HD',
-        'Kim Seung-gyu': 'FC Tokyo',
-        'Song Bum-keun': 'Jeonbuk Hyundai Motors',
-        'Kim Moon-hwan': 'Daejeon Hana Citizen',
-        'Kim Min-jae': 'Bayern Munich',
-        'Kim Tae-hyon': 'Kashima Antlers',
-        'Park Jin-seob': 'Zhejiang FC',
-        'Seol Young-woo': 'Red Star Belgrade',
-        'Jens Castrop': 'Borussia Monchengladbach',
-        'Lee Ki-hyuk': 'Gangwon FC',
-        'Lee Tae-seok': 'Austria Wien',
-        'Lee Han-beom': 'Midtjylland',
-        'Cho Wi-je': 'Jeonbuk Hyundai Motors',
-        'Kim Jin-gyu': 'Jeonbuk Hyundai Motors',
-        'Bae Jun-ho': 'Stoke City',
-        'Paik Seung-ho': 'Birmingham City',
-        'Yang Hyun-jun': 'Celtic',
-        'Eom Ji-sung': 'Swansea City',
-        'Lee Kang-in': 'Paris Saint-Germain',
-        'Lee Dong-gyeong': 'Ulsan HD',
-        'Lee Jae-sung': 'Mainz 05',
-        'Hwang In-beom': 'Feyenoord',
-        'Hwang Hee-chan': 'Wolverhampton Wanderers',
-        'Son Heung-min': 'Los Angeles FC',
-        'Oh Hyeon-gyu': 'Besiktas',
-        'Cho Gue-sung': 'Midtjylland',
-      },
-    };
+  'Korea Republic': <String, String>{
+    'Jo Hyeon-woo': 'Ulsan HD',
+    'Kim Seung-gyu': 'FC Tokyo',
+    'Song Bum-keun': 'Jeonbuk Hyundai Motors',
+    'Kim Moon-hwan': 'Daejeon Hana Citizen',
+    'Kim Min-jae': 'Bayern Munich',
+    'Kim Tae-hyon': 'Kashima Antlers',
+    'Park Jin-seob': 'Zhejiang FC',
+    'Seol Young-woo': 'Red Star Belgrade',
+    'Jens Castrop': 'Borussia Monchengladbach',
+    'Lee Ki-hyuk': 'Gangwon FC',
+    'Lee Tae-seok': 'Austria Wien',
+    'Lee Han-beom': 'Midtjylland',
+    'Cho Wi-je': 'Jeonbuk Hyundai Motors',
+    'Kim Jin-gyu': 'Jeonbuk Hyundai Motors',
+    'Bae Jun-ho': 'Stoke City',
+    'Paik Seung-ho': 'Birmingham City',
+    'Yang Hyun-jun': 'Celtic',
+    'Eom Ji-sung': 'Swansea City',
+    'Lee Kang-in': 'Paris Saint-Germain',
+    'Lee Dong-gyeong': 'Ulsan HD',
+    'Lee Jae-sung': 'Mainz 05',
+    'Hwang In-beom': 'Feyenoord',
+    'Hwang Hee-chan': 'Wolverhampton Wanderers',
+    'Son Heung-min': 'Los Angeles FC',
+    'Oh Hyeon-gyu': 'Besiktas',
+    'Cho Gue-sung': 'Midtjylland',
+  },
+};
 
 const Map<String, Map<String, String>> worldCupRosterPlayerKoreanNames =
     <String, Map<String, String>>{
-      'Korea Republic': <String, String>{
-        'Jo Hyeon-woo': '조현우',
-        'Kim Seung-gyu': '김승규',
-        'Song Bum-keun': '송범근',
-        'Kim Moon-hwan': '김문환',
-        'Kim Min-jae': '김민재',
-        'Kim Tae-hyon': '김태현',
-        'Park Jin-seob': '박진섭',
-        'Seol Young-woo': '설영우',
-        'Jens Castrop': '옌스 카스트로프',
-        'Lee Ki-hyuk': '이기혁',
-        'Lee Tae-seok': '이태석',
-        'Lee Han-beom': '이한범',
-        'Cho Wi-je': '조위제',
-        'Kim Jin-gyu': '김진규',
-        'Bae Jun-ho': '배준호',
-        'Paik Seung-ho': '백승호',
-        'Yang Hyun-jun': '양현준',
-        'Eom Ji-sung': '엄지성',
-        'Lee Kang-in': '이강인',
-        'Lee Dong-gyeong': '이동경',
-        'Lee Jae-sung': '이재성',
-        'Hwang In-beom': '황인범',
-        'Hwang Hee-chan': '황희찬',
-        'Son Heung-min': '손흥민',
-        'Oh Hyeon-gyu': '오현규',
-        'Cho Gue-sung': '조규성',
-        'S. Son': '손흥민',
-        'H. Son': '손흥민',
-      },
-    };
+  'Korea Republic': <String, String>{
+    'Jo Hyeon-woo': '조현우',
+    'Kim Seung-gyu': '김승규',
+    'Song Bum-keun': '송범근',
+    'Kim Moon-hwan': '김문환',
+    'Kim Min-jae': '김민재',
+    'Kim Tae-hyon': '김태현',
+    'Park Jin-seob': '박진섭',
+    'Seol Young-woo': '설영우',
+    'Jens Castrop': '옌스 카스트로프',
+    'Lee Ki-hyuk': '이기혁',
+    'Lee Tae-seok': '이태석',
+    'Lee Han-beom': '이한범',
+    'Cho Wi-je': '조위제',
+    'Kim Jin-gyu': '김진규',
+    'Bae Jun-ho': '배준호',
+    'Paik Seung-ho': '백승호',
+    'Yang Hyun-jun': '양현준',
+    'Eom Ji-sung': '엄지성',
+    'Lee Kang-in': '이강인',
+    'Lee Dong-gyeong': '이동경',
+    'Lee Jae-sung': '이재성',
+    'Hwang In-beom': '황인범',
+    'Hwang Hee-chan': '황희찬',
+    'Son Heung-min': '손흥민',
+    'Oh Hyeon-gyu': '오현규',
+    'Cho Gue-sung': '조규성',
+    'S. Son': '손흥민',
+    'H. Son': '손흥민',
+  },
+};
 
-const Map<String, WorldCupRosterPool>
-worldCupRosterPools = <String, WorldCupRosterPool>{
+const Map<String, WorldCupRosterPool> worldCupRosterPools =
+    <String, WorldCupRosterPool>{
   'Algeria': WorldCupRosterPool(
     formation: '4-2-3-1',
     goalkeepers: ['Oussama Benbot', 'Melvin Masstil', 'Luca Zidane'],
