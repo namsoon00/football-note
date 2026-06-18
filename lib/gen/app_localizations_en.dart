@@ -842,10 +842,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupPlayerClubPending => 'Club update pending';
 
   @override
-  String get worldCupPlayerProfileSourceNote =>
-      'A player face icon is shown when an official photo is unavailable.';
-
-  @override
   String get worldCupScorePending => '- : -';
 
   @override

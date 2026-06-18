@@ -1572,12 +1572,6 @@ abstract class AppLocalizations {
   /// **'Club update pending'**
   String get worldCupPlayerClubPending;
 
-  /// No description provided for @worldCupPlayerProfileSourceNote.
-  ///
-  /// In en, this message translates to:
-  /// **'A player face icon is shown when an official photo is unavailable.'**
-  String get worldCupPlayerProfileSourceNote;
-
   /// No description provided for @worldCupScorePending.
   ///
   /// In en, this message translates to:

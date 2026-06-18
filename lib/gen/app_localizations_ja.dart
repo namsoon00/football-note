@@ -810,9 +810,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupPlayerClubPending => 'クラブ更新待ち';
 
   @override
-  String get worldCupPlayerProfileSourceNote => '公式写真がない場合は、選手の顔アイコンを表示します。';
-
-  @override
   String get worldCupScorePending => '- : -';
 
   @override

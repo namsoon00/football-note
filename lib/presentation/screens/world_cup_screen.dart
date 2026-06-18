@@ -2510,9 +2510,8 @@ class _FifaMatchPlayerPill extends StatelessWidget {
       l10n.localeName,
     );
     final club = _worldCupFifaMatchPlayerClub(team, player);
-    final rosterPosition = _rosterPositionFromFifa(player.position);
     return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(6, 5, 10, 5),
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 6, 10, 6),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(999),
@@ -2521,14 +2520,6 @@ class _FifaMatchPlayerPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _WorldCupPlayerAvatar(
-            team: team,
-            playerName: playerName,
-            position: rosterPosition,
-            size: 30,
-            imageUrl: player.pictureUrl,
-          ),
-          const SizedBox(width: 7),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 190),
             child: Column(
@@ -2575,44 +2566,6 @@ String _worldCupFifaMatchPlayerClub(String team, FifaMatchPlayer player) {
     if (club.isNotEmpty) return club;
   }
   return '';
-}
-
-_WorldCupRosterPosition _rosterPositionFromFifa(
-  FifaMatchPlayerPosition position,
-) {
-  return switch (position) {
-    FifaMatchPlayerPosition.goalkeeper => _WorldCupRosterPosition.goalkeeper,
-    FifaMatchPlayerPosition.defender => _WorldCupRosterPosition.defender,
-    FifaMatchPlayerPosition.midfielder => _WorldCupRosterPosition.midfielder,
-    FifaMatchPlayerPosition.forward => _WorldCupRosterPosition.forward,
-    FifaMatchPlayerPosition.unknown => _WorldCupRosterPosition.midfielder,
-  };
-}
-
-class _NetworkPlayerImage extends StatelessWidget {
-  final String imageUrl;
-  final Widget fallback;
-
-  const _NetworkPlayerImage({
-    required this.imageUrl,
-    required this.fallback,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (imageUrl.trim().isEmpty) return fallback;
-    return ClipOval(
-      child: Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => fallback,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return fallback;
-        },
-      ),
-    );
-  }
 }
 
 String _worldCupCountryLabelText(AppLocalizations l10n, String country) {
@@ -3685,7 +3638,6 @@ class _WorldCupRosterPositionSection extends StatelessWidget {
             children: [
               for (final player in players)
                 _RosterPlayerPill(
-                  team: team,
                   player: player,
                   onTap: () => onPlayerTap(player),
                 ),
@@ -3698,12 +3650,10 @@ class _WorldCupRosterPositionSection extends StatelessWidget {
 }
 
 class _RosterPlayerPill extends StatelessWidget {
-  final String team;
   final _WorldCupRosterPlayer player;
   final VoidCallback onTap;
 
   const _RosterPlayerPill({
-    required this.team,
     required this.player,
     required this.onTap,
   });
@@ -3719,7 +3669,7 @@ class _RosterPlayerPill extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
         child: Ink(
-          padding: const EdgeInsetsDirectional.fromSTEB(6, 5, 10, 5),
+          padding: const EdgeInsetsDirectional.fromSTEB(10, 6, 10, 6),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(999),
@@ -3728,13 +3678,6 @@ class _RosterPlayerPill extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _WorldCupPlayerAvatar(
-                team: team,
-                playerName: player.displayName,
-                position: player.position,
-                size: 28,
-              ),
-              const SizedBox(width: 7),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 190),
                 child: Column(
@@ -3787,33 +3730,14 @@ class _WorldCupPlayerProfileSheet extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _WorldCupPlayerAvatar(
-                  team: team,
-                  playerName: player.displayName,
-                  position: player.position,
-                  size: 76,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.worldCupPlayerProfileTitle(player.displayName),
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      _CountryLabel(country: team),
-                    ],
-                  ),
-                ),
-              ],
+            Text(
+              l10n.worldCupPlayerProfileTitle(player.displayName),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
             ),
+            const SizedBox(height: 6),
+            _CountryLabel(country: team),
             const SizedBox(height: 18),
             _InfoGrid(
               items: [
@@ -3832,91 +3756,6 @@ class _WorldCupPlayerProfileSheet extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 14),
-            Text(
-              l10n.worldCupPlayerProfileSourceNote,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _WorldCupPlayerAvatar extends StatelessWidget {
-  final String team;
-  final String playerName;
-  final _WorldCupRosterPosition position;
-  final double size;
-  final String imageUrl;
-
-  const _WorldCupPlayerAvatar({
-    required this.team,
-    required this.playerName,
-    required this.position,
-    required this.size,
-    this.imageUrl = '',
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = _positionColor(theme, position);
-    final flag = worldCupCountryFlag(team);
-    return Tooltip(
-      message: playerName,
-      child: SizedBox.square(
-        dimension: size,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              child: _NetworkPlayerImage(
-                imageUrl: imageUrl,
-                fallback: DecoratedBox(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        color.withValues(alpha: 0.86),
-                        theme.colorScheme.primary.withValues(alpha: 0.78),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.72),
-                      width: math.max(1.0, size * 0.035),
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.face_rounded,
-                    color: Colors.white,
-                    size: size * 0.62,
-                  ),
-                ),
-              ),
-            ),
-            if (flag.isNotEmpty)
-              PositionedDirectional(
-                end: -size * 0.03,
-                bottom: -size * 0.03,
-                child: Container(
-                  width: size * 0.34,
-                  height: size * 0.34,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: theme.colorScheme.outlineVariant),
-                  ),
-                  child: Text(flag, style: TextStyle(fontSize: size * 0.18)),
-                ),
-              ),
           ],
         ),
       ),
