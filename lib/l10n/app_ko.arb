@@ -384,6 +384,23 @@
       }
     }
   },
+  "worldCupClubInfoOpenTooltip": "{club} 정보 보기",
+  "@worldCupClubInfoOpenTooltip": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupClubInfoTitle": "{club} 정보",
+  "@worldCupClubInfoTitle": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupPlayerProfilePlayerLabel": "선수",
   "worldCupPlayerProfileTeamLabel": "대표팀",
   "worldCupPlayerProfilePositionLabel": "포지션",
   "worldCupPlayerProfileClubLabel": "소속팀",
@@ -551,6 +568,9 @@
     }
   },
   "worldCupTeamRosterSubtitle": "포지션별 명단과 포메이션 배치로 팀 구성을 빠르게 확인해요.",
+  "worldCupTeamMatchOverviewTitle": "국가 경기 정보",
+  "worldCupTeamCurrentPointsLabel": "현재 승점",
+  "worldCupTeamMatchHistoryTitle": "상대별 결과",
   "worldCupTeamRosterFormationLabel": "{formation} 포메이션",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {
@@ -4127,7 +4147,7 @@
   "trainingSketchResetButton": "초기화",
   "trainingSketchPenModeHint": "펜 모드: 보드 영역을 드래그해 그릴 수 있습니다.",
   "trainingSketchPenColorLabel": "펜 색상",
-  "trainingSketchQuickStart": "빠른 시작: 사람/공 추가 -> 이동선 그리기 -> 플레이(속도 조절) -> 저장",
+  "trainingSketchQuickStart": "빠른 시작: 사람/공을 선택하고 빠른 동작을 눌러 이동선을 만드세요.",
   "trainingSketchSelectedItemTitle": "선택 요소",
   "trainingSketchAssignColorLabel": "색상 지정",
   "trainingSketchDrawRouteFirst": "먼저 이동선을 그리거나 선택해 주세요.",
@@ -4151,6 +4171,8 @@
   "trainingSketchPreviousStageButton": "이전 단계",
   "trainingSketchNextStageButton": "다음 단계",
   "trainingSketchRouteAfterBallButton": "공 뒤에 시작",
+  "trainingSketchFinishRouteButton": "이동선 완료",
+  "trainingSketchUndoLastRoutePointButton": "마지막 점 취소",
   "trainingSketchClearAllRoutesButton": "이동선 전체 지우기",
   "trainingSketchPlayerRoutesTitle": "사람 이동선",
   "trainingSketchBallRoutesTitle": "공 이동선",
@@ -4173,13 +4195,21 @@
       }
     }
   },
-  "trainingSketchRouteReplaceHint": "보드를 드래그하면 선택한 이동선을 다시 그립니다.",
-  "trainingSketchSelectedPlayerRouteHint": "보드를 드래그하면 선택한 사람의 이동선을 설정합니다. 이미 있으면 새 선으로 바뀝니다.",
-  "trainingSketchSelectedBallRouteHint": "보드를 드래그하면 선택한 공의 이동선을 설정합니다. 이미 있으면 새 선으로 바뀝니다.",
-  "trainingSketchPlayerRouteHint": "보드를 드래그하면 비어 있는 사람 이동선을 설정합니다. 특정 사람을 고르려면 먼저 그 사람을 선택해 주세요.",
-  "trainingSketchBallRouteHint": "보드를 드래그하면 비어 있는 공 이동선을 설정합니다. 특정 공을 고르려면 먼저 그 공을 선택해 주세요.",
-  "trainingSketchLinkPlayerHint": "이동선 모드에서 이 사람을 선택한 뒤 드래그하면 이동선을 설정하거나 바꿀 수 있어요.",
-  "trainingSketchLinkBallHint": "이동선 모드에서 이 공을 선택한 뒤 드래그하면 이동선을 설정하거나 바꿀 수 있어요.",
+  "trainingSketchRouteReplaceHint": "도착 지점을 누르고 이동선 완료를 누르면 선택한 이동선이 바뀝니다.",
+  "trainingSketchSelectedPlayerRouteHint": "도착 지점을 누른 뒤 이동선 완료를 누르세요. 드래그로도 그릴 수 있어요.",
+  "trainingSketchSelectedBallRouteHint": "패스 도착 지점을 누른 뒤 이동선 완료를 누르세요. 드래그로도 그릴 수 있어요.",
+  "trainingSketchPlayerRouteHint": "사람을 선택하거나 보드를 눌러 시작한 뒤, 도착 지점을 누르고 완료하세요.",
+  "trainingSketchBallRouteHint": "공을 선택하거나 보드를 눌러 시작한 뒤, 패스 도착 지점을 누르고 완료하세요.",
+  "trainingSketchLinkPlayerHint": "이 사람을 선택한 뒤 도착 지점을 누르면 이동선을 쉽게 만들 수 있어요.",
+  "trainingSketchLinkBallHint": "이 공을 선택한 뒤 패스 도착 지점을 누르면 공 이동선을 쉽게 만들 수 있어요.",
+  "trainingSketchSelectedItemActionsTitle": "빠른 동작",
+  "trainingSketchCreateMoveRouteButton": "이동선 만들기",
+  "trainingSketchCreatePassRouteButton": "패스선 만들기",
+  "trainingSketchQuickMoveButton": "이동",
+  "trainingSketchQuickPassButton": "패스",
+  "trainingSketchQuickPassAndMoveButton": "패스 후 이동",
+  "trainingSketchQuickDribbleButton": "드리블",
+  "trainingSketchQuickReceiveMoveButton": "공 받고 이동",
   "trainingSketchPlayerRouteLimitReached": "모든 사람 이동선이 이미 있어요. 사람을 선택해서 이동선을 바꾸거나 다시 그려 주세요.",
   "trainingSketchBallRouteLimitReached": "모든 공 이동선이 이미 있어요. 공을 선택해서 이동선을 바꾸거나 다시 그려 주세요.",
   "trainingSketchTemplatePickerTitle": "템플릿 선택",

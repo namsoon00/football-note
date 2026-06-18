@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -232,6 +234,134 @@ void main() {
       find.descendant(of: boardFinder, matching: find.text('2')),
       findsOneWidget,
     );
+  });
+
+  testWidgets(
+      'selected player can create a route with taps and undo last point', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '탭 이동선',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.2,
+                    y: 0.5,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '이동선 만들기');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.50, 0.36));
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.36));
+    await _tapVisibleOutlinedButton(tester, '마지막 점 취소');
+    await _tapVisibleOutlinedButton(tester, '이동선 완료');
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final route = saved.pages.single.routes.single;
+    expect(route.linkedItemId, 'player-1');
+    expect(route.points, hasLength(2));
+    expect(route.points.first.x, closeTo(0.2, 0.001));
+    expect(route.points.first.y, closeTo(0.5, 0.001));
+    expect(route.points.last.x, closeTo(0.50, 0.02));
+    expect(route.points.last.y, closeTo(0.36, 0.02));
+  });
+
+  testWidgets('quick pass then move creates staged ball and player routes', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '빠른 동작',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.2,
+                    y: 0.5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.62,
+                    y: 0.46,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.28,
+                    y: 0.50,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '패스 후 이동');
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final routes = saved.pages.single.routes;
+    final ballRoute = routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.ball,
+    );
+    final playerRoute = routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.player,
+    );
+
+    expect(ballRoute.linkedItemId, 'ball-1');
+    expect(ballRoute.stageIndex, 1);
+    expect(playerRoute.linkedItemId, 'player-1');
+    expect(playerRoute.stageIndex, 2);
   });
 
   testWidgets('training sketch auto saves after memo edit', (
@@ -1298,6 +1428,27 @@ Future<void> _drawRoute(
   );
   await tester.pump(const Duration(milliseconds: 16));
   detector.onPanEnd!(DragEndDetails());
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapBoardRelative(
+  WidgetTester tester,
+  Finder boardFinder,
+  Offset relativePosition,
+) async {
+  final detector = tester.widget<GestureDetector>(boardFinder);
+  final size = tester.getSize(boardFinder);
+  final localPosition = Offset(
+    size.width * relativePosition.dx,
+    size.height * relativePosition.dy,
+  );
+  detector.onTapUp!(
+    TapUpDetails(
+      kind: PointerDeviceKind.touch,
+      localPosition: localPosition,
+      globalPosition: localPosition,
+    ),
+  );
   await tester.pumpAndSettle();
 }
 

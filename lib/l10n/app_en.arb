@@ -384,6 +384,23 @@
       }
     }
   },
+  "worldCupClubInfoOpenTooltip": "Open {club} info",
+  "@worldCupClubInfoOpenTooltip": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupClubInfoTitle": "{club} info",
+  "@worldCupClubInfoTitle": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupPlayerProfilePlayerLabel": "Player",
   "worldCupPlayerProfileTeamLabel": "National team",
   "worldCupPlayerProfilePositionLabel": "Position",
   "worldCupPlayerProfileClubLabel": "Club",
@@ -551,6 +568,9 @@
     }
   },
   "worldCupTeamRosterSubtitle": "Position groups and a formation view for quickly reading the squad shape.",
+  "worldCupTeamMatchOverviewTitle": "Team match info",
+  "worldCupTeamCurrentPointsLabel": "Current points",
+  "worldCupTeamMatchHistoryTitle": "Match results",
   "worldCupTeamRosterFormationLabel": "{formation} formation",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {
@@ -4127,7 +4147,7 @@
   "trainingSketchResetButton": "Clear",
   "trainingSketchPenModeHint": "Pen mode: drag on the board to draw.",
   "trainingSketchPenColorLabel": "Pen color",
-  "trainingSketchQuickStart": "Quick start: Add player/ball -> draw paths -> play (speed) -> save",
+  "trainingSketchQuickStart": "Quick start: Select a player or ball, then use a quick action to create routes.",
   "trainingSketchSelectedItemTitle": "Selected item",
   "trainingSketchAssignColorLabel": "Assign color",
   "trainingSketchDrawRouteFirst": "Draw or select a route first.",
@@ -4151,6 +4171,8 @@
   "trainingSketchPreviousStageButton": "Previous stage",
   "trainingSketchNextStageButton": "Next stage",
   "trainingSketchRouteAfterBallButton": "After ball",
+  "trainingSketchFinishRouteButton": "Finish route",
+  "trainingSketchUndoLastRoutePointButton": "Undo last point",
   "trainingSketchClearAllRoutesButton": "Clear all routes",
   "trainingSketchPlayerRoutesTitle": "Player routes",
   "trainingSketchBallRoutesTitle": "Ball routes",
@@ -4173,13 +4195,21 @@
       }
     }
   },
-  "trainingSketchRouteReplaceHint": "Drag on the board to replace the selected route.",
-  "trainingSketchSelectedPlayerRouteHint": "Drag on the board to set the selected player's route. If one already exists, it will be replaced.",
-  "trainingSketchSelectedBallRouteHint": "Drag on the board to set the selected ball's route. If one already exists, it will be replaced.",
-  "trainingSketchPlayerRouteHint": "Drag on the board to assign an unused player route. Select a player first if you want to target a specific one.",
-  "trainingSketchBallRouteHint": "Drag on the board to assign an unused ball route. Select a ball first if you want to target a specific one.",
-  "trainingSketchLinkPlayerHint": "In Routes mode, select this player and drag to assign or replace its route.",
-  "trainingSketchLinkBallHint": "In Routes mode, select this ball and drag to assign or replace its route.",
+  "trainingSketchRouteReplaceHint": "Tap the destination, then finish the route to replace the selected route.",
+  "trainingSketchSelectedPlayerRouteHint": "Tap a destination, then finish the route. You can still drag to draw.",
+  "trainingSketchSelectedBallRouteHint": "Tap a pass destination, then finish the route. You can still drag to draw.",
+  "trainingSketchPlayerRouteHint": "Select a player or tap the board to start, then tap a destination and finish.",
+  "trainingSketchBallRouteHint": "Select a ball or tap the board to start, then tap a pass destination and finish.",
+  "trainingSketchLinkPlayerHint": "Select this player, then tap a destination to make a movement route.",
+  "trainingSketchLinkBallHint": "Select this ball, then tap a pass destination to make a ball route.",
+  "trainingSketchSelectedItemActionsTitle": "Quick actions",
+  "trainingSketchCreateMoveRouteButton": "Create route",
+  "trainingSketchCreatePassRouteButton": "Create pass route",
+  "trainingSketchQuickMoveButton": "Move",
+  "trainingSketchQuickPassButton": "Pass",
+  "trainingSketchQuickPassAndMoveButton": "Pass then move",
+  "trainingSketchQuickDribbleButton": "Dribble",
+  "trainingSketchQuickReceiveMoveButton": "Receive and move",
   "trainingSketchPlayerRouteLimitReached": "All player routes are already assigned. Select a player to replace or redraw its route.",
   "trainingSketchBallRouteLimitReached": "All ball routes are already assigned. Select a ball to replace or redraw its route.",
   "trainingSketchTemplatePickerTitle": "Choose template",
