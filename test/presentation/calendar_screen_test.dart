@@ -282,6 +282,62 @@ void main() {
     expect(find.text('시합'), findsOneWidget);
   });
 
+  testWidgets('토너먼트 시합 기록은 별도 유형과 승수를 저장한다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+    await pumpCalendar(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('토너먼트'));
+    await tester.pump();
+
+    await tester.enterText(
+      find
+          .ancestor(of: find.text('상대 팀'), matching: find.byType(TextField))
+          .first,
+      '레드 FC',
+    );
+    await tester.enterText(
+      find
+          .ancestor(
+            of: find.text('토너먼트 팀'),
+            matching: find.byType(TextFormField),
+          )
+          .first,
+      '레드 FC, 블루 FC',
+    );
+    await tester.enterText(
+      find
+          .ancestor(
+            of: find.text('토너먼트 승리'),
+            matching: find.byType(TextFormField),
+          )
+          .first,
+      '2',
+    );
+
+    final saveButton = find.widgetWithText(FilledButton, '저장');
+    await tester.ensureVisible(saveButton);
+    await tester.pump();
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle();
+
+    final entries = await trainingService.allEntries();
+    expect(entries, hasLength(1));
+    expect(entries.single.matchKind, 'tournament');
+    expect(entries.single.isTournamentMatch, isTrue);
+    expect(entries.single.leagueTeamNames, <String>['레드 FC', '블루 FC']);
+    expect(entries.single.tournamentWins, 2);
+    expect(find.textContaining('토너먼트'), findsWidgets);
+    expect(find.textContaining('2승'), findsOneWidget);
+  });
+
   testWidgets('독립 식사 기록은 선택한 날짜 타임라인에 표시된다', (tester) async {
     final today = DateTime.now();
     await saveMealEntry(

@@ -188,6 +188,61 @@ void main() {
     expect(find.textContaining('라이벌 FC'), findsOneWidget);
   });
 
+  testWidgets('Stats screen counts tournament match records separately', (
+    WidgetTester tester,
+  ) async {
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '컵 경기장',
+        opponentTeam: '컵 FC',
+        scoredGoals: 2,
+        concededGoals: 0,
+        matchKind: 'tournament',
+        leagueTeamNames: const <String>['컵 FC', '블루 FC'],
+        tournamentWins: 2,
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: StatsScreen(
+            trainingService: service,
+            mealLogService: mealLogService,
+            localeService: localeService,
+            onCreate: () {},
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('친선 경기 0 · 리그 경기 0 · 토너먼트 1'), findsOneWidget);
+    expect(find.textContaining('토너먼트 · 컵 FC'), findsOneWidget);
+    expect(find.textContaining('2승'), findsOneWidget);
+  });
+
   testWidgets('Parent mode stats shows training, match, and meal records', (
     WidgetTester tester,
   ) async {

@@ -7956,6 +7956,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchKindLeague => 'リーグ戦';
 
   @override
+  String get matchKindTournament => 'トーナメント';
+
+  @override
   String get matchOpponentTeamLabel => '相手チーム';
 
   @override
@@ -7966,6 +7969,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchLeagueTeamsHint => '1行に1チーム、またはカンマ区切りで入力';
+
+  @override
+  String get matchTournamentTeamsLabel => 'トーナメント参加チーム';
+
+  @override
+  String get matchTournamentTeamsHint => '1行に1チーム、またはカンマ区切りで参加チームを入力';
 
   @override
   String get matchLeaguePointsMode => '勝ち点';
