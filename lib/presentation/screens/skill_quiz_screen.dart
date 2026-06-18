@@ -4756,6 +4756,7 @@ List<_OxFactSeed> _buildOxSeedPool300() {
   return <_OxFactSeed>[
     ..._oxFacts(),
     ..._historyAndFifaRecordOxFacts(),
+    ..._advancedFootballHistoryOxFacts(),
     ..._issue276FormationOxFacts(),
     ..._issue279FormationScenarioOxFacts(),
     ..._qualityScenarioOxFacts(),
@@ -4766,6 +4767,7 @@ List<_McqSeed> _buildMcqSeedPool300() {
   return <_McqSeed>[
     ..._mcqSeeds(),
     ..._historyAndFifaRecordMcqSeeds(),
+    ..._advancedFootballHistoryMcqSeeds(),
     ..._issue260CategoryBoosterMcqSeeds(),
     ..._issue271CoreCategoryMcqSeeds(),
     ..._issue276FormationMcqSeeds(),
@@ -4779,6 +4781,7 @@ List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
   final keywords = <_ShortAnswerKnowledgeSeed>[
     ..._shortAnswerKnowledgeSeeds(),
     ..._historyAndFifaRecordShortAnswerSeeds(),
+    ..._advancedFootballHistoryShortAnswerSeeds(),
     ..._issue260CategoryBoosterShortAnswerSeeds(),
     ..._issue276FormationShortAnswerSeeds(),
     ..._issue279FormationScenarioShortAnswerSeeds(),
@@ -8376,6 +8379,551 @@ List<_ShortAnswerKnowledgeSeed> _historyAndFifaRecordShortAnswerSeeds() {
   ];
 }
 
+List<_OxFactSeed> _advancedFootballHistoryOxFacts() {
+  return const [
+    _OxFactSeed(
+      id: 'history_hungary_wembley_1953',
+      difficulty: 3,
+      category: _QuizCategory.fun,
+      koTrueStatement: '1953년 헝가리는 웸블리에서 잉글랜드를 6-3으로 꺾으며 전술 변화의 상징적 장면을 만들었다.',
+      enTrueStatement:
+          'In 1953, Hungary beat England 6-3 at Wembley and created a landmark tactical moment.',
+      koFalseStatement: '1953년 헝가리와 잉글랜드의 웸블리 경기는 0-0으로 끝나 전술적으로 큰 의미가 없었다.',
+      enFalseStatement:
+          'The 1953 Wembley match between Hungary and England ended 0-0 and carried little tactical meaning.',
+      koExplain: '이 경기는 전통적 포지션 이해가 유동적 움직임과 조합 플레이 앞에서 흔들릴 수 있음을 보여줬습니다.',
+      enExplain:
+          'The match showed how fluid movement and combinations could unsettle traditional positional thinking.',
+      koNextPoint: '축구 역사는 결과보다 그 경기가 전술 사고를 어떻게 바꿨는지까지 보세요.',
+      enNextPoint:
+          'Study football history by asking how a match changed tactical thinking, not only who won.',
+    ),
+    _OxFactSeed(
+      id: 'history_back_pass_law_1992',
+      difficulty: 2,
+      category: _QuizCategory.rules,
+      koTrueStatement:
+          '1992년에 도입된 백패스 규정은 골키퍼가 동료의 의도적 발 패스를 손으로 잡는 시간을 줄이려는 변화였다.',
+      enTrueStatement:
+          'The 1992 back-pass law reduced time-wasting by stopping goalkeepers from handling deliberate passes by foot from teammates.',
+      koFalseStatement: '1992년 백패스 규정은 골키퍼가 어떤 동료 패스든 손으로 잡을 수 있게 만든 변화였다.',
+      enFalseStatement:
+          'The 1992 back-pass law allowed goalkeepers to handle any teammate pass.',
+      koExplain: '백패스 규정은 경기 속도와 빌드업 방식을 바꾼 대표적인 규칙 변화입니다.',
+      enExplain:
+          'The back-pass law is a major rules change that affected tempo and build-up play.',
+      koNextPoint: '규칙 변화는 경기 템포와 기술 요구가 어떻게 달라졌는지 함께 보세요.',
+      enNextPoint:
+          'Link rules changes with their effect on tempo and technical demands.',
+    ),
+    _OxFactSeed(
+      id: 'history_bosman_ruling_1995',
+      difficulty: 3,
+      category: _QuizCategory.fun,
+      koTrueStatement: '1995년 보스만 판결은 유럽 축구 선수 이적과 계약 만료 후 이동 자유에 큰 영향을 줬다.',
+      enTrueStatement:
+          'The 1995 Bosman ruling had a major impact on European football transfers and freedom of movement after contracts expired.',
+      koFalseStatement: '1995년 보스만 판결은 경기 중 오프사이드 해석만 바꾼 규칙 판정이었다.',
+      enFalseStatement:
+          'The 1995 Bosman ruling changed only in-match offside interpretation.',
+      koExplain: '보스만 판결은 경기 규칙이 아니라 선수 노동권과 클럽 운영 구조를 바꾼 사건입니다.',
+      enExplain:
+          'The Bosman ruling changed player employment rights and squad-building, not match laws.',
+      koNextPoint: '축구 역사는 경기장 밖 제도 변화도 함께 봐야 흐름이 보입니다.',
+      enNextPoint:
+          'Football history includes off-field systems such as contracts and squad rules.',
+    ),
+    _OxFactSeed(
+      id: 'history_total_football_rotation',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koTrueStatement: '토털 풋볼은 선수들이 위치를 바꾸더라도 팀 구조와 공간 점유를 유지하는 원리와 연결된다.',
+      enTrueStatement:
+          'Total Football is linked to players rotating positions while preserving team structure and space occupation.',
+      koFalseStatement: '토털 풋볼은 모든 선수가 자기 자리에서 절대 움직이지 않는 축구를 뜻한다.',
+      enFalseStatement:
+          'Total Football means every player stays fixed in one position and never rotates.',
+      koExplain: '토털 풋볼은 이름보다도 교대, 압박, 공간 점유를 함께 이해해야 합니다.',
+      enExplain:
+          'Total Football is best understood through rotation, pressing, and space occupation.',
+      koNextPoint: '역사적 전술 용어는 이름보다 실제 원리를 설명할 수 있어야 합니다.',
+      enNextPoint:
+          'For historic tactical terms, learn the principle behind the name.',
+    ),
+    _OxFactSeed(
+      id: 'history_denmark_euro_1992',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koTrueStatement: '덴마크는 유로 1992에서 뒤늦게 본선에 합류한 뒤 우승까지 차지했다.',
+      enTrueStatement:
+          'Denmark entered Euro 1992 late and went on to win the tournament.',
+      koFalseStatement: '덴마크는 유로 1992에서 결승 토너먼트에 오르지 못했다.',
+      enFalseStatement:
+          'Denmark failed to reach the knockout stage at Euro 1992.',
+      koExplain: '덴마크의 유로 1992 우승은 준비 기간, 팀 응집력, 토너먼트 흐름을 함께 보여주는 역사적 사례입니다.',
+      enExplain:
+          'Denmark 1992 is a historic case of preparation, cohesion, and tournament momentum.',
+      koNextPoint: '토너먼트 역사는 전력 평가와 실제 흐름이 얼마나 다를 수 있는지 보여줍니다.',
+      enNextPoint:
+          'Tournament history shows how pre-event expectations and actual runs can diverge.',
+    ),
+    _OxFactSeed(
+      id: 'history_womens_world_cup_1999_final',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koTrueStatement: '1999년 FIFA 여자 월드컵 결승은 미국과 중국의 승부차기 승부로 널리 기억된다.',
+      enTrueStatement:
+          'The 1999 FIFA Women’s World Cup final is widely remembered for the United States and China going to penalties.',
+      koFalseStatement: '1999년 FIFA 여자 월드컵 결승은 브라질과 독일의 골든골 경기였다.',
+      enFalseStatement:
+          'The 1999 FIFA Women’s World Cup final was a golden-goal match between Brazil and Germany.',
+      koExplain: '1999년 결승은 여자축구 대중화와 큰 관중 앞 승부의 상징적 장면으로 남았습니다.',
+      enExplain:
+          'The 1999 final became a landmark for women’s football visibility and big-stage pressure.',
+      koNextPoint: '여자축구 역사도 대회 성장과 문화적 영향까지 함께 보세요.',
+      enNextPoint:
+          'Study women’s football history through tournament growth and cultural impact.',
+    ),
+  ];
+}
+
+List<_McqSeed> _advancedFootballHistoryMcqSeeds() {
+  return const [
+    _McqSeed(
+      id: 'history_wm_formation_context',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: 'WM 포메이션이 축구 역사에서 중요하게 다뤄지는 이유로 가장 적절한 것은 무엇일까요?',
+      enStem:
+          'Why is the WM formation treated as an important landmark in football history?',
+      options: [
+        _FootballQuizOption(
+          koText: '오프사이드 법 변화 이후 수비와 공격 구조를 새롭게 정리했기 때문',
+          enText:
+              'It reorganized defensive and attacking structure after offside-law changes',
+        ),
+        _FootballQuizOption(
+          koText: '골키퍼가 필드 플레이어처럼 뛰는 규칙을 처음 만들었기 때문',
+          enText:
+              'It first created a rule where goalkeepers played as outfielders',
+        ),
+        _FootballQuizOption(
+          koText: '모든 팀이 센터백 없이 경기하도록 강제했기 때문',
+          enText: 'It forced every team to play without center backs',
+        ),
+        _FootballQuizOption(
+          koText: '승부차기 규칙을 없앤 포메이션이었기 때문',
+          enText: 'It was a formation that removed penalty shootouts',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: 'WM은 오프사이드 법 변화 뒤 수비 라인과 공격 배치를 재해석한 역사적 전술 전환점입니다.',
+      enExplain:
+          'The WM is a tactical landmark because it responded structurally to changes in the offside law.',
+      koNextPoint: '포메이션 역사는 숫자 배열보다 왜 그 배열이 필요했는지를 보세요.',
+      enNextPoint:
+          'For formation history, ask why the shape was needed rather than only memorizing numbers.',
+    ),
+    _McqSeed(
+      id: 'history_catenaccio_principle',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '카테나치오를 단순한 수비 축구가 아니라 전술 개념으로 이해할 때 핵심은 무엇일까요?',
+      enStem:
+          'When reading catenaccio as a tactical concept rather than just defensive football, what is central?',
+      options: [
+        _FootballQuizOption(
+          koText: '스위퍼 보호와 압축된 수비 뒤 빠른 전환',
+          enText: 'Sweeper cover, compact defending, and quick transition',
+        ),
+        _FootballQuizOption(
+          koText: '모든 선수가 터치라인에 고정되는 공격',
+          enText: 'Every player staying fixed on the touchline in attack',
+        ),
+        _FootballQuizOption(
+          koText: '골키퍼가 항상 중앙 미드필더로 올라가는 구조',
+          enText: 'A goalkeeper always stepping into central midfield',
+        ),
+        _FootballQuizOption(
+          koText: '센터백이 없는 초공격 포메이션',
+          enText: 'An ultra-attacking system without center backs',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '카테나치오는 빗장이라는 이미지처럼 뒤 보호와 공간 통제, 전환 공격까지 함께 봐야 합니다.',
+      enExplain:
+          'Catenaccio is best read through cover, space control, and transition, not just negativity.',
+      koNextPoint: '전술사 문항에서는 별명보다 구조와 전환 방식을 설명해 보세요.',
+      enNextPoint:
+          'For tactical history, explain the structure and transition pattern behind the nickname.',
+    ),
+    _McqSeed(
+      id: 'history_total_football_read',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '1970년대 네덜란드와 아약스로 대표되는 토털 풋볼을 가장 잘 설명하는 선택지는?',
+      enStem:
+          'Which option best describes Total Football associated with 1970s Netherlands and Ajax?',
+      options: [
+        _FootballQuizOption(
+          koText: '위치 교대 속에서도 압박과 공간 점유 원칙을 유지한다',
+          enText:
+              'Players rotate positions while preserving pressing and space-occupation principles',
+        ),
+        _FootballQuizOption(
+          koText: '공을 잡은 선수만 움직이고 나머지는 모두 멈춘다',
+          enText: 'Only the ball carrier moves while everyone else stops',
+        ),
+        _FootballQuizOption(
+          koText: '오프사이드 라인을 쓰지 않고 골문 앞에만 선다',
+          enText: 'Avoid the offside line and stand only in front of goal',
+        ),
+        _FootballQuizOption(
+          koText: '롱볼만 반복하는 전술을 뜻한다',
+          enText: 'It means repeating long balls only',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '토털 풋볼은 선수의 자유가 아니라 팀 원칙 안에서 이루어지는 유동성과 압박이 핵심입니다.',
+      enExplain:
+          'Total Football is not random freedom; it is fluidity inside shared team principles.',
+      koNextPoint: '역사적 명칭은 대표 팀, 시대, 작동 원리를 함께 정리하세요.',
+      enNextPoint: 'Pair historic labels with team, era, and mechanism.',
+    ),
+    _McqSeed(
+      id: 'history_bosman_impact',
+      difficulty: 3,
+      category: _QuizCategory.fun,
+      koStem: '보스만 판결의 축구사적 영향으로 가장 알맞은 것은?',
+      enStem:
+          'What is the best description of the Bosman ruling’s historical impact?',
+      options: [
+        _FootballQuizOption(
+          koText: '계약 만료 선수의 이동 자유와 유럽 클럽 스쿼드 구성 방식에 영향을 줬다',
+          enText:
+              'It affected out-of-contract player movement and European squad building',
+        ),
+        _FootballQuizOption(
+          koText: '스로인 위치를 모두 중앙선으로 바꿨다',
+          enText: 'It moved all throw-ins to the halfway line',
+        ),
+        _FootballQuizOption(
+          koText: '월드컵 조별리그 승점을 4점으로 바꿨다',
+          enText: 'It changed World Cup group-stage wins to four points',
+        ),
+        _FootballQuizOption(
+          koText: '골키퍼 장갑 착용을 금지했다',
+          enText: 'It banned goalkeeper gloves',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '보스만 판결은 경기장 밖의 법적 결정이 이적시장과 선수 권리에 얼마나 큰 영향을 줄 수 있는지 보여줍니다.',
+      enExplain:
+          'Bosman shows how an off-field legal decision can reshape transfers and player rights.',
+      koNextPoint: '축구 산업 문제는 규정, 계약, 클럽 운영을 함께 연결하세요.',
+      enNextPoint:
+          'For football-industry questions, connect rules, contracts, and club operations.',
+    ),
+    _McqSeed(
+      id: 'history_back_pass_law_goal',
+      difficulty: 2,
+      category: _QuizCategory.rules,
+      koStem: '1992년 백패스 규정 변화가 경기 흐름에 준 대표적 효과는 무엇일까요?',
+      enStem: 'What was a key effect of the 1992 back-pass law on match flow?',
+      options: [
+        _FootballQuizOption(
+          koText: '시간 지연을 줄이고 골키퍼의 발기술과 빌드업 역할을 키웠다',
+          enText:
+              'It reduced time-wasting and increased goalkeeper footwork and build-up demands',
+        ),
+        _FootballQuizOption(
+          koText: '골키퍼가 손으로 득점할 수 있게 했다',
+          enText: 'It allowed goalkeepers to score with their hands',
+        ),
+        _FootballQuizOption(
+          koText: '수비수의 패스를 모두 간접 프리킥으로 만들었다',
+          enText: 'It made every defender pass an indirect free kick',
+        ),
+        _FootballQuizOption(
+          koText: '하프타임 시간을 없앴다',
+          enText: 'It removed halftime',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '백패스 규정은 골키퍼가 단순히 잡는 역할에서 발로 압박을 푸는 역할까지 요구받게 한 변화입니다.',
+      enExplain:
+          'The law helped push goalkeepers from pure handlers toward active build-up participants.',
+      koNextPoint: '규칙 변화는 새 기술 요구와 연결해서 기억하세요.',
+      enNextPoint:
+          'Remember rules changes by linking them to new technical demands.',
+    ),
+    _McqSeed(
+      id: 'history_match_of_century',
+      difficulty: 3,
+      category: _QuizCategory.fun,
+      koStem: '1953년 “세기의 경기”로 불리는 잉글랜드 대 헝가리전이 상징하는 역사적 의미는?',
+      enStem:
+          'What historical meaning is attached to England vs Hungary in 1953, often called the Match of the Century?',
+      options: [
+        _FootballQuizOption(
+          koText: '고정 포지션 중심 사고가 유동적 움직임과 조합 앞에서 흔들린 장면',
+          enText:
+              'A fixed-position mindset was exposed by fluid movement and combinations',
+        ),
+        _FootballQuizOption(
+          koText: '축구에서 처음 승부차기가 도입된 경기',
+          enText: 'The first football match to use a penalty shootout',
+        ),
+        _FootballQuizOption(
+          koText: '월드컵 결승전이 처음 실내에서 열린 경기',
+          enText: 'The first World Cup final played indoors',
+        ),
+        _FootballQuizOption(
+          koText: '여자 월드컵의 첫 결승전',
+          enText: 'The first Women’s World Cup final',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '헝가리의 움직임과 공격 조합은 당시 잉글랜드식 전통 이해에 큰 충격을 줬습니다.',
+      enExplain:
+          'Hungary’s movement and attacking combinations strongly challenged traditional English assumptions.',
+      koNextPoint: '역사적 경기의 점수보다 그 경기 이후 무엇을 다시 생각하게 됐는지를 보세요.',
+      enNextPoint:
+          'For historic matches, ask what the match forced people to rethink.',
+    ),
+    _McqSeed(
+      id: 'history_lisbon_lions',
+      difficulty: 3,
+      category: _QuizCategory.fun,
+      koStem: '1967년 셀틱 “리스본 라이언스”가 유럽컵 역사에서 자주 언급되는 이유는?',
+      enStem:
+          'Why are Celtic’s 1967 “Lisbon Lions” often mentioned in European Cup history?',
+      options: [
+        _FootballQuizOption(
+          koText: '영국 클럽으로는 처음 유럽컵을 우승한 상징적 팀이기 때문',
+          enText:
+              'They were the first British club side to win the European Cup',
+        ),
+        _FootballQuizOption(
+          koText: '월드컵을 클럽팀이 우승했기 때문',
+          enText: 'They were a club team that won the World Cup',
+        ),
+        _FootballQuizOption(
+          koText: '승부차기 없이 모든 경기가 무승부였기 때문',
+          enText: 'Every match was a draw without penalties',
+        ),
+        _FootballQuizOption(
+          koText: '골키퍼 없이 우승했기 때문',
+          enText: 'They won without using a goalkeeper',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '셀틱의 1967년 유럽컵 우승은 영국 클럽 축구와 유럽 대회 역사에서 중요한 기준점입니다.',
+      enExplain:
+          'Celtic’s 1967 European Cup win is a major landmark for British club football in Europe.',
+      koNextPoint: '클럽 역사 문제는 첫 우승과 대륙 대회 맥락을 함께 보세요.',
+      enNextPoint:
+          'For club history, connect first titles with continental context.',
+    ),
+    _McqSeed(
+      id: 'history_ajax_1995_identity',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '1995년 아약스 챔피언스리그 우승팀을 전술사적으로 볼 때 핵심 키워드는?',
+      enStem:
+          'When reading Ajax’s 1995 Champions League-winning side tactically, which keyword fits best?',
+      options: [
+        _FootballQuizOption(
+          koText: '유스 기반, 위치 교대, 강한 압박을 결합한 팀 구조',
+          enText:
+              'A youth-based team structure combining rotations and strong pressing',
+        ),
+        _FootballQuizOption(
+          koText: '중앙선을 넘지 않는 완전 후퇴 수비',
+          enText: 'A permanently deep block that never crossed halfway',
+        ),
+        _FootballQuizOption(
+          koText: '골키퍼의 롱킥만으로 공격하는 방식',
+          enText: 'An attack based only on goalkeeper long kicks',
+        ),
+        _FootballQuizOption(
+          koText: '선수 전원이 같은 포지션에서만 뛰는 구조',
+          enText: 'Every player staying in one identical position',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '1995년 아약스는 유스, 팀 원칙, 압박과 점유의 결합으로 현대적 팀 모델의 사례로 자주 언급됩니다.',
+      enExplain:
+          'Ajax 1995 is often cited as a modern team model built on youth, team principles, pressing, and possession.',
+      koNextPoint: '명문 팀 역사는 우승보다 어떤 팀 모델을 보여줬는지를 함께 보세요.',
+      enNextPoint:
+          'For great teams, study the model they showed as well as the trophy.',
+    ),
+    _McqSeed(
+      id: 'history_denmark_1992_lesson',
+      difficulty: 2,
+      category: _QuizCategory.mindset,
+      koStem: '덴마크의 유로 1992 우승에서 팀 스포츠 관점으로 배울 수 있는 점은?',
+      enStem:
+          'From a team-sport perspective, what lesson fits Denmark winning Euro 1992?',
+      options: [
+        _FootballQuizOption(
+          koText: '짧은 준비에도 역할 명확성, 응집력, 토너먼트 대응이 큰 힘이 될 수 있다',
+          enText:
+              'Role clarity, cohesion, and tournament response can matter even with short preparation',
+        ),
+        _FootballQuizOption(
+          koText: '우승팀은 항상 가장 긴 준비 기간을 가진다',
+          enText: 'The champion always has the longest preparation period',
+        ),
+        _FootballQuizOption(
+          koText: '토너먼트에서는 조직력이 필요 없다',
+          enText: 'Organization does not matter in tournaments',
+        ),
+        _FootballQuizOption(
+          koText: '교체 선수는 경기 흐름에 영향을 줄 수 없다',
+          enText: 'Substitutes cannot affect tournament momentum',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '덴마크의 사례는 스타 이름보다 팀 역할, 수비 조직, 흐름 대응이 얼마나 중요한지 보여줍니다.',
+      enExplain:
+          'Denmark’s run highlights roles, organization, and response to momentum more than star names alone.',
+      koNextPoint: '역사 퀴즈도 선수 이름 암기에서 팀 원리로 확장해 보세요.',
+      enNextPoint:
+          'Use history questions to move from names toward team principles.',
+    ),
+    _McqSeed(
+      id: 'history_womens_world_cup_1999_impact',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '1999년 FIFA 여자 월드컵 결승이 축구 역사에서 갖는 의미로 가장 알맞은 것은?',
+      enStem:
+          'What is the best historical meaning of the 1999 FIFA Women’s World Cup final?',
+      options: [
+        _FootballQuizOption(
+          koText: '여자축구의 대중적 가시성과 큰 무대 서사를 크게 키운 경기',
+          enText:
+              'A match that greatly increased women’s football visibility and big-stage narrative',
+        ),
+        _FootballQuizOption(
+          koText: '남자 월드컵이 처음 시작된 경기',
+          enText: 'The match where the men’s World Cup first began',
+        ),
+        _FootballQuizOption(
+          koText: '클럽 월드컵 결승의 첫 경기',
+          enText: 'The first Club World Cup final',
+        ),
+        _FootballQuizOption(
+          koText: '오프사이드 규칙이 폐지된 경기',
+          enText: 'The match where offside was abolished',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '미국과 중국의 결승전은 경기장 규모, 승부차기, 문화적 파급력까지 여자축구사의 큰 장면입니다.',
+      enExplain:
+          'USA vs China in 1999 is remembered for scale, penalties, and cultural reach in women’s football history.',
+      koNextPoint: '역사적 결승은 경기 내용과 사회적 파급을 함께 보세요.',
+      enNextPoint:
+          'For historic finals, study both the match and its wider impact.',
+    ),
+  ];
+}
+
+List<_ShortAnswerKnowledgeSeed> _advancedFootballHistoryShortAnswerSeeds() {
+  return const [
+    _ShortAnswerKnowledgeSeed(
+      id: 'history_bosman_ruling',
+      difficulty: 3,
+      category: _QuizCategory.fun,
+      koClue: '계약 만료 선수의 이동 자유와 유럽 클럽 스쿼드 구성에 큰 영향을 준 1995년 판결',
+      enClue:
+          '1995 ruling that strongly affected out-of-contract player movement and European squad building',
+      acceptedAnswers: ['보스만 판결', 'bosman ruling', 'bosman'],
+      koExplain: '정답은 "보스만 판결"입니다. 축구사에서 선수 권리와 이적시장 구조를 바꾼 핵심 사건입니다.',
+      enExplain:
+          'The answer is "Bosman ruling." It reshaped player rights and the transfer market.',
+      koNextPoint: '축구 역사는 경기 규칙뿐 아니라 계약과 노동권의 변화도 포함합니다.',
+      enNextPoint:
+          'Football history includes contracts and labor rights as well as match laws.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'history_back_pass_law',
+      difficulty: 2,
+      category: _QuizCategory.rules,
+      koClue: '골키퍼가 동료의 의도적 발 패스를 손으로 잡지 못하게 한 1992년 규정 변화',
+      enClue:
+          '1992 law change stopping goalkeepers from handling a teammate’s deliberate pass by foot',
+      acceptedAnswers: ['백패스 규정', '백패스 룰', 'back pass law', 'back-pass law'],
+      koExplain: '정답은 "백패스 규정"입니다. 경기 속도와 골키퍼 빌드업 기술을 바꾼 규칙 변화입니다.',
+      enExplain:
+          'The answer is "back-pass law." It changed match tempo and goalkeeper build-up demands.',
+      koNextPoint: '규칙 이름을 외운 뒤 어떤 플레이가 달라졌는지까지 연결하세요.',
+      enNextPoint:
+          'After learning the rule name, connect it to the play behavior it changed.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'history_total_football_term',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koClue: '1970년대 네덜란드와 아약스로 대표되며 위치 교대와 공간 점유가 핵심인 전술 사조',
+      enClue:
+          'Tactical idea linked with 1970s Netherlands and Ajax, built on rotations and space occupation',
+      acceptedAnswers: ['토털 풋볼', '토탈 풋볼', 'total football'],
+      koExplain: '정답은 "토털 풋볼"입니다. 유동적 위치 교대와 팀 원칙이 함께 작동하는 전술 역사 개념입니다.',
+      enExplain:
+          'The answer is "Total Football." It combines positional rotation with shared team principles.',
+      koNextPoint: '전술사 용어는 대표 팀과 작동 원리를 한 문장으로 말해 보세요.',
+      enNextPoint:
+          'For tactical history terms, state the team and mechanism in one sentence.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'history_catenaccio_term',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koClue: '스위퍼 보호, 압축 수비, 빠른 전환과 연결되는 이탈리아식 빗장 수비 전술 용어',
+      enClue:
+          'Italian tactical term linked with sweeper cover, compact defending, and transition',
+      acceptedAnswers: ['카테나치오', 'catenaccio'],
+      koExplain: '정답은 "카테나치오"입니다. 단순히 내려서는 수비가 아니라 보호와 전환 구조로 이해해야 합니다.',
+      enExplain:
+          'The answer is "catenaccio." It is about cover and transition structure, not only sitting deep.',
+      koNextPoint: '수비 전술은 막는 위치와 뺏은 뒤 나가는 길을 함께 보세요.',
+      enNextPoint:
+          'For defensive tactics, connect the block with the exit after regaining the ball.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'history_wm_formation',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koClue: '오프사이드 법 변화 이후 20세기 초중반 축구 전술사에서 중요하게 다뤄지는 알파벳 이름의 포메이션',
+      enClue:
+          'Letter-named formation treated as a major early-20th-century tactical landmark after offside-law changes',
+      acceptedAnswers: ['WM', 'wm', 'WM 포메이션', 'wm formation'],
+      koExplain: '정답은 "WM 포메이션"입니다. 규칙 변화에 대응해 팀 구조를 재배치한 역사적 포메이션입니다.',
+      enExplain:
+          'The answer is "WM formation." It reorganized team shape in response to a law change.',
+      koNextPoint: '포메이션은 숫자보다 그 시대의 문제 해결 방식으로 보세요.',
+      enNextPoint:
+          'View formations as era-specific solutions, not just shapes.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'history_lisbon_lions_term',
+      difficulty: 3,
+      category: _QuizCategory.fun,
+      koClue: '1967년 유럽컵을 우승한 셀틱 팀을 부르는 별칭',
+      enClue: 'Nickname for Celtic’s 1967 European Cup-winning team',
+      acceptedAnswers: ['리스본 라이언스', 'lisbon lions'],
+      koExplain: '정답은 "리스본 라이언스"입니다. 셀틱의 1967년 우승팀은 유럽 클럽 축구사의 상징적 팀입니다.',
+      enExplain:
+          'The answer is "Lisbon Lions." Celtic’s 1967 team is a landmark in European club history.',
+      koNextPoint: '팀 별칭은 대회, 연도, 왜 기억되는지를 함께 묶어야 합니다.',
+      enNextPoint:
+          'Pair team nicknames with competition, year, and reason they matter.',
+    ),
+  ];
+}
+
 List<_FootballQuizOption> _buildOptionsFromPool({
   required List<_KoEnPair> pool,
   required _KoEnPair correct,
@@ -11320,6 +11868,7 @@ List<_FootballQuizQuestion> _buildBaseballQuizPool() {
       enNextPoint:
           'Connect the bunt to the scoring chance for the next hitter.',
     ),
+    ..._advancedBaseballQuizQuestions(),
   ];
 }
 
@@ -11562,6 +12111,7 @@ List<_FootballQuizQuestion> _buildBasketballQuizPool() {
       koNextPoint: '기록 이름보다 어떤 플레이가 팀에 도움을 줬는지 함께 보세요.',
       enNextPoint: 'Pair the stat with the plays that helped the team.',
     ),
+    ..._advancedBasketballQuizQuestions(),
   ];
 }
 
@@ -11833,6 +12383,931 @@ List<_FootballQuizQuestion> _buildTennisQuizPool() {
           'Break point is one of the most important moments in a return game.',
       koNextPoint: '브레이크 포인트에서는 리턴 성공률을 먼저 높이는 선택을 하세요.',
       enNextPoint: 'On break point, prioritize putting the return in play.',
+    ),
+    ..._advancedTennisQuizQuestions(),
+  ];
+}
+
+List<_FootballQuizQuestion> _advancedBaseballQuizQuestions() {
+  return <_FootballQuizQuestion>[
+    _sportQuizQuestion(
+      id: 'baseball_adv_mcq_pitch_tunneling',
+      conceptKey: 'baseball_pitch_tunneling',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.technique,
+      koPrompt: '투수가 직구와 변화구를 같은 궤적으로 보이게 하려는 “터널링”의 핵심 목적은?',
+      enPrompt:
+          'What is the main purpose of pitch tunneling, making a fastball and breaking ball look similar early?',
+      options: const [
+        _FootballQuizOption(
+          koText: '타자의 결정 시간을 늦추고 스윙 판단을 흔든다',
+          enText: 'Delay the hitter’s decision and disturb swing judgment',
+        ),
+        _FootballQuizOption(
+          koText: '포수가 공을 잡지 않아도 되게 한다',
+          enText: 'Make catching the ball unnecessary',
+        ),
+        _FootballQuizOption(
+          koText: '모든 공을 스트라이크존 밖으로 던진다',
+          enText: 'Throw every pitch outside the strike zone',
+        ),
+        _FootballQuizOption(
+          koText: '타자가 투구 종류를 더 빨리 보게 한다',
+          enText: 'Help the hitter identify pitch type earlier',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '터널링은 초반 궤적을 비슷하게 보여 타자가 공종과 위치를 늦게 구분하게 만드는 투구 설계입니다.',
+      enExplain:
+          'Pitch tunneling uses similar early flight to make pitch type and location harder to identify in time.',
+      koNextPoint: '투구 전략은 구속보다 타자가 언제 구분하는지를 함께 보세요.',
+      enNextPoint:
+          'Read pitching strategy through when the hitter can identify the pitch, not only velocity.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_adv_mcq_count_1_2_plan',
+      conceptKey: 'baseball_count_leverage_1_2',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '투수에게 유리한 1-2 카운트에서 더 좋은 투구 계획은?',
+      enPrompt:
+          'On a pitcher-friendly 1-2 count, which pitching plan is better?',
+      options: const [
+        _FootballQuizOption(
+          koText: '타자의 약점과 직전 반응을 보고 존 경계나 유인구를 설계한다',
+          enText:
+              'Use the hitter weakness and previous reaction to attack edges or set up a chase pitch',
+        ),
+        _FootballQuizOption(
+          koText: '항상 가운데 직구만 던진다',
+          enText: 'Always throw a fastball down the middle',
+        ),
+        _FootballQuizOption(
+          koText: '볼넷이 무서워 무조건 느린 공만 던진다',
+          enText: 'Throw only slow pitches because walks are scary',
+        ),
+        _FootballQuizOption(
+          koText: '포수 사인과 관계없이 즉흥으로 던진다',
+          enText: 'Ignore the catcher and improvise every time',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '유리한 카운트에서는 존을 넓게 쓰되 타자의 스윙 경향과 앞선 반응을 연결해야 합니다.',
+      enExplain:
+          'In leverage counts, use the zone wider while connecting the hitter tendency with the previous reaction.',
+      koNextPoint: '카운트 문제는 숫자만 보지 말고 타자 반응과 다음 공의 목적을 같이 보세요.',
+      enNextPoint:
+          'For count questions, pair the number with hitter reaction and pitch purpose.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_adv_mcq_first_third_defense',
+      conceptKey: 'baseball_first_third_defense',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '1,3루에서 1루 주자가 도루 스타트를 끊었습니다. 수비가 먼저 정해야 할 것은?',
+      enPrompt:
+          'With runners on first and third, the runner on first breaks for second. What must the defense decide first?',
+      options: const [
+        _FootballQuizOption(
+          koText: '홈 실점을 막을지, 2루 아웃을 노릴지 팀 약속을 따른다',
+          enText:
+              'Follow the team call on whether to protect home or try for the out at second',
+        ),
+        _FootballQuizOption(
+          koText: '모든 내야수가 동시에 2루로 달린다',
+          enText: 'All infielders run to second at once',
+        ),
+        _FootballQuizOption(
+          koText: '포수는 항상 공을 들고 기다린다',
+          enText: 'The catcher always holds the ball and waits',
+        ),
+        _FootballQuizOption(
+          koText: '3루 주자는 절대 움직일 수 없다고 가정한다',
+          enText: 'Assume the runner on third can never move',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '1,3루 도루 상황은 2루 아웃보다 홈 실점 위험이 먼저라 팀별 콜과 컷 플레이가 중요합니다.',
+      enExplain:
+          'First-and-third defense is about balancing the out at second against the risk of conceding home.',
+      koNextPoint: '주자 상황은 공 하나보다 각 주자의 위협을 동시에 계산하세요.',
+      enNextPoint:
+          'In runner situations, calculate every runner’s threat at the same time.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_adv_mcq_relay_throw_priority',
+      conceptKey: 'baseball_relay_throw_priority',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.positions,
+      koPrompt: '장타가 외야 깊숙이 갔을 때 릴레이 플레이의 가장 좋은 기준은?',
+      enPrompt:
+          'On a deep extra-base hit, what is the best principle for a relay play?',
+      options: const [
+        _FootballQuizOption(
+          koText: '중계수는 몸을 목표 베이스로 열고 가장 위험한 주자를 기준으로 송구한다',
+          enText:
+              'The relay opens toward the target base and throws based on the most dangerous runner',
+        ),
+        _FootballQuizOption(
+          koText: '공을 오래 들고 모든 주자를 기다린다',
+          enText: 'Hold the ball and wait for every runner',
+        ),
+        _FootballQuizOption(
+          koText: '항상 가장 가까운 베이스로만 던진다',
+          enText: 'Always throw only to the nearest base',
+        ),
+        _FootballQuizOption(
+          koText: '외야수가 끝까지 혼자 홈으로 던진다',
+          enText: 'The outfielder always throws home alone',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '릴레이는 송구 거리를 줄이는 것뿐 아니라 다음 플레이 방향과 주자 위험도를 정리하는 역할입니다.',
+      enExplain:
+          'A relay reduces throw distance and organizes the next play around runner threat.',
+      koNextPoint: '중계 플레이는 위치, 몸 방향, 목표 베이스를 세트로 보세요.',
+      enNextPoint:
+          'Read relay plays as a set of position, body shape, and target base.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_adv_mcq_shift_counter',
+      conceptKey: 'baseball_shift_counter',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '상대가 강한 당겨치기 성향을 보고 수비 시프트를 걸었습니다. 타자에게 더 성숙한 대응은?',
+      enPrompt:
+          'The defense shifts against a strong pull tendency. What is a more mature hitter response?',
+      options: const [
+        _FootballQuizOption(
+          koText: '카운트와 투구 위치를 보며 반대 방향, 라인드라이브, 번트 가능성을 준비한다',
+          enText:
+              'Use count and pitch location to prepare opposite-field, line-drive, or bunt options',
+        ),
+        _FootballQuizOption(
+          koText: '시프트와 관계없이 모든 공을 더 크게 당겨친다',
+          enText: 'Pull every pitch harder regardless of the shift',
+        ),
+        _FootballQuizOption(
+          koText: '타석에서 수비 위치를 보지 않는다',
+          enText: 'Never look at defensive positioning',
+        ),
+        _FootballQuizOption(
+          koText: '주자가 있어도 결과만 운에 맡긴다',
+          enText: 'Leave the outcome to luck even with runners on',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '시프트 대응은 무조건 밀어치기가 아니라 카운트, 공 위치, 팀 상황에 맞춘 타격 선택입니다.',
+      enExplain:
+          'Countering a shift is not automatic opposite-field hitting; it depends on count, pitch, and team context.',
+      koNextPoint: '타격 전술은 수비 배치와 내 스윙 강점을 함께 읽어야 합니다.',
+      enNextPoint:
+          'Hitting tactics require reading defensive shape with your swing strengths.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_adv_mcq_quality_at_bat',
+      conceptKey: 'baseball_quality_at_bat',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.mindset,
+      koPrompt: '안타가 아니어도 “좋은 타석”으로 평가할 수 있는 장면은?',
+      enPrompt:
+          'Which plate appearance can still be judged as a quality at-bat without a hit?',
+      options: const [
+        _FootballQuizOption(
+          koText: '투수를 오래 던지게 하고 팀 상황에 맞는 강한 타구나 진루타를 만든다',
+          enText:
+              'Make the pitcher work and create hard contact or a productive out for the team situation',
+        ),
+        _FootballQuizOption(
+          koText: '첫 공을 보지 않고 무조건 큰 스윙을 한다',
+          enText: 'Take a huge swing at the first pitch without seeing it',
+        ),
+        _FootballQuizOption(
+          koText: '결과가 아웃이면 과정은 전혀 보지 않는다',
+          enText: 'Ignore the process whenever the result is an out',
+        ),
+        _FootballQuizOption(
+          koText: '삼진 뒤 바로 감정을 오래 끌고 간다',
+          enText: 'Carry frustration for a long time after a strikeout',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '좋은 타석은 안타 여부만이 아니라 투구 수, 강한 컨택, 진루 기여, 작전 수행으로도 판단합니다.',
+      enExplain:
+          'A quality at-bat can include pitch count, hard contact, runner advancement, or executing the plan.',
+      koNextPoint: '야구 멘탈은 결과와 별개로 통제 가능한 과정 지표를 남기는 데서 시작합니다.',
+      enNextPoint:
+          'Baseball mindset improves when controllable process markers are tracked apart from result.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_adv_ox_run_expectancy_outs',
+      conceptKey: 'baseball_run_expectancy_outs',
+      difficulty: 3,
+      style: _QuestionStyle.ox,
+      category: _QuizCategory.tactics,
+      koPrompt: '희생번트의 가치는 아웃카운트, 주자 위치, 점수 차에 따라 달라진다. O/X',
+      enPrompt:
+          'The value of a sacrifice bunt changes with outs, runner position, and score. True/False',
+      options: const [
+        _FootballQuizOption(koText: 'O', enText: 'True'),
+        _FootballQuizOption(koText: 'X', enText: 'False'),
+      ],
+      correctIndex: 0,
+      koExplain: '번트는 항상 좋은 선택이 아니라 득점 확률, 한 점의 가치, 다음 타순에 따라 달라집니다.',
+      enExplain:
+          'A bunt is not always good; its value depends on run expectancy, one-run value, and the next hitters.',
+      koNextPoint: '작전 선택은 “무조건”보다 상황 기대값으로 판단하세요.',
+      enNextPoint:
+          'Judge tactics by situation value rather than absolute rules.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_adv_ox_double_cut',
+      conceptKey: 'baseball_double_cut',
+      difficulty: 2,
+      style: _QuestionStyle.ox,
+      category: _QuizCategory.positions,
+      koPrompt: '깊은 외야 타구에서는 두 명의 중계수가 일렬로 서는 더블 컷 구조가 송구 선택을 안정시킬 수 있다. O/X',
+      enPrompt:
+          'On deep outfield balls, a double-cut alignment can stabilize relay options. True/False',
+      options: const [
+        _FootballQuizOption(koText: 'O', enText: 'True'),
+        _FootballQuizOption(koText: 'X', enText: 'False'),
+      ],
+      correctIndex: 0,
+      koExplain: '더블 컷은 먼 송구에서 홈, 3루, 2루 선택지를 더 안전하게 정리하는 팀 수비 구조입니다.',
+      enExplain:
+          'A double cut helps the defense organize choices to home, third, or second on long throws.',
+      koNextPoint: '외야 수비는 잡는 순간보다 송구 경로와 다음 베이스 커버까지 연결하세요.',
+      enNextPoint:
+          'Outfield defense continues through relay lane and next-base coverage.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_adv_sa_whip',
+      conceptKey: 'baseball_whip_stat',
+      difficulty: 2,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.fun,
+      koPrompt: '투수가 이닝당 허용한 볼넷과 안타를 합쳐 보는 지표의 약어는?',
+      enPrompt:
+          'What abbreviation measures walks plus hits allowed per inning pitched?',
+      acceptedAnswers: const ['WHIP', 'whip'],
+      koExplain: '정답은 "WHIP"입니다. 투수가 얼마나 많은 주자를 내보내는지 보는 대표 지표입니다.',
+      enExplain:
+          'The answer is "WHIP." It shows how many baserunners a pitcher allows per inning.',
+      koNextPoint: '투수 기록은 평균자책점뿐 아니라 출루 허용 능력도 함께 보세요.',
+      enNextPoint:
+          'Evaluate pitchers with baserunner prevention as well as earned runs.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_adv_sa_ops',
+      conceptKey: 'baseball_ops_stat',
+      difficulty: 2,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.fun,
+      koPrompt: '출루율과 장타율을 더해 타자의 생산성을 보는 대표 지표 약어는?',
+      enPrompt:
+          'What abbreviation combines on-base percentage and slugging percentage?',
+      acceptedAnswers: const ['OPS', 'ops'],
+      koExplain: '정답은 "OPS"입니다. 출루와 장타 생산을 함께 보는 간단한 공격 지표입니다.',
+      enExplain:
+          'The answer is "OPS." It combines getting on base with power production.',
+      koNextPoint: '타격 지표는 안타 수보다 출루와 장타 가치를 함께 보면 더 입체적입니다.',
+      enNextPoint:
+          'Hitting value is richer when on-base skill and power are read together.',
+    ),
+  ];
+}
+
+List<_FootballQuizQuestion> _advancedBasketballQuizQuestions() {
+  return <_FootballQuizQuestion>[
+    _sportQuizQuestion(
+      id: 'basketball_adv_mcq_drop_coverage',
+      conceptKey: 'basketball_drop_coverage',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '픽앤롤 수비에서 빅맨이 림 근처로 내려서는 드롭 커버리지의 기본 의도는?',
+      enPrompt:
+          'In pick-and-roll defense, what is the basic intent of drop coverage by the big?',
+      options: const [
+        _FootballQuizOption(
+          koText: '림 보호를 우선하며 미드레인지나 플로터 판단을 강요한다',
+          enText:
+              'Prioritize rim protection while forcing midrange or floater decisions',
+        ),
+        _FootballQuizOption(
+          koText: '코너 슈터를 일부러 완전히 비운다',
+          enText: 'Intentionally leave the corner shooter completely open',
+        ),
+        _FootballQuizOption(
+          koText: '스크리너를 따라 3점 라인 밖까지 항상 나간다',
+          enText: 'Always chase the screener beyond the three-point line',
+        ),
+        _FootballQuizOption(
+          koText: '수비 다섯 명이 모두 볼 핸들러만 본다',
+          enText: 'All five defenders watch only the ball handler',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '드롭은 림과 롤맨을 보호하는 대신 볼 핸들러의 풀업과 플로터를 어떻게 제어할지 정교함이 필요합니다.',
+      enExplain:
+          'Drop protects the rim and roller, but it must manage pull-ups and floaters carefully.',
+      koNextPoint: '픽앤롤 수비는 커버리지 이름보다 어떤 슛을 허용하려는지 보세요.',
+      enNextPoint:
+          'Read pick-and-roll coverage by the shot it is willing to concede.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_adv_mcq_switch_mismatch',
+      conceptKey: 'basketball_switch_mismatch_attack',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '스위치 수비 뒤 작은 선수가 빅맨을 막게 됐습니다. 공격의 좋은 대응은?',
+      enPrompt:
+          'After a defensive switch, a small defender is guarding your big. What is a good offensive response?',
+      options: const [
+        _FootballQuizOption(
+          koText: '바로 포스트업만 고집하지 말고 깊은 실링, 하이로우, 재스크린 각도를 만든다',
+          enText:
+              'Do not force only a post-up; create deep seal, high-low, or rescreen angles',
+        ),
+        _FootballQuizOption(
+          koText: '미스매치를 무시하고 반대편에서만 드리블한다',
+          enText: 'Ignore the mismatch and dribble only on the far side',
+        ),
+        _FootballQuizOption(
+          koText: '빅맨을 3점 라인 밖에 계속 세운다',
+          enText: 'Keep the big standing outside the arc',
+        ),
+        _FootballQuizOption(
+          koText: '샷클락이 끝날 때까지 패스를 금지한다',
+          enText: 'Ban passing until the shot clock expires',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '스위치 공략은 공을 넣는 각도, 위치 선점, 두 번째 스크린까지 연결해야 안정적입니다.',
+      enExplain:
+          'Attacking a switch depends on entry angle, early position, and second actions such as rescreens.',
+      koNextPoint: '미스매치는 발견보다 전달 각도와 타이밍이 더 중요할 때가 많습니다.',
+      enNextPoint:
+          'Finding a mismatch matters less than delivering it at the right angle and timing.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_adv_mcq_spain_pick_roll',
+      conceptKey: 'basketball_spain_pick_and_roll',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '스페인 픽앤롤의 핵심 구조는 무엇일까요?',
+      enPrompt: 'What is the core structure of Spain pick-and-roll?',
+      options: const [
+        _FootballQuizOption(
+          koText: '볼 스크린 뒤 롤맨에게 백스크린을 걸어 림과 외곽 선택지를 동시에 만든다',
+          enText:
+              'A back screen on the roller after the ball screen creates rim and perimeter options',
+        ),
+        _FootballQuizOption(
+          koText: '다섯 명이 모두 같은 코너에 선다',
+          enText: 'All five players stand in the same corner',
+        ),
+        _FootballQuizOption(
+          koText: '공 없이 24초를 모두 보낸다',
+          enText: 'Spend the whole shot clock without the ball',
+        ),
+        _FootballQuizOption(
+          koText: '센터가 하프라인에서 자유투를 던진다',
+          enText: 'The center shoots free throws from half court',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '스페인 픽앤롤은 롤 수비와 백스크린 수비, 외곽 슈터 수비를 동시에 흔드는 세 명 조합입니다.',
+      enExplain:
+          'Spain pick-and-roll stresses roller defense, back-screen defense, and shooter coverage at once.',
+      koNextPoint: '세트 오펜스는 첫 스크린보다 두 번째 충돌 지점을 보세요.',
+      enNextPoint:
+          'In set offense, read the second collision point as much as the first screen.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_adv_mcq_short_roll',
+      conceptKey: 'basketball_short_roll_playmaking',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.technique,
+      koPrompt: '상대가 볼 핸들러를 강하게 트랩할 때 쇼트롤러의 가장 좋은 판단은?',
+      enPrompt:
+          'When the defense traps the ball handler, what is the best short-roll decision?',
+      options: const [
+        _FootballQuizOption(
+          koText: '중간 지점에서 받아 4대3을 읽고 림, 코너, 덩커스팟을 판단한다',
+          enText:
+              'Catch in the middle, read the 4-on-3, and choose rim, corner, or dunker spot',
+        ),
+        _FootballQuizOption(
+          koText: '공을 받자마자 뒤로 물러나 하프라인으로 간다',
+          enText: 'Retreat to half court immediately after catching',
+        ),
+        _FootballQuizOption(
+          koText: '수비가 세 명이어도 무조건 어려운 플로터만 던진다',
+          enText: 'Force a hard floater even against three defenders',
+        ),
+        _FootballQuizOption(
+          koText: '코너 슈터 위치를 보지 않는다',
+          enText: 'Do not look at the corner shooters',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '쇼트롤은 트랩을 벌점으로 만드는 중간 연결입니다. 짧은 패스 뒤 4대3 판단이 핵심입니다.',
+      enExplain:
+          'The short roll punishes traps by turning a short pass into a 4-on-3 read.',
+      koNextPoint: '트랩 대응은 빠른 탈출 패스와 중간 플레이메이커의 시야가 중요합니다.',
+      enNextPoint:
+          'Trap solutions need a quick release pass and a middle playmaker’s vision.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_adv_mcq_zone_overload',
+      conceptKey: 'basketball_zone_overload',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '2-3 지역방어를 흔들기 위한 좋은 공격 원칙은?',
+      enPrompt: 'What is a good offensive principle against a 2-3 zone?',
+      options: const [
+        _FootballQuizOption(
+          koText: '하이포스트와 코너를 연결해 수비 한 명에게 두 선택지를 맡긴다',
+          enText:
+              'Connect high post and corner to force one defender to guard two choices',
+        ),
+        _FootballQuizOption(
+          koText: '공을 한쪽 윙에서만 멈춰 둔다',
+          enText: 'Freeze the ball on one wing only',
+        ),
+        _FootballQuizOption(
+          koText: '코너와 하이포스트를 모두 비운다',
+          enText: 'Empty both the corner and high post',
+        ),
+        _FootballQuizOption(
+          koText: '리바운드를 포기하고 모두 뒤로 선다',
+          enText: 'Give up rebounding and have everyone stand back',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '지역방어 공략은 빈 공간 점유와 오버로드로 수비의 책임 구역을 겹치게 만드는 것이 중요합니다.',
+      enExplain:
+          'Attacking zone requires occupying gaps and overloading responsibility areas.',
+      koNextPoint: '지역방어는 사람보다 구역 사이 빈 공간을 먼저 찾으세요.',
+      enNextPoint:
+          'Against zone, look for gaps between areas rather than only matchups.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_adv_mcq_nail_help',
+      conceptKey: 'basketball_nail_help',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.positions,
+      koPrompt: '윙에서 돌파가 시작될 때 “네일” 위치 도움수비의 목적은?',
+      enPrompt:
+          'When a drive starts from the wing, what is the purpose of help at the nail?',
+      options: const [
+        _FootballQuizOption(
+          koText: '중앙 침투 속도를 늦추고 킥아웃 패스를 예측할 시간을 만든다',
+          enText:
+              'Slow the middle drive and buy time to read the kick-out pass',
+        ),
+        _FootballQuizOption(
+          koText: '림 보호자를 코너로 보내는 것',
+          enText: 'Send the rim protector to the corner',
+        ),
+        _FootballQuizOption(
+          koText: '공을 가진 선수를 등지고 서는 것',
+          enText: 'Stand with the back turned to the ball handler',
+        ),
+        _FootballQuizOption(
+          koText: '리바운드 위치를 일부러 비우는 것',
+          enText: 'Intentionally empty rebounding position',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '네일 도움은 페인트 중앙으로 바로 찢기는 것을 늦추고 로테이션 시간을 벌어줍니다.',
+      enExplain:
+          'Nail help delays straight-line drives into the paint and buys rotation time.',
+      koNextPoint: '도움수비는 많이 가는 것보다 언제 보여주고 언제 복귀하는지가 핵심입니다.',
+      enNextPoint:
+          'Help defense is about showing and recovering at the right time, not simply helping more.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_adv_mcq_late_clock',
+      conceptKey: 'basketball_late_clock_shot_quality',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.mindset,
+      koPrompt: '샷클락 6초 이하에서 공격이 정체됐을 때 더 좋은 팀 판단은?',
+      enPrompt:
+          'When the offense stalls with under six seconds on the shot clock, what is the better team decision?',
+      options: const [
+        _FootballQuizOption(
+          koText: '가장 좋은 매치업이나 드라이브 각도를 빠르게 정하고 리바운드 배치를 준비한다',
+          enText:
+              'Quickly choose the best matchup or drive angle and prepare rebounding balance',
+        ),
+        _FootballQuizOption(
+          koText: '모든 선수가 공 주변으로 몰린다',
+          enText: 'All players crowd around the ball',
+        ),
+        _FootballQuizOption(
+          koText: '샷클락을 보지 않고 평소 세트를 처음부터 다시 시작한다',
+          enText:
+              'Ignore the clock and restart the normal set from the beginning',
+        ),
+        _FootballQuizOption(
+          koText: '실패를 걱정해 아무도 슛하지 않는다',
+          enText: 'Nobody shoots because everyone fears missing',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '늦은 샷클락에서는 완벽한 세트보다 빠른 우선순위, 공간 유지, 리바운드/전환 균형이 중요합니다.',
+      enExplain:
+          'Late clock values quick priority, spacing, and rebound or transition balance over perfect execution.',
+      koNextPoint: '압박 상황에서는 선택지를 줄여 실행 가능한 첫 행동을 정하세요.',
+      enNextPoint:
+          'Under time pressure, narrow options into one executable first action.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_adv_ox_low_man',
+      conceptKey: 'basketball_low_man_rotation',
+      difficulty: 3,
+      style: _QuestionStyle.ox,
+      category: _QuizCategory.tactics,
+      koPrompt: '약측 로우맨은 림 컷과 롤맨을 먼저 막고, 이후 코너 패스에 맞춰 로테이션을 이어가야 한다. O/X',
+      enPrompt:
+          'The weak-side low man often tags the roller or rim cut first, then continues rotation to the corner pass. True/False',
+      options: const [
+        _FootballQuizOption(koText: 'O', enText: 'True'),
+        _FootballQuizOption(koText: 'X', enText: 'False'),
+      ],
+      correctIndex: 0,
+      koExplain: '로우맨은 림을 지키는 첫 도움과 코너 복귀/엑스아웃까지 연결되는 핵심 수비 역할입니다.',
+      enExplain:
+          'The low man is central to protecting the rim first and then rotating or x-ing out to the corner.',
+      koNextPoint: '로테이션 수비는 첫 도움과 다음 패스 대응을 한 줄로 연결하세요.',
+      enNextPoint:
+          'Connect the first help and the next pass response in rotation defense.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_adv_sa_spain_pick_roll',
+      conceptKey: 'basketball_spain_pick_and_roll_term',
+      difficulty: 3,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.tactics,
+      koPrompt: '볼 스크린 뒤 롤맨에게 백스크린을 붙이는 픽앤롤 변형을 무엇이라고 할까?',
+      enPrompt:
+          'What pick-and-roll variation adds a back screen for the roller after the ball screen?',
+      acceptedAnswers: const [
+        '스페인 픽앤롤',
+        '스페인 픽 앤 롤',
+        'spain pick and roll',
+        'spain pick-and-roll',
+        'spanish pick and roll',
+      ],
+      koExplain: '정답은 "스페인 픽앤롤"입니다. 롤맨과 슈터 수비를 동시에 흔드는 세 명 조합입니다.',
+      enExplain:
+          'The answer is "Spain pick-and-roll." It stresses the roller defender and shooter coverage together.',
+      koNextPoint: '세트 이름은 참여자와 두 번째 스크린 위치까지 함께 외우세요.',
+      enNextPoint:
+          'Learn set names with the participants and the location of the second screen.',
+    ),
+    _sportQuizQuestion(
+      id: 'basketball_adv_sa_nail_help',
+      conceptKey: 'basketball_nail_help_term',
+      difficulty: 2,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.positions,
+      koPrompt: '자유투 라인 중앙 근처에서 드라이브를 늦추는 도움수비 위치를 무엇이라고 부를까?',
+      enPrompt:
+          'What is the help-defense spot near the middle of the free-throw line called?',
+      acceptedAnswers: const ['네일', 'nail', 'nail help', '네일 도움'],
+      koExplain: '정답은 "네일"입니다. 윙 돌파를 늦추고 수비 로테이션 시간을 만드는 위치입니다.',
+      enExplain:
+          'The answer is "nail." It slows wing drives and buys time for rotations.',
+      koNextPoint: '수비 위치 용어는 코트의 실제 지점과 역할을 함께 기억하세요.',
+      enNextPoint:
+          'Pair defensive location terms with the actual court spot and role.',
+    ),
+  ];
+}
+
+List<_FootballQuizQuestion> _advancedTennisQuizQuestions() {
+  return <_FootballQuizQuestion>[
+    _sportQuizQuestion(
+      id: 'tennis_adv_mcq_serve_plus_one',
+      conceptKey: 'tennis_serve_plus_one',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '서브 플러스 원 패턴의 핵심은 무엇일까요?',
+      enPrompt: 'What is the core idea of a serve-plus-one pattern?',
+      options: const [
+        _FootballQuizOption(
+          koText: '서브 코스와 다음 첫 공격 샷을 미리 연결한다',
+          enText:
+              'Link the serve location with the first attacking shot after it',
+        ),
+        _FootballQuizOption(
+          koText: '서브 후 라켓을 내려놓는다',
+          enText: 'Put the racket down after serving',
+        ),
+        _FootballQuizOption(
+          koText: '리턴이 오기 전까지 코트를 보지 않는다',
+          enText: 'Avoid reading the court until the return arrives',
+        ),
+        _FootballQuizOption(
+          koText: '두 번째 샷을 항상 로브로만 친다',
+          enText: 'Always hit the second shot as a lob',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '서브 플러스 원은 서브 자체보다 리턴이 올 위치와 다음 공격 방향을 미리 설계하는 패턴입니다.',
+      enExplain:
+          'Serve-plus-one designs the likely return and next attacking shot, not only the serve.',
+      koNextPoint: '서브 전에는 코스, 예상 리턴, 다음 발 위치를 한 세트로 준비하세요.',
+      enNextPoint:
+          'Before serving, pair location, expected return, and next foot position.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_adv_mcq_kick_serve',
+      conceptKey: 'tennis_kick_serve_second',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.technique,
+      koPrompt: '두 번째 서브에서 킥 서브가 유용한 대표 이유는?',
+      enPrompt: 'Why is a kick serve useful as a second serve?',
+      options: const [
+        _FootballQuizOption(
+          koText: '높은 네트 클리어런스와 바운드로 안정성과 리턴 압박을 함께 만든다',
+          enText:
+              'It combines net clearance, bounce, safety, and return pressure',
+        ),
+        _FootballQuizOption(
+          koText: '항상 에이스가 되기 때문',
+          enText: 'Because it is always an ace',
+        ),
+        _FootballQuizOption(
+          koText: '공이 바운드하지 않기 때문',
+          enText: 'Because the ball does not bounce',
+        ),
+        _FootballQuizOption(
+          koText: '서브 순서를 바꿀 수 있기 때문',
+          enText: 'Because it changes the service order',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '킥 서브는 회전으로 안정적인 높이를 만들고 바운드 후 상대 타점을 흔듭니다.',
+      enExplain:
+          'A kick serve uses spin for safer height and a bounce that disrupts contact point.',
+      koNextPoint: '두 번째 서브는 속도보다 회전, 높이, 목표 지점을 먼저 안정시키세요.',
+      enNextPoint:
+          'For second serves, stabilize spin, height, and target before speed.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_adv_mcq_inside_out_forehand',
+      conceptKey: 'tennis_inside_out_forehand',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '인사이드아웃 포핸드를 선택하기 좋은 상황은?',
+      enPrompt: 'When is an inside-out forehand a good choice?',
+      options: const [
+        _FootballQuizOption(
+          koText: '백핸드 쪽 공을 돌아서 상대 백핸드 코너로 주도권을 보낼 수 있을 때',
+          enText:
+              'When you can run around the backhand and drive to the opponent backhand corner',
+        ),
+        _FootballQuizOption(
+          koText: '몸 균형이 완전히 무너졌을 때마다',
+          enText: 'Every time your balance is completely broken',
+        ),
+        _FootballQuizOption(
+          koText: '상대가 네트 앞에 있고 빈 코트가 없을 때만',
+          enText: 'Only when the opponent is at net and no court is open',
+        ),
+        _FootballQuizOption(
+          koText: '서브 전에만 사용할 수 있다',
+          enText: 'It can only be used before serving',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '인사이드아웃 포핸드는 발 빠르게 돌아서 강점 샷으로 대각 주도권을 잡는 패턴입니다.',
+      enExplain:
+          'Inside-out forehand uses footwork to turn a backhand-side ball into a forehand pattern.',
+      koNextPoint: '공격 패턴은 샷 이름보다 발 위치와 회복 위치까지 함께 보세요.',
+      enNextPoint:
+          'For attacking patterns, connect shot name with footwork and recovery position.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_adv_mcq_slice_time',
+      conceptKey: 'tennis_slice_time_control',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.technique,
+      koPrompt: '수비 상황에서 낮은 슬라이스가 유용한 이유는?',
+      enPrompt: 'Why can a low slice be useful in a defensive situation?',
+      options: const [
+        _FootballQuizOption(
+          koText: '공을 낮게 깔아 시간을 벌고 상대가 위로 들어올리게 만든다',
+          enText:
+              'It buys time and keeps the ball low, forcing the opponent to lift',
+        ),
+        _FootballQuizOption(
+          koText: '네트를 없애기 때문',
+          enText: 'Because it removes the net',
+        ),
+        _FootballQuizOption(
+          koText: '상대 포인트를 두 점 깎기 때문',
+          enText: 'Because it subtracts two opponent points',
+        ),
+        _FootballQuizOption(
+          koText: '공이 코트 밖으로 나가도 인이 되기 때문',
+          enText: 'Because an out ball becomes in',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '슬라이스는 속도를 늦추고 낮은 바운드를 만들어 수비에서 중립으로 돌아갈 시간을 줍니다.',
+      enExplain:
+          'Slice slows the ball and creates a low bounce, helping defense return toward neutral.',
+      koNextPoint: '수비 샷은 위너보다 시간, 높이, 다음 위치 회복으로 평가하세요.',
+      enNextPoint:
+          'Judge defensive shots by time, height, and recovery, not only winners.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_adv_mcq_return_position',
+      conceptKey: 'tennis_return_position_big_server',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.positions,
+      koPrompt: '강한 서버를 상대할 때 리턴 위치 조정의 좋은 기준은?',
+      enPrompt:
+          'Against a big server, what is a good principle for adjusting return position?',
+      options: const [
+        _FootballQuizOption(
+          koText: '서브 속도, 바운드 높이, 내가 공을 맞히는 타점을 기준으로 앞뒤를 조정한다',
+          enText:
+              'Adjust forward or back based on serve speed, bounce height, and your contact point',
+        ),
+        _FootballQuizOption(
+          koText: '항상 베이스라인 안쪽 두 걸음에 선다',
+          enText: 'Always stand two steps inside the baseline',
+        ),
+        _FootballQuizOption(
+          koText: '상대 토스와 상관없이 눈을 감고 기다린다',
+          enText: 'Ignore the toss and wait with eyes closed',
+        ),
+        _FootballQuizOption(
+          koText: '리턴 때는 스플릿 스텝을 하지 않는다',
+          enText: 'Never split step on return',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '리턴 위치는 자존심이 아니라 실제 타점과 반응 시간을 맞추기 위한 조정입니다.',
+      enExplain:
+          'Return position is an adjustment for contact point and reaction time, not pride.',
+      koNextPoint: '리턴 전략은 위치, 스플릿 스텝 타이밍, 첫 목표를 함께 잡으세요.',
+      enNextPoint:
+          'Return strategy links position, split-step timing, and first target.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_adv_mcq_drop_shot_timing',
+      conceptKey: 'tennis_drop_shot_timing',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.tactics,
+      koPrompt: '드롭샷을 쓰기 좋은 전술적 조건은?',
+      enPrompt: 'What tactical condition makes a drop shot more suitable?',
+      options: const [
+        _FootballQuizOption(
+          koText: '상대를 뒤로 밀어낸 뒤 균형이 뒤에 있을 때 앞 공간을 찌른다',
+          enText:
+              'After pushing the opponent back, attack the front space while their balance is deep',
+        ),
+        _FootballQuizOption(
+          koText: '내가 완전히 밀려 공을 겨우 맞힐 때마다',
+          enText: 'Whenever I am fully stretched and barely reaching the ball',
+        ),
+        _FootballQuizOption(
+          koText: '상대가 네트 앞에 서 있을 때만',
+          enText: 'Only when the opponent is already at the net',
+        ),
+        _FootballQuizOption(
+          koText: '바람이 불면 항상 첫 샷으로',
+          enText: 'Always as the first shot whenever there is wind',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '좋은 드롭샷은 기술보다 먼저 상대 위치와 균형을 뒤로 묶어 둔 전술적 준비에서 나옵니다.',
+      enExplain:
+          'A good drop shot starts with tactical setup: opponent position and balance are pulled deep first.',
+      koNextPoint: '기술 샷은 언제 쓰는지가 어떻게 치는지만큼 중요합니다.',
+      enNextPoint:
+          'For touch shots, when to use them matters as much as how to hit them.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_adv_mcq_tiebreak_process',
+      conceptKey: 'tennis_tiebreak_process',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.mindset,
+      koPrompt: '타이브레이크 초반 더 좋은 멘탈/전술 접근은?',
+      enPrompt:
+          'Early in a tiebreak, what is a better mental and tactical approach?',
+      options: const [
+        _FootballQuizOption(
+          koText: '첫 서브 확률, 깊은 리턴, 다음 한 포인트 루틴에 집중한다',
+          enText:
+              'Focus on first-serve percentage, deep returns, and the next-point routine',
+        ),
+        _FootballQuizOption(
+          koText: '점수 생각 때문에 루틴을 모두 버린다',
+          enText: 'Abandon every routine because of the score',
+        ),
+        _FootballQuizOption(
+          koText: '한 포인트를 잃으면 세트가 끝났다고 판단한다',
+          enText: 'Treat the set as over after losing one point',
+        ),
+        _FootballQuizOption(
+          koText: '위험한 위너만 계속 노린다',
+          enText: 'Keep going only for risky winners',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '타이브레이크는 점수 압박이 커질수록 루틴, 첫 서브, 리턴 깊이 같은 반복 가능한 기준이 중요합니다.',
+      enExplain:
+          'In tiebreaks, repeatable anchors such as routine, first serve, and return depth matter under pressure.',
+      koNextPoint: '압박 점수에서는 결과보다 다음 포인트의 첫 행동 단서를 잡으세요.',
+      enNextPoint:
+          'Under pressure, hold a first-action cue for the next point rather than the outcome.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_adv_ox_recovery_position',
+      conceptKey: 'tennis_recovery_position',
+      difficulty: 2,
+      style: _QuestionStyle.ox,
+      category: _QuizCategory.positions,
+      koPrompt: '좋은 샷 뒤에도 다음 상대 샷 각도에 맞춰 회복 위치를 잡는 것이 중요하다. O/X',
+      enPrompt:
+          'Even after a good shot, recovering to a position that matches the opponent’s likely angles matters. True/False',
+      options: const [
+        _FootballQuizOption(koText: 'O', enText: 'True'),
+        _FootballQuizOption(koText: 'X', enText: 'False'),
+      ],
+      correctIndex: 0,
+      koExplain: '테니스는 한 번 잘 치는 것보다 다음 공을 받을 위치까지 연결해야 랠리 주도권이 유지됩니다.',
+      enExplain:
+          'Tennis control depends on connecting a good shot with the recovery position for the next ball.',
+      koNextPoint: '샷 평가에는 공의 질과 회복 위치를 같이 넣으세요.',
+      enNextPoint:
+          'Evaluate shots together with the recovery position they allow.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_adv_sa_serve_plus_one',
+      conceptKey: 'tennis_serve_plus_one_term',
+      difficulty: 3,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.tactics,
+      koPrompt: '서브 코스와 그 다음 첫 공격 샷을 한 세트로 설계하는 패턴 이름은?',
+      enPrompt:
+          'What pattern links serve location with the first attacking shot after it?',
+      acceptedAnswers: const [
+        '서브 플러스 원',
+        'serve plus one',
+        'serve-plus-one',
+      ],
+      koExplain: '정답은 "서브 플러스 원"입니다. 서브 이후 첫 공격까지 미리 연결하는 전술 패턴입니다.',
+      enExplain:
+          'The answer is "serve-plus-one." It links the serve with the first attacking shot.',
+      koNextPoint: '서브 패턴은 넣는 것에서 끝나지 않고 다음 샷까지 설계하세요.',
+      enNextPoint:
+          'Serve patterns should be designed through the next shot, not just the serve.',
+    ),
+    _sportQuizQuestion(
+      id: 'tennis_adv_sa_kick_serve',
+      conceptKey: 'tennis_kick_serve_term',
+      difficulty: 2,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.technique,
+      koPrompt: '회전으로 높게 튀어 두 번째 서브에서 안정성과 압박을 함께 주는 서브는?',
+      enPrompt:
+          'What serve uses spin and high bounce to add safety and pressure, often on second serve?',
+      acceptedAnswers: const ['킥 서브', 'kick serve', 'kickserve'],
+      koExplain: '정답은 "킥 서브"입니다. 높은 궤적과 바운드로 안전성과 리턴 압박을 함께 만듭니다.',
+      enExplain:
+          'The answer is "kick serve." Its shape and bounce combine safety with return pressure.',
+      koNextPoint: '서브 종류는 궤적, 바운드, 다음 코트 위치까지 함께 익히세요.',
+      enNextPoint:
+          'Learn serve types through flight, bounce, and next-court position.',
     ),
   ];
 }
