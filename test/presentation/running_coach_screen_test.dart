@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -100,6 +101,14 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-video-frame')),
       findsOneWidget,
     );
+    final referenceVideo = await rootBundle.load(
+      'assets/videos/running_coach_reference_sample.mp4',
+    );
+    final mistakeVideo = await rootBundle.load(
+      'assets/videos/running_coach_mistake_sample.mp4',
+    );
+    expect(referenceVideo.lengthInBytes, greaterThan(100000));
+    expect(mistakeVideo.lengthInBytes, greaterThan(100000));
     expect(
       find.byKey(const ValueKey('running-coach-sample-frame-guide')),
       findsOneWidget,
