@@ -35,27 +35,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => 'Let\'s tour the screens first';
+  String get welcomeGuideTitle => 'Build your football day with one calm note';
 
   @override
   String get welcomeGuideIntro =>
-      'The guide highlights where to tap first, and Rinzy uses coach marks to show the order.';
+      'Start from the next useful action, then let the app connect training, meals, matches, and reflection.';
 
   @override
-  String get welcomeGuidePrimaryAction => 'Start';
+  String get welcomeGuidePrimaryAction => 'Start the guide';
 
   @override
-  String get welcomeGuideSectionFlow => 'Step-by-step flow';
+  String get welcomeGuideSectionFlow => 'First flow';
 
   @override
   String get welcomeGuideNextTabHint =>
-      'Pick another tab above to preview its buttons.';
+      'After this, the Home screen continues with live coach marks on the real buttons.';
 
   @override
-  String get welcomeGuidePreviewLabel => 'Screen highlight';
+  String get welcomeGuidePreviewLabel => 'Best place to start';
 
   @override
-  String get welcomeGuideCoachMarkLabel => 'Coach mark';
+  String get welcomeGuideCoachMarkLabel => 'First tap';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {

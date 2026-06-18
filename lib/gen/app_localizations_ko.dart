@@ -35,26 +35,26 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => '처음 쓰는 화면을 같이 둘러볼게요';
+  String get welcomeGuideTitle => '축구 하루를 차분한 노트로 정리해요';
 
   @override
   String get welcomeGuideIntro =>
-      '화면에서 먼저 눌러볼 곳을 하이라이트하고, 린지가 코치마크로 사용 순서를 알려줘요.';
+      '다음에 할 일부터 시작하고, 훈련·식사·시합·회고가 자연스럽게 이어지게 도와드릴게요.';
 
   @override
-  String get welcomeGuidePrimaryAction => '시작하기';
+  String get welcomeGuidePrimaryAction => '가이드 시작하기';
 
   @override
-  String get welcomeGuideSectionFlow => '순서대로 해보기';
+  String get welcomeGuideSectionFlow => '첫 흐름';
 
   @override
-  String get welcomeGuideNextTabHint => '위 탭을 바꾸면 다른 화면의 버튼 흐름을 볼 수 있어요.';
+  String get welcomeGuideNextTabHint => '시작 후 홈 화면에서 실제 버튼 위 코칭마크가 이어져요.';
 
   @override
-  String get welcomeGuidePreviewLabel => '화면 하이라이트';
+  String get welcomeGuidePreviewLabel => '먼저 볼 곳';
 
   @override
-  String get welcomeGuideCoachMarkLabel => '코치마크';
+  String get welcomeGuideCoachMarkLabel => '첫 탭';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {

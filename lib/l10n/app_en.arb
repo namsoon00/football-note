@@ -12,13 +12,13 @@
       "tabName": {}
     }
   },
-  "welcomeGuideTitle": "Let's tour the screens first",
-  "welcomeGuideIntro": "The guide highlights where to tap first, and Rinzy uses coach marks to show the order.",
-  "welcomeGuidePrimaryAction": "Start",
-  "welcomeGuideSectionFlow": "Step-by-step flow",
-  "welcomeGuideNextTabHint": "Pick another tab above to preview its buttons.",
-  "welcomeGuidePreviewLabel": "Screen highlight",
-  "welcomeGuideCoachMarkLabel": "Coach mark",
+  "welcomeGuideTitle": "Build your football day with one calm note",
+  "welcomeGuideIntro": "Start from the next useful action, then let the app connect training, meals, matches, and reflection.",
+  "welcomeGuidePrimaryAction": "Start the guide",
+  "welcomeGuideSectionFlow": "First flow",
+  "welcomeGuideNextTabHint": "After this, the Home screen continues with live coach marks on the real buttons.",
+  "welcomeGuidePreviewLabel": "Best place to start",
+  "welcomeGuideCoachMarkLabel": "First tap",
   "tabGuideCoachMarkStep": "Step {current} of {total}",
   "@tabGuideCoachMarkStep": {
     "placeholders": {

@@ -151,43 +151,43 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeGuideTitle.
   ///
   /// In en, this message translates to:
-  /// **'Let\'s tour the screens first'**
+  /// **'Build your football day with one calm note'**
   String get welcomeGuideTitle;
 
   /// No description provided for @welcomeGuideIntro.
   ///
   /// In en, this message translates to:
-  /// **'The guide highlights where to tap first, and Rinzy uses coach marks to show the order.'**
+  /// **'Start from the next useful action, then let the app connect training, meals, matches, and reflection.'**
   String get welcomeGuideIntro;
 
   /// No description provided for @welcomeGuidePrimaryAction.
   ///
   /// In en, this message translates to:
-  /// **'Start'**
+  /// **'Start the guide'**
   String get welcomeGuidePrimaryAction;
 
   /// No description provided for @welcomeGuideSectionFlow.
   ///
   /// In en, this message translates to:
-  /// **'Step-by-step flow'**
+  /// **'First flow'**
   String get welcomeGuideSectionFlow;
 
   /// No description provided for @welcomeGuideNextTabHint.
   ///
   /// In en, this message translates to:
-  /// **'Pick another tab above to preview its buttons.'**
+  /// **'After this, the Home screen continues with live coach marks on the real buttons.'**
   String get welcomeGuideNextTabHint;
 
   /// No description provided for @welcomeGuidePreviewLabel.
   ///
   /// In en, this message translates to:
-  /// **'Screen highlight'**
+  /// **'Best place to start'**
   String get welcomeGuidePreviewLabel;
 
   /// No description provided for @welcomeGuideCoachMarkLabel.
   ///
   /// In en, this message translates to:
-  /// **'Coach mark'**
+  /// **'First tap'**
   String get welcomeGuideCoachMarkLabel;
 
   /// No description provided for @tabGuideCoachMarkStep.

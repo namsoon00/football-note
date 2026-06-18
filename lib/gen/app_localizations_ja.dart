@@ -35,25 +35,25 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => '最初に画面を一緒に確認しましょう';
+  String get welcomeGuideTitle => 'サッカーの一日を落ち着いたノートにまとめましょう';
 
   @override
-  String get welcomeGuideIntro => '最初にタップする場所をハイライトし、リンジーがコーチマークで順番を案内します。';
+  String get welcomeGuideIntro => '次に必要な行動から始めて、練習・食事・試合・振り返りが自然につながるように案内します。';
 
   @override
-  String get welcomeGuidePrimaryAction => '開始';
+  String get welcomeGuidePrimaryAction => 'ガイドを開始';
 
   @override
-  String get welcomeGuideSectionFlow => '段階的な流れ';
+  String get welcomeGuideSectionFlow => '最初の流れ';
 
   @override
-  String get welcomeGuideNextTabHint => '上の別のタブを選択して、そのボタンをプレビューします。';
+  String get welcomeGuideNextTabHint => '開始後は、ホーム画面の実際のボタンにコーチマークが続きます。';
 
   @override
-  String get welcomeGuidePreviewLabel => '画面ハイライト';
+  String get welcomeGuidePreviewLabel => '最初に見る場所';
 
   @override
-  String get welcomeGuideCoachMarkLabel => 'コーチマーク';
+  String get welcomeGuideCoachMarkLabel => '最初のタップ';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {
