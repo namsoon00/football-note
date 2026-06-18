@@ -388,7 +388,6 @@
   "worldCupPlayerProfilePositionLabel": "ポジション",
   "worldCupPlayerProfileClubLabel": "所属クラブ",
   "worldCupPlayerClubPending": "クラブ更新待ち",
-  "worldCupPlayerProfileSourceNote": "公式写真がない場合は、選手の顔アイコンを表示します。",
   "worldCupScorePending": "- : -",
   "worldCupScoreLine": "{homeScore} : {awayScore}",
   "@worldCupScoreLine": {

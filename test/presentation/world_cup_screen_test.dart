@@ -440,8 +440,8 @@ void main() {
     expect(find.text('예정'), findsNothing);
   });
 
-  testWidgets('match detail localizes lineup players and shows club and image',
-      (
+  testWidgets(
+      'match detail localizes lineup players and shows club without image', (
     tester,
   ) async {
     final fixture = worldCupFixtures.firstWhere(
@@ -483,7 +483,7 @@ void main() {
             position: FifaMatchPlayerPosition.forward,
             isStarting: true,
             isCaptain: true,
-            pictureUrl: 'https://example.com/son.png',
+            pictureUrl: '',
           ),
         ],
         awayPlayers: const <FifaMatchPlayer>[],
@@ -523,7 +523,8 @@ void main() {
     expect(find.text('출전 명단'), findsOneWidget);
     expect(find.textContaining('손흥민'), findsWidgets);
     expect(find.text('Los Angeles FC'), findsOneWidget);
-    expect(find.byType(Image), findsWidgets);
+    expect(find.byIcon(Icons.face_rounded), findsNothing);
+    expect(find.textContaining('공식 사진'), findsNothing);
   });
 
   testWidgets('fixture calendar localizes month and weekday labels', (

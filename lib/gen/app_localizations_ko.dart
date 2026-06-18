@@ -804,10 +804,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupPlayerClubPending => '소속팀 업데이트 대기';
 
   @override
-  String get worldCupPlayerProfileSourceNote =>
-      '공식 사진이 없을 때는 선수 얼굴 아이콘을 표시합니다.';
-
-  @override
   String get worldCupScorePending => '- : -';
 
   @override
