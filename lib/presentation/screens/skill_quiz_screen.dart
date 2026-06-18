@@ -5668,16 +5668,16 @@ List<_McqSeed> _issue279FormationScenarioMcqSeeds() {
           enText: 'Who covers the wide space behind them',
         ),
         _FootballQuizOption(
-          koText: '공격수의 등번호가 무엇인지',
-          enText: 'What number the forward wears',
+          koText: '반대편 윙어가 얼마나 넓게 서 있는지',
+          enText: 'How wide the far-side winger is positioned',
         ),
         _FootballQuizOption(
-          koText: '골키퍼가 코너킥을 차는지',
-          enText: 'Whether the goalkeeper takes corners',
+          koText: '공 소유자가 어느 발로 패스할 수 있는지',
+          enText: 'Which foot the ball carrier can use to pass',
         ),
         _FootballQuizOption(
-          koText: '벤치가 어느 쪽에 있는지',
-          enText: 'Which side the bench is on',
+          koText: '압박 방향이 중앙을 열어 주는지',
+          enText: 'Whether the pressing angle opens the center',
         ),
       ],
       correctIndex: 0,
@@ -11641,9 +11641,12 @@ List<_FootballQuizQuestion> _buildBaseballQuizPool() {
             koText: '주자가 반드시 가야 하는 베이스',
             enText: 'The base the runner is forced to reach'),
         _FootballQuizOption(
-            koText: '외야 펜스 거리', enText: 'The outfield fence distance'),
-        _FootballQuizOption(koText: '투수의 구속', enText: 'The pitcher speed'),
-        _FootballQuizOption(koText: '타자의 등번호', enText: 'The batter number'),
+            koText: '주자가 리드하고 있는 방향',
+            enText: 'The direction of the runner lead'),
+        _FootballQuizOption(koText: '투수의 투구 템포', enText: 'The pitcher tempo'),
+        _FootballQuizOption(
+            koText: '타자가 다음 공을 기다리는 위치',
+            enText: 'The hitter setup for the next pitch'),
       ],
       correctIndex: 0,
       koExplain: '포스 아웃은 주자가 밀려서 반드시 가야 하는 베이스를 공보다 늦게 밟으면 아웃입니다.',
@@ -11670,8 +11673,8 @@ List<_FootballQuizQuestion> _buildBaseballQuizPool() {
         _FootballQuizOption(
             koText: '타석으로 돌아간다', enText: 'Return to home plate'),
         _FootballQuizOption(
-            koText: '주심에게 허락을 받는다',
-            enText: 'Ask the plate umpire for permission'),
+            koText: '공이 잡히기 전 먼저 출발한다',
+            enText: 'Leave before the ball is caught'),
       ],
       correctIndex: 0,
       koExplain: '잡힌 플라이볼에서는 포구 이후 원래 베이스를 밟은 뒤 진루해야 합니다.',
@@ -11694,12 +11697,14 @@ List<_FootballQuizQuestion> _buildBaseballQuizPool() {
             koText: '고의 낙구로 병살을 노리는 상황을 막는다',
             enText: 'Prevent an intentional drop to create a double play'),
         _FootballQuizOption(
-            koText: '홈런을 더 많이 만들게 한다', enText: 'Create more home runs'),
+            koText: '모든 뜬공에서 주자 진루를 금지한다',
+            enText: 'Ban runner advancement on every fly ball'),
         _FootballQuizOption(
-            koText: '투수 교체를 줄인다', enText: 'Reduce pitching changes'),
+            koText: '외야 뜬공을 항상 자동 아웃으로 만든다',
+            enText: 'Make every outfield fly ball an automatic out'),
         _FootballQuizOption(
-            koText: '외야수만 공을 잡게 한다',
-            enText: 'Force only outfielders to catch the ball'),
+            koText: '주자가 없는 상황에서도 항상 적용한다',
+            enText: 'Apply it every time even with no runners on base'),
       ],
       correctIndex: 0,
       koExplain: '인필드 플라이는 쉬운 내야 뜬공을 일부러 떨어뜨려 주자를 속이는 플레이를 제한합니다.',
@@ -11720,7 +11725,9 @@ List<_FootballQuizQuestion> _buildBaseballQuizPool() {
         _FootballQuizOption(
             koText: '송구 거리를 줄이고 다음 플레이 방향을 결정한다',
             enText: 'Shorten the throw and redirect the next play'),
-        _FootballQuizOption(koText: '타자에게 사인을 낸다', enText: 'Signal the batter'),
+        _FootballQuizOption(
+            koText: '중계 위치보다 공을 더 오래 들고 있는다',
+            enText: 'Hold the ball longer than the relay needs'),
         _FootballQuizOption(
             koText: '공을 오래 들고 시간을 끈다', enText: 'Hold the ball to waste time'),
         _FootballQuizOption(koText: '항상 홈으로만 던진다', enText: 'Always throw home'),
@@ -11796,10 +11803,15 @@ List<_FootballQuizQuestion> _buildBaseballQuizPool() {
         _FootballQuizOption(
             koText: '투수의 첫 움직임과 견제 습관',
             enText: 'The pitcher first move and pickoff habit'),
-        _FootballQuizOption(koText: '관중의 함성', enText: 'The crowd noise'),
-        _FootballQuizOption(koText: '타자의 배트 색', enText: 'The bat color'),
         _FootballQuizOption(
-            koText: '외야 잔디 길이', enText: 'The outfield grass length'),
+            koText: '포수의 미트 위치만 보고 출발한다',
+            enText: 'Start only from the catcher glove target'),
+        _FootballQuizOption(
+            koText: '리드 폭만 크게 잡고 귀루 균형은 보지 않는다',
+            enText: 'Take a bigger lead without checking return balance'),
+        _FootballQuizOption(
+            koText: '타자의 스윙 결과를 본 뒤에야 출발한다',
+            enText: 'Start only after seeing the hitter swing result'),
       ],
       correctIndex: 0,
       koExplain: '도루는 투수의 움직임, 포수 송구, 카운트가 함께 맞아야 성공률이 올라갑니다.',
@@ -11964,9 +11976,14 @@ List<_FootballQuizQuestion> _buildBasketballQuizPool() {
         _FootballQuizOption(
             koText: '스크린 수비의 대응 방식', enText: 'How the screen defender reacts'),
         _FootballQuizOption(
-            koText: '벤치의 물병 위치', enText: 'Where the bench bottles are'),
-        _FootballQuizOption(koText: '심판의 손목시계', enText: 'The referee watch'),
-        _FootballQuizOption(koText: '관중석 색깔', enText: 'The crowd colors'),
+            koText: '코너 수비수가 도움을 얼마나 좁히는지',
+            enText: 'How far the corner defender helps inside'),
+        _FootballQuizOption(
+            koText: '롤맨이 어느 손으로 마무리하는지',
+            enText: 'Which hand the roller prefers to finish with'),
+        _FootballQuizOption(
+            koText: '약측 슈터가 얼마나 높게 올라오는지',
+            enText: 'How high the weak-side shooter lifts'),
       ],
       correctIndex: 0,
       koExplain: '드롭, 스위치, 헤지에 따라 슛, 패스, 돌파 선택이 달라집니다.',
@@ -11989,7 +12006,9 @@ List<_FootballQuizQuestion> _buildBasketballQuizPool() {
             enText: 'Block the opponent path to the rebound'),
         _FootballQuizOption(koText: '더 멀리 드리블한다', enText: 'Dribble farther'),
         _FootballQuizOption(koText: '슛 폼을 바꾼다', enText: 'Change shooting form'),
-        _FootballQuizOption(koText: '코트 밖으로 나간다', enText: 'Step out of bounds'),
+        _FootballQuizOption(
+            koText: '리바운드가 떨어진 뒤에만 몸을 붙인다',
+            enText: 'Make contact only after the rebound drops'),
       ],
       correctIndex: 0,
       koExplain: '박스아웃은 공만 보는 것이 아니라 먼저 몸으로 위치를 잡는 기술입니다.',
@@ -12065,7 +12084,8 @@ List<_FootballQuizQuestion> _buildBasketballQuizPool() {
             koText: '공격 리바운드를 계속 노린다',
             enText: 'Keep chasing the offensive rebound'),
         _FootballQuizOption(
-            koText: '벤치로 돌아간다', enText: 'Run back to the bench'),
+            koText: '가장 먼 슈터만 따라가고 공을 늦추지 않는다',
+            enText: 'Follow only the far shooter without slowing the ball'),
         _FootballQuizOption(koText: '천천히 걸어간다', enText: 'Walk back slowly'),
       ],
       correctIndex: 0,
@@ -12260,8 +12280,12 @@ List<_FootballQuizQuestion> _buildTennisQuizPool() {
             enText: 'Prepare to move either direction as the opponent hits'),
         _FootballQuizOption(
             koText: '공을 더 세게 만든다', enText: 'Make the ball faster'),
-        _FootballQuizOption(koText: '라켓을 바꾼다', enText: 'Change rackets'),
-        _FootballQuizOption(koText: '점수를 숨긴다', enText: 'Hide the score'),
+        _FootballQuizOption(
+            koText: '상대가 친 뒤 한 박자 늦게 멈춘다',
+            enText: 'Stop one beat late after the opponent hits'),
+        _FootballQuizOption(
+            koText: '다음 공 방향을 예측해 먼저 한쪽으로 뛴다',
+            enText: 'Guess early and run one way before contact'),
       ],
       correctIndex: 0,
       koExplain: '스플릿 스텝은 반응 시간을 줄이고 첫 발을 빠르게 만드는 준비 동작입니다.',
@@ -13400,6 +13424,266 @@ List<_FootballQuizQuestion> _quizPoolForSport(String? sportId) {
     SportCatalog.tennisId => _tennisQuizPoolCache,
     _ => _footballQuizPoolCache,
   };
+}
+
+class QuizQualityHarnessReport {
+  final Map<String, int> questionCountBySport;
+  final Map<String, Map<String, int>> styleCountBySport;
+  final Map<String, Map<String, int>> categoryCountBySport;
+  final List<String> failures;
+
+  const QuizQualityHarnessReport({
+    required this.questionCountBySport,
+    required this.styleCountBySport,
+    required this.categoryCountBySport,
+    required this.failures,
+  });
+
+  bool get passed => failures.isEmpty;
+
+  String toConsoleString() {
+    final buffer = StringBuffer('Quiz quality harness report');
+    for (final sportId in questionCountBySport.keys) {
+      buffer.writeln();
+      buffer.writeln('- $sportId: ${questionCountBySport[sportId]} questions');
+      buffer.writeln('  styles: ${styleCountBySport[sportId]}');
+      buffer.writeln('  categories: ${categoryCountBySport[sportId]}');
+    }
+    if (failures.isEmpty) {
+      buffer.writeln();
+      buffer.writeln('PASS');
+    } else {
+      buffer.writeln();
+      buffer.writeln('FAILURES');
+      for (final failure in failures) {
+        buffer.writeln('- $failure');
+      }
+    }
+    return buffer.toString();
+  }
+}
+
+QuizQualityHarnessReport buildQuizQualityHarnessReport({
+  Map<String, int> minimumQuestionsBySport = const <String, int>{
+    SportCatalog.footballId: 120,
+    SportCatalog.baseballId: 20,
+    SportCatalog.basketballId: 20,
+    SportCatalog.tennisId: 20,
+  },
+}) {
+  const sportIds = <String>[
+    SportCatalog.footballId,
+    SportCatalog.baseballId,
+    SportCatalog.basketballId,
+    SportCatalog.tennisId,
+  ];
+  const requiredSearchTermsBySport = <String, List<String>>{
+    SportCatalog.footballId: ['보스만 판결', '오리엔티드 터치', '커버 섀도'],
+    SportCatalog.baseballId: ['터널링', 'WHIP'],
+    SportCatalog.basketballId: ['스페인 픽앤롤', '네일'],
+    SportCatalog.tennisId: ['서브 플러스 원', '킥 서브'],
+  };
+  const lowQualityFragments = <String>[
+    '벤치의 물병',
+    '심판의 손목시계',
+    '관중석 색깔',
+    '공격수의 등번호',
+    '타자의 등번호',
+    '배트 색',
+    '잔디 길이',
+    '라켓을 바꾼다',
+    '점수를 숨긴다',
+  ];
+
+  final failures = <String>[];
+  final questionCountBySport = <String, int>{};
+  final styleCountBySport = <String, Map<String, int>>{};
+  final categoryCountBySport = <String, Map<String, int>>{};
+  final globalIds = <String>{};
+  final globalContentKeys = <String>{};
+
+  for (final sportId in sportIds) {
+    final questions = _quizPoolForSport(sportId);
+    questionCountBySport[sportId] = questions.length;
+    final styleCounts = <String, int>{};
+    final categoryCounts = <String, int>{};
+    final difficultyCounts = <int, int>{};
+    final sportConcepts = <String>{};
+    var coreFocusCount = 0;
+
+    final minimum = minimumQuestionsBySport[sportId] ?? 1;
+    if (questions.length < minimum) {
+      failures.add(
+        '$sportId has ${questions.length} questions; minimum is $minimum.',
+      );
+    }
+
+    for (final question in questions) {
+      final scopedId = '$sportId:${question.id}';
+      if (!globalIds.add(scopedId)) {
+        failures.add('Duplicate question id: $scopedId.');
+      }
+      if (question.id.trim().isEmpty || question.conceptKey.trim().isEmpty) {
+        failures.add('$scopedId has an empty id or concept key.');
+      }
+      if (question.difficulty < 1 || question.difficulty > 3) {
+        failures
+            .add('$scopedId has invalid difficulty ${question.difficulty}.');
+      }
+      if (question.koPrompt.trim().length < 12 ||
+          question.enPrompt.trim().length < 12) {
+        failures.add('$scopedId prompt is too thin.');
+      }
+      if (question.koExplain.trim().length < 18 ||
+          question.enExplain.trim().length < 18) {
+        failures.add('$scopedId explanation is too thin.');
+      }
+      if (question.koNextPoint.trim().length < 10 ||
+          question.enNextPoint.trim().length < 10) {
+        failures.add('$scopedId next-point coaching cue is too thin.');
+      }
+
+      final contentKey = _quizHarnessContentKey(question);
+      if (!globalContentKeys.add('$sportId:$contentKey')) {
+        failures.add('Duplicate question content in $sportId: ${question.id}.');
+      }
+
+      final haystack = _quizHarnessSearchText(question);
+      for (final fragment in lowQualityFragments) {
+        if (haystack.contains(fragment.toLowerCase())) {
+          failures.add('$scopedId contains low-quality fragment "$fragment".');
+        }
+      }
+
+      if (question.style == _QuestionStyle.shortAnswer) {
+        if (question.acceptedAnswers.isEmpty) {
+          failures.add('$scopedId short-answer question has no answers.');
+        } else if (!_answerMatchesQuestion(
+          question,
+          question.acceptedAnswers.first,
+        )) {
+          failures
+              .add('$scopedId short-answer first answer does not validate.');
+        }
+      } else {
+        if (question.options.length < 2) {
+          failures.add('$scopedId choice question has too few options.');
+        }
+        if (question.correctIndex < 0 ||
+            question.correctIndex >= question.options.length) {
+          failures.add('$scopedId correct index is invalid.');
+        }
+        final optionKeys = question.options
+            .map((option) => option.text(true).trim().toLowerCase())
+            .toSet();
+        if (optionKeys.length != question.options.length) {
+          failures.add('$scopedId has duplicate Korean answer options.');
+        }
+      }
+
+      styleCounts[question.style.name] =
+          (styleCounts[question.style.name] ?? 0) + 1;
+      categoryCounts[question.category.name] =
+          (categoryCounts[question.category.name] ?? 0) + 1;
+      difficultyCounts[question.difficulty] =
+          (difficultyCounts[question.difficulty] ?? 0) + 1;
+      sportConcepts.add(question.conceptKey);
+      if (question.category.isCoreFocus) {
+        coreFocusCount += 1;
+      }
+    }
+
+    for (final style in _QuestionStyle.values) {
+      if ((styleCounts[style.name] ?? 0) == 0) {
+        failures.add('$sportId has no ${style.name} questions.');
+      }
+    }
+    for (final difficulty in [1, 2, 3]) {
+      if ((difficultyCounts[difficulty] ?? 0) == 0) {
+        failures.add('$sportId has no difficulty $difficulty questions.');
+      }
+    }
+    if (categoryCounts.length < 5) {
+      failures.add('$sportId has only ${categoryCounts.length} categories.');
+    }
+    if (sportConcepts.length < (questions.length * 0.75).ceil()) {
+      failures.add('$sportId has too many repeated concept keys.');
+    }
+    if (coreFocusCount < (questions.length * 0.35).ceil()) {
+      failures.add('$sportId core focus ratio is too low.');
+    }
+
+    for (final term
+        in requiredSearchTermsBySport[sportId] ?? const <String>[]) {
+      final normalizedTerm = term.toLowerCase();
+      final found = questions.any(
+        (question) => _quizHarnessSearchText(question).contains(normalizedTerm),
+      );
+      if (!found) {
+        failures.add('$sportId is missing required search anchor "$term".');
+      }
+    }
+
+    styleCountBySport[sportId] = styleCounts;
+    categoryCountBySport[sportId] = categoryCounts;
+  }
+
+  return QuizQualityHarnessReport(
+    questionCountBySport: Map<String, int>.unmodifiable(questionCountBySport),
+    styleCountBySport: Map<String, Map<String, int>>.unmodifiable(
+      styleCountBySport.map<String, Map<String, int>>(
+        (key, value) => MapEntry(
+          key,
+          Map<String, int>.unmodifiable(value),
+        ),
+      ),
+    ),
+    categoryCountBySport: Map<String, Map<String, int>>.unmodifiable(
+      categoryCountBySport.map<String, Map<String, int>>(
+        (key, value) => MapEntry(
+          key,
+          Map<String, int>.unmodifiable(value),
+        ),
+      ),
+    ),
+    failures: List.unmodifiable(failures),
+  );
+}
+
+String _quizHarnessContentKey(_FootballQuizQuestion question) {
+  String normalize(String value) =>
+      value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+  final optionKey = question.options
+      .map(
+          (option) => '${normalize(option.koText)}|${normalize(option.enText)}')
+      .join('||');
+  final answerKey = [...question.acceptedAnswers]..sort();
+  return [
+    question.style.name,
+    question.category.name,
+    normalize(question.koPrompt),
+    normalize(question.enPrompt),
+    optionKey,
+    question.correctIndex.toString(),
+    answerKey.map(normalize).join('|'),
+  ].join('::');
+}
+
+String _quizHarnessSearchText(_FootballQuizQuestion question) {
+  return [
+    question.id,
+    question.conceptKey,
+    question.koPrompt,
+    question.enPrompt,
+    question.koExplain,
+    question.enExplain,
+    question.koNextPoint,
+    question.enNextPoint,
+    question.displayAnswer(true),
+    question.displayAnswer(false),
+    ...question.options.map((option) => option.koText),
+    ...question.options.map((option) => option.enText),
+  ].join(' ').toLowerCase();
 }
 
 String _quizConceptKeyForQuestionId(String raw) {
