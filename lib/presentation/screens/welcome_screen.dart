@@ -287,8 +287,8 @@ List<_WelcomeSlide> _buildSlides(AppLocalizations l10n) {
     _WelcomeSlide(
       title: l10n.welcomeGuideTitle,
       body: l10n.welcomeGuideIntro,
-      assetPath: 'assets/images/challenge_rinzy_ready.png',
-      assetScale: 0.86,
+      assetPath: 'assets/images/challenge_rinzy_cheer.png',
+      assetScale: 0.88,
       fallbackIcon: Icons.sports_rounded,
       accent: const Color(0xFF2563EB),
     ),
