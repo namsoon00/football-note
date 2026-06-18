@@ -18,8 +18,20 @@ WorldCupRosterPool? worldCupRosterPoolForTeam(String team) {
   return worldCupRosterPools[team.trim()];
 }
 
-String worldCupRosterClubForPlayer(String team, String playerName) {
-  final teamClubs = worldCupRosterPlayerClubs[team.trim()];
+String worldCupRosterClubForPlayer(
+  String team,
+  String playerName, {
+  String playerId = '',
+}) {
+  final teamKey = team.trim();
+  final normalizedPlayerId = playerId.trim();
+  if (normalizedPlayerId.isNotEmpty) {
+    final idClub =
+        worldCupRosterPlayerClubsByFifaId[teamKey]?[normalizedPlayerId];
+    if (idClub != null) return idClub;
+  }
+
+  final teamClubs = worldCupRosterPlayerClubs[teamKey];
   if (teamClubs == null) return '';
   final normalizedPlayerName = playerName.trim();
   final exactClub = teamClubs[normalizedPlayerName];
@@ -32,7 +44,7 @@ String worldCupRosterClubForPlayer(String team, String playerName) {
     }
   }
 
-  final localizedNames = worldCupRosterPlayerKoreanNames[team.trim()];
+  final localizedNames = worldCupRosterPlayerKoreanNames[teamKey];
   if (localizedNames != null) {
     for (final entry in localizedNames.entries) {
       if (_normalizeRosterLookupKey(entry.value) == normalizedKey ||
@@ -124,6 +136,24 @@ const Map<String, String> _worldCupOfficialSquadSlugs = <String, String>{
   'Uruguay': 'uruguay',
   'USA': 'usa',
   'Uzbekistan': 'uzbekistan',
+};
+
+const Map<String, Map<String, String>> worldCupRosterPlayerClubsByFifaId =
+    <String, Map<String, String>>{
+  'Korea Republic': <String, String>{
+    '397753': 'Ulsan HD',
+    '274281': 'FC Tokyo',
+    '402820': 'Jeonbuk Hyundai Motors',
+    '448580': 'Daejeon Hana Citizen',
+    '395088': 'Bayern Munich',
+    '402817': 'Birmingham City',
+    '418490': 'Paris Saint-Germain',
+    '390525': 'Mainz 05',
+    '395084': 'Feyenoord',
+    '395083': 'Wolverhampton Wanderers',
+    '307849': 'Los Angeles FC',
+    '430387': 'Midtjylland',
+  },
 };
 
 const Map<String, Map<String, String>> worldCupRosterPlayerClubs =

@@ -375,7 +375,7 @@ void main() {
         awayScorers: const <FifaMatchScorer>[],
         homePlayers: const [
           FifaMatchPlayer(
-            playerId: 'son',
+            playerId: '307849',
             playerName: '손흥민',
             fullName: '손흥민',
             shirtNumber: 7,
