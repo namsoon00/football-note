@@ -35,11 +35,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => 'No log, it did not count.';
+  String get welcomeGuideTitle => 'Log today, and your effort shows.';
 
   @override
   String get welcomeGuideIntro =>
-      'Any sport works. Do not just say you did it; log it so you can see it later.';
+      'Any sport works. One short note is enough. Start small; you are doing fine.';
 
   @override
   String get welcomeGuidePrimaryAction => 'Start logging';
@@ -49,7 +49,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeGuideNextTabHint =>
-      'Swipe three times. Then tap the real buttons and log it.';
+      'Swipe through three cards. Then tap a button and log one small win.';
 
   @override
   String get welcomeGuidePreviewLabel => 'Action to choose now';
@@ -58,18 +58,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeGuideCoachMarkLabel => 'Tap this';
 
   @override
-  String get welcomeSlideGemTitle => 'Empty days do not become gems.';
+  String get welcomeSlideGemTitle => 'Small logs can sparkle.';
 
   @override
   String get welcomeSlideGemBody =>
-      'Only logged work stacks. Blank space is not growth; it is just blank space.';
+      'A little is okay. What you log keeps growing, and next time can be better.';
 
   @override
-  String get welcomeSlideFlameTitle => 'Skip today, weaken tomorrow.';
+  String get welcomeSlideFlameTitle => 'One step today makes tomorrow easier.';
 
   @override
   String get welcomeSlideFlameBody =>
-      'Record while the fire is hot. If the streak cools, reheating it costs more than showing up.';
+      'A small spark is enough. Log it now and keep the flow going. You can do it.';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {

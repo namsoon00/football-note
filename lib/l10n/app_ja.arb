@@ -12,17 +12,17 @@
       "tabName": {}
     }
   },
-  "welcomeGuideTitle": "記録がなければ、運動も言葉だけで終わります",
-  "welcomeGuideIntro": "競技は問いません。やったと言うだけでなく、記録で見せましょう。",
+  "welcomeGuideTitle": "今日記録すれば、がんばりが見えます",
+  "welcomeGuideIntro": "競技は問いません。短く一行でも十分です。小さく始めれば大丈夫です。",
   "welcomeGuidePrimaryAction": "記録を始める",
   "welcomeGuideSectionFlow": "やること",
-  "welcomeGuideNextTabHint": "3枚だけ進めてください。その後はボタンを押してすぐ記録できます。",
+  "welcomeGuideNextTabHint": "3枚だけ進めれば大丈夫です。その後はボタンを押して、ひとつ記録してみましょう。",
   "welcomeGuidePreviewLabel": "今選ぶアクション",
   "welcomeGuideCoachMarkLabel": "ここをタップ",
-  "welcomeSlideGemTitle": "空白の日は宝石になりません",
-  "welcomeSlideGemBody": "記録した分だけ積み上がります。空白は成長ではなく、ただの空白です。",
-  "welcomeSlideFlameTitle": "今日抜けば、明日も弱くなります",
-  "welcomeSlideFlameBody": "火がついているうちに記録しましょう。冷めた流れを温め直す方が高くつきます。",
+  "welcomeSlideGemTitle": "小さな記録もきらきら積み上がります",
+  "welcomeSlideGemBody": "少しでも大丈夫です。残した分だけ育って、次はもっとよくできます。",
+  "welcomeSlideFlameTitle": "今日ひとつできれば、明日はもっと楽になります",
+  "welcomeSlideFlameBody": "小さな火でも大丈夫です。今記録すれば流れが続きます。きっとできます。",
   "tabGuideCoachMarkStep": "{total}ステップ中{current}ステップ目",
   "@tabGuideCoachMarkStep": {
     "placeholders": {
