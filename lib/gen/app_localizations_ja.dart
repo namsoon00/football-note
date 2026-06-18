@@ -8208,6 +8208,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchLinkRoutesNeedTwoSnack => 'つなぐにはルートが2つ以上必要です。';
 
   @override
+  String get trainingSketchCreatedSnack => 'トレーニングスケッチを作成しました。';
+
+  @override
+  String get trainingSketchSavedSnack => 'トレーニングスケッチを保存しました。';
+
+  @override
+  String get trainingSketchPreviousCopiedSnack => '前のスケッチをコピーしました。';
+
+  @override
+  String get trainingSketchDuplicatedSnack => 'スケッチを複製しました。';
+
+  @override
+  String get trainingSketchCopiedFromAnotherSnack => '別のスケッチからコピーしました。';
+
+  @override
   String get trainingSketchAutoStagesButton => 'ステージ自動分け';
 
   @override

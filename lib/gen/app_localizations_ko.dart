@@ -8216,6 +8216,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchLinkRoutesNeedTwoSnack => '연결하려면 이동선이 2개 이상 필요해요.';
 
   @override
+  String get trainingSketchCreatedSnack => '훈련 스케치를 만들었어요.';
+
+  @override
+  String get trainingSketchSavedSnack => '훈련 스케치를 저장했습니다.';
+
+  @override
+  String get trainingSketchPreviousCopiedSnack => '이전 스케치를 복사했어요.';
+
+  @override
+  String get trainingSketchDuplicatedSnack => '스케치를 복제했어요.';
+
+  @override
+  String get trainingSketchCopiedFromAnotherSnack => '다른 스케치를 복사해 추가했습니다.';
+
+  @override
   String get trainingSketchAutoStagesButton => '단계 자동 나누기';
 
   @override

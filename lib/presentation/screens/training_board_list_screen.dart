@@ -237,12 +237,13 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     );
     await _presentBoardXpAward(award, isKo: isKo);
     if (!mounted) return;
-    AppFeedback.showSuccess(
-      context,
-      text: isKo
-          ? '훈련 스케치를 만들었어요.${award.gainedXp > 0 ? ' +${award.gainedXp} XP' : ''}'
-          : 'Training sketch created.${award.gainedXp > 0 ? ' +${award.gainedXp} XP' : ''}',
-    );
+    if (award.gainedXp <= 0) {
+      final l10n = AppLocalizations.of(context)!;
+      AppFeedback.showSuccess(
+        context,
+        text: l10n.trainingSketchCreatedSnack,
+      );
+    }
     await _editBoard(created);
   }
 
@@ -305,12 +306,13 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     );
     await _presentBoardXpAward(award, isKo: isKo);
     if (!mounted) return;
-    AppFeedback.showSuccess(
-      context,
-      text: isKo
-          ? '이전 스케치를 복사했어요.${award.gainedXp > 0 ? ' +${award.gainedXp} XP' : ''}'
-          : 'Previous sketch copied.${award.gainedXp > 0 ? ' +${award.gainedXp} XP' : ''}',
-    );
+    if (award.gainedXp <= 0) {
+      final l10n = AppLocalizations.of(context)!;
+      AppFeedback.showSuccess(
+        context,
+        text: l10n.trainingSketchPreviousCopiedSnack,
+      );
+    }
     await _reload();
   }
 
@@ -738,12 +740,13 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     );
     await _presentBoardXpAward(award, isKo: isKo);
     if (!mounted) return;
-    AppFeedback.showSuccess(
-      context,
-      text: isKo
-          ? '스케치를 복제했어요.${award.gainedXp > 0 ? ' +${award.gainedXp} XP' : ''}'
-          : 'Sketch duplicated.${award.gainedXp > 0 ? ' +${award.gainedXp} XP' : ''}',
-    );
+    if (award.gainedXp <= 0) {
+      final l10n = AppLocalizations.of(context)!;
+      AppFeedback.showSuccess(
+        context,
+        text: l10n.trainingSketchDuplicatedSnack,
+      );
+    }
     await _reload();
   }
 }

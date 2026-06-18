@@ -595,11 +595,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         settingsService,
       ).showLevelUpAlert(level: award.after.level, isKo: _isKo);
     }
-    if (!mounted || award.gainedXp <= 0) return;
-    AppFeedback.showSuccess(
-      context,
-      text: l10n.diarySavedWithXpFeedback(award.gainedXp),
-    );
   }
 
   Future<void> _movePage(int index) async {

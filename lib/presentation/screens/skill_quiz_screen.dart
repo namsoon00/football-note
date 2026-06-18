@@ -17,7 +17,6 @@ import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
-import '../widgets/app_feedback.dart';
 
 class SkillQuizScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -832,12 +831,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         await reminderService.showLevelUpAlert(
           level: levelAward.after.level,
           isKo: isKo,
-        );
-      }
-      if (mounted) {
-        AppFeedback.showSuccess(
-          context,
-          text: l10n.quizXpSavedFeedback(levelAward.gainedXp),
         );
       }
     }
