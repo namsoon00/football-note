@@ -953,7 +953,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       headerActions: [
         if (_signedIn)
           IconButton(
-            onPressed: (_backupBusy || _restoreBusy)
+            onPressed: (_backupBusy ||
+                    _restoreBusy ||
+                    _backupLockedByChangedPlayerDrive(familyState))
                 ? null
                 : () => _showPreviousBackupRestoreInfo(l10n),
             icon: const Icon(Icons.history_rounded, size: 18),
@@ -2239,17 +2241,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   Future<void> _rememberSignedInDriveConnectionIfSafe() async {
     final backup = widget.driveBackupService;
     if (backup == null) return;
-    final familyState =
-        FamilyAccessService(widget.optionRepository).loadState();
-    if (familyState.isChildMode) {
-      final current = await backup.getDriveConnectionInfo();
-      final savedEmail = backup.getSavedRecordDriveEmail().trim();
-      final currentEmail = current?.email.trim() ?? '';
-      if (savedEmail.isNotEmpty &&
-          currentEmail.isNotEmpty &&
-          savedEmail.toLowerCase() != currentEmail.toLowerCase()) {
-        return;
-      }
+    if (backup.hasChangedPlayerDriveConnection()) {
+      return;
     }
     await backup.rememberCurrentRoleDriveConnection();
   }
@@ -2423,6 +2416,14 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> _showPreviousBackupRestoreInfo(AppLocalizations l10n) async {
+    final familyState =
+        FamilyAccessService(widget.optionRepository).loadState();
+    if (_backupLockedByChangedPlayerDrive(familyState)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.driveBackupLockedAccountChanged)),
+      );
+      return;
+    }
     final runRestore = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -2515,6 +2516,10 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     if (raw.contains(DriveBackupService.invalidBackupPayloadErrorCode)) {
       return l10n.backupPayloadInvalid;
+    }
+    if (raw
+        .contains(DriveBackupService.changedPlayerDriveConnectionErrorCode)) {
+      return l10n.driveBackupLockedAccountChanged;
     }
     if (raw.contains(
       DriveBackupService.changedPlayerRemoteBackupMissingErrorCode,

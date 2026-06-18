@@ -60,6 +60,7 @@ class DriveBackupService implements BackupRepository {
       StreamController<void>.broadcast();
   final StreamController<void> _dataChangeController =
       StreamController<void>.broadcast();
+  Future<void> _driveMutationTail = Future<void>.value();
   String? _webAccessToken;
   StreamSubscription<GoogleSignInAccount?>? _googleAccountSubscription;
   StreamSubscription<User?>? _firebaseAuthSubscription;
@@ -122,6 +123,7 @@ class DriveBackupService implements BackupRepository {
   static const parentDriveSubjectLocalKey = 'drive_parent_subject_local_v1';
   static const sharedChildDriveEmailKey = 'drive_child_email_v1';
   static const sharedChildDriveLabelKey = 'drive_child_label_v1';
+  static const sharedChildDriveSubjectLocalKey = 'drive_child_subject_v1';
   static const backupFolderName = '태오의 노트';
   static const _legacyBackupFolderName = 'Football Note';
   static const backupFileName = 'football_note_backup.json';
@@ -139,6 +141,8 @@ class DriveBackupService implements BackupRepository {
   static const recordDriveMismatchErrorCode = 'record_drive_mismatch';
   static const playerDriveMismatchErrorCode = recordDriveMismatchErrorCode;
   static const parentModeDriveMismatchErrorCode = 'parent_mode_drive_mismatch';
+  static const changedPlayerDriveConnectionErrorCode =
+      'changed_player_drive_connection';
   static const changedPlayerRemoteBackupMissingErrorCode =
       'changed_player_remote_backup_missing';
   static const invalidBackupPayloadErrorCode = 'invalid_backup_payload';
@@ -232,6 +236,7 @@ class DriveBackupService implements BackupRepository {
     FamilyAccessService.lastSharedSyncRoleKey,
     sharedChildDriveEmailKey,
     sharedChildDriveLabelKey,
+    sharedChildDriveSubjectLocalKey,
 
     // Quiz and game progress that is meaningful across devices.
     'skill_quiz_completed_at',
@@ -352,8 +357,26 @@ class DriveBackupService implements BackupRepository {
 
   Stream<void> dataChanges() => _dataChangeController.stream;
 
+  Future<T> _runDriveMutation<T>(Future<T> Function() action) async {
+    final previous = _driveMutationTail.catchError((_) {});
+    final completer = Completer<void>();
+    _driveMutationTail = previous.whenComplete(() => completer.future);
+    await previous;
+    try {
+      return await action();
+    } finally {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    }
+  }
+
   @override
-  Future<void> backup() async {
+  Future<void> backup() {
+    return _runDriveMutation(_backup);
+  }
+
+  Future<void> _backup() async {
     try {
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
       await _syncConnectedDriveAccountCache();
@@ -381,6 +404,12 @@ class DriveBackupService implements BackupRepository {
 
   @override
   Future<bool> backupIfSignedIn({bool requireAutoOnSave = false}) async {
+    return _runDriveMutation(
+      () => _backupIfSignedIn(requireAutoOnSave: requireAutoOnSave),
+    );
+  }
+
+  Future<bool> _backupIfSignedIn({bool requireAutoOnSave = false}) async {
     if (requireAutoOnSave && !isAutoOnSaveEnabled()) {
       return false;
     }
@@ -530,6 +559,12 @@ class DriveBackupService implements BackupRepository {
         if (remote.label.trim().isNotEmpty) {
           await _optionBox.put(sharedChildDriveLabelKey, remote.label.trim());
         }
+        if (remote.subjectId.trim().isNotEmpty) {
+          await _optionBox.put(
+            sharedChildDriveSubjectLocalKey,
+            remote.subjectId.trim(),
+          );
+        }
       }
       return remote;
     } catch (e, st) {
@@ -568,7 +603,11 @@ class DriveBackupService implements BackupRepository {
     return !_sameDriveAccount(saved, current);
   }
 
-  Future<bool> importChangedPlayerDriveBackup() async {
+  Future<bool> importChangedPlayerDriveBackup() {
+    return _runDriveMutation(_importChangedPlayerDriveBackup);
+  }
+
+  Future<bool> _importChangedPlayerDriveBackup() async {
     final driveApi = await _driveApi(requireInteractive: false);
     await _syncConnectedDriveAccountCache();
     if (!hasChangedPlayerDriveConnection()) {
@@ -583,7 +622,11 @@ class DriveBackupService implements BackupRepository {
     return _adoptConnectedPlayerBackup(remoteBackup: remote);
   }
 
-  Future<bool> startChangedPlayerDriveWithEmptyData() async {
+  Future<bool> startChangedPlayerDriveWithEmptyData() {
+    return _runDriveMutation(_startChangedPlayerDriveWithEmptyData);
+  }
+
+  Future<bool> _startChangedPlayerDriveWithEmptyData() async {
     await _syncConnectedDriveAccountCache();
     return _adoptConnectedPlayerBackup(remoteBackup: null);
   }
@@ -594,6 +637,12 @@ class DriveBackupService implements BackupRepository {
 
   String getSharedChildDriveLabel() {
     return (_optionBox.get(sharedChildDriveLabelKey) as String?)?.trim() ?? '';
+  }
+
+  String getSharedChildDriveSubjectId() {
+    return (_optionBox.get(sharedChildDriveSubjectLocalKey) as String?)
+            ?.trim() ??
+        '';
   }
 
   String getSavedRecordDriveEmail() {
@@ -621,10 +670,15 @@ class DriveBackupService implements BackupRepository {
   }
 
   @override
-  Future<void> restoreLatest() async {
-    await _saveLocalPreRestore();
+  Future<void> restoreLatest() {
+    return _runDriveMutation(_restoreLatest);
+  }
+
+  Future<void> _restoreLatest() async {
     try {
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
+      await _ensureGenericRestoreAllowed();
+      await _saveLocalPreRestore();
       await _restoreLatestWithApi(driveApi);
       await _rememberCurrentRoleDriveConnectionAfterRestore();
     } catch (e, st) {
@@ -635,15 +689,22 @@ class DriveBackupService implements BackupRepository {
       debugPrintStack(stackTrace: st);
       await _reauthenticateForDriveScope();
       final retriedApi = await _driveApi(requireInteractive: false);
+      await _ensureGenericRestoreAllowed();
+      await _saveLocalPreRestore();
       await _restoreLatestWithApi(retriedApi);
       await _rememberCurrentRoleDriveConnectionAfterRestore();
     }
   }
 
-  Future<void> restorePreviousBackup() async {
-    await _saveLocalPreRestore();
+  Future<void> restorePreviousBackup() {
+    return _runDriveMutation(_restorePreviousBackup);
+  }
+
+  Future<void> _restorePreviousBackup() async {
     try {
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
+      await _ensureGenericRestoreAllowed();
+      await _saveLocalPreRestore();
       await _restorePreviousWithApi(driveApi);
       await _rememberCurrentRoleDriveConnectionAfterRestore();
     } catch (e, st) {
@@ -654,8 +715,17 @@ class DriveBackupService implements BackupRepository {
       debugPrintStack(stackTrace: st);
       await _reauthenticateForDriveScope();
       final retriedApi = await _driveApi(requireInteractive: false);
+      await _ensureGenericRestoreAllowed();
+      await _saveLocalPreRestore();
       await _restorePreviousWithApi(retriedApi);
       await _rememberCurrentRoleDriveConnectionAfterRestore();
+    }
+  }
+
+  Future<void> _ensureGenericRestoreAllowed() async {
+    await _syncConnectedDriveAccountCache();
+    if (hasChangedPlayerDriveConnection()) {
+      throw StateError(changedPlayerDriveConnectionErrorCode);
     }
   }
 
@@ -814,7 +884,7 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> signInForSavedRecord() {
     return _signInForSavedDrive(
-      expectedEmail: _normalizedEmail(getSavedRecordDriveEmail()),
+      expected: _loadSavedRecordDriveConnectionInfo(),
       rememberConnection: rememberRecordDriveConnection,
       mismatchErrorCode: recordDriveMismatchErrorCode,
     );
@@ -824,7 +894,7 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> signInForSavedParent() {
     return _signInForSavedDrive(
-      expectedEmail: _normalizedEmail(getSavedParentDriveEmail()),
+      expected: _loadSavedParentDriveConnectionInfo(),
       rememberConnection: rememberParentDriveConnection,
       mismatchErrorCode: parentModeDriveMismatchErrorCode,
     );
@@ -858,21 +928,25 @@ class DriveBackupService implements BackupRepository {
     );
   }
 
-  Future<bool> refreshParentSharedDataIfNeeded() async {
-    final state = _familyService.loadState();
-    if (!state.isSupportMode) {
-      return false;
-    }
-    final result = await _refreshSupportFamilyDataIfNeeded(state);
-    return result.refreshed;
+  Future<bool> refreshParentSharedDataIfNeeded() {
+    return _runDriveMutation(() async {
+      final state = _familyService.loadState();
+      if (!state.isSupportMode) {
+        return false;
+      }
+      final result = await _refreshSupportFamilyDataIfNeeded(state);
+      return result.refreshed;
+    });
   }
 
-  Future<FamilySharedSyncResult> refreshFamilySharedDataIfNeeded() async {
-    final state = _familyService.loadState();
-    if (state.isSupportMode) {
-      return _refreshSupportFamilyDataIfNeeded(state);
-    }
-    return _refreshChildSharedLayerIfNeeded(state);
+  Future<FamilySharedSyncResult> refreshFamilySharedDataIfNeeded() {
+    return _runDriveMutation(() {
+      final state = _familyService.loadState();
+      if (state.isSupportMode) {
+        return _refreshSupportFamilyDataIfNeeded(state);
+      }
+      return _refreshChildSharedLayerIfNeeded(state);
+    });
   }
 
   Future<FamilySharedSyncResult> _refreshSupportFamilyDataIfNeeded(
@@ -1258,6 +1332,7 @@ class DriveBackupService implements BackupRepository {
     return _buildDriveConnectionInfoFromLabelEmail(
       label: getSharedChildDriveLabel(),
       email: getSharedChildDriveEmail(),
+      subjectId: getSharedChildDriveSubjectId(),
     );
   }
 
@@ -1328,12 +1403,14 @@ class DriveBackupService implements BackupRepository {
     }
     final sharedChildLabel = _extractSharedChildDriveLabel(remote);
     final sharedChildEmail = _extractSharedChildDriveEmail(remote);
+    final sharedChildSubjectId = _extractSharedChildDriveSubjectId(remote);
     final fallbackLabel = sharedChildLabel.isNotEmpty
         ? sharedChildLabel
         : _extractChildName(remote);
     return _buildDriveConnectionInfoFromLabelEmail(
       label: fallbackLabel,
       email: sharedChildEmail,
+      subjectId: sharedChildSubjectId,
     );
   }
 
@@ -1406,6 +1483,23 @@ class DriveBackupService implements BackupRepository {
         (_optionBox.get(recordDriveLabelLocalKey) as String?)?.trim() ?? '';
     final subjectId =
         (_optionBox.get(recordDriveSubjectLocalKey) as String?)?.trim() ?? '';
+    if (email.isEmpty && displayName.isEmpty && subjectId.isEmpty) {
+      return null;
+    }
+    return DriveConnectionInfo(
+      email: email,
+      displayName: displayName,
+      subjectId: subjectId,
+    );
+  }
+
+  DriveConnectionInfo? _loadSavedParentDriveConnectionInfo() {
+    final email =
+        (_optionBox.get(parentDriveEmailLocalKey) as String?)?.trim() ?? '';
+    final displayName =
+        (_optionBox.get(parentDriveLabelLocalKey) as String?)?.trim() ?? '';
+    final subjectId =
+        (_optionBox.get(parentDriveSubjectLocalKey) as String?)?.trim() ?? '';
     if (email.isEmpty && displayName.isEmpty && subjectId.isEmpty) {
       return null;
     }
@@ -1493,6 +1587,12 @@ class DriveBackupService implements BackupRepository {
     await _optionBox.put(sharedChildDriveEmailKey, info.email.trim());
     if (info.label.trim().isNotEmpty) {
       await _optionBox.put(sharedChildDriveLabelKey, info.label.trim());
+    }
+    if (info.subjectId.trim().isNotEmpty) {
+      await _optionBox.put(
+        sharedChildDriveSubjectLocalKey,
+        info.subjectId.trim(),
+      );
     }
   }
 
@@ -1847,6 +1947,11 @@ class DriveBackupService implements BackupRepository {
   }
 
   @visibleForTesting
+  Future<void> ensureGenericRestoreAllowedForTesting() {
+    return _ensureGenericRestoreAllowed();
+  }
+
+  @visibleForTesting
   Map<String, dynamic> mergeParentBackupForTesting({
     required Map<String, dynamic> remote,
   }) {
@@ -2162,17 +2267,13 @@ class DriveBackupService implements BackupRepository {
         localFamilyId != remoteFamilyId) {
       throw StateError(parentFamilyMismatchErrorCode);
     }
-    final connectedEmail = _normalizedEmail(
-      _optionBox.get(connectedDriveEmailLocalKey) as String?,
-    );
-    final expectedChildDriveEmail = _normalizedEmail(
-      _extractSharedChildDriveEmail(remote).isNotEmpty
-          ? _extractSharedChildDriveEmail(remote)
-          : _optionBox.get(sharedChildDriveEmailKey) as String?,
-    );
-    if (expectedChildDriveEmail.isNotEmpty &&
-        connectedEmail.isNotEmpty &&
-        expectedChildDriveEmail != connectedEmail) {
+    final connected = _loadCachedDriveConnectionInfo();
+    final expected = _expectedSharedChildDriveConnection(remote);
+    if (connected != null &&
+        expected != null &&
+        !connected.isEmpty &&
+        !expected.isEmpty &&
+        !_sameDriveAccount(expected, connected)) {
       throw StateError(parentDriveMismatchErrorCode);
     }
   }
@@ -2190,19 +2291,27 @@ class DriveBackupService implements BackupRepository {
     if (!state.isSupportMode) {
       return;
     }
-    final connectedEmail = _normalizedEmail(
-      _optionBox.get(connectedDriveEmailLocalKey) as String?,
-    );
-    final expectedChildDriveEmail = _normalizedEmail(
-      _extractSharedChildDriveEmail(remote).isNotEmpty
-          ? _extractSharedChildDriveEmail(remote)
-          : _optionBox.get(sharedChildDriveEmailKey) as String?,
-    );
-    if (expectedChildDriveEmail.isNotEmpty &&
-        connectedEmail.isNotEmpty &&
-        expectedChildDriveEmail != connectedEmail) {
+    final connected = _loadCachedDriveConnectionInfo();
+    final expected = _expectedSharedChildDriveConnection(remote);
+    if (connected != null &&
+        expected != null &&
+        !connected.isEmpty &&
+        !expected.isEmpty &&
+        !_sameDriveAccount(expected, connected)) {
       throw StateError(parentDriveMismatchErrorCode);
     }
+  }
+
+  DriveConnectionInfo? _expectedSharedChildDriveConnection(
+    Map<String, dynamic>? remote,
+  ) {
+    if (remote != null) {
+      final remoteConnection = _extractSharedChildDriveConnection(remote);
+      if (remoteConnection != null && !remoteConnection.isEmpty) {
+        return remoteConnection;
+      }
+    }
+    return _loadSharedChildDriveConnectionInfo();
   }
 
   String _extractFamilyId(Map<String, dynamic> backup) {
@@ -2225,6 +2334,21 @@ class DriveBackupService implements BackupRepository {
   String _extractSharedChildDriveLabel(Map<String, dynamic> backup) {
     final options = _copyStringOptions(backup);
     return options[sharedChildDriveLabelKey]?.toString().trim() ?? '';
+  }
+
+  String _extractSharedChildDriveSubjectId(Map<String, dynamic> backup) {
+    final options = _copyStringOptions(backup);
+    return options[sharedChildDriveSubjectLocalKey]?.toString().trim() ?? '';
+  }
+
+  DriveConnectionInfo? _extractSharedChildDriveConnection(
+    Map<String, dynamic> backup,
+  ) {
+    return _buildDriveConnectionInfoFromLabelEmail(
+      label: _extractSharedChildDriveLabel(backup),
+      email: _extractSharedChildDriveEmail(backup),
+      subjectId: _extractSharedChildDriveSubjectId(backup),
+    );
   }
 
   String _extractChildName(Map<String, dynamic> backup) {
@@ -2342,13 +2466,12 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<void> _signInForSavedDrive({
-    required String expectedEmail,
+    required DriveConnectionInfo? expected,
     required Future<void> Function() rememberConnection,
     required String mismatchErrorCode,
   }) async {
     final current = await getDriveConnectionInfo();
-    if (expectedEmail.isNotEmpty &&
-        _normalizedEmail(current?.email) == expectedEmail) {
+    if (_matchesExpectedDriveAccount(expected: expected, current: current)) {
       await rememberConnection();
       return;
     }
@@ -2357,12 +2480,27 @@ class DriveBackupService implements BackupRepository {
     }
     await signIn();
     final refreshed = await getDriveConnectionInfo();
-    if (expectedEmail.isNotEmpty &&
-        _normalizedEmail(refreshed?.email) != expectedEmail) {
+    if (!_matchesExpectedDriveAccount(
+      expected: expected,
+      current: refreshed,
+    )) {
       await signOut();
       throw StateError(mismatchErrorCode);
     }
     await rememberConnection();
+  }
+
+  bool _matchesExpectedDriveAccount({
+    required DriveConnectionInfo? expected,
+    required DriveConnectionInfo? current,
+  }) {
+    if (expected == null || expected.isEmpty) {
+      return true;
+    }
+    if (current == null || current.isEmpty) {
+      return false;
+    }
+    return _sameDriveAccount(expected, current);
   }
 
   Future<void> _rememberCurrentRoleDriveConnectionAfterRestore() async {
@@ -2402,9 +2540,11 @@ class DriveBackupService implements BackupRepository {
   ) {
     final email = current.email.trim();
     final label = current.label.trim();
+    final subjectId = current.subjectId.trim();
     final options = <String, dynamic>{
       if (email.isNotEmpty) sharedChildDriveEmailKey: email,
       if (label.isNotEmpty) sharedChildDriveLabelKey: label,
+      if (subjectId.isNotEmpty) sharedChildDriveSubjectLocalKey: subjectId,
     };
     return <String, dynamic>{
       _backupFormatKey: _backupFormatValue,
