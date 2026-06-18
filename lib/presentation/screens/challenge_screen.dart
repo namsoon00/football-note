@@ -3202,6 +3202,7 @@ class _RoundFocusCard extends StatelessWidget {
     final activeGreen = theme.brightness == Brightness.dark
         ? const Color(0xFF63C986)
         : const Color(0xFF2E7D32);
+    final missionProgressPercent = (round.missionCompletionRate * 100).round();
     return Container(
       padding: AppSpacing.card,
       decoration: AppSurfaces.subtleDecoration(
@@ -3219,36 +3220,44 @@ class _RoundFocusCard extends StatelessWidget {
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          const SizedBox(height: 6),
+          Row(
             children: [
-              _SmallStatusPill(
-                label: l10n.challengeMissionCount(
-                  round.completedMissionCount,
-                  round.missionCount,
+              Expanded(
+                child: Text(
+                  [
+                    l10n.challengeMissionCount(
+                      round.completedMissionCount,
+                      round.missionCount,
+                    ),
+                    l10n.challengeProgressPercent(missionProgressPercent),
+                  ].join(' · '),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-              _SmallStatusPill(
-                label: l10n.challengeProgressPercent(
-                  (round.missionCompletionRate * 100).round(),
-                ),
-              ),
-              _SmallStatusPill(
-                label: l10n.challengeRoundXpLabel(
+              const SizedBox(width: 12),
+              Text(
+                l10n.challengeRoundXpLabel(
                   _challengePotentialRoundXp(progress, round),
+                ),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          ProgressStarGauge(
+          const SizedBox(height: 8),
+          _ChallengeQuietProgressBar(
             progress: round.missionCompletionRate,
-            height: 30,
-            trackHeight: 8,
-            iconSize: 26,
+            semanticsLabel: l10n.challengeProgressPercent(
+              missionProgressPercent,
+            ),
           ),
+          const SizedBox(height: 4),
           if (!round.isToday && !readOnly) ...[
             const SizedBox(height: 12),
             _TrainingProgramLinkCard(
@@ -3500,6 +3509,7 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
       progress.template,
       progress.run.trainingLevel,
     );
+    final progressPercent = (progress.completionRate * 100).round();
     if (rounds.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -3523,50 +3533,48 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.challengeRoundsTitle,
-                  style: theme.textTheme.titleLarge?.copyWith(
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
               if (onAbandon != null)
-                TextButton.icon(
+                IconButton(
+                  tooltip: l10n.challengeAbandonAction,
                   onPressed: onAbandon,
                   icon: const Icon(Icons.stop_circle_outlined),
-                  label: Text(l10n.challengeAbandonAction),
                 ),
             ],
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _SmallStatusPill(
-                label: l10n.challengeRoundCount(
-                  progress.completedRoundCount,
-                  progress.totalRoundCount,
-                ),
+          const SizedBox(height: 4),
+          Text(
+            [
+              l10n.challengeRoundCount(
+                progress.completedRoundCount,
+                progress.totalRoundCount,
               ),
-              _SmallStatusPill(
-                label: l10n.challengeProgressPercent(
-                  (progress.completionRate * 100).round(),
-                ),
-              ),
-              _SmallStatusPill(
-                label:
-                    '${l10n.challengeRewardGuideEarnedLabel} ${l10n.challengeRewardXp(earnedXp)}',
-              ),
-              _SmallStatusPill(
-                label: l10n.challengeTotalXpLabel(totalPotentialXp),
-              ),
-            ],
+              l10n.challengeProgressPercent(progressPercent),
+            ].join(' · '),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          const SizedBox(height: 10),
-          ProgressStarGauge(
+          const SizedBox(height: 8),
+          _ChallengeQuietProgressBar(
             progress: progress.completionRate,
-            height: 30,
-            trackHeight: 8,
-            iconSize: 26,
+            semanticsLabel: l10n.challengeProgressPercent(progressPercent),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            [
+              '${l10n.challengeRewardGuideEarnedLabel} ${l10n.challengeRewardXp(earnedXp)}',
+              l10n.challengeTotalXpLabel(totalPotentialXp),
+            ].join(' · '),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.78),
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 14),
           LayoutBuilder(
@@ -3594,6 +3602,37 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ChallengeQuietProgressBar extends StatelessWidget {
+  final double progress;
+  final String semanticsLabel;
+
+  const _ChallengeQuietProgressBar({
+    required this.progress,
+    required this.semanticsLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final value = progress.clamp(0, 1).toDouble();
+    return Semantics(
+      label: semanticsLabel,
+      child: ClipRRect(
+        borderRadius: AppRadius.full,
+        child: LinearProgressIndicator(
+          value: value,
+          minHeight: 7,
+          backgroundColor: scheme.surfaceContainerHighest.withValues(
+            alpha: theme.brightness == Brightness.dark ? 0.72 : 0.9,
+          ),
+          valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
+        ),
       ),
     );
   }
