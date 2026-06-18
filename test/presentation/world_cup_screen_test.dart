@@ -330,10 +330,9 @@ void main() {
 
     final scrollable = find.byType(Scrollable).first;
     for (var attempt = 0; attempt < 6; attempt += 1) {
-      final homeVisible =
-          find.text('🇲🇽 멕시코').hitTestable().evaluate().isNotEmpty;
+      final homeVisible = find.text('멕시코').hitTestable().evaluate().isNotEmpty;
       final awayVisible =
-          find.text('🇿🇦 남아프리카공화국').hitTestable().evaluate().isNotEmpty;
+          find.text('남아프리카공화국').hitTestable().evaluate().isNotEmpty;
       if (homeVisible && awayVisible) {
         break;
       }
@@ -341,10 +340,9 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    final homeTop =
-        tester.getTopLeft(find.text('🇲🇽 멕시코').hitTestable().first).dy;
+    final homeTop = tester.getTopLeft(find.text('멕시코').hitTestable().first).dy;
     final awayTop =
-        tester.getTopLeft(find.text('🇿🇦 남아프리카공화국').hitTestable().first).dy;
+        tester.getTopLeft(find.text('남아프리카공화국').hitTestable().first).dy;
 
     expect((homeTop - awayTop).abs(), lessThan(2));
   });

@@ -1929,21 +1929,25 @@ class _FixtureRow extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           LayoutBuilder(
-            builder: (context, _) {
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 380;
               final homeBlock = _FixtureTeamBlock(
                 team: fixture.homeTeam,
                 ranking: rankingsByTeam[fixture.homeTeam],
+                compact: compact,
                 onTap: () => onTeamTap(fixture.homeTeam),
               );
               final scoreBoard = _FixtureScoreBoard(
                 fixture: fixture,
                 status: runtimeStatus,
                 officialMatch: officialMatch,
+                compact: compact,
                 onTap: () => onScoreTap(fixture),
               );
               final awayBlock = _FixtureTeamBlock(
                 team: fixture.awayTeam,
                 ranking: rankingsByTeam[fixture.awayTeam],
+                compact: compact,
                 alignEnd: true,
                 onTap: () => onTeamTap(fixture.awayTeam),
               );
@@ -1952,7 +1956,9 @@ class _FixtureRow extends StatelessWidget {
                 children: [
                   Expanded(child: homeBlock),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: compact ? 6 : 10,
+                    ),
                     child: scoreBoard,
                   ),
                   Expanded(child: awayBlock),
@@ -2032,12 +2038,14 @@ class _FixtureRow extends StatelessWidget {
 class _FixtureTeamBlock extends StatelessWidget {
   final String team;
   final FifaRankingEntry? ranking;
+  final bool compact;
   final bool alignEnd;
   final VoidCallback onTap;
 
   const _FixtureTeamBlock({
     required this.team,
     required this.ranking,
+    required this.compact,
     required this.onTap,
     this.alignEnd = false,
   });
@@ -2058,11 +2066,12 @@ class _FixtureTeamBlock extends StatelessWidget {
           child: _TappableCountryLabel(
             country: team,
             textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+            compact: compact,
             onTap: onTap,
           ),
         ),
         if (metaPills.isNotEmpty) ...[
-          const SizedBox(height: 6),
+          SizedBox(height: compact ? 4 : 6),
           SizedBox(
             width: double.infinity,
             child: Wrap(
@@ -2082,12 +2091,14 @@ class _FixtureScoreBoard extends StatelessWidget {
   final WorldCupFixture fixture;
   final _WorldCupFixtureRuntimeStatus status;
   final FifaAMatchEntry? officialMatch;
+  final bool compact;
   final VoidCallback onTap;
 
   const _FixtureScoreBoard({
     required this.fixture,
     required this.status,
     required this.officialMatch,
+    required this.compact,
     required this.onTap,
   });
 
@@ -2114,9 +2125,15 @@ class _FixtureScoreBoard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 82, minHeight: 48),
+            constraints: BoxConstraints(
+              minWidth: compact ? 60 : 74,
+              minHeight: compact ? 42 : 46,
+            ),
             child: Ink(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 7 : 9,
+                vertical: compact ? 7 : 8,
+              ),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(14),
@@ -2134,19 +2151,16 @@ class _FixtureScoreBoard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: (compact
+                              ? theme.textTheme.titleSmall
+                              : theme.textTheme.titleMedium)
+                          ?.copyWith(
                         color: status == _WorldCupFixtureRuntimeStatus.live
                             ? theme.colorScheme.error
                             : theme.colorScheme.primary,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 5),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 15,
-                    color: theme.colorScheme.primary,
                   ),
                 ],
               ),
@@ -3053,11 +3067,13 @@ class _WorldCupCountrySettingPanel extends StatelessWidget {
 class _TappableCountryLabel extends StatelessWidget {
   final String country;
   final TextAlign textAlign;
+  final bool compact;
   final VoidCallback onTap;
 
   const _TappableCountryLabel({
     required this.country,
     required this.onTap,
+    required this.compact,
     this.textAlign = TextAlign.left,
   });
 
@@ -3065,6 +3081,45 @@ class _TappableCountryLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final flag = worldCupCountryFlag(country);
+    final countryName = _worldCupCountryName(l10n, country);
+    final labelStyle =
+        (compact ? theme.textTheme.labelMedium : theme.textTheme.labelLarge)
+            ?.copyWith(
+      fontWeight: FontWeight.w900,
+      height: 1.08,
+    );
+    final flagText = flag.isEmpty
+        ? null
+        : Text(
+            flag,
+            maxLines: 1,
+            style: theme.textTheme.bodyMedium,
+          );
+    final nameText = Expanded(
+      child: Text(
+        countryName,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        textAlign: textAlign,
+        style: labelStyle,
+      ),
+    );
+    final labelChildren = textAlign == TextAlign.right
+        ? <Widget>[
+            nameText,
+            if (flagText != null) ...[
+              SizedBox(width: compact ? 3 : 4),
+              flagText,
+            ],
+          ]
+        : <Widget>[
+            if (flagText != null) ...[
+              flagText,
+              SizedBox(width: compact ? 3 : 4),
+            ],
+            nameText,
+          ];
     return Tooltip(
       message: l10n.worldCupTeamRosterOpenTooltip(country),
       child: Material(
@@ -3073,9 +3128,12 @@ class _TappableCountryLabel extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 40),
+            constraints: BoxConstraints(minHeight: compact ? 38 : 42),
             child: Ink(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 6 : 8,
+                vertical: compact ? 5 : 7,
+              ),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface.withValues(alpha: 0.72),
                 borderRadius: BorderRadius.circular(12),
@@ -3085,20 +3143,10 @@ class _TappableCountryLabel extends StatelessWidget {
                 ),
               ),
               child: Row(
-                children: [
-                  Expanded(
-                    child: _CountryLabel(
-                      country: country,
-                      textAlign: textAlign,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 16,
-                    color: theme.colorScheme.primary,
-                  ),
-                ],
+                mainAxisAlignment: textAlign == TextAlign.right
+                    ? MainAxisAlignment.end
+                    : MainAxisAlignment.start,
+                children: labelChildren,
               ),
             ),
           ),
