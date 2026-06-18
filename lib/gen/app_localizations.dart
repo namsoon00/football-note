@@ -1548,6 +1548,24 @@ abstract class AppLocalizations {
   /// **'{player} profile'**
   String worldCupPlayerProfileTitle(String player);
 
+  /// No description provided for @worldCupClubInfoOpenTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {club} info'**
+  String worldCupClubInfoOpenTooltip(String club);
+
+  /// No description provided for @worldCupClubInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{club} info'**
+  String worldCupClubInfoTitle(String club);
+
+  /// No description provided for @worldCupPlayerProfilePlayerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Player'**
+  String get worldCupPlayerProfilePlayerLabel;
+
   /// No description provided for @worldCupPlayerProfileTeamLabel.
   ///
   /// In en, this message translates to:
@@ -2243,6 +2261,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Position groups and a formation view for quickly reading the squad shape.'**
   String get worldCupTeamRosterSubtitle;
+
+  /// No description provided for @worldCupTeamMatchOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team match info'**
+  String get worldCupTeamMatchOverviewTitle;
+
+  /// No description provided for @worldCupTeamCurrentPointsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current points'**
+  String get worldCupTeamCurrentPointsLabel;
+
+  /// No description provided for @worldCupTeamMatchHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match results'**
+  String get worldCupTeamMatchHistoryTitle;
 
   /// No description provided for @worldCupTeamRosterFormationLabel.
   ///
@@ -14496,7 +14532,7 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchQuickStart.
   ///
   /// In en, this message translates to:
-  /// **'Quick start: Add player/ball -> draw paths -> play (speed) -> save'**
+  /// **'Quick start: Select a player or ball, then use a quick action to create routes.'**
   String get trainingSketchQuickStart;
 
   /// No description provided for @trainingSketchSelectedItemTitle.
@@ -14607,6 +14643,18 @@ abstract class AppLocalizations {
   /// **'After ball'**
   String get trainingSketchRouteAfterBallButton;
 
+  /// No description provided for @trainingSketchFinishRouteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish route'**
+  String get trainingSketchFinishRouteButton;
+
+  /// No description provided for @trainingSketchUndoLastRoutePointButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo last point'**
+  String get trainingSketchUndoLastRoutePointButton;
+
   /// No description provided for @trainingSketchClearAllRoutesButton.
   ///
   /// In en, this message translates to:
@@ -14658,44 +14706,92 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchRouteReplaceHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag on the board to replace the selected route.'**
+  /// **'Tap the destination, then finish the route to replace the selected route.'**
   String get trainingSketchRouteReplaceHint;
 
   /// No description provided for @trainingSketchSelectedPlayerRouteHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag on the board to set the selected player\'s route. If one already exists, it will be replaced.'**
+  /// **'Tap a destination, then finish the route. You can still drag to draw.'**
   String get trainingSketchSelectedPlayerRouteHint;
 
   /// No description provided for @trainingSketchSelectedBallRouteHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag on the board to set the selected ball\'s route. If one already exists, it will be replaced.'**
+  /// **'Tap a pass destination, then finish the route. You can still drag to draw.'**
   String get trainingSketchSelectedBallRouteHint;
 
   /// No description provided for @trainingSketchPlayerRouteHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag on the board to assign an unused player route. Select a player first if you want to target a specific one.'**
+  /// **'Select a player or tap the board to start, then tap a destination and finish.'**
   String get trainingSketchPlayerRouteHint;
 
   /// No description provided for @trainingSketchBallRouteHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag on the board to assign an unused ball route. Select a ball first if you want to target a specific one.'**
+  /// **'Select a ball or tap the board to start, then tap a pass destination and finish.'**
   String get trainingSketchBallRouteHint;
 
   /// No description provided for @trainingSketchLinkPlayerHint.
   ///
   /// In en, this message translates to:
-  /// **'In Routes mode, select this player and drag to assign or replace its route.'**
+  /// **'Select this player, then tap a destination to make a movement route.'**
   String get trainingSketchLinkPlayerHint;
 
   /// No description provided for @trainingSketchLinkBallHint.
   ///
   /// In en, this message translates to:
-  /// **'In Routes mode, select this ball and drag to assign or replace its route.'**
+  /// **'Select this ball, then tap a pass destination to make a ball route.'**
   String get trainingSketchLinkBallHint;
+
+  /// No description provided for @trainingSketchSelectedItemActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get trainingSketchSelectedItemActionsTitle;
+
+  /// No description provided for @trainingSketchCreateMoveRouteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create route'**
+  String get trainingSketchCreateMoveRouteButton;
+
+  /// No description provided for @trainingSketchCreatePassRouteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create pass route'**
+  String get trainingSketchCreatePassRouteButton;
+
+  /// No description provided for @trainingSketchQuickMoveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get trainingSketchQuickMoveButton;
+
+  /// No description provided for @trainingSketchQuickPassButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get trainingSketchQuickPassButton;
+
+  /// No description provided for @trainingSketchQuickPassAndMoveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass then move'**
+  String get trainingSketchQuickPassAndMoveButton;
+
+  /// No description provided for @trainingSketchQuickDribbleButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Dribble'**
+  String get trainingSketchQuickDribbleButton;
+
+  /// No description provided for @trainingSketchQuickReceiveMoveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive and move'**
+  String get trainingSketchQuickReceiveMoveButton;
 
   /// No description provided for @trainingSketchPlayerRouteLimitReached.
   ///

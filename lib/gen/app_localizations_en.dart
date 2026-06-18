@@ -830,6 +830,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String worldCupClubInfoOpenTooltip(String club) {
+    return 'Open $club info';
+  }
+
+  @override
+  String worldCupClubInfoTitle(String club) {
+    return '$club info';
+  }
+
+  @override
+  String get worldCupPlayerProfilePlayerLabel => 'Player';
+
+  @override
   String get worldCupPlayerProfileTeamLabel => 'National team';
 
   @override
@@ -1203,6 +1216,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get worldCupTeamRosterSubtitle =>
       'Position groups and a formation view for quickly reading the squad shape.';
+
+  @override
+  String get worldCupTeamMatchOverviewTitle => 'Team match info';
+
+  @override
+  String get worldCupTeamCurrentPointsLabel => 'Current points';
+
+  @override
+  String get worldCupTeamMatchHistoryTitle => 'Match results';
 
   @override
   String worldCupTeamRosterFormationLabel(String formation) {
@@ -8352,7 +8374,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStart =>
-      'Quick start: Add player/ball -> draw paths -> play (speed) -> save';
+      'Quick start: Select a player or ball, then use a quick action to create routes.';
 
   @override
   String get trainingSketchSelectedItemTitle => 'Selected item';
@@ -8416,6 +8438,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchRouteAfterBallButton => 'After ball';
 
   @override
+  String get trainingSketchFinishRouteButton => 'Finish route';
+
+  @override
+  String get trainingSketchUndoLastRoutePointButton => 'Undo last point';
+
+  @override
   String get trainingSketchClearAllRoutesButton => 'Clear all routes';
 
   @override
@@ -8445,31 +8473,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchRouteReplaceHint =>
-      'Drag on the board to replace the selected route.';
+      'Tap the destination, then finish the route to replace the selected route.';
 
   @override
   String get trainingSketchSelectedPlayerRouteHint =>
-      'Drag on the board to set the selected player\'s route. If one already exists, it will be replaced.';
+      'Tap a destination, then finish the route. You can still drag to draw.';
 
   @override
   String get trainingSketchSelectedBallRouteHint =>
-      'Drag on the board to set the selected ball\'s route. If one already exists, it will be replaced.';
+      'Tap a pass destination, then finish the route. You can still drag to draw.';
 
   @override
   String get trainingSketchPlayerRouteHint =>
-      'Drag on the board to assign an unused player route. Select a player first if you want to target a specific one.';
+      'Select a player or tap the board to start, then tap a destination and finish.';
 
   @override
   String get trainingSketchBallRouteHint =>
-      'Drag on the board to assign an unused ball route. Select a ball first if you want to target a specific one.';
+      'Select a ball or tap the board to start, then tap a pass destination and finish.';
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      'In Routes mode, select this player and drag to assign or replace its route.';
+      'Select this player, then tap a destination to make a movement route.';
 
   @override
   String get trainingSketchLinkBallHint =>
-      'In Routes mode, select this ball and drag to assign or replace its route.';
+      'Select this ball, then tap a pass destination to make a ball route.';
+
+  @override
+  String get trainingSketchSelectedItemActionsTitle => 'Quick actions';
+
+  @override
+  String get trainingSketchCreateMoveRouteButton => 'Create route';
+
+  @override
+  String get trainingSketchCreatePassRouteButton => 'Create pass route';
+
+  @override
+  String get trainingSketchQuickMoveButton => 'Move';
+
+  @override
+  String get trainingSketchQuickPassButton => 'Pass';
+
+  @override
+  String get trainingSketchQuickPassAndMoveButton => 'Pass then move';
+
+  @override
+  String get trainingSketchQuickDribbleButton => 'Dribble';
+
+  @override
+  String get trainingSketchQuickReceiveMoveButton => 'Receive and move';
 
   @override
   String get trainingSketchPlayerRouteLimitReached =>

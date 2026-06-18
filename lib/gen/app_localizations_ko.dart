@@ -792,6 +792,19 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String worldCupClubInfoOpenTooltip(String club) {
+    return '$club 정보 보기';
+  }
+
+  @override
+  String worldCupClubInfoTitle(String club) {
+    return '$club 정보';
+  }
+
+  @override
+  String get worldCupPlayerProfilePlayerLabel => '선수';
+
+  @override
   String get worldCupPlayerProfileTeamLabel => '대표팀';
 
   @override
@@ -1154,6 +1167,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterSubtitle => '포지션별 명단과 포메이션 배치로 팀 구성을 빠르게 확인해요.';
+
+  @override
+  String get worldCupTeamMatchOverviewTitle => '국가 경기 정보';
+
+  @override
+  String get worldCupTeamCurrentPointsLabel => '현재 승점';
+
+  @override
+  String get worldCupTeamMatchHistoryTitle => '상대별 결과';
 
   @override
   String worldCupTeamRosterFormationLabel(String formation) {
@@ -8096,7 +8118,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStart =>
-      '빠른 시작: 사람/공 추가 -> 이동선 그리기 -> 플레이(속도 조절) -> 저장';
+      '빠른 시작: 사람/공을 선택하고 빠른 동작을 눌러 이동선을 만드세요.';
 
   @override
   String get trainingSketchSelectedItemTitle => '선택 요소';
@@ -8158,6 +8180,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchRouteAfterBallButton => '공 뒤에 시작';
 
   @override
+  String get trainingSketchFinishRouteButton => '이동선 완료';
+
+  @override
+  String get trainingSketchUndoLastRoutePointButton => '마지막 점 취소';
+
+  @override
   String get trainingSketchClearAllRoutesButton => '이동선 전체 지우기';
 
   @override
@@ -8186,31 +8214,56 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get trainingSketchRouteReplaceHint => '보드를 드래그하면 선택한 이동선을 다시 그립니다.';
+  String get trainingSketchRouteReplaceHint =>
+      '도착 지점을 누르고 이동선 완료를 누르면 선택한 이동선이 바뀝니다.';
 
   @override
   String get trainingSketchSelectedPlayerRouteHint =>
-      '보드를 드래그하면 선택한 사람의 이동선을 설정합니다. 이미 있으면 새 선으로 바뀝니다.';
+      '도착 지점을 누른 뒤 이동선 완료를 누르세요. 드래그로도 그릴 수 있어요.';
 
   @override
   String get trainingSketchSelectedBallRouteHint =>
-      '보드를 드래그하면 선택한 공의 이동선을 설정합니다. 이미 있으면 새 선으로 바뀝니다.';
+      '패스 도착 지점을 누른 뒤 이동선 완료를 누르세요. 드래그로도 그릴 수 있어요.';
 
   @override
   String get trainingSketchPlayerRouteHint =>
-      '보드를 드래그하면 비어 있는 사람 이동선을 설정합니다. 특정 사람을 고르려면 먼저 그 사람을 선택해 주세요.';
+      '사람을 선택하거나 보드를 눌러 시작한 뒤, 도착 지점을 누르고 완료하세요.';
 
   @override
   String get trainingSketchBallRouteHint =>
-      '보드를 드래그하면 비어 있는 공 이동선을 설정합니다. 특정 공을 고르려면 먼저 그 공을 선택해 주세요.';
+      '공을 선택하거나 보드를 눌러 시작한 뒤, 패스 도착 지점을 누르고 완료하세요.';
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      '이동선 모드에서 이 사람을 선택한 뒤 드래그하면 이동선을 설정하거나 바꿀 수 있어요.';
+      '이 사람을 선택한 뒤 도착 지점을 누르면 이동선을 쉽게 만들 수 있어요.';
 
   @override
   String get trainingSketchLinkBallHint =>
-      '이동선 모드에서 이 공을 선택한 뒤 드래그하면 이동선을 설정하거나 바꿀 수 있어요.';
+      '이 공을 선택한 뒤 패스 도착 지점을 누르면 공 이동선을 쉽게 만들 수 있어요.';
+
+  @override
+  String get trainingSketchSelectedItemActionsTitle => '빠른 동작';
+
+  @override
+  String get trainingSketchCreateMoveRouteButton => '이동선 만들기';
+
+  @override
+  String get trainingSketchCreatePassRouteButton => '패스선 만들기';
+
+  @override
+  String get trainingSketchQuickMoveButton => '이동';
+
+  @override
+  String get trainingSketchQuickPassButton => '패스';
+
+  @override
+  String get trainingSketchQuickPassAndMoveButton => '패스 후 이동';
+
+  @override
+  String get trainingSketchQuickDribbleButton => '드리블';
+
+  @override
+  String get trainingSketchQuickReceiveMoveButton => '공 받고 이동';
 
   @override
   String get trainingSketchPlayerRouteLimitReached =>
