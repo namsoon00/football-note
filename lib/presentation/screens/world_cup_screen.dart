@@ -2494,7 +2494,11 @@ String _worldCupFifaMatchPlayerClub(String team, FifaMatchPlayer player) {
     player.fullName,
     player.playerName,
   ]) {
-    final club = worldCupRosterClubForPlayer(team, candidate);
+    final club = worldCupRosterClubForPlayer(
+      team,
+      candidate,
+      playerId: player.playerId,
+    );
     if (club.isNotEmpty) return club;
   }
   return '';
