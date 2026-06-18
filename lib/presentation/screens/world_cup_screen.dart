@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -44,8 +43,6 @@ class WorldCupScreen extends StatefulWidget {
 class _WorldCupScreenState extends State<WorldCupScreen> {
   static const String _supportCountryKey = 'world_cup_support_country_v1';
   static const String _interestCountriesKey = 'world_cup_interest_countries_v1';
-  static const String _playerClubOverridesKey =
-      'world_cup_player_club_overrides_v1';
   static const double _calendarDayNumberFontSize = 17;
   static const double _selectedDaySwipeThreshold = 72;
   static final Uri _sourceUri = Uri.parse(
@@ -70,7 +67,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       const <int, FifaAMatchEntry>{};
   Map<String, FifaRankingEntry> _rankingsByTeam =
       const <String, FifaRankingEntry>{};
-  Map<String, String> _playerClubOverrides = const <String, String>{};
   DateTime? _officialDataRefreshedAt;
   bool _officialDataRefreshing = false;
   bool _officialDataRefreshFailed = false;
@@ -91,7 +87,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       _selectedDay = _focusedDay;
     }
     _loadCountryPreferences();
-    _loadPlayerClubOverrides();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (widget.refreshOfficialDataOnOpen) {
@@ -1132,40 +1127,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       builder: (context) => _WorldCupTeamRosterSheet(
         team: team,
         ranking: _rankingsByTeam[team],
-        clubOverrides: _playerClubOverrides,
-        onClubChanged: _setPlayerClubOverride,
       ),
-    );
-  }
-
-  Future<void> _setPlayerClubOverride({
-    required String team,
-    required String playerName,
-    required String playerId,
-    required String club,
-  }) async {
-    final key = _worldCupPlayerClubOverrideKey(
-      team: team,
-      playerName: playerName,
-      playerId: playerId,
-    );
-    if (key.isEmpty) return;
-    final next = Map<String, String>.from(_playerClubOverrides);
-    final normalizedClub = club.trim();
-    if (normalizedClub.isEmpty) {
-      next.remove(key);
-    } else {
-      next[key] = normalizedClub;
-    }
-    final immutableNext = Map<String, String>.unmodifiable(next);
-    if (mounted) {
-      setState(() => _playerClubOverrides = immutableNext);
-    } else {
-      _playerClubOverrides = immutableNext;
-    }
-    await widget.optionRepository?.setValue(
-      _playerClubOverridesKey,
-      jsonEncode(immutableNext),
     );
   }
 
@@ -1289,16 +1251,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     _interestCountries =
         storedInterest.where((country) => _countries.contains(country)).toSet();
     _showCountrySettings = !_hasRegisteredCountrySettings;
-  }
-
-  void _loadPlayerClubOverrides() {
-    final repository = widget.optionRepository;
-    if (repository == null) return;
-    _playerClubOverrides = Map<String, String>.unmodifiable(
-      _decodeWorldCupPlayerClubOverrides(
-        repository.getValue<String>(_playerClubOverridesKey),
-      ),
-    );
   }
 
   List<WorldCupFixture> _fixturesForDay(DateTime day) {
@@ -3359,75 +3311,18 @@ class _WorldCupRosterPlayer {
   });
 }
 
-typedef _WorldCupPlayerClubChanged = Future<void> Function({
-  required String team,
-  required String playerName,
-  required String playerId,
-  required String club,
-});
-
-class _WorldCupTeamRosterSheet extends StatefulWidget {
+class _WorldCupTeamRosterSheet extends StatelessWidget {
   final String team;
   final FifaRankingEntry? ranking;
-  final Map<String, String> clubOverrides;
-  final _WorldCupPlayerClubChanged onClubChanged;
 
-  const _WorldCupTeamRosterSheet({
-    required this.team,
-    required this.ranking,
-    required this.clubOverrides,
-    required this.onClubChanged,
-  });
-
-  @override
-  State<_WorldCupTeamRosterSheet> createState() =>
-      _WorldCupTeamRosterSheetState();
-}
-
-class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
-  late Map<String, String> _clubOverrides;
-
-  @override
-  void initState() {
-    super.initState();
-    _clubOverrides = widget.clubOverrides;
-  }
-
-  Future<void> _setClubOverride({
-    required String team,
-    required String playerName,
-    required String playerId,
-    required String club,
-  }) async {
-    final key = _worldCupPlayerClubOverrideKey(
-      team: team,
-      playerName: playerName,
-      playerId: playerId,
-    );
-    if (key.isEmpty) return;
-    final next = Map<String, String>.from(_clubOverrides);
-    final normalizedClub = club.trim();
-    if (normalizedClub.isEmpty) {
-      next.remove(key);
-    } else {
-      next[key] = normalizedClub;
-    }
-    setState(() => _clubOverrides = Map<String, String>.unmodifiable(next));
-    await widget.onClubChanged(
-      team: team,
-      playerName: playerName,
-      playerId: playerId,
-      club: club,
-    );
-  }
+  const _WorldCupTeamRosterSheet({required this.team, this.ranking});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final team = widget.team;
     final pool = worldCupRosterPoolForTeam(team);
-    final players = _worldCupRosterPlayers(team, l10n, _clubOverrides);
+    final players = _worldCupRosterPlayers(team, l10n);
     final formation = pool?.formation ?? '4-3-3';
     final hasKnownPool = pool != null;
     final flag = worldCupCountryFlag(team);
@@ -3486,13 +3381,13 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
                 ),
               ),
             ],
-            if (widget.ranking != null) ...[
+            if (ranking != null) ...[
               const SizedBox(height: 12),
               _InfoGrid(
                 items: [
                   _InfoItem(
                     l10n.newsFifaRankingTitle,
-                    _fifaRankingCompactLabel(l10n, widget.ranking!),
+                    _fifaRankingCompactLabel(l10n, ranking!),
                   ),
                 ],
               ),
@@ -3512,7 +3407,6 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
                 _WorldCupRosterPosition.goalkeeper,
               ),
               onPlayerTap: (player) => _openPlayerProfile(context, player),
-              onClubChanged: _setClubOverride,
             ),
             const SizedBox(height: 10),
             _WorldCupRosterPositionSection(
@@ -3523,7 +3417,6 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
                 _WorldCupRosterPosition.defender,
               ),
               onPlayerTap: (player) => _openPlayerProfile(context, player),
-              onClubChanged: _setClubOverride,
             ),
             const SizedBox(height: 10),
             _WorldCupRosterPositionSection(
@@ -3534,7 +3427,6 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
                 _WorldCupRosterPosition.midfielder,
               ),
               onPlayerTap: (player) => _openPlayerProfile(context, player),
-              onClubChanged: _setClubOverride,
             ),
             const SizedBox(height: 10),
             _WorldCupRosterPositionSection(
@@ -3545,7 +3437,6 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
                 _WorldCupRosterPosition.forward,
               ),
               onPlayerTap: (player) => _openPlayerProfile(context, player),
-              onClubChanged: _setClubOverride,
             ),
             const SizedBox(height: 12),
             Text(
@@ -3571,7 +3462,7 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
       showDragHandle: true,
       isScrollControlled: true,
       builder: (context) =>
-          _WorldCupPlayerProfileSheet(team: widget.team, player: player),
+          _WorldCupPlayerProfileSheet(team: team, player: player),
     );
   }
 }
@@ -3766,14 +3657,12 @@ class _WorldCupRosterPositionSection extends StatelessWidget {
   final String team;
   final List<_WorldCupRosterPlayer> players;
   final ValueChanged<_WorldCupRosterPlayer> onPlayerTap;
-  final _WorldCupPlayerClubChanged onClubChanged;
 
   const _WorldCupRosterPositionSection({
     required this.title,
     required this.team,
     required this.players,
     required this.onPlayerTap,
-    required this.onClubChanged,
   });
 
   @override
@@ -3807,7 +3696,6 @@ class _WorldCupRosterPositionSection extends StatelessWidget {
                   team: team,
                   player: player,
                   onTap: () => onPlayerTap(player),
-                  onClubChanged: onClubChanged,
                 ),
             ],
           ),
@@ -3821,13 +3709,11 @@ class _RosterPlayerPill extends StatelessWidget {
   final String team;
   final _WorldCupRosterPlayer player;
   final VoidCallback onTap;
-  final _WorldCupPlayerClubChanged onClubChanged;
 
   const _RosterPlayerPill({
     required this.team,
     required this.player,
     required this.onTap,
-    required this.onClubChanged,
   });
 
   @override
@@ -3838,7 +3724,6 @@ class _RosterPlayerPill extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        key: ValueKey<String>('world-cup-roster-player-$team-${player.name}'),
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
         child: Ink(
@@ -3884,34 +3769,6 @@ class _RosterPlayerPill extends StatelessWidget {
                         ),
                       ),
                   ],
-                ),
-              ),
-              IconButton(
-                key: ValueKey<String>(
-                  'world-cup-roster-player-club-edit-$team-${player.name}',
-                ),
-                tooltip: l10n.worldCupPlayerClubManageAction,
-                visualDensity: VisualDensity.compact,
-                constraints: const BoxConstraints.tightFor(
-                  width: 34,
-                  height: 34,
-                ),
-                padding: EdgeInsets.zero,
-                onPressed: () => unawaited(
-                  _openWorldCupPlayerClubEditor(
-                    context,
-                    team: team,
-                    playerName: player.name,
-                    playerDisplayName: player.displayName,
-                    playerId: '',
-                    currentClub: player.club,
-                    onClubChanged: onClubChanged,
-                  ),
-                ),
-                icon: Icon(
-                  Icons.edit_rounded,
-                  size: 17,
-                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -4121,217 +3978,9 @@ String _worldCupPlayerClubLabel(
   return club;
 }
 
-String _worldCupRosterClubForPlayer(
-  String team,
-  String playerName,
-  Map<String, String> clubOverrides,
-) {
-  final override = _worldCupPlayerClubOverrideFor(
-    clubOverrides,
-    team: team,
-    playerName: playerName,
-    playerId: '',
-  );
-  if (override.isNotEmpty) return override;
-  return worldCupRosterClubForPlayer(team, playerName);
-}
-
-String _worldCupPlayerClubOverrideFor(
-  Map<String, String> clubOverrides, {
-  required String team,
-  required String playerName,
-  required String playerId,
-}) {
-  final key = _worldCupPlayerClubOverrideKey(
-    team: team,
-    playerName: playerName,
-    playerId: playerId,
-  );
-  return key.isEmpty ? '' : clubOverrides[key]?.trim() ?? '';
-}
-
-String _worldCupPlayerClubOverrideKey({
-  required String team,
-  required String playerName,
-  required String playerId,
-}) {
-  final teamKey = _normalizeWorldCupPlayerClubKeyPart(team);
-  if (teamKey.isEmpty) return '';
-  final normalizedPlayerId = playerId.trim().toLowerCase();
-  if (normalizedPlayerId.isNotEmpty) {
-    return '$teamKey|id:$normalizedPlayerId';
-  }
-  final playerKey = _normalizeWorldCupPlayerClubKeyPart(playerName);
-  return playerKey.isEmpty ? '' : '$teamKey|name:$playerKey';
-}
-
-String _normalizeWorldCupPlayerClubKeyPart(String value) {
-  return value
-      .trim()
-      .toLowerCase()
-      .replaceAll(RegExp(r'[\s._-]+'), ' ')
-      .replaceAll(RegExp(r'[^a-z0-9가-힣 ]'), '')
-      .replaceAll(RegExp(r'\s+'), ' ');
-}
-
-Map<String, String> _decodeWorldCupPlayerClubOverrides(String? raw) {
-  if (raw == null || raw.trim().isEmpty) return const <String, String>{};
-  try {
-    final decoded = jsonDecode(raw);
-    if (decoded is! Map) return const <String, String>{};
-    final values = <String, String>{};
-    for (final entry in decoded.entries) {
-      final key = entry.key.toString().trim();
-      final value = entry.value.toString().trim();
-      if (key.isNotEmpty && value.isNotEmpty) {
-        values[key] = value;
-      }
-    }
-    return values;
-  } catch (_) {
-    return const <String, String>{};
-  }
-}
-
-Future<void> _openWorldCupPlayerClubEditor(
-  BuildContext context, {
-  required String team,
-  required String playerName,
-  required String playerDisplayName,
-  required String playerId,
-  required String currentClub,
-  required _WorldCupPlayerClubChanged onClubChanged,
-}) async {
-  final club = await showModalBottomSheet<String>(
-    context: context,
-    showDragHandle: true,
-    isScrollControlled: true,
-    builder: (sheetContext) => _WorldCupPlayerClubEditorSheet(
-      playerDisplayName: playerDisplayName,
-      currentClub: currentClub,
-    ),
-  );
-  if (club == null) return;
-  await onClubChanged(
-    team: team,
-    playerName: playerName,
-    playerId: playerId,
-    club: club,
-  );
-  if (!context.mounted) return;
-  final l10n = AppLocalizations.of(context)!;
-  final messenger = ScaffoldMessenger.maybeOf(context);
-  messenger
-    ?..clearSnackBars()
-    ..showSnackBar(
-      SnackBar(
-        content: Text(
-          club.trim().isEmpty
-              ? l10n.worldCupPlayerClubCleared
-              : l10n.worldCupPlayerClubSaved,
-        ),
-      ),
-    );
-}
-
-class _WorldCupPlayerClubEditorSheet extends StatefulWidget {
-  final String playerDisplayName;
-  final String currentClub;
-
-  const _WorldCupPlayerClubEditorSheet({
-    required this.playerDisplayName,
-    required this.currentClub,
-  });
-
-  @override
-  State<_WorldCupPlayerClubEditorSheet> createState() =>
-      _WorldCupPlayerClubEditorSheetState();
-}
-
-class _WorldCupPlayerClubEditorSheetState
-    extends State<_WorldCupPlayerClubEditorSheet> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.currentClub.trim());
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          4,
-          20,
-          16 + MediaQuery.viewInsetsOf(context).bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l10n.worldCupPlayerClubEditTitle(widget.playerDisplayName),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _controller,
-              autofocus: true,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                labelText: l10n.worldCupPlayerClubInputLabel,
-                prefixIcon: const Icon(Icons.apartment_rounded),
-                border: const OutlineInputBorder(),
-              ),
-              onSubmitted: (_) => Navigator.of(context).pop(_controller.text),
-            ),
-            const SizedBox(height: 14),
-            OverflowBar(
-              alignment: MainAxisAlignment.end,
-              spacing: 8,
-              overflowSpacing: 8,
-              children: [
-                if (widget.currentClub.trim().isNotEmpty)
-                  TextButton.icon(
-                    onPressed: () => Navigator.of(context).pop(''),
-                    icon: const Icon(Icons.clear_rounded, size: 18),
-                    label: Text(l10n.worldCupPlayerClubClearAction),
-                  ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.cancel),
-                ),
-                FilledButton.icon(
-                  onPressed: () => Navigator.of(context).pop(_controller.text),
-                  icon: const Icon(Icons.save_rounded, size: 18),
-                  label: Text(l10n.save),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
   String team,
   AppLocalizations l10n,
-  Map<String, String> clubOverrides,
 ) {
   final pool = worldCupRosterPoolForTeam(team);
   if (pool != null) {
@@ -4342,7 +3991,6 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
         _WorldCupRosterPosition.goalkeeper,
         const [Offset(0.50, 0.88)],
         l10n,
-        clubOverrides,
       ),
       ..._playersFromNames(
         team,
@@ -4355,7 +4003,6 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
           Offset(0.82, 0.70),
         ],
         l10n,
-        clubOverrides,
       ),
       ..._playersFromNames(
         team,
@@ -4363,7 +4010,6 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
         _WorldCupRosterPosition.midfielder,
         const [Offset(0.25, 0.48), Offset(0.50, 0.42), Offset(0.75, 0.48)],
         l10n,
-        clubOverrides,
       ),
       ..._playersFromNames(
         team,
@@ -4371,7 +4017,6 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
         _WorldCupRosterPosition.forward,
         const [Offset(0.24, 0.24), Offset(0.50, 0.17), Offset(0.76, 0.24)],
         l10n,
-        clubOverrides,
       ),
     ];
   }
@@ -4453,7 +4098,6 @@ List<_WorldCupRosterPlayer> _playersFromNames(
   _WorldCupRosterPosition position,
   List<Offset> formationSpots,
   AppLocalizations l10n,
-  Map<String, String> clubOverrides,
 ) {
   return [
     for (var index = 0; index < names.length; index += 1)
@@ -4464,11 +4108,7 @@ List<_WorldCupRosterPlayer> _playersFromNames(
           names[index],
           l10n.localeName,
         ),
-        club: _worldCupRosterClubForPlayer(
-          team,
-          names[index],
-          clubOverrides,
-        ),
+        club: worldCupRosterClubForPlayer(team, names[index]),
         position: position,
         spot: index < formationSpots.length
             ? formationSpots[index]

@@ -1548,42 +1548,6 @@ abstract class AppLocalizations {
   /// **'Club update pending'**
   String get worldCupPlayerClubPending;
 
-  /// No description provided for @worldCupPlayerClubManageAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage club'**
-  String get worldCupPlayerClubManageAction;
-
-  /// No description provided for @worldCupPlayerClubEditTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'{player} club'**
-  String worldCupPlayerClubEditTitle(String player);
-
-  /// No description provided for @worldCupPlayerClubInputLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Club name'**
-  String get worldCupPlayerClubInputLabel;
-
-  /// No description provided for @worldCupPlayerClubClearAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear club'**
-  String get worldCupPlayerClubClearAction;
-
-  /// No description provided for @worldCupPlayerClubSaved.
-  ///
-  /// In en, this message translates to:
-  /// **'Player club saved.'**
-  String get worldCupPlayerClubSaved;
-
-  /// No description provided for @worldCupPlayerClubCleared.
-  ///
-  /// In en, this message translates to:
-  /// **'Player club cleared.'**
-  String get worldCupPlayerClubCleared;
-
   /// No description provided for @worldCupPlayerProfileSourceNote.
   ///
   /// In en, this message translates to:

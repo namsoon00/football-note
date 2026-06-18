@@ -828,26 +828,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupPlayerClubPending => 'Club update pending';
 
   @override
-  String get worldCupPlayerClubManageAction => 'Manage club';
-
-  @override
-  String worldCupPlayerClubEditTitle(String player) {
-    return '$player club';
-  }
-
-  @override
-  String get worldCupPlayerClubInputLabel => 'Club name';
-
-  @override
-  String get worldCupPlayerClubClearAction => 'Clear club';
-
-  @override
-  String get worldCupPlayerClubSaved => 'Player club saved.';
-
-  @override
-  String get worldCupPlayerClubCleared => 'Player club cleared.';
-
-  @override
   String get worldCupPlayerProfileSourceNote =>
       'A player face icon is shown when an official photo is unavailable.';
 
