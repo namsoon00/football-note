@@ -13463,6 +13463,139 @@ class QuizQualityHarnessReport {
   }
 }
 
+class QuizDraftSeed {
+  final String sportId;
+  final String idStem;
+  final String conceptKey;
+  final String category;
+  final String style;
+  final int difficulty;
+  final String subject;
+  final String koPrompt;
+  final String enPrompt;
+  final String koAnswer;
+  final String enAnswer;
+  final String koExplanationAngle;
+  final String enExplanationAngle;
+  final String koNextPointAngle;
+  final String enNextPointAngle;
+  final String koReason;
+  final String enReason;
+
+  const QuizDraftSeed({
+    required this.sportId,
+    required this.idStem,
+    required this.conceptKey,
+    required this.category,
+    required this.style,
+    required this.difficulty,
+    required this.subject,
+    required this.koPrompt,
+    required this.enPrompt,
+    required this.koAnswer,
+    required this.enAnswer,
+    required this.koExplanationAngle,
+    required this.enExplanationAngle,
+    required this.koNextPointAngle,
+    required this.enNextPointAngle,
+    required this.koReason,
+    required this.enReason,
+  });
+
+  String toMarkdownString() {
+    return [
+      '### $idStem',
+      '',
+      '- sport: `$sportId`',
+      '- concept: `$conceptKey`',
+      '- category/style/difficulty: `$category` / `$style` / `$difficulty`',
+      '- subject: $subject',
+      '- prompt(ko): $koPrompt',
+      '- prompt(en): $enPrompt',
+      '- answer(ko): $koAnswer',
+      '- answer(en): $enAnswer',
+      '- explanation angle(ko): $koExplanationAngle',
+      '- explanation angle(en): $enExplanationAngle',
+      '- next-point cue(ko): $koNextPointAngle',
+      '- next-point cue(en): $enNextPointAngle',
+      '- generation reason(ko): $koReason',
+      '- generation reason(en): $enReason',
+    ].join('\n');
+  }
+}
+
+class QuizGenerationHarnessReport {
+  final QuizQualityHarnessReport qualityReport;
+  final Map<String, List<QuizDraftSeed>> draftSeedsBySport;
+  final List<String> failures;
+
+  const QuizGenerationHarnessReport({
+    required this.qualityReport,
+    required this.draftSeedsBySport,
+    required this.failures,
+  });
+
+  bool get passed => failures.isEmpty;
+
+  int get totalDraftSeeds => draftSeedsBySport.values.fold<int>(
+        0,
+        (sum, seeds) => sum + seeds.length,
+      );
+
+  String toConsoleString() {
+    final buffer = StringBuffer('Quiz generation harness report');
+    buffer.writeln();
+    buffer.writeln('quality gate: ${qualityReport.passed ? 'PASS' : 'FAIL'}');
+    buffer.writeln('draft seeds: $totalDraftSeeds');
+    for (final sportId in draftSeedsBySport.keys) {
+      final seeds = draftSeedsBySport[sportId] ?? const <QuizDraftSeed>[];
+      buffer.writeln('- $sportId: ${seeds.length} draft seeds');
+      for (final seed in seeds.take(3)) {
+        buffer.writeln(
+          '  - ${seed.idStem} (${seed.category}/${seed.style}/d${seed.difficulty})',
+        );
+      }
+    }
+    if (failures.isEmpty) {
+      buffer.writeln('PASS');
+    } else {
+      buffer.writeln('FAILURES');
+      for (final failure in failures) {
+        buffer.writeln('- $failure');
+      }
+    }
+    return buffer.toString();
+  }
+
+  String toMarkdownString() {
+    final buffer = StringBuffer();
+    buffer.writeln('# Quiz Generation Harness Report');
+    buffer.writeln();
+    buffer.writeln('- quality gate: ${qualityReport.passed ? 'PASS' : 'FAIL'}');
+    buffer.writeln('- draft seeds: $totalDraftSeeds');
+    buffer.writeln('- generation mode: curated deterministic draft seeds');
+    buffer.writeln();
+    if (failures.isNotEmpty) {
+      buffer.writeln('## Failures');
+      buffer.writeln();
+      for (final failure in failures) {
+        buffer.writeln('- $failure');
+      }
+      buffer.writeln();
+    }
+    for (final sportId in draftSeedsBySport.keys) {
+      buffer.writeln('## $sportId');
+      buffer.writeln();
+      for (final seed
+          in draftSeedsBySport[sportId] ?? const <QuizDraftSeed>[]) {
+        buffer.writeln(seed.toMarkdownString());
+        buffer.writeln();
+      }
+    }
+    return buffer.toString();
+  }
+}
+
 QuizQualityHarnessReport buildQuizQualityHarnessReport({
   Map<String, int> minimumQuestionsBySport = const <String, int>{
     SportCatalog.footballId: 120,
@@ -13650,6 +13783,41 @@ QuizQualityHarnessReport buildQuizQualityHarnessReport({
   );
 }
 
+QuizGenerationHarnessReport buildQuizGenerationHarnessReport({
+  int seedsPerSport = 8,
+}) {
+  const sportIds = <String>[
+    SportCatalog.footballId,
+    SportCatalog.baseballId,
+    SportCatalog.basketballId,
+    SportCatalog.tennisId,
+  ];
+
+  final targetSeeds = math.max(1, seedsPerSport);
+  final qualityReport = buildQuizQualityHarnessReport();
+  final failures = <String>[
+    for (final failure in qualityReport.failures) 'quality gate: $failure',
+  ];
+  final draftSeedsBySport = <String, List<QuizDraftSeed>>{};
+
+  for (final sportId in sportIds) {
+    final seeds = _buildQuizDraftSeedsForSport(sportId, targetSeeds);
+    if (seeds.length < targetSeeds) {
+      failures.add(
+        '$sportId generated ${seeds.length} draft seeds; target is $targetSeeds.',
+      );
+    }
+    draftSeedsBySport[sportId] = List<QuizDraftSeed>.unmodifiable(seeds);
+  }
+
+  return QuizGenerationHarnessReport(
+    qualityReport: qualityReport,
+    draftSeedsBySport:
+        Map<String, List<QuizDraftSeed>>.unmodifiable(draftSeedsBySport),
+    failures: List<String>.unmodifiable(failures),
+  );
+}
+
 String _quizHarnessContentKey(_FootballQuizQuestion question) {
   String normalize(String value) =>
       value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
@@ -13685,6 +13853,1003 @@ String _quizHarnessSearchText(_FootballQuizQuestion question) {
     ...question.options.map((option) => option.enText),
   ].join(' ').toLowerCase();
 }
+
+List<QuizDraftSeed> _buildQuizDraftSeedsForSport(
+  String sportId,
+  int targetSeeds,
+) {
+  final existingQuestions = _quizPoolForSport(sportId);
+  final existingIds = existingQuestions.map((question) => question.id).toSet();
+  final existingConcepts =
+      existingQuestions.map((question) => question.conceptKey).toSet();
+  final styleCounts = <_QuestionStyle, int>{};
+  final categoryCounts = <_QuizCategory, int>{};
+  final difficultyCounts = <int, int>{};
+  for (final question in existingQuestions) {
+    styleCounts[question.style] = (styleCounts[question.style] ?? 0) + 1;
+    categoryCounts[question.category] =
+        (categoryCounts[question.category] ?? 0) + 1;
+    difficultyCounts[question.difficulty] =
+        (difficultyCounts[question.difficulty] ?? 0) + 1;
+  }
+
+  final candidates = _quizDraftSeedCandidates
+      .where((candidate) => candidate.sportId == sportId)
+      .where((candidate) => !existingIds.contains(candidate.idStem))
+      .where((candidate) => !existingConcepts.contains(candidate.conceptKey))
+      .toList()
+    ..sort(
+      (a, b) => _quizDraftSeedScore(
+        b,
+        styleCounts,
+        categoryCounts,
+        difficultyCounts,
+      ).compareTo(
+        _quizDraftSeedScore(
+          a,
+          styleCounts,
+          categoryCounts,
+          difficultyCounts,
+        ),
+      ),
+    );
+
+  final selected = <_QuizDraftSeedCandidate>[];
+  final seenCategories = <_QuizCategory>{};
+  final seenStyles = <_QuestionStyle>{};
+
+  for (final candidate in candidates) {
+    if (selected.length >= targetSeeds) break;
+    final addsNewCategory = !seenCategories.contains(candidate.category);
+    final addsNewStyle = !seenStyles.contains(candidate.style);
+    if (addsNewCategory || addsNewStyle) {
+      selected.add(candidate);
+      seenCategories.add(candidate.category);
+      seenStyles.add(candidate.style);
+    }
+  }
+  for (final candidate in candidates) {
+    if (selected.length >= targetSeeds) break;
+    if (!selected.contains(candidate)) {
+      selected.add(candidate);
+    }
+  }
+
+  return selected.map((candidate) => candidate.toSeed()).toList();
+}
+
+int _quizDraftSeedScore(
+  _QuizDraftSeedCandidate candidate,
+  Map<_QuestionStyle, int> styleCounts,
+  Map<_QuizCategory, int> categoryCounts,
+  Map<int, int> difficultyCounts,
+) {
+  final maxStyleCount = styleCounts.values.fold<int>(0, math.max);
+  final maxCategoryCount = categoryCounts.values.fold<int>(0, math.max);
+  final maxDifficultyCount = difficultyCounts.values.fold<int>(0, math.max);
+  final styleNeed = maxStyleCount - (styleCounts[candidate.style] ?? 0);
+  final categoryNeed =
+      maxCategoryCount - (categoryCounts[candidate.category] ?? 0);
+  final difficultyNeed =
+      maxDifficultyCount - (difficultyCounts[candidate.difficulty] ?? 0);
+  return (categoryNeed * 11) +
+      (styleNeed * 7) +
+      (difficultyNeed * 5) +
+      (candidate.category.isCoreFocus ? 3 : 0);
+}
+
+class _QuizDraftSeedCandidate {
+  final String sportId;
+  final String idStem;
+  final String conceptKey;
+  final _QuizCategory category;
+  final _QuestionStyle style;
+  final int difficulty;
+  final String subject;
+  final String koPrompt;
+  final String enPrompt;
+  final String koAnswer;
+  final String enAnswer;
+  final String koExplanationAngle;
+  final String enExplanationAngle;
+  final String koNextPointAngle;
+  final String enNextPointAngle;
+  final String koReason;
+  final String enReason;
+
+  const _QuizDraftSeedCandidate({
+    required this.sportId,
+    required this.idStem,
+    required this.conceptKey,
+    required this.category,
+    required this.style,
+    required this.difficulty,
+    required this.subject,
+    required this.koPrompt,
+    required this.enPrompt,
+    required this.koAnswer,
+    required this.enAnswer,
+    required this.koExplanationAngle,
+    required this.enExplanationAngle,
+    required this.koNextPointAngle,
+    required this.enNextPointAngle,
+    required this.koReason,
+    required this.enReason,
+  });
+
+  QuizDraftSeed toSeed() {
+    return QuizDraftSeed(
+      sportId: sportId,
+      idStem: idStem,
+      conceptKey: conceptKey,
+      category: category.name,
+      style: style.name,
+      difficulty: difficulty,
+      subject: subject,
+      koPrompt: koPrompt,
+      enPrompt: enPrompt,
+      koAnswer: koAnswer,
+      enAnswer: enAnswer,
+      koExplanationAngle: koExplanationAngle,
+      enExplanationAngle: enExplanationAngle,
+      koNextPointAngle: koNextPointAngle,
+      enNextPointAngle: enNextPointAngle,
+      koReason: koReason,
+      enReason: enReason,
+    );
+  }
+}
+
+const List<_QuizDraftSeedCandidate> _quizDraftSeedCandidates =
+    <_QuizDraftSeedCandidate>[
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.footballId,
+    idStem: 'draft_football_back_pass_rule_history',
+    conceptKey: 'draft_football_back_pass_rule_history',
+    category: _QuizCategory.rules,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'football history/rules',
+    koPrompt: '1992년 백패스 룰 변화가 골키퍼와 빌드업 방식에 준 핵심 영향은?',
+    enPrompt:
+        'What was the key build-up impact of the 1992 back-pass rule change?',
+    koAnswer: '골키퍼의 발 기술과 압박 회피 빌드업 가치가 커졌다',
+    enAnswer:
+        'Goalkeepers needed better foot skill and build-up value under pressure',
+    koExplanationAngle: '룰 변화가 단순 규정이 아니라 포지션 기술 요구를 바꿨다는 관점으로 설명한다.',
+    enExplanationAngle:
+        'Explain the rule as a change in positional skill demands, not trivia.',
+    koNextPointAngle: '역사 문항은 현재 전술과 연결되는 행동 변화까지 묻는다.',
+    enNextPointAngle:
+        'Connect history questions to the behavior that changed modern tactics.',
+    koReason: '축구 역사와 현대 빌드업 이해를 동시에 확장한다.',
+    enReason: 'Expands football history while tying it to modern build-up.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.footballId,
+    idStem: 'draft_football_false_nine_reference',
+    conceptKey: 'draft_football_false_nine_reference',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.shortAnswer,
+    difficulty: 3,
+    subject: 'football tactics',
+    koPrompt: '최전방 공격수가 내려와 센터백을 끌어내고 2선 침투 공간을 여는 역할은?',
+    enPrompt:
+        'What role drops from the front line to pull center backs out and open runner space?',
+    koAnswer: '펄스 나인',
+    enAnswer: 'false nine',
+    koExplanationAngle: '정답명뿐 아니라 수비 라인이 따라 나올 때 생기는 공간을 함께 설명한다.',
+    enExplanationAngle:
+        'Explain the space created when the defensive line follows the drop.',
+    koNextPointAngle: '역할 이름을 외우기보다 움직임이 어느 라인을 흔드는지 보게 한다.',
+    enNextPointAngle:
+        'Focus on which defensive line the movement disrupts, not only the label.',
+    koReason: '고급 전술 용어를 공간 창출 원리와 묶는다.',
+    enReason:
+        'Links an advanced tactical term to the principle of creating space.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.footballId,
+    idStem: 'draft_football_rest_defense_balance',
+    conceptKey: 'draft_football_rest_defense_balance',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 3,
+    subject: 'football tactics',
+    koPrompt: '공격 중에도 역습을 막기 위해 뒤에 남는 구조를 설계하는 개념은?',
+    enPrompt:
+        'What concept describes the structure kept behind the attack to stop counters?',
+    koAnswer: '레스트 디펜스',
+    enAnswer: 'rest defense',
+    koExplanationAngle: '볼 소유 전술이 공격 숫자만이 아니라 잃었을 때의 첫 수비 구조까지 포함함을 설명한다.',
+    enExplanationAngle:
+        'Explain possession as including the first defensive structure after loss.',
+    koNextPointAngle: '공격 장면에서도 뒤쪽 커버 숫자와 거리 간격을 같이 관찰하게 한다.',
+    enNextPointAngle:
+        'Train the viewer to inspect cover numbers and spacing during attacks.',
+    koReason: '전술 문항을 공격/수비 전환의 연결 구조로 높인다.',
+    enReason:
+        'Raises tactical quality by connecting attack shape to transition defense.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.footballId,
+    idStem: 'draft_football_touchline_pressing_trap',
+    conceptKey: 'draft_football_touchline_pressing_trap',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.ox,
+    difficulty: 2,
+    subject: 'football pressing',
+    koPrompt: '터치라인 쪽으로 유도한 압박은 상대 선택지를 줄이는 데 도움이 된다. O/X',
+    enPrompt:
+        'Pressing toward the touchline can reduce the opponent’s options. True/False',
+    koAnswer: 'O',
+    enAnswer: 'True',
+    koExplanationAngle: '라인이 사실상 추가 수비수처럼 작동해 패스 방향을 줄이는 원리를 설명한다.',
+    enExplanationAngle:
+        'Explain how the line acts like an extra defender by reducing passing lanes.',
+    koNextPointAngle: '압박 성공 여부보다 어디로 몰았는지 먼저 체크하게 한다.',
+    enNextPointAngle:
+        'Check where pressure sends the ball before judging the tackle outcome.',
+    koReason: '압박 퀴즈를 태클 여부가 아니라 유도 방향 중심으로 만든다.',
+    enReason:
+        'Keeps pressing questions focused on direction, not just tackling.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.footballId,
+    idStem: 'draft_football_penalty_shootout_routine',
+    conceptKey: 'draft_football_penalty_shootout_routine',
+    category: _QuizCategory.mindset,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'football mindset',
+    koPrompt: '승부차기 전 루틴이 가장 직접적으로 줄여주는 위험은?',
+    enPrompt: 'What risk does a pre-penalty routine most directly reduce?',
+    koAnswer: '결과 생각으로 동작 단서가 흔들리는 위험',
+    enAnswer: 'Losing action cues because attention drifts to the result',
+    koExplanationAngle: '멘탈 문항을 추상적 자신감이 아니라 반복 가능한 행동 단서로 설명한다.',
+    enExplanationAngle:
+        'Frame mentality through repeatable action cues, not vague confidence.',
+    koNextPointAngle: '압박 상황은 감정보다 첫 행동 루틴을 묻도록 설계한다.',
+    enNextPointAngle:
+        'Pressure questions should ask for the first action routine.',
+    koReason: '마인드 퀴즈를 실제 수행 루틴으로 구체화한다.',
+    enReason: 'Turns mindset content into a concrete performance routine.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.footballId,
+    idStem: 'draft_football_var_offside_line',
+    conceptKey: 'draft_football_var_offside_line',
+    category: _QuizCategory.rules,
+    style: _QuestionStyle.ox,
+    difficulty: 2,
+    subject: 'football history/rules',
+    koPrompt: 'VAR 시대의 공격수는 침투 타이밍뿐 아니라 마지막 수비 라인과의 신체 위치도 더 정교하게 관리해야 한다. O/X',
+    enPrompt:
+        'In the VAR era, attackers must manage body position against the last line more precisely. True/False',
+    koAnswer: 'O',
+    enAnswer: 'True',
+    koExplanationAngle: '기술 도입이 경기 행동과 라인 관리 습관을 바꾼다는 관점으로 설명한다.',
+    enExplanationAngle:
+        'Explain technology as changing player habits around timing and line control.',
+    koNextPointAngle: '규칙/기술 변화는 실제 움직임의 세밀함으로 연결한다.',
+    enNextPointAngle:
+        'Tie rules and technology changes to more precise movement behavior.',
+    koReason: '현대 축구 역사와 오프사이드 판단 스킬을 연결한다.',
+    enReason: 'Connects modern football history with offside-line skill.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.footballId,
+    idStem: 'draft_football_inverted_fullback_buildout',
+    conceptKey: 'draft_football_inverted_fullback_buildout',
+    category: _QuizCategory.positions,
+    style: _QuestionStyle.shortAnswer,
+    difficulty: 3,
+    subject: 'football positions',
+    koPrompt: '풀백이 중앙 미드필더처럼 안쪽으로 들어와 빌드업 숫자를 만드는 역할은?',
+    enPrompt:
+        'What role moves a fullback inside like a midfielder to add build-up numbers?',
+    koAnswer: '인버티드 풀백',
+    enAnswer: 'inverted fullback',
+    koExplanationAngle: '풀백 역할을 측면 오버래핑 하나로 제한하지 않고 중앙 점유 구조와 연결한다.',
+    enExplanationAngle:
+        'Connect fullback play to central possession structure, not only overlaps.',
+    koNextPointAngle: '포지션 문항은 이름보다 점유 구조에서 생기는 수적 우위를 묻게 한다.',
+    enNextPointAngle:
+        'Ask how the role changes possession numbers, not only its name.',
+    koReason: '현대 포지션 역할 변화를 고급 퀴즈 소재로 만든다.',
+    enReason: 'Adds modern positional-role evolution as a high-quality topic.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.footballId,
+    idStem: 'draft_football_oriented_first_touch_scan',
+    conceptKey: 'draft_football_oriented_first_touch_scan',
+    category: _QuizCategory.technique,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'football technique',
+    koPrompt: '압박을 받기 전 오리엔티드 터치를 성공시키려면 터치 직전 가장 중요한 준비는?',
+    enPrompt:
+        'Before using an oriented first touch under pressure, what preparation matters most?',
+    koAnswer: '받기 전 스캔으로 다음 공간과 압박 방향을 확인한다',
+    enAnswer:
+        'Scan before receiving to identify the next space and pressure direction',
+    koExplanationAngle: '터치 기술을 발동작만이 아니라 사전 정보 수집과 연결한다.',
+    enExplanationAngle:
+        'Link the touch technique to information gathered before receiving.',
+    koNextPointAngle: '기술 퀴즈는 동작 전 인지 단계를 반드시 포함한다.',
+    enNextPointAngle:
+        'Technique questions should include the perception step before the action.',
+    koReason: '스킬 퀴즈를 실제 경기 의사결정 품질로 끌어올린다.',
+    enReason: 'Raises skill questions into match-speed decision quality.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.baseballId,
+    idStem: 'draft_baseball_seam_shifted_wake',
+    conceptKey: 'draft_baseball_seam_shifted_wake',
+    category: _QuizCategory.technique,
+    style: _QuestionStyle.shortAnswer,
+    difficulty: 3,
+    subject: 'baseball pitching',
+    koPrompt: '공의 솔기 방향이 예상과 다른 무브먼트를 만드는 투구 물리 개념은?',
+    enPrompt:
+        'What pitching concept describes seam orientation creating unexpected movement?',
+    koAnswer: '심 시프트 웨이크',
+    enAnswer: 'seam-shifted wake',
+    koExplanationAngle: '구속보다 회전축과 솔기 방향이 움직임 품질을 바꾼다는 점을 설명한다.',
+    enExplanationAngle:
+        'Explain how axis and seam orientation can change movement quality.',
+    koNextPointAngle: '투구 문항은 결과 구종명보다 움직임이 생기는 원리를 묻게 한다.',
+    enNextPointAngle:
+        'Pitching questions should ask why movement happens, not only pitch names.',
+    koReason: '야구 기술 퀴즈에 현대 투구 분석 개념을 추가한다.',
+    enReason: 'Adds modern pitch-analysis depth to baseball technique quizzes.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.baseballId,
+    idStem: 'draft_baseball_run_expectancy_second_no_out',
+    conceptKey: 'draft_baseball_run_expectancy_second_no_out',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 3,
+    subject: 'baseball tactics',
+    koPrompt: '무사 2루에서 작전 선택을 평가할 때 가장 먼저 봐야 하는 기준은?',
+    enPrompt:
+        'When evaluating tactics with a runner on second and no outs, what should be checked first?',
+    koAnswer: '득점 기대값과 경기 상황의 균형',
+    enAnswer: 'The balance between run expectancy and game context',
+    koExplanationAngle: '번트/강공을 정답 암기가 아니라 기대값과 점수 상황의 조합으로 판단한다.',
+    enExplanationAngle:
+        'Evaluate bunting or swinging through expectancy plus score context.',
+    koNextPointAngle: '작전 문항은 주자/아웃/점수판을 함께 읽게 한다.',
+    enNextPointAngle:
+        'Tactical questions should make runners, outs, and score interact.',
+    koReason: '야구 전술 퀴즈를 상황 판단형으로 확장한다.',
+    enReason: 'Expands baseball tactics into context-based decision making.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.baseballId,
+    idStem: 'draft_baseball_catcher_framing_low_zone',
+    conceptKey: 'draft_baseball_catcher_framing_low_zone',
+    category: _QuizCategory.technique,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'baseball catching',
+    koPrompt: '낮은 코스 프레이밍에서 포수가 가장 피해야 할 동작은?',
+    enPrompt: 'What should a catcher avoid most when framing a low pitch?',
+    koAnswer: '글러브를 크게 끌어올려 심판에게 조작처럼 보이게 하는 동작',
+    enAnswer: 'Jerking the glove upward so the receive looks manipulated',
+    koExplanationAngle: '프레이밍을 속임수가 아니라 조용한 포구와 안정된 제시의 기술로 설명한다.',
+    enExplanationAngle:
+        'Frame catching as quiet receiving and stable presentation, not tricks.',
+    koNextPointAngle: '수비 기술 문항은 손동작의 크기와 몸 안정성을 같이 묻게 한다.',
+    enNextPointAngle:
+        'Defensive skill questions should pair glove action with body stability.',
+    koReason: '포수 수비 스킬을 세밀한 기술 판단으로 만든다.',
+    enReason: 'Adds precise catcher-skill judgment to the baseball pool.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.baseballId,
+    idStem: 'draft_baseball_two_strike_approach',
+    conceptKey: 'draft_baseball_two_strike_approach',
+    category: _QuizCategory.mindset,
+    style: _QuestionStyle.ox,
+    difficulty: 1,
+    subject: 'baseball mindset',
+    koPrompt: '투 스트라이크에서는 장타만 노리기보다 존을 넓히고 콘택트 기준을 조정하는 접근이 필요하다. O/X',
+    enPrompt:
+        'With two strikes, hitters often need to widen the zone and adjust contact goals. True/False',
+    koAnswer: 'O',
+    enAnswer: 'True',
+    koExplanationAngle: '멘탈을 막연한 집중이 아니라 카운트별 타격 기준 조정으로 설명한다.',
+    enExplanationAngle:
+        'Explain mentality through count-specific hitting adjustments.',
+    koNextPointAngle: '타격 문항은 카운트가 선택 기준을 어떻게 바꾸는지 묻는다.',
+    enNextPointAngle:
+        'Ask how the count changes the hitter’s selection standard.',
+    koReason: '기본 카운트 상황도 품질 있는 의사결정 문항으로 만든다.',
+    enReason: 'Turns a basic count situation into a decision-quality question.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.baseballId,
+    idStem: 'draft_baseball_bullpen_leverage_index',
+    conceptKey: 'draft_baseball_bullpen_leverage_index',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.shortAnswer,
+    difficulty: 3,
+    subject: 'baseball tactics',
+    koPrompt: '불펜 투입 시점의 압박도와 승부 중요도를 수치화하는 대표 지표는?',
+    enPrompt:
+        'What metric captures the pressure and importance of a bullpen situation?',
+    koAnswer: '레버리지 인덱스',
+    enAnswer: 'leverage index',
+    koExplanationAngle: '세이브 상황만이 아니라 경기 내 가장 중요한 아웃을 찾는 관점으로 설명한다.',
+    enExplanationAngle:
+        'Explain it as finding the highest-value outs, not only save situations.',
+    koNextPointAngle: '투수 운용 문항은 이닝보다 상황의 중요도를 먼저 보게 한다.',
+    enNextPointAngle:
+        'Pitching-management questions should weigh situation before inning labels.',
+    koReason: '야구 작전 퀴즈에 현대 지표 기반 판단을 넣는다.',
+    enReason: 'Adds modern metric-based judgment to baseball strategy quizzes.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.baseballId,
+    idStem: 'draft_baseball_shift_ban_adaptation',
+    conceptKey: 'draft_baseball_shift_ban_adaptation',
+    category: _QuizCategory.rules,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'baseball rules/history',
+    koPrompt: '수비 시프트 제한 이후 내야 수비 평가에서 더 중요해진 요소는?',
+    enPrompt:
+        'After restrictions on defensive shifts, what became more important in infield defense?',
+    koAnswer: '개별 수비 범위와 첫 스텝 반응',
+    enAnswer: 'Individual range and first-step reaction',
+    koExplanationAngle: '규칙 변화가 포지셔닝 자동화보다 선수 개인 수비 능력의 가치를 키웠다는 점을 설명한다.',
+    enExplanationAngle:
+        'Explain how rule change raised the value of individual defensive range.',
+    koNextPointAngle: '규칙 문항은 선수 평가 기준 변화까지 연결한다.',
+    enNextPointAngle:
+        'Rule questions should connect to changed player-evaluation criteria.',
+    koReason: '야구 규칙/역사 문항을 현대 경기 분석과 연결한다.',
+    enReason: 'Connects baseball rule history to modern game analysis.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.baseballId,
+    idStem: 'draft_baseball_secondary_lead_timing',
+    conceptKey: 'draft_baseball_secondary_lead_timing',
+    category: _QuizCategory.technique,
+    style: _QuestionStyle.ox,
+    difficulty: 2,
+    subject: 'baseball baserunning',
+    koPrompt: '세컨더리 리드는 투수가 던진 뒤 다음 플레이 반응 시간을 줄이는 데 목적이 있다. O/X',
+    enPrompt:
+        'A secondary lead helps reduce reaction time after the pitcher delivers. True/False',
+    koAnswer: 'O',
+    enAnswer: 'True',
+    koExplanationAngle: '주루를 단순 속도가 아니라 투구 타이밍과 다음 베이스 판단으로 설명한다.',
+    enExplanationAngle:
+        'Explain baserunning through pitch timing and next-base decisions.',
+    koNextPointAngle: '주루 문항은 출발 거리보다 다음 반응 준비를 묻게 한다.',
+    enNextPointAngle:
+        'Baserunning questions should ask what reaction the lead prepares.',
+    koReason: '주루 스킬 문항을 상황 반응 품질로 높인다.',
+    enReason: 'Raises baserunning content into reaction-quality skill.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.baseballId,
+    idStem: 'draft_baseball_changeup_arm_speed',
+    conceptKey: 'draft_baseball_changeup_arm_speed',
+    category: _QuizCategory.technique,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'baseball pitching',
+    koPrompt: '좋은 체인지업이 타자의 타이밍을 빼앗는 핵심 조건은?',
+    enPrompt: 'What key condition helps a good changeup disrupt hitter timing?',
+    koAnswer: '패스트볼과 비슷한 팔 스피드로 더 느리게 도착한다',
+    enAnswer: 'It arrives slower while looking like fastball arm speed',
+    koExplanationAngle: '구속 차이만이 아니라 같은 동작에서 생기는 시간 착시를 설명한다.',
+    enExplanationAngle:
+        'Explain the timing illusion created by similar delivery and lower speed.',
+    koNextPointAngle: '구종 문항은 속도보다 타자가 보는 단서를 함께 묻는다.',
+    enNextPointAngle:
+        'Pitch questions should include what cues the hitter reads.',
+    koReason: '투구 스킬 퀴즈를 타자 인지와 연결한다.',
+    enReason: 'Connects pitching skill to hitter perception.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_point_five_decision',
+    conceptKey: 'draft_basketball_point_five_decision',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.shortAnswer,
+    difficulty: 2,
+    subject: 'basketball tactics',
+    koPrompt: '공을 받은 뒤 0.5초 안에 슛, 패스, 돌파를 빠르게 결정하는 원칙은?',
+    enPrompt:
+        'What principle asks a player to shoot, pass, or drive within about 0.5 seconds?',
+    koAnswer: '0.5초 결정',
+    enAnswer: '0.5 decision',
+    koExplanationAngle: '빠른 공격은 속도 자체보다 수비가 회복하기 전 결정을 끝내는 것임을 설명한다.',
+    enExplanationAngle:
+        'Explain quick offense as deciding before the defense can recover.',
+    koNextPointAngle: '공격 문항은 공을 오래 잡는 시간 비용을 드러내게 한다.',
+    enNextPointAngle:
+        'Offensive questions should reveal the cost of holding the ball.',
+    koReason: '농구 전술 퀴즈를 의사결정 속도로 확장한다.',
+    enReason: 'Expands basketball tactics through decision speed.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_weakside_low_man',
+    conceptKey: 'draft_basketball_weakside_low_man',
+    category: _QuizCategory.positions,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 3,
+    subject: 'basketball defense',
+    koPrompt: '드라이브가 들어올 때 약한 쪽 코너 수비수가 림 보호를 먼저 책임지는 역할은?',
+    enPrompt:
+        'On a drive, what weak-side role first protects the rim from the corner side?',
+    koAnswer: '로우맨',
+    enAnswer: 'low man',
+    koExplanationAngle: '도움수비를 아무나 가는 것이 아니라 약한 쪽 최후방 책임으로 설명한다.',
+    enExplanationAngle:
+        'Explain help defense as a weak-side back-line responsibility.',
+    koNextPointAngle: '수비 문항은 볼 수비자뿐 아니라 약한 쪽 책임자를 묻는다.',
+    enNextPointAngle:
+        'Defensive questions should ask for the weak-side responsibility too.',
+    koReason: '농구 수비 퀴즈를 현대 헬프 로테이션 구조로 높인다.',
+    enReason: 'Raises basketball defense content into modern help rotation.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_drop_coverage_pullup',
+    conceptKey: 'draft_basketball_drop_coverage_pullup',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 3,
+    subject: 'basketball ball-screen defense',
+    koPrompt: '드롭 커버리지가 상대 볼핸들러에게 상대적으로 허용하기 쉬운 공격은?',
+    enPrompt:
+        'What shot can drop coverage more readily concede to a ball handler?',
+    koAnswer: '미드레인지 풀업',
+    enAnswer: 'mid-range pull-up',
+    koExplanationAngle: '림 보호와 롤맨 제어를 얻는 대신 중간 거리 풀업 공간을 줄 수 있음을 설명한다.',
+    enExplanationAngle:
+        'Explain the tradeoff: rim and roll coverage can concede pull-up space.',
+    koNextPointAngle: '전술 문항은 커버리지의 장점과 내주는 슛을 함께 묻는다.',
+    enNextPointAngle:
+        'Coverage questions should ask both what it protects and what it concedes.',
+    koReason: '픽앤롤 수비를 장단점 비교형으로 만든다.',
+    enReason: 'Makes pick-and-roll defense a tradeoff-based topic.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_spain_pick_roll_backscreen',
+    conceptKey: 'draft_basketball_spain_pick_roll_backscreen',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.ox,
+    difficulty: 3,
+    subject: 'basketball set play',
+    koPrompt: '스페인 픽앤롤은 롤맨에게 백스크린을 더해 수비 로테이션을 흔드는 세트다. O/X',
+    enPrompt:
+        'Spain pick-and-roll adds a back screen for the roller to stress rotations. True/False',
+    koAnswer: 'O',
+    enAnswer: 'True',
+    koExplanationAngle: '세트 이름보다 왜 헬프와 스위치 타이밍이 꼬이는지 설명한다.',
+    enExplanationAngle:
+        'Explain why the back screen disrupts help and switch timing.',
+    koNextPointAngle: '세트플레이 문항은 첫 스크린 뒤의 두 번째 압박을 보게 한다.',
+    enNextPointAngle:
+        'Set-play questions should make the second action visible.',
+    koReason: '이미 있는 핵심 키워드를 더 응용형 문항으로 확장한다.',
+    enReason: 'Expands an existing core keyword into an applied draft.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_free_throw_routine_pressure',
+    conceptKey: 'draft_basketball_free_throw_routine_pressure',
+    category: _QuizCategory.mindset,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 1,
+    subject: 'basketball mindset',
+    koPrompt: '압박 자유투에서 루틴의 가장 큰 목적은?',
+    enPrompt:
+        'What is the main purpose of a free-throw routine under pressure?',
+    koAnswer: '항상 같은 호흡과 시선 단서로 실행을 안정시키는 것',
+    enAnswer: 'Stabilizing execution with the same breathing and visual cues',
+    koExplanationAngle: '마인드 문항을 감정 억제가 아니라 반복 가능한 수행 단서로 설명한다.',
+    enExplanationAngle:
+        'Frame pressure management as repeatable execution cues.',
+    koNextPointAngle: '루틴 문항은 성공 확률보다 흔들릴 때 돌아갈 기준을 묻는다.',
+    enNextPointAngle:
+        'Routine questions should ask what anchor the player returns to.',
+    koReason: '농구 마인드 퀴즈를 실제 슈팅 루틴으로 구체화한다.',
+    enReason:
+        'Turns basketball mindset into a concrete shooting routine topic.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_transition_wall',
+    conceptKey: 'draft_basketball_transition_wall',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.ox,
+    difficulty: 2,
+    subject: 'basketball transition defense',
+    koPrompt: '트랜지션 수비에서는 공만 따라가기보다 먼저 페인트 앞에 벽을 세우는 판단이 중요하다. O/X',
+    enPrompt:
+        'In transition defense, building a wall near the paint can matter more than chasing only the ball. True/False',
+    koAnswer: 'O',
+    enAnswer: 'True',
+    koExplanationAngle: '속공 수비를 개인 추격이 아니라 림 우선 보호와 매치업 회복으로 설명한다.',
+    enExplanationAngle:
+        'Explain transition defense through rim protection and matchup recovery.',
+    koNextPointAngle: '전환 수비 문항은 첫 세 걸음의 목적지를 묻게 한다.',
+    enNextPointAngle:
+        'Transition questions should ask where the first three steps go.',
+    koReason: '농구 전환 수비를 구체적인 우선순위 문항으로 만든다.',
+    enReason: 'Makes transition defense a concrete priority question.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_corner_three_shot_diet',
+    conceptKey: 'draft_basketball_corner_three_shot_diet',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'basketball analytics',
+    koPrompt: '현대 농구에서 코너 3점이 좋은 슛으로 평가되는 주된 이유는?',
+    enPrompt:
+        'Why is the corner three often valued highly in modern basketball?',
+    koAnswer: '거리가 짧고 킥아웃 패스로 높은 기대값을 만들기 쉽다',
+    enAnswer:
+        'It is shorter and often created by kick-out passes for strong value',
+    koExplanationAngle: '좋은 슛을 감각이 아니라 거리, 수비 붕괴, 기대값으로 설명한다.',
+    enExplanationAngle:
+        'Explain shot quality through distance, defensive collapse, and value.',
+    koNextPointAngle: '슛 선택 문항은 위치와 창출 과정까지 함께 묻는다.',
+    enNextPointAngle:
+        'Shot-selection questions should include both location and creation path.',
+    koReason: '농구 퀴즈에 현대 샷 프로파일 판단을 넣는다.',
+    enReason: 'Adds modern shot-profile judgment to basketball quizzes.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_zone_short_corner',
+    conceptKey: 'draft_basketball_zone_short_corner',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.shortAnswer,
+    difficulty: 3,
+    subject: 'basketball zone offense',
+    koPrompt: '지역방어 뒤 공간에서 빅맨이 받아 하이로우 패스나 마무리를 노리는 지점은?',
+    enPrompt:
+        'What spot behind a zone lets a big catch for high-low passes or finishes?',
+    koAnswer: '숏 코너',
+    enAnswer: 'short corner',
+    koExplanationAngle: '지역공격을 외곽 패스 반복이 아니라 뒤 공간 점유와 하이로우 연결로 설명한다.',
+    enExplanationAngle:
+        'Explain zone offense through occupying back spaces and high-low links.',
+    koNextPointAngle: '지역방어 문항은 수비 사이 빈 지점을 찾게 한다.',
+    enNextPointAngle:
+        'Zone questions should ask which gap or pocket is being occupied.',
+    koReason: '지역방어 공격 퀴즈의 구조적 깊이를 높인다.',
+    enReason: 'Adds structural depth to zone-offense quiz drafts.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_closeout_choppy_steps',
+    conceptKey: 'draft_basketball_closeout_choppy_steps',
+    category: _QuizCategory.technique,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'basketball closeout technique',
+    koPrompt: '좋은 클로즈아웃에서 슈터에게 접근할 때 마지막 발동작의 핵심은?',
+    enPrompt:
+        'In a good closeout, what should the final footwork do as the defender reaches a shooter?',
+    koAnswer: '잔발로 속도를 줄이고 슛과 돌파를 모두 대응할 균형을 만든다',
+    enAnswer:
+        'Use choppy steps to decelerate and stay balanced for shot or drive',
+    koExplanationAngle: '수비 기술을 단순 전력질주가 아니라 감속과 균형 제어로 설명한다.',
+    enExplanationAngle:
+        'Explain defensive technique through deceleration and balance control.',
+    koNextPointAngle: '기술 문항은 접근 속도와 멈추는 능력을 함께 묻게 한다.',
+    enNextPointAngle:
+        'Technique questions should pair approach speed with stopping ability.',
+    koReason: '농구 수비 스킬 후보를 전술 후보와 균형 맞춘다.',
+    enReason:
+        'Balances basketball tactical drafts with defensive-skill content.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_take_foul_transition_rule',
+    conceptKey: 'draft_basketball_take_foul_transition_rule',
+    category: _QuizCategory.rules,
+    style: _QuestionStyle.ox,
+    difficulty: 2,
+    subject: 'basketball rules/history',
+    koPrompt: '전환 공격을 고의 파울로 끊는 행위에 대한 규칙 변화는 속공 가치를 보호하려는 목적과 연결된다. O/X',
+    enPrompt:
+        'Rule changes around take fouls are linked to protecting transition offense value. True/False',
+    koAnswer: 'O',
+    enAnswer: 'True',
+    koExplanationAngle: '규칙 문항을 벌칙 암기가 아니라 리그가 보호하려는 경기 흐름으로 설명한다.',
+    enExplanationAngle:
+        'Explain the rule through the game flow the league is trying to protect.',
+    koNextPointAngle: '규칙 변화는 어떤 플레이 스타일을 장려하는지 함께 묻게 한다.',
+    enNextPointAngle:
+        'Rule-change questions should ask which style of play is encouraged.',
+    koReason: '농구 규칙/역사 후보를 현대 전환 공격 맥락과 연결한다.',
+    enReason: 'Connects basketball rule history to modern transition context.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.basketballId,
+    idStem: 'draft_basketball_back_to_back_recovery',
+    conceptKey: 'draft_basketball_back_to_back_recovery',
+    category: _QuizCategory.training,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 1,
+    subject: 'basketball recovery',
+    koPrompt: '백투백 경기 사이 회복 계획에서 가장 먼저 안정시켜야 할 기본 요소는?',
+    enPrompt:
+        'Between back-to-back games, what basic recovery element should be stabilized first?',
+    koAnswer: '수면, 수분, 가벼운 이동성 회복 루틴',
+    enAnswer: 'Sleep, hydration, and a light mobility recovery routine',
+    koExplanationAngle: '회복을 특별한 장비보다 반복 가능한 기본 루틴과 다음 경기 준비로 설명한다.',
+    enExplanationAngle:
+        'Explain recovery through repeatable basics before special equipment.',
+    koNextPointAngle: '훈련/회복 문항은 다음 경기 수행을 위한 우선순위를 묻는다.',
+    enNextPointAngle:
+        'Recovery questions should ask what priority protects the next game.',
+    koReason: '농구 퀴즈에 회복/훈련 축을 추가해 종목 구성을 넓힌다.',
+    enReason: 'Adds a recovery/training axis to broaden basketball coverage.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_return_depth_neutralize',
+    conceptKey: 'draft_tennis_return_depth_neutralize',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'tennis return',
+    koPrompt: '강한 첫 서브를 받은 뒤 랠리를 중립으로 돌리는 리턴의 핵심 목표는?',
+    enPrompt:
+        'After a strong first serve, what is the key return goal to neutralize the rally?',
+    koAnswer: '깊고 중앙성 있는 리턴으로 서버의 첫 공격 각도를 줄인다',
+    enAnswer:
+        'Return deep and central enough to reduce the server’s first-strike angle',
+    koExplanationAngle: '리턴을 위너가 아니라 상대 첫 공격을 약화시키는 전술로 설명한다.',
+    enExplanationAngle:
+        'Explain the return as weakening first-strike attack, not hitting winners.',
+    koNextPointAngle: '리턴 문항은 득점보다 다음 공의 위험을 줄이는 기준을 묻는다.',
+    enNextPointAngle:
+        'Return questions should ask how the next-ball danger is reduced.',
+    koReason: '테니스 리턴 퀴즈를 전술적 중립화로 확장한다.',
+    enReason: 'Expands tennis return quizzes into tactical neutralization.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_inside_out_forehand',
+    conceptKey: 'draft_tennis_inside_out_forehand',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.shortAnswer,
+    difficulty: 2,
+    subject: 'tennis pattern',
+    koPrompt: '백핸드 코트로 돌아서 상대 백핸드 쪽 대각으로 치는 대표 포핸드 패턴은?',
+    enPrompt:
+        'What forehand pattern runs around the backhand side to hit crosscourt to the opponent’s backhand?',
+    koAnswer: '인사이드 아웃 포핸드',
+    enAnswer: 'inside-out forehand',
+    koExplanationAngle: '샷 이름과 함께 코트 위치 이동, 주도권, 다음 열린 공간을 설명한다.',
+    enExplanationAngle:
+        'Explain the movement, control, and next open court created by the shot.',
+    koNextPointAngle: '패턴 문항은 한 샷 뒤 열리는 다음 코스를 묻게 한다.',
+    enNextPointAngle:
+        'Pattern questions should ask what next court the shot opens.',
+    koReason: '테니스 전술 패턴을 용어와 공간 설계로 묶는다.',
+    enReason: 'Links a tennis pattern term to court-space design.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_break_point_routine',
+    conceptKey: 'draft_tennis_break_point_routine',
+    category: _QuizCategory.mindset,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'tennis mindset',
+    koPrompt: '브레이크 포인트에서 루틴이 특히 중요한 이유는?',
+    enPrompt: 'Why is a routine especially useful on break point?',
+    koAnswer: '점수 의미보다 첫 행동 계획에 주의를 돌려준다',
+    enAnswer:
+        'It shifts attention from score meaning back to the first action plan',
+    koExplanationAngle: '압박 점수를 감정 문제가 아니라 주의 초점 전환 문제로 설명한다.',
+    enExplanationAngle:
+        'Explain pressure points as attention-control problems.',
+    koNextPointAngle: '마인드 문항은 점수판보다 다음 첫 행동 단서를 묻게 한다.',
+    enNextPointAngle:
+        'Mindset questions should ask for the next first-action cue.',
+    koReason: '테니스 마인드 퀴즈를 경기 중 루틴으로 구체화한다.',
+    enReason: 'Turns tennis mindset content into an in-match routine draft.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_kick_serve_target_height',
+    conceptKey: 'draft_tennis_kick_serve_target_height',
+    category: _QuizCategory.technique,
+    style: _QuestionStyle.ox,
+    difficulty: 2,
+    subject: 'tennis serve',
+    koPrompt: '킥 서브는 높은 바운드로 리턴 타점을 어깨 높이까지 밀어 올리는 효과를 노릴 수 있다. O/X',
+    enPrompt:
+        'A kick serve can use high bounce to push the return contact toward shoulder height. True/False',
+    koAnswer: 'O',
+    enAnswer: 'True',
+    koExplanationAngle: '서브 종류를 회전, 바운드, 리턴 타점의 연결로 설명한다.',
+    enExplanationAngle:
+        'Explain serve type through spin, bounce, and return contact height.',
+    koNextPointAngle: '서브 기술 문항은 공이 튄 뒤 상대 타점을 묻는다.',
+    enNextPointAngle:
+        'Serve questions should ask what contact point the bounce creates.',
+    koReason: '기존 서브 키워드를 실제 효과 중심 응용 문항으로 확장한다.',
+    enReason:
+        'Expands an existing serve keyword into an applied effect question.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_slice_backhand_reset',
+    conceptKey: 'draft_tennis_slice_backhand_reset',
+    category: _QuizCategory.technique,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'tennis technique',
+    koPrompt: '수비 상황에서 낮은 슬라이스 백핸드를 쓰는 전술적 목적은?',
+    enPrompt:
+        'What tactical purpose can a low backhand slice serve from defense?',
+    koAnswer: '상대 타점을 낮추고 랠리 템포를 다시 정리한다',
+    enAnswer: 'Lower the opponent’s contact point and reset the rally tempo',
+    koExplanationAngle: '슬라이스를 약한 샷이 아니라 시간과 높이를 조절하는 기술로 설명한다.',
+    enExplanationAngle:
+        'Explain slice as controlling time and height, not merely a weak shot.',
+    koNextPointAngle: '기술 문항은 샷이 상대 타점과 템포에 주는 영향을 묻는다.',
+    enNextPointAngle:
+        'Technique questions should ask how the shot changes contact and tempo.',
+    koReason: '테니스 스킬 퀴즈를 샷 품질과 랠리 관리로 높인다.',
+    enReason:
+        'Raises tennis skill drafts through shot quality and rally control.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_tiebreak_risk_management',
+    conceptKey: 'draft_tennis_tiebreak_risk_management',
+    category: _QuizCategory.mindset,
+    style: _QuestionStyle.ox,
+    difficulty: 3,
+    subject: 'tennis pressure',
+    koPrompt: '타이브레이크에서는 모든 포인트를 무조건 위너로 끝내려는 전략이 안정적인 선택이다. O/X',
+    enPrompt:
+        'In a tiebreak, trying to finish every point with a winner is usually the stable choice. True/False',
+    koAnswer: 'X',
+    enAnswer: 'False',
+    koExplanationAngle: '압박 점수에서 위험도와 자신의 확률 높은 패턴을 조절하는 관점으로 설명한다.',
+    enExplanationAngle:
+        'Explain pressure play through risk control and high-percentage patterns.',
+    koNextPointAngle: '압박 문항은 과감함과 무리함의 경계를 묻게 한다.',
+    enNextPointAngle:
+        'Pressure questions should ask where aggression becomes low-percentage.',
+    koReason: '테니스 마인드와 전술 판단을 함께 묻는 문항 초안이다.',
+    enReason: 'Combines tennis mindset with tactical risk judgment.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_clay_grass_adaptation',
+    conceptKey: 'draft_tennis_clay_grass_adaptation',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 3,
+    subject: 'tennis history/surface',
+    koPrompt: '클레이에서 잔디로 넘어갈 때 전술적으로 가장 크게 달라지는 기준은?',
+    enPrompt:
+        'When moving from clay to grass, what tactical standard changes most?',
+    koAnswer: '바운드 높이와 포인트 길이에 맞춘 포지션과 첫 공격 타이밍',
+    enAnswer:
+        'Positioning and first-strike timing based on bounce height and point length',
+    koExplanationAngle: '코트 역사를 표면 특성과 경기 양식 변화로 연결한다.',
+    enExplanationAngle:
+        'Connect surface history to bounce traits and style-of-play changes.',
+    koNextPointAngle: '역사/상식 문항도 실제 포지션 선택으로 이어지게 한다.',
+    enNextPointAngle:
+        'Even history-style questions should lead to actual positioning choices.',
+    koReason: '테니스 역사와 전술 적응을 짜임새 있게 묶는다.',
+    enReason: 'Ties tennis history and tactical adaptation together.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_crosscourt_geometry',
+    conceptKey: 'draft_tennis_crosscourt_geometry',
+    category: _QuizCategory.tactics,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'tennis rally geometry',
+    koPrompt: '크로스코트 랠리가 비교적 안정적인 기본 선택이 되는 이유는?',
+    enPrompt: 'Why is a crosscourt rally often a stable default pattern?',
+    koAnswer: '코트 길이가 길고 네트 중앙이 낮아 실수 여지가 줄어든다',
+    enAnswer:
+        'The court is longer diagonally and the net is lower near the middle',
+    koExplanationAngle: '샷 선택을 감각이 아니라 코트 기하와 위험 관리로 설명한다.',
+    enExplanationAngle:
+        'Explain shot selection through court geometry and risk management.',
+    koNextPointAngle: '전술 문항은 왜 그 방향이 확률 높은지 묻는다.',
+    enNextPointAngle:
+        'Tactical questions should ask why the direction is higher percentage.',
+    koReason: '테니스 전술 퀴즈에 코트 지형 이해를 추가한다.',
+    enReason: 'Adds court-geometry understanding to tennis tactics.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_serve_landing_recovery',
+    conceptKey: 'draft_tennis_serve_landing_recovery',
+    category: _QuizCategory.positions,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 2,
+    subject: 'tennis serve recovery',
+    koPrompt: '서브 후 착지와 첫 회복 스텝이 중요한 이유는?',
+    enPrompt:
+        'Why do landing and the first recovery step matter after serving?',
+    koAnswer: '다음 리턴 코스에 대응할 코트 위치를 빠르게 회복하기 위해서',
+    enAnswer:
+        'To recover court position quickly for the likely return direction',
+    koExplanationAngle: '서브를 넣는 동작에서 끝내지 않고 다음 공을 받을 위치까지 연결한다.',
+    enExplanationAngle:
+        'Connect the serve action to the court position needed for the next ball.',
+    koNextPointAngle: '서브 문항은 임팩트 뒤 첫 스텝까지 포함하게 한다.',
+    enNextPointAngle:
+        'Serve questions should include the first step after contact.',
+    koReason: '테니스 포지션/회복 축을 생성 후보에 추가한다.',
+    enReason:
+        'Adds a positioning and recovery axis to tennis draft generation.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_changeover_hydration',
+    conceptKey: 'draft_tennis_changeover_hydration',
+    category: _QuizCategory.nutrition,
+    style: _QuestionStyle.ox,
+    difficulty: 1,
+    subject: 'tennis recovery',
+    koPrompt: '체인지오버의 수분 보충은 갈증이 난 뒤에만 해도 경기 후반 집중력에는 큰 영향이 없다. O/X',
+    enPrompt:
+        'Hydrating only after feeling thirsty on changeovers has little impact on late-match focus. True/False',
+    koAnswer: 'X',
+    enAnswer: 'False',
+    koExplanationAngle: '영양/회복 문항을 경기 중 집중력과 반복 루틴의 관점으로 설명한다.',
+    enExplanationAngle:
+        'Explain hydration through in-match focus and repeatable routines.',
+    koNextPointAngle: '회복 문항은 다음 게임의 집중 유지와 연결한다.',
+    enNextPointAngle:
+        'Recovery questions should connect to focus in the next game.',
+    koReason: '테니스 퀴즈에 회복과 루틴 관리 후보를 추가한다.',
+    enReason: 'Adds recovery and routine management to tennis draft coverage.',
+  ),
+  _QuizDraftSeedCandidate(
+    sportId: SportCatalog.tennisId,
+    idStem: 'draft_tennis_serve_let_rule',
+    conceptKey: 'draft_tennis_serve_let_rule',
+    category: _QuizCategory.rules,
+    style: _QuestionStyle.multipleChoice,
+    difficulty: 1,
+    subject: 'tennis rules',
+    koPrompt: '일반적인 테니스 경기에서 서브가 네트를 맞고 서비스 박스 안에 들어가면 보통 어떻게 처리하는가?',
+    enPrompt:
+        'In standard tennis, what usually happens if a serve clips the net and lands in the service box?',
+    koAnswer: '렛으로 처리해 그 서브를 다시 한다',
+    enAnswer: 'It is a let and the serve is replayed',
+    koExplanationAngle: '규칙 문항도 단순 암기보다 다음 플레이가 어떻게 재개되는지 중심으로 설명한다.',
+    enExplanationAngle:
+        'Explain the rule through how play restarts, not only the term.',
+    koNextPointAngle: '규칙 초안은 판정 뒤 실제 진행을 묻게 한다.',
+    enNextPointAngle: 'Rule drafts should ask what happens after the call.',
+    koReason: '테니스 생성 후보에 기본 규칙 축을 추가한다.',
+    enReason: 'Adds a rules axis to tennis draft generation.',
+  ),
+];
 
 String _quizConceptKeyForQuestionId(String raw) {
   if (raw.isEmpty) return raw;
