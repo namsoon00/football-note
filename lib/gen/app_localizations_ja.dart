@@ -798,6 +798,19 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String worldCupClubInfoOpenTooltip(String club) {
+    return '$club の情報を開く';
+  }
+
+  @override
+  String worldCupClubInfoTitle(String club) {
+    return '$club 情報';
+  }
+
+  @override
+  String get worldCupPlayerProfilePlayerLabel => '選手';
+
+  @override
   String get worldCupPlayerProfileTeamLabel => '代表チーム';
 
   @override
@@ -1163,6 +1176,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterSubtitle => 'ポジション別の名簿とフォーメーション配置でチームの形を確認できます。';
+
+  @override
+  String get worldCupTeamMatchOverviewTitle => '代表チーム試合情報';
+
+  @override
+  String get worldCupTeamCurrentPointsLabel => '現在の勝点';
+
+  @override
+  String get worldCupTeamMatchHistoryTitle => '対戦結果';
 
   @override
   String worldCupTeamRosterFormationLabel(String formation) {

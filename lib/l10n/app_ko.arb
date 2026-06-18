@@ -384,6 +384,23 @@
       }
     }
   },
+  "worldCupClubInfoOpenTooltip": "{club} 정보 보기",
+  "@worldCupClubInfoOpenTooltip": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupClubInfoTitle": "{club} 정보",
+  "@worldCupClubInfoTitle": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupPlayerProfilePlayerLabel": "선수",
   "worldCupPlayerProfileTeamLabel": "대표팀",
   "worldCupPlayerProfilePositionLabel": "포지션",
   "worldCupPlayerProfileClubLabel": "소속팀",
@@ -551,6 +568,9 @@
     }
   },
   "worldCupTeamRosterSubtitle": "포지션별 명단과 포메이션 배치로 팀 구성을 빠르게 확인해요.",
+  "worldCupTeamMatchOverviewTitle": "국가 경기 정보",
+  "worldCupTeamCurrentPointsLabel": "현재 승점",
+  "worldCupTeamMatchHistoryTitle": "상대별 결과",
   "worldCupTeamRosterFormationLabel": "{formation} 포메이션",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {

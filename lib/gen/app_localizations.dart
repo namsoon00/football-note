@@ -1548,6 +1548,24 @@ abstract class AppLocalizations {
   /// **'{player} profile'**
   String worldCupPlayerProfileTitle(String player);
 
+  /// No description provided for @worldCupClubInfoOpenTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {club} info'**
+  String worldCupClubInfoOpenTooltip(String club);
+
+  /// No description provided for @worldCupClubInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{club} info'**
+  String worldCupClubInfoTitle(String club);
+
+  /// No description provided for @worldCupPlayerProfilePlayerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Player'**
+  String get worldCupPlayerProfilePlayerLabel;
+
   /// No description provided for @worldCupPlayerProfileTeamLabel.
   ///
   /// In en, this message translates to:
@@ -2243,6 +2261,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Position groups and a formation view for quickly reading the squad shape.'**
   String get worldCupTeamRosterSubtitle;
+
+  /// No description provided for @worldCupTeamMatchOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team match info'**
+  String get worldCupTeamMatchOverviewTitle;
+
+  /// No description provided for @worldCupTeamCurrentPointsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current points'**
+  String get worldCupTeamCurrentPointsLabel;
+
+  /// No description provided for @worldCupTeamMatchHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match results'**
+  String get worldCupTeamMatchHistoryTitle;
 
   /// No description provided for @worldCupTeamRosterFormationLabel.
   ///

@@ -384,6 +384,23 @@
       }
     }
   },
+  "worldCupClubInfoOpenTooltip": "Open {club} info",
+  "@worldCupClubInfoOpenTooltip": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupClubInfoTitle": "{club} info",
+  "@worldCupClubInfoTitle": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupPlayerProfilePlayerLabel": "Player",
   "worldCupPlayerProfileTeamLabel": "National team",
   "worldCupPlayerProfilePositionLabel": "Position",
   "worldCupPlayerProfileClubLabel": "Club",
@@ -551,6 +568,9 @@
     }
   },
   "worldCupTeamRosterSubtitle": "Position groups and a formation view for quickly reading the squad shape.",
+  "worldCupTeamMatchOverviewTitle": "Team match info",
+  "worldCupTeamCurrentPointsLabel": "Current points",
+  "worldCupTeamMatchHistoryTitle": "Match results",
   "worldCupTeamRosterFormationLabel": "{formation} formation",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {

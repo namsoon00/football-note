@@ -830,6 +830,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String worldCupClubInfoOpenTooltip(String club) {
+    return 'Open $club info';
+  }
+
+  @override
+  String worldCupClubInfoTitle(String club) {
+    return '$club info';
+  }
+
+  @override
+  String get worldCupPlayerProfilePlayerLabel => 'Player';
+
+  @override
   String get worldCupPlayerProfileTeamLabel => 'National team';
 
   @override
@@ -1203,6 +1216,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get worldCupTeamRosterSubtitle =>
       'Position groups and a formation view for quickly reading the squad shape.';
+
+  @override
+  String get worldCupTeamMatchOverviewTitle => 'Team match info';
+
+  @override
+  String get worldCupTeamCurrentPointsLabel => 'Current points';
+
+  @override
+  String get worldCupTeamMatchHistoryTitle => 'Match results';
 
   @override
   String worldCupTeamRosterFormationLabel(String formation) {

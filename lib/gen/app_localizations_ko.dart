@@ -792,6 +792,19 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String worldCupClubInfoOpenTooltip(String club) {
+    return '$club 정보 보기';
+  }
+
+  @override
+  String worldCupClubInfoTitle(String club) {
+    return '$club 정보';
+  }
+
+  @override
+  String get worldCupPlayerProfilePlayerLabel => '선수';
+
+  @override
   String get worldCupPlayerProfileTeamLabel => '대표팀';
 
   @override
@@ -1154,6 +1167,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterSubtitle => '포지션별 명단과 포메이션 배치로 팀 구성을 빠르게 확인해요.';
+
+  @override
+  String get worldCupTeamMatchOverviewTitle => '국가 경기 정보';
+
+  @override
+  String get worldCupTeamCurrentPointsLabel => '현재 승점';
+
+  @override
+  String get worldCupTeamMatchHistoryTitle => '상대별 결과';
 
   @override
   String worldCupTeamRosterFormationLabel(String formation) {

@@ -200,6 +200,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('멕시코 선수 명단'), findsOneWidget);
+    expect(find.text('국가 경기 정보'), findsOneWidget);
+    expect(find.text('현재 승점'), findsOneWidget);
+    expect(find.text('상대별 결과'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('4-3-3 포메이션'),
+      180,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
     expect(find.text('4-3-3 포메이션'), findsOneWidget);
     expect(find.text('Raul Rangel'), findsOneWidget);
     await tester.scrollUntilVisible(
@@ -217,6 +226,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Cesar Huerta'), findsOneWidget);
     expect(find.text('RSC Anderlecht'), findsOneWidget);
+    await tester.tap(find.text('RSC Anderlecht').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('RSC Anderlecht 정보'), findsOneWidget);
+    expect(find.text('선수'), findsWidgets);
+    expect(find.text('Cesar Huerta'), findsWidgets);
   });
 
   testWidgets('Korean roster names render in Korean locale', (tester) async {
@@ -396,7 +411,7 @@ void main() {
     expect(find.text('1 : 0'), findsOneWidget);
   });
 
-  testWidgets('scheduled fixture hides prematch status labels', (tester) async {
+  testWidgets('scheduled fixture shows status beside time', (tester) async {
     final fixture = worldCupFixtures.firstWhere((fixture) => !fixture.hasScore);
 
     await tester.pumpWidget(
@@ -425,7 +440,7 @@ void main() {
     await tester.ensureVisible(scoreText);
     await tester.pumpAndSettle();
 
-    expect(find.text('경기 전'), findsNothing);
+    expect(find.text('경기 전'), findsWidgets);
     expect(find.text('예정'), findsNothing);
 
     final scoreTapTarget = find.ancestor(
@@ -436,7 +451,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('- : -'), findsWidgets);
-    expect(find.text('경기 전'), findsNothing);
+    expect(find.text('경기 전'), findsWidgets);
     expect(find.text('예정'), findsNothing);
   });
 

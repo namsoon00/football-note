@@ -384,6 +384,23 @@
       }
     }
   },
+  "worldCupClubInfoOpenTooltip": "{club} の情報を開く",
+  "@worldCupClubInfoOpenTooltip": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupClubInfoTitle": "{club} 情報",
+  "@worldCupClubInfoTitle": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupPlayerProfilePlayerLabel": "選手",
   "worldCupPlayerProfileTeamLabel": "代表チーム",
   "worldCupPlayerProfilePositionLabel": "ポジション",
   "worldCupPlayerProfileClubLabel": "所属クラブ",
@@ -551,6 +568,9 @@
     }
   },
   "worldCupTeamRosterSubtitle": "ポジション別の名簿とフォーメーション配置でチームの形を確認できます。",
+  "worldCupTeamMatchOverviewTitle": "代表チーム試合情報",
+  "worldCupTeamCurrentPointsLabel": "現在の勝点",
+  "worldCupTeamMatchHistoryTitle": "対戦結果",
   "worldCupTeamRosterFormationLabel": "{formation} フォーメーション",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {
