@@ -352,7 +352,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('오늘의 축구 복장'), findsAtLeastNWidgets(1));
+    expect(find.text('오늘의 운동 복장'), findsAtLeastNWidgets(1));
     expect(find.text('상의 조합'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
     expect(tester.takeException(), isNull);

@@ -1861,6 +1861,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 WatchCartCard(
                   child: InfoBanner(
                     summary: l10n.parentFeedbackOpenExistingEntryTitle,
+                    detailsMessage: l10n.parentFeedbackOpenExistingEntryBody,
                   ),
                 ),
               ],
@@ -3863,7 +3864,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             poolSizeValue: l10n.fortuneDialogPoolSizeCount(formattedPoolSize),
             actionLabel: l10n.fortuneDialogAction,
             isKo: isKo,
-            showOverview: false,
             onActionPressed: () => Navigator.of(contextForClose).pop(),
           ),
         ),

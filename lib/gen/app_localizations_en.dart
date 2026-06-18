@@ -3391,6 +3391,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsGeneralSection => 'General';
 
   @override
+  String get settingsNewsFilterTitle => 'News Filter';
+
+  @override
+  String get settingsNewsBlockedDomainsTitle => 'Blocked ad domains';
+
+  @override
+  String settingsNewsBlockedDomainsCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get settingsNewsBlockedDomainsManageTitle =>
+      'Manage blocked ad domains';
+
+  @override
+  String get settingsNewsBlockedDomainsExample =>
+      'Example: example.com (domain only, no path)';
+
+  @override
   String get settingsApiUsageTitle => 'APIs used in this app';
 
   @override

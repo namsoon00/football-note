@@ -569,7 +569,7 @@ void main() {
     final backupButton = find.widgetWithText(OutlinedButton, '데이터 백업하기');
     final remoteRestoreButton = find.widgetWithText(
       OutlinedButton,
-      '최근 데이터 가져오기',
+      '이 계정 백업 가져오기',
     );
     final localRestoreButton = find.widgetWithText(
       OutlinedButton,
@@ -626,7 +626,7 @@ void main() {
     final backupButtonFinder = find.widgetWithText(OutlinedButton, '데이터 백업하기');
     final remoteRestoreButton = find.widgetWithText(
       OutlinedButton,
-      '최근 데이터 가져오기',
+      '이 계정 백업 가져오기',
     );
     final backupButton = tester.widget<OutlinedButton>(backupButtonFinder);
     expect(backupButton.onPressed, isNull);
@@ -636,7 +636,8 @@ void main() {
       lessThan(tester.getTopLeft(backupButtonFinder).dy),
     );
     expect(
-      find.text('Google 계정이 바뀌었어요. 최근 데이터 가져오기를 완료한 뒤 이 계정으로 백업할 수 있어요.'),
+      find.text(
+          'Google 계정이 바뀌었어요. 이 계정으로 백업하기 전에 이 기기에서 어떤 데이터로 시작할지 선택해야 해요.'),
       findsOneWidget,
     );
   });
@@ -897,7 +898,7 @@ void main() {
       expect(backupService.getSavedRecordDriveEmail(), 'player@example.com');
       expect(find.text('민수 · new-player@example.com'), findsWidgets);
       expect(
-        find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
+        find.widgetWithText(OutlinedButton, '이 계정 백업 가져오기'),
         findsOneWidget,
       );
 
@@ -908,16 +909,16 @@ void main() {
       final backupButton = tester.widget<OutlinedButton>(backupButtonFinder);
       expect(backupButton.onPressed, isNull);
 
-      await tester.tap(find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'));
+      await tester.tap(find.widgetWithText(OutlinedButton, '이 계정 백업 가져오기'));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(TextButton, '확인'));
-      await tester.pumpAndSettle();
-      expect(find.text('복원 재확인'), findsOneWidget);
-      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      expect(find.text('연결된 계정의 데이터를 사용할까요?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, '이 계정 백업 가져오기'));
       await tester.pump();
       await tester.pumpAndSettle();
 
       expect(backupService.restoreLatestCalled, isTrue);
+      expect(
+          backupService.getSavedRecordDriveEmail(), 'new-player@example.com');
     },
   );
 
@@ -1171,6 +1172,29 @@ class _FakeDriveBackupService extends BackupService {
   Future<bool> hasRemotePlayerBackup() async {
     hasRemotePlayerBackupChecks += 1;
     return _hasRemotePlayerBackup;
+  }
+
+  @override
+  bool hasChangedPlayerDriveConnection() {
+    final currentEmail = _connectionInfo?.email.trim().toLowerCase() ?? '';
+    final savedEmail = _savedRecordDriveEmail.trim().toLowerCase();
+    return _signedIn &&
+        currentEmail.isNotEmpty &&
+        savedEmail.isNotEmpty &&
+        currentEmail != savedEmail;
+  }
+
+  @override
+  Future<bool> importChangedPlayerDriveBackup() async {
+    restoreLatestCalled = true;
+    await rememberRecordDriveConnection();
+    return true;
+  }
+
+  @override
+  Future<bool> startChangedPlayerDriveWithEmptyData() async {
+    await rememberRecordDriveConnection();
+    return true;
   }
 
   @override

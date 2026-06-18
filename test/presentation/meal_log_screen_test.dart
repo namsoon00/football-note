@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,43 +5,27 @@ import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
+import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
-import 'package:football_note/infrastructure/hive_option_repository.dart';
 import 'package:football_note/presentation/screens/meal_log_screen.dart';
-import 'package:hive/hive.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late Directory tempDir;
-  late Box optionBox;
-  late HiveOptionRepository optionRepository;
+  late _MemoryOptionRepository optionRepository;
   late MealLogService mealLogService;
   late SettingsService settingsService;
 
-  setUpAll(() async {
-    tempDir = await Directory.systemTemp.createTemp('football_note_meal_log');
-    Hive.init(tempDir.path);
-    optionBox = await Hive.openBox('options');
-  });
-
-  setUp(() async {
-    await optionBox.clear();
-    optionRepository = HiveOptionRepository(optionBox);
+  setUp(() {
+    optionRepository = _MemoryOptionRepository();
     mealLogService = MealLogService(optionRepository);
     settingsService = SettingsService(optionRepository)..load();
   });
 
   tearDown(() async {
     await mealLogService.dispose();
-  });
-
-  tearDownAll(() async {
-    await optionBox.close();
-    await Hive.close();
-    await tempDir.delete(recursive: true);
   });
 
   Future<void> pumpMealLogScreen(
@@ -129,4 +111,46 @@ void main() {
     expect(saved, isNotNull);
     expect(saved!.breakfastRiceBowls, 1.5);
   });
+}
+
+class _MemoryOptionRepository implements OptionRepository {
+  final Map<String, dynamic> _values = <String, dynamic>{};
+
+  @override
+  List<String> getOptions(String key, List<String> defaults) {
+    final value = _values[key];
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+    final stored = List<String>.of(defaults);
+    _values[key] = stored;
+    return stored;
+  }
+
+  @override
+  List<int> getIntOptions(String key, List<int> defaults) {
+    final value = _values[key];
+    if (value is List) {
+      return value.map((item) => int.tryParse(item.toString()) ?? 0).toList();
+    }
+    final stored = List<int>.of(defaults);
+    _values[key] = stored;
+    return stored;
+  }
+
+  @override
+  T? getValue<T>(String key) {
+    final value = _values[key];
+    return value is T ? value : null;
+  }
+
+  @override
+  Future<void> saveOptions(String key, List<dynamic> options) async {
+    _values[key] = List<dynamic>.of(options);
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    _values[key] = value;
+  }
 }

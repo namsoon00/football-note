@@ -890,17 +890,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return palette[sameTypeItems.length % palette.length];
   }
 
-  Color _routeColorFor({required _PathDrawMode kind, String? linkedItemId}) {
-    if (linkedItemId != null) {
-      final linkedItem = _itemById(linkedItemId);
-      if (linkedItem != null &&
-          linkedItem.type == _boardItemTypeForRouteKind(kind)) {
-        return linkedItem.color;
-      }
-    }
-    return _defaultRouteColor(kind);
-  }
-
   String _nextBoardItemId() => 'item-${_nextId++}';
 
   String _nextBoardRouteId() => 'route-${_nextId++}';

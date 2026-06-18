@@ -1802,6 +1802,18 @@
   "languageJapanese": "日本語",
   "settings": "設定",
   "settingsGeneralSection": "一般設定",
+  "settingsNewsFilterTitle": "ニュースフィルター",
+  "settingsNewsBlockedDomainsTitle": "広告ドメインのブロックリスト",
+  "settingsNewsBlockedDomainsCount": "{count}件",
+  "@settingsNewsBlockedDomainsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsNewsBlockedDomainsManageTitle": "広告ドメインのブロックリストを管理",
+  "settingsNewsBlockedDomainsExample": "例: example.com (プロトコル/パスなしでドメインのみ入力)",
   "settingsApiUsageTitle": "このアプリで使用するAPI",
   "settingsApiUsageSubtitle": "このアプリは以下の公開APIまたはユーザー同意ベースのAPIを使用します。プロバイダーごとに割り当ては変わる可能性があるため、可能な場所ではキャッシュし、バックグラウンド更新を制限します。",
   "settingsApiTrafficLabel": "トラフィック",

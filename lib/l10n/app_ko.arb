@@ -1802,6 +1802,18 @@
   "languageJapanese": "일본어",
   "settings": "설정",
   "settingsGeneralSection": "일반 설정",
+  "settingsNewsFilterTitle": "뉴스 필터",
+  "settingsNewsBlockedDomainsTitle": "광고 도메인 차단 목록",
+  "settingsNewsBlockedDomainsCount": "{count}개 항목",
+  "@settingsNewsBlockedDomainsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsNewsBlockedDomainsManageTitle": "광고 도메인 차단 목록 관리",
+  "settingsNewsBlockedDomainsExample": "예시: example.com (프로토콜/경로 없이 도메인만 입력)",
   "settingsApiUsageTitle": "앱에서 사용하는 API",
   "settingsApiUsageSubtitle": "이 앱은 아래의 공개 API 또는 사용자 동의 기반 API를 사용합니다. 제공처별 할당량은 바뀔 수 있어 가능한 곳은 캐시하고 백그라운드 새로고침을 제한합니다.",
   "settingsApiTrafficLabel": "트래픽",
