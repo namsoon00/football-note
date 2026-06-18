@@ -31,7 +31,7 @@ void main() {
             widget is Image &&
             widget.image is AssetImage &&
             (widget.image as AssetImage).assetName ==
-                'assets/images/challenge_rinzy_ready.png',
+                'assets/images/challenge_rinzy_cheer.png',
       ),
       findsOneWidget,
     );
