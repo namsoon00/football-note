@@ -44,7 +44,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   static const String _supportCountryKey = 'world_cup_support_country_v1';
   static const String _interestCountriesKey = 'world_cup_interest_countries_v1';
   static const double _calendarDayNumberFontSize = 17;
-  static const double _selectedDayPageViewportFraction = 0.92;
+  static const double _selectedDayPageViewportFraction = 0.94;
   static final Uri _sourceUri = Uri.parse(
     'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums',
   );
@@ -918,32 +918,39 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   Widget _buildSelectedDayMatches(BuildContext context) {
     final initialIndex = _dayPageIndexForDay(_selectedDay);
     final height = _selectedDayMatchesPagerHeight(context, initialIndex);
-    return SizedBox(
-      key: const ValueKey<String>('world-cup-day-match-pager'),
-      height: height,
-      child: PageView.builder(
-        controller: _selectedDayPageController,
-        clipBehavior: Clip.none,
-        allowImplicitScrolling: true,
-        physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
-        itemCount: _dayPageCount,
-        onPageChanged: (index) {
-          final nextDay = _dayForPageIndex(index);
-          if (normalizeWorldCupDay(nextDay) ==
-              normalizeWorldCupDay(_selectedDay)) {
-            return;
-          }
-          setState(() {
-            _selectedDay = nextDay;
-            _focusedDay = nextDay;
-          });
-        },
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsetsDirectional.only(end: 10),
-            child: _buildSelectedDayMatchPage(context, _dayForPageIndex(index)),
-          );
-        },
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      child: SizedBox(
+        key: const ValueKey<String>('world-cup-day-match-pager'),
+        height: height,
+        child: PageView.builder(
+          controller: _selectedDayPageController,
+          clipBehavior: Clip.none,
+          allowImplicitScrolling: true,
+          padEnds: false,
+          physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
+          itemCount: _dayPageCount,
+          onPageChanged: (index) {
+            final nextDay = _dayForPageIndex(index);
+            if (normalizeWorldCupDay(nextDay) ==
+                normalizeWorldCupDay(_selectedDay)) {
+              return;
+            }
+            setState(() {
+              _selectedDay = nextDay;
+              _focusedDay = nextDay;
+            });
+          },
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsetsDirectional.only(end: 10),
+              child:
+                  _buildSelectedDayMatchPage(context, _dayForPageIndex(index)),
+            );
+          },
+        ),
       ),
     );
   }
@@ -991,6 +998,12 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   }
 
   double _selectedDayMatchesPagerHeight(BuildContext context, int pageIndex) {
+    final availableWidth = MediaQuery.sizeOf(context).width - 32;
+    final fixtureRowHeight = availableWidth < 380
+        ? 320.0
+        : availableWidth < 430
+            ? 260.0
+            : 184.0;
     final nearbyCounts = <int>[
       for (final index in [pageIndex - 1, pageIndex, pageIndex + 1])
         if (index >= 0 && index < _dayPageCount)
@@ -998,12 +1011,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     ];
     final maxMatchCount =
         nearbyCounts.isEmpty ? 0 : nearbyCounts.reduce(math.max);
-    final availableWidth = MediaQuery.sizeOf(context).width - 32;
-    final fixtureRowHeight = availableWidth < 380
-        ? 320.0
-        : availableWidth < 430
-            ? 260.0
-            : 184.0;
     final matchListHeight = maxMatchCount == 0
         ? 48.0
         : maxMatchCount * fixtureRowHeight +
@@ -1649,17 +1656,6 @@ _WorldCupFixtureRuntimeStatus _runtimeStatusForFixture(
   return (homeScore: fixture.homeScore, awayScore: fixture.awayScore);
 }
 
-WorldCupFixtureTeamResult _fixtureResultForRuntimeStatus(
-  WorldCupFixture fixture,
-  String team,
-  _WorldCupFixtureRuntimeStatus status,
-) {
-  if (status != _WorldCupFixtureRuntimeStatus.finished) {
-    return WorldCupFixtureTeamResult.scheduled;
-  }
-  return fixture.resultForTeam(team);
-}
-
 String _runtimeStatusLabel(
   AppLocalizations l10n,
   _WorldCupFixtureRuntimeStatus status,
@@ -1727,16 +1723,6 @@ class _FixtureRow extends StatelessWidget {
       officialMatch: officialMatch,
       now: currentTime,
     );
-    final homeResult = _fixtureResultForRuntimeStatus(
-      fixture,
-      fixture.homeTeam,
-      runtimeStatus,
-    );
-    final awayResult = _fixtureResultForRuntimeStatus(
-      fixture,
-      fixture.awayTeam,
-      runtimeStatus,
-    );
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1769,7 +1755,6 @@ class _FixtureRow extends StatelessWidget {
             builder: (context, _) {
               final homeBlock = _FixtureTeamBlock(
                 team: fixture.homeTeam,
-                result: homeResult,
                 status: runtimeStatus,
                 ranking: rankingsByTeam[fixture.homeTeam],
                 onTap: () => onTeamTap(fixture.homeTeam),
@@ -1782,7 +1767,6 @@ class _FixtureRow extends StatelessWidget {
               );
               final awayBlock = _FixtureTeamBlock(
                 team: fixture.awayTeam,
-                result: awayResult,
                 status: runtimeStatus,
                 ranking: rankingsByTeam[fixture.awayTeam],
                 alignEnd: true,
@@ -1848,7 +1832,6 @@ class _FixtureRow extends StatelessWidget {
 
 class _FixtureTeamBlock extends StatelessWidget {
   final String team;
-  final WorldCupFixtureTeamResult result;
   final _WorldCupFixtureRuntimeStatus status;
   final FifaRankingEntry? ranking;
   final bool alignEnd;
@@ -1856,7 +1839,6 @@ class _FixtureTeamBlock extends StatelessWidget {
 
   const _FixtureTeamBlock({
     required this.team,
-    required this.result,
     required this.status,
     required this.ranking,
     required this.onTap,
@@ -1869,8 +1851,6 @@ class _FixtureTeamBlock extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final teamStatusSummary = _teamStatusSummary(l10n);
     final metaPills = <Widget>[
-      if (result != WorldCupFixtureTeamResult.scheduled)
-        _FixtureResultPill(result: result, label: _resultLabel(l10n, result)),
       if (ranking != null)
         _SmallPill(label: _fifaRankingCompactLabel(l10n, ranking!)),
     ];
@@ -1913,17 +1893,8 @@ class _FixtureTeamBlock extends StatelessWidget {
     );
   }
 
-  String _resultLabel(AppLocalizations l10n, WorldCupFixtureTeamResult result) {
-    return switch (result) {
-      WorldCupFixtureTeamResult.win => l10n.worldCupResultWin,
-      WorldCupFixtureTeamResult.draw => l10n.worldCupResultDraw,
-      WorldCupFixtureTeamResult.loss => l10n.worldCupResultLoss,
-      WorldCupFixtureTeamResult.scheduled => l10n.worldCupMatchScheduled,
-    };
-  }
-
   String _teamStatusSummary(AppLocalizations l10n) {
-    if (result != WorldCupFixtureTeamResult.scheduled) {
+    if (status == _WorldCupFixtureRuntimeStatus.finished) {
       return '';
     }
     return switch (status) {
@@ -2111,41 +2082,6 @@ class _WorldCupFixtureDetailSheetState
                   );
                 },
               ),
-            ),
-            const SizedBox(height: 16),
-            _SectionTitle(
-              icon: Icons.balance_rounded,
-              title: l10n.worldCupMatchComparisonTitle,
-            ),
-            const SizedBox(height: 10),
-            LayoutBuilder(
-              builder: (context, _) {
-                final homeCard = _WorldCupComparisonCard(
-                  team: fixture.homeTeam,
-                  result: _fixtureResultForRuntimeStatus(
-                    fixture,
-                    fixture.homeTeam,
-                    status,
-                  ),
-                  status: status,
-                );
-                final awayCard = _WorldCupComparisonCard(
-                  team: fixture.awayTeam,
-                  result: _fixtureResultForRuntimeStatus(
-                    fixture,
-                    fixture.awayTeam,
-                    status,
-                  ),
-                  status: status,
-                );
-                return Row(
-                  children: [
-                    Expanded(child: homeCard),
-                    const SizedBox(width: 10),
-                    Expanded(child: awayCard),
-                  ],
-                );
-              },
             ),
             const SizedBox(height: 16),
             _SectionTitle(
@@ -2613,87 +2549,6 @@ class _NetworkPlayerImage extends StatelessWidget {
           if (loadingProgress == null) return child;
           return fallback;
         },
-      ),
-    );
-  }
-}
-
-class _WorldCupComparisonCard extends StatelessWidget {
-  final String team;
-  final WorldCupFixtureTeamResult result;
-  final _WorldCupFixtureRuntimeStatus status;
-
-  const _WorldCupComparisonCard({
-    required this.team,
-    required this.result,
-    required this.status,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _CountryLabel(country: team),
-          const SizedBox(height: 8),
-          _FixtureResultPill(result: result, label: _summary(l10n)),
-        ],
-      ),
-    );
-  }
-
-  String _summary(AppLocalizations l10n) {
-    return switch (result) {
-      WorldCupFixtureTeamResult.win => l10n.worldCupResultWin,
-      WorldCupFixtureTeamResult.draw => l10n.worldCupResultDraw,
-      WorldCupFixtureTeamResult.loss => l10n.worldCupResultLoss,
-      WorldCupFixtureTeamResult.scheduled => switch (status) {
-          _WorldCupFixtureRuntimeStatus.live => l10n.worldCupMatchLive,
-          _WorldCupFixtureRuntimeStatus.awaitingUpdate =>
-            l10n.worldCupMatchAwaitingUpdate,
-          _ => l10n.worldCupResultPendingTeam,
-        },
-    };
-  }
-}
-
-class _FixtureResultPill extends StatelessWidget {
-  final WorldCupFixtureTeamResult result;
-  final String label;
-
-  const _FixtureResultPill({required this.result, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = switch (result) {
-      WorldCupFixtureTeamResult.win => theme.colorScheme.primary,
-      WorldCupFixtureTeamResult.draw => theme.colorScheme.tertiary,
-      WorldCupFixtureTeamResult.loss => theme.colorScheme.error,
-      WorldCupFixtureTeamResult.scheduled => theme.colorScheme.outline,
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.42)),
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w900,
-        ),
       ),
     );
   }
