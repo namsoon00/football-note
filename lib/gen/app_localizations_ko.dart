@@ -1703,6 +1703,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String get quizResultNoMissedQuestions => '이번 세트는 놓친 문제가 없습니다.';
 
   @override
+  String get quizStudyGuideTitle => '학습 참고서';
+
+  @override
+  String get quizStudyGuideQuestionLabel => '문제';
+
+  @override
+  String get quizStudyGuideAnswerLabel => '정답';
+
+  @override
+  String get quizStudyGuideConceptLabel => '핵심 개념';
+
+  @override
+  String get quizStudyGuideApplicationLabel => '적용 포인트';
+
+  @override
+  String get quizStudyGuidePracticeLabel => '훈련 체크';
+
+  @override
+  String get quizStudyGuidePending => '정답을 고르면 학습 참고서가 열립니다.';
+
+  @override
   String quizXpSavedFeedback(int count) {
     return '퀴즈 완료 +$count XP';
   }

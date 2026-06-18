@@ -3164,6 +3164,48 @@ abstract class AppLocalizations {
   /// **'This run finished with no missed questions.'**
   String get quizResultNoMissedQuestions;
 
+  /// No description provided for @quizStudyGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Study guide'**
+  String get quizStudyGuideTitle;
+
+  /// No description provided for @quizStudyGuideQuestionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get quizStudyGuideQuestionLabel;
+
+  /// No description provided for @quizStudyGuideAnswerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer'**
+  String get quizStudyGuideAnswerLabel;
+
+  /// No description provided for @quizStudyGuideConceptLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Core concept'**
+  String get quizStudyGuideConceptLabel;
+
+  /// No description provided for @quizStudyGuideApplicationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply it'**
+  String get quizStudyGuideApplicationLabel;
+
+  /// No description provided for @quizStudyGuidePracticeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Training check'**
+  String get quizStudyGuidePracticeLabel;
+
+  /// No description provided for @quizStudyGuidePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an answer to open the study guide.'**
+  String get quizStudyGuidePending;
+
   /// No description provided for @quizXpSavedFeedback.
   ///
   /// In en, this message translates to:

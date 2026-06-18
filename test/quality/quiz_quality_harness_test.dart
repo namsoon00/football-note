@@ -19,4 +19,17 @@ void main() {
       }
     }
   });
+
+  test('quiz quality harness enforces study-guide depth', () {
+    final report = buildQuizQualityHarnessReport(
+      minimumStudyGuideCharacters: 10000,
+    );
+
+    expect(report.passed, isFalse);
+    expect(
+      report.failures.any((failure) => failure.contains('study guide')),
+      isTrue,
+      reason: report.toConsoleString(),
+    );
+  });
 }
