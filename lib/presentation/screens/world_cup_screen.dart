@@ -71,6 +71,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   bool _officialDataRefreshing = false;
   bool _officialDataRefreshFailed = false;
   late final PageController _selectedDayPageController;
+  final Map<int, double> _selectedDayMatchPageHeights = <int, double>{};
   Timer? _clockTimer;
 
   @override
@@ -917,41 +918,85 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
 
   Widget _buildSelectedDayMatches(BuildContext context) {
     final initialIndex = _dayPageIndexForDay(_selectedDay);
-    final height = _selectedDayMatchesPagerHeight(context, initialIndex);
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      alignment: Alignment.topCenter,
-      child: SizedBox(
-        key: const ValueKey<String>('world-cup-day-match-pager'),
-        height: height,
-        child: PageView.builder(
-          controller: _selectedDayPageController,
-          clipBehavior: Clip.none,
-          allowImplicitScrolling: true,
-          padEnds: false,
-          physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
-          itemCount: _dayPageCount,
-          onPageChanged: (index) {
-            final nextDay = _dayForPageIndex(index);
-            if (normalizeWorldCupDay(nextDay) ==
-                normalizeWorldCupDay(_selectedDay)) {
-              return;
-            }
-            setState(() {
-              _selectedDay = nextDay;
-              _focusedDay = nextDay;
-            });
-          },
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsetsDirectional.only(end: 10),
-              child:
-                  _buildSelectedDayMatchPage(context, _dayForPageIndex(index)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const pageEndPadding = 10.0;
+        final pageWidth =
+            constraints.maxWidth * _selectedDayPageViewportFraction;
+        final measuredPageWidth = math.max(0.0, pageWidth - pageEndPadding);
+        final measuredHeight = _selectedDayMatchPageHeights[initialIndex];
+        final height = measuredHeight ??
+            _selectedDayMatchesPagerEstimate(
+              measuredPageWidth,
+              initialIndex,
             );
-          },
-        ),
-      ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Offstage(
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: SizedBox(
+                  width: measuredPageWidth,
+                  child: _WorldCupSizeReporter(
+                    onChange: (size) => _recordSelectedDayMatchPageHeight(
+                      initialIndex,
+                      size.height,
+                    ),
+                    child: _buildSelectedDayMatchPage(
+                      context,
+                      _dayForPageIndex(initialIndex),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                key: const ValueKey<String>('world-cup-day-match-pager'),
+                height: height,
+                child: PageView.builder(
+                  controller: _selectedDayPageController,
+                  clipBehavior: Clip.none,
+                  allowImplicitScrolling: true,
+                  padEnds: false,
+                  physics:
+                      const PageScrollPhysics(parent: BouncingScrollPhysics()),
+                  itemCount: _dayPageCount,
+                  onPageChanged: (index) {
+                    final nextDay = _dayForPageIndex(index);
+                    if (normalizeWorldCupDay(nextDay) ==
+                        normalizeWorldCupDay(_selectedDay)) {
+                      return;
+                    }
+                    setState(() {
+                      _selectedDay = nextDay;
+                      _focusedDay = nextDay;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        end: pageEndPadding,
+                      ),
+                      child: SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: _buildSelectedDayMatchPage(
+                          context,
+                          _dayForPageIndex(index),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -997,25 +1042,32 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     );
   }
 
-  double _selectedDayMatchesPagerHeight(BuildContext context, int pageIndex) {
-    final availableWidth = MediaQuery.sizeOf(context).width - 32;
+  double _selectedDayMatchesPagerEstimate(
+    double availableWidth,
+    int pageIndex,
+  ) {
     final fixtureRowHeight = availableWidth < 380
-        ? 320.0
+        ? 440.0
         : availableWidth < 430
-            ? 260.0
-            : 184.0;
-    final nearbyCounts = <int>[
-      for (final index in [pageIndex - 1, pageIndex, pageIndex + 1])
-        if (index >= 0 && index < _dayPageCount)
-          _visibleFixturesForDay(_dayForPageIndex(index)).length,
-    ];
-    final maxMatchCount =
-        nearbyCounts.isEmpty ? 0 : nearbyCounts.reduce(math.max);
-    final matchListHeight = maxMatchCount == 0
+            ? 400.0
+            : 340.0;
+    final matchCount =
+        _visibleFixturesForDay(_dayForPageIndex(pageIndex)).length;
+    final matchListHeight = matchCount == 0
         ? 48.0
-        : maxMatchCount * fixtureRowHeight +
-            math.max(0, maxMatchCount - 1) * 8.0;
+        : matchCount * fixtureRowHeight + math.max(0, matchCount - 1) * 8.0;
     return 16 + 56 + matchListHeight + 16;
+  }
+
+  void _recordSelectedDayMatchPageHeight(int pageIndex, double height) {
+    if (!mounted || height <= 0) return;
+    final previousHeight = _selectedDayMatchPageHeights[pageIndex];
+    if (previousHeight != null && (previousHeight - height).abs() < 0.5) {
+      return;
+    }
+    setState(() {
+      _selectedDayMatchPageHeights[pageIndex] = height;
+    });
   }
 
   int get _dayPageCount {
@@ -4538,6 +4590,52 @@ class _SmallPill extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _WorldCupSizeReporter extends StatefulWidget {
+  final Widget child;
+  final ValueChanged<Size> onChange;
+
+  const _WorldCupSizeReporter({
+    required this.child,
+    required this.onChange,
+  });
+
+  @override
+  State<_WorldCupSizeReporter> createState() => _WorldCupSizeReporterState();
+}
+
+class _WorldCupSizeReporterState extends State<_WorldCupSizeReporter> {
+  final GlobalKey _childKey = GlobalKey();
+  Size? _lastSize;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleReport();
+  }
+
+  @override
+  void didUpdateWidget(covariant _WorldCupSizeReporter oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _scheduleReport();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _scheduleReport();
+    return SizedBox(key: _childKey, child: widget.child);
+  }
+
+  void _scheduleReport() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final size = _childKey.currentContext?.size;
+      if (size == null || size == _lastSize) return;
+      _lastSize = size;
+      widget.onChange(size);
+    });
   }
 }
 
