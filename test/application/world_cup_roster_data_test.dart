@@ -41,6 +41,52 @@ void main() {
     );
   });
 
+  test('club lookup covers priority managed roster countries', () {
+    const teams = <String>[
+      'Argentina',
+      'Brazil',
+      'England',
+      'France',
+      'Germany',
+      'Japan',
+      'Portugal',
+      'Spain',
+      'USA',
+    ];
+
+    for (final team in teams) {
+      final roster = worldCupRosterPoolForTeam(team);
+
+      expect(roster, isNotNull, reason: team);
+      for (final player in _rosterPlayers(roster!)) {
+        expect(
+          worldCupRosterClubForPlayer(team, player),
+          isNotEmpty,
+          reason: '$team / $player',
+        );
+      }
+    }
+  });
+
+  test('club lookup matches official names with diacritics', () {
+    expect(
+      worldCupRosterClubForPlayer('Portugal', 'João Félix'),
+      'Al-Nassr FC',
+    );
+    expect(
+      worldCupRosterClubForPlayer('France', 'Kylian Mbappé'),
+      'Real Madrid',
+    );
+    expect(
+      worldCupRosterClubForPlayer('England', 'Marc Guéhi'),
+      'Manchester City',
+    );
+    expect(
+      worldCupRosterClubForPlayer('Spain', 'Yéremy Pino'),
+      'Crystal Palace',
+    );
+  });
+
   test('all scheduled World Cup countries have roster and formation data', () {
     for (final country in worldCupCountries()) {
       final roster = worldCupRosterPoolForTeam(country);
@@ -53,4 +99,11 @@ void main() {
       expect(roster.forwards.length, greaterThanOrEqualTo(3));
     }
   });
+}
+
+Iterable<String> _rosterPlayers(WorldCupRosterPool roster) sync* {
+  yield* roster.goalkeepers;
+  yield* roster.defenders;
+  yield* roster.midfielders;
+  yield* roster.forwards;
 }
