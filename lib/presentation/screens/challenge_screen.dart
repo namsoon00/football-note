@@ -25,6 +25,7 @@ import '../../domain/entities/sport_definition.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_motion.dart';
+import '../theme/app_theme.dart';
 import '../utils/sport_conditioning_visuals.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
@@ -3048,18 +3049,10 @@ class _ChallengeIntroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: AlignmentDirectional.topStart,
-          end: AlignmentDirectional.bottomEnd,
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.08),
-            theme.colorScheme.surface,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: AppSurfaces.subtleDecoration(
+        theme.colorScheme,
+        theme.brightness,
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -3209,28 +3202,13 @@ class _RoundFocusCard extends StatelessWidget {
     final activeGreen = theme.brightness == Brightness.dark
         ? const Color(0xFF63C986)
         : const Color(0xFF2E7D32);
-    final activeGreenContainer = theme.brightness == Brightness.dark
-        ? const Color(0xFF123D24)
-        : const Color(0xFFE2F7E8);
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: AlignmentDirectional.topStart,
-          end: AlignmentDirectional.bottomEnd,
-          colors: [
-            isCurrentRound
-                ? activeGreenContainer
-                : theme.colorScheme.primary.withValues(alpha: 0.08),
-            theme.colorScheme.surface,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isCurrentRound
-              ? activeGreen.withValues(alpha: 0.38)
-              : theme.colorScheme.outlineVariant,
-        ),
+      padding: AppSpacing.card,
+      decoration: AppSurfaces.subtleDecoration(
+        theme.colorScheme,
+        theme.brightness,
+        accent: isCurrentRound ? activeGreen : theme.colorScheme.primary,
+        accentAlpha: isCurrentRound ? 0.14 : 0.08,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3527,18 +3505,10 @@ class _ChallengeRoundsCalendar extends StatelessWidget {
     }
     return Container(
       key: const ValueKey('challenge-rounds-calendar'),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: AlignmentDirectional.topStart,
-          end: AlignmentDirectional.bottomEnd,
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.07),
-            theme.colorScheme.surface,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: AppSurfaces.subtleDecoration(
+        theme.colorScheme,
+        theme.brightness,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -4741,21 +4711,13 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
                           color: theme.colorScheme.surface.withValues(
                             alpha: 0.9,
                           ),
-                          borderRadius: BorderRadius.circular(26),
+                          borderRadius: AppRadius.surface,
                           border: Border.all(
                             color: theme.colorScheme.outlineVariant.withValues(
                               alpha: 0.56,
                             ),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.colorScheme.primary.withValues(
-                                alpha: 0.12,
-                              ),
-                              blurRadius: 28,
-                              offset: const Offset(0, 16),
-                            ),
-                          ],
+                          boxShadow: AppShadows.surface(theme.brightness),
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,

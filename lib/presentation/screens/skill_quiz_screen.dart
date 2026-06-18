@@ -16,6 +16,7 @@ import '../../application/sport_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../theme/app_theme.dart';
 import '../widgets/app_feedback.dart';
 
 class SkillQuizScreen extends StatefulWidget {
@@ -1209,6 +1210,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Widget _buildResult(bool isKo) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final total = _questions.length;
     final accuracy = total == 0 ? 0 : ((_score / total) * 100).round();
     final wrongQuestions = _questions
@@ -1218,41 +1221,31 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     return ListView(
       children: [
         Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0F766E), Color(0xFF1D4ED8), Color(0xFFF97316)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x22000000),
-                blurRadius: 20,
-                offset: Offset(0, 10),
-              ),
-            ],
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: AppSurfaces.heroDecoration(
+            scheme,
+            theme.brightness,
+            accent: scheme.primary,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 isKo ? '축구 퀴즈 결과' : 'Football Quiz Result',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                    ),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 10),
               Text(
                 isKo
                     ? '$_score / $total 정답, 정확도 $accuracy%'
                     : '$_score / $total correct, accuracy $accuracy%',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                    ),
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -1289,18 +1282,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         ] else ...[
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outlineVariant,
-              ),
-            ),
+            decoration: AppSurfaces.subtleDecoration(scheme, theme.brightness),
             child: Row(
               children: [
                 Icon(
                   Icons.check_circle_rounded,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: scheme.primary,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -1750,6 +1737,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Widget _buildEntryHub(bool isKo) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final personalization = _buildPersonalization();
     final history = _loadQuizHistory();
     final actions = <_QuizEntryCardData>[
@@ -1816,34 +1805,31 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     return ListView(
       children: [
         Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0F766E), Color(0xFF1D4ED8)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: AppSurfaces.heroDecoration(
+            scheme,
+            theme.brightness,
+            accent: scheme.primary,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 isKo ? '오늘의 퀴즈 시작' : 'Start today’s quiz',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                    ),
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 isKo
                     ? '오늘 문제를 다시 풀지, 다른 스타일로 풀지, 약점 분야를 파고들지 고르세요.'
                     : 'Choose whether to replay today, try a different mode, or drill into your weakest area.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.92),
-                      height: 1.5,
-                    ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.92),
+                  height: 1.5,
+                ),
               ),
               const SizedBox(height: 12),
               _QuizCoachBanner(
@@ -2768,19 +2754,17 @@ class _QuestionHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final accent = _quizCategoryAccent(question.category);
 
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: LinearGradient(
-          colors: [accent.withValues(alpha: 0.16), scheme.surface],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(color: accent.withValues(alpha: 0.28)),
+      decoration: AppSurfaces.subtleDecoration(
+        scheme,
+        theme.brightness,
+        accent: accent,
+        accentAlpha: 0.12,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2795,7 +2779,7 @@ class _QuestionHeroCard extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: AppRadius.full,
                 ),
                 child: Text(
                   isKo
@@ -2816,7 +2800,7 @@ class _QuestionHeroCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: overlay.accent.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: AppRadius.control,
                     border: Border.all(
                       color: overlay.accent.withValues(alpha: 0.28),
                     ),
@@ -2974,14 +2958,14 @@ class _QuizEntryCard extends StatelessWidget {
     return Material(
       color:
           enabled ? scheme.surfaceContainerLow : scheme.surfaceContainerLowest,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: AppRadius.surface,
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: AppRadius.surface,
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: AppRadius.surface,
             border: Border.all(color: scheme.outlineVariant),
           ),
           child: Row(
@@ -2993,7 +2977,7 @@ class _QuizEntryCard extends StatelessWidget {
                   color: enabled
                       ? scheme.primary.withValues(alpha: 0.12)
                       : scheme.outlineVariant.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: AppRadius.control,
                 ),
                 child: Icon(
                   data.icon,
@@ -3117,7 +3101,8 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final filtered = _filteredQuestions;
     final coreFocusCount = widget.questions
         .where((question) => question.category.isCoreFocus)
@@ -3134,38 +3119,31 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
           Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF14532D),
-                  Color(0xFF0F766E),
-                  Color(0xFF1D4ED8),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: AppSurfaces.heroDecoration(
+              scheme,
+              theme.brightness,
+              accent: scheme.primary,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   isKo ? '코치용 퀴즈 라이브러리' : 'Coach quiz library',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   isKo
                       ? '전체 문제를 카테고리, 유형, 난이도, 검색어로 점검하세요. 기본기와 전술 비중이 높고, 규칙·포지션·대회 상식도 섞여 있습니다.'
                       : 'Inspect the full question bank by category, style, difficulty, and search. Fundamentals and tactics are emphasized while rules, positions, and competition knowledge stay mixed in.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.92),
-                        height: 1.45,
-                      ),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    height: 1.45,
+                  ),
                 ),
                 const SizedBox(height: 14),
                 Wrap(
@@ -3202,12 +3180,8 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
           ),
           const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: scheme.outlineVariant),
-            ),
+            padding: AppSpacing.card,
+            decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -3229,7 +3203,7 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
                         ? '문제/정답/해설 검색'
                         : 'Search prompt/answer/explanation',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: AppRadius.control,
                     ),
                   ),
                   onChanged: (value) => setState(() => _query = value),
@@ -3710,13 +3684,13 @@ class _QuizHistoryScreen extends StatelessWidget {
                       ),
                       childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                       collapsedShape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: AppRadius.surface,
                         side: BorderSide(
                           color: Theme.of(context).colorScheme.outlineVariant,
                         ),
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: AppRadius.surface,
                         side: BorderSide(
                           color: Theme.of(context).colorScheme.outlineVariant,
                         ),

@@ -32,6 +32,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
+import '../theme/app_theme.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/status_style.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
@@ -3108,7 +3109,7 @@ class _CalendarStatusDayCell extends StatelessWidget {
         height: 44,
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.small,
           border: Border.all(color: borderColor, width: 1.2),
         ),
         child: Column(
@@ -3260,7 +3261,7 @@ class _CalendarMarkerSegment extends StatelessWidget {
       height: 4,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: AppRadius.full,
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.28),
@@ -3350,7 +3351,7 @@ class _DayTimeline extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: Colors.red.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: AppRadius.full,
                   border: Border.all(color: Colors.red.withValues(alpha: 0.35)),
                 ),
                 child: Text(
@@ -3405,7 +3406,7 @@ class _DayTimeline extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.red.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.small,
                 border: Border.all(color: Colors.red.withValues(alpha: 0.35)),
               ),
               child: Text(
@@ -3438,7 +3439,7 @@ class _DayTimeline extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: AppRadius.control,
                           ),
                           child: Icon(
                             Icons.delete_outline,
@@ -3483,7 +3484,7 @@ class _DayTimeline extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: AppRadius.control,
                           ),
                           child: Icon(
                             Icons.delete_outline,
@@ -3528,7 +3529,7 @@ class _DayTimeline extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: AppRadius.control,
                           ),
                           child: Icon(
                             Icons.delete_outline,
@@ -3572,7 +3573,7 @@ class _DayTimeline extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.errorContainer,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: AppRadius.control,
                       ),
                       child: Icon(
                         Icons.delete_outline,

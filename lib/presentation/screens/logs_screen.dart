@@ -1013,7 +1013,7 @@ class _LogsScreenState extends State<LogsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.control,
         ),
         child: Icon(
           Icons.delete_outline,
@@ -1304,7 +1304,7 @@ class _EntryCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.control,
         onTap: onEdit,
         child: WatchCartCard(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -1412,7 +1412,7 @@ class _EntryListItem extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.control,
         onTap: onEdit,
         child: WatchCartCard(
           padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
@@ -1564,17 +1564,16 @@ class _TrainingBoardThumb extends StatelessWidget {
       0,
       (sum, p) => sum + p.items.length,
     );
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Container(
       height: 42,
       width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
-        ),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+      decoration: AppSurfaces.subtleDecoration(
+        scheme,
+        theme.brightness,
+        accent: scheme.primary,
+        accentAlpha: 0.12,
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -1582,7 +1581,11 @@ class _TrainingBoardThumb extends StatelessWidget {
           final h = constraints.maxHeight;
           return Stack(
             children: [
-              CustomPaint(painter: _ThumbPitchPainter()),
+              CustomPaint(
+                painter: _ThumbPitchPainter(
+                  lineColor: scheme.primary.withValues(alpha: 0.24),
+                ),
+              ),
               ...previewItems.take(10).map((item) {
                 final icon = switch (item.type) {
                   'cone' => Icons.change_history,
@@ -1611,7 +1614,7 @@ class _TrainingBoardThumb extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: AppRadius.full,
                   ),
                   child: Text(
                     '$itemCount',
@@ -1634,7 +1637,7 @@ class _TrainingBoardThumb extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.35),
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: AppRadius.full,
                     ),
                     child: Text(
                       linkedBoards.first.title,
@@ -1657,10 +1660,14 @@ class _TrainingBoardThumb extends StatelessWidget {
 }
 
 class _ThumbPitchPainter extends CustomPainter {
+  final Color lineColor;
+
+  const _ThumbPitchPainter({required this.lineColor});
+
   @override
   void paint(Canvas canvas, Size size) {
     final line = Paint()
-      ..color = Colors.white.withValues(alpha: 0.55)
+      ..color = lineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     final centerX = size.width / 2;
@@ -1671,7 +1678,9 @@ class _ThumbPitchPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _ThumbPitchPainter oldDelegate) {
+    return oldDelegate.lineColor != lineColor;
+  }
 }
 
 String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
@@ -1747,7 +1756,7 @@ class _EntryImage extends StatelessWidget {
     return Stack(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.small,
           child: Image.file(
             File(images.first),
             height: 80,
@@ -1788,7 +1797,7 @@ class _EntryImage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
                 color: Colors.black.withAlpha(153),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.small,
               ),
               child: Text(
                 '+${images.length - 1}',
