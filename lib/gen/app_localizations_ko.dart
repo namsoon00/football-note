@@ -792,6 +792,26 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupPlayerClubPending => '소속팀 업데이트 대기';
 
   @override
+  String get worldCupPlayerClubManageAction => '소속팀 관리';
+
+  @override
+  String worldCupPlayerClubEditTitle(String player) {
+    return '$player 소속팀';
+  }
+
+  @override
+  String get worldCupPlayerClubInputLabel => '소속팀 이름';
+
+  @override
+  String get worldCupPlayerClubClearAction => '소속팀 지우기';
+
+  @override
+  String get worldCupPlayerClubSaved => '선수 소속팀을 저장했어요.';
+
+  @override
+  String get worldCupPlayerClubCleared => '선수 소속팀을 지웠어요.';
+
+  @override
   String get worldCupPlayerProfileSourceNote =>
       '공식 사진이 없을 때는 선수 얼굴 아이콘을 표시합니다.';
 
