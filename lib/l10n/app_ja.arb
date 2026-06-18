@@ -392,6 +392,14 @@
       }
     }
   },
+  "worldCupClubHomepageOpenTooltip": "{club} 公式サイトを開く",
+  "@worldCupClubHomepageOpenTooltip": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupClubInfoTitle": "{club} 情報",
   "@worldCupClubInfoTitle": {
     "placeholders": {
@@ -568,6 +576,29 @@
     }
   },
   "worldCupTeamRosterSubtitle": "ポジション別の名簿とフォーメーション配置でチームの形を確認できます。",
+  "worldCupTeamHistoryTitle": "サッカーの歴史と説明",
+  "worldCupTeamHistoryBody": "{team} のサッカー史は、代表チームの国際大会経験、国内リーグの基盤、海外組の流れ、ワールドカップ予選で積み上げた競争力によって形づくられています。この画面では、グループ日程、勝点、選手の所属クラブを合わせて、{team} が今大会でどんな流れを作れるかを確認できます。",
+  "@worldCupTeamHistoryBody": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamHistoryTournamentContext": "今大会のグループステージで、{team} は {group} で {opponents} と対戦します。",
+  "@worldCupTeamHistoryTournamentContext": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "group": {
+        "type": "String"
+      },
+      "opponents": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupTeamMatchOverviewTitle": "代表チーム試合情報",
   "worldCupTeamCurrentPointsLabel": "現在の勝点",
   "worldCupTeamMatchHistoryTitle": "対戦結果",

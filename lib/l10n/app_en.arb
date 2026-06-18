@@ -392,6 +392,14 @@
       }
     }
   },
+  "worldCupClubHomepageOpenTooltip": "Open {club} official website",
+  "@worldCupClubHomepageOpenTooltip": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupClubInfoTitle": "{club} info",
   "@worldCupClubInfoTitle": {
     "placeholders": {
@@ -568,6 +576,29 @@
     }
   },
   "worldCupTeamRosterSubtitle": "Position groups and a formation view for quickly reading the squad shape.",
+  "worldCupTeamHistoryTitle": "Football history and context",
+  "worldCupTeamHistoryBody": "{team}'s football story is shaped by its national-team tournament experience, domestic league base, overseas-player pipeline, and World Cup qualifying record. This view brings the group fixtures, points, and player clubs together so you can read how {team} may build its tournament rhythm.",
+  "@worldCupTeamHistoryBody": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamHistoryTournamentContext": "In this group stage, {team} competes in {group} against {opponents}.",
+  "@worldCupTeamHistoryTournamentContext": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "opponents": {
+        "type": "String"
+      },
+      "group": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupTeamMatchOverviewTitle": "Team match info",
   "worldCupTeamCurrentPointsLabel": "Current points",
   "worldCupTeamMatchHistoryTitle": "Match results",

@@ -1554,6 +1554,12 @@ abstract class AppLocalizations {
   /// **'Open {club} info'**
   String worldCupClubInfoOpenTooltip(String club);
 
+  /// No description provided for @worldCupClubHomepageOpenTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {club} official website'**
+  String worldCupClubHomepageOpenTooltip(String club);
+
   /// No description provided for @worldCupClubInfoTitle.
   ///
   /// In en, this message translates to:
@@ -2261,6 +2267,25 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Position groups and a formation view for quickly reading the squad shape.'**
   String get worldCupTeamRosterSubtitle;
+
+  /// No description provided for @worldCupTeamHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Football history and context'**
+  String get worldCupTeamHistoryTitle;
+
+  /// No description provided for @worldCupTeamHistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{team}\'s football story is shaped by its national-team tournament experience, domestic league base, overseas-player pipeline, and World Cup qualifying record. This view brings the group fixtures, points, and player clubs together so you can read how {team} may build its tournament rhythm.'**
+  String worldCupTeamHistoryBody(String team);
+
+  /// No description provided for @worldCupTeamHistoryTournamentContext.
+  ///
+  /// In en, this message translates to:
+  /// **'In this group stage, {team} competes in {group} against {opponents}.'**
+  String worldCupTeamHistoryTournamentContext(
+      String team, String opponents, String group);
 
   /// No description provided for @worldCupTeamMatchOverviewTitle.
   ///

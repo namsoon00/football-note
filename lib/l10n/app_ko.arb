@@ -392,6 +392,14 @@
       }
     }
   },
+  "worldCupClubHomepageOpenTooltip": "{club} 공식 홈페이지 열기",
+  "@worldCupClubHomepageOpenTooltip": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupClubInfoTitle": "{club} 정보",
   "@worldCupClubInfoTitle": {
     "placeholders": {
@@ -568,6 +576,29 @@
     }
   },
   "worldCupTeamRosterSubtitle": "포지션별 명단과 포메이션 배치로 팀 구성을 빠르게 확인해요.",
+  "worldCupTeamHistoryTitle": "축구 역사와 설명",
+  "worldCupTeamHistoryBody": "{team}의 축구사는 대표팀의 국제 대회 경험, 자국 리그와 해외파 선수 흐름, 월드컵 예선에서 쌓인 경쟁력이 함께 만든 이야기입니다. 이 화면에서는 현재 조별 일정, 승점, 선수 소속팀을 묶어 {team}이 이번 대회에서 어떤 흐름을 만들 수 있는지 확인할 수 있어요.",
+  "@worldCupTeamHistoryBody": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamHistoryTournamentContext": "이번 조별리그에서 {team}은 {group}에서 {opponents}와 만납니다.",
+  "@worldCupTeamHistoryTournamentContext": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "group": {
+        "type": "String"
+      },
+      "opponents": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupTeamMatchOverviewTitle": "국가 경기 정보",
   "worldCupTeamCurrentPointsLabel": "현재 승점",
   "worldCupTeamMatchHistoryTitle": "상대별 결과",

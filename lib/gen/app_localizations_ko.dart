@@ -797,6 +797,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String worldCupClubHomepageOpenTooltip(String club) {
+    return '$club 공식 홈페이지 열기';
+  }
+
+  @override
   String worldCupClubInfoTitle(String club) {
     return '$club 정보';
   }
@@ -1167,6 +1172,20 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterSubtitle => '포지션별 명단과 포메이션 배치로 팀 구성을 빠르게 확인해요.';
+
+  @override
+  String get worldCupTeamHistoryTitle => '축구 역사와 설명';
+
+  @override
+  String worldCupTeamHistoryBody(String team) {
+    return '$team의 축구사는 대표팀의 국제 대회 경험, 자국 리그와 해외파 선수 흐름, 월드컵 예선에서 쌓인 경쟁력이 함께 만든 이야기입니다. 이 화면에서는 현재 조별 일정, 승점, 선수 소속팀을 묶어 $team이 이번 대회에서 어떤 흐름을 만들 수 있는지 확인할 수 있어요.';
+  }
+
+  @override
+  String worldCupTeamHistoryTournamentContext(
+      String team, String opponents, String group) {
+    return '이번 조별리그에서 $team은 $group에서 $opponents와 만납니다.';
+  }
 
   @override
   String get worldCupTeamMatchOverviewTitle => '국가 경기 정보';

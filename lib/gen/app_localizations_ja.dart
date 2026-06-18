@@ -804,6 +804,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String worldCupClubHomepageOpenTooltip(String club) {
+    return '$club 公式サイトを開く';
+  }
+
+  @override
   String worldCupClubInfoTitle(String club) {
     return '$club 情報';
   }
@@ -1177,6 +1182,20 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterSubtitle => 'ポジション別の名簿とフォーメーション配置でチームの形を確認できます。';
+
+  @override
+  String get worldCupTeamHistoryTitle => 'サッカーの歴史と説明';
+
+  @override
+  String worldCupTeamHistoryBody(String team) {
+    return '$team のサッカー史は、代表チームの国際大会経験、国内リーグの基盤、海外組の流れ、ワールドカップ予選で積み上げた競争力によって形づくられています。この画面では、グループ日程、勝点、選手の所属クラブを合わせて、$team が今大会でどんな流れを作れるかを確認できます。';
+  }
+
+  @override
+  String worldCupTeamHistoryTournamentContext(
+      String team, String opponents, String group) {
+    return '今大会のグループステージで、$team は $group で $opponents と対戦します。';
+  }
 
   @override
   String get worldCupTeamMatchOverviewTitle => '代表チーム試合情報';

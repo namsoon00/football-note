@@ -200,6 +200,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('멕시코 선수 명단'), findsOneWidget);
+    expect(find.text('축구 역사와 설명'), findsOneWidget);
+    expect(find.textContaining('멕시코의 축구사'), findsOneWidget);
     expect(find.text('국가 경기 정보'), findsOneWidget);
     expect(find.text('현재 승점'), findsOneWidget);
     expect(find.text('상대별 결과'), findsOneWidget);
@@ -226,12 +228,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Cesar Huerta'), findsOneWidget);
     expect(find.text('RSC Anderlecht'), findsOneWidget);
-    await tester.tap(find.text('RSC Anderlecht').hitTestable().first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('RSC Anderlecht 정보'), findsOneWidget);
-    expect(find.text('선수'), findsWidgets);
-    expect(find.text('Cesar Huerta'), findsWidgets);
   });
 
   testWidgets('Korean roster names render in Korean locale', (tester) async {

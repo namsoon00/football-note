@@ -41,6 +41,33 @@ void main() {
     );
   });
 
+  test('club website lookup covers managed club links', () {
+    expect(
+      worldCupRosterClubWebsite('Los Angeles FC')?.toString(),
+      'https://www.lafc.com/',
+    );
+    expect(
+      worldCupRosterClubWebsite('RSC Anderlecht')?.toString(),
+      'https://www.rsca.be/',
+    );
+    expect(
+      worldCupRosterClubWebsite('Deportivo Guadalajara')?.toString(),
+      'https://www.chivasdecorazon.com.mx/',
+    );
+    expect(
+      worldCupRosterClubWebsite('Arsenal FC')?.toString(),
+      'https://www.arsenal.com/',
+    );
+    expect(
+      worldCupRosterClubWebsite('CF America')?.toString(),
+      'https://www.clubamerica.com.mx/',
+    );
+    expect(
+      worldCupRosterClubWebsite('Celtic')?.toString(),
+      'https://www.celticfc.com/',
+    );
+  });
+
   test('club lookup covers every scheduled roster country', () {
     for (final team in worldCupCountries()) {
       final roster = worldCupRosterPoolForTeam(team);

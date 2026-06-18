@@ -835,6 +835,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String worldCupClubHomepageOpenTooltip(String club) {
+    return 'Open $club official website';
+  }
+
+  @override
   String worldCupClubInfoTitle(String club) {
     return '$club info';
   }
@@ -1216,6 +1221,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get worldCupTeamRosterSubtitle =>
       'Position groups and a formation view for quickly reading the squad shape.';
+
+  @override
+  String get worldCupTeamHistoryTitle => 'Football history and context';
+
+  @override
+  String worldCupTeamHistoryBody(String team) {
+    return '$team\'s football story is shaped by its national-team tournament experience, domestic league base, overseas-player pipeline, and World Cup qualifying record. This view brings the group fixtures, points, and player clubs together so you can read how $team may build its tournament rhythm.';
+  }
+
+  @override
+  String worldCupTeamHistoryTournamentContext(
+      String team, String opponents, String group) {
+    return 'In this group stage, $team competes in $group against $opponents.';
+  }
 
   @override
   String get worldCupTeamMatchOverviewTitle => 'Team match info';
