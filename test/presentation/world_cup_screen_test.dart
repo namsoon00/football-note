@@ -605,6 +605,13 @@ void main() {
       findsOneWidget,
     );
     expect(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('world-cup-day-match-pager')),
+        matching: find.byType(SingleChildScrollView),
+      ),
+      findsNothing,
+    );
+    expect(
       find.textContaining(
         dayFormatter.format(nextDay),
         skipOffstage: false,
