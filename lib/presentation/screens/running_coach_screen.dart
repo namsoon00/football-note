@@ -93,9 +93,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedSection = sections[index]);
-        },
+        onDestinationSelected: (index) => _selectSection(sections[index]),
         destinations: [
           for (final section in sections)
             NavigationDestination(
@@ -136,6 +134,41 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           body: l10n.runningCoachHeroBody,
         ),
         const SizedBox(height: 12),
+        _RunningCoachFlowCard(
+          key: const ValueKey('running-coach-today-plan-card'),
+          title: l10n.runningCoachTodayPlanTitle,
+          steps: [
+            _RunningCoachFlowStep(
+              icon: Icons.flag_outlined,
+              title: l10n.runningCoachTodayPlanMissionTitle,
+              body: l10n.runningCoachTodayPlanMissionBody,
+            ),
+            _RunningCoachFlowStep(
+              icon: Icons.timer_outlined,
+              title: l10n.runningCoachTodayPlanRecordTitle,
+              body: l10n.runningCoachTodayPlanRecordBody,
+            ),
+            _RunningCoachFlowStep(
+              icon: Icons.video_camera_back_outlined,
+              title: l10n.runningCoachTodayPlanAnalysisTitle,
+              body: l10n.runningCoachTodayPlanAnalysisBody,
+            ),
+          ],
+          actions: [
+            if (_growthSnapshot != null)
+              _RunningCoachFlowAction(
+                icon: Icons.show_chart_rounded,
+                label: l10n.runningCoachTodayPlanRecordAction,
+                onPressed: () => _selectSection(_RunningCoachSection.records),
+              ),
+            _RunningCoachFlowAction(
+              icon: Icons.video_camera_back_rounded,
+              label: l10n.runningCoachTodayPlanAnalysisAction,
+              onPressed: () => _selectSection(_RunningCoachSection.analysis),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         _RunningMissionCard(
           mission: mission,
           onStartLiveCoach: _openLiveCoach,
@@ -150,10 +183,33 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     if (growthSnapshot == null) {
       return const SizedBox.shrink();
     }
+    final l10n = AppLocalizations.of(context)!;
     return ListView(
       key: const PageStorageKey('running-coach-records-page'),
       padding: const EdgeInsets.all(16),
       children: [
+        _RunningCoachFlowCard(
+          key: const ValueKey('running-coach-records-plan-card'),
+          title: l10n.runningCoachRecordsPlanTitle,
+          steps: [
+            _RunningCoachFlowStep(
+              icon: Icons.straighten_rounded,
+              title: l10n.runningCoachRecordsPlanDistanceTitle,
+              body: l10n.runningCoachRecordsPlanDistanceBody,
+            ),
+            _RunningCoachFlowStep(
+              icon: Icons.speed_rounded,
+              title: l10n.runningCoachRecordsPlanSecondsTitle,
+              body: l10n.runningCoachRecordsPlanSecondsBody,
+            ),
+            _RunningCoachFlowStep(
+              icon: Icons.compare_arrows_rounded,
+              title: l10n.runningCoachRecordsPlanCompareTitle,
+              body: l10n.runningCoachRecordsPlanCompareBody,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         _RunningGrowthRecordCard(
           snapshot: growthSnapshot,
           selectedDistance: _selectedSprintDistance,
@@ -182,6 +238,28 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       key: const PageStorageKey('running-coach-analysis-page'),
       padding: const EdgeInsets.all(16),
       children: [
+        _RunningCoachFlowCard(
+          key: const ValueKey('running-coach-analysis-plan-card'),
+          title: l10n.runningCoachAnalysisPlanTitle,
+          steps: [
+            _RunningCoachFlowStep(
+              icon: Icons.photo_camera_back_outlined,
+              title: l10n.runningCoachAnalysisPlanRecordTitle,
+              body: l10n.runningCoachAnalysisPlanRecordBody,
+            ),
+            _RunningCoachFlowStep(
+              icon: Icons.visibility_outlined,
+              title: l10n.runningCoachAnalysisPlanSampleTitle,
+              body: l10n.runningCoachAnalysisPlanSampleBody,
+            ),
+            _RunningCoachFlowStep(
+              icon: Icons.analytics_outlined,
+              title: l10n.runningCoachAnalysisPlanAnalyzeTitle,
+              body: l10n.runningCoachAnalysisPlanAnalyzeBody,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         _RunningCoachUploadGuideCard(
           title: l10n.runningCoachUploadGuideTitle,
           body: l10n.runningCoachUploadGuideBody,
@@ -255,6 +333,11 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       _RunningCoachSection.records => l10n.runningCoachSectionRecords,
       _RunningCoachSection.analysis => l10n.runningCoachSectionAnalysis,
     };
+  }
+
+  void _selectSection(_RunningCoachSection section) {
+    if (!_availableSections.contains(section)) return;
+    setState(() => _selectedSection = section);
   }
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
@@ -751,6 +834,156 @@ class _MissionChip extends StatelessWidget {
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RunningCoachFlowStep {
+  final IconData icon;
+  final String title;
+  final String body;
+
+  const _RunningCoachFlowStep({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
+}
+
+class _RunningCoachFlowAction {
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  const _RunningCoachFlowAction({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+}
+
+class _RunningCoachFlowCard extends StatelessWidget {
+  final String title;
+  final List<_RunningCoachFlowStep> steps;
+  final List<_RunningCoachFlowAction> actions;
+
+  const _RunningCoachFlowCard({
+    super.key,
+    required this.title,
+    required this.steps,
+    this.actions = const <_RunningCoachFlowAction>[],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            for (var index = 0; index < steps.length; index += 1) ...[
+              _RunningCoachFlowStepTile(
+                number: index + 1,
+                step: steps[index],
+              ),
+              if (index != steps.length - 1) const SizedBox(height: 10),
+            ],
+            if (actions.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  for (final action in actions)
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: scheme.primary,
+                      ),
+                      onPressed: action.onPressed,
+                      icon: Icon(action.icon),
+                      label: Text(action.label),
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RunningCoachFlowStepTile extends StatelessWidget {
+  final int number;
+  final _RunningCoachFlowStep step;
+
+  const _RunningCoachFlowStepTile({
+    required this.number,
+    required this.step,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox.square(
+              dimension: 34,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    number.toString(),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: scheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Icon(step.icon, color: scheme.primary),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    step.title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(step.body, style: Theme.of(context).textTheme.bodySmall),
+                ],
               ),
             ),
           ],

@@ -5170,13 +5170,91 @@ class AppLocalizationsKo extends AppLocalizations {
       '달리기를 다음 경기의 무기로 느끼게 해요. 짧은 축구형 스프린트 미션을 뛰고 기록을 남긴 뒤, 자세 코칭으로 다음 0.1초를 찾습니다.';
 
   @override
-  String get runningCoachSectionToday => '오늘';
+  String get runningCoachSectionToday => '미션';
 
   @override
   String get runningCoachSectionRecords => '기록';
 
   @override
   String get runningCoachSectionAnalysis => '분석';
+
+  @override
+  String get runningCoachTodayPlanTitle => '오늘은 이렇게 하면 돼요';
+
+  @override
+  String get runningCoachTodayPlanMissionTitle => '스프린트 미션 뛰기';
+
+  @override
+  String get runningCoachTodayPlanMissionBody =>
+      '아래 미션부터 시작해요. 날카롭게 3번만 뛰어도 충분합니다.';
+
+  @override
+  String get runningCoachTodayPlanRecordTitle => '가장 좋은 기록 저장하기';
+
+  @override
+  String get runningCoachTodayPlanRecordBody =>
+      '뛴 뒤에는 기록 화면으로 가서 가장 빠른 시도만 입력해요.';
+
+  @override
+  String get runningCoachTodayPlanAnalysisTitle => '느낌이 이상하면 자세 확인하기';
+
+  @override
+  String get runningCoachTodayPlanAnalysisBody =>
+      '출발이 느리거나 몸이 무겁게 느껴질 때 분석 화면에서 자세를 확인해요.';
+
+  @override
+  String get runningCoachTodayPlanRecordAction => '기록으로 이동';
+
+  @override
+  String get runningCoachTodayPlanAnalysisAction => '분석으로 이동';
+
+  @override
+  String get runningCoachRecordsPlanTitle => '기록은 이렇게 남겨요';
+
+  @override
+  String get runningCoachRecordsPlanDistanceTitle => '거리 선택';
+
+  @override
+  String get runningCoachRecordsPlanDistanceBody =>
+      '방금 뛴 스프린트에 맞춰 10m, 20m, 30m 중 하나를 고릅니다.';
+
+  @override
+  String get runningCoachRecordsPlanSecondsTitle => '초 입력';
+
+  @override
+  String get runningCoachRecordsPlanSecondsBody =>
+      '스톱워치에 나온 시간을 초 단위로 넣고 오늘의 최고 시도로 저장해요.';
+
+  @override
+  String get runningCoachRecordsPlanCompareTitle => '이전의 나를 따라잡기';
+
+  @override
+  String get runningCoachRecordsPlanCompareBody =>
+      '저장된 기록은 이전 최고 기록과 비교되어 다음 목표가 바로 보입니다.';
+
+  @override
+  String get runningCoachAnalysisPlanTitle => '자세 분석은 이렇게 해요';
+
+  @override
+  String get runningCoachAnalysisPlanRecordTitle => '측면 영상 찍기';
+
+  @override
+  String get runningCoachAnalysisPlanRecordBody =>
+      '몸 전체가 보이도록 옆에서 몇 걸음 달리는 영상을 찍어요.';
+
+  @override
+  String get runningCoachAnalysisPlanSampleTitle => '샘플 먼저 보기';
+
+  @override
+  String get runningCoachAnalysisPlanSampleBody =>
+      '업로드 전에 앱이 무엇을 비교하는지 샘플 가이드로 확인할 수 있어요.';
+
+  @override
+  String get runningCoachAnalysisPlanAnalyzeTitle => '영상 선택 후 분석';
+
+  @override
+  String get runningCoachAnalysisPlanAnalyzeBody =>
+      '영상을 고르고 분석한 뒤, 가장 먼저 고칠 포인트부터 따라가요.';
 
   @override
   String get runningCoachMissionCardTitle => '오늘의 스피드 미션';

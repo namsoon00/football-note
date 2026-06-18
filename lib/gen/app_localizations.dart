@@ -9491,7 +9491,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSectionToday.
   ///
   /// In en, this message translates to:
-  /// **'Today'**
+  /// **'Mission'**
   String get runningCoachSectionToday;
 
   /// No description provided for @runningCoachSectionRecords.
@@ -9505,6 +9505,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Analysis'**
   String get runningCoachSectionAnalysis;
+
+  /// No description provided for @runningCoachTodayPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What to do today'**
+  String get runningCoachTodayPlanTitle;
+
+  /// No description provided for @runningCoachTodayPlanMissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Run the sprint mission'**
+  String get runningCoachTodayPlanMissionTitle;
+
+  /// No description provided for @runningCoachTodayPlanMissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with the mission below. Three sharp attempts are enough.'**
+  String get runningCoachTodayPlanMissionBody;
+
+  /// No description provided for @runningCoachTodayPlanRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the best time'**
+  String get runningCoachTodayPlanRecordTitle;
+
+  /// No description provided for @runningCoachTodayPlanRecordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'After running, move to Records and enter only the fastest attempt.'**
+  String get runningCoachTodayPlanRecordBody;
+
+  /// No description provided for @runningCoachTodayPlanAnalysisTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check form when it feels off'**
+  String get runningCoachTodayPlanAnalysisTitle;
+
+  /// No description provided for @runningCoachTodayPlanAnalysisBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Analysis when the start feels slow, heavy, or different from the best run.'**
+  String get runningCoachTodayPlanAnalysisBody;
+
+  /// No description provided for @runningCoachTodayPlanRecordAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to records'**
+  String get runningCoachTodayPlanRecordAction;
+
+  /// No description provided for @runningCoachTodayPlanAnalysisAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to analysis'**
+  String get runningCoachTodayPlanAnalysisAction;
+
+  /// No description provided for @runningCoachRecordsPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to log a run'**
+  String get runningCoachRecordsPlanTitle;
+
+  /// No description provided for @runningCoachRecordsPlanDistanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the distance'**
+  String get runningCoachRecordsPlanDistanceTitle;
+
+  /// No description provided for @runningCoachRecordsPlanDistanceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick 10m, 20m, or 30m to match the sprint you just ran.'**
+  String get runningCoachRecordsPlanDistanceBody;
+
+  /// No description provided for @runningCoachRecordsPlanSecondsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter seconds'**
+  String get runningCoachRecordsPlanSecondsTitle;
+
+  /// No description provided for @runningCoachRecordsPlanSecondsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the stopwatch time in seconds, then save it as today\'s best attempt.'**
+  String get runningCoachRecordsPlanSecondsBody;
+
+  /// No description provided for @runningCoachRecordsPlanCompareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chase the previous runner'**
+  String get runningCoachRecordsPlanCompareTitle;
+
+  /// No description provided for @runningCoachRecordsPlanCompareBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The app compares the saved time with the previous best so the next target is clear.'**
+  String get runningCoachRecordsPlanCompareBody;
+
+  /// No description provided for @runningCoachAnalysisPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to analyze form'**
+  String get runningCoachAnalysisPlanTitle;
+
+  /// No description provided for @runningCoachAnalysisPlanRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a side view'**
+  String get runningCoachAnalysisPlanRecordTitle;
+
+  /// No description provided for @runningCoachAnalysisPlanRecordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the full body in frame from the side for a few running steps.'**
+  String get runningCoachAnalysisPlanRecordBody;
+
+  /// No description provided for @runningCoachAnalysisPlanSampleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the sample first'**
+  String get runningCoachAnalysisPlanSampleTitle;
+
+  /// No description provided for @runningCoachAnalysisPlanSampleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the sample guide if you want to see what the app compares before uploading.'**
+  String get runningCoachAnalysisPlanSampleBody;
+
+  /// No description provided for @runningCoachAnalysisPlanAnalyzeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick and analyze'**
+  String get runningCoachAnalysisPlanAnalyzeTitle;
+
+  /// No description provided for @runningCoachAnalysisPlanAnalyzeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the video, run analysis, then start with the first focus cue.'**
+  String get runningCoachAnalysisPlanAnalyzeBody;
 
   /// No description provided for @runningCoachMissionCardTitle.
   ///
