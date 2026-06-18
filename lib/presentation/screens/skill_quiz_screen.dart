@@ -4757,6 +4757,7 @@ List<_OxFactSeed> _buildOxSeedPool300() {
     ..._oxFacts(),
     ..._historyAndFifaRecordOxFacts(),
     ..._advancedFootballHistoryOxFacts(),
+    ..._athleteNutritionOxFacts(),
     ..._issue276FormationOxFacts(),
     ..._issue279FormationScenarioOxFacts(),
     ..._qualityScenarioOxFacts(),
@@ -4768,6 +4769,7 @@ List<_McqSeed> _buildMcqSeedPool300() {
     ..._mcqSeeds(),
     ..._historyAndFifaRecordMcqSeeds(),
     ..._advancedFootballHistoryMcqSeeds(),
+    ..._athleteNutritionMcqSeeds(),
     ..._issue260CategoryBoosterMcqSeeds(),
     ..._issue271CoreCategoryMcqSeeds(),
     ..._issue276FormationMcqSeeds(),
@@ -4782,6 +4784,7 @@ List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
     ..._shortAnswerKnowledgeSeeds(),
     ..._historyAndFifaRecordShortAnswerSeeds(),
     ..._advancedFootballHistoryShortAnswerSeeds(),
+    ..._athleteNutritionShortAnswerSeeds(),
     ..._issue260CategoryBoosterShortAnswerSeeds(),
     ..._issue276FormationShortAnswerSeeds(),
     ..._issue279FormationScenarioShortAnswerSeeds(),
@@ -8924,6 +8927,245 @@ List<_ShortAnswerKnowledgeSeed> _advancedFootballHistoryShortAnswerSeeds() {
   ];
 }
 
+List<_OxFactSeed> _athleteNutritionOxFacts() {
+  return const [
+    _OxFactSeed(
+      id: 'nutrition_energy_availability',
+      difficulty: 3,
+      category: _QuizCategory.nutrition,
+      koTrueStatement: '운동선수는 체중을 줄이려는 시기에도 훈련량을 버틸 만큼의 에너지 가용성을 먼저 지켜야 한다.',
+      enTrueStatement:
+          'Even during weight-management phases, athletes need enough energy availability to support training load.',
+      koFalseStatement: '운동선수는 컨디션과 회복이 떨어져도 식사량을 계속 줄이는 것이 항상 경기력에 유리하다.',
+      enFalseStatement:
+          'Athletes always perform better by reducing food intake even when recovery and readiness drop.',
+      koExplain:
+          '에너지 가용성이 낮아지면 회복, 적응, 건강 신호가 흔들릴 수 있어 식사 제한만으로 경기력을 보려 하면 위험합니다.',
+      enExplain:
+          'Low energy availability can disrupt recovery, adaptation, and health markers, so restriction alone is a poor performance plan.',
+      koNextPoint: '식습관 문제는 체중보다 훈련 지속성과 회복 신호를 먼저 함께 보세요.',
+      enNextPoint:
+          'In nutrition questions, connect body weight with training continuity and recovery signs.',
+    ),
+    _OxFactSeed(
+      id: 'nutrition_new_food_matchday',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koTrueStatement: '중요한 경기 당일에는 처음 먹어보는 음식보다 평소 훈련 때 검증한 식사를 고르는 편이 안전하다.',
+      enTrueStatement:
+          'On an important matchday, familiar foods tested in training are safer than new foods.',
+      koFalseStatement: '중요한 경기 당일일수록 몸 반응을 모르는 새 음식으로 식단을 크게 바꾸는 편이 좋다.',
+      enFalseStatement:
+          'On important matchdays, it is best to make major food changes with unfamiliar foods.',
+      koExplain: '경기 전 식사는 에너지뿐 아니라 소화 안정성이 중요하므로 새 메뉴 실험은 훈련일에 먼저 해야 합니다.',
+      enExplain:
+          'Prematch eating is about energy and gut comfort, so new foods should be tested on training days first.',
+      koNextPoint: '경기 전 식사는 새로움보다 익숙함, 소화, 타이밍을 우선하세요.',
+      enNextPoint:
+          'Prematch meals should prioritize familiarity, digestion, and timing over novelty.',
+    ),
+    _OxFactSeed(
+      id: 'nutrition_supplement_risk',
+      difficulty: 3,
+      category: _QuizCategory.nutrition,
+      koTrueStatement: '보충제는 효과, 안전성, 금지약물 위험을 확인한 뒤 필요한 경우 전문가와 상의해 쓰는 편이 좋다.',
+      enTrueStatement:
+          'Supplements should be checked for effectiveness, safety, and anti-doping risk, ideally with expert guidance.',
+      koFalseStatement: '보충제는 매장이나 온라인에서 팔리고 있으면 운동선수에게 항상 안전하고 경기 규정상 문제도 없다.',
+      enFalseStatement:
+          'If a supplement is sold in stores or online, it is always safe and permitted for athletes.',
+      koExplain:
+          '보충제는 표시 성분과 실제 성분이 다르거나 금지 성분 오염 위험이 있을 수 있어 음식 우선 원칙과 검증이 필요합니다.',
+      enExplain:
+          'Supplement labels may not fully match contents and contamination risk can exist, so food-first thinking and verification matter.',
+      koNextPoint: '보충제 문항은 “효과가 있나”뿐 아니라 “안전하고 허용되나”까지 묻습니다.',
+      enNextPoint:
+          'Supplement questions should ask not only whether it works, but whether it is safe and permitted.',
+    ),
+  ];
+}
+
+List<_McqSeed> _athleteNutritionMcqSeeds() {
+  return const [
+    _McqSeed(
+      id: 'athlete_nutrition_prematch_plate',
+      difficulty: 2,
+      category: _QuizCategory.nutrition,
+      koStem: '경기 3-4시간 전 식사 방향으로 가장 적절한 것은 무엇일까요?',
+      enStem:
+          'What is the most suitable meal direction around 3-4 hours before a match?',
+      options: [
+        _FootballQuizOption(
+          koText: '익숙하고 소화가 쉬운 탄수화물 중심 식사에 수분을 함께 챙긴다',
+          enText:
+              'Choose familiar, digestible carbohydrate-focused food with fluids',
+        ),
+        _FootballQuizOption(
+          koText: '기름지고 섬유질 많은 새 음식을 많이 시험한다',
+          enText: 'Test a large new meal high in fat and fiber',
+        ),
+        _FootballQuizOption(
+          koText: '물을 끊고 경기 직전 한 번에 많이 마신다',
+          enText: 'Avoid fluids and drink a lot only right before kickoff',
+        ),
+        _FootballQuizOption(
+          koText: '식사를 모두 빼고 에너지 음료만 마신다',
+          enText: 'Skip food and rely only on an energy drink',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '경기 전 식사는 위장 부담을 줄이면서 쓸 에너지를 준비해야 하므로 익숙한 탄수화물과 수분 계획이 기본입니다.',
+      enExplain:
+          'A prematch meal should prepare usable energy while limiting gut stress, so familiar carbohydrates and fluids are the base.',
+      koNextPoint: '경기 전 식사는 음식 종류, 양, 시간을 훈련 때 미리 테스트하세요.',
+      enNextPoint:
+          'Test prematch food type, amount, and timing during training first.',
+    ),
+    _McqSeed(
+      id: 'athlete_nutrition_recovery_window',
+      difficulty: 2,
+      category: _QuizCategory.nutrition,
+      koStem: '강한 훈련 직후 회복식에서 가장 먼저 맞춰야 할 조합은?',
+      enStem:
+          'After a hard session, which recovery-meal combination should be prioritized first?',
+      options: [
+        _FootballQuizOption(
+          koText: '탄수화물, 단백질, 수분을 함께 보충한다',
+          enText: 'Refuel with carbohydrates, protein, and fluids together',
+        ),
+        _FootballQuizOption(
+          koText: '단맛 간식만 먹고 물은 다음 날 마신다',
+          enText: 'Eat only sweets and leave fluids until the next day',
+        ),
+        _FootballQuizOption(
+          koText: '단백질만 먹고 탄수화물은 항상 피한다',
+          enText: 'Take only protein and always avoid carbohydrates',
+        ),
+        _FootballQuizOption(
+          koText: '배고픔이 사라질 때까지 아무것도 먹지 않는다',
+          enText: 'Eat nothing until hunger disappears',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '회복식은 글리코겐 회복, 근육 회복, 수분 회복을 한 번에 설계해야 다음 세션 질을 지키기 쉽습니다.',
+      enExplain:
+          'Recovery eating should cover glycogen restoration, muscle repair, and fluid replacement to protect the next session.',
+      koNextPoint: '회복식은 한 가지 영양소보다 다음 훈련을 위한 전체 루틴으로 보세요.',
+      enNextPoint:
+          'View recovery eating as a full routine for the next session, not a single nutrient.',
+    ),
+    _McqSeed(
+      id: 'athlete_nutrition_long_session_fuel',
+      difficulty: 3,
+      category: _QuizCategory.nutrition,
+      koStem: '90분 이상 이어지는 고강도 훈련이나 경기에서 식습관 판단으로 가장 좋은 것은?',
+      enStem:
+          'For hard training or competition lasting longer than about 90 minutes, what nutrition judgment fits best?',
+      options: [
+        _FootballQuizOption(
+          koText: '수분과 함께 필요한 경우 탄수화물 보충을 미리 계획한다',
+          enText:
+              'Plan fluids and, when needed, carbohydrate intake before the session',
+        ),
+        _FootballQuizOption(
+          koText: '갈증과 피로가 심해질 때까지 아무 계획 없이 기다린다',
+          enText: 'Wait with no plan until thirst and fatigue are severe',
+        ),
+        _FootballQuizOption(
+          koText: '훈련 중에는 어떤 경우에도 탄수화물을 먹지 않는다',
+          enText: 'Never take carbohydrate during training under any condition',
+        ),
+        _FootballQuizOption(
+          koText: '운동 전 소금기 있는 음식만 많이 먹으면 충분하다',
+          enText: 'A large salty meal before exercise is always enough',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain:
+          '긴 고강도 운동에서는 에너지와 수분을 동시에 잃기 쉬워 세션 시간, 강도, 환경에 맞춘 연료 계획이 필요합니다.',
+      enExplain:
+          'Long hard sessions can drain fuel and fluids together, so intake should match duration, intensity, and environment.',
+      koNextPoint: '운동 중 영양은 시간, 강도, 더위, 개인 위장 반응을 같이 봅니다.',
+      enNextPoint:
+          'During-exercise nutrition should combine duration, intensity, heat, and individual gut response.',
+    ),
+    _McqSeed(
+      id: 'athlete_nutrition_iron_red_flags',
+      difficulty: 3,
+      category: _QuizCategory.nutrition,
+      koStem: '피로가 길고 회복이 느리며 식사를 자주 제한하는 선수에게 가장 성숙한 접근은?',
+      enStem:
+          'If an athlete has persistent fatigue, slow recovery, and frequent food restriction, what is the most mature response?',
+      options: [
+        _FootballQuizOption(
+          koText: '코치, 보호자, 의무/영양 전문가와 에너지 섭취와 건강 신호를 점검한다',
+          enText:
+              'Review energy intake and health signs with coaches, guardians, and medical or nutrition professionals',
+        ),
+        _FootballQuizOption(
+          koText: '더 강한 훈련으로 피로를 무조건 밀어붙인다',
+          enText: 'Push harder training regardless of the fatigue',
+        ),
+        _FootballQuizOption(
+          koText: '회복이 늦으면 식사량을 더 줄인다',
+          enText: 'Reduce food intake further when recovery slows',
+        ),
+        _FootballQuizOption(
+          koText: '컨디션 기록 없이 체중 숫자만 본다',
+          enText: 'Track only body weight and ignore readiness records',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain:
+          '지속 피로와 식사 제한은 낮은 에너지 가용성 신호일 수 있어 건강과 경기력을 함께 보호하는 점검이 필요합니다.',
+      enExplain:
+          'Persistent fatigue plus restriction can signal low energy availability, so health and performance should be reviewed together.',
+      koNextPoint: '식습관 학습은 체중 관리보다 건강 신호, 회복, 지속 가능한 훈련을 우선합니다.',
+      enNextPoint:
+          'Nutrition learning should prioritize health signs, recovery, and sustainable training over weight alone.',
+    ),
+  ];
+}
+
+List<_ShortAnswerKnowledgeSeed> _athleteNutritionShortAnswerSeeds() {
+  return const [
+    _ShortAnswerKnowledgeSeed(
+      id: 'nutrition_energy_availability_term',
+      difficulty: 3,
+      category: _QuizCategory.nutrition,
+      koClue: '운동과 일상 생리 기능을 모두 버틸 만큼 몸에 남는 에너지 상태를 뜻하는 스포츠 영양 개념',
+      enClue:
+          'Sports nutrition concept describing enough remaining energy to support exercise and normal body functions',
+      acceptedAnswers: [
+        '에너지 가용성',
+        'energy availability',
+        'available energy',
+      ],
+      koExplain: '정답은 "에너지 가용성"입니다. 식사량, 훈련량, 회복 신호를 함께 볼 때 중요한 개념입니다.',
+      enExplain:
+          'The answer is "energy availability." It links intake, training load, and recovery signs.',
+      koNextPoint: '영양 용어는 몸무게보다 훈련을 버틸 에너지가 남는지로 이해하세요.',
+      enNextPoint:
+          'Understand nutrition terms through whether enough energy remains for training and health.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'nutrition_electrolyte_term',
+      difficulty: 2,
+      category: _QuizCategory.nutrition,
+      koClue: '땀을 많이 흘리는 더운 날 수분과 함께 고려해야 하는 나트륨 등 체액 균형 관련 성분',
+      enClue:
+          'Fluid-balance minerals such as sodium that may matter with fluids on hot, sweaty days',
+      acceptedAnswers: ['전해질', 'electrolyte', 'electrolytes'],
+      koExplain: '정답은 "전해질"입니다. 더운 환경이나 긴 운동에서는 물만이 아니라 손실되는 전해질도 고려할 수 있습니다.',
+      enExplain:
+          'The answer is "electrolytes." In long or hot sessions, fluid planning may also consider electrolyte losses.',
+      koNextPoint: '수분 전략은 물, 땀 양, 더위, 운동 시간을 함께 연결하세요.',
+      enNextPoint:
+          'Hydration strategy links water, sweat rate, heat, and session length.',
+    ),
+  ];
+}
+
 List<_FootballQuizOption> _buildOptionsFromPool({
   required List<_KoEnPair> pool,
   required _KoEnPair correct,
@@ -11599,6 +11841,213 @@ _FootballQuizQuestion _sportQuizQuestion({
   );
 }
 
+List<_FootballQuizQuestion> _athleteNutritionSportQuizQuestions(
+  String sportId,
+) {
+  final prefix = switch (sportId) {
+    SportCatalog.baseballId => 'baseball',
+    SportCatalog.basketballId => 'basketball',
+    SportCatalog.tennisId => 'tennis',
+    _ => 'football',
+  };
+  final koSport = switch (sportId) {
+    SportCatalog.baseballId => '야구',
+    SportCatalog.basketballId => '농구',
+    SportCatalog.tennisId => '테니스',
+    _ => '축구',
+  };
+  final enSport = switch (sportId) {
+    SportCatalog.baseballId => 'baseball',
+    SportCatalog.basketballId => 'basketball',
+    SportCatalog.tennisId => 'tennis',
+    _ => 'football',
+  };
+  final koLongSession = switch (sportId) {
+    SportCatalog.baseballId => '더블헤더나 긴 원정 경기',
+    SportCatalog.basketballId => '백투백 경기나 연장전까지 간 경기',
+    SportCatalog.tennisId => '긴 3세트 경기나 더운 날 토너먼트',
+    _ => '90분 이상 이어지는 경기',
+  };
+  final enLongSession = switch (sportId) {
+    SportCatalog.baseballId => 'a doubleheader or long road game',
+    SportCatalog.basketballId => 'a back-to-back game or overtime game',
+    SportCatalog.tennisId => 'a long three-set match or hot tournament day',
+    _ => 'a match lasting more than 90 minutes',
+  };
+  final koBreakMoment = switch (sportId) {
+    SportCatalog.baseballId => '이닝 사이',
+    SportCatalog.basketballId => '쿼터 사이와 타임아웃',
+    SportCatalog.tennisId => '체인지오버',
+    _ => '하프타임',
+  };
+  final enBreakMoment = switch (sportId) {
+    SportCatalog.baseballId => 'between innings',
+    SportCatalog.basketballId => 'between quarters and during timeouts',
+    SportCatalog.tennisId => 'during changeovers',
+    _ => 'at halftime',
+  };
+
+  return <_FootballQuizQuestion>[
+    _sportQuizQuestion(
+      id: '${prefix}_nutrition_mcq_pregame_familiar_food',
+      conceptKey: '${prefix}_nutrition_pregame_familiar_food',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.nutrition,
+      koPrompt: '$koSport 경기 전 식사 원칙으로 가장 좋은 것은?',
+      enPrompt:
+          'What is the best prematch eating principle for $enSport athletes?',
+      options: const [
+        _FootballQuizOption(
+          koText: '훈련 때 검증한 소화 쉬운 탄수화물 식사와 수분을 준비한다',
+          enText:
+              'Use a familiar digestible carbohydrate meal with planned fluids',
+        ),
+        _FootballQuizOption(
+          koText: '경기 당일 처음 먹는 고지방 메뉴를 크게 늘린다',
+          enText: 'Greatly increase a new high-fat food on game day',
+        ),
+        _FootballQuizOption(
+          koText: '식사는 모두 빼고 카페인만으로 버틴다',
+          enText: 'Skip all food and rely only on caffeine',
+        ),
+        _FootballQuizOption(
+          koText: '위장 반응을 확인하지 않고 보충제를 여러 개 섞는다',
+          enText: 'Mix several supplements without checking gut response',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain:
+          '경기 전 식사는 에너지 준비와 소화 안정성이 함께 중요합니다. 새 음식 실험은 중요한 경기보다 훈련일에 해야 합니다.',
+      enExplain:
+          'Prematch eating should prepare energy and protect gut comfort. New foods belong in training trials, not key competitions.',
+      koNextPoint: '식사 계획은 음식 종류, 양, 먹는 시간을 평소 훈련에서 먼저 검증하세요.',
+      enNextPoint:
+          'Test food type, amount, and timing during normal training first.',
+    ),
+    _sportQuizQuestion(
+      id: '${prefix}_nutrition_mcq_long_session_fuel',
+      conceptKey: '${prefix}_nutrition_long_session_fuel',
+      difficulty: 3,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.nutrition,
+      koPrompt: '$koLongSession 전후의 영양 판단으로 가장 알맞은 것은?',
+      enPrompt:
+          'What nutrition judgment best fits $enLongSession before and after play?',
+      options: const [
+        _FootballQuizOption(
+          koText: '수분, 전해질, 탄수화물 필요성을 시간과 땀 양에 맞춰 계획한다',
+          enText:
+              'Plan fluid, electrolyte, and carbohydrate needs from duration and sweat loss',
+        ),
+        _FootballQuizOption(
+          koText: '갈증이 심해질 때까지 아무것도 마시지 않는다',
+          enText: 'Drink nothing until thirst is severe',
+        ),
+        _FootballQuizOption(
+          koText: '운동 중 탄수화물은 어떤 상황에서도 항상 금지한다',
+          enText: 'Ban carbohydrate during play in every situation',
+        ),
+        _FootballQuizOption(
+          koText: '끝난 뒤 회복식은 다음 날 밤까지 미룬다',
+          enText: 'Delay recovery eating until the next night',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain:
+          '긴 경기나 더운 환경에서는 에너지와 수분 손실이 함께 커질 수 있어 시간, 강도, 땀 양에 맞춘 계획이 필요합니다.',
+      enExplain:
+          'Long or hot competition can increase fuel and fluid losses together, so plans should match duration, intensity, and sweat loss.',
+      koNextPoint: '경기 영양은 한 번에 많이 먹는 것보다 미리 검증한 작은 루틴이 강합니다.',
+      enNextPoint:
+          'Competition nutrition works best as a tested routine rather than one large last-minute intake.',
+    ),
+    _sportQuizQuestion(
+      id: '${prefix}_nutrition_ox_energy_availability',
+      conceptKey: '${prefix}_nutrition_energy_availability',
+      difficulty: 3,
+      style: _QuestionStyle.ox,
+      category: _QuizCategory.nutrition,
+      koPrompt:
+          '훈련량이 많은 선수는 체중만 보지 말고 회복, 피로, 식사 제한 여부까지 함께 보며 에너지 가용성을 관리해야 한다. O/X',
+      enPrompt:
+          'High-load athletes should manage energy availability by watching recovery, fatigue, and restriction patterns, not body weight alone. True/False',
+      options: const [
+        _FootballQuizOption(koText: 'O', enText: 'True'),
+        _FootballQuizOption(koText: 'X', enText: 'False'),
+      ],
+      correctIndex: 0,
+      koExplain: '낮은 에너지 가용성은 컨디션, 적응, 건강 신호에 영향을 줄 수 있어 훈련을 버틸 충분한 식사가 중요합니다.',
+      enExplain:
+          'Low energy availability can affect readiness, adaptation, and health signals, so fueling enough for training matters.',
+      koNextPoint: '체중 관리 문제는 회복 지표와 훈련 지속 가능성을 함께 묶어 판단하세요.',
+      enNextPoint:
+          'Judge weight-management questions together with recovery markers and sustainable training.',
+    ),
+    _sportQuizQuestion(
+      id: '${prefix}_nutrition_ox_supplement_check',
+      conceptKey: '${prefix}_nutrition_supplement_check',
+      difficulty: 3,
+      style: _QuestionStyle.ox,
+      category: _QuizCategory.nutrition,
+      koPrompt:
+          '보충제는 판매 중이라는 이유만으로 안전하거나 허용되는 것이 아니므로, 성분과 금지약물 위험을 확인해야 한다. O/X',
+      enPrompt:
+          'A supplement is not automatically safe or permitted just because it is sold, so ingredient and anti-doping risk checks matter. True/False',
+      options: const [
+        _FootballQuizOption(koText: 'O', enText: 'True'),
+        _FootballQuizOption(koText: 'X', enText: 'False'),
+      ],
+      correctIndex: 0,
+      koExplain:
+          '보충제는 오염, 표시 오류, 금지 성분 위험이 있을 수 있습니다. 음식 우선 원칙과 전문가 확인이 더 안전합니다.',
+      enExplain:
+          'Supplements can carry contamination, label, or prohibited-substance risk. Food-first planning and expert checks are safer.',
+      koNextPoint: '보충제는 효과, 안전성, 허용 여부를 한 세트로 판단하세요.',
+      enNextPoint:
+          'Evaluate supplements through effectiveness, safety, and whether they are permitted.',
+    ),
+    _sportQuizQuestion(
+      id: '${prefix}_nutrition_sa_electrolyte',
+      conceptKey: '${prefix}_nutrition_electrolyte_term',
+      difficulty: 2,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.nutrition,
+      koPrompt: '$koBreakMoment에 땀 손실이 큰 날 수분과 함께 고려할 수 있는 나트륨 등 성분은?',
+      enPrompt:
+          'On a sweaty day $enBreakMoment, what sodium-related components may be considered with fluids?',
+      acceptedAnswers: const ['전해질', 'electrolyte', 'electrolytes'],
+      koExplain: '정답은 "전해질"입니다. 땀을 많이 흘리는 환경에서는 물과 함께 전해질 손실도 고려할 수 있습니다.',
+      enExplain:
+          'The answer is "electrolytes." Heavy sweating can make electrolyte losses relevant alongside fluid intake.',
+      koNextPoint: '수분 보충은 물만이 아니라 운동 시간, 더위, 땀 양을 함께 보세요.',
+      enNextPoint:
+          'Hydration planning should include duration, heat, and sweat rate, not water alone.',
+    ),
+    _sportQuizQuestion(
+      id: '${prefix}_nutrition_sa_energy_availability',
+      conceptKey: '${prefix}_nutrition_energy_availability_term',
+      difficulty: 3,
+      style: _QuestionStyle.shortAnswer,
+      category: _QuizCategory.nutrition,
+      koPrompt: '훈련과 건강 기능을 버틸 만큼 몸에 남는 에너지 상태를 뜻하는 용어는?',
+      enPrompt:
+          'What term describes having enough remaining energy to support training and healthy body functions?',
+      acceptedAnswers: const [
+        '에너지 가용성',
+        'energy availability',
+        'available energy',
+      ],
+      koExplain: '정답은 "에너지 가용성"입니다. 먹는 양과 훈련량의 균형을 건강과 경기력 관점에서 보는 핵심 개념입니다.',
+      enExplain:
+          'The answer is "energy availability." It connects intake and training load through health and performance.',
+      koNextPoint: '식습관은 체중 숫자보다 훈련을 버틸 연료와 회복 신호를 먼저 보세요.',
+      enNextPoint:
+          'Read eating habits through fuel for training and recovery signs before body weight alone.',
+    ),
+  ];
+}
+
 List<_FootballQuizQuestion> _buildBaseballQuizPool() {
   return <_FootballQuizQuestion>[
     _sportQuizQuestion(
@@ -11880,6 +12329,7 @@ List<_FootballQuizQuestion> _buildBaseballQuizPool() {
       enNextPoint:
           'Connect the bunt to the scoring chance for the next hitter.',
     ),
+    ..._athleteNutritionSportQuizQuestions(SportCatalog.baseballId),
     ..._advancedBaseballQuizQuestions(),
   ];
 }
@@ -12131,6 +12581,7 @@ List<_FootballQuizQuestion> _buildBasketballQuizPool() {
       koNextPoint: '기록 이름보다 어떤 플레이가 팀에 도움을 줬는지 함께 보세요.',
       enNextPoint: 'Pair the stat with the plays that helped the team.',
     ),
+    ..._athleteNutritionSportQuizQuestions(SportCatalog.basketballId),
     ..._advancedBasketballQuizQuestions(),
   ];
 }
@@ -12408,6 +12859,7 @@ List<_FootballQuizQuestion> _buildTennisQuizPool() {
       koNextPoint: '브레이크 포인트에서는 리턴 성공률을 먼저 높이는 선택을 하세요.',
       enNextPoint: 'On break point, prioritize putting the return in play.',
     ),
+    ..._athleteNutritionSportQuizQuestions(SportCatalog.tennisId),
     ..._advancedTennisQuizQuestions(),
   ];
 }
@@ -12704,6 +13156,42 @@ List<_FootballQuizQuestion> _advancedBaseballQuizQuestions() {
       koNextPoint: '타격 지표는 안타 수보다 출루와 장타 가치를 함께 보면 더 입체적입니다.',
       enNextPoint:
           'Hitting value is richer when on-base skill and power are read together.',
+    ),
+    _sportQuizQuestion(
+      id: 'baseball_adv_mcq_two_strike_contact_plan',
+      conceptKey: 'baseball_two_strike_contact_plan',
+      difficulty: 2,
+      style: _QuestionStyle.multipleChoice,
+      category: _QuizCategory.technique,
+      koPrompt: '투 스트라이크 이후 타자가 콘택트 확률을 높이기 위한 기술 조정으로 가장 알맞은 것은?',
+      enPrompt:
+          'With two strikes, what technical adjustment best helps a hitter raise contact probability?',
+      options: const [
+        _FootballQuizOption(
+          koText: '스윙을 조금 짧게 가져가고 존을 넓혀 파울로 버틸 준비를 한다',
+          enText:
+              'Shorten the swing slightly, widen the zone, and be ready to fight pitches off',
+        ),
+        _FootballQuizOption(
+          koText: '항상 홈런 스윙만 더 크게 한다',
+          enText: 'Always make the home-run swing bigger',
+        ),
+        _FootballQuizOption(
+          koText: '스트라이크존을 더 좁게 보고 가운데 공도 버린다',
+          enText: 'Shrink the zone and take even middle strikes',
+        ),
+        _FootballQuizOption(
+          koText: '투수 릴리스는 보지 않고 결과만 기다린다',
+          enText: 'Ignore pitcher release and wait only for the result',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '투 스트라이크에서는 장타 욕심보다 배트 컨트롤, 존 조정, 파울로 버티는 기술이 타석을 살립니다.',
+      enExplain:
+          'With two strikes, bat control, zone adjustment, and fighting pitches off can keep the at-bat alive.',
+      koNextPoint: '타격 기술은 카운트에 따라 스윙 크기와 노리는 존이 달라집니다.',
+      enNextPoint:
+          'Hitting technique changes with the count through swing size and zone selection.',
     ),
   ];
 }

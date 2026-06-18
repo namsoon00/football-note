@@ -156,6 +156,59 @@ void main() {
     expect(find.textContaining('킥 서브'), findsWidgets);
   });
 
+  testWidgets('quiz library includes athlete nutrition habit questions', (
+    WidgetTester tester,
+  ) async {
+    Future<void> openLibraryForSport(String sportId) async {
+      final repository = _MemoryOptionRepository()
+        ..seed(SportCatalog.currentSportOptionKey, sportId);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SkillQuizScreen(optionRepository: repository),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+      await tester.pumpAndSettle();
+    }
+
+    await openLibraryForSport(SportCatalog.footballId);
+    await tester.enterText(find.byType(TextField), '에너지 가용성');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('에너지 가용성'), findsWidgets);
+    await tester.enterText(find.byType(TextField), '보충제');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('보충제'), findsWidgets);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    await openLibraryForSport(SportCatalog.baseballId);
+    await tester.enterText(find.byType(TextField), '더블헤더');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('더블헤더'), findsWidgets);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    await openLibraryForSport(SportCatalog.basketballId);
+    await tester.enterText(find.byType(TextField), '백투백');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('백투백'), findsWidgets);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    await openLibraryForSport(SportCatalog.tennisId);
+    await tester.enterText(find.byType(TextField), '체인지오버');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('체인지오버'), findsWidgets);
+  });
+
   testWidgets('quiz library can find newly added category booster items', (
     WidgetTester tester,
   ) async {
