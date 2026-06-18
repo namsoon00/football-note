@@ -12,13 +12,13 @@
       "tabName": {}
     }
   },
-  "welcomeGuideTitle": "最初に画面を一緒に確認しましょう",
-  "welcomeGuideIntro": "最初にタップする場所をハイライトし、リンジーがコーチマークで順番を案内します。",
-  "welcomeGuidePrimaryAction": "開始",
-  "welcomeGuideSectionFlow": "段階的な流れ",
-  "welcomeGuideNextTabHint": "上の別のタブを選択して、そのボタンをプレビューします。",
-  "welcomeGuidePreviewLabel": "画面ハイライト",
-  "welcomeGuideCoachMarkLabel": "コーチマーク",
+  "welcomeGuideTitle": "サッカーの一日を落ち着いたノートにまとめましょう",
+  "welcomeGuideIntro": "次に必要な行動から始めて、練習・食事・試合・振り返りが自然につながるように案内します。",
+  "welcomeGuidePrimaryAction": "ガイドを開始",
+  "welcomeGuideSectionFlow": "最初の流れ",
+  "welcomeGuideNextTabHint": "開始後は、ホーム画面の実際のボタンにコーチマークが続きます。",
+  "welcomeGuidePreviewLabel": "最初に見る場所",
+  "welcomeGuideCoachMarkLabel": "最初のタップ",
   "tabGuideCoachMarkStep": "{total}ステップ中{current}ステップ目",
   "@tabGuideCoachMarkStep": {
     "placeholders": {

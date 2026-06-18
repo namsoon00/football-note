@@ -13,82 +13,246 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final sections = _buildSections(l10n);
     final selected = sections[_selectedIndex];
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(
-                context,
-              ).colorScheme.primaryContainer.withValues(alpha: 0.28),
-              Theme.of(context).colorScheme.surface,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _RinzyWelcomeHeader(l10n: l10n),
-                const SizedBox(height: 14),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: List.generate(sections.length, (i) {
-                      final section = sections[i];
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          right: i == sections.length - 1 ? 0 : 8,
-                        ),
-                        child: ChoiceChip(
-                          selected: i == _selectedIndex,
-                          avatar: Icon(section.icon, size: 16),
-                          label: Text(section.title),
-                          onSelected: (_) => setState(() => _selectedIndex = i),
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 240),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    child: _WelcomeSectionCard(
-                      key: ValueKey(selected.id),
-                      section: selected,
-                      l10n: l10n,
+      backgroundColor: scheme.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxHeight < 700;
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      22,
+                      compact ? 14 : 22,
+                      22,
+                      18,
                     ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: widget.onStart,
-                    icon: const Icon(Icons.play_arrow_rounded),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 560),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _WelcomeHero(l10n: l10n, compact: compact),
+                            SizedBox(height: compact ? 14 : 18),
+                            _WelcomeSectionSelector(
+                              sections: sections,
+                              selectedIndex: _selectedIndex,
+                              onSelected: (index) {
+                                setState(() => _selectedIndex = index);
+                              },
+                            ),
+                            const SizedBox(height: 14),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 220),
+                              switchInCurve: Curves.easeOutCubic,
+                              switchOutCurve: Curves.easeInCubic,
+                              child: _WelcomeFocusPanel(
+                                key: ValueKey(selected.id),
+                                section: selected,
+                                l10n: l10n,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              l10n.welcomeGuideNextTabHint,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.35,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    label: Text(l10n.welcomeGuidePrimaryAction),
-                  ),
-                ),
-              ],
+                  );
+                },
+              ),
             ),
+            _WelcomeStartBar(l10n: l10n, onStart: widget.onStart),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WelcomeHero extends StatelessWidget {
+  final AppLocalizations l10n;
+  final bool compact;
+
+  const _WelcomeHero({required this.l10n, required this.compact});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.48),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(20, compact ? 18 : 22, 20, 20),
+        child: Column(
+          children: [
+            Container(
+              width: compact ? 92 : 108,
+              height: compact ? 92 : 108,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: scheme.surface,
+                shape: BoxShape.circle,
+                border:
+                    Border.all(color: scheme.primary.withValues(alpha: 0.2)),
+                boxShadow: [
+                  BoxShadow(
+                    color: scheme.shadow.withValues(alpha: 0.08),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: RinzyMascot(size: compact ? 72 : 84, progress: 0.44),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.appTitle,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.welcomeGuideTitle,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+                height: 1.12,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.welcomeGuideIntro,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                height: 1.42,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WelcomeSectionSelector extends StatelessWidget {
+  final List<_WelcomeSection> sections;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  const _WelcomeSectionSelector({
+    required this.sections,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 44,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: sections.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final section = sections[index];
+          return _WelcomeSectionButton(
+            key: ValueKey('welcome-section-${section.id}'),
+            section: section,
+            selected: index == selectedIndex,
+            onTap: () => onSelected(index),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _WelcomeSectionButton extends StatelessWidget {
+  final _WelcomeSection section;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _WelcomeSectionButton({
+    super.key,
+    required this.section,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: selected
+                ? scheme.primaryContainer
+                : scheme.surfaceContainerHighest.withValues(alpha: 0.44),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: selected ? scheme.primary : scheme.outlineVariant,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                section.icon,
+                size: 18,
+                color: selected ? scheme.onPrimaryContainer : scheme.primary,
+              ),
+              const SizedBox(width: 7),
+              Text(
+                section.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color:
+                      selected ? scheme.onPrimaryContainer : scheme.onSurface,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -96,10 +260,155 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
-class _RinzyWelcomeHeader extends StatelessWidget {
+class _WelcomeFocusPanel extends StatelessWidget {
+  final _WelcomeSection section;
   final AppLocalizations l10n;
 
-  const _RinzyWelcomeHeader({required this.l10n});
+  const _WelcomeFocusPanel({
+    super.key,
+    required this.section,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(section.icon, color: scheme.onPrimaryContainer),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        section.title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        l10n.welcomeGuidePreviewLabel,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Text(
+              section.overview,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                height: 1.42,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _PrimaryCoachMark(step: section.steps.first, l10n: l10n),
+            const SizedBox(height: 16),
+            Text(
+              l10n.welcomeGuideSectionFlow,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 10),
+            for (var index = 0; index < section.steps.length; index += 1) ...[
+              _WelcomeStepRow(number: index + 1, step: section.steps[index]),
+              if (index != section.steps.length - 1) const SizedBox(height: 10),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PrimaryCoachMark extends StatelessWidget {
+  final _WelcomeStep step;
+  final AppLocalizations l10n;
+
+  const _PrimaryCoachMark({required this.step, required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.24)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(Icons.touch_app_rounded, color: scheme.primary),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.welcomeGuideCoachMarkLabel,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    step.actionLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(step.icon, color: scheme.primary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WelcomeStepRow extends StatelessWidget {
+  final int number;
+  final _WelcomeStep step;
+
+  const _WelcomeStepRow({required this.number, required this.step});
 
   @override
   Widget build(BuildContext context) {
@@ -108,25 +417,49 @@ class _RinzyWelcomeHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const RinzyMascot(size: 70, progress: 0.42),
-        const SizedBox(width: 12),
+        Container(
+          width: 28,
+          height: 28,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: scheme.outlineVariant),
+          ),
+          child: Text(
+            '$number',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                l10n.welcomeGuideTitle,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  height: 1.08,
-                ),
+              Row(
+                children: [
+                  Icon(step.icon, size: 16, color: scheme.primary),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      step.actionLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 3),
               Text(
-                l10n.welcomeGuideIntro,
-                style: theme.textTheme.bodyMedium?.copyWith(
+                step.description,
+                style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
                   height: 1.35,
                 ),
               ),
@@ -138,437 +471,41 @@ class _RinzyWelcomeHeader extends StatelessWidget {
   }
 }
 
-class _WelcomeSectionCard extends StatelessWidget {
-  final _WelcomeSection section;
+class _WelcomeStartBar extends StatelessWidget {
   final AppLocalizations l10n;
+  final VoidCallback onStart;
 
-  const _WelcomeSectionCard({
-    super.key,
-    required this.section,
-    required this.l10n,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-      decoration: BoxDecoration(
-        color: scheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.35)),
-        boxShadow: [
-          BoxShadow(
-            color: scheme.primary.withValues(alpha: 0.10),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(section.icon, color: scheme.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  section.title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _WelcomeScreenPreview(section: section, l10n: l10n),
-          const SizedBox(height: 12),
-          _CoachMarkBubble(
-            title: l10n.welcomeGuideCoachMarkLabel,
-            body: section.overview,
-            step: section.steps.first,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.welcomeGuideSectionFlow,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ListView.separated(
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: section.steps.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                return _WelcomeStepTile(
-                  number: index + 1,
-                  step: section.steps[index],
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: scheme.primary.withValues(alpha: 0.10),
-            ),
-            child: Text(
-              l10n.welcomeGuideNextTabHint,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WelcomeScreenPreview extends StatelessWidget {
-  final _WelcomeSection section;
-  final AppLocalizations l10n;
-
-  const _WelcomeScreenPreview({required this.section, required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final primaryStep = section.steps.first;
-    final secondarySteps = section.steps.skip(1).toList(growable: false);
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.62),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.22)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(section.icon, size: 18, color: scheme.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  l10n.welcomeGuidePreviewLabel,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: scheme.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  section.title,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: scheme.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: scheme.surface,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _PreviewLine(
-                        icon: Icons.radio_button_unchecked,
-                        label: section.title,
-                        muted: true,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(Icons.more_horiz, color: scheme.onSurfaceVariant),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                _HighlightedPreviewAction(step: primaryStep),
-                if (secondarySteps.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      for (var i = 0; i < secondarySteps.length; i++) ...[
-                        Expanded(
-                          child: _PreviewLine(
-                            icon: secondarySteps[i].icon,
-                            label: secondarySteps[i].actionLabel,
-                            muted: true,
-                          ),
-                        ),
-                        if (i < secondarySteps.length - 1)
-                          const SizedBox(width: 8),
-                      ],
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HighlightedPreviewAction extends StatelessWidget {
-  final _WelcomeStep step;
-
-  const _HighlightedPreviewAction({required this.step});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.primary, width: 1.6),
-        boxShadow: [
-          BoxShadow(
-            color: scheme.primary.withValues(alpha: 0.18),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(step.icon, color: scheme.onPrimaryContainer),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              step.actionLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: scheme.onPrimaryContainer,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          Icon(Icons.touch_app_rounded, color: scheme.onPrimaryContainer),
-        ],
-      ),
-    );
-  }
-}
-
-class _PreviewLine extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool muted;
-
-  const _PreviewLine({
-    required this.icon,
-    required this.label,
-    required this.muted,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.54),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 15,
-            color: muted ? scheme.onSurfaceVariant : scheme.primary,
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: muted ? scheme.onSurfaceVariant : scheme.onSurface,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CoachMarkBubble extends StatelessWidget {
-  final String title;
-  final String body;
-  final _WelcomeStep step;
-
-  const _CoachMarkBubble({
-    required this.title,
-    required this.body,
-    required this.step,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: scheme.secondaryContainer.withValues(alpha: 0.52),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.secondary.withValues(alpha: 0.22)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.tips_and_updates_outlined, color: scheme.secondary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$title · ${step.actionLabel}',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: scheme.onSecondaryContainer,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  body,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSecondaryContainer,
-                    fontWeight: FontWeight.w700,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WelcomeStepTile extends StatelessWidget {
-  final int number;
-  final _WelcomeStep step;
-
-  const _WelcomeStepTile({required this.number, required this.step});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: scheme.surface.withValues(alpha: 0.58),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 13,
-            backgroundColor: scheme.primary,
-            child: Text(
-              '$number',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: scheme.onPrimary,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _HighlightedButtonLabel(step: step),
-                const SizedBox(height: 6),
-                Text(
-                  step.description,
-                  style: theme.textTheme.bodySmall?.copyWith(height: 1.35),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HighlightedButtonLabel extends StatelessWidget {
-  final _WelcomeStep step;
-
-  const _HighlightedButtonLabel({required this.step});
+  const _WelcomeStartBar({required this.l10n, required this.onStart});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.26)),
+        color: scheme.surface,
+        border: Border(top: BorderSide(color: scheme.outlineVariant)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(step.icon, size: 15, color: scheme.onPrimaryContainer),
-            const SizedBox(width: 5),
-            Flexible(
-              child: Text(
-                step.actionLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: scheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w900,
+        padding: const EdgeInsets.fromLTRB(22, 12, 22, 16),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                key: const ValueKey('welcome-start-button'),
+                onPressed: onStart,
+                icon: const Icon(Icons.arrow_forward_rounded),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
+                label: Text(l10n.welcomeGuidePrimaryAction),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
