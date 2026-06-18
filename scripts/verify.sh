@@ -45,6 +45,9 @@ flutter gen-l10n
 echo "==> flutter analyze"
 flutter analyze
 
+echo "==> quiz quality harness"
+./scripts/quiz_quality_harness.sh
+
 echo "==> issue worker plan classifier regression"
 ./scripts/test_issue_plan_request_classifier.sh
 
