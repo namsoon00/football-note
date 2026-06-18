@@ -80,42 +80,52 @@ class _WelcomeSlideView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxHeight < 650;
+        final topPadding = compact ? 18.0 : 30.0;
+        const bottomPadding = 24.0;
+        final contentMinHeight =
+            (constraints.maxHeight - topPadding - bottomPadding)
+                .clamp(0.0, double.infinity)
+                .toDouble();
         return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(24, compact ? 18 : 30, 24, 24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _MascotStage(slide: slide, compact: compact),
-                  SizedBox(height: compact ? 24 : 32),
-                  Text(
-                    slide.title,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.gowunDodum(
-                      textStyle: theme.textTheme.headlineMedium?.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.w700,
-                        height: 1.16,
-                        letterSpacing: 0,
+          padding: EdgeInsets.fromLTRB(24, topPadding, 24, bottomPadding),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: contentMinHeight),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _MascotStage(slide: slide, compact: compact),
+                    SizedBox(height: compact ? 24 : 32),
+                    Text(
+                      slide.title,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.gowunDodum(
+                        textStyle: theme.textTheme.headlineMedium?.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w700,
+                          height: 1.16,
+                          letterSpacing: 0,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    slide.body,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.gowunDodum(
-                      textStyle: theme.textTheme.titleMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                        height: 1.42,
-                        letterSpacing: 0,
+                    const SizedBox(height: 16),
+                    Text(
+                      slide.body,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.gowunDodum(
+                        textStyle: theme.textTheme.titleMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                          height: 1.42,
+                          letterSpacing: 0,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
