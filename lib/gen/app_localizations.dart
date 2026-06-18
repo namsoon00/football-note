@@ -151,19 +151,19 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeGuideTitle.
   ///
   /// In en, this message translates to:
-  /// **'No log, no proof.'**
+  /// **'No log, it did not count.'**
   String get welcomeGuideTitle;
 
   /// No description provided for @welcomeGuideIntro.
   ///
   /// In en, this message translates to:
-  /// **'Any sport works. Stop letting hard work disappear; record it and make tomorrow harder to excuse.'**
+  /// **'Any sport works. Do not just say you did it; log it so you can see it later.'**
   String get welcomeGuideIntro;
 
   /// No description provided for @welcomeGuidePrimaryAction.
   ///
   /// In en, this message translates to:
-  /// **'Start proving it'**
+  /// **'Start logging'**
   String get welcomeGuidePrimaryAction;
 
   /// No description provided for @welcomeGuideSectionFlow.
@@ -175,7 +175,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeGuideNextTabHint.
   ///
   /// In en, this message translates to:
-  /// **'Swipe three times. Then prove it on the real buttons.'**
+  /// **'Swipe three times. Then tap the real buttons and log it.'**
   String get welcomeGuideNextTabHint;
 
   /// No description provided for @welcomeGuidePreviewLabel.

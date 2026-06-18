@@ -36,7 +36,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('린지'), findsNothing);
-    expect(find.text('기록 없으면, 운동도 변명으로 끝나요'), findsOneWidget);
+    expect(find.text('기록 없으면, 운동도 말로만 끝나요'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('welcome-next-button')));
     await tester.pumpAndSettle();
