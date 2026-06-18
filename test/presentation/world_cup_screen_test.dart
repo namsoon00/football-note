@@ -512,9 +512,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining(dayFormatter.format(firstDay)), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('world-cup-day-match-pager')),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(
+        dayFormatter.format(nextDay),
+        skipOffstage: false,
+      ),
+      findsWidgets,
+    );
 
     await tester.drag(
-      find.textContaining(dayFormatter.format(firstDay)).first,
+      find.byKey(const ValueKey<String>('world-cup-day-match-pager')),
       const Offset(-260, 0),
     );
     await tester.pumpAndSettle();
