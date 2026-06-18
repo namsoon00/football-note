@@ -2251,7 +2251,10 @@ class _HomeWeatherBadgeParts {
     if (match == null) {
       return _HomeWeatherBadgeParts(primary: trimmed, secondary: null);
     }
-    return _HomeWeatherBadgeParts(primary: match.group(2)!, secondary: null);
+    return _HomeWeatherBadgeParts(
+      primary: match.group(2)!,
+      secondary: match.group(1)!,
+    );
   }
 }
 

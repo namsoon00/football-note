@@ -14,10 +14,12 @@ class WeatherSharedHourlyPrecipitation {
   const WeatherSharedHourlyPrecipitation({
     required this.time,
     required this.precipitation,
+    this.precipitationProbability,
   });
 
   final DateTime time;
   final double precipitation;
+  final double? precipitationProbability;
 }
 
 class WeatherSharedForecastMoment {
@@ -26,6 +28,7 @@ class WeatherSharedForecastMoment {
     this.temperature,
     this.weatherCode,
     this.precipitation,
+    this.precipitationProbability,
     this.windSpeed,
   });
 
@@ -33,6 +36,7 @@ class WeatherSharedForecastMoment {
   final double? temperature;
   final int? weatherCode;
   final double? precipitation;
+  final double? precipitationProbability;
   final double? windSpeed;
 }
 
@@ -44,6 +48,7 @@ class WeatherSharedDailyForecast {
     this.temperatureMax,
     this.temperatureMin,
     this.precipitationSum,
+    this.precipitationProbabilityMax,
     this.windSpeedMax,
     this.pm10,
     this.pm25,
@@ -60,6 +65,7 @@ class WeatherSharedDailyForecast {
   final double? temperatureMax;
   final double? temperatureMin;
   final double? precipitationSum;
+  final double? precipitationProbabilityMax;
   final double? windSpeedMax;
   final double? pm10;
   final double? pm25;
@@ -370,74 +376,79 @@ class WeatherSharedResource {
     final temperature = weatherSnapshot.temperature;
     final temperatureDeltaFromYesterday =
         temperature == null || yesterdayTemperature == null
-        ? null
-        : temperature - yesterdayTemperature;
+            ? null
+            : temperature - yesterdayTemperature;
     final airForecastsByDate = <DateTime, WeatherSharedDailyAirQuality>{
       for (final forecast in dailyAirQualityForecasts)
         _normalizeDate(forecast.date): forecast,
     };
-    final forecasts = weatherSnapshot.dailyForecasts
-        .map((forecast) {
-          final airForecast = airForecastsByDate[_normalizeDate(forecast.date)];
-          final sharedForecast = WeatherSharedDailyForecast(
-            date: forecast.date,
-            weatherCode: forecast.weatherCode,
-            summary: _weatherLabelFromCode(
-              forecast.weatherCode,
-              localizer: localizer,
-            ),
-            temperatureMax: forecast.temperatureMax,
-            temperatureMin: forecast.temperatureMin,
-            precipitationSum: forecast.precipitationSum,
-            windSpeedMax: forecast.windSpeedMax,
-            pm10: airForecast?.pm10,
-            pm25: airForecast?.pm25,
-            uvIndexMax: forecast.uvIndexMax,
-            morningForecast: forecast.morningForecast == null
-                ? null
-                : WeatherSharedForecastMoment(
-                    time: forecast.morningForecast!.time,
-                    temperature: forecast.morningForecast!.temperature,
-                    weatherCode: forecast.morningForecast!.weatherCode,
-                    precipitation: forecast.morningForecast!.precipitation,
-                    windSpeed: forecast.morningForecast!.windSpeed,
-                  ),
-            eveningForecast: forecast.eveningForecast == null
-                ? null
-                : WeatherSharedForecastMoment(
-                    time: forecast.eveningForecast!.time,
-                    temperature: forecast.eveningForecast!.temperature,
-                    weatherCode: forecast.eveningForecast!.weatherCode,
-                    precipitation: forecast.eveningForecast!.precipitation,
-                    windSpeed: forecast.eveningForecast!.windSpeed,
-                  ),
-            hourlyForecasts: forecast.hourlyForecasts
-                .map(
-                  (entry) => WeatherSharedForecastMoment(
-                    time: entry.time,
-                    temperature: entry.temperature,
-                    weatherCode: entry.weatherCode,
-                    precipitation: entry.precipitation,
-                    windSpeed: entry.windSpeed,
-                  ),
-                )
-                .toList(growable: false),
-            hourlyPrecipitations: forecast.hourlyPrecipitations
-                .map(
-                  (entry) => WeatherSharedHourlyPrecipitation(
-                    time: entry.time,
-                    precipitation: entry.precipitation,
-                  ),
-                )
-                .toList(growable: false),
-          );
-          return _alignTodayForecastWithCurrentTemperature(
-            forecast: sharedForecast,
-            fetchedAt: fetchedAt,
-            temperature: temperature,
-          );
-        })
-        .toList(growable: false);
+    final forecasts = weatherSnapshot.dailyForecasts.map((forecast) {
+      final airForecast = airForecastsByDate[_normalizeDate(forecast.date)];
+      final sharedForecast = WeatherSharedDailyForecast(
+        date: forecast.date,
+        weatherCode: forecast.weatherCode,
+        summary: _weatherLabelFromCode(
+          forecast.weatherCode,
+          localizer: localizer,
+        ),
+        temperatureMax: forecast.temperatureMax,
+        temperatureMin: forecast.temperatureMin,
+        precipitationSum: forecast.precipitationSum,
+        precipitationProbabilityMax: forecast.precipitationProbabilityMax,
+        windSpeedMax: forecast.windSpeedMax,
+        pm10: airForecast?.pm10,
+        pm25: airForecast?.pm25,
+        uvIndexMax: forecast.uvIndexMax,
+        morningForecast: forecast.morningForecast == null
+            ? null
+            : WeatherSharedForecastMoment(
+                time: forecast.morningForecast!.time,
+                temperature: forecast.morningForecast!.temperature,
+                weatherCode: forecast.morningForecast!.weatherCode,
+                precipitation: forecast.morningForecast!.precipitation,
+                precipitationProbability:
+                    forecast.morningForecast!.precipitationProbability,
+                windSpeed: forecast.morningForecast!.windSpeed,
+              ),
+        eveningForecast: forecast.eveningForecast == null
+            ? null
+            : WeatherSharedForecastMoment(
+                time: forecast.eveningForecast!.time,
+                temperature: forecast.eveningForecast!.temperature,
+                weatherCode: forecast.eveningForecast!.weatherCode,
+                precipitation: forecast.eveningForecast!.precipitation,
+                precipitationProbability:
+                    forecast.eveningForecast!.precipitationProbability,
+                windSpeed: forecast.eveningForecast!.windSpeed,
+              ),
+        hourlyForecasts: forecast.hourlyForecasts
+            .map(
+              (entry) => WeatherSharedForecastMoment(
+                time: entry.time,
+                temperature: entry.temperature,
+                weatherCode: entry.weatherCode,
+                precipitation: entry.precipitation,
+                precipitationProbability: entry.precipitationProbability,
+                windSpeed: entry.windSpeed,
+              ),
+            )
+            .toList(growable: false),
+        hourlyPrecipitations: forecast.hourlyPrecipitations
+            .map(
+              (entry) => WeatherSharedHourlyPrecipitation(
+                time: entry.time,
+                precipitation: entry.precipitation,
+                precipitationProbability: entry.precipitationProbability,
+              ),
+            )
+            .toList(growable: false),
+      );
+      return _alignTodayForecastWithCurrentTemperature(
+        forecast: sharedForecast,
+        fetchedAt: fetchedAt,
+        temperature: temperature,
+      );
+    }).toList(growable: false);
     final todayForecast = _todayForecastOrNull(forecasts, fetchedAt);
     final summary = _buildWeatherSummary(
       temperature: temperature,
@@ -456,11 +467,9 @@ class WeatherSharedResource {
       humidity: weatherSnapshot.humidity,
       precipitation: weatherSnapshot.precipitation,
       windSpeed: weatherSnapshot.windSpeed,
-      temperatureMax:
-          todayForecast?.temperatureMax ??
+      temperatureMax: todayForecast?.temperatureMax ??
           _maxIncludingCurrent(weatherSnapshot.temperatureMax, temperature),
-      temperatureMin:
-          todayForecast?.temperatureMin ??
+      temperatureMin: todayForecast?.temperatureMin ??
           _minIncludingCurrent(weatherSnapshot.temperatureMin, temperature),
       temperatureDeltaFromYesterday: temperatureDeltaFromYesterday,
       pm10: airQualitySnapshot.pm10,
@@ -515,6 +524,7 @@ class WeatherSharedResource {
       temperatureMax: temperatureMax,
       temperatureMin: temperatureMin,
       precipitationSum: forecast.precipitationSum,
+      precipitationProbabilityMax: forecast.precipitationProbabilityMax,
       windSpeedMax: forecast.windSpeedMax,
       pm10: forecast.pm10,
       pm25: forecast.pm25,
@@ -552,13 +562,13 @@ class WeatherSharedResource {
     final dateLabel = DateFormat('yyyy-MM-dd').format(yesterday);
     final uri =
         Uri.https('archive-api.open-meteo.com', '/v1/archive', <String, String>{
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'start_date': dateLabel,
-          'end_date': dateLabel,
-          'hourly': 'temperature_2m',
-          'timezone': 'auto',
-        });
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'start_date': dateLabel,
+      'end_date': dateLabel,
+      'hourly': 'temperature_2m',
+      'timezone': 'auto',
+    });
     final response = await client.get(uri);
     if (response.statusCode != 200) return null;
 
@@ -580,11 +590,9 @@ class WeatherSharedResource {
     var bestIndex = -1;
     var bestDiffSeconds = 1 << 30;
 
-    for (
-      var index = 0;
-      index < times.length && index < temperatures.length;
-      index++
-    ) {
+    for (var index = 0;
+        index < times.length && index < temperatures.length;
+        index++) {
       final rawTime = times[index]?.toString();
       if (rawTime == null || rawTime.trim().isEmpty) continue;
       final parsedTime = DateTime.tryParse(rawTime);
@@ -605,19 +613,19 @@ class WeatherSharedResource {
   }
 
   static Future<List<WeatherSharedDailyAirQuality>>
-  _fetchDailyAirQualityForecasts({
+      _fetchDailyAirQualityForecasts({
     required double latitude,
     required double longitude,
     required http.Client client,
   }) async {
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'hourly': 'pm10,pm2_5',
-          'forecast_days': '7',
-          'timezone': 'auto',
-        });
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'hourly': 'pm10,pm2_5',
+      'forecast_days': '7',
+      'timezone': 'auto',
+    });
     try {
       final airResponse = await client.get(airQualityUri);
       if (airResponse.statusCode != 200) {
@@ -700,11 +708,11 @@ class WeatherSharedResource {
 
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'current': 'pm10,pm2_5,us_aqi',
-          'timezone': 'auto',
-        });
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current': 'pm10,pm2_5,us_aqi',
+      'timezone': 'auto',
+    });
     final airResponse = await client.get(airQualityUri);
     if (airResponse.statusCode != 200) {
       return const AirQualitySnapshot();

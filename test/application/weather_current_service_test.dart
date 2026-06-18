@@ -185,7 +185,7 @@ void main() {
           expect(request.url.host, 'api.open-meteo.com');
           expect(
             request.url.queryParameters['hourly'],
-            'temperature_2m,weather_code,precipitation,wind_speed_10m',
+            'temperature_2m,weather_code,precipitation,precipitation_probability,wind_speed_10m',
           );
           return http.Response.bytes(
             utf8.encode(
@@ -209,6 +209,7 @@ void main() {
                   'temperature_2m': <double>[14.2, 17.4, 16.8, 13.1, 18.4],
                   'weather_code': <int>[3, 61, 61, 1, 3],
                   'precipitation': <double>[0, 1.2, 2.4, 0.7, 0],
+                  'precipitation_probability': <int>[10, 80, 90, 45, 5],
                   'wind_speed_10m': <double>[2.8, 3.4, 4.1, 2.2, 3.6],
                 },
                 'daily': <String, dynamic>{
@@ -217,6 +218,7 @@ void main() {
                   'temperature_2m_max': <double>[19, 21],
                   'temperature_2m_min': <double>[11, 13],
                   'precipitation_sum': <double>[3.6, 0.7],
+                  'precipitation_probability_max': <int>[90, 45],
                   'wind_speed_10m_max': <double>[5, 4],
                   'uv_index_max': <double>[4, 5],
                 },
@@ -235,6 +237,7 @@ void main() {
 
         expect(snapshot.provider, WeatherDataProvider.openMeteo);
         expect(snapshot.dailyForecasts, hasLength(2));
+        expect(snapshot.dailyForecasts.first.precipitationProbabilityMax, 90);
         expect(
           snapshot.dailyForecasts.first.hourlyPrecipitations,
           hasLength(3),
@@ -255,12 +258,13 @@ void main() {
           DateTime(2026, 4, 18, 9),
         );
         expect(
+          snapshot.dailyForecasts.first.hourlyPrecipitations[1]
+              .precipitationProbability,
+          80,
+        );
+        expect(
           snapshot
-              .dailyForecasts
-              .first
-              .hourlyPrecipitations
-              .first
-              .precipitation,
+              .dailyForecasts.first.hourlyPrecipitations.first.precipitation,
           0,
         );
         expect(snapshot.dailyForecasts[1].hourlyPrecipitations, hasLength(2));

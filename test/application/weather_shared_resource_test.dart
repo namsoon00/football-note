@@ -40,6 +40,7 @@ void main() {
               temperatureMax: 24,
               temperatureMin: 16,
               precipitationSum: 3.4,
+              precipitationProbabilityMax: 80,
               windSpeedMax: 5.2,
               uvIndexMax: 4.6,
               morningForecast: WeatherForecastMoment(
@@ -47,6 +48,7 @@ void main() {
                 temperature: 18.5,
                 weatherCode: 3,
                 precipitation: 0.2,
+                precipitationProbability: 30,
                 windSpeed: 2.4,
               ),
               eveningForecast: WeatherForecastMoment(
@@ -54,12 +56,14 @@ void main() {
                 temperature: 20.1,
                 weatherCode: 61,
                 precipitation: 1.1,
+                precipitationProbability: 80,
                 windSpeed: 3.5,
               ),
               hourlyPrecipitations: <WeatherHourlyPrecipitation>[
                 WeatherHourlyPrecipitation(
                   time: DateTime(2026, 4, 26, 12),
                   precipitation: 0.7,
+                  precipitationProbability: 65,
                 ),
               ],
             ),
@@ -90,10 +94,20 @@ void main() {
       expect(snapshot.dailyForecasts.first.summary, l10n.weatherLabelRain);
       expect(snapshot.dailyForecasts.first.pm10, 42);
       expect(snapshot.dailyForecasts.first.pm25, 16);
+      expect(snapshot.dailyForecasts.first.precipitationProbabilityMax, 80);
       expect(snapshot.dailyForecasts.first.morningForecast?.weatherCode, 3);
+      expect(
+        snapshot.dailyForecasts.first.eveningForecast?.precipitationProbability,
+        80,
+      );
       expect(
         snapshot.dailyForecasts.first.hourlyPrecipitations.single.precipitation,
         0.7,
+      );
+      expect(
+        snapshot.dailyForecasts.first.hourlyPrecipitations.single
+            .precipitationProbability,
+        65,
       );
     });
 

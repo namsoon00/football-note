@@ -4298,6 +4298,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherPrecipitation => 'Precipitation';
 
   @override
+  String get homeWeatherPrecipitationProbability => 'Rain chance';
+
+  @override
   String get weatherPrecipitationNone => 'Little rain';
 
   @override
@@ -4316,10 +4319,83 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weatherPrecipitationVeryHeavy => 'Very heavy rain';
 
   @override
-  String get homeWeatherHourlyPrecipitation => 'Hourly precipitation';
+  String get homeWeatherHourlyPrecipitation => 'Hourly rain timeline';
 
   @override
   String get homeWeatherHourlyTemperature => 'Hourly temperature';
+
+  @override
+  String get homeWeatherRainRiskTitle => 'Rain check';
+
+  @override
+  String get homeWeatherRainRiskLow => 'Low';
+
+  @override
+  String get homeWeatherRainRiskCaution => 'Caution';
+
+  @override
+  String get homeWeatherRainRiskHigh => 'High';
+
+  @override
+  String get homeWeatherRainRiskSevere => 'Severe';
+
+  @override
+  String get homeWeatherRainRiskLowSummary =>
+      'A light shower may pass through. Do a quick gear check before outdoor training.';
+
+  @override
+  String get homeWeatherRainRiskCautionSummary =>
+      'Rain is possible. Prepare for wet grass and slippery changes of direction.';
+
+  @override
+  String get homeWeatherRainRiskHighSummary =>
+      'Rain is likely. Check the pitch condition and adjust training load early.';
+
+  @override
+  String get homeWeatherRainRiskSevereSummary =>
+      'Heavy rain or lightning is possible. Confirm whether outdoor plans should proceed.';
+
+  @override
+  String get homeWeatherRainRiskProbability => 'Chance';
+
+  @override
+  String get homeWeatherRainRiskAmount => 'Today total';
+
+  @override
+  String get homeWeatherRainRiskStart => 'Start';
+
+  @override
+  String get homeWeatherRainRiskNow => 'Now';
+
+  @override
+  String get homeWeatherRainPreparationTitle => 'Football prep';
+
+  @override
+  String get homeWeatherRainTipSpareSocks => 'Pack spare socks and a towel.';
+
+  @override
+  String get homeWeatherRainTipGrip =>
+      'Check studs and reduce sharp cuts on slippery ground.';
+
+  @override
+  String get homeWeatherRainTipSchedule =>
+      'Check whether the match or outdoor session may change.';
+
+  @override
+  String get homeWeatherRainTipIndoor =>
+      'For heavy rain or lightning, switch to indoor technical work or recovery.';
+
+  @override
+  String get homeWeatherRainTrainingCaution =>
+      'Rain is possible, so test grip before deceleration, turns, and landing work.';
+
+  @override
+  String get homeWeatherRainTrainingHighCaution =>
+      'Rain risk is high; reduce sprint and contact work and check the pitch first.';
+
+  @override
+  String get homeWeatherRainTrainingRecovery =>
+      'After training, change wet socks and tops quickly and check your feet.';
 
   @override
   String get homeWeatherWindSpeed => 'Wind';

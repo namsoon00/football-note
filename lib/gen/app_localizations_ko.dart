@@ -4171,6 +4171,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherPrecipitation => '강수량';
 
   @override
+  String get homeWeatherPrecipitationProbability => '강수확률';
+
+  @override
   String get weatherPrecipitationNone => '비 거의 없음';
 
   @override
@@ -4189,10 +4192,81 @@ class AppLocalizationsKo extends AppLocalizations {
   String get weatherPrecipitationVeryHeavy => '폭우';
 
   @override
-  String get homeWeatherHourlyPrecipitation => '시간별 강수량';
+  String get homeWeatherHourlyPrecipitation => '시간별 비 타임라인';
 
   @override
   String get homeWeatherHourlyTemperature => '시간대별 기온';
+
+  @override
+  String get homeWeatherRainRiskTitle => '비 체크';
+
+  @override
+  String get homeWeatherRainRiskLow => '낮음';
+
+  @override
+  String get homeWeatherRainRiskCaution => '주의';
+
+  @override
+  String get homeWeatherRainRiskHigh => '높음';
+
+  @override
+  String get homeWeatherRainRiskSevere => '위험';
+
+  @override
+  String get homeWeatherRainRiskLowSummary =>
+      '약한 비가 스칠 수 있어요. 야외 훈련 전 장비만 가볍게 확인하세요.';
+
+  @override
+  String get homeWeatherRainRiskCautionSummary =>
+      '비 가능성이 있어요. 젖은 잔디와 미끄러운 방향 전환에 대비하세요.';
+
+  @override
+  String get homeWeatherRainRiskHighSummary =>
+      '비 가능성이 높아요. 그라운드 상태와 훈련 강도를 미리 조정하세요.';
+
+  @override
+  String get homeWeatherRainRiskSevereSummary =>
+      '강한 비나 번개 가능성이 있어요. 야외 일정 진행 여부를 꼭 확인하세요.';
+
+  @override
+  String get homeWeatherRainRiskProbability => '확률';
+
+  @override
+  String get homeWeatherRainRiskAmount => '오늘 총량';
+
+  @override
+  String get homeWeatherRainRiskStart => '시작';
+
+  @override
+  String get homeWeatherRainRiskNow => '지금';
+
+  @override
+  String get homeWeatherRainPreparationTitle => '축구 준비';
+
+  @override
+  String get homeWeatherRainTipSpareSocks => '여벌 양말과 수건을 챙기세요.';
+
+  @override
+  String get homeWeatherRainTipGrip => '미끄러운 그라운드에 맞춰 스터드와 방향 전환 강도를 확인하세요.';
+
+  @override
+  String get homeWeatherRainTipSchedule => '경기나 야외 훈련 일정 변경 가능성을 확인하세요.';
+
+  @override
+  String get homeWeatherRainTipIndoor =>
+      '폭우나 번개가 있으면 실내 기술 훈련이나 회복 세션으로 전환하세요.';
+
+  @override
+  String get homeWeatherRainTrainingCaution =>
+      '비가 올 수 있어 감속, 턴, 착지 동작은 미끄럼을 먼저 확인하세요.';
+
+  @override
+  String get homeWeatherRainTrainingHighCaution =>
+      '비 위험이 높아 스프린트와 강한 접촉 훈련은 줄이고 그라운드 상태를 먼저 확인하세요.';
+
+  @override
+  String get homeWeatherRainTrainingRecovery =>
+      '훈련 후 젖은 양말과 상의는 바로 갈아입고 발 상태를 확인하세요.';
 
   @override
   String get homeWeatherWindSpeed => '풍속';
