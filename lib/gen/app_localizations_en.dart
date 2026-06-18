@@ -35,27 +35,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => 'Build your football day with one calm note';
+  String get welcomeGuideTitle => 'No log, no proof.';
 
   @override
   String get welcomeGuideIntro =>
-      'Start from the next useful action, then let the app connect training, meals, matches, and reflection.';
+      'Any sport works. Stop letting hard work disappear; record it and make tomorrow harder to excuse.';
 
   @override
-  String get welcomeGuidePrimaryAction => 'Start the guide';
+  String get welcomeGuidePrimaryAction => 'Start proving it';
 
   @override
-  String get welcomeGuideSectionFlow => 'First flow';
+  String get welcomeGuideSectionFlow => 'What to do';
 
   @override
   String get welcomeGuideNextTabHint =>
-      'After this, the Home screen continues with live coach marks on the real buttons.';
+      'The real tutorial continues on the next screen with coach marks on the buttons.';
 
   @override
-  String get welcomeGuidePreviewLabel => 'Best place to start';
+  String get welcomeGuidePreviewLabel => 'Action to choose now';
 
   @override
-  String get welcomeGuideCoachMarkLabel => 'First tap';
+  String get welcomeGuideCoachMarkLabel => 'Tap this';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {
@@ -195,7 +195,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeChallengeOverview =>
-      'Challenge is where Rinzy tracks daily round missions and turns completion into bigger XP gains.';
+      'Challenge mode turns daily rounds into pressure you cannot quietly ignore.';
 
   @override
   String get welcomeChallengeActionStart => 'Start challenge';
@@ -216,7 +216,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeChallengeStepReward =>
-      'Each finished round stacks XP, and Rinzy celebrates when you finish the challenge.';
+      'Finished rounds stack XP. Miss them, and the gap is visible.';
 
   @override
   String get welcomeDiaryOverview =>

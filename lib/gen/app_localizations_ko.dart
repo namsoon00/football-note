@@ -35,26 +35,25 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => '축구 하루를 차분한 노트로 정리해요';
+  String get welcomeGuideTitle => '기록 없으면, 운동도 변명으로 끝나요';
 
   @override
-  String get welcomeGuideIntro =>
-      '다음에 할 일부터 시작하고, 훈련·식사·시합·회고가 자연스럽게 이어지게 도와드릴게요.';
+  String get welcomeGuideIntro => '종목은 상관없어요. 했다고 말하지 말고 남겨서 증명하세요.';
 
   @override
-  String get welcomeGuidePrimaryAction => '가이드 시작하기';
+  String get welcomeGuidePrimaryAction => '증명 시작하기';
 
   @override
-  String get welcomeGuideSectionFlow => '첫 흐름';
+  String get welcomeGuideSectionFlow => '해야 할 일';
 
   @override
-  String get welcomeGuideNextTabHint => '시작 후 홈 화면에서 실제 버튼 위 코칭마크가 이어져요.';
+  String get welcomeGuideNextTabHint => '자세한 튜토리얼은 다음 화면의 실제 버튼 코칭마크로 바로 이어져요.';
 
   @override
-  String get welcomeGuidePreviewLabel => '먼저 볼 곳';
+  String get welcomeGuidePreviewLabel => '지금 고를 액션';
 
   @override
-  String get welcomeGuideCoachMarkLabel => '첫 탭';
+  String get welcomeGuideCoachMarkLabel => '바로 누를 곳';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {
@@ -177,7 +176,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get welcomeChallengeOverview =>
-      '챌린지는 린지가 매일 라운드 미션을 챙겨 주고 완료 경험치를 크게 모아 주는 화면입니다.';
+      '챌린지는 매일 라운드를 빼먹지 못하게 압박하고, 완료를 경험치로 남기는 화면입니다.';
 
   @override
   String get welcomeChallengeActionStart => '챌린지 시작';
@@ -197,7 +196,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get welcomeChallengeStepReward =>
-      '라운드를 끝낼수록 경험치가 쌓이고 완주하면 린지가 축하해 줘요.';
+      '라운드를 끝낼수록 경험치가 쌓이고, 빠뜨리면 빈칸이 그대로 남아요.';
 
   @override
   String get welcomeDiaryOverview => '다이어리는 훈련, 식사, 스티커를 하루 이야기로 묶는 화면입니다.';

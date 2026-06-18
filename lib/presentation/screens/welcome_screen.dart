@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
-import '../widgets/rinzy_mascot.dart';
-
 class WelcomeScreen extends StatefulWidget {
   final VoidCallback onStart;
 
@@ -118,19 +116,23 @@ class _WelcomeHero extends StatelessWidget {
               height: compact ? 92 : 108,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: scheme.surface,
+                color: scheme.primary,
                 shape: BoxShape.circle,
                 border:
-                    Border.all(color: scheme.primary.withValues(alpha: 0.2)),
+                    Border.all(color: scheme.onPrimary.withValues(alpha: 0.18)),
                 boxShadow: [
                   BoxShadow(
-                    color: scheme.shadow.withValues(alpha: 0.08),
-                    blurRadius: 18,
-                    offset: const Offset(0, 10),
+                    color: scheme.primary.withValues(alpha: 0.22),
+                    blurRadius: 20,
+                    offset: const Offset(0, 12),
                   ),
                 ],
               ),
-              child: RinzyMascot(size: compact ? 72 : 84, progress: 0.44),
+              child: Icon(
+                Icons.sports_score_rounded,
+                size: compact ? 44 : 52,
+                color: scheme.onPrimary,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
