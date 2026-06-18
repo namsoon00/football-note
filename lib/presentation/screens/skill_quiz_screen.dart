@@ -947,6 +947,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final progressText = '${_index + 1}/${_questions.length}';
     final missionTarget = _mode == _QuizMode.review ? 4 : 6;
     final canGoNext = _answered || _retryUsed;
+    final showStudyGuide = _answered || _retryUsed;
     final heroOverlay = _buildHeroOverlay(question, isKo);
 
     return Column(
@@ -989,26 +990,24 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   question: question,
                   isKo: isKo,
                   overlay: heroOverlay,
-                  explanationText: (_answered || _retryUsed)
+                  explanationText: showStudyGuide
                       ? question.explainText(isKo)
-                      : (isKo
-                          ? '정답을 고르면 여기에서 바로 설명을 볼 수 있어요.'
-                          : 'The explanation will appear here right after you answer.'),
-                  answerInsightLabel: (_answered || _retryUsed)
-                      ? (isKo ? '정답 포인트' : 'Answer insight')
-                      : '',
+                      : l10n.quizStudyGuidePending,
+                  answerInsightLabel:
+                      showStudyGuide ? l10n.quizStudyGuideTitle : '',
                   answerLine: (_answered &&
                           (_answerRevealed ||
                               question.style == _QuestionStyle.shortAnswer))
-                      ? (isKo
-                          ? '정답: ${_primaryAnswerLabel(question)}'
-                          : 'Answer: ${_primaryAnswerLabel(question)}')
+                      ? '${l10n.quizStudyGuideAnswerLabel}: '
+                          '${_primaryAnswerLabel(question)}'
                       : '',
-                  nextFocusLine: (_answered || _retryUsed)
-                      ? (isKo
-                          ? '다음에 볼 포인트: ${question.nextPoint(true)}'
-                          : 'Next focus: ${question.nextPoint(false)}')
-                      : '',
+                  nextFocusLine: showStudyGuide ? question.nextPoint(isKo) : '',
+                  studyGuideConceptLabel: l10n.quizStudyGuideConceptLabel,
+                  studyGuideApplicationLabel:
+                      l10n.quizStudyGuideApplicationLabel,
+                  studyGuidePracticeLabel: l10n.quizStudyGuidePracticeLabel,
+                  studyGuidePracticeLine:
+                      showStudyGuide ? question.studyPracticeCue(isKo) : '',
                 ),
                 const SizedBox(height: 12),
                 if (question.style == _QuestionStyle.shortAnswer)
@@ -1569,6 +1568,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 '',
             explanationKo: question.explainText(true),
             explanationEn: question.explainText(false),
+            studyGuideKo: question.studyGuideText(true),
+            studyGuideEn: question.studyGuideText(false),
             category: question.category.name,
             style: question.style.name,
           ),
@@ -2602,6 +2603,23 @@ extension _QuestionStyleX on _QuestionStyle {
         return isKo ? '주관식' : 'Short answer';
     }
   }
+
+  String studyCue(bool isKo) {
+    switch (this) {
+      case _QuestionStyle.ox:
+        return isKo
+            ? '참/거짓을 가르는 기준 단어를 찾고, 반례가 있는지 한 번 더 떠올리세요.'
+            : 'Find the wording that decides true or false, then test it against one counterexample.';
+      case _QuestionStyle.multipleChoice:
+        return isKo
+            ? '정답만 고르지 말고 오답이 왜 매력적으로 보이는지 하나씩 지워 보세요.'
+            : 'Do not only pick the answer; remove each tempting wrong option by naming why it fails.';
+      case _QuestionStyle.shortAnswer:
+        return isKo
+            ? '정답 단어를 맞힌 뒤 이유와 실제 적용 장면까지 10초 안에 말해 보세요.'
+            : 'After naming the answer, explain the reason and one real-use moment in ten seconds.';
+    }
+  }
 }
 
 enum _QuizCategory {
@@ -2637,6 +2655,43 @@ extension _QuizCategoryX on _QuizCategory {
         return isKo ? '영양/회복' : 'Nutrition';
       case _QuizCategory.fun:
         return isKo ? '재미 상식' : 'Fun facts';
+    }
+  }
+
+  String studyCue(bool isKo) {
+    switch (this) {
+      case _QuizCategory.rules:
+        return isKo
+            ? '판정 기준, 예외 상황, 재개 절차를 한 묶음으로 정리하면 경기 중 판단이 흔들리지 않습니다.'
+            : 'Group the decision standard, exception, and restart so match decisions stay stable.';
+      case _QuizCategory.tactics:
+        return isKo
+            ? '볼 위치, 압박 방향, 동료 커버를 함께 읽고 다음 선택을 문장으로 정리하세요.'
+            : 'Read ball location, pressure direction, and teammate cover together, then state the next choice.';
+      case _QuizCategory.technique:
+        return isKo
+            ? '시선, 몸 방향, 접촉 타이밍을 분리해 보면 기술 문제가 실제 동작 체크리스트로 바뀝니다.'
+            : 'Separate gaze, body shape, and contact timing to turn the technique into an action checklist.';
+      case _QuizCategory.positions:
+        return isKo
+            ? '시작 위치보다 공격, 수비, 전환 순간에 맡는 역할이 어떻게 달라지는지 확인하세요.'
+            : 'Check how the role changes in attack, defense, and transition rather than memorizing only the start spot.';
+      case _QuizCategory.training:
+        return isKo
+            ? '반복 횟수보다 강도, 품질, 회복 신호를 같이 기록해야 다음 훈련 설계가 정확해집니다.'
+            : 'Track intensity, quality, and recovery signs together so the next session can be planned accurately.';
+      case _QuizCategory.mindset:
+        return isKo
+            ? '감정을 없애려 하기보다 호흡, 시선, 첫 행동 같은 재집중 루틴으로 돌아오세요.'
+            : 'Do not try to erase emotion; return to a refocus routine such as breath, gaze, and first action.';
+      case _QuizCategory.nutrition:
+        return isKo
+            ? '음식 이름만 외우지 말고 타이밍, 소화 부담, 수분, 탄수화물 보충 목적을 연결하세요.'
+            : 'Connect timing, digestion load, hydration, and carbohydrate purpose instead of memorizing food names only.';
+      case _QuizCategory.fun:
+        return isKo
+            ? '사실을 외우는 데서 끝내지 말고 시대, 대회 맥락, 선수 역할과 연결해 기억하세요.'
+            : 'Do not stop at trivia; connect the fact with its era, competition context, and player role.';
     }
   }
 }
@@ -2677,6 +2732,13 @@ class _FootballQuizQuestion {
   String prompt(bool isKo) => isKo ? koPrompt : enPrompt;
   String explainText(bool isKo) => isKo ? koExplain : enExplain;
   String nextPoint(bool isKo) => isKo ? koNextPoint : enNextPoint;
+  String studyPracticeCue(bool isKo) =>
+      '${category.studyCue(isKo)} ${style.studyCue(isKo)}';
+  String studyGuideText(bool isKo) => [
+        explainText(isKo),
+        nextPoint(isKo),
+        studyPracticeCue(isKo),
+      ].join('\n');
   String displayAnswer(bool isKo) {
     if (style == _QuestionStyle.shortAnswer && acceptedAnswers.isNotEmpty) {
       return acceptedAnswers.first;
@@ -2741,6 +2803,10 @@ class _QuestionHeroCard extends StatelessWidget {
   final String answerInsightLabel;
   final String answerLine;
   final String nextFocusLine;
+  final String studyGuideConceptLabel;
+  final String studyGuideApplicationLabel;
+  final String studyGuidePracticeLabel;
+  final String studyGuidePracticeLine;
 
   const _QuestionHeroCard({
     required this.question,
@@ -2750,6 +2816,10 @@ class _QuestionHeroCard extends StatelessWidget {
     this.answerInsightLabel = '',
     this.answerLine = '',
     this.nextFocusLine = '',
+    this.studyGuideConceptLabel = '',
+    this.studyGuideApplicationLabel = '',
+    this.studyGuidePracticeLabel = '',
+    this.studyGuidePracticeLine = '',
   });
 
   @override
@@ -2865,12 +2935,19 @@ class _QuestionHeroCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                       ],
-                      Text(
-                        explanationText,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
+                      if (answerInsightLabel.isEmpty)
+                        Text(
+                          explanationText,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        )
+                      else
+                        _StudyGuideLine(
+                          label: studyGuideConceptLabel,
+                          body: explanationText,
+                        ),
                       if (answerLine.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Text(
@@ -2883,12 +2960,16 @@ class _QuestionHeroCard extends StatelessWidget {
                       ],
                       if (nextFocusLine.isNotEmpty) ...[
                         const SizedBox(height: 8),
-                        Text(
-                          nextFocusLine,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(fontWeight: FontWeight.w800),
+                        _StudyGuideLine(
+                          label: studyGuideApplicationLabel,
+                          body: nextFocusLine,
+                        ),
+                      ],
+                      if (studyGuidePracticeLine.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        _StudyGuideLine(
+                          label: studyGuidePracticeLabel,
+                          body: studyGuidePracticeLine,
                         ),
                       ],
                     ],
@@ -2899,6 +2980,35 @@ class _QuestionHeroCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _StudyGuideLine extends StatelessWidget {
+  final String label;
+  final String body;
+
+  const _StudyGuideLine({required this.label, required this.body});
+
+  @override
+  Widget build(BuildContext context) {
+    final labelStyle = Theme.of(context).textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w900,
+        );
+    final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          height: 1.45,
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (label.trim().isNotEmpty) ...[
+          Text(label, style: labelStyle),
+          const SizedBox(height: 3),
+        ],
+        Text(body, style: bodyStyle),
+      ],
     );
   }
 }
@@ -3577,8 +3687,9 @@ class _FlipQuizReviewCard extends StatelessWidget {
         ? (question as _FootballQuizQuestion).displayAnswer(isKo)
         : (question as _QuizHistoryQuestion).answer(isKo);
     final explanation = question is _FootballQuizQuestion
-        ? (question as _FootballQuizQuestion).explainText(isKo)
-        : (question as _QuizHistoryQuestion).explanation(isKo);
+        ? (question as _FootballQuizQuestion).studyGuideText(isKo)
+        : (question as _QuizHistoryQuestion).studyGuide(isKo);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -3591,7 +3702,7 @@ class _FlipQuizReviewCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isKo ? '문제' : 'Question',
+            l10n.quizStudyGuideQuestionLabel,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: scheme.primary,
                   fontWeight: FontWeight.w900,
@@ -3617,7 +3728,7 @@ class _FlipQuizReviewCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isKo ? '정답' : 'Answer',
+                  l10n.quizStudyGuideAnswerLabel,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: scheme.primary,
                         fontWeight: FontWeight.w900,
@@ -3636,6 +3747,14 @@ class _FlipQuizReviewCard extends StatelessWidget {
           ),
           if (explanation.trim().isNotEmpty) ...[
             const SizedBox(height: 10),
+            Text(
+              l10n.quizStudyGuideTitle,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 4),
             Text(
               explanation,
               style: Theme.of(
@@ -4001,6 +4120,8 @@ class _QuizHistoryQuestion {
   final String wrongAnswerEn;
   final String explanationKo;
   final String explanationEn;
+  final String studyGuideKo;
+  final String studyGuideEn;
   final String category;
   final String style;
 
@@ -4014,6 +4135,8 @@ class _QuizHistoryQuestion {
     required this.wrongAnswerEn,
     required this.explanationKo,
     required this.explanationEn,
+    required this.studyGuideKo,
+    required this.studyGuideEn,
     required this.category,
     required this.style,
   });
@@ -4028,6 +4151,8 @@ class _QuizHistoryQuestion {
         'wrongAnswerEn': wrongAnswerEn,
         'explanationKo': explanationKo,
         'explanationEn': explanationEn,
+        'studyGuideKo': studyGuideKo,
+        'studyGuideEn': studyGuideEn,
         'category': category,
         'style': style,
       };
@@ -4036,6 +4161,11 @@ class _QuizHistoryQuestion {
   String answer(bool isKo) => isKo ? answerKo : answerEn;
   String wrongAnswer(bool isKo) => isKo ? wrongAnswerKo : wrongAnswerEn;
   String explanation(bool isKo) => isKo ? explanationKo : explanationEn;
+  String studyGuide(bool isKo) {
+    final guide = isKo ? studyGuideKo : studyGuideEn;
+    if (guide.trim().isNotEmpty) return guide;
+    return explanation(isKo);
+  }
 
   static _QuizHistoryQuestion? fromMap(Map<String, dynamic> map) {
     final id = map['id']?.toString() ?? '';
@@ -4050,6 +4180,8 @@ class _QuizHistoryQuestion {
       wrongAnswerEn: map['wrongAnswerEn']?.toString() ?? '',
       explanationKo: map['explanationKo']?.toString() ?? '',
       explanationEn: map['explanationEn']?.toString() ?? '',
+      studyGuideKo: map['studyGuideKo']?.toString() ?? '',
+      studyGuideEn: map['studyGuideEn']?.toString() ?? '',
       category: map['category']?.toString() ?? '',
       style: map['style']?.toString() ?? '',
     );
@@ -15539,6 +15671,7 @@ QuizQualityHarnessReport buildQuizQualityHarnessReport({
     SportCatalog.tennisId: 20,
   },
   int minimumQuestionsPerStyle = 20,
+  int minimumStudyGuideCharacters = 90,
 }) {
   const sportIds = <String>[
     SportCatalog.footballId,
@@ -15610,6 +15743,25 @@ QuizQualityHarnessReport buildQuizQualityHarnessReport({
       if (question.koNextPoint.trim().length < 10 ||
           question.enNextPoint.trim().length < 10) {
         failures.add('$scopedId next-point coaching cue is too thin.');
+      }
+      final koStudyGuide = question.studyGuideText(true);
+      final enStudyGuide = question.studyGuideText(false);
+      if (koStudyGuide.trim().length < minimumStudyGuideCharacters ||
+          enStudyGuide.trim().length < minimumStudyGuideCharacters) {
+        failures.add(
+          '$scopedId study guide is too thin; minimum is '
+          '$minimumStudyGuideCharacters characters.',
+        );
+      }
+      if (!koStudyGuide.contains(question.koExplain) ||
+          !koStudyGuide.contains(question.koNextPoint) ||
+          !koStudyGuide.contains(question.studyPracticeCue(true))) {
+        failures.add('$scopedId Korean study guide is missing a section.');
+      }
+      if (!enStudyGuide.contains(question.enExplain) ||
+          !enStudyGuide.contains(question.enNextPoint) ||
+          !enStudyGuide.contains(question.studyPracticeCue(false))) {
+        failures.add('$scopedId English study guide is missing a section.');
       }
 
       final contentKey = _quizHarnessContentKey(question);
@@ -15787,6 +15939,8 @@ String _quizHarnessSearchText(_FootballQuizQuestion question) {
     question.enExplain,
     question.koNextPoint,
     question.enNextPoint,
+    question.studyGuideText(true),
+    question.studyGuideText(false),
     question.displayAnswer(true),
     question.displayAnswer(false),
     ...question.options.map((option) => option.koText),

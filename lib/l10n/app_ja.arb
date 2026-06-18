@@ -1021,6 +1021,13 @@
   "quizBackHomeTooltip": "クイズホームに戻る",
   "quizResultMissReviewCountLabel": "復習するミス",
   "quizResultNoMissedQuestions": "今回のセットにミスした問題はありません。",
+  "quizStudyGuideTitle": "学習ガイド",
+  "quizStudyGuideQuestionLabel": "問題",
+  "quizStudyGuideAnswerLabel": "答え",
+  "quizStudyGuideConceptLabel": "中心概念",
+  "quizStudyGuideApplicationLabel": "実践ポイント",
+  "quizStudyGuidePracticeLabel": "練習チェック",
+  "quizStudyGuidePending": "答えると学習ガイドが開きます。",
   "quizXpSavedFeedback": "クイズ完了 +{count} XP",
   "@quizXpSavedFeedback": {
     "placeholders": {

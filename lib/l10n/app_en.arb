@@ -1021,6 +1021,13 @@
   "quizBackHomeTooltip": "Back to quiz home",
   "quizResultMissReviewCountLabel": "Misses to review",
   "quizResultNoMissedQuestions": "This run finished with no missed questions.",
+  "quizStudyGuideTitle": "Study guide",
+  "quizStudyGuideQuestionLabel": "Question",
+  "quizStudyGuideAnswerLabel": "Answer",
+  "quizStudyGuideConceptLabel": "Core concept",
+  "quizStudyGuideApplicationLabel": "Apply it",
+  "quizStudyGuidePracticeLabel": "Training check",
+  "quizStudyGuidePending": "Choose an answer to open the study guide.",
   "quizXpSavedFeedback": "Quiz complete +{count} XP",
   "@quizXpSavedFeedback": {
     "placeholders": {

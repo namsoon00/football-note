@@ -1759,6 +1759,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'This run finished with no missed questions.';
 
   @override
+  String get quizStudyGuideTitle => 'Study guide';
+
+  @override
+  String get quizStudyGuideQuestionLabel => 'Question';
+
+  @override
+  String get quizStudyGuideAnswerLabel => 'Answer';
+
+  @override
+  String get quizStudyGuideConceptLabel => 'Core concept';
+
+  @override
+  String get quizStudyGuideApplicationLabel => 'Apply it';
+
+  @override
+  String get quizStudyGuidePracticeLabel => 'Training check';
+
+  @override
+  String get quizStudyGuidePending =>
+      'Choose an answer to open the study guide.';
+
+  @override
   String quizXpSavedFeedback(int count) {
     return 'Quiz complete +$count XP';
   }

@@ -1021,6 +1021,13 @@
   "quizBackHomeTooltip": "퀴즈 홈으로",
   "quizResultMissReviewCountLabel": "복기할 오답",
   "quizResultNoMissedQuestions": "이번 세트는 놓친 문제가 없습니다.",
+  "quizStudyGuideTitle": "학습 참고서",
+  "quizStudyGuideQuestionLabel": "문제",
+  "quizStudyGuideAnswerLabel": "정답",
+  "quizStudyGuideConceptLabel": "핵심 개념",
+  "quizStudyGuideApplicationLabel": "적용 포인트",
+  "quizStudyGuidePracticeLabel": "훈련 체크",
+  "quizStudyGuidePending": "정답을 고르면 학습 참고서가 열립니다.",
   "quizXpSavedFeedback": "퀴즈 완료 +{count} XP",
   "@quizXpSavedFeedback": {
     "placeholders": {

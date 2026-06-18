@@ -1713,6 +1713,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get quizResultNoMissedQuestions => '今回のセットにミスした問題はありません。';
 
   @override
+  String get quizStudyGuideTitle => '学習ガイド';
+
+  @override
+  String get quizStudyGuideQuestionLabel => '問題';
+
+  @override
+  String get quizStudyGuideAnswerLabel => '答え';
+
+  @override
+  String get quizStudyGuideConceptLabel => '中心概念';
+
+  @override
+  String get quizStudyGuideApplicationLabel => '実践ポイント';
+
+  @override
+  String get quizStudyGuidePracticeLabel => '練習チェック';
+
+  @override
+  String get quizStudyGuidePending => '答えると学習ガイドが開きます。';
+
+  @override
   String quizXpSavedFeedback(int count) {
     return 'クイズ完了 +$count XP';
   }
