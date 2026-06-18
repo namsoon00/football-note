@@ -118,7 +118,7 @@ const clearLegacyFlutterServiceWorker = async () => {
 const loadFlutterApp = () => {
   return _flutter.loader.load({
     config: {
-      useLocalCanvasKit: false,
+      useLocalCanvasKit: true,
     },
     onEntrypointLoaded: async (engineInitializer) => {
       const loadingOverlayWatchdog = window.setTimeout(

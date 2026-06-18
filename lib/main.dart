@@ -245,8 +245,10 @@ class FootballNoteApp extends StatelessWidget {
               );
               return AnnotatedRegion<SystemUiOverlayStyle>(
                 value: overlayStyle,
-                child: KeyboardDismissOverlay(
-                  child: child ?? const SizedBox.shrink(),
+                child: _WebInitialFocusGuard(
+                  child: KeyboardDismissOverlay(
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 ),
               );
             },
@@ -254,6 +256,41 @@ class FootballNoteApp extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _WebInitialFocusGuard extends StatefulWidget {
+  final Widget child;
+
+  const _WebInitialFocusGuard({required this.child});
+
+  @override
+  State<_WebInitialFocusGuard> createState() => _WebInitialFocusGuardState();
+}
+
+class _WebInitialFocusGuardState extends State<_WebInitialFocusGuard> {
+  bool _descendantsAreFocusable = !kIsWeb;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        setState(() => _descendantsAreFocusable = true);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FocusTraversalGroup(
+      policy: WidgetOrderTraversalPolicy(),
+      descendantsAreFocusable: _descendantsAreFocusable,
+      child: widget.child,
     );
   }
 }
