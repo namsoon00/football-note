@@ -705,6 +705,105 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return _routeForItem(selectedItem.id, kind);
   }
 
+  Offset _itemPosition(_BoardItem item) => Offset(item.x, item.y);
+
+  Offset _boardPointFromLocal(
+    Offset localPosition,
+    double width,
+    double height,
+  ) {
+    return Offset(
+      (localPosition.dx / width).clamp(0.0, 1.0).toDouble(),
+      (localPosition.dy / height).clamp(0.0, 1.0).toDouble(),
+    );
+  }
+
+  Offset _defaultRouteEndForItem(
+    _BoardItem item, {
+    double dx = 0.16,
+    double dy = 0,
+  }) {
+    final horizontalDirection = item.x > 0.78 ? -1.0 : 1.0;
+    return Offset(
+      (item.x + (dx * horizontalDirection)).clamp(0.04, 0.96).toDouble(),
+      (item.y + dy).clamp(0.04, 0.96).toDouble(),
+    );
+  }
+
+  _BoardItem? _nearestItemOfType(
+    _BoardItemType type,
+    Offset origin, {
+    String? excludingId,
+  }) {
+    final candidates = _currentPage.items
+        .where((item) => item.type == type && item.id != excludingId)
+        .toList(growable: false);
+    if (candidates.isEmpty) return null;
+    candidates.sort((a, b) {
+      final aDistance =
+          math.pow(a.x - origin.dx, 2) + math.pow(a.y - origin.dy, 2);
+      final bDistance =
+          math.pow(b.x - origin.dx, 2) + math.pow(b.y - origin.dy, 2);
+      return aDistance.compareTo(bDistance);
+    });
+    return candidates.first;
+  }
+
+  int _suggestedStageForNewRoute(_PathDrawMode kind) {
+    if (kind != _PathDrawMode.player) return 1;
+    final ballStages = _currentPage.routes
+        .where(
+          (route) =>
+              route.kind == _PathDrawMode.ball && route.points.length >= 2,
+        )
+        .map((route) => _normalizedRouteStageIndex(route.stageIndex))
+        .toList(growable: false);
+    if (ballStages.isEmpty) return 1;
+    return _normalizedRouteStageIndex(ballStages.fold<int>(1, math.max) + 1);
+  }
+
+  _BoardRoute _upsertRouteForItem({
+    required _PathDrawMode kind,
+    required _BoardItem item,
+    required List<Offset> points,
+    List<int>? segmentDurationsMs,
+    int? stageIndex,
+    _BoardRoute? replacementRoute,
+  }) {
+    final route = replacementRoute ?? _routeForItem(item.id, kind);
+    final durations = _normalizedRouteSegmentDurations(
+      pointCount: points.length,
+      rawDurationsMs: segmentDurationsMs,
+    );
+    final nextStage = _normalizedRouteStageIndex(
+      stageIndex ?? route?.stageIndex ?? _suggestedStageForNewRoute(kind),
+    );
+    if (route != null) {
+      route.points
+        ..clear()
+        ..addAll(points);
+      route.segmentDurationsMs
+        ..clear()
+        ..addAll(durations);
+      route.linkedItemId = item.id;
+      route.stageIndex = nextStage;
+      route.color = item.color;
+      return route;
+    }
+    final created = _BoardRoute(
+      id: _nextBoardRouteId(),
+      kind: kind,
+      linkedItemId: item.id,
+      points: List<Offset>.from(points),
+      segmentDurationsMs: List<int>.from(durations),
+      stageIndex: nextStage,
+      color: item.color,
+      width: _defaultRouteWidth(kind),
+    );
+    _currentPage.routes.add(created);
+    return created;
+  }
+
   void _normalizeCurrentPageRoutes() {
     final assignedItemIdsByKind = <_PathDrawMode, Set<String>>{
       _PathDrawMode.player: <String>{},
@@ -789,17 +888,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       }
     }
     return palette[sameTypeItems.length % palette.length];
-  }
-
-  Color _routeColorFor({required _PathDrawMode kind, String? linkedItemId}) {
-    if (linkedItemId != null) {
-      final linkedItem = _itemById(linkedItemId);
-      if (linkedItem != null &&
-          linkedItem.type == _boardItemTypeForRouteKind(kind)) {
-        return linkedItem.color;
-      }
-    }
-    return _defaultRouteColor(kind);
   }
 
   String _nextBoardItemId() => 'item-${_nextId++}';
@@ -1602,28 +1690,77 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   void _startPlayerPath(Offset localPosition, double width, double height) {
-    final x = (localPosition.dx / width).clamp(0.0, 1.0);
-    final y = (localPosition.dy / height).clamp(0.0, 1.0);
+    final point = _boardPointFromLocal(localPosition, width, height);
     setState(() {
-      _activeRoutePoints = <Offset>[Offset(x, y)];
+      _activeRoutePoints = <Offset>[point];
       _activeRouteSegmentDurationsMs = <int>[];
       _activeRouteLastPointAt = DateTime.now();
     });
   }
 
   void _appendPlayerPath(Offset localPosition, double width, double height) {
+    _appendRoutePoint(_boardPointFromLocal(localPosition, width, height));
+  }
+
+  void _appendRoutePoint(Offset point, {int? durationMs}) {
     final points = _activeRoutePoints;
     if (points == null) return;
-    final x = (localPosition.dx / width).clamp(0.0, 1.0);
-    final y = (localPosition.dy / height).clamp(0.0, 1.0);
+    if (points.isNotEmpty && (point - points.last).distance < 0.004) return;
     final now = DateTime.now();
     final lastPointAt = _activeRouteLastPointAt ?? now;
-    final segmentMs =
+    final segmentMs = durationMs ??
         now.difference(lastPointAt).inMilliseconds.clamp(16, 4000).toInt();
     setState(() {
-      points.add(Offset(x, y));
+      points.add(point);
       _activeRouteSegmentDurationsMs?.add(segmentMs);
       _activeRouteLastPointAt = now;
+    });
+  }
+
+  void _handleRouteTap(Offset localPosition, double width, double height) {
+    if (!_pathMode || widget.readOnly || _playController.isAnimating) return;
+    final point = _boardPointFromLocal(localPosition, width, height);
+    final activePoints = _activeRoutePoints;
+    if (activePoints != null) {
+      _appendRoutePoint(point, durationMs: 420);
+      return;
+    }
+    final selectedItem = _selectedItem;
+    final expectedType = _boardItemTypeForRouteKind(_pathDrawMode);
+    setState(() {
+      _activeRoutePoints = <Offset>[
+        if (selectedItem != null && selectedItem.type == expectedType)
+          _itemPosition(selectedItem)
+        else
+          point,
+      ];
+      _activeRouteSegmentDurationsMs = <int>[];
+      _activeRouteLastPointAt = DateTime.now();
+    });
+    if (selectedItem != null && selectedItem.type == expectedType) {
+      _appendRoutePoint(point, durationMs: 420);
+    }
+  }
+
+  bool get _canFinishActiveRoute => (_activeRoutePoints?.length ?? 0) >= 2;
+
+  bool get _canUndoLastRoutePoint => (_activeRoutePoints?.length ?? 0) > 1;
+
+  void _finishActiveRoute() {
+    if (!_canFinishActiveRoute) return;
+    _endPlayerPath();
+  }
+
+  void _undoLastRoutePoint() {
+    final points = _activeRoutePoints;
+    if (points == null || points.length <= 1) return;
+    setState(() {
+      points.removeLast();
+      final durations = _activeRouteSegmentDurationsMs;
+      if (durations != null && durations.isNotEmpty) {
+        durations.removeLast();
+      }
+      _activeRouteLastPointAt = DateTime.now();
     });
   }
 
@@ -1668,37 +1805,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       return;
     }
     setState(() {
-      final nextLinkedItemId = resolvedLinkedItem.id;
-      if (replacementRoute != null) {
-        replacementRoute.points
-          ..clear()
-          ..addAll(points);
-        replacementRoute.segmentDurationsMs
-          ..clear()
-          ..addAll(segmentDurationsMs);
-        replacementRoute.linkedItemId = nextLinkedItemId;
-        replacementRoute.color = _routeColorFor(
-          kind: _pathDrawMode,
-          linkedItemId: nextLinkedItemId,
-        );
-        _selectedRouteId = replacementRoute.id;
-      } else {
-        final route = _BoardRoute(
-          id: _nextBoardRouteId(),
-          kind: _pathDrawMode,
-          linkedItemId: nextLinkedItemId,
-          points: List<Offset>.from(points),
-          segmentDurationsMs: List<int>.from(segmentDurationsMs),
-          stageIndex: 1,
-          color: _routeColorFor(
-            kind: _pathDrawMode,
-            linkedItemId: nextLinkedItemId,
-          ),
-          width: _defaultRouteWidth(_pathDrawMode),
-        );
-        _currentPage.routes.add(route);
-        _selectedRouteId = route.id;
-      }
+      final route = _upsertRouteForItem(
+        kind: _pathDrawMode,
+        item: resolvedLinkedItem,
+        points: List<Offset>.from(points),
+        segmentDurationsMs: segmentDurationsMs,
+        replacementRoute: replacementRoute,
+      );
+      _selectedRouteId = route.id;
+      _selectedItemId = resolvedLinkedItem.id;
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
@@ -2012,6 +2127,174 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
     });
+  }
+
+  void _activateRouteToolForSelectedItem() {
+    final selected = _selectedItem;
+    if (selected == null ||
+        (selected.type != _BoardItemType.player &&
+            selected.type != _BoardItemType.ball)) {
+      return;
+    }
+    _selectRouteableItem(selected);
+  }
+
+  void _selectQuickActionRoute(_BoardRoute route, _BoardItem item) {
+    _selectedItemId = item.id;
+    _selectedRouteId = route.id;
+    _pathDrawMode = route.kind;
+    _pathMode = true;
+    _penMode = false;
+    _routeReplaceMode = false;
+    _activeStroke = null;
+    _activeRoutePoints = null;
+    _activeRouteSegmentDurationsMs = null;
+    _activeRouteLastPointAt = null;
+  }
+
+  void _applyQuickMoveTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.player) return;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: selected,
+        points: <Offset>[
+          _itemPosition(selected),
+          _defaultRouteEndForItem(selected, dx: 0.15),
+        ],
+        segmentDurationsMs: const <int>[720],
+      );
+      _selectQuickActionRoute(route, selected);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _applyQuickReceiveMoveTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.player) return;
+    final hasBallRoute = _currentPage.routes.any(
+      (route) => route.kind == _PathDrawMode.ball && route.points.length >= 2,
+    );
+    if (!hasBallRoute) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_l10n.trainingSketchAddBallFirst)),
+      );
+      return;
+    }
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: selected,
+        points: <Offset>[
+          _itemPosition(selected),
+          _defaultRouteEndForItem(selected, dx: 0.14, dy: -0.07),
+        ],
+        segmentDurationsMs: const <int>[760],
+        stageIndex: _suggestedStageForNewRoute(_PathDrawMode.player),
+      );
+      _selectQuickActionRoute(route, selected);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _applyQuickPassTemplate() {
+    final selected = _selectedItem;
+    if (selected == null) return;
+    final origin = _itemPosition(selected);
+    final ball = selected.type == _BoardItemType.ball
+        ? selected
+        : _nearestItemOfType(_BoardItemType.ball, origin);
+    if (ball == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_l10n.trainingSketchAddBallFirst)),
+      );
+      return;
+    }
+    final targetPlayer = _nearestItemOfType(
+      _BoardItemType.player,
+      _itemPosition(ball),
+      excludingId: selected.type == _BoardItemType.player ? selected.id : null,
+    );
+    final end = targetPlayer == null
+        ? _defaultRouteEndForItem(ball, dx: 0.18, dy: -0.02)
+        : _itemPosition(targetPlayer);
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.ball,
+        item: ball,
+        points: <Offset>[_itemPosition(ball), end],
+        segmentDurationsMs: const <int>[680],
+        stageIndex: 1,
+      );
+      _selectQuickActionRoute(route, ball);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _applyQuickPassAndMoveTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.player) return;
+    final ball =
+        _nearestItemOfType(_BoardItemType.ball, _itemPosition(selected));
+    if (ball == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_l10n.trainingSketchAddBallFirst)),
+      );
+      return;
+    }
+    final targetPlayer = _nearestItemOfType(
+      _BoardItemType.player,
+      _itemPosition(ball),
+      excludingId: selected.id,
+    );
+    final passEnd = targetPlayer == null
+        ? _defaultRouteEndForItem(ball, dx: 0.18, dy: -0.02)
+        : _itemPosition(targetPlayer);
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      _upsertRouteForItem(
+        kind: _PathDrawMode.ball,
+        item: ball,
+        points: <Offset>[_itemPosition(ball), passEnd],
+        segmentDurationsMs: const <int>[680],
+        stageIndex: 1,
+      );
+      final moveRoute = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: selected,
+        points: <Offset>[
+          _itemPosition(selected),
+          _defaultRouteEndForItem(selected, dx: 0.13, dy: 0.07),
+        ],
+        segmentDurationsMs: const <int>[760],
+        stageIndex: _suggestedStageForNewRoute(_PathDrawMode.player),
+      );
+      _selectQuickActionRoute(moveRoute, selected);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _applyQuickDribbleTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.ball) return;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final middle = _defaultRouteEndForItem(selected, dx: 0.08, dy: -0.04);
+      final end = _defaultRouteEndForItem(selected, dx: 0.17, dy: 0.02);
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.ball,
+        item: selected,
+        points: <Offset>[_itemPosition(selected), middle, end],
+        segmentDurationsMs: const <int>[440, 520],
+        stageIndex: 1,
+      );
+      _selectQuickActionRoute(route, selected);
+    });
+    _scheduleAutoSave();
   }
 
   Color _activeRoutePreviewColor() {
@@ -2751,6 +3034,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     : _pathMode
                         ? (_) => _endPlayerPath()
                         : null,
+            onTapUp: widget.readOnly
+                ? null
+                : _pathMode
+                    ? (details) => _handleRouteTap(
+                          details.localPosition,
+                          width,
+                          height,
+                        )
+                    : null,
             child: Stack(
               children: [
                 CustomPaint(
@@ -3434,6 +3726,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ? _normalizedRouteStageIndex(selectedRoute.stageIndex)
           : 1;
       final visibleStages = _visibleRouteStages();
+      final canFinishActiveRoute = _canFinishActiveRoute;
+      final canUndoLastRoutePoint = _canUndoLastRoutePoint;
       final canMoveSelectedAfterBall = hasSelectedCurrentRoute &&
           selectedRoute.kind == _PathDrawMode.player &&
           _currentPage.routes.any(
@@ -3606,6 +3900,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             runSpacing: 8,
             children: [
               OutlinedButton.icon(
+                onPressed: canFinishActiveRoute ? _finishActiveRoute : null,
+                icon: const Icon(Icons.check_circle_outline),
+                label: Text(l10n.trainingSketchFinishRouteButton),
+              ),
+              OutlinedButton.icon(
+                onPressed: canUndoLastRoutePoint ? _undoLastRoutePoint : null,
+                icon: const Icon(Icons.undo),
+                label: Text(l10n.trainingSketchUndoLastRoutePointButton),
+              ),
+              OutlinedButton.icon(
                 onPressed: _splitRoutesIntoStages,
                 icon: const Icon(Icons.view_timeline_outlined),
                 label: Text(l10n.trainingSketchAutoStagesButton),
@@ -3716,6 +4020,56 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 ? l10n.trainingSketchLinkPlayerHint
                 : l10n.trainingSketchLinkBallHint,
             style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.trainingSketchSelectedItemActionsTitle,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: _activateRouteToolForSelectedItem,
+                icon: const Icon(Icons.add_road_outlined),
+                label: Text(
+                  selected.type == _BoardItemType.ball
+                      ? l10n.trainingSketchCreatePassRouteButton
+                      : l10n.trainingSketchCreateMoveRouteButton,
+                ),
+              ),
+              if (selected.type == _BoardItemType.player) ...[
+                OutlinedButton.icon(
+                  onPressed: _applyQuickMoveTemplate,
+                  icon: const Icon(Icons.directions_run),
+                  label: Text(l10n.trainingSketchQuickMoveButton),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _applyQuickPassAndMoveTemplate,
+                  icon: const Icon(Icons.sync_alt),
+                  label: Text(l10n.trainingSketchQuickPassAndMoveButton),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _applyQuickReceiveMoveTemplate,
+                  icon: const Icon(Icons.call_received),
+                  label: Text(l10n.trainingSketchQuickReceiveMoveButton),
+                ),
+              ],
+              if (selected.type == _BoardItemType.ball) ...[
+                OutlinedButton.icon(
+                  onPressed: _applyQuickPassTemplate,
+                  icon: const Icon(Icons.near_me_outlined),
+                  label: Text(l10n.trainingSketchQuickPassButton),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _applyQuickDribbleTemplate,
+                  icon: const Icon(Icons.sports_soccer_outlined),
+                  label: Text(l10n.trainingSketchQuickDribbleButton),
+                ),
+              ],
+            ],
           ),
         ],
       ],

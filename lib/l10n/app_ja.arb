@@ -384,6 +384,23 @@
       }
     }
   },
+  "worldCupClubInfoOpenTooltip": "{club} の情報を開く",
+  "@worldCupClubInfoOpenTooltip": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupClubInfoTitle": "{club} 情報",
+  "@worldCupClubInfoTitle": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupPlayerProfilePlayerLabel": "選手",
   "worldCupPlayerProfileTeamLabel": "代表チーム",
   "worldCupPlayerProfilePositionLabel": "ポジション",
   "worldCupPlayerProfileClubLabel": "所属クラブ",
@@ -551,6 +568,9 @@
     }
   },
   "worldCupTeamRosterSubtitle": "ポジション別の名簿とフォーメーション配置でチームの形を確認できます。",
+  "worldCupTeamMatchOverviewTitle": "代表チーム試合情報",
+  "worldCupTeamCurrentPointsLabel": "現在の勝点",
+  "worldCupTeamMatchHistoryTitle": "対戦結果",
   "worldCupTeamRosterFormationLabel": "{formation} フォーメーション",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {
@@ -4127,7 +4147,7 @@
   "trainingSketchResetButton": "クリア",
   "trainingSketchPenModeHint": "ペンモード: ボード上をドラッグして描画します。",
   "trainingSketchPenColorLabel": "ペンの色",
-  "trainingSketchQuickStart": "クイックスタート: プレーヤー/ボールを追加 -> パスを描画 -> 再生 (速度) -> 保存",
+  "trainingSketchQuickStart": "クイックスタート: プレイヤーやボールを選び、クイック動作でルートを作成します。",
   "trainingSketchSelectedItemTitle": "選択した項目",
   "trainingSketchAssignColorLabel": "色の割り当て",
   "trainingSketchDrawRouteFirst": "まずルートを描画または選択します。",
@@ -4151,6 +4171,8 @@
   "trainingSketchPreviousStageButton": "前のステージ",
   "trainingSketchNextStageButton": "次のステージ",
   "trainingSketchRouteAfterBallButton": "ボールの後",
+  "trainingSketchFinishRouteButton": "ルート完了",
+  "trainingSketchUndoLastRoutePointButton": "最後の点を戻す",
   "trainingSketchClearAllRoutesButton": "全ルートクリア",
   "trainingSketchPlayerRoutesTitle": "プレイヤールート",
   "trainingSketchBallRoutesTitle": "ボールルート",
@@ -4173,13 +4195,21 @@
       }
     }
   },
-  "trainingSketchRouteReplaceHint": "ボード上でドラッグして、選択したルートを置き換えます。",
-  "trainingSketchSelectedPlayerRouteHint": "ボード上をドラッグして、選択したプレイヤーのルートを設定します。すでに存在する場合は置き換えられます。",
-  "trainingSketchSelectedBallRouteHint": "ボード上でドラッグして、選択したボールのルートを設定します。すでに存在する場合は置き換えられます。",
-  "trainingSketchPlayerRouteHint": "ボード上をドラッグして、未使用のプレイヤー ルートを割り当てます。特定のプレイヤーをターゲットにしたい場合は、最初にプレイヤーを選択します。",
-  "trainingSketchBallRouteHint": "ボード上をドラッグして、未使用のボール ルートを割り当てます。特定のボールをターゲットにしたい場合は、最初にボールを選択します。",
-  "trainingSketchLinkPlayerHint": "ルート モードでは、このプレーヤーを選択し、ドラッグしてルートを割り当てるか置き換えます。",
-  "trainingSketchLinkBallHint": "ルート モードでは、このボールを選択してドラッグし、そのルートを割り当てるか置き換えます。",
+  "trainingSketchRouteReplaceHint": "到着地点をタップし、ルート完了を押すと選択ルートを置き換えます。",
+  "trainingSketchSelectedPlayerRouteHint": "到着地点をタップしてからルート完了を押します。ドラッグでも描けます。",
+  "trainingSketchSelectedBallRouteHint": "パスの到着地点をタップしてからルート完了を押します。ドラッグでも描けます。",
+  "trainingSketchPlayerRouteHint": "プレイヤーを選ぶかボードをタップして開始し、到着地点をタップして完了します。",
+  "trainingSketchBallRouteHint": "ボールを選ぶかボードをタップして開始し、パスの到着地点をタップして完了します。",
+  "trainingSketchLinkPlayerHint": "このプレイヤーを選び、到着地点をタップすると移動ルートを作れます。",
+  "trainingSketchLinkBallHint": "このボールを選び、パスの到着地点をタップするとボールルートを作れます。",
+  "trainingSketchSelectedItemActionsTitle": "クイック動作",
+  "trainingSketchCreateMoveRouteButton": "ルート作成",
+  "trainingSketchCreatePassRouteButton": "パスルート作成",
+  "trainingSketchQuickMoveButton": "移動",
+  "trainingSketchQuickPassButton": "パス",
+  "trainingSketchQuickPassAndMoveButton": "パス後に移動",
+  "trainingSketchQuickDribbleButton": "ドリブル",
+  "trainingSketchQuickReceiveMoveButton": "受けて移動",
   "trainingSketchPlayerRouteLimitReached": "すべてのプレイヤーのルートはすでに割り当てられています。ルートを置き換えるか再描画するプレーヤーを選択します。",
   "trainingSketchBallRouteLimitReached": "すべてのボールルートはすでに割り当てられています。ボールを選択してルートを置き換えるか、再描画します。",
   "trainingSketchTemplatePickerTitle": "テンプレートを選択",
