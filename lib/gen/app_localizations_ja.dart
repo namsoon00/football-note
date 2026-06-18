@@ -35,25 +35,26 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => 'サッカーの一日を落ち着いたノートにまとめましょう';
+  String get welcomeGuideTitle => '記録がなければ、運動も言い訳で終わります';
 
   @override
-  String get welcomeGuideIntro => '次に必要な行動から始めて、練習・食事・試合・振り返りが自然につながるように案内します。';
+  String get welcomeGuideIntro => '競技は問いません。やったと言うだけでなく、残して証明しましょう。';
 
   @override
-  String get welcomeGuidePrimaryAction => 'ガイドを開始';
+  String get welcomeGuidePrimaryAction => '証明を始める';
 
   @override
-  String get welcomeGuideSectionFlow => '最初の流れ';
+  String get welcomeGuideSectionFlow => 'やること';
 
   @override
-  String get welcomeGuideNextTabHint => '開始後は、ホーム画面の実際のボタンにコーチマークが続きます。';
+  String get welcomeGuideNextTabHint =>
+      '詳しいチュートリアルは、次の画面の実際のボタンに出るコーチマークで続きます。';
 
   @override
-  String get welcomeGuidePreviewLabel => '最初に見る場所';
+  String get welcomeGuidePreviewLabel => '今選ぶアクション';
 
   @override
-  String get welcomeGuideCoachMarkLabel => '最初のタップ';
+  String get welcomeGuideCoachMarkLabel => 'ここをタップ';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {
@@ -184,7 +185,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get welcomeChallengeOverview =>
-      'チャレンジでは、リンジーが毎日のラウンドミッションを確認し、完了を大きな XP に変えてくれます。';
+      'チャレンジは、毎日のラウンドを見逃せない圧に変え、完了を XP として残します。';
 
   @override
   String get welcomeChallengeActionStart => 'チャレンジ開始';
@@ -203,8 +204,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeChallengeActionReward => 'XP 報酬';
 
   @override
-  String get welcomeChallengeStepReward =>
-      'ラウンドを終えるたびに XP が貯まり、完走するとリンジーが祝ってくれます。';
+  String get welcomeChallengeStepReward => 'ラウンドを終えるほど XP が貯まり、抜けた分は空白として残ります。';
 
   @override
   String get welcomeDiaryOverview =>

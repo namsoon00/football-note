@@ -25,9 +25,9 @@ void main() {
     );
 
     expect(find.text('태오의 노트'), findsOneWidget);
-    expect(find.text('축구 하루를 차분한 노트로 정리해요'), findsOneWidget);
+    expect(find.text('기록 없으면, 운동도 변명으로 끝나요'), findsOneWidget);
     expect(find.text('홈'), findsWidgets);
-    expect(find.text('첫 탭'), findsOneWidget);
+    expect(find.text('바로 누를 곳'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('welcome-section-logs')));
     await tester.pump();

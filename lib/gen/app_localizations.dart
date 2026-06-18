@@ -151,43 +151,43 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeGuideTitle.
   ///
   /// In en, this message translates to:
-  /// **'Build your football day with one calm note'**
+  /// **'No log, no proof.'**
   String get welcomeGuideTitle;
 
   /// No description provided for @welcomeGuideIntro.
   ///
   /// In en, this message translates to:
-  /// **'Start from the next useful action, then let the app connect training, meals, matches, and reflection.'**
+  /// **'Any sport works. Stop letting hard work disappear; record it and make tomorrow harder to excuse.'**
   String get welcomeGuideIntro;
 
   /// No description provided for @welcomeGuidePrimaryAction.
   ///
   /// In en, this message translates to:
-  /// **'Start the guide'**
+  /// **'Start proving it'**
   String get welcomeGuidePrimaryAction;
 
   /// No description provided for @welcomeGuideSectionFlow.
   ///
   /// In en, this message translates to:
-  /// **'First flow'**
+  /// **'What to do'**
   String get welcomeGuideSectionFlow;
 
   /// No description provided for @welcomeGuideNextTabHint.
   ///
   /// In en, this message translates to:
-  /// **'After this, the Home screen continues with live coach marks on the real buttons.'**
+  /// **'The real tutorial continues on the next screen with coach marks on the buttons.'**
   String get welcomeGuideNextTabHint;
 
   /// No description provided for @welcomeGuidePreviewLabel.
   ///
   /// In en, this message translates to:
-  /// **'Best place to start'**
+  /// **'Action to choose now'**
   String get welcomeGuidePreviewLabel;
 
   /// No description provided for @welcomeGuideCoachMarkLabel.
   ///
   /// In en, this message translates to:
-  /// **'First tap'**
+  /// **'Tap this'**
   String get welcomeGuideCoachMarkLabel;
 
   /// No description provided for @tabGuideCoachMarkStep.
@@ -421,7 +421,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeChallengeOverview.
   ///
   /// In en, this message translates to:
-  /// **'Challenge is where Rinzy tracks daily round missions and turns completion into bigger XP gains.'**
+  /// **'Challenge mode turns daily rounds into pressure you cannot quietly ignore.'**
   String get welcomeChallengeOverview;
 
   /// No description provided for @welcomeChallengeActionStart.
@@ -457,7 +457,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeChallengeStepReward.
   ///
   /// In en, this message translates to:
-  /// **'Each finished round stacks XP, and Rinzy celebrates when you finish the challenge.'**
+  /// **'Finished rounds stack XP. Miss them, and the gap is visible.'**
   String get welcomeChallengeStepReward;
 
   /// No description provided for @welcomeDiaryOverview.
