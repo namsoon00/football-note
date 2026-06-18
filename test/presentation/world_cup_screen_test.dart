@@ -396,6 +396,50 @@ void main() {
     expect(find.text('1 : 0'), findsOneWidget);
   });
 
+  testWidgets('scheduled fixture hides prematch status labels', (tester) async {
+    final fixture = worldCupFixtures.firstWhere((fixture) => !fixture.hasScore);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          initialSelectedDay: fixture.localDay,
+          currentTime: fixture.kickoffUtc.subtract(const Duration(days: 1)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    for (var i = 0; i < 6 && find.text('- : -').evaluate().isEmpty; i += 1) {
+      await tester.drag(scrollable, const Offset(0, -260));
+      await tester.pumpAndSettle();
+    }
+
+    final scoreText = find.text('- : -').first;
+    expect(scoreText, findsOneWidget);
+    await tester.ensureVisible(scoreText);
+    await tester.pumpAndSettle();
+
+    expect(find.text('경기 전'), findsNothing);
+    expect(find.text('예정'), findsNothing);
+
+    final scoreTapTarget = find.ancestor(
+      of: scoreText,
+      matching: find.byType(InkWell),
+    );
+    await tester.tap(scoreTapTarget.first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('- : -'), findsWidgets);
+    expect(find.text('경기 전'), findsNothing);
+    expect(find.text('예정'), findsNothing);
+  });
+
   testWidgets('match detail localizes lineup players and shows club and image',
       (
     tester,

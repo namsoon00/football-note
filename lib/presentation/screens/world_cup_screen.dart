@@ -1669,6 +1669,16 @@ String _runtimeStatusLabel(
   };
 }
 
+String? _visibleRuntimeStatusLabel(
+  AppLocalizations l10n,
+  _WorldCupFixtureRuntimeStatus status,
+) {
+  if (status == _WorldCupFixtureRuntimeStatus.scheduled) {
+    return null;
+  }
+  return _runtimeStatusLabel(l10n, status);
+}
+
 String _fixtureStageLabel(AppLocalizations l10n, WorldCupFixture fixture) {
   return switch (fixture.stage) {
     WorldCupStage.group => l10n.worldCupGroupStageLabel(fixture.group ?? ''),
@@ -1723,6 +1733,7 @@ class _FixtureRow extends StatelessWidget {
       officialMatch: officialMatch,
       now: currentTime,
     );
+    final statusLabel = _visibleRuntimeStatusLabel(l10n, runtimeStatus);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1747,7 +1758,7 @@ class _FixtureRow extends StatelessWidget {
                       : l10n.worldCupInterestBadge,
                 ),
               ],
-              _SmallPill(label: _runtimeStatusLabel(l10n, runtimeStatus)),
+              if (statusLabel != null) _SmallPill(label: statusLabel),
             ],
           ),
           const SizedBox(height: 10),
@@ -1894,14 +1905,9 @@ class _FixtureTeamBlock extends StatelessWidget {
   }
 
   String _teamStatusSummary(AppLocalizations l10n) {
-    if (status == _WorldCupFixtureRuntimeStatus.finished) {
-      return '';
-    }
     return switch (status) {
       _WorldCupFixtureRuntimeStatus.live => l10n.worldCupMatchLive,
-      _WorldCupFixtureRuntimeStatus.awaitingUpdate =>
-        l10n.worldCupMatchAwaitingUpdate,
-      _ => l10n.worldCupResultPendingTeam,
+      _ => '',
     };
   }
 }
@@ -2027,6 +2033,7 @@ class _WorldCupFixtureDetailSheetState
         : status == _WorldCupFixtureRuntimeStatus.live
             ? l10n.worldCupMatchLive
             : l10n.worldCupScorePending;
+    final statusLabel = _visibleRuntimeStatusLabel(l10n, status);
     return SafeArea(
       child: FractionallySizedBox(
         heightFactor: 0.82,
@@ -2061,8 +2068,10 @@ class _WorldCupFixtureDetailSheetState
                           fontWeight: FontWeight.w900,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      _SmallPill(label: _runtimeStatusLabel(l10n, status)),
+                      if (statusLabel != null) ...[
+                        const SizedBox(height: 4),
+                        _SmallPill(label: statusLabel),
+                      ],
                     ],
                   );
                   return Row(
