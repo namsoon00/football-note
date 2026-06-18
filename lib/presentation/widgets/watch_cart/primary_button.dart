@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'constants.dart';
+
+import '../../theme/app_theme.dart';
 
 class WatchCartPrimaryButton extends StatelessWidget {
   final String text;
@@ -16,13 +17,13 @@ class WatchCartPrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 54.h,
+      height: AppSizes.primaryButtonHeight.h,
       child: Material(
-        color: WatchCartConstants.primaryColor,
-        borderRadius: BorderRadius.circular(16.0),
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: AppRadius.control,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: AppRadius.control,
           splashColor: Colors.white.withAlpha(51),
           highlightColor: Colors.white.withAlpha(25),
           child: Center(

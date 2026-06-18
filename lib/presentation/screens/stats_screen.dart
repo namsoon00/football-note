@@ -19,6 +19,7 @@ import '../../domain/entities/training_entry.dart';
 import '../../domain/entities/player_profile.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
+import '../theme/app_theme.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
 import '../widgets/app_drawer.dart';
@@ -2452,26 +2453,19 @@ class _StatsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final brightness = theme.brightness;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        color: isDark
-            ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.38)
-            : colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(18),
+        color: AppSurfaces.cardColor(colorScheme, brightness),
+        borderRadius: AppRadius.surface,
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.42),
+          color: AppSurfaces.borderColor(colorScheme, brightness),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.12 : 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        boxShadow: AppShadows.surface(brightness),
       ),
       child: child,
     );

@@ -8,7 +8,17 @@
 - 원칙: 큰 타이포 + 넓은 여백 + 단순한 카드 + 명확한 CTA
 - 금지: 브랜드/자산 복제, 과한 색상 혼합, 장식성 과다
 
-## 2) Color Tokens
+## 2) Code Source Of Truth
+앱 전역 디자인 기준은 아래 파일을 우선합니다.
+
+- Theme & tokens: `lib/presentation/theme/app_theme.dart`
+- Surface card: `lib/presentation/widgets/watch_cart/watch_cart_card.dart`
+- Shared tab header: `lib/presentation/widgets/shared_tab_header.dart`
+- Feedback: `lib/presentation/widgets/app_feedback.dart`
+
+화면별로 새 카드/버튼/배너 스타일을 직접 만들기 전에 위 공통 기준을 먼저 재사용합니다.
+
+## 3) Color Tokens
 - Primary: `#2B6FF3`
 - Background: `#F6F8FC`
 - Surface(Card): `#FFFFFF`
@@ -18,24 +28,28 @@
 
 적용 위치: `lib/presentation/theme/app_theme.dart`
 
-## 3) Typography
+## 4) Typography
 - Hero/Headline: 26~30, weight 800
-- Section Title: 18~22, weight 700
+- Tab/Screen Title: 24, weight 800
+- Section Title: 18~22, weight 700~800
 - Body: 14~16, weight 500
 - Caption: 12~13, weight 500
 
-## 4) Spacing & Radius
+## 5) Spacing & Radius
 - 기본 화면 패딩: 가로 16~24
 - 섹션 간격: 8 / 12 / 16 / 24 단위
-- Card radius: 18~20
+- Card radius: 20
 - Button/Input radius: 16
+- Compact controls: 12
+- 최소 터치 영역: 48
 
-## 5) Components
+## 6) Components
 - Primary CTA: 높이 54, 풀폭, 둥근 모서리 16
 - Card: 밝은 Surface + 얕은 보더 + 약한 그림자
+- Option buttons: 56 높이, 16 radius, active state는 primary tint
 - NavigationBar: `onlyShowSelected` 라벨, 아이콘 5탭까지 명확히 보이게 유지
 
-## 6) Status Icon System (Single Source)
+## 7) Status Icon System (Single Source)
 상태 아이콘/색은 한 파일에서 관리:
 - 파일: `lib/presentation/widgets/status_style.dart`
 - API:
@@ -49,15 +63,18 @@
 
 새 상태 추가 시 반드시 `status_style.dart`만 수정하고, 화면별 하드코딩 금지.
 
-## 7) Screen Rules
+## 8) Screen Rules
 - 기능/플로우는 유지하고 스타일만 조정
 - CTA는 화면당 하나를 가장 강하게
 - 텍스트 대비(명도) 우선
 - 리스트/카드 터치 피드백 유지(InkWell/Haptic)
+- 사용자에게 보이는 문구는 `lib/l10n/*.arb`에 추가하고 generated localization으로 접근
 
-## 8) Implementation Checklist
+## 9) Implementation Checklist
 - [ ] `app_theme.dart` 토큰 준수
+- [ ] `app_theme.dart`의 `AppSpacing`/`AppRadius`/`AppSurfaces` 재사용
 - [ ] 카드 라운드/보더/여백 일치
 - [ ] 상태 아이콘은 공통 시스템 사용
+- [ ] 새 UI 문구는 모든 ARB 파일에 추가
 - [ ] 하단 탭(통계 포함) 가시성 확인
 - [ ] 다크/라이트 대비 확인

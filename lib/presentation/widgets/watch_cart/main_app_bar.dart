@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
+import '../../theme/app_theme.dart';
+
 class WatchCartAppBar extends StatelessWidget {
   final VoidCallback? onLeadingTap;
   final IconData leadingIcon;
@@ -36,17 +38,23 @@ class WatchCartAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    const actionConstraints = BoxConstraints(minWidth: 44, minHeight: 44);
-    const actionPadding = EdgeInsets.all(6);
+    const actionConstraints = BoxConstraints(
+      minWidth: AppSizes.minTouchTarget,
+      minHeight: AppSizes.minTouchTarget,
+    );
+    const actionPadding = EdgeInsets.all(AppSpacing.xs);
     final leadingButton = Container(
-      width: 44,
-      height: 44,
+      width: AppSizes.minTouchTarget,
+      height: AppSizes.minTouchTarget,
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withAlpha(220),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: scheme.outline.withAlpha(120)),
+        color: AppSurfaces.subtleColor(scheme, theme.brightness),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: AppSurfaces.borderColor(scheme, theme.brightness),
+        ),
       ),
       padding: const EdgeInsets.all(10),
       child: Center(
@@ -68,7 +76,7 @@ class WatchCartAppBar extends StatelessWidget {
       children: [
         InkWell(
           onTap: onLeadingTap,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: AppRadius.small,
           child: leadingTooltip == null
               ? leadingButton
               : Tooltip(message: leadingTooltip!, child: leadingButton),

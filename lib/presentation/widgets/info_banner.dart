@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
+import '../theme/app_theme.dart';
+
 class InfoBanner extends StatelessWidget {
   final String summary;
   final String? detailsTitle;
@@ -31,17 +33,17 @@ class InfoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final background =
-        backgroundColor ?? theme.colorScheme.surfaceContainerHigh;
-    final border =
-        borderColor ?? theme.colorScheme.outline.withValues(alpha: 0.14);
+    final background = backgroundColor ??
+        AppSurfaces.subtleColor(theme.colorScheme, theme.brightness);
+    final border = borderColor ??
+        AppSurfaces.borderColor(theme.colorScheme, theme.brightness);
 
     return Container(
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.control,
         border: Border.all(color: border),
       ),
       child: Row(
@@ -54,7 +56,7 @@ class InfoBanner extends StatelessWidget {
             height: 30,
             decoration: BoxDecoration(
               color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: AppRadius.small,
             ),
             child: Icon(icon, size: 18, color: theme.colorScheme.primary),
           ),
@@ -62,8 +64,7 @@ class InfoBanner extends StatelessWidget {
           Expanded(
             child: Text(
               summary,
-              style:
-                  textStyle ??
+              style: textStyle ??
                   theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),

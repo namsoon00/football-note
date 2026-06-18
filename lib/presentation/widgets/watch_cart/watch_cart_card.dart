@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_theme.dart';
+
 class WatchCartCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
@@ -12,26 +14,18 @@ class WatchCartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final brightness = theme.brightness;
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? scheme.surfaceContainerHighest
-            : scheme.surface,
-        borderRadius: BorderRadius.circular(18),
+        color: AppSurfaces.cardColor(scheme, brightness),
+        borderRadius: AppRadius.surface,
         border: Border.all(
-          color: scheme.outline.withAlpha(150),
+          color: AppSurfaces.borderColor(scheme, brightness),
         ),
-        boxShadow: Theme.of(context).brightness == Brightness.dark
-            ? null
-            : const [
-                BoxShadow(
-                  color: Color(0x0F111827),
-                  blurRadius: 14,
-                  offset: Offset(0, 4),
-                ),
-              ],
+        boxShadow: AppShadows.surface(brightness),
       ),
       child: child,
     );

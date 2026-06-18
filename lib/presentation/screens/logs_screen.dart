@@ -33,6 +33,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
+import '../theme/app_theme.dart';
 import '../utils/training_entry_summary.dart';
 import '../theme/app_motion.dart';
 import 'settings_screen.dart';
@@ -449,11 +450,18 @@ class _LogsScreenState extends State<LogsScreen> {
   }
 
   Widget _buildLayoutToggle() {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final surface = Theme.of(context).colorScheme.surfaceContainerHighest;
-    final outline = Theme.of(context).colorScheme.outline.withAlpha(120);
-    final primary = Theme.of(context).colorScheme.primary;
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
+    final surface = AppSurfaces.subtleColor(
+      theme.colorScheme,
+      theme.brightness,
+    );
+    final outline = AppSurfaces.borderColor(
+      theme.colorScheme,
+      theme.brightness,
+    );
+    final primary = theme.colorScheme.primary;
 
     Widget layoutToggle({
       required _LogsLayout type,
@@ -462,7 +470,7 @@ class _LogsScreenState extends State<LogsScreen> {
     }) {
       final selected = _layout == type;
       return InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.small,
         onTap: () async {
           setState(() {
             _layout = type;
@@ -477,8 +485,8 @@ class _LogsScreenState extends State<LogsScreen> {
           duration: const Duration(milliseconds: 140),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           decoration: BoxDecoration(
-            color: selected ? primary.withAlpha(24) : surface.withAlpha(120),
-            borderRadius: BorderRadius.circular(12),
+            color: selected ? primary.withAlpha(24) : surface,
+            borderRadius: AppRadius.small,
             border: Border.all(
               color: selected ? primary.withAlpha(110) : outline,
             ),
@@ -512,19 +520,20 @@ class _LogsScreenState extends State<LogsScreen> {
         layoutToggle(
           type: _LogsLayout.card,
           icon: Icons.grid_view_rounded,
-          label: isKo ? '카드' : 'Card',
+          label: l10n.logsLayoutCard,
         ),
         const SizedBox(width: 6),
         layoutToggle(
           type: _LogsLayout.list,
           icon: Icons.view_list_rounded,
-          label: isKo ? '리스트' : 'List',
+          label: l10n.logsLayoutList,
         ),
       ],
     );
   }
 
   Widget _buildSearchBar(AppLocalizations l10n) {
+    final theme = Theme.of(context);
     return TextField(
       controller: _searchController,
       onChanged: (value) => setState(() {
@@ -547,9 +556,12 @@ class _LogsScreenState extends State<LogsScreen> {
                 icon: const Icon(Icons.clear),
               ),
         filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        fillColor: AppSurfaces.subtleColor(
+          theme.colorScheme,
+          theme.brightness,
+        ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.control,
           borderSide: BorderSide.none,
         ),
       ),
@@ -649,7 +661,9 @@ class _LogsScreenState extends State<LogsScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.card),
+        ),
       ),
       builder: (context) {
         var localStatus = statusValue;
@@ -796,15 +810,18 @@ class _LogsScreenState extends State<LogsScreen> {
     required List<DropdownMenuEntry<String>> entries,
     required ValueChanged<String> onChanged,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
-    final borderColor = isDark
-        ? const Color(0xFF4A556D)
-        : const Color.fromRGBO(210, 220, 245, 1);
+    final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
+    final fillColor = AppSurfaces.subtleColor(
+      theme.colorScheme,
+      theme.brightness,
+    );
+    final borderColor = AppSurfaces.borderColor(
+      theme.colorScheme,
+      theme.brightness,
+    );
     return SizedBox(
-      height: 54,
+      height: AppSizes.primaryButtonHeight,
       child: DropdownMenu<String>(
         initialSelection: value,
         label: Text(label),
@@ -818,17 +835,17 @@ class _LogsScreenState extends State<LogsScreen> {
             vertical: 10,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: AppRadius.small,
             borderSide: BorderSide(color: borderColor, width: 1.2),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: AppRadius.small,
             borderSide: BorderSide(color: borderColor, width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: AppRadius.small,
             borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.primary,
+              color: theme.colorScheme.primary,
               width: 1.4,
             ),
           ),
@@ -876,11 +893,11 @@ class _LogsScreenState extends State<LogsScreen> {
       ).revokeTrainingEntryAward(entry);
       await widget.trainingService.delete(entry);
       if (!context.mounted) return true;
-      final isKo = Localizations.localeOf(context).languageCode == 'ko';
+      final l10n = AppLocalizations.of(context)!;
       AppFeedback.showUndo(
         context,
-        text: isKo ? '기록을 삭제했어요.' : 'Entry deleted.',
-        undoLabel: isKo ? '되돌리기' : 'Undo',
+        text: l10n.logsEntryDeletedSnack,
+        undoLabel: l10n.logsEntryDeleteUndoAction,
         onUndo: () {
           unawaited(() async {
             await widget.trainingService.add(entry);
@@ -900,7 +917,7 @@ class _LogsScreenState extends State<LogsScreen> {
           }());
           AppFeedback.showSuccess(
             context,
-            text: isKo ? '삭제를 되돌렸어요.' : 'Delete undone.',
+            text: l10n.logsDeleteUndoneSnack,
           );
         },
       );
