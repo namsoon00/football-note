@@ -8237,6 +8237,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchKindLeague => 'League';
 
   @override
+  String get matchKindTournament => 'Tournament';
+
+  @override
   String get matchOpponentTeamLabel => 'Opponent team';
 
   @override
@@ -8248,6 +8251,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get matchLeagueTeamsHint =>
       'Enter one team per line or separate with commas';
+
+  @override
+  String get matchTournamentTeamsLabel => 'Tournament teams';
+
+  @override
+  String get matchTournamentTeamsHint =>
+      'Enter participating teams one per line or separate them with commas';
 
   @override
   String get matchLeaguePointsMode => 'Points';

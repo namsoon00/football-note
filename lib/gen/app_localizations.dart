@@ -14254,6 +14254,12 @@ abstract class AppLocalizations {
   /// **'League'**
   String get matchKindLeague;
 
+  /// No description provided for @matchKindTournament.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament'**
+  String get matchKindTournament;
+
   /// No description provided for @matchOpponentTeamLabel.
   ///
   /// In en, this message translates to:
@@ -14277,6 +14283,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter one team per line or separate with commas'**
   String get matchLeagueTeamsHint;
+
+  /// No description provided for @matchTournamentTeamsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament teams'**
+  String get matchTournamentTeamsLabel;
+
+  /// No description provided for @matchTournamentTeamsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter participating teams one per line or separate them with commas'**
+  String get matchTournamentTeamsHint;
 
   /// No description provided for @matchLeaguePointsMode.
   ///

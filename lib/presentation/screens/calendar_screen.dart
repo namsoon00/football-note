@@ -1906,15 +1906,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
     final initialDay = editingEntry?.date ?? day;
     var matchDay = DateTime(initialDay.year, initialDay.month, initialDay.day);
-    var matchKind = editingEntry?.isLeagueMatch == true ? 'league' : 'friendly';
+    var matchKind = editingEntry?.isTournamentMatch == true
+        ? 'tournament'
+        : editingEntry?.isLeagueMatch == true
+            ? 'league'
+            : 'friendly';
     var opponent = editingEntry?.opponentTeam ?? editingEntry?.club ?? '';
     var location = editingEntry?.effectiveMatchLocation ?? '';
     final opponentOptions = _matchOpponentOptions(entries);
     final locationOptions = _matchLocationOptions(entries);
     var leagueTeamsText = editingEntry?.leagueTeamNames.join(', ') ?? '';
-    var leagueResultMode = editingEntry?.leagueResultMode == 'tournamentWins'
-        ? 'tournamentWins'
-        : 'points';
     var leaguePointsText = editingEntry?.leaguePoints?.toString() ?? '';
     var tournamentWinsText = editingEntry?.tournamentWins?.toString() ?? '';
     var ourScoreText = editingEntry?.scoredGoals?.toString() ?? '';
@@ -1998,6 +1999,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   icon: const Icon(Icons.emoji_events_outlined),
                                   label: Text(l10n.matchKindLeague),
                                 ),
+                                ButtonSegment<String>(
+                                  value: 'tournament',
+                                  icon: const Icon(
+                                    Icons.account_tree_outlined,
+                                  ),
+                                  label: Text(l10n.matchKindTournament),
+                                ),
                               ],
                               selected: {matchKind},
                               showSelectedIcon: false,
@@ -2020,7 +2028,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               maxLength: 40,
                               enabled: !readOnly,
                             ),
-                            if (matchKind == 'league') ...[
+                            if (matchKind == 'league' ||
+                                matchKind == 'tournament') ...[
                               const SizedBox(height: 8),
                               TextFormField(
                                 initialValue: leagueTeamsText,
@@ -2030,47 +2039,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 decoration: _calendarInputDecorationWithDone(
                                   context,
                                   InputDecoration(
-                                    labelText: l10n.matchLeagueTeamsLabel,
-                                    hintText: l10n.matchLeagueTeamsHint,
+                                    labelText: matchKind == 'tournament'
+                                        ? l10n.matchTournamentTeamsLabel
+                                        : l10n.matchLeagueTeamsLabel,
+                                    hintText: matchKind == 'tournament'
+                                        ? l10n.matchTournamentTeamsHint
+                                        : l10n.matchLeagueTeamsHint,
                                   ),
                                   enabled: !readOnly,
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              SegmentedButton<String>(
-                                segments: [
-                                  ButtonSegment<String>(
-                                    value: 'points',
-                                    icon: const Icon(Icons.table_rows_outlined),
-                                    label: Text(l10n.matchLeaguePointsMode),
-                                  ),
-                                  ButtonSegment<String>(
-                                    value: 'tournamentWins',
-                                    icon: const Icon(
-                                      Icons.military_tech_outlined,
-                                    ),
-                                    label: Text(l10n.matchTournamentWinsMode),
-                                  ),
-                                ],
-                                selected: {leagueResultMode},
-                                showSelectedIcon: false,
-                                onSelectionChanged: readOnly
-                                    ? null
-                                    : (selection) {
-                                        setSheetState(() {
-                                          leagueResultMode = selection.first;
-                                        });
-                                      },
-                              ),
-                              const SizedBox(height: 8),
                               TextFormField(
-                                initialValue: leagueResultMode == 'points'
+                                initialValue: matchKind == 'league'
                                     ? leaguePointsText
                                     : tournamentWinsText,
-                                key: ValueKey<String>(leagueResultMode),
+                                key: ValueKey<String>(matchKind),
                                 readOnly: readOnly,
                                 onChanged: (value) {
-                                  if (leagueResultMode == 'points') {
+                                  if (matchKind == 'league') {
                                     leaguePointsText = value;
                                   } else {
                                     tournamentWinsText = value;
@@ -2086,7 +2073,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 decoration: _calendarInputDecorationWithDone(
                                   context,
                                   InputDecoration(
-                                    labelText: leagueResultMode == 'points'
+                                    labelText: matchKind == 'league'
                                         ? l10n.matchLeaguePointsLabel
                                         : l10n.matchTournamentWinsLabel,
                                   ),
@@ -2325,6 +2312,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 leagueTeams.isEmpty) {
                               return;
                             }
+                            if (matchKind == 'tournament' &&
+                                trimmedOpponent.isEmpty &&
+                                leagueTeams.isEmpty) {
+                              return;
+                            }
                             final savedOpponent = trimmedOpponent.isNotEmpty
                                 ? trimmedOpponent
                                 : leagueTeams.first;
@@ -2367,14 +2359,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 matchLocation: location.trim(),
                                 matchKind: matchKind,
                                 leagueTeamNames: leagueTeams,
-                                leagueResultMode: leagueResultMode,
-                                leaguePoints: leagueResultMode == 'points'
+                                leagueResultMode: matchKind == 'tournament'
+                                    ? 'tournamentWins'
+                                    : 'points',
+                                leaguePoints: matchKind == 'league'
                                     ? _parseSheetInt(leaguePointsText)
                                     : null,
-                                tournamentWins:
-                                    leagueResultMode == 'tournamentWins'
-                                        ? _parseSheetInt(tournamentWinsText)
-                                        : null,
+                                tournamentWins: matchKind == 'tournament'
+                                    ? _parseSheetInt(tournamentWinsText)
+                                    : null,
                                 sportId: sportId,
                               ),
                             );
@@ -3812,29 +3805,33 @@ class _EntryTile extends StatelessWidget {
     return trainingEntryDurationLabel(entry, l10n);
   }
 
+  String _matchKindLabel(TrainingEntry entry, AppLocalizations l10n) {
+    if (entry.isTournamentMatch) return l10n.matchKindTournament;
+    if (entry.isLeagueMatch) return l10n.matchKindLeague;
+    return l10n.matchKindFriendly;
+  }
+
   List<String> _matchTitleParts(
     TrainingEntry entry, {
     required AppLocalizations l10n,
     required bool isKo,
   }) {
     final parts = <String>[];
-    parts.add(
-      entry.isLeagueMatch ? l10n.matchKindLeague : l10n.matchKindFriendly,
-    );
+    parts.add(_matchKindLabel(entry, l10n));
     parts.add(_matchOutcomeLabel(entry, isKo: isKo));
     if (entry.opponentTeam.trim().isNotEmpty) {
       parts.add('vs ${entry.opponentTeam.trim()}');
     }
-    if (entry.isLeagueMatch && entry.leagueTeamNames.isNotEmpty) {
+    if ((entry.isLeagueMatch || entry.isTournamentMatch) &&
+        entry.leagueTeamNames.isNotEmpty) {
       parts.add(entry.leagueTeamNames.take(3).join(', '));
     }
     if (entry.isLeagueMatch) {
-      if (entry.leagueResultMode == 'tournamentWins' &&
-          entry.tournamentWins != null) {
-        parts.add(l10n.matchTournamentWinsValue(entry.tournamentWins!));
-      } else if (entry.leaguePoints != null) {
+      if (entry.leaguePoints != null) {
         parts.add(l10n.matchLeaguePointsValue(entry.leaguePoints!));
       }
+    } else if (entry.isTournamentMatch && entry.tournamentWins != null) {
+      parts.add(l10n.matchTournamentWinsValue(entry.tournamentWins!));
     }
     final matchLocation = entry.effectiveMatchLocation.trim();
     if (matchLocation.isNotEmpty) {

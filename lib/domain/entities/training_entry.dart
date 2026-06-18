@@ -255,7 +255,11 @@ class TrainingEntry extends HiveObject {
       shotsOnTarget != null ||
       ballsWon != null;
 
-  bool get isLeagueMatch => matchKind == 'league';
+  bool get isTournamentMatch =>
+      matchKind == 'tournament' ||
+      (matchKind == 'league' && leagueResultMode == 'tournamentWins');
+
+  bool get isLeagueMatch => matchKind == 'league' && !isTournamentMatch;
 
   Map<String, int> get effectiveTrainingProgramMinutes {
     final normalized = _normalizeProgramMinutes(trainingProgramMinutes);

@@ -7983,6 +7983,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchKindLeague => '리그 경기';
 
   @override
+  String get matchKindTournament => '토너먼트';
+
+  @override
   String get matchOpponentTeamLabel => '상대 팀';
 
   @override
@@ -7993,6 +7996,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchLeagueTeamsHint => '한 줄에 한 팀씩 입력하거나 쉼표로 구분하세요';
+
+  @override
+  String get matchTournamentTeamsLabel => '토너먼트 팀';
+
+  @override
+  String get matchTournamentTeamsHint => '참가 팀을 한 줄에 한 팀씩 입력하거나 쉼표로 구분하세요';
 
   @override
   String get matchLeaguePointsMode => '승점';

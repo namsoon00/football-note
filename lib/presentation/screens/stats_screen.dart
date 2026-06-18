@@ -2013,8 +2013,12 @@ class _MatchSummaryCard extends StatelessWidget {
       0,
       (sum, entry) => sum + (entry.ballsWon ?? 0),
     );
-    final friendlyCount = entries.where((entry) => !entry.isLeagueMatch).length;
+    final friendlyCount = entries
+        .where((entry) => !entry.isLeagueMatch && !entry.isTournamentMatch)
+        .length;
     final leagueCount = entries.where((entry) => entry.isLeagueMatch).length;
+    final tournamentCount =
+        entries.where((entry) => entry.isTournamentMatch).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2038,9 +2042,8 @@ class _MatchSummaryCard extends StatelessWidget {
             ),
             _MetricCard(
               label: isKo ? '경기 유형' : 'Match type',
-              value: isKo
-                  ? '${l10n.matchKindFriendly} $friendlyCount · ${l10n.matchKindLeague} $leagueCount'
-                  : '${l10n.matchKindFriendly} $friendlyCount · ${l10n.matchKindLeague} $leagueCount',
+              value:
+                  '${l10n.matchKindFriendly} $friendlyCount · ${l10n.matchKindLeague} $leagueCount · ${l10n.matchKindTournament} $tournamentCount',
             ),
             _MetricCard(
               label: isKo ? '득실점' : 'Goals',
@@ -2110,7 +2113,7 @@ class _MatchHistoryTile extends StatelessWidget {
         isKo ? '${entry.minutesPlayed}분 출전' : '${entry.minutesPlayed} min',
       if (entry.isLeagueMatch && entry.leaguePoints != null)
         l10n.matchLeaguePointsValue(entry.leaguePoints!),
-      if (entry.isLeagueMatch && entry.tournamentWins != null)
+      if (entry.isTournamentMatch && entry.tournamentWins != null)
         l10n.matchTournamentWinsValue(entry.tournamentWins!),
     ].join(' · ');
     final leagueTeams = entry.leagueTeamNames.take(4).join(', ');
@@ -2132,7 +2135,7 @@ class _MatchHistoryTile extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${entry.isLeagueMatch ? l10n.matchKindLeague : l10n.matchKindFriendly} · $opponent',
+            '${_matchKindLabel(entry, l10n)} · $opponent',
             style: Theme.of(
               context,
             ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
@@ -2256,6 +2259,12 @@ class _InsightMiniCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _matchKindLabel(TrainingEntry entry, AppLocalizations l10n) {
+  if (entry.isTournamentMatch) return l10n.matchKindTournament;
+  if (entry.isLeagueMatch) return l10n.matchKindLeague;
+  return l10n.matchKindFriendly;
 }
 
 int _matchOutcome(TrainingEntry entry) {
