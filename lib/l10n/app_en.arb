@@ -384,19 +384,6 @@
   "worldCupPlayerProfilePositionLabel": "Position",
   "worldCupPlayerProfileClubLabel": "Club",
   "worldCupPlayerClubPending": "Club update pending",
-  "worldCupPlayerClubManageAction": "Manage club",
-  "worldCupPlayerClubEditTitle": "{player} club",
-  "@worldCupPlayerClubEditTitle": {
-    "placeholders": {
-      "player": {
-        "type": "String"
-      }
-    }
-  },
-  "worldCupPlayerClubInputLabel": "Club name",
-  "worldCupPlayerClubClearAction": "Clear club",
-  "worldCupPlayerClubSaved": "Player club saved.",
-  "worldCupPlayerClubCleared": "Player club cleared.",
   "worldCupPlayerProfileSourceNote": "A player face icon is shown when an official photo is unavailable.",
   "worldCupScorePending": "- : -",
   "worldCupScoreLine": "{homeScore} : {awayScore}",

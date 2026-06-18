@@ -259,7 +259,6 @@ class DriveBackupService implements BackupRepository {
     LeagueFixtureReminderService.favoriteTeamKeysKey,
     'world_cup_support_country_v1',
     'world_cup_interest_countries_v1',
-    'world_cup_player_club_overrides_v1',
   };
   static const List<String> _backedUpOptionKeyPrefixes = [
     'programs_',

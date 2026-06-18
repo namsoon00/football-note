@@ -26,6 +26,21 @@ void main() {
     );
   });
 
+  test('club lookup covers non-Korean managed roster players', () {
+    expect(
+      worldCupRosterClubForPlayer('Mexico', 'Santiago Gimenez'),
+      'AC Milan',
+    );
+    expect(
+      worldCupRosterClubForPlayer('Mexico', 'Raul Rangel'),
+      'Deportivo Guadalajara',
+    );
+    expect(
+      worldCupRosterClubForPlayer('Mexico', 'Cesar Huerta'),
+      'RSC Anderlecht',
+    );
+  });
+
   test('all scheduled World Cup countries have roster and formation data', () {
     for (final country in worldCupCountries()) {
       final roster = worldCupRosterPoolForTeam(country);

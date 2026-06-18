@@ -799,26 +799,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupPlayerClubPending => 'クラブ更新待ち';
 
   @override
-  String get worldCupPlayerClubManageAction => 'クラブを管理';
-
-  @override
-  String worldCupPlayerClubEditTitle(String player) {
-    return '$player のクラブ';
-  }
-
-  @override
-  String get worldCupPlayerClubInputLabel => 'クラブ名';
-
-  @override
-  String get worldCupPlayerClubClearAction => 'クラブを消去';
-
-  @override
-  String get worldCupPlayerClubSaved => '選手のクラブを保存しました。';
-
-  @override
-  String get worldCupPlayerClubCleared => '選手のクラブを消去しました。';
-
-  @override
   String get worldCupPlayerProfileSourceNote => '公式写真がない場合は、選手の顔アイコンを表示します。';
 
   @override
