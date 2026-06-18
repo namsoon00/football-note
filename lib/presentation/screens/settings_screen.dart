@@ -633,20 +633,19 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
           const SizedBox(height: 12),
           _buildSectionCard(
-            title: isKo ? '뉴스 필터' : 'News Filter',
+            title: l10n.settingsNewsFilterTitle,
             icon: Icons.filter_alt_outlined,
             children: [
               _buildOptionManagerTile(
-                title: isKo ? '광고 도메인 차단 목록' : 'Blocked ad domains',
-                subtitle:
-                    '${_newsBlockedDomains.length}${isKo ? '개 항목' : ' items'}',
+                title: l10n.settingsNewsBlockedDomainsTitle,
+                subtitle: l10n.settingsNewsBlockedDomainsCount(
+                  _newsBlockedDomains.length,
+                ),
                 onTap: parentSettingsReadOnly
                     ? null
                     : () => _manageStringOptions(
                           key: 'news_blocked_domains',
-                          title: isKo
-                              ? '광고 도메인 차단 목록 관리'
-                              : 'Manage blocked ad domains',
+                          title: l10n.settingsNewsBlockedDomainsManageTitle,
                           options: _newsBlockedDomains,
                           minKeep: 0,
                           sanitize: _normalizeDomain,
@@ -660,9 +659,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 child: Text(
                   parentSettingsReadOnly
                       ? l10n.parentReadOnlySettingsOptions
-                      : isKo
-                          ? '예시: example.com (프로토콜/경로 없이 도메인만 입력)'
-                          : 'Example: example.com (domain only, no path)',
+                      : l10n.settingsNewsBlockedDomainsExample,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),

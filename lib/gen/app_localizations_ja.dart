@@ -3310,6 +3310,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsGeneralSection => '一般設定';
 
   @override
+  String get settingsNewsFilterTitle => 'ニュースフィルター';
+
+  @override
+  String get settingsNewsBlockedDomainsTitle => '広告ドメインのブロックリスト';
+
+  @override
+  String settingsNewsBlockedDomainsCount(int count) {
+    return '$count件';
+  }
+
+  @override
+  String get settingsNewsBlockedDomainsManageTitle => '広告ドメインのブロックリストを管理';
+
+  @override
+  String get settingsNewsBlockedDomainsExample =>
+      '例: example.com (プロトコル/パスなしでドメインのみ入力)';
+
+  @override
   String get settingsApiUsageTitle => 'このアプリで使用するAPI';
 
   @override

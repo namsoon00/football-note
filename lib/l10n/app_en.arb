@@ -1802,6 +1802,18 @@
   "languageJapanese": "Japanese",
   "settings": "Settings",
   "settingsGeneralSection": "General",
+  "settingsNewsFilterTitle": "News Filter",
+  "settingsNewsBlockedDomainsTitle": "Blocked ad domains",
+  "settingsNewsBlockedDomainsCount": "{count} items",
+  "@settingsNewsBlockedDomainsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsNewsBlockedDomainsManageTitle": "Manage blocked ad domains",
+  "settingsNewsBlockedDomainsExample": "Example: example.com (domain only, no path)",
   "settingsApiUsageTitle": "APIs used in this app",
   "settingsApiUsageSubtitle": "This app uses the following public or consent-based APIs. Quotas can change by provider, so the app caches where possible and limits background refreshes.",
   "settingsApiTrafficLabel": "Traffic",

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -11,11 +11,10 @@ import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
+import 'package:football_note/domain/repositories/option_repository.dart';
+import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
-import 'package:football_note/infrastructure/hive_option_repository.dart';
-import 'package:football_note/infrastructure/hive_training_repository.dart';
 import 'package:football_note/presentation/screens/calendar_screen.dart';
-import 'package:hive/hive.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../helpers/test_asset_bundle.dart';
@@ -23,12 +22,10 @@ import '../helpers/test_asset_bundle.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late Directory tempDir;
-  late Box<TrainingEntry> trainingBox;
-  late Box optionBox;
+  late _MemoryTrainingRepository trainingRepository;
   late TrainingService trainingService;
   late MealLogService mealLogService;
-  late HiveOptionRepository optionRepository;
+  late _MemoryOptionRepository optionRepository;
   late LocaleService localeService;
   late SettingsService settingsService;
 
@@ -68,19 +65,29 @@ void main() {
     });
   }
 
-  setUpAll(() async {
-    tempDir = await Directory.systemTemp.createTemp('football_note_calendar');
-    Hive.init(tempDir.path);
-    Hive.registerAdapter(TrainingEntryAdapter());
-    trainingBox = await Hive.openBox<TrainingEntry>('training_entries');
-    optionBox = await Hive.openBox('options');
-  });
+  Future<void> saveTrainingEntry(
+    WidgetTester _,
+    TrainingEntry entry,
+  ) async {
+    await trainingService.add(entry);
+  }
+
+  Future<void> saveMealEntry(WidgetTester _, MealEntry entry) async {
+    await mealLogService.save(entry);
+  }
+
+  Future<void> setOptionValue(
+    WidgetTester _,
+    String key,
+    Object? value,
+  ) async {
+    await optionRepository.setValue(key, value);
+  }
 
   setUp(() async {
-    await trainingBox.clear();
-    await optionBox.clear();
-    trainingService = TrainingService(HiveTrainingRepository(trainingBox));
-    optionRepository = HiveOptionRepository(optionBox);
+    trainingRepository = _MemoryTrainingRepository();
+    trainingService = TrainingService(trainingRepository);
+    optionRepository = _MemoryOptionRepository();
     mealLogService = MealLogService(optionRepository);
     localeService = LocaleService(optionRepository)..load();
     settingsService = SettingsService(optionRepository)..load();
@@ -88,18 +95,13 @@ void main() {
 
   tearDown(() async {
     await mealLogService.dispose();
-  });
-
-  tearDownAll(() async {
-    await trainingBox.close();
-    await optionBox.close();
-    await Hive.close();
-    await tempDir.delete(recursive: true);
+    await trainingRepository.dispose();
   });
 
   testWidgets('기록이 있으면 캘린더를 접고 펼칠 수 있다', (tester) async {
     final today = DateTime.now();
-    await trainingService.add(
+    await saveTrainingEntry(
+      tester,
       TrainingEntry(
         date: DateTime(today.year, today.month, today.day, 7),
         durationMinutes: 45,
@@ -126,7 +128,7 @@ void main() {
   });
 
   testWidgets('기록이 없으면 저장된 상태와 무관하게 캘린더를 펼쳐둔다', (tester) async {
-    await optionRepository.setValue('calendar_expanded_v1', false);
+    await setOptionValue(tester, 'calendar_expanded_v1', false);
 
     await pumpCalendar(tester);
 
@@ -144,7 +146,8 @@ void main() {
 
   testWidgets('경기 기록은 승패와 상대 팀 결과를 캘린더 목록에 보여준다', (tester) async {
     final today = DateTime.now();
-    await trainingService.add(
+    await saveTrainingEntry(
+      tester,
       TrainingEntry(
         date: DateTime(today.year, today.month, today.day, 9),
         durationMinutes: 90,
@@ -170,7 +173,7 @@ void main() {
 
     await pumpCalendar(tester);
 
-    expect(find.text('승'), findsOneWidget);
+    expect(find.textContaining('승 · vs 라이벌 FC'), findsOneWidget);
     expect(find.textContaining('vs 라이벌 FC'), findsOneWidget);
     expect(find.textContaining('메인 구장'), findsOneWidget);
     expect(find.textContaining('결과 3:2'), findsOneWidget);
@@ -185,11 +188,13 @@ void main() {
   testWidgets('부모 모드에서도 캘린더 훈련 리스트 탭이 기록 화면으로 이어진다', (tester) async {
     final today = DateTime.now();
     TrainingEntry? editedEntry;
-    await optionRepository.setValue(
+    await setOptionValue(
+      tester,
       FamilyAccessService.currentRoleLocalKey,
       FamilyRole.parent.name,
     );
-    await trainingService.add(
+    await saveTrainingEntry(
+      tester,
       TrainingEntry(
         date: DateTime(today.year, today.month, today.day, 7),
         durationMinutes: 45,
@@ -220,11 +225,13 @@ void main() {
 
   testWidgets('부모 모드에서도 캘린더 시합 리스트 탭이 읽기 전용 화면을 연다', (tester) async {
     final today = DateTime.now();
-    await optionRepository.setValue(
+    await setOptionValue(
+      tester,
       FamilyAccessService.currentRoleLocalKey,
       FamilyRole.parent.name,
     );
-    await trainingService.add(
+    await saveTrainingEntry(
+      tester,
       TrainingEntry(
         date: DateTime(today.year, today.month, today.day, 9),
         durationMinutes: 90,
@@ -277,7 +284,8 @@ void main() {
 
   testWidgets('독립 식사 기록은 선택한 날짜 타임라인에 표시된다', (tester) async {
     final today = DateTime.now();
-    await mealLogService.save(
+    await saveMealEntry(
+      tester,
       MealEntry(
         date: DateTime(today.year, today.month, today.day),
         breakfastRiceBowls: 1,
@@ -298,16 +306,18 @@ void main() {
     expect(find.byTooltip('다이어리'), findsNothing);
   });
 
-  testWidgets('캘린더 범례가 기록 점과 계획 점 설명을 보여준다', (tester) async {
+  testWidgets('캘린더 상단 컨트롤이 기간 전환과 오늘 이동을 보여준다', (tester) async {
     await pumpCalendar(tester);
 
-    expect(find.text('훈련/시합 기록'), findsOneWidget);
-    expect(find.text('훈련 계획'), findsWidgets);
+    expect(find.text('2주'), findsOneWidget);
+    expect(find.text('1개월'), findsOneWidget);
+    expect(find.text('오늘'), findsOneWidget);
   });
 
   testWidgets('계획 마커는 유지하고 파란 마커는 시합이 있는 날에만 표시한다', (tester) async {
     final today = DateTime.now();
-    await trainingService.add(
+    await saveTrainingEntry(
+      tester,
       TrainingEntry(
         date: DateTime(today.year, today.month, today.day, 7),
         durationMinutes: 45,
@@ -319,7 +329,8 @@ void main() {
         location: '',
       ),
     );
-    await trainingService.add(
+    await saveTrainingEntry(
+      tester,
       TrainingEntry(
         date: DateTime(today.year, today.month, today.day, 18),
         durationMinutes: 90,
@@ -335,7 +346,8 @@ void main() {
         matchLocation: '주 경기장',
       ),
     );
-    await optionRepository.setValue(
+    await setOptionValue(
+      tester,
       'training_plans_v1',
       jsonEncode([
         {
@@ -379,13 +391,14 @@ void main() {
     );
     expect(
       find.byKey(ValueKey('calendar_day_training_marker_${today.day}')),
-      findsNothing,
+      findsOneWidget,
     );
   });
 
   testWidgets('훈련 기록만 있는 날에는 파란 마커를 표시하지 않는다', (tester) async {
     final today = DateTime.now();
-    await trainingService.add(
+    await saveTrainingEntry(
+      tester,
       TrainingEntry(
         date: DateTime(today.year, today.month, today.day, 7),
         durationMinutes: 45,
@@ -409,4 +422,160 @@ void main() {
       findsOneWidget,
     );
   });
+}
+
+class _MemoryOptionRepository implements OptionRepository {
+  final Map<String, dynamic> _values = <String, dynamic>{};
+
+  @override
+  List<String> getOptions(String key, List<String> defaults) {
+    final value = _values[key];
+    return value is List<String>
+        ? List<String>.of(value)
+        : List<String>.of(defaults);
+  }
+
+  @override
+  List<int> getIntOptions(String key, List<int> defaults) {
+    final value = _values[key];
+    return value is List<int> ? List<int>.of(value) : List<int>.of(defaults);
+  }
+
+  @override
+  T? getValue<T>(String key) => _values[key] as T?;
+
+  @override
+  Future<void> saveOptions(String key, List<dynamic> options) async {
+    _values[key] = options;
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    _values[key] = value;
+  }
+}
+
+class _MemoryTrainingRepository implements TrainingRepository {
+  final List<TrainingEntry> _entries = <TrainingEntry>[];
+  final StreamController<List<TrainingEntry>> _controller =
+      StreamController<List<TrainingEntry>>.broadcast();
+
+  Future<void> dispose() => _controller.close();
+
+  @override
+  Future<void> add(TrainingEntry entry) async {
+    _entries.add(entry);
+    _emit();
+  }
+
+  @override
+  Future<void> delete(TrainingEntry entry) async {
+    _entries.remove(entry);
+    _emit();
+  }
+
+  @override
+  Future<List<TrainingEntry>> getAll() async =>
+      List<TrainingEntry>.of(_entries);
+
+  @override
+  Future<List<TrainingEntry>> getRange(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) async =>
+      _rangeEntries(startInclusive, endExclusive);
+
+  @override
+  Future<List<TrainingEntry>> getRecent({
+    required int limit,
+    bool includeMatches = true,
+    String? sportId,
+  }) async =>
+      _recentEntries(
+        limit: limit,
+        includeMatches: includeMatches,
+        sportId: sportId,
+      );
+
+  @override
+  Future<void> update(int key, TrainingEntry entry) async {
+    if (key < 0 || key >= _entries.length) return;
+    _entries[key] = entry;
+    _emit();
+  }
+
+  @override
+  Stream<List<TrainingEntry>> watchAll() async* {
+    yield List<TrainingEntry>.of(_entries);
+    yield* _controller.stream.map((_) => List<TrainingEntry>.of(_entries));
+  }
+
+  @override
+  Stream<List<TrainingEntry>> watchRange(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) async* {
+    yield _rangeEntries(startInclusive, endExclusive);
+    yield* _controller.stream.map(
+      (_) => _rangeEntries(startInclusive, endExclusive),
+    );
+  }
+
+  @override
+  Stream<List<TrainingEntry>> watchRecent({
+    required int limit,
+    bool includeMatches = true,
+    String? sportId,
+  }) async* {
+    yield _recentEntries(
+      limit: limit,
+      includeMatches: includeMatches,
+      sportId: sportId,
+    );
+    yield* _controller.stream.map(
+      (_) => _recentEntries(
+        limit: limit,
+        includeMatches: includeMatches,
+        sportId: sportId,
+      ),
+    );
+  }
+
+  void _emit() {
+    if (!_controller.isClosed) {
+      _controller.add(List<TrainingEntry>.unmodifiable(_entries));
+    }
+  }
+
+  List<TrainingEntry> _rangeEntries(
+    DateTime startInclusive,
+    DateTime endExclusive,
+  ) {
+    return _entries
+        .where(
+          (entry) =>
+              !entry.date.isBefore(startInclusive) &&
+              entry.date.isBefore(endExclusive),
+        )
+        .toList(growable: false)
+      ..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  List<TrainingEntry> _recentEntries({
+    required int limit,
+    required bool includeMatches,
+    String? sportId,
+  }) {
+    if (limit <= 0) return const <TrainingEntry>[];
+    final entries = _entries
+        .where(
+          (entry) =>
+              (sportId == null || entry.sportId == sportId) &&
+              (includeMatches || !entry.isMatch),
+        )
+        .toList(growable: false)
+      ..sort(TrainingEntry.compareByRecentCreated);
+    if (entries.length <= limit) return entries;
+    return entries.take(limit).toList(growable: false);
+  }
 }

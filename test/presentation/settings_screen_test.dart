@@ -569,7 +569,7 @@ void main() {
     final backupButton = find.widgetWithText(OutlinedButton, '데이터 백업하기');
     final remoteRestoreButton = find.widgetWithText(
       OutlinedButton,
-      '최근 데이터 가져오기',
+      '이 계정 백업 가져오기',
     );
     final localRestoreButton = find.widgetWithText(
       OutlinedButton,
@@ -915,11 +915,14 @@ void main() {
 
       await tester.tap(find.widgetWithText(OutlinedButton, '이 계정 백업 가져오기'));
       await tester.pumpAndSettle();
+      expect(find.text('연결된 계정의 데이터를 사용할까요?'), findsOneWidget);
       await tester.tap(find.widgetWithText(FilledButton, '이 계정 백업 가져오기'));
       await tester.pump();
       await tester.pumpAndSettle();
 
       expect(backupService.importChangedPlayerDriveBackupCalled, isTrue);
+      expect(
+          backupService.getSavedRecordDriveEmail(), 'new-player@example.com');
     },
   );
 
@@ -1188,6 +1191,12 @@ class _FakeDriveBackupService extends BackupService {
   }
 
   @override
+  Future<bool> startChangedPlayerDriveWithEmptyData() async {
+    await rememberRecordDriveConnection();
+    return true;
+  }
+
+  @override
   String getSavedRecordDriveEmail() => _savedRecordDriveEmail;
 
   @override
@@ -1313,6 +1322,7 @@ class _FakeDriveBackupService extends BackupService {
   @override
   Future<bool> importChangedPlayerDriveBackup() async {
     importChangedPlayerDriveBackupCalled = true;
+    await rememberRecordDriveConnection();
     return true;
   }
 

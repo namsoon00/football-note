@@ -3302,6 +3302,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsGeneralSection => '일반 설정';
 
   @override
+  String get settingsNewsFilterTitle => '뉴스 필터';
+
+  @override
+  String get settingsNewsBlockedDomainsTitle => '광고 도메인 차단 목록';
+
+  @override
+  String settingsNewsBlockedDomainsCount(int count) {
+    return '$count개 항목';
+  }
+
+  @override
+  String get settingsNewsBlockedDomainsManageTitle => '광고 도메인 차단 목록 관리';
+
+  @override
+  String get settingsNewsBlockedDomainsExample =>
+      '예시: example.com (프로토콜/경로 없이 도메인만 입력)';
+
+  @override
   String get settingsApiUsageTitle => '앱에서 사용하는 API';
 
   @override

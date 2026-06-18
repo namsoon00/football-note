@@ -787,7 +787,9 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       feedbackText: feedbackText,
       details: details,
     );
-    debugPrint('[SprintLiveSession] ${jsonEncode(payload)}');
+    if (kDebugMode) {
+      debugPrint('[SprintLiveSession] ${jsonEncode(payload)}');
+    }
     if (event == 'periodic') {
       _lastMetricsLoggedAt = timestamp;
     }

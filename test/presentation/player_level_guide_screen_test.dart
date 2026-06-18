@@ -34,8 +34,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('입력').first);
-    await tester.pumpAndSettle();
+    await _tapVisibleRewardEdit(tester);
 
     final cancelY = tester.getTopLeft(find.text('취소')).dy;
     final clearY = tester.getTopLeft(find.text('삭제')).dy;
@@ -133,7 +132,7 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: PlayerLevelGuideScreen(
-          currentLevel: 2,
+          currentLevel: 1,
           optionRepository: repository,
         ),
       ),
@@ -147,6 +146,8 @@ void main() {
     expect(find.text('입력').first, findsOneWidget);
     expect(find.text('선수 모드에서 수령'), findsOneWidget);
 
+    await tester.ensureVisible(find.byTooltip('모드 설명 보기'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('모드 설명 보기'));
     await tester.pumpAndSettle();
 
@@ -172,7 +173,7 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: PlayerLevelGuideScreen(
-          currentLevel: 2,
+          currentLevel: 1,
           optionRepository: repository,
           driveBackupService: BackupService(
             _DelayedBackupRepository(
@@ -184,8 +185,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('입력').first);
-    await tester.pumpAndSettle();
+    await _tapVisibleRewardEdit(tester);
     await tester.enterText(find.byType(TextField).first, '새 축구공');
     await tester.tap(find.widgetWithText(FilledButton, '저장'));
     await tester.pump();
@@ -198,6 +198,13 @@ void main() {
 
     expect(find.text('동기화 중...'), findsNothing);
   });
+}
+
+Future<void> _tapVisibleRewardEdit(WidgetTester tester) async {
+  final editAction = find.text('입력').hitTestable();
+  expect(editAction, findsWidgets);
+  await tester.tap(editAction.first);
+  await tester.pumpAndSettle();
 }
 
 class _MemoryOptionRepository implements OptionRepository {

@@ -6163,6 +6163,36 @@ abstract class AppLocalizations {
   /// **'General'**
   String get settingsGeneralSection;
 
+  /// No description provided for @settingsNewsFilterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'News Filter'**
+  String get settingsNewsFilterTitle;
+
+  /// No description provided for @settingsNewsBlockedDomainsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked ad domains'**
+  String get settingsNewsBlockedDomainsTitle;
+
+  /// No description provided for @settingsNewsBlockedDomainsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String settingsNewsBlockedDomainsCount(int count);
+
+  /// No description provided for @settingsNewsBlockedDomainsManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage blocked ad domains'**
+  String get settingsNewsBlockedDomainsManageTitle;
+
+  /// No description provided for @settingsNewsBlockedDomainsExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: example.com (domain only, no path)'**
+  String get settingsNewsBlockedDomainsExample;
+
   /// No description provided for @settingsApiUsageTitle.
   ///
   /// In en, this message translates to:
