@@ -1879,32 +1879,29 @@ class _FixtureTeamBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final children = <Widget>[
-      Flexible(
-        child: _TappableCountryLabel(
-          country: team,
-          textAlign: alignEnd ? TextAlign.right : TextAlign.left,
-          onTap: onTap,
-        ),
-      ),
-      if (result != WorldCupFixtureTeamResult.scheduled) ...[
-        const SizedBox(width: 6),
+    final teamStatusSummary = _teamStatusSummary(l10n);
+    final metaPills = <Widget>[
+      if (result != WorldCupFixtureTeamResult.scheduled)
         _FixtureResultPill(result: result, label: _resultLabel(l10n, result)),
-      ],
+      if (ranking != null)
+        _SmallPill(label: _fifaRankingCompactLabel(l10n, ranking!)),
     ];
     return Column(
       crossAxisAlignment:
           alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment:
-              alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
-          children: alignEnd ? children.reversed.toList() : children,
+        SizedBox(
+          width: double.infinity,
+          child: _TappableCountryLabel(
+            country: team,
+            textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+            onTap: onTap,
+          ),
         ),
-        if (_teamStatusSummary(l10n).isNotEmpty) ...[
+        if (teamStatusSummary.isNotEmpty) ...[
           const SizedBox(height: 3),
           Text(
-            _teamStatusSummary(l10n),
+            teamStatusSummary,
             textAlign: alignEnd ? TextAlign.right : TextAlign.left,
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
@@ -1912,9 +1909,17 @@ class _FixtureTeamBlock extends StatelessWidget {
             ),
           ),
         ],
-        if (ranking != null) ...[
-          const SizedBox(height: 4),
-          _SmallPill(label: _fifaRankingCompactLabel(l10n, ranking!)),
+        if (metaPills.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              alignment: alignEnd ? WrapAlignment.end : WrapAlignment.start,
+              children: metaPills,
+            ),
+          ),
         ],
       ],
     );
