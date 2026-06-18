@@ -35,10 +35,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => '記録がなければ、運動も言葉だけで終わります';
+  String get welcomeGuideTitle => '今日記録すれば、がんばりが見えます';
 
   @override
-  String get welcomeGuideIntro => '競技は問いません。やったと言うだけでなく、記録で見せましょう。';
+  String get welcomeGuideIntro => '競技は問いません。短く一行でも十分です。小さく始めれば大丈夫です。';
 
   @override
   String get welcomeGuidePrimaryAction => '記録を始める';
@@ -47,7 +47,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeGuideSectionFlow => 'やること';
 
   @override
-  String get welcomeGuideNextTabHint => '3枚だけ進めてください。その後はボタンを押してすぐ記録できます。';
+  String get welcomeGuideNextTabHint =>
+      '3枚だけ進めれば大丈夫です。その後はボタンを押して、ひとつ記録してみましょう。';
 
   @override
   String get welcomeGuidePreviewLabel => '今選ぶアクション';
@@ -56,16 +57,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeGuideCoachMarkLabel => 'ここをタップ';
 
   @override
-  String get welcomeSlideGemTitle => '空白の日は宝石になりません';
+  String get welcomeSlideGemTitle => '小さな記録もきらきら積み上がります';
 
   @override
-  String get welcomeSlideGemBody => '記録した分だけ積み上がります。空白は成長ではなく、ただの空白です。';
+  String get welcomeSlideGemBody => '少しでも大丈夫です。残した分だけ育って、次はもっとよくできます。';
 
   @override
-  String get welcomeSlideFlameTitle => '今日抜けば、明日も弱くなります';
+  String get welcomeSlideFlameTitle => '今日ひとつできれば、明日はもっと楽になります';
 
   @override
-  String get welcomeSlideFlameBody => '火がついているうちに記録しましょう。冷めた流れを温め直す方が高くつきます。';
+  String get welcomeSlideFlameBody => '小さな火でも大丈夫です。今記録すれば流れが続きます。きっとできます。';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {
