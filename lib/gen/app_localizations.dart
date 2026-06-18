@@ -14704,6 +14704,36 @@ abstract class AppLocalizations {
   /// **'Add at least two routes to chain them.'**
   String get trainingSketchLinkRoutesNeedTwoSnack;
 
+  /// No description provided for @trainingSketchCreatedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sketch created.'**
+  String get trainingSketchCreatedSnack;
+
+  /// No description provided for @trainingSketchSavedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sketch saved.'**
+  String get trainingSketchSavedSnack;
+
+  /// No description provided for @trainingSketchPreviousCopiedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous sketch copied.'**
+  String get trainingSketchPreviousCopiedSnack;
+
+  /// No description provided for @trainingSketchDuplicatedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Sketch duplicated.'**
+  String get trainingSketchDuplicatedSnack;
+
+  /// No description provided for @trainingSketchCopiedFromAnotherSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Sketch copied from another one.'**
+  String get trainingSketchCopiedFromAnotherSnack;
+
   /// No description provided for @trainingSketchAutoStagesButton.
   ///
   /// In en, this message translates to:

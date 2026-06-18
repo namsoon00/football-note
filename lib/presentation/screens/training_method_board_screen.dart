@@ -469,16 +469,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       created: true,
     );
     await _presentBoardXpAward(award, isKo: isKo);
-    if (!mounted || award.gainedXp <= 0) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isKo
-              ? '훈련 스케치를 만들었어요. +${award.gainedXp} XP'
-              : 'Training sketch created. +${award.gainedXp} XP',
-        ),
-      ),
-    );
   }
 
   String _serialize() {
@@ -1172,14 +1162,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _lastSavedLayout = serialized;
     });
     if (!mounted) return true;
-    if (showFeedback) {
+    if (showFeedback && (boardAward?.gainedXp ?? 0) <= 0) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            isKo
-                ? '훈련 스케치를 저장했습니다.${(boardAward?.gainedXp ?? 0) > 0 ? ' +${boardAward!.gainedXp} XP' : ''}'
-                : 'Training sketch saved.${(boardAward?.gainedXp ?? 0) > 0 ? ' +${boardAward!.gainedXp} XP' : ''}',
-          ),
+          content: Text(l10n.trainingSketchSavedSnack),
         ),
       );
     }
@@ -1586,14 +1573,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       created: true,
     );
     await _presentBoardXpAward(award, isKo: isKo);
-    if (!mounted) return;
+    if (!mounted || award.gainedXp > 0) return;
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          isKo
-              ? '다른 스케치를 복사해 추가했습니다.${award.gainedXp > 0 ? ' +${award.gainedXp} XP' : ''}'
-              : 'Sketch copied from another one.${award.gainedXp > 0 ? ' +${award.gainedXp} XP' : ''}',
-        ),
+        content: Text(l10n.trainingSketchCopiedFromAnotherSnack),
       ),
     );
   }

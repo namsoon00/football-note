@@ -1876,13 +1876,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
           sourceLabel: isKo ? '훈련 계획' : 'Training plan',
         );
       }
-      if (!mounted || award.gainedXp <= 0) return;
-      AppFeedback.showSuccess(
-        context,
-        text: isKo
-            ? '훈련 계획 ${saved.plans.length}개 저장 +${award.gainedXp} XP'
-            : 'Saved ${saved.plans.length} plans +${award.gainedXp} XP',
-      );
     }
   }
 
@@ -2415,11 +2408,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         isKo: isKo,
       );
     }
-    if (!mounted) return;
-    AppFeedback.showSuccess(
-      context,
-      text: l10n.matchSavedWithXpFeedback(award.gainedXp),
-    );
   }
 
   List<String> _matchOpponentOptions(List<TrainingEntry> entries) {

@@ -8476,6 +8476,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add at least two routes to chain them.';
 
   @override
+  String get trainingSketchCreatedSnack => 'Training sketch created.';
+
+  @override
+  String get trainingSketchSavedSnack => 'Training sketch saved.';
+
+  @override
+  String get trainingSketchPreviousCopiedSnack => 'Previous sketch copied.';
+
+  @override
+  String get trainingSketchDuplicatedSnack => 'Sketch duplicated.';
+
+  @override
+  String get trainingSketchCopiedFromAnotherSnack =>
+      'Sketch copied from another one.';
+
+  @override
   String get trainingSketchAutoStagesButton => 'Auto stages';
 
   @override
