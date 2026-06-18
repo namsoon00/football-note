@@ -291,6 +291,49 @@ void main() {
     expect(find.textContaining('Mexico'), findsNothing);
   });
 
+  testWidgets('narrow fixture rows keep teams on the same line', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          initialSelectedDay: worldCupFixtures.first.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    for (var attempt = 0; attempt < 6; attempt += 1) {
+      final homeVisible =
+          find.text('🇲🇽 멕시코').hitTestable().evaluate().isNotEmpty;
+      final awayVisible =
+          find.text('🇿🇦 남아프리카공화국').hitTestable().evaluate().isNotEmpty;
+      if (homeVisible && awayVisible) {
+        break;
+      }
+      await tester.drag(scrollable, const Offset(0, -240));
+      await tester.pumpAndSettle();
+    }
+
+    final homeTop =
+        tester.getTopLeft(find.text('🇲🇽 멕시코').hitTestable().first).dy;
+    final awayTop =
+        tester.getTopLeft(find.text('🇿🇦 남아프리카공화국').hitTestable().first).dy;
+
+    expect((homeTop - awayTop).abs(), lessThan(2));
+  });
+
   testWidgets('fixture team blocks show FIFA ranking and keep live status', (
     tester,
   ) async {

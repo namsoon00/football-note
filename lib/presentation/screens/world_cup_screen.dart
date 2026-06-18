@@ -1766,7 +1766,7 @@ class _FixtureRow extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           LayoutBuilder(
-            builder: (context, constraints) {
+            builder: (context, _) {
               final homeBlock = _FixtureTeamBlock(
                 team: fixture.homeTeam,
                 result: homeResult,
@@ -1788,18 +1788,6 @@ class _FixtureRow extends StatelessWidget {
                 alignEnd: true,
                 onTap: () => onTeamTap(fixture.awayTeam),
               );
-              if (constraints.maxWidth < 380) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    homeBlock,
-                    const SizedBox(height: 8),
-                    Center(child: scoreBoard),
-                    const SizedBox(height: 8),
-                    awayBlock,
-                  ],
-                );
-              }
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2089,7 +2077,7 @@ class _WorldCupFixtureDetailSheetState
                 border: Border.all(color: theme.colorScheme.outlineVariant),
               ),
               child: LayoutBuilder(
-                builder: (context, constraints) {
+                builder: (context, _) {
                   final scoreColumn = Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -2106,21 +2094,6 @@ class _WorldCupFixtureDetailSheetState
                       _SmallPill(label: _runtimeStatusLabel(l10n, status)),
                     ],
                   );
-                  if (constraints.maxWidth < 380) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _CountryLabel(country: fixture.homeTeam),
-                        const SizedBox(height: 10),
-                        Center(child: scoreColumn),
-                        const SizedBox(height: 10),
-                        Align(
-                          alignment: AlignmentDirectional.centerEnd,
-                          child: _CountryLabel(country: fixture.awayTeam),
-                        ),
-                      ],
-                    );
-                  }
                   return Row(
                     children: [
                       Expanded(child: _CountryLabel(country: fixture.homeTeam)),
@@ -2129,9 +2102,9 @@ class _WorldCupFixtureDetailSheetState
                         child: scoreColumn,
                       ),
                       Expanded(
-                        child: Align(
-                          alignment: AlignmentDirectional.centerEnd,
-                          child: _CountryLabel(country: fixture.awayTeam),
+                        child: _CountryLabel(
+                          country: fixture.awayTeam,
+                          textAlign: TextAlign.right,
                         ),
                       ),
                     ],
@@ -2146,7 +2119,7 @@ class _WorldCupFixtureDetailSheetState
             ),
             const SizedBox(height: 10),
             LayoutBuilder(
-              builder: (context, constraints) {
+              builder: (context, _) {
                 final homeCard = _WorldCupComparisonCard(
                   team: fixture.homeTeam,
                   result: _fixtureResultForRuntimeStatus(
@@ -2165,15 +2138,6 @@ class _WorldCupFixtureDetailSheetState
                   ),
                   status: status,
                 );
-                if (constraints.maxWidth < 430) {
-                  return Column(
-                    children: [
-                      homeCard,
-                      const SizedBox(height: 10),
-                      awayCard,
-                    ],
-                  );
-                }
                 return Row(
                   children: [
                     Expanded(child: homeCard),
