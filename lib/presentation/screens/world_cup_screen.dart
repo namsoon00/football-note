@@ -982,11 +982,15 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                       padding: const EdgeInsetsDirectional.only(
                         end: pageEndPadding,
                       ),
-                      child: SingleChildScrollView(
-                        physics: const NeverScrollableScrollPhysics(),
-                        child: _buildSelectedDayMatchPage(
-                          context,
-                          _dayForPageIndex(index),
+                      child: ClipRect(
+                        child: OverflowBox(
+                          alignment: Alignment.topCenter,
+                          minHeight: 0,
+                          maxHeight: double.infinity,
+                          child: _buildSelectedDayMatchPage(
+                            context,
+                            _dayForPageIndex(index),
+                          ),
                         ),
                       ),
                     );
