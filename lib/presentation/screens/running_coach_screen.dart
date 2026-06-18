@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../application/running_coach_history_service.dart';
 import '../../application/running_coaching_service.dart';
@@ -1616,6 +1618,10 @@ String _formatRunningDuration(Duration duration) {
 
 const int _sampleTimelineFrameCount = 24;
 const Duration _sampleVideoLoopDuration = Duration(milliseconds: 2200);
+const String _sampleReferenceVideoAsset =
+    'assets/videos/running_coach_reference_sample.mp4';
+const String _sampleMistakeVideoAsset =
+    'assets/videos/running_coach_mistake_sample.mp4';
 
 enum _SampleVideoMode { reference, mistake }
 
@@ -2090,6 +2096,8 @@ class _SampleVideoFrame extends StatefulWidget {
 class _SampleVideoFrameState extends State<_SampleVideoFrame>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  VideoPlayerController? _videoController;
+  bool _isVideoReady = false;
 
   @override
   void initState() {
@@ -2098,12 +2106,45 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
       vsync: this,
       duration: _sampleVideoLoopDuration,
     )..repeat();
+    _loadVideo();
+  }
+
+  @override
+  void didUpdateWidget(covariant _SampleVideoFrame oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mode != widget.mode) {
+      _loadVideo();
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _videoController?.dispose();
     super.dispose();
+  }
+
+  void _loadVideo() {
+    final previousController = _videoController;
+    _videoController = null;
+    _isVideoReady = false;
+    unawaited(previousController?.dispose());
+
+    final asset = widget.mode == _SampleVideoMode.mistake
+        ? _sampleMistakeVideoAsset
+        : _sampleReferenceVideoAsset;
+    final controller = VideoPlayerController.asset(asset);
+    _videoController = controller;
+    controller.initialize().then((_) async {
+      await controller.setLooping(true);
+      await controller.setVolume(0);
+      await controller.play();
+      if (!mounted || _videoController != controller) return;
+      setState(() => _isVideoReady = true);
+    }).catchError((Object _) {
+      if (!mounted || _videoController != controller) return;
+      setState(() => _isVideoReady = false);
+    });
   }
 
   @override
@@ -2124,9 +2165,10 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
     final fourthOverlay = isMistake
         ? l10n.runningCoachSampleMistakeOverlayBounce
         : l10n.runningCoachSampleOverlayFrames;
+    final videoController = _videoController;
     return AspectRatio(
       key: const ValueKey('running-coach-sample-video-frame'),
-      aspectRatio: 16 / 7,
+      aspectRatio: 16 / 9,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
         child: DecoratedBox(
@@ -2137,22 +2179,33 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
           child: Stack(
             children: [
               Positioned.fill(
-                child: AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, _) => CustomPaint(
-                    painter: _SampleRunnerPainter(
-                      progress: _controller.value,
-                      lineColor: runnerColor,
-                      trackColor: scheme.outlineVariant,
-                      ghostColor: runnerColor.withValues(alpha: 0.18),
-                      frameColor: scheme.tertiary,
-                      markerColor: scheme.secondary,
-                      poseVariant: isMistake
-                          ? SampleRunnerPoseVariant.mistake
-                          : SampleRunnerPoseVariant.reference,
-                    ),
-                  ),
-                ),
+                child: _isVideoReady &&
+                        videoController != null &&
+                        videoController.value.isInitialized
+                    ? FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: videoController.value.size.width,
+                          height: videoController.value.size.height,
+                          child: VideoPlayer(videoController),
+                        ),
+                      )
+                    : AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, _) => CustomPaint(
+                          painter: _SampleRunnerPainter(
+                            progress: _controller.value,
+                            lineColor: runnerColor,
+                            trackColor: scheme.outlineVariant,
+                            ghostColor: runnerColor.withValues(alpha: 0.18),
+                            frameColor: scheme.tertiary,
+                            markerColor: scheme.secondary,
+                            poseVariant: isMistake
+                                ? SampleRunnerPoseVariant.mistake
+                                : SampleRunnerPoseVariant.reference,
+                          ),
+                        ),
+                      ),
               ),
               Positioned(
                 left: 12,
