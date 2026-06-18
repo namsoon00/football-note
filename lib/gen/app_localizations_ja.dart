@@ -5174,22 +5174,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSectionAnalysis => '分析';
 
   @override
-  String get runningCoachTodayPlanTitle => '今日はこの順番で進めます';
+  String get runningCoachTodayPlanTitle => '今日のセッションプラン';
 
   @override
-  String get runningCoachTodayPlanMissionTitle => 'スプリントミッションを走る';
+  String get runningCoachTodayPlanMissionTitle => 'メインスプリントブロック';
 
   @override
   String get runningCoachTodayPlanMissionBody => '下のミッションから始めます。鋭い3本で十分です。';
 
   @override
-  String get runningCoachTodayPlanRecordTitle => '一番よいタイムを保存';
+  String get runningCoachTodayPlanRecordTitle => 'パフォーマンス記録';
 
   @override
   String get runningCoachTodayPlanRecordBody => '走った後は記録画面へ移動し、最速の1本だけ入力します。';
 
   @override
-  String get runningCoachTodayPlanAnalysisTitle => '違和感があればフォーム確認';
+  String get runningCoachTodayPlanAnalysisTitle => 'フォーム確認のトリガー';
 
   @override
   String get runningCoachTodayPlanAnalysisBody =>
@@ -5202,7 +5202,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachTodayPlanAnalysisAction => '分析へ移動';
 
   @override
-  String get runningCoachRecordsPlanTitle => '記録の残し方';
+  String get runningCoachRecordsPlanTitle => 'タイム記録プロトコル';
 
   @override
   String get runningCoachRecordsPlanDistanceTitle => '距離を選ぶ';
@@ -5226,7 +5226,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '保存したタイムは前回のベストと比べられ、次の目標がはっきりします。';
 
   @override
-  String get runningCoachAnalysisPlanTitle => 'フォーム分析の進め方';
+  String get runningCoachAnalysisPlanTitle => '動画分析プロトコル';
 
   @override
   String get runningCoachAnalysisPlanRecordTitle => '横から撮影';
@@ -5247,6 +5247,35 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachAnalysisPlanAnalyzeBody =>
       '動画を選んで分析し、最初の重点ポイントから取り組みます。';
+
+  @override
+  String get runningCoachControlPanelTitle => 'コーチチェックポイント';
+
+  @override
+  String get runningCoachControlPanelLoadLabel => '負荷';
+
+  @override
+  String get runningCoachControlPanelLoadValue => '質の高い3本';
+
+  @override
+  String get runningCoachControlPanelDistanceLabel => '距離';
+
+  @override
+  String runningCoachControlPanelDistanceValue(int meters) {
+    return '${meters}m集中';
+  }
+
+  @override
+  String get runningCoachControlPanelRecordLabel => '記録';
+
+  @override
+  String get runningCoachControlPanelRecordValue => 'ベスト1本だけ';
+
+  @override
+  String get runningCoachControlPanelReviewLabel => 'レビュー';
+
+  @override
+  String get runningCoachControlPanelReviewValue => '必要時に横映像';
 
   @override
   String get runningCoachMissionCardTitle => '今日のスピードミッション';

@@ -5328,25 +5328,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSectionAnalysis => 'Analysis';
 
   @override
-  String get runningCoachTodayPlanTitle => 'What to do today';
+  String get runningCoachTodayPlanTitle => 'Session plan';
 
   @override
-  String get runningCoachTodayPlanMissionTitle => 'Run the sprint mission';
+  String get runningCoachTodayPlanMissionTitle => 'Primary sprint block';
 
   @override
   String get runningCoachTodayPlanMissionBody =>
       'Start with the mission below. Three sharp attempts are enough.';
 
   @override
-  String get runningCoachTodayPlanRecordTitle => 'Save the best time';
+  String get runningCoachTodayPlanRecordTitle => 'Performance log';
 
   @override
   String get runningCoachTodayPlanRecordBody =>
       'After running, move to Records and enter only the fastest attempt.';
 
   @override
-  String get runningCoachTodayPlanAnalysisTitle =>
-      'Check form when it feels off';
+  String get runningCoachTodayPlanAnalysisTitle => 'Form review trigger';
 
   @override
   String get runningCoachTodayPlanAnalysisBody =>
@@ -5359,7 +5358,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachTodayPlanAnalysisAction => 'Go to analysis';
 
   @override
-  String get runningCoachRecordsPlanTitle => 'How to log a run';
+  String get runningCoachRecordsPlanTitle => 'Timing protocol';
 
   @override
   String get runningCoachRecordsPlanDistanceTitle => 'Choose the distance';
@@ -5383,7 +5382,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The app compares the saved time with the previous best so the next target is clear.';
 
   @override
-  String get runningCoachAnalysisPlanTitle => 'How to analyze form';
+  String get runningCoachAnalysisPlanTitle => 'Video analysis protocol';
 
   @override
   String get runningCoachAnalysisPlanRecordTitle => 'Record a side view';
@@ -5405,6 +5404,35 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachAnalysisPlanAnalyzeBody =>
       'Choose the video, run analysis, then start with the first focus cue.';
+
+  @override
+  String get runningCoachControlPanelTitle => 'Coach checkpoint';
+
+  @override
+  String get runningCoachControlPanelLoadLabel => 'Load';
+
+  @override
+  String get runningCoachControlPanelLoadValue => '3 quality reps';
+
+  @override
+  String get runningCoachControlPanelDistanceLabel => 'Distance';
+
+  @override
+  String runningCoachControlPanelDistanceValue(int meters) {
+    return '${meters}m focus';
+  }
+
+  @override
+  String get runningCoachControlPanelRecordLabel => 'Log';
+
+  @override
+  String get runningCoachControlPanelRecordValue => 'Best attempt only';
+
+  @override
+  String get runningCoachControlPanelReviewLabel => 'Review';
+
+  @override
+  String get runningCoachControlPanelReviewValue => 'Side-view if needed';
 
   @override
   String get runningCoachMissionCardTitle => 'Today\'s speed mission';
