@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:football_note/application/family_access_service.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/skill_quiz_screen.dart';
@@ -72,6 +73,88 @@ void main() {
       expect(find.textContaining('1970년까지'), findsWidgets);
     },
   );
+
+  testWidgets('quiz library includes advanced football history items', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '보스만 판결');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('보스만 판결'), findsWidgets);
+
+    await tester.enterText(find.byType(TextField), '토털 풋볼');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('토털 풋볼'), findsWidgets);
+
+    await tester.enterText(find.byType(TextField), '리스본 라이언스');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('리스본 라이언스'), findsWidgets);
+  });
+
+  testWidgets('quiz library includes advanced sport-specific question sets', (
+    WidgetTester tester,
+  ) async {
+    Future<void> openLibraryForSport(String sportId) async {
+      final repository = _MemoryOptionRepository()
+        ..seed(SportCatalog.currentSportOptionKey, sportId);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SkillQuizScreen(optionRepository: repository),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+      await tester.pumpAndSettle();
+    }
+
+    await openLibraryForSport(SportCatalog.baseballId);
+    await tester.enterText(find.byType(TextField), '터널링');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('터널링'), findsWidgets);
+    await tester.enterText(find.byType(TextField), 'WHIP');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('WHIP'), findsWidgets);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    await openLibraryForSport(SportCatalog.basketballId);
+    await tester.enterText(find.byType(TextField), '스페인 픽앤롤');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('스페인 픽앤롤'), findsWidgets);
+    await tester.enterText(find.byType(TextField), '네일');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('네일'), findsWidgets);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    await openLibraryForSport(SportCatalog.tennisId);
+    await tester.enterText(find.byType(TextField), '서브 플러스 원');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('서브 플러스 원'), findsWidgets);
+    await tester.enterText(find.byType(TextField), '킥 서브');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('킥 서브'), findsWidgets);
+  });
 
   testWidgets('quiz library can find newly added category booster items', (
     WidgetTester tester,
