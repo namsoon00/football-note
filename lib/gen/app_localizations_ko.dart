@@ -47,13 +47,34 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeGuideSectionFlow => '해야 할 일';
 
   @override
-  String get welcomeGuideNextTabHint => '자세한 튜토리얼은 다음 화면의 실제 버튼 코칭마크로 바로 이어져요.';
+  String get welcomeGuideNextTabHint => '세 장만 넘기세요. 그 다음은 실제 버튼에서 증명하면 됩니다.';
 
   @override
   String get welcomeGuidePreviewLabel => '지금 고를 액션';
 
   @override
   String get welcomeGuideCoachMarkLabel => '바로 누를 곳';
+
+  @override
+  String get welcomeMascotRinzy => '린지';
+
+  @override
+  String get welcomeMascotGem => '보석';
+
+  @override
+  String get welcomeMascotFlame => '불꽃이';
+
+  @override
+  String get welcomeSlideGemTitle => '빈 날은 보석이 되지 않아요';
+
+  @override
+  String get welcomeSlideGemBody => '남긴 운동만 쌓입니다. 빈칸은 성장도 아니고, 그냥 빈칸입니다.';
+
+  @override
+  String get welcomeSlideFlameTitle => '오늘 빼먹으면, 내일도 약해져요';
+
+  @override
+  String get welcomeSlideFlameBody => '불 붙었을 때 기록하세요. 식은 흐름을 다시 데우는 비용이 더 큽니다.';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {

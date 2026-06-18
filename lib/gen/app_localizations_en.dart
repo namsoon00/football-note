@@ -49,13 +49,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeGuideNextTabHint =>
-      'The real tutorial continues on the next screen with coach marks on the buttons.';
+      'Swipe three times. Then prove it on the real buttons.';
 
   @override
   String get welcomeGuidePreviewLabel => 'Action to choose now';
 
   @override
   String get welcomeGuideCoachMarkLabel => 'Tap this';
+
+  @override
+  String get welcomeMascotRinzy => 'Rinzy';
+
+  @override
+  String get welcomeMascotGem => 'Gem';
+
+  @override
+  String get welcomeMascotFlame => 'Flame';
+
+  @override
+  String get welcomeSlideGemTitle => 'Empty days do not become gems.';
+
+  @override
+  String get welcomeSlideGemBody =>
+      'Only logged work stacks. Blank space is not growth; it is just blank space.';
+
+  @override
+  String get welcomeSlideFlameTitle => 'Skip today, weaken tomorrow.';
+
+  @override
+  String get welcomeSlideFlameBody =>
+      'Record while the fire is hot. If the streak cools, reheating it costs more than showing up.';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {

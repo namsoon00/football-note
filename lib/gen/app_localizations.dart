@@ -175,7 +175,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeGuideNextTabHint.
   ///
   /// In en, this message translates to:
-  /// **'The real tutorial continues on the next screen with coach marks on the buttons.'**
+  /// **'Swipe three times. Then prove it on the real buttons.'**
   String get welcomeGuideNextTabHint;
 
   /// No description provided for @welcomeGuidePreviewLabel.
@@ -189,6 +189,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap this'**
   String get welcomeGuideCoachMarkLabel;
+
+  /// No description provided for @welcomeMascotRinzy.
+  ///
+  /// In en, this message translates to:
+  /// **'Rinzy'**
+  String get welcomeMascotRinzy;
+
+  /// No description provided for @welcomeMascotGem.
+  ///
+  /// In en, this message translates to:
+  /// **'Gem'**
+  String get welcomeMascotGem;
+
+  /// No description provided for @welcomeMascotFlame.
+  ///
+  /// In en, this message translates to:
+  /// **'Flame'**
+  String get welcomeMascotFlame;
+
+  /// No description provided for @welcomeSlideGemTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty days do not become gems.'**
+  String get welcomeSlideGemTitle;
+
+  /// No description provided for @welcomeSlideGemBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only logged work stacks. Blank space is not growth; it is just blank space.'**
+  String get welcomeSlideGemBody;
+
+  /// No description provided for @welcomeSlideFlameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip today, weaken tomorrow.'**
+  String get welcomeSlideFlameTitle;
+
+  /// No description provided for @welcomeSlideFlameBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record while the fire is hot. If the streak cools, reheating it costs more than showing up.'**
+  String get welcomeSlideFlameBody;
 
   /// No description provided for @tabGuideCoachMarkStep.
   ///

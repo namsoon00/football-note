@@ -16,9 +16,16 @@
   "welcomeGuideIntro": "Any sport works. Stop letting hard work disappear; record it and make tomorrow harder to excuse.",
   "welcomeGuidePrimaryAction": "Start proving it",
   "welcomeGuideSectionFlow": "What to do",
-  "welcomeGuideNextTabHint": "The real tutorial continues on the next screen with coach marks on the buttons.",
+  "welcomeGuideNextTabHint": "Swipe three times. Then prove it on the real buttons.",
   "welcomeGuidePreviewLabel": "Action to choose now",
   "welcomeGuideCoachMarkLabel": "Tap this",
+  "welcomeMascotRinzy": "Rinzy",
+  "welcomeMascotGem": "Gem",
+  "welcomeMascotFlame": "Flame",
+  "welcomeSlideGemTitle": "Empty days do not become gems.",
+  "welcomeSlideGemBody": "Only logged work stacks. Blank space is not growth; it is just blank space.",
+  "welcomeSlideFlameTitle": "Skip today, weaken tomorrow.",
+  "welcomeSlideFlameBody": "Record while the fire is hot. If the streak cools, reheating it costs more than showing up.",
   "tabGuideCoachMarkStep": "Step {current} of {total}",
   "@tabGuideCoachMarkStep": {
     "placeholders": {
