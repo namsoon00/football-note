@@ -48,6 +48,9 @@ flutter analyze
 echo "==> quiz quality harness"
 ./scripts/quiz_quality_harness.sh
 
+echo "==> quiz generation harness"
+./scripts/quiz_generation_harness.sh
+
 echo "==> issue worker plan classifier regression"
 ./scripts/test_issue_plan_request_classifier.sh
 
