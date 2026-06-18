@@ -44,7 +44,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   static const String _supportCountryKey = 'world_cup_support_country_v1';
   static const String _interestCountriesKey = 'world_cup_interest_countries_v1';
   static const double _calendarDayNumberFontSize = 17;
-  static const double _selectedDaySwipeThreshold = 72;
+  static const double _selectedDayPageViewportFraction = 0.92;
   static final Uri _sourceUri = Uri.parse(
     'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums',
   );
@@ -70,7 +70,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   DateTime? _officialDataRefreshedAt;
   bool _officialDataRefreshing = false;
   bool _officialDataRefreshFailed = false;
-  double _selectedDaySwipeOffset = 0;
+  late final PageController _selectedDayPageController;
   Timer? _clockTimer;
 
   @override
@@ -86,6 +86,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       _focusedDay = _clampCalendarDay(initialSelectedDay);
       _selectedDay = _focusedDay;
     }
+    _selectedDayPageController = PageController(
+      initialPage: _dayPageIndexForDay(_selectedDay),
+      viewportFraction: _selectedDayPageViewportFraction,
+    );
     _loadCountryPreferences();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -103,6 +107,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   @override
   void dispose() {
     _clockTimer?.cancel();
+    _selectedDayPageController.dispose();
     if (_ownsLiveDataService) {
       _liveDataService.dispose();
     }
@@ -894,10 +899,12 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
               markerBuilder: (context, day, events) => const SizedBox.shrink(),
             ),
             onDaySelected: (selectedDay, focusedDay) {
+              final nextDay = _clampCalendarDay(selectedDay);
               setState(() {
-                _selectedDay = normalizeWorldCupDay(selectedDay);
+                _selectedDay = nextDay;
                 _focusedDay = focusedDay;
               });
+              _animateSelectedDayPageTo(nextDay);
             },
             onPageChanged: (focusedDay) {
               setState(() => _focusedDay = focusedDay);
@@ -909,33 +916,47 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   }
 
   Widget _buildSelectedDayMatches(BuildContext context) {
+    final initialIndex = _dayPageIndexForDay(_selectedDay);
+    final height = _selectedDayMatchesPagerHeight(initialIndex);
+    return SizedBox(
+      key: const ValueKey<String>('world-cup-day-match-pager'),
+      height: height,
+      child: PageView.builder(
+        controller: _selectedDayPageController,
+        clipBehavior: Clip.none,
+        allowImplicitScrolling: true,
+        physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
+        itemCount: _dayPageCount,
+        onPageChanged: (index) {
+          final nextDay = _dayForPageIndex(index);
+          if (normalizeWorldCupDay(nextDay) ==
+              normalizeWorldCupDay(_selectedDay)) {
+            return;
+          }
+          setState(() {
+            _selectedDay = nextDay;
+            _focusedDay = nextDay;
+          });
+        },
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsetsDirectional.only(end: 10),
+            child: _buildSelectedDayMatchPage(context, _dayForPageIndex(index)),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSelectedDayMatchPage(BuildContext context, DateTime day) {
     final l10n = AppLocalizations.of(context)!;
     final localeName = Localizations.localeOf(context).toLanguageTag();
-    final formattedDay = DateFormat.yMMMd(localeName).format(_selectedDay);
-    final matches = _visibleFixturesForDay(_selectedDay);
+    final formattedDay = DateFormat.yMMMd(localeName).format(day);
+    final matches = _visibleFixturesForDay(day);
     final theme = Theme.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onHorizontalDragStart: (_) {
-        _selectedDaySwipeOffset = 0;
-      },
-      onHorizontalDragUpdate: (details) {
-        _selectedDaySwipeOffset += details.primaryDelta ?? 0;
-      },
-      onHorizontalDragCancel: () {
-        _selectedDaySwipeOffset = 0;
-      },
-      onHorizontalDragEnd: (details) {
-        final velocity = details.primaryVelocity ?? 0;
-        final offset = _selectedDaySwipeOffset;
-        _selectedDaySwipeOffset = 0;
-        if (velocity < -120 || offset < -_selectedDaySwipeThreshold) {
-          _moveSelectedDayBy(1);
-        } else if (velocity > 120 || offset > _selectedDaySwipeThreshold) {
-          _moveSelectedDayBy(-1);
-        }
-      },
-      child: WatchCartCard(
+    return WatchCartCard(
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -968,6 +989,54 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
               ],
           ],
         ),
+      ),
+    );
+  }
+
+  double _selectedDayMatchesPagerHeight(int pageIndex) {
+    final nearbyCounts = <int>[
+      for (final index in [pageIndex - 1, pageIndex, pageIndex + 1])
+        if (index >= 0 && index < _dayPageCount)
+          _visibleFixturesForDay(_dayForPageIndex(index)).length,
+    ];
+    final maxMatchCount =
+        nearbyCounts.isEmpty ? 0 : nearbyCounts.reduce(math.max);
+    final matchListHeight = maxMatchCount == 0
+        ? 48.0
+        : maxMatchCount * 126.0 + math.max(0, maxMatchCount - 1) * 8.0;
+    return 16 + 28 + 10 + matchListHeight + 16;
+  }
+
+  int get _dayPageCount {
+    return _lastWorldCupDay.difference(_firstWorldCupDay).inDays + 1;
+  }
+
+  DateTime get _firstWorldCupDay => worldCupFixtures.first.localDay;
+
+  DateTime get _lastWorldCupDay => worldCupFixtures.last.localDay;
+
+  int _dayPageIndexForDay(DateTime day) {
+    final clampedDay = _clampCalendarDay(day);
+    return normalizeWorldCupDay(clampedDay)
+        .difference(normalizeWorldCupDay(_firstWorldCupDay))
+        .inDays
+        .clamp(0, _dayPageCount - 1);
+  }
+
+  DateTime _dayForPageIndex(int index) {
+    final clampedIndex = index.clamp(0, _dayPageCount - 1);
+    return normalizeWorldCupDay(
+      _firstWorldCupDay.add(Duration(days: clampedIndex)),
+    );
+  }
+
+  void _animateSelectedDayPageTo(DateTime day) {
+    if (!_selectedDayPageController.hasClients) return;
+    unawaited(
+      _selectedDayPageController.animateToPage(
+        _dayPageIndexForDay(day),
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
       ),
     );
   }
@@ -1518,19 +1587,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       if (fixture.matchNumber == matchNumber) return fixture;
     }
     return null;
-  }
-
-  void _moveSelectedDayBy(int dayDelta) {
-    final nextDay = _clampCalendarDay(
-      _selectedDay.add(Duration(days: dayDelta)),
-    );
-    if (normalizeWorldCupDay(nextDay) == normalizeWorldCupDay(_selectedDay)) {
-      return;
-    }
-    setState(() {
-      _selectedDay = nextDay;
-      _focusedDay = nextDay;
-    });
   }
 }
 
