@@ -31,14 +31,15 @@ void main() {
       findsOneWidget,
     );
     expect(find.text("Today's speed mission"), findsOneWidget);
-    expect(find.text('What to do today'), findsOneWidget);
+    expect(find.text('Session plan'), findsOneWidget);
+    expect(find.text('Coach checkpoint'), findsOneWidget);
     expect(find.text('Records'), findsOneWidget);
     expect(find.text('Analysis'), findsOneWidget);
 
     await tester.tap(find.text('Records'));
     await tester.pumpAndSettle();
 
-    expect(find.text('How to log a run'), findsOneWidget);
+    expect(find.text('Timing protocol'), findsOneWidget);
     expect(find.text('Beat your own runner'), findsOneWidget);
     expect(find.text('No time yet'), findsWidgets);
 
@@ -84,7 +85,7 @@ void main() {
     await tester.tap(find.text('Analysis'));
     await tester.pumpAndSettle();
 
-    expect(find.text('How to analyze form'), findsOneWidget);
+    expect(find.text('Video analysis protocol'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.text('Open sample video guide'),

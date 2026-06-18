@@ -136,6 +136,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         const SizedBox(height: 12),
         _RunningCoachFlowCard(
           key: const ValueKey('running-coach-today-plan-card'),
+          icon: Icons.route_outlined,
           title: l10n.runningCoachTodayPlanTitle,
           steps: [
             _RunningCoachFlowStep(
@@ -169,6 +170,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           ],
         ),
         const SizedBox(height: 12),
+        _RunningCoachControlPanel(mission: mission),
+        const SizedBox(height: 12),
         _RunningMissionCard(
           mission: mission,
           onStartLiveCoach: _openLiveCoach,
@@ -190,6 +193,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       children: [
         _RunningCoachFlowCard(
           key: const ValueKey('running-coach-records-plan-card'),
+          icon: Icons.monitor_heart_outlined,
           title: l10n.runningCoachRecordsPlanTitle,
           steps: [
             _RunningCoachFlowStep(
@@ -240,6 +244,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       children: [
         _RunningCoachFlowCard(
           key: const ValueKey('running-coach-analysis-plan-card'),
+          icon: Icons.fact_check_outlined,
           title: l10n.runningCoachAnalysisPlanTitle,
           steps: [
             _RunningCoachFlowStep(
@@ -867,13 +872,159 @@ class _RunningCoachFlowAction {
   });
 }
 
+class _RunningCoachControlPanel extends StatelessWidget {
+  final _RunningMission mission;
+
+  const _RunningCoachControlPanel({required this.mission});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      key: const ValueKey('running-coach-control-panel-card'),
+      clipBehavior: Clip.antiAlias,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: scheme.primary, width: 3),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.tune_rounded, color: scheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.runningCoachControlPanelTitle,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final tileWidth = width >= 640
+                      ? (width - 30) / 4
+                      : width >= 420
+                          ? (width - 10) / 2
+                          : width;
+                  return Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      SizedBox(
+                        width: tileWidth,
+                        child: _CoachControlMetricTile(
+                          icon: Icons.fitness_center_outlined,
+                          label: l10n.runningCoachControlPanelLoadLabel,
+                          value: l10n.runningCoachControlPanelLoadValue,
+                        ),
+                      ),
+                      SizedBox(
+                        width: tileWidth,
+                        child: _CoachControlMetricTile(
+                          icon: Icons.straighten_rounded,
+                          label: l10n.runningCoachControlPanelDistanceLabel,
+                          value: l10n.runningCoachControlPanelDistanceValue(
+                            mission.distanceMeters,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: tileWidth,
+                        child: _CoachControlMetricTile(
+                          icon: Icons.timer_outlined,
+                          label: l10n.runningCoachControlPanelRecordLabel,
+                          value: l10n.runningCoachControlPanelRecordValue,
+                        ),
+                      ),
+                      SizedBox(
+                        width: tileWidth,
+                        child: _CoachControlMetricTile(
+                          icon: Icons.video_camera_back_outlined,
+                          label: l10n.runningCoachControlPanelReviewLabel,
+                          value: l10n.runningCoachControlPanelReviewValue,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoachControlMetricTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _CoachControlMetricTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: scheme.primary),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _RunningCoachFlowCard extends StatelessWidget {
+  final IconData icon;
   final String title;
   final List<_RunningCoachFlowStep> steps;
   final List<_RunningCoachFlowAction> actions;
 
   const _RunningCoachFlowCard({
     super.key,
+    required this.icon,
     required this.title,
     required this.steps,
     this.actions = const <_RunningCoachFlowAction>[],
@@ -883,44 +1034,60 @@ class _RunningCoachFlowCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-            const SizedBox(height: 12),
-            for (var index = 0; index < steps.length; index += 1) ...[
-              _RunningCoachFlowStepTile(
-                number: index + 1,
-                step: steps[index],
-              ),
-              if (index != steps.length - 1) const SizedBox(height: 10),
-            ],
-            if (actions.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
+      clipBehavior: Clip.antiAlias,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(color: scheme.secondary, width: 4),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  for (final action in actions)
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: scheme.primary,
-                      ),
-                      onPressed: action.onPressed,
-                      icon: Icon(action.icon),
-                      label: Text(action.label),
+                  Icon(icon, color: scheme.secondary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
+                  ),
                 ],
               ),
+              const SizedBox(height: 12),
+              for (var index = 0; index < steps.length; index += 1) ...[
+                _RunningCoachFlowStepTile(
+                  number: index + 1,
+                  step: steps[index],
+                ),
+                if (index != steps.length - 1) const SizedBox(height: 10),
+              ],
+              if (actions.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final action in actions)
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: scheme.primary,
+                        ),
+                        onPressed: action.onPressed,
+                        icon: Icon(action.icon),
+                        label: Text(action.label),
+                      ),
+                  ],
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

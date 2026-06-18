@@ -9491,13 +9491,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachTodayPlanTitle.
   ///
   /// In en, this message translates to:
-  /// **'What to do today'**
+  /// **'Session plan'**
   String get runningCoachTodayPlanTitle;
 
   /// No description provided for @runningCoachTodayPlanMissionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Run the sprint mission'**
+  /// **'Primary sprint block'**
   String get runningCoachTodayPlanMissionTitle;
 
   /// No description provided for @runningCoachTodayPlanMissionBody.
@@ -9509,7 +9509,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachTodayPlanRecordTitle.
   ///
   /// In en, this message translates to:
-  /// **'Save the best time'**
+  /// **'Performance log'**
   String get runningCoachTodayPlanRecordTitle;
 
   /// No description provided for @runningCoachTodayPlanRecordBody.
@@ -9521,7 +9521,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachTodayPlanAnalysisTitle.
   ///
   /// In en, this message translates to:
-  /// **'Check form when it feels off'**
+  /// **'Form review trigger'**
   String get runningCoachTodayPlanAnalysisTitle;
 
   /// No description provided for @runningCoachTodayPlanAnalysisBody.
@@ -9545,7 +9545,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachRecordsPlanTitle.
   ///
   /// In en, this message translates to:
-  /// **'How to log a run'**
+  /// **'Timing protocol'**
   String get runningCoachRecordsPlanTitle;
 
   /// No description provided for @runningCoachRecordsPlanDistanceTitle.
@@ -9587,7 +9587,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachAnalysisPlanTitle.
   ///
   /// In en, this message translates to:
-  /// **'How to analyze form'**
+  /// **'Video analysis protocol'**
   String get runningCoachAnalysisPlanTitle;
 
   /// No description provided for @runningCoachAnalysisPlanRecordTitle.
@@ -9625,6 +9625,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose the video, run analysis, then start with the first focus cue.'**
   String get runningCoachAnalysisPlanAnalyzeBody;
+
+  /// No description provided for @runningCoachControlPanelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach checkpoint'**
+  String get runningCoachControlPanelTitle;
+
+  /// No description provided for @runningCoachControlPanelLoadLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Load'**
+  String get runningCoachControlPanelLoadLabel;
+
+  /// No description provided for @runningCoachControlPanelLoadValue.
+  ///
+  /// In en, this message translates to:
+  /// **'3 quality reps'**
+  String get runningCoachControlPanelLoadValue;
+
+  /// No description provided for @runningCoachControlPanelDistanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get runningCoachControlPanelDistanceLabel;
+
+  /// No description provided for @runningCoachControlPanelDistanceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{meters}m focus'**
+  String runningCoachControlPanelDistanceValue(int meters);
+
+  /// No description provided for @runningCoachControlPanelRecordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get runningCoachControlPanelRecordLabel;
+
+  /// No description provided for @runningCoachControlPanelRecordValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Best attempt only'**
+  String get runningCoachControlPanelRecordValue;
+
+  /// No description provided for @runningCoachControlPanelReviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get runningCoachControlPanelReviewLabel;
+
+  /// No description provided for @runningCoachControlPanelReviewValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Side-view if needed'**
+  String get runningCoachControlPanelReviewValue;
 
   /// No description provided for @runningCoachMissionCardTitle.
   ///

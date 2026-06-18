@@ -5170,24 +5170,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSectionAnalysis => '분석';
 
   @override
-  String get runningCoachTodayPlanTitle => '오늘은 이렇게 하면 돼요';
+  String get runningCoachTodayPlanTitle => '오늘 세션 플랜';
 
   @override
-  String get runningCoachTodayPlanMissionTitle => '스프린트 미션 뛰기';
+  String get runningCoachTodayPlanMissionTitle => '메인 스프린트 블록';
 
   @override
   String get runningCoachTodayPlanMissionBody =>
       '아래 미션부터 시작해요. 날카롭게 3번만 뛰어도 충분합니다.';
 
   @override
-  String get runningCoachTodayPlanRecordTitle => '가장 좋은 기록 저장하기';
+  String get runningCoachTodayPlanRecordTitle => '퍼포먼스 기록';
 
   @override
   String get runningCoachTodayPlanRecordBody =>
       '뛴 뒤에는 기록 화면으로 가서 가장 빠른 시도만 입력해요.';
 
   @override
-  String get runningCoachTodayPlanAnalysisTitle => '느낌이 이상하면 자세 확인하기';
+  String get runningCoachTodayPlanAnalysisTitle => '자세 리뷰 트리거';
 
   @override
   String get runningCoachTodayPlanAnalysisBody =>
@@ -5200,7 +5200,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachTodayPlanAnalysisAction => '분석으로 이동';
 
   @override
-  String get runningCoachRecordsPlanTitle => '기록은 이렇게 남겨요';
+  String get runningCoachRecordsPlanTitle => '타이밍 기록 프로토콜';
 
   @override
   String get runningCoachRecordsPlanDistanceTitle => '거리 선택';
@@ -5224,7 +5224,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '저장된 기록은 이전 최고 기록과 비교되어 다음 목표가 바로 보입니다.';
 
   @override
-  String get runningCoachAnalysisPlanTitle => '자세 분석은 이렇게 해요';
+  String get runningCoachAnalysisPlanTitle => '영상 분석 프로토콜';
 
   @override
   String get runningCoachAnalysisPlanRecordTitle => '측면 영상 찍기';
@@ -5246,6 +5246,35 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachAnalysisPlanAnalyzeBody =>
       '영상을 고르고 분석한 뒤, 가장 먼저 고칠 포인트부터 따라가요.';
+
+  @override
+  String get runningCoachControlPanelTitle => '코치 체크포인트';
+
+  @override
+  String get runningCoachControlPanelLoadLabel => '훈련량';
+
+  @override
+  String get runningCoachControlPanelLoadValue => '고품질 3회';
+
+  @override
+  String get runningCoachControlPanelDistanceLabel => '거리';
+
+  @override
+  String runningCoachControlPanelDistanceValue(int meters) {
+    return '${meters}m 집중';
+  }
+
+  @override
+  String get runningCoachControlPanelRecordLabel => '기록';
+
+  @override
+  String get runningCoachControlPanelRecordValue => '최고 시도만';
+
+  @override
+  String get runningCoachControlPanelReviewLabel => '리뷰';
+
+  @override
+  String get runningCoachControlPanelReviewValue => '필요 시 측면 분석';
 
   @override
   String get runningCoachMissionCardTitle => '오늘의 스피드 미션';
