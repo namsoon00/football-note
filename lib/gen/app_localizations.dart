@@ -190,24 +190,6 @@ abstract class AppLocalizations {
   /// **'Tap this'**
   String get welcomeGuideCoachMarkLabel;
 
-  /// No description provided for @welcomeMascotRinzy.
-  ///
-  /// In en, this message translates to:
-  /// **'Rinzy'**
-  String get welcomeMascotRinzy;
-
-  /// No description provided for @welcomeMascotGem.
-  ///
-  /// In en, this message translates to:
-  /// **'Gem'**
-  String get welcomeMascotGem;
-
-  /// No description provided for @welcomeMascotFlame.
-  ///
-  /// In en, this message translates to:
-  /// **'Flame'**
-  String get welcomeMascotFlame;
-
   /// No description provided for @welcomeSlideGemTitle.
   ///
   /// In en, this message translates to:

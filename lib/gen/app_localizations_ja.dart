@@ -56,15 +56,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeGuideCoachMarkLabel => 'ここをタップ';
 
   @override
-  String get welcomeMascotRinzy => 'リンジー';
-
-  @override
-  String get welcomeMascotGem => 'ジュエル';
-
-  @override
-  String get welcomeMascotFlame => 'フレイム';
-
-  @override
   String get welcomeSlideGemTitle => '空白の日は宝石になりません';
 
   @override

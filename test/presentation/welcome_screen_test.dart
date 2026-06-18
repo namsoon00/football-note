@@ -25,19 +25,29 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('welcome-page-view')), findsOneWidget);
-    expect(find.text('린지'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/images/challenge_rinzy_ready.png',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('린지'), findsNothing);
     expect(find.text('기록 없으면, 운동도 변명으로 끝나요'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('welcome-next-button')));
     await tester.pumpAndSettle();
 
-    expect(find.text('보석'), findsOneWidget);
+    expect(find.text('보석'), findsNothing);
     expect(find.text('빈 날은 보석이 되지 않아요'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('welcome-next-button')));
     await tester.pumpAndSettle();
 
-    expect(find.text('불꽃이'), findsOneWidget);
+    expect(find.text('불꽃이'), findsNothing);
     expect(find.text('오늘 빼먹으면, 내일도 약해져요'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('welcome-start-button')));
