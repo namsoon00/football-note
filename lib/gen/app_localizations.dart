@@ -5221,6 +5221,54 @@ abstract class AppLocalizations {
   /// **'Apply'**
   String get filterApply;
 
+  /// No description provided for @logsLayoutCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get logsLayoutCard;
+
+  /// No description provided for @logsLayoutList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get logsLayoutList;
+
+  /// No description provided for @logsTrainingSketchListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sketch list'**
+  String get logsTrainingSketchListLabel;
+
+  /// No description provided for @logsTrainingSketchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sketches'**
+  String get logsTrainingSketchTitle;
+
+  /// No description provided for @logsEmptyFirstEntrySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first training note to start the flow.'**
+  String get logsEmptyFirstEntrySubtitle;
+
+  /// No description provided for @logsEntryDeletedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry deleted.'**
+  String get logsEntryDeletedSnack;
+
+  /// No description provided for @logsEntryDeleteUndoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get logsEntryDeleteUndoAction;
+
+  /// No description provided for @logsDeleteUndoneSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete undone.'**
+  String get logsDeleteUndoneSnack;
+
   /// No description provided for @deleteEntry.
   ///
   /// In en, this message translates to:

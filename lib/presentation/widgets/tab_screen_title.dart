@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 class TabScreenTitle extends StatelessWidget {
   final String title;
   final Widget? trailing;
@@ -12,6 +14,7 @@ class TabScreenTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Row(
       children: [
         Expanded(
@@ -24,17 +27,16 @@ class TabScreenTitle extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurface,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
           ),
         ),
         if (trailing != null) ...[
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.xs),
           trailing!,
         ],
       ],

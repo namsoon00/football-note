@@ -2805,6 +2805,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filterApply => '적용';
 
   @override
+  String get logsLayoutCard => '카드';
+
+  @override
+  String get logsLayoutList => '리스트';
+
+  @override
+  String get logsTrainingSketchListLabel => '훈련 스케치 리스트';
+
+  @override
+  String get logsTrainingSketchTitle => '훈련 스케치';
+
+  @override
+  String get logsEmptyFirstEntrySubtitle => '첫 훈련기록을 남기고 흐름을 시작해보세요.';
+
+  @override
+  String get logsEntryDeletedSnack => '기록을 삭제했어요.';
+
+  @override
+  String get logsEntryDeleteUndoAction => '되돌리기';
+
+  @override
+  String get logsDeleteUndoneSnack => '삭제를 되돌렸어요.';
+
+  @override
   String get deleteEntry => '기록 삭제';
 
   @override

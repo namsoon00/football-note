@@ -3,24 +3,91 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/watch_cart/constants.dart';
 
+class AppSpacing {
+  static const double xxs = 4;
+  static const double xs = 8;
+  static const double sm = 12;
+  static const double md = 16;
+  static const double lg = 20;
+  static const double xl = 24;
+  static const double xxl = 32;
+
+  static const EdgeInsets screen = EdgeInsets.symmetric(
+    horizontal: md,
+    vertical: sm,
+  );
+  static const EdgeInsets card = EdgeInsets.all(md);
+}
+
+class AppRadius {
+  static const double xs = 8;
+  static const double sm = 12;
+  static const double md = 16;
+  static const double card = 20;
+  static const double pill = 999;
+
+  static BorderRadius get small => BorderRadius.circular(sm);
+  static BorderRadius get control => BorderRadius.circular(md);
+  static BorderRadius get surface => BorderRadius.circular(card);
+  static BorderRadius get full => BorderRadius.circular(pill);
+}
+
+class AppSizes {
+  static const double minTouchTarget = 48;
+  static const double iconControl = 56;
+  static const double primaryButtonHeight = 54;
+}
+
+class AppShadows {
+  static List<BoxShadow>? surface(Brightness brightness) {
+    if (brightness == Brightness.dark) return null;
+    return const [
+      BoxShadow(
+        color: Color(0x10111F3C),
+        blurRadius: 18,
+        offset: Offset(0, 6),
+      ),
+    ];
+  }
+}
+
+class AppSurfaces {
+  static Color cardColor(ColorScheme scheme, Brightness brightness) {
+    return brightness == Brightness.dark
+        ? scheme.surfaceContainerHighest
+        : scheme.surface;
+  }
+
+  static Color subtleColor(ColorScheme scheme, Brightness brightness) {
+    return brightness == Brightness.dark
+        ? scheme.surfaceContainerHighest.withValues(alpha: 0.42)
+        : scheme.surfaceContainerHighest.withValues(alpha: 0.72);
+  }
+
+  static Color borderColor(ColorScheme scheme, Brightness brightness) {
+    return brightness == Brightness.dark
+        ? scheme.outline.withValues(alpha: 0.46)
+        : scheme.outline.withValues(alpha: 0.72);
+  }
+}
+
 class AppTheme {
   static ThemeData light() {
-    final colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: WatchCartConstants.primaryColor,
-          brightness: Brightness.light,
-        ).copyWith(
-          primary: const Color(0xFF2B6FF3),
-          onPrimary: Colors.white,
-          secondary: const Color(0xFF2B6FF3),
-          onSecondary: Colors.white,
-          secondaryContainer: const Color(0xFFEAF2FF),
-          onSecondaryContainer: const Color(0xFF183F8F),
-          surface: Colors.white,
-          onSurface: const Color(0xFF191F2B),
-          surfaceContainerHighest: const Color(0xFFF4F7FC),
-          outline: const Color(0xFFE4EAF3),
-        );
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: WatchCartConstants.primaryColor,
+      brightness: Brightness.light,
+    ).copyWith(
+      primary: const Color(0xFF2B6FF3),
+      onPrimary: Colors.white,
+      secondary: const Color(0xFF2B6FF3),
+      onSecondary: Colors.white,
+      secondaryContainer: const Color(0xFFEAF2FF),
+      onSecondaryContainer: const Color(0xFF183F8F),
+      surface: Colors.white,
+      onSurface: const Color(0xFF191F2B),
+      surfaceContainerHighest: const Color(0xFFF4F7FC),
+      outline: const Color(0xFFE4EAF3),
+    );
     final textTheme = GoogleFonts.notoSansKrTextTheme().copyWith(
       headlineLarge: const TextStyle(
         fontSize: 30,
@@ -30,6 +97,12 @@ class AppTheme {
       ),
       headlineMedium: const TextStyle(
         fontSize: 26,
+        fontWeight: FontWeight.w800,
+        height: 1.24,
+        color: Color(0xFF111827),
+      ),
+      headlineSmall: const TextStyle(
+        fontSize: 24,
         fontWeight: FontWeight.w800,
         height: 1.24,
         color: Color(0xFF111827),
@@ -79,7 +152,7 @@ class AppTheme {
         backgroundColor: colorScheme.primary,
         foregroundColor: Colors.white,
         splashColor: Colors.white.withAlpha(38),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -104,58 +177,55 @@ class AppTheme {
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style:
-            OutlinedButton.styleFrom(
-              foregroundColor: colorScheme.primary,
-              side: BorderSide(color: colorScheme.outline),
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              minimumSize: const Size(0, 52),
-            ).copyWith(
-              overlayColor: WidgetStateProperty.all(
-                colorScheme.primary.withAlpha(16),
-              ),
-              splashFactory: InkRipple.splashFactory,
-            ),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colorScheme.primary,
+          side: BorderSide(color: colorScheme.outline),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.control,
+          ),
+          minimumSize: const Size(0, AppSizes.primaryButtonHeight),
+        ).copyWith(
+          overlayColor: WidgetStateProperty.all(
+            colorScheme.primary.withAlpha(16),
+          ),
+          splashFactory: InkRipple.splashFactory,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style:
-            ElevatedButton.styleFrom(
-              elevation: 0,
-              foregroundColor: Colors.white,
-              backgroundColor: colorScheme.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              minimumSize: const Size.fromHeight(54),
-            ).copyWith(
-              overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(28)),
-              splashFactory: InkRipple.splashFactory,
-            ),
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          foregroundColor: Colors.white,
+          backgroundColor: colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.control,
+          ),
+          minimumSize: const Size.fromHeight(AppSizes.primaryButtonHeight),
+        ).copyWith(
+          overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(28)),
+          splashFactory: InkRipple.splashFactory,
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style:
-            FilledButton.styleFrom(
-              elevation: 0,
-              foregroundColor: Colors.white,
-              backgroundColor: colorScheme.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              minimumSize: const Size.fromHeight(54),
-            ).copyWith(
-              overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(28)),
-              splashFactory: InkRipple.splashFactory,
-            ),
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          foregroundColor: Colors.white,
+          backgroundColor: colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.control,
+          ),
+          minimumSize: const Size.fromHeight(AppSizes.primaryButtonHeight),
+        ).copyWith(
+          overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(28)),
+          splashFactory: InkRipple.splashFactory,
+        ),
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 0,
         shadowColor: const Color(0x14111F3C),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppRadius.surface,
           side: BorderSide(color: colorScheme.outline),
         ),
       ),
@@ -169,15 +239,15 @@ class AppTheme {
           vertical: 14,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.control,
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.control,
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.control,
           borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
         ),
       ),
@@ -206,21 +276,20 @@ class AppTheme {
   }
 
   static ThemeData dark() {
-    final colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: WatchCartConstants.primaryColor,
-          brightness: Brightness.dark,
-        ).copyWith(
-          surface: const Color(0xFF1B1F2A),
-          onSurface: const Color(0xFFF2F5FA),
-          outline: const Color(0xFF4A556D),
-          surfaceContainerHighest: const Color(0xFF2A3040),
-        );
-    final textTheme = GoogleFonts.latoTextTheme(ThemeData.dark().textTheme)
-        .apply(
-          bodyColor: const Color(0xFFF2F5FA),
-          displayColor: const Color(0xFFF2F5FA),
-        );
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: WatchCartConstants.primaryColor,
+      brightness: Brightness.dark,
+    ).copyWith(
+      surface: const Color(0xFF1B1F2A),
+      onSurface: const Color(0xFFF2F5FA),
+      outline: const Color(0xFF4A556D),
+      surfaceContainerHighest: const Color(0xFF2A3040),
+    );
+    final textTheme =
+        GoogleFonts.latoTextTheme(ThemeData.dark().textTheme).apply(
+      bodyColor: const Color(0xFFF2F5FA),
+      displayColor: const Color(0xFFF2F5FA),
+    );
 
     return ThemeData(
       colorScheme: colorScheme,
@@ -238,6 +307,7 @@ class AppTheme {
         backgroundColor: colorScheme.primary,
         foregroundColor: Colors.black,
         splashColor: Colors.white.withAlpha(36),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -271,20 +341,19 @@ class AppTheme {
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style:
-            FilledButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ).copyWith(
-              overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(30)),
-              splashFactory: InkRipple.splashFactory,
-            ),
+        style: FilledButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.control,
+          ),
+        ).copyWith(
+          overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(30)),
+          splashFactory: InkRipple.splashFactory,
+        ),
       ),
       cardTheme: CardThemeData(
         color: const Color(0xFF1C2433),
         elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.surface),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -292,15 +361,15 @@ class AppTheme {
         hintStyle: const TextStyle(color: Color(0xFFB6C0D3)),
         labelStyle: const TextStyle(color: Color(0xFFD2DAEA)),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.control,
           borderSide: const BorderSide(color: Color(0xFF4A556D)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.control,
           borderSide: const BorderSide(color: Color(0xFF4A556D)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.control,
           borderSide: BorderSide(color: colorScheme.primary, width: 1.6),
         ),
       ),

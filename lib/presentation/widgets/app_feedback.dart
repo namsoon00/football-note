@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 class AppFeedback {
   static void showMessage(
     BuildContext context, {
@@ -12,7 +14,13 @@ class AppFeedback {
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          margin: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
           content: Text(text),
           action: action,
           duration: const Duration(seconds: 2),
@@ -28,7 +36,13 @@ class AppFeedback {
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          margin: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
           backgroundColor: scheme.primaryContainer,
           content: Text(
             text,
@@ -52,7 +66,13 @@ class AppFeedback {
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          margin: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
           duration: const Duration(seconds: 5),
           content: Row(
             children: [

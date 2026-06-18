@@ -2811,6 +2811,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get filterApply => '適用する';
 
   @override
+  String get logsLayoutCard => 'カード';
+
+  @override
+  String get logsLayoutList => 'リスト';
+
+  @override
+  String get logsTrainingSketchListLabel => 'トレーニングスケッチ一覧';
+
+  @override
+  String get logsTrainingSketchTitle => 'スケッチ';
+
+  @override
+  String get logsEmptyFirstEntrySubtitle => '最初のトレーニング記録を作成して流れを始めましょう。';
+
+  @override
+  String get logsEntryDeletedSnack => '記録を削除しました。';
+
+  @override
+  String get logsEntryDeleteUndoAction => '元に戻す';
+
+  @override
+  String get logsDeleteUndoneSnack => '削除を元に戻しました。';
+
+  @override
   String get deleteEntry => 'エントリの削除';
 
   @override

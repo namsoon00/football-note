@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
 import 'tab_screen_title.dart';
 import 'watch_cart/main_app_bar.dart';
 
@@ -34,7 +35,7 @@ class SharedTabHeader extends StatelessWidget {
     this.profilePhotoSource = '',
     this.title,
     this.titleTrailing,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    this.padding = AppSpacing.screen,
   });
 
   @override
@@ -58,7 +59,7 @@ class SharedTabHeader extends StatelessWidget {
             profilePhotoSource: profilePhotoSource,
           ),
           if (title != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.sm),
             TabScreenTitle(title: title!, trailing: titleTrailing),
           ],
         ],

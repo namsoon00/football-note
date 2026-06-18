@@ -7,7 +7,8 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         gradient: isDark
@@ -17,10 +18,10 @@ class AppBackground extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [
                   Color(0xFFF8FBFF),
-                  Color(0xFFEFFAFF),
+                  Color(0xFFF1F5FB),
                 ],
               ),
-        color: isDark ? Theme.of(context).scaffoldBackgroundColor : null,
+        color: isDark ? theme.scaffoldBackgroundColor : null,
       ),
       child: child,
     );

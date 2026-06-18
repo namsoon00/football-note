@@ -2890,6 +2890,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterApply => 'Apply';
 
   @override
+  String get logsLayoutCard => 'Card';
+
+  @override
+  String get logsLayoutList => 'List';
+
+  @override
+  String get logsTrainingSketchListLabel => 'Training sketch list';
+
+  @override
+  String get logsTrainingSketchTitle => 'Sketches';
+
+  @override
+  String get logsEmptyFirstEntrySubtitle =>
+      'Create your first training note to start the flow.';
+
+  @override
+  String get logsEntryDeletedSnack => 'Entry deleted.';
+
+  @override
+  String get logsEntryDeleteUndoAction => 'Undo';
+
+  @override
+  String get logsDeleteUndoneSnack => 'Delete undone.';
+
+  @override
   String get deleteEntry => 'Delete Entry';
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'constants.dart';
+
+import '../../theme/app_theme.dart';
 
 class WatchCartHomeOptions extends StatelessWidget {
   final VoidCallback? onBoardList;
@@ -25,7 +26,10 @@ class WatchCartHomeOptions extends StatelessWidget {
     this.onFilter,
     this.onSearch,
     this.filterActive = false,
-  });
+  }) : assert(
+          onBoardList == null || boardListTitle != null,
+          'boardListTitle is required when onBoardList is provided.',
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -35,14 +39,14 @@ class WatchCartHomeOptions extends StatelessWidget {
     return Row(
       children: [
         _OptionButton(icon: Icons.search, onTap: onSearch),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.sm),
         _OptionButton(
           icon: Icons.tune,
           onTap: onFilter,
           isActive: filterActive,
         ),
         if (hasSummaryButton) ...[
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: _LabeledCountButton(
               onTap: null,
@@ -53,12 +57,12 @@ class WatchCartHomeOptions extends StatelessWidget {
           ),
         ],
         if (hasBoardButton) ...[
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: _LabeledCountButton(
               onTap: onBoardList!,
               semanticLabel: boardListLabel,
-              label: boardListTitle ?? 'Boards',
+              label: boardListTitle!,
               count: boardBadgeCount ?? 0,
               icon: boardListIcon,
             ),
@@ -79,27 +83,28 @@ class _OptionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final borderColor = isActive
-        ? theme.colorScheme.primary
-        : const Color.fromRGBO(230, 230, 230, 1);
+    final scheme = theme.colorScheme;
+    final brightness = theme.brightness;
+    final borderColor =
+        isActive ? scheme.primary : AppSurfaces.borderColor(scheme, brightness);
     final backgroundColor = isActive
-        ? theme.colorScheme.primary.withValues(alpha: 0.08)
-        : Colors.transparent;
+        ? scheme.primary.withValues(alpha: 0.08)
+        : AppSurfaces.cardColor(scheme, brightness);
     return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(8.0),
+      color: backgroundColor,
+      borderRadius: AppRadius.control,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8.0),
-        splashColor: WatchCartConstants.primaryColor.withAlpha(30),
-        highlightColor: WatchCartConstants.primaryColor.withAlpha(15),
+        borderRadius: AppRadius.control,
+        splashColor: scheme.primary.withAlpha(30),
+        highlightColor: scheme.primary.withAlpha(15),
         child: Container(
-          width: 60.0,
-          height: 60.0,
+          width: AppSizes.iconControl,
+          height: AppSizes.iconControl,
           decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(8.0),
+            borderRadius: AppRadius.control,
             border: Border.all(color: borderColor),
+            boxShadow: isActive ? null : AppShadows.surface(brightness),
           ),
           child: Stack(
             clipBehavior: Clip.none,
@@ -107,9 +112,7 @@ class _OptionButton extends StatelessWidget {
               Center(
                 child: Icon(
                   icon,
-                  color: isActive
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurface,
+                  color: isActive ? scheme.primary : scheme.onSurface,
                 ),
               ),
               if (isActive)
@@ -121,7 +124,7 @@ class _OptionButton extends StatelessWidget {
                     width: 10,
                     height: 10,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
+                      color: scheme.primary,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -152,38 +155,38 @@ class _LabeledCountButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final brightness = theme.brightness;
     final emphasize = icon != null && onTap != null;
-    final highlightColor = emphasize
-        ? theme.colorScheme.onPrimary
-        : theme.colorScheme.onSurface;
+    final highlightColor = emphasize ? scheme.onPrimary : scheme.onSurface;
     final borderColor = emphasize
-        ? theme.colorScheme.primary
-        : const Color.fromRGBO(230, 230, 230, 1);
-    final backgroundColor = emphasize
-        ? theme.colorScheme.primary
-        : Colors.transparent;
+        ? scheme.primary
+        : AppSurfaces.borderColor(scheme, brightness);
+    final backgroundColor =
+        emphasize ? scheme.primary : AppSurfaces.cardColor(scheme, brightness);
     return Semantics(
       label: semanticLabel,
       button: onTap != null,
       child: Material(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: AppRadius.control,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: AppRadius.control,
           splashColor: emphasize
-              ? theme.colorScheme.onPrimary.withAlpha(40)
-              : WatchCartConstants.primaryColor.withAlpha(30),
+              ? scheme.onPrimary.withAlpha(40)
+              : scheme.primary.withAlpha(30),
           highlightColor: emphasize
-              ? theme.colorScheme.onPrimary.withAlpha(24)
-              : WatchCartConstants.primaryColor.withAlpha(15),
+              ? scheme.onPrimary.withAlpha(24)
+              : scheme.primary.withAlpha(15),
           child: Container(
             width: double.infinity,
-            height: 60.0,
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            height: AppSizes.iconControl,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: AppRadius.control,
               border: Border.all(color: borderColor),
+              boxShadow: emphasize ? null : AppShadows.surface(brightness),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -193,7 +196,7 @@ class _LabeledCountButton extends StatelessWidget {
                     children: [
                       if (icon != null) ...[
                         Icon(icon, size: 24, color: highlightColor),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.xs),
                       ],
                       Expanded(
                         child: Text(
