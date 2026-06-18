@@ -205,6 +205,63 @@ void main() {
     expect(find.text('Cesar Huerta'), findsOneWidget);
   });
 
+  testWidgets('team roster sheet saves managed player club', (tester) async {
+    final optionRepository = _MemoryOptionRepository();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          optionRepository: optionRepository,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('순위'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('순위'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('조별 순위표'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('멕시코').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    const editKey = ValueKey<String>(
+      'world-cup-roster-player-club-edit-Mexico-Raul Rangel',
+    );
+    await tester.scrollUntilVisible(
+      find.byKey(editKey),
+      240,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(editKey));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Chivas');
+    await tester.tap(find.text('저장'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('선수 소속팀을 저장했어요.'), findsOneWidget);
+    expect(find.text('Chivas'), findsWidgets);
+    final stored =
+        optionRepository.getValue<String>('world_cup_player_club_overrides_v1');
+    expect(stored, contains('Chivas'));
+  });
+
   testWidgets('Korean roster names render in Korean locale', (tester) async {
     final koreaFixture = worldCupFixtures.firstWhere(
       (fixture) => fixture.involvesCountry('Korea Republic'),
