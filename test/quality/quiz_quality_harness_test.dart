@@ -9,5 +9,14 @@ void main() {
     expect(report.passed, isTrue);
     expect(report.questionCountBySport.keys,
         containsAll(['football', 'baseball', 'basketball', 'tennis']));
+    for (final entry in report.styleCountBySport.entries) {
+      for (final count in entry.value.values) {
+        expect(
+          count,
+          greaterThanOrEqualTo(20),
+          reason: '${entry.key} style counts: ${entry.value}',
+        );
+      }
+    }
   });
 }
