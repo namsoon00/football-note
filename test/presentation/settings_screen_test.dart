@@ -626,17 +626,22 @@ void main() {
     final backupButtonFinder = find.widgetWithText(OutlinedButton, '데이터 백업하기');
     final remoteRestoreButton = find.widgetWithText(
       OutlinedButton,
-      '최근 데이터 가져오기',
+      '이 계정 백업 가져오기',
     );
     final backupButton = tester.widget<OutlinedButton>(backupButtonFinder);
+    final previousButton = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.history_rounded),
+    );
     expect(backupButton.onPressed, isNull);
+    expect(previousButton.onPressed, isNull);
     expect(remoteRestoreButton, findsOneWidget);
     expect(
       tester.getTopLeft(remoteRestoreButton).dy,
       lessThan(tester.getTopLeft(backupButtonFinder).dy),
     );
     expect(
-      find.text('Google 계정이 바뀌었어요. 최근 데이터 가져오기를 완료한 뒤 이 계정으로 백업할 수 있어요.'),
+      find.text(
+          'Google 계정이 바뀌었어요. 이 계정으로 백업하기 전에 이 기기에서 어떤 데이터로 시작할지 선택해야 해요.'),
       findsOneWidget,
     );
   });
@@ -897,7 +902,7 @@ void main() {
       expect(backupService.getSavedRecordDriveEmail(), 'player@example.com');
       expect(find.text('민수 · new-player@example.com'), findsWidgets);
       expect(
-        find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
+        find.widgetWithText(OutlinedButton, '이 계정 백업 가져오기'),
         findsOneWidget,
       );
 
@@ -908,16 +913,13 @@ void main() {
       final backupButton = tester.widget<OutlinedButton>(backupButtonFinder);
       expect(backupButton.onPressed, isNull);
 
-      await tester.tap(find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'));
+      await tester.tap(find.widgetWithText(OutlinedButton, '이 계정 백업 가져오기'));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(TextButton, '확인'));
-      await tester.pumpAndSettle();
-      expect(find.text('복원 재확인'), findsOneWidget);
-      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.tap(find.widgetWithText(FilledButton, '이 계정 백업 가져오기'));
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(backupService.restoreLatestCalled, isTrue);
+      expect(backupService.importChangedPlayerDriveBackupCalled, isTrue);
     },
   );
 
@@ -1059,6 +1061,7 @@ class _FakeDriveBackupService extends BackupService {
   final bool throwIsSignedInAfterSignInOnce;
   bool signOutCalled;
   bool restoreLatestCalled;
+  bool importChangedPlayerDriveBackupCalled;
   bool restorePreviousBackupCalled;
   bool refreshParentSharedDataIfNeededCalled;
   int hasRemotePlayerBackupChecks;
@@ -1086,6 +1089,7 @@ class _FakeDriveBackupService extends BackupService {
   })  : _signedIn = signedIn,
         signOutCalled = false,
         restoreLatestCalled = false,
+        importChangedPlayerDriveBackupCalled = false,
         restorePreviousBackupCalled = false,
         refreshParentSharedDataIfNeededCalled = false,
         hasRemotePlayerBackupChecks = 0,
@@ -1171,6 +1175,16 @@ class _FakeDriveBackupService extends BackupService {
   Future<bool> hasRemotePlayerBackup() async {
     hasRemotePlayerBackupChecks += 1;
     return _hasRemotePlayerBackup;
+  }
+
+  @override
+  bool hasChangedPlayerDriveConnection() {
+    final savedEmail = _savedRecordDriveEmail.trim().toLowerCase();
+    final currentEmail = _connectionInfo?.email.trim().toLowerCase() ?? '';
+    return _signedIn &&
+        savedEmail.isNotEmpty &&
+        currentEmail.isNotEmpty &&
+        savedEmail != currentEmail;
   }
 
   @override
@@ -1294,6 +1308,12 @@ class _FakeDriveBackupService extends BackupService {
   @override
   Future<void> restoreLatest() async {
     restoreLatestCalled = true;
+  }
+
+  @override
+  Future<bool> importChangedPlayerDriveBackup() async {
+    importChangedPlayerDriveBackupCalled = true;
+    return true;
   }
 
   @override

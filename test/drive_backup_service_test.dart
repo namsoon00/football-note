@@ -867,6 +867,29 @@ void main() {
     );
   });
 
+  test('backs up shared child drive subject id', () async {
+    await optionBox.put(
+      DriveBackupService.sharedChildDriveEmailKey,
+      'child@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.sharedChildDriveLabelKey,
+      'Child · child@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.sharedChildDriveSubjectLocalKey,
+      'child-subject',
+    );
+
+    final backup = service.buildBackupForTesting();
+    final backupOptions = backup['options'] as Map<String, dynamic>;
+
+    expect(
+      backupOptions[DriveBackupService.sharedChildDriveSubjectLocalKey],
+      'child-subject',
+    );
+  });
+
   test(
     'restore keeps saved record and parent drive caches unchanged',
     () async {
@@ -1451,6 +1474,46 @@ void main() {
   );
 
   test(
+    'parent merge is blocked when child drive subject differs',
+    () async {
+      await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+      await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
+      await optionBox.put(
+        DriveBackupService.connectedDriveEmailLocalKey,
+        'child@example.com',
+      );
+      await optionBox.put(
+        DriveBackupService.connectedDriveSubjectLocalKey,
+        'connected-child-subject',
+      );
+
+      expect(
+        () => service.mergeParentBackupForTesting(
+          remote: <String, dynamic>{
+            'version': 6,
+            'entries': const <dynamic>[],
+            'options': <String, dynamic>{
+              FamilyAccessService.familyIdKey: 'family-1',
+              DriveBackupService.sharedChildDriveEmailKey: 'child@example.com',
+              DriveBackupService.sharedChildDriveSubjectLocalKey:
+                  'remote-child-subject',
+            },
+            'optionRecords': const <dynamic>[],
+            'family': const <String, dynamic>{'familyId': 'family-1'},
+          },
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            DriveBackupService.parentDriveMismatchErrorCode,
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
     'parent restore is blocked when connected drive is not the child drive',
     () async {
       await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
@@ -1611,6 +1674,39 @@ void main() {
     expect(service.hasChangedPlayerDriveConnection(), isFalse);
   });
 
+  test('generic player restore is blocked while Drive account changed',
+      () async {
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'new@example.com',
+        displayName: 'New Player',
+        subjectId: 'new-subject',
+      ),
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'old@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'old-subject',
+    );
+
+    expect(
+      service.ensureGenericRestoreAllowedForTesting,
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.changedPlayerDriveConnectionErrorCode,
+        ),
+      ),
+    );
+  });
+
   test(
     'public empty start flow clears stale data and adopts changed drive',
     () async {
@@ -1664,6 +1760,10 @@ void main() {
       expect(
         optionBox.get(DriveBackupService.sharedChildDriveEmailKey),
         'new@example.com',
+      );
+      expect(
+        optionBox.get(DriveBackupService.sharedChildDriveSubjectLocalKey),
+        'new-subject',
       );
       expect(service.hasLocalPreRestoreBackup(), isTrue);
       expect(service.hasChangedPlayerDriveConnection(), isFalse);
