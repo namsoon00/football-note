@@ -4181,6 +4181,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeWeatherPrecipitation => '降水量';
 
   @override
+  String get homeWeatherPrecipitationProbability => '降水確率';
+
+  @override
   String get weatherPrecipitationNone => '雨ほぼなし';
 
   @override
@@ -4199,10 +4202,81 @@ class AppLocalizationsJa extends AppLocalizations {
   String get weatherPrecipitationVeryHeavy => '大雨';
 
   @override
-  String get homeWeatherHourlyPrecipitation => '時間降水量';
+  String get homeWeatherHourlyPrecipitation => '時間別の雨タイムライン';
 
   @override
   String get homeWeatherHourlyTemperature => '時間ごとの気温';
+
+  @override
+  String get homeWeatherRainRiskTitle => '雨チェック';
+
+  @override
+  String get homeWeatherRainRiskLow => '低い';
+
+  @override
+  String get homeWeatherRainRiskCaution => '注意';
+
+  @override
+  String get homeWeatherRainRiskHigh => '高い';
+
+  @override
+  String get homeWeatherRainRiskSevere => '危険';
+
+  @override
+  String get homeWeatherRainRiskLowSummary =>
+      '弱い雨が通る可能性があります。屋外練習前に装備だけ軽く確認してください。';
+
+  @override
+  String get homeWeatherRainRiskCautionSummary =>
+      '雨の可能性があります。濡れた芝と滑りやすい方向転換に備えてください。';
+
+  @override
+  String get homeWeatherRainRiskHighSummary =>
+      '雨の可能性が高いです。ピッチ状態と練習強度を早めに調整してください。';
+
+  @override
+  String get homeWeatherRainRiskSevereSummary =>
+      '強い雨や雷の可能性があります。屋外予定を実施できるか必ず確認してください。';
+
+  @override
+  String get homeWeatherRainRiskProbability => '確率';
+
+  @override
+  String get homeWeatherRainRiskAmount => '今日の合計';
+
+  @override
+  String get homeWeatherRainRiskStart => '開始';
+
+  @override
+  String get homeWeatherRainRiskNow => '今';
+
+  @override
+  String get homeWeatherRainPreparationTitle => 'サッカー準備';
+
+  @override
+  String get homeWeatherRainTipSpareSocks => '予備の靴下とタオルを用意してください。';
+
+  @override
+  String get homeWeatherRainTipGrip => '滑りやすいグラウンドに合わせてスパイクと方向転換の強度を確認してください。';
+
+  @override
+  String get homeWeatherRainTipSchedule => '試合や屋外練習の予定変更がないか確認してください。';
+
+  @override
+  String get homeWeatherRainTipIndoor =>
+      '大雨や雷がある場合は、屋内の技術練習や回復セッションに切り替えてください。';
+
+  @override
+  String get homeWeatherRainTrainingCaution =>
+      '雨の可能性があるため、減速、ターン、着地動作は滑り具合を先に確認してください。';
+
+  @override
+  String get homeWeatherRainTrainingHighCaution =>
+      '雨リスクが高いため、スプリントや接触練習を減らし、先にピッチ状態を確認してください。';
+
+  @override
+  String get homeWeatherRainTrainingRecovery =>
+      '練習後は濡れた靴下と上着をすぐ替え、足の状態を確認してください。';
 
   @override
   String get homeWeatherWindSpeed => '風';

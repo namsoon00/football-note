@@ -171,7 +171,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('시간별 강수량'), findsNothing);
+    expect(find.text('시간별 비 타임라인'), findsNothing);
     expect(find.textContaining('거의 안 와요'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -238,10 +238,78 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('시간별 강수량'), findsOneWidget);
+    expect(find.text('시간별 비 타임라인'), findsOneWidget);
     expect(find.text('09:00'), findsNothing);
     expect(find.text('10:00'), findsNothing);
-    expect(find.text('11:00'), findsOneWidget);
+    expect(find.text('11:00'), findsAtLeastNWidgets(1));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Rain risk panel combines probability amount and football tips', (
+    WidgetTester tester,
+  ) async {
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: DateTime.now(),
+        summary: '비',
+        weatherCode: 61,
+        temperature: 18,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: DateTime(2026, 5, 5),
+            summary: '비',
+            weatherCode: 61,
+            precipitationSum: 3,
+            precipitationProbabilityMax: 85,
+            hourlyPrecipitations: [
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 14),
+                precipitation: 0,
+                precipitationProbability: 20,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 15),
+                precipitation: 1.2,
+                precipitationProbability: 80,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '비 18°C',
+            initialWeatherCode: 61,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('비 체크'), findsOneWidget);
+    expect(find.text('높음'), findsOneWidget);
+    expect(find.text('강수확률'), findsOneWidget);
+    expect(find.text('85%'), findsAtLeastNWidgets(1));
+    expect(find.text('오늘 총량'), findsOneWidget);
+    expect(find.textContaining('3.0 mm'), findsAtLeastNWidgets(1));
+    expect(find.text('15:00'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('미끄러운 그라운드'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
