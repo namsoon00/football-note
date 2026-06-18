@@ -620,6 +620,85 @@ void main() {
     expect(find.textContaining(dayFormatter.format(nextDay)), findsOneWidget);
   });
 
+  testWidgets('match list height fits selected day fixture count', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final sortedDays = worldCupFixtures
+        .map((fixture) => fixture.localDay)
+        .toSet()
+        .toList()
+      ..sort();
+    DateTime? selectedDay;
+    DateTime? largerNeighborDay;
+    Offset? swipeOffset;
+    for (var index = 0; index < sortedDays.length; index += 1) {
+      final day = sortedDays[index];
+      final matchCount = worldCupFixturesForDay(day).length;
+      if (index > 0 &&
+          worldCupFixturesForDay(sortedDays[index - 1]).length > matchCount) {
+        selectedDay = day;
+        largerNeighborDay = sortedDays[index - 1];
+        swipeOffset = const Offset(700, 0);
+        break;
+      }
+      if (index < sortedDays.length - 1 &&
+          worldCupFixturesForDay(sortedDays[index + 1]).length > matchCount) {
+        selectedDay = day;
+        largerNeighborDay = sortedDays[index + 1];
+        swipeOffset = const Offset(-700, 0);
+        break;
+      }
+    }
+    expect(selectedDay, isNotNull);
+    expect(largerNeighborDay, isNotNull);
+    expect(swipeOffset, isNotNull);
+    final selectedFixtureDay = selectedDay!;
+    final targetDay = largerNeighborDay!;
+    final pageSwipeOffset = swipeOffset!;
+    final dayFormatter = DateFormat.yMMMd('ko-KR');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          initialSelectedDay: selectedFixtureDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final pager = find.byKey(
+      const ValueKey<String>('world-cup-day-match-pager'),
+    );
+    final scrollable = find.byType(Scrollable).first;
+    for (var i = 0; i < 4 && pager.evaluate().isEmpty; i += 1) {
+      await tester.drag(scrollable, const Offset(0, -260));
+      await tester.pumpAndSettle();
+    }
+
+    expect(pager, findsOneWidget);
+    expect(
+      find.textContaining(dayFormatter.format(selectedFixtureDay)),
+      findsOneWidget,
+    );
+    final selectedHeight = tester.getSize(pager).height;
+
+    await tester.drag(pager, pageSwipeOffset);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining(dayFormatter.format(targetDay)), findsOneWidget);
+    expect(tester.getSize(pager).height, greaterThan(selectedHeight));
+  });
+
   testWidgets('interest country editor opens without layout exception', (
     tester,
   ) async {
