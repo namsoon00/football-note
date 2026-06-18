@@ -41,20 +41,8 @@ void main() {
     );
   });
 
-  test('club lookup covers priority managed roster countries', () {
-    const teams = <String>[
-      'Argentina',
-      'Brazil',
-      'England',
-      'France',
-      'Germany',
-      'Japan',
-      'Portugal',
-      'Spain',
-      'USA',
-    ];
-
-    for (final team in teams) {
+  test('club lookup covers every scheduled roster country', () {
+    for (final team in worldCupCountries()) {
       final roster = worldCupRosterPoolForTeam(team);
 
       expect(roster, isNotNull, reason: team);

@@ -917,7 +917,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
 
   Widget _buildSelectedDayMatches(BuildContext context) {
     final initialIndex = _dayPageIndexForDay(_selectedDay);
-    final height = _selectedDayMatchesPagerHeight(initialIndex);
+    final height = _selectedDayMatchesPagerHeight(context, initialIndex);
     return SizedBox(
       key: const ValueKey<String>('world-cup-day-match-pager'),
       height: height,
@@ -955,45 +955,42 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     final matches = _visibleFixturesForDay(day);
     final theme = Theme.of(context);
     return WatchCartCard(
-      child: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionTitle(
-              icon: Icons.event_note_rounded,
-              title: l10n.worldCupDayMatchesTitle(formattedDay, matches.length),
-            ),
-            const SizedBox(height: 10),
-            if (matches.isEmpty)
-              Text(
-                l10n.worldCupNoMatchesOnDay,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              )
-            else
-              for (final fixture in matches) ...[
-                _FixtureRow(
-                  fixture: fixture,
-                  supportCountry: _supportCountry,
-                  interestCountries: _interestCountries,
-                  officialMatch:
-                      _officialMatchesByFixtureNumber[fixture.matchNumber],
-                  rankingsByTeam: _rankingsByTeam,
-                  currentTime: widget.currentTime,
-                  onTeamTap: _openTeamRoster,
-                  onScoreTap: _openFixtureDetail,
-                ),
-                if (fixture != matches.last) const SizedBox(height: 8),
-              ],
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            icon: Icons.event_note_rounded,
+            title: l10n.worldCupDayMatchesTitle(formattedDay, matches.length),
+          ),
+          const SizedBox(height: 10),
+          if (matches.isEmpty)
+            Text(
+              l10n.worldCupNoMatchesOnDay,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            )
+          else
+            for (final fixture in matches) ...[
+              _FixtureRow(
+                fixture: fixture,
+                supportCountry: _supportCountry,
+                interestCountries: _interestCountries,
+                officialMatch:
+                    _officialMatchesByFixtureNumber[fixture.matchNumber],
+                rankingsByTeam: _rankingsByTeam,
+                currentTime: widget.currentTime,
+                onTeamTap: _openTeamRoster,
+                onScoreTap: _openFixtureDetail,
+              ),
+              if (fixture != matches.last) const SizedBox(height: 8),
+            ],
+        ],
       ),
     );
   }
 
-  double _selectedDayMatchesPagerHeight(int pageIndex) {
+  double _selectedDayMatchesPagerHeight(BuildContext context, int pageIndex) {
     final nearbyCounts = <int>[
       for (final index in [pageIndex - 1, pageIndex, pageIndex + 1])
         if (index >= 0 && index < _dayPageCount)
@@ -1001,10 +998,17 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     ];
     final maxMatchCount =
         nearbyCounts.isEmpty ? 0 : nearbyCounts.reduce(math.max);
+    final availableWidth = MediaQuery.sizeOf(context).width - 32;
+    final fixtureRowHeight = availableWidth < 380
+        ? 320.0
+        : availableWidth < 430
+            ? 260.0
+            : 184.0;
     final matchListHeight = maxMatchCount == 0
         ? 48.0
-        : maxMatchCount * 126.0 + math.max(0, maxMatchCount - 1) * 8.0;
-    return 16 + 28 + 10 + matchListHeight + 16;
+        : maxMatchCount * fixtureRowHeight +
+            math.max(0, maxMatchCount - 1) * 8.0;
+    return 16 + 56 + matchListHeight + 16;
   }
 
   int get _dayPageCount {
@@ -1743,56 +1747,71 @@ class _FixtureRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _SmallPill(label: l10n.worldCupMatchNumber(fixture.matchNumber)),
-              const SizedBox(width: 6),
               _SmallPill(label: _stageLabel(l10n, fixture)),
               if (supportMatch || interestMatch) ...[
-                const SizedBox(width: 6),
                 _SmallPill(
                   label: supportMatch
                       ? l10n.worldCupSupportBadge
                       : l10n.worldCupInterestBadge,
                 ),
               ],
-              const Spacer(),
               _SmallPill(label: _runtimeStatusLabel(l10n, runtimeStatus)),
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: _FixtureTeamBlock(
-                  team: fixture.homeTeam,
-                  result: homeResult,
-                  status: runtimeStatus,
-                  ranking: rankingsByTeam[fixture.homeTeam],
-                  onTap: () => onTeamTap(fixture.homeTeam),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: _FixtureScoreBoard(
-                  fixture: fixture,
-                  status: runtimeStatus,
-                  officialMatch: officialMatch,
-                  onTap: () => onScoreTap(fixture),
-                ),
-              ),
-              Expanded(
-                child: _FixtureTeamBlock(
-                  team: fixture.awayTeam,
-                  result: awayResult,
-                  status: runtimeStatus,
-                  ranking: rankingsByTeam[fixture.awayTeam],
-                  alignEnd: true,
-                  onTap: () => onTeamTap(fixture.awayTeam),
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final homeBlock = _FixtureTeamBlock(
+                team: fixture.homeTeam,
+                result: homeResult,
+                status: runtimeStatus,
+                ranking: rankingsByTeam[fixture.homeTeam],
+                onTap: () => onTeamTap(fixture.homeTeam),
+              );
+              final scoreBoard = _FixtureScoreBoard(
+                fixture: fixture,
+                status: runtimeStatus,
+                officialMatch: officialMatch,
+                onTap: () => onScoreTap(fixture),
+              );
+              final awayBlock = _FixtureTeamBlock(
+                team: fixture.awayTeam,
+                result: awayResult,
+                status: runtimeStatus,
+                ranking: rankingsByTeam[fixture.awayTeam],
+                alignEnd: true,
+                onTap: () => onTeamTap(fixture.awayTeam),
+              );
+              if (constraints.maxWidth < 380) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    homeBlock,
+                    const SizedBox(height: 8),
+                    Center(child: scoreBoard),
+                    const SizedBox(height: 8),
+                    awayBlock,
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(child: homeBlock),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: scoreBoard,
+                  ),
+                  Expanded(child: awayBlock),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 10),
           Text(
@@ -2064,34 +2083,55 @@ class _WorldCupFixtureDetailSheetState
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: theme.colorScheme.outlineVariant),
               ),
-              child: Row(
-                children: [
-                  Expanded(child: _CountryLabel(country: fixture.homeTeam)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Column(
-                      children: [
-                        Text(
-                          scoreText,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: status == _WorldCupFixtureRuntimeStatus.live
-                                ? theme.colorScheme.error
-                                : theme.colorScheme.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final scoreColumn = Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        scoreText,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: status == _WorldCupFixtureRuntimeStatus.live
+                              ? theme.colorScheme.error
+                              : theme.colorScheme.primary,
+                          fontWeight: FontWeight.w900,
                         ),
-                        const SizedBox(height: 4),
-                        _SmallPill(label: _runtimeStatusLabel(l10n, status)),
+                      ),
+                      const SizedBox(height: 4),
+                      _SmallPill(label: _runtimeStatusLabel(l10n, status)),
+                    ],
+                  );
+                  if (constraints.maxWidth < 380) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _CountryLabel(country: fixture.homeTeam),
+                        const SizedBox(height: 10),
+                        Center(child: scoreColumn),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: _CountryLabel(country: fixture.awayTeam),
+                        ),
                       ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: _CountryLabel(country: fixture.awayTeam),
-                    ),
-                  ),
-                ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(child: _CountryLabel(country: fixture.homeTeam)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: scoreColumn,
+                      ),
+                      Expanded(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: _CountryLabel(country: fixture.awayTeam),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
             const SizedBox(height: 16),
@@ -2100,32 +2140,43 @@ class _WorldCupFixtureDetailSheetState
               title: l10n.worldCupMatchComparisonTitle,
             ),
             const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _WorldCupComparisonCard(
-                    team: fixture.homeTeam,
-                    result: _fixtureResultForRuntimeStatus(
-                      fixture,
-                      fixture.homeTeam,
-                      status,
-                    ),
-                    status: status,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final homeCard = _WorldCupComparisonCard(
+                  team: fixture.homeTeam,
+                  result: _fixtureResultForRuntimeStatus(
+                    fixture,
+                    fixture.homeTeam,
+                    status,
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _WorldCupComparisonCard(
-                    team: fixture.awayTeam,
-                    result: _fixtureResultForRuntimeStatus(
-                      fixture,
-                      fixture.awayTeam,
-                      status,
-                    ),
-                    status: status,
+                  status: status,
+                );
+                final awayCard = _WorldCupComparisonCard(
+                  team: fixture.awayTeam,
+                  result: _fixtureResultForRuntimeStatus(
+                    fixture,
+                    fixture.awayTeam,
+                    status,
                   ),
-                ),
-              ],
+                  status: status,
+                );
+                if (constraints.maxWidth < 430) {
+                  return Column(
+                    children: [
+                      homeCard,
+                      const SizedBox(height: 10),
+                      awayCard,
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    Expanded(child: homeCard),
+                    const SizedBox(width: 10),
+                    Expanded(child: awayCard),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 16),
             _SectionTitle(
