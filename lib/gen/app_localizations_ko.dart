@@ -35,19 +35,19 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => '기록 없으면, 운동도 변명으로 끝나요';
+  String get welcomeGuideTitle => '기록 없으면, 운동도 말로만 끝나요';
 
   @override
-  String get welcomeGuideIntro => '종목은 상관없어요. 했다고 말하지 말고 남겨서 증명하세요.';
+  String get welcomeGuideIntro => '종목은 상관없어요. 했다고 말하지 말고 기록으로 보여주세요.';
 
   @override
-  String get welcomeGuidePrimaryAction => '증명 시작하기';
+  String get welcomeGuidePrimaryAction => '기록 시작하기';
 
   @override
   String get welcomeGuideSectionFlow => '해야 할 일';
 
   @override
-  String get welcomeGuideNextTabHint => '세 장만 넘기세요. 그 다음은 실제 버튼에서 증명하면 됩니다.';
+  String get welcomeGuideNextTabHint => '세 장만 넘기세요. 그 다음은 버튼을 눌러 바로 기록하면 돼요.';
 
   @override
   String get welcomeGuidePreviewLabel => '지금 고를 액션';

@@ -12,11 +12,11 @@
       "tabName": {}
     }
   },
-  "welcomeGuideTitle": "記録がなければ、運動も言い訳で終わります",
-  "welcomeGuideIntro": "競技は問いません。やったと言うだけでなく、残して証明しましょう。",
-  "welcomeGuidePrimaryAction": "証明を始める",
+  "welcomeGuideTitle": "記録がなければ、運動も言葉だけで終わります",
+  "welcomeGuideIntro": "競技は問いません。やったと言うだけでなく、記録で見せましょう。",
+  "welcomeGuidePrimaryAction": "記録を始める",
   "welcomeGuideSectionFlow": "やること",
-  "welcomeGuideNextTabHint": "3枚だけ進めてください。その後は実際のボタンで証明します。",
+  "welcomeGuideNextTabHint": "3枚だけ進めてください。その後はボタンを押してすぐ記録できます。",
   "welcomeGuidePreviewLabel": "今選ぶアクション",
   "welcomeGuideCoachMarkLabel": "ここをタップ",
   "welcomeSlideGemTitle": "空白の日は宝石になりません",

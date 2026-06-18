@@ -12,11 +12,11 @@
       "tabName": {}
     }
   },
-  "welcomeGuideTitle": "No log, no proof.",
-  "welcomeGuideIntro": "Any sport works. Stop letting hard work disappear; record it and make tomorrow harder to excuse.",
-  "welcomeGuidePrimaryAction": "Start proving it",
+  "welcomeGuideTitle": "No log, it did not count.",
+  "welcomeGuideIntro": "Any sport works. Do not just say you did it; log it so you can see it later.",
+  "welcomeGuidePrimaryAction": "Start logging",
   "welcomeGuideSectionFlow": "What to do",
-  "welcomeGuideNextTabHint": "Swipe three times. Then prove it on the real buttons.",
+  "welcomeGuideNextTabHint": "Swipe three times. Then tap the real buttons and log it.",
   "welcomeGuidePreviewLabel": "Action to choose now",
   "welcomeGuideCoachMarkLabel": "Tap this",
   "welcomeSlideGemTitle": "Empty days do not become gems.",

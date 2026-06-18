@@ -35,21 +35,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => 'No log, no proof.';
+  String get welcomeGuideTitle => 'No log, it did not count.';
 
   @override
   String get welcomeGuideIntro =>
-      'Any sport works. Stop letting hard work disappear; record it and make tomorrow harder to excuse.';
+      'Any sport works. Do not just say you did it; log it so you can see it later.';
 
   @override
-  String get welcomeGuidePrimaryAction => 'Start proving it';
+  String get welcomeGuidePrimaryAction => 'Start logging';
 
   @override
   String get welcomeGuideSectionFlow => 'What to do';
 
   @override
   String get welcomeGuideNextTabHint =>
-      'Swipe three times. Then prove it on the real buttons.';
+      'Swipe three times. Then tap the real buttons and log it.';
 
   @override
   String get welcomeGuidePreviewLabel => 'Action to choose now';

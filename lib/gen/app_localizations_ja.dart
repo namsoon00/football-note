@@ -35,19 +35,19 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => '記録がなければ、運動も言い訳で終わります';
+  String get welcomeGuideTitle => '記録がなければ、運動も言葉だけで終わります';
 
   @override
-  String get welcomeGuideIntro => '競技は問いません。やったと言うだけでなく、残して証明しましょう。';
+  String get welcomeGuideIntro => '競技は問いません。やったと言うだけでなく、記録で見せましょう。';
 
   @override
-  String get welcomeGuidePrimaryAction => '証明を始める';
+  String get welcomeGuidePrimaryAction => '記録を始める';
 
   @override
   String get welcomeGuideSectionFlow => 'やること';
 
   @override
-  String get welcomeGuideNextTabHint => '3枚だけ進めてください。その後は実際のボタンで証明します。';
+  String get welcomeGuideNextTabHint => '3枚だけ進めてください。その後はボタンを押してすぐ記録できます。';
 
   @override
   String get welcomeGuidePreviewLabel => '今選ぶアクション';
