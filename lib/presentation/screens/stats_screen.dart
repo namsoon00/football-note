@@ -1885,12 +1885,10 @@ class _CompactMetricChip extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.14),
-        ),
+      decoration: AppSurfaces.subtleDecoration(
+        theme.colorScheme,
+        theme.brightness,
+        accentAlpha: 0.06,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -2117,13 +2115,13 @@ class _MatchHistoryTile extends StatelessWidget {
     ].join(' · ');
     final leagueTeams = entry.leagueTeamNames.take(4).join(', ');
 
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(14),
+      decoration: AppSurfaces.subtleDecoration(
+        theme.colorScheme,
+        theme.brightness,
+        accentAlpha: 0.05,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2181,14 +2179,14 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(14),
+      decoration: AppSurfaces.subtleDecoration(
+        theme.colorScheme,
+        theme.brightness,
+        accentAlpha: 0.05,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2220,14 +2218,14 @@ class _InsightMiniCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(14),
+      decoration: AppSurfaces.subtleDecoration(
+        theme.colorScheme,
+        theme.brightness,
+        accentAlpha: 0.05,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2292,24 +2290,19 @@ class _InlineNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final outline = Theme.of(
-      context,
-    ).colorScheme.outline.withValues(alpha: 0.3);
+    final theme = Theme.of(context);
+    final outline = theme.colorScheme.outline.withValues(alpha: 0.3);
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
         border: Border(
           left: BorderSide(
             width: 3,
-            color: Theme.of(
-              context,
-            ).colorScheme.primary.withValues(alpha: 0.75),
+            color: theme.colorScheme.primary.withValues(alpha: 0.75),
           ),
         ),
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(10),
+        color: AppSurfaces.subtleColor(theme.colorScheme, theme.brightness),
+        borderRadius: AppRadius.small,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2459,14 +2452,7 @@ class _StatsPanel extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppSurfaces.cardColor(colorScheme, brightness),
-        borderRadius: AppRadius.surface,
-        border: Border.all(
-          color: AppSurfaces.borderColor(colorScheme, brightness),
-        ),
-        boxShadow: AppShadows.surface(brightness),
-      ),
+      decoration: AppSurfaces.cardDecoration(colorScheme, brightness),
       child: child,
     );
   }
@@ -2485,16 +2471,14 @@ class _CoachMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF1E2635) : const Color(0xFFF4F7FF);
-    final border = isDark ? const Color(0xFF31405B) : const Color(0xFFD8E2FA);
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: border),
+      decoration: AppSurfaces.subtleDecoration(
+        theme.colorScheme,
+        theme.brightness,
+        accentAlpha: 0.06,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2570,14 +2554,16 @@ class _ComparisonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gapColor = isPositive
-        ? const Color(0xFF3DDC84)
-        : Theme.of(context).colorScheme.error;
+    final theme = Theme.of(context);
+    final gapColor =
+        isPositive ? const Color(0xFF3DDC84) : theme.colorScheme.error;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
+      decoration: AppSurfaces.subtleDecoration(
+        theme.colorScheme,
+        theme.brightness,
+        accent: gapColor,
+        accentAlpha: 0.05,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

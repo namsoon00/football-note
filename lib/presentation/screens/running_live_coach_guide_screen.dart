@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../gen/app_localizations.dart';
+import '../theme/app_theme.dart';
 
 class RunningLiveCoachGuideScreen extends StatelessWidget {
   final VoidCallback? onStart;
@@ -23,68 +24,61 @@ class RunningLiveCoachGuideScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.runningCoachLiveGuideScreenTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         children: [
-          Card(
-            clipBehavior: Clip.antiAlias,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    scheme.primary.withAlpha(220),
-                    scheme.secondaryContainer,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+          Container(
+            decoration: AppSurfaces.heroDecoration(
+              scheme,
+              theme.brightness,
+              accent: scheme.primary,
+            ),
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.runningCoachLiveGuideHeroTitle,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: scheme.onPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.runningCoachLiveGuideHeroTitle,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: scheme.onPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                const SizedBox(height: 10),
+                Text(
+                  l10n.runningCoachLiveGuideHeroBody,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: scheme.onPrimary,
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    l10n.runningCoachLiveGuideHeroBody,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(color: scheme.onPrimary),
-                  ),
-                  const SizedBox(height: 18),
-                  const _GuidePreviewIllustration(),
-                ],
-              ),
+                ),
+                const SizedBox(height: 18),
+                const _GuidePreviewIllustration(),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           _GuideTipCard(
             icon: Icons.view_sidebar_outlined,
             title: l10n.runningCoachLiveGuideTipSideTitle,
             body: l10n.runningCoachLiveGuideTipSideBody,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           _GuideTipCard(
             icon: Icons.fit_screen_outlined,
             title: l10n.runningCoachLiveGuideTipBodyTitle,
             body: l10n.runningCoachLiveGuideTipBodyBody,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           _GuideTipCard(
             icon: Icons.space_dashboard_outlined,
             title: l10n.runningCoachLiveGuideTipHudTitle,
             body: l10n.runningCoachLiveGuideTipHudBody,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           _GuideTipCard(
             icon: Icons.trip_origin_outlined,
             title: l10n.runningCoachLiveGuideTipCameraTitle,
@@ -142,9 +136,12 @@ class _GuideTipCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.card,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -152,19 +149,19 @@ class _GuideTipCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(14),
+                color: scheme.primaryContainer,
+                borderRadius: AppRadius.control,
               ),
               child: Icon(icon),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -185,15 +182,16 @@ class _GuidePreviewIllustration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return AspectRatio(
       aspectRatio: 3 / 4,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0x22FFFFFF),
-          borderRadius: BorderRadius.circular(28),
+          color: Colors.white.withValues(alpha: 0.12),
+          borderRadius: AppRadius.surface,
         ),
-        child: const CustomPaint(
-          painter: _GuidePreviewPainter(accentColor: Color(0xFF73F3B4)),
+        child: CustomPaint(
+          painter: _GuidePreviewPainter(accentColor: scheme.secondaryContainer),
         ),
       ),
     );

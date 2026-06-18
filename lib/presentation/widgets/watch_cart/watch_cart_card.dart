@@ -19,14 +19,7 @@ class WatchCartCard extends StatelessWidget {
     final brightness = theme.brightness;
     return Container(
       padding: padding,
-      decoration: BoxDecoration(
-        color: AppSurfaces.cardColor(scheme, brightness),
-        borderRadius: AppRadius.surface,
-        border: Border.all(
-          color: AppSurfaces.borderColor(scheme, brightness),
-        ),
-        boxShadow: AppShadows.surface(brightness),
-      ),
+      decoration: AppSurfaces.cardDecoration(scheme, brightness),
       child: child,
     );
   }

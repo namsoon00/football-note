@@ -69,6 +69,68 @@ class AppSurfaces {
         ? scheme.outline.withValues(alpha: 0.46)
         : scheme.outline.withValues(alpha: 0.72);
   }
+
+  static BoxDecoration cardDecoration(
+    ColorScheme scheme,
+    Brightness brightness,
+  ) {
+    return BoxDecoration(
+      color: cardColor(scheme, brightness),
+      borderRadius: AppRadius.surface,
+      border: Border.all(color: borderColor(scheme, brightness)),
+      boxShadow: AppShadows.surface(brightness),
+    );
+  }
+
+  static BoxDecoration subtleDecoration(
+    ColorScheme scheme,
+    Brightness brightness, {
+    Color? accent,
+    double accentAlpha = 0.08,
+  }) {
+    final card = cardColor(scheme, brightness);
+    final tint = accent ?? scheme.primary;
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: AlignmentDirectional.topStart,
+        end: AlignmentDirectional.bottomEnd,
+        colors: [
+          tint.withValues(
+            alpha: brightness == Brightness.dark
+                ? (accentAlpha + 0.06).clamp(0.0, 1.0).toDouble()
+                : accentAlpha,
+          ),
+          card,
+        ],
+      ),
+      borderRadius: AppRadius.surface,
+      border: Border.all(
+        color: tint.withValues(
+          alpha: brightness == Brightness.dark ? 0.34 : 0.2,
+        ),
+      ),
+      boxShadow: AppShadows.surface(brightness),
+    );
+  }
+
+  static BoxDecoration heroDecoration(
+    ColorScheme scheme,
+    Brightness brightness, {
+    Color? accent,
+  }) {
+    final base = accent ?? scheme.primary;
+    final end = Color.lerp(base, Colors.black, 0.38) ?? base;
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: AlignmentDirectional.topStart,
+        end: AlignmentDirectional.bottomEnd,
+        colors: [base, end],
+      ),
+      borderRadius: AppRadius.surface,
+      border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      boxShadow: AppShadows.surface(brightness),
+    );
+  }
 }
 
 class AppTheme {

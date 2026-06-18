@@ -30,6 +30,7 @@ import '../models/training_board_link_codec.dart';
 import '../models/training_program_emoji.dart';
 import '../models/training_status_emoji.dart';
 import '../models/training_method_layout.dart';
+import '../theme/app_theme.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
@@ -749,7 +750,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                     decoration: BoxDecoration(
                       color: _tileSurface,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: AppRadius.control,
                       border: Border.all(color: _paperEdge),
                     ),
                     child: Column(
@@ -802,7 +803,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: _tileSurface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.surface,
         border: Border.all(color: _paperEdge),
       ),
       child: Column(
@@ -835,7 +836,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
               decoration: BoxDecoration(
                 color: _composerIdleSurface(),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: AppRadius.control,
                 border: Border.all(color: _composerIdleBorder().color),
               ),
               child: Text(
@@ -865,7 +866,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           fit: StackFit.expand,
                           children: [
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: AppRadius.control,
                               child: _buildDiaryPhotoImage(
                                 photoDataUrls[index],
                                 label: _l10n.photoIndex(index + 1),
@@ -1049,7 +1050,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
           color: _recordStickerCardSurface(sticker.tint),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.control,
           border: Border.all(
             color: sticker.tint.withValues(alpha: _isDark ? 0.42 : 0.28),
           ),
@@ -1057,7 +1058,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: AppRadius.control,
             onTap: onTap,
             child: FortuneCard(
               sections: FortuneSections(
@@ -1188,7 +1189,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: _recordStickerCardSurface(sticker.tint),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.control,
         border: Border.all(
           color: sticker.tint.withValues(alpha: _isDark ? 0.42 : 0.28),
         ),
@@ -1196,7 +1197,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.control,
           onTap: onTap,
           child: content,
         ),
@@ -1925,15 +1926,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   BoxDecoration _paperDecoration() {
     return BoxDecoration(
       color: _paperSurface,
-      borderRadius: BorderRadius.circular(26),
+      borderRadius: AppRadius.surface,
       border: Border.all(color: _paperEdge),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: _isDark ? 0.26 : 0.07),
-          blurRadius: _isDark ? 26 : 18,
-          offset: const Offset(0, 10),
-        ),
-      ],
+      boxShadow: AppShadows.surface(_theme.brightness),
     );
   }
 
@@ -3930,7 +3925,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: _tileSurface,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: AppRadius.surface,
                             border: Border.all(color: _paperEdge),
                           ),
                           child: Column(
@@ -4042,7 +4037,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                         color: _recordStickerCardSurface(
                                           _accentInk,
                                         ),
-                                        borderRadius: BorderRadius.circular(16),
+                                        borderRadius: AppRadius.control,
                                         border: Border.all(
                                           color: _accentInk.withValues(
                                             alpha: _isDark ? 0.34 : 0.2,
