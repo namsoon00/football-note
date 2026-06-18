@@ -11,13 +11,20 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
+  final PageController _pageController = PageController();
   int _selectedIndex = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final sections = _buildSections(l10n);
-    final selected = sections[_selectedIndex];
+    final slides = _buildSlides(l10n);
+    final isLast = _selectedIndex == slides.length - 1;
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -26,64 +33,33 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         child: Column(
           children: [
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final compact = constraints.maxHeight < 700;
-                  return SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(
-                      22,
-                      compact ? 14 : 22,
-                      22,
-                      18,
-                    ),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 560),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _WelcomeHero(l10n: l10n, compact: compact),
-                            SizedBox(height: compact ? 14 : 18),
-                            _WelcomeSectionSelector(
-                              sections: sections,
-                              selectedIndex: _selectedIndex,
-                              onSelected: (index) {
-                                setState(() => _selectedIndex = index);
-                              },
-                            ),
-                            const SizedBox(height: 14),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 220),
-                              switchInCurve: Curves.easeOutCubic,
-                              switchOutCurve: Curves.easeInCubic,
-                              child: _WelcomeFocusPanel(
-                                key: ValueKey(selected.id),
-                                section: selected,
-                                l10n: l10n,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              l10n.welcomeGuideNextTabHint,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: scheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.w700,
-                                    height: 1.35,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
+              child: PageView.builder(
+                key: const ValueKey('welcome-page-view'),
+                controller: _pageController,
+                itemCount: slides.length,
+                onPageChanged: (index) =>
+                    setState(() => _selectedIndex = index),
+                itemBuilder: (context, index) {
+                  return _WelcomeSlideView(slide: slides[index]);
                 },
               ),
             ),
-            _WelcomeStartBar(l10n: l10n, onStart: widget.onStart),
+            _WelcomePagerBar(
+              l10n: l10n,
+              slideCount: slides.length,
+              selectedIndex: _selectedIndex,
+              isLast: isLast,
+              onNext: () {
+                if (isLast) {
+                  widget.onStart();
+                  return;
+                }
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -91,393 +67,125 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
-class _WelcomeHero extends StatelessWidget {
-  final AppLocalizations l10n;
+class _WelcomeSlideView extends StatelessWidget {
+  final _WelcomeSlide slide;
+
+  const _WelcomeSlideView({required this.slide});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxHeight < 650;
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(24, compact ? 18 : 30, 24, 24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _MascotStage(slide: slide, compact: compact),
+                  SizedBox(height: compact ? 22 : 30),
+                  Text(
+                    slide.mascotName,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: slide.accent,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    slide.title,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.w900,
+                      height: 1.04,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    slide.body,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w800,
+                      height: 1.34,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MascotStage extends StatelessWidget {
+  final _WelcomeSlide slide;
   final bool compact;
 
-  const _WelcomeHero({required this.l10n, required this.compact});
+  const _MascotStage({required this.slide, required this.compact});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.48),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(20, compact ? 18 : 22, 20, 20),
-        child: Column(
-          children: [
-            Container(
-              width: compact ? 92 : 108,
-              height: compact ? 92 : 108,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: scheme.primary,
-                shape: BoxShape.circle,
-                border:
-                    Border.all(color: scheme.onPrimary.withValues(alpha: 0.18)),
-                boxShadow: [
-                  BoxShadow(
-                    color: scheme.primary.withValues(alpha: 0.22),
-                    blurRadius: 20,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.sports_score_rounded,
-                size: compact ? 44 : 52,
-                color: scheme.onPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.appTitle,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: scheme.primary,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              l10n.welcomeGuideTitle,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-                height: 1.12,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.welcomeGuideIntro,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-                height: 1.42,
-              ),
+    final scheme = Theme.of(context).colorScheme;
+    final size = compact ? 188.0 : 226.0;
+    return Center(
+      child: Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: slide.accent.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: slide.accent.withValues(alpha: 0.28)),
+          boxShadow: [
+            BoxShadow(
+              color: slide.accent.withValues(alpha: 0.16),
+              blurRadius: 28,
+              offset: const Offset(0, 16),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _WelcomeSectionSelector extends StatelessWidget {
-  final List<_WelcomeSection> sections;
-  final int selectedIndex;
-  final ValueChanged<int> onSelected;
-
-  const _WelcomeSectionSelector({
-    required this.sections,
-    required this.selectedIndex,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: sections.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final section = sections[index];
-          return _WelcomeSectionButton(
-            key: ValueKey('welcome-section-${section.id}'),
-            section: section,
-            selected: index == selectedIndex,
-            onTap: () => onSelected(index),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _WelcomeSectionButton extends StatelessWidget {
-  final _WelcomeSection section;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _WelcomeSectionButton({
-    super.key,
-    required this.section,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: selected
-                ? scheme.primaryContainer
-                : scheme.surfaceContainerHighest.withValues(alpha: 0.44),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: selected ? scheme.primary : scheme.outlineVariant,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                section.icon,
-                size: 18,
-                color: selected ? scheme.onPrimaryContainer : scheme.primary,
-              ),
-              const SizedBox(width: 7),
-              Text(
-                section.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color:
-                      selected ? scheme.onPrimaryContainer : scheme.onSurface,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _WelcomeFocusPanel extends StatelessWidget {
-  final _WelcomeSection section;
-  final AppLocalizations l10n;
-
-  const _WelcomeFocusPanel({
-    super.key,
-    required this.section,
-    required this.l10n,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(section.icon, color: scheme.onPrimaryContainer),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        section.title,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          height: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        l10n.welcomeGuidePreviewLabel,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              section.overview,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-                height: 1.42,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _PrimaryCoachMark(step: section.steps.first, l10n: l10n),
-            const SizedBox(height: 16),
-            Text(
-              l10n.welcomeGuideSectionFlow,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 10),
-            for (var index = 0; index < section.steps.length; index += 1) ...[
-              _WelcomeStepRow(number: index + 1, step: section.steps[index]),
-              if (index != section.steps.length - 1) const SizedBox(height: 10),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PrimaryCoachMark extends StatelessWidget {
-  final _WelcomeStep step;
-  final AppLocalizations l10n;
-
-  const _PrimaryCoachMark({required this.step, required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.24)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Icon(Icons.touch_app_rounded, color: scheme.primary),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.welcomeGuideCoachMarkLabel,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    step.actionLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(step.icon, color: scheme.primary),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _WelcomeStepRow extends StatelessWidget {
-  final int number;
-  final _WelcomeStep step;
-
-  const _WelcomeStepRow({required this.number, required this.step});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 28,
-          height: 28,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: scheme.outlineVariant),
-          ),
-          child: Text(
-            '$number',
-            style: theme.textTheme.labelMedium?.copyWith(
+        child: Image.asset(
+          slide.assetPath,
+          width: size * slide.assetScale,
+          height: size * slide.assetScale,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) {
+            return Icon(
+              slide.fallbackIcon,
+              size: size * 0.42,
               color: scheme.primary,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
+            );
+          },
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(step.icon, size: 16, color: scheme.primary),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      step.actionLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 3),
-              Text(
-                step.description,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.35,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-class _WelcomeStartBar extends StatelessWidget {
+class _WelcomePagerBar extends StatelessWidget {
   final AppLocalizations l10n;
-  final VoidCallback onStart;
+  final int slideCount;
+  final int selectedIndex;
+  final bool isLast;
+  final VoidCallback onNext;
 
-  const _WelcomeStartBar({required this.l10n, required this.onStart});
+  const _WelcomePagerBar({
+    required this.l10n,
+    required this.slideCount,
+    required this.selectedIndex,
+    required this.isLast,
+    required this.onNext,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -492,20 +200,64 @@ class _WelcomeStartBar extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                key: const ValueKey('welcome-start-button'),
-                onPressed: onStart,
-                icon: const Icon(Icons.arrow_forward_rounded),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var index = 0; index < slideCount; index += 1) ...[
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        width: index == selectedIndex ? 24 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: index == selectedIndex
+                              ? scheme.primary
+                              : scheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      if (index != slideCount - 1) const SizedBox(width: 6),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.welcomeGuideNextTabHint,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    key: ValueKey(
+                      isLast ? 'welcome-start-button' : 'welcome-next-button',
+                    ),
+                    onPressed: onNext,
+                    icon: Icon(
+                      isLast
+                          ? Icons.arrow_forward_rounded
+                          : Icons.swipe_rounded,
+                    ),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    label: Text(
+                      isLast
+                          ? l10n.welcomeGuidePrimaryAction
+                          : l10n.tabGuideCoachMarkNext,
+                    ),
                   ),
                 ),
-                label: Text(l10n.welcomeGuidePrimaryAction),
-              ),
+              ],
             ),
           ),
         ),
@@ -514,173 +266,54 @@ class _WelcomeStartBar extends StatelessWidget {
   }
 }
 
-class _WelcomeSection {
-  final String id;
-  final IconData icon;
+class _WelcomeSlide {
+  final String mascotName;
   final String title;
-  final String overview;
-  final List<_WelcomeStep> steps;
+  final String body;
+  final String assetPath;
+  final double assetScale;
+  final IconData fallbackIcon;
+  final Color accent;
 
-  const _WelcomeSection({
-    required this.id,
-    required this.icon,
+  const _WelcomeSlide({
+    required this.mascotName,
     required this.title,
-    required this.overview,
-    required this.steps,
+    required this.body,
+    required this.assetPath,
+    required this.assetScale,
+    required this.fallbackIcon,
+    required this.accent,
   });
 }
 
-class _WelcomeStep {
-  final IconData icon;
-  final String actionLabel;
-  final String description;
-
-  const _WelcomeStep({
-    required this.icon,
-    required this.actionLabel,
-    required this.description,
-  });
-}
-
-List<_WelcomeSection> _buildSections(AppLocalizations l10n) {
-  return <_WelcomeSection>[
-    _WelcomeSection(
-      id: 'home',
-      icon: Icons.home_outlined,
-      title: l10n.tabHome,
-      overview: l10n.welcomeHomeOverview,
-      steps: [
-        _WelcomeStep(
-          icon: Icons.today_outlined,
-          actionLabel: l10n.guideActionToday,
-          description: l10n.welcomeHomeStepToday,
-        ),
-        _WelcomeStep(
-          icon: Icons.rice_bowl_outlined,
-          actionLabel: l10n.guideActionMeal,
-          description: l10n.welcomeHomeStepMeal,
-        ),
-        _WelcomeStep(
-          icon: Icons.bar_chart_outlined,
-          actionLabel: l10n.homePriorityStatsAction,
-          description: l10n.welcomeHomeStepStats,
-        ),
-      ],
+List<_WelcomeSlide> _buildSlides(AppLocalizations l10n) {
+  return <_WelcomeSlide>[
+    _WelcomeSlide(
+      mascotName: l10n.welcomeMascotRinzy,
+      title: l10n.welcomeGuideTitle,
+      body: l10n.welcomeGuideIntro,
+      assetPath: 'assets/images/rinzy_mascot.png',
+      assetScale: 0.72,
+      fallbackIcon: Icons.sports_rounded,
+      accent: const Color(0xFF2563EB),
     ),
-    _WelcomeSection(
-      id: 'logs',
-      icon: Icons.list_alt_outlined,
-      title: l10n.tabLogs,
-      overview: l10n.welcomeLogsOverview,
-      steps: [
-        _WelcomeStep(
-          icon: Icons.add_circle_outline,
-          actionLabel: l10n.addEntry,
-          description: l10n.welcomeLogsStepAdd,
-        ),
-        _WelcomeStep(
-          icon: Icons.developer_board_outlined,
-          actionLabel: l10n.homePriorityBoardAction,
-          description: l10n.welcomeLogsStepBoard,
-        ),
-        _WelcomeStep(
-          icon: Icons.view_agenda_outlined,
-          actionLabel: l10n.guideActionCardList,
-          description: l10n.welcomeLogsStepReview,
-        ),
-      ],
+    _WelcomeSlide(
+      mascotName: l10n.welcomeMascotGem,
+      title: l10n.welcomeSlideGemTitle,
+      body: l10n.welcomeSlideGemBody,
+      assetPath: 'assets/images/record_reward_gem_character.png',
+      assetScale: 0.82,
+      fallbackIcon: Icons.diamond_rounded,
+      accent: const Color(0xFF0891B2),
     ),
-    _WelcomeSection(
-      id: 'calendar',
-      icon: Icons.calendar_month_outlined,
-      title: l10n.tabCalendar,
-      overview: l10n.welcomeCalendarOverview,
-      steps: [
-        _WelcomeStep(
-          icon: Icons.touch_app_outlined,
-          actionLabel: l10n.guideActionSelectDate,
-          description: l10n.welcomeCalendarStepDate,
-        ),
-        _WelcomeStep(
-          icon: Icons.add,
-          actionLabel: l10n.guideActionPlus,
-          description: l10n.welcomeCalendarStepPlus,
-        ),
-        _WelcomeStep(
-          icon: Icons.rice_bowl_outlined,
-          actionLabel: l10n.guideActionMeal,
-          description: l10n.welcomeCalendarStepMeal,
-        ),
-      ],
-    ),
-    _WelcomeSection(
-      id: 'stats',
-      icon: Icons.bar_chart_outlined,
-      title: l10n.tabStats,
-      overview: l10n.welcomeStatsOverview,
-      steps: [
-        _WelcomeStep(
-          icon: Icons.date_range_outlined,
-          actionLabel: l10n.guideActionPeriod,
-          description: l10n.welcomeStatsStepPeriod,
-        ),
-        _WelcomeStep(
-          icon: Icons.stacked_line_chart,
-          actionLabel: l10n.guideActionBenchmark,
-          description: l10n.welcomeStatsStepAverage,
-        ),
-        _WelcomeStep(
-          icon: Icons.flag_outlined,
-          actionLabel: l10n.guideActionWeakPoint,
-          description: l10n.welcomeStatsStepFocus,
-        ),
-      ],
-    ),
-    _WelcomeSection(
-      id: 'challenge',
-      icon: Icons.flag_outlined,
-      title: l10n.challengeTitle,
-      overview: l10n.welcomeChallengeOverview,
-      steps: [
-        _WelcomeStep(
-          icon: Icons.flag_circle_outlined,
-          actionLabel: l10n.welcomeChallengeActionStart,
-          description: l10n.welcomeChallengeStepStart,
-        ),
-        _WelcomeStep(
-          icon: Icons.touch_app_outlined,
-          actionLabel: l10n.welcomeChallengeActionMission,
-          description: l10n.welcomeChallengeStepMission,
-        ),
-        _WelcomeStep(
-          icon: Icons.star_rounded,
-          actionLabel: l10n.welcomeChallengeActionReward,
-          description: l10n.welcomeChallengeStepReward,
-        ),
-      ],
-    ),
-    _WelcomeSection(
-      id: 'diary',
-      icon: Icons.auto_stories_outlined,
-      title: l10n.tabDiary,
-      overview: l10n.welcomeDiaryOverview,
-      steps: [
-        _WelcomeStep(
-          icon: Icons.today_outlined,
-          actionLabel: l10n.guideActionOpenToday,
-          description: l10n.welcomeDiaryStepToday,
-        ),
-        _WelcomeStep(
-          icon: Icons.sticky_note_2_outlined,
-          actionLabel: l10n.guideActionRecordSticker,
-          description: l10n.welcomeDiaryStepSticker,
-        ),
-        _WelcomeStep(
-          icon: Icons.save_outlined,
-          actionLabel: l10n.guideActionSaveDiary,
-          description: l10n.welcomeDiaryStepSave,
-        ),
-      ],
+    _WelcomeSlide(
+      mascotName: l10n.welcomeMascotFlame,
+      title: l10n.welcomeSlideFlameTitle,
+      body: l10n.welcomeSlideFlameBody,
+      assetPath: 'assets/images/passion_flame_character.png',
+      assetScale: 0.84,
+      fallbackIcon: Icons.local_fire_department_rounded,
+      accent: const Color(0xFFEA580C),
     ),
   ];
 }

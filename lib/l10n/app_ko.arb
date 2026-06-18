@@ -16,9 +16,16 @@
   "welcomeGuideIntro": "종목은 상관없어요. 했다고 말하지 말고 남겨서 증명하세요.",
   "welcomeGuidePrimaryAction": "증명 시작하기",
   "welcomeGuideSectionFlow": "해야 할 일",
-  "welcomeGuideNextTabHint": "자세한 튜토리얼은 다음 화면의 실제 버튼 코칭마크로 바로 이어져요.",
+  "welcomeGuideNextTabHint": "세 장만 넘기세요. 그 다음은 실제 버튼에서 증명하면 됩니다.",
   "welcomeGuidePreviewLabel": "지금 고를 액션",
   "welcomeGuideCoachMarkLabel": "바로 누를 곳",
+  "welcomeMascotRinzy": "린지",
+  "welcomeMascotGem": "보석",
+  "welcomeMascotFlame": "불꽃이",
+  "welcomeSlideGemTitle": "빈 날은 보석이 되지 않아요",
+  "welcomeSlideGemBody": "남긴 운동만 쌓입니다. 빈칸은 성장도 아니고, 그냥 빈칸입니다.",
+  "welcomeSlideFlameTitle": "오늘 빼먹으면, 내일도 약해져요",
+  "welcomeSlideFlameBody": "불 붙었을 때 기록하세요. 식은 흐름을 다시 데우는 비용이 더 큽니다.",
   "tabGuideCoachMarkStep": "{total}단계 중 {current}단계",
   "@tabGuideCoachMarkStep": {
     "placeholders": {

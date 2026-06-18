@@ -47,14 +47,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeGuideSectionFlow => 'やること';
 
   @override
-  String get welcomeGuideNextTabHint =>
-      '詳しいチュートリアルは、次の画面の実際のボタンに出るコーチマークで続きます。';
+  String get welcomeGuideNextTabHint => '3枚だけ進めてください。その後は実際のボタンで証明します。';
 
   @override
   String get welcomeGuidePreviewLabel => '今選ぶアクション';
 
   @override
   String get welcomeGuideCoachMarkLabel => 'ここをタップ';
+
+  @override
+  String get welcomeMascotRinzy => 'リンジー';
+
+  @override
+  String get welcomeMascotGem => 'ジュエル';
+
+  @override
+  String get welcomeMascotFlame => 'フレイム';
+
+  @override
+  String get welcomeSlideGemTitle => '空白の日は宝石になりません';
+
+  @override
+  String get welcomeSlideGemBody => '記録した分だけ積み上がります。空白は成長ではなく、ただの空白です。';
+
+  @override
+  String get welcomeSlideFlameTitle => '今日抜けば、明日も弱くなります';
+
+  @override
+  String get welcomeSlideFlameBody => '火がついているうちに記録しましょう。冷めた流れを温め直す方が高くつきます。';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {

@@ -5,7 +5,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/welcome_screen.dart';
 
 void main() {
-  testWidgets('welcome screen presents polished guide and starts', (
+  testWidgets('welcome screen swipes through strong mascot slides and starts', (
     WidgetTester tester,
   ) async {
     var started = false;
@@ -24,17 +24,21 @@ void main() {
       ),
     );
 
-    expect(find.text('태오의 노트'), findsOneWidget);
+    expect(find.byKey(const ValueKey('welcome-page-view')), findsOneWidget);
+    expect(find.text('린지'), findsOneWidget);
     expect(find.text('기록 없으면, 운동도 변명으로 끝나요'), findsOneWidget);
-    expect(find.text('홈'), findsWidgets);
-    expect(find.text('바로 누를 곳'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('welcome-section-logs')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.tap(find.byKey(const ValueKey('welcome-next-button')));
+    await tester.pumpAndSettle();
 
-    expect(find.text('훈련기록'), findsWidgets);
-    expect(find.text('기록 추가'), findsWidgets);
+    expect(find.text('보석'), findsOneWidget);
+    expect(find.text('빈 날은 보석이 되지 않아요'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('welcome-next-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('불꽃이'), findsOneWidget);
+    expect(find.text('오늘 빼먹으면, 내일도 약해져요'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('welcome-start-button')));
 
