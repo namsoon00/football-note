@@ -58,15 +58,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeGuideCoachMarkLabel => 'Tap this';
 
   @override
-  String get welcomeMascotRinzy => 'Rinzy';
-
-  @override
-  String get welcomeMascotGem => 'Gem';
-
-  @override
-  String get welcomeMascotFlame => 'Flame';
-
-  @override
   String get welcomeSlideGemTitle => 'Empty days do not become gems.';
 
   @override

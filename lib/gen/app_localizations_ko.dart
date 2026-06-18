@@ -56,15 +56,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeGuideCoachMarkLabel => '바로 누를 곳';
 
   @override
-  String get welcomeMascotRinzy => '린지';
-
-  @override
-  String get welcomeMascotGem => '보석';
-
-  @override
-  String get welcomeMascotFlame => '불꽃이';
-
-  @override
   String get welcomeSlideGemTitle => '빈 날은 보석이 되지 않아요';
 
   @override

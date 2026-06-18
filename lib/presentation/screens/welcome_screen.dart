@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class WelcomeScreen extends StatefulWidget {
   final VoidCallback onStart;
@@ -88,33 +89,30 @@ class _WelcomeSlideView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _MascotStage(slide: slide, compact: compact),
-                  SizedBox(height: compact ? 22 : 30),
-                  Text(
-                    slide.mascotName,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: slide.accent,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: compact ? 24 : 32),
                   Text(
                     slide.title,
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.displaySmall?.copyWith(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w900,
-                      height: 1.04,
+                    style: GoogleFonts.gowunDodum(
+                      textStyle: theme.textTheme.headlineMedium?.copyWith(
+                        color: scheme.onSurface,
+                        fontWeight: FontWeight.w700,
+                        height: 1.16,
+                        letterSpacing: 0,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   Text(
                     slide.body,
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w800,
-                      height: 1.34,
+                    style: GoogleFonts.gowunDodum(
+                      textStyle: theme.textTheme.titleMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                        height: 1.42,
+                        letterSpacing: 0,
+                      ),
                     ),
                   ),
                 ],
@@ -267,7 +265,6 @@ class _WelcomePagerBar extends StatelessWidget {
 }
 
 class _WelcomeSlide {
-  final String mascotName;
   final String title;
   final String body;
   final String assetPath;
@@ -276,7 +273,6 @@ class _WelcomeSlide {
   final Color accent;
 
   const _WelcomeSlide({
-    required this.mascotName,
     required this.title,
     required this.body,
     required this.assetPath,
@@ -289,16 +285,14 @@ class _WelcomeSlide {
 List<_WelcomeSlide> _buildSlides(AppLocalizations l10n) {
   return <_WelcomeSlide>[
     _WelcomeSlide(
-      mascotName: l10n.welcomeMascotRinzy,
       title: l10n.welcomeGuideTitle,
       body: l10n.welcomeGuideIntro,
-      assetPath: 'assets/images/rinzy_mascot.png',
-      assetScale: 0.72,
+      assetPath: 'assets/images/challenge_rinzy_ready.png',
+      assetScale: 0.86,
       fallbackIcon: Icons.sports_rounded,
       accent: const Color(0xFF2563EB),
     ),
     _WelcomeSlide(
-      mascotName: l10n.welcomeMascotGem,
       title: l10n.welcomeSlideGemTitle,
       body: l10n.welcomeSlideGemBody,
       assetPath: 'assets/images/record_reward_gem_character.png',
@@ -307,7 +301,6 @@ List<_WelcomeSlide> _buildSlides(AppLocalizations l10n) {
       accent: const Color(0xFF0891B2),
     ),
     _WelcomeSlide(
-      mascotName: l10n.welcomeMascotFlame,
       title: l10n.welcomeSlideFlameTitle,
       body: l10n.welcomeSlideFlameBody,
       assetPath: 'assets/images/passion_flame_character.png',
