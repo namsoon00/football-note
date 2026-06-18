@@ -5328,13 +5328,92 @@ class AppLocalizationsEn extends AppLocalizations {
       'Make running feel like a weapon for the next match: take a tiny football sprint mission, log a time, then use form coaching to find the next tenth of a second.';
 
   @override
-  String get runningCoachSectionToday => 'Today';
+  String get runningCoachSectionToday => 'Mission';
 
   @override
   String get runningCoachSectionRecords => 'Records';
 
   @override
   String get runningCoachSectionAnalysis => 'Analysis';
+
+  @override
+  String get runningCoachTodayPlanTitle => 'What to do today';
+
+  @override
+  String get runningCoachTodayPlanMissionTitle => 'Run the sprint mission';
+
+  @override
+  String get runningCoachTodayPlanMissionBody =>
+      'Start with the mission below. Three sharp attempts are enough.';
+
+  @override
+  String get runningCoachTodayPlanRecordTitle => 'Save the best time';
+
+  @override
+  String get runningCoachTodayPlanRecordBody =>
+      'After running, move to Records and enter only the fastest attempt.';
+
+  @override
+  String get runningCoachTodayPlanAnalysisTitle =>
+      'Check form when it feels off';
+
+  @override
+  String get runningCoachTodayPlanAnalysisBody =>
+      'Use Analysis when the start feels slow, heavy, or different from the best run.';
+
+  @override
+  String get runningCoachTodayPlanRecordAction => 'Go to records';
+
+  @override
+  String get runningCoachTodayPlanAnalysisAction => 'Go to analysis';
+
+  @override
+  String get runningCoachRecordsPlanTitle => 'How to log a run';
+
+  @override
+  String get runningCoachRecordsPlanDistanceTitle => 'Choose the distance';
+
+  @override
+  String get runningCoachRecordsPlanDistanceBody =>
+      'Pick 10m, 20m, or 30m to match the sprint you just ran.';
+
+  @override
+  String get runningCoachRecordsPlanSecondsTitle => 'Enter seconds';
+
+  @override
+  String get runningCoachRecordsPlanSecondsBody =>
+      'Use the stopwatch time in seconds, then save it as today\'s best attempt.';
+
+  @override
+  String get runningCoachRecordsPlanCompareTitle => 'Chase the previous runner';
+
+  @override
+  String get runningCoachRecordsPlanCompareBody =>
+      'The app compares the saved time with the previous best so the next target is clear.';
+
+  @override
+  String get runningCoachAnalysisPlanTitle => 'How to analyze form';
+
+  @override
+  String get runningCoachAnalysisPlanRecordTitle => 'Record a side view';
+
+  @override
+  String get runningCoachAnalysisPlanRecordBody =>
+      'Keep the full body in frame from the side for a few running steps.';
+
+  @override
+  String get runningCoachAnalysisPlanSampleTitle => 'Check the sample first';
+
+  @override
+  String get runningCoachAnalysisPlanSampleBody =>
+      'Open the sample guide if you want to see what the app compares before uploading.';
+
+  @override
+  String get runningCoachAnalysisPlanAnalyzeTitle => 'Pick and analyze';
+
+  @override
+  String get runningCoachAnalysisPlanAnalyzeBody =>
+      'Choose the video, run analysis, then start with the first focus cue.';
 
   @override
   String get runningCoachMissionCardTitle => 'Today\'s speed mission';
