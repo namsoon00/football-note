@@ -708,15 +708,38 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  Offset _clampedBoardPoint(double x, double y) {
+    return Offset(
+      x.clamp(0.04, 0.96).toDouble(),
+      y.clamp(0.04, 0.96).toDouble(),
+    );
+  }
+
+  double _forwardDirectionForItem(_BoardItem item) {
+    return item.x > 0.78 ? -1.0 : 1.0;
+  }
+
   Offset _defaultRouteEndForItem(
     _BoardItem item, {
     double dx = 0.16,
     double dy = 0,
   }) {
-    final horizontalDirection = item.x > 0.78 ? -1.0 : 1.0;
-    return Offset(
-      (item.x + (dx * horizontalDirection)).clamp(0.04, 0.96).toDouble(),
-      (item.y + dy).clamp(0.04, 0.96).toDouble(),
+    final horizontalDirection = _forwardDirectionForItem(item);
+    return _clampedBoardPoint(
+      item.x + (dx * horizontalDirection),
+      item.y + dy,
+    );
+  }
+
+  Offset _offsetFromItem(
+    _BoardItem item, {
+    required double dx,
+    required double dy,
+  }) {
+    final horizontalDirection = _forwardDirectionForItem(item);
+    return _clampedBoardPoint(
+      item.x + (dx * horizontalDirection),
+      item.y + dy,
     );
   }
 
@@ -1806,38 +1829,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _scheduleAutoSave();
   }
 
-  void _togglePathMode(_PathDrawMode kind) {
-    _stopRoutePlayback();
-    setState(() {
-      final closingCurrentMode = _pathMode && _pathDrawMode == kind;
-      _pathMode = !closingCurrentMode;
-      if (_pathMode) {
-        _penMode = false;
-        _pathDrawMode = kind;
-        final selectedRoute = _selectedRoute;
-        final selectedItem = _selectedItem;
-        if (selectedRoute != null && selectedRoute.kind == kind) {
-          _selectedRouteId = selectedRoute.id;
-          if (selectedRoute.linkedItemId != null) {
-            _selectedItemId = selectedRoute.linkedItemId;
-          }
-        } else if (selectedItem != null &&
-            selectedItem.type == _boardItemTypeForRouteKind(kind)) {
-          _selectedRouteId = _routeForItem(selectedItem.id, kind)?.id;
-        } else {
-          _selectedRouteId = null;
-        }
-      } else {
-        _selectedRouteId = null;
-      }
-      _activeStroke = null;
-      _activeRoutePoints = null;
-      _activeRouteSegmentDurationsMs = null;
-      _activeRouteLastPointAt = null;
-      _routeReplaceMode = false;
-    });
-  }
-
   void _prepareSelectedRouteRedraw() {
     final route = _selectedRoute;
     if (route == null || route.kind != _pathDrawMode) return;
@@ -2155,6 +2146,45 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _scheduleAutoSave();
   }
 
+  void _applyQuickReturnMoveTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.player) return;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final start = _itemPosition(selected);
+      final checkAway = _offsetFromItem(selected, dx: 0.14, dy: -0.05);
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: selected,
+        points: <Offset>[start, checkAway, start],
+        segmentDurationsMs: const <int>[540, 620],
+        stageIndex: _suggestedStageForNewRoute(_PathDrawMode.player),
+      );
+      _selectQuickActionRoute(route, selected);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _applyQuickOverlapMoveTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.player) return;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final start = _itemPosition(selected);
+      final outsideLane = _offsetFromItem(selected, dx: 0.08, dy: 0.12);
+      final end = _offsetFromItem(selected, dx: 0.23, dy: -0.02);
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: selected,
+        points: <Offset>[start, outsideLane, end],
+        segmentDurationsMs: const <int>[520, 720],
+        stageIndex: _suggestedStageForNewRoute(_PathDrawMode.player),
+      );
+      _selectQuickActionRoute(route, selected);
+    });
+    _scheduleAutoSave();
+  }
+
   void _applyQuickReceiveMoveTemplate() {
     final selected = _selectedItem;
     if (selected == null || selected.type != _BoardItemType.player) return;
@@ -2274,6 +2304,57 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         item: selected,
         points: <Offset>[_itemPosition(selected), middle, end],
         segmentDurationsMs: const <int>[440, 520],
+        stageIndex: 1,
+      );
+      _selectQuickActionRoute(route, selected);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _applyQuickShotTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.ball) return;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final start = _itemPosition(selected);
+      final attackDirection = selected.x > 0.5 ? -1.0 : 1.0;
+      final target = _clampedBoardPoint(
+        attackDirection > 0 ? 0.94 : 0.06,
+        selected.y + ((0.50 - selected.y) * 0.72),
+      );
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.ball,
+        item: selected,
+        points: <Offset>[start, target],
+        segmentDurationsMs: const <int>[760],
+        stageIndex: 1,
+      );
+      _selectQuickActionRoute(route, selected);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _applyQuickCrossTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.ball) return;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final start = _itemPosition(selected);
+      final direction = selected.x > 0.5 ? -1.0 : 1.0;
+      final targetY = selected.y < 0.5 ? 0.72 : 0.28;
+      final middle = _clampedBoardPoint(
+        selected.x + (0.14 * direction),
+        selected.y + ((targetY - selected.y) * 0.30),
+      );
+      final end = _clampedBoardPoint(
+        selected.x + (0.34 * direction),
+        targetY,
+      );
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.ball,
+        item: selected,
+        points: <Offset>[start, middle, end],
+        segmentDurationsMs: const <int>[520, 680],
         stageIndex: 1,
       );
       _selectQuickActionRoute(route, selected);
@@ -3475,21 +3556,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         icon: Icons.horizontal_rule,
         onTap: () => _addItem(_BoardItemType.hurdle),
       ),
-      _pairedToolButtons(
-        first: _toolButton(
-          label: l10n.trainingSketchPlayerButton,
-          icon: Icons.person,
-          onTap: () => _addItem(_BoardItemType.player),
-        ),
-        second: _routeModeButton(_PathDrawMode.player),
+      _toolButton(
+        label: l10n.trainingSketchPlayerButton,
+        icon: Icons.person,
+        onTap: () => _addItem(_BoardItemType.player),
       ),
-      _pairedToolButtons(
-        first: _toolButton(
-          label: l10n.trainingSketchBallButton,
-          icon: Icons.sports_soccer,
-          onTap: () => _addItem(_BoardItemType.ball),
-        ),
-        second: _routeModeButton(_PathDrawMode.ball),
+      _toolButton(
+        label: l10n.trainingSketchBallButton,
+        icon: Icons.sports_soccer,
+        onTap: () => _addItem(_BoardItemType.ball),
       ),
       _toolButton(
         label: l10n.trainingSketchLadderButton,
@@ -3559,24 +3634,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     ];
   }
 
-  Widget _routeModeButton(_PathDrawMode kind) {
-    final isActive = _pathMode && _pathDrawMode == kind;
-    final accentColor = _routeGroupAccentColor(kind);
-    return OutlinedButton.icon(
-      key: ValueKey('training-${kind.name}-path-mode-button'),
-      onPressed: () => _togglePathMode(kind),
-      icon: Icon(_routeGroupIcon(kind)),
-      label: Text(_routeGroupTitle(kind)),
-      style: _toolButtonStyle(
-        foregroundColor: isActive ? accentColor : null,
-        backgroundColor: isActive ? accentColor.withValues(alpha: 0.12) : null,
-        side: isActive
-            ? BorderSide(color: accentColor.withValues(alpha: 0.68))
-            : null,
-      ),
-    );
-  }
-
   ButtonStyle _toolButtonStyle({
     Color? foregroundColor,
     Color? backgroundColor,
@@ -3603,13 +3660,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       icon: Icon(icon),
       label: Text(label),
       style: _toolButtonStyle(),
-    );
-  }
-
-  Widget _pairedToolButtons({required Widget first, required Widget second}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [first, const SizedBox(width: 8), second],
     );
   }
 
@@ -4040,6 +4090,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   icon: const Icon(Icons.call_received),
                   label: Text(l10n.trainingSketchQuickReceiveMoveButton),
                 ),
+                OutlinedButton.icon(
+                  onPressed: _applyQuickReturnMoveTemplate,
+                  icon: const Icon(Icons.keyboard_return),
+                  label: Text(l10n.trainingSketchQuickReturnMoveButton),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _applyQuickOverlapMoveTemplate,
+                  icon: const Icon(Icons.moving),
+                  label: Text(l10n.trainingSketchQuickOverlapButton),
+                ),
               ],
               if (selected.type == _BoardItemType.ball) ...[
                 OutlinedButton.icon(
@@ -4051,6 +4111,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   onPressed: _applyQuickDribbleTemplate,
                   icon: const Icon(Icons.sports_soccer_outlined),
                   label: Text(l10n.trainingSketchQuickDribbleButton),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _applyQuickShotTemplate,
+                  icon: const Icon(Icons.ads_click),
+                  label: Text(l10n.trainingSketchQuickShotButton),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _applyQuickCrossTemplate,
+                  icon: const Icon(Icons.north_east),
+                  label: Text(l10n.trainingSketchQuickCrossButton),
                 ),
               ],
             ],

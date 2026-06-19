@@ -165,10 +165,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.byKey(const ValueKey('training-player-path-mode-button')),
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _openMoveRouteToolForIcon(
+      tester,
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
     );
-    await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '단계 자동 나누기');
     await _tapVisibleOutlinedButton(tester, '다음 단계');
 
@@ -273,7 +276,7 @@ void main() {
       find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
     );
     await tester.pumpAndSettle();
-    await _tapVisibleOutlinedButton(tester, '이동선 만들기');
+    await _tapVisibleOutlinedButton(tester, '이동 만들기');
     await _tapBoardRelative(tester, boardFinder, const Offset(0.50, 0.36));
     await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.36));
     await _tapVisibleOutlinedButton(tester, '마지막 점 취소');
@@ -469,16 +472,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.byKey(const ValueKey('training-player-path-mode-button')),
-    );
-    await tester.pumpAndSettle();
-    await _tapTopBarMenuItem(
-      tester,
-      isLandscape: true,
-      itemKey: 'training-topbar-menu-controls',
-    );
-
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     final playerFinder = find.descendant(
       of: boardFinder,
@@ -488,9 +481,12 @@ void main() {
       of: boardFinder,
       matching: find.byIcon(Icons.change_history),
     );
-
-    await tester.tap(playerFinder.first);
-    await tester.pumpAndSettle();
+    await _openMoveRouteToolForIcon(tester, playerFinder.first);
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: true,
+      itemKey: 'training-topbar-menu-controls',
+    );
 
     await _drawRoute(
       tester,
@@ -587,19 +583,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.byKey(const ValueKey('training-player-path-mode-button')),
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _openMoveRouteToolForIcon(
+      tester,
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .at(1),
     );
-    await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('사람 2'));
-    await tester.tap(find.text('사람 2'));
-    await tester.pumpAndSettle();
-
-    final deleteRouteButton = find.widgetWithText(OutlinedButton, '선택 이동선 삭제');
-    await tester.ensureVisible(deleteRouteButton);
-    await tester.tap(deleteRouteButton);
-    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '선택 이동선 삭제');
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -704,7 +696,7 @@ void main() {
   });
 
   testWidgets(
-    'new route links to the nearest matching item when none is selected',
+    'new move route links to the selected player',
     (WidgetTester tester) async {
       _setLandscapeSurface(tester);
       String? savedLayout;
@@ -742,12 +734,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(
-        find.byKey(const ValueKey('training-player-path-mode-button')),
-      );
-      await tester.pumpAndSettle();
-
       final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      await _openMoveRouteToolForIcon(
+        tester,
+        find
+            .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+            .at(1),
+      );
       await _drawRoute(
         tester,
         boardFinder,
@@ -766,7 +759,7 @@ void main() {
   );
 
   testWidgets(
-    'player and ball route buttons stay separate and ball routes keep ball color',
+    'selected ball pass action creates a ball route with ball color',
     (WidgetTester tester) async {
       _setLandscapeSurface(tester);
       String? savedLayout;
@@ -789,19 +782,21 @@ void main() {
 
       expect(
         find.byKey(const ValueKey('training-player-path-mode-button')),
-        findsOneWidget,
+        findsNothing,
       );
       expect(
         find.byKey(const ValueKey('training-ball-path-mode-button')),
-        findsOneWidget,
+        findsNothing,
       );
-
-      await tester.tap(
-        find.byKey(const ValueKey('training-ball-path-mode-button')),
-      );
-      await tester.pumpAndSettle();
 
       final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      await _openPassRouteToolForIcon(
+        tester,
+        find.descendant(
+          of: boardFinder,
+          matching: find.byIcon(Icons.sports_soccer),
+        ),
+      );
       await _drawRoute(
         tester,
         boardFinder,
@@ -825,39 +820,70 @@ void main() {
     },
   );
 
-  testWidgets('route buttons stay beside player and ball buttons', (
+  testWidgets('route actions live inside selected player and ball panels', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
 
     await tester.pumpWidget(
       _buildApp(
-        const TrainingMethodBoardScreen(
+        TrainingMethodBoardScreen(
           boardTitle: '패스 워밍업',
-          initialLayoutJson: '',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.2,
+                    y: 0.5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.62,
+                    y: 0.46,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    final playerRect = tester.getRect(
-      find.widgetWithText(OutlinedButton, '사람'),
-    );
-    final playerRouteRect = tester.getRect(
+    expect(
       find.byKey(const ValueKey('training-player-path-mode-button')),
+      findsNothing,
     );
-    final ballRect = tester.getRect(find.widgetWithText(OutlinedButton, '공'));
-    final ballRouteRect = tester.getRect(
+    expect(
       find.byKey(const ValueKey('training-ball-path-mode-button')),
+      findsNothing,
     );
 
-    expect((playerRouteRect.top - playerRect.top).abs(), lessThan(2));
-    expect(playerRouteRect.left - playerRect.right, lessThan(20));
-    expect(playerRouteRect.left, greaterThan(playerRect.left));
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(OutlinedButton, '이동 만들기'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, '돌아오기'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, '오버랩'), findsOneWidget);
 
-    expect((ballRouteRect.top - ballRect.top).abs(), lessThan(2));
-    expect(ballRouteRect.left - ballRect.right, lessThan(20));
-    expect(ballRouteRect.left, greaterThan(ballRect.left));
+    await tester.tap(
+      find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.sports_soccer),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(OutlinedButton, '패스 만들기'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, '슈팅'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, '크로스'), findsOneWidget);
     expect(find.text('패스·드리블 플로우'), findsNothing);
   });
 
@@ -1048,24 +1074,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.byKey(const ValueKey('training-player-path-mode-button')),
-    );
-    await tester.pumpAndSettle();
-    await _tapTopBarMenuItem(
-      tester,
-      isLandscape: true,
-      itemKey: 'training-topbar-menu-controls',
-    );
-
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     final playerFinder = find.descendant(
       of: boardFinder,
       matching: find.byIcon(Icons.person),
     );
 
-    await tester.tap(playerFinder);
-    await tester.pumpAndSettle();
+    await _openMoveRouteToolForIcon(tester, playerFinder);
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: true,
+      itemKey: 'training-topbar-menu-controls',
+    );
 
     await _drawRoute(
       tester,
@@ -1169,10 +1189,7 @@ void main() {
 
       await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
       await tester.pumpAndSettle();
-      await tester.tap(
-        find.byKey(const ValueKey('training-player-path-mode-button')),
-      );
-      await tester.pumpAndSettle();
+      await _tapVisibleOutlinedButton(tester, '이동 만들기');
 
       final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
       await _drawRoute(
@@ -1269,17 +1286,13 @@ void main() {
     await tester.pumpAndSettle();
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-    await tester.tap(
+    await _openPassRouteToolForIcon(
+      tester,
       find.descendant(
         of: boardFinder,
         matching: find.byIcon(Icons.sports_soccer),
       ),
     );
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('training-ball-path-mode-button')),
-    );
-    await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('training-route-target-ball-ball-1')),
       findsOneWidget,
@@ -1461,6 +1474,24 @@ Future<void> _tapVisibleOutlinedButton(
   await tester.pumpAndSettle();
   await tester.tap(finder);
   await tester.pumpAndSettle();
+}
+
+Future<void> _openMoveRouteToolForIcon(
+  WidgetTester tester,
+  Finder iconFinder,
+) async {
+  await tester.tap(iconFinder);
+  await tester.pumpAndSettle();
+  await _tapVisibleOutlinedButton(tester, '이동 만들기');
+}
+
+Future<void> _openPassRouteToolForIcon(
+  WidgetTester tester,
+  Finder iconFinder,
+) async {
+  await tester.tap(iconFinder);
+  await tester.pumpAndSettle();
+  await _tapVisibleOutlinedButton(tester, '패스 만들기');
 }
 
 Future<void> _tapTopBarMenuItem(
