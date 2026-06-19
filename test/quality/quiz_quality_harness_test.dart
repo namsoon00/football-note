@@ -9,6 +9,13 @@ void main() {
     expect(report.passed, isTrue);
     expect(report.questionCountBySport.keys,
         containsAll(['football', 'baseball', 'basketball', 'tennis']));
+    for (final sportId in ['baseball', 'basketball', 'tennis']) {
+      expect(
+        report.questionCountBySport[sportId],
+        greaterThanOrEqualTo(100),
+        reason: '$sportId count: ${report.questionCountBySport[sportId]}',
+      );
+    }
     for (final entry in report.styleCountBySport.entries) {
       for (final count in entry.value.values) {
         expect(
