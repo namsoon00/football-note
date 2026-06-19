@@ -642,11 +642,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _openCalendarQuickCreate(CalendarQuickCreateAction action) {
     setState(() {
-      _builtTabIndices.add(1);
+      _builtTabIndices.add(2);
       _pendingCalendarQuickCreateAction = action;
-      _index = 1;
+      _index = 2;
     });
-    unawaited(_showTabGuideIfNeeded(1));
+    unawaited(_showTabGuideIfNeeded(2));
   }
 
   Future<void> _openTrainingBoards() async {
