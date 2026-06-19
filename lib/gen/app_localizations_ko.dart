@@ -35,10 +35,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => '오늘 기록하면, 내 운동이 보여요';
+  String get welcomeGuideTitle => '오늘 기록하면, 내일 더 강해져요';
 
   @override
-  String get welcomeGuideIntro => '종목은 상관없어요. 한 줄만 남겨도 충분해요. 지금 시작해도 잘하고 있어요.';
+  String get welcomeGuideIntro =>
+      '종목은 상관없어요. 한 줄만 남겨도 다음 훈련이 쉬워져요. 지금 시작해도 충분히 잘할 수 있어요.';
 
   @override
   String get welcomeGuidePrimaryAction => '기록 시작하기';
@@ -47,7 +48,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeGuideSectionFlow => '해야 할 일';
 
   @override
-  String get welcomeGuideNextTabHint => '세 장만 넘기면 돼요. 그 다음은 버튼을 눌러 바로 기록해 봐요.';
+  String get welcomeGuideNextTabHint => '세 장만 넘기면 돼요. 그 다음은 바로 하나 기록해 봐요.';
 
   @override
   String get welcomeGuidePreviewLabel => '지금 고를 액션';
@@ -56,16 +57,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeGuideCoachMarkLabel => '바로 누를 곳';
 
   @override
-  String get welcomeSlideGemTitle => '작은 기록도 반짝반짝 쌓여요';
+  String get welcomeSlideGemTitle => '작은 기록이 큰 자신감이 돼요';
 
   @override
-  String get welcomeSlideGemBody => '조금 해도 괜찮아요. 남긴 만큼 자라고, 다음에는 더 잘할 수 있어요.';
+  String get welcomeSlideGemBody =>
+      '잘한 점은 크게 칭찬하고, 아쉬운 점은 다음 도전으로 바꿔요. 하나씩 쌓이면 더 잘할 수 있어요.';
 
   @override
-  String get welcomeSlideFlameTitle => '오늘 하나면, 내일은 더 쉬워져요';
+  String get welcomeSlideFlameTitle => '힘든 날에도 멈추지 마세요';
 
   @override
-  String get welcomeSlideFlameBody => '불이 작아도 괜찮아요. 지금 기록하면 흐름이 이어져요. 할 수 있어요.';
+  String get welcomeSlideFlameBody =>
+      '오늘 하나만 해도 괜찮아요. 기록하고 다시 시작하면 내일 한 걸음 더 갈 수 있어요.';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {
