@@ -163,6 +163,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
         builder: (_) => TrainingMethodBoardScreen(
           boardTitle: board.title,
           initialLayoutJson: board.layoutJson,
+          sportId: SportService(widget.optionRepository).currentSportId(),
           onSaved: (savedLayout) async {
             final resolvedTitle = _resolveBoardTitle(
               layoutJson: savedLayout,
