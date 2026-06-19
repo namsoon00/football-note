@@ -1473,8 +1473,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                   builder: (context) {
                     final selected = _selectedDailyGoals.contains(option);
                     final visual = _dailyGoalVisualFor(option);
+                    final selectedForeground =
+                        theme.brightness == Brightness.dark
+                            ? Colors.white
+                            : visual.color;
                     final foreground = selected
-                        ? visual.color
+                        ? selectedForeground
                         : theme.colorScheme.onSurfaceVariant;
                     return FilterChip(
                       selected: selected,
@@ -1502,7 +1506,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       ),
                       selectedColor: visual.color.withValues(
                         alpha:
-                            theme.brightness == Brightness.dark ? 0.36 : 0.22,
+                            theme.brightness == Brightness.dark ? 0.46 : 0.22,
                       ),
                       backgroundColor: Color.alphaBlend(
                         visual.color.withValues(alpha: 0.07),
@@ -3863,6 +3867,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             poolSizeLabel: l10n.fortuneDialogPoolSizeLabel,
             poolSizeValue: l10n.fortuneDialogPoolSizeCount(formattedPoolSize),
             actionLabel: l10n.fortuneDialogAction,
+            showOverview: false,
             isKo: isKo,
             onActionPressed: () => Navigator.of(contextForClose).pop(),
           ),

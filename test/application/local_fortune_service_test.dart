@@ -4,7 +4,7 @@ import 'package:football_note/domain/entities/player_profile.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 
 void main() {
-  test('generateResult omits removed lucky info lines', () {
+  test('generateResult keeps lucky info to one sentence', () {
     final service = LocalFortuneService();
     final result = service.generateResult(
       entry: TrainingEntry(
@@ -28,7 +28,12 @@ void main() {
     expect(result.fortuneText, isNot(contains('행운 컨디션')));
     expect(result.fortuneText, isNot(contains('행운 준비도:')));
     expect(result.fortuneText, isNot(contains('행운 최근 흐름:')));
-    expect(result.fortuneText, contains('행운 숫자:'));
-    expect(result.fortuneText, contains('행운 색상:'));
+    final lines = result.fortuneText.split('\n');
+    expect(lines, hasLength(2));
+    expect(lines.first, '[행운 정보]');
+    expect(lines.last, contains('행운 숫자 '));
+    expect(lines.last, contains('색상 '));
+    expect(lines.last, contains('시간대 '));
+    expect(lines.last, contains('의식해 보세요.'));
   });
 }

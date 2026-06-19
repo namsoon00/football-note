@@ -6,7 +6,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
-import 'package:football_note/application/local_fortune_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_board_service.dart';
 import 'package:football_note/application/training_service.dart';
@@ -377,7 +376,7 @@ void main() {
     },
   );
 
-  testWidgets('fortune dialog shows pool size and lucky info only', (
+  testWidgets('fortune dialog hides overview and compacts lucky info', (
     WidgetTester tester,
   ) async {
     await resetStorage(tester);
@@ -398,7 +397,6 @@ void main() {
     );
     await addEntry(tester, original);
     final storedEntry = (await allEntries(tester)).single;
-    final formattedPoolSize = LocalFortuneService.formatFortunePoolCount('ko');
 
     await tester.pumpWidget(
       DefaultAssetBundle(
@@ -432,10 +430,13 @@ void main() {
 
     expect(find.text('오늘의 운세'), findsWidgets);
     expect(find.text('오늘의 행운 정보를 확인해 보세요.'), findsOneWidget);
-    expect(find.text('전체 운세 pool'), findsOneWidget);
-    expect(find.text('$formattedPoolSize개'), findsOneWidget);
-    expect(find.textContaining('행운 색상: 에메랄드'), findsOneWidget);
-    expect(find.textContaining('행운 시간대: 오전 후반 08:10~08:50'), findsOneWidget);
+    expect(find.text('운세 보기'), findsNothing);
+    expect(find.text('전체 운세 pool'), findsNothing);
+    expect(
+      find.textContaining('행운 색상 에메랄드, 시간대 오전 후반 08:10~08:50'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('행운 색상: 에메랄드'), findsNothing);
     expect(find.text('추천 훈련'), findsNothing);
     expect(find.text('운세 코멘트'), findsNothing);
   });
@@ -670,7 +671,7 @@ void main() {
 
     expect(find.text('오늘의 운세'), findsWidgets);
     expect(find.text('오늘의 행운 정보를 확인해 보세요.'), findsOneWidget);
-    expect(find.textContaining('행운 색상: 에메랄드'), findsOneWidget);
+    expect(find.textContaining('행운 색상 에메랄드'), findsOneWidget);
   });
 
   testWidgets('parent mode keeps training sketch action visible', (

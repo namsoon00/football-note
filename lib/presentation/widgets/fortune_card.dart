@@ -35,7 +35,7 @@ class FortuneSections {
 
     return FortuneSections(
       bodyLines: bodyLines,
-      luckyInfoLines: luckyInfoLines,
+      luckyInfoLines: _compactLuckyInfoLines(luckyInfoLines),
     );
   }
 
@@ -47,6 +47,94 @@ class FortuneSections {
 
   static bool _isLuckyInfoLine(String line) {
     return line.startsWith('행운 ') || line.startsWith('Lucky ');
+  }
+
+  static List<String> _compactLuckyInfoLines(List<String> lines) {
+    if (lines.length <= 1) return lines;
+    final isKo = lines.any((line) => line.startsWith('행운 '));
+    final values = <String, String>{};
+    for (final line in lines) {
+      final separator = line.indexOf(':');
+      if (separator <= 0) continue;
+      final key = line.substring(0, separator).trim();
+      final value = line.substring(separator + 1).trim();
+      if (key.isNotEmpty && value.isNotEmpty) {
+        values[key] = value;
+      }
+    }
+    if (values.isEmpty) {
+      return [_singleSentenceFallback(lines.first, isKo: isKo)];
+    }
+    if (isKo) {
+      final number = _valueFor(values, const ['행운 숫자']);
+      final color = _valueFor(values, const ['행운 색상']);
+      final time = _valueFor(values, const ['행운 시간대']);
+      final zone = _valueFor(values, const ['행운 구역']);
+      final cue = _valueFor(values, const ['행운 루틴 큐']);
+      final parts = <String>[
+        if (number.isNotEmpty) '숫자 $number',
+        if (color.isNotEmpty) '색상 $color',
+        if (time.isNotEmpty) '시간대 $time',
+      ];
+      final cueText = cue.isNotEmpty
+          ? '$cue를 의식해 보세요'
+          : zone.isNotEmpty
+              ? '$zone에서 기본 리듬을 맞춰보세요'
+              : '기본 리듬을 차분히 맞춰보세요';
+      if (parts.isEmpty) {
+        return [_ensureSentence(cueText)];
+      }
+      final prefix = '행운 ${parts.join(', ')}';
+      final place = zone.isNotEmpty && cue.isNotEmpty ? '$zone에서 ' : '';
+      return [_ensureSentence('$prefix에는 $place$cueText')];
+    }
+
+    final number = _valueFor(values, const ['Lucky number']);
+    final color = _valueFor(values, const ['Lucky color']);
+    final time = _valueFor(values, const ['Lucky time']);
+    final zone = _valueFor(values, const ['Lucky zone']);
+    final cue = _valueFor(values, const ['Lucky routine cue']);
+    final parts = <String>[
+      if (number.isNotEmpty) 'number $number',
+      if (color.isNotEmpty) 'color $color',
+      if (time.isNotEmpty) 'time $time',
+    ];
+    final cueText = cue.isNotEmpty
+        ? _stripTerminalPunctuation(cue)
+        : zone.isNotEmpty
+            ? 'keep your rhythm in the $zone'
+            : 'keep the rhythm calm';
+    if (parts.isEmpty) {
+      return [_ensureSentence(cueText)];
+    }
+    final place = zone.isNotEmpty && cue.isNotEmpty ? ' in the $zone' : '';
+    return [_ensureSentence('Lucky ${parts.join(', ')}$place: $cueText')];
+  }
+
+  static String _valueFor(Map<String, String> values, List<String> keys) {
+    for (final key in keys) {
+      final value = values[key]?.trim() ?? '';
+      if (value.isNotEmpty) return _stripTerminalPunctuation(value);
+    }
+    return '';
+  }
+
+  static String _singleSentenceFallback(String line, {required bool isKo}) {
+    final text = _stripTerminalPunctuation(line);
+    if (text.isEmpty) {
+      return isKo ? '오늘의 행운 흐름을 가볍게 이어가세요.' : 'Keep today rhythm light.';
+    }
+    return _ensureSentence(text);
+  }
+
+  static String _ensureSentence(String text) {
+    final trimmed = _stripTerminalPunctuation(text);
+    if (trimmed.isEmpty) return '';
+    return '$trimmed.';
+  }
+
+  static String _stripTerminalPunctuation(String text) {
+    return text.trim().replaceFirst(RegExp(r'[.!?。]+$'), '').trim();
   }
 }
 

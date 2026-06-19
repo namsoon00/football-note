@@ -37,9 +37,6 @@ class LocalFortuneService {
     required bool isKo,
   }) {
     final baseSeed = _seed(entry, profile, history);
-    final luckyObject = _luckyObject(baseSeed + 3, isKo);
-    final luckySnack = _luckySnack(baseSeed + 11, isKo);
-    final boost = _luckyBoost(seed: baseSeed + 41, isKo: isKo);
     final luckyTime = _luckyTime(seed: baseSeed + 71, isKo: isKo);
     final luckyColor = _luckyColor(seed: baseSeed + 73, isKo: isKo);
     final luckyZone = _luckyZone(seed: baseSeed + 79, isKo: isKo);
@@ -54,23 +51,9 @@ class LocalFortuneService {
 
     final fortuneText = isKo
         ? '[행운 정보]\n'
-            '행운 숫자: $luckyNumber\n'
-            '행운 색상: $luckyColor\n'
-            '행운 시간대: $luckyTime\n'
-            '행운 구역: $luckyZone\n'
-            '행운 물건: $luckyObject\n'
-            '행운 간식: $luckySnack\n'
-            '행운 루틴 큐: $luckyCue\n'
-            '$boost'
+            '행운 숫자 $luckyNumber, 색상 $luckyColor, 시간대 $luckyTime에는 $luckyZone에서 $luckyCue를 의식해 보세요.'
         : '[Lucky info]\n'
-            'Lucky number: $luckyNumber\n'
-            'Lucky color: $luckyColor\n'
-            'Lucky time: $luckyTime\n'
-            'Lucky zone: $luckyZone\n'
-            'Lucky item: $luckyObject\n'
-            'Lucky snack: $luckySnack\n'
-            'Lucky routine cue: $luckyCue\n'
-            '$boost';
+            'Lucky number $luckyNumber, color $luckyColor, and time $luckyTime point to the $luckyZone; $luckyCue.';
 
     return LocalFortuneResult(
       fortuneText: fortuneText,
@@ -175,33 +158,6 @@ class LocalFortuneService {
     );
   }
 
-  String _luckyObject(int seed, bool isKo) {
-    return _composeSegments(
-      seed: seed,
-      first: isKo ? _luckyObjectModifiersKo : _luckyObjectModifiersEn,
-      second: isKo ? _luckyObjectBasesKo : _luckyObjectBasesEn,
-      separator: isKo ? ' ' : ' ',
-    );
-  }
-
-  String _luckySnack(int seed, bool isKo) {
-    return _composeSegments(
-      seed: seed,
-      first: isKo ? _luckySnackModifiersKo : _luckySnackModifiersEn,
-      second: isKo ? _luckySnackBasesKo : _luckySnackBasesEn,
-      separator: isKo ? ' ' : ' ',
-    );
-  }
-
-  String _luckyBoost({required int seed, required bool isKo}) {
-    return _composeSegments(
-      seed: seed,
-      first: isKo ? _boostOpeningsKo : _boostOpeningsEn,
-      second: isKo ? _boostActionsKo : _boostActionsEn,
-      third: isKo ? _boostClosingsKo : _boostClosingsEn,
-    );
-  }
-
   String _luckyZone({required int seed, required bool isKo}) {
     return _composeSegments(
       seed: seed,
@@ -215,7 +171,6 @@ class LocalFortuneService {
       seed: seed,
       first: isKo ? _luckyCueOpeningsKo : _luckyCueOpeningsEn,
       second: isKo ? _luckyCueActionsKo : _luckyCueActionsEn,
-      third: isKo ? _luckyCueClosingsKo : _luckyCueClosingsEn,
     );
   }
 
@@ -260,33 +215,16 @@ class LocalFortuneService {
       _luckyZoneModifiersKo,
       _luckyZoneBasesKo,
     );
-    final luckyObjectCount = countSegments(
-      _luckyObjectModifiersKo,
-      _luckyObjectBasesKo,
-    );
-    final luckySnackCount = countSegments(
-      _luckySnackModifiersKo,
-      _luckySnackBasesKo,
-    );
     final luckyCueCount = countSegments(
       _luckyCueOpeningsKo,
       _luckyCueActionsKo,
-      _luckyCueClosingsKo,
-    );
-    final boostCount = countSegments(
-      _boostOpeningsKo,
-      _boostActionsKo,
-      _boostClosingsKo,
     );
     const luckyNumberCount = 9;
 
     return luckyColorCount *
         luckyTimeCount *
         luckyZoneCount *
-        luckyObjectCount *
-        luckySnackCount *
         luckyCueCount *
-        boostCount *
         BigInt.from(luckyNumberCount);
   }
 
@@ -452,102 +390,6 @@ const List<String> _luckyZoneBasesEn = [
   'pre-finish space',
 ];
 
-const List<String> _luckyObjectModifiersKo = [
-  '가벼운',
-  '작은',
-  '손에 익은',
-  '주머니 속',
-  '책상 위',
-  '운동가방 안',
-  '자주 쓰는',
-  '정리된',
-];
-
-const List<String> _luckyObjectBasesKo = [
-  '연필',
-  '지우개',
-  '작은 공',
-  '물통',
-  '운동화',
-  '손목밴드',
-  '훈련 노트',
-  '헤어밴드',
-  '스포츠 타월',
-  '양말 한 켤레',
-];
-
-const List<String> _luckyObjectModifiersEn = [
-  'light',
-  'small',
-  'familiar',
-  'pocket',
-  'desk-side',
-  'gym-bag',
-  'often-used',
-  'neatly placed',
-];
-
-const List<String> _luckyObjectBasesEn = [
-  'pencil',
-  'eraser',
-  'mini ball',
-  'water bottle',
-  'training shoes',
-  'wrist band',
-  'training note',
-  'headband',
-  'sports towel',
-  'pair of socks',
-];
-
-const List<String> _luckySnackModifiersKo = [
-  '차갑게 식힌',
-  '한입 크기의',
-  '부담 없는',
-  '훈련 전후에 좋은',
-  '가볍게 챙기기 쉬운',
-  '집중 전환에 좋은',
-  '리듬 회복용',
-  '물과 잘 맞는',
-];
-
-const List<String> _luckySnackBasesKo = [
-  '바나나 한 조각',
-  '우유 한 컵',
-  '사과 한 조각',
-  '물 한 컵',
-  '작은 주먹밥',
-  '요거트',
-  '견과류 한 줌',
-  '초코우유 몇 모금',
-  '치즈 스틱',
-  '토스트 반 조각',
-];
-
-const List<String> _luckySnackModifiersEn = [
-  'chilled',
-  'bite-sized',
-  'easy-going',
-  'pre/post training friendly',
-  'easy-to-pack',
-  'focus-reset',
-  'rhythm-recovery',
-  'water-friendly',
-];
-
-const List<String> _luckySnackBasesEn = [
-  'banana slice',
-  'cup of milk',
-  'apple slice',
-  'glass of water',
-  'mini rice ball',
-  'yogurt',
-  'handful of nuts',
-  'few sips of chocolate milk',
-  'cheese stick',
-  'half a toast',
-];
-
 const List<String> _luckyCueOpeningsKo = [
   '짧게',
   '첫 세트 전에',
@@ -570,13 +412,6 @@ const List<String> _luckyCueActionsKo = [
   '볼 오기 전에 어깨 방향 정리하기',
 ];
 
-const List<String> _luckyCueClosingsKo = [
-  '가 오늘 감각을 오래 붙잡아 줘요.',
-  '가 좋은 장면을 더 빨리 불러올 수 있어요.',
-  '가 흔들린 리듬을 다시 모아줄 거예요.',
-  '가 하루 전체의 템포를 정리해 줄 수 있어요.',
-];
-
 const List<String> _luckyCueOpeningsEn = [
   'Briefly',
   'Before the first set',
@@ -597,63 +432,4 @@ const List<String> _luckyCueActionsEn = [
   'bind the tempo with a short breath',
   'choose accuracy before force',
   'set the shoulder angle before the ball arrives',
-];
-
-const List<String> _luckyCueClosingsEn = [
-  'should help the feel last longer today.',
-  'can bring the next good moment faster.',
-  'should gather the rhythm again when it shakes.',
-  'can clean up the tempo of the whole day.',
-];
-
-const List<String> _boostOpeningsKo = [
-  '보너스:',
-  '행운 팁:',
-  '마무리 팁:',
-  '리듬 팁:',
-  '집중 팁:',
-];
-
-const List<String> _boostActionsKo = [
-  '숨을 크게 한 번 쉬고 시작해 보세요.',
-  '어깨를 가볍게 풀어 주면 흐름이 부드러워져요.',
-  '물을 한 모금 마시면 선택 속도가 안정될 수 있어요.',
-  '오늘 잘한 장면 하나를 바로 떠올려 보세요.',
-  '첫 세트 전에 발목을 한 번 더 깨우면 좋아요.',
-  '메모 한 줄을 남기면 하루 정리가 더 선명해져요.',
-  '시작 전에 시선을 좌우로 한 번 훑어 보세요.',
-  '짧게 기지개를 켜면 몸이 빨리 반응할 수 있어요.',
-];
-
-const List<String> _boostClosingsKo = [
-  '',
-  '그 한 번이 오늘 기준점을 만들어 줄 수 있어요.',
-  '작은 루틴이 하루의 안정감을 올려줄 거예요.',
-  '사소해 보여도 마무리 만족도가 달라질 수 있어요.',
-];
-
-const List<String> _boostOpeningsEn = [
-  'Bonus:',
-  'Lucky tip:',
-  'Finish tip:',
-  'Rhythm tip:',
-  'Focus tip:',
-];
-
-const List<String> _boostActionsEn = [
-  'take one deep breath before you start.',
-  'loosening your shoulders can smooth the whole session.',
-  'one sip of water can steady your choices.',
-  'recall one good action from today right away.',
-  'wake the ankles up once more before the first set.',
-  'leave one short memo to sharpen the day.',
-  'sweep your eyes left and right once before starting.',
-  'a quick stretch can wake the body faster.',
-];
-
-const List<String> _boostClosingsEn = [
-  '',
-  'That one action can set the tone for the day.',
-  'A tiny routine can make the whole day steadier.',
-  'It looks small, but it can change the quality of your finish.',
 ];
