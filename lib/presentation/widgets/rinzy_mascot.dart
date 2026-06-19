@@ -571,8 +571,8 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
                     Positioned.fill(
                       child: IgnorePointer(
                         child: CustomPaint(
-                          key: const ValueKey('challenge-rinzy-cheer-tassels'),
-                          painter: _ChallengeCheerTasselsPainter(phase: phase),
+                          key: const ValueKey('challenge-rinzy-cheer-pom-poms'),
+                          painter: _ChallengeCheerPomPomsPainter(phase: phase),
                         ),
                       ),
                     ),
@@ -619,10 +619,10 @@ class _PaintedChallengeRinzyPose extends StatelessWidget {
   }
 }
 
-class _ChallengeCheerTasselsPainter extends CustomPainter {
+class _ChallengeCheerPomPomsPainter extends CustomPainter {
   final double phase;
 
-  const _ChallengeCheerTasselsPainter({required this.phase});
+  const _ChallengeCheerPomPomsPainter({required this.phase});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -630,20 +630,20 @@ class _ChallengeCheerTasselsPainter extends CustomPainter {
     if (unit <= 0) return;
 
     final wave = math.sin(phase * math.pi * 2);
-    _drawCheerTassel(
+    _drawCheerPomPom(
       canvas,
       hand: Offset(size.width * 0.26, size.height * 0.42),
       unit: unit,
-      angle: -math.pi * 0.68 + wave * 0.30,
+      angle: -math.pi * 0.68 + wave * 0.24,
       flutter: phase + 0.10,
       primary: const Color(0xFFFFC857),
       accent: const Color(0xFFFF7A90),
     );
-    _drawCheerTassel(
+    _drawCheerPomPom(
       canvas,
       hand: Offset(size.width * 0.74, size.height * 0.42),
       unit: unit,
-      angle: -math.pi * 0.32 - wave * 0.30,
+      angle: -math.pi * 0.32 - wave * 0.24,
       flutter: phase + 0.58,
       primary: const Color(0xFF7DD3FC),
       accent: const Color(0xFF86EFAC),
@@ -651,12 +651,12 @@ class _ChallengeCheerTasselsPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _ChallengeCheerTasselsPainter oldDelegate) {
+  bool shouldRepaint(covariant _ChallengeCheerPomPomsPainter oldDelegate) {
     return oldDelegate.phase != phase;
   }
 }
 
-void _drawCheerTassel(
+void _drawCheerPomPom(
   Canvas canvas, {
   required Offset hand,
   required double unit,
@@ -667,38 +667,8 @@ void _drawCheerTassel(
 }) {
   final direction = Offset(math.cos(angle), math.sin(angle));
   final normal = Offset(-direction.dy, direction.dx);
-  final base = hand + direction * unit * 0.030;
-  final knot = hand - direction * unit * 0.004;
   final flick = math.sin(flutter * math.pi * 2);
-
-  final cordPaint = Paint()
-    ..color = primary.withValues(alpha: 0.74)
-    ..strokeWidth = unit * 0.010
-    ..strokeCap = StrokeCap.round;
-  canvas.drawLine(knot, base, cordPaint);
-
-  final fanPath = Path()
-    ..moveTo(
-      base.dx - normal.dx * unit * 0.040,
-      base.dy - normal.dy * unit * 0.040,
-    )
-    ..quadraticBezierTo(
-      base.dx + direction.dx * unit * 0.110 - normal.dx * unit * 0.070,
-      base.dy + direction.dy * unit * 0.110 - normal.dy * unit * 0.070,
-      base.dx + direction.dx * unit * 0.170 + normal.dx * unit * 0.018,
-      base.dy + direction.dy * unit * 0.170 + normal.dy * unit * 0.018,
-    )
-    ..quadraticBezierTo(
-      base.dx + direction.dx * unit * 0.108 + normal.dx * unit * 0.074,
-      base.dy + direction.dy * unit * 0.108 + normal.dy * unit * 0.074,
-      base.dx + normal.dx * unit * 0.040,
-      base.dy + normal.dy * unit * 0.040,
-    )
-    ..close();
-  canvas.drawPath(
-    fanPath,
-    Paint()..color = primary.withValues(alpha: 0.10),
-  );
+  final center = hand + direction * unit * (0.050 + flick * 0.004);
 
   final strandColors = <Color>[
     primary,
@@ -708,46 +678,88 @@ void _drawCheerTassel(
     accent,
     primary,
     Colors.white,
+    accent,
+    primary,
+    Colors.white,
+    primary,
+    accent,
   ];
   for (var index = 0; index < strandColors.length; index += 1) {
-    final spread = (index - 3) / 3;
-    final strandWave =
-        math.sin(flutter * math.pi * 2 + index * 0.72) * unit * 0.030;
-    final start = base + normal * unit * spread * 0.018;
-    final control = base +
-        direction * unit * (0.078 + (index.isEven ? 0.010 : 0.0)) +
-        normal * (unit * spread * 0.062 + strandWave);
-    final end = base +
-        direction * unit * (0.150 + math.cos(index) * 0.012) +
-        normal * (unit * spread * 0.088 + strandWave * 0.45);
+    final spread = (index - (strandColors.length - 1) / 2) /
+        ((strandColors.length - 1) / 2);
+    final ripple = math.sin(flutter * math.pi * 2 + index * 0.58);
+    final strandAngle = angle + spread * 0.92 + ripple * 0.16;
+    final strandDirection =
+        Offset(math.cos(strandAngle), math.sin(strandAngle));
+    final strandNormal = Offset(-strandDirection.dy, strandDirection.dx);
+    final start = center -
+        strandDirection * unit * (0.014 + index % 3 * 0.002) +
+        normal * unit * spread * 0.010;
+    final control = center +
+        strandDirection * unit * (0.050 + (index.isEven ? 0.012 : 0.0)) +
+        strandNormal * unit * ripple * 0.018;
+    final end = center +
+        strandDirection * unit * (0.096 + math.cos(index * 1.3) * 0.018) +
+        strandNormal * unit * ripple * 0.026;
     final paint = Paint()
       ..color = strandColors[index].withValues(
-        alpha: strandColors[index] == Colors.white ? 0.82 : 0.90,
+        alpha: strandColors[index] == Colors.white ? 0.76 : 0.88,
       )
       ..style = PaintingStyle.stroke
-      ..strokeWidth = unit * (index == 3 ? 0.015 : 0.011)
+      ..strokeWidth = unit * (index.isEven ? 0.014 : 0.011)
       ..strokeCap = StrokeCap.round;
     final path = Path()
       ..moveTo(start.dx, start.dy)
       ..quadraticBezierTo(control.dx, control.dy, end.dx, end.dy);
     canvas.drawPath(path, paint);
-    canvas.drawCircle(
-      end,
-      unit * (index == 3 ? 0.008 : 0.006),
-      Paint()..color = strandColors[index].withValues(alpha: 0.74),
-    );
   }
 
-  final knotPaint = Paint()..color = primary;
+  for (var index = 0; index < 5; index += 1) {
+    final spread = (index - 2) / 2;
+    final ripple = math.sin(flutter * math.pi * 2 + index * 0.91);
+    final strandAngle = angle + spread * 0.55 - ripple * 0.12;
+    final strandDirection =
+        Offset(math.cos(strandAngle), math.sin(strandAngle));
+    final strandNormal = Offset(-strandDirection.dy, strandDirection.dx);
+    final start = center - strandDirection * unit * 0.006;
+    final end = center +
+        strandDirection * unit * (0.064 + index * 0.004) +
+        strandNormal * unit * ripple * 0.018;
+    final paint = Paint()
+      ..color = (index.isEven ? primary : accent).withValues(alpha: 0.70)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * 0.009
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(start, end, paint);
+  }
+
   final shadowPaint = Paint()
-    ..color = const Color(0x33152033)
-    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-  canvas.drawCircle(knot + Offset(0, unit * 0.004), unit * 0.026, shadowPaint);
-  canvas.drawCircle(knot, unit * (0.024 + flick.abs() * 0.003), knotPaint);
-  canvas.drawCircle(
-    knot - direction * unit * 0.007 + normal * unit * 0.006,
-    unit * 0.008,
-    Paint()..color = Colors.white.withValues(alpha: 0.82),
+    ..color = const Color(0x24152033)
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+  final gripCenter = hand - direction * unit * 0.002;
+  canvas.drawOval(
+    Rect.fromCenter(
+      center: gripCenter + Offset(0, unit * 0.004),
+      width: unit * 0.050,
+      height: unit * 0.030,
+    ),
+    shadowPaint,
+  );
+  canvas.drawOval(
+    Rect.fromCenter(
+      center: gripCenter,
+      width: unit * 0.052,
+      height: unit * 0.032,
+    ),
+    Paint()..color = primary.withValues(alpha: 0.92),
+  );
+  canvas.drawLine(
+    gripCenter - normal * unit * 0.018,
+    gripCenter + normal * unit * 0.018,
+    Paint()
+      ..color = Colors.white.withValues(alpha: 0.64)
+      ..strokeWidth = unit * 0.006
+      ..strokeCap = StrokeCap.round,
   );
 }
 
@@ -953,28 +965,28 @@ class _RinzyChibiPainter extends CustomPainter {
     );
 
     if (cheer && showCheerSticks) {
-      final leftTassel = Offset(
+      final leftPomPom = Offset(
         size.width * 0.25,
         size.height * (0.43 + cheerWave * 0.018),
       );
-      final rightTassel = Offset(
+      final rightPomPom = Offset(
         size.width * 0.75,
         size.height * (0.43 - cheerWave * 0.018),
       );
-      _drawCheerTassel(
+      _drawCheerPomPom(
         canvas,
-        hand: leftTassel,
+        hand: leftPomPom,
         unit: unit,
-        angle: -math.pi * 0.68 + cheerWave * 0.30,
+        angle: -math.pi * 0.68 + cheerWave * 0.24,
         flutter: phase + 0.10,
         primary: const Color(0xFFFFC857),
         accent: const Color(0xFFFF7A90),
       );
-      _drawCheerTassel(
+      _drawCheerPomPom(
         canvas,
-        hand: rightTassel,
+        hand: rightPomPom,
         unit: unit,
-        angle: -math.pi * 0.32 - cheerWave * 0.30,
+        angle: -math.pi * 0.32 - cheerWave * 0.24,
         flutter: phase + 0.58,
         primary: const Color(0xFF7DD3FC),
         accent: const Color(0xFF86EFAC),
