@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
+import 'package:football_note/application/match_competition_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
@@ -429,6 +430,107 @@ void main() {
     expect(find.textContaining('주말 리그'), findsOneWidget);
     expect(find.textContaining('3라운드'), findsOneWidget);
     expect(find.textContaining('승점 3'), findsOneWidget);
+  });
+
+  testWidgets('리그 대회 관리 시트는 등록 팀 순위를 보여준다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+    final today = DateTime.now();
+    await saveTrainingEntry(
+      tester,
+      TrainingEntry(
+        date: DateTime(today.year, today.month, today.day, 9),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '',
+        matchKind: MatchCompetitionRecord.kindLeague,
+        matchCompetitionName: '주말 리그',
+        opponentTeam: '블루 FC',
+        leagueTeamNames: const <String>['레드 FC', '블루 FC', '그린 FC'],
+        scoredGoals: 2,
+        concededGoals: 1,
+        leaguePoints: 3,
+      ),
+    );
+
+    await pumpCalendar(tester);
+
+    await tester.tap(find.textContaining('주말 리그').first);
+    await tester.pumpAndSettle();
+
+    final manageButton = find.text('팀 등록/결과 보기');
+    await tester.ensureVisible(manageButton);
+    await tester.tap(manageButton);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('결과 보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('리그 순위'), findsOneWidget);
+    expect(find.text('레드 FC'), findsWidgets);
+    expect(find.text('블루 FC'), findsWidgets);
+    expect(find.text('그린 FC'), findsWidgets);
+    expect(find.text('승점'), findsWidgets);
+  });
+
+  testWidgets('토너먼트 대회 관리 시트는 등록 팀 대진표를 보여준다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+    await MatchCompetitionService(optionRepository).upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindTournament,
+        name: '봄 컵',
+        teams: const <String>['레드 FC', '블루 FC', '그린 FC'],
+      ),
+    );
+    final today = DateTime.now();
+    await saveTrainingEntry(
+      tester,
+      TrainingEntry(
+        date: DateTime(today.year, today.month, today.day, 9),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '',
+        matchKind: MatchCompetitionRecord.kindTournament,
+        matchCompetitionName: '봄 컵',
+        matchStage: 'quarterfinal',
+        tournamentOutcome: 'advanced',
+        opponentTeam: '블루 FC',
+      ),
+    );
+
+    await pumpCalendar(tester);
+
+    await tester.tap(find.textContaining('봄 컵').first);
+    await tester.pumpAndSettle();
+
+    final manageButton = find.text('팀 등록/결과 보기');
+    await tester.ensureVisible(manageButton);
+    await tester.tap(manageButton);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('결과 보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('토너먼트 대진표'), findsOneWidget);
+    expect(find.text('1경기'), findsOneWidget);
+    expect(find.text('레드 FC vs 블루 FC'), findsOneWidget);
+    expect(find.text('2경기'), findsOneWidget);
+    expect(find.text('그린 FC vs 부전승'), findsOneWidget);
+    expect(find.text('기록된 진행'), findsOneWidget);
+    expect(find.text('8강 · 블루 FC전 · 다음 라운드 진출'), findsOneWidget);
   });
 
   testWidgets('독립 식사 기록은 선택한 날짜 타임라인에 표시된다', (tester) async {

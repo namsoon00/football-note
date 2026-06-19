@@ -4248,6 +4248,70 @@
   "matchCompetitionNameLabel": "Competition name",
   "matchLeagueNameHint": "e.g. Weekend League",
   "matchTournamentNameHint": "e.g. Cup tournament",
+  "matchCompetitionManageButton": "Teams / results",
+  "matchCompetitionManagerNewTitle": "Competition manager",
+  "matchCompetitionManagerTitle": "{name} manager",
+  "@matchCompetitionManagerTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCompetitionTeamsTab": "Teams",
+  "matchCompetitionResultsTab": "Results",
+  "matchCompetitionTeamsInputLabel": "Participating teams",
+  "matchCompetitionTeamsInputHint": "Enter one team per line or separate with commas",
+  "matchCompetitionTeamCount": "{count} team(s) registered",
+  "@matchCompetitionTeamCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionSaveTeams": "Save teams",
+  "matchCompetitionNameRequired": "Enter a competition name.",
+  "matchLeagueStandingsTitle": "League standings",
+  "matchTournamentBracketTitle": "Tournament bracket",
+  "matchCompetitionNoTeams": "No teams are registered.",
+  "matchCompetitionNoMatches": "No matches are recorded yet.",
+  "matchCompetitionMyTeamFallback": "Our team",
+  "matchTournamentByeLabel": "Bye",
+  "matchTournamentPairLabel": "Match {number}",
+  "@matchTournamentPairLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentPairText": "{teamA} vs {teamB}",
+  "@matchTournamentPairText": {
+    "placeholders": {
+      "teamA": {
+        "type": "String"
+      },
+      "teamB": {
+        "type": "String"
+      }
+    }
+  },
+  "matchTournamentRecordedProgressTitle": "Recorded progress",
+  "matchTournamentRecordedProgress": "{stage} · vs {opponent} · {outcome}",
+  "@matchTournamentRecordedProgress": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      },
+      "outcome": {
+        "type": "String"
+      }
+    }
+  },
   "matchLeagueRoundLabel": "Round or matchday",
   "matchLeagueRoundHint": "e.g. Round 3",
   "matchTournamentStageLabel": "Tournament stage",

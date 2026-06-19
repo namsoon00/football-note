@@ -4248,6 +4248,70 @@
   "matchCompetitionNameLabel": "大会名",
   "matchLeagueNameHint": "例: 週末リーグ",
   "matchTournamentNameHint": "例: カップ大会",
+  "matchCompetitionManageButton": "チーム登録/結果を見る",
+  "matchCompetitionManagerNewTitle": "大会管理",
+  "matchCompetitionManagerTitle": "{name}管理",
+  "@matchCompetitionManagerTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCompetitionTeamsTab": "チーム登録",
+  "matchCompetitionResultsTab": "結果を見る",
+  "matchCompetitionTeamsInputLabel": "参加チーム",
+  "matchCompetitionTeamsInputHint": "1行に1チーム、またはカンマ区切りで入力",
+  "matchCompetitionTeamCount": "{count}チーム登録済み",
+  "@matchCompetitionTeamCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionSaveTeams": "チームを保存",
+  "matchCompetitionNameRequired": "大会名を入力してください。",
+  "matchLeagueStandingsTitle": "リーグ順位",
+  "matchTournamentBracketTitle": "トーナメント表",
+  "matchCompetitionNoTeams": "登録されたチームがありません。",
+  "matchCompetitionNoMatches": "記録された試合がまだありません。",
+  "matchCompetitionMyTeamFallback": "自チーム",
+  "matchTournamentByeLabel": "不戦勝",
+  "matchTournamentPairLabel": "{number}試合",
+  "@matchTournamentPairLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentPairText": "{teamA} vs {teamB}",
+  "@matchTournamentPairText": {
+    "placeholders": {
+      "teamA": {
+        "type": "String"
+      },
+      "teamB": {
+        "type": "String"
+      }
+    }
+  },
+  "matchTournamentRecordedProgressTitle": "記録された進行",
+  "matchTournamentRecordedProgress": "{stage} · {opponent}戦 · {outcome}",
+  "@matchTournamentRecordedProgress": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      },
+      "outcome": {
+        "type": "String"
+      }
+    }
+  },
   "matchLeagueRoundLabel": "ラウンド/節",
   "matchLeagueRoundHint": "例: 第3節",
   "matchTournamentStageLabel": "トーナメント段階",

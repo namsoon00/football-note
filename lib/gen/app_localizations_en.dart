@@ -8372,6 +8372,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchTournamentNameHint => 'e.g. Cup tournament';
 
   @override
+  String get matchCompetitionManageButton => 'Teams / results';
+
+  @override
+  String get matchCompetitionManagerNewTitle => 'Competition manager';
+
+  @override
+  String matchCompetitionManagerTitle(String name) {
+    return '$name manager';
+  }
+
+  @override
+  String get matchCompetitionTeamsTab => 'Teams';
+
+  @override
+  String get matchCompetitionResultsTab => 'Results';
+
+  @override
+  String get matchCompetitionTeamsInputLabel => 'Participating teams';
+
+  @override
+  String get matchCompetitionTeamsInputHint =>
+      'Enter one team per line or separate with commas';
+
+  @override
+  String matchCompetitionTeamCount(int count) {
+    return '$count team(s) registered';
+  }
+
+  @override
+  String get matchCompetitionSaveTeams => 'Save teams';
+
+  @override
+  String get matchCompetitionNameRequired => 'Enter a competition name.';
+
+  @override
+  String get matchLeagueStandingsTitle => 'League standings';
+
+  @override
+  String get matchTournamentBracketTitle => 'Tournament bracket';
+
+  @override
+  String get matchCompetitionNoTeams => 'No teams are registered.';
+
+  @override
+  String get matchCompetitionNoMatches => 'No matches are recorded yet.';
+
+  @override
+  String get matchCompetitionMyTeamFallback => 'Our team';
+
+  @override
+  String get matchTournamentByeLabel => 'Bye';
+
+  @override
+  String matchTournamentPairLabel(int number) {
+    return 'Match $number';
+  }
+
+  @override
+  String matchTournamentPairText(String teamA, String teamB) {
+    return '$teamA vs $teamB';
+  }
+
+  @override
+  String get matchTournamentRecordedProgressTitle => 'Recorded progress';
+
+  @override
+  String matchTournamentRecordedProgress(
+      String stage, String opponent, String outcome) {
+    return '$stage · vs $opponent · $outcome';
+  }
+
+  @override
   String get matchLeagueRoundLabel => 'Round or matchday';
 
   @override
