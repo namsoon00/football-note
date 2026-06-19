@@ -571,8 +571,8 @@ class _ChallengeRinzyCharacterState extends State<_ChallengeRinzyCharacter>
                     Positioned.fill(
                       child: IgnorePointer(
                         child: CustomPaint(
-                          key: const ValueKey('challenge-rinzy-cheer-sticks'),
-                          painter: _ChallengeCheerSticksPainter(phase: phase),
+                          key: const ValueKey('challenge-rinzy-cheer-tassels'),
+                          painter: _ChallengeCheerTasselsPainter(phase: phase),
                         ),
                       ),
                     ),
@@ -619,77 +619,136 @@ class _PaintedChallengeRinzyPose extends StatelessWidget {
   }
 }
 
-class _ChallengeCheerSticksPainter extends CustomPainter {
+class _ChallengeCheerTasselsPainter extends CustomPainter {
   final double phase;
 
-  const _ChallengeCheerSticksPainter({required this.phase});
+  const _ChallengeCheerTasselsPainter({required this.phase});
 
   @override
   void paint(Canvas canvas, Size size) {
     final unit = size.shortestSide;
     if (unit <= 0) return;
 
-    _drawStick(
+    final wave = math.sin(phase * math.pi * 2);
+    _drawCheerTassel(
       canvas,
-      center: Offset(size.width * 0.26, size.height * 0.41),
-      angle: phase * math.pi * 2 + math.pi * 0.12,
-      color: const Color(0xFFFFC857),
+      hand: Offset(size.width * 0.26, size.height * 0.42),
       unit: unit,
+      angle: -math.pi * 0.68 + wave * 0.30,
+      flutter: phase + 0.10,
+      primary: const Color(0xFFFFC857),
+      accent: const Color(0xFFFF7A90),
     );
-    _drawStick(
+    _drawCheerTassel(
       canvas,
-      center: Offset(size.width * 0.74, size.height * 0.41),
-      angle: -(phase * math.pi * 2) + math.pi * 0.88,
-      color: const Color(0xFF7DD3FC),
+      hand: Offset(size.width * 0.74, size.height * 0.42),
       unit: unit,
+      angle: -math.pi * 0.32 - wave * 0.30,
+      flutter: phase + 0.58,
+      primary: const Color(0xFF7DD3FC),
+      accent: const Color(0xFF86EFAC),
     );
-  }
-
-  void _drawStick(
-    Canvas canvas, {
-    required Offset center,
-    required double angle,
-    required Color color,
-    required double unit,
-  }) {
-    final orbitRadius = unit * 0.095;
-    final orbitPaint = Paint()
-      ..color = color.withValues(alpha: 0.30)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = unit * 0.010
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: orbitRadius),
-      angle,
-      math.pi * 1.18,
-      false,
-      orbitPaint,
-    );
-
-    final direction = Offset(math.cos(angle), math.sin(angle));
-    final start = center - direction * unit * 0.070;
-    final end = center + direction * unit * 0.070;
-    final glowPaint = Paint()
-      ..color = color.withValues(alpha: 0.24)
-      ..strokeWidth = unit * 0.050
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-    final stickPaint = Paint()
-      ..color = color
-      ..strokeWidth = unit * 0.026
-      ..strokeCap = StrokeCap.round;
-    final capPaint = Paint()..color = Colors.white.withValues(alpha: 0.88);
-
-    canvas.drawLine(start, end, glowPaint);
-    canvas.drawLine(start, end, stickPaint);
-    canvas.drawCircle(start, unit * 0.022, capPaint);
-    canvas.drawCircle(end, unit * 0.022, capPaint);
   }
 
   @override
-  bool shouldRepaint(covariant _ChallengeCheerSticksPainter oldDelegate) {
+  bool shouldRepaint(covariant _ChallengeCheerTasselsPainter oldDelegate) {
     return oldDelegate.phase != phase;
   }
+}
+
+void _drawCheerTassel(
+  Canvas canvas, {
+  required Offset hand,
+  required double unit,
+  required double angle,
+  required double flutter,
+  required Color primary,
+  required Color accent,
+}) {
+  final direction = Offset(math.cos(angle), math.sin(angle));
+  final normal = Offset(-direction.dy, direction.dx);
+  final base = hand + direction * unit * 0.030;
+  final knot = hand - direction * unit * 0.004;
+  final flick = math.sin(flutter * math.pi * 2);
+
+  final cordPaint = Paint()
+    ..color = primary.withValues(alpha: 0.74)
+    ..strokeWidth = unit * 0.010
+    ..strokeCap = StrokeCap.round;
+  canvas.drawLine(knot, base, cordPaint);
+
+  final fanPath = Path()
+    ..moveTo(
+      base.dx - normal.dx * unit * 0.040,
+      base.dy - normal.dy * unit * 0.040,
+    )
+    ..quadraticBezierTo(
+      base.dx + direction.dx * unit * 0.110 - normal.dx * unit * 0.070,
+      base.dy + direction.dy * unit * 0.110 - normal.dy * unit * 0.070,
+      base.dx + direction.dx * unit * 0.170 + normal.dx * unit * 0.018,
+      base.dy + direction.dy * unit * 0.170 + normal.dy * unit * 0.018,
+    )
+    ..quadraticBezierTo(
+      base.dx + direction.dx * unit * 0.108 + normal.dx * unit * 0.074,
+      base.dy + direction.dy * unit * 0.108 + normal.dy * unit * 0.074,
+      base.dx + normal.dx * unit * 0.040,
+      base.dy + normal.dy * unit * 0.040,
+    )
+    ..close();
+  canvas.drawPath(
+    fanPath,
+    Paint()..color = primary.withValues(alpha: 0.10),
+  );
+
+  final strandColors = <Color>[
+    primary,
+    accent,
+    Colors.white,
+    primary,
+    accent,
+    primary,
+    Colors.white,
+  ];
+  for (var index = 0; index < strandColors.length; index += 1) {
+    final spread = (index - 3) / 3;
+    final strandWave =
+        math.sin(flutter * math.pi * 2 + index * 0.72) * unit * 0.030;
+    final start = base + normal * unit * spread * 0.018;
+    final control = base +
+        direction * unit * (0.078 + (index.isEven ? 0.010 : 0.0)) +
+        normal * (unit * spread * 0.062 + strandWave);
+    final end = base +
+        direction * unit * (0.150 + math.cos(index) * 0.012) +
+        normal * (unit * spread * 0.088 + strandWave * 0.45);
+    final paint = Paint()
+      ..color = strandColors[index].withValues(
+        alpha: strandColors[index] == Colors.white ? 0.82 : 0.90,
+      )
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * (index == 3 ? 0.015 : 0.011)
+      ..strokeCap = StrokeCap.round;
+    final path = Path()
+      ..moveTo(start.dx, start.dy)
+      ..quadraticBezierTo(control.dx, control.dy, end.dx, end.dy);
+    canvas.drawPath(path, paint);
+    canvas.drawCircle(
+      end,
+      unit * (index == 3 ? 0.008 : 0.006),
+      Paint()..color = strandColors[index].withValues(alpha: 0.74),
+    );
+  }
+
+  final knotPaint = Paint()..color = primary;
+  final shadowPaint = Paint()
+    ..color = const Color(0x33152033)
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+  canvas.drawCircle(knot + Offset(0, unit * 0.004), unit * 0.026, shadowPaint);
+  canvas.drawCircle(knot, unit * (0.024 + flick.abs() * 0.003), knotPaint);
+  canvas.drawCircle(
+    knot - direction * unit * 0.007 + normal * unit * 0.006,
+    unit * 0.008,
+    Paint()..color = Colors.white.withValues(alpha: 0.82),
+  );
 }
 
 _ChallengeRinzyMotion _challengeRinzyMotion(
@@ -894,27 +953,31 @@ class _RinzyChibiPainter extends CustomPainter {
     );
 
     if (cheer && showCheerSticks) {
-      final leftStick = Offset(
+      final leftTassel = Offset(
         size.width * 0.25,
         size.height * (0.43 + cheerWave * 0.018),
       );
-      final rightStick = Offset(
+      final rightTassel = Offset(
         size.width * 0.75,
         size.height * (0.43 - cheerWave * 0.018),
       );
-      _drawSpinningCheerStick(
+      _drawCheerTassel(
         canvas,
-        center: leftStick,
+        hand: leftTassel,
         unit: unit,
-        spin: phase + 0.10,
-        color: const Color(0xFFFFC857),
+        angle: -math.pi * 0.68 + cheerWave * 0.30,
+        flutter: phase + 0.10,
+        primary: const Color(0xFFFFC857),
+        accent: const Color(0xFFFF7A90),
       );
-      _drawSpinningCheerStick(
+      _drawCheerTassel(
         canvas,
-        center: rightStick,
+        hand: rightTassel,
         unit: unit,
-        spin: -phase + 0.35,
-        color: const Color(0xFF7DD3FC),
+        angle: -math.pi * 0.32 - cheerWave * 0.30,
+        flutter: phase + 0.58,
+        primary: const Color(0xFF7DD3FC),
+        accent: const Color(0xFF86EFAC),
       );
       _drawSparkle(
         canvas,
@@ -1288,48 +1351,6 @@ class _RinzyChibiPainter extends CustomPainter {
       canvas.drawCircle(leftHand, unit * 0.024, handPaint);
       canvas.drawCircle(rightHand, unit * 0.024, handPaint);
     }
-  }
-
-  void _drawSpinningCheerStick(
-    Canvas canvas, {
-    required Offset center,
-    required double unit,
-    required double spin,
-    required Color color,
-  }) {
-    final angle = spin * math.pi * 2;
-    final orbitRadius = unit * 0.105;
-    final orbitPaint = Paint()
-      ..color = color.withValues(alpha: 0.24)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = unit * 0.012
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: orbitRadius),
-      angle - math.pi * 0.70,
-      math.pi * 1.42,
-      false,
-      orbitPaint,
-    );
-
-    final direction = Offset(math.cos(angle), math.sin(angle));
-    final start = center - direction * unit * 0.090;
-    final end = center + direction * unit * 0.090;
-    final glowPaint = Paint()
-      ..color = color.withValues(alpha: 0.28)
-      ..strokeWidth = unit * 0.052
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7);
-    final stickPaint = Paint()
-      ..color = color
-      ..strokeWidth = unit * 0.025
-      ..strokeCap = StrokeCap.round;
-    final capPaint = Paint()..color = Colors.white.withValues(alpha: 0.90);
-
-    canvas.drawLine(start, end, glowPaint);
-    canvas.drawLine(start, end, stickPaint);
-    canvas.drawCircle(start, unit * 0.020, capPaint);
-    canvas.drawCircle(end, unit * 0.020, capPaint);
   }
 
   void _drawSoccerBall(
