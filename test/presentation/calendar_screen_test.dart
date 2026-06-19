@@ -479,6 +479,50 @@ void main() {
     expect(find.text('승점'), findsWidgets);
   });
 
+  testWidgets('대회 관리 시트는 저장하지 않고 뒤로 돌아갈 수 있다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+    final today = DateTime.now();
+    await saveTrainingEntry(
+      tester,
+      TrainingEntry(
+        date: DateTime(today.year, today.month, today.day, 9),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '',
+        matchKind: MatchCompetitionRecord.kindLeague,
+        matchCompetitionName: '주말 리그',
+        opponentTeam: '블루 FC',
+        leagueTeamNames: const <String>['레드 FC', '블루 FC'],
+      ),
+    );
+
+    await pumpCalendar(tester);
+
+    await tester.tap(find.textContaining('주말 리그').first);
+    await tester.pumpAndSettle();
+
+    final manageButton = find.text('팀 등록/결과 보기');
+    await tester.ensureVisible(manageButton);
+    await tester.tap(manageButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('팀 미리보기'), findsOneWidget);
+    expect(find.text('뒤로'), findsOneWidget);
+
+    await tester.tap(find.text('뒤로'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('팀 미리보기'), findsNothing);
+    expect(find.text('시합 수정'), findsOneWidget);
+  });
+
   testWidgets('토너먼트 대회 관리 시트는 등록 팀 대진표를 보여준다', (tester) async {
     await tester.binding.setSurfaceSize(const Size(900, 900));
     addTearDown(() async {

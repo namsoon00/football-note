@@ -4283,6 +4283,8 @@
   },
   "matchCompetitionTeamsTab": "팀 등록",
   "matchCompetitionResultsTab": "결과 보기",
+  "matchCompetitionBackButton": "뒤로",
+  "matchCompetitionTeamPreviewTitle": "팀 미리보기",
   "matchCompetitionTeamsInputLabel": "참가 팀",
   "matchCompetitionTeamsInputHint": "한 줄에 한 팀씩 입력하거나 쉼표로 구분하세요",
   "matchCompetitionTeamCount": "{count}개 팀 등록됨",

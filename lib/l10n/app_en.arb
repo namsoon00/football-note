@@ -4283,6 +4283,8 @@
   },
   "matchCompetitionTeamsTab": "Teams",
   "matchCompetitionResultsTab": "Results",
+  "matchCompetitionBackButton": "Back",
+  "matchCompetitionTeamPreviewTitle": "Team preview",
   "matchCompetitionTeamsInputLabel": "Participating teams",
   "matchCompetitionTeamsInputHint": "Enter one team per line or separate with commas",
   "matchCompetitionTeamCount": "{count} team(s) registered",

@@ -14582,6 +14582,18 @@ abstract class AppLocalizations {
   /// **'Results'**
   String get matchCompetitionResultsTab;
 
+  /// No description provided for @matchCompetitionBackButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get matchCompetitionBackButton;
+
+  /// No description provided for @matchCompetitionTeamPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team preview'**
+  String get matchCompetitionTeamPreviewTitle;
+
   /// No description provided for @matchCompetitionTeamsInputLabel.
   ///
   /// In en, this message translates to:

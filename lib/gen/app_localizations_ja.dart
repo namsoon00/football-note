@@ -8175,6 +8175,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionResultsTab => '結果を見る';
 
   @override
+  String get matchCompetitionBackButton => '戻る';
+
+  @override
+  String get matchCompetitionTeamPreviewTitle => 'チームプレビュー';
+
+  @override
   String get matchCompetitionTeamsInputLabel => '参加チーム';
 
   @override

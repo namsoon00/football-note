@@ -4283,6 +4283,8 @@
   },
   "matchCompetitionTeamsTab": "チーム登録",
   "matchCompetitionResultsTab": "結果を見る",
+  "matchCompetitionBackButton": "戻る",
+  "matchCompetitionTeamPreviewTitle": "チームプレビュー",
   "matchCompetitionTeamsInputLabel": "参加チーム",
   "matchCompetitionTeamsInputHint": "1行に1チーム、またはカンマ区切りで入力",
   "matchCompetitionTeamCount": "{count}チーム登録済み",

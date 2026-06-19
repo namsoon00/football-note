@@ -2609,6 +2609,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       return await showModalBottomSheet<_MatchCompetitionSheetResult>(
         context: context,
         isScrollControlled: true,
+        isDismissible: true,
+        enableDrag: true,
         showDragHandle: true,
         builder: (context) {
           return StatefulBuilder(
@@ -2635,9 +2637,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            title,
-                            style: Theme.of(context).textTheme.titleMedium,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  title,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                tooltip: MaterialLocalizations.of(context)
+                                    .closeButtonTooltip,
+                                icon: const Icon(
+                                  Icons.keyboard_arrow_down_outlined,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 10),
                           TextFormField(
@@ -2652,6 +2671,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               ),
                               enabled: !readOnly,
                             ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildMatchCompetitionTeamPreview(
+                            context: context,
+                            l10n: l10n,
+                            teams: currentTeams,
                           ),
                           const SizedBox(height: 8),
                           TabBar(
@@ -2688,63 +2713,69 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         ),
                                       ),
                                       const SizedBox(height: 8),
-                                      Text(
-                                        l10n.matchCompetitionTeamCount(
-                                          currentTeams.length,
-                                        ),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: OutlinedButton.icon(
+                                              onPressed: () =>
+                                                  Navigator.of(context).pop(),
+                                              icon: const Icon(
+                                                Icons.arrow_back,
+                                              ),
+                                              label: Text(
+                                                l10n.matchCompetitionBackButton,
+                                              ),
+                                            ),
+                                          ),
+                                          if (!readOnly) ...[
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: FilledButton.icon(
+                                                onPressed: () async {
+                                                  final name = nameController
+                                                      .text
+                                                      .trim();
+                                                  final teams =
+                                                      MatchCompetitionService
+                                                          .parseTeams(
+                                                    teamsController.text,
+                                                  );
+                                                  if (name.isEmpty) {
+                                                    AppFeedback.showMessage(
+                                                      context,
+                                                      text: l10n
+                                                          .matchCompetitionNameRequired,
+                                                    );
+                                                    return;
+                                                  }
+                                                  await service
+                                                      .upsertCompetition(
+                                                    MatchCompetitionRecord
+                                                        .create(
+                                                      kind: kind,
+                                                      name: name,
+                                                      teams: teams,
+                                                    ),
+                                                  );
+                                                  if (!context.mounted) return;
+                                                  Navigator.of(context).pop(
+                                                    _MatchCompetitionSheetResult(
+                                                      name: name,
+                                                      teams: teams,
+                                                    ),
+                                                  );
+                                                },
+                                                icon: const Icon(
+                                                  Icons.save_outlined,
+                                                ),
+                                                label: Text(
+                                                  l10n.matchCompetitionSaveTeams,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
-                                      const SizedBox(height: 12),
-                                      if (readOnly)
-                                        OutlinedButton.icon(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(),
-                                          icon: const Icon(Icons.close),
-                                          label: Text(
-                                            MaterialLocalizations.of(context)
-                                                .closeButtonLabel,
-                                          ),
-                                        )
-                                      else
-                                        FilledButton.icon(
-                                          onPressed: () async {
-                                            final name =
-                                                nameController.text.trim();
-                                            final teams =
-                                                MatchCompetitionService
-                                                    .parseTeams(
-                                              teamsController.text,
-                                            );
-                                            if (name.isEmpty) {
-                                              AppFeedback.showMessage(
-                                                context,
-                                                text: l10n
-                                                    .matchCompetitionNameRequired,
-                                              );
-                                              return;
-                                            }
-                                            await service.upsertCompetition(
-                                              MatchCompetitionRecord.create(
-                                                kind: kind,
-                                                name: name,
-                                                teams: teams,
-                                              ),
-                                            );
-                                            if (!context.mounted) return;
-                                            Navigator.of(context).pop(
-                                              _MatchCompetitionSheetResult(
-                                                name: name,
-                                                teams: teams,
-                                              ),
-                                            );
-                                          },
-                                          icon: const Icon(Icons.save_outlined),
-                                          label: Text(
-                                            l10n.matchCompetitionSaveTeams,
-                                          ),
-                                        ),
                                     ],
                                   ),
                                 ),
@@ -2775,6 +2806,68 @@ class _CalendarScreenState extends State<CalendarScreen> {
       nameController.dispose();
       teamsController.dispose();
     }
+  }
+
+  Widget _buildMatchCompetitionTeamPreview({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required List<String> teams,
+  }) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.matchCompetitionTeamPreviewTitle,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                Text(
+                  l10n.matchCompetitionTeamCount(teams.length),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (teams.isEmpty)
+              Text(
+                l10n.matchCompetitionNoTeams,
+                style: theme.textTheme.bodySmall,
+              )
+            else
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 96),
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final team in teams)
+                        Chip(
+                          avatar: const Icon(Icons.groups_2_outlined),
+                          label: Text(team),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildMatchCompetitionResultView({
