@@ -178,6 +178,15 @@ class TrainingEntry extends HiveObject {
   @HiveField(63)
   final String sportId;
 
+  @HiveField(64)
+  final String matchCompetitionName;
+
+  @HiveField(65)
+  final String matchStage;
+
+  @HiveField(66)
+  final String tournamentOutcome;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -236,6 +245,9 @@ class TrainingEntry extends HiveObject {
     this.leaguePoints,
     this.tournamentWins,
     this.trainingProgramMinutes = const <String, int>{},
+    this.matchCompetitionName = '',
+    this.matchStage = '',
+    this.tournamentOutcome = '',
     String sportId = SportCatalog.defaultSportId,
   })  : sportId = SportCatalog.normalizeSportId(sportId),
         createdAt = createdAt ?? DateTime.now();
@@ -247,6 +259,9 @@ class TrainingEntry extends HiveObject {
       opponentTeam.trim().isNotEmpty ||
       club.trim().isNotEmpty ||
       matchKind.trim().isNotEmpty && matchKind != 'friendly' ||
+      matchCompetitionName.trim().isNotEmpty ||
+      matchStage.trim().isNotEmpty ||
+      tournamentOutcome.trim().isNotEmpty ||
       scoredGoals != null ||
       concededGoals != null ||
       playerGoals != null ||
@@ -383,13 +398,16 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       tournamentWins: (fields[61] as num?)?.toInt(),
       trainingProgramMinutes: _readProgramMinutes(fields[62]),
       sportId: SportCatalog.normalizeSportId(fields[63] as String?),
+      matchCompetitionName: (fields[64] as String?) ?? '',
+      matchStage: (fields[65] as String?) ?? '',
+      tournamentOutcome: (fields[66] as String?) ?? '',
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(58)
+      ..writeByte(61)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -505,7 +523,13 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(62)
       ..write(obj.trainingProgramMinutes)
       ..writeByte(63)
-      ..write(obj.sportId);
+      ..write(obj.sportId)
+      ..writeByte(64)
+      ..write(obj.matchCompetitionName)
+      ..writeByte(65)
+      ..write(obj.matchStage)
+      ..writeByte(66)
+      ..write(obj.tournamentOutcome);
   }
 
   Map<String, int> _readProgramMinutes(Object? raw) {

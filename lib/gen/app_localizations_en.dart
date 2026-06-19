@@ -8288,6 +8288,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchKindTournament => 'Tournament';
 
   @override
+  String get matchLeagueSectionTitle => 'League details';
+
+  @override
+  String get matchTournamentSectionTitle => 'Tournament details';
+
+  @override
+  String get matchCompetitionNameLabel => 'Competition name';
+
+  @override
+  String get matchLeagueNameHint => 'e.g. Weekend League';
+
+  @override
+  String get matchTournamentNameHint => 'e.g. Cup tournament';
+
+  @override
+  String get matchLeagueRoundLabel => 'Round or matchday';
+
+  @override
+  String get matchLeagueRoundHint => 'e.g. Round 3';
+
+  @override
+  String get matchTournamentStageLabel => 'Tournament stage';
+
+  @override
+  String get matchTournamentStagePreliminary => 'Preliminary';
+
+  @override
+  String get matchTournamentStageRound16 => 'Round of 16';
+
+  @override
+  String get matchTournamentStageQuarterfinal => 'Quarterfinal';
+
+  @override
+  String get matchTournamentStageSemifinal => 'Semifinal';
+
+  @override
+  String get matchTournamentStageFinal => 'Final';
+
+  @override
+  String get matchTournamentOutcomeLabel => 'Progress result';
+
+  @override
+  String get matchTournamentOutcomeOngoing => 'In progress';
+
+  @override
+  String get matchTournamentOutcomeAdvanced => 'Advanced';
+
+  @override
+  String get matchTournamentOutcomeEliminated => 'Eliminated';
+
+  @override
+  String get matchTournamentOutcomeChampion => 'Champion';
+
+  @override
   String get matchOpponentTeamLabel => 'Opponent team';
 
   @override

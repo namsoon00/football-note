@@ -299,6 +299,21 @@ void main() {
 
     await tester.enterText(
       find
+          .ancestor(
+              of: find.text('대회 이름'), matching: find.byType(TextFormField))
+          .first,
+      '봄 컵',
+    );
+    await tester.tap(find.text('예선').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('8강').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('진행 중').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('다음 라운드 진출').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find
           .ancestor(of: find.text('상대 팀'), matching: find.byType(TextField))
           .first,
       '레드 FC',
@@ -333,9 +348,87 @@ void main() {
     expect(entries.single.matchKind, 'tournament');
     expect(entries.single.isTournamentMatch, isTrue);
     expect(entries.single.leagueTeamNames, <String>['레드 FC', '블루 FC']);
+    expect(entries.single.matchCompetitionName, '봄 컵');
+    expect(entries.single.matchStage, 'quarterfinal');
+    expect(entries.single.tournamentOutcome, 'advanced');
     expect(entries.single.tournamentWins, 2);
     expect(find.textContaining('토너먼트'), findsWidgets);
+    expect(find.textContaining('봄 컵'), findsOneWidget);
+    expect(find.textContaining('8강'), findsOneWidget);
+    expect(find.textContaining('다음 라운드 진출'), findsOneWidget);
     expect(find.textContaining('2승'), findsOneWidget);
+  });
+
+  testWidgets('리그 시합 기록은 라운드와 승점 중심으로 저장한다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+    await pumpCalendar(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('리그 경기'));
+    await tester.pump();
+
+    await tester.enterText(
+      find
+          .ancestor(
+              of: find.text('대회 이름'), matching: find.byType(TextFormField))
+          .first,
+      '주말 리그',
+    );
+    await tester.enterText(
+      find
+          .ancestor(
+              of: find.text('라운드/주차'), matching: find.byType(TextFormField))
+          .first,
+      '3라운드',
+    );
+    await tester.enterText(
+      find
+          .ancestor(of: find.text('상대 팀'), matching: find.byType(TextField))
+          .first,
+      '블루 FC',
+    );
+    await tester.enterText(
+      find
+          .ancestor(of: find.text('리그 팀'), matching: find.byType(TextFormField))
+          .first,
+      '레드 FC, 블루 FC, 그린 FC',
+    );
+    await tester.enterText(
+      find
+          .ancestor(of: find.text('승점'), matching: find.byType(TextFormField))
+          .first,
+      '3',
+    );
+
+    final saveButton = find.widgetWithText(FilledButton, '저장');
+    await tester.ensureVisible(saveButton);
+    await tester.pump();
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle();
+
+    final entries = await trainingService.allEntries();
+    expect(entries, hasLength(1));
+    expect(entries.single.matchKind, 'league');
+    expect(entries.single.isLeagueMatch, isTrue);
+    expect(entries.single.matchCompetitionName, '주말 리그');
+    expect(entries.single.matchStage, '3라운드');
+    expect(entries.single.leagueTeamNames, <String>[
+      '레드 FC',
+      '블루 FC',
+      '그린 FC',
+    ]);
+    expect(entries.single.leaguePoints, 3);
+    expect(find.textContaining('리그 경기'), findsWidgets);
+    expect(find.textContaining('주말 리그'), findsOneWidget);
+    expect(find.textContaining('3라운드'), findsOneWidget);
+    expect(find.textContaining('승점 3'), findsOneWidget);
   });
 
   testWidgets('독립 식사 기록은 선택한 날짜 타임라인에 표시된다', (tester) async {
