@@ -8420,11 +8420,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      '到着地点をタップすると移動を作れます。長押ししてドラッグすると位置を調整できます。';
+      '到着地点をタップすると移動を作れます。プレイヤーをドラッグすると位置を調整できます。';
 
   @override
   String get trainingSketchLinkBallHint =>
-      'パスの到着地点をタップするとボール動作を作れます。長押ししてドラッグすると位置を調整できます。';
+      'パスの到着地点をタップするとボール動作を作れます。ボールをドラッグすると位置を調整できます。';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => 'クイック動作';

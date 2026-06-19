@@ -56,7 +56,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   int _nextId = 1;
   String? _selectedItemId;
   String? _selectedRouteId;
-  String? _longPressMovingItemId;
+  String? _movingItemId;
   Offset _lastLongPressMoveOffset = Offset.zero;
   bool _penMode = false;
   bool _pathMode = false;
@@ -1038,11 +1038,63 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
   }
 
-  void _startLongPressItemMove(_BoardItem item) {
+  _PathDrawMode? _routeKindForItem(_BoardItem item) {
+    return switch (item.type) {
+      _BoardItemType.player => _PathDrawMode.player,
+      _BoardItemType.ball => _PathDrawMode.ball,
+      _ => null,
+    };
+  }
+
+  int _boardItemPaintPriority(_BoardItem item) {
+    if (item.id == _movingItemId || item.id == _selectedItemId) return 3;
+    if (item.type == _BoardItemType.player ||
+        item.type == _BoardItemType.ball) {
+      return 2;
+    }
+    return 1;
+  }
+
+  List<_BoardItem> _boardItemsInPaintOrder() {
+    final items = List<_BoardItem>.from(_currentPage.items);
+    items.sort((a, b) {
+      final priority = _boardItemPaintPriority(a).compareTo(
+        _boardItemPaintPriority(b),
+      );
+      if (priority != 0) return priority;
+      return _currentPage.items.indexOf(a).compareTo(
+            _currentPage.items.indexOf(b),
+          );
+    });
+    return items;
+  }
+
+  void _selectBoardItem(_BoardItem item) {
+    final kind = _routeKindForItem(item);
+    setState(() {
+      _selectedItemId = item.id;
+      _routeReplaceMode = false;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
+      if (kind != null) {
+        if (_pathMode) {
+          _pathDrawMode = kind;
+        }
+        _selectedRouteId = _routeForItem(item.id, kind)?.id;
+      } else if (!_pathMode) {
+        _selectedRouteId = null;
+      }
+    });
+  }
+
+  void _startItemMove(_BoardItem item) {
     if (widget.readOnly || _playController.isAnimating) return;
     _stopRoutePlayback(restoreStart: false);
+    unawaited(HapticFeedback.selectionClick());
+    final kind = _routeKindForItem(item);
     setState(() {
-      _longPressMovingItemId = item.id;
+      _movingItemId = item.id;
       _lastLongPressMoveOffset = Offset.zero;
       _selectedItemId = item.id;
       _routeReplaceMode = false;
@@ -1050,10 +1102,39 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
-      if (_pathMode && item.type == _boardItemTypeForRouteKind(_pathDrawMode)) {
-        _selectedRouteId = _routeForItem(item.id, _pathDrawMode)?.id;
+      if (kind != null) {
+        if (_pathMode) {
+          _pathDrawMode = kind;
+        }
+        _selectedRouteId = _routeForItem(item.id, kind)?.id;
+      } else if (!_pathMode) {
+        _selectedRouteId = null;
       }
     });
+  }
+
+  void _updateItemMoveByDelta(
+    _BoardItem item, {
+    required Offset delta,
+    required double boardWidth,
+    required double boardHeight,
+  }) {
+    if (widget.readOnly || _playController.isAnimating) return;
+    if (_movingItemId != item.id) return;
+    if (delta.distance < 0.5) return;
+    final nextX =
+        (item.x + (delta.dx / boardWidth)).clamp(0.03, 0.97).toDouble();
+    final nextY =
+        (item.y + (delta.dy / boardHeight)).clamp(0.03, 0.97).toDouble();
+    setState(() {
+      _moveItemWithLinkedRoutes(item, nextX: nextX, nextY: nextY);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _startLongPressItemMove(_BoardItem item) {
+    _startItemMove(item);
+    _lastLongPressMoveOffset = Offset.zero;
   }
 
   void _updateLongPressItemMove(
@@ -1062,25 +1143,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required double boardWidth,
     required double boardHeight,
   }) {
-    if (widget.readOnly || _playController.isAnimating) return;
-    if (_longPressMovingItemId != item.id) return;
+    if (_movingItemId != item.id) return;
     final delta = offsetFromOrigin - _lastLongPressMoveOffset;
-    if (delta.distance < 0.5) return;
-    final nextX =
-        (item.x + (delta.dx / boardWidth)).clamp(0.03, 0.97).toDouble();
-    final nextY =
-        (item.y + (delta.dy / boardHeight)).clamp(0.03, 0.97).toDouble();
-    setState(() {
-      _lastLongPressMoveOffset = offsetFromOrigin;
-      _moveItemWithLinkedRoutes(item, nextX: nextX, nextY: nextY);
-    });
-    _scheduleAutoSave();
+    _lastLongPressMoveOffset = offsetFromOrigin;
+    _updateItemMoveByDelta(
+      item,
+      delta: delta,
+      boardWidth: boardWidth,
+      boardHeight: boardHeight,
+    );
   }
 
-  void _endLongPressItemMove() {
-    if (_longPressMovingItemId == null) return;
+  void _endItemMove() {
+    if (_movingItemId == null) return;
     setState(() {
-      _longPressMovingItemId = null;
+      _movingItemId = null;
       _lastLongPressMoveOffset = Offset.zero;
     });
   }
@@ -3189,26 +3266,27 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   ignoring: _playController.isAnimating,
                   child: Stack(
                     children: [
-                      for (final item in _currentPage.items)
+                      for (final item in _boardItemsInPaintOrder())
                         Positioned(
                           left: (item.x * width) - 26,
                           top: (item.y * height) - 26,
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
-                            onTap: () => setState(() {
-                              _selectedItemId = item.id;
-                              _routeReplaceMode = false;
-                              if (_pathMode &&
-                                  item.type ==
-                                      _boardItemTypeForRouteKind(
-                                        _pathDrawMode,
-                                      )) {
-                                _selectedRouteId = _routeForItem(
-                                  item.id,
-                                  _pathDrawMode,
-                                )?.id;
-                              }
-                            }),
+                            onTap: () => _selectBoardItem(item),
+                            onPanStart: widget.readOnly
+                                ? null
+                                : (_) => _startItemMove(item),
+                            onPanUpdate: widget.readOnly
+                                ? null
+                                : (details) => _updateItemMoveByDelta(
+                                      item,
+                                      delta: details.delta,
+                                      boardWidth: width,
+                                      boardHeight: height,
+                                    ),
+                            onPanEnd:
+                                widget.readOnly ? null : (_) => _endItemMove(),
+                            onPanCancel: widget.readOnly ? null : _endItemMove,
                             onLongPressStart: widget.readOnly
                                 ? null
                                 : (_) => _startLongPressItemMove(item),
@@ -3221,34 +3299,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                       boardWidth: width,
                                       boardHeight: height,
                                     ),
-                            onLongPressEnd: widget.readOnly
-                                ? null
-                                : (_) => _endLongPressItemMove(),
+                            onLongPressEnd:
+                                widget.readOnly ? null : (_) => _endItemMove(),
                             onLongPressCancel:
-                                widget.readOnly ? null : _endLongPressItemMove,
-                            onPanUpdate:
-                                widget.readOnly || _penMode || _pathMode
-                                    ? null
-                                    : (details) {
-                                        final dx = details.delta.dx / width;
-                                        final dy = details.delta.dy / height;
-                                        final nextX = (item.x + dx).clamp(
-                                          0.03,
-                                          0.97,
-                                        );
-                                        final nextY = (item.y + dy).clamp(
-                                          0.03,
-                                          0.97,
-                                        );
-                                        setState(() {
-                                          _moveItemWithLinkedRoutes(
-                                            item,
-                                            nextX: nextX,
-                                            nextY: nextY,
-                                          );
-                                        });
-                                        _scheduleAutoSave();
-                                      },
+                                widget.readOnly ? null : _endItemMove,
                             child: SizedBox(
                               width: 52,
                               height: 52,
@@ -3256,6 +3310,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                 child: _BoardToken(
                                   item: item,
                                   selected: item.id == _selectedItemId,
+                                  moving: item.id == _movingItemId,
                                   label: _boardTokenLabelFor(item),
                                 ),
                               ),
@@ -4406,11 +4461,13 @@ const List<Color> _penColors = <Color>[
 class _BoardToken extends StatelessWidget {
   final _BoardItem item;
   final bool selected;
+  final bool moving;
   final String? label;
 
   const _BoardToken({
     required this.item,
     required this.selected,
+    required this.moving,
     required this.label,
   });
 
@@ -4423,41 +4480,65 @@ class _BoardToken extends StatelessWidget {
       _BoardItemType.ball => Icons.sports_soccer,
       _BoardItemType.ladder => Icons.view_week,
     };
-    return Transform.rotate(
-      angle: (item.rotationDeg * math.pi) / 180,
-      child: Container(
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.18),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color:
-                selected ? Colors.white : Colors.white.withValues(alpha: 0.55),
-            width: selected ? 2.2 : 1.2,
+    final borderColor = moving
+        ? Colors.amberAccent
+        : selected
+            ? Colors.white
+            : Colors.white.withValues(alpha: 0.55);
+    final shadows = moving
+        ? <BoxShadow>[
+            BoxShadow(
+              color: item.color.withValues(alpha: 0.52),
+              blurRadius: 14,
+              spreadRadius: 1,
+            ),
+            const BoxShadow(
+              color: Colors.black54,
+              blurRadius: 10,
+              offset: Offset(0, 3),
+            ),
+          ]
+        : selected
+            ? const <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black54,
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ]
+            : null;
+    return AnimatedScale(
+      scale: moving ? 1.12 : 1.0,
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOut,
+      child: Transform.rotate(
+        angle: (item.rotationDeg * math.pi) / 180,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 110),
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: moving ? 0.26 : 0.18),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: borderColor,
+              width: moving ? 2.8 : (selected ? 2.2 : 1.2),
+            ),
+            boxShadow: shadows,
           ),
-          boxShadow: selected
-              ? const [
-                  BoxShadow(
-                    color: Colors.black54,
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            Icon(icon, size: 18, color: item.color),
-            if (label != null)
-              Positioned(
-                right: -5,
-                bottom: -5,
-                child: _TokenNumberBadge(label: label!),
-              ),
-          ],
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              Icon(icon, size: 18, color: item.color),
+              if (label != null)
+                Positioned(
+                  right: -5,
+                  bottom: -5,
+                  child: _TokenNumberBadge(label: label!),
+                ),
+            ],
+          ),
         ),
       ),
     );
