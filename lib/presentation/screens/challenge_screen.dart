@@ -4031,8 +4031,8 @@ class _RoundCalendarRinzyCelebration extends StatelessWidget {
     return ChallengeCheerRinzyMascot(
       size: size,
       progress: 1,
-      animate: false,
-      showCheerSticks: false,
+      animate: true,
+      showCheerSticks: true,
     );
   }
 }
