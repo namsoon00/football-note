@@ -11,6 +11,7 @@ import '../../application/settings_service.dart';
 import '../../application/sport_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
+import '../../domain/entities/sport_definition.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
@@ -26,6 +27,7 @@ class TrainingMethodBoardScreen extends StatefulWidget {
   final OptionRepository? optionRepository;
   final List<String> initialSelectedBoardIds;
   final String? initialBoardId;
+  final String? sportId;
   final bool readOnly;
 
   const TrainingMethodBoardScreen({
@@ -37,6 +39,7 @@ class TrainingMethodBoardScreen extends StatefulWidget {
     this.optionRepository,
     this.initialSelectedBoardIds = const <String>[],
     this.initialBoardId,
+    this.sportId,
     this.readOnly = false,
   });
 
@@ -1177,8 +1180,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _selectedItemId = item.id;
       _selectedRouteId = null;
       _penMode = false;
-      _pathMode = false;
+      final routeKind = _routeKindForItem(item);
+      _pathMode = routeKind != null;
+      if (routeKind != null) {
+        _pathDrawMode = routeKind;
+      }
       _routeReplaceMode = false;
+      _activeStroke = null;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
     });
     _scheduleAutoSave();
   }
@@ -1229,6 +1240,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   String? get _currentSportId {
+    final widgetSportId = widget.sportId;
+    if (widgetSportId != null) {
+      return SportCatalog.normalizeSportId(widgetSportId);
+    }
     final optionRepository = widget.optionRepository;
     if (optionRepository == null) return null;
     return SportService(optionRepository).currentSportId();
@@ -1824,11 +1839,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   void _startPlayerPath(Offset localPosition, double width, double height) {
     final point = _boardPointFromLocal(localPosition, width, height);
+    final selectedItem = _selectedItem;
+    final expectedType = _boardItemTypeForRouteKind(_pathDrawMode);
     setState(() {
-      _activeRoutePoints = <Offset>[point];
+      _activeRoutePoints = <Offset>[
+        if (selectedItem != null && selectedItem.type == expectedType)
+          _itemPosition(selectedItem)
+        else
+          point,
+      ];
       _activeRouteSegmentDurationsMs = <int>[];
       _activeRouteLastPointAt = DateTime.now();
     });
+    if (selectedItem != null && selectedItem.type == expectedType) {
+      _appendRoutePoint(point, durationMs: 420);
+    }
   }
 
   void _appendPlayerPath(Offset localPosition, double width, double height) {
@@ -3187,14 +3212,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
+        final surface = _boardSurfaceForSport(_currentSportId);
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
-            ),
+            gradient: _boardSurfaceGradient(surface),
           ),
           clipBehavior: Clip.antiAlias,
           child: GestureDetector(
@@ -3237,8 +3259,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             child: Stack(
               children: [
                 CustomPaint(
+                  key: ValueKey<String>(
+                    'training-board-surface-${surface.name}',
+                  ),
                   size: Size(width, height),
-                  painter: _PitchPainter(
+                  painter: _SportSurfacePainter(
+                    surface: surface,
                     showTacticalOverlay: _showTacticalOverlay,
                   ),
                 ),
@@ -3326,6 +3352,31 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         );
       },
     );
+  }
+
+  LinearGradient _boardSurfaceGradient(_BoardSurface surface) {
+    return switch (surface) {
+      _BoardSurface.tennis => const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF2F8F57), Color(0xFF17653D)],
+        ),
+      _BoardSurface.baseball => const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF2E7D32), Color(0xFF0F5132)],
+        ),
+      _BoardSurface.basketball => const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFB87935), Color(0xFF6D4C2D)],
+        ),
+      _BoardSurface.football => const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
+        ),
+    };
   }
 
   String? _boardTokenLabelFor(_BoardItem item) {
@@ -4364,6 +4415,17 @@ enum _PathDrawMode { player, ball }
 
 enum _BoardItemType { cone, hurdle, player, ball, ladder }
 
+enum _BoardSurface { football, baseball, basketball, tennis }
+
+_BoardSurface _boardSurfaceForSport(String? sportId) {
+  return switch (SportCatalog.normalizeSportId(sportId)) {
+    SportCatalog.baseballId => _BoardSurface.baseball,
+    SportCatalog.basketballId => _BoardSurface.basketball,
+    SportCatalog.tennisId => _BoardSurface.tennis,
+    _ => _BoardSurface.football,
+  };
+}
+
 _BoardItemType? _boardItemTypeFromString(String raw) {
   for (final value in _BoardItemType.values) {
     if (value.name == raw) return value;
@@ -4913,13 +4975,30 @@ class _InkPainter extends CustomPainter {
   }
 }
 
-class _PitchPainter extends CustomPainter {
+class _SportSurfacePainter extends CustomPainter {
+  final _BoardSurface surface;
   final bool showTacticalOverlay;
 
-  const _PitchPainter({required this.showTacticalOverlay});
+  const _SportSurfacePainter({
+    required this.surface,
+    required this.showTacticalOverlay,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
+    switch (surface) {
+      case _BoardSurface.baseball:
+        _drawBaseballSurface(canvas, size);
+        return;
+      case _BoardSurface.basketball:
+        _drawBasketballSurface(canvas, size);
+        return;
+      case _BoardSurface.tennis:
+        _drawTennisSurface(canvas, size);
+        return;
+      case _BoardSurface.football:
+        break;
+    }
     final line = Paint()
       ..color = Colors.white.withValues(alpha: 0.72)
       ..style = PaintingStyle.stroke
@@ -4996,6 +5075,223 @@ class _PitchPainter extends CustomPainter {
       ..color = Colors.white.withValues(alpha: 0.72)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(centerX, centerY), 2.6, spotPaint);
+  }
+
+  void _drawBaseballSurface(Canvas canvas, Size size) {
+    final fieldRect = Rect.fromLTWH(8, 8, size.width - 16, size.height - 16);
+    final line = Paint()
+      ..color = Colors.white.withValues(alpha: 0.78)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.4, fieldRect.shortestSide * 0.004);
+    final dirtPaint = Paint()
+      ..color = const Color(0xFFC47A39).withValues(alpha: 0.88)
+      ..style = PaintingStyle.fill;
+    final moundPaint = Paint()
+      ..color = const Color(0xFFE0A75D).withValues(alpha: 0.92)
+      ..style = PaintingStyle.fill;
+    final basePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.94)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(fieldRect, const Radius.circular(12)),
+      line,
+    );
+    final home = Offset(fieldRect.center.dx, fieldRect.bottom - 26);
+    final first = Offset(fieldRect.right - 58, fieldRect.center.dy + 18);
+    final second = Offset(fieldRect.center.dx, fieldRect.top + 64);
+    final third = Offset(fieldRect.left + 58, fieldRect.center.dy + 18);
+    final diamond = Path()
+      ..moveTo(home.dx, home.dy)
+      ..lineTo(first.dx, first.dy)
+      ..lineTo(second.dx, second.dy)
+      ..lineTo(third.dx, third.dy)
+      ..close();
+    canvas.drawPath(diamond, dirtPaint);
+    canvas.drawPath(diamond, line);
+    canvas.drawLine(home, first, line);
+    canvas.drawLine(home, third, line);
+    canvas.drawLine(
+        first, Offset(fieldRect.right - 12, fieldRect.top + 20), line);
+    canvas.drawLine(
+        third, Offset(fieldRect.left + 12, fieldRect.top + 20), line);
+    canvas.drawCircle(
+      Offset(fieldRect.center.dx, fieldRect.center.dy + 8),
+      math.min(24, fieldRect.shortestSide * 0.075),
+      moundPaint,
+    );
+    canvas.drawCircle(
+      Offset(fieldRect.center.dx, fieldRect.center.dy + 8),
+      2.8,
+      basePaint,
+    );
+    for (final base in <Offset>[home, first, second, third]) {
+      canvas.save();
+      canvas.translate(base.dx, base.dy);
+      canvas.rotate(math.pi / 4);
+      canvas.drawRect(
+          Rect.fromCenter(center: Offset.zero, width: 9, height: 9), basePaint);
+      canvas.restore();
+    }
+    final grassArcPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    canvas.drawArc(
+      Rect.fromCircle(center: home, radius: fieldRect.width * 0.48),
+      -math.pi * 0.80,
+      math.pi * 0.60,
+      false,
+      grassArcPaint,
+    );
+  }
+
+  void _drawBasketballSurface(Canvas canvas, Size size) {
+    final courtRect = Rect.fromLTWH(8, 8, size.width - 16, size.height - 16);
+    final line = Paint()
+      ..color = Colors.white.withValues(alpha: 0.76)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.5, courtRect.shortestSide * 0.004);
+    final keyPaint = Paint()
+      ..color = const Color(0xFF1E88E5).withValues(alpha: 0.22)
+      ..style = PaintingStyle.fill;
+    final centerPaint = Paint()
+      ..color = const Color(0xFFFFCA28).withValues(alpha: 0.15)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(courtRect, const Radius.circular(12)),
+      line,
+    );
+    final center = courtRect.center;
+    canvas.drawCircle(
+        center, math.min(46, courtRect.shortestSide * 0.15), centerPaint);
+    canvas.drawCircle(
+        center, math.min(46, courtRect.shortestSide * 0.15), line);
+    canvas.drawLine(
+      Offset(courtRect.center.dx, courtRect.top),
+      Offset(courtRect.center.dx, courtRect.bottom),
+      line,
+    );
+    final keyWidth = math.min(courtRect.height * 0.42, 122.0);
+    final keyDepth = math.min(courtRect.width * 0.18, 92.0);
+    final keyTop = courtRect.center.dy - keyWidth / 2;
+    final leftKey = Rect.fromLTWH(courtRect.left, keyTop, keyDepth, keyWidth);
+    final rightKey = Rect.fromLTWH(
+      courtRect.right - keyDepth,
+      keyTop,
+      keyDepth,
+      keyWidth,
+    );
+    canvas.drawRect(leftKey, keyPaint);
+    canvas.drawRect(rightKey, keyPaint);
+    canvas.drawRect(leftKey, line);
+    canvas.drawRect(rightKey, line);
+    canvas.drawCircle(
+      Offset(leftKey.right, courtRect.center.dy),
+      keyWidth * 0.28,
+      line,
+    );
+    canvas.drawCircle(
+      Offset(rightKey.left, courtRect.center.dy),
+      keyWidth * 0.28,
+      line,
+    );
+    final hoopPaint = Paint()
+      ..color = const Color(0xFFFFB300).withValues(alpha: 0.9)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2;
+    canvas.drawCircle(
+        Offset(courtRect.left + 18, courtRect.center.dy), 5, hoopPaint);
+    canvas.drawCircle(
+        Offset(courtRect.right - 18, courtRect.center.dy), 5, hoopPaint);
+    _drawDashedLine(
+      canvas,
+      Offset(courtRect.left + courtRect.width * 0.28, courtRect.top + 10),
+      Offset(courtRect.left + courtRect.width * 0.28, courtRect.bottom - 10),
+      line,
+      dash: 10,
+      gap: 7,
+    );
+    _drawDashedLine(
+      canvas,
+      Offset(courtRect.right - courtRect.width * 0.28, courtRect.top + 10),
+      Offset(courtRect.right - courtRect.width * 0.28, courtRect.bottom - 10),
+      line,
+      dash: 10,
+      gap: 7,
+    );
+  }
+
+  void _drawTennisSurface(Canvas canvas, Size size) {
+    final courtRect = Rect.fromLTWH(8, 8, size.width - 16, size.height - 16);
+    final line = Paint()
+      ..color = Colors.white.withValues(alpha: 0.82)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.5, courtRect.shortestSide * 0.004);
+    final servicePaint = Paint()
+      ..color = const Color(0xFF1565C0).withValues(alpha: 0.16)
+      ..style = PaintingStyle.fill;
+    final doublesLanePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.055)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(courtRect, const Radius.circular(12)),
+      line,
+    );
+    final topLane = courtRect.top + courtRect.height * 0.13;
+    final bottomLane = courtRect.bottom - courtRect.height * 0.13;
+    canvas.drawRect(
+      Rect.fromLTRB(courtRect.left, courtRect.top, courtRect.right, topLane),
+      doublesLanePaint,
+    );
+    canvas.drawRect(
+      Rect.fromLTRB(
+          courtRect.left, bottomLane, courtRect.right, courtRect.bottom),
+      doublesLanePaint,
+    );
+    canvas.drawLine(Offset(courtRect.left, topLane),
+        Offset(courtRect.right, topLane), line);
+    canvas.drawLine(
+      Offset(courtRect.left, bottomLane),
+      Offset(courtRect.right, bottomLane),
+      line,
+    );
+    final netX = courtRect.center.dx;
+    final leftService = courtRect.left + courtRect.width * 0.28;
+    final rightService = courtRect.right - courtRect.width * 0.28;
+    final singlesCenterY = courtRect.center.dy;
+    canvas.drawRect(
+      Rect.fromLTRB(leftService, topLane, rightService, bottomLane),
+      servicePaint,
+    );
+    canvas.drawLine(
+        Offset(netX, courtRect.top), Offset(netX, courtRect.bottom), line);
+    canvas.drawLine(
+      Offset(leftService, topLane),
+      Offset(leftService, bottomLane),
+      line,
+    );
+    canvas.drawLine(
+      Offset(rightService, topLane),
+      Offset(rightService, bottomLane),
+      line,
+    );
+    canvas.drawLine(
+      Offset(leftService, singlesCenterY),
+      Offset(rightService, singlesCenterY),
+      line,
+    );
+    final netPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.24)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0;
+    canvas.drawLine(
+      Offset(netX, courtRect.top + 5),
+      Offset(netX, courtRect.bottom - 5),
+      netPaint,
+    );
   }
 
   void _drawTacticalOverlay(Canvas canvas, Rect fieldRect) {
@@ -5075,8 +5371,9 @@ class _PitchPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _PitchPainter oldDelegate) {
-    return oldDelegate.showTacticalOverlay != showTacticalOverlay;
+  bool shouldRepaint(covariant _SportSurfacePainter oldDelegate) {
+    return oldDelegate.surface != surface ||
+        oldDelegate.showTacticalOverlay != showTacticalOverlay;
   }
 }
 

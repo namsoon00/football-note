@@ -205,6 +205,9 @@ void main() {
         scoredGoals: 2,
         concededGoals: 0,
         matchKind: 'tournament',
+        matchCompetitionName: '봄 컵',
+        matchStage: 'final',
+        tournamentOutcome: 'champion',
         leagueTeamNames: const <String>['컵 FC', '블루 FC'],
         tournamentWins: 2,
       ),
@@ -240,7 +243,10 @@ void main() {
 
     expect(find.textContaining('친선 경기 0 · 리그 경기 0 · 토너먼트 1'), findsOneWidget);
     expect(find.textContaining('토너먼트 · 컵 FC'), findsOneWidget);
-    expect(find.textContaining('2승'), findsOneWidget);
+    expect(find.textContaining('봄 컵'), findsOneWidget);
+    expect(find.textContaining('결승'), findsOneWidget);
+    expect(find.textContaining('우승'), findsOneWidget);
+    expect(find.textContaining('2승'), findsWidgets);
   });
 
   testWidgets('Parent mode stats shows training, match, and meal records', (

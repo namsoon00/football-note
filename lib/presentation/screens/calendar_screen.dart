@@ -36,6 +36,7 @@ import '../theme/app_theme.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/status_style.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
+import '../utils/match_entry_format.dart';
 import '../utils/training_entry_summary.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'profile_screen.dart';
@@ -1909,6 +1910,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final opponentOptions = _matchOpponentOptions(entries);
     final locationOptions = _matchLocationOptions(entries);
     var leagueTeamsText = editingEntry?.leagueTeamNames.join(', ') ?? '';
+    var competitionNameText = editingEntry?.matchCompetitionName ?? '';
+    var leagueRoundText = editingEntry?.isLeagueMatch == true
+        ? editingEntry?.matchStage ?? ''
+        : '';
+    var tournamentStage = normalizeMatchTournamentStage(
+      editingEntry?.isTournamentMatch == true
+          ? editingEntry?.matchStage ?? ''
+          : '',
+    );
+    var tournamentOutcome = normalizeMatchTournamentOutcome(
+      editingEntry?.isTournamentMatch == true
+          ? editingEntry?.tournamentOutcome ?? ''
+          : '',
+    );
     var leaguePointsText = editingEntry?.leaguePoints?.toString() ?? '';
     var tournamentWinsText = editingEntry?.tournamentWins?.toString() ?? '';
     var ourScoreText = editingEntry?.scoredGoals?.toString() ?? '';
@@ -2023,6 +2038,116 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             ),
                             if (matchKind == 'league' ||
                                 matchKind == 'tournament') ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                matchKind == 'tournament'
+                                    ? l10n.matchTournamentSectionTitle
+                                    : l10n.matchLeagueSectionTitle,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(fontWeight: FontWeight.w800),
+                              ),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                initialValue: competitionNameText,
+                                readOnly: readOnly,
+                                onChanged: (value) =>
+                                    competitionNameText = value,
+                                textInputAction: TextInputAction.next,
+                                decoration: _calendarInputDecorationWithDone(
+                                  context,
+                                  InputDecoration(
+                                    labelText: l10n.matchCompetitionNameLabel,
+                                    hintText: matchKind == 'tournament'
+                                        ? l10n.matchTournamentNameHint
+                                        : l10n.matchLeagueNameHint,
+                                  ),
+                                  enabled: !readOnly,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              if (matchKind == 'league')
+                                TextFormField(
+                                  initialValue: leagueRoundText,
+                                  readOnly: readOnly,
+                                  onChanged: (value) => leagueRoundText = value,
+                                  textInputAction: TextInputAction.next,
+                                  decoration: _calendarInputDecorationWithDone(
+                                    context,
+                                    InputDecoration(
+                                      labelText: l10n.matchLeagueRoundLabel,
+                                      hintText: l10n.matchLeagueRoundHint,
+                                    ),
+                                    enabled: !readOnly,
+                                  ),
+                                )
+                              else ...[
+                                DropdownButtonFormField<String>(
+                                  initialValue: tournamentStage,
+                                  items: [
+                                    for (final value
+                                        in matchTournamentStageValues)
+                                      DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(
+                                          matchTournamentStageLabel(
+                                            l10n,
+                                            value,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                  onChanged: readOnly
+                                      ? null
+                                      : (value) {
+                                          if (value == null) return;
+                                          setSheetState(() {
+                                            tournamentStage = value;
+                                          });
+                                        },
+                                  decoration: _calendarInputDecorationWithDone(
+                                    context,
+                                    InputDecoration(
+                                      labelText: l10n.matchTournamentStageLabel,
+                                    ),
+                                    enabled: !readOnly,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                DropdownButtonFormField<String>(
+                                  initialValue: tournamentOutcome,
+                                  items: [
+                                    for (final value
+                                        in matchTournamentOutcomeValues)
+                                      DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(
+                                          matchTournamentOutcomeLabel(
+                                            l10n,
+                                            value,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                  onChanged: readOnly
+                                      ? null
+                                      : (value) {
+                                          if (value == null) return;
+                                          setSheetState(() {
+                                            tournamentOutcome = value;
+                                          });
+                                        },
+                                  decoration: _calendarInputDecorationWithDone(
+                                    context,
+                                    InputDecoration(
+                                      labelText:
+                                          l10n.matchTournamentOutcomeLabel,
+                                    ),
+                                    enabled: !readOnly,
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 8),
                               TextFormField(
                                 initialValue: leagueTeamsText,
@@ -2361,6 +2486,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 tournamentWins: matchKind == 'tournament'
                                     ? _parseSheetInt(tournamentWinsText)
                                     : null,
+                                matchCompetitionName: matchKind == 'friendly'
+                                    ? ''
+                                    : competitionNameText.trim(),
+                                matchStage: matchKind == 'tournament'
+                                    ? tournamentStage
+                                    : matchKind == 'league'
+                                        ? leagueRoundText.trim()
+                                        : '',
+                                tournamentOutcome: matchKind == 'tournament'
+                                    ? tournamentOutcome
+                                    : '',
                                 sportId: sportId,
                               ),
                             );
@@ -3793,34 +3929,18 @@ class _EntryTile extends StatelessWidget {
     return trainingEntryDurationLabel(entry, l10n);
   }
 
-  String _matchKindLabel(TrainingEntry entry, AppLocalizations l10n) {
-    if (entry.isTournamentMatch) return l10n.matchKindTournament;
-    if (entry.isLeagueMatch) return l10n.matchKindLeague;
-    return l10n.matchKindFriendly;
-  }
-
   List<String> _matchTitleParts(
     TrainingEntry entry, {
     required AppLocalizations l10n,
     required bool isKo,
   }) {
     final parts = <String>[];
-    parts.add(_matchKindLabel(entry, l10n));
+    parts.add(matchKindLabel(entry, l10n));
     parts.add(_matchOutcomeLabel(entry, isKo: isKo));
     if (entry.opponentTeam.trim().isNotEmpty) {
       parts.add('vs ${entry.opponentTeam.trim()}');
     }
-    if ((entry.isLeagueMatch || entry.isTournamentMatch) &&
-        entry.leagueTeamNames.isNotEmpty) {
-      parts.add(entry.leagueTeamNames.take(3).join(', '));
-    }
-    if (entry.isLeagueMatch) {
-      if (entry.leaguePoints != null) {
-        parts.add(l10n.matchLeaguePointsValue(entry.leaguePoints!));
-      }
-    } else if (entry.isTournamentMatch && entry.tournamentWins != null) {
-      parts.add(l10n.matchTournamentWinsValue(entry.tournamentWins!));
-    }
+    parts.addAll(matchCompetitionDetailParts(entry, l10n));
     final matchLocation = entry.effectiveMatchLocation.trim();
     if (matchLocation.isNotEmpty) {
       parts.add(matchLocation);

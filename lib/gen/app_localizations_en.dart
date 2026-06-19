@@ -7561,6 +7561,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsCoachRosterAddPlayer => 'Add player';
 
   @override
+  String get settingsCoachRosterEditPlayer => 'Edit player';
+
+  @override
+  String get settingsCoachRosterDeletePlayer => 'Delete player';
+
+  @override
+  String get settingsCoachRosterDeleteTitle => 'Delete player';
+
+  @override
+  String settingsCoachRosterDeleteMessage(Object player) {
+    return 'Delete $player from the coach roster?';
+  }
+
+  @override
+  String settingsCoachRosterDeleted(Object player) {
+    return '$player was deleted.';
+  }
+
+  @override
+  String settingsCoachRosterRenamed(Object player) {
+    return '$player was updated.';
+  }
+
+  @override
+  String get settingsCoachRosterLastPlayerRequired =>
+      'Keep at least one player in coach mode.';
+
+  @override
+  String settingsCoachRosterDriveAccount(Object email) {
+    return 'Drive: $email';
+  }
+
+  @override
+  String get settingsCoachRosterNoDriveAccount =>
+      'No Drive account saved for this player yet.';
+
+  @override
   String get settingsCoachRosterPlayerNameLabel => 'Player name';
 
   @override
@@ -8283,6 +8320,60 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchKindTournament => 'Tournament';
+
+  @override
+  String get matchLeagueSectionTitle => 'League details';
+
+  @override
+  String get matchTournamentSectionTitle => 'Tournament details';
+
+  @override
+  String get matchCompetitionNameLabel => 'Competition name';
+
+  @override
+  String get matchLeagueNameHint => 'e.g. Weekend League';
+
+  @override
+  String get matchTournamentNameHint => 'e.g. Cup tournament';
+
+  @override
+  String get matchLeagueRoundLabel => 'Round or matchday';
+
+  @override
+  String get matchLeagueRoundHint => 'e.g. Round 3';
+
+  @override
+  String get matchTournamentStageLabel => 'Tournament stage';
+
+  @override
+  String get matchTournamentStagePreliminary => 'Preliminary';
+
+  @override
+  String get matchTournamentStageRound16 => 'Round of 16';
+
+  @override
+  String get matchTournamentStageQuarterfinal => 'Quarterfinal';
+
+  @override
+  String get matchTournamentStageSemifinal => 'Semifinal';
+
+  @override
+  String get matchTournamentStageFinal => 'Final';
+
+  @override
+  String get matchTournamentOutcomeLabel => 'Progress result';
+
+  @override
+  String get matchTournamentOutcomeOngoing => 'In progress';
+
+  @override
+  String get matchTournamentOutcomeAdvanced => 'Advanced';
+
+  @override
+  String get matchTournamentOutcomeEliminated => 'Eliminated';
+
+  @override
+  String get matchTournamentOutcomeChampion => 'Champion';
 
   @override
   String get matchOpponentTeamLabel => 'Opponent team';

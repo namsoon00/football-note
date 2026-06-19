@@ -13110,6 +13110,60 @@ abstract class AppLocalizations {
   /// **'Add player'**
   String get settingsCoachRosterAddPlayer;
 
+  /// No description provided for @settingsCoachRosterEditPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit player'**
+  String get settingsCoachRosterEditPlayer;
+
+  /// No description provided for @settingsCoachRosterDeletePlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete player'**
+  String get settingsCoachRosterDeletePlayer;
+
+  /// No description provided for @settingsCoachRosterDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete player'**
+  String get settingsCoachRosterDeleteTitle;
+
+  /// No description provided for @settingsCoachRosterDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {player} from the coach roster?'**
+  String settingsCoachRosterDeleteMessage(Object player);
+
+  /// No description provided for @settingsCoachRosterDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{player} was deleted.'**
+  String settingsCoachRosterDeleted(Object player);
+
+  /// No description provided for @settingsCoachRosterRenamed.
+  ///
+  /// In en, this message translates to:
+  /// **'{player} was updated.'**
+  String settingsCoachRosterRenamed(Object player);
+
+  /// No description provided for @settingsCoachRosterLastPlayerRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep at least one player in coach mode.'**
+  String get settingsCoachRosterLastPlayerRequired;
+
+  /// No description provided for @settingsCoachRosterDriveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive: {email}'**
+  String settingsCoachRosterDriveAccount(Object email);
+
+  /// No description provided for @settingsCoachRosterNoDriveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'No Drive account saved for this player yet.'**
+  String get settingsCoachRosterNoDriveAccount;
+
   /// No description provided for @settingsCoachRosterPlayerNameLabel.
   ///
   /// In en, this message translates to:
@@ -14334,6 +14388,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tournament'**
   String get matchKindTournament;
+
+  /// No description provided for @matchLeagueSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'League details'**
+  String get matchLeagueSectionTitle;
+
+  /// No description provided for @matchTournamentSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament details'**
+  String get matchTournamentSectionTitle;
+
+  /// No description provided for @matchCompetitionNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition name'**
+  String get matchCompetitionNameLabel;
+
+  /// No description provided for @matchLeagueNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Weekend League'**
+  String get matchLeagueNameHint;
+
+  /// No description provided for @matchTournamentNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Cup tournament'**
+  String get matchTournamentNameHint;
+
+  /// No description provided for @matchLeagueRoundLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Round or matchday'**
+  String get matchLeagueRoundLabel;
+
+  /// No description provided for @matchLeagueRoundHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Round 3'**
+  String get matchLeagueRoundHint;
+
+  /// No description provided for @matchTournamentStageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament stage'**
+  String get matchTournamentStageLabel;
+
+  /// No description provided for @matchTournamentStagePreliminary.
+  ///
+  /// In en, this message translates to:
+  /// **'Preliminary'**
+  String get matchTournamentStagePreliminary;
+
+  /// No description provided for @matchTournamentStageRound16.
+  ///
+  /// In en, this message translates to:
+  /// **'Round of 16'**
+  String get matchTournamentStageRound16;
+
+  /// No description provided for @matchTournamentStageQuarterfinal.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarterfinal'**
+  String get matchTournamentStageQuarterfinal;
+
+  /// No description provided for @matchTournamentStageSemifinal.
+  ///
+  /// In en, this message translates to:
+  /// **'Semifinal'**
+  String get matchTournamentStageSemifinal;
+
+  /// No description provided for @matchTournamentStageFinal.
+  ///
+  /// In en, this message translates to:
+  /// **'Final'**
+  String get matchTournamentStageFinal;
+
+  /// No description provided for @matchTournamentOutcomeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress result'**
+  String get matchTournamentOutcomeLabel;
+
+  /// No description provided for @matchTournamentOutcomeOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get matchTournamentOutcomeOngoing;
+
+  /// No description provided for @matchTournamentOutcomeAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get matchTournamentOutcomeAdvanced;
+
+  /// No description provided for @matchTournamentOutcomeEliminated.
+  ///
+  /// In en, this message translates to:
+  /// **'Eliminated'**
+  String get matchTournamentOutcomeEliminated;
+
+  /// No description provided for @matchTournamentOutcomeChampion.
+  ///
+  /// In en, this message translates to:
+  /// **'Champion'**
+  String get matchTournamentOutcomeChampion;
 
   /// No description provided for @matchOpponentTeamLabel.
   ///

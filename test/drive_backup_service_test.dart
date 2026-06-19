@@ -83,6 +83,36 @@ void main() {
     );
   });
 
+  test('stores connected Drive metadata on active coach player', () async {
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.coach.name,
+    );
+    final roster = CoachRosterService(HiveOptionRepository(optionBox));
+    final player = await roster.addPlayer(displayName: 'Minjun');
+    await roster.setActivePlayer(player.id);
+    final coachDriveService = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'coach-minjun@example.com',
+        displayName: 'Coach Drive',
+        subjectId: 'coach-subject-minjun',
+      ),
+    );
+
+    await coachDriveService.getDriveConnectionInfo();
+
+    final updated = CoachRosterService(
+      HiveOptionRepository(optionBox),
+    ).loadState().activePlayer;
+    expect(updated?.id, player.id);
+    expect(updated?.driveEmail, 'coach-minjun@example.com');
+    expect(updated?.driveLabel, 'Coach Drive · coach-minjun@example.com');
+    expect(updated?.driveSubjectId, 'coach-subject-minjun');
+  });
+
   test('backs up and restores player data while skipping local device settings',
       () async {
     await trainingBox.add(
@@ -98,6 +128,11 @@ void main() {
         opponentTeam: 'Blue FC',
         scoredGoals: 2,
         concededGoals: 1,
+        matchKind: 'league',
+        leagueTeamNames: const <String>['Blue FC', 'Red FC'],
+        leaguePoints: 3,
+        matchCompetitionName: 'Weekend League',
+        matchStage: 'Round 2',
       ),
     );
 
@@ -130,6 +165,9 @@ void main() {
     expect(backup['format'], 'football_note_backup');
     expect(backup['version'], 6);
     expect(backedUpEntry['sportId'], SportCatalog.footballId);
+    expect(backedUpEntry['matchCompetitionName'], 'Weekend League');
+    expect(backedUpEntry['matchStage'], 'Round 2');
+    expect(backedUpEntry['leaguePoints'], 3);
     expect(backupOptions['profile_name'], 'Lee');
     expect(backupOptions['default_duration'], 90);
     expect(backupOptions['type_options'], ['technique', 'tactics']);
@@ -153,6 +191,9 @@ void main() {
     expect(trainingBox.values.first.opponentTeam, 'Blue FC');
     expect(trainingBox.values.first.scoredGoals, 2);
     expect(trainingBox.values.first.concededGoals, 1);
+    expect(trainingBox.values.first.matchCompetitionName, 'Weekend League');
+    expect(trainingBox.values.first.matchStage, 'Round 2');
+    expect(trainingBox.values.first.leaguePoints, 3);
 
     expect(optionBox.get('profile_name'), 'Lee');
     expect(optionBox.get('profile_height_cm'), '160.5');

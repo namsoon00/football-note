@@ -953,20 +953,49 @@ class _SettingsScreenState extends State<SettingsScreen>
             style: Theme.of(context).textTheme.bodyMedium,
           )
         else
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          Column(
             children: [
-              for (final player in players)
-                ChoiceChip(
-                  avatar: const Icon(Icons.person_outline, size: 18),
-                  label: Text(player.displayName),
+              for (final player in players) ...[
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    player.id == rosterState.activePlayerId
+                        ? Icons.check_circle_rounded
+                        : Icons.person_outline,
+                  ),
+                  title: Text(player.displayName),
+                  subtitle: Text(
+                    player.driveEmail.trim().isEmpty
+                        ? l10n.settingsCoachRosterNoDriveAccount
+                        : l10n.settingsCoachRosterDriveAccount(
+                            player.driveEmail.trim(),
+                          ),
+                  ),
                   selected: player.id == rosterState.activePlayerId,
-                  onSelected: (_) {
+                  onTap: () {
                     if (player.id == rosterState.activePlayerId) return;
                     unawaited(_setActiveCoachRosterPlayer(player, l10n));
                   },
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        onPressed: () => _editCoachRosterPlayer(player, l10n),
+                        icon: const Icon(Icons.edit_outlined),
+                        tooltip: l10n.settingsCoachRosterEditPlayer,
+                      ),
+                      IconButton(
+                        onPressed: players.length <= 1
+                            ? null
+                            : () => _deleteCoachRosterPlayer(player, l10n),
+                        icon: const Icon(Icons.delete_outline),
+                        tooltip: l10n.settingsCoachRosterDeletePlayer,
+                      ),
+                    ],
+                  ),
                 ),
+                if (player != players.last) const Divider(height: 1),
+              ],
             ],
           ),
         Align(
@@ -982,11 +1011,112 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> _addCoachRosterPlayer(AppLocalizations l10n) async {
+    final trimmedName = await _showCoachRosterPlayerNameDialog(
+      l10n,
+      title: l10n.settingsCoachRosterAddPlayer,
+      initialName: '',
+    );
+    if (trimmedName == null || trimmedName.isEmpty) return;
+    final player = await CoachRosterService(
+      widget.optionRepository,
+    ).addPlayer(displayName: trimmedName);
+    if (!mounted) return;
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Text(l10n.settingsCoachRosterAdded(player.displayName))),
+    );
+    unawaited(
+      _refreshDriveUi(
+        allowCachedConnection: true,
+        allowRemoteStatusLookup: true,
+        showLoading: false,
+      ),
+    );
+  }
+
+  Future<void> _editCoachRosterPlayer(
+    CoachPlayerProfile player,
+    AppLocalizations l10n,
+  ) async {
+    final trimmedName = await _showCoachRosterPlayerNameDialog(
+      l10n,
+      title: l10n.settingsCoachRosterEditPlayer,
+      initialName: player.displayName,
+    );
+    if (trimmedName == null || trimmedName.isEmpty) return;
+    final renamed = await CoachRosterService(widget.optionRepository)
+        .renamePlayer(playerId: player.id, displayName: trimmedName);
+    if (!mounted || renamed == null) return;
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.settingsCoachRosterRenamed(renamed.displayName)),
+      ),
+    );
+  }
+
+  Future<void> _deleteCoachRosterPlayer(
+    CoachPlayerProfile player,
+    AppLocalizations l10n,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.settingsCoachRosterDeleteTitle),
+        content:
+            Text(l10n.settingsCoachRosterDeleteMessage(player.displayName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final removed = await CoachRosterService(
+      widget.optionRepository,
+    ).removePlayer(player.id);
+    if (!mounted) return;
+    if (!removed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.settingsCoachRosterLastPlayerRequired)),
+      );
+      return;
+    }
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Text(l10n.settingsCoachRosterDeleted(player.displayName))),
+    );
+    unawaited(
+      _refreshDriveUi(
+        allowCachedConnection: true,
+        allowRemoteStatusLookup: true,
+        showLoading: false,
+      ),
+    );
+  }
+
+  Future<String?> _showCoachRosterPlayerNameDialog(
+    AppLocalizations l10n, {
+    required String title,
+    required String initialName,
+  }) async {
     final controller = TextEditingController();
+    controller.text = initialName;
+    controller.selection = TextSelection.collapsed(
+      offset: controller.text.length,
+    );
     final playerName = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.settingsCoachRosterAddPlayer),
+        title: Text(title),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -1013,24 +1143,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     );
     controller.dispose();
-    final trimmedName = playerName?.trim() ?? '';
-    if (trimmedName.isEmpty) return;
-    final player = await CoachRosterService(
-      widget.optionRepository,
-    ).addPlayer(displayName: trimmedName);
-    if (!mounted) return;
-    setState(() {});
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(l10n.settingsCoachRosterAdded(player.displayName))),
-    );
-    unawaited(
-      _refreshDriveUi(
-        allowCachedConnection: true,
-        allowRemoteStatusLookup: true,
-        showLoading: false,
-      ),
-    );
+    return playerName?.trim();
   }
 
   Future<void> _setActiveCoachRosterPlayer(

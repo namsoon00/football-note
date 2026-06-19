@@ -7325,6 +7325,42 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsCoachRosterAddPlayer => '선수 추가';
 
   @override
+  String get settingsCoachRosterEditPlayer => '선수 수정';
+
+  @override
+  String get settingsCoachRosterDeletePlayer => '선수 삭제';
+
+  @override
+  String get settingsCoachRosterDeleteTitle => '선수 삭제';
+
+  @override
+  String settingsCoachRosterDeleteMessage(Object player) {
+    return '$player 선수를 코치 목록에서 삭제할까요?';
+  }
+
+  @override
+  String settingsCoachRosterDeleted(Object player) {
+    return '$player 선수를 삭제했어요.';
+  }
+
+  @override
+  String settingsCoachRosterRenamed(Object player) {
+    return '$player 선수 정보를 수정했어요.';
+  }
+
+  @override
+  String get settingsCoachRosterLastPlayerRequired =>
+      '코치 모드에서는 최소 한 명의 선수가 필요해요.';
+
+  @override
+  String settingsCoachRosterDriveAccount(Object email) {
+    return 'Drive: $email';
+  }
+
+  @override
+  String get settingsCoachRosterNoDriveAccount => '아직 이 선수에 저장된 Drive 계정이 없어요.';
+
+  @override
   String get settingsCoachRosterPlayerNameLabel => '선수 이름';
 
   @override
@@ -8027,6 +8063,60 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchKindTournament => '토너먼트';
+
+  @override
+  String get matchLeagueSectionTitle => '리그 정보';
+
+  @override
+  String get matchTournamentSectionTitle => '토너먼트 정보';
+
+  @override
+  String get matchCompetitionNameLabel => '대회 이름';
+
+  @override
+  String get matchLeagueNameHint => '예) 주말 리그';
+
+  @override
+  String get matchTournamentNameHint => '예) 컵 대회';
+
+  @override
+  String get matchLeagueRoundLabel => '라운드/주차';
+
+  @override
+  String get matchLeagueRoundHint => '예) 3라운드';
+
+  @override
+  String get matchTournamentStageLabel => '토너먼트 단계';
+
+  @override
+  String get matchTournamentStagePreliminary => '예선';
+
+  @override
+  String get matchTournamentStageRound16 => '16강';
+
+  @override
+  String get matchTournamentStageQuarterfinal => '8강';
+
+  @override
+  String get matchTournamentStageSemifinal => '4강';
+
+  @override
+  String get matchTournamentStageFinal => '결승';
+
+  @override
+  String get matchTournamentOutcomeLabel => '진행 결과';
+
+  @override
+  String get matchTournamentOutcomeOngoing => '진행 중';
+
+  @override
+  String get matchTournamentOutcomeAdvanced => '다음 라운드 진출';
+
+  @override
+  String get matchTournamentOutcomeEliminated => '탈락';
+
+  @override
+  String get matchTournamentOutcomeChampion => '우승';
 
   @override
   String get matchOpponentTeamLabel => '상대 팀';

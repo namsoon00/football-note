@@ -107,8 +107,8 @@ void main() {
     final mistakeVideo = await rootBundle.load(
       'assets/videos/running_coach_mistake_sample.mp4',
     );
-    expect(referenceVideo.lengthInBytes, greaterThan(100000));
-    expect(mistakeVideo.lengthInBytes, greaterThan(100000));
+    expect(referenceVideo.lengthInBytes, greaterThan(1500000));
+    expect(mistakeVideo.lengthInBytes, greaterThan(1500000));
     expect(
       find.byKey(const ValueKey('running-coach-sample-frame-guide')),
       findsOneWidget,

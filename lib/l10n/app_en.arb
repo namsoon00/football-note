@@ -3871,6 +3871,35 @@
   "settingsCoachRosterDescription": "Select the active player before writing feedback, reward names, or Drive backups.",
   "settingsCoachRosterEmpty": "No players are registered yet.",
   "settingsCoachRosterAddPlayer": "Add player",
+  "settingsCoachRosterEditPlayer": "Edit player",
+  "settingsCoachRosterDeletePlayer": "Delete player",
+  "settingsCoachRosterDeleteTitle": "Delete player",
+  "settingsCoachRosterDeleteMessage": "Delete {player} from the coach roster?",
+  "@settingsCoachRosterDeleteMessage": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterDeleted": "{player} was deleted.",
+  "@settingsCoachRosterDeleted": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterRenamed": "{player} was updated.",
+  "@settingsCoachRosterRenamed": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterLastPlayerRequired": "Keep at least one player in coach mode.",
+  "settingsCoachRosterDriveAccount": "Drive: {email}",
+  "@settingsCoachRosterDriveAccount": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "settingsCoachRosterNoDriveAccount": "No Drive account saved for this player yet.",
   "settingsCoachRosterPlayerNameLabel": "Player name",
   "settingsCoachRosterPlayerNameHint": "Example: Minjun",
   "settingsCoachRosterAdded": "{player} was added.",
@@ -4178,6 +4207,24 @@
   "matchKindFriendly": "Friendly",
   "matchKindLeague": "League",
   "matchKindTournament": "Tournament",
+  "matchLeagueSectionTitle": "League details",
+  "matchTournamentSectionTitle": "Tournament details",
+  "matchCompetitionNameLabel": "Competition name",
+  "matchLeagueNameHint": "e.g. Weekend League",
+  "matchTournamentNameHint": "e.g. Cup tournament",
+  "matchLeagueRoundLabel": "Round or matchday",
+  "matchLeagueRoundHint": "e.g. Round 3",
+  "matchTournamentStageLabel": "Tournament stage",
+  "matchTournamentStagePreliminary": "Preliminary",
+  "matchTournamentStageRound16": "Round of 16",
+  "matchTournamentStageQuarterfinal": "Quarterfinal",
+  "matchTournamentStageSemifinal": "Semifinal",
+  "matchTournamentStageFinal": "Final",
+  "matchTournamentOutcomeLabel": "Progress result",
+  "matchTournamentOutcomeOngoing": "In progress",
+  "matchTournamentOutcomeAdvanced": "Advanced",
+  "matchTournamentOutcomeEliminated": "Eliminated",
+  "matchTournamentOutcomeChampion": "Champion",
   "matchOpponentTeamLabel": "Opponent team",
   "matchOpponentTeamHint": "e.g. Suwon U15",
   "matchLeagueTeamsLabel": "League teams",

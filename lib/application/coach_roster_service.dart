@@ -1,4 +1,5 @@
 import '../domain/repositories/option_repository.dart';
+import 'drive_connection_info.dart';
 
 class CoachPlayerProfile {
   final String id;
@@ -180,6 +181,30 @@ class CoachRosterService {
     await _options.setValue(activePlayerIdKey, normalizedId);
   }
 
+  Future<CoachPlayerProfile?> renamePlayer({
+    required String playerId,
+    required String displayName,
+  }) async {
+    final normalizedId = normalizePlayerId(playerId);
+    final trimmedName = displayName.trim();
+    if (normalizedId.isEmpty || trimmedName.isEmpty) return null;
+    final state = loadState();
+    CoachPlayerProfile? existing;
+    for (final player in state.players) {
+      if (player.id == normalizedId) {
+        existing = player;
+        break;
+      }
+    }
+    if (existing == null) return null;
+    final renamed = existing.copyWith(
+      displayName: trimmedName,
+      updatedAt: DateTime.now(),
+    );
+    await upsertPlayer(renamed);
+    return renamed;
+  }
+
   Future<void> upsertPlayer(CoachPlayerProfile player) async {
     final normalizedId = normalizePlayerId(player.id);
     if (normalizedId.isEmpty) return;
@@ -208,10 +233,14 @@ class CoachRosterService {
         state.activePlayerId.isEmpty ? normalizedId : state.activePlayerId);
   }
 
-  Future<void> removePlayer(String playerId) async {
+  Future<bool> removePlayer(String playerId) async {
     final normalizedId = normalizePlayerId(playerId);
-    if (normalizedId.isEmpty) return;
+    if (normalizedId.isEmpty) return false;
     final state = loadState();
+    if (state.players.length <= 1) return false;
+    if (!state.players.any((player) => player.id == normalizedId)) {
+      return false;
+    }
     final next = state.players
         .where((player) => player.id != normalizedId)
         .toList(growable: false);
@@ -219,6 +248,38 @@ class CoachRosterService {
         ? (next.isEmpty ? '' : next.first.id)
         : state.activePlayerId;
     await _savePlayers(next, nextActive);
+    return true;
+  }
+
+  Future<CoachPlayerProfile?> updateActivePlayerDriveConnection(
+    DriveConnectionInfo info,
+  ) async {
+    if (info.isEmpty) return null;
+    final active = await ensureActivePlayer();
+    final updated = active.copyWith(
+      driveEmail: info.email.trim(),
+      driveLabel: info.label.trim(),
+      driveSubjectId: info.subjectId.trim(),
+      updatedAt: DateTime.now(),
+    );
+    await upsertPlayer(updated);
+    return updated;
+  }
+
+  DriveConnectionInfo? activePlayerDriveConnection() {
+    final active = loadState().activePlayer;
+    if (active == null) return null;
+    final label = active.driveLabel.trim();
+    final email = active.driveEmail.trim();
+    final displayName = label.contains(' · ')
+        ? label.split(' · ').first.trim()
+        : (label == email ? '' : label);
+    final info = DriveConnectionInfo(
+      email: email,
+      displayName: displayName,
+      subjectId: active.driveSubjectId.trim(),
+    );
+    return info.isEmpty ? null : info;
   }
 
   static String resolveScopedPlayerIdForOptions(

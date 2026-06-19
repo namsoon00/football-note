@@ -1300,6 +1300,7 @@ class DriveBackupService implements BackupRepository {
     await _optionBox.put(connectedDriveEmailLocalKey, info.email.trim());
     await _optionBox.put(connectedDriveLabelLocalKey, info.displayName.trim());
     await _optionBox.put(connectedDriveSubjectLocalKey, info.subjectId.trim());
+    await _syncActiveCoachPlayerDriveMetadata(info);
     if (!_sameDriveAccount(previous, info)) {
       await _resetLocalBackupStatusForContextChange();
     }
@@ -1550,7 +1551,14 @@ class DriveBackupService implements BackupRepository {
   }
 
   DriveConnectionInfo? _loadSavedDriveConnectionInfoForCurrentRole() {
-    final supportMode = _familyService.loadState().isSupportMode;
+    final state = _familyService.loadState();
+    if (state.isCoachMode) {
+      return CoachRosterService(
+            HiveOptionRepository(_optionBox),
+          ).activePlayerDriveConnection() ??
+          _loadSavedParentDriveConnectionInfo();
+    }
+    final supportMode = state.isSupportMode;
     final emailKey =
         supportMode ? parentDriveEmailLocalKey : recordDriveEmailLocalKey;
     final labelKey =
@@ -1568,6 +1576,15 @@ class DriveBackupService implements BackupRepository {
       displayName: displayName,
       subjectId: subjectId,
     );
+  }
+
+  Future<void> _syncActiveCoachPlayerDriveMetadata(
+    DriveConnectionInfo info,
+  ) async {
+    if (!_familyService.loadState().isCoachMode || info.isEmpty) return;
+    await CoachRosterService(
+      HiveOptionRepository(_optionBox),
+    ).updateActivePlayerDriveConnection(info);
   }
 
   Future<DriveConnectionInfo?> _loadDriveConnectionInfo() async {
@@ -2270,6 +2287,9 @@ class DriveBackupService implements BackupRepository {
       leaguePoints: entry.leaguePoints,
       tournamentWins: entry.tournamentWins,
       trainingProgramMinutes: entry.trainingProgramMinutes,
+      matchCompetitionName: entry.matchCompetitionName,
+      matchStage: entry.matchStage,
+      tournamentOutcome: entry.tournamentOutcome,
     );
   }
 
@@ -3290,6 +3310,9 @@ class DriveBackupService implements BackupRepository {
       'leagueResultMode': entry.leagueResultMode,
       'leaguePoints': entry.leaguePoints,
       'tournamentWins': entry.tournamentWins,
+      'matchCompetitionName': entry.matchCompetitionName,
+      'matchStage': entry.matchStage,
+      'tournamentOutcome': entry.tournamentOutcome,
       'trainingProgramMinutes': entry.trainingProgramMinutes,
     };
   }
@@ -3385,6 +3408,9 @@ class DriveBackupService implements BackupRepository {
       leagueResultMode: map['leagueResultMode'] as String? ?? 'points',
       leaguePoints: (map['leaguePoints'] as num?)?.toInt(),
       tournamentWins: (map['tournamentWins'] as num?)?.toInt(),
+      matchCompetitionName: map['matchCompetitionName'] as String? ?? '',
+      matchStage: map['matchStage'] as String? ?? '',
+      tournamentOutcome: map['tournamentOutcome'] as String? ?? '',
       trainingProgramMinutes: (map['trainingProgramMinutes'] as Map?)?.map(
             (key, value) =>
                 MapEntry(key.toString(), (value is num) ? value.toInt() : 0),

@@ -23,6 +23,7 @@ import '../theme/app_theme.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
 import '../widgets/app_drawer.dart';
+import '../utils/match_entry_format.dart';
 import '../widgets/shared_tab_header.dart';
 import '../../domain/repositories/option_repository.dart';
 import 'average_benchmark_screen.dart';
@@ -2019,6 +2020,12 @@ class _MatchSummaryCard extends StatelessWidget {
     final leagueCount = entries.where((entry) => entry.isLeagueMatch).length;
     final tournamentCount =
         entries.where((entry) => entry.isTournamentMatch).length;
+    final leaguePoints = entries
+        .where((entry) => entry.isLeagueMatch)
+        .fold<int>(0, (sum, entry) => sum + (entry.leaguePoints ?? 0));
+    final tournamentWins = entries
+        .where((entry) => entry.isTournamentMatch)
+        .fold<int>(0, (sum, entry) => sum + (entry.tournamentWins ?? 0));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2045,6 +2052,16 @@ class _MatchSummaryCard extends StatelessWidget {
               value:
                   '${l10n.matchKindFriendly} $friendlyCount · ${l10n.matchKindLeague} $leagueCount · ${l10n.matchKindTournament} $tournamentCount',
             ),
+            if (leagueCount > 0)
+              _MetricCard(
+                label: l10n.matchKindLeague,
+                value: l10n.matchLeaguePointsValue(leaguePoints),
+              ),
+            if (tournamentCount > 0)
+              _MetricCard(
+                label: l10n.matchKindTournament,
+                value: l10n.matchTournamentWinsValue(tournamentWins),
+              ),
             _MetricCard(
               label: isKo ? '득실점' : 'Goals',
               value: '$scored:$conceded',
@@ -2107,16 +2124,14 @@ class _MatchHistoryTile extends StatelessWidget {
     final opponent = entry.opponentTeam.trim().isEmpty
         ? (isKo ? '상대 미입력' : 'Opponent unset')
         : entry.opponentTeam.trim();
+    final competitionLine =
+        matchCompetitionDetailParts(entry, l10n, teamLimit: 4).join(' · ');
     final detailLine = [
+      if (competitionLine.isNotEmpty) competitionLine,
       ...labels.personalRecordParts(entry),
       if (entry.minutesPlayed != null)
         isKo ? '${entry.minutesPlayed}분 출전' : '${entry.minutesPlayed} min',
-      if (entry.isLeagueMatch && entry.leaguePoints != null)
-        l10n.matchLeaguePointsValue(entry.leaguePoints!),
-      if (entry.isTournamentMatch && entry.tournamentWins != null)
-        l10n.matchTournamentWinsValue(entry.tournamentWins!),
     ].join(' · ');
-    final leagueTeams = entry.leagueTeamNames.take(4).join(', ');
 
     final theme = Theme.of(context);
     return Container(
@@ -2135,20 +2150,11 @@ class _MatchHistoryTile extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${_matchKindLabel(entry, l10n)} · $opponent',
+            '${matchKindLabel(entry, l10n)} · $opponent',
             style: Theme.of(
               context,
             ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
-          if (leagueTeams.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              leagueTeams,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
           const SizedBox(height: 4),
           Text(
             _matchResultLabel(entry, isKo: isKo),
@@ -2259,12 +2265,6 @@ class _InsightMiniCard extends StatelessWidget {
       ),
     );
   }
-}
-
-String _matchKindLabel(TrainingEntry entry, AppLocalizations l10n) {
-  if (entry.isTournamentMatch) return l10n.matchKindTournament;
-  if (entry.isLeagueMatch) return l10n.matchKindLeague;
-  return l10n.matchKindFriendly;
 }
 
 int _matchOutcome(TrainingEntry entry) {
