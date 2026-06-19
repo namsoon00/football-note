@@ -538,11 +538,14 @@
   "worldCupStandingsTitle": "조별 순위",
   "worldCupStandingsPlanBody": "일정에 들어온 경기 결과를 바탕으로 조별 순위를 바로 정리해요. 공식 세부 순위 기준이 확정되기 전까지는 승점, 득실차, 득점, 승리, 패배, 국가명 순서로 정렬합니다.",
   "worldCupStandingsRuleLabel": "순위 기준",
-  "worldCupStandingsRuleValue": "승점 · 맞대결 · 득실차 · 득점 · 페어플레이 · FIFA 랭킹",
+  "worldCupStandingsRuleValue": "승점 · 득실차 · 득점 · 승리 · 패배 · 국가명",
+  "worldCupStandingsTieGuide": "승점이 같으면 득실차를 먼저 보고, 그래도 같으면 득점이 높은 팀이 위에 표시돼요.",
   "worldCupStandingsTableTitle": "조별 순위표",
   "worldCupStandingsRankColumn": "순위",
   "worldCupStandingsTeamColumn": "국가",
   "worldCupStandingsRecordColumn": "승-무-패",
+  "worldCupStandingsGoalDifferenceColumn": "득실",
+  "worldCupStandingsGoalsForColumn": "득점",
   "worldCupStandingsPointsColumn": "승점",
   "worldCupStandingsRecordValue": "{wins}-{draws}-{losses}",
   "@worldCupStandingsRecordValue": {
@@ -554,6 +557,17 @@
         "type": "int"
       },
       "losses": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupStandingsTieReasonValue": "동률 비교: 득실차 {goalDifference} · 득점 {goalsFor}",
+  "@worldCupStandingsTieReasonValue": {
+    "placeholders": {
+      "goalDifference": {
+        "type": "String"
+      },
+      "goalsFor": {
         "type": "int"
       }
     }

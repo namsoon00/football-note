@@ -538,11 +538,14 @@
   "worldCupStandingsTitle": "グループ順位",
   "worldCupStandingsPlanBody": "日程に入った試合結果をもとに、グループ順位をすぐ整理します。公式の詳細タイブレークが確定するまでは、勝点、得失点差、得点、勝利、敗戦、国名の順で並べます。",
   "worldCupStandingsRuleLabel": "順位基準",
-  "worldCupStandingsRuleValue": "勝点 · 直接対決 · 得失点差 · 得点 · 行動スコア · FIFAランキング",
+  "worldCupStandingsRuleValue": "勝点 · 得失点差 · 得点 · 勝利 · 敗戦 · 国名",
+  "worldCupStandingsTieGuide": "勝点が同じ場合は得失点差を先に見て、それも同じなら得点が多いチームを上に表示します。",
   "worldCupStandingsTableTitle": "グループ順位表",
   "worldCupStandingsRankColumn": "順位",
   "worldCupStandingsTeamColumn": "国",
   "worldCupStandingsRecordColumn": "勝-分-敗",
+  "worldCupStandingsGoalDifferenceColumn": "得失",
+  "worldCupStandingsGoalsForColumn": "得点",
   "worldCupStandingsPointsColumn": "勝点",
   "worldCupStandingsRecordValue": "{wins}-{draws}-{losses}",
   "@worldCupStandingsRecordValue": {
@@ -554,6 +557,17 @@
         "type": "int"
       },
       "losses": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupStandingsTieReasonValue": "同勝点比較: 得失 {goalDifference} · 得点 {goalsFor}",
+  "@worldCupStandingsTieReasonValue": {
+    "placeholders": {
+      "goalDifference": {
+        "type": "String"
+      },
+      "goalsFor": {
         "type": "int"
       }
     }

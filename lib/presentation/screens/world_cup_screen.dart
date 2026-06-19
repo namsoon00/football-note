@@ -345,6 +345,14 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                 icon: Icons.format_list_numbered_rounded,
                 title: l10n.worldCupStandingsTableTitle,
               ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.worldCupStandingsTieGuide,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.35,
+                ),
+              ),
               const SizedBox(height: 12),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -3387,6 +3395,15 @@ class _GroupStandingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final tiedPointCounts = <int, int>{};
+    for (final standing in standings) {
+      if (standing.played == 0) continue;
+      tiedPointCounts.update(
+        standing.points,
+        (count) => count + 1,
+        ifAbsent: () => 1,
+      );
+    }
     final headerStyle = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
       fontWeight: FontWeight.w900,
@@ -3421,13 +3438,37 @@ class _GroupStandingsCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.worldCupStandingsTeamColumn,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: headerStyle,
                 ),
               ),
               SizedBox(
-                width: 60,
+                width: 58,
                 child: Text(
                   l10n.worldCupStandingsRecordColumn,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: headerStyle,
+                ),
+              ),
+              SizedBox(
+                width: 38,
+                child: Text(
+                  l10n.worldCupStandingsGoalDifferenceColumn,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: headerStyle,
+                ),
+              ),
+              SizedBox(
+                width: 38,
+                child: Text(
+                  l10n.worldCupStandingsGoalsForColumn,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: headerStyle,
                 ),
@@ -3447,6 +3488,8 @@ class _GroupStandingsCard extends StatelessWidget {
             _GroupStandingRow(
               rank: index + 1,
               standing: standings[index],
+              showTieBreakHint:
+                  (tiedPointCounts[standings[index].points] ?? 0) > 1,
               onTeamTap: onTeamTap,
             ),
             if (index != standings.length - 1)
@@ -3465,11 +3508,13 @@ class _GroupStandingsCard extends StatelessWidget {
 class _GroupStandingRow extends StatelessWidget {
   final int rank;
   final WorldCupGroupStanding standing;
+  final bool showTieBreakHint;
   final ValueChanged<String> onTeamTap;
 
   const _GroupStandingRow({
     required this.rank,
     required this.standing,
+    required this.showTieBreakHint,
     required this.onTeamTap,
   });
 
@@ -3484,52 +3529,111 @@ class _GroupStandingRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(
-                width: 30,
-                child: Text(
-                  '$rank',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: rank <= 2
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w900,
+              Row(
+                children: [
+                  SizedBox(
+                    width: 30,
+                    child: Text(
+                      '$rank',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: rank <= 2
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      _worldCupCountryLabelText(l10n, standing.team),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 58,
+                    child: Text(
+                      l10n.worldCupStandingsRecordValue(
+                        standing.wins,
+                        standing.draws,
+                        standing.losses,
+                      ),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 38,
+                    child: Text(
+                      _formatStandingGoalDifference(standing.goalDifference),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 38,
+                    child: Text(
+                      '${standing.goalsFor}',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 34,
+                    child: Text(
+                      '${standing.points}',
+                      textAlign: TextAlign.end,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (showTieBreakHint) ...[
+                const SizedBox(height: 2),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 30),
+                  child: Text(
+                    l10n.worldCupStandingsTieReasonValue(
+                      _formatStandingGoalDifference(standing.goalDifference),
+                      standing.goalsFor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
-              Expanded(child: _CountryLabel(country: standing.team)),
-              SizedBox(
-                width: 60,
-                child: Text(
-                  l10n.worldCupStandingsRecordValue(
-                    standing.wins,
-                    standing.draws,
-                    standing.losses,
-                  ),
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 34,
-                child: Text(
-                  '${standing.points}',
-                  textAlign: TextAlign.end,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
+              ],
             ],
           ),
         ),
       ),
     );
   }
+}
+
+String _formatStandingGoalDifference(int value) {
+  if (value > 0) return '+$value';
+  return '$value';
 }
 
 class _GroupTeamsCard extends StatelessWidget {

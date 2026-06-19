@@ -1144,8 +1144,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupStandingsRuleLabel => '順位基準';
 
   @override
-  String get worldCupStandingsRuleValue =>
-      '勝点 · 直接対決 · 得失点差 · 得点 · 行動スコア · FIFAランキング';
+  String get worldCupStandingsRuleValue => '勝点 · 得失点差 · 得点 · 勝利 · 敗戦 · 国名';
+
+  @override
+  String get worldCupStandingsTieGuide =>
+      '勝点が同じ場合は得失点差を先に見て、それも同じなら得点が多いチームを上に表示します。';
 
   @override
   String get worldCupStandingsTableTitle => 'グループ順位表';
@@ -1160,11 +1163,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupStandingsRecordColumn => '勝-分-敗';
 
   @override
+  String get worldCupStandingsGoalDifferenceColumn => '得失';
+
+  @override
+  String get worldCupStandingsGoalsForColumn => '得点';
+
+  @override
   String get worldCupStandingsPointsColumn => '勝点';
 
   @override
   String worldCupStandingsRecordValue(int wins, int draws, int losses) {
     return '$wins-$draws-$losses';
+  }
+
+  @override
+  String worldCupStandingsTieReasonValue(String goalDifference, int goalsFor) {
+    return '同勝点比較: 得失 $goalDifference · 得点 $goalsFor';
   }
 
   @override

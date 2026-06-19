@@ -1183,7 +1183,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupStandingsRuleValue =>
-      'Points · head-to-head · goal difference · goals · conduct · FIFA ranking';
+      'Points · goal difference · goals for · wins · losses · team name';
+
+  @override
+  String get worldCupStandingsTieGuide =>
+      'When points are tied, goal difference breaks the tie first; if that is still level, goals for decides the order.';
 
   @override
   String get worldCupStandingsTableTitle => 'Group table';
@@ -1198,11 +1202,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupStandingsRecordColumn => 'W-D-L';
 
   @override
+  String get worldCupStandingsGoalDifferenceColumn => 'GD';
+
+  @override
+  String get worldCupStandingsGoalsForColumn => 'GF';
+
+  @override
   String get worldCupStandingsPointsColumn => 'Pts';
 
   @override
   String worldCupStandingsRecordValue(int wins, int draws, int losses) {
     return '$wins-$draws-$losses';
+  }
+
+  @override
+  String worldCupStandingsTieReasonValue(String goalDifference, int goalsFor) {
+    return 'Tie-break: GD $goalDifference · GF $goalsFor';
   }
 
   @override
