@@ -97,14 +97,10 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.scrollUntilVisible(
-      find.text('주간 날씨'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
+    await tester.tap(find.text('주간'));
     await tester.pumpAndSettle();
 
-    expect(find.text('주간 날씨'), findsOneWidget);
+    expect(find.text('주간 날씨'), findsAtLeastNWidgets(1));
     expect(find.text('대체로 맑음'), findsOneWidget);
     expect(find.text('25°C / 14°C'), findsOneWidget);
     expect(find.textContaining('미세먼지 42'), findsOneWidget);
@@ -172,7 +168,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('시간별 비 타임라인'), findsNothing);
-    expect(find.textContaining('거의 안 와요'), findsNothing);
+    expect(find.text('09:00'), findsNothing);
+    expect(find.text('10:00'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -242,6 +239,8 @@ void main() {
     expect(find.text('09:00'), findsNothing);
     expect(find.text('10:00'), findsNothing);
     expect(find.text('11:00'), findsAtLeastNWidgets(1));
+    expect(find.text('0.5 mm'), findsAtLeastNWidgets(1));
+    expect(find.text('0.0 mm'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -301,14 +300,17 @@ void main() {
       ),
     );
     await tester.pump();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -500));
+    await tester.pumpAndSettle();
 
     expect(find.text('비 체크'), findsOneWidget);
     expect(find.text('높음'), findsOneWidget);
-    expect(find.text('강수확률'), findsOneWidget);
+    expect(find.text('강수확률'), findsAtLeastNWidgets(1));
     expect(find.text('85%'), findsAtLeastNWidgets(1));
     expect(find.text('오늘 총량'), findsOneWidget);
     expect(find.textContaining('3.0 mm'), findsAtLeastNWidgets(1));
     expect(find.text('15:00'), findsAtLeastNWidgets(1));
+    expect(find.text('1.2 mm'), findsAtLeastNWidgets(1));
     expect(find.textContaining('미끄러운 그라운드'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -379,11 +381,7 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.scrollUntilVisible(
-      find.text('내일 추천 복장'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
+    await tester.tap(find.text('내일'));
     await tester.pumpAndSettle();
 
     expect(find.text('내일 추천 복장'), findsOneWidget);
