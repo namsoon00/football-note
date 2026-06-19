@@ -155,18 +155,22 @@ class _LogsScreenState extends State<LogsScreen> {
     final savedLayout =
         widget.optionRepository.getValue<String>(_layoutKey) ?? 'card';
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
-    _statusFilter =
-        widget.optionRepository.getValue<String>(_statusFilterKey) ??
-            _allFilterValue;
-    _programFilter =
-        widget.optionRepository.getValue<String>(_programFilterKey) ??
-            _allFilterValue;
-    _injuryOnly =
-        widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
-    _jumpRopeOnly =
-        widget.optionRepository.getValue<bool>(_jumpRopeOnlyFilterKey) ?? false;
-    _feedbackOnly =
-        widget.optionRepository.getValue<bool>(_feedbackOnlyFilterKey) ?? false;
+    _statusFilter = widget.optionRepository
+            .getValue<String>(_sportScopedKey(_statusFilterKey)) ??
+        _allFilterValue;
+    _programFilter = widget.optionRepository
+            .getValue<String>(_sportScopedKey(_programFilterKey)) ??
+        _allFilterValue;
+    _injuryOnly = widget.optionRepository
+            .getValue<bool>(_sportScopedKey(_injuryOnlyFilterKey)) ??
+        false;
+    _jumpRopeOnly = widget.optionRepository.getValue<bool>(
+          _sportScopedKey(_jumpRopeOnlyFilterKey),
+        ) ??
+        false;
+    _feedbackOnly = widget.optionRepository
+            .getValue<bool>(_sportScopedKey(_feedbackOnlyFilterKey)) ??
+        false;
   }
 
   @override
@@ -890,6 +894,7 @@ class _LogsScreenState extends State<LogsScreen> {
     if (result == true) {
       await PlayerLevelService(
         widget.optionRepository,
+        sportId: entry.sportId,
       ).revokeTrainingEntryAward(entry);
       await widget.trainingService.delete(entry);
       if (!context.mounted) return true;
@@ -905,7 +910,10 @@ class _LogsScreenState extends State<LogsScreen> {
             final restoredExistingEntries = restoredEntries
                 .where((item) => item.key != entry.key)
                 .toList(growable: false);
-            final levelService = PlayerLevelService(widget.optionRepository);
+            final levelService = PlayerLevelService(
+              widget.optionRepository,
+              sportId: entry.sportId,
+            );
             if (entry.isMatch) {
               await levelService.awardForMatchLog(updatedEntry: entry);
             } else {
@@ -957,21 +965,34 @@ class _LogsScreenState extends State<LogsScreen> {
 
   Future<void> _persistFilters(_LogFilters filters) async {
     await Future.wait([
-      widget.optionRepository.setValue(_statusFilterKey, filters.status),
-      widget.optionRepository.setValue(_programFilterKey, filters.program),
       widget.optionRepository.setValue(
-        _injuryOnlyFilterKey,
+        _sportScopedKey(_statusFilterKey),
+        filters.status,
+      ),
+      widget.optionRepository.setValue(
+        _sportScopedKey(_programFilterKey),
+        filters.program,
+      ),
+      widget.optionRepository.setValue(
+        _sportScopedKey(_injuryOnlyFilterKey),
         filters.injuryOnly,
       ),
       widget.optionRepository.setValue(
-        _jumpRopeOnlyFilterKey,
+        _sportScopedKey(_jumpRopeOnlyFilterKey),
         filters.jumpRopeOnly,
       ),
       widget.optionRepository.setValue(
-        _feedbackOnlyFilterKey,
+        _sportScopedKey(_feedbackOnlyFilterKey),
         filters.feedbackOnly,
       ),
     ]);
+  }
+
+  String _sportScopedKey(String baseKey) {
+    return SportCatalog.optionKey(
+      baseKey,
+      sportId: SportService(widget.optionRepository).currentSportId(),
+    );
   }
 
   bool _hasJumpRopeRecord(TrainingEntry entry) {

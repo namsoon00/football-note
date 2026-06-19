@@ -1,11 +1,14 @@
 import 'dart:convert';
 
+import '../domain/entities/sport_definition.dart';
 import '../domain/entities/meal_entry.dart';
 import 'coach_roster_service.dart';
 import 'meal_coaching_service.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/progression/player_progression_rules.dart';
 import '../domain/repositories/option_repository.dart';
+import 'sport_scoped_storage.dart';
+import 'training_plan_reminder_service.dart';
 
 class PlayerLevelService {
   static const String totalXpKey = 'player_total_xp_v1';
@@ -79,6 +82,29 @@ class PlayerLevelService {
     customRewardNamesKey,
     rewardClaimMessagesKey,
   };
+  static const List<String> sportScopedOptionKeyPrefixes = <String>[
+    'player_total_xp_v1_',
+    'player_xp_history_v1_',
+    'player_quiz_reward_day_v1_',
+    'player_awarded_plan_ids_v1_',
+    'player_awarded_match_log_tokens_v1_',
+    'player_awarded_streaks_v1_',
+    'player_awarded_board_save_tokens_v1_',
+    'player_awarded_routine_days_v1_',
+    'player_awarded_daily_task_completion_days_v1_',
+    'player_awarded_challenge_rounds_v1_',
+    'player_awarded_challenge_completions_v1_',
+    'player_diary_created_day_v2_',
+    'player_claimed_reward_levels_v1_',
+    'player_custom_reward_names_v1_',
+    'player_reward_claim_messages_v1_',
+  ];
+  static const List<String> customRewardNamesOptionKeys = <String>[
+    customRewardNamesKey,
+    'player_custom_reward_names_v1_baseball',
+    'player_custom_reward_names_v1_basketball',
+    'player_custom_reward_names_v1_tennis',
+  ];
 
   static List<int> get levelThresholds =>
       PlayerProgressionRules.levelThresholds;
@@ -97,15 +123,24 @@ class PlayerLevelService {
       );
 
   final OptionRepository _options;
+  final String _sportId;
+  final String _plansStorageKey;
   final MealCoachingService _mealCoachingService = const MealCoachingService();
 
-  PlayerLevelService(OptionRepository options, {String? playerId})
-      : _options = _PlayerLevelScopedOptionRepository(
+  PlayerLevelService(OptionRepository options,
+      {String? playerId, String? sportId})
+      : _sportId = currentSportIdForOptions(options, sportId: sportId),
+        _plansStorageKey = TrainingPlanReminderService.plansStorageKeyFor(
+          options,
+          sportId: sportId,
+        ),
+        _options = _PlayerLevelScopedOptionRepository(
           options,
           CoachRosterService.resolveScopedPlayerIdForOptions(
             options,
             explicitPlayerId: playerId,
           ),
+          currentSportIdForOptions(options, sportId: sportId),
         );
 
   PlayerLevelState loadState() {
@@ -131,9 +166,15 @@ class PlayerLevelService {
     final mealReason = _mealCoachingService.xpReasonForEntry(entry);
     final awardedStreaks = _getStringSet(awardedStreaksKey);
     final awardedRoutineDays = _getStringSet(awardedRoutineDaysKey);
+    final sameSportExistingEntries = existingEntries
+        .where(
+          (existingEntry) =>
+              SportCatalog.normalizeSportId(existingEntry.sportId) == _sportId,
+        )
+        .toList(growable: false);
     final progression = PlayerProgressionRules.evaluateTrainingLog(
       entry: entry,
-      existingEntries: existingEntries,
+      existingEntries: sameSportExistingEntries,
       hasPlanOnDay: _hasPlanOnDay(
         PlayerProgressionRules.normalizeDay(entry.date),
       ),
@@ -335,6 +376,7 @@ class PlayerLevelService {
         'plan_created',
         if (newPlanIds.length > 1) 'plan_group_created:${newPlanIds.length}',
       ],
+      sportId: _sportId,
     );
   }
 
@@ -907,7 +949,7 @@ class PlayerLevelService {
   }
 
   bool _hasPlanOnDay(DateTime day) {
-    final raw = _options.getValue<String>(plansStorageKey);
+    final raw = _options.getValue<String>(_plansStorageKey);
     if (raw == null || raw.trim().isEmpty) return false;
     try {
       final decoded = jsonDecode(raw);
@@ -1111,6 +1153,7 @@ class PlayerLevelService {
         before: before,
         after: before,
         reasons: resolvedReasons,
+        sportId: _sportId,
       );
     }
 
@@ -1135,6 +1178,7 @@ class PlayerLevelService {
       before: before,
       after: after,
       reasons: resolvedReasons,
+      sportId: _sportId,
     );
   }
 
@@ -1196,6 +1240,7 @@ class PlayerLevelService {
       before: before,
       after: after,
       reasons: resolvedReasons,
+      sportId: _sportId,
     );
   }
 
@@ -1226,6 +1271,7 @@ class PlayerLevelService {
         before: before,
         after: before,
         reasons: reasons,
+        sportId: _sportId,
       );
     }
     final nextTotal = (before.totalXp - removedXp).clamp(0, 1000000).toInt();
@@ -1236,6 +1282,7 @@ class PlayerLevelService {
       before: before,
       after: PlayerLevelState.fromXp(nextTotal),
       reasons: reasons,
+      sportId: _sportId,
     );
   }
 
@@ -1418,12 +1465,14 @@ class PlayerLevelAward {
   final PlayerLevelState before;
   final PlayerLevelState after;
   final List<String> reasons;
+  final String sportId;
 
   const PlayerLevelAward({
     required this.gainedXp,
     required this.before,
     required this.after,
     required this.reasons,
+    this.sportId = SportCatalog.defaultSportId,
   });
 
   bool get didLevelUp => after.level > before.level;
@@ -1474,8 +1523,13 @@ class PlayerLevelRewardClaim {
 class _PlayerLevelScopedOptionRepository implements OptionRepository {
   final OptionRepository _inner;
   final String _playerId;
+  final String _sportId;
 
-  _PlayerLevelScopedOptionRepository(this._inner, this._playerId);
+  _PlayerLevelScopedOptionRepository(
+    this._inner,
+    this._playerId,
+    this._sportId,
+  );
 
   @override
   List<String> getOptions(String key, List<String> defaults) {
@@ -1503,11 +1557,14 @@ class _PlayerLevelScopedOptionRepository implements OptionRepository {
   }
 
   String _key(String key) {
-    if (_playerId.trim().isEmpty ||
-        !PlayerLevelService._playerScopedOptionKeys.contains(key)) {
+    if (!PlayerLevelService._playerScopedOptionKeys.contains(key)) {
       return key;
     }
-    return CoachRosterService.scopedOptionKey(key, _playerId);
+    final sportKey = SportCatalog.optionKey(key, sportId: _sportId);
+    if (_playerId.trim().isEmpty) {
+      return sportKey;
+    }
+    return CoachRosterService.scopedOptionKey(sportKey, _playerId);
   }
 }
 

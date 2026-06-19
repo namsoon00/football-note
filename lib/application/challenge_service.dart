@@ -5,6 +5,7 @@ import '../domain/entities/meal_entry.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
 import 'player_level_service.dart';
+import 'sport_scoped_storage.dart';
 
 const int challengeConsecutiveRoundBonusStepXp = 3;
 const int challengeConsecutiveRoundBonusMaxXp = 15;
@@ -13,8 +14,15 @@ class ChallengeService {
   static const String storageKey = 'challenge_runs_v1';
 
   final OptionRepository _options;
+  final String? _sportId;
 
-  ChallengeService(this._options);
+  ChallengeService(this._options, {String? sportId}) : _sportId = sportId;
+
+  String get _storageKey => sportScopedOptionKey(
+        _options,
+        storageKey,
+        sportId: _sportId,
+      );
 
   List<ChallengeTemplate> templates() => defaultChallengeTemplates;
 
@@ -26,7 +34,7 @@ class ChallengeService {
   }
 
   List<ChallengeRun> loadRuns() {
-    final raw = _options.getValue<String>(storageKey) ?? '[]';
+    final raw = _options.getValue<String>(_storageKey) ?? '[]';
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return const <ChallengeRun>[];
@@ -426,7 +434,7 @@ class ChallengeService {
   Future<void> _saveRuns(List<ChallengeRun> runs) async {
     final capped = runs.take(20).toList(growable: false);
     await _options.setValue(
-      storageKey,
+      _storageKey,
       jsonEncode(capped.map((run) => run.toMap()).toList(growable: false)),
     );
   }

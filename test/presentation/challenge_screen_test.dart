@@ -130,7 +130,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('challenge-current-round-badge-1')),
+      find.byKey(const ValueKey('challenge-current-round-status-1')),
       findsOneWidget,
     );
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));

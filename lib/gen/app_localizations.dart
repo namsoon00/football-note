@@ -3666,6 +3666,60 @@ abstract class AppLocalizations {
   /// **'Elite Track'**
   String get playerLevelStage7;
 
+  /// No description provided for @playerLevelBaseballNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Play Ball|Rookie Hitter|Lineup Starter|Base Challenger|Clutch Maker|Inning Engine|Dugout Captain|Diamond Elite|Game Leader|High Performer|Slugger Driver|Field Maker|Sign Controller|Iron Captain|Game Changer|Series Master|Ace Core|Diamond Artist|Ballpark Icon|Baseball Gift Master'**
+  String get playerLevelBaseballNames;
+
+  /// No description provided for @playerLevelBasketballNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Tipoff|Court Rookie|Lineup Starter|Rim Challenger|Playmaker|Court Engine|Team Captain|Elite Guard|Game Leader|High Performer|Drive Leader|Court Maker|Pace Controller|Iron Captain|Clutch Changer|Session Master|Ace Core|Court Artist|Arena Icon|Basketball Gift Master'**
+  String get playerLevelBasketballNames;
+
+  /// No description provided for @playerLevelTennisNames.
+  ///
+  /// In en, this message translates to:
+  /// **'First Serve|Court Rookie|Rally Starter|Baseline Challenger|Point Maker|Footwork Engine|Match Captain|Elite Rallyer|Game Leader|High Performer|Serve Driver|Court Maker|Tempo Controller|Iron Captain|Tiebreak Changer|Session Master|Ace Core|Line Artist|Center Court Icon|Tennis Gift Master'**
+  String get playerLevelTennisNames;
+
+  /// No description provided for @playerLevelBaseballStages.
+  ///
+  /// In en, this message translates to:
+  /// **'New Player|Rookie Hitter|Starter Rise|Game Leader|Upper Tier|Core Ace|Elite Diamond'**
+  String get playerLevelBaseballStages;
+
+  /// No description provided for @playerLevelBasketballStages.
+  ///
+  /// In en, this message translates to:
+  /// **'New Player|Court Rookie|Starter Rise|Game Leader|Upper Tier|Core Ace|Elite Court'**
+  String get playerLevelBasketballStages;
+
+  /// No description provided for @playerLevelTennisStages.
+  ///
+  /// In en, this message translates to:
+  /// **'New Player|Court Rookie|Rally Rise|Match Leader|Upper Tier|Core Ace|Elite Tour'**
+  String get playerLevelTennisStages;
+
+  /// No description provided for @playerLevelBaseballIllustrations.
+  ///
+  /// In en, this message translates to:
+  /// **'Play-ball sign|First glove|Batting tee|Speed cleats|Throwing rhythm|Power bat|Lineup board|Captain cap|Winner trophy|Celebration fireworks|Fielding glove|Catcher mitt|Sign radar|Baserun lightning|Victory medal|Home ballpark|Ace rocket|Diamond star|Ballpark gift box|Legend galaxy'**
+  String get playerLevelBaseballIllustrations;
+
+  /// No description provided for @playerLevelBasketballIllustrations.
+  ///
+  /// In en, this message translates to:
+  /// **'Tipoff ball|First basketball|Training cone|Speed shoes|Dribble rhythm|Power dumbbell|Tactics board|Captain crown|Winner trophy|Celebration fireworks|Defense shield|Rebound hands|Tactics radar|Fast-break lightning|Victory medal|Home arena|Ace rocket|Court star|Arena gift box|Legend galaxy'**
+  String get playerLevelBasketballIllustrations;
+
+  /// No description provided for @playerLevelTennisIllustrations.
+  ///
+  /// In en, this message translates to:
+  /// **'First serve|First racket|Training cone|Speed shoes|Rally rhythm|Power dumbbell|Tactics note|Captain crown|Winner trophy|Celebration fireworks|Defense shield|Match towel|Tactics radar|Footwork lightning|Victory medal|Center court|Ace rocket|Line star|Center-court gift box|Legend galaxy'**
+  String get playerLevelTennisIllustrations;
+
   /// No description provided for @playerLevelIllustration1.
   ///
   /// In en, this message translates to:

@@ -144,6 +144,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
 
   bool get _supportsFootballContent => _sportId == SportCatalog.footballId;
+  String _storageKey(String baseKey) {
+    return SportCatalog.optionKey(baseKey, sportId: _sportId);
+  }
 
   @override
   void initState() {
@@ -162,7 +165,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
     _readArticleKeys = NewsReadState.loadReadKeys(widget.optionRepository);
     _scrappedLinks = widget.optionRepository
-        .getOptions(_scrappedLinksKey, const [])
+        .getOptions(_storageKey(_scrappedLinksKey), const [])
         .map((value) => value.trim())
         .where((value) => value.isNotEmpty)
         .toSet();
@@ -1394,7 +1397,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   Map<String, int> _loadSourceOpenCounts() {
-    final raw = widget.optionRepository.getValue<String>(_sourceOpenCountsKey);
+    final raw = widget.optionRepository.getValue<String>(
+      _storageKey(_sourceOpenCountsKey),
+    );
     if (raw == null || raw.trim().isEmpty) return <String, int>{};
     try {
       final decoded = jsonDecode(raw);
@@ -1427,7 +1432,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     next[key] = (next[key] ?? 0) + 1;
     _sourceOpenCounts = next;
     await widget.optionRepository.setValue(
-      _sourceOpenCountsKey,
+      _storageKey(_sourceOpenCountsKey),
       jsonEncode(next),
     );
   }
@@ -1579,7 +1584,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   List<_OpenedNewsItem> _loadOpenedNewsItems() {
     final raw = widget.optionRepository.getValue<String>(
-      NewsScreen.openedItemsKey,
+      _storageKey(NewsScreen.openedItemsKey),
     );
     if (raw == null || raw.trim().isEmpty) return const <_OpenedNewsItem>[];
     try {
@@ -1662,7 +1667,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     }
     final items = <Map<String, dynamic>>[];
     final raw = widget.optionRepository.getValue<String>(
-      NewsScreen.openedItemsKey,
+      _storageKey(NewsScreen.openedItemsKey),
     );
     if (raw != null && raw.trim().isNotEmpty) {
       try {
@@ -1695,7 +1700,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       next.removeRange(300, next.length);
     }
     await widget.optionRepository.setValue(
-      NewsScreen.openedItemsKey,
+      _storageKey(NewsScreen.openedItemsKey),
       jsonEncode(next),
     );
   }
@@ -1707,7 +1712,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final titleKo = (await _translateToKorean(rawTitle)).trim();
     if (titleKo.isEmpty || titleKo == rawTitle) return;
     final raw = widget.optionRepository.getValue<String>(
-      NewsScreen.openedItemsKey,
+      _storageKey(NewsScreen.openedItemsKey),
     );
     if (raw == null || raw.trim().isEmpty) return;
     try {
@@ -1727,7 +1732,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         return map;
       }).toList(growable: false);
       await widget.optionRepository.setValue(
-        NewsScreen.openedItemsKey,
+        _storageKey(NewsScreen.openedItemsKey),
         jsonEncode(updated),
       );
     } catch (_) {
@@ -1816,20 +1821,22 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   Future<void> _persistScrappedState() async {
     await widget.optionRepository.saveOptions(
-      _scrappedLinksKey,
+      _storageKey(_scrappedLinksKey),
       _scrappedLinks.toList(growable: false),
     );
     final payload = _scrappedItemsByLink.values
         .map((item) => item.toMap())
         .toList(growable: false);
     await widget.optionRepository.setValue(
-      _scrappedItemsKey,
+      _storageKey(_scrappedItemsKey),
       jsonEncode(payload),
     );
   }
 
   Map<String, _ScrappedNewsItem> _loadScrappedItems() {
-    final raw = widget.optionRepository.getValue<String>(_scrappedItemsKey);
+    final raw = widget.optionRepository.getValue<String>(
+      _storageKey(_scrappedItemsKey),
+    );
     if (raw == null || raw.isEmpty) return <String, _ScrappedNewsItem>{};
     try {
       final decoded = jsonDecode(raw);

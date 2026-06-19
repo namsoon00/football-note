@@ -166,7 +166,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void initState() {
     super.initState();
     if (_isManagedMode) {
-      _managedBoardService = TrainingBoardService(widget.optionRepository!);
+      _managedBoardService = TrainingBoardService(
+        widget.optionRepository!,
+        sportId: widget.sportId,
+      );
       _selectedBoardIds = widget.initialSelectedBoardIds.toSet();
       _restoreManagedBoardState();
     } else {
@@ -466,8 +469,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _selectedBoardIds.add(created.id);
       _loadBoard(created);
     });
-    final award =
-        await PlayerLevelService(widget.optionRepository!).awardForBoardSaved(
+    final award = await PlayerLevelService(
+      widget.optionRepository!,
+      sportId: widget.sportId,
+    ).awardForBoardSaved(
       boardId: created.id,
       boardTitle: created.title,
       savedAt: created.updatedAt,
@@ -1314,6 +1319,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       if (awardXp) {
         boardAward = await PlayerLevelService(
           widget.optionRepository!,
+          sportId: widget.sportId,
         ).awardForBoardSaved(boardId: updated.id, boardTitle: title);
         if (showAwardFeedback) {
           await _presentBoardXpAward(boardAward, isKo: isKo);
@@ -1729,8 +1735,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _selectedBoardIds.add(created.id);
       _loadBoard(created);
     });
-    final award =
-        await PlayerLevelService(widget.optionRepository!).awardForBoardSaved(
+    final award = await PlayerLevelService(
+      widget.optionRepository!,
+      sportId: widget.sportId,
+    ).awardForBoardSaved(
       boardId: created.id,
       boardTitle: created.title,
       savedAt: created.updatedAt,

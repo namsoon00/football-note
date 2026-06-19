@@ -108,7 +108,7 @@ class FamilyAccessService {
     parentTrainingFeedbackKey,
     lastSharedSyncAtKey,
     lastSharedSyncRoleKey,
-    PlayerLevelService.customRewardNamesKey,
+    ...PlayerLevelService.customRewardNamesOptionKeys,
   };
 
   static const FamilyBackupPolicy policy = FamilyBackupPolicy(

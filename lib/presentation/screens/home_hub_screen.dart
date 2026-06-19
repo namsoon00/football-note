@@ -205,6 +205,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
                   final levelState = PlayerLevelService(
                     widget.optionRepository,
+                    sportId: sportId,
                   ).loadState();
                   final mealEntries = widget.mealLogService.mergedEntries(
                     directEntries: mealSnapshot.data ?? const <MealEntry>[],
@@ -280,6 +281,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         const SizedBox(height: 12),
                         _LevelHeroCard(
                           levelState: levelState,
+                          sportId: sportId,
                           onTap: _openLevelGuide,
                         ),
                         const SizedBox(height: 10),
@@ -756,7 +758,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     try {
       final l10n = AppLocalizations.of(context)!;
       final isKo = Localizations.localeOf(context).languageCode == 'ko';
-      final levelService = PlayerLevelService(widget.optionRepository);
+      final levelService = PlayerLevelService(
+        widget.optionRepository,
+        sportId: SportService(widget.optionRepository).currentSportId(),
+      );
       final award = await levelService.awardForDailyTasksCompleted();
       if (!mounted || award.gainedXp <= 0) return;
       final reminderService = TrainingPlanReminderService(
@@ -786,6 +791,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     try {
       await PlayerLevelService(
         widget.optionRepository,
+        sportId: SportService(widget.optionRepository).currentSportId(),
       ).revokeDailyTasksCompleted(completedAt);
       _lastDailyTaskAwardToken = null;
     } finally {
@@ -822,7 +828,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     try {
       await ChallengeService(widget.optionRepository).finalizeRun(
         progress: progress,
-        playerLevelService: PlayerLevelService(widget.optionRepository),
+        playerLevelService: PlayerLevelService(
+          widget.optionRepository,
+          sportId: SportService(widget.optionRepository).currentSportId(),
+        ),
       );
       if (mounted) setState(() {});
     } finally {
@@ -832,7 +841,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   }
 
   static List<_DashboardPlan> _loadPlans(OptionRepository optionRepository) {
-    final raw = optionRepository.getValue<String>('training_plans_v1');
+    final raw = optionRepository.getValue<String>(
+      TrainingPlanReminderService.plansStorageKeyFor(optionRepository),
+    );
     if (raw == null || raw.trim().isEmpty) return const <_DashboardPlan>[];
     try {
       final decoded = jsonDecode(raw);
@@ -1190,7 +1201,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   }
 
   Future<void> _openLevelGuide() async {
-    final levelState = PlayerLevelService(widget.optionRepository).loadState();
+    final sportId = SportService(widget.optionRepository).currentSportId();
+    final levelState = PlayerLevelService(
+      widget.optionRepository,
+      sportId: sportId,
+    ).loadState();
     await Navigator.of(context).push(
       AppPageRoute(
         builder: (_) => PlayerLevelGuideScreen(
@@ -1452,9 +1467,14 @@ class _ChallengeHomeCard extends StatelessWidget {
 
 class _LevelHeroCard extends StatelessWidget {
   final PlayerLevelState levelState;
+  final String sportId;
   final VoidCallback onTap;
 
-  const _LevelHeroCard({required this.levelState, required this.onTap});
+  const _LevelHeroCard({
+    required this.levelState,
+    required this.sportId,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1527,7 +1547,10 @@ class _LevelHeroCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                l10n.playerLevelName(levelState.level),
+                                l10n.playerLevelName(
+                                  levelState.level,
+                                  sportId: sportId,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context)
@@ -1559,7 +1582,10 @@ class _LevelHeroCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  _HomeLevelIllustration(level: levelState.level),
+                  _HomeLevelIllustration(
+                    level: levelState.level,
+                    sportId: sportId,
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -2639,8 +2665,9 @@ class _QuickActionButton extends StatelessWidget {
 
 class _HomeLevelIllustration extends StatelessWidget {
   final int level;
+  final String sportId;
 
-  const _HomeLevelIllustration({required this.level});
+  const _HomeLevelIllustration({required this.level, required this.sportId});
 
   @override
   Widget build(BuildContext context) {
@@ -2681,7 +2708,7 @@ class _HomeLevelIllustration extends StatelessWidget {
                 border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
               ),
               child: Text(
-                l10n.playerLevelIllustrationLabel(level),
+                l10n.playerLevelIllustrationLabel(level, sportId: sportId),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,

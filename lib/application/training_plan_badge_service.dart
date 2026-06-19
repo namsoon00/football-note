@@ -20,13 +20,11 @@ class TrainingPlanBadgeService {
     if (!_supportsAppIconBadge) return;
 
     try {
-      final xpLogs =
-          _options.getValue<List>(
+      final xpLogs = _options.getValue<List>(
             TrainingPlanReminderService.xpMessageLogKey,
           ) ??
           const [];
-      final xpReadRaw =
-          _options.getValue<List>(
+      final xpReadRaw = _options.getValue<List>(
             TrainingPlanReminderService.xpMessageReadIdsKey,
           ) ??
           const [];
@@ -37,13 +35,11 @@ class TrainingPlanBadgeService {
         return !xpReadIds.contains(id);
       }).length;
 
-      final fixtureLogs =
-          _options.getValue<List>(
+      final fixtureLogs = _options.getValue<List>(
             LeagueFixtureReminderService.fixtureMessageLogKey,
           ) ??
           const [];
-      final fixtureReadRaw =
-          _options.getValue<List>(
+      final fixtureReadRaw = _options.getValue<List>(
             LeagueFixtureReminderService.fixtureMessageReadIdsKey,
           ) ??
           const [];
@@ -64,7 +60,7 @@ class TrainingPlanBadgeService {
     } catch (_) {
       // Fallback to legacy stored plans if unread data is unavailable.
       final raw = _options.getValue<String>(
-        TrainingPlanReminderService.plansStorageKey,
+        TrainingPlanReminderService.plansStorageKeyFor(_options),
       );
       if (raw == null || raw.trim().isEmpty) {
         await _setBadgeCount(0);

@@ -62,13 +62,15 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
-  static const String _plansStorageKey = 'training_plans_v1';
   late final BenchmarkService _benchmarkService;
   late DateTimeRange _selectedRange;
   late Stream<List<TrainingEntry>> _trainingEntriesStream;
   int _statsTabIndex = 0;
   bool _trainingOverviewExpanded = true;
   bool _routePushInFlight = false;
+
+  String get _plansStorageKey =>
+      TrainingPlanReminderService.plansStorageKeyFor(widget.optionRepository);
 
   @override
   void initState() {

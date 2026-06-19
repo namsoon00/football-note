@@ -2,16 +2,25 @@ import 'dart:convert';
 
 import '../domain/entities/training_board.dart';
 import '../domain/repositories/option_repository.dart';
+import 'sport_scoped_storage.dart';
 
 class TrainingBoardService {
   static const String storageKey = 'training_boards_v1';
 
   final OptionRepository _optionRepository;
+  final String? _sportId;
 
-  const TrainingBoardService(this._optionRepository);
+  TrainingBoardService(this._optionRepository, {String? sportId})
+      : _sportId = sportId;
+
+  String get _storageKey => sportScopedOptionKey(
+        _optionRepository,
+        storageKey,
+        sportId: _sportId,
+      );
 
   List<TrainingBoard> allBoards() {
-    final raw = _optionRepository.getValue<String>(storageKey);
+    final raw = _optionRepository.getValue<String>(_storageKey);
     if (raw == null || raw.trim().isEmpty) return const <TrainingBoard>[];
     try {
       final decoded = jsonDecode(raw);
@@ -93,7 +102,7 @@ class TrainingBoardService {
     final encoded = jsonEncode(
       normalized.map((e) => e.toMap()).toList(growable: false),
     );
-    return _optionRepository.setValue(storageKey, encoded);
+    return _optionRepository.setValue(_storageKey, encoded);
   }
 
   String _createId(DateTime now) {

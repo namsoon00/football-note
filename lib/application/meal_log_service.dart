@@ -4,22 +4,30 @@ import 'dart:convert';
 import '../domain/entities/meal_entry.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
+import 'sport_scoped_storage.dart';
 
 class MealLogService {
   static const String storageKey = 'meal_logs_v1';
   static const double expectedBowlsPerDay = 3;
 
   final OptionRepository _options;
+  final String? _sportId;
   final StreamController<List<MealEntry>> _controller =
       StreamController<List<MealEntry>>.broadcast();
   late final Stream<List<MealEntry>> _entriesStream =
       Stream<List<MealEntry>>.multi((controller) {
-        controller.add(allEntries());
-        final subscription = _controller.stream.listen(controller.add);
-        controller.onCancel = subscription.cancel;
-      }, isBroadcast: true);
+    controller.add(allEntries());
+    final subscription = _controller.stream.listen(controller.add);
+    controller.onCancel = subscription.cancel;
+  }, isBroadcast: true);
 
-  MealLogService(this._options);
+  MealLogService(this._options, {String? sportId}) : _sportId = sportId;
+
+  String get _storageKey => sportScopedOptionKey(
+        _options,
+        storageKey,
+        sportId: _sportId,
+      );
 
   Stream<List<MealEntry>> watchEntries() => _entriesStream;
 
@@ -29,7 +37,7 @@ class MealLogService {
   }
 
   List<MealEntry> allEntries() {
-    final raw = _options.getValue<String>(storageKey) ?? '[]';
+    final raw = _options.getValue<String>(_storageKey) ?? '[]';
     final decoded = jsonDecode(raw);
     if (decoded is! List) return const <MealEntry>[];
     return decoded
@@ -82,11 +90,9 @@ class MealLogService {
 
   Future<void> save(MealEntry entry) async {
     final normalizedDay = _normalizeDay(entry.date);
-    final nextEntries = allEntries()
-        .where((item) {
-          return _normalizeDay(item.date) != normalizedDay;
-        })
-        .toList(growable: true);
+    final nextEntries = allEntries().where((item) {
+      return _normalizeDay(item.date) != normalizedDay;
+    }).toList(growable: true);
     if (entry.hasRecords) {
       nextEntries.add(
         entry.copyWith(date: normalizedDay, createdAt: entry.createdAt),
@@ -98,11 +104,9 @@ class MealLogService {
 
   Future<void> deleteDay(DateTime day) async {
     final normalizedDay = _normalizeDay(day);
-    final nextEntries = allEntries()
-        .where((item) {
-          return _normalizeDay(item.date) != normalizedDay;
-        })
-        .toList(growable: false);
+    final nextEntries = allEntries().where((item) {
+      return _normalizeDay(item.date) != normalizedDay;
+    }).toList(growable: false);
     await _persist(nextEntries);
   }
 
@@ -114,7 +118,7 @@ class MealLogService {
     final payload = jsonEncode(
       entries.map((entry) => entry.toMap()).toList(growable: false),
     );
-    await _options.setValue(storageKey, payload);
+    await _options.setValue(_storageKey, payload);
     _controller.add(List<MealEntry>.unmodifiable(entries));
   }
 

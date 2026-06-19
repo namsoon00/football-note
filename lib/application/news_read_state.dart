@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import '../domain/entities/news_article.dart';
 import '../domain/repositories/option_repository.dart';
+import 'sport_scoped_storage.dart';
 
 class NewsReadState {
   static const String readArticleKeysKey = 'news_read_article_keys_v1';
@@ -19,7 +20,7 @@ class NewsReadState {
 
   static Set<String> loadReadKeys(OptionRepository optionRepository) {
     return optionRepository
-        .getOptions(readArticleKeysKey, const <String>[])
+        .getOptions(_storageKey(optionRepository), const <String>[])
         .map((value) => value.trim())
         .where((value) => value.isNotEmpty)
         .toSet();
@@ -44,7 +45,7 @@ class NewsReadState {
   ) async {
     final merged = LinkedHashSet<String>.from(
       optionRepository
-          .getOptions(readArticleKeysKey, const <String>[])
+          .getOptions(_storageKey(optionRepository), const <String>[])
           .map((value) => value.trim())
           .where((value) => value.isNotEmpty),
     );
@@ -57,6 +58,13 @@ class NewsReadState {
     while (merged.length > _maxStoredKeys) {
       merged.remove(merged.first);
     }
-    await optionRepository.saveOptions(readArticleKeysKey, merged.toList());
+    await optionRepository.saveOptions(
+      _storageKey(optionRepository),
+      merged.toList(),
+    );
+  }
+
+  static String _storageKey(OptionRepository optionRepository) {
+    return sportScopedOptionKey(optionRepository, readArticleKeysKey);
   }
 }
