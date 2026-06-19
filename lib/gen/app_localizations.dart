@@ -151,13 +151,13 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeGuideTitle.
   ///
   /// In en, this message translates to:
-  /// **'Log today, and your effort shows.'**
+  /// **'Log today, and move stronger tomorrow.'**
   String get welcomeGuideTitle;
 
   /// No description provided for @welcomeGuideIntro.
   ///
   /// In en, this message translates to:
-  /// **'Any sport works. One short note is enough. Start small; you are doing fine.'**
+  /// **'Any sport works. One short note can make the next practice easier. Start now; you can do this.'**
   String get welcomeGuideIntro;
 
   /// No description provided for @welcomeGuidePrimaryAction.
@@ -175,7 +175,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeGuideNextTabHint.
   ///
   /// In en, this message translates to:
-  /// **'Swipe through three cards. Then tap a button and log one small win.'**
+  /// **'Swipe through three cards. Then log one thing right away.'**
   String get welcomeGuideNextTabHint;
 
   /// No description provided for @welcomeGuidePreviewLabel.
@@ -193,25 +193,25 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeSlideGemTitle.
   ///
   /// In en, this message translates to:
-  /// **'Small logs can sparkle.'**
+  /// **'Small logs become real confidence.'**
   String get welcomeSlideGemTitle;
 
   /// No description provided for @welcomeSlideGemBody.
   ///
   /// In en, this message translates to:
-  /// **'A little is okay. What you log keeps growing, and next time can be better.'**
+  /// **'Praise what went well, and turn the hard part into the next challenge. Each note helps you improve.'**
   String get welcomeSlideGemBody;
 
   /// No description provided for @welcomeSlideFlameTitle.
   ///
   /// In en, this message translates to:
-  /// **'One step today makes tomorrow easier.'**
+  /// **'Do not stop on a hard day.'**
   String get welcomeSlideFlameTitle;
 
   /// No description provided for @welcomeSlideFlameBody.
   ///
   /// In en, this message translates to:
-  /// **'A small spark is enough. Log it now and keep the flow going. You can do it.'**
+  /// **'One small action is enough. Log it, restart, and take one more step tomorrow.'**
   String get welcomeSlideFlameBody;
 
   /// No description provided for @tabGuideCoachMarkStep.

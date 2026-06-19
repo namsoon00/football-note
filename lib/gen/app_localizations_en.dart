@@ -35,11 +35,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get welcomeGuideTitle => 'Log today, and your effort shows.';
+  String get welcomeGuideTitle => 'Log today, and move stronger tomorrow.';
 
   @override
   String get welcomeGuideIntro =>
-      'Any sport works. One short note is enough. Start small; you are doing fine.';
+      'Any sport works. One short note can make the next practice easier. Start now; you can do this.';
 
   @override
   String get welcomeGuidePrimaryAction => 'Start logging';
@@ -49,7 +49,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeGuideNextTabHint =>
-      'Swipe through three cards. Then tap a button and log one small win.';
+      'Swipe through three cards. Then log one thing right away.';
 
   @override
   String get welcomeGuidePreviewLabel => 'Action to choose now';
@@ -58,18 +58,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeGuideCoachMarkLabel => 'Tap this';
 
   @override
-  String get welcomeSlideGemTitle => 'Small logs can sparkle.';
+  String get welcomeSlideGemTitle => 'Small logs become real confidence.';
 
   @override
   String get welcomeSlideGemBody =>
-      'A little is okay. What you log keeps growing, and next time can be better.';
+      'Praise what went well, and turn the hard part into the next challenge. Each note helps you improve.';
 
   @override
-  String get welcomeSlideFlameTitle => 'One step today makes tomorrow easier.';
+  String get welcomeSlideFlameTitle => 'Do not stop on a hard day.';
 
   @override
   String get welcomeSlideFlameBody =>
-      'A small spark is enough. Log it now and keep the flow going. You can do it.';
+      'One small action is enough. Log it, restart, and take one more step tomorrow.';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {
