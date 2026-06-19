@@ -200,11 +200,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('멕시코 선수 명단'), findsOneWidget);
-    expect(find.text('축구 역사와 설명'), findsOneWidget);
-    expect(find.textContaining('멕시코의 축구사'), findsOneWidget);
+    expect(find.text('축구 역사와 설명'), findsNothing);
+    expect(find.textContaining('멕시코의 축구사'), findsNothing);
     expect(find.text('국가 경기 정보'), findsOneWidget);
     expect(find.text('현재 승점'), findsOneWidget);
     expect(find.text('상대별 결과'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('32강 경우의 수'),
+      180,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('32강 경우의 수'), findsOneWidget);
+    expect(find.textContaining('남은 승점'), findsWidgets);
     await tester.scrollUntilVisible(
       find.text('4-3-3 포메이션'),
       180,
@@ -343,9 +351,10 @@ void main() {
     expect((homeTop - awayTop).abs(), lessThan(2));
   });
 
-  testWidgets('fixture team blocks show FIFA ranking and keep live status', (
+  testWidgets('fixture team blocks show FIFA ranking and live score', (
     tester,
   ) async {
+    final navigatorObserver = _RecordingNavigatorObserver();
     final fixture = worldCupFixtures.first;
     final officialMatch = FifaAMatchEntry(
       matchId: 'live-match',
@@ -382,6 +391,7 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        navigatorObservers: [navigatorObserver],
         home: WorldCupScreen(
           liveDataService: liveDataService,
           initialSelectedDay: fixture.localDay,
@@ -401,11 +411,21 @@ void main() {
 
     expect(find.text('FIFA 12위'), findsOneWidget);
     expect(find.text('FIFA 56위'), findsOneWidget);
-    expect(find.text('진행 중'), findsWidgets);
+    expect(find.text('진행 중'), findsNothing);
     expect(find.text('1 : 0'), findsOneWidget);
+
+    navigatorObserver.reset();
+    final rankingTapTarget = find.ancestor(
+      of: find.text('FIFA 12위'),
+      matching: find.byType(InkWell),
+    );
+    await tester.tap(rankingTapTarget.first);
+    await tester.pump();
+
+    expect(navigatorObserver.pushedRouteCount, 1);
   });
 
-  testWidgets('scheduled fixture shows status beside time', (tester) async {
+  testWidgets('scheduled fixture hides status beside time', (tester) async {
     final fixture = worldCupFixtures.firstWhere((fixture) => !fixture.hasScore);
 
     await tester.pumpWidget(
@@ -434,7 +454,7 @@ void main() {
     await tester.ensureVisible(scoreText);
     await tester.pumpAndSettle();
 
-    expect(find.text('경기 전'), findsWidgets);
+    expect(find.text('경기 전'), findsNothing);
     expect(find.text('예정'), findsNothing);
 
     final scoreTapTarget = find.ancestor(
@@ -445,7 +465,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('- : -'), findsWidgets);
-    expect(find.text('경기 전'), findsWidgets);
+    expect(find.text('경기 전'), findsNothing);
     expect(find.text('예정'), findsNothing);
   });
 
@@ -518,14 +538,19 @@ void main() {
     await tester.pumpAndSettle();
 
     final scrollable = find.byType(Scrollable).first;
+    final scoreFinder = find.text('2 : 1', findRichText: true);
     await tester.scrollUntilVisible(
-      find.text('2 : 1'),
+      scoreFinder,
       180,
       scrollable: scrollable,
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('2 : 1').hitTestable().first);
+    final scoreTapTarget = find.ancestor(
+      of: scoreFinder.first,
+      matching: find.byType(InkWell),
+    );
+    await tester.tap(scoreTapTarget.first);
     await tester.pumpAndSettle();
 
     expect(liveDataService.lastDetailLanguage, 'ko');
@@ -559,7 +584,7 @@ void main() {
     expect(find.text('Mon'), findsNothing);
   });
 
-  testWidgets('past unscored fixtures wait for result update', (tester) async {
+  testWidgets('past unscored fixtures hide result update copy', (tester) async {
     final fixture = worldCupFixtures.firstWhere((fixture) => !fixture.hasScore);
     await tester.pumpWidget(
       MaterialApp(
@@ -581,8 +606,9 @@ void main() {
         scrollable: scrollable);
     await tester.pumpAndSettle();
 
-    expect(find.text('결과 갱신 대기'), findsWidgets);
-    expect(find.textContaining('FIFA 공식 결과가 아직 반영되지 않았어요'), findsWidgets);
+    expect(find.text('- : -'), findsWidgets);
+    expect(find.text('결과 갱신 대기'), findsNothing);
+    expect(find.textContaining('FIFA 공식 결과가 아직 반영되지 않았어요'), findsNothing);
   });
 
   testWidgets('swiping match list moves selected date', (tester) async {
@@ -713,7 +739,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining(dayFormatter.format(targetDay)), findsOneWidget);
-    expect(tester.getSize(pager).height, greaterThan(selectedHeight));
+    final targetHeight = tester.getSize(pager).height;
+    expect(targetHeight, greaterThan(selectedHeight));
+
+    await tester.drag(
+      pager,
+      Offset(-pageSwipeOffset.dx, -pageSwipeOffset.dy),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining(dayFormatter.format(selectedFixtureDay)),
+      findsOneWidget,
+    );
+    expect(tester.getSize(pager).height, lessThan(targetHeight));
+    expect(tester.getSize(pager).height, closeTo(selectedHeight, 2));
   });
 
   testWidgets('interest country editor opens without layout exception', (
@@ -846,6 +886,20 @@ class _FakeWorldCupLiveDataService extends WorldCupLiveDataService {
 
   @override
   void dispose() {}
+}
+
+class _RecordingNavigatorObserver extends NavigatorObserver {
+  int pushedRouteCount = 0;
+
+  void reset() {
+    pushedRouteCount = 0;
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    pushedRouteCount += 1;
+    super.didPush(route, previousRoute);
+  }
 }
 
 FifaRankingEntry _rankingEntry(String teamName, String countryCode, int rank) {

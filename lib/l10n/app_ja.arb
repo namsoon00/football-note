@@ -602,6 +602,59 @@
   "worldCupTeamMatchOverviewTitle": "代表チーム試合情報",
   "worldCupTeamCurrentPointsLabel": "現在の勝点",
   "worldCupTeamMatchHistoryTitle": "対戦結果",
+  "worldCupQualificationScenariosTitle": "ラウンド32の可能性",
+  "worldCupQualificationScenariosSubtitle": "現在の勝点 {currentPoints} から、残り {remainingMatches} 試合で得る勝点別にグループ順位の可能性を計算します。",
+  "@worldCupQualificationScenariosSubtitle": {
+    "placeholders": {
+      "currentPoints": {
+        "type": "int"
+      },
+      "remainingMatches": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenariosEmpty": "このチームのラウンド32の可能性を計算するグループステージ情報がまだありません。",
+  "worldCupQualificationScenarioPoints": "残り勝点 +{remainingPoints} · 最終 {finalPoints} 点",
+  "@worldCupQualificationScenarioPoints": {
+    "placeholders": {
+      "remainingPoints": {
+        "type": "int"
+      },
+      "finalPoints": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenarioRankRange": "{bestRank}〜{worstRank}位の可能性",
+  "@worldCupQualificationScenarioRankRange": {
+    "placeholders": {
+      "bestRank": {
+        "type": "int"
+      },
+      "worstRank": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenarioCases": "自動進出 {automaticCases}/{totalCases} · 3位比較 {thirdPlaceCases}/{totalCases} · 敗退 {eliminatedCases}/{totalCases}",
+  "@worldCupQualificationScenarioCases": {
+    "placeholders": {
+      "automaticCases": {
+        "type": "int"
+      },
+      "thirdPlaceCases": {
+        "type": "int"
+      },
+      "eliminatedCases": {
+        "type": "int"
+      },
+      "totalCases": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationThirdPlaceNote": "グループ3位は、12グループの3位チームの中で上位8チームに入る必要があります。",
   "worldCupTeamRosterFormationLabel": "{formation} フォーメーション",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {

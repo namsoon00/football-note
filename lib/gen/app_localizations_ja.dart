@@ -1207,6 +1207,40 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupTeamMatchHistoryTitle => '対戦結果';
 
   @override
+  String get worldCupQualificationScenariosTitle => 'ラウンド32の可能性';
+
+  @override
+  String worldCupQualificationScenariosSubtitle(
+      int currentPoints, int remainingMatches) {
+    return '現在の勝点 $currentPoints から、残り $remainingMatches 試合で得る勝点別にグループ順位の可能性を計算します。';
+  }
+
+  @override
+  String get worldCupQualificationScenariosEmpty =>
+      'このチームのラウンド32の可能性を計算するグループステージ情報がまだありません。';
+
+  @override
+  String worldCupQualificationScenarioPoints(
+      int remainingPoints, int finalPoints) {
+    return '残り勝点 +$remainingPoints · 最終 $finalPoints 点';
+  }
+
+  @override
+  String worldCupQualificationScenarioRankRange(int bestRank, int worstRank) {
+    return '$bestRank〜$worstRank位の可能性';
+  }
+
+  @override
+  String worldCupQualificationScenarioCases(int automaticCases,
+      int thirdPlaceCases, int eliminatedCases, int totalCases) {
+    return '自動進出 $automaticCases/$totalCases · 3位比較 $thirdPlaceCases/$totalCases · 敗退 $eliminatedCases/$totalCases';
+  }
+
+  @override
+  String get worldCupQualificationThirdPlaceNote =>
+      'グループ3位は、12グループの3位チームの中で上位8チームに入る必要があります。';
+
+  @override
   String worldCupTeamRosterFormationLabel(String formation) {
     return '$formation フォーメーション';
   }
