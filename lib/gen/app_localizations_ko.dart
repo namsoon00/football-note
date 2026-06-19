@@ -8117,6 +8117,77 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchTournamentNameHint => '예) 컵 대회';
 
   @override
+  String get matchCompetitionManageButton => '팀 등록/결과 보기';
+
+  @override
+  String get matchCompetitionManagerNewTitle => '대회 관리';
+
+  @override
+  String matchCompetitionManagerTitle(String name) {
+    return '$name 관리';
+  }
+
+  @override
+  String get matchCompetitionTeamsTab => '팀 등록';
+
+  @override
+  String get matchCompetitionResultsTab => '결과 보기';
+
+  @override
+  String get matchCompetitionTeamsInputLabel => '참가 팀';
+
+  @override
+  String get matchCompetitionTeamsInputHint => '한 줄에 한 팀씩 입력하거나 쉼표로 구분하세요';
+
+  @override
+  String matchCompetitionTeamCount(int count) {
+    return '$count개 팀 등록됨';
+  }
+
+  @override
+  String get matchCompetitionSaveTeams => '팀 저장';
+
+  @override
+  String get matchCompetitionNameRequired => '대회 이름을 입력하세요.';
+
+  @override
+  String get matchLeagueStandingsTitle => '리그 순위';
+
+  @override
+  String get matchTournamentBracketTitle => '토너먼트 대진표';
+
+  @override
+  String get matchCompetitionNoTeams => '등록된 팀이 없어요.';
+
+  @override
+  String get matchCompetitionNoMatches => '아직 기록된 경기가 없어요.';
+
+  @override
+  String get matchCompetitionMyTeamFallback => '우리 팀';
+
+  @override
+  String get matchTournamentByeLabel => '부전승';
+
+  @override
+  String matchTournamentPairLabel(int number) {
+    return '$number경기';
+  }
+
+  @override
+  String matchTournamentPairText(String teamA, String teamB) {
+    return '$teamA vs $teamB';
+  }
+
+  @override
+  String get matchTournamentRecordedProgressTitle => '기록된 진행';
+
+  @override
+  String matchTournamentRecordedProgress(
+      String stage, String opponent, String outcome) {
+    return '$stage · $opponent전 · $outcome';
+  }
+
+  @override
   String get matchLeagueRoundLabel => '라운드/주차';
 
   @override

@@ -8108,6 +8108,77 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchTournamentNameHint => '例: カップ大会';
 
   @override
+  String get matchCompetitionManageButton => 'チーム登録/結果を見る';
+
+  @override
+  String get matchCompetitionManagerNewTitle => '大会管理';
+
+  @override
+  String matchCompetitionManagerTitle(String name) {
+    return '$name管理';
+  }
+
+  @override
+  String get matchCompetitionTeamsTab => 'チーム登録';
+
+  @override
+  String get matchCompetitionResultsTab => '結果を見る';
+
+  @override
+  String get matchCompetitionTeamsInputLabel => '参加チーム';
+
+  @override
+  String get matchCompetitionTeamsInputHint => '1行に1チーム、またはカンマ区切りで入力';
+
+  @override
+  String matchCompetitionTeamCount(int count) {
+    return '$countチーム登録済み';
+  }
+
+  @override
+  String get matchCompetitionSaveTeams => 'チームを保存';
+
+  @override
+  String get matchCompetitionNameRequired => '大会名を入力してください。';
+
+  @override
+  String get matchLeagueStandingsTitle => 'リーグ順位';
+
+  @override
+  String get matchTournamentBracketTitle => 'トーナメント表';
+
+  @override
+  String get matchCompetitionNoTeams => '登録されたチームがありません。';
+
+  @override
+  String get matchCompetitionNoMatches => '記録された試合がまだありません。';
+
+  @override
+  String get matchCompetitionMyTeamFallback => '自チーム';
+
+  @override
+  String get matchTournamentByeLabel => '不戦勝';
+
+  @override
+  String matchTournamentPairLabel(int number) {
+    return '$number試合';
+  }
+
+  @override
+  String matchTournamentPairText(String teamA, String teamB) {
+    return '$teamA vs $teamB';
+  }
+
+  @override
+  String get matchTournamentRecordedProgressTitle => '記録された進行';
+
+  @override
+  String matchTournamentRecordedProgress(
+      String stage, String opponent, String outcome) {
+    return '$stage · $opponent戦 · $outcome';
+  }
+
+  @override
   String get matchLeagueRoundLabel => 'ラウンド/節';
 
   @override

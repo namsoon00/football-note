@@ -13,6 +13,7 @@ import '../../application/family_access_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/locale_service.dart';
+import '../../application/match_competition_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/parent_shared_feedback_service.dart';
@@ -2067,6 +2068,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ),
                               ),
                               const SizedBox(height: 8),
+                              OutlinedButton.icon(
+                                onPressed: () async {
+                                  final result =
+                                      await _openMatchCompetitionManagerSheet(
+                                    kind: matchKind,
+                                    competitionName: competitionNameText,
+                                    teamsText: leagueTeamsText,
+                                    entries: entries,
+                                    readOnly: readOnly,
+                                  );
+                                  if (result == null || !context.mounted) {
+                                    return;
+                                  }
+                                  setSheetState(() {
+                                    competitionNameText = result.name;
+                                    leagueTeamsText = result.teams.join('\n');
+                                  });
+                                },
+                                icon: Icon(
+                                  matchKind == 'tournament'
+                                      ? Icons.account_tree_outlined
+                                      : Icons.leaderboard_outlined,
+                                ),
+                                label: Text(
+                                  l10n.matchCompetitionManageButton,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
                               if (matchKind == 'league')
                                 TextFormField(
                                   initialValue: leagueRoundText,
@@ -2518,6 +2547,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (trimmedMatchLocation.isNotEmpty) {
       await _storeMatchLocation(trimmedMatchLocation);
     }
+    await MatchCompetitionService(widget.optionRepository).upsertFromEntry(
+      saved,
+    );
     final previousEntry = editingEntry;
     if (editingEntry?.key is int) {
       await widget.trainingService.update(editingEntry!.key as int, saved);
@@ -2544,6 +2576,401 @@ class _CalendarScreenState extends State<CalendarScreen> {
         isKo: isKo,
       );
     }
+  }
+
+  Future<_MatchCompetitionSheetResult?> _openMatchCompetitionManagerSheet({
+    required String kind,
+    required String competitionName,
+    required String teamsText,
+    required List<TrainingEntry> entries,
+    required bool readOnly,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    final service = MatchCompetitionService(widget.optionRepository);
+    final existing = service.findCompetition(
+      kind: kind,
+      name: competitionName,
+    );
+    final nameController = TextEditingController(
+      text: competitionName.trim().isNotEmpty
+          ? competitionName.trim()
+          : existing?.name ?? '',
+    );
+    final teamsController = TextEditingController(
+      text: teamsText.trim().isNotEmpty
+          ? teamsText
+          : existing?.teams.join('\n') ?? '',
+    );
+
+    try {
+      return await showModalBottomSheet<_MatchCompetitionSheetResult>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setSheetState) {
+              final currentName = nameController.text.trim();
+              final currentTeams = MatchCompetitionService.parseTeams(
+                teamsController.text,
+              );
+              final title = currentName.isEmpty
+                  ? l10n.matchCompetitionManagerNewTitle
+                  : l10n.matchCompetitionManagerTitle(currentName);
+              return SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    8,
+                    16,
+                    16 + MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.82,
+                    child: DefaultTabController(
+                      length: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: nameController,
+                            readOnly: readOnly,
+                            textInputAction: TextInputAction.next,
+                            onChanged: (_) => setSheetState(() {}),
+                            decoration: _calendarInputDecorationWithDone(
+                              context,
+                              InputDecoration(
+                                labelText: l10n.matchCompetitionNameLabel,
+                              ),
+                              enabled: !readOnly,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TabBar(
+                            tabs: [
+                              Tab(text: l10n.matchCompetitionTeamsTab),
+                              Tab(text: l10n.matchCompetitionResultsTab),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: TabBarView(
+                              children: [
+                                SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      TextFormField(
+                                        controller: teamsController,
+                                        readOnly: readOnly,
+                                        minLines: 5,
+                                        maxLines: 8,
+                                        onChanged: (_) => setSheetState(() {}),
+                                        decoration:
+                                            _calendarInputDecorationWithDone(
+                                          context,
+                                          InputDecoration(
+                                            labelText: l10n
+                                                .matchCompetitionTeamsInputLabel,
+                                            hintText: l10n
+                                                .matchCompetitionTeamsInputHint,
+                                          ),
+                                          enabled: !readOnly,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        l10n.matchCompetitionTeamCount(
+                                          currentTeams.length,
+                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      if (readOnly)
+                                        OutlinedButton.icon(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(),
+                                          icon: const Icon(Icons.close),
+                                          label: Text(
+                                            MaterialLocalizations.of(context)
+                                                .closeButtonLabel,
+                                          ),
+                                        )
+                                      else
+                                        FilledButton.icon(
+                                          onPressed: () async {
+                                            final name =
+                                                nameController.text.trim();
+                                            final teams =
+                                                MatchCompetitionService
+                                                    .parseTeams(
+                                              teamsController.text,
+                                            );
+                                            if (name.isEmpty) {
+                                              AppFeedback.showMessage(
+                                                context,
+                                                text: l10n
+                                                    .matchCompetitionNameRequired,
+                                              );
+                                              return;
+                                            }
+                                            await service.upsertCompetition(
+                                              MatchCompetitionRecord.create(
+                                                kind: kind,
+                                                name: name,
+                                                teams: teams,
+                                              ),
+                                            );
+                                            if (!context.mounted) return;
+                                            Navigator.of(context).pop(
+                                              _MatchCompetitionSheetResult(
+                                                name: name,
+                                                teams: teams,
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.save_outlined),
+                                          label: Text(
+                                            l10n.matchCompetitionSaveTeams,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                SingleChildScrollView(
+                                  child: _buildMatchCompetitionResultView(
+                                    context: context,
+                                    l10n: l10n,
+                                    kind: kind,
+                                    competitionName: currentName,
+                                    teams: currentTeams,
+                                    entries: entries,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      nameController.dispose();
+      teamsController.dispose();
+    }
+  }
+
+  Widget _buildMatchCompetitionResultView({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required String kind,
+    required String competitionName,
+    required List<String> teams,
+    required List<TrainingEntry> entries,
+  }) {
+    if (kind == MatchCompetitionRecord.kindTournament) {
+      return _buildTournamentBracketView(
+        context: context,
+        l10n: l10n,
+        competitionName: competitionName,
+        teams: teams,
+        entries: entries,
+      );
+    }
+    return _buildLeagueStandingsView(
+      context: context,
+      l10n: l10n,
+      competitionName: competitionName,
+      teams: teams,
+      entries: entries,
+    );
+  }
+
+  Widget _buildLeagueStandingsView({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required String competitionName,
+    required List<String> teams,
+    required List<TrainingEntry> entries,
+  }) {
+    final standings = MatchCompetitionService.buildLeagueStandings(
+      competitionName: competitionName,
+      registeredTeams: teams,
+      entries: entries,
+      ownTeamName: l10n.matchCompetitionMyTeamFallback,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.matchLeagueStandingsTitle,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: 8),
+        if (standings.isEmpty)
+          _matchCompetitionEmptyMessage(
+            context: context,
+            message: l10n.matchCompetitionNoTeams,
+          )
+        else
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              columnSpacing: 18,
+              columns: [
+                DataColumn(label: Text(l10n.newsLeagueStandingsTeamColumn)),
+                DataColumn(label: Text(l10n.newsLeagueStandingsPlayedColumn)),
+                DataColumn(label: Text(l10n.newsLeagueStandingsWinsColumn)),
+                DataColumn(label: Text(l10n.newsLeagueStandingsDrawsColumn)),
+                DataColumn(label: Text(l10n.newsLeagueStandingsLossesColumn)),
+                DataColumn(
+                  label: Text(l10n.newsLeagueStandingsGoalDifferenceColumn),
+                ),
+                DataColumn(label: Text(l10n.newsLeagueStandingsPointsColumn)),
+              ],
+              rows: [
+                for (final row in standings)
+                  DataRow(
+                    cells: [
+                      DataCell(Text(row.team)),
+                      DataCell(Text('${row.played}')),
+                      DataCell(Text('${row.wins}')),
+                      DataCell(Text('${row.draws}')),
+                      DataCell(Text('${row.losses}')),
+                      DataCell(Text('${row.goalDifference}')),
+                      DataCell(Text('${row.points}')),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTournamentBracketView({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required String competitionName,
+    required List<String> teams,
+    required List<TrainingEntry> entries,
+  }) {
+    final pairs = MatchCompetitionService.buildTournamentBracketPairs(teams);
+    final progressEntries = MatchCompetitionService.competitionEntries(
+      kind: MatchCompetitionRecord.kindTournament,
+      competitionName: competitionName,
+      entries: entries,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.matchTournamentBracketTitle,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: 8),
+        if (pairs.isEmpty)
+          _matchCompetitionEmptyMessage(
+            context: context,
+            message: l10n.matchCompetitionNoTeams,
+          )
+        else
+          ...pairs.map(
+            (pair) {
+              final teamB =
+                  pair.hasBye ? l10n.matchTournamentByeLabel : pair.teamB;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.account_tree_outlined),
+                    title: Text(
+                      l10n.matchTournamentPairLabel(pair.slotNumber),
+                    ),
+                    subtitle: Text(
+                      l10n.matchTournamentPairText(pair.teamA, teamB),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        const SizedBox(height: 12),
+        Text(
+          l10n.matchTournamentRecordedProgressTitle,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: 8),
+        if (progressEntries.isEmpty)
+          _matchCompetitionEmptyMessage(
+            context: context,
+            message: l10n.matchCompetitionNoMatches,
+          )
+        else
+          ...progressEntries.map(
+            (entry) {
+              final opponent = entry.opponentTeam.trim().isEmpty
+                  ? l10n.matchCompetitionMyTeamFallback
+                  : entry.opponentTeam.trim();
+              return ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.sports_score_outlined),
+                title: Text(
+                  l10n.matchTournamentRecordedProgress(
+                    matchTournamentStageLabel(l10n, entry.matchStage),
+                    opponent,
+                    matchTournamentOutcomeLabel(
+                      l10n,
+                      entry.tournamentOutcome,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _matchCompetitionEmptyMessage({
+    required BuildContext context,
+    required String message,
+  }) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Text(
+          message,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
   }
 
   List<String> _matchOpponentOptions(List<TrainingEntry> entries) {
@@ -4309,6 +4736,16 @@ class _PlanSheetResult {
   const _PlanSheetResult({
     required this.plans,
     this.scope = _PlanEditScope.single,
+  });
+}
+
+class _MatchCompetitionSheetResult {
+  final String name;
+  final List<String> teams;
+
+  const _MatchCompetitionSheetResult({
+    required this.name,
+    required this.teams,
   });
 }
 

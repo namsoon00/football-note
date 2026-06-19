@@ -14474,6 +14474,127 @@ abstract class AppLocalizations {
   /// **'e.g. Cup tournament'**
   String get matchTournamentNameHint;
 
+  /// No description provided for @matchCompetitionManageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams / results'**
+  String get matchCompetitionManageButton;
+
+  /// No description provided for @matchCompetitionManagerNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition manager'**
+  String get matchCompetitionManagerNewTitle;
+
+  /// No description provided for @matchCompetitionManagerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} manager'**
+  String matchCompetitionManagerTitle(String name);
+
+  /// No description provided for @matchCompetitionTeamsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get matchCompetitionTeamsTab;
+
+  /// No description provided for @matchCompetitionResultsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get matchCompetitionResultsTab;
+
+  /// No description provided for @matchCompetitionTeamsInputLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Participating teams'**
+  String get matchCompetitionTeamsInputLabel;
+
+  /// No description provided for @matchCompetitionTeamsInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter one team per line or separate with commas'**
+  String get matchCompetitionTeamsInputHint;
+
+  /// No description provided for @matchCompetitionTeamCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} team(s) registered'**
+  String matchCompetitionTeamCount(int count);
+
+  /// No description provided for @matchCompetitionSaveTeams.
+  ///
+  /// In en, this message translates to:
+  /// **'Save teams'**
+  String get matchCompetitionSaveTeams;
+
+  /// No description provided for @matchCompetitionNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a competition name.'**
+  String get matchCompetitionNameRequired;
+
+  /// No description provided for @matchLeagueStandingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'League standings'**
+  String get matchLeagueStandingsTitle;
+
+  /// No description provided for @matchTournamentBracketTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament bracket'**
+  String get matchTournamentBracketTitle;
+
+  /// No description provided for @matchCompetitionNoTeams.
+  ///
+  /// In en, this message translates to:
+  /// **'No teams are registered.'**
+  String get matchCompetitionNoTeams;
+
+  /// No description provided for @matchCompetitionNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches are recorded yet.'**
+  String get matchCompetitionNoMatches;
+
+  /// No description provided for @matchCompetitionMyTeamFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Our team'**
+  String get matchCompetitionMyTeamFallback;
+
+  /// No description provided for @matchTournamentByeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bye'**
+  String get matchTournamentByeLabel;
+
+  /// No description provided for @matchTournamentPairLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Match {number}'**
+  String matchTournamentPairLabel(int number);
+
+  /// No description provided for @matchTournamentPairText.
+  ///
+  /// In en, this message translates to:
+  /// **'{teamA} vs {teamB}'**
+  String matchTournamentPairText(String teamA, String teamB);
+
+  /// No description provided for @matchTournamentRecordedProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded progress'**
+  String get matchTournamentRecordedProgressTitle;
+
+  /// No description provided for @matchTournamentRecordedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{stage} · vs {opponent} · {outcome}'**
+  String matchTournamentRecordedProgress(
+      String stage, String opponent, String outcome);
+
   /// No description provided for @matchLeagueRoundLabel.
   ///
   /// In en, this message translates to:
