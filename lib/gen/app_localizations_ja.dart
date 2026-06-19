@@ -1212,7 +1212,7 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String worldCupQualificationScenariosSubtitle(
       int currentPoints, int remainingMatches) {
-    return '現在の勝点 $currentPoints から、残り $remainingMatches 試合で得る勝点別にグループ順位の可能性を計算します。';
+    return '現在の勝点 $currentPoints から、残り $remainingMatches 試合の結果別にラウンド32進出と相手候補を計算します。';
   }
 
   @override
@@ -1239,6 +1239,40 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get worldCupQualificationThirdPlaceNote =>
       'グループ3位は、12グループの3位チームの中で上位8チームに入る必要があります。';
+
+  @override
+  String worldCupQualificationMatchPick(String opponent, String result) {
+    return '$opponent戦 $result';
+  }
+
+  @override
+  String get worldCupQualificationOutcomeAuto => '自動進出確定';
+
+  @override
+  String get worldCupQualificationOutcomePossible => '進出可能';
+
+  @override
+  String get worldCupQualificationOutcomeThird => '3位比較';
+
+  @override
+  String get worldCupQualificationOutcomeOut => '敗退';
+
+  @override
+  String worldCupQualificationOpponentCandidates(String opponents) {
+    return 'ラウンド32の相手候補: $opponents';
+  }
+
+  @override
+  String get worldCupQualificationNoOpponent => 'この結果ではラウンド32へ進むルートがありません。';
+
+  @override
+  String worldCupQualificationOpponentCandidate(
+      int matchNumber, String opponent) {
+    return 'M$matchNumber · $opponent';
+  }
+
+  @override
+  String get worldCupQualificationOpponentSeparator => ' または ';
 
   @override
   String worldCupTeamRosterFormationLabel(String formation) {

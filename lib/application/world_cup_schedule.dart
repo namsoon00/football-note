@@ -139,6 +139,73 @@ class WorldCupQualificationScenario {
   });
 }
 
+class WorldCupQualificationMatchPick {
+  final int matchNumber;
+  final String opponentTeam;
+  final WorldCupFixtureTeamResult result;
+  final int points;
+
+  const WorldCupQualificationMatchPick({
+    required this.matchNumber,
+    required this.opponentTeam,
+    required this.result,
+    required this.points,
+  });
+}
+
+class WorldCupQualificationOpponentPath {
+  final int rank;
+  final int matchNumber;
+  final String opponentSlot;
+
+  const WorldCupQualificationOpponentPath({
+    required this.rank,
+    required this.matchNumber,
+    required this.opponentSlot,
+  });
+}
+
+class WorldCupQualificationPathScenario {
+  final String group;
+  final String team;
+  final int currentPoints;
+  final int remainingMatches;
+  final int remainingPoints;
+  final int finalPoints;
+  final List<WorldCupQualificationMatchPick> picks;
+  final int totalCases;
+  final int automaticAdvanceCases;
+  final int thirdPlaceCases;
+  final int eliminatedCases;
+  final int bestRank;
+  final int worstRank;
+  final List<WorldCupQualificationOpponentPath> opponentPaths;
+
+  const WorldCupQualificationPathScenario({
+    required this.group,
+    required this.team,
+    required this.currentPoints,
+    required this.remainingMatches,
+    required this.remainingPoints,
+    required this.finalPoints,
+    required this.picks,
+    required this.totalCases,
+    required this.automaticAdvanceCases,
+    required this.thirdPlaceCases,
+    required this.eliminatedCases,
+    required this.bestRank,
+    required this.worstRank,
+    required this.opponentPaths,
+  });
+
+  int get advancingCases => automaticAdvanceCases + thirdPlaceCases;
+
+  bool get canAdvance => advancingCases > 0;
+
+  bool get guaranteesAutomaticAdvance =>
+      totalCases > 0 && automaticAdvanceCases == totalCases;
+}
+
 const Map<String, String> _worldCupCountryCodes = <String, String>{
   'Algeria': 'DZ',
   'Argentina': 'AR',
@@ -402,6 +469,248 @@ List<WorldCupQualificationScenario> worldCupRoundOf32ScenariosForTeam(
     ..sort((a, b) => b.remainingPoints.compareTo(a.remainingPoints));
 }
 
+List<WorldCupQualificationPathScenario> worldCupRoundOf32PathScenariosForTeam(
+  String team, {
+  List<WorldCupFixture>? fixtures,
+}) {
+  final normalizedTeam = team.trim();
+  if (normalizedTeam.isEmpty) {
+    return const <WorldCupQualificationPathScenario>[];
+  }
+  final sourceFixtures = fixtures ?? worldCupFixtures;
+  String? group;
+  for (final fixture in sourceFixtures) {
+    if (fixture.isGroupStage && fixture.involvesCountry(normalizedTeam)) {
+      group = fixture.group;
+      break;
+    }
+  }
+  final targetGroup = group;
+  if (targetGroup == null) {
+    return const <WorldCupQualificationPathScenario>[];
+  }
+
+  final groupFixtures = sourceFixtures
+      .where((fixture) => fixture.isGroupStage && fixture.group == targetGroup)
+      .toList(growable: false);
+  final currentStandings = worldCupGroupStandings(fixtures: sourceFixtures);
+  WorldCupGroupStanding? currentStanding;
+  for (final standing in currentStandings[targetGroup] ?? const []) {
+    if (standing.team == normalizedTeam) {
+      currentStanding = standing;
+      break;
+    }
+  }
+  final baseStanding = currentStanding;
+  if (baseStanding == null) {
+    return const <WorldCupQualificationPathScenario>[];
+  }
+
+  final remainingFixtures = groupFixtures
+      .where((fixture) => !fixture.hasScore)
+      .toList(growable: false);
+  final teamRemainingFixtures = remainingFixtures
+      .where((fixture) => fixture.involvesCountry(normalizedTeam))
+      .toList()
+    ..sort((a, b) => a.kickoffUtc.compareTo(b.kickoffUtc));
+  if (teamRemainingFixtures.isEmpty) {
+    return const <WorldCupQualificationPathScenario>[];
+  }
+
+  final otherRemainingFixtures = remainingFixtures
+      .where((fixture) => !fixture.involvesCountry(normalizedTeam))
+      .toList(growable: false);
+  final scenarios = <WorldCupQualificationPathScenario>[];
+
+  void evaluateTeamPath(
+    List<WorldCupFixture> teamPathFixtures,
+    List<WorldCupQualificationMatchPick> picks,
+  ) {
+    final accumulator = _WorldCupQualificationPathAccumulator(
+      group: targetGroup,
+      team: normalizedTeam,
+      currentPoints: baseStanding.points,
+      remainingMatches: teamRemainingFixtures.length,
+      remainingPoints: picks.fold<int>(0, (sum, pick) => sum + pick.points),
+      picks: picks,
+    );
+
+    void recordCompletePath(List<WorldCupFixture> scenarioFixtures) {
+      final standings =
+          worldCupGroupStandings(fixtures: scenarioFixtures)[targetGroup];
+      if (standings == null) return;
+      final rankIndex = standings.indexWhere(
+        (standing) => standing.team == normalizedTeam,
+      );
+      if (rankIndex < 0) return;
+      accumulator.record(
+        rankIndex + 1,
+        worldCupRoundOf32OpponentPathsForGroupRank(
+          targetGroup,
+          rankIndex + 1,
+          fixtures: sourceFixtures,
+        ),
+      );
+    }
+
+    void walkOtherFixtures(
+      int fixtureIndex,
+      List<WorldCupFixture> scenarioFixtures,
+    ) {
+      if (fixtureIndex >= otherRemainingFixtures.length) {
+        recordCompletePath(scenarioFixtures);
+        return;
+      }
+
+      final fixture = otherRemainingFixtures[fixtureIndex];
+      for (final score in const <(int, int)>[(1, 0), (0, 0), (0, 1)]) {
+        walkOtherFixtures(
+          fixtureIndex + 1,
+          _replaceFixtureScore(scenarioFixtures, fixture, score),
+        );
+      }
+    }
+
+    walkOtherFixtures(0, teamPathFixtures);
+    scenarios.add(accumulator.toScenario());
+  }
+
+  void walkTeamFixtures(
+    int fixtureIndex,
+    List<WorldCupFixture> scenarioFixtures,
+    List<WorldCupQualificationMatchPick> picks,
+  ) {
+    if (fixtureIndex >= teamRemainingFixtures.length) {
+      evaluateTeamPath(scenarioFixtures, picks);
+      return;
+    }
+
+    final fixture = teamRemainingFixtures[fixtureIndex];
+    for (final result in const <WorldCupFixtureTeamResult>[
+      WorldCupFixtureTeamResult.win,
+      WorldCupFixtureTeamResult.draw,
+      WorldCupFixtureTeamResult.loss,
+    ]) {
+      final score = _scoreForFixtureTeamResult(
+        fixture,
+        normalizedTeam,
+        result,
+      );
+      walkTeamFixtures(
+        fixtureIndex + 1,
+        _replaceFixtureScore(scenarioFixtures, fixture, score),
+        [
+          ...picks,
+          WorldCupQualificationMatchPick(
+            matchNumber: fixture.matchNumber,
+            opponentTeam: fixture.homeTeam == normalizedTeam
+                ? fixture.awayTeam
+                : fixture.homeTeam,
+            result: result,
+            points: _pointsForFixtureTeamResult(result),
+          ),
+        ],
+      );
+    }
+  }
+
+  walkTeamFixtures(
+    0,
+    sourceFixtures,
+    const <WorldCupQualificationMatchPick>[],
+  );
+
+  return scenarios
+    ..sort((a, b) {
+      final points = b.remainingPoints.compareTo(a.remainingPoints);
+      if (points != 0) return points;
+      return b.advancingCases.compareTo(a.advancingCases);
+    });
+}
+
+List<WorldCupQualificationOpponentPath>
+    worldCupRoundOf32OpponentPathsForGroupRank(
+  String group,
+  int rank, {
+  List<WorldCupFixture>? fixtures,
+}) {
+  final normalizedGroup = group.trim().toUpperCase();
+  if (normalizedGroup.isEmpty || rank < 1 || rank > 3) {
+    return const <WorldCupQualificationOpponentPath>[];
+  }
+  final seen = <String>{};
+  final paths = <WorldCupQualificationOpponentPath>[];
+  for (final fixture in fixtures ?? worldCupFixtures) {
+    if (fixture.stage != WorldCupStage.roundOf32) continue;
+    final homeMatches = _roundOf32SlotMatchesGroupRank(
+      fixture.homeTeam,
+      normalizedGroup,
+      rank,
+    );
+    final awayMatches = _roundOf32SlotMatchesGroupRank(
+      fixture.awayTeam,
+      normalizedGroup,
+      rank,
+    );
+    if (!homeMatches && !awayMatches) continue;
+    final opponentSlot = homeMatches ? fixture.awayTeam : fixture.homeTeam;
+    final key = '$rank:${fixture.matchNumber}:$opponentSlot';
+    if (!seen.add(key)) continue;
+    paths.add(
+      WorldCupQualificationOpponentPath(
+        rank: rank,
+        matchNumber: fixture.matchNumber,
+        opponentSlot: opponentSlot,
+      ),
+    );
+  }
+  return paths..sort((a, b) => a.matchNumber.compareTo(b.matchNumber));
+}
+
+List<WorldCupFixture> _replaceFixtureScore(
+  List<WorldCupFixture> fixtures,
+  WorldCupFixture fixture,
+  (int, int) score,
+) {
+  return [
+    for (final item in fixtures)
+      if (item.matchNumber == fixture.matchNumber)
+        item.copyWithScore(homeScore: score.$1, awayScore: score.$2)
+      else
+        item,
+  ];
+}
+
+(int, int) _scoreForFixtureTeamResult(
+  WorldCupFixture fixture,
+  String team,
+  WorldCupFixtureTeamResult result,
+) {
+  final teamIsHome = fixture.homeTeam == team;
+  return switch (result) {
+    WorldCupFixtureTeamResult.win => teamIsHome ? (1, 0) : (0, 1),
+    WorldCupFixtureTeamResult.draw => (0, 0),
+    WorldCupFixtureTeamResult.loss => teamIsHome ? (0, 1) : (1, 0),
+    WorldCupFixtureTeamResult.scheduled => (0, 0),
+  };
+}
+
+int _pointsForFixtureTeamResult(WorldCupFixtureTeamResult result) {
+  return switch (result) {
+    WorldCupFixtureTeamResult.win => 3,
+    WorldCupFixtureTeamResult.draw => 1,
+    WorldCupFixtureTeamResult.loss => 0,
+    WorldCupFixtureTeamResult.scheduled => 0,
+  };
+}
+
+bool _roundOf32SlotMatchesGroupRank(String slot, String group, int rank) {
+  if (rank == 1 || rank == 2) return slot == '$rank$group';
+  final match = RegExp(r'^3([A-L](?:/[A-L])*)$').firstMatch(slot);
+  if (match == null) return false;
+  return match.group(1)!.split('/').contains(group);
+}
+
 int _compareWorldCupGroupStandings(
   WorldCupGroupStanding a,
   WorldCupGroupStanding b,
@@ -469,6 +778,82 @@ class _WorldCupQualificationScenarioAccumulator {
       eliminatedCases: eliminatedCases,
       bestRank: bestRank,
       worstRank: worstRank,
+    );
+  }
+}
+
+class _WorldCupQualificationPathAccumulator {
+  final String group;
+  final String team;
+  final int currentPoints;
+  final int remainingMatches;
+  final int remainingPoints;
+  final List<WorldCupQualificationMatchPick> picks;
+  int totalCases = 0;
+  int automaticAdvanceCases = 0;
+  int thirdPlaceCases = 0;
+  int eliminatedCases = 0;
+  int bestRank = 4;
+  int worstRank = 1;
+  final Map<String, WorldCupQualificationOpponentPath> opponentPaths =
+      <String, WorldCupQualificationOpponentPath>{};
+
+  _WorldCupQualificationPathAccumulator({
+    required this.group,
+    required this.team,
+    required this.currentPoints,
+    required this.remainingMatches,
+    required this.remainingPoints,
+    required this.picks,
+  });
+
+  void record(
+    int rank,
+    List<WorldCupQualificationOpponentPath> paths,
+  ) {
+    totalCases += 1;
+    bestRank = _minInt(bestRank, rank);
+    worstRank = _maxInt(worstRank, rank);
+    if (rank <= 2) {
+      automaticAdvanceCases += 1;
+    } else if (rank == 3) {
+      thirdPlaceCases += 1;
+    } else {
+      eliminatedCases += 1;
+    }
+
+    if (rank <= 3) {
+      for (final path in paths) {
+        opponentPaths['${path.rank}:${path.matchNumber}:${path.opponentSlot}'] =
+            path;
+      }
+    }
+  }
+
+  WorldCupQualificationPathScenario toScenario() {
+    final sortedOpponentPaths = opponentPaths.values.toList()
+      ..sort((a, b) {
+        final rank = a.rank.compareTo(b.rank);
+        if (rank != 0) return rank;
+        return a.matchNumber.compareTo(b.matchNumber);
+      });
+    return WorldCupQualificationPathScenario(
+      group: group,
+      team: team,
+      currentPoints: currentPoints,
+      remainingMatches: remainingMatches,
+      remainingPoints: remainingPoints,
+      finalPoints: currentPoints + remainingPoints,
+      picks: List<WorldCupQualificationMatchPick>.unmodifiable(picks),
+      totalCases: totalCases,
+      automaticAdvanceCases: automaticAdvanceCases,
+      thirdPlaceCases: thirdPlaceCases,
+      eliminatedCases: eliminatedCases,
+      bestRank: bestRank,
+      worstRank: worstRank,
+      opponentPaths: List<WorldCupQualificationOpponentPath>.unmodifiable(
+        sortedOpponentPaths,
+      ),
     );
   }
 }

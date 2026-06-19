@@ -1205,7 +1205,7 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String worldCupQualificationScenariosSubtitle(
       int currentPoints, int remainingMatches) {
-    return '현재 승점 $currentPoints점에서 남은 $remainingMatches경기 승점별 조별 순위 가능성을 계산해요.';
+    return '현재 승점 $currentPoints점에서 남은 $remainingMatches경기 결과 조합별 32강 진출 가능성과 상대 후보를 계산해요.';
   }
 
   @override
@@ -1232,6 +1232,40 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get worldCupQualificationThirdPlaceNote =>
       '조 3위는 12개 조 3위 중 상위 8팀에 들어야 32강에 올라갑니다.';
+
+  @override
+  String worldCupQualificationMatchPick(String opponent, String result) {
+    return '$opponent전 $result';
+  }
+
+  @override
+  String get worldCupQualificationOutcomeAuto => '직행 확정';
+
+  @override
+  String get worldCupQualificationOutcomePossible => '진출 가능';
+
+  @override
+  String get worldCupQualificationOutcomeThird => '3위 비교';
+
+  @override
+  String get worldCupQualificationOutcomeOut => '탈락';
+
+  @override
+  String worldCupQualificationOpponentCandidates(String opponents) {
+    return '32강 상대 후보: $opponents';
+  }
+
+  @override
+  String get worldCupQualificationNoOpponent => '이 조합에서는 32강 진출 경로가 없어요.';
+
+  @override
+  String worldCupQualificationOpponentCandidate(
+      int matchNumber, String opponent) {
+    return 'M$matchNumber · $opponent';
+  }
+
+  @override
+  String get worldCupQualificationOpponentSeparator => ' 또는 ';
 
   @override
   String worldCupTeamRosterFormationLabel(String formation) {

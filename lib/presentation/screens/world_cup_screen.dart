@@ -1710,29 +1710,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   }
 
   String _bracketSlotLabel(AppLocalizations l10n, String slot) {
-    final groupRankMatch = RegExp(r'^([12])([A-L])$').firstMatch(slot);
-    if (groupRankMatch != null) {
-      final rank = groupRankMatch.group(1)!;
-      final group = groupRankMatch.group(2)!;
-      return rank == '1'
-          ? l10n.worldCupBracketFirstSeed(group)
-          : l10n.worldCupBracketSecondSeed(group);
-    }
-
-    final thirdPlaceMatch = RegExp(r'^3([A-L](?:/[A-L])*)$').firstMatch(slot);
-    if (thirdPlaceMatch != null) {
-      return l10n.worldCupBracketThirdSeed(thirdPlaceMatch.group(1)!);
-    }
-
-    final matchReference = RegExp(r'^([WL])([0-9]+)$').firstMatch(slot);
-    if (matchReference != null) {
-      final matchNumber = int.parse(matchReference.group(2)!);
-      return matchReference.group(1) == 'W'
-          ? l10n.worldCupBracketWinnerSlot(matchNumber)
-          : l10n.worldCupBracketLoserSlot(matchNumber);
-    }
-
-    return _worldCupCountryName(l10n, slot);
+    return _worldCupBracketSlotLabel(l10n, slot);
   }
 
   String? _bracketSlotDetail(AppLocalizations l10n, String slot) {
@@ -3944,7 +3922,7 @@ class _WorldCupRoundOf32ScenarioPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final scenarios = worldCupRoundOf32ScenariosForTeam(
+    final scenarios = worldCupRoundOf32PathScenariosForTeam(
       team,
       fixtures: fixtures,
     );
@@ -4027,7 +4005,7 @@ class _WorldCupRoundOf32ScenarioPanel extends StatelessWidget {
 }
 
 class _WorldCupQualificationScenarioRow extends StatelessWidget {
-  final WorldCupQualificationScenario scenario;
+  final WorldCupQualificationPathScenario scenario;
 
   const _WorldCupQualificationScenarioRow({required this.scenario});
 
@@ -4035,15 +4013,10 @@ class _WorldCupQualificationScenarioRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final optimisticCases =
-        scenario.automaticAdvanceCases + scenario.thirdPlaceCases;
-    final accentColor = scenario.automaticAdvanceCases == scenario.totalCases
-        ? theme.colorScheme.primary
-        : optimisticCases > 0
-            ? theme.colorScheme.tertiary
-            : theme.colorScheme.error;
+    final accentColor = _qualificationScenarioAccentColor(theme, scenario);
+    final opponentText = _qualificationOpponentText(l10n, scenario);
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: accentColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
@@ -4053,30 +4026,39 @@ class _WorldCupQualificationScenarioRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(
-                  l10n.worldCupQualificationScenarioPoints(
-                    scenario.remainingPoints,
-                    scenario.finalPoints,
-                  ),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: accentColor,
-                    fontWeight: FontWeight.w900,
-                  ),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final pick in scenario.picks)
+                      _WorldCupQualificationPickChip(pick: pick),
+                  ],
                 ),
               ),
-              Text(
-                l10n.worldCupQualificationScenarioRankRange(
-                  scenario.bestRank,
-                  scenario.worstRank,
-                ),
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w800,
-                ),
+              const SizedBox(width: 8),
+              _WorldCupQualificationOutcomePill(
+                scenario: scenario,
+                color: accentColor,
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${l10n.worldCupQualificationScenarioPoints(
+              scenario.remainingPoints,
+              scenario.finalPoints,
+            )} · ${l10n.worldCupQualificationScenarioRankRange(
+              scenario.bestRank,
+              scenario.worstRank,
+            )}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.3,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -4092,10 +4074,168 @@ class _WorldCupQualificationScenarioRow extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
+          const SizedBox(height: 6),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                scenario.canAdvance
+                    ? Icons.account_tree_rounded
+                    : Icons.block_rounded,
+                size: 16,
+                color: accentColor,
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  scenario.canAdvance
+                      ? l10n.worldCupQualificationOpponentCandidates(
+                          opponentText,
+                        )
+                      : l10n.worldCupQualificationNoOpponent,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scenario.canAdvance
+                        ? theme.colorScheme.onSurface
+                        : theme.colorScheme.onSurfaceVariant,
+                    height: 1.3,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
+}
+
+class _WorldCupQualificationPickChip extends StatelessWidget {
+  final WorldCupQualificationMatchPick pick;
+
+  const _WorldCupQualificationPickChip({required this.pick});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final color = _qualificationResultColor(theme, pick.result);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.32)),
+      ),
+      child: Text(
+        l10n.worldCupQualificationMatchPick(
+          _worldCupCountryName(l10n, pick.opponentTeam),
+          _qualificationResultLabel(l10n, pick.result),
+        ),
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+class _WorldCupQualificationOutcomePill extends StatelessWidget {
+  final WorldCupQualificationPathScenario scenario;
+  final Color color;
+
+  const _WorldCupQualificationOutcomePill({
+    required this.scenario,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.36)),
+      ),
+      child: Text(
+        _qualificationOutcomeLabel(l10n, scenario),
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+Color _qualificationScenarioAccentColor(
+  ThemeData theme,
+  WorldCupQualificationPathScenario scenario,
+) {
+  if (scenario.guaranteesAutomaticAdvance) return theme.colorScheme.primary;
+  if (scenario.automaticAdvanceCases > 0) return theme.colorScheme.tertiary;
+  if (scenario.thirdPlaceCases > 0) return const Color(0xFF9A6A00);
+  return theme.colorScheme.error;
+}
+
+Color _qualificationResultColor(
+  ThemeData theme,
+  WorldCupFixtureTeamResult result,
+) {
+  return switch (result) {
+    WorldCupFixtureTeamResult.win => theme.colorScheme.primary,
+    WorldCupFixtureTeamResult.draw => theme.colorScheme.tertiary,
+    WorldCupFixtureTeamResult.loss => theme.colorScheme.error,
+    WorldCupFixtureTeamResult.scheduled => theme.colorScheme.onSurfaceVariant,
+  };
+}
+
+String _qualificationResultLabel(
+  AppLocalizations l10n,
+  WorldCupFixtureTeamResult result,
+) {
+  return switch (result) {
+    WorldCupFixtureTeamResult.win => l10n.worldCupResultWin,
+    WorldCupFixtureTeamResult.draw => l10n.worldCupResultDraw,
+    WorldCupFixtureTeamResult.loss => l10n.worldCupResultLoss,
+    WorldCupFixtureTeamResult.scheduled => l10n.worldCupResultPendingTeam,
+  };
+}
+
+String _qualificationOutcomeLabel(
+  AppLocalizations l10n,
+  WorldCupQualificationPathScenario scenario,
+) {
+  if (scenario.guaranteesAutomaticAdvance) {
+    return l10n.worldCupQualificationOutcomeAuto;
+  }
+  if (scenario.automaticAdvanceCases > 0) {
+    return l10n.worldCupQualificationOutcomePossible;
+  }
+  if (scenario.thirdPlaceCases > 0) {
+    return l10n.worldCupQualificationOutcomeThird;
+  }
+  return l10n.worldCupQualificationOutcomeOut;
+}
+
+String _qualificationOpponentText(
+  AppLocalizations l10n,
+  WorldCupQualificationPathScenario scenario,
+) {
+  final seen = <String>{};
+  final labels = <String>[];
+  for (final path in scenario.opponentPaths) {
+    final label = l10n.worldCupQualificationOpponentCandidate(
+      path.matchNumber,
+      _worldCupBracketSlotLabel(l10n, path.opponentSlot),
+    );
+    if (seen.add(label)) labels.add(label);
+  }
+  return labels.join(l10n.worldCupQualificationOpponentSeparator);
 }
 
 class _WorldCupTeamMatchSummaryRow extends StatelessWidget {
@@ -5048,6 +5188,32 @@ class _BracketSlotData {
   final String? detail;
 
   const _BracketSlotData({required this.label, this.detail});
+}
+
+String _worldCupBracketSlotLabel(AppLocalizations l10n, String slot) {
+  final groupRankMatch = RegExp(r'^([12])([A-L])$').firstMatch(slot);
+  if (groupRankMatch != null) {
+    final rank = groupRankMatch.group(1)!;
+    final group = groupRankMatch.group(2)!;
+    return rank == '1'
+        ? l10n.worldCupBracketFirstSeed(group)
+        : l10n.worldCupBracketSecondSeed(group);
+  }
+
+  final thirdPlaceMatch = RegExp(r'^3([A-L](?:/[A-L])*)$').firstMatch(slot);
+  if (thirdPlaceMatch != null) {
+    return l10n.worldCupBracketThirdSeed(thirdPlaceMatch.group(1)!);
+  }
+
+  final matchReference = RegExp(r'^([WL])([0-9]+)$').firstMatch(slot);
+  if (matchReference != null) {
+    final matchNumber = int.parse(matchReference.group(2)!);
+    return matchReference.group(1) == 'W'
+        ? l10n.worldCupBracketWinnerSlot(matchNumber)
+        : l10n.worldCupBracketLoserSlot(matchNumber);
+  }
+
+  return _worldCupCountryName(l10n, slot);
 }
 
 class _SectionTitle extends StatelessWidget {

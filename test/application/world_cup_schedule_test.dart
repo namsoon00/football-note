@@ -172,10 +172,70 @@ void main() {
     expect(noMorePoints.eliminatedCases, greaterThan(0));
   });
 
+  test('round of 32 path scenarios map remaining match results to opponents',
+      () {
+    final scenarios = worldCupRoundOf32PathScenariosForTeam('Korea Republic');
+
+    expect(scenarios, hasLength(9));
+
+    final winOut = _pathScenarioFor(
+      scenarios,
+      const [WorldCupFixtureTeamResult.win, WorldCupFixtureTeamResult.win],
+    );
+    expect(winOut.remainingPoints, 6);
+    expect(winOut.finalPoints, 9);
+    expect(winOut.guaranteesAutomaticAdvance, isTrue);
+    expect(
+      winOut.opponentPaths.map(_opponentPathKey),
+      contains('1:79:3C/E/F/H/I'),
+    );
+
+    final loseOut = _pathScenarioFor(
+      scenarios,
+      const [WorldCupFixtureTeamResult.loss, WorldCupFixtureTeamResult.loss],
+    );
+    expect(loseOut.remainingPoints, 0);
+    expect(loseOut.finalPoints, 3);
+    expect(loseOut.thirdPlaceCases, greaterThan(0));
+    expect(loseOut.eliminatedCases, greaterThan(0));
+  });
+
+  test('round of 32 opponent paths follow bracket slots by group rank', () {
+    expect(
+      worldCupRoundOf32OpponentPathsForGroupRank('A', 1).map(_opponentPathKey),
+      ['1:79:3C/E/F/H/I'],
+    );
+    expect(
+      worldCupRoundOf32OpponentPathsForGroupRank('A', 2).map(_opponentPathKey),
+      ['2:73:2B'],
+    );
+    expect(
+      worldCupRoundOf32OpponentPathsForGroupRank('A', 3).map(_opponentPathKey),
+      ['3:75:1E', '3:81:1G'],
+    );
+  });
+
   test('round of 32 scenarios ignore countries outside the group schedule', () {
     expect(
       worldCupRoundOf32ScenariosForTeam('Atlantis'),
       isEmpty,
     );
   });
+}
+
+WorldCupQualificationPathScenario _pathScenarioFor(
+  List<WorldCupQualificationPathScenario> scenarios,
+  List<WorldCupFixtureTeamResult> results,
+) {
+  return scenarios.singleWhere(
+    (scenario) =>
+        scenario.picks.length == results.length &&
+        Iterable<int>.generate(results.length).every(
+          (index) => scenario.picks[index].result == results[index],
+        ),
+  );
+}
+
+String _opponentPathKey(WorldCupQualificationOpponentPath path) {
+  return '${path.rank}:${path.matchNumber}:${path.opponentSlot}';
 }

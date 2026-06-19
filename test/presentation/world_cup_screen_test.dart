@@ -212,7 +212,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('32강 경우의 수'), findsOneWidget);
-    expect(find.textContaining('남은 승점'), findsWidgets);
+    expect(find.textContaining('대한민국전 승'), findsWidgets);
+    expect(find.textContaining('32강 상대 후보'), findsWidgets);
     await tester.scrollUntilVisible(
       find.text('4-3-3 포메이션'),
       180,

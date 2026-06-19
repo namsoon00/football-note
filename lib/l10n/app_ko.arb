@@ -603,7 +603,7 @@
   "worldCupTeamCurrentPointsLabel": "현재 승점",
   "worldCupTeamMatchHistoryTitle": "상대별 결과",
   "worldCupQualificationScenariosTitle": "32강 경우의 수",
-  "worldCupQualificationScenariosSubtitle": "현재 승점 {currentPoints}점에서 남은 {remainingMatches}경기 승점별 조별 순위 가능성을 계산해요.",
+  "worldCupQualificationScenariosSubtitle": "현재 승점 {currentPoints}점에서 남은 {remainingMatches}경기 결과 조합별 32강 진출 가능성과 상대 후보를 계산해요.",
   "@worldCupQualificationScenariosSubtitle": {
     "placeholders": {
       "currentPoints": {
@@ -655,6 +655,42 @@
     }
   },
   "worldCupQualificationThirdPlaceNote": "조 3위는 12개 조 3위 중 상위 8팀에 들어야 32강에 올라갑니다.",
+  "worldCupQualificationMatchPick": "{opponent}전 {result}",
+  "@worldCupQualificationMatchPick": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOutcomeAuto": "직행 확정",
+  "worldCupQualificationOutcomePossible": "진출 가능",
+  "worldCupQualificationOutcomeThird": "3위 비교",
+  "worldCupQualificationOutcomeOut": "탈락",
+  "worldCupQualificationOpponentCandidates": "32강 상대 후보: {opponents}",
+  "@worldCupQualificationOpponentCandidates": {
+    "placeholders": {
+      "opponents": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationNoOpponent": "이 조합에서는 32강 진출 경로가 없어요.",
+  "worldCupQualificationOpponentCandidate": "M{matchNumber} · {opponent}",
+  "@worldCupQualificationOpponentCandidate": {
+    "placeholders": {
+      "matchNumber": {
+        "type": "int"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOpponentSeparator": " 또는 ",
   "worldCupTeamRosterFormationLabel": "{formation} 포메이션",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {

@@ -1251,7 +1251,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String worldCupQualificationScenariosSubtitle(
       int currentPoints, int remainingMatches) {
-    return 'From $currentPoints current points, this estimates group-rank paths by the $remainingMatches remaining match points.';
+    return 'From $currentPoints current points, this estimates Round of 32 paths and opponent slots for the $remainingMatches remaining match results.';
   }
 
   @override
@@ -1278,6 +1278,41 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get worldCupQualificationThirdPlaceNote =>
       'A third-place finish still needs to rank among the 8 best third-place teams across the 12 groups.';
+
+  @override
+  String worldCupQualificationMatchPick(String opponent, String result) {
+    return '$result vs $opponent';
+  }
+
+  @override
+  String get worldCupQualificationOutcomeAuto => 'Auto berth';
+
+  @override
+  String get worldCupQualificationOutcomePossible => 'Can advance';
+
+  @override
+  String get worldCupQualificationOutcomeThird => '3rd-place race';
+
+  @override
+  String get worldCupQualificationOutcomeOut => 'Out';
+
+  @override
+  String worldCupQualificationOpponentCandidates(String opponents) {
+    return 'Round of 32 opponent slots: $opponents';
+  }
+
+  @override
+  String get worldCupQualificationNoOpponent =>
+      'This result path has no Round of 32 route.';
+
+  @override
+  String worldCupQualificationOpponentCandidate(
+      int matchNumber, String opponent) {
+    return 'M$matchNumber · $opponent';
+  }
+
+  @override
+  String get worldCupQualificationOpponentSeparator => ' or ';
 
   @override
   String worldCupTeamRosterFormationLabel(String formation) {
