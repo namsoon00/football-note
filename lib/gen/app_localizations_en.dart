@@ -8520,7 +8520,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStart =>
-      'Quick start: Select a player or ball, then use a quick action to create routes.';
+      'Quick start: Select a player or ball, then tap a quick action like move, pass, or dribble.';
 
   @override
   String get trainingSketchSelectedItemTitle => 'Selected item';
@@ -8538,7 +8538,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchAddBallFirst => 'Add a ball icon first.';
 
   @override
-  String get trainingSketchRoutesButton => 'Routes';
+  String get trainingSketchRoutesButton => 'Actions';
 
   @override
   String get trainingSketchLinkRoutesInOrderButton => 'Chain all in order';
@@ -8606,16 +8606,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchUndoLastRoutePointButton => 'Undo last point';
 
   @override
-  String get trainingSketchClearAllRoutesButton => 'Clear all routes';
+  String get trainingSketchClearAllRoutesButton => 'Clear all action lines';
 
   @override
-  String get trainingSketchPlayerRoutesTitle => 'Player routes';
+  String get trainingSketchPlayerRoutesTitle => 'Player actions';
 
   @override
-  String get trainingSketchBallRoutesTitle => 'Ball routes';
+  String get trainingSketchBallRoutesTitle => 'Ball actions';
 
   @override
-  String get trainingSketchRoutesEmpty => 'No routes yet for this type.';
+  String get trainingSketchRoutesEmpty => 'No action lines yet for this type.';
 
   @override
   String get trainingSketchRedrawRouteButton => 'Redraw selected';
@@ -8655,20 +8655,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      'Select this player, then tap a destination to make a movement route.';
+      'Select this player, then tap a destination to make a movement.';
 
   @override
   String get trainingSketchLinkBallHint =>
-      'Select this ball, then tap a pass destination to make a ball route.';
+      'Select this ball, then tap a pass destination to make a ball action.';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => 'Quick actions';
 
   @override
-  String get trainingSketchCreateMoveRouteButton => 'Create route';
+  String get trainingSketchCreateMoveRouteButton => 'Create move';
 
   @override
-  String get trainingSketchCreatePassRouteButton => 'Create pass route';
+  String get trainingSketchCreatePassRouteButton => 'Create pass';
 
   @override
   String get trainingSketchQuickMoveButton => 'Move';
@@ -8686,12 +8686,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchQuickReceiveMoveButton => 'Receive and move';
 
   @override
+  String get trainingSketchQuickReturnMoveButton => 'Return';
+
+  @override
+  String get trainingSketchQuickOverlapButton => 'Overlap';
+
+  @override
+  String get trainingSketchQuickShotButton => 'Shoot';
+
+  @override
+  String get trainingSketchQuickCrossButton => 'Cross';
+
+  @override
   String get trainingSketchPlayerRouteLimitReached =>
-      'All player routes are already assigned. Select a player to replace or redraw its route.';
+      'All player action lines are already assigned. Select a player to replace or redraw its action.';
 
   @override
   String get trainingSketchBallRouteLimitReached =>
-      'All ball routes are already assigned. Select a ball to replace or redraw its route.';
+      'All ball action lines are already assigned. Select a ball to replace or redraw its action.';
 
   @override
   String get trainingSketchTemplatePickerTitle => 'Choose template';

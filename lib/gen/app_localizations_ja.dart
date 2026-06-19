@@ -8251,7 +8251,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStart =>
-      'クイックスタート: プレイヤーやボールを選び、クイック動作でルートを作成します。';
+      'クイックスタート: プレイヤーやボールを選び、移動・パス・ドリブルなどのクイック動作を押します。';
 
   @override
   String get trainingSketchSelectedItemTitle => '選択した項目';
@@ -8269,7 +8269,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchAddBallFirst => 'まずボールアイコンを追加します。';
 
   @override
-  String get trainingSketchRoutesButton => 'ルート';
+  String get trainingSketchRoutesButton => '動作';
 
   @override
   String get trainingSketchLinkRoutesInOrderButton => 'すべて順番につなぐ';
@@ -8333,16 +8333,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchUndoLastRoutePointButton => '最後の点を戻す';
 
   @override
-  String get trainingSketchClearAllRoutesButton => '全ルートクリア';
+  String get trainingSketchClearAllRoutesButton => '動作線をすべて消去';
 
   @override
-  String get trainingSketchPlayerRoutesTitle => 'プレイヤールート';
+  String get trainingSketchPlayerRoutesTitle => 'プレイヤー動作';
 
   @override
-  String get trainingSketchBallRoutesTitle => 'ボールルート';
+  String get trainingSketchBallRoutesTitle => 'ボール動作';
 
   @override
-  String get trainingSketchRoutesEmpty => 'このタイプにはまだルートがありません。';
+  String get trainingSketchRoutesEmpty => 'このタイプにはまだ動作線がありません。';
 
   @override
   String get trainingSketchRedrawRouteButton => '選択された再描画';
@@ -8381,21 +8381,19 @@ class AppLocalizationsJa extends AppLocalizations {
       'ボールを選ぶかボードをタップして開始し、パスの到着地点をタップして完了します。';
 
   @override
-  String get trainingSketchLinkPlayerHint =>
-      'このプレイヤーを選び、到着地点をタップすると移動ルートを作れます。';
+  String get trainingSketchLinkPlayerHint => 'このプレイヤーを選び、到着地点をタップすると移動を作れます。';
 
   @override
-  String get trainingSketchLinkBallHint =>
-      'このボールを選び、パスの到着地点をタップするとボールルートを作れます。';
+  String get trainingSketchLinkBallHint => 'このボールを選び、パスの到着地点をタップするとボール動作を作れます。';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => 'クイック動作';
 
   @override
-  String get trainingSketchCreateMoveRouteButton => 'ルート作成';
+  String get trainingSketchCreateMoveRouteButton => '移動作成';
 
   @override
-  String get trainingSketchCreatePassRouteButton => 'パスルート作成';
+  String get trainingSketchCreatePassRouteButton => 'パス作成';
 
   @override
   String get trainingSketchQuickMoveButton => '移動';
@@ -8413,12 +8411,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchQuickReceiveMoveButton => '受けて移動';
 
   @override
+  String get trainingSketchQuickReturnMoveButton => '戻る動き';
+
+  @override
+  String get trainingSketchQuickOverlapButton => 'オーバーラップ';
+
+  @override
+  String get trainingSketchQuickShotButton => 'シュート';
+
+  @override
+  String get trainingSketchQuickCrossButton => 'クロス';
+
+  @override
   String get trainingSketchPlayerRouteLimitReached =>
-      'すべてのプレイヤーのルートはすでに割り当てられています。ルートを置き換えるか再描画するプレーヤーを選択します。';
+      'すべてのプレイヤー動作線はすでに割り当てられています。プレイヤーを選んで動作を置き換えるか再描画します。';
 
   @override
   String get trainingSketchBallRouteLimitReached =>
-      'すべてのボールルートはすでに割り当てられています。ボールを選択してルートを置き換えるか、再描画します。';
+      'すべてのボール動作線はすでに割り当てられています。ボールを選んで動作を置き換えるか再描画します。';
 
   @override
   String get trainingSketchTemplatePickerTitle => 'テンプレートを選択';

@@ -8259,7 +8259,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStart =>
-      '빠른 시작: 사람/공을 선택하고 빠른 동작을 눌러 이동선을 만드세요.';
+      '빠른 시작: 사람이나 공을 선택하고 이동, 패스, 드리블 같은 빠른 동작을 누르세요.';
 
   @override
   String get trainingSketchSelectedItemTitle => '선택 요소';
@@ -8277,7 +8277,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchAddBallFirst => '먼저 공 아이콘을 추가해 주세요.';
 
   @override
-  String get trainingSketchRoutesButton => '이동선';
+  String get trainingSketchRoutesButton => '동작';
 
   @override
   String get trainingSketchLinkRoutesInOrderButton => '전체 차례대로 연결';
@@ -8342,16 +8342,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchUndoLastRoutePointButton => '마지막 점 취소';
 
   @override
-  String get trainingSketchClearAllRoutesButton => '이동선 전체 지우기';
+  String get trainingSketchClearAllRoutesButton => '동작선 전체 지우기';
 
   @override
-  String get trainingSketchPlayerRoutesTitle => '사람 이동선';
+  String get trainingSketchPlayerRoutesTitle => '사람 동작';
 
   @override
-  String get trainingSketchBallRoutesTitle => '공 이동선';
+  String get trainingSketchBallRoutesTitle => '공 동작';
 
   @override
-  String get trainingSketchRoutesEmpty => '아직 이 종류의 이동선이 없어요.';
+  String get trainingSketchRoutesEmpty => '아직 이 종류의 동작선이 없어요.';
 
   @override
   String get trainingSketchRedrawRouteButton => '선택 이동선 다시 그리기';
@@ -8391,20 +8391,20 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      '이 사람을 선택한 뒤 도착 지점을 누르면 이동선을 쉽게 만들 수 있어요.';
+      '이 사람을 선택한 뒤 도착 지점을 누르면 이동을 쉽게 만들 수 있어요.';
 
   @override
   String get trainingSketchLinkBallHint =>
-      '이 공을 선택한 뒤 패스 도착 지점을 누르면 공 이동선을 쉽게 만들 수 있어요.';
+      '이 공을 선택한 뒤 패스 도착 지점을 누르면 공 움직임을 쉽게 만들 수 있어요.';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => '빠른 동작';
 
   @override
-  String get trainingSketchCreateMoveRouteButton => '이동선 만들기';
+  String get trainingSketchCreateMoveRouteButton => '이동 만들기';
 
   @override
-  String get trainingSketchCreatePassRouteButton => '패스선 만들기';
+  String get trainingSketchCreatePassRouteButton => '패스 만들기';
 
   @override
   String get trainingSketchQuickMoveButton => '이동';
@@ -8422,12 +8422,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchQuickReceiveMoveButton => '공 받고 이동';
 
   @override
+  String get trainingSketchQuickReturnMoveButton => '돌아오기';
+
+  @override
+  String get trainingSketchQuickOverlapButton => '오버랩';
+
+  @override
+  String get trainingSketchQuickShotButton => '슈팅';
+
+  @override
+  String get trainingSketchQuickCrossButton => '크로스';
+
+  @override
   String get trainingSketchPlayerRouteLimitReached =>
-      '모든 사람 이동선이 이미 있어요. 사람을 선택해서 이동선을 바꾸거나 다시 그려 주세요.';
+      '모든 사람 동작선이 이미 있어요. 사람을 선택해서 동작선을 바꾸거나 다시 그려 주세요.';
 
   @override
   String get trainingSketchBallRouteLimitReached =>
-      '모든 공 이동선이 이미 있어요. 공을 선택해서 이동선을 바꾸거나 다시 그려 주세요.';
+      '모든 공 동작선이 이미 있어요. 공을 선택해서 동작선을 바꾸거나 다시 그려 주세요.';
 
   @override
   String get trainingSketchTemplatePickerTitle => '템플릿 선택';

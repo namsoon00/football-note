@@ -14779,7 +14779,7 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchQuickStart.
   ///
   /// In en, this message translates to:
-  /// **'Quick start: Select a player or ball, then use a quick action to create routes.'**
+  /// **'Quick start: Select a player or ball, then tap a quick action like move, pass, or dribble.'**
   String get trainingSketchQuickStart;
 
   /// No description provided for @trainingSketchSelectedItemTitle.
@@ -14815,7 +14815,7 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchRoutesButton.
   ///
   /// In en, this message translates to:
-  /// **'Routes'**
+  /// **'Actions'**
   String get trainingSketchRoutesButton;
 
   /// No description provided for @trainingSketchLinkRoutesInOrderButton.
@@ -14935,25 +14935,25 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchClearAllRoutesButton.
   ///
   /// In en, this message translates to:
-  /// **'Clear all routes'**
+  /// **'Clear all action lines'**
   String get trainingSketchClearAllRoutesButton;
 
   /// No description provided for @trainingSketchPlayerRoutesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Player routes'**
+  /// **'Player actions'**
   String get trainingSketchPlayerRoutesTitle;
 
   /// No description provided for @trainingSketchBallRoutesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Ball routes'**
+  /// **'Ball actions'**
   String get trainingSketchBallRoutesTitle;
 
   /// No description provided for @trainingSketchRoutesEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No routes yet for this type.'**
+  /// **'No action lines yet for this type.'**
   String get trainingSketchRoutesEmpty;
 
   /// No description provided for @trainingSketchRedrawRouteButton.
@@ -15013,13 +15013,13 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchLinkPlayerHint.
   ///
   /// In en, this message translates to:
-  /// **'Select this player, then tap a destination to make a movement route.'**
+  /// **'Select this player, then tap a destination to make a movement.'**
   String get trainingSketchLinkPlayerHint;
 
   /// No description provided for @trainingSketchLinkBallHint.
   ///
   /// In en, this message translates to:
-  /// **'Select this ball, then tap a pass destination to make a ball route.'**
+  /// **'Select this ball, then tap a pass destination to make a ball action.'**
   String get trainingSketchLinkBallHint;
 
   /// No description provided for @trainingSketchSelectedItemActionsTitle.
@@ -15031,13 +15031,13 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchCreateMoveRouteButton.
   ///
   /// In en, this message translates to:
-  /// **'Create route'**
+  /// **'Create move'**
   String get trainingSketchCreateMoveRouteButton;
 
   /// No description provided for @trainingSketchCreatePassRouteButton.
   ///
   /// In en, this message translates to:
-  /// **'Create pass route'**
+  /// **'Create pass'**
   String get trainingSketchCreatePassRouteButton;
 
   /// No description provided for @trainingSketchQuickMoveButton.
@@ -15070,16 +15070,40 @@ abstract class AppLocalizations {
   /// **'Receive and move'**
   String get trainingSketchQuickReceiveMoveButton;
 
+  /// No description provided for @trainingSketchQuickReturnMoveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get trainingSketchQuickReturnMoveButton;
+
+  /// No description provided for @trainingSketchQuickOverlapButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlap'**
+  String get trainingSketchQuickOverlapButton;
+
+  /// No description provided for @trainingSketchQuickShotButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoot'**
+  String get trainingSketchQuickShotButton;
+
+  /// No description provided for @trainingSketchQuickCrossButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cross'**
+  String get trainingSketchQuickCrossButton;
+
   /// No description provided for @trainingSketchPlayerRouteLimitReached.
   ///
   /// In en, this message translates to:
-  /// **'All player routes are already assigned. Select a player to replace or redraw its route.'**
+  /// **'All player action lines are already assigned. Select a player to replace or redraw its action.'**
   String get trainingSketchPlayerRouteLimitReached;
 
   /// No description provided for @trainingSketchBallRouteLimitReached.
   ///
   /// In en, this message translates to:
-  /// **'All ball routes are already assigned. Select a ball to replace or redraw its route.'**
+  /// **'All ball action lines are already assigned. Select a ball to replace or redraw its action.'**
   String get trainingSketchBallRouteLimitReached;
 
   /// No description provided for @trainingSketchTemplatePickerTitle.
