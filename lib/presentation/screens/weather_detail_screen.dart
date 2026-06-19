@@ -96,12 +96,48 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         ? _buildTodayWeatherFooter(
             l10n: l10n,
             isKo: isKo,
-            outfitGuide: detailedOutfitGuide,
             trainingGuide: trainingGuide,
           )
         : null;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.homeWeatherDetailsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.homeWeatherDetailsTitle),
+        actions: hasWeather
+            ? [
+                IconButton(
+                  tooltip: l10n.homeWeatherOutfitTitle,
+                  icon: const Icon(Icons.checkroom_outlined),
+                  onPressed: () => _openOutfitGuideScreen(
+                    l10n: l10n,
+                    guide: detailedOutfitGuide,
+                  ),
+                ),
+                IconButton(
+                  tooltip: l10n.homeWeatherTomorrowTitle,
+                  icon: Icon(_weatherIcon(tomorrowForecast?.weatherCode)),
+                  onPressed: () => _openWeatherForecastScreen(
+                    title: l10n.homeWeatherTomorrowTitle,
+                    child: _buildTomorrowWeatherCard(
+                      l10n: l10n,
+                      isKo: isKo,
+                      tomorrowForecast: tomorrowForecast,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: l10n.homeWeatherWeeklyTitle,
+                  icon: const Icon(Icons.calendar_month_rounded),
+                  onPressed: () => _openWeatherForecastScreen(
+                    title: l10n.homeWeatherWeeklyTitle,
+                    child: _buildWeeklyForecastCard(
+                      l10n: l10n,
+                      weeklyForecasts: weeklyForecasts,
+                    ),
+                  ),
+                ),
+              ]
+            : null,
+      ),
       body: AppBackground(
         child: SafeArea(
           child: ListView(
@@ -192,40 +228,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 todayInsightPanel,
               ],
-              if (hasWeather) ...[
-                const SizedBox(height: AppSpacing.sm),
-                _WeatherForecastNavCard(
-                  title: l10n.homeWeatherTomorrowTitle,
-                  subtitle: l10n.homeWeatherTomorrowNavSubtitle,
-                  detail: _tomorrowForecastNavDetail(
-                    l10n,
-                    tomorrowForecast,
-                  ),
-                  icon: _weatherIcon(tomorrowForecast?.weatherCode),
-                  onTap: () => _openWeatherForecastScreen(
-                    title: l10n.homeWeatherTomorrowTitle,
-                    child: _buildTomorrowWeatherCard(
-                      l10n: l10n,
-                      isKo: isKo,
-                      tomorrowForecast: tomorrowForecast,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _WeatherForecastNavCard(
-                  title: l10n.homeWeatherWeeklyTitle,
-                  subtitle: l10n.homeWeatherWeeklyNavSubtitle,
-                  detail: _weeklyForecastNavDetail(l10n, weeklyForecasts),
-                  icon: Icons.calendar_month_rounded,
-                  onTap: () => _openWeatherForecastScreen(
-                    title: l10n.homeWeatherWeeklyTitle,
-                    child: _buildWeeklyForecastCard(
-                      l10n: l10n,
-                      weeklyForecasts: weeklyForecasts,
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -300,25 +302,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       pm25LevelForValue: (value) => _pm25Level(l10n, value).level,
       iconForCode: _weatherIcon,
     );
-  }
-
-  String _tomorrowForecastNavDetail(
-    AppLocalizations l10n,
-    _DailyWeatherForecast? forecast,
-  ) {
-    if (forecast == null) return l10n.homeWeatherTomorrowFallback;
-    return '${forecast.weekdayLabel} · ${forecast.label} · ${forecast.summary}';
-  }
-
-  String _weeklyForecastNavDetail(
-    AppLocalizations l10n,
-    List<_DailyWeatherForecast> forecasts,
-  ) {
-    if (forecasts.isEmpty) return l10n.homeWeatherWeeklyFallback;
-    final first = forecasts.first;
-    final last = forecasts.last;
-    if (identical(first, last)) return '${first.weekdayLabel} · ${first.label}';
-    return '${first.label} - ${last.label}';
   }
 
   Future<void> _loadWeather({
@@ -854,7 +837,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   Widget _buildTodayWeatherFooter({
     required AppLocalizations l10n,
     required bool isKo,
-    required _DetailedOutfitGuide outfitGuide,
     required _TrainingGuide trainingGuide,
   }) {
     final hourlyWeather = _buildTodayHourlyWeatherFooter(l10n);
@@ -872,12 +854,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         ],
         _TodayWeatherRecommendationPanel(
           title: l10n.homeWeatherTodayRecommendationsTitle,
-          outfitLabel: l10n.homeWeatherOutfitButton,
-          outfitSummary: outfitGuide.coachSummary,
           trainingLabel: l10n.homeWeatherSuggestionButton,
           trainingSummary: trainingGuide.focus,
-          onOutfitTap: () =>
-              _openOutfitGuideScreen(l10n: l10n, guide: outfitGuide),
           onTrainingTap: () =>
               _showTrainingGuideSheet(isKo: isKo, guide: trainingGuide),
         ),
@@ -1745,112 +1723,6 @@ class _WeatherForecastSubscreen extends StatelessWidget {
               AppSpacing.xl,
             ),
             children: [child],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _WeatherForecastNavCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String detail;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _WeatherForecastNavCard({
-    required this.title,
-    required this.subtitle,
-    required this.detail,
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.surface,
-        child: Ink(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: 10,
-          ),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withValues(alpha: 0.92),
-            borderRadius: AppRadius.surface,
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-            ),
-            boxShadow: AppShadows.surface(theme.brightness),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: AppRadius.control,
-                ),
-                child: Icon(icon, color: theme.colorScheme.primary, size: 22),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Flexible(
-                          child: Text(
-                            detail,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.right,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ],
           ),
         ),
       ),
@@ -3096,7 +2968,12 @@ class _RainAlertPanel extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: data.metrics
-                .map((metric) => _RainMetricChip(metric: metric))
+                .map(
+                  (metric) => _RainMetricChip(
+                    metric: metric,
+                    palette: palette,
+                  ),
+                )
                 .toList(growable: false),
           ),
           if (data.tips.isNotEmpty) ...[
@@ -3144,8 +3021,12 @@ class _RainAlertPanel extends StatelessWidget {
 
 class _RainMetricChip extends StatelessWidget {
   final _RainMetricData metric;
+  final _RainRiskPalette palette;
 
-  const _RainMetricChip({required this.metric});
+  const _RainMetricChip({
+    required this.metric,
+    required this.palette,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -3158,13 +3039,13 @@ class _RainMetricChip extends StatelessWidget {
           color: theme.colorScheme.surface.withValues(alpha: 0.76),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.34),
+            color: palette.border.withValues(alpha: 0.46),
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(metric.icon, size: 16, color: theme.colorScheme.primary),
+            Icon(metric.icon, size: 16, color: palette.foreground),
             const SizedBox(width: 7),
             Flexible(
               child: Column(
@@ -3176,7 +3057,7 @@ class _RainMetricChip extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: palette.foreground.withValues(alpha: 0.82),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -3186,6 +3067,7 @@ class _RainMetricChip extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.labelMedium?.copyWith(
+                      color: palette.foreground,
                       fontWeight: FontWeight.w900,
                       height: 1.12,
                     ),
@@ -3218,74 +3100,68 @@ _RainRiskPalette _rainRiskPalette(ThemeData theme, _RainRiskLevel risk) {
     switch (risk) {
       case _RainRiskLevel.low:
         return const _RainRiskPalette(
-          background: Color(0xFF132820),
-          border: Color(0xFF3D8D72),
-          foreground: Color(0xFF9DE2CB),
+          background: Color(0xFF102738),
+          border: Color(0xFF3B8FBD),
+          foreground: Color(0xFF9DD8F6),
         );
       case _RainRiskLevel.caution:
         return const _RainRiskPalette(
-          background: Color(0xFF17253A),
-          border: Color(0xFF4B7EC0),
-          foreground: Color(0xFFB7D4FA),
+          background: Color(0xFF112A45),
+          border: Color(0xFF4B91D1),
+          foreground: Color(0xFFA9D7FF),
         );
       case _RainRiskLevel.high:
         return const _RainRiskPalette(
-          background: Color(0xFF2C2411),
-          border: Color(0xFFB78936),
-          foreground: Color(0xFFFFD48C),
+          background: Color(0xFF17234F),
+          border: Color(0xFF667DE3),
+          foreground: Color(0xFFC8D0FF),
         );
       case _RainRiskLevel.severe:
         return const _RainRiskPalette(
-          background: Color(0xFF32191A),
-          border: Color(0xFFB45353),
-          foreground: Color(0xFFFFADAD),
+          background: Color(0xFF241A4B),
+          border: Color(0xFF8E75E6),
+          foreground: Color(0xFFD9CCFF),
         );
     }
   }
   switch (risk) {
     case _RainRiskLevel.low:
       return const _RainRiskPalette(
-        background: Color(0xFFE6F5F0),
-        border: Color(0xFF7BC3AA),
-        foreground: Color(0xFF1F6B58),
+        background: Color(0xFFEAF7FF),
+        border: Color(0xFF93CFEF),
+        foreground: Color(0xFF1E638E),
       );
     case _RainRiskLevel.caution:
       return const _RainRiskPalette(
-        background: Color(0xFFEAF2FF),
-        border: Color(0xFF8EB6E8),
-        foreground: Color(0xFF255F9F),
+        background: Color(0xFFE6F1FF),
+        border: Color(0xFF7FAFE8),
+        foreground: Color(0xFF245E9D),
       );
     case _RainRiskLevel.high:
       return const _RainRiskPalette(
-        background: Color(0xFFFFF3DA),
-        border: Color(0xFFE4B35E),
-        foreground: Color(0xFF8C5E10),
+        background: Color(0xFFECEFFF),
+        border: Color(0xFF8D9BE8),
+        foreground: Color(0xFF3E4EA5),
       );
     case _RainRiskLevel.severe:
       return const _RainRiskPalette(
-        background: Color(0xFFFDE8E8),
-        border: Color(0xFFE07A7A),
-        foreground: Color(0xFF9B2E2E),
+        background: Color(0xFFF0EAFF),
+        border: Color(0xFF9D87E8),
+        foreground: Color(0xFF51379C),
       );
   }
 }
 
 class _TodayWeatherRecommendationPanel extends StatelessWidget {
   final String title;
-  final String outfitLabel;
-  final String outfitSummary;
   final String trainingLabel;
   final String trainingSummary;
-  final VoidCallback onOutfitTap;
   final VoidCallback onTrainingTap;
 
   const _TodayWeatherRecommendationPanel({
     required this.title,
-    required this.outfitLabel,
-    required this.outfitSummary,
     required this.trainingLabel,
     required this.trainingSummary,
-    required this.onOutfitTap,
     required this.onTrainingTap,
   });
 
@@ -3311,41 +3187,11 @@ class _TodayWeatherRecommendationPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < 360;
-              final cards = [
-                _TodayRecommendationCard(
-                  icon: Icons.checkroom_outlined,
-                  label: outfitLabel,
-                  summary: outfitSummary,
-                  onTap: onOutfitTap,
-                ),
-                _TodayRecommendationCard(
-                  icon: Icons.sports_soccer_rounded,
-                  label: trainingLabel,
-                  summary: trainingSummary,
-                  onTap: onTrainingTap,
-                ),
-              ];
-              if (compact) {
-                return Column(
-                  children: [
-                    for (var index = 0; index < cards.length; index++) ...[
-                      cards[index],
-                      if (index < cards.length - 1) const SizedBox(height: 8),
-                    ],
-                  ],
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(child: cards[0]),
-                  const SizedBox(width: 10),
-                  Expanded(child: cards[1]),
-                ],
-              );
-            },
+          _TodayRecommendationCard(
+            icon: Icons.sports_soccer_rounded,
+            label: trainingLabel,
+            summary: trainingSummary,
+            onTap: onTrainingTap,
           ),
         ],
       ),
