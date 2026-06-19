@@ -272,6 +272,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       formatRange: _formatRange,
       formatMillimeter: _formatMillimeter,
       formatPrecipitationEntry: _formatPrecipitationTimelineLabel,
+      formatPrecipitationAmount: _formatHourlyPrecipitationAmount,
       formatWind: _formatWind,
       formatTime: _formatHourlyTime,
       iconForCode: _weatherIcon,
@@ -733,6 +734,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     return '$amount · $probabilityLabel\n${_precipitationAmountLabel(entry.precipitation)}';
   }
 
+  String _formatHourlyPrecipitationAmount(_HourlyPrecipitationEntry entry) =>
+      '${entry.precipitation.toStringAsFixed(1)} mm';
+
   String _precipitationAmountLabel(double value) {
     final l10n = AppLocalizations.of(context)!;
     if (value <= 0.05) return l10n.weatherPrecipitationNone;
@@ -803,6 +807,22 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     if (temperatureEntries.isEmpty && precipitationEntries.isEmpty) {
       return null;
     }
+    final peakPrecipitationEntry = precipitationEntries.isEmpty
+        ? null
+        : precipitationEntries.reduce((current, next) {
+            if (next.precipitation > current.precipitation) return next;
+            if (next.precipitation == current.precipitation &&
+                (next.precipitationProbability ?? 0) >
+                    (current.precipitationProbability ?? 0)) {
+              return next;
+            }
+            return current;
+          });
+    final rainRiskLevel = _rainRiskLevel(
+      totalPrecipitation: _todayPrecipitation,
+      probability: _todayPrecipitationProbabilityMax,
+      peakPrecipitation: peakPrecipitationEntry?.precipitation,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -816,16 +836,66 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           ),
         if (temperatureEntries.isNotEmpty && precipitationEntries.isNotEmpty)
           const SizedBox(height: 10),
+        if (peakPrecipitationEntry != null) ...[
+          _RainRiskPanel(
+            title: l10n.homeWeatherRainRiskTitle,
+            levelLabel: _rainRiskLabel(l10n, rainRiskLevel),
+            level: rainRiskLevel,
+            probabilityLabel: l10n.homeWeatherPrecipitationProbability,
+            probabilityValue: _formatProbability(
+              _todayPrecipitationProbabilityMax,
+            ),
+            totalLabel: l10n.homeWeatherRainRiskTotal,
+            totalValue: _formatMillimeter(_todayPrecipitation),
+            peakHourLabel: l10n.homeWeatherRainRiskPeakHour,
+            peakHourValue: _formatHourlyTime(peakPrecipitationEntry.time),
+            peakAmountValue: _formatHourlyPrecipitationAmount(
+              peakPrecipitationEntry,
+            ),
+            tip: l10n.homeWeatherRainRiskTip,
+            accentStyle: accentStyle,
+          ),
+          const SizedBox(height: 10),
+        ],
         if (precipitationEntries.isNotEmpty)
           _HourlyPrecipitationSection(
             title: l10n.homeWeatherHourlyPrecipitation,
             entries: precipitationEntries,
             formatTime: _formatHourlyTime,
             formatPrecipitation: _formatPrecipitationTimelineLabel,
+            formatPrecipitationAmount: _formatHourlyPrecipitationAmount,
             accentStyle: accentStyle,
           ),
       ],
     );
+  }
+
+  _RainRiskLevel _rainRiskLevel({
+    required double? totalPrecipitation,
+    required double? probability,
+    required double? peakPrecipitation,
+  }) {
+    final total = totalPrecipitation ?? 0;
+    final chance = probability ?? 0;
+    final peak = peakPrecipitation ?? 0;
+    if (chance >= 70 || total >= 3 || peak >= 1) {
+      return _RainRiskLevel.high;
+    }
+    if (chance >= 40 || total >= 0.5 || peak > 0.05) {
+      return _RainRiskLevel.medium;
+    }
+    return _RainRiskLevel.low;
+  }
+
+  String _rainRiskLabel(AppLocalizations l10n, _RainRiskLevel level) {
+    switch (level) {
+      case _RainRiskLevel.low:
+        return l10n.homeWeatherRainRiskLevelLow;
+      case _RainRiskLevel.medium:
+        return l10n.homeWeatherRainRiskLevelMedium;
+      case _RainRiskLevel.high:
+        return l10n.homeWeatherRainRiskLevelHigh;
+    }
   }
 
   double? get _currentOutfitTemperature =>
@@ -2683,6 +2753,7 @@ class _TomorrowWeatherCard extends StatelessWidget {
   final String Function(double?, double?) formatRange;
   final String Function(double?) formatMillimeter;
   final String Function(_HourlyPrecipitationEntry) formatPrecipitationEntry;
+  final String Function(_HourlyPrecipitationEntry) formatPrecipitationAmount;
   final String Function(double?) formatWind;
   final String Function(DateTime) formatTime;
   final IconData Function(int?) iconForCode;
@@ -2702,6 +2773,7 @@ class _TomorrowWeatherCard extends StatelessWidget {
     required this.formatRange,
     required this.formatMillimeter,
     required this.formatPrecipitationEntry,
+    required this.formatPrecipitationAmount,
     required this.formatWind,
     required this.formatTime,
     required this.iconForCode,
@@ -2856,6 +2928,7 @@ class _TomorrowWeatherCard extends StatelessWidget {
                     ),
                     formatTime: formatTime,
                     formatPrecipitation: formatPrecipitationEntry,
+                    formatPrecipitationAmount: formatPrecipitationAmount,
                   ),
                 ],
               ],
@@ -3287,11 +3360,287 @@ List<_HourlyPrecipitationEntry> _visibleHourlyPrecipitationEntries(
   return sortedEntries.skip(firstRainIndex).toList(growable: false);
 }
 
+enum _RainRiskLevel { low, medium, high }
+
+class _RainRiskPanel extends StatelessWidget {
+  final String title;
+  final String levelLabel;
+  final _RainRiskLevel level;
+  final String probabilityLabel;
+  final String probabilityValue;
+  final String totalLabel;
+  final String totalValue;
+  final String peakHourLabel;
+  final String peakHourValue;
+  final String peakAmountValue;
+  final String tip;
+  final bool accentStyle;
+
+  const _RainRiskPanel({
+    required this.title,
+    required this.levelLabel,
+    required this.level,
+    required this.probabilityLabel,
+    required this.probabilityValue,
+    required this.totalLabel,
+    required this.totalValue,
+    required this.peakHourLabel,
+    required this.peakHourValue,
+    required this.peakAmountValue,
+    required this.tip,
+    required this.accentStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = _rainRiskPalette(theme, level, accentStyle);
+    final mutedColor = accentStyle
+        ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.76)
+        : theme.colorScheme.onSurfaceVariant;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: palette.background,
+        borderRadius: AppRadius.control,
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.umbrella_outlined,
+                  size: 18, color: palette.foreground),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: palette.foreground,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: palette.foreground.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: palette.foreground.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: Text(
+                  levelLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: palette.foreground,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 9),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const spacing = 8.0;
+              final columnCount = constraints.maxWidth >= 430 ? 3 : 2;
+              final itemWidth =
+                  (constraints.maxWidth - spacing * (columnCount - 1)) /
+                      columnCount;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: [
+                  SizedBox(
+                    width: itemWidth,
+                    child: _RainRiskMetricTile(
+                      label: probabilityLabel,
+                      value: probabilityValue,
+                      mutedColor: mutedColor,
+                      foreground: palette.foreground,
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _RainRiskMetricTile(
+                      label: totalLabel,
+                      value: totalValue,
+                      mutedColor: mutedColor,
+                      foreground: palette.foreground,
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _RainRiskMetricTile(
+                      label: peakHourLabel,
+                      value: peakHourValue,
+                      secondaryValue: peakAmountValue,
+                      mutedColor: mutedColor,
+                      foreground: palette.foreground,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 9),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.sports_soccer_rounded, size: 16, color: mutedColor),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  tip,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: mutedColor,
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RainRiskMetricTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final String? secondaryValue;
+  final Color mutedColor;
+  final Color foreground;
+
+  const _RainRiskMetricTile({
+    required this.label,
+    required this.value,
+    this.secondaryValue,
+    required this.mutedColor,
+    required this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(minHeight: 52),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.58),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.36),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: mutedColor,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: foreground,
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+            ),
+          ),
+          if (secondaryValue != null) ...[
+            const SizedBox(height: 3),
+            Text(
+              secondaryValue!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: foreground,
+                fontWeight: FontWeight.w900,
+                height: 1,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+_RainRiskPalette _rainRiskPalette(
+  ThemeData theme,
+  _RainRiskLevel level,
+  bool accentStyle,
+) {
+  if (accentStyle) {
+    final foreground = theme.colorScheme.onPrimaryContainer;
+    return _RainRiskPalette(
+      background: theme.colorScheme.surface.withValues(alpha: 0.16),
+      border: theme.colorScheme.surface.withValues(alpha: 0.16),
+      foreground: foreground,
+    );
+  }
+  switch (level) {
+    case _RainRiskLevel.low:
+      return _RainRiskPalette(
+        background: theme.colorScheme.surfaceContainerLow,
+        border: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        foreground: theme.colorScheme.primary,
+      );
+    case _RainRiskLevel.medium:
+      return _RainRiskPalette(
+        background: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.36),
+        border: theme.colorScheme.tertiary.withValues(alpha: 0.22),
+        foreground: theme.colorScheme.onTertiaryContainer,
+      );
+    case _RainRiskLevel.high:
+      return _RainRiskPalette(
+        background: theme.colorScheme.errorContainer.withValues(alpha: 0.42),
+        border: theme.colorScheme.error.withValues(alpha: 0.24),
+        foreground: theme.colorScheme.onErrorContainer,
+      );
+  }
+}
+
+class _RainRiskPalette {
+  final Color background;
+  final Color border;
+  final Color foreground;
+
+  const _RainRiskPalette({
+    required this.background,
+    required this.border,
+    required this.foreground,
+  });
+}
+
 class _HourlyPrecipitationSection extends StatelessWidget {
   final String title;
   final List<_HourlyPrecipitationEntry> entries;
   final String Function(DateTime) formatTime;
   final String Function(_HourlyPrecipitationEntry) formatPrecipitation;
+  final String Function(_HourlyPrecipitationEntry) formatPrecipitationAmount;
   final bool accentStyle;
 
   const _HourlyPrecipitationSection({
@@ -3299,6 +3648,7 @@ class _HourlyPrecipitationSection extends StatelessWidget {
     required this.entries,
     required this.formatTime,
     required this.formatPrecipitation,
+    required this.formatPrecipitationAmount,
     this.accentStyle = false,
   });
 
@@ -3390,6 +3740,93 @@ class _HourlyPrecipitationSection extends StatelessWidget {
                     ? theme.colorScheme.onPrimaryContainer
                     : theme.colorScheme.onPrimaryContainer,
                 mutedLabelColor: timeTextColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (var index = 0; index < sortedEntries.length; index++) ...[
+                  if (index > 0) const SizedBox(width: 6),
+                  _HourlyPrecipitationAmountChip(
+                    entry: sortedEntries[index],
+                    formatTime: formatTime,
+                    formatPrecipitationAmount: formatPrecipitationAmount,
+                    accentStyle: accentStyle,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HourlyPrecipitationAmountChip extends StatelessWidget {
+  final _HourlyPrecipitationEntry entry;
+  final String Function(DateTime) formatTime;
+  final String Function(_HourlyPrecipitationEntry) formatPrecipitationAmount;
+  final bool accentStyle;
+
+  const _HourlyPrecipitationAmountChip({
+    required this.entry,
+    required this.formatTime,
+    required this.formatPrecipitationAmount,
+    required this.accentStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final background = accentStyle
+        ? theme.colorScheme.surface.withValues(alpha: 0.18)
+        : theme.colorScheme.surface;
+    final borderColor = accentStyle
+        ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.18)
+        : theme.colorScheme.outlineVariant.withValues(alpha: 0.55);
+    final timeColor = accentStyle
+        ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.74)
+        : theme.colorScheme.onSurfaceVariant;
+    final amountColor = accentStyle
+        ? theme.colorScheme.onPrimaryContainer
+        : theme.colorScheme.primary;
+    return Container(
+      width: 72,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: AppRadius.small,
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            formatTime(entry.time),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: timeColor,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              formatPrecipitationAmount(entry),
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: amountColor,
+                fontWeight: FontWeight.w900,
+                height: 1,
               ),
             ),
           ),
