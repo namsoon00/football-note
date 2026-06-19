@@ -7706,6 +7706,18 @@ abstract class AppLocalizations {
   /// **'Weekly weather'**
   String get homeWeatherWeeklyTitle;
 
+  /// No description provided for @homeWeatherTomorrowNavSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check tomorrow\'s forecast and outfit guide separately.'**
+  String get homeWeatherTomorrowNavSubtitle;
+
+  /// No description provided for @homeWeatherWeeklyNavSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the 7-day forecast and air-quality trend separately.'**
+  String get homeWeatherWeeklyNavSubtitle;
+
   /// No description provided for @homeWeatherMorningLabel.
   ///
   /// In en, this message translates to:
@@ -7735,6 +7747,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tomorrow\'s forecast is not available yet.'**
   String get homeWeatherTomorrowFallback;
+
+  /// No description provided for @homeWeatherWeeklyFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly forecast is not available yet.'**
+  String get homeWeatherWeeklyFallback;
 
   /// No description provided for @homeWeatherTomorrowOutfitTitle.
   ///

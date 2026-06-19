@@ -4148,6 +4148,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeWeatherWeeklyTitle => '週間天気';
 
   @override
+  String get homeWeatherTomorrowNavSubtitle => '明日の予報と服装ガイドを別画面で確認してください。';
+
+  @override
+  String get homeWeatherWeeklyNavSubtitle => '7日間の予報と空気質の流れを別画面で確認してください。';
+
+  @override
   String get homeWeatherMorningLabel => '朝';
 
   @override
@@ -4161,6 +4167,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeWeatherTomorrowFallback => '明日の予報はまだ出ていません。';
+
+  @override
+  String get homeWeatherWeeklyFallback => '週間予報はまだ出ていません。';
 
   @override
   String get homeWeatherTomorrowOutfitTitle => '明日の服装';
