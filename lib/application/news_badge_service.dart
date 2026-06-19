@@ -84,9 +84,11 @@ class NewsBadgeService {
     OptionRepository optionRepository,
     Iterable<NewsArticle> articles,
   ) async {
+    final sportId = SportService(optionRepository).currentSportId();
+    final seenKey = _scopedKey(seenArticleKeysKey, sportId);
     final merged = LinkedHashSet<String>.from(
       optionRepository
-          .getOptions(seenArticleKeysKey, const <String>[])
+          .getOptions(seenKey, const <String>[])
           .map((value) => value.trim())
           .where((value) => value.isNotEmpty),
     );
@@ -99,7 +101,7 @@ class NewsBadgeService {
     while (merged.length > _maxStoredKeys) {
       merged.remove(merged.first);
     }
-    await optionRepository.saveOptions(seenArticleKeysKey, merged.toList());
+    await optionRepository.saveOptions(seenKey, merged.toList());
   }
 
   static bool openedToday(OptionRepository optionRepository, {DateTime? now}) {
@@ -126,7 +128,7 @@ class NewsBadgeService {
     );
     final seenKeys = {
       ...optionRepository
-          .getOptions(seenArticleKeysKey, const <String>[])
+          .getOptions(_scopedKey(seenArticleKeysKey, sportId), const <String>[])
           .map((value) => value.trim())
           .where((value) => value.isNotEmpty),
       ...NewsReadState.loadReadKeys(optionRepository),

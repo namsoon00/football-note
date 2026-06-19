@@ -12,6 +12,7 @@ import '../domain/repositories/option_repository.dart';
 import 'league_fixture_reminder_service.dart';
 import 'notification_app_link.dart';
 import 'settings_service.dart';
+import 'sport_scoped_storage.dart';
 
 class TrainingPlanReminderService {
   static void Function(String? payload)? onNotificationPayloadTap;
@@ -55,6 +56,7 @@ class TrainingPlanReminderService {
   final OptionRepository _options;
   final SettingsService _settings;
   final FlutterLocalNotificationsPlugin _plugin;
+  final String? _sportId;
 
   bool _initialized = false;
 
@@ -62,7 +64,22 @@ class TrainingPlanReminderService {
     this._options,
     this._settings, {
     FlutterLocalNotificationsPlugin? plugin,
-  }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+    String? sportId,
+  })  : _plugin = plugin ?? FlutterLocalNotificationsPlugin(),
+        _sportId = sportId;
+
+  String get _plansStorageKey => sportScopedOptionKey(
+        _options,
+        plansStorageKey,
+        sportId: _sportId,
+      );
+
+  static String plansStorageKeyFor(
+    OptionRepository options, {
+    String? sportId,
+  }) {
+    return sportScopedOptionKey(options, plansStorageKey, sportId: sportId);
+  }
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -93,10 +110,8 @@ class TrainingPlanReminderService {
       },
     );
 
-    final androidImpl = _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
+    final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     await androidImpl?.createNotificationChannel(
       const AndroidNotificationChannel(
         _androidChannelId,
@@ -128,10 +143,8 @@ class TrainingPlanReminderService {
     await androidImpl?.requestNotificationsPermission();
     await androidImpl?.requestExactAlarmsPermission();
 
-    final iosImpl = _plugin
-        .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin
-        >();
+    final iosImpl = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
     await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
 
     _initialized = true;
@@ -146,7 +159,7 @@ class TrainingPlanReminderService {
   }
 
   Future<void> syncFromStorage() async {
-    final raw = _options.getValue<String>(plansStorageKey);
+    final raw = _options.getValue<String>(_plansStorageKey);
     if (raw == null || raw.isEmpty) {
       await clearAllPlanReminders();
       return;
@@ -225,9 +238,8 @@ class TrainingPlanReminderService {
               scheduledAt: item.at,
               atStartTime: item.atStartTime,
             ),
-            matchDateTimeComponents: item.repeatsWeekly
-                ? DateTimeComponents.dayOfWeekAndTime
-                : null,
+            matchDateTimeComponents:
+                item.repeatsWeekly ? DateTimeComponents.dayOfWeekAndTime : null,
           );
           scheduledIds.add(id);
         } catch (_) {
@@ -298,9 +310,8 @@ class TrainingPlanReminderService {
             importance: Importance.high,
             priority: Priority.high,
             enableVibration: _settings.reminderVibrationEnabled,
-            vibrationPattern: _settings.reminderVibrationEnabled
-                ? _vibrationPattern
-                : null,
+            vibrationPattern:
+                _settings.reminderVibrationEnabled ? _vibrationPattern : null,
           ),
           iOS: const DarwinNotificationDetails(),
         ),
@@ -357,7 +368,7 @@ class TrainingPlanReminderService {
   }
 
   List<Map<String, dynamic>> loadPlansFromStorage() {
-    final raw = _options.getValue<String>(plansStorageKey);
+    final raw = _options.getValue<String>(_plansStorageKey);
     if (raw == null || raw.isEmpty) return const [];
     try {
       final decoded = jsonDecode(raw);
@@ -372,9 +383,8 @@ class TrainingPlanReminderService {
   }
 
   Future<void> syncInactivityFromEntries(List<TrainingEntry> entries) async {
-    final trainingEntries = entries
-        .where((entry) => !entry.isMatch)
-        .toList(growable: false);
+    final trainingEntries =
+        entries.where((entry) => !entry.isMatch).toList(growable: false);
     if (trainingEntries.isEmpty) {
       await _options.setValue(lastTrainingLogAtKey, '');
       await _clearNotificationIds(inactivityReminderIdsKey);
@@ -422,9 +432,8 @@ class TrainingPlanReminderService {
             importance: Importance.high,
             priority: Priority.high,
             enableVibration: _settings.reminderVibrationEnabled,
-            vibrationPattern: _settings.reminderVibrationEnabled
-                ? _vibrationPattern
-                : null,
+            vibrationPattern:
+                _settings.reminderVibrationEnabled ? _vibrationPattern : null,
           ),
           iOS: const DarwinNotificationDetails(),
         ),
@@ -475,9 +484,8 @@ class TrainingPlanReminderService {
             importance: Importance.high,
             priority: Priority.high,
             enableVibration: _settings.reminderVibrationEnabled,
-            vibrationPattern: _settings.reminderVibrationEnabled
-                ? _vibrationPattern
-                : null,
+            vibrationPattern:
+                _settings.reminderVibrationEnabled ? _vibrationPattern : null,
           ),
           iOS: const DarwinNotificationDetails(),
         ),
@@ -523,9 +531,8 @@ class TrainingPlanReminderService {
             importance: Importance.high,
             priority: Priority.high,
             enableVibration: _settings.reminderVibrationEnabled,
-            vibrationPattern: _settings.reminderVibrationEnabled
-                ? _vibrationPattern
-                : null,
+            vibrationPattern:
+                _settings.reminderVibrationEnabled ? _vibrationPattern : null,
           ),
           iOS: const DarwinNotificationDetails(),
         ),
@@ -694,16 +701,12 @@ class TrainingPlanReminderService {
     if (kIsWeb) return true;
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        final androidImpl = _plugin
-            .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin
-            >();
+        final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
         return await androidImpl?.areNotificationsEnabled() ?? true;
       case TargetPlatform.iOS:
-        final iosImpl = _plugin
-            .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin
-            >();
+        final iosImpl = _plugin.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
         final permissions = await iosImpl?.checkPermissions();
         return permissions?.isEnabled ?? false;
       default:
@@ -716,17 +719,13 @@ class TrainingPlanReminderService {
     if (kIsWeb) return true;
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        final androidImpl = _plugin
-            .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin
-            >();
+        final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
         await androidImpl?.requestNotificationsPermission();
         return await androidImpl?.areNotificationsEnabled() ?? true;
       case TargetPlatform.iOS:
-        final iosImpl = _plugin
-            .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin
-            >();
+        final iosImpl = _plugin.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
         await iosImpl?.requestPermissions(
           alert: true,
           badge: true,
@@ -854,13 +853,11 @@ class TrainingPlanReminderService {
       if (id.isEmpty) return false;
       return !familyReadIds.contains(id);
     }).length;
-    final fixtureLogs =
-        _options.getValue<List>(
+    final fixtureLogs = _options.getValue<List>(
           LeagueFixtureReminderService.fixtureMessageLogKey,
         ) ??
         const [];
-    final fixtureReadRaw =
-        _options.getValue<List>(
+    final fixtureReadRaw = _options.getValue<List>(
           LeagueFixtureReminderService.fixtureMessageReadIdsKey,
         ) ??
         const [];
@@ -916,39 +913,33 @@ class TrainingPlanReminderService {
 
   List<Map<String, dynamic>> loadXpMessageLogSync() {
     final raw = _options.getValue<List>(xpMessageLogKey) ?? const [];
-    final logs =
-        raw
-            .whereType<Map>()
-            .map((item) => item.cast<String, dynamic>())
-            .toList(growable: false)
-          ..sort((a, b) {
-            final aAt =
-                DateTime.tryParse(a['createdAt']?.toString() ?? '') ??
-                DateTime.fromMillisecondsSinceEpoch(0);
-            final bAt =
-                DateTime.tryParse(b['createdAt']?.toString() ?? '') ??
-                DateTime.fromMillisecondsSinceEpoch(0);
-            return bAt.compareTo(aAt);
-          });
+    final logs = raw
+        .whereType<Map>()
+        .map((item) => item.cast<String, dynamic>())
+        .toList(growable: false)
+      ..sort((a, b) {
+        final aAt = DateTime.tryParse(a['createdAt']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        final bAt = DateTime.tryParse(b['createdAt']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        return bAt.compareTo(aAt);
+      });
     return logs;
   }
 
   List<Map<String, dynamic>> loadFamilyMessageLogSync() {
     final raw = _options.getValue<List>(familyMessageLogKey) ?? const [];
-    final logs =
-        raw
-            .whereType<Map>()
-            .map((item) => item.cast<String, dynamic>())
-            .toList(growable: false)
-          ..sort((a, b) {
-            final aAt =
-                DateTime.tryParse(a['createdAt']?.toString() ?? '') ??
-                DateTime.fromMillisecondsSinceEpoch(0);
-            final bAt =
-                DateTime.tryParse(b['createdAt']?.toString() ?? '') ??
-                DateTime.fromMillisecondsSinceEpoch(0);
-            return bAt.compareTo(aAt);
-          });
+    final logs = raw
+        .whereType<Map>()
+        .map((item) => item.cast<String, dynamic>())
+        .toList(growable: false)
+      ..sort((a, b) {
+        final aAt = DateTime.tryParse(a['createdAt']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        final bAt = DateTime.tryParse(b['createdAt']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        return bAt.compareTo(aAt);
+      });
     return logs;
   }
 
@@ -1050,19 +1041,16 @@ class _PlanLite {
       repeatWeekdays.isEmpty || (seriesId?.trim().isNotEmpty ?? false);
 
   factory _PlanLite.fromMap(Map<String, dynamic> map) {
-    final repeatWeekdays =
-        ((map['repeatWeekdays'] as List?) ?? const [])
-            .map((e) => (e as num?)?.toInt() ?? 0)
-            .where((v) => v >= DateTime.monday && v <= DateTime.sunday)
-            .toSet()
-            .toList(growable: false)
-          ..sort();
+    final repeatWeekdays = ((map['repeatWeekdays'] as List?) ?? const [])
+        .map((e) => (e as num?)?.toInt() ?? 0)
+        .where((v) => v >= DateTime.monday && v <= DateTime.sunday)
+        .toSet()
+        .toList(growable: false)
+      ..sort();
     return _PlanLite(
-      id:
-          map['id']?.toString() ??
+      id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       reminderMinutesBefore:

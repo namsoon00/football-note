@@ -809,8 +809,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     await _recordCategoryPerformance();
     await _appendQuizHistory(completedAt);
     await _trackMetric('football_quiz_session_completed');
-    final levelAward = await PlayerLevelService(widget.optionRepository)
-        .awardForQuizCompletion(
+    final levelAward =
+        await PlayerLevelService(widget.optionRepository, sportId: _sportId)
+            .awardForQuizCompletion(
       completedAt: completedAt,
       correctAnswers: _score,
       totalQuestions: _questions.length,

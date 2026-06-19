@@ -6,6 +6,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../application/backup_service.dart';
 import '../../application/family_access_service.dart';
 import '../../application/player_level_service.dart';
+import '../../application/sport_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
 import '../widgets/app_background.dart';
@@ -32,6 +33,7 @@ class PlayerLevelGuideScreen extends StatefulWidget {
 
 class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   late final PlayerLevelService _levelService;
+  late final String _sportId;
   final Map<int, GlobalKey> _levelKeys = <int, GlobalKey>{};
   int? _syncingRewardLevel;
   bool _scrolledToCurrentLevel = false;
@@ -39,7 +41,11 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   @override
   void initState() {
     super.initState();
-    _levelService = PlayerLevelService(widget.optionRepository);
+    _sportId = SportService(widget.optionRepository).currentSportId();
+    _levelService = PlayerLevelService(
+      widget.optionRepository,
+      sportId: _sportId,
+    );
   }
 
   @override
@@ -85,8 +91,8 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                     : l10n.levelGuideChildModeLabel,
                 syncStatusLabel:
                     familyState.isParentMode && _syncingRewardLevel != null
-                    ? l10n.parentSharedSyncInProgress
-                    : null,
+                        ? l10n.parentSharedSyncInProgress
+                        : null,
                 modeInfoTooltip: l10n.levelGuideModeInfoTooltip,
                 onLevelPressed: () => _scrollToLevel(currentState.level),
                 onModeInfoPressed: () => _showModeInfoDialog(
@@ -99,11 +105,9 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                       : l10n.levelGuideChildModeDescription,
                 ),
               ),
-              for (
-                var levelIndex = 0;
-                levelIndex < thresholds.length;
-                levelIndex++
-              ) ...[
+              for (var levelIndex = 0;
+                  levelIndex < thresholds.length;
+                  levelIndex++) ...[
                 const SizedBox(height: 12),
                 KeyedSubtree(
                   key: _levelKey(levelIndex + 1),
@@ -116,20 +120,20 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                     isCurrent: levelIndex + 1 == widget.currentLevel,
                     rewardStatus: rewardByLevel[levelIndex + 1],
                     l10n: l10n,
+                    sportId: _sportId,
                     spec: PlayerLevelVisualSpec.fromLevel(levelIndex + 1),
                     isSyncing: _syncingRewardLevel == levelIndex + 1,
                     canClaimReward: familyState.isChildMode,
                     claimDisabledLabel: l10n.levelGuideClaimChildOnly,
                     onClaimReward: () => _claimReward(levelIndex + 1),
-                    onEditRewardName:
-                        rewardByLevel[levelIndex + 1] == null ||
+                    onEditRewardName: rewardByLevel[levelIndex + 1] == null ||
                             !familyState.isParentMode ||
                             _syncingRewardLevel == levelIndex + 1
                         ? null
                         : () => _editRewardName(
-                            context,
-                            rewardByLevel[levelIndex + 1]!,
-                          ),
+                              context,
+                              rewardByLevel[levelIndex + 1]!,
+                            ),
                   ),
                 ),
               ],
@@ -239,8 +243,8 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
         : l10n.levelGuideRewardSaved;
     final syncMessage =
         FamilyAccessService(widget.optionRepository).loadState().isParentMode
-        ? l10n.parentSharedSyncPending
-        : '';
+            ? l10n.parentSharedSyncPending
+            : '';
     AppFeedback.showSuccess(
       context,
       text: syncMessage.isEmpty ? baseMessage : '$baseMessage $syncMessage',
@@ -326,9 +330,9 @@ class _LevelGuideSummaryCard extends StatelessWidget {
           Text(
             l10n.levelGuideCurrentProgressTitle,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-            ),
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
           const SizedBox(height: 6),
           InkWell(
@@ -373,9 +377,9 @@ class _LevelGuideSummaryCard extends StatelessWidget {
                       child: Text(
                         roleLabel,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w900,
-                        ),
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w900,
+                            ),
                       ),
                     ),
                     IconButton(
@@ -503,6 +507,7 @@ class _LevelGuideCard extends StatelessWidget {
   final bool isCurrent;
   final PlayerLevelRewardStatus? rewardStatus;
   final AppLocalizations l10n;
+  final String sportId;
   final PlayerLevelVisualSpec spec;
   final bool isSyncing;
   final bool canClaimReward;
@@ -517,6 +522,7 @@ class _LevelGuideCard extends StatelessWidget {
     required this.isCurrent,
     required this.rewardStatus,
     required this.l10n,
+    required this.sportId,
     required this.spec,
     required this.isSyncing,
     required this.canClaimReward,
@@ -564,7 +570,7 @@ class _LevelGuideCard extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
-                      'Lv.$level ${l10n.playerLevelName(level)}',
+                      'Lv.$level ${l10n.playerLevelName(level, sportId: sportId)}',
                       style: theme.textTheme.titleLarge?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
@@ -576,7 +582,7 @@ class _LevelGuideCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  l10n.playerLevelStageName(level),
+                  l10n.playerLevelStageName(level, sportId: sportId),
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: Colors.white.withValues(alpha: 0.92),
                     fontWeight: FontWeight.w700,
@@ -584,7 +590,7 @@ class _LevelGuideCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  l10n.playerLevelIllustrationLabel(level),
+                  l10n.playerLevelIllustrationLabel(level, sportId: sportId),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -648,11 +654,11 @@ class _LevelGuideCard extends StatelessWidget {
                                   Expanded(
                                     child: Text(
                                       l10n.levelGuideRewardTitle,
-                                      style: theme.textTheme.labelLarge
-                                          ?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w900,
-                                          ),
+                                      style:
+                                          theme.textTheme.labelLarge?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w900,
+                                      ),
                                     ),
                                   ),
                                   if (onEditRewardName != null)
@@ -760,9 +766,9 @@ class _WhitePill extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-        ),
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }

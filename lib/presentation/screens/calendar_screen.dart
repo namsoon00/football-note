@@ -89,7 +89,6 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  static const _plansStorageKey = 'training_plans_v1';
   static const _calendarExpandedKey = 'calendar_expanded_v1';
   static const _calendarFormatKey = 'calendar_format_v1';
   static const _lastPlanReminderKey =
@@ -125,6 +124,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool _quickCreateHandled = false;
   bool _overlayOpenInFlight = false;
   double _calendarVerticalDragDistance = 0;
+
+  String get _plansStorageKey =>
+      TrainingPlanReminderService.plansStorageKeyFor(widget.optionRepository);
 
   @override
   void initState() {
@@ -2526,6 +2528,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
     final award = await PlayerLevelService(
       widget.optionRepository,
+      sportId: saved.sportId,
     ).awardForMatchLog(previousEntry: previousEntry, updatedEntry: saved);
     if (!mounted || award.gainedXp <= 0) return;
     final reminderService = TrainingPlanReminderService(
@@ -2969,6 +2972,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (shouldDelete == true) {
       await PlayerLevelService(
         widget.optionRepository,
+        sportId: entry.sportId,
       ).revokeTrainingEntryAward(entry);
       await widget.trainingService.delete(entry);
       return true;

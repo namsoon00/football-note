@@ -293,7 +293,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     try {
       await _challengeService.revokeIncompleteAwards(
         progress: progress,
-        playerLevelService: PlayerLevelService(widget.optionRepository),
+        playerLevelService: PlayerLevelService(
+          widget.optionRepository,
+          sportId: SportService(widget.optionRepository).currentSportId(),
+        ),
       );
       if (!mounted) return;
       setState(() {});
@@ -313,7 +316,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     try {
       final awards = await _challengeService.awardCompletedRounds(
         progress: progress,
-        playerLevelService: PlayerLevelService(widget.optionRepository),
+        playerLevelService: PlayerLevelService(
+          widget.optionRepository,
+          sportId: SportService(widget.optionRepository).currentSportId(),
+        ),
       );
       final gainedXp = awards.fold<int>(
         0,
@@ -396,7 +402,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     try {
       final awards = await _challengeService.finalizeRun(
         progress: progress,
-        playerLevelService: PlayerLevelService(widget.optionRepository),
+        playerLevelService: PlayerLevelService(
+          widget.optionRepository,
+          sportId: SportService(widget.optionRepository).currentSportId(),
+        ),
       );
       final gainedXp = awards.fold<int>(
         0,
@@ -669,7 +678,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     if (progress != null && completedRoundNumbers.isNotEmpty) {
       final awards = await _challengeService.awardCompletedRounds(
         progress: progress,
-        playerLevelService: PlayerLevelService(widget.optionRepository),
+        playerLevelService: PlayerLevelService(
+          widget.optionRepository,
+          sportId: SportService(widget.optionRepository).currentSportId(),
+        ),
       );
       gainedXp = awards.fold<int>(0, (sum, award) => sum + award.gainedXp);
       awardedRoundCount = awards

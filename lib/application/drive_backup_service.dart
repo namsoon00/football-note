@@ -281,9 +281,34 @@ class DriveBackupService implements BackupRepository {
   };
   static const List<String> _backedUpOptionKeyPrefixes = [
     CoachRosterService.scopedOptionKeyPrefix,
+    ...PlayerLevelService.sportScopedOptionKeyPrefixes,
     'programs_',
     'daily_goals_',
     'default_program_',
+    'training_plans_v1_',
+    'meal_logs_v1_',
+    'training_boards_v1_',
+    'challenge_runs_v1_',
+    'custom_diary_entries_v3_',
+    'coach_diary_completed_day_v2_',
+    'diary_theme_v1_',
+    'skill_quiz_completed_at_',
+    'skill_quiz_session_v1_',
+    'skill_quiz_pending_wrong_v1_',
+    'skill_quiz_pending_wrong_schedule_v1_',
+    'skill_quiz_pending_wrong_schedule_v2_',
+    'skill_quiz_metrics_v1_',
+    'skill_quiz_recent_performance_v1_',
+    'skill_quiz_daily_questions_v2_',
+    'skill_quiz_daily_questions_day_v2_',
+    'skill_quiz_cleared_sets_v1_',
+    'skill_quiz_category_stats_v1_',
+    'skill_quiz_history_v1_',
+    'news_opened_items_v1_',
+    'news_scrapped_links_',
+    'news_scrapped_items_v1_',
+    'news_source_open_counts_v1_',
+    'news_read_article_keys_v1_',
     'space_speed_weekly_best_',
   ];
   static const Set<String> _localDeviceOptionKeys = {
@@ -351,6 +376,7 @@ class DriveBackupService implements BackupRepository {
     'local_pre_restore_',
     'benchmark_',
     'news_badge_',
+    'recent_board_id_',
     'notification_',
     'family_sync_message_',
     'xp_alert_message_',
@@ -2728,20 +2754,18 @@ class DriveBackupService implements BackupRepository {
   }
 
   Map<String, String> _loadRewardNames() {
-    final raw = _optionBox.get(
-      _playerScopedLevelOptionKey(PlayerLevelService.customRewardNamesKey),
-    );
-    if (raw is! Map) {
-      return <String, String>{};
-    }
     final result = <String, String>{};
-    raw.forEach((key, value) {
-      final normalizedKey = key.toString().trim();
-      final normalizedValue = value?.toString().trim() ?? '';
-      if (normalizedKey.isNotEmpty && normalizedValue.isNotEmpty) {
-        result[normalizedKey] = normalizedValue;
-      }
-    });
+    for (final optionKey in PlayerLevelService.customRewardNamesOptionKeys) {
+      final raw = _optionBox.get(_playerScopedLevelOptionKey(optionKey));
+      if (raw is! Map) continue;
+      raw.forEach((key, value) {
+        final normalizedKey = key.toString().trim();
+        final normalizedValue = value?.toString().trim() ?? '';
+        if (normalizedKey.isNotEmpty && normalizedValue.isNotEmpty) {
+          result['$optionKey:$normalizedKey'] = normalizedValue;
+        }
+      });
+    }
     return result;
   }
 
@@ -2844,19 +2868,16 @@ class DriveBackupService implements BackupRepository {
     if (playerId.isEmpty) return keys;
     keys
       ..remove(FamilyAccessService.parentTrainingFeedbackKey)
-      ..remove(PlayerLevelService.customRewardNamesKey)
+      ..removeAll(PlayerLevelService.customRewardNamesOptionKeys)
       ..add(
         CoachRosterService.scopedOptionKey(
           FamilyAccessService.parentTrainingFeedbackKey,
           playerId,
         ),
-      )
-      ..add(
-        CoachRosterService.scopedOptionKey(
-          PlayerLevelService.customRewardNamesKey,
-          playerId,
-        ),
       );
+    for (final optionKey in PlayerLevelService.customRewardNamesOptionKeys) {
+      keys.add(CoachRosterService.scopedOptionKey(optionKey, playerId));
+    }
     return keys;
   }
 
@@ -3199,9 +3220,9 @@ class DriveBackupService implements BackupRepository {
           key,
           FamilyAccessService.parentTrainingFeedbackKey,
         ) ||
-        CoachRosterService.isScopedOptionKeyForBase(
-          key,
-          PlayerLevelService.customRewardNamesKey,
+        PlayerLevelService.customRewardNamesOptionKeys.any(
+          (optionKey) =>
+              CoachRosterService.isScopedOptionKeyForBase(key, optionKey),
         );
   }
 

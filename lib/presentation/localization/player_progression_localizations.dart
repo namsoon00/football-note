@@ -1,8 +1,23 @@
 import '../../application/player_level_service.dart';
+import '../../domain/entities/sport_definition.dart';
 import '../../gen/app_localizations.dart';
 
 extension PlayerProgressionLocalizations on AppLocalizations {
-  String playerLevelName(int level) {
+  String playerLevelName(int level, {String? sportId}) {
+    final normalizedSportId = SportCatalog.normalizeSportId(sportId);
+    final fallback = _footballLevelName(level);
+    return switch (normalizedSportId) {
+      SportCatalog.baseballId =>
+        _levelLabelFromList(playerLevelBaseballNames, level, fallback),
+      SportCatalog.basketballId =>
+        _levelLabelFromList(playerLevelBasketballNames, level, fallback),
+      SportCatalog.tennisId =>
+        _levelLabelFromList(playerLevelTennisNames, level, fallback),
+      _ => fallback,
+    };
+  }
+
+  String _footballLevelName(int level) {
     switch (level.clamp(1, 20)) {
       case 1:
         return playerLevelName1;
@@ -47,7 +62,21 @@ extension PlayerProgressionLocalizations on AppLocalizations {
     }
   }
 
-  String playerLevelStageName(int level) {
+  String playerLevelStageName(int level, {String? sportId}) {
+    final normalizedSportId = SportCatalog.normalizeSportId(sportId);
+    final fallback = _footballStageName(level);
+    return switch (normalizedSportId) {
+      SportCatalog.baseballId =>
+        _stageLabelFromList(playerLevelBaseballStages, level, fallback),
+      SportCatalog.basketballId =>
+        _stageLabelFromList(playerLevelBasketballStages, level, fallback),
+      SportCatalog.tennisId =>
+        _stageLabelFromList(playerLevelTennisStages, level, fallback),
+      _ => fallback,
+    };
+  }
+
+  String _footballStageName(int level) {
     if (level <= 2) return playerLevelStage1;
     if (level <= 4) return playerLevelStage2;
     if (level <= 6) return playerLevelStage3;
@@ -57,7 +86,24 @@ extension PlayerProgressionLocalizations on AppLocalizations {
     return playerLevelStage7;
   }
 
-  String playerLevelIllustrationLabel(int level) {
+  String playerLevelIllustrationLabel(int level, {String? sportId}) {
+    final normalizedSportId = SportCatalog.normalizeSportId(sportId);
+    final fallback = _footballIllustrationLabel(level);
+    return switch (normalizedSportId) {
+      SportCatalog.baseballId =>
+        _levelLabelFromList(playerLevelBaseballIllustrations, level, fallback),
+      SportCatalog.basketballId => _levelLabelFromList(
+          playerLevelBasketballIllustrations,
+          level,
+          fallback,
+        ),
+      SportCatalog.tennisId =>
+        _levelLabelFromList(playerLevelTennisIllustrations, level, fallback),
+      _ => fallback,
+    };
+  }
+
+  String _footballIllustrationLabel(int level) {
     switch (level.clamp(1, 20)) {
       case 1:
         return playerLevelIllustration1;
@@ -100,6 +146,38 @@ extension PlayerProgressionLocalizations on AppLocalizations {
       default:
         return playerLevelIllustration20;
     }
+  }
+
+  String _levelLabelFromList(String raw, int level, String fallback) {
+    final labels = raw
+        .split('|')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+    final index = level.clamp(1, 20) - 1;
+    if (index < 0 || index >= labels.length) return fallback;
+    return labels[index];
+  }
+
+  String _stageLabelFromList(String raw, int level, String fallback) {
+    final labels = raw
+        .split('|')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+    final index = _stageIndex(level);
+    if (index < 0 || index >= labels.length) return fallback;
+    return labels[index];
+  }
+
+  int _stageIndex(int level) {
+    if (level <= 2) return 0;
+    if (level <= 4) return 1;
+    if (level <= 6) return 2;
+    if (level <= 8) return 3;
+    if (level <= 12) return 4;
+    if (level <= 16) return 5;
+    return 6;
   }
 
   String xpHistoryTitleFor(PlayerXpHistoryEntry item) {

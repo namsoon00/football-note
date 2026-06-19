@@ -1,8 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/challenge_service.dart';
 import 'package:football_note/application/coach_roster_service.dart';
 import 'package:football_note/application/family_access_service.dart';
+import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/player_level_service.dart';
+import 'package:football_note/application/training_board_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations_ko.dart';
@@ -161,6 +165,175 @@ void main() {
     };
 
     expect(labels, hasLength(20));
+  });
+
+  test('sport-specific level labels use sport language', () {
+    final l10n = AppLocalizationsKo();
+
+    expect(l10n.playerLevelName(20), '풋볼 선물왕');
+    expect(
+      l10n.playerLevelName(20, sportId: SportCatalog.baseballId),
+      '야구 선물왕',
+    );
+    expect(
+      l10n.playerLevelName(20, sportId: SportCatalog.basketballId),
+      '농구 선물왕',
+    );
+    expect(
+      l10n.playerLevelStageName(20, sportId: SportCatalog.tennisId),
+      '엘리트 투어',
+    );
+  });
+
+  test('xp and rewards are scoped by sport', () async {
+    final repository = _MemoryOptionRepository();
+    final footballService = PlayerLevelService(repository);
+    final basketballService = PlayerLevelService(
+      repository,
+      sportId: SportCatalog.basketballId,
+    );
+
+    final footballAward = await footballService.awardForQuizCompletion(
+      completedAt: DateTime(2026, 3, 24, 20),
+      correctAnswers: 6,
+      totalQuestions: 10,
+    );
+    final basketballAward = await basketballService.awardForQuizCompletion(
+      completedAt: DateTime(2026, 3, 24, 20),
+      correctAnswers: 10,
+      totalQuestions: 10,
+    );
+    await basketballService.setCustomRewardName(2, '새 농구화');
+
+    expect(footballAward.sportId, SportCatalog.footballId);
+    expect(basketballAward.sportId, SportCatalog.basketballId);
+    expect(footballService.loadState().totalXp, footballAward.gainedXp);
+    expect(basketballService.loadState().totalXp, basketballAward.gainedXp);
+    expect(
+      repository.getValue<int>('${PlayerLevelService.totalXpKey}_basketball'),
+      basketballAward.gainedXp,
+    );
+    expect(footballService.customRewardNameForLevel(2), isEmpty);
+    expect(basketballService.customRewardNameForLevel(2), '새 농구화');
+  });
+
+  test(
+    'training streaks only consider entries from the same sport',
+    () async {
+      final entry = TrainingEntry(
+        date: today,
+        durationMinutes: 45,
+        intensity: 4,
+        type: '훈련',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '체육관',
+        sportId: SportCatalog.basketballId,
+      );
+      final existingFootballEntries = <TrainingEntry>[
+        TrainingEntry(
+          date: today.subtract(const Duration(days: 2)),
+          durationMinutes: 45,
+          intensity: 4,
+          type: '패스',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+        ),
+        TrainingEntry(
+          date: today.subtract(const Duration(days: 1)),
+          durationMinutes: 45,
+          intensity: 4,
+          type: '드리블',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+        ),
+      ];
+      final repositoryWithFootballHistory = _MemoryOptionRepository();
+      final repositoryWithoutHistory = _MemoryOptionRepository();
+      final serviceWithFootballHistory = PlayerLevelService(
+        repositoryWithFootballHistory,
+        sportId: SportCatalog.basketballId,
+      );
+      final serviceWithoutHistory = PlayerLevelService(
+        repositoryWithoutHistory,
+        sportId: SportCatalog.basketballId,
+      );
+
+      final awardWithFootballHistory =
+          await serviceWithFootballHistory.awardForTrainingLog(
+        entry: entry,
+        existingEntries: existingFootballEntries,
+      );
+      final awardWithoutHistory =
+          await serviceWithoutHistory.awardForTrainingLog(
+        entry: entry,
+        existingEntries: const <TrainingEntry>[],
+      );
+
+      expect(
+        awardWithFootballHistory.gainedXp,
+        awardWithoutHistory.gainedXp,
+      );
+      expect(
+        awardWithFootballHistory.reasons
+            .where((reason) => reason.startsWith('streak')),
+        isEmpty,
+      );
+    },
+  );
+
+  test('record services keep non-football storage separate', () async {
+    final repository = _MemoryOptionRepository();
+    final baseballMealService = MealLogService(
+      repository,
+      sportId: SportCatalog.baseballId,
+    );
+    final tennisBoardService = TrainingBoardService(
+      repository,
+      sportId: SportCatalog.tennisId,
+    );
+    final basketballChallengeService = ChallengeService(
+      repository,
+      sportId: SportCatalog.basketballId,
+    );
+
+    await baseballMealService.save(
+      MealEntry(
+        date: today,
+        breakfastRiceBowls: 1,
+        createdAt: DateTime(2026, 3, 24, 8),
+      ),
+    );
+    await tennisBoardService.createBoard(
+      title: '서브 루틴',
+      layoutJson: '{"items":[]}',
+    );
+    await basketballChallengeService.startChallenge(
+      basketballChallengeService.templates().first,
+      startedAt: DateTime(2026, 3, 24, 9),
+    );
+
+    expect(MealLogService(repository).allEntries(), isEmpty);
+    expect(TrainingBoardService(repository).allBoards(), isEmpty);
+    expect(ChallengeService(repository).activeRun(), isNull);
+    expect(baseballMealService.allEntries(), hasLength(1));
+    expect(tennisBoardService.allBoards(), hasLength(1));
+    expect(basketballChallengeService.activeRun(), isNotNull);
+    expect(repository.getValue<String>('${MealLogService.storageKey}_baseball'),
+        isNotNull);
+    expect(
+        repository
+            .getValue<String>('${TrainingBoardService.storageKey}_tennis'),
+        isNotNull);
+    expect(
+      repository.getValue<String>('${ChallengeService.storageKey}_basketball'),
+      isNotNull,
+    );
   });
 
   test(

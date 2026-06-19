@@ -12,6 +12,7 @@ import '../../application/training_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/training_board.dart';
+import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
@@ -51,6 +52,11 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   String _searchQuery = '';
   _BoardListSort _sort = _BoardListSort.updatedDesc;
   bool _showSearch = false;
+
+  String get _recentBoardIdStorageKey => SportCatalog.optionKey(
+        _recentBoardIdKey,
+        sportId: SportService(widget.optionRepository).currentSportId(),
+      );
 
   @override
   void initState() {
@@ -227,7 +233,8 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       layoutJson: layout.encode(),
     );
     if (!mounted) return;
-    await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
+    await widget.optionRepository
+        .setValue(_recentBoardIdStorageKey, created.id);
     if (!mounted) return;
     final award =
         await PlayerLevelService(widget.optionRepository).awardForBoardSaved(
@@ -296,7 +303,8 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       layoutJson: source.layoutJson,
     );
     if (!mounted) return;
-    await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
+    await widget.optionRepository
+        .setValue(_recentBoardIdStorageKey, created.id);
     if (!mounted) return;
     final award =
         await PlayerLevelService(widget.optionRepository).awardForBoardSaved(
@@ -350,9 +358,9 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     );
     await _boardService.deleteBoard(board.id);
     _selectedIds.remove(board.id);
-    if (widget.optionRepository.getValue<String>(_recentBoardIdKey) ==
+    if (widget.optionRepository.getValue<String>(_recentBoardIdStorageKey) ==
         board.id) {
-      await widget.optionRepository.setValue(_recentBoardIdKey, '');
+      await widget.optionRepository.setValue(_recentBoardIdStorageKey, '');
     }
     if (!mounted) return;
     AppFeedback.showUndo(
@@ -426,7 +434,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
         .toList(growable: false);
     if (selected.isNotEmpty) {
       unawaited(
-        widget.optionRepository.setValue(_recentBoardIdKey, selected.first),
+        widget.optionRepository.setValue(
+          _recentBoardIdStorageKey,
+          selected.first,
+        ),
       );
     }
     Navigator.of(context).pop(selected);
@@ -675,7 +686,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                                         });
                                         unawaited(
                                           widget.optionRepository.setValue(
-                                            _recentBoardIdKey,
+                                            _recentBoardIdStorageKey,
                                             board.id,
                                           ),
                                         );
@@ -683,7 +694,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                                     : () {
                                         unawaited(
                                           widget.optionRepository.setValue(
-                                            _recentBoardIdKey,
+                                            _recentBoardIdStorageKey,
                                             board.id,
                                           ),
                                         );
@@ -730,7 +741,8 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       layoutJson: source.layoutJson,
     );
     if (!mounted) return;
-    await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
+    await widget.optionRepository
+        .setValue(_recentBoardIdStorageKey, created.id);
     if (!mounted) return;
     final award =
         await PlayerLevelService(widget.optionRepository).awardForBoardSaved(

@@ -350,8 +350,14 @@ Future<void> showLevelUpCelebrationDialog(
   ];
   const foreground = Colors.white;
   final softForeground = Colors.white.withValues(alpha: 0.86);
-  final stageName = l10n.playerLevelStageName(award.after.level);
-  final levelName = l10n.playerLevelName(award.after.level);
+  final stageName = l10n.playerLevelStageName(
+    award.after.level,
+    sportId: award.sportId,
+  );
+  final levelName = l10n.playerLevelName(
+    award.after.level,
+    sportId: award.sportId,
+  );
 
   await _showCelebrationDialog(
     context,
@@ -905,7 +911,10 @@ class _TrainingGemProgressPanel extends StatelessWidget {
                   label: l10n.trainingXpDialogLevelLabel,
                   value: l10n.trainingXpDialogLevelValue(
                     award.after.level,
-                    l10n.playerLevelName(award.after.level),
+                    l10n.playerLevelName(
+                      award.after.level,
+                      sportId: award.sportId,
+                    ),
                   ),
                 ),
               ),

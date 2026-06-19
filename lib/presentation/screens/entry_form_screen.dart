@@ -193,6 +193,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   String _savedParentFeedbackReaction = '';
   DateTime? _savedParentFeedbackUpdatedAt;
 
+  String get _recentBoardIdStorageKey => SportCatalog.optionKey(
+        _recentBoardIdKey,
+        sportId: SportService(widget.optionRepository).currentSportId(),
+      );
+
   @override
   void initState() {
     super.initState();
@@ -3440,7 +3445,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }) async {
     final allBoards = _trainingBoardService.allBoards();
     final recentBoardId =
-        widget.optionRepository.getValue<String>(_recentBoardIdKey) ?? '';
+        widget.optionRepository.getValue<String>(_recentBoardIdStorageKey) ??
+            '';
     final hasRecentBoard = allBoards.any((board) => board.id == recentBoardId);
     final isReadOnly = _isReadOnlyMode;
     final selectedIds = await Navigator.of(context).push<List<String>>(
@@ -3455,6 +3461,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               : (hasRecentBoard
                   ? recentBoardId
                   : (allBoards.isNotEmpty ? allBoards.first.id : null)),
+          sportId: SportService(widget.optionRepository).currentSportId(),
           readOnly: isReadOnly,
         ),
       ),
@@ -3469,7 +3476,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       });
       if (selectedIds.isNotEmpty) {
         await widget.optionRepository.setValue(
-          _recentBoardIdKey,
+          _recentBoardIdStorageKey,
           selectedIds.first,
         );
       }
@@ -3686,7 +3693,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         dinnerRiceBowls: draftEntry.dinnerRiceBowls,
       );
 
-      final playerLevelService = PlayerLevelService(widget.optionRepository);
+      final playerLevelService = PlayerLevelService(
+        widget.optionRepository,
+        sportId: entry.sportId,
+      );
       PlayerLevelAward? levelAward;
       if (widget.entry == null) {
         await widget.trainingService.add(entry);
@@ -3761,6 +3771,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         final leveledUpAward = levelAward;
         final customRewardName = PlayerLevelService(
           widget.optionRepository,
+          sportId: leveledUpAward.sportId,
         ).customRewardNameForLevel(leveledUpAward.after.level);
         await showLevelUpCelebrationDialog(
           context,
@@ -3770,6 +3781,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           onClaimReward: () async {
             final claim = await PlayerLevelService(
               widget.optionRepository,
+              sportId: leveledUpAward.sportId,
             ).claimRewardForLevel(leveledUpAward.after.level);
             if (!mounted || claim == null) return;
             final rewardName = claim.customRewardName.trim().isNotEmpty
@@ -3917,6 +3929,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       await PlayerLevelService(
         widget.optionRepository,
+        sportId: target.sportId,
       ).revokeTrainingEntryAward(target);
       await widget.trainingService.delete(target);
       if (!mounted) return;
@@ -3932,7 +3945,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             final restoredExistingEntries = restoredEntries
                 .where((item) => item.key != target.key)
                 .toList(growable: false);
-            final levelService = PlayerLevelService(widget.optionRepository);
+            final levelService = PlayerLevelService(
+              widget.optionRepository,
+              sportId: target.sportId,
+            );
             if (target.isMatch) {
               await levelService.awardForMatchLog(updatedEntry: target);
             } else {

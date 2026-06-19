@@ -19,6 +19,8 @@ import '../../application/news_badge_service.dart';
 import '../../application/parent_shared_feedback_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
+import '../../application/sport_capabilities.dart';
+import '../../application/sport_scoped_storage.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
@@ -87,7 +89,6 @@ class CoachLessonScreen extends StatefulWidget {
 }
 
 class _CoachLessonScreenState extends State<CoachLessonScreen> {
-  static const String _plansStorageKey = 'training_plans_v1';
   static const String _diaryThemeKey = 'diary_theme_v1';
   static const int _diaryTrainingEntryLimit = 500;
   static const String _customDiaryEntriesKey = 'custom_diary_entries_v3';
@@ -123,12 +124,24 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       _isDark ? _palette.holeColorDark : _palette.holeColor;
   Color get _tileSurface =>
       _isDark ? _palette.tileDark : Colors.white.withValues(alpha: 0.58);
+  String get _plansStorageKey =>
+      TrainingPlanReminderService.plansStorageKeyFor(widget.optionRepository);
+  String get _diaryThemeStorageKey =>
+      sportScopedOptionKey(widget.optionRepository, _diaryThemeKey);
+  String get _customDiaryEntriesStorageKey =>
+      sportScopedOptionKey(widget.optionRepository, _customDiaryEntriesKey);
+  String get _todayViewedDiaryDayStorageKey => sportScopedOptionKey(
+        widget.optionRepository,
+        CoachLessonScreen.todayViewedDiaryDayKey,
+      );
+  String get _openedNewsItemsStorageKey =>
+      sportScopedOptionKey(widget.optionRepository, NewsScreen.openedItemsKey);
 
   @override
   void initState() {
     super.initState();
     _selectedThemeId =
-        widget.optionRepository.getValue<String>(_diaryThemeKey) ??
+        widget.optionRepository.getValue<String>(_diaryThemeStorageKey) ??
             _DiaryThemePalette.notebook.id;
     _customDiaryEntries = _loadCustomDiaryEntries();
     NewsBadgeService.refresh(widget.optionRepository);
@@ -147,7 +160,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       return;
     }
     _selectedThemeId =
-        widget.optionRepository.getValue<String>(_diaryThemeKey) ??
+        widget.optionRepository.getValue<String>(_diaryThemeStorageKey) ??
             _DiaryThemePalette.notebook.id;
     _customDiaryEntries = _loadCustomDiaryEntries();
   }
@@ -199,13 +212,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               return StreamBuilder<List<MealEntry>>(
                 stream: mealStream,
                 builder: (context, mealSnapshot) {
+                  final sportId =
+                      currentSportIdForOptions(widget.optionRepository);
                   final entries = [
                     ...(snapshot.data ?? const <TrainingEntry>[]),
-                  ]..sort(TrainingEntry.compareByRecentCreated);
-                  final entriesByDay = _groupEntriesByDay(entries);
+                  ];
+                  final sportEntries = filterEntriesForSport(entries, sportId)
+                    ..sort(TrainingEntry.compareByRecentCreated);
+                  final sportEntriesByDay = _groupEntriesByDay(sportEntries);
                   final mealEntries = widget.mealLogService?.mergedEntries(
                         directEntries: mealSnapshot.data ?? const <MealEntry>[],
-                        legacyEntries: entries,
+                        legacyEntries: sportEntries,
                       ) ??
                       const <MealEntry>[];
                   final mealEntriesByDay = _groupMealEntriesByDay(mealEntries);
@@ -215,14 +232,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     widget.optionRepository,
                   ).boardMap();
                   final days = _buildDays(
-                    entriesByDay: entriesByDay,
+                    entriesByDay: sportEntriesByDay,
                     mealEntriesByDay: mealEntriesByDay,
                     plansByDay: plansByDay,
                     boardMap: boardMap,
                   );
                   _consumeTodayDiaryOpenRequest(
                     days: days,
-                    entriesByDay: entriesByDay,
+                    entriesByDay: sportEntriesByDay,
                     mealEntriesByDay: mealEntriesByDay,
                     plansByDay: plansByDay,
                     boardMap: boardMap,
@@ -235,7 +252,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           onCreateDiary: isParentMode
                               ? null
                               : () => _openNewDiaryComposer(
-                                    entriesByDay: entriesByDay,
+                                    entriesByDay: sportEntriesByDay,
                                     mealEntriesByDay: mealEntriesByDay,
                                     plansByDay: plansByDay,
                                     boardMap: boardMap,
@@ -322,7 +339,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   onPressed: isParentMode
                                       ? null
                                       : () => _openNewDiaryComposer(
-                                            entriesByDay: entriesByDay,
+                                            entriesByDay: sportEntriesByDay,
                                             mealEntriesByDay: mealEntriesByDay,
                                             plansByDay: plansByDay,
                                             boardMap: boardMap,
@@ -464,7 +481,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       },
     );
     if (selected == null || selected == _selectedThemeId) return;
-    await widget.optionRepository.setValue(_diaryThemeKey, selected);
+    await widget.optionRepository.setValue(_diaryThemeStorageKey, selected);
     if (!mounted) return;
     setState(() => _selectedThemeId = selected);
   }
@@ -566,7 +583,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (_lastCompletedDiaryToken == token) return;
     _lastCompletedDiaryToken = token;
     await widget.optionRepository.setValue(
-      CoachLessonScreen.todayViewedDiaryDayKey,
+      _todayViewedDiaryDayStorageKey,
       token,
     );
     await _awardDiaryCreateXp(date);
@@ -2028,7 +2045,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Map<String, _CustomDiaryEntryData> _loadCustomDiaryEntries() {
     final raw = widget.optionRepository.getValue<String>(
-      _customDiaryEntriesKey,
+      _customDiaryEntriesStorageKey,
     );
     if (raw == null || raw.trim().isEmpty) {
       return <String, _CustomDiaryEntryData>{};
@@ -2062,7 +2079,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       payload[entry.key] = entry.value.toMap();
     }
     return widget.optionRepository.setValue(
-      _customDiaryEntriesKey,
+      _customDiaryEntriesStorageKey,
       jsonEncode(payload),
     );
   }
@@ -2131,11 +2148,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       _lastCompletedDiaryToken = null;
     }
     final completedToken = widget.optionRepository.getValue<String>(
-      CoachLessonScreen.todayViewedDiaryDayKey,
+      _todayViewedDiaryDayStorageKey,
     );
     if (completedToken == dayToken) {
       await widget.optionRepository.setValue(
-        CoachLessonScreen.todayViewedDiaryDayKey,
+        _todayViewedDiaryDayStorageKey,
         '',
       );
     }
@@ -2169,7 +2186,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final dayToken = CoachLessonScreen.todayViewedDayToken(date);
     _lastCompletedDiaryToken = dayToken;
     await widget.optionRepository.setValue(
-      CoachLessonScreen.todayViewedDiaryDayKey,
+      _todayViewedDiaryDayStorageKey,
       dayToken,
     );
     await PlayerLevelService(
@@ -2298,7 +2315,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       final viewedToken = CoachLessonScreen.todayViewedDayToken(today);
       _lastCompletedDiaryToken = viewedToken;
       await widget.optionRepository.setValue(
-        CoachLessonScreen.todayViewedDiaryDayKey,
+        _todayViewedDiaryDayStorageKey,
         viewedToken,
       );
       return;
@@ -3184,7 +3201,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   List<_DiaryOpenedNewsItem> _openedNewsForDay(DateTime day) {
     final target = _normalizeDay(day);
     final raw = widget.optionRepository.getValue<String>(
-      NewsScreen.openedItemsKey,
+      _openedNewsItemsStorageKey,
     );
     if (raw == null || raw.trim().isEmpty) {
       return const <_DiaryOpenedNewsItem>[];
