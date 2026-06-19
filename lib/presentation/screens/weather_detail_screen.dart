@@ -91,6 +91,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final trainingGuide = _buildTrainingGuide(isKo, l10n);
     final tomorrowForecast =
         _dailyForecasts.length > 1 ? _dailyForecasts[1] : null;
+    final weeklyForecasts = _dailyForecasts.take(7).toList(growable: false);
     final todayInsightPanel = hasWeather
         ? _buildTodayWeatherFooter(
             l10n: l10n,
@@ -193,48 +194,36 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               ],
               if (hasWeather) ...[
                 const SizedBox(height: AppSpacing.md),
-                _TomorrowWeatherCard(
+                _WeatherForecastNavCard(
                   title: l10n.homeWeatherTomorrowTitle,
-                  conditionLabel: l10n.homeWeatherTomorrowCondition,
-                  highLowLabel: l10n.homeWeatherDailyHighLow,
-                  precipitationLabel: l10n.homeWeatherPrecipitation,
-                  hourlyPrecipitationLabel: l10n.homeWeatherHourlyPrecipitation,
-                  windLabel: l10n.homeWeatherWindSpeed,
-                  outfitTitle: l10n.homeWeatherTomorrowOutfitTitle,
-                  outfitFallback: l10n.homeWeatherTomorrowOutfitFallback,
-                  outfitPreviews: tomorrowForecast == null
-                      ? const <_OutfitMomentPreviewData>[]
-                      : _buildForecastOutfitPreviews(
-                          forecast: tomorrowForecast,
-                          isKo: isKo,
-                          l10n: l10n,
-                        ),
-                  tomorrowForecast: tomorrowForecast,
-                  tomorrowFallback: l10n.homeWeatherTomorrowFallback,
-                  formatRange: _formatRange,
-                  formatMillimeter: _formatMillimeter,
-                  formatPrecipitationEntry: _formatPrecipitationTimelineLabel,
-                  formatWind: _formatWind,
-                  formatTime: _formatHourlyTime,
-                  iconForCode: _weatherIcon,
+                  subtitle: l10n.homeWeatherTomorrowNavSubtitle,
+                  detail: _tomorrowForecastNavDetail(
+                    l10n,
+                    tomorrowForecast,
+                  ),
+                  icon: _weatherIcon(tomorrowForecast?.weatherCode),
+                  onTap: () => _openWeatherForecastScreen(
+                    title: l10n.homeWeatherTomorrowTitle,
+                    child: _buildTomorrowWeatherCard(
+                      l10n: l10n,
+                      isKo: isKo,
+                      tomorrowForecast: tomorrowForecast,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.md),
-                _WeeklyForecastCard(
+                const SizedBox(height: AppSpacing.sm),
+                _WeatherForecastNavCard(
                   title: l10n.homeWeatherWeeklyTitle,
-                  precipitationLabel: l10n.homeWeatherPrecipitation,
-                  windLabel: l10n.homeWeatherWindSpeed,
-                  fineDustLabel: l10n.homeWeatherPm10,
-                  ultraFineDustLabel: l10n.homeWeatherPm25,
-                  airQualityMissingReason:
-                      l10n.homeWeatherAirQualityForecastMissingReason,
-                  forecasts: _dailyForecasts.take(7).toList(growable: false),
-                  formatRange: _formatRange,
-                  formatMillimeter: _formatMillimeter,
-                  formatWind: _formatWind,
-                  formatFineDust: _formatAirMetricValue,
-                  pm10LevelForValue: (value) => _pm10Level(l10n, value).level,
-                  pm25LevelForValue: (value) => _pm25Level(l10n, value).level,
-                  iconForCode: _weatherIcon,
+                  subtitle: l10n.homeWeatherWeeklyNavSubtitle,
+                  detail: _weeklyForecastNavDetail(l10n, weeklyForecasts),
+                  icon: Icons.calendar_month_rounded,
+                  onTap: () => _openWeatherForecastScreen(
+                    title: l10n.homeWeatherWeeklyTitle,
+                    child: _buildWeeklyForecastCard(
+                      l10n: l10n,
+                      weeklyForecasts: weeklyForecasts,
+                    ),
+                  ),
                 ),
               ],
             ],
@@ -242,6 +231,94 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         ),
       ),
     );
+  }
+
+  void _openWeatherForecastScreen({
+    required String title,
+    required Widget child,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _WeatherForecastSubscreen(
+          title: title,
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTomorrowWeatherCard({
+    required AppLocalizations l10n,
+    required bool isKo,
+    required _DailyWeatherForecast? tomorrowForecast,
+  }) {
+    return _TomorrowWeatherCard(
+      title: l10n.homeWeatherTomorrowTitle,
+      conditionLabel: l10n.homeWeatherTomorrowCondition,
+      highLowLabel: l10n.homeWeatherDailyHighLow,
+      precipitationLabel: l10n.homeWeatherPrecipitation,
+      hourlyPrecipitationLabel: l10n.homeWeatherHourlyPrecipitation,
+      windLabel: l10n.homeWeatherWindSpeed,
+      outfitTitle: l10n.homeWeatherTomorrowOutfitTitle,
+      outfitFallback: l10n.homeWeatherTomorrowOutfitFallback,
+      outfitPreviews: tomorrowForecast == null
+          ? const <_OutfitMomentPreviewData>[]
+          : _buildForecastOutfitPreviews(
+              forecast: tomorrowForecast,
+              isKo: isKo,
+              l10n: l10n,
+            ),
+      tomorrowForecast: tomorrowForecast,
+      tomorrowFallback: l10n.homeWeatherTomorrowFallback,
+      formatRange: _formatRange,
+      formatMillimeter: _formatMillimeter,
+      formatPrecipitationEntry: _formatPrecipitationTimelineLabel,
+      formatWind: _formatWind,
+      formatTime: _formatHourlyTime,
+      iconForCode: _weatherIcon,
+    );
+  }
+
+  Widget _buildWeeklyForecastCard({
+    required AppLocalizations l10n,
+    required List<_DailyWeatherForecast> weeklyForecasts,
+  }) {
+    return _WeeklyForecastCard(
+      title: l10n.homeWeatherWeeklyTitle,
+      precipitationLabel: l10n.homeWeatherPrecipitation,
+      windLabel: l10n.homeWeatherWindSpeed,
+      fineDustLabel: l10n.homeWeatherPm10,
+      ultraFineDustLabel: l10n.homeWeatherPm25,
+      airQualityMissingReason: l10n.homeWeatherAirQualityForecastMissingReason,
+      fallback: l10n.homeWeatherWeeklyFallback,
+      forecasts: weeklyForecasts,
+      formatRange: _formatRange,
+      formatMillimeter: _formatMillimeter,
+      formatWind: _formatWind,
+      formatFineDust: _formatAirMetricValue,
+      pm10LevelForValue: (value) => _pm10Level(l10n, value).level,
+      pm25LevelForValue: (value) => _pm25Level(l10n, value).level,
+      iconForCode: _weatherIcon,
+    );
+  }
+
+  String _tomorrowForecastNavDetail(
+    AppLocalizations l10n,
+    _DailyWeatherForecast? forecast,
+  ) {
+    if (forecast == null) return l10n.homeWeatherTomorrowFallback;
+    return '${forecast.weekdayLabel} · ${forecast.label} · ${forecast.summary}';
+  }
+
+  String _weeklyForecastNavDetail(
+    AppLocalizations l10n,
+    List<_DailyWeatherForecast> forecasts,
+  ) {
+    if (forecasts.isEmpty) return l10n.homeWeatherWeeklyFallback;
+    final first = forecasts.first;
+    final last = forecasts.last;
+    if (identical(first, last)) return '${first.weekdayLabel} · ${first.label}';
+    return '${first.label} - ${last.label}';
   }
 
   Future<void> _loadWeather({
@@ -1681,6 +1758,130 @@ class _MetricClusterCard extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _WeatherForecastSubscreen extends StatelessWidget {
+  final String title;
+  final Widget child;
+
+  const _WeatherForecastSubscreen({
+    required this.title,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: AppBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.xl,
+            ),
+            children: [child],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WeatherForecastNavCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String detail;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _WeatherForecastNavCard({
+    required this.title,
+    required this.subtitle,
+    required this.detail,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.surface,
+        child: Ink(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withValues(alpha: 0.92),
+            borderRadius: AppRadius.surface,
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+            ),
+            boxShadow: AppShadows.surface(theme.brightness),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: AppRadius.control,
+                ),
+                child: Icon(icon, color: theme.colorScheme.primary, size: 24),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                        height: 1.28,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      detail,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -3712,6 +3913,7 @@ class _WeeklyForecastCard extends StatelessWidget {
   final String fineDustLabel;
   final String ultraFineDustLabel;
   final String airQualityMissingReason;
+  final String fallback;
   final List<_DailyWeatherForecast> forecasts;
   final String Function(double?, double?) formatRange;
   final String Function(double?) formatMillimeter;
@@ -3728,6 +3930,7 @@ class _WeeklyForecastCard extends StatelessWidget {
     required this.fineDustLabel,
     required this.ultraFineDustLabel,
     required this.airQualityMissingReason,
+    required this.fallback,
     required this.forecasts,
     required this.formatRange,
     required this.formatMillimeter,
@@ -3783,6 +3986,14 @@ class _WeeklyForecastCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
+          if (forecasts.isEmpty)
+            Text(
+              fallback,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           for (final forecast in forecasts) ...[
             _WeeklyForecastRow(
               precipitationLabel: precipitationLabel,

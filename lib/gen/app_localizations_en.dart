@@ -4262,6 +4262,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherWeeklyTitle => 'Weekly weather';
 
   @override
+  String get homeWeatherTomorrowNavSubtitle =>
+      'Check tomorrow\'s forecast and outfit guide separately.';
+
+  @override
+  String get homeWeatherWeeklyNavSubtitle =>
+      'Review the 7-day forecast and air-quality trend separately.';
+
+  @override
   String get homeWeatherMorningLabel => 'Morning';
 
   @override
@@ -4277,6 +4285,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeWeatherTomorrowFallback =>
       'Tomorrow\'s forecast is not available yet.';
+
+  @override
+  String get homeWeatherWeeklyFallback =>
+      'Weekly forecast is not available yet.';
 
   @override
   String get homeWeatherTomorrowOutfitTitle => 'Tomorrow\'s outfit';

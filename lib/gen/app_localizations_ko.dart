@@ -4138,6 +4138,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherWeeklyTitle => '주간 날씨';
 
   @override
+  String get homeWeatherTomorrowNavSubtitle => '내일 예보와 추천 복장을 따로 확인하세요.';
+
+  @override
+  String get homeWeatherWeeklyNavSubtitle => '7일 예보와 대기질 흐름을 따로 확인하세요.';
+
+  @override
   String get homeWeatherMorningLabel => '아침';
 
   @override
@@ -4151,6 +4157,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherTomorrowFallback => '내일 예보가 아직 없어요.';
+
+  @override
+  String get homeWeatherWeeklyFallback => '주간 예보가 아직 없어요.';
 
   @override
   String get homeWeatherTomorrowOutfitTitle => '내일 추천 복장';
