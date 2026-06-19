@@ -89,7 +89,14 @@ void main() {
       expect(state.currentRole, FamilyRole.coach);
       expect(state.linkedRole, FamilyRole.coach);
       expect(state.isSupportMode, isTrue);
+      expect(state.isCoachMode, isTrue);
+      expect(state.isParentRole, isFalse);
+      expect(state.isReadOnlySupportMode, isTrue);
       expect(service.canEditRewardNames(FamilyRole.coach), isTrue);
+      expect(service.canManageCoachRoster(FamilyRole.coach), isTrue);
+      expect(service.canSwitchCoachPlayers(FamilyRole.coach), isTrue);
+      expect(service.canWriteFamilySharedLayer(FamilyRole.coach), isTrue);
+      expect(service.canManageCoachRoster(FamilyRole.parent), isFalse);
     },
   );
 }

@@ -48,6 +48,9 @@ class FamilyAccessState {
   });
 
   bool get isSupportMode => currentRole != FamilyRole.child;
+  bool get isParentRole => currentRole == FamilyRole.parent;
+  bool get isCoachMode => currentRole == FamilyRole.coach;
+  bool get isReadOnlySupportMode => isSupportMode;
   bool get isParentMode => isSupportMode;
   bool get isChildMode => currentRole == FamilyRole.child;
   FamilyRole get activeSupportRole => isSupportMode ? currentRole : linkedRole;
@@ -75,7 +78,7 @@ class FamilySharedSyncResult {
   });
 
   const FamilySharedSyncResult.none({required FamilyRole role})
-    : this(refreshed: false, role: role);
+      : this(refreshed: false, role: role);
 
   bool get hasUserVisibleChanges =>
       newTrainingEntryCount > 0 ||
@@ -122,8 +125,7 @@ class FamilyAccessService {
     final currentRole = roleFromStorage(
       _options.getValue<String>(currentRoleLocalKey),
     );
-    final childName =
-        _options.getValue<String>(childNameKey)?.trim() ??
+    final childName = _options.getValue<String>(childNameKey)?.trim() ??
         _options.getValue<String>('profile_name')?.trim() ??
         '';
     final parentName = _options.getValue<String>(parentNameKey)?.trim() ?? '';
@@ -132,7 +134,7 @@ class FamilyAccessService {
       currentRole: currentRole,
       linkedRole:
           _linkedRoleFromStorage(_options.getValue<String>(linkedRoleKey)) ??
-          (isSupportRole(currentRole) ? currentRole : FamilyRole.parent),
+              (isSupportRole(currentRole) ? currentRole : FamilyRole.parent),
       familyId: _options.getValue<String>(familyIdKey)?.trim() ?? '',
       childName: childName,
       parentName: parentName,
@@ -180,19 +182,23 @@ class FamilyAccessService {
   String displayNameForRole(FamilyRole role, {FamilyAccessState? state}) {
     final resolvedState = state ?? loadState();
     return switch (role) {
-      FamilyRole.child =>
-        resolvedState.childName.trim().isEmpty
-            ? 'Player'
-            : resolvedState.childName.trim(),
-      FamilyRole.parent =>
-        resolvedState.parentName.trim().isEmpty
-            ? 'Parent'
-            : resolvedState.parentName.trim(),
+      FamilyRole.child => resolvedState.childName.trim().isEmpty
+          ? 'Player'
+          : resolvedState.childName.trim(),
+      FamilyRole.parent => resolvedState.parentName.trim().isEmpty
+          ? 'Parent'
+          : resolvedState.parentName.trim(),
       FamilyRole.coach => 'Coach',
     };
   }
 
   bool canEditRewardNames(FamilyRole role) => isSupportRole(role);
+
+  bool canManageCoachRoster(FamilyRole role) => role == FamilyRole.coach;
+
+  bool canSwitchCoachPlayers(FamilyRole role) => role == FamilyRole.coach;
+
+  bool canWriteFamilySharedLayer(FamilyRole role) => isSupportRole(role);
 
   bool canClaimRewards(FamilyRole role) => role == FamilyRole.child;
 
