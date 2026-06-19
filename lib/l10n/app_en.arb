@@ -602,6 +602,59 @@
   "worldCupTeamMatchOverviewTitle": "Team match info",
   "worldCupTeamCurrentPointsLabel": "Current points",
   "worldCupTeamMatchHistoryTitle": "Match results",
+  "worldCupQualificationScenariosTitle": "Round of 32 scenarios",
+  "worldCupQualificationScenariosSubtitle": "From {currentPoints} current points, this estimates group-rank paths by the {remainingMatches} remaining match points.",
+  "@worldCupQualificationScenariosSubtitle": {
+    "placeholders": {
+      "currentPoints": {
+        "type": "int"
+      },
+      "remainingMatches": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenariosEmpty": "There is not enough group-stage data to calculate Round of 32 scenarios for this team yet.",
+  "worldCupQualificationScenarioPoints": "+{remainingPoints} remaining pts · {finalPoints} pts total",
+  "@worldCupQualificationScenarioPoints": {
+    "placeholders": {
+      "remainingPoints": {
+        "type": "int"
+      },
+      "finalPoints": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenarioRankRange": "Possible rank {bestRank}-{worstRank}",
+  "@worldCupQualificationScenarioRankRange": {
+    "placeholders": {
+      "bestRank": {
+        "type": "int"
+      },
+      "worstRank": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenarioCases": "Auto {automaticCases}/{totalCases} · 3rd-place race {thirdPlaceCases}/{totalCases} · out {eliminatedCases}/{totalCases}",
+  "@worldCupQualificationScenarioCases": {
+    "placeholders": {
+      "automaticCases": {
+        "type": "int"
+      },
+      "thirdPlaceCases": {
+        "type": "int"
+      },
+      "eliminatedCases": {
+        "type": "int"
+      },
+      "totalCases": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationThirdPlaceNote": "A third-place finish still needs to rank among the 8 best third-place teams across the 12 groups.",
   "worldCupTeamRosterFormationLabel": "{formation} formation",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {

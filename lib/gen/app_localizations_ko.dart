@@ -1197,6 +1197,40 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupTeamMatchHistoryTitle => '상대별 결과';
 
   @override
+  String get worldCupQualificationScenariosTitle => '32강 경우의 수';
+
+  @override
+  String worldCupQualificationScenariosSubtitle(
+      int currentPoints, int remainingMatches) {
+    return '현재 승점 $currentPoints점에서 남은 $remainingMatches경기 승점별 조별 순위 가능성을 계산해요.';
+  }
+
+  @override
+  String get worldCupQualificationScenariosEmpty =>
+      '이 국가의 32강 경우의 수를 계산할 조별리그 정보가 아직 없어요.';
+
+  @override
+  String worldCupQualificationScenarioPoints(
+      int remainingPoints, int finalPoints) {
+    return '남은 승점 +$remainingPoints · 최종 $finalPoints점';
+  }
+
+  @override
+  String worldCupQualificationScenarioRankRange(int bestRank, int worstRank) {
+    return '$bestRank~$worstRank위 가능';
+  }
+
+  @override
+  String worldCupQualificationScenarioCases(int automaticCases,
+      int thirdPlaceCases, int eliminatedCases, int totalCases) {
+    return '직행 $automaticCases/$totalCases · 3위 비교 $thirdPlaceCases/$totalCases · 탈락 $eliminatedCases/$totalCases';
+  }
+
+  @override
+  String get worldCupQualificationThirdPlaceNote =>
+      '조 3위는 12개 조 3위 중 상위 8팀에 들어야 32강에 올라갑니다.';
+
+  @override
   String worldCupTeamRosterFormationLabel(String formation) {
     return '$formation 포메이션';
   }

@@ -602,6 +602,59 @@
   "worldCupTeamMatchOverviewTitle": "국가 경기 정보",
   "worldCupTeamCurrentPointsLabel": "현재 승점",
   "worldCupTeamMatchHistoryTitle": "상대별 결과",
+  "worldCupQualificationScenariosTitle": "32강 경우의 수",
+  "worldCupQualificationScenariosSubtitle": "현재 승점 {currentPoints}점에서 남은 {remainingMatches}경기 승점별 조별 순위 가능성을 계산해요.",
+  "@worldCupQualificationScenariosSubtitle": {
+    "placeholders": {
+      "currentPoints": {
+        "type": "int"
+      },
+      "remainingMatches": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenariosEmpty": "이 국가의 32강 경우의 수를 계산할 조별리그 정보가 아직 없어요.",
+  "worldCupQualificationScenarioPoints": "남은 승점 +{remainingPoints} · 최종 {finalPoints}점",
+  "@worldCupQualificationScenarioPoints": {
+    "placeholders": {
+      "remainingPoints": {
+        "type": "int"
+      },
+      "finalPoints": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenarioRankRange": "{bestRank}~{worstRank}위 가능",
+  "@worldCupQualificationScenarioRankRange": {
+    "placeholders": {
+      "bestRank": {
+        "type": "int"
+      },
+      "worstRank": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenarioCases": "직행 {automaticCases}/{totalCases} · 3위 비교 {thirdPlaceCases}/{totalCases} · 탈락 {eliminatedCases}/{totalCases}",
+  "@worldCupQualificationScenarioCases": {
+    "placeholders": {
+      "automaticCases": {
+        "type": "int"
+      },
+      "thirdPlaceCases": {
+        "type": "int"
+      },
+      "eliminatedCases": {
+        "type": "int"
+      },
+      "totalCases": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationThirdPlaceNote": "조 3위는 12개 조 3위 중 상위 8팀에 들어야 32강에 올라갑니다.",
   "worldCupTeamRosterFormationLabel": "{formation} 포메이션",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {

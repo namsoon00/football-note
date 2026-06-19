@@ -139,4 +139,43 @@ void main() {
     expect(korea.losses, 0);
     expect(korea.goalDifference, 1);
   });
+
+  test('round of 32 scenarios group remaining points by qualification path',
+      () {
+    final scenarios = worldCupRoundOf32ScenariosForTeam('Korea Republic');
+
+    expect(scenarios, isNotEmpty);
+    expect(scenarios.map((scenario) => scenario.remainingPoints), [
+      6,
+      4,
+      3,
+      2,
+      1,
+      0,
+    ]);
+
+    final winOut = scenarios.singleWhere(
+      (scenario) => scenario.remainingPoints == 6,
+    );
+    expect(winOut.group, 'A');
+    expect(winOut.currentPoints, 3);
+    expect(winOut.remainingMatches, 2);
+    expect(winOut.finalPoints, 9);
+    expect(winOut.automaticAdvanceCases, winOut.totalCases);
+    expect(winOut.thirdPlaceCases, 0);
+    expect(winOut.eliminatedCases, 0);
+
+    final noMorePoints = scenarios.singleWhere(
+      (scenario) => scenario.remainingPoints == 0,
+    );
+    expect(noMorePoints.finalPoints, 3);
+    expect(noMorePoints.eliminatedCases, greaterThan(0));
+  });
+
+  test('round of 32 scenarios ignore countries outside the group schedule', () {
+    expect(
+      worldCupRoundOf32ScenariosForTeam('Atlantis'),
+      isEmpty,
+    );
+  });
 }

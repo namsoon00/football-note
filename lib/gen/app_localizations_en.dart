@@ -1246,6 +1246,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupTeamMatchHistoryTitle => 'Match results';
 
   @override
+  String get worldCupQualificationScenariosTitle => 'Round of 32 scenarios';
+
+  @override
+  String worldCupQualificationScenariosSubtitle(
+      int currentPoints, int remainingMatches) {
+    return 'From $currentPoints current points, this estimates group-rank paths by the $remainingMatches remaining match points.';
+  }
+
+  @override
+  String get worldCupQualificationScenariosEmpty =>
+      'There is not enough group-stage data to calculate Round of 32 scenarios for this team yet.';
+
+  @override
+  String worldCupQualificationScenarioPoints(
+      int remainingPoints, int finalPoints) {
+    return '+$remainingPoints remaining pts · $finalPoints pts total';
+  }
+
+  @override
+  String worldCupQualificationScenarioRankRange(int bestRank, int worstRank) {
+    return 'Possible rank $bestRank-$worstRank';
+  }
+
+  @override
+  String worldCupQualificationScenarioCases(int automaticCases,
+      int thirdPlaceCases, int eliminatedCases, int totalCases) {
+    return 'Auto $automaticCases/$totalCases · 3rd-place race $thirdPlaceCases/$totalCases · out $eliminatedCases/$totalCases';
+  }
+
+  @override
+  String get worldCupQualificationThirdPlaceNote =>
+      'A third-place finish still needs to rank among the 8 best third-place teams across the 12 groups.';
+
+  @override
   String worldCupTeamRosterFormationLabel(String formation) {
     return '$formation formation';
   }

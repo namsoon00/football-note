@@ -109,6 +109,36 @@ class WorldCupGroupStanding {
   int get points => wins * 3 + draws;
 }
 
+class WorldCupQualificationScenario {
+  final String group;
+  final String team;
+  final int currentPoints;
+  final int remainingMatches;
+  final int remainingPoints;
+  final int finalPoints;
+  final int totalCases;
+  final int automaticAdvanceCases;
+  final int thirdPlaceCases;
+  final int eliminatedCases;
+  final int bestRank;
+  final int worstRank;
+
+  const WorldCupQualificationScenario({
+    required this.group,
+    required this.team,
+    required this.currentPoints,
+    required this.remainingMatches,
+    required this.remainingPoints,
+    required this.finalPoints,
+    required this.totalCases,
+    required this.automaticAdvanceCases,
+    required this.thirdPlaceCases,
+    required this.eliminatedCases,
+    required this.bestRank,
+    required this.worstRank,
+  });
+}
+
 const Map<String, String> _worldCupCountryCodes = <String, String>{
   'Algeria': 'DZ',
   'Argentina': 'AR',
@@ -276,6 +306,102 @@ Map<String, List<WorldCupGroupStanding>> worldCupGroupStandings({
   };
 }
 
+List<WorldCupQualificationScenario> worldCupRoundOf32ScenariosForTeam(
+  String team, {
+  List<WorldCupFixture>? fixtures,
+}) {
+  final normalizedTeam = team.trim();
+  if (normalizedTeam.isEmpty) return const <WorldCupQualificationScenario>[];
+  final sourceFixtures = fixtures ?? worldCupFixtures;
+  String? group;
+  for (final fixture in sourceFixtures) {
+    if (fixture.isGroupStage && fixture.involvesCountry(normalizedTeam)) {
+      group = fixture.group;
+      break;
+    }
+  }
+  final targetGroup = group;
+  if (targetGroup == null) return const <WorldCupQualificationScenario>[];
+
+  final groupFixtures = sourceFixtures
+      .where((fixture) => fixture.isGroupStage && fixture.group == targetGroup)
+      .toList(growable: false);
+  final currentStandings = worldCupGroupStandings(fixtures: sourceFixtures);
+  WorldCupGroupStanding? currentStanding;
+  for (final standing in currentStandings[targetGroup] ?? const []) {
+    if (standing.team == normalizedTeam) {
+      currentStanding = standing;
+      break;
+    }
+  }
+  final baseStanding = currentStanding;
+  if (baseStanding == null) return const <WorldCupQualificationScenario>[];
+
+  final remainingFixtures = groupFixtures
+      .where((fixture) => !fixture.hasScore)
+      .toList(growable: false);
+  final teamRemainingMatches = remainingFixtures
+      .where((fixture) => fixture.involvesCountry(normalizedTeam))
+      .length;
+  final accumulators = <int, _WorldCupQualificationScenarioAccumulator>{};
+
+  void recordScenario(List<WorldCupFixture> scenarioFixtures) {
+    final standings =
+        worldCupGroupStandings(fixtures: scenarioFixtures)[targetGroup];
+    if (standings == null) return;
+    final rankIndex = standings.indexWhere(
+      (standing) => standing.team == normalizedTeam,
+    );
+    if (rankIndex < 0) return;
+    final rank = rankIndex + 1;
+    final finalStanding = standings[rankIndex];
+    final remainingPoints = finalStanding.points - baseStanding.points;
+    final accumulator = accumulators.putIfAbsent(
+      remainingPoints,
+      () => _WorldCupQualificationScenarioAccumulator(
+        group: targetGroup,
+        team: normalizedTeam,
+        currentPoints: baseStanding.points,
+        remainingMatches: teamRemainingMatches,
+        remainingPoints: remainingPoints,
+        finalPoints: finalStanding.points,
+      ),
+    );
+    accumulator.record(rank);
+  }
+
+  void walk(
+    int fixtureIndex,
+    List<WorldCupFixture> scenarioFixtures,
+  ) {
+    if (fixtureIndex >= remainingFixtures.length) {
+      recordScenario(scenarioFixtures);
+      return;
+    }
+
+    final fixture = remainingFixtures[fixtureIndex];
+    for (final score in const <(int, int)>[(1, 0), (0, 0), (0, 1)]) {
+      walk(
+        fixtureIndex + 1,
+        [
+          for (final item in scenarioFixtures)
+            if (item.matchNumber == fixture.matchNumber)
+              item.copyWithScore(homeScore: score.$1, awayScore: score.$2)
+            else
+              item,
+        ],
+      );
+    }
+  }
+
+  walk(0, sourceFixtures);
+
+  return accumulators.values
+      .map((accumulator) => accumulator.toScenario())
+      .toList(growable: false)
+    ..sort((a, b) => b.remainingPoints.compareTo(a.remainingPoints));
+}
+
 int _compareWorldCupGroupStandings(
   WorldCupGroupStanding a,
   WorldCupGroupStanding b,
@@ -292,6 +418,64 @@ int _compareWorldCupGroupStandings(
   if (losses != 0) return losses;
   return a.team.compareTo(b.team);
 }
+
+class _WorldCupQualificationScenarioAccumulator {
+  final String group;
+  final String team;
+  final int currentPoints;
+  final int remainingMatches;
+  final int remainingPoints;
+  final int finalPoints;
+  int totalCases = 0;
+  int automaticAdvanceCases = 0;
+  int thirdPlaceCases = 0;
+  int eliminatedCases = 0;
+  int bestRank = 4;
+  int worstRank = 1;
+
+  _WorldCupQualificationScenarioAccumulator({
+    required this.group,
+    required this.team,
+    required this.currentPoints,
+    required this.remainingMatches,
+    required this.remainingPoints,
+    required this.finalPoints,
+  });
+
+  void record(int rank) {
+    totalCases += 1;
+    bestRank = _minInt(bestRank, rank);
+    worstRank = _maxInt(worstRank, rank);
+    if (rank <= 2) {
+      automaticAdvanceCases += 1;
+    } else if (rank == 3) {
+      thirdPlaceCases += 1;
+    } else {
+      eliminatedCases += 1;
+    }
+  }
+
+  WorldCupQualificationScenario toScenario() {
+    return WorldCupQualificationScenario(
+      group: group,
+      team: team,
+      currentPoints: currentPoints,
+      remainingMatches: remainingMatches,
+      remainingPoints: remainingPoints,
+      finalPoints: finalPoints,
+      totalCases: totalCases,
+      automaticAdvanceCases: automaticAdvanceCases,
+      thirdPlaceCases: thirdPlaceCases,
+      eliminatedCases: eliminatedCases,
+      bestRank: bestRank,
+      worstRank: worstRank,
+    );
+  }
+}
+
+int _minInt(int a, int b) => a < b ? a : b;
+
+int _maxInt(int a, int b) => a > b ? a : b;
 
 class _WorldCupGroupStandingAccumulator {
   final String group;

@@ -2305,6 +2305,51 @@ abstract class AppLocalizations {
   /// **'Match results'**
   String get worldCupTeamMatchHistoryTitle;
 
+  /// No description provided for @worldCupQualificationScenariosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Round of 32 scenarios'**
+  String get worldCupQualificationScenariosTitle;
+
+  /// No description provided for @worldCupQualificationScenariosSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From {currentPoints} current points, this estimates group-rank paths by the {remainingMatches} remaining match points.'**
+  String worldCupQualificationScenariosSubtitle(
+      int currentPoints, int remainingMatches);
+
+  /// No description provided for @worldCupQualificationScenariosEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'There is not enough group-stage data to calculate Round of 32 scenarios for this team yet.'**
+  String get worldCupQualificationScenariosEmpty;
+
+  /// No description provided for @worldCupQualificationScenarioPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'+{remainingPoints} remaining pts · {finalPoints} pts total'**
+  String worldCupQualificationScenarioPoints(
+      int remainingPoints, int finalPoints);
+
+  /// No description provided for @worldCupQualificationScenarioRankRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Possible rank {bestRank}-{worstRank}'**
+  String worldCupQualificationScenarioRankRange(int bestRank, int worstRank);
+
+  /// No description provided for @worldCupQualificationScenarioCases.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto {automaticCases}/{totalCases} · 3rd-place race {thirdPlaceCases}/{totalCases} · out {eliminatedCases}/{totalCases}'**
+  String worldCupQualificationScenarioCases(int automaticCases,
+      int thirdPlaceCases, int eliminatedCases, int totalCases);
+
+  /// No description provided for @worldCupQualificationThirdPlaceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'A third-place finish still needs to rank among the 8 best third-place teams across the 12 groups.'**
+  String get worldCupQualificationThirdPlaceNote;
+
   /// No description provided for @worldCupTeamRosterFormationLabel.
   ///
   /// In en, this message translates to:
