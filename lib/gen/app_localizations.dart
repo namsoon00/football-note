@@ -2314,7 +2314,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupQualificationScenariosSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'From {currentPoints} current points, this estimates group-rank paths by the {remainingMatches} remaining match points.'**
+  /// **'From {currentPoints} current points, this estimates Round of 32 paths and opponent slots for the {remainingMatches} remaining match results.'**
   String worldCupQualificationScenariosSubtitle(
       int currentPoints, int remainingMatches);
 
@@ -2349,6 +2349,61 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A third-place finish still needs to rank among the 8 best third-place teams across the 12 groups.'**
   String get worldCupQualificationThirdPlaceNote;
+
+  /// No description provided for @worldCupQualificationMatchPick.
+  ///
+  /// In en, this message translates to:
+  /// **'{result} vs {opponent}'**
+  String worldCupQualificationMatchPick(String opponent, String result);
+
+  /// No description provided for @worldCupQualificationOutcomeAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto berth'**
+  String get worldCupQualificationOutcomeAuto;
+
+  /// No description provided for @worldCupQualificationOutcomePossible.
+  ///
+  /// In en, this message translates to:
+  /// **'Can advance'**
+  String get worldCupQualificationOutcomePossible;
+
+  /// No description provided for @worldCupQualificationOutcomeThird.
+  ///
+  /// In en, this message translates to:
+  /// **'3rd-place race'**
+  String get worldCupQualificationOutcomeThird;
+
+  /// No description provided for @worldCupQualificationOutcomeOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Out'**
+  String get worldCupQualificationOutcomeOut;
+
+  /// No description provided for @worldCupQualificationOpponentCandidates.
+  ///
+  /// In en, this message translates to:
+  /// **'Round of 32 opponent slots: {opponents}'**
+  String worldCupQualificationOpponentCandidates(String opponents);
+
+  /// No description provided for @worldCupQualificationNoOpponent.
+  ///
+  /// In en, this message translates to:
+  /// **'This result path has no Round of 32 route.'**
+  String get worldCupQualificationNoOpponent;
+
+  /// No description provided for @worldCupQualificationOpponentCandidate.
+  ///
+  /// In en, this message translates to:
+  /// **'M{matchNumber} · {opponent}'**
+  String worldCupQualificationOpponentCandidate(
+      int matchNumber, String opponent);
+
+  /// No description provided for @worldCupQualificationOpponentSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' or '**
+  String get worldCupQualificationOpponentSeparator;
 
   /// No description provided for @worldCupTeamRosterFormationLabel.
   ///

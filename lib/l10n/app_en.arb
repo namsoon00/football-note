@@ -603,7 +603,7 @@
   "worldCupTeamCurrentPointsLabel": "Current points",
   "worldCupTeamMatchHistoryTitle": "Match results",
   "worldCupQualificationScenariosTitle": "Round of 32 scenarios",
-  "worldCupQualificationScenariosSubtitle": "From {currentPoints} current points, this estimates group-rank paths by the {remainingMatches} remaining match points.",
+  "worldCupQualificationScenariosSubtitle": "From {currentPoints} current points, this estimates Round of 32 paths and opponent slots for the {remainingMatches} remaining match results.",
   "@worldCupQualificationScenariosSubtitle": {
     "placeholders": {
       "currentPoints": {
@@ -655,6 +655,42 @@
     }
   },
   "worldCupQualificationThirdPlaceNote": "A third-place finish still needs to rank among the 8 best third-place teams across the 12 groups.",
+  "worldCupQualificationMatchPick": "{result} vs {opponent}",
+  "@worldCupQualificationMatchPick": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOutcomeAuto": "Auto berth",
+  "worldCupQualificationOutcomePossible": "Can advance",
+  "worldCupQualificationOutcomeThird": "3rd-place race",
+  "worldCupQualificationOutcomeOut": "Out",
+  "worldCupQualificationOpponentCandidates": "Round of 32 opponent slots: {opponents}",
+  "@worldCupQualificationOpponentCandidates": {
+    "placeholders": {
+      "opponents": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationNoOpponent": "This result path has no Round of 32 route.",
+  "worldCupQualificationOpponentCandidate": "M{matchNumber} · {opponent}",
+  "@worldCupQualificationOpponentCandidate": {
+    "placeholders": {
+      "matchNumber": {
+        "type": "int"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOpponentSeparator": " or ",
   "worldCupTeamRosterFormationLabel": "{formation} formation",
   "@worldCupTeamRosterFormationLabel": {
     "placeholders": {
