@@ -7706,6 +7706,24 @@ abstract class AppLocalizations {
   /// **'Weekly weather'**
   String get homeWeatherWeeklyTitle;
 
+  /// No description provided for @homeWeatherOutfitActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outfit'**
+  String get homeWeatherOutfitActionLabel;
+
+  /// No description provided for @homeWeatherTomorrowActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get homeWeatherTomorrowActionLabel;
+
+  /// No description provided for @homeWeatherWeeklyActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get homeWeatherWeeklyActionLabel;
+
   /// No description provided for @homeWeatherTomorrowNavSubtitle.
   ///
   /// In en, this message translates to:
@@ -7799,13 +7817,13 @@ abstract class AppLocalizations {
   /// No description provided for @weatherPrecipitationNone.
   ///
   /// In en, this message translates to:
-  /// **'Little rain'**
+  /// **'Almost no rain'**
   String get weatherPrecipitationNone;
 
   /// No description provided for @weatherPrecipitationTrace.
   ///
   /// In en, this message translates to:
-  /// **'Light rain'**
+  /// **'A little rain'**
   String get weatherPrecipitationTrace;
 
   /// No description provided for @weatherPrecipitationLight.
@@ -7817,7 +7835,7 @@ abstract class AppLocalizations {
   /// No description provided for @weatherPrecipitationModerate.
   ///
   /// In en, this message translates to:
-  /// **'Rain'**
+  /// **'Steady rain'**
   String get weatherPrecipitationModerate;
 
   /// No description provided for @weatherPrecipitationHeavy.
@@ -7843,132 +7861,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hourly temperature'**
   String get homeWeatherHourlyTemperature;
-
-  /// No description provided for @homeWeatherRainRiskTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Rain check'**
-  String get homeWeatherRainRiskTitle;
-
-  /// No description provided for @homeWeatherRainRiskLow.
-  ///
-  /// In en, this message translates to:
-  /// **'Low'**
-  String get homeWeatherRainRiskLow;
-
-  /// No description provided for @homeWeatherRainRiskCaution.
-  ///
-  /// In en, this message translates to:
-  /// **'Caution'**
-  String get homeWeatherRainRiskCaution;
-
-  /// No description provided for @homeWeatherRainRiskHigh.
-  ///
-  /// In en, this message translates to:
-  /// **'High'**
-  String get homeWeatherRainRiskHigh;
-
-  /// No description provided for @homeWeatherRainRiskSevere.
-  ///
-  /// In en, this message translates to:
-  /// **'Severe'**
-  String get homeWeatherRainRiskSevere;
-
-  /// No description provided for @homeWeatherRainRiskLowSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'A light shower may pass through. Do a quick gear check before outdoor training.'**
-  String get homeWeatherRainRiskLowSummary;
-
-  /// No description provided for @homeWeatherRainRiskCautionSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'Rain is possible. Prepare for wet grass and slippery changes of direction.'**
-  String get homeWeatherRainRiskCautionSummary;
-
-  /// No description provided for @homeWeatherRainRiskHighSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'Rain is likely. Check the pitch condition and adjust training load early.'**
-  String get homeWeatherRainRiskHighSummary;
-
-  /// No description provided for @homeWeatherRainRiskSevereSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'Heavy rain or lightning is possible. Confirm whether outdoor plans should proceed.'**
-  String get homeWeatherRainRiskSevereSummary;
-
-  /// No description provided for @homeWeatherRainRiskProbability.
-  ///
-  /// In en, this message translates to:
-  /// **'Chance'**
-  String get homeWeatherRainRiskProbability;
-
-  /// No description provided for @homeWeatherRainRiskAmount.
-  ///
-  /// In en, this message translates to:
-  /// **'Today total'**
-  String get homeWeatherRainRiskAmount;
-
-  /// No description provided for @homeWeatherRainRiskStart.
-  ///
-  /// In en, this message translates to:
-  /// **'Start'**
-  String get homeWeatherRainRiskStart;
-
-  /// No description provided for @homeWeatherRainRiskNow.
-  ///
-  /// In en, this message translates to:
-  /// **'Now'**
-  String get homeWeatherRainRiskNow;
-
-  /// No description provided for @homeWeatherRainPreparationTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Football prep'**
-  String get homeWeatherRainPreparationTitle;
-
-  /// No description provided for @homeWeatherRainTipSpareSocks.
-  ///
-  /// In en, this message translates to:
-  /// **'Pack spare socks and a towel.'**
-  String get homeWeatherRainTipSpareSocks;
-
-  /// No description provided for @homeWeatherRainTipGrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Check studs and reduce sharp cuts on slippery ground.'**
-  String get homeWeatherRainTipGrip;
-
-  /// No description provided for @homeWeatherRainTipSchedule.
-  ///
-  /// In en, this message translates to:
-  /// **'Check whether the match or outdoor session may change.'**
-  String get homeWeatherRainTipSchedule;
-
-  /// No description provided for @homeWeatherRainTipIndoor.
-  ///
-  /// In en, this message translates to:
-  /// **'For heavy rain or lightning, switch to indoor technical work or recovery.'**
-  String get homeWeatherRainTipIndoor;
-
-  /// No description provided for @homeWeatherRainTrainingCaution.
-  ///
-  /// In en, this message translates to:
-  /// **'Rain is possible, so test grip before deceleration, turns, and landing work.'**
-  String get homeWeatherRainTrainingCaution;
-
-  /// No description provided for @homeWeatherRainTrainingHighCaution.
-  ///
-  /// In en, this message translates to:
-  /// **'Rain risk is high; reduce sprint and contact work and check the pitch first.'**
-  String get homeWeatherRainTrainingHighCaution;
-
-  /// No description provided for @homeWeatherRainTrainingRecovery.
-  ///
-  /// In en, this message translates to:
-  /// **'After training, change wet socks and tops quickly and check your feet.'**
-  String get homeWeatherRainTrainingRecovery;
 
   /// No description provided for @homeWeatherWindSpeed.
   ///
@@ -8035,12 +7927,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Outfit guide'**
   String get homeWeatherOutfitButton;
-
-  /// No description provided for @homeWeatherTodayRecommendationsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Recommendations for today\'s weather'**
-  String get homeWeatherTodayRecommendationsTitle;
 
   /// No description provided for @homeWeatherOutfitLayersLabel.
   ///
@@ -8335,102 +8221,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hazardous'**
   String get homeWeatherStatusHazardous;
-
-  /// No description provided for @homeWeatherSuggestionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Suggested training focus'**
-  String get homeWeatherSuggestionTitle;
-
-  /// No description provided for @homeWeatherSuggestionButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Training focus'**
-  String get homeWeatherSuggestionButton;
-
-  /// No description provided for @homeWeatherSuggestionSheetSubtitleDefault.
-  ///
-  /// In en, this message translates to:
-  /// **'Best focus for the current weather.'**
-  String get homeWeatherSuggestionSheetSubtitleDefault;
-
-  /// No description provided for @homeWeatherSuggestionSheetSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Tailored to {location} weather.'**
-  String homeWeatherSuggestionSheetSubtitle(Object location);
-
-  /// No description provided for @homeWeatherSuggestionFocusLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Focus'**
-  String get homeWeatherSuggestionFocusLabel;
-
-  /// No description provided for @homeWeatherSuggestionCautionLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Execution tip'**
-  String get homeWeatherSuggestionCautionLabel;
-
-  /// No description provided for @homeWeatherSuggestionRecoveryLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Recovery check'**
-  String get homeWeatherSuggestionRecoveryLabel;
-
-  /// No description provided for @homeWeatherSuggestionClear.
-  ///
-  /// In en, this message translates to:
-  /// **'Good time for outdoor first-touch work, passing rhythm, and short sprint sets.'**
-  String get homeWeatherSuggestionClear;
-
-  /// No description provided for @homeWeatherSuggestionCloudy.
-  ///
-  /// In en, this message translates to:
-  /// **'Use the stable conditions for tactical pattern work and longer tempo drills.'**
-  String get homeWeatherSuggestionCloudy;
-
-  /// No description provided for @homeWeatherSuggestionRain.
-  ///
-  /// In en, this message translates to:
-  /// **'Shift to indoor touches, wall passing, and balance or core work.'**
-  String get homeWeatherSuggestionRain;
-
-  /// No description provided for @homeWeatherSuggestionSnow.
-  ///
-  /// In en, this message translates to:
-  /// **'Prioritize indoor coordination, mobility, and light technical repetitions.'**
-  String get homeWeatherSuggestionSnow;
-
-  /// No description provided for @homeWeatherSuggestionStorm.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep it safe with recovery, video review, and short indoor activation.'**
-  String get homeWeatherSuggestionStorm;
-
-  /// No description provided for @homeWeatherSuggestionHot.
-  ///
-  /// In en, this message translates to:
-  /// **'Reduce volume, extend recovery, and focus on technique with hydration breaks.'**
-  String get homeWeatherSuggestionHot;
-
-  /// No description provided for @homeWeatherSuggestionCold.
-  ///
-  /// In en, this message translates to:
-  /// **'Spend extra time warming up, then build intensity gradually with tight touches.'**
-  String get homeWeatherSuggestionCold;
-
-  /// No description provided for @homeWeatherSuggestionAirCaution.
-  ///
-  /// In en, this message translates to:
-  /// **'Air quality is poor, so reduce outdoor load and switch to indoor technical or recovery work if possible.'**
-  String get homeWeatherSuggestionAirCaution;
-
-  /// No description provided for @homeWeatherSuggestionAirWatch.
-  ///
-  /// In en, this message translates to:
-  /// **'If you train outside, shorten hard intervals and monitor your breathing because the air quality is not fully stable.'**
-  String get homeWeatherSuggestionAirWatch;
 
   /// No description provided for @weatherLabelDefault.
   ///
