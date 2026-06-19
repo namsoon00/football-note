@@ -140,6 +140,57 @@ void main() {
     expect(korea.goalDifference, 1);
   });
 
+  test('group standings break point ties by goal difference and goals for', () {
+    const fixtures = [
+      WorldCupFixture(
+        matchNumber: 9001,
+        kickoffUtcIso: '2026-06-11T19:00:00Z',
+        stage: WorldCupStage.group,
+        group: 'Z',
+        homeTeam: 'Alpha',
+        awayTeam: 'Bravo',
+        venue: 'Test Stadium',
+        homeScore: 2,
+        awayScore: 1,
+      ),
+      WorldCupFixture(
+        matchNumber: 9002,
+        kickoffUtcIso: '2026-06-12T19:00:00Z',
+        stage: WorldCupStage.group,
+        group: 'Z',
+        homeTeam: 'Charlie',
+        awayTeam: 'Delta',
+        venue: 'Test Stadium',
+        homeScore: 4,
+        awayScore: 2,
+      ),
+      WorldCupFixture(
+        matchNumber: 9003,
+        kickoffUtcIso: '2026-06-13T19:00:00Z',
+        stage: WorldCupStage.group,
+        group: 'Z',
+        homeTeam: 'Echo',
+        awayTeam: 'Foxtrot',
+        venue: 'Test Stadium',
+        homeScore: 3,
+        awayScore: 2,
+      ),
+    ];
+
+    final groupZ = worldCupGroupStandings(fixtures: fixtures)['Z']!;
+
+    expect(groupZ.map((standing) => standing.team).take(3), [
+      'Charlie',
+      'Echo',
+      'Alpha',
+    ]);
+    expect(groupZ.first.goalDifference, 2);
+    expect(groupZ[1].goalDifference, 1);
+    expect(groupZ[1].goalsFor, 3);
+    expect(groupZ[2].goalDifference, 1);
+    expect(groupZ[2].goalsFor, 2);
+  });
+
   test('round of 32 scenarios group remaining points by qualification path',
       () {
     final scenarios = worldCupRoundOf32ScenariosForTeam('Korea Republic');

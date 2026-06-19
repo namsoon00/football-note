@@ -145,6 +145,9 @@ void main() {
     expect(find.text('조별 순위'), findsOneWidget);
     expect(find.text('조별 순위표'), findsOneWidget);
     expect(find.text('승-무-패'), findsWidgets);
+    expect(find.text('득실'), findsWidgets);
+    expect(find.text('득점'), findsWidgets);
+    expect(find.text('동률 비교: 득실차 +2 · 득점 2'), findsWidgets);
     expect(find.text('조별 팀 구성'), findsOneWidget);
     expect(find.text('A조'), findsWidgets);
 

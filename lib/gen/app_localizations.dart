@@ -2205,8 +2205,14 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupStandingsRuleValue.
   ///
   /// In en, this message translates to:
-  /// **'Points · head-to-head · goal difference · goals · conduct · FIFA ranking'**
+  /// **'Points · goal difference · goals for · wins · losses · team name'**
   String get worldCupStandingsRuleValue;
+
+  /// No description provided for @worldCupStandingsTieGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'When points are tied, goal difference breaks the tie first; if that is still level, goals for decides the order.'**
+  String get worldCupStandingsTieGuide;
 
   /// No description provided for @worldCupStandingsTableTitle.
   ///
@@ -2232,6 +2238,18 @@ abstract class AppLocalizations {
   /// **'W-D-L'**
   String get worldCupStandingsRecordColumn;
 
+  /// No description provided for @worldCupStandingsGoalDifferenceColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'GD'**
+  String get worldCupStandingsGoalDifferenceColumn;
+
+  /// No description provided for @worldCupStandingsGoalsForColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'GF'**
+  String get worldCupStandingsGoalsForColumn;
+
   /// No description provided for @worldCupStandingsPointsColumn.
   ///
   /// In en, this message translates to:
@@ -2243,6 +2261,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{wins}-{draws}-{losses}'**
   String worldCupStandingsRecordValue(int wins, int draws, int losses);
+
+  /// No description provided for @worldCupStandingsTieReasonValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tie-break: GD {goalDifference} · GF {goalsFor}'**
+  String worldCupStandingsTieReasonValue(String goalDifference, int goalsFor);
 
   /// No description provided for @worldCupGroupTeamsTitle.
   ///

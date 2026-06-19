@@ -1137,8 +1137,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupStandingsRuleLabel => '순위 기준';
 
   @override
-  String get worldCupStandingsRuleValue =>
-      '승점 · 맞대결 · 득실차 · 득점 · 페어플레이 · FIFA 랭킹';
+  String get worldCupStandingsRuleValue => '승점 · 득실차 · 득점 · 승리 · 패배 · 국가명';
+
+  @override
+  String get worldCupStandingsTieGuide =>
+      '승점이 같으면 득실차를 먼저 보고, 그래도 같으면 득점이 높은 팀이 위에 표시돼요.';
 
   @override
   String get worldCupStandingsTableTitle => '조별 순위표';
@@ -1153,11 +1156,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupStandingsRecordColumn => '승-무-패';
 
   @override
+  String get worldCupStandingsGoalDifferenceColumn => '득실';
+
+  @override
+  String get worldCupStandingsGoalsForColumn => '득점';
+
+  @override
   String get worldCupStandingsPointsColumn => '승점';
 
   @override
   String worldCupStandingsRecordValue(int wins, int draws, int losses) {
     return '$wins-$draws-$losses';
+  }
+
+  @override
+  String worldCupStandingsTieReasonValue(String goalDifference, int goalsFor) {
+    return '동률 비교: 득실차 $goalDifference · 득점 $goalsFor';
   }
 
   @override

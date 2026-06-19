@@ -538,11 +538,14 @@
   "worldCupStandingsTitle": "Group standings",
   "worldCupStandingsPlanBody": "Group rankings update from the fixture scores already in the schedule. Teams are ordered by points, goal difference, goals, wins, losses, then country name until official tie-break data is available.",
   "worldCupStandingsRuleLabel": "Tiebreak order",
-  "worldCupStandingsRuleValue": "Points · head-to-head · goal difference · goals · conduct · FIFA ranking",
+  "worldCupStandingsRuleValue": "Points · goal difference · goals for · wins · losses · team name",
+  "worldCupStandingsTieGuide": "When points are tied, goal difference breaks the tie first; if that is still level, goals for decides the order.",
   "worldCupStandingsTableTitle": "Group table",
   "worldCupStandingsRankColumn": "Rk",
   "worldCupStandingsTeamColumn": "Team",
   "worldCupStandingsRecordColumn": "W-D-L",
+  "worldCupStandingsGoalDifferenceColumn": "GD",
+  "worldCupStandingsGoalsForColumn": "GF",
   "worldCupStandingsPointsColumn": "Pts",
   "worldCupStandingsRecordValue": "{wins}-{draws}-{losses}",
   "@worldCupStandingsRecordValue": {
@@ -554,6 +557,17 @@
         "type": "int"
       },
       "losses": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupStandingsTieReasonValue": "Tie-break: GD {goalDifference} · GF {goalsFor}",
+  "@worldCupStandingsTieReasonValue": {
+    "placeholders": {
+      "goalDifference": {
+        "type": "String"
+      },
+      "goalsFor": {
         "type": "int"
       }
     }
