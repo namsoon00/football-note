@@ -7280,6 +7280,43 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsCoachRosterAddPlayer => 'プレーヤーを追加';
 
   @override
+  String get settingsCoachRosterEditPlayer => 'プレーヤーを編集';
+
+  @override
+  String get settingsCoachRosterDeletePlayer => 'プレーヤーを削除';
+
+  @override
+  String get settingsCoachRosterDeleteTitle => 'プレーヤーを削除';
+
+  @override
+  String settingsCoachRosterDeleteMessage(Object player) {
+    return '$playerをコーチの一覧から削除しますか？';
+  }
+
+  @override
+  String settingsCoachRosterDeleted(Object player) {
+    return '$playerを削除しました。';
+  }
+
+  @override
+  String settingsCoachRosterRenamed(Object player) {
+    return '$playerを更新しました。';
+  }
+
+  @override
+  String get settingsCoachRosterLastPlayerRequired =>
+      'コーチモードでは少なくとも1人のプレーヤーが必要です。';
+
+  @override
+  String settingsCoachRosterDriveAccount(Object email) {
+    return 'Drive: $email';
+  }
+
+  @override
+  String get settingsCoachRosterNoDriveAccount =>
+      'このプレーヤーに保存されたDriveアカウントはまだありません。';
+
+  @override
   String get settingsCoachRosterPlayerNameLabel => 'プレーヤー名';
 
   @override

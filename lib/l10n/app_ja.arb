@@ -3818,6 +3818,35 @@
   "settingsCoachRosterDescription": "フィードバック、報酬名、Driveバックアップを書き込む前に、対象のプレーヤーを選択します。",
   "settingsCoachRosterEmpty": "登録されたプレーヤーはまだありません。",
   "settingsCoachRosterAddPlayer": "プレーヤーを追加",
+  "settingsCoachRosterEditPlayer": "プレーヤーを編集",
+  "settingsCoachRosterDeletePlayer": "プレーヤーを削除",
+  "settingsCoachRosterDeleteTitle": "プレーヤーを削除",
+  "settingsCoachRosterDeleteMessage": "{player}をコーチの一覧から削除しますか？",
+  "@settingsCoachRosterDeleteMessage": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterDeleted": "{player}を削除しました。",
+  "@settingsCoachRosterDeleted": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterRenamed": "{player}を更新しました。",
+  "@settingsCoachRosterRenamed": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterLastPlayerRequired": "コーチモードでは少なくとも1人のプレーヤーが必要です。",
+  "settingsCoachRosterDriveAccount": "Drive: {email}",
+  "@settingsCoachRosterDriveAccount": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "settingsCoachRosterNoDriveAccount": "このプレーヤーに保存されたDriveアカウントはまだありません。",
   "settingsCoachRosterPlayerNameLabel": "プレーヤー名",
   "settingsCoachRosterPlayerNameHint": "例: Minjun",
   "settingsCoachRosterAdded": "{player}を追加しました。",

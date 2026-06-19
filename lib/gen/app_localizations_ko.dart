@@ -7291,6 +7291,42 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsCoachRosterAddPlayer => '선수 추가';
 
   @override
+  String get settingsCoachRosterEditPlayer => '선수 수정';
+
+  @override
+  String get settingsCoachRosterDeletePlayer => '선수 삭제';
+
+  @override
+  String get settingsCoachRosterDeleteTitle => '선수 삭제';
+
+  @override
+  String settingsCoachRosterDeleteMessage(Object player) {
+    return '$player 선수를 코치 목록에서 삭제할까요?';
+  }
+
+  @override
+  String settingsCoachRosterDeleted(Object player) {
+    return '$player 선수를 삭제했어요.';
+  }
+
+  @override
+  String settingsCoachRosterRenamed(Object player) {
+    return '$player 선수 정보를 수정했어요.';
+  }
+
+  @override
+  String get settingsCoachRosterLastPlayerRequired =>
+      '코치 모드에서는 최소 한 명의 선수가 필요해요.';
+
+  @override
+  String settingsCoachRosterDriveAccount(Object email) {
+    return 'Drive: $email';
+  }
+
+  @override
+  String get settingsCoachRosterNoDriveAccount => '아직 이 선수에 저장된 Drive 계정이 없어요.';
+
+  @override
   String get settingsCoachRosterPlayerNameLabel => '선수 이름';
 
   @override
