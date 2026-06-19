@@ -2270,6 +2270,9 @@ class DriveBackupService implements BackupRepository {
       leaguePoints: entry.leaguePoints,
       tournamentWins: entry.tournamentWins,
       trainingProgramMinutes: entry.trainingProgramMinutes,
+      matchCompetitionName: entry.matchCompetitionName,
+      matchStage: entry.matchStage,
+      tournamentOutcome: entry.tournamentOutcome,
     );
   }
 
@@ -3290,6 +3293,9 @@ class DriveBackupService implements BackupRepository {
       'leagueResultMode': entry.leagueResultMode,
       'leaguePoints': entry.leaguePoints,
       'tournamentWins': entry.tournamentWins,
+      'matchCompetitionName': entry.matchCompetitionName,
+      'matchStage': entry.matchStage,
+      'tournamentOutcome': entry.tournamentOutcome,
       'trainingProgramMinutes': entry.trainingProgramMinutes,
     };
   }
@@ -3385,6 +3391,9 @@ class DriveBackupService implements BackupRepository {
       leagueResultMode: map['leagueResultMode'] as String? ?? 'points',
       leaguePoints: (map['leaguePoints'] as num?)?.toInt(),
       tournamentWins: (map['tournamentWins'] as num?)?.toInt(),
+      matchCompetitionName: map['matchCompetitionName'] as String? ?? '',
+      matchStage: map['matchStage'] as String? ?? '',
+      tournamentOutcome: map['tournamentOutcome'] as String? ?? '',
       trainingProgramMinutes: (map['trainingProgramMinutes'] as Map?)?.map(
             (key, value) =>
                 MapEntry(key.toString(), (value is num) ? value.toInt() : 0),

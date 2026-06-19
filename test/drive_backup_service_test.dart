@@ -98,6 +98,11 @@ void main() {
         opponentTeam: 'Blue FC',
         scoredGoals: 2,
         concededGoals: 1,
+        matchKind: 'league',
+        leagueTeamNames: const <String>['Blue FC', 'Red FC'],
+        leaguePoints: 3,
+        matchCompetitionName: 'Weekend League',
+        matchStage: 'Round 2',
       ),
     );
 
@@ -130,6 +135,9 @@ void main() {
     expect(backup['format'], 'football_note_backup');
     expect(backup['version'], 6);
     expect(backedUpEntry['sportId'], SportCatalog.footballId);
+    expect(backedUpEntry['matchCompetitionName'], 'Weekend League');
+    expect(backedUpEntry['matchStage'], 'Round 2');
+    expect(backedUpEntry['leaguePoints'], 3);
     expect(backupOptions['profile_name'], 'Lee');
     expect(backupOptions['default_duration'], 90);
     expect(backupOptions['type_options'], ['technique', 'tactics']);
@@ -153,6 +161,9 @@ void main() {
     expect(trainingBox.values.first.opponentTeam, 'Blue FC');
     expect(trainingBox.values.first.scoredGoals, 2);
     expect(trainingBox.values.first.concededGoals, 1);
+    expect(trainingBox.values.first.matchCompetitionName, 'Weekend League');
+    expect(trainingBox.values.first.matchStage, 'Round 2');
+    expect(trainingBox.values.first.leaguePoints, 3);
 
     expect(optionBox.get('profile_name'), 'Lee');
     expect(optionBox.get('profile_height_cm'), '160.5');

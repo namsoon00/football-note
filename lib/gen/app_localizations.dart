@@ -14290,6 +14290,114 @@ abstract class AppLocalizations {
   /// **'Tournament'**
   String get matchKindTournament;
 
+  /// No description provided for @matchLeagueSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'League details'**
+  String get matchLeagueSectionTitle;
+
+  /// No description provided for @matchTournamentSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament details'**
+  String get matchTournamentSectionTitle;
+
+  /// No description provided for @matchCompetitionNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition name'**
+  String get matchCompetitionNameLabel;
+
+  /// No description provided for @matchLeagueNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Weekend League'**
+  String get matchLeagueNameHint;
+
+  /// No description provided for @matchTournamentNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Cup tournament'**
+  String get matchTournamentNameHint;
+
+  /// No description provided for @matchLeagueRoundLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Round or matchday'**
+  String get matchLeagueRoundLabel;
+
+  /// No description provided for @matchLeagueRoundHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Round 3'**
+  String get matchLeagueRoundHint;
+
+  /// No description provided for @matchTournamentStageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament stage'**
+  String get matchTournamentStageLabel;
+
+  /// No description provided for @matchTournamentStagePreliminary.
+  ///
+  /// In en, this message translates to:
+  /// **'Preliminary'**
+  String get matchTournamentStagePreliminary;
+
+  /// No description provided for @matchTournamentStageRound16.
+  ///
+  /// In en, this message translates to:
+  /// **'Round of 16'**
+  String get matchTournamentStageRound16;
+
+  /// No description provided for @matchTournamentStageQuarterfinal.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarterfinal'**
+  String get matchTournamentStageQuarterfinal;
+
+  /// No description provided for @matchTournamentStageSemifinal.
+  ///
+  /// In en, this message translates to:
+  /// **'Semifinal'**
+  String get matchTournamentStageSemifinal;
+
+  /// No description provided for @matchTournamentStageFinal.
+  ///
+  /// In en, this message translates to:
+  /// **'Final'**
+  String get matchTournamentStageFinal;
+
+  /// No description provided for @matchTournamentOutcomeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress result'**
+  String get matchTournamentOutcomeLabel;
+
+  /// No description provided for @matchTournamentOutcomeOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get matchTournamentOutcomeOngoing;
+
+  /// No description provided for @matchTournamentOutcomeAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get matchTournamentOutcomeAdvanced;
+
+  /// No description provided for @matchTournamentOutcomeEliminated.
+  ///
+  /// In en, this message translates to:
+  /// **'Eliminated'**
+  String get matchTournamentOutcomeEliminated;
+
+  /// No description provided for @matchTournamentOutcomeChampion.
+  ///
+  /// In en, this message translates to:
+  /// **'Champion'**
+  String get matchTournamentOutcomeChampion;
+
   /// No description provided for @matchOpponentTeamLabel.
   ///
   /// In en, this message translates to:

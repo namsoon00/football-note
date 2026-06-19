@@ -7995,6 +7995,60 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchKindTournament => '토너먼트';
 
   @override
+  String get matchLeagueSectionTitle => '리그 정보';
+
+  @override
+  String get matchTournamentSectionTitle => '토너먼트 정보';
+
+  @override
+  String get matchCompetitionNameLabel => '대회 이름';
+
+  @override
+  String get matchLeagueNameHint => '예) 주말 리그';
+
+  @override
+  String get matchTournamentNameHint => '예) 컵 대회';
+
+  @override
+  String get matchLeagueRoundLabel => '라운드/주차';
+
+  @override
+  String get matchLeagueRoundHint => '예) 3라운드';
+
+  @override
+  String get matchTournamentStageLabel => '토너먼트 단계';
+
+  @override
+  String get matchTournamentStagePreliminary => '예선';
+
+  @override
+  String get matchTournamentStageRound16 => '16강';
+
+  @override
+  String get matchTournamentStageQuarterfinal => '8강';
+
+  @override
+  String get matchTournamentStageSemifinal => '4강';
+
+  @override
+  String get matchTournamentStageFinal => '결승';
+
+  @override
+  String get matchTournamentOutcomeLabel => '진행 결과';
+
+  @override
+  String get matchTournamentOutcomeOngoing => '진행 중';
+
+  @override
+  String get matchTournamentOutcomeAdvanced => '다음 라운드 진출';
+
+  @override
+  String get matchTournamentOutcomeEliminated => '탈락';
+
+  @override
+  String get matchTournamentOutcomeChampion => '우승';
+
+  @override
   String get matchOpponentTeamLabel => '상대 팀';
 
   @override
