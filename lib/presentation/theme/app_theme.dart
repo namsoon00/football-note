@@ -134,6 +134,42 @@ class AppSurfaces {
 }
 
 class AppTheme {
+  static SnackBarThemeData _snackBarTheme({
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required Color borderColor,
+    required Color actionColor,
+    required Color disabledActionColor,
+    required Color actionBackgroundColor,
+    required TextStyle contentTextStyle,
+  }) {
+    return SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      insetPadding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        0,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      elevation: 0,
+      backgroundColor: backgroundColor,
+      contentTextStyle: contentTextStyle.copyWith(
+        color: foregroundColor,
+        fontSize: 13,
+        fontWeight: FontWeight.w800,
+        height: 1.32,
+      ),
+      actionTextColor: actionColor,
+      disabledActionTextColor: disabledActionColor,
+      actionBackgroundColor: actionBackgroundColor,
+      disabledActionBackgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppRadius.control,
+        side: BorderSide(color: borderColor),
+      ),
+    );
+  }
+
   static ThemeData light() {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: WatchCartConstants.primaryColor,
@@ -202,6 +238,15 @@ class AppTheme {
       scaffoldBackgroundColor: const Color(0xFFF6F8FC),
       textTheme: textTheme,
       splashFactory: InkRipple.splashFactory,
+      snackBarTheme: _snackBarTheme(
+        backgroundColor: const Color(0xFF172033),
+        foregroundColor: Colors.white,
+        borderColor: Colors.white.withValues(alpha: 0.10),
+        actionColor: const Color(0xFFB9D4FF),
+        disabledActionColor: Colors.white.withValues(alpha: 0.42),
+        actionBackgroundColor: Colors.white.withValues(alpha: 0.10),
+        contentTextStyle: textTheme.bodyMedium ?? const TextStyle(),
+      ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
           overlayColor: WidgetStateProperty.all(
@@ -359,6 +404,15 @@ class AppTheme {
       scaffoldBackgroundColor: const Color(0xFF0F131A),
       textTheme: textTheme,
       splashFactory: InkRipple.splashFactory,
+      snackBarTheme: _snackBarTheme(
+        backgroundColor: const Color(0xFF252D3B),
+        foregroundColor: const Color(0xFFF4F7FB),
+        borderColor: const Color(0xFF465166),
+        actionColor: const Color(0xFFB9D4FF),
+        disabledActionColor: const Color(0xFF808A9B),
+        actionBackgroundColor: Colors.white.withValues(alpha: 0.10),
+        contentTextStyle: textTheme.bodyMedium ?? const TextStyle(),
+      ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
           overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(28)),
