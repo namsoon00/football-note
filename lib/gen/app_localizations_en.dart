@@ -8440,6 +8440,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchCompetitionResultsTab => 'Results';
 
   @override
+  String get matchCompetitionBackButton => 'Back';
+
+  @override
+  String get matchCompetitionTeamPreviewTitle => 'Team preview';
+
+  @override
   String get matchCompetitionTeamsInputLabel => 'Participating teams';
 
   @override

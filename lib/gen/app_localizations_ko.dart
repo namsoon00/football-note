@@ -8184,6 +8184,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionResultsTab => '결과 보기';
 
   @override
+  String get matchCompetitionBackButton => '뒤로';
+
+  @override
+  String get matchCompetitionTeamPreviewTitle => '팀 미리보기';
+
+  @override
   String get matchCompetitionTeamsInputLabel => '참가 팀';
 
   @override
