@@ -83,6 +83,36 @@ void main() {
     );
   });
 
+  test('stores connected Drive metadata on active coach player', () async {
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.coach.name,
+    );
+    final roster = CoachRosterService(HiveOptionRepository(optionBox));
+    final player = await roster.addPlayer(displayName: 'Minjun');
+    await roster.setActivePlayer(player.id);
+    final coachDriveService = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'coach-minjun@example.com',
+        displayName: 'Coach Drive',
+        subjectId: 'coach-subject-minjun',
+      ),
+    );
+
+    await coachDriveService.getDriveConnectionInfo();
+
+    final updated = CoachRosterService(
+      HiveOptionRepository(optionBox),
+    ).loadState().activePlayer;
+    expect(updated?.id, player.id);
+    expect(updated?.driveEmail, 'coach-minjun@example.com');
+    expect(updated?.driveLabel, 'Coach Drive · coach-minjun@example.com');
+    expect(updated?.driveSubjectId, 'coach-subject-minjun');
+  });
+
   test('backs up and restores player data while skipping local device settings',
       () async {
     await trainingBox.add(

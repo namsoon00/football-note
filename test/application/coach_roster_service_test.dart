@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/coach_roster_service.dart';
+import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 
@@ -43,6 +44,50 @@ void main() {
     state = service.loadState();
     expect(state.activePlayerId, second.id);
     expect(state.activePlayer?.displayName, 'Jisoo');
+  });
+
+  test('renames players and keeps at least one roster player', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(FamilyAccessService.currentRoleLocalKey, FamilyRole.coach.name);
+    final service = CoachRosterService(repository);
+
+    final first = await service.addPlayer(displayName: 'Minjun');
+    final second = await service.addPlayer(displayName: 'Jisoo');
+    final renamed = await service.renamePlayer(
+      playerId: first.id,
+      displayName: 'Minjun Kim',
+    );
+
+    expect(renamed?.displayName, 'Minjun Kim');
+    expect(service.loadState().players.first.displayName, 'Minjun Kim');
+    expect(await service.removePlayer(second.id), isTrue);
+    expect(service.loadState().players.single.id, first.id);
+    expect(await service.removePlayer(first.id), isFalse);
+    expect(service.loadState().players.single.id, first.id);
+  });
+
+  test('stores Drive metadata on the active player', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(FamilyAccessService.currentRoleLocalKey, FamilyRole.coach.name);
+    final service = CoachRosterService(repository);
+    final player = await service.addPlayer(displayName: 'Minjun');
+    await service.setActivePlayer(player.id);
+
+    final updated = await service.updateActivePlayerDriveConnection(
+      const DriveConnectionInfo(
+        email: 'minjun@example.com',
+        displayName: 'Minjun Drive',
+        subjectId: 'subject-minjun',
+      ),
+    );
+    final connection = service.activePlayerDriveConnection();
+
+    expect(updated?.driveEmail, 'minjun@example.com');
+    expect(updated?.driveLabel, 'Minjun Drive · minjun@example.com');
+    expect(updated?.driveSubjectId, 'subject-minjun');
+    expect(connection?.email, 'minjun@example.com');
+    expect(connection?.displayName, 'Minjun Drive');
+    expect(connection?.subjectId, 'subject-minjun');
   });
 
   test('does not scope data outside coach mode unless explicitly requested',

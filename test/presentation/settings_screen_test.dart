@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:football_note/application/backup_service.dart';
+import 'package:football_note/application/coach_roster_service.dart';
 import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
@@ -161,6 +162,66 @@ void main() {
       findsNothing,
     );
     expect(find.text('백업, 자동 백업, 복원을 한 곳에서 관리합니다.'), findsNothing);
+  });
+
+  testWidgets('coach mode shows roster management controls', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.coach.name,
+    );
+    await optionRepository.setValue(
+        CoachRosterService.activePlayerIdKey, 'minjun');
+    await optionRepository.setValue(CoachRosterService.rosterPlayersKey, [
+      <String, Object>{
+        'id': 'minjun',
+        'displayName': '민준',
+        'driveEmail': 'minjun@example.com',
+        'driveLabel': '민준 · minjun@example.com',
+        'driveSubjectId': 'subject-minjun',
+        'createdAt': '2026-06-20T09:00:00.000',
+        'updatedAt': '2026-06-20T09:00:00.000',
+      },
+      <String, Object>{
+        'id': 'jisoo',
+        'displayName': '지수',
+        'createdAt': '2026-06-20T09:00:00.000',
+        'updatedAt': '2026-06-20T09:00:00.000',
+      },
+    ]);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: false,
+      connectionInfo: null,
+      sharedChildDriveLabel: '',
+      sharedChildDriveEmail: '',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(ChoiceChip, '코치'), findsOneWidget);
+    expect(find.text('코치 선수 목록'), findsOneWidget);
+    expect(find.text('민준'), findsOneWidget);
+    expect(find.text('Drive: minjun@example.com'), findsOneWidget);
+    expect(find.text('지수'), findsOneWidget);
+    expect(find.byTooltip('선수 수정'), findsNWidgets(2));
+    expect(find.byTooltip('선수 삭제'), findsNWidgets(2));
   });
 
   testWidgets('player mode sport selector updates shared sport state', (

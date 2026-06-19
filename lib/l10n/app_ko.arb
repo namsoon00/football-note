@@ -3818,6 +3818,35 @@
   "settingsCoachRosterDescription": "피드백, 선물 이름, Drive 백업을 쓰기 전에 현재 관리할 선수를 선택하세요.",
   "settingsCoachRosterEmpty": "아직 등록된 선수가 없어요.",
   "settingsCoachRosterAddPlayer": "선수 추가",
+  "settingsCoachRosterEditPlayer": "선수 수정",
+  "settingsCoachRosterDeletePlayer": "선수 삭제",
+  "settingsCoachRosterDeleteTitle": "선수 삭제",
+  "settingsCoachRosterDeleteMessage": "{player} 선수를 코치 목록에서 삭제할까요?",
+  "@settingsCoachRosterDeleteMessage": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterDeleted": "{player} 선수를 삭제했어요.",
+  "@settingsCoachRosterDeleted": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterRenamed": "{player} 선수 정보를 수정했어요.",
+  "@settingsCoachRosterRenamed": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterLastPlayerRequired": "코치 모드에서는 최소 한 명의 선수가 필요해요.",
+  "settingsCoachRosterDriveAccount": "Drive: {email}",
+  "@settingsCoachRosterDriveAccount": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "settingsCoachRosterNoDriveAccount": "아직 이 선수에 저장된 Drive 계정이 없어요.",
   "settingsCoachRosterPlayerNameLabel": "선수 이름",
   "settingsCoachRosterPlayerNameHint": "예: 민준",
   "settingsCoachRosterAdded": "{player} 선수를 추가했어요.",

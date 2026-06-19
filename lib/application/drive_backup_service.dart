@@ -1300,6 +1300,7 @@ class DriveBackupService implements BackupRepository {
     await _optionBox.put(connectedDriveEmailLocalKey, info.email.trim());
     await _optionBox.put(connectedDriveLabelLocalKey, info.displayName.trim());
     await _optionBox.put(connectedDriveSubjectLocalKey, info.subjectId.trim());
+    await _syncActiveCoachPlayerDriveMetadata(info);
     if (!_sameDriveAccount(previous, info)) {
       await _resetLocalBackupStatusForContextChange();
     }
@@ -1550,7 +1551,14 @@ class DriveBackupService implements BackupRepository {
   }
 
   DriveConnectionInfo? _loadSavedDriveConnectionInfoForCurrentRole() {
-    final supportMode = _familyService.loadState().isSupportMode;
+    final state = _familyService.loadState();
+    if (state.isCoachMode) {
+      return CoachRosterService(
+            HiveOptionRepository(_optionBox),
+          ).activePlayerDriveConnection() ??
+          _loadSavedParentDriveConnectionInfo();
+    }
+    final supportMode = state.isSupportMode;
     final emailKey =
         supportMode ? parentDriveEmailLocalKey : recordDriveEmailLocalKey;
     final labelKey =
@@ -1568,6 +1576,15 @@ class DriveBackupService implements BackupRepository {
       displayName: displayName,
       subjectId: subjectId,
     );
+  }
+
+  Future<void> _syncActiveCoachPlayerDriveMetadata(
+    DriveConnectionInfo info,
+  ) async {
+    if (!_familyService.loadState().isCoachMode || info.isEmpty) return;
+    await CoachRosterService(
+      HiveOptionRepository(_optionBox),
+    ).updateActivePlayerDriveConnection(info);
   }
 
   Future<DriveConnectionInfo?> _loadDriveConnectionInfo() async {
