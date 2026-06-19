@@ -7507,7 +7507,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentAutoSyncDescription =>
-      'In parent mode, only training feedback and reward names sync automatically. Back up and restore player records from player mode.';
+      'In parent or coach mode, only training feedback and reward names sync automatically. Back up and restore player records from player mode.';
 
   @override
   String get familyChildDriveConnectionTitle => 'Connect shared backup Drive';
@@ -7532,14 +7532,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get familyRoleParent => 'Parent';
 
   @override
-  String get familyRoleCoach => 'Parent';
+  String get familyRoleCoach => 'Coach';
 
   @override
   String get familyRoleSelectionTitle => 'Usage mode selection';
 
   @override
   String get familyRoleSelectionDescription =>
-      'Choose whether this device is used by the player directly or by a parent for review first.';
+      'Choose whether this device is used by the player directly, by a parent, or by a coach managing multiple players.';
 
   @override
   String get settingsUsageModeTitle => 'Usage mode';
@@ -7552,6 +7552,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSupportModeLabel => 'Parent';
+
+  @override
+  String get settingsCoachRosterTitle => 'Coach roster';
+
+  @override
+  String get settingsCoachRosterDescription =>
+      'Select the active player before writing feedback, reward names, or Drive backups.';
+
+  @override
+  String get settingsCoachRosterEmpty => 'No players are registered yet.';
+
+  @override
+  String get settingsCoachRosterAddPlayer => 'Add player';
+
+  @override
+  String get settingsCoachRosterPlayerNameLabel => 'Player name';
+
+  @override
+  String get settingsCoachRosterPlayerNameHint => 'Example: Minjun';
+
+  @override
+  String settingsCoachRosterAdded(Object player) {
+    return '$player was added.';
+  }
+
+  @override
+  String settingsCoachRosterActivated(Object player) {
+    return '$player is now active.';
+  }
 
   @override
   String get settingsSupportRoleTitle => 'Parent mode details';
@@ -7576,7 +7605,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDataSyncSupportSummary =>
-      'Import the latest backup and write shared changes back to the same file.';
+      'Import the latest backup and write shared changes back to the parent or active player file.';
 
   @override
   String get settingsSyncSourceStatusTitle => 'Backup data';

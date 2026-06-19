@@ -13014,7 +13014,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentAutoSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, only training feedback and reward names sync automatically. Back up and restore player records from player mode.'**
+  /// **'In parent or coach mode, only training feedback and reward names sync automatically. Back up and restore player records from player mode.'**
   String get familyParentAutoSyncDescription;
 
   /// No description provided for @familyChildDriveConnectionTitle.
@@ -13062,7 +13062,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyRoleCoach.
   ///
   /// In en, this message translates to:
-  /// **'Parent'**
+  /// **'Coach'**
   String get familyRoleCoach;
 
   /// No description provided for @familyRoleSelectionTitle.
@@ -13074,7 +13074,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyRoleSelectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'Choose whether this device is used by the player directly or by a parent for review first.'**
+  /// **'Choose whether this device is used by the player directly, by a parent, or by a coach managing multiple players.'**
   String get familyRoleSelectionDescription;
 
   /// No description provided for @settingsUsageModeTitle.
@@ -13100,6 +13100,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parent'**
   String get settingsSupportModeLabel;
+
+  /// No description provided for @settingsCoachRosterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach roster'**
+  String get settingsCoachRosterTitle;
+
+  /// No description provided for @settingsCoachRosterDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the active player before writing feedback, reward names, or Drive backups.'**
+  String get settingsCoachRosterDescription;
+
+  /// No description provided for @settingsCoachRosterEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No players are registered yet.'**
+  String get settingsCoachRosterEmpty;
+
+  /// No description provided for @settingsCoachRosterAddPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add player'**
+  String get settingsCoachRosterAddPlayer;
+
+  /// No description provided for @settingsCoachRosterPlayerNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Player name'**
+  String get settingsCoachRosterPlayerNameLabel;
+
+  /// No description provided for @settingsCoachRosterPlayerNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: Minjun'**
+  String get settingsCoachRosterPlayerNameHint;
+
+  /// No description provided for @settingsCoachRosterAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{player} was added.'**
+  String settingsCoachRosterAdded(Object player);
+
+  /// No description provided for @settingsCoachRosterActivated.
+  ///
+  /// In en, this message translates to:
+  /// **'{player} is now active.'**
+  String settingsCoachRosterActivated(Object player);
 
   /// No description provided for @settingsSupportRoleTitle.
   ///
@@ -13140,7 +13188,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDataSyncSupportSummary.
   ///
   /// In en, this message translates to:
-  /// **'Import the latest backup and write shared changes back to the same file.'**
+  /// **'Import the latest backup and write shared changes back to the parent or active player file.'**
   String get settingsDataSyncSupportSummary;
 
   /// No description provided for @settingsSyncSourceStatusTitle.

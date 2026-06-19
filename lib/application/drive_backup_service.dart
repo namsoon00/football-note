@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'backup_asset_store.dart';
 import 'backup_asset_store_types.dart';
 import 'challenge_service.dart';
+import 'coach_roster_service.dart';
 import 'drive_connection_info.dart';
 import 'league_fixture_reminder_service.dart';
 import 'meal_log_service.dart';
@@ -126,12 +127,21 @@ class DriveBackupService implements BackupRepository {
   static const sharedChildDriveSubjectLocalKey = 'drive_child_subject_v1';
   static const backupFolderName = '태오의 노트';
   static const _legacyBackupFolderName = 'Football Note';
+  static const coachRosterFileName = 'coach_roster.json';
   static const backupFileName = 'football_note_backup.json';
   static const previousBackupFileName = 'football_note_backup_previous.json';
   static String get backupDisplayPath =>
       'Google Drive > $backupFolderName > $backupFileName';
   static String get previousBackupDisplayPath =>
       'Google Drive > $backupFolderName > $previousBackupFileName';
+  static String playerBackupFileName(String playerId) =>
+      'player_${CoachRosterService.fileSafePlayerId(playerId)}_backup.json';
+  static String previousPlayerBackupFileName(String playerId) =>
+      'player_${CoachRosterService.fileSafePlayerId(playerId)}_backup_previous.json';
+  static String playerBackupDisplayPath(String playerId) =>
+      'Google Drive > $backupFolderName > ${playerBackupFileName(playerId)}';
+  static String previousPlayerBackupDisplayPath(String playerId) =>
+      'Google Drive > $backupFolderName > ${previousPlayerBackupFileName(playerId)}';
   static const _folderName = backupFolderName;
   static const _fileName = backupFileName;
   static const _previousFileName = previousBackupFileName;
@@ -226,6 +236,10 @@ class DriveBackupService implements BackupRepository {
     PlayerLevelService.customRewardNamesKey,
     PlayerLevelService.rewardClaimMessagesKey,
 
+    // Coach roster and active player selection.
+    CoachRosterService.rosterPlayersKey,
+    CoachRosterService.activePlayerIdKey,
+
     // Family-shared record layer.
     FamilyAccessService.linkedRoleKey,
     FamilyAccessService.familyIdKey,
@@ -266,6 +280,7 @@ class DriveBackupService implements BackupRepository {
     'world_cup_interest_countries_v1',
   };
   static const List<String> _backedUpOptionKeyPrefixes = [
+    CoachRosterService.scopedOptionKeyPrefix,
     'programs_',
     'daily_goals_',
     'default_program_',
@@ -356,6 +371,30 @@ class DriveBackupService implements BackupRepository {
       _driveAccountStateController.stream;
 
   Stream<void> dataChanges() => _dataChangeController.stream;
+
+  String get _activeCoachPlayerId {
+    return CoachRosterService.resolveScopedPlayerIdForOptions(
+      HiveOptionRepository(_optionBox),
+    );
+  }
+
+  String get _activeBackupFileName {
+    final playerId = _activeCoachPlayerId;
+    return playerId.isEmpty ? _fileName : playerBackupFileName(playerId);
+  }
+
+  String get _activePreviousBackupFileName {
+    final playerId = _activeCoachPlayerId;
+    return playerId.isEmpty
+        ? _previousFileName
+        : previousPlayerBackupFileName(playerId);
+  }
+
+  @visibleForTesting
+  String backupFileNameForTesting() => _activeBackupFileName;
+
+  @visibleForTesting
+  String previousBackupFileNameForTesting() => _activePreviousBackupFileName;
 
   Future<T> _runDriveMutation<T>(Future<T> Function() action) async {
     final previous = _driveMutationTail.catchError((_) {});
@@ -1662,14 +1701,18 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi api,
     String folderId,
   ) async {
-    return _findBackupFileByName(api, folderId, _fileName);
+    return _findBackupFileByName(api, folderId, _activeBackupFileName);
   }
 
   Future<drive.File?> _findPreviousBackupFile(
     drive.DriveApi api,
     String folderId,
   ) async {
-    return _findBackupFileByName(api, folderId, _previousFileName);
+    return _findBackupFileByName(
+      api,
+      folderId,
+      _activePreviousBackupFileName,
+    );
   }
 
   Future<drive.File?> _findBackupFileByName(
@@ -1691,7 +1734,12 @@ class DriveBackupService implements BackupRepository {
     String folderId,
     String keepId,
   ) async {
-    await _cleanupDuplicateBackupFiles(api, folderId, _fileName, keepId);
+    await _cleanupDuplicateBackupFiles(
+      api,
+      folderId,
+      _activeBackupFileName,
+      keepId,
+    );
   }
 
   Future<void> _cleanupDuplicatePreviousBackups(
@@ -1702,7 +1750,7 @@ class DriveBackupService implements BackupRepository {
     await _cleanupDuplicateBackupFiles(
       api,
       folderId,
-      _previousFileName,
+      _activePreviousBackupFileName,
       keepId,
     );
   }
@@ -1729,6 +1777,7 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> _backupWithApi(drive.DriveApi driveApi) async {
     final folderId = await _findOrCreateFolder(driveApi);
+    final activeBackupFileName = _activeBackupFileName;
     final existing = await _findBackupFile(driveApi, folderId);
     final familyState = _familyService.loadState();
     final remote = existing != null && familyState.isSupportMode
@@ -1745,7 +1794,7 @@ class DriveBackupService implements BackupRepository {
     if (existing != null) {
       await _preservePreviousRemoteBackup(driveApi, folderId, existing);
       final updated = await driveApi.files.update(
-        drive.File(name: _fileName),
+        drive.File(name: activeBackupFileName),
         existing.id!,
         uploadMedia: media,
         $fields: 'id,modifiedTime',
@@ -1760,7 +1809,7 @@ class DriveBackupService implements BackupRepository {
     }
 
     final created = await driveApi.files.create(
-      drive.File(name: _fileName, parents: [folderId]),
+      drive.File(name: activeBackupFileName, parents: [folderId]),
       uploadMedia: media,
       $fields: 'id,modifiedTime',
     );
@@ -1786,10 +1835,11 @@ class DriveBackupService implements BackupRepository {
     }
     final bytes = utf8.encode(content);
     final media = drive.Media(Stream.value(bytes), bytes.length);
+    final activePreviousBackupFileName = _activePreviousBackupFileName;
     final previous = await _findPreviousBackupFile(driveApi, folderId);
     if (previous != null && previous.id != null) {
       final updated = await driveApi.files.update(
-        drive.File(name: _previousFileName),
+        drive.File(name: activePreviousBackupFileName),
         previous.id!,
         uploadMedia: media,
         $fields: 'id,modifiedTime',
@@ -1800,7 +1850,7 @@ class DriveBackupService implements BackupRepository {
       return;
     }
     final created = await driveApi.files.create(
-      drive.File(name: _previousFileName, parents: [folderId]),
+      drive.File(name: activePreviousBackupFileName, parents: [folderId]),
       uploadMedia: media,
       $fields: 'id,modifiedTime',
     );
@@ -2658,7 +2708,9 @@ class DriveBackupService implements BackupRepository {
   }
 
   Map<String, String> _loadRewardNames() {
-    final raw = _optionBox.get(PlayerLevelService.customRewardNamesKey);
+    final raw = _optionBox.get(
+      _playerScopedLevelOptionKey(PlayerLevelService.customRewardNamesKey),
+    );
     if (raw is! Map) {
       return <String, String>{};
     }
@@ -2674,7 +2726,9 @@ class DriveBackupService implements BackupRepository {
   }
 
   Map<String, String> _loadRewardClaimFingerprints() {
-    final raw = _optionBox.get(PlayerLevelService.rewardClaimMessagesKey);
+    final raw = _optionBox.get(
+      _playerScopedLevelOptionKey(PlayerLevelService.rewardClaimMessagesKey),
+    );
     if (raw is! List) {
       return <String, String>{};
     }
@@ -2687,6 +2741,13 @@ class DriveBackupService implements BackupRepository {
           '${item['level'] ?? ''}\n${item['rewardName'] ?? ''}\n${item['claimedAt'] ?? ''}';
     }
     return result;
+  }
+
+  String _playerScopedLevelOptionKey(String key) {
+    final playerId = _activeCoachPlayerId;
+    return playerId.isEmpty
+        ? key
+        : CoachRosterService.scopedOptionKey(key, playerId);
   }
 
   int _countChangedFeedback({
@@ -2719,11 +2780,9 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> _restoreSharedOptionsFromMap(Map<String, dynamic> data) async {
     final sharedOptions = _extractSharedOptions(data);
-    for (final key in FamilyAccessService.sharedBackupOptionKeys) {
-      if (!sharedOptions.containsKey(key)) {
-        continue;
-      }
-      final value = sharedOptions[key];
+    for (final entry in sharedOptions.entries) {
+      final key = entry.key;
+      final value = entry.value;
       if (value == null) {
         await _optionBox.delete(key);
       } else {
@@ -2743,19 +2802,42 @@ class DriveBackupService implements BackupRepository {
     final version = (backup['version'] as num?)?.toInt() ?? 1;
     final shared = <String, dynamic>{};
     final options = _copyStringOptions(backup);
-    for (final key in FamilyAccessService.sharedBackupOptionKeys) {
+    final sharedKeys = _sharedBackupOptionKeysForCurrentRole();
+    for (final key in sharedKeys) {
       if (options.containsKey(key)) {
         shared[key] = _fromBackupValue(options[key], version: version);
       }
     }
     for (final record in _extractOptionRecords(backup)) {
       final key = _fromBackupValue(record['key'], version: version);
-      if (key is! String || !FamilyAccessService.isSharedBackupOptionKey(key)) {
+      if (key is! String || !sharedKeys.contains(key)) {
         continue;
       }
       shared[key] = _fromBackupValue(record['value'], version: version);
     }
     return shared;
+  }
+
+  Set<String> _sharedBackupOptionKeysForCurrentRole() {
+    final keys = FamilyAccessService.sharedBackupOptionKeys.toSet();
+    final playerId = _activeCoachPlayerId;
+    if (playerId.isEmpty) return keys;
+    keys
+      ..remove(FamilyAccessService.parentTrainingFeedbackKey)
+      ..remove(PlayerLevelService.customRewardNamesKey)
+      ..add(
+        CoachRosterService.scopedOptionKey(
+          FamilyAccessService.parentTrainingFeedbackKey,
+          playerId,
+        ),
+      )
+      ..add(
+        CoachRosterService.scopedOptionKey(
+          PlayerLevelService.customRewardNamesKey,
+          playerId,
+        ),
+      );
+    return keys;
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -3024,10 +3106,15 @@ class DriveBackupService implements BackupRepository {
   }) {
     final remoteVersion = (remote['version'] as num?)?.toInt() ?? 1;
     final localVersion = (local['version'] as num?)?.toInt() ?? _backupVersion;
-    final mergedOptions = _copyStringOptions(remote)
-      ..removeWhere((key, value) => !_canRestoreOptionKey(key));
     final localOptions = _copyStringOptions(local);
-    for (final key in FamilyAccessService.sharedBackupOptionKeys) {
+    final sharedKeys = _sharedBackupOptionKeysForCurrentRole();
+    final mergedOptions = _copyStringOptions(remote)
+      ..removeWhere(
+        (key, value) =>
+            !_canRestoreOptionKey(key) ||
+            _isFamilySharedLayerOptionKey(key, sharedKeys),
+      );
+    for (final key in sharedKeys) {
       if (localOptions.containsKey(key)) {
         mergedOptions[key] = localOptions[key];
       } else {
@@ -3047,6 +3134,7 @@ class DriveBackupService implements BackupRepository {
         remoteVersion: remoteVersion,
         local: local,
         localVersion: localVersion,
+        sharedKeys: sharedKeys,
       ),
       _familyMetadataKey: FamilyAccessService.backupMetadataFromState(
         familyState,
@@ -3067,20 +3155,34 @@ class DriveBackupService implements BackupRepository {
     required int remoteVersion,
     required Map<String, dynamic> local,
     required int localVersion,
+    required Set<String> sharedKeys,
   }) {
     final keptRemote = _extractOptionRecords(remote).where((record) {
       final key = _fromBackupValue(record['key'], version: remoteVersion);
       return key is String &&
           _canRestoreOptionKey(key) &&
-          !FamilyAccessService.isSharedBackupOptionKey(key);
+          !_isFamilySharedLayerOptionKey(key, sharedKeys);
     });
     final localShared = _extractOptionRecords(local).where((record) {
       final key = _fromBackupValue(record['key'], version: localVersion);
       return key is String &&
           _canRestoreOptionKey(key) &&
-          FamilyAccessService.isSharedBackupOptionKey(key);
+          sharedKeys.contains(key);
     });
     return <Map<String, dynamic>>[...keptRemote, ...localShared];
+  }
+
+  bool _isFamilySharedLayerOptionKey(String key, Set<String> activeSharedKeys) {
+    return activeSharedKeys.contains(key) ||
+        FamilyAccessService.sharedBackupOptionKeys.contains(key) ||
+        CoachRosterService.isScopedOptionKeyForBase(
+          key,
+          FamilyAccessService.parentTrainingFeedbackKey,
+        ) ||
+        CoachRosterService.isScopedOptionKeyForBase(
+          key,
+          PlayerLevelService.customRewardNamesKey,
+        );
   }
 
   List<Map<String, dynamic>> _extractOptionRecords(

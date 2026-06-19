@@ -3814,7 +3814,7 @@
   "familySharing": "親モード/プレーヤー共有",
   "familySharedBackupDescription": "サーバーなしで 1 つの共有ドライブのバックアップを使用します。プレーヤー モードはコア レコードを直接管理しますが、親モードはフィードバックと報酬名のみを同期します。",
   "familyBackupIncludesMedia": "プロフィール写真やトレーニング写真のファイルをローカルに収集できる場合は、それらの写真もバックアップします。",
-  "familyParentAutoSyncDescription": "親モードでは、トレーニングのフィードバックと報酬名のみが自動的に同期されます。プレーヤー モードからプレーヤー レコードをバックアップおよび復元します。",
+  "familyParentAutoSyncDescription": "親またはコーチモードでは、トレーニングのフィードバックと報酬名のみが自動的に同期されます。プレーヤーの記録のバックアップと復元はプレーヤーモードで行います。",
   "familyChildDriveConnectionTitle": "共有バックアップドライブを接続する",
   "familyChildDriveConnectionDescription": "親モードでは、プレーヤーのソース データを保持する Google ドライブ アカウントに接続し、両方のモードで同じバックアップ ファイルを共有できるようにします。",
   "familyConnectChildDrive": "共有ドライブを接続する",
@@ -3822,20 +3822,38 @@
   "familyRoleChild": "プレーヤー",
   "familyRolePlayer": "プレーヤー",
   "familyRoleParent": "親",
-  "familyRoleCoach": "親",
+  "familyRoleCoach": "コーチ",
   "familyRoleSelectionTitle": "使用モードの選択",
-  "familyRoleSelectionDescription": "このデバイスをプレーヤーが直接使用するか、最初にレビューのために保護者が使用するかを選択します。",
+  "familyRoleSelectionDescription": "このデバイスをプレーヤーが直接使うか、保護者が使うか、複数のプレーヤーを管理するコーチが使うかを選択します。",
   "settingsUsageModeTitle": "使用モード",
   "settingsRoleAndSyncTitle": "使用法と同期",
   "settingsInfoTooltip": "説明を表示",
   "settingsSupportModeLabel": "親",
+  "settingsCoachRosterTitle": "コーチのプレーヤー一覧",
+  "settingsCoachRosterDescription": "フィードバック、報酬名、Driveバックアップを書き込む前に、対象のプレーヤーを選択します。",
+  "settingsCoachRosterEmpty": "登録されたプレーヤーはまだありません。",
+  "settingsCoachRosterAddPlayer": "プレーヤーを追加",
+  "settingsCoachRosterPlayerNameLabel": "プレーヤー名",
+  "settingsCoachRosterPlayerNameHint": "例: Minjun",
+  "settingsCoachRosterAdded": "{player}を追加しました。",
+  "@settingsCoachRosterAdded": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterActivated": "{player}が現在の対象になりました。",
+  "@settingsCoachRosterActivated": {
+    "placeholders": {
+      "player": {}
+    }
+  },
   "settingsSupportRoleTitle": "親モードの詳細",
   "settingsDriveConnectionTitle": "Googleドライブ接続",
   "settingsDriveConnectionPlayerSummary": "このデバイスの記録を保存およびインポートしている Google ドライブ アカウントを確認してください。",
   "settingsDriveConnectionSupportSummary": "現在接続されているGoogleドライブアカウントを確認してください。",
   "settingsDataSyncTitle": "データ同期",
   "settingsDataSyncPlayerSummary": "現在のデータとドライブのバックアップの間の鮮度を確認し、ドライブのアクションを実行します。",
-  "settingsDataSyncSupportSummary": "最新のバックアップをインポートし、共有された変更を同じファイルに書き込みます。",
+  "settingsDataSyncSupportSummary": "最新のバックアップをインポートし、共有された変更を保護者または現在のプレーヤーのファイルに書き込みます。",
   "settingsSyncSourceStatusTitle": "バックアップデータ",
   "settingsSyncStatusTitle": "データ同期ステータス",
   "settingsSyncShowDetails": "詳細を表示",

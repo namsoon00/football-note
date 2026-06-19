@@ -1,5 +1,6 @@
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
+import 'coach_roster_service.dart';
 import 'family_access_service.dart';
 
 class ParentTrainingFeedback {
@@ -15,8 +16,8 @@ class ParentTrainingFeedback {
     List<String> reactions = const <String>[],
     this.updatedAt,
   }) : reactions = _normalizeReactions(
-         reactions.isEmpty ? _splitReactionIds(reaction) : reactions,
-       );
+          reactions.isEmpty ? _splitReactionIds(reaction) : reactions,
+        );
 
   String get reaction => reactions.join(',');
 
@@ -79,8 +80,13 @@ class ParentTrainingFeedback {
 
 class ParentSharedFeedbackService {
   final OptionRepository _optionRepository;
+  final String _playerId;
 
-  ParentSharedFeedbackService(this._optionRepository);
+  ParentSharedFeedbackService(this._optionRepository, {String? playerId})
+      : _playerId = CoachRosterService.resolveScopedPlayerIdForOptions(
+          _optionRepository,
+          explicitPlayerId: playerId,
+        );
 
   static String entryIdFor(TrainingEntry entry) {
     return 'training_${entry.createdAt.toUtc().microsecondsSinceEpoch}';
@@ -117,10 +123,7 @@ class ParentSharedFeedbackService {
     final normalizedReactions = _normalizeReactionArgument(reactions);
     if (trimmed.isEmpty && normalizedReactions.isEmpty) {
       next.remove(entryId);
-      await _optionRepository.setValue(
-        FamilyAccessService.parentTrainingFeedbackKey,
-        next,
-      );
+      await _optionRepository.setValue(_storageKey, next);
       return null;
     }
     final feedback = ParentTrainingFeedback(
@@ -130,17 +133,19 @@ class ParentSharedFeedbackService {
       updatedAt: DateTime.now(),
     );
     next[entryId] = feedback.toMap();
-    await _optionRepository.setValue(
-      FamilyAccessService.parentTrainingFeedbackKey,
-      next,
-    );
+    await _optionRepository.setValue(_storageKey, next);
     return feedback;
   }
 
+  String get _storageKey => _playerId.isEmpty
+      ? FamilyAccessService.parentTrainingFeedbackKey
+      : CoachRosterService.scopedOptionKey(
+          FamilyAccessService.parentTrainingFeedbackKey,
+          _playerId,
+        );
+
   Map<String, dynamic> _loadRawMap() {
-    final raw = _optionRepository.getValue<Map>(
-      FamilyAccessService.parentTrainingFeedbackKey,
-    );
+    final raw = _optionRepository.getValue<Map>(_storageKey);
     if (raw is! Map) {
       return <String, dynamic>{};
     }

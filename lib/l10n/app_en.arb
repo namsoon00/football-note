@@ -3814,7 +3814,7 @@
   "familySharing": "Parent mode/player sharing",
   "familySharedBackupDescription": "Use one shared Drive backup without a server. Player mode manages core records directly, while parent mode syncs only feedback and reward names.",
   "familyBackupIncludesMedia": "Back up profile photos and training photos too when those files can be collected locally.",
-  "familyParentAutoSyncDescription": "In parent mode, only training feedback and reward names sync automatically. Back up and restore player records from player mode.",
+  "familyParentAutoSyncDescription": "In parent or coach mode, only training feedback and reward names sync automatically. Back up and restore player records from player mode.",
   "familyChildDriveConnectionTitle": "Connect shared backup Drive",
   "familyChildDriveConnectionDescription": "In parent mode, connect the Google Drive account that holds the player's source data so both modes can share the same backup file.",
   "familyConnectChildDrive": "Connect shared Drive",
@@ -3822,20 +3822,38 @@
   "familyRoleChild": "Player",
   "familyRolePlayer": "Player",
   "familyRoleParent": "Parent",
-  "familyRoleCoach": "Parent",
+  "familyRoleCoach": "Coach",
   "familyRoleSelectionTitle": "Usage mode selection",
-  "familyRoleSelectionDescription": "Choose whether this device is used by the player directly or by a parent for review first.",
+  "familyRoleSelectionDescription": "Choose whether this device is used by the player directly, by a parent, or by a coach managing multiple players.",
   "settingsUsageModeTitle": "Usage mode",
   "settingsRoleAndSyncTitle": "Usage & sync",
   "settingsInfoTooltip": "Show description",
   "settingsSupportModeLabel": "Parent",
+  "settingsCoachRosterTitle": "Coach roster",
+  "settingsCoachRosterDescription": "Select the active player before writing feedback, reward names, or Drive backups.",
+  "settingsCoachRosterEmpty": "No players are registered yet.",
+  "settingsCoachRosterAddPlayer": "Add player",
+  "settingsCoachRosterPlayerNameLabel": "Player name",
+  "settingsCoachRosterPlayerNameHint": "Example: Minjun",
+  "settingsCoachRosterAdded": "{player} was added.",
+  "@settingsCoachRosterAdded": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "settingsCoachRosterActivated": "{player} is now active.",
+  "@settingsCoachRosterActivated": {
+    "placeholders": {
+      "player": {}
+    }
+  },
   "settingsSupportRoleTitle": "Parent mode details",
   "settingsDriveConnectionTitle": "Google Drive connection",
   "settingsDriveConnectionPlayerSummary": "Check which Google Drive account stores and imports this device's records.",
   "settingsDriveConnectionSupportSummary": "Check the currently connected Google Drive account.",
   "settingsDataSyncTitle": "Data sync",
   "settingsDataSyncPlayerSummary": "Check freshness between current data and Drive backup, then run Drive actions.",
-  "settingsDataSyncSupportSummary": "Import the latest backup and write shared changes back to the same file.",
+  "settingsDataSyncSupportSummary": "Import the latest backup and write shared changes back to the parent or active player file.",
   "settingsSyncSourceStatusTitle": "Backup data",
   "settingsSyncStatusTitle": "Data sync status",
   "settingsSyncShowDetails": "Show details",

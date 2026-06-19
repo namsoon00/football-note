@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:football_note/application/backup_asset_store_types.dart';
+import 'package:football_note/application/coach_roster_service.dart';
 import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/drive_backup_service.dart';
 import 'package:football_note/application/family_access_service.dart';
@@ -59,6 +60,26 @@ void main() {
     expect(
       DriveBackupService.backupDisplayPath,
       contains('Google Drive > 태오의 노트 >'),
+    );
+  });
+
+  test('uses active player backup filenames in coach mode', () async {
+    expect(service.backupFileNameForTesting(), 'football_note_backup.json');
+
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.coach.name,
+    );
+    await optionBox.put(CoachRosterService.activePlayerIdKey, 'minjun');
+
+    expect(service.backupFileNameForTesting(), 'player_minjun_backup.json');
+    expect(
+      service.previousBackupFileNameForTesting(),
+      'player_minjun_backup_previous.json',
+    );
+    expect(
+      DriveBackupService.playerBackupDisplayPath('minjun'),
+      'Google Drive > 태오의 노트 > player_minjun_backup.json',
     );
   });
 
@@ -155,9 +176,20 @@ void main() {
         'meal_logs_v1': '[{"id":"meal-1"}]',
         'training_boards_v1': '[{"id":"board-1"}]',
         'family_parent_training_feedback_v1': '{"items":[]}',
+        CoachRosterService.rosterPlayersKey: <Map<String, Object>>[
+          <String, Object>{'id': 'minjun', 'displayName': 'Minjun'},
+        ],
+        CoachRosterService.scopedOptionKey(
+          FamilyAccessService.parentTrainingFeedbackKey,
+          'minjun',
+        ): <String, Object>{'entry-1': 'Nice first touch'},
         PlayerLevelService.customRewardNamesKey: <String, String>{
           '2': 'New boots',
         },
+        CoachRosterService.scopedOptionKey(
+          PlayerLevelService.customRewardNamesKey,
+          'minjun',
+        ): <String, String>{'2': 'Coach boots'},
         PlayerLevelService.claimedRewardLevelsKey: <int>[2],
         PlayerLevelService.rewardClaimMessagesKey: <Map<String, Object>>[
           <String, Object>{
@@ -183,8 +215,26 @@ void main() {
         '{"items":[]}',
       );
       expect(
+        backupOptions[CoachRosterService.rosterPlayersKey],
+        isA<List>(),
+      );
+      expect(
+        backupOptions[CoachRosterService.scopedOptionKey(
+          FamilyAccessService.parentTrainingFeedbackKey,
+          'minjun',
+        )],
+        <String, Object>{'entry-1': 'Nice first touch'},
+      );
+      expect(
         backupOptions[PlayerLevelService.customRewardNamesKey],
         <String, String>{'2': 'New boots'},
+      );
+      expect(
+        backupOptions[CoachRosterService.scopedOptionKey(
+          PlayerLevelService.customRewardNamesKey,
+          'minjun',
+        )],
+        <String, String>{'2': 'Coach boots'},
       );
       expect(backupOptions[PlayerLevelService.claimedRewardLevelsKey], <int>[
         2,

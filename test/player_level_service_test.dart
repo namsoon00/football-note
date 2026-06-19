@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/coach_roster_service.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
@@ -69,6 +71,69 @@ void main() {
     final claim = await service.claimRewardForLevel(2);
 
     expect(claim, isNull);
+  });
+
+  test('coach mode scopes reward names and claims by active player', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(FamilyAccessService.currentRoleLocalKey, FamilyRole.coach.name);
+    final rosterService = CoachRosterService(repository);
+    final first = await rosterService.addPlayer(displayName: 'Minjun');
+    final second = await rosterService.addPlayer(displayName: 'Jisoo');
+
+    await rosterService.setActivePlayer(first.id);
+    repository.seed(
+      CoachRosterService.scopedOptionKey(
+          PlayerLevelService.totalXpKey, first.id),
+      40,
+    );
+    await PlayerLevelService(repository).setCustomRewardName(2, 'First boots');
+    final firstClaim = await PlayerLevelService(repository).claimRewardForLevel(
+      2,
+    );
+
+    await rosterService.setActivePlayer(second.id);
+    expect(PlayerLevelService(repository).loadState().totalXp, 0);
+    expect(PlayerLevelService(repository).customRewardNameForLevel(2), '');
+    repository.seed(
+      CoachRosterService.scopedOptionKey(
+        PlayerLevelService.totalXpKey,
+        second.id,
+      ),
+      40,
+    );
+    await PlayerLevelService(repository).setCustomRewardName(
+      2,
+      'Second boots',
+    );
+    final secondClaim =
+        await PlayerLevelService(repository).claimRewardForLevel(
+      2,
+    );
+
+    expect(firstClaim?.customRewardName, 'First boots');
+    expect(secondClaim?.customRewardName, 'Second boots');
+    expect(
+      repository.getValue<Map>(
+        CoachRosterService.scopedOptionKey(
+          PlayerLevelService.customRewardNamesKey,
+          first.id,
+        ),
+      ),
+      <String, String>{'2': 'First boots'},
+    );
+    expect(
+      repository.getValue<List>(
+        CoachRosterService.scopedOptionKey(
+          PlayerLevelService.claimedRewardLevelsKey,
+          first.id,
+        ),
+      ),
+      <int>[2],
+    );
+    expect(
+      repository.getValue<Map>(PlayerLevelService.customRewardNamesKey),
+      isNull,
+    );
   });
 
   test('level thresholds now support up to level 20', () {
