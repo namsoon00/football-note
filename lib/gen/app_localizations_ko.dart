@@ -5812,6 +5812,28 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleRecordingGuideTitle => '샘플처럼 촬영하기';
 
   @override
+  String get runningCoachSampleProcessTitle => '실제 영상 분석 흐름';
+
+  @override
+  String get runningCoachSampleProcessBody =>
+      '오버레이는 코치가 실제로 보는 순서대로 보여줘요. 안정 프레임을 고르고, 보이는 관절을 고정하고, 자세선을 잇고, 각도를 잰 뒤 착지와 신뢰도를 비교해요.';
+
+  @override
+  String get runningCoachSamplePhaseFrame => '프레임 샘플';
+
+  @override
+  String get runningCoachSamplePhaseJoints => '관절 추적';
+
+  @override
+  String get runningCoachSamplePhaseSkeleton => '자세선 연결';
+
+  @override
+  String get runningCoachSamplePhaseAngles => '각도 측정';
+
+  @override
+  String get runningCoachSamplePhaseContactScore => '착지 신뢰도 점수';
+
+  @override
   String get runningCoachSampleOverlayPosture => '전경사 10도';
 
   @override

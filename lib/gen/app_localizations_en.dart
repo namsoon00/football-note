@@ -5982,6 +5982,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleRecordingGuideTitle => 'Record like the sample';
 
   @override
+  String get runningCoachSampleProcessTitle =>
+      'Analysis process on the real clip';
+
+  @override
+  String get runningCoachSampleProcessBody =>
+      'The overlay now shows the same order the coach follows: sample a stable frame, lock visible joints, connect the pose, measure angles, then compare contact and confidence.';
+
+  @override
+  String get runningCoachSamplePhaseFrame => 'Sample frame';
+
+  @override
+  String get runningCoachSamplePhaseJoints => 'Track joints';
+
+  @override
+  String get runningCoachSamplePhaseSkeleton => 'Connect pose lines';
+
+  @override
+  String get runningCoachSamplePhaseAngles => 'Measure angles';
+
+  @override
+  String get runningCoachSamplePhaseContactScore => 'Score contact confidence';
+
+  @override
   String get runningCoachSampleOverlayPosture => 'Lean 10°';
 
   @override

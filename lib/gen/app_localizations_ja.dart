@@ -5804,6 +5804,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleRecordingGuideTitle => 'サンプルのように録音する';
 
   @override
+  String get runningCoachSampleProcessTitle => '実際の映像での分析手順';
+
+  @override
+  String get runningCoachSampleProcessBody =>
+      'オーバーレイはコーチが見る順序を示します。安定フレームを選び、見えている関節を固定し、姿勢線をつなぎ、角度を測り、接地と信頼度を比較します。';
+
+  @override
+  String get runningCoachSamplePhaseFrame => 'フレーム抽出';
+
+  @override
+  String get runningCoachSamplePhaseJoints => '関節を追跡';
+
+  @override
+  String get runningCoachSamplePhaseSkeleton => '姿勢線を接続';
+
+  @override
+  String get runningCoachSamplePhaseAngles => '角度を測定';
+
+  @override
+  String get runningCoachSamplePhaseContactScore => '接地信頼度を採点';
+
+  @override
   String get runningCoachSampleOverlayPosture => 'リーン10°';
 
   @override

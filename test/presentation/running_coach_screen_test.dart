@@ -126,6 +126,14 @@ void main() {
       findsOneWidget,
     );
     expect(
+      find.byKey(const ValueKey('running-coach-sample-analysis-process')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-analysis-phase')),
+      findsOneWidget,
+    );
+    expect(
       find.byKey(const ValueKey('running-coach-sample-back-button')),
       findsOneWidget,
     );
@@ -133,6 +141,12 @@ void main() {
     expect(find.text('Wrong form sample'), findsOneWidget);
     expect(find.text('What to compare in the video'), findsOneWidget);
     expect(find.text('Reference readouts'), findsOneWidget);
+    expect(find.text('Analysis process on the real clip'), findsOneWidget);
+    expect(find.text('Sample frame'), findsWidgets);
+    expect(find.textContaining('Track joints'), findsOneWidget);
+    expect(find.textContaining('Connect pose lines'), findsOneWidget);
+    expect(find.textContaining('Measure angles'), findsOneWidget);
+    expect(find.textContaining('Score contact confidence'), findsOneWidget);
     expect(find.textContaining('Frame '), findsWidgets);
     expect(find.text('Landing 0.08'), findsOneWidget);
     expect(

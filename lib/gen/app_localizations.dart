@@ -10573,6 +10573,48 @@ abstract class AppLocalizations {
   /// **'Record like the sample'**
   String get runningCoachSampleRecordingGuideTitle;
 
+  /// No description provided for @runningCoachSampleProcessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis process on the real clip'**
+  String get runningCoachSampleProcessTitle;
+
+  /// No description provided for @runningCoachSampleProcessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The overlay now shows the same order the coach follows: sample a stable frame, lock visible joints, connect the pose, measure angles, then compare contact and confidence.'**
+  String get runningCoachSampleProcessBody;
+
+  /// No description provided for @runningCoachSamplePhaseFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample frame'**
+  String get runningCoachSamplePhaseFrame;
+
+  /// No description provided for @runningCoachSamplePhaseJoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Track joints'**
+  String get runningCoachSamplePhaseJoints;
+
+  /// No description provided for @runningCoachSamplePhaseSkeleton.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect pose lines'**
+  String get runningCoachSamplePhaseSkeleton;
+
+  /// No description provided for @runningCoachSamplePhaseAngles.
+  ///
+  /// In en, this message translates to:
+  /// **'Measure angles'**
+  String get runningCoachSamplePhaseAngles;
+
+  /// No description provided for @runningCoachSamplePhaseContactScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score contact confidence'**
+  String get runningCoachSamplePhaseContactScore;
+
   /// No description provided for @runningCoachSampleOverlayPosture.
   ///
   /// In en, this message translates to:

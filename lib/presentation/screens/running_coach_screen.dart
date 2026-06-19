@@ -1617,7 +1617,8 @@ String _formatRunningDuration(Duration duration) {
 }
 
 const int _sampleTimelineFrameCount = 24;
-const Duration _sampleVideoLoopDuration = Duration(milliseconds: 2200);
+const int _sampleAnalysisPhaseCount = 5;
+const Duration _sampleVideoLoopDuration = Duration(milliseconds: 4000);
 const String _sampleReferenceVideoAsset =
     'assets/videos/running_coach_reference_sample.mp4';
 const String _sampleMistakeVideoAsset =
@@ -1726,6 +1727,33 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
             ),
             const SizedBox(height: 12),
             _SampleVideoFrame(score: activeReport.overallScore, mode: _mode),
+            const SizedBox(height: 12),
+            _SampleAnalysisProcessPanel(
+              title: l10n.runningCoachSampleProcessTitle,
+              body: l10n.runningCoachSampleProcessBody,
+              steps: [
+                _SampleAnalysisStep(
+                  icon: Icons.video_camera_back_outlined,
+                  label: l10n.runningCoachSamplePhaseFrame,
+                ),
+                _SampleAnalysisStep(
+                  icon: Icons.scatter_plot_outlined,
+                  label: l10n.runningCoachSamplePhaseJoints,
+                ),
+                _SampleAnalysisStep(
+                  icon: Icons.polyline_outlined,
+                  label: l10n.runningCoachSamplePhaseSkeleton,
+                ),
+                _SampleAnalysisStep(
+                  icon: Icons.architecture_rounded,
+                  label: l10n.runningCoachSamplePhaseAngles,
+                ),
+                _SampleAnalysisStep(
+                  icon: Icons.speed_rounded,
+                  label: l10n.runningCoachSamplePhaseContactScore,
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             _SampleFrameCuePanel(
               panelKey: const ValueKey('running-coach-sample-joint-readouts'),
@@ -1876,6 +1904,124 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
         text: l10n.runningCoachSampleReferenceFrame,
       ),
     ];
+  }
+}
+
+class _SampleAnalysisStep {
+  final IconData icon;
+  final String label;
+
+  const _SampleAnalysisStep({required this.icon, required this.label});
+}
+
+class _SampleAnalysisProcessPanel extends StatelessWidget {
+  final String title;
+  final String body;
+  final List<_SampleAnalysisStep> steps;
+
+  const _SampleAnalysisProcessPanel({
+    required this.title,
+    required this.body,
+    required this.steps,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-sample-analysis-process'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(alpha: 0.52),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.24)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          Text(body, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 12),
+          Column(
+            children: [
+              for (var index = 0; index < steps.length; index += 1)
+                _SampleAnalysisProcessRow(
+                  step: steps[index],
+                  index: index,
+                  isLast: index == steps.length - 1,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SampleAnalysisProcessRow extends StatelessWidget {
+  final _SampleAnalysisStep step;
+  final int index;
+  final bool isLast;
+
+  const _SampleAnalysisProcessRow({
+    required this.step,
+    required this.index,
+    required this.isLast,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final markerColor = scheme.primary;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            SizedBox.square(
+              dimension: 30,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: markerColor.withValues(alpha: 0.14),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: markerColor.withValues(alpha: 0.36),
+                  ),
+                ),
+                child: Icon(step.icon, size: 17, color: markerColor),
+              ),
+            ),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 18,
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                color: markerColor.withValues(alpha: 0.20),
+              ),
+          ],
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(top: 5, bottom: isLast ? 0 : 14),
+            child: Text(
+              '${index + 1}. ${step.label}',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: scheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -2207,8 +2353,26 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                         ),
                       ),
               ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, _) => CustomPaint(
+                      painter: _SampleVideoAnalysisPainter(
+                        progress: _controller.value,
+                        isMistake: isMistake,
+                        primaryColor: runnerColor,
+                        secondaryColor: scheme.secondary,
+                        contactColor: scheme.tertiary,
+                        warningColor: scheme.error,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               Positioned(
                 left: 12,
+                right: 12,
                 top: 12,
                 child: AnimatedBuilder(
                   animation: _controller,
@@ -2218,19 +2382,34 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                                     .floor() %
                                 _sampleTimelineFrameCount) +
                             1;
-                    return _VideoOverlayPill(
-                      text: l10n.runningCoachSampleFrameLabel(
-                        frameNumber,
-                        _sampleTimelineFrameCount,
-                      ),
+                    return Row(
+                      children: [
+                        _VideoOverlayPill(
+                          text: l10n.runningCoachSampleFrameLabel(
+                            frameNumber,
+                            _sampleTimelineFrameCount,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Center(
+                            child: _VideoOverlayPill(
+                              key: const ValueKey(
+                                'running-coach-sample-analysis-phase',
+                              ),
+                              text: _sampleAnalysisPhaseLabel(
+                                l10n,
+                                _controller.value,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _VideoOverlayPill(text: '${widget.score}'),
+                      ],
                     );
                   },
                 ),
-              ),
-              Positioned(
-                right: 12,
-                top: 12,
-                child: _VideoOverlayPill(text: '${widget.score}'),
               ),
               Positioned(
                 left: 12,
@@ -2289,6 +2468,20 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
   }
 }
 
+String _sampleAnalysisPhaseLabel(AppLocalizations l10n, double progress) {
+  final phase = (progress * _sampleAnalysisPhaseCount)
+      .floor()
+      .clamp(0, _sampleAnalysisPhaseCount - 1)
+      .toInt();
+  return switch (phase) {
+    0 => l10n.runningCoachSamplePhaseFrame,
+    1 => l10n.runningCoachSamplePhaseJoints,
+    2 => l10n.runningCoachSamplePhaseSkeleton,
+    3 => l10n.runningCoachSamplePhaseAngles,
+    _ => l10n.runningCoachSamplePhaseContactScore,
+  };
+}
+
 class _VideoOverlayLabel extends StatelessWidget {
   final String text;
   final Color color;
@@ -2321,7 +2514,7 @@ class _VideoOverlayLabel extends StatelessWidget {
 class _VideoOverlayPill extends StatelessWidget {
   final String text;
 
-  const _VideoOverlayPill({required this.text});
+  const _VideoOverlayPill({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -2336,6 +2529,8 @@ class _VideoOverlayPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Text(
           text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 color: scheme.onSurface,
                 fontWeight: FontWeight.w900,
@@ -2344,6 +2539,447 @@ class _VideoOverlayPill extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SampleVideoAnalysisPainter extends CustomPainter {
+  final double progress;
+  final bool isMistake;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final Color contactColor;
+  final Color warningColor;
+
+  const _SampleVideoAnalysisPainter({
+    required this.progress,
+    required this.isMistake,
+    required this.primaryColor,
+    required this.secondaryColor,
+    required this.contactColor,
+    required this.warningColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final phasePosition = progress * _sampleAnalysisPhaseCount;
+    final activePhase =
+        phasePosition.floor().clamp(0, _sampleAnalysisPhaseCount - 1).toInt();
+    final phaseProgress = phasePosition - activePhase;
+    final runner = _SampleVideoRunnerGeometry(size, progress);
+    final frameAlpha = _phaseAlpha(activePhase, 0);
+    final jointAlpha = _phaseAlpha(activePhase, 1);
+    final skeletonAlpha = _phaseAlpha(activePhase, 2);
+    final angleAlpha = _phaseAlpha(activePhase, 3);
+    final scoreAlpha = _phaseAlpha(activePhase, 4);
+
+    _drawFrameSampling(canvas, size, runner, phaseProgress, frameAlpha);
+    _drawLandmarks(canvas, runner, jointAlpha);
+    _drawSkeleton(canvas, runner, skeletonAlpha);
+    _drawAngles(canvas, runner, angleAlpha);
+    _drawContactRead(canvas, runner, scoreAlpha);
+    if (isMistake) {
+      _drawMistakeRead(canvas, runner, scoreAlpha);
+    }
+  }
+
+  double _phaseAlpha(int activePhase, int phase) {
+    if (activePhase == phase) return 1;
+    if (activePhase > phase) return 0.62;
+    return 0.18;
+  }
+
+  void _drawFrameSampling(
+    Canvas canvas,
+    Size size,
+    _SampleVideoRunnerGeometry runner,
+    double phaseProgress,
+    double alpha,
+  ) {
+    final frameColor = primaryColor.withValues(alpha: 0.48 * alpha);
+    final bodyRect = RRect.fromRectAndRadius(
+      Rect.fromLTRB(
+        runner.rearToe.dx - size.width * 0.032,
+        runner.head.dy - size.height * 0.060,
+        runner.frontToe.dx + size.width * 0.052,
+        runner.groundY + size.height * 0.020,
+      ),
+      const Radius.circular(18),
+    );
+    _drawDashedRRect(
+      canvas,
+      bodyRect,
+      Paint()
+        ..color = frameColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.2, size.height * 0.006),
+      dash: math.max(5.0, size.width * 0.012),
+      gap: math.max(4.0, size.width * 0.008),
+    );
+
+    final scanX = math.max(
+      bodyRect.left,
+      math.min(bodyRect.right, bodyRect.left + bodyRect.width * phaseProgress),
+    );
+    canvas.drawLine(
+      Offset(scanX, bodyRect.top),
+      Offset(scanX, bodyRect.bottom),
+      Paint()
+        ..color = primaryColor.withValues(alpha: 0.50 * alpha)
+        ..strokeWidth = math.max(1.0, size.height * 0.005)
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawRect(
+      Rect.fromLTRB(bodyRect.left, bodyRect.top, scanX, bodyRect.bottom),
+      Paint()..color = primaryColor.withValues(alpha: 0.045 * alpha),
+    );
+  }
+
+  void _drawLandmarks(
+    Canvas canvas,
+    _SampleVideoRunnerGeometry runner,
+    double alpha,
+  ) {
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..color = Colors.white.withValues(alpha: 0.50 * alpha);
+    for (final joint in runner.joints) {
+      canvas.drawCircle(joint, runner.scale * 0.010, ringPaint);
+      canvas.drawCircle(
+        joint,
+        runner.scale * 0.006,
+        Paint()..color = secondaryColor.withValues(alpha: 0.92 * alpha),
+      );
+    }
+  }
+
+  void _drawSkeleton(
+    Canvas canvas,
+    _SampleVideoRunnerGeometry runner,
+    double alpha,
+  ) {
+    final bonePaint = Paint()
+      ..color = secondaryColor.withValues(alpha: 0.60 * alpha)
+      ..strokeWidth = math.max(1.4, runner.scale * 0.008)
+      ..strokeCap = StrokeCap.round;
+    for (final bone in runner.bones) {
+      canvas.drawLine(bone.$1, bone.$2, bonePaint);
+    }
+    canvas.drawLine(
+      runner.neck,
+      runner.hip,
+      Paint()
+        ..color = primaryColor.withValues(alpha: 0.58 * alpha)
+        ..strokeWidth = math.max(1.6, runner.scale * 0.010)
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  void _drawAngles(
+    Canvas canvas,
+    _SampleVideoRunnerGeometry runner,
+    double alpha,
+  ) {
+    final guidePaint = Paint()
+      ..color = primaryColor.withValues(alpha: 0.55 * alpha)
+      ..strokeWidth = math.max(1.2, runner.scale * 0.006)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+        runner.hip, Offset(runner.hip.dx, runner.groundY), guidePaint);
+    canvas.drawLine(
+      runner.ankleLine,
+      runner.shoulderMid,
+      guidePaint..color = primaryColor.withValues(alpha: 0.42 * alpha),
+    );
+    _drawAngleArc(
+      canvas,
+      center: runner.frontKnee,
+      start: runner.frontHip,
+      end: runner.frontAnkle,
+      radius: runner.scale * 0.060,
+      color: contactColor.withValues(alpha: 0.82 * alpha),
+      strokeWidth: runner.scale * 0.010,
+    );
+    _drawAngleArc(
+      canvas,
+      center: runner.frontElbow,
+      start: runner.frontShoulder,
+      end: runner.frontWrist,
+      radius: runner.scale * 0.046,
+      color: secondaryColor.withValues(alpha: 0.72 * alpha),
+      strokeWidth: runner.scale * 0.008,
+    );
+    _drawAngleArc(
+      canvas,
+      center: runner.rearElbow,
+      start: runner.rearShoulder,
+      end: runner.rearWrist,
+      radius: runner.scale * 0.038,
+      color: secondaryColor.withValues(alpha: 0.42 * alpha),
+      strokeWidth: runner.scale * 0.007,
+    );
+  }
+
+  void _drawContactRead(
+    Canvas canvas,
+    _SampleVideoRunnerGeometry runner,
+    double alpha,
+  ) {
+    final contactPaint = Paint()
+      ..color = contactColor.withValues(alpha: 0.28 * alpha)
+      ..style = PaintingStyle.fill;
+    canvas.drawOval(
+      Rect.fromCenter(
+        center:
+            Offset(runner.frontToe.dx - runner.scale * 0.035, runner.groundY),
+        width: runner.scale * 0.150,
+        height: runner.scale * 0.038,
+      ),
+      contactPaint,
+    );
+    canvas.drawLine(
+      Offset(runner.hip.dx, runner.groundY + runner.scale * 0.018),
+      Offset(runner.frontAnkle.dx, runner.groundY + runner.scale * 0.018),
+      Paint()
+        ..color = contactColor.withValues(alpha: 0.70 * alpha)
+        ..strokeWidth = math.max(1.3, runner.scale * 0.008)
+        ..strokeCap = StrokeCap.round,
+    );
+    _drawBracket(
+      canvas,
+      Offset(runner.hip.dx, runner.groundY + runner.scale * 0.018),
+      Offset(runner.frontAnkle.dx, runner.groundY + runner.scale * 0.018),
+      contactColor.withValues(alpha: 0.72 * alpha),
+      runner.scale * 0.020,
+    );
+    for (final offset in const <double>[0.0, 0.34, 0.68]) {
+      final x = runner.head.dx + runner.scale * (0.112 + offset * 0.050);
+      final y =
+          runner.head.dy - runner.scale * 0.030 - runner.scale * offset * 0.045;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(
+            x,
+            y,
+            runner.scale * 0.020,
+            runner.scale * (0.052 + offset * 0.050),
+          ),
+          Radius.circular(runner.scale * 0.010),
+        ),
+        Paint()..color = primaryColor.withValues(alpha: 0.42 * alpha),
+      );
+    }
+  }
+
+  void _drawMistakeRead(
+    Canvas canvas,
+    _SampleVideoRunnerGeometry runner,
+    double alpha,
+  ) {
+    final warningPaint = Paint()
+      ..color = warningColor.withValues(alpha: 0.80 * alpha)
+      ..strokeWidth = math.max(2.0, runner.scale * 0.016)
+      ..strokeCap = StrokeCap.round;
+    final start =
+        Offset(runner.frontToe.dx + runner.scale * 0.050, runner.groundY);
+    final end =
+        Offset(runner.frontAnkle.dx - runner.scale * 0.110, runner.groundY);
+    canvas.drawLine(start, end, warningPaint);
+    canvas.drawLine(
+      end,
+      Offset(end.dx + runner.scale * 0.048, end.dy - runner.scale * 0.034),
+      warningPaint,
+    );
+    canvas.drawLine(
+      end,
+      Offset(end.dx + runner.scale * 0.048, end.dy + runner.scale * 0.034),
+      warningPaint,
+    );
+    canvas.drawLine(
+      runner.neck,
+      runner.frontAnkle,
+      Paint()
+        ..color = warningColor.withValues(alpha: 0.36 * alpha)
+        ..strokeWidth = math.max(1.3, runner.scale * 0.008)
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center:
+            Offset(runner.frontToe.dx - runner.scale * 0.036, runner.groundY),
+        width: runner.scale * 0.152,
+        height: runner.scale * 0.044,
+      ),
+      Paint()..color = warningColor.withValues(alpha: 0.26 * alpha),
+    );
+  }
+
+  void _drawAngleArc(
+    Canvas canvas, {
+    required Offset center,
+    required Offset start,
+    required Offset end,
+    required double radius,
+    required Color color,
+    required double strokeWidth,
+  }) {
+    final startAngle = math.atan2(start.dy - center.dy, start.dx - center.dx);
+    final endAngle = math.atan2(end.dy - center.dy, end.dx - center.dx);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      _shortestAngleSweep(startAngle, endAngle),
+      false,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  void _drawBracket(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Color color,
+    double height,
+  ) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = math.max(1.0, height * 0.32)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(start.dx, start.dy - height),
+        Offset(start.dx, start.dy + height), paint);
+    canvas.drawLine(Offset(end.dx, end.dy - height),
+        Offset(end.dx, end.dy + height), paint);
+  }
+
+  void _drawDashedRRect(
+    Canvas canvas,
+    RRect rrect,
+    Paint paint, {
+    required double dash,
+    required double gap,
+  }) {
+    _drawDashedLine(canvas, rrect.tlRadius.x, rrect.left, rrect.top,
+        rrect.right, rrect.top, paint, dash, gap);
+    _drawDashedLine(canvas, rrect.tlRadius.x, rrect.right, rrect.top,
+        rrect.right, rrect.bottom, paint, dash, gap);
+    _drawDashedLine(canvas, rrect.tlRadius.x, rrect.right, rrect.bottom,
+        rrect.left, rrect.bottom, paint, dash, gap);
+    _drawDashedLine(canvas, rrect.tlRadius.x, rrect.left, rrect.bottom,
+        rrect.left, rrect.top, paint, dash, gap);
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    double radius,
+    double startX,
+    double startY,
+    double endX,
+    double endY,
+    Paint paint,
+    double dash,
+    double gap,
+  ) {
+    final start = Offset(startX, startY);
+    final end = Offset(endX, endY);
+    final delta = end - start;
+    final distance = delta.distance;
+    if (distance == 0) return;
+    final direction = delta / distance;
+    var drawn = radius;
+    while (drawn < distance - radius) {
+      final segmentEnd = math.min(drawn + dash, distance - radius);
+      canvas.drawLine(
+          start + direction * drawn, start + direction * segmentEnd, paint);
+      drawn += dash + gap;
+    }
+  }
+
+  double _shortestAngleSweep(double start, double end) {
+    var sweep = (end - start) % (math.pi * 2);
+    if (sweep > math.pi) sweep -= math.pi * 2;
+    if (sweep < -math.pi) sweep += math.pi * 2;
+    return sweep;
+  }
+
+  @override
+  bool shouldRepaint(covariant _SampleVideoAnalysisPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.isMistake != isMistake ||
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.secondaryColor != secondaryColor ||
+        oldDelegate.contactColor != contactColor ||
+        oldDelegate.warningColor != warningColor;
+  }
+}
+
+class _SampleVideoRunnerGeometry {
+  final Size size;
+  final double progress;
+
+  const _SampleVideoRunnerGeometry(this.size, this.progress);
+
+  double get scale => size.height;
+  double get groundY => size.height * 0.884;
+  double get _shift => math.sin(progress * math.pi * 1.4) * size.width * 0.010;
+  double get _lift => math.sin(progress * math.pi * 2) * size.height * 0.006;
+
+  Offset p(double x, double y) =>
+      Offset(size.width * x + _shift, size.height * y + _lift);
+
+  Offset get head => p(0.480, 0.350);
+  Offset get neck => p(0.470, 0.422);
+  Offset get shoulderMid => p(0.458, 0.452);
+  Offset get hip => p(0.444, 0.610);
+  Offset get ankleLine => p(0.602, 0.870);
+  Offset get rearShoulder => p(0.428, 0.452);
+  Offset get frontShoulder => p(0.488, 0.452);
+  Offset get rearElbow => p(0.414, 0.548);
+  Offset get rearWrist => p(0.404, 0.598);
+  Offset get frontElbow => p(0.502, 0.526);
+  Offset get frontWrist => p(0.525, 0.552);
+  Offset get rearHip => p(0.414, 0.610);
+  Offset get frontHip => p(0.472, 0.610);
+  Offset get rearKnee => p(0.342, 0.744);
+  Offset get rearAnkle => p(0.292, 0.866);
+  Offset get rearToe => p(0.260, 0.876);
+  Offset get frontKnee => p(0.558, 0.720);
+  Offset get frontAnkle => p(0.610, 0.874);
+  Offset get frontToe => p(0.652, 0.874);
+
+  List<Offset> get joints => [
+        head,
+        neck,
+        rearShoulder,
+        frontShoulder,
+        rearElbow,
+        rearWrist,
+        frontElbow,
+        frontWrist,
+        rearHip,
+        frontHip,
+        rearKnee,
+        rearAnkle,
+        frontKnee,
+        frontAnkle,
+      ];
+
+  List<(Offset, Offset)> get bones => [
+        (rearShoulder, frontShoulder),
+        (rearHip, frontHip),
+        (rearShoulder, rearElbow),
+        (rearElbow, rearWrist),
+        (frontShoulder, frontElbow),
+        (frontElbow, frontWrist),
+        (rearHip, rearKnee),
+        (rearKnee, rearAnkle),
+        (rearAnkle, rearToe),
+        (frontHip, frontKnee),
+        (frontKnee, frontAnkle),
+        (frontAnkle, frontToe),
+      ];
 }
 
 class _SampleRunnerPainter extends CustomPainter {
