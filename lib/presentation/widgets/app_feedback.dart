@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
-
 class AppFeedback {
+  static const Duration _quickDuration = Duration(seconds: 1);
+  static const Duration _undoDuration = Duration(seconds: 5);
+
   static void showMessage(
     BuildContext context, {
     required String text,
@@ -13,42 +14,21 @@ class AppFeedback {
       ..removeCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            0,
-            AppSpacing.md,
-            AppSpacing.md,
-          ),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
           content: Text(text),
           action: action,
-          duration: const Duration(seconds: 2),
+          duration: _quickDuration,
         ),
       );
   }
 
   static void showSuccess(BuildContext context, {required String text}) {
-    final scheme = Theme.of(context).colorScheme;
     final messenger = ScaffoldMessenger.of(context);
     messenger
       ..removeCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            0,
-            AppSpacing.md,
-            AppSpacing.md,
-          ),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
-          backgroundColor: scheme.primaryContainer,
-          content: Text(
-            text,
-            style: TextStyle(color: scheme.onPrimaryContainer),
-          ),
-          duration: const Duration(seconds: 2),
+          content: Text(text),
+          duration: _quickDuration,
         ),
       );
   }
@@ -60,33 +40,15 @@ class AppFeedback {
     required VoidCallback onUndo,
   }) {
     final messenger = ScaffoldMessenger.of(context);
-    final scheme = Theme.of(context).colorScheme;
     messenger
       ..removeCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            0,
-            AppSpacing.md,
-            AppSpacing.md,
-          ),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
-          duration: const Duration(seconds: 5),
-          content: Row(
-            children: [
-              Expanded(child: Text(text)),
-              TextButton(
-                onPressed: onUndo,
-                style: TextButton.styleFrom(
-                  minimumSize: const Size(0, 32),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  foregroundColor: scheme.inversePrimary,
-                ),
-                child: Text(undoLabel),
-              ),
-            ],
+          duration: _undoDuration,
+          content: Text(text),
+          action: SnackBarAction(
+            label: undoLabel,
+            onPressed: onUndo,
           ),
         ),
       );
