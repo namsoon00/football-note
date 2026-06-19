@@ -8696,11 +8696,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      'Tap a destination to create a move, or long-press and drag to adjust the position.';
+      'Tap a destination to create a move, or drag the player to adjust the position.';
 
   @override
   String get trainingSketchLinkBallHint =>
-      'Tap a pass destination to create a ball action, or long-press and drag to adjust the position.';
+      'Tap a pass destination to create a ball action, or drag the ball to adjust the position.';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => 'Quick actions';
