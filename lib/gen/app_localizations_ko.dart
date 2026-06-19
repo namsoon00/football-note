@@ -8420,11 +8420,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      '이 사람을 선택한 뒤 도착 지점을 누르면 이동을 쉽게 만들 수 있어요.';
+      '도착 지점을 누르면 이동을 만들고, 길게 누른 채 움직이면 위치를 조정할 수 있어요.';
 
   @override
   String get trainingSketchLinkBallHint =>
-      '이 공을 선택한 뒤 패스 도착 지점을 누르면 공 움직임을 쉽게 만들 수 있어요.';
+      '패스 도착 지점을 누르면 공 움직임을 만들고, 길게 누른 채 움직이면 위치를 조정할 수 있어요.';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => '빠른 동작';

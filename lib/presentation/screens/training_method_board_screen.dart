@@ -56,6 +56,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   int _nextId = 1;
   String? _selectedItemId;
   String? _selectedRouteId;
+  String? _longPressMovingItemId;
+  Offset _lastLongPressMoveOffset = Offset.zero;
   bool _penMode = false;
   bool _pathMode = false;
   bool _routeReplaceMode = false;
@@ -1034,6 +1036,53 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         );
       }
     }
+  }
+
+  void _startLongPressItemMove(_BoardItem item) {
+    if (widget.readOnly || _playController.isAnimating) return;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      _longPressMovingItemId = item.id;
+      _lastLongPressMoveOffset = Offset.zero;
+      _selectedItemId = item.id;
+      _routeReplaceMode = false;
+      _activeStroke = null;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
+      if (_pathMode && item.type == _boardItemTypeForRouteKind(_pathDrawMode)) {
+        _selectedRouteId = _routeForItem(item.id, _pathDrawMode)?.id;
+      }
+    });
+  }
+
+  void _updateLongPressItemMove(
+    _BoardItem item, {
+    required Offset offsetFromOrigin,
+    required double boardWidth,
+    required double boardHeight,
+  }) {
+    if (widget.readOnly || _playController.isAnimating) return;
+    if (_longPressMovingItemId != item.id) return;
+    final delta = offsetFromOrigin - _lastLongPressMoveOffset;
+    if (delta.distance < 0.5) return;
+    final nextX =
+        (item.x + (delta.dx / boardWidth)).clamp(0.03, 0.97).toDouble();
+    final nextY =
+        (item.y + (delta.dy / boardHeight)).clamp(0.03, 0.97).toDouble();
+    setState(() {
+      _lastLongPressMoveOffset = offsetFromOrigin;
+      _moveItemWithLinkedRoutes(item, nextX: nextX, nextY: nextY);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _endLongPressItemMove() {
+    if (_longPressMovingItemId == null) return;
+    setState(() {
+      _longPressMovingItemId = null;
+      _lastLongPressMoveOffset = Offset.zero;
+    });
   }
 
   void _addItem(_BoardItemType type) {
@@ -3160,32 +3209,23 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                 )?.id;
                               }
                             }),
-                            onLongPress: widget.readOnly ||
-                                    _penMode ||
-                                    _pathMode
+                            onLongPressStart: widget.readOnly
                                 ? null
-                                : () {
-                                    setState(() {
-                                      _currentPage.items.removeWhere(
-                                        (entry) => entry.id == item.id,
-                                      );
-                                      _currentPage.routes.removeWhere(
-                                        (route) =>
-                                            route.linkedItemId == item.id,
-                                      );
-                                      if (_selectedItemId == item.id) {
-                                        _selectedItemId = null;
-                                      }
-                                      if (_selectedRoute != null &&
-                                          !_currentPage.routes.any(
-                                            (route) =>
-                                                route.id == _selectedRoute!.id,
-                                          )) {
-                                        _selectedRouteId = null;
-                                      }
-                                    });
-                                    _scheduleAutoSave();
-                                  },
+                                : (_) => _startLongPressItemMove(item),
+                            onLongPressMoveUpdate: widget.readOnly
+                                ? null
+                                : (details) => _updateLongPressItemMove(
+                                      item,
+                                      offsetFromOrigin:
+                                          details.offsetFromOrigin,
+                                      boardWidth: width,
+                                      boardHeight: height,
+                                    ),
+                            onLongPressEnd: widget.readOnly
+                                ? null
+                                : (_) => _endLongPressItemMove(),
+                            onLongPressCancel:
+                                widget.readOnly ? null : _endLongPressItemMove,
                             onPanUpdate:
                                 widget.readOnly || _penMode || _pathMode
                                     ? null
