@@ -12,17 +12,17 @@
       "tabName": {}
     }
   },
-  "welcomeGuideTitle": "Log today, and your effort shows.",
-  "welcomeGuideIntro": "Any sport works. One short note is enough. Start small; you are doing fine.",
+  "welcomeGuideTitle": "Log today, and move stronger tomorrow.",
+  "welcomeGuideIntro": "Any sport works. One short note can make the next practice easier. Start now; you can do this.",
   "welcomeGuidePrimaryAction": "Start logging",
   "welcomeGuideSectionFlow": "What to do",
-  "welcomeGuideNextTabHint": "Swipe through three cards. Then tap a button and log one small win.",
+  "welcomeGuideNextTabHint": "Swipe through three cards. Then log one thing right away.",
   "welcomeGuidePreviewLabel": "Action to choose now",
   "welcomeGuideCoachMarkLabel": "Tap this",
-  "welcomeSlideGemTitle": "Small logs can sparkle.",
-  "welcomeSlideGemBody": "A little is okay. What you log keeps growing, and next time can be better.",
-  "welcomeSlideFlameTitle": "One step today makes tomorrow easier.",
-  "welcomeSlideFlameBody": "A small spark is enough. Log it now and keep the flow going. You can do it.",
+  "welcomeSlideGemTitle": "Small logs become real confidence.",
+  "welcomeSlideGemBody": "Praise what went well, and turn the hard part into the next challenge. Each note helps you improve.",
+  "welcomeSlideFlameTitle": "Do not stop on a hard day.",
+  "welcomeSlideFlameBody": "One small action is enough. Log it, restart, and take one more step tomorrow.",
   "tabGuideCoachMarkStep": "Step {current} of {total}",
   "@tabGuideCoachMarkStep": {
     "placeholders": {

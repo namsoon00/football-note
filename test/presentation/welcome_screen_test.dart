@@ -36,19 +36,19 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('린지'), findsNothing);
-    expect(find.text('오늘 기록하면, 내 운동이 보여요'), findsOneWidget);
+    expect(find.text('오늘 기록하면, 내일 더 강해져요'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('welcome-next-button')));
     await tester.pumpAndSettle();
 
     expect(find.text('보석'), findsNothing);
-    expect(find.text('작은 기록도 반짝반짝 쌓여요'), findsOneWidget);
+    expect(find.text('작은 기록이 큰 자신감이 돼요'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('welcome-next-button')));
     await tester.pumpAndSettle();
 
     expect(find.text('불꽃이'), findsNothing);
-    expect(find.text('오늘 하나면, 내일은 더 쉬워져요'), findsOneWidget);
+    expect(find.text('힘든 날에도 멈추지 마세요'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('welcome-start-button')));
 

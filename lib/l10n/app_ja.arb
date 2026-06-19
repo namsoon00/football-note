@@ -12,17 +12,17 @@
       "tabName": {}
     }
   },
-  "welcomeGuideTitle": "今日記録すれば、がんばりが見えます",
-  "welcomeGuideIntro": "競技は問いません。短く一行でも十分です。小さく始めれば大丈夫です。",
+  "welcomeGuideTitle": "今日記録すれば、明日はもっと強くなれます",
+  "welcomeGuideIntro": "競技は問いません。短く一行残すだけで、次の練習が楽になります。今始めれば大丈夫です。",
   "welcomeGuidePrimaryAction": "記録を始める",
   "welcomeGuideSectionFlow": "やること",
-  "welcomeGuideNextTabHint": "3枚だけ進めれば大丈夫です。その後はボタンを押して、ひとつ記録してみましょう。",
+  "welcomeGuideNextTabHint": "3枚だけ進めれば大丈夫です。その後はすぐにひとつ記録してみましょう。",
   "welcomeGuidePreviewLabel": "今選ぶアクション",
   "welcomeGuideCoachMarkLabel": "ここをタップ",
-  "welcomeSlideGemTitle": "小さな記録もきらきら積み上がります",
-  "welcomeSlideGemBody": "少しでも大丈夫です。残した分だけ育って、次はもっとよくできます。",
-  "welcomeSlideFlameTitle": "今日ひとつできれば、明日はもっと楽になります",
-  "welcomeSlideFlameBody": "小さな火でも大丈夫です。今記録すれば流れが続きます。きっとできます。",
+  "welcomeSlideGemTitle": "小さな記録が大きな自信になります",
+  "welcomeSlideGemBody": "できたことはしっかり褒め、難しかったことは次の挑戦に変えましょう。ひとつずつ積めばもっとよくできます。",
+  "welcomeSlideFlameTitle": "つらい日でも止まらないでください",
+  "welcomeSlideFlameBody": "今日ひとつだけでも大丈夫です。記録してもう一度始めれば、明日もう一歩進めます。",
   "tabGuideCoachMarkStep": "{total}ステップ中{current}ステップ目",
   "@tabGuideCoachMarkStep": {
     "placeholders": {
