@@ -695,6 +695,78 @@ void main() {
     expect(movedRoute2.points[1].y, closeTo(0.52, 0.0001));
   });
 
+  testWidgets('long pressing a linked item moves it while route tool is active',
+      (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.5),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-1',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-1',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.5),
+                TrainingMethodPoint(x: 0.45, y: 0.35),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '패스 워밍업',
+          initialLayoutJson: initialLayout,
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    final playerFinder = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.person),
+    );
+    await _openMoveRouteToolForIcon(tester, playerFinder);
+
+    final gesture = await tester.startGesture(tester.getCenter(playerFinder));
+    await tester.pump(const Duration(milliseconds: 700));
+    await gesture.moveBy(const Offset(52, -34));
+    await tester.pumpAndSettle();
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final player = page.items.single;
+    final dx = player.x - 0.2;
+    final dy = player.y - 0.5;
+
+    expect(dx, greaterThan(0.001));
+    expect(dy, lessThan(-0.001));
+
+    final route = page.routes.single;
+    expect(route.points[0].x, closeTo(0.2 + dx, 0.0001));
+    expect(route.points[0].y, closeTo(0.5 + dy, 0.0001));
+    expect(route.points[1].x, closeTo(0.45 + dx, 0.0001));
+    expect(route.points[1].y, closeTo(0.35 + dy, 0.0001));
+  });
+
   testWidgets(
     'new move route links to the selected player',
     (WidgetTester tester) async {

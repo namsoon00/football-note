@@ -15061,13 +15061,13 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchLinkPlayerHint.
   ///
   /// In en, this message translates to:
-  /// **'Select this player, then tap a destination to make a movement.'**
+  /// **'Tap a destination to create a move, or long-press and drag to adjust the position.'**
   String get trainingSketchLinkPlayerHint;
 
   /// No description provided for @trainingSketchLinkBallHint.
   ///
   /// In en, this message translates to:
-  /// **'Select this ball, then tap a pass destination to make a ball action.'**
+  /// **'Tap a pass destination to create a ball action, or long-press and drag to adjust the position.'**
   String get trainingSketchLinkBallHint;
 
   /// No description provided for @trainingSketchSelectedItemActionsTitle.
