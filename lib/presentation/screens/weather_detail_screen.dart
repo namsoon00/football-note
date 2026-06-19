@@ -189,11 +189,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                     : const <_CompactMetricData>[],
               ),
               if (todayInsightPanel != null) ...[
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.sm),
                 todayInsightPanel,
               ],
               if (hasWeather) ...[
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.sm),
                 _WeatherForecastNavCard(
                   title: l10n.homeWeatherTomorrowTitle,
                   subtitle: l10n.homeWeatherTomorrowNavSubtitle,
@@ -1678,87 +1678,46 @@ class _WeatherMetricOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final temperatureMetrics = metrics.take(3).toList(growable: false);
-    final airMetrics = metrics
-        .where((metric) => metric.airLevel != null)
-        .toList(growable: false);
-    final conditionMetrics = metrics
-        .skip(3)
-        .where((metric) => metric.airLevel == null)
-        .toList(growable: false);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (temperatureMetrics.isNotEmpty)
-          _MetricClusterCard(
-            metrics: temperatureMetrics,
-            prominent: true,
-          ),
-        if (temperatureMetrics.isNotEmpty && conditionMetrics.isNotEmpty)
-          const SizedBox(height: 10),
-        if (conditionMetrics.isNotEmpty)
-          _MetricClusterCard(metrics: conditionMetrics),
-        if ((temperatureMetrics.isNotEmpty || conditionMetrics.isNotEmpty) &&
-            airMetrics.isNotEmpty)
-          const SizedBox(height: 10),
-        if (airMetrics.isNotEmpty) _MetricClusterCard(metrics: airMetrics),
-      ],
-    );
+    return _MetricClusterCard(metrics: metrics);
   }
 }
 
 class _MetricClusterCard extends StatelessWidget {
   final List<_CompactMetricData> metrics;
-  final bool prominent;
 
-  const _MetricClusterCard({
-    required this.metrics,
-    this.prominent = false,
-  });
+  const _MetricClusterCard({required this.metrics});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.18),
-        borderRadius: AppRadius.surface,
-        border: Border.all(
-          color: theme.colorScheme.surface.withValues(alpha: 0.14),
-        ),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          const spacing = 8.0;
-          final maxWidth = constraints.maxWidth;
-          final columnCount = maxWidth >= 560
-              ? math.min(metrics.length, 3)
-              : maxWidth >= 360
-                  ? math.min(metrics.length, 2)
-                  : 1;
-          final itemWidth =
-              (maxWidth - spacing * (columnCount - 1)) / columnCount;
-          return Wrap(
-            spacing: spacing,
-            runSpacing: spacing,
-            children: [
-              for (final metric in metrics)
-                SizedBox(
-                  width: itemWidth,
-                  child: _MetricCard(
-                    label: metric.label,
-                    value: metric.value,
-                    icon: metric.icon,
-                    airLevel: metric.airLevel,
-                    prominent: prominent,
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = 8.0;
+        final maxWidth = constraints.maxWidth;
+        final columnCount = maxWidth >= 560
+            ? math.min(metrics.length, 4)
+            : maxWidth >= 340
+                ? math.min(metrics.length, 3)
+                : math.min(metrics.length, 2);
+        final itemWidth =
+            (maxWidth - spacing * (columnCount - 1)) / columnCount;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (var index = 0; index < metrics.length; index++)
+              SizedBox(
+                width: itemWidth,
+                child: _MetricCard(
+                  label: metrics[index].label,
+                  value: metrics[index].value,
+                  icon: metrics[index].icon,
+                  airLevel: metrics[index].airLevel,
+                  prominent: index < 3,
                 ),
-            ],
-          );
-        },
-      ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -1817,7 +1776,10 @@ class _WeatherForecastNavCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: AppRadius.surface,
         child: Ink(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: 10,
+          ),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface.withValues(alpha: 0.92),
             borderRadius: AppRadius.surface,
@@ -1829,46 +1791,55 @@ class _WeatherForecastNavCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primaryContainer,
                   borderRadius: AppRadius.control,
                 ),
-                child: Icon(icon, color: theme.colorScheme.primary, size: 24),
+                child: Icon(icon, color: theme.colorScheme.primary, size: 22),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Flexible(
+                          child: Text(
+                            detail,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.right,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
-                        height: 1.28,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      detail,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w900,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
                       ),
                     ),
                   ],
@@ -1934,7 +1905,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
     final onGradient = theme.colorScheme.onPrimaryContainer;
     final onGradientMuted = onGradient.withValues(alpha: 0.76);
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -1944,7 +1915,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: AppRadius.surface,
         boxShadow: [
           BoxShadow(
             color: theme.colorScheme.primary.withValues(alpha: 0.14),
@@ -1987,8 +1958,8 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: 10,
+                        vertical: 6,
                       ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surface.withValues(
@@ -2024,10 +1995,10 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: AppSpacing.xs),
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surface.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
@@ -2058,7 +2029,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 sectionLabel,
                 style: theme.textTheme.labelLarge?.copyWith(
@@ -2106,10 +2077,10 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: AppSpacing.sm),
                   Container(
-                    width: 78,
-                    height: 78,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surface.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(24),
@@ -2129,13 +2100,13 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                                 color: onGradient,
                               ),
                             )
-                          : Icon(icon, size: 40, color: onGradient),
+                          : Icon(icon, size: 34, color: onGradient),
                     ),
                   ),
                 ],
               ),
               if (metrics.isNotEmpty) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.sm),
                 _WeatherMetricOverview(metrics: metrics),
               ],
             ],
@@ -2167,63 +2138,55 @@ class _MetricCard extends StatelessWidget {
     final palette =
         airLevel == null ? null : _airQualityPalette(theme, airLevel!);
     return Container(
-      padding: EdgeInsets.all(prominent ? 14 : 12),
+      constraints: const BoxConstraints(minHeight: 62),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
       decoration: BoxDecoration(
         color: palette?.background ??
-            theme.colorScheme.surface.withValues(alpha: 0.84),
-        borderRadius: AppRadius.control,
+            theme.colorScheme.surface.withValues(alpha: 0.80),
+        borderRadius: AppRadius.small,
         border: Border.all(
           color: palette?.border ??
               theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: prominent ? 36 : 32,
-            height: prominent ? 36 : 32,
-            decoration: BoxDecoration(
-              color: palette?.foreground.withValues(alpha: 0.13) ??
-                  theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              size: prominent ? 20 : 18,
-              color: palette?.foreground ?? theme.colorScheme.primary,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: palette?.foreground ?? theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
                   label,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
+                  style: theme.textTheme.labelSmall?.copyWith(
                     color: palette?.foreground ??
                         theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                    height: 1.15,
-                  ),
-                ),
-                SizedBox(height: prominent ? 5 : 4),
-                Text(
-                  value,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: (prominent
-                          ? theme.textTheme.titleMedium
-                          : theme.textTheme.titleSmall)
-                      ?.copyWith(
-                    color: palette?.foreground,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w800,
                     height: 1.1,
                   ),
                 ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: (prominent
+                    ? theme.textTheme.titleSmall
+                    : theme.textTheme.labelLarge)
+                ?.copyWith(
+              color: palette?.foreground,
+              fontWeight: FontWeight.w900,
+              height: 1.08,
             ),
           ),
         ],
@@ -3330,10 +3293,10 @@ class _TodayWeatherRecommendationPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.82),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.surface,
         border: Border.all(
           color: theme.colorScheme.outlineVariant.withValues(alpha: 0.38),
         ),
@@ -3343,11 +3306,11 @@ class _TodayWeatherRecommendationPanel extends StatelessWidget {
         children: [
           Text(
             title,
-            style: theme.textTheme.titleSmall?.copyWith(
+            style: theme.textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           LayoutBuilder(
             builder: (context, constraints) {
               final compact = constraints.maxWidth < 360;
@@ -3410,12 +3373,12 @@ class _TodayRecommendationCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.control,
         child: Ink(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: AppRadius.control,
             border: Border.all(
               color: theme.colorScheme.primary.withValues(alpha: 0.20),
             ),
@@ -3424,15 +3387,15 @@ class _TodayRecommendationCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 34,
-                height: 34,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: theme.colorScheme.primary, size: 19),
+                child: Icon(icon, color: theme.colorScheme.primary, size: 17),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -3445,10 +3408,10 @@ class _TodayRecommendationCard extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 3),
                     Text(
                       summary,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
@@ -3462,6 +3425,7 @@ class _TodayRecommendationCard extends StatelessWidget {
               const SizedBox(width: 6),
               Icon(
                 Icons.chevron_right_rounded,
+                size: 20,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ],
@@ -4382,10 +4346,10 @@ class _HourlyPrecipitationSection extends StatelessWidget {
     );
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: AppRadius.control,
         border: Border.all(color: borderColor),
       ),
       child: Column(
@@ -4414,15 +4378,15 @@ class _HourlyPrecipitationSection extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           DecoratedBox(
             decoration: BoxDecoration(
               color: chartBackground,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppRadius.small,
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
               child: _HourlyPrecipitationChart(
                 entries: sortedEntries,
                 formatTime: formatTime,
@@ -4461,8 +4425,8 @@ class _HourlyPrecipitationChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
-    final width = math.max(360.0, entries.length * 72.0);
-    const chartHeight = 96.0;
+    final width = math.max(320.0, entries.length * 62.0);
+    const chartHeight = 72.0;
     return SizedBox(
       width: width,
       child: Column(
@@ -4478,7 +4442,7 @@ class _HourlyPrecipitationChart extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Row(
             children: [
               for (final entry in entries)
@@ -4634,10 +4598,10 @@ class _HourlyTemperatureSection extends StatelessWidget {
     });
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: AppRadius.control,
         border: Border.all(color: borderColor),
       ),
       child: Column(
@@ -4666,15 +4630,15 @@ class _HourlyTemperatureSection extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           DecoratedBox(
             decoration: BoxDecoration(
               color: chartBackground,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppRadius.small,
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
               child: _HourlyTemperatureChart(
                 entries: temperatureEntries,
                 formatTime: formatTime,
@@ -4721,8 +4685,8 @@ class _HourlyTemperatureChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
-    final width = math.max(320.0, entries.length * 58.0);
-    const chartHeight = 96.0;
+    final width = math.max(300.0, entries.length * 52.0);
+    const chartHeight = 72.0;
     return SizedBox(
       width: width,
       child: Column(
@@ -4740,7 +4704,7 @@ class _HourlyTemperatureChart extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Row(
             children: [
               for (final entry in entries)
