@@ -4148,6 +4148,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeWeatherWeeklyTitle => '週間天気';
 
   @override
+  String get homeWeatherOutfitActionLabel => '服装';
+
+  @override
+  String get homeWeatherTomorrowActionLabel => '明日';
+
+  @override
+  String get homeWeatherWeeklyActionLabel => '週間';
+
+  @override
   String get homeWeatherTomorrowNavSubtitle => '明日の予報と服装ガイドを別画面で確認してください。';
 
   @override
@@ -4193,99 +4202,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeWeatherPrecipitationProbability => '降水確率';
 
   @override
-  String get weatherPrecipitationNone => '雨ほぼなし';
+  String get weatherPrecipitationNone => '雨はほとんど降りません';
 
   @override
-  String get weatherPrecipitationTrace => '弱い雨';
+  String get weatherPrecipitationTrace => '少し降ります';
 
   @override
-  String get weatherPrecipitationLight => '小雨';
+  String get weatherPrecipitationLight => '弱く降ります';
 
   @override
-  String get weatherPrecipitationModerate => '雨';
+  String get weatherPrecipitationModerate => 'しっかり降ります';
 
   @override
-  String get weatherPrecipitationHeavy => '強い雨';
+  String get weatherPrecipitationHeavy => '強く降ります';
 
   @override
-  String get weatherPrecipitationVeryHeavy => '大雨';
+  String get weatherPrecipitationVeryHeavy => 'とても強く降ります';
 
   @override
   String get homeWeatherHourlyPrecipitation => '時間別の雨タイムライン';
 
   @override
   String get homeWeatherHourlyTemperature => '時間ごとの気温';
-
-  @override
-  String get homeWeatherRainRiskTitle => '雨チェック';
-
-  @override
-  String get homeWeatherRainRiskLow => '低い';
-
-  @override
-  String get homeWeatherRainRiskCaution => '注意';
-
-  @override
-  String get homeWeatherRainRiskHigh => '高い';
-
-  @override
-  String get homeWeatherRainRiskSevere => '危険';
-
-  @override
-  String get homeWeatherRainRiskLowSummary =>
-      '弱い雨が通る可能性があります。屋外練習前に装備だけ軽く確認してください。';
-
-  @override
-  String get homeWeatherRainRiskCautionSummary =>
-      '雨の可能性があります。濡れた芝と滑りやすい方向転換に備えてください。';
-
-  @override
-  String get homeWeatherRainRiskHighSummary =>
-      '雨の可能性が高いです。ピッチ状態と練習強度を早めに調整してください。';
-
-  @override
-  String get homeWeatherRainRiskSevereSummary =>
-      '強い雨や雷の可能性があります。屋外予定を実施できるか必ず確認してください。';
-
-  @override
-  String get homeWeatherRainRiskProbability => '確率';
-
-  @override
-  String get homeWeatherRainRiskAmount => '今日の合計';
-
-  @override
-  String get homeWeatherRainRiskStart => '開始';
-
-  @override
-  String get homeWeatherRainRiskNow => '今';
-
-  @override
-  String get homeWeatherRainPreparationTitle => 'サッカー準備';
-
-  @override
-  String get homeWeatherRainTipSpareSocks => '予備の靴下とタオルを用意してください。';
-
-  @override
-  String get homeWeatherRainTipGrip => '滑りやすいグラウンドに合わせてスパイクと方向転換の強度を確認してください。';
-
-  @override
-  String get homeWeatherRainTipSchedule => '試合や屋外練習の予定変更がないか確認してください。';
-
-  @override
-  String get homeWeatherRainTipIndoor =>
-      '大雨や雷がある場合は、屋内の技術練習や回復セッションに切り替えてください。';
-
-  @override
-  String get homeWeatherRainTrainingCaution =>
-      '雨の可能性があるため、減速、ターン、着地動作は滑り具合を先に確認してください。';
-
-  @override
-  String get homeWeatherRainTrainingHighCaution =>
-      '雨リスクが高いため、スプリントや接触練習を減らし、先にピッチ状態を確認してください。';
-
-  @override
-  String get homeWeatherRainTrainingRecovery =>
-      '練習後は濡れた靴下と上着をすぐ替え、足の状態を確認してください。';
 
   @override
   String get homeWeatherWindSpeed => '風';
@@ -4321,9 +4259,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeWeatherOutfitButton => '服装ガイド';
-
-  @override
-  String get homeWeatherTodayRecommendationsTitle => '今日の天気に合わせたおすすめ';
 
   @override
   String get homeWeatherOutfitLayersLabel => '最上層';
@@ -4478,64 +4413,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeWeatherStatusHazardous => '危険';
-
-  @override
-  String get homeWeatherSuggestionTitle => '推奨されるトレーニングの焦点';
-
-  @override
-  String get homeWeatherSuggestionButton => 'トレーニングの焦点';
-
-  @override
-  String get homeWeatherSuggestionSheetSubtitleDefault =>
-      '現在の天気に合った効率的なトレーニング方向です。';
-
-  @override
-  String homeWeatherSuggestionSheetSubtitle(Object location) {
-    return '$location の天気に合わせたトレーニング方向です。';
-  }
-
-  @override
-  String get homeWeatherSuggestionFocusLabel => '今日の集中';
-
-  @override
-  String get homeWeatherSuggestionCautionLabel => '運用のヒント';
-
-  @override
-  String get homeWeatherSuggestionRecoveryLabel => '回復チェック';
-
-  @override
-  String get homeWeatherSuggestionClear =>
-      '屋外でのファーストタッチワーク、パスのリズム、短いスプリントセットに適した時期です。';
-
-  @override
-  String get homeWeatherSuggestionCloudy =>
-      '戦術的なパターンワークやより長いテンポのドリルには、安定した条件を使用してください。';
-
-  @override
-  String get homeWeatherSuggestionRain => 'インドアタッチ、ウォールパス、バランスやコアワークに移行します。';
-
-  @override
-  String get homeWeatherSuggestionSnow => '屋内での調整、機動性、軽い技術の繰り返しを優先します。';
-
-  @override
-  String get homeWeatherSuggestionStorm =>
-      'リカバリ、ビデオレビュー、屋内での短時間のアクティベーションにより安全に保ちます。';
-
-  @override
-  String get homeWeatherSuggestionHot =>
-      'ボリュームを減らし、回復時間を延ばし、水分補給をしながらテクニックに集中します。';
-
-  @override
-  String get homeWeatherSuggestionCold =>
-      'ウォーミングアップに余分な時間を費やし、しっかりとしたタッチで徐々に強度を上げてください。';
-
-  @override
-  String get homeWeatherSuggestionAirCaution =>
-      '空気の質が悪いため、屋外の負荷を減らし、可能であれば屋内の技術作業または復旧作業に切り替えてください。';
-
-  @override
-  String get homeWeatherSuggestionAirWatch =>
-      '屋外でトレーニングする場合は、空気の質が完全に安定していないため、ハードなインターバルを短くし、呼吸に注意してください。';
 
   @override
   String get weatherLabelDefault => '天気';

@@ -4262,6 +4262,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherWeeklyTitle => 'Weekly weather';
 
   @override
+  String get homeWeatherOutfitActionLabel => 'Outfit';
+
+  @override
+  String get homeWeatherTomorrowActionLabel => 'Tomorrow';
+
+  @override
+  String get homeWeatherWeeklyActionLabel => 'Week';
+
+  @override
   String get homeWeatherTomorrowNavSubtitle =>
       'Check tomorrow\'s forecast and outfit guide separately.';
 
@@ -4313,16 +4322,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherPrecipitationProbability => 'Rain chance';
 
   @override
-  String get weatherPrecipitationNone => 'Little rain';
+  String get weatherPrecipitationNone => 'Almost no rain';
 
   @override
-  String get weatherPrecipitationTrace => 'Light rain';
+  String get weatherPrecipitationTrace => 'A little rain';
 
   @override
   String get weatherPrecipitationLight => 'Light rain';
 
   @override
-  String get weatherPrecipitationModerate => 'Rain';
+  String get weatherPrecipitationModerate => 'Steady rain';
 
   @override
   String get weatherPrecipitationHeavy => 'Heavy rain';
@@ -4335,79 +4344,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherHourlyTemperature => 'Hourly temperature';
-
-  @override
-  String get homeWeatherRainRiskTitle => 'Rain check';
-
-  @override
-  String get homeWeatherRainRiskLow => 'Low';
-
-  @override
-  String get homeWeatherRainRiskCaution => 'Caution';
-
-  @override
-  String get homeWeatherRainRiskHigh => 'High';
-
-  @override
-  String get homeWeatherRainRiskSevere => 'Severe';
-
-  @override
-  String get homeWeatherRainRiskLowSummary =>
-      'A light shower may pass through. Do a quick gear check before outdoor training.';
-
-  @override
-  String get homeWeatherRainRiskCautionSummary =>
-      'Rain is possible. Prepare for wet grass and slippery changes of direction.';
-
-  @override
-  String get homeWeatherRainRiskHighSummary =>
-      'Rain is likely. Check the pitch condition and adjust training load early.';
-
-  @override
-  String get homeWeatherRainRiskSevereSummary =>
-      'Heavy rain or lightning is possible. Confirm whether outdoor plans should proceed.';
-
-  @override
-  String get homeWeatherRainRiskProbability => 'Chance';
-
-  @override
-  String get homeWeatherRainRiskAmount => 'Today total';
-
-  @override
-  String get homeWeatherRainRiskStart => 'Start';
-
-  @override
-  String get homeWeatherRainRiskNow => 'Now';
-
-  @override
-  String get homeWeatherRainPreparationTitle => 'Football prep';
-
-  @override
-  String get homeWeatherRainTipSpareSocks => 'Pack spare socks and a towel.';
-
-  @override
-  String get homeWeatherRainTipGrip =>
-      'Check studs and reduce sharp cuts on slippery ground.';
-
-  @override
-  String get homeWeatherRainTipSchedule =>
-      'Check whether the match or outdoor session may change.';
-
-  @override
-  String get homeWeatherRainTipIndoor =>
-      'For heavy rain or lightning, switch to indoor technical work or recovery.';
-
-  @override
-  String get homeWeatherRainTrainingCaution =>
-      'Rain is possible, so test grip before deceleration, turns, and landing work.';
-
-  @override
-  String get homeWeatherRainTrainingHighCaution =>
-      'Rain risk is high; reduce sprint and contact work and check the pitch first.';
-
-  @override
-  String get homeWeatherRainTrainingRecovery =>
-      'After training, change wet socks and tops quickly and check your feet.';
 
   @override
   String get homeWeatherWindSpeed => 'Wind';
@@ -4448,10 +4384,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherOutfitButton => 'Outfit guide';
-
-  @override
-  String get homeWeatherTodayRecommendationsTitle =>
-      'Recommendations for today\'s weather';
 
   @override
   String get homeWeatherOutfitLayersLabel => 'Top layers';
@@ -4611,66 +4543,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherStatusHazardous => 'Hazardous';
-
-  @override
-  String get homeWeatherSuggestionTitle => 'Suggested training focus';
-
-  @override
-  String get homeWeatherSuggestionButton => 'Training focus';
-
-  @override
-  String get homeWeatherSuggestionSheetSubtitleDefault =>
-      'Best focus for the current weather.';
-
-  @override
-  String homeWeatherSuggestionSheetSubtitle(Object location) {
-    return 'Tailored to $location weather.';
-  }
-
-  @override
-  String get homeWeatherSuggestionFocusLabel => 'Focus';
-
-  @override
-  String get homeWeatherSuggestionCautionLabel => 'Execution tip';
-
-  @override
-  String get homeWeatherSuggestionRecoveryLabel => 'Recovery check';
-
-  @override
-  String get homeWeatherSuggestionClear =>
-      'Good time for outdoor first-touch work, passing rhythm, and short sprint sets.';
-
-  @override
-  String get homeWeatherSuggestionCloudy =>
-      'Use the stable conditions for tactical pattern work and longer tempo drills.';
-
-  @override
-  String get homeWeatherSuggestionRain =>
-      'Shift to indoor touches, wall passing, and balance or core work.';
-
-  @override
-  String get homeWeatherSuggestionSnow =>
-      'Prioritize indoor coordination, mobility, and light technical repetitions.';
-
-  @override
-  String get homeWeatherSuggestionStorm =>
-      'Keep it safe with recovery, video review, and short indoor activation.';
-
-  @override
-  String get homeWeatherSuggestionHot =>
-      'Reduce volume, extend recovery, and focus on technique with hydration breaks.';
-
-  @override
-  String get homeWeatherSuggestionCold =>
-      'Spend extra time warming up, then build intensity gradually with tight touches.';
-
-  @override
-  String get homeWeatherSuggestionAirCaution =>
-      'Air quality is poor, so reduce outdoor load and switch to indoor technical or recovery work if possible.';
-
-  @override
-  String get homeWeatherSuggestionAirWatch =>
-      'If you train outside, shorten hard intervals and monitor your breathing because the air quality is not fully stable.';
 
   @override
   String get weatherLabelDefault => 'Weather';
