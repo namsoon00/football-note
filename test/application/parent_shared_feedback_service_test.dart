@@ -1,4 +1,5 @@
 import 'package:football_note/application/family_access_service.dart';
+import 'package:football_note/application/coach_roster_service.dart';
 import 'package:football_note/application/parent_shared_feedback_service.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
@@ -99,10 +100,78 @@ void main() {
 
     expect(service.feedbackForEntry(entry)?.reactions, ['review']);
   });
+
+  test('coach mode stores feedback separately for each active player',
+      () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(FamilyAccessService.currentRoleLocalKey, FamilyRole.coach.name);
+    final rosterService = CoachRosterService(repository);
+    final first = await rosterService.addPlayer(displayName: 'Minjun');
+    final second = await rosterService.addPlayer(displayName: 'Jisoo');
+    final entry = TrainingEntry(
+      date: DateTime(2026, 4, 22),
+      createdAt: DateTime(2026, 4, 22, 18, 30),
+      durationMinutes: 60,
+      intensity: 4,
+      type: '드리블',
+      mood: 4,
+      injury: false,
+      notes: '',
+      location: '메인 구장',
+    );
+
+    await rosterService.setActivePlayer(first.id);
+    await ParentSharedFeedbackService(
+      repository,
+    ).saveFeedbackForEntry(entry, 'first player feedback');
+
+    await rosterService.setActivePlayer(second.id);
+    expect(
+      ParentSharedFeedbackService(repository).feedbackForEntry(entry),
+      isNull,
+    );
+    await ParentSharedFeedbackService(
+      repository,
+    ).saveFeedbackForEntry(entry, 'second player feedback');
+
+    await rosterService.setActivePlayer(first.id);
+    expect(
+      ParentSharedFeedbackService(repository).feedbackForEntry(entry)?.message,
+      'first player feedback',
+    );
+    expect(
+      repository.getValue<Map>(
+        CoachRosterService.scopedOptionKey(
+          FamilyAccessService.parentTrainingFeedbackKey,
+          first.id,
+        ),
+      ),
+      isNotEmpty,
+    );
+    expect(
+      repository.getValue<Map>(
+        CoachRosterService.scopedOptionKey(
+          FamilyAccessService.parentTrainingFeedbackKey,
+          second.id,
+        ),
+      ),
+      isNotEmpty,
+    );
+    expect(
+      repository.getValue<Map>(
+        FamilyAccessService.parentTrainingFeedbackKey,
+      ),
+      isNull,
+    );
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {
   final Map<String, dynamic> _values = <String, dynamic>{};
+
+  void seed(String key, dynamic value) {
+    _values[key] = value;
+  }
 
   @override
   List<String> getOptions(String key, List<String> defaults) {

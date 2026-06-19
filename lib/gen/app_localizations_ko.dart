@@ -7346,7 +7346,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyParentAutoSyncDescription =>
-      '보호자 모드에서는 훈련 피드백과 레벨 선물 이름만 자동 동기화합니다. 선수 기록 백업과 복원은 선수 모드에서 진행해 주세요.';
+      '보호자 또는 코치 모드에서는 훈련 피드백과 레벨 선물 이름만 자동 동기화합니다. 선수 기록 백업과 복원은 선수 모드에서 진행해 주세요.';
 
   @override
   String get familyChildDriveConnectionTitle => '공유 백업 Drive 연결';
@@ -7371,14 +7371,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get familyRoleParent => '보호자';
 
   @override
-  String get familyRoleCoach => '보호자';
+  String get familyRoleCoach => '코치';
 
   @override
   String get familyRoleSelectionTitle => '사용 방식 선택';
 
   @override
   String get familyRoleSelectionDescription =>
-      '이 기기가 직접 기록하는 선수용인지, 보호자가 확인하는 기기인지 먼저 고르세요.';
+      '이 기기가 직접 기록하는 선수용인지, 보호자용인지, 여러 선수를 관리하는 코치용인지 먼저 고르세요.';
 
   @override
   String get settingsUsageModeTitle => '사용 방식';
@@ -7391,6 +7391,35 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsSupportModeLabel => '보호자';
+
+  @override
+  String get settingsCoachRosterTitle => '코치 선수 목록';
+
+  @override
+  String get settingsCoachRosterDescription =>
+      '피드백, 선물 이름, Drive 백업을 쓰기 전에 현재 관리할 선수를 선택하세요.';
+
+  @override
+  String get settingsCoachRosterEmpty => '아직 등록된 선수가 없어요.';
+
+  @override
+  String get settingsCoachRosterAddPlayer => '선수 추가';
+
+  @override
+  String get settingsCoachRosterPlayerNameLabel => '선수 이름';
+
+  @override
+  String get settingsCoachRosterPlayerNameHint => '예: 민준';
+
+  @override
+  String settingsCoachRosterAdded(Object player) {
+    return '$player 선수를 추가했어요.';
+  }
+
+  @override
+  String settingsCoachRosterActivated(Object player) {
+    return '$player 선수가 현재 관리 대상으로 설정됐어요.';
+  }
 
   @override
   String get settingsSupportRoleTitle => '보호자 모드 안내';
@@ -7415,7 +7444,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsDataSyncSupportSummary =>
-      '최신 백업을 가져오고 공유 변경은 같은 파일에 반영합니다.';
+      '최신 백업을 가져오고 공유 변경은 보호자 또는 현재 선수 파일에 반영합니다.';
 
   @override
   String get settingsSyncSourceStatusTitle => '백업 데이터';

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../domain/entities/meal_entry.dart';
+import 'coach_roster_service.dart';
 import 'meal_coaching_service.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/progression/player_progression_rules.dart';
@@ -61,6 +62,23 @@ class PlayerLevelService {
       PlayerProgressionRules.dailyPositiveXpCap;
   static const int maxLevelMasterySpan =
       PlayerProgressionRules.maxLevelMasterySpan;
+  static const Set<String> _playerScopedOptionKeys = <String>{
+    totalXpKey,
+    xpHistoryKey,
+    quizRewardDayKey,
+    awardedPlanIdsKey,
+    awardedMatchLogTokensKey,
+    awardedStreaksKey,
+    awardedBoardSaveTokensKey,
+    awardedRoutineDaysKey,
+    awardedDailyTaskCompletionDaysKey,
+    awardedChallengeRoundsKey,
+    awardedChallengeCompletionsKey,
+    diaryCreatedDayKey,
+    claimedRewardLevelsKey,
+    customRewardNamesKey,
+    rewardClaimMessagesKey,
+  };
 
   static List<int> get levelThresholds =>
       PlayerProgressionRules.levelThresholds;
@@ -81,7 +99,14 @@ class PlayerLevelService {
   final OptionRepository _options;
   final MealCoachingService _mealCoachingService = const MealCoachingService();
 
-  PlayerLevelService(this._options);
+  PlayerLevelService(OptionRepository options, {String? playerId})
+      : _options = _PlayerLevelScopedOptionRepository(
+          options,
+          CoachRosterService.resolveScopedPlayerIdForOptions(
+            options,
+            explicitPlayerId: playerId,
+          ),
+        );
 
   PlayerLevelState loadState() {
     final totalXp = _options.getValue<int>(totalXpKey) ?? 0;
@@ -1444,6 +1469,46 @@ class PlayerLevelRewardClaim {
     required this.state,
     this.customRewardName = '',
   });
+}
+
+class _PlayerLevelScopedOptionRepository implements OptionRepository {
+  final OptionRepository _inner;
+  final String _playerId;
+
+  _PlayerLevelScopedOptionRepository(this._inner, this._playerId);
+
+  @override
+  List<String> getOptions(String key, List<String> defaults) {
+    return _inner.getOptions(_key(key), defaults);
+  }
+
+  @override
+  List<int> getIntOptions(String key, List<int> defaults) {
+    return _inner.getIntOptions(_key(key), defaults);
+  }
+
+  @override
+  T? getValue<T>(String key) {
+    return _inner.getValue<T>(_key(key));
+  }
+
+  @override
+  Future<void> saveOptions(String key, List<dynamic> options) {
+    return _inner.saveOptions(_key(key), options);
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) {
+    return _inner.setValue(_key(key), value);
+  }
+
+  String _key(String key) {
+    if (_playerId.trim().isEmpty ||
+        !PlayerLevelService._playerScopedOptionKeys.contains(key)) {
+      return key;
+    }
+    return CoachRosterService.scopedOptionKey(key, _playerId);
+  }
 }
 
 enum PlayerXpHistoryCategory {

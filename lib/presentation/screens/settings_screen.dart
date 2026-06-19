@@ -5,6 +5,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/coach_roster_service.dart';
 import '../../application/drive_connection_info.dart';
 import '../../application/drive_backup_service.dart';
 import '../../application/family_access_service.dart';
@@ -863,6 +864,10 @@ class _SettingsScreenState extends State<SettingsScreen>
           familyState: familyState,
           compact: true,
         ),
+        if (familyState.currentRole == FamilyRole.coach) ...[
+          const SizedBox(height: 8),
+          _buildCoachRosterSection(l10n, compact: true),
+        ],
         if (widget.driveBackupService != null) ...[
           const SizedBox(height: 8),
           _buildDataSyncSection(
@@ -908,15 +913,146 @@ class _SettingsScreenState extends State<SettingsScreen>
             ChoiceChip(
               avatar: Icon(_familyRoleIcon(FamilyRole.parent), size: 18),
               label: Text(l10n.settingsSupportModeLabel),
-              selected: familyState.isSupportMode,
+              selected: familyState.currentRole == FamilyRole.parent,
               onSelected: (_) {
-                if (familyState.isSupportMode) return;
+                if (familyState.currentRole == FamilyRole.parent) return;
                 unawaited(_updateFamilyRole(FamilyRole.parent));
+              },
+            ),
+            ChoiceChip(
+              avatar: Icon(_familyRoleIcon(FamilyRole.coach), size: 18),
+              label: Text(l10n.familyRoleCoach),
+              selected: familyState.currentRole == FamilyRole.coach,
+              onSelected: (_) {
+                if (familyState.currentRole == FamilyRole.coach) return;
+                unawaited(_updateFamilyRole(FamilyRole.coach));
               },
             ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildCoachRosterSection(
+    AppLocalizations l10n, {
+    bool compact = false,
+  }) {
+    final rosterState = CoachRosterService(widget.optionRepository).loadState();
+    final players = rosterState.players;
+    return _buildPrimarySettingsCard(
+      title: l10n.settingsCoachRosterTitle,
+      icon: Icons.groups_2_outlined,
+      detailsMessage: l10n.settingsCoachRosterDescription,
+      detailsTooltip: l10n.settingsInfoTooltip,
+      compact: compact,
+      children: [
+        if (players.isEmpty)
+          Text(
+            l10n.settingsCoachRosterEmpty,
+            style: Theme.of(context).textTheme.bodyMedium,
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final player in players)
+                ChoiceChip(
+                  avatar: const Icon(Icons.person_outline, size: 18),
+                  label: Text(player.displayName),
+                  selected: player.id == rosterState.activePlayerId,
+                  onSelected: (_) {
+                    if (player.id == rosterState.activePlayerId) return;
+                    unawaited(_setActiveCoachRosterPlayer(player, l10n));
+                  },
+                ),
+            ],
+          ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            onPressed: () => _addCoachRosterPlayer(l10n),
+            icon: const Icon(Icons.person_add_alt_1_outlined),
+            label: Text(l10n.settingsCoachRosterAddPlayer),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _addCoachRosterPlayer(AppLocalizations l10n) async {
+    final controller = TextEditingController();
+    final playerName = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.settingsCoachRosterAddPlayer),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: l10n.settingsCoachRosterPlayerNameLabel,
+            hintText: l10n.settingsCoachRosterPlayerNameHint,
+          ),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (value) {
+            Navigator.of(dialogContext).pop(value.trim());
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    final trimmedName = playerName?.trim() ?? '';
+    if (trimmedName.isEmpty) return;
+    final player = await CoachRosterService(
+      widget.optionRepository,
+    ).addPlayer(displayName: trimmedName);
+    if (!mounted) return;
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Text(l10n.settingsCoachRosterAdded(player.displayName))),
+    );
+    unawaited(
+      _refreshDriveUi(
+        allowCachedConnection: true,
+        allowRemoteStatusLookup: true,
+        showLoading: false,
+      ),
+    );
+  }
+
+  Future<void> _setActiveCoachRosterPlayer(
+    CoachPlayerProfile player,
+    AppLocalizations l10n,
+  ) async {
+    await CoachRosterService(widget.optionRepository).setActivePlayer(
+      player.id,
+    );
+    if (!mounted) return;
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.settingsCoachRosterActivated(player.displayName)),
+      ),
+    );
+    unawaited(
+      _refreshDriveUi(
+        allowCachedConnection: true,
+        allowRemoteStatusLookup: true,
+        showLoading: false,
+      ),
     );
   }
 
@@ -1857,9 +1993,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> _updateFamilyRole(FamilyRole role) async {
-    final targetRole = FamilyAccessService.isSupportRole(role)
-        ? FamilyRole.parent
-        : FamilyRole.child;
+    final targetRole = role;
     final familyService = FamilyAccessService(widget.optionRepository);
     final currentState = familyService.loadState();
     final roleHandledByBackup =
@@ -1867,6 +2001,9 @@ class _SettingsScreenState extends State<SettingsScreen>
             false;
     if (!roleHandledByBackup) {
       await familyService.setCurrentRole(targetRole);
+    }
+    if (targetRole == FamilyRole.coach) {
+      await CoachRosterService(widget.optionRepository).ensureActivePlayer();
     }
     if (!mounted) return;
     _scrollToTopAfterLayout();
@@ -1921,7 +2058,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   String _familyRoleLabel(AppLocalizations l10n, FamilyRole role) {
     return switch (role) {
       FamilyRole.child => l10n.familyRolePlayer,
-      FamilyRole.parent || FamilyRole.coach => l10n.settingsSupportModeLabel,
+      FamilyRole.parent => l10n.settingsSupportModeLabel,
+      FamilyRole.coach => l10n.familyRoleCoach,
     };
   }
 

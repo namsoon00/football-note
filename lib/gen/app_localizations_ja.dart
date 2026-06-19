@@ -7334,7 +7334,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get familyParentAutoSyncDescription =>
-      '親モードでは、トレーニングのフィードバックと報酬名のみが自動的に同期されます。プレーヤー モードからプレーヤー レコードをバックアップおよび復元します。';
+      '親またはコーチモードでは、トレーニングのフィードバックと報酬名のみが自動的に同期されます。プレーヤーの記録のバックアップと復元はプレーヤーモードで行います。';
 
   @override
   String get familyChildDriveConnectionTitle => '共有バックアップドライブを接続する';
@@ -7359,14 +7359,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get familyRoleParent => '親';
 
   @override
-  String get familyRoleCoach => '親';
+  String get familyRoleCoach => 'コーチ';
 
   @override
   String get familyRoleSelectionTitle => '使用モードの選択';
 
   @override
   String get familyRoleSelectionDescription =>
-      'このデバイスをプレーヤーが直接使用するか、最初にレビューのために保護者が使用するかを選択します。';
+      'このデバイスをプレーヤーが直接使うか、保護者が使うか、複数のプレーヤーを管理するコーチが使うかを選択します。';
 
   @override
   String get settingsUsageModeTitle => '使用モード';
@@ -7379,6 +7379,35 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsSupportModeLabel => '親';
+
+  @override
+  String get settingsCoachRosterTitle => 'コーチのプレーヤー一覧';
+
+  @override
+  String get settingsCoachRosterDescription =>
+      'フィードバック、報酬名、Driveバックアップを書き込む前に、対象のプレーヤーを選択します。';
+
+  @override
+  String get settingsCoachRosterEmpty => '登録されたプレーヤーはまだありません。';
+
+  @override
+  String get settingsCoachRosterAddPlayer => 'プレーヤーを追加';
+
+  @override
+  String get settingsCoachRosterPlayerNameLabel => 'プレーヤー名';
+
+  @override
+  String get settingsCoachRosterPlayerNameHint => '例: Minjun';
+
+  @override
+  String settingsCoachRosterAdded(Object player) {
+    return '$playerを追加しました。';
+  }
+
+  @override
+  String settingsCoachRosterActivated(Object player) {
+    return '$playerが現在の対象になりました。';
+  }
 
   @override
   String get settingsSupportRoleTitle => '親モードの詳細';
@@ -7403,7 +7432,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsDataSyncSupportSummary =>
-      '最新のバックアップをインポートし、共有された変更を同じファイルに書き込みます。';
+      '最新のバックアップをインポートし、共有された変更を保護者または現在のプレーヤーのファイルに書き込みます。';
 
   @override
   String get settingsSyncSourceStatusTitle => 'バックアップデータ';
