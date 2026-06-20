@@ -1801,6 +1801,311 @@
       "direction": {}
     }
   },
+  "statsReportTrainingTitle": "{sport}レポート",
+  "@statsReportTrainingTitle": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
+  "statsReportInsightTitle": "期間レポート",
+  "statsReportTargetLabel": "目標達成",
+  "statsReportTargetPercentValue": "{percent}%",
+  "@statsReportTargetPercentValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportNoTargetValue": "基準なし",
+  "statsReportActiveDaysLabel": "記録日",
+  "statsReportActiveDaysValue": "{activeDays}/{periodDays}日",
+  "@statsReportActiveDaysValue": {
+    "placeholders": {
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportPlanExecutionLabel": "計画実行率",
+  "statsReportNoPlanValue": "計画なし",
+  "statsReportMealCoverageLabel": "食事記録率",
+  "statsReportMealCoverageValue": "{mealDays}/{periodDays}日 · 3食 {fullMealDays}日",
+  "@statsReportMealCoverageValue": {
+    "placeholders": {
+      "mealDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      },
+      "fullMealDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportConditionLabel": "コンディション",
+  "statsReportConditionValue": "強度 {intensity} · 気分 {mood} · けが {injuryDays}日",
+  "@statsReportConditionValue": {
+    "placeholders": {
+      "intensity": {},
+      "mood": {},
+      "injuryDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportConditioningValue": "{minutes}分 · {count}回",
+  "@statsReportConditioningValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportInsightRecovery": "けがの記録が{injuryDays}日、平均気分は{mood}です。次の記録では回復強度と痛みの変化を先に確認しましょう。",
+  "@statsReportInsightRecovery": {
+    "placeholders": {
+      "injuryDays": {
+        "type": "int"
+      },
+      "mood": {}
+    }
+  },
+  "statsReportInsightNeedsVolume": "{sport}の練習量は目標の{percent}%です。{activeDays}/{periodDays}日の記録なので、次の期間は短いセッションをより頻繁に入れましょう。",
+  "@statsReportInsightNeedsVolume": {
+    "placeholders": {
+      "sport": {},
+      "percent": {
+        "type": "int"
+      },
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportInsightMealGap": "トレーニング記録日{activeDays}日のうち食事記録は{mealDays}日です。回復判断のため、練習日の食事も一緒に残しましょう。",
+  "@statsReportInsightMealGap": {
+    "placeholders": {
+      "mealDays": {
+        "type": "int"
+      },
+      "activeDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportInsightNoConditioning": "{primaryLabel}/{secondaryLabel}の記録が空です。競技別の補助運動も残すと成長傾向をより正確に見られます。",
+  "@statsReportInsightNoConditioning": {
+    "placeholders": {
+      "primaryLabel": {},
+      "secondaryLabel": {}
+    }
+  },
+  "statsReportInsightBalanced": "{sport}の記録が{activeDays}/{periodDays}日続き、補助運動と食事の流れも確認できます。次の期間は最も多い重点項目の質を比べましょう。",
+  "@statsReportInsightBalanced": {
+    "placeholders": {
+      "sport": {},
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsSecondaryConditioningNoRecords": "選択した期間に{label}の詳細記録はありません。",
+  "@statsSecondaryConditioningNoRecords": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsSecondaryConditioningDailyTotals": "日別{label}合計",
+  "@statsSecondaryConditioningDailyTotals": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningStatsTitle": "{label}統計",
+  "@statsPrimaryConditioningStatsTitle": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningNoRecords": "選択した期間に{label}の回数または時間の記録はありません。",
+  "@statsPrimaryConditioningNoRecords": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningTooltipCount": "{label} {count}回",
+  "@statsPrimaryConditioningTooltipCount": {
+    "placeholders": {
+      "label": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningTooltipMinutes": "{label} {minutes}分",
+  "@statsPrimaryConditioningTooltipMinutes": {
+    "placeholders": {
+      "label": {},
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningDailyCount": "日別{label}回数",
+  "@statsPrimaryConditioningDailyCount": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningDailyMinutes": "日別{label}時間",
+  "@statsPrimaryConditioningDailyMinutes": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningTotalCount": "合計 {count}回",
+  "@statsPrimaryConditioningTotalCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningTotalMinutes": "合計 {minutes}分",
+  "@statsPrimaryConditioningTotalMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningBestCount": "最高 {month}/{day} · {count}回",
+  "@statsPrimaryConditioningBestCount": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningBestMinutes": "最高 {month}/{day} · {minutes}分",
+  "@statsPrimaryConditioningBestMinutes": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchFormTitle": "{sport}試合レポート",
+  "@statsMatchFormTitle": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
+  "statsMatchFormInsightTitle": "試合の流れ",
+  "statsMatchFormLabel": "最近のフォーム",
+  "statsMatchFormUnsetValue": "結果未入力",
+  "statsMatchUnsetValue": "未入力",
+  "statsMatchOutcomeWinShort": "勝",
+  "statsMatchOutcomeDrawShort": "分",
+  "statsMatchOutcomeLossShort": "敗",
+  "statsMatchWinRateLabel": "勝率",
+  "statsMatchWinRateValue": "{percent}%",
+  "@statsMatchWinRateValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchAverageScoreLabel": "平均得失点",
+  "statsMatchAverageScoreValue": "{scored}:{conceded}",
+  "@statsMatchAverageScoreValue": {
+    "placeholders": {
+      "scored": {},
+      "conceded": {}
+    }
+  },
+  "statsMatchPersonalPerMatchLabel": "試合ごとの個人記録",
+  "statsMatchPersonalPerMatchValue": "{primaryLabel} {primaryValue} · {secondaryLabel} {secondaryValue}",
+  "@statsMatchPersonalPerMatchValue": {
+    "placeholders": {
+      "primaryLabel": {},
+      "primaryValue": {},
+      "secondaryLabel": {},
+      "secondaryValue": {}
+    }
+  },
+  "statsMatchPerUnitLabel": "{minutes}分換算",
+  "@statsMatchPerUnitLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchPerUnitValue": "{primaryLabel} {primaryValue} · {secondaryLabel} {secondaryValue}",
+  "@statsMatchPerUnitValue": {
+    "placeholders": {
+      "primaryLabel": {},
+      "primaryValue": {},
+      "secondaryLabel": {},
+      "secondaryValue": {}
+    }
+  },
+  "statsMatchMinutesLabel": "出場時間",
+  "statsMatchNoMinutesValue": "時間未入力",
+  "statsMatchFormInsightNoResults": "{sport}の試合結果がまだ不足しています。スコアと個人記録を一緒に残すと流れを計算できます。",
+  "@statsMatchFormInsightNoResults": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
+  "statsMatchFormInsightPositive": "最近の{sport}フォームは{form}、勝率{winRate}%です。強みに結びついた個人記録を次の試合でも再現しましょう。",
+  "@statsMatchFormInsightPositive": {
+    "placeholders": {
+      "sport": {},
+      "form": {},
+      "winRate": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchFormInsightNeedsWork": "最近の{sport}フォームは{form}、勝率{winRate}%です。結果パターンと個人記録が同時に落ちる場面を先に確認しましょう。",
+  "@statsMatchFormInsightNeedsWork": {
+    "placeholders": {
+      "sport": {},
+      "form": {},
+      "winRate": {
+        "type": "int"
+      }
+    }
+  },
   "averageComparisonProfileMissingTitle": "年齢と競技歴を入力してください",
   "averageComparisonProfileMissingMessage": "年齢とサッカー経験が未入力のため、平均比較を表示できません。プロフィールで生年月日とサッカー開始日を入力してください。",
   "averageComparisonFootballOnlyTitle": "サッカー平均比較は非表示です",

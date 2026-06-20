@@ -5772,6 +5772,325 @@ abstract class AppLocalizations {
       int secondaryValue,
       Object direction);
 
+  /// No description provided for @statsReportTrainingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{sport} Report'**
+  String statsReportTrainingTitle(Object sport);
+
+  /// No description provided for @statsReportInsightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Period Report'**
+  String get statsReportInsightTitle;
+
+  /// No description provided for @statsReportTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get statsReportTargetLabel;
+
+  /// No description provided for @statsReportTargetPercentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String statsReportTargetPercentValue(int percent);
+
+  /// No description provided for @statsReportNoTargetValue.
+  ///
+  /// In en, this message translates to:
+  /// **'No baseline'**
+  String get statsReportNoTargetValue;
+
+  /// No description provided for @statsReportActiveDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged days'**
+  String get statsReportActiveDaysLabel;
+
+  /// No description provided for @statsReportActiveDaysValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{activeDays}/{periodDays} days'**
+  String statsReportActiveDaysValue(int activeDays, int periodDays);
+
+  /// No description provided for @statsReportPlanExecutionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan execution'**
+  String get statsReportPlanExecutionLabel;
+
+  /// No description provided for @statsReportNoPlanValue.
+  ///
+  /// In en, this message translates to:
+  /// **'No plan'**
+  String get statsReportNoPlanValue;
+
+  /// No description provided for @statsReportMealCoverageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal coverage'**
+  String get statsReportMealCoverageLabel;
+
+  /// No description provided for @statsReportMealCoverageValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{mealDays}/{periodDays} days · 3 meals {fullMealDays} days'**
+  String statsReportMealCoverageValue(
+      int mealDays, int periodDays, int fullMealDays);
+
+  /// No description provided for @statsReportConditionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition'**
+  String get statsReportConditionLabel;
+
+  /// No description provided for @statsReportConditionValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Load {intensity} · Mood {mood} · Injury {injuryDays}d'**
+  String statsReportConditionValue(
+      Object intensity, Object mood, int injuryDays);
+
+  /// No description provided for @statsReportConditioningValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min · {count} reps'**
+  String statsReportConditioningValue(int minutes, int count);
+
+  /// No description provided for @statsReportInsightRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'There are {injuryDays} injury days and average mood is {mood}. Check recovery load and pain changes first in the next log.'**
+  String statsReportInsightRecovery(int injuryDays, Object mood);
+
+  /// No description provided for @statsReportInsightNeedsVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'{sport} volume is {percent}% of target. You logged {activeDays}/{periodDays} days, so add shorter sessions more often next period.'**
+  String statsReportInsightNeedsVolume(
+      Object sport, int percent, int activeDays, int periodDays);
+
+  /// No description provided for @statsReportInsightMealGap.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals were logged on {mealDays} of {activeDays} training days. Log meals with training days to judge recovery better.'**
+  String statsReportInsightMealGap(int mealDays, int activeDays);
+
+  /// No description provided for @statsReportInsightNoConditioning.
+  ///
+  /// In en, this message translates to:
+  /// **'{primaryLabel}/{secondaryLabel} records are empty. Add sport-specific conditioning to read growth trends more accurately.'**
+  String statsReportInsightNoConditioning(
+      Object primaryLabel, Object secondaryLabel);
+
+  /// No description provided for @statsReportInsightBalanced.
+  ///
+  /// In en, this message translates to:
+  /// **'{sport} was logged on {activeDays}/{periodDays} days, with conditioning and meal flow visible. Next period, compare the quality of your most frequent focus.'**
+  String statsReportInsightBalanced(
+      Object sport, int activeDays, int periodDays);
+
+  /// No description provided for @statsSecondaryConditioningNoRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No {label} detail records in the selected period.'**
+  String statsSecondaryConditioningNoRecords(Object label);
+
+  /// No description provided for @statsSecondaryConditioningDailyTotals.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily {label} totals'**
+  String statsSecondaryConditioningDailyTotals(Object label);
+
+  /// No description provided for @statsPrimaryConditioningStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} Stats'**
+  String statsPrimaryConditioningStatsTitle(Object label);
+
+  /// No description provided for @statsPrimaryConditioningNoRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No {label} count or time recorded in the selected period.'**
+  String statsPrimaryConditioningNoRecords(Object label);
+
+  /// No description provided for @statsPrimaryConditioningTooltipCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} {count} reps'**
+  String statsPrimaryConditioningTooltipCount(Object label, int count);
+
+  /// No description provided for @statsPrimaryConditioningTooltipMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} {minutes} min'**
+  String statsPrimaryConditioningTooltipMinutes(Object label, int minutes);
+
+  /// No description provided for @statsPrimaryConditioningDailyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily {label} count'**
+  String statsPrimaryConditioningDailyCount(Object label);
+
+  /// No description provided for @statsPrimaryConditioningDailyMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily {label} time'**
+  String statsPrimaryConditioningDailyMinutes(Object label);
+
+  /// No description provided for @statsPrimaryConditioningTotalCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {count} reps'**
+  String statsPrimaryConditioningTotalCount(int count);
+
+  /// No description provided for @statsPrimaryConditioningTotalMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {minutes} min'**
+  String statsPrimaryConditioningTotalMinutes(int minutes);
+
+  /// No description provided for @statsPrimaryConditioningBestCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Best {month}/{day} · {count} reps'**
+  String statsPrimaryConditioningBestCount(int month, int day, int count);
+
+  /// No description provided for @statsPrimaryConditioningBestMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Best {month}/{day} · {minutes} min'**
+  String statsPrimaryConditioningBestMinutes(int month, int day, int minutes);
+
+  /// No description provided for @statsMatchFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{sport} Match Report'**
+  String statsMatchFormTitle(Object sport);
+
+  /// No description provided for @statsMatchFormInsightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match Flow'**
+  String get statsMatchFormInsightTitle;
+
+  /// No description provided for @statsMatchFormLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent form'**
+  String get statsMatchFormLabel;
+
+  /// No description provided for @statsMatchFormUnsetValue.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get statsMatchFormUnsetValue;
+
+  /// No description provided for @statsMatchUnsetValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get statsMatchUnsetValue;
+
+  /// No description provided for @statsMatchOutcomeWinShort.
+  ///
+  /// In en, this message translates to:
+  /// **'W'**
+  String get statsMatchOutcomeWinShort;
+
+  /// No description provided for @statsMatchOutcomeDrawShort.
+  ///
+  /// In en, this message translates to:
+  /// **'D'**
+  String get statsMatchOutcomeDrawShort;
+
+  /// No description provided for @statsMatchOutcomeLossShort.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get statsMatchOutcomeLossShort;
+
+  /// No description provided for @statsMatchWinRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Win rate'**
+  String get statsMatchWinRateLabel;
+
+  /// No description provided for @statsMatchWinRateValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String statsMatchWinRateValue(int percent);
+
+  /// No description provided for @statsMatchAverageScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg score'**
+  String get statsMatchAverageScoreLabel;
+
+  /// No description provided for @statsMatchAverageScoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{scored}:{conceded}'**
+  String statsMatchAverageScoreValue(Object scored, Object conceded);
+
+  /// No description provided for @statsMatchPersonalPerMatchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal per match'**
+  String get statsMatchPersonalPerMatchLabel;
+
+  /// No description provided for @statsMatchPersonalPerMatchValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{primaryLabel} {primaryValue} · {secondaryLabel} {secondaryValue}'**
+  String statsMatchPersonalPerMatchValue(Object primaryLabel,
+      Object primaryValue, Object secondaryLabel, Object secondaryValue);
+
+  /// No description provided for @statsMatchPerUnitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Per {minutes} min'**
+  String statsMatchPerUnitLabel(int minutes);
+
+  /// No description provided for @statsMatchPerUnitValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{primaryLabel} {primaryValue} · {secondaryLabel} {secondaryValue}'**
+  String statsMatchPerUnitValue(Object primaryLabel, Object primaryValue,
+      Object secondaryLabel, Object secondaryValue);
+
+  /// No description provided for @statsMatchMinutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes played'**
+  String get statsMatchMinutesLabel;
+
+  /// No description provided for @statsMatchNoMinutesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'No minutes'**
+  String get statsMatchNoMinutesValue;
+
+  /// No description provided for @statsMatchFormInsightNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'{sport} match results are still missing. Add scores and personal records together to calculate form.'**
+  String statsMatchFormInsightNoResults(Object sport);
+
+  /// No description provided for @statsMatchFormInsightPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent {sport} form is {form}, with a {winRate}% win rate. Repeat the personal records that led to your strengths next match.'**
+  String statsMatchFormInsightPositive(Object sport, Object form, int winRate);
+
+  /// No description provided for @statsMatchFormInsightNeedsWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent {sport} form is {form}, with a {winRate}% win rate. Check where result patterns and personal records drop together.'**
+  String statsMatchFormInsightNeedsWork(Object sport, Object form, int winRate);
+
   /// No description provided for @averageComparisonProfileMissingTitle.
   ///
   /// In en, this message translates to:

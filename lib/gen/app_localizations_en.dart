@@ -3218,6 +3218,234 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String statsReportTrainingTitle(Object sport) {
+    return '$sport Report';
+  }
+
+  @override
+  String get statsReportInsightTitle => 'Period Report';
+
+  @override
+  String get statsReportTargetLabel => 'Target';
+
+  @override
+  String statsReportTargetPercentValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get statsReportNoTargetValue => 'No baseline';
+
+  @override
+  String get statsReportActiveDaysLabel => 'Logged days';
+
+  @override
+  String statsReportActiveDaysValue(int activeDays, int periodDays) {
+    return '$activeDays/$periodDays days';
+  }
+
+  @override
+  String get statsReportPlanExecutionLabel => 'Plan execution';
+
+  @override
+  String get statsReportNoPlanValue => 'No plan';
+
+  @override
+  String get statsReportMealCoverageLabel => 'Meal coverage';
+
+  @override
+  String statsReportMealCoverageValue(
+      int mealDays, int periodDays, int fullMealDays) {
+    return '$mealDays/$periodDays days · 3 meals $fullMealDays days';
+  }
+
+  @override
+  String get statsReportConditionLabel => 'Condition';
+
+  @override
+  String statsReportConditionValue(
+      Object intensity, Object mood, int injuryDays) {
+    return 'Load $intensity · Mood $mood · Injury ${injuryDays}d';
+  }
+
+  @override
+  String statsReportConditioningValue(int minutes, int count) {
+    return '$minutes min · $count reps';
+  }
+
+  @override
+  String statsReportInsightRecovery(int injuryDays, Object mood) {
+    return 'There are $injuryDays injury days and average mood is $mood. Check recovery load and pain changes first in the next log.';
+  }
+
+  @override
+  String statsReportInsightNeedsVolume(
+      Object sport, int percent, int activeDays, int periodDays) {
+    return '$sport volume is $percent% of target. You logged $activeDays/$periodDays days, so add shorter sessions more often next period.';
+  }
+
+  @override
+  String statsReportInsightMealGap(int mealDays, int activeDays) {
+    return 'Meals were logged on $mealDays of $activeDays training days. Log meals with training days to judge recovery better.';
+  }
+
+  @override
+  String statsReportInsightNoConditioning(
+      Object primaryLabel, Object secondaryLabel) {
+    return '$primaryLabel/$secondaryLabel records are empty. Add sport-specific conditioning to read growth trends more accurately.';
+  }
+
+  @override
+  String statsReportInsightBalanced(
+      Object sport, int activeDays, int periodDays) {
+    return '$sport was logged on $activeDays/$periodDays days, with conditioning and meal flow visible. Next period, compare the quality of your most frequent focus.';
+  }
+
+  @override
+  String statsSecondaryConditioningNoRecords(Object label) {
+    return 'No $label detail records in the selected period.';
+  }
+
+  @override
+  String statsSecondaryConditioningDailyTotals(Object label) {
+    return 'Daily $label totals';
+  }
+
+  @override
+  String statsPrimaryConditioningStatsTitle(Object label) {
+    return '$label Stats';
+  }
+
+  @override
+  String statsPrimaryConditioningNoRecords(Object label) {
+    return 'No $label count or time recorded in the selected period.';
+  }
+
+  @override
+  String statsPrimaryConditioningTooltipCount(Object label, int count) {
+    return '$label $count reps';
+  }
+
+  @override
+  String statsPrimaryConditioningTooltipMinutes(Object label, int minutes) {
+    return '$label $minutes min';
+  }
+
+  @override
+  String statsPrimaryConditioningDailyCount(Object label) {
+    return 'Daily $label count';
+  }
+
+  @override
+  String statsPrimaryConditioningDailyMinutes(Object label) {
+    return 'Daily $label time';
+  }
+
+  @override
+  String statsPrimaryConditioningTotalCount(int count) {
+    return 'Total $count reps';
+  }
+
+  @override
+  String statsPrimaryConditioningTotalMinutes(int minutes) {
+    return 'Total $minutes min';
+  }
+
+  @override
+  String statsPrimaryConditioningBestCount(int month, int day, int count) {
+    return 'Best $month/$day · $count reps';
+  }
+
+  @override
+  String statsPrimaryConditioningBestMinutes(int month, int day, int minutes) {
+    return 'Best $month/$day · $minutes min';
+  }
+
+  @override
+  String statsMatchFormTitle(Object sport) {
+    return '$sport Match Report';
+  }
+
+  @override
+  String get statsMatchFormInsightTitle => 'Match Flow';
+
+  @override
+  String get statsMatchFormLabel => 'Recent form';
+
+  @override
+  String get statsMatchFormUnsetValue => 'No results';
+
+  @override
+  String get statsMatchUnsetValue => 'Not set';
+
+  @override
+  String get statsMatchOutcomeWinShort => 'W';
+
+  @override
+  String get statsMatchOutcomeDrawShort => 'D';
+
+  @override
+  String get statsMatchOutcomeLossShort => 'L';
+
+  @override
+  String get statsMatchWinRateLabel => 'Win rate';
+
+  @override
+  String statsMatchWinRateValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get statsMatchAverageScoreLabel => 'Avg score';
+
+  @override
+  String statsMatchAverageScoreValue(Object scored, Object conceded) {
+    return '$scored:$conceded';
+  }
+
+  @override
+  String get statsMatchPersonalPerMatchLabel => 'Personal per match';
+
+  @override
+  String statsMatchPersonalPerMatchValue(Object primaryLabel,
+      Object primaryValue, Object secondaryLabel, Object secondaryValue) {
+    return '$primaryLabel $primaryValue · $secondaryLabel $secondaryValue';
+  }
+
+  @override
+  String statsMatchPerUnitLabel(int minutes) {
+    return 'Per $minutes min';
+  }
+
+  @override
+  String statsMatchPerUnitValue(Object primaryLabel, Object primaryValue,
+      Object secondaryLabel, Object secondaryValue) {
+    return '$primaryLabel $primaryValue · $secondaryLabel $secondaryValue';
+  }
+
+  @override
+  String get statsMatchMinutesLabel => 'Minutes played';
+
+  @override
+  String get statsMatchNoMinutesValue => 'No minutes';
+
+  @override
+  String statsMatchFormInsightNoResults(Object sport) {
+    return '$sport match results are still missing. Add scores and personal records together to calculate form.';
+  }
+
+  @override
+  String statsMatchFormInsightPositive(Object sport, Object form, int winRate) {
+    return 'Recent $sport form is $form, with a $winRate% win rate. Repeat the personal records that led to your strengths next match.';
+  }
+
+  @override
+  String statsMatchFormInsightNeedsWork(
+      Object sport, Object form, int winRate) {
+    return 'Recent $sport form is $form, with a $winRate% win rate. Check where result patterns and personal records drop together.';
+  }
+
+  @override
   String get averageComparisonProfileMissingTitle =>
       'Enter age and soccer experience';
 

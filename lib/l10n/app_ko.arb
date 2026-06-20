@@ -1801,6 +1801,311 @@
       "direction": {}
     }
   },
+  "statsReportTrainingTitle": "{sport} 리포트",
+  "@statsReportTrainingTitle": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
+  "statsReportInsightTitle": "기간 리포트",
+  "statsReportTargetLabel": "목표 달성",
+  "statsReportTargetPercentValue": "{percent}%",
+  "@statsReportTargetPercentValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportNoTargetValue": "기준 없음",
+  "statsReportActiveDaysLabel": "기록일",
+  "statsReportActiveDaysValue": "{activeDays}/{periodDays}일",
+  "@statsReportActiveDaysValue": {
+    "placeholders": {
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportPlanExecutionLabel": "계획 실행률",
+  "statsReportNoPlanValue": "계획 없음",
+  "statsReportMealCoverageLabel": "식사 기록률",
+  "statsReportMealCoverageValue": "{mealDays}/{periodDays}일 · 3끼 {fullMealDays}일",
+  "@statsReportMealCoverageValue": {
+    "placeholders": {
+      "mealDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      },
+      "fullMealDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportConditionLabel": "컨디션",
+  "statsReportConditionValue": "강도 {intensity} · 기분 {mood} · 부상 {injuryDays}일",
+  "@statsReportConditionValue": {
+    "placeholders": {
+      "intensity": {},
+      "mood": {},
+      "injuryDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportConditioningValue": "{minutes}분 · {count}회",
+  "@statsReportConditioningValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportInsightRecovery": "부상 기록 {injuryDays}일, 평균 기분 {mood}입니다. 다음 기록에서는 회복 강도와 통증 변화를 먼저 확인하세요.",
+  "@statsReportInsightRecovery": {
+    "placeholders": {
+      "injuryDays": {
+        "type": "int"
+      },
+      "mood": {}
+    }
+  },
+  "statsReportInsightNeedsVolume": "{sport} 훈련량은 목표의 {percent}%입니다. {activeDays}/{periodDays}일 기록이라 다음 기간에는 짧은 세션을 더 자주 배치하세요.",
+  "@statsReportInsightNeedsVolume": {
+    "placeholders": {
+      "sport": {},
+      "percent": {
+        "type": "int"
+      },
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportInsightMealGap": "훈련 기록일 {activeDays}일 중 식사 기록은 {mealDays}일입니다. 회복 판단을 위해 훈련일 식사를 함께 남기는 흐름이 필요합니다.",
+  "@statsReportInsightMealGap": {
+    "placeholders": {
+      "mealDays": {
+        "type": "int"
+      },
+      "activeDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportInsightNoConditioning": "{primaryLabel}/{secondaryLabel} 기록이 비어 있습니다. 종목 보조운동을 함께 남기면 성장 추세를 더 정확히 볼 수 있습니다.",
+  "@statsReportInsightNoConditioning": {
+    "placeholders": {
+      "primaryLabel": {},
+      "secondaryLabel": {}
+    }
+  },
+  "statsReportInsightBalanced": "{sport} 기록이 {activeDays}/{periodDays}일 이어졌고 보조운동/식사 흐름도 확인됩니다. 다음 기간에는 가장 많이 한 집중 분야의 품질을 비교하세요.",
+  "@statsReportInsightBalanced": {
+    "placeholders": {
+      "sport": {},
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsSecondaryConditioningNoRecords": "선택한 기간에 {label} 세부 기록이 없습니다.",
+  "@statsSecondaryConditioningNoRecords": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsSecondaryConditioningDailyTotals": "일자별 {label} 총 횟수",
+  "@statsSecondaryConditioningDailyTotals": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningStatsTitle": "{label} 통계",
+  "@statsPrimaryConditioningStatsTitle": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningNoRecords": "선택한 기간에 기록된 {label} 횟수나 시간이 없습니다.",
+  "@statsPrimaryConditioningNoRecords": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningTooltipCount": "{label} {count}회",
+  "@statsPrimaryConditioningTooltipCount": {
+    "placeholders": {
+      "label": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningTooltipMinutes": "{label} {minutes}분",
+  "@statsPrimaryConditioningTooltipMinutes": {
+    "placeholders": {
+      "label": {},
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningDailyCount": "일자별 {label} 횟수",
+  "@statsPrimaryConditioningDailyCount": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningDailyMinutes": "일자별 {label} 시간",
+  "@statsPrimaryConditioningDailyMinutes": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningTotalCount": "총합 {count}회",
+  "@statsPrimaryConditioningTotalCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningTotalMinutes": "총 {minutes}분",
+  "@statsPrimaryConditioningTotalMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningBestCount": "최고 {month}/{day} · {count}회",
+  "@statsPrimaryConditioningBestCount": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningBestMinutes": "최고 {month}/{day} · {minutes}분",
+  "@statsPrimaryConditioningBestMinutes": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchFormTitle": "{sport} 경기 리포트",
+  "@statsMatchFormTitle": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
+  "statsMatchFormInsightTitle": "경기 흐름",
+  "statsMatchFormLabel": "최근 폼",
+  "statsMatchFormUnsetValue": "결과 미입력",
+  "statsMatchUnsetValue": "미입력",
+  "statsMatchOutcomeWinShort": "승",
+  "statsMatchOutcomeDrawShort": "무",
+  "statsMatchOutcomeLossShort": "패",
+  "statsMatchWinRateLabel": "승률",
+  "statsMatchWinRateValue": "{percent}%",
+  "@statsMatchWinRateValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchAverageScoreLabel": "평균 득실",
+  "statsMatchAverageScoreValue": "{scored}:{conceded}",
+  "@statsMatchAverageScoreValue": {
+    "placeholders": {
+      "scored": {},
+      "conceded": {}
+    }
+  },
+  "statsMatchPersonalPerMatchLabel": "경기당 개인 기록",
+  "statsMatchPersonalPerMatchValue": "{primaryLabel} {primaryValue} · {secondaryLabel} {secondaryValue}",
+  "@statsMatchPersonalPerMatchValue": {
+    "placeholders": {
+      "primaryLabel": {},
+      "primaryValue": {},
+      "secondaryLabel": {},
+      "secondaryValue": {}
+    }
+  },
+  "statsMatchPerUnitLabel": "{minutes}분 기준",
+  "@statsMatchPerUnitLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchPerUnitValue": "{primaryLabel} {primaryValue} · {secondaryLabel} {secondaryValue}",
+  "@statsMatchPerUnitValue": {
+    "placeholders": {
+      "primaryLabel": {},
+      "primaryValue": {},
+      "secondaryLabel": {},
+      "secondaryValue": {}
+    }
+  },
+  "statsMatchMinutesLabel": "출전 시간",
+  "statsMatchNoMinutesValue": "시간 미입력",
+  "statsMatchFormInsightNoResults": "{sport} 경기 결과가 아직 부족합니다. 점수와 개인 기록을 함께 남기면 흐름을 계산할 수 있습니다.",
+  "@statsMatchFormInsightNoResults": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
+  "statsMatchFormInsightPositive": "최근 {sport} 폼은 {form}, 승률 {winRate}%입니다. 강점으로 이어진 개인 기록을 다음 경기에서도 반복하세요.",
+  "@statsMatchFormInsightPositive": {
+    "placeholders": {
+      "sport": {},
+      "form": {},
+      "winRate": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchFormInsightNeedsWork": "최근 {sport} 폼은 {form}, 승률 {winRate}%입니다. 실점/실패 패턴과 개인 기록이 함께 떨어지는 구간을 먼저 점검하세요.",
+  "@statsMatchFormInsightNeedsWork": {
+    "placeholders": {
+      "sport": {},
+      "form": {},
+      "winRate": {
+        "type": "int"
+      }
+    }
+  },
   "averageComparisonProfileMissingTitle": "나이/구력 정보를 입력해 주세요",
   "averageComparisonProfileMissingMessage": "현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.",
   "averageComparisonFootballOnlyTitle": "축구 평균 비교는 숨겼어요",

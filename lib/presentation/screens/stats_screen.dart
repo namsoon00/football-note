@@ -8,6 +8,7 @@ import '../../application/benchmark_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/sport_capabilities.dart';
+import '../../application/sport_defaults.dart';
 import '../../application/sport_service.dart';
 import '../../application/training_service.dart';
 import '../../application/settings_service.dart';
@@ -17,6 +18,7 @@ import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/entities/player_profile.dart';
+import '../../domain/entities/sport_definition.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
 import '../theme/app_theme.dart';
@@ -324,6 +326,7 @@ class _StatsScreenState extends State<StatsScreen> {
               trainingEntries: trainingEntries,
               mealEntries: filteredMealEntries,
               plansInRange: plansInRange,
+              sportId: sportId,
             )
           else
             _buildMatchStatsTab(
@@ -331,6 +334,7 @@ class _StatsScreenState extends State<StatsScreen> {
               isKo: isKo,
               filteredEntries: filteredEntries,
               matchEntries: matchEntries,
+              sportId: sportId,
             ),
         ],
       ),
@@ -372,6 +376,7 @@ class _StatsScreenState extends State<StatsScreen> {
     required List<TrainingEntry> trainingEntries,
     required List<MealEntry> mealEntries,
     required List<_StatsPlanLite> plansInRange,
+    required String sportId,
   }) {
     final l10n = AppLocalizations.of(context)!;
     if (trainingEntries.isEmpty && mealEntries.isEmpty) {
@@ -384,6 +389,19 @@ class _StatsScreenState extends State<StatsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (trainingEntries.isNotEmpty) ...[
+          _StatsPanel(
+            child: _TrainingReportSection(
+              entries: trainingEntries,
+              mealEntries: mealEntries,
+              plans: plansInRange,
+              range: _selectedRange,
+              sportId: sportId,
+              ageYears: ageYears,
+              soccerYears: soccerYears,
+              showTarget: canShowAverage,
+            ),
+          ),
+          const SizedBox(height: 18),
           _StatsPanel(
             child: _TrainingOverviewSection(
               entries: trainingEntries,
@@ -431,31 +449,39 @@ class _StatsScreenState extends State<StatsScreen> {
             ),
           ),
           const SizedBox(height: 18),
+          if (!averageHiddenBySport) ...[
+            _StatsPanel(
+              child: _BodyAndLiftingBenchmarkCard(
+                entries: trainingEntries,
+                profile: profile,
+                ageYears: ageYears,
+                isKo: isKo,
+                benchmarkService: _benchmarkService,
+                showAverage: canShowAverage,
+                onReferenceTap: canShowAverage
+                    ? () => _openAverageBenchmark(
+                          context,
+                          trainingEntries,
+                          ageYears,
+                          soccerYears,
+                        )
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 18),
+          ],
           _StatsPanel(
-            child: _BodyAndLiftingBenchmarkCard(
+            child: _LiftingSummaryCard(
               entries: trainingEntries,
-              profile: profile,
-              ageYears: ageYears,
-              isKo: isKo,
-              benchmarkService: _benchmarkService,
-              showAverage: canShowAverage,
-              onReferenceTap: canShowAverage
-                  ? () => _openAverageBenchmark(
-                        context,
-                        trainingEntries,
-                        ageYears,
-                        soccerYears,
-                      )
-                  : null,
+              sportId: sportId,
             ),
           ),
-          const SizedBox(height: 18),
-          _StatsPanel(child: _LiftingSummaryCard(entries: trainingEntries)),
           const SizedBox(height: 18),
           _StatsPanel(
             child: _JumpRopeSummaryCard(
               entries: trainingEntries,
               range: _selectedRange,
+              sportId: sportId,
             ),
           ),
         ],
@@ -477,6 +503,7 @@ class _StatsScreenState extends State<StatsScreen> {
     required bool isKo,
     required List<TrainingEntry> filteredEntries,
     required List<TrainingEntry> matchEntries,
+    required String sportId,
   }) {
     if (filteredEntries.isEmpty || matchEntries.isEmpty) {
       return _InlineNotice(
@@ -491,6 +518,13 @@ class _StatsScreenState extends State<StatsScreen> {
       children: [
         _StatsPanel(
           child: _MatchOverviewSection(entries: matchEntries, isKo: isKo),
+        ),
+        const SizedBox(height: 18),
+        _StatsPanel(
+          child: _MatchFormReportSection(
+            entries: matchEntries,
+            sportId: sportId,
+          ),
         ),
         const SizedBox(height: 18),
         _StatsPanel(child: _MatchSummaryCard(entries: matchEntries)),
@@ -1024,8 +1058,9 @@ class _LegendDot extends StatelessWidget {
 
 class _LiftingSummaryCard extends StatelessWidget {
   final List<TrainingEntry> entries;
+  final String sportId;
 
-  const _LiftingSummaryCard({required this.entries});
+  const _LiftingSummaryCard({required this.entries, required this.sportId});
 
   @override
   Widget build(BuildContext context) {
@@ -1090,16 +1125,23 @@ class _LiftingSummaryCard extends StatelessWidget {
         : ((maxTotal / yInterval).ceil() * yInterval).toDouble();
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
+    final secondaryLabel = SportDefaults.secondaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionTitle(
           icon: Icons.sports_soccer_outlined,
-          title: l10n.liftingByBodyPartTitle,
+          title: SportDefaults.secondaryConditioningDetailTitle(
+            l10n: l10n,
+            sportId: sportId,
+          ),
         ),
         const SizedBox(height: 12),
         if (sorted.isEmpty)
-          Text(l10n.liftingNoRecords)
+          Text(l10n.statsSecondaryConditioningNoRecords(secondaryLabel))
         else ...[
           SizedBox(
             height: 180,
@@ -1178,7 +1220,7 @@ class _LiftingSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            isKo ? '일자별 리프팅 총 횟수' : 'Daily lifting totals',
+            l10n.statsSecondaryConditioningDailyTotals(secondaryLabel),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 8),
@@ -1227,38 +1269,42 @@ class _LiftingSummaryCard extends StatelessWidget {
   }
 
   String _partLabel(String key, AppLocalizations l10n) {
+    final detailLabels = SportDefaults.secondaryConditioningDetailLabels(
+      l10n: l10n,
+      sportId: sportId,
+    );
     switch (key) {
       case 'infront':
-        return l10n.liftingPartInfront;
+        return detailLabels[0];
       case 'inside':
-        return l10n.liftingPartInside;
+        return detailLabels[1];
       case 'outside':
-        return l10n.liftingPartOutside;
+        return detailLabels[2];
       case 'muple':
-        return l10n.liftingPartMuple;
+        return detailLabels[3];
       case 'head':
-        return l10n.liftingPartHead;
+        return detailLabels[4];
       case 'chest':
-        return l10n.liftingPartChest;
+        return detailLabels[5];
       // Legacy keys from earlier lifting implementations.
       case 'left_foot':
-        return '${l10n.liftingPartInfront} (${l10n.legacyLabel})';
+        return '${detailLabels[0]} (${l10n.legacyLabel})';
       case 'right_foot':
-        return '${l10n.liftingPartInside} (${l10n.legacyLabel})';
+        return '${detailLabels[1]} (${l10n.legacyLabel})';
       case 'left_thigh':
-        return '${l10n.liftingPartOutside} (${l10n.legacyLabel})';
+        return '${detailLabels[2]} (${l10n.legacyLabel})';
       case 'right_thigh':
-        return '${l10n.liftingPartMuple} (${l10n.legacyLabel})';
+        return '${detailLabels[3]} (${l10n.legacyLabel})';
       case 'back':
-        return '${l10n.liftingPartInside} (${l10n.oldLabel})';
+        return '${detailLabels[1]} (${l10n.oldLabel})';
       case 'legs':
-        return '${l10n.liftingPartOutside} (${l10n.oldLabel})';
+        return '${detailLabels[2]} (${l10n.oldLabel})';
       case 'shoulders':
-        return '${l10n.liftingPartMuple} (${l10n.oldLabel})';
+        return '${detailLabels[3]} (${l10n.oldLabel})';
       case 'arms':
-        return '${l10n.liftingPartHead} (${l10n.legacyLabel})';
+        return '${detailLabels[4]} (${l10n.legacyLabel})';
       case 'core':
-        return '${l10n.liftingPartChest} (${l10n.legacyLabel})';
+        return '${detailLabels[5]} (${l10n.legacyLabel})';
       default:
         return key;
     }
@@ -1289,12 +1335,21 @@ class _LiftingSummaryCard extends StatelessWidget {
 class _JumpRopeSummaryCard extends StatelessWidget {
   final List<TrainingEntry> entries;
   final DateTimeRange range;
+  final String sportId;
 
-  const _JumpRopeSummaryCard({required this.entries, required this.range});
+  const _JumpRopeSummaryCard({
+    required this.entries,
+    required this.range,
+    required this.sportId,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
+    final primaryLabel = SportDefaults.primaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
     final start = DateTime(
       range.start.year,
       range.start.month,
@@ -1308,6 +1363,7 @@ class _JumpRopeSummaryCard extends StatelessWidget {
       days.add(current);
     }
     final countByDay = <DateTime, int>{for (final day in days) day: 0};
+    final minutesByDay = <DateTime, int>{for (final day in days) day: 0};
     for (final entry in entries) {
       final key = DateTime(entry.date.year, entry.date.month, entry.date.day);
       countByDay.update(
@@ -1315,11 +1371,24 @@ class _JumpRopeSummaryCard extends StatelessWidget {
         (value) => value + entry.jumpRopeCount,
         ifAbsent: () => entry.jumpRopeCount,
       );
+      minutesByDay.update(
+        key,
+        (value) => value + entry.jumpRopeMinutes,
+        ifAbsent: () => entry.jumpRopeMinutes,
+      );
     }
-    final points = days
+    final countPoints = days
         .map((day) => MapEntry(day, countByDay[day] ?? 0))
         .toList(growable: false);
-    final totalCount = points.fold<int>(0, (sum, item) => sum + item.value);
+    final minutePoints = days
+        .map((day) => MapEntry(day, minutesByDay[day] ?? 0))
+        .toList(growable: false);
+    final totalCount =
+        countPoints.fold<int>(0, (sum, item) => sum + item.value);
+    final totalMinutes =
+        minutePoints.fold<int>(0, (sum, item) => sum + item.value);
+    final useMinutes = totalCount == 0 && totalMinutes > 0;
+    final points = useMinutes ? minutePoints : countPoints;
     final bestCount =
         points.isEmpty ? 0 : points.map((item) => item.value).reduce(math.max);
     final bestDay = points.firstWhere(
@@ -1335,14 +1404,12 @@ class _JumpRopeSummaryCard extends StatelessWidget {
       children: [
         _SectionTitle(
           icon: Icons.fitness_center_outlined,
-          title: isKo ? '줄넘기 통계' : 'Jump Rope Stats',
+          title: l10n.statsPrimaryConditioningStatsTitle(primaryLabel),
         ),
         const SizedBox(height: 10),
-        if (totalCount == 0)
+        if (totalCount == 0 && totalMinutes == 0)
           _InlineNotice(
-            text: isKo
-                ? '선택한 기간에 기록된 줄넘기 횟수가 없습니다.'
-                : 'No jump rope counts recorded in the selected period.',
+            text: l10n.statsPrimaryConditioningNoRecords(primaryLabel),
           )
         else ...[
           SizedBox(
@@ -1368,12 +1435,12 @@ class _JumpRopeSummaryCard extends StatelessWidget {
                     getTooltipColor: (_) => Colors.black87,
                     getTooltipItem: (group, _, rod, __) {
                       final day = days[group.x.toInt()];
-                      final dateLabel = isKo
-                          ? '${day.month}/${day.day}'
-                          : '${day.month}/${day.day}';
+                      final dateLabel = '${day.month}/${day.day}';
                       final count = rod.toY.round();
                       return BarTooltipItem(
-                        '$dateLabel\n${isKo ? '줄넘기' : 'Count'} $count',
+                        useMinutes
+                            ? '$dateLabel\n${l10n.statsPrimaryConditioningTooltipMinutes(primaryLabel, count)}'
+                            : '$dateLabel\n${l10n.statsPrimaryConditioningTooltipCount(primaryLabel, count)}',
                         const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -1450,22 +1517,271 @@ class _JumpRopeSummaryCard extends StatelessWidget {
             children: [
               _LegendDot(
                 color: const Color(0xFF3DDC84),
-                label: isKo ? '일자별 줄넘기 횟수' : 'Daily jump rope count',
+                label: useMinutes
+                    ? l10n.statsPrimaryConditioningDailyMinutes(primaryLabel)
+                    : l10n.statsPrimaryConditioningDailyCount(primaryLabel),
               ),
+              if (totalCount > 0)
+                Text(
+                  l10n.statsPrimaryConditioningTotalCount(totalCount),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              if (totalMinutes > 0)
+                Text(
+                  l10n.statsPrimaryConditioningTotalMinutes(totalMinutes),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               Text(
-                isKo ? '총합 $totalCount회' : 'Total $totalCount',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(
-                isKo
-                    ? '최고 ${bestDay.key.month}/${bestDay.key.day} · $bestCount회'
-                    : 'Best ${bestDay.key.month}/${bestDay.key.day} · $bestCount',
+                useMinutes
+                    ? l10n.statsPrimaryConditioningBestMinutes(
+                        bestDay.key.month,
+                        bestDay.key.day,
+                        bestCount,
+                      )
+                    : l10n.statsPrimaryConditioningBestCount(
+                        bestDay.key.month,
+                        bestDay.key.day,
+                        bestCount,
+                      ),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
           ),
         ],
       ],
+    );
+  }
+}
+
+class _TrainingReportSection extends StatelessWidget {
+  final List<TrainingEntry> entries;
+  final List<MealEntry> mealEntries;
+  final List<_StatsPlanLite> plans;
+  final DateTimeRange range;
+  final String sportId;
+  final int? ageYears;
+  final int? soccerYears;
+  final bool showTarget;
+
+  const _TrainingReportSection({
+    required this.entries,
+    required this.mealEntries,
+    required this.plans,
+    required this.range,
+    required this.sportId,
+    required this.ageYears,
+    required this.soccerYears,
+    required this.showTarget,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final sportLabel = SportDefaults.label(l10n: l10n, sportId: sportId);
+    final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
+    final secondaryConditioningLabel = SportDefaults.secondaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
+    final periodDays = _periodDayCount(range);
+    final activeDays = entries.map((entry) => _dayOnly(entry.date)).toSet();
+    final mealDays = mealEntries.map((entry) => _dayOnly(entry.date)).toSet();
+    final fullMealDays =
+        mealEntries.where((entry) => entry.completedMeals >= 3).length;
+    final totalMinutes = entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
+    );
+    final target = benchmarkTarget(ageYears, soccerYears);
+    final targetMinutes = showTarget
+        ? ((target.weeklyMinutesTarget / 7) * periodDays).round()
+        : 0;
+    final targetPercent = targetMinutes > 0
+        ? ((totalMinutes / targetMinutes) * 100).round()
+        : null;
+    final plannedDays = plans.map((plan) => _dayOnly(plan.scheduledAt)).toSet();
+    final completedPlanDays = plannedDays.where(activeDays.contains).length;
+    final planPercent = plannedDays.isEmpty
+        ? null
+        : ((completedPlanDays / plannedDays.length) * 100).round();
+    final avgIntensity = entries.fold<double>(
+          0,
+          (sum, entry) => sum + entry.intensity,
+        ) /
+        entries.length;
+    final avgMood = entries.fold<double>(
+          0,
+          (sum, entry) => sum + entry.mood,
+        ) /
+        entries.length;
+    final injuryDays = entries
+        .where((entry) => entry.injury)
+        .map((entry) {
+          return _dayOnly(entry.date);
+        })
+        .toSet()
+        .length;
+    final primaryMinutes = entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.jumpRopeMinutes,
+    );
+    final primaryCount = entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.jumpRopeCount,
+    );
+    final secondaryMinutes = entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.liftingMinutes,
+    );
+    final secondaryCount = entries.fold<int>(
+      0,
+      (sum, entry) =>
+          sum +
+          entry.liftingByPart.values.fold<int>(
+            0,
+            (partSum, value) => partSum + value,
+          ),
+    );
+    final conditioningTotal =
+        primaryMinutes + primaryCount + secondaryMinutes + secondaryCount;
+    final insight = _trainingInsight(
+      l10n: l10n,
+      sportLabel: sportLabel,
+      targetPercent: targetPercent,
+      activeDayCount: activeDays.length,
+      periodDays: periodDays,
+      mealDayCount: mealDays.length,
+      injuryDays: injuryDays,
+      avgMood: avgMood,
+      conditioningTotal: conditioningTotal,
+      primaryConditioningLabel: primaryConditioningLabel,
+      secondaryConditioningLabel: secondaryConditioningLabel,
+    );
+
+    final cards = <_MetricCard>[
+      _MetricCard(
+        label: l10n.statsReportTargetLabel,
+        value: targetPercent == null
+            ? l10n.statsReportNoTargetValue
+            : l10n.statsReportTargetPercentValue(targetPercent),
+      ),
+      _MetricCard(
+        label: l10n.statsReportActiveDaysLabel,
+        value: l10n.statsReportActiveDaysValue(activeDays.length, periodDays),
+      ),
+      _MetricCard(
+        label: l10n.statsReportPlanExecutionLabel,
+        value: planPercent == null
+            ? l10n.statsReportNoPlanValue
+            : l10n.statsReportTargetPercentValue(planPercent),
+      ),
+      _MetricCard(
+        label: l10n.statsReportMealCoverageLabel,
+        value: l10n.statsReportMealCoverageValue(
+          mealDays.length,
+          periodDays,
+          fullMealDays,
+        ),
+      ),
+      _MetricCard(
+        label: l10n.statsReportConditionLabel,
+        value: l10n.statsReportConditionValue(
+          _oneDecimal(avgIntensity),
+          _oneDecimal(avgMood),
+          injuryDays,
+        ),
+      ),
+      _MetricCard(
+        label: primaryConditioningLabel,
+        value: l10n.statsReportConditioningValue(
+          primaryMinutes,
+          primaryCount,
+        ),
+      ),
+      _MetricCard(
+        label: secondaryConditioningLabel,
+        value: l10n.statsReportConditioningValue(
+          secondaryMinutes,
+          secondaryCount,
+        ),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionTitle(
+          icon: Icons.summarize_outlined,
+          title: l10n.statsReportTrainingTitle(sportLabel),
+        ),
+        const SizedBox(height: 12),
+        _CoachMessage(
+          icon: Icons.tips_and_updates_outlined,
+          title: l10n.statsReportInsightTitle,
+          message: insight,
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 760 ? 3 : 2;
+            final cardWidth =
+                (constraints.maxWidth - (10 * (columns - 1))) / columns;
+            return Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: cards
+                  .map((card) => SizedBox(width: cardWidth, child: card))
+                  .toList(growable: false),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  String _trainingInsight({
+    required AppLocalizations l10n,
+    required String sportLabel,
+    required int? targetPercent,
+    required int activeDayCount,
+    required int periodDays,
+    required int mealDayCount,
+    required int injuryDays,
+    required double avgMood,
+    required int conditioningTotal,
+    required String primaryConditioningLabel,
+    required String secondaryConditioningLabel,
+  }) {
+    if (injuryDays > 0 || avgMood < 2.6) {
+      return l10n.statsReportInsightRecovery(
+        injuryDays,
+        _oneDecimal(avgMood),
+      );
+    }
+    if (targetPercent != null && targetPercent < 70) {
+      return l10n.statsReportInsightNeedsVolume(
+        sportLabel,
+        targetPercent,
+        activeDayCount,
+        periodDays,
+      );
+    }
+    if (activeDayCount > 0 && mealDayCount < activeDayCount) {
+      return l10n.statsReportInsightMealGap(mealDayCount, activeDayCount);
+    }
+    if (conditioningTotal == 0) {
+      return l10n.statsReportInsightNoConditioning(
+        primaryConditioningLabel,
+        secondaryConditioningLabel,
+      );
+    }
+    return l10n.statsReportInsightBalanced(
+      sportLabel,
+      activeDayCount,
+      periodDays,
     );
   }
 }
@@ -1924,6 +2240,170 @@ class _CompactMetricChip extends StatelessWidget {
   }
 }
 
+class _MatchFormReportSection extends StatelessWidget {
+  final List<TrainingEntry> entries;
+  final String sportId;
+
+  const _MatchFormReportSection({
+    required this.entries,
+    required this.sportId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final labels = SportMatchLabels.forSport(
+      l10n: l10n,
+      sportId: sportId,
+    );
+    final sportLabel = SportDefaults.label(l10n: l10n, sportId: sportId);
+    final resultEntries = entries
+        .where(
+          (entry) => entry.scoredGoals != null || entry.concededGoals != null,
+        )
+        .toList(growable: false);
+    final wins =
+        resultEntries.where((entry) => _matchOutcome(entry) == 1).length;
+    final winRate = resultEntries.isEmpty
+        ? null
+        : ((wins / resultEntries.length) * 100).round();
+    final scoredEntries = entries
+        .where(
+          (entry) => entry.scoredGoals != null && entry.concededGoals != null,
+        )
+        .toList(growable: false);
+    final scoredAverage = scoredEntries.isEmpty
+        ? null
+        : scoredEntries.fold<double>(
+              0,
+              (sum, entry) => sum + (entry.scoredGoals ?? 0),
+            ) /
+            scoredEntries.length;
+    final concededAverage = scoredEntries.isEmpty
+        ? null
+        : scoredEntries.fold<double>(
+              0,
+              (sum, entry) => sum + (entry.concededGoals ?? 0),
+            ) /
+            scoredEntries.length;
+    final primaryTotal = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.playerGoals ?? 0),
+    );
+    final secondaryTotal = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.playerAssists ?? 0),
+    );
+    final primaryAverage = primaryTotal / entries.length;
+    final secondaryAverage = secondaryTotal / entries.length;
+    final totalMinutes = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.minutesPlayed ?? 0),
+    );
+    final rateMinutes = _matchRateMinutesForSport(sportId);
+    final canShowRate = rateMinutes != null && totalMinutes > 0;
+    final recentResults = [...resultEntries]
+      ..sort((a, b) => b.date.compareTo(a.date));
+    final form = _matchFormText(recentResults.take(5).toList(), l10n);
+    final insight = winRate == null
+        ? l10n.statsMatchFormInsightNoResults(sportLabel)
+        : winRate >= 50
+            ? l10n.statsMatchFormInsightPositive(sportLabel, form, winRate)
+            : l10n.statsMatchFormInsightNeedsWork(sportLabel, form, winRate);
+    final cards = <_MetricCard>[
+      _MetricCard(label: l10n.statsMatchFormLabel, value: form),
+      _MetricCard(
+        label: l10n.statsMatchWinRateLabel,
+        value: winRate == null
+            ? l10n.statsMatchUnsetValue
+            : l10n.statsMatchWinRateValue(winRate),
+      ),
+      _MetricCard(
+        label: l10n.statsMatchAverageScoreLabel,
+        value: scoredAverage == null || concededAverage == null
+            ? l10n.statsMatchUnsetValue
+            : l10n.statsMatchAverageScoreValue(
+                _oneDecimal(scoredAverage),
+                _oneDecimal(concededAverage),
+              ),
+      ),
+      _MetricCard(
+        label: l10n.statsMatchPersonalPerMatchLabel,
+        value: l10n.statsMatchPersonalPerMatchValue(
+          labels.primary.label,
+          _oneDecimal(primaryAverage),
+          labels.secondary.label,
+          _oneDecimal(secondaryAverage),
+        ),
+      ),
+      if (canShowRate)
+        _MetricCard(
+          label: l10n.statsMatchPerUnitLabel(rateMinutes),
+          value: l10n.statsMatchPerUnitValue(
+            labels.primary.label,
+            _oneDecimal(primaryTotal * rateMinutes / totalMinutes),
+            labels.secondary.label,
+            _oneDecimal(secondaryTotal * rateMinutes / totalMinutes),
+          ),
+        )
+      else
+        _MetricCard(
+          label: l10n.statsMatchMinutesLabel,
+          value: totalMinutes > 0
+              ? l10n.minutes(totalMinutes)
+              : l10n.statsMatchNoMinutesValue,
+        ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionTitle(
+          icon: Icons.timeline_outlined,
+          title: l10n.statsMatchFormTitle(sportLabel),
+        ),
+        const SizedBox(height: 12),
+        _CoachMessage(
+          icon: Icons.insights_outlined,
+          title: l10n.statsMatchFormInsightTitle,
+          message: insight,
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 760 ? 3 : 2;
+            final cardWidth =
+                (constraints.maxWidth - (10 * (columns - 1))) / columns;
+            return Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: cards
+                  .map((card) => SizedBox(width: cardWidth, child: card))
+                  .toList(growable: false),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  String _matchFormText(
+    List<TrainingEntry> recentResultEntries,
+    AppLocalizations l10n,
+  ) {
+    if (recentResultEntries.isEmpty) return l10n.statsMatchFormUnsetValue;
+    final chronological = recentResultEntries.toList(growable: false)
+      ..sort((a, b) => a.date.compareTo(b.date));
+    return chronological.map((entry) {
+      return switch (_matchOutcome(entry)) {
+        1 => l10n.statsMatchOutcomeWinShort,
+        -1 => l10n.statsMatchOutcomeLossShort,
+        _ => l10n.statsMatchOutcomeDrawShort,
+      };
+    }).join(' ');
+  }
+}
+
 class _MatchOverviewSection extends StatelessWidget {
   final List<TrainingEntry> entries;
   final bool isKo;
@@ -2278,6 +2758,17 @@ int _matchOutcome(TrainingEntry entry) {
   return 0;
 }
 
+int? _matchRateMinutesForSport(String? sportId) {
+  switch (SportCatalog.normalizeSportId(sportId)) {
+    case SportCatalog.footballId:
+      return 90;
+    case SportCatalog.basketballId:
+      return 40;
+    default:
+      return null;
+  }
+}
+
 String _matchResultLabel(TrainingEntry entry, {required bool isKo}) {
   final scored = entry.scoredGoals;
   final conceded = entry.concededGoals;
@@ -2545,6 +3036,18 @@ String _compactHourTick(double minuteValue, {required bool isKo}) {
   if (remain <= 0) return isKo ? '$hours시간' : '$hours h';
   return isKo ? '$hours시간 $remain분' : '$hours h $remain m';
 }
+
+DateTime _dayOnly(DateTime value) {
+  return DateTime(value.year, value.month, value.day);
+}
+
+int _periodDayCount(DateTimeRange range) {
+  final start = _dayOnly(range.start);
+  final end = _dayOnly(range.end);
+  return math.max(1, end.difference(start).inDays + 1);
+}
+
+String _oneDecimal(double value) => value.toStringAsFixed(1);
 
 class _ComparisonRow extends StatelessWidget {
   final bool isKo;
