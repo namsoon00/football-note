@@ -272,7 +272,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       formatRange: _formatRange,
       formatMillimeter: _formatMillimeter,
       formatPrecipitationEntry: _formatPrecipitationTimelineLabel,
-      formatPrecipitationAmount: _formatHourlyPrecipitationAmount,
       formatWind: _formatWind,
       formatTime: _formatHourlyTime,
       iconForCode: _weatherIcon,
@@ -721,17 +720,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     return '${value.toStringAsFixed(1)} mm · ${_precipitationAmountLabel(value)}';
   }
 
-  String _formatCompactMillimeter(double value) =>
-      '${value.toStringAsFixed(1)} mm\n${_precipitationAmountLabel(value)}';
-
   String _formatPrecipitationTimelineLabel(_HourlyPrecipitationEntry entry) {
-    final probability = entry.precipitationProbability;
-    if (probability == null) {
-      return _formatCompactMillimeter(entry.precipitation);
-    }
-    final amount = '${entry.precipitation.toStringAsFixed(1)} mm';
-    final probabilityLabel = _formatProbability(probability);
-    return '$amount · $probabilityLabel\n${_precipitationAmountLabel(entry.precipitation)}';
+    return '${entry.precipitation.toStringAsFixed(1)} mm';
   }
 
   String _formatHourlyPrecipitationAmount(_HourlyPrecipitationEntry entry) =>
@@ -863,7 +853,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             entries: precipitationEntries,
             formatTime: _formatHourlyTime,
             formatPrecipitation: _formatPrecipitationTimelineLabel,
-            formatPrecipitationAmount: _formatHourlyPrecipitationAmount,
             accentStyle: accentStyle,
           ),
       ],
@@ -2753,7 +2742,6 @@ class _TomorrowWeatherCard extends StatelessWidget {
   final String Function(double?, double?) formatRange;
   final String Function(double?) formatMillimeter;
   final String Function(_HourlyPrecipitationEntry) formatPrecipitationEntry;
-  final String Function(_HourlyPrecipitationEntry) formatPrecipitationAmount;
   final String Function(double?) formatWind;
   final String Function(DateTime) formatTime;
   final IconData Function(int?) iconForCode;
@@ -2773,7 +2761,6 @@ class _TomorrowWeatherCard extends StatelessWidget {
     required this.formatRange,
     required this.formatMillimeter,
     required this.formatPrecipitationEntry,
-    required this.formatPrecipitationAmount,
     required this.formatWind,
     required this.formatTime,
     required this.iconForCode,
@@ -2928,7 +2915,6 @@ class _TomorrowWeatherCard extends StatelessWidget {
                     ),
                     formatTime: formatTime,
                     formatPrecipitation: formatPrecipitationEntry,
-                    formatPrecipitationAmount: formatPrecipitationAmount,
                   ),
                 ],
               ],
@@ -3640,7 +3626,6 @@ class _HourlyPrecipitationSection extends StatelessWidget {
   final List<_HourlyPrecipitationEntry> entries;
   final String Function(DateTime) formatTime;
   final String Function(_HourlyPrecipitationEntry) formatPrecipitation;
-  final String Function(_HourlyPrecipitationEntry) formatPrecipitationAmount;
   final bool accentStyle;
 
   const _HourlyPrecipitationSection({
@@ -3648,7 +3633,6 @@ class _HourlyPrecipitationSection extends StatelessWidget {
     required this.entries,
     required this.formatTime,
     required this.formatPrecipitation,
-    required this.formatPrecipitationAmount,
     this.accentStyle = false,
   });
 
@@ -3740,93 +3724,6 @@ class _HourlyPrecipitationSection extends StatelessWidget {
                     ? theme.colorScheme.onPrimaryContainer
                     : theme.colorScheme.onPrimaryContainer,
                 mutedLabelColor: timeTextColor,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (var index = 0; index < sortedEntries.length; index++) ...[
-                  if (index > 0) const SizedBox(width: 6),
-                  _HourlyPrecipitationAmountChip(
-                    entry: sortedEntries[index],
-                    formatTime: formatTime,
-                    formatPrecipitationAmount: formatPrecipitationAmount,
-                    accentStyle: accentStyle,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HourlyPrecipitationAmountChip extends StatelessWidget {
-  final _HourlyPrecipitationEntry entry;
-  final String Function(DateTime) formatTime;
-  final String Function(_HourlyPrecipitationEntry) formatPrecipitationAmount;
-  final bool accentStyle;
-
-  const _HourlyPrecipitationAmountChip({
-    required this.entry,
-    required this.formatTime,
-    required this.formatPrecipitationAmount,
-    required this.accentStyle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final background = accentStyle
-        ? theme.colorScheme.surface.withValues(alpha: 0.18)
-        : theme.colorScheme.surface;
-    final borderColor = accentStyle
-        ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.18)
-        : theme.colorScheme.outlineVariant.withValues(alpha: 0.55);
-    final timeColor = accentStyle
-        ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.74)
-        : theme.colorScheme.onSurfaceVariant;
-    final amountColor = accentStyle
-        ? theme.colorScheme.onPrimaryContainer
-        : theme.colorScheme.primary;
-    return Container(
-      width: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: AppRadius.small,
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            formatTime(entry.time),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: timeColor,
-              fontWeight: FontWeight.w800,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              formatPrecipitationAmount(entry),
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: amountColor,
-                fontWeight: FontWeight.w900,
-                height: 1,
               ),
             ),
           ),
@@ -4006,9 +3903,6 @@ class _HourlyTemperatureSection extends StatelessWidget {
     final titleColor = accentStyle
         ? theme.colorScheme.onPrimaryContainer
         : theme.colorScheme.onSurface;
-    final chartLineColor = accentStyle
-        ? theme.colorScheme.onPrimaryContainer
-        : theme.colorScheme.onSecondaryContainer;
     final timeTextColor = accentStyle
         ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.72)
         : theme.colorScheme.onSurfaceVariant;
@@ -4074,14 +3968,13 @@ class _HourlyTemperatureSection extends StatelessWidget {
                 entries: temperatureEntries,
                 formatTime: formatTime,
                 formatTemperature: formatTemperature,
-                lineColor: chartLineColor,
-                barColor: chartLineColor.withValues(alpha: 0.24),
+                temperatureColors: [
+                  for (final entry in temperatureEntries)
+                    _temperatureGraphColor(entry.temperature!),
+                ],
                 pointFillColor: accentStyle
                     ? theme.colorScheme.primaryContainer
                     : theme.colorScheme.surface,
-                labelColor: accentStyle
-                    ? theme.colorScheme.onPrimaryContainer
-                    : theme.colorScheme.onSecondaryContainer,
                 mutedLabelColor: timeTextColor,
               ),
             ),
@@ -4092,24 +3985,28 @@ class _HourlyTemperatureSection extends StatelessWidget {
   }
 }
 
+Color _temperatureGraphColor(double temperature) {
+  if (temperature <= 0) return const Color(0xFF2563EB);
+  if (temperature <= 10) return const Color(0xFF0891B2);
+  if (temperature <= 20) return const Color(0xFF059669);
+  if (temperature <= 28) return const Color(0xFFD97706);
+  return const Color(0xFFDC2626);
+}
+
 class _HourlyTemperatureChart extends StatelessWidget {
   final List<_ForecastMomentPreview> entries;
   final String Function(DateTime) formatTime;
   final String Function(double?) formatTemperature;
-  final Color lineColor;
-  final Color barColor;
+  final List<Color> temperatureColors;
   final Color pointFillColor;
-  final Color labelColor;
   final Color mutedLabelColor;
 
   const _HourlyTemperatureChart({
     required this.entries,
     required this.formatTime,
     required this.formatTemperature,
-    required this.lineColor,
-    required this.barColor,
+    required this.temperatureColors,
     required this.pointFillColor,
-    required this.labelColor,
     required this.mutedLabelColor,
   });
 
@@ -4129,8 +4026,7 @@ class _HourlyTemperatureChart extends StatelessWidget {
               size: Size(width, chartHeight),
               painter: _HourlyTemperatureChartPainter(
                 entries: entries,
-                lineColor: lineColor,
-                barColor: barColor,
+                temperatureColors: temperatureColors,
                 pointFillColor: pointFillColor,
               ),
             ),
@@ -4138,25 +4034,25 @@ class _HourlyTemperatureChart extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              for (final entry in entries)
+              for (var index = 0; index < entries.length; index++)
                 SizedBox(
                   width: width / entries.length,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        formatTemperature(entry.temperature),
+                        formatTemperature(entries[index].temperature),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style:
                             Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: labelColor,
+                                  color: temperatureColors[index],
                                   fontWeight: FontWeight.w900,
                                 ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        formatTime(entry.time),
+                        formatTime(entries[index].time),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -4177,14 +4073,12 @@ class _HourlyTemperatureChart extends StatelessWidget {
 
 class _HourlyTemperatureChartPainter extends CustomPainter {
   final List<_ForecastMomentPreview> entries;
-  final Color lineColor;
-  final Color barColor;
+  final List<Color> temperatureColors;
   final Color pointFillColor;
 
   const _HourlyTemperatureChartPainter({
     required this.entries,
-    required this.lineColor,
-    required this.barColor,
+    required this.temperatureColors,
     required this.pointFillColor,
   });
 
@@ -4202,16 +4096,17 @@ class _HourlyTemperatureChartPainter extends CustomPainter {
     const bottomPadding = 14.0;
     final usableHeight = size.height - topPadding - bottomPadding;
     final step = entries.length <= 1 ? size.width : size.width / entries.length;
-    final points = <Offset>[];
+    final points = <({Offset point, Color color})>[];
     for (var index = 0; index < entries.length; index++) {
       final temperature = entries[index].temperature;
       if (temperature == null) continue;
       final x = (step * index) + (step / 2);
       final normalized = (temperature - minTemperature) / spread;
       final y = topPadding + ((1 - normalized) * usableHeight);
-      points.add(Offset(x, y));
+      final color = temperatureColors[index];
+      points.add((point: Offset(x, y), color: color));
       final barPaint = Paint()
-        ..color = barColor
+        ..color = color.withValues(alpha: 0.26)
         ..strokeWidth = 10
         ..strokeCap = StrokeCap.round;
       canvas.drawLine(
@@ -4221,33 +4116,34 @@ class _HourlyTemperatureChartPainter extends CustomPainter {
       );
     }
     if (points.length >= 2) {
-      final path = Path()..moveTo(points.first.dx, points.first.dy);
       for (var index = 1; index < points.length; index++) {
-        path.lineTo(points[index].dx, points[index].dy);
+        final previous = points[index - 1];
+        final current = points[index];
+        final segmentColor =
+            Color.lerp(previous.color, current.color, 0.5) ?? current.color;
+        canvas.drawLine(
+          previous.point,
+          current.point,
+          Paint()
+            ..color = segmentColor
+            ..strokeWidth = 3
+            ..strokeCap = StrokeCap.round
+            ..strokeJoin = StrokeJoin.round,
+        );
       }
-      canvas.drawPath(
-        path,
-        Paint()
-          ..color = lineColor
-          ..strokeWidth = 3
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round
-          ..style = PaintingStyle.stroke,
-      );
     }
-    final pointBorderPaint = Paint()..color = lineColor;
     final pointFillPaint = Paint()..color = pointFillColor;
     for (final point in points) {
-      canvas.drawCircle(point, 5.5, pointBorderPaint);
-      canvas.drawCircle(point, 3.2, pointFillPaint);
+      final pointBorderPaint = Paint()..color = point.color;
+      canvas.drawCircle(point.point, 5.5, pointBorderPaint);
+      canvas.drawCircle(point.point, 3.2, pointFillPaint);
     }
   }
 
   @override
   bool shouldRepaint(covariant _HourlyTemperatureChartPainter oldDelegate) {
     return oldDelegate.entries != entries ||
-        oldDelegate.lineColor != lineColor ||
-        oldDelegate.barColor != barColor ||
+        oldDelegate.temperatureColors != temperatureColors ||
         oldDelegate.pointFillColor != pointFillColor;
   }
 }
