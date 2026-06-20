@@ -4299,6 +4299,19 @@
   "matchCompetitionResultsTab": "Results",
   "matchCompetitionBackButton": "Back",
   "matchCompetitionTeamPreviewTitle": "Team preview",
+  "matchCompetitionTeamNameLabel": "Team name",
+  "matchCompetitionAddTeamButton": "Add",
+  "matchCompetitionTeamNameRequired": "Enter a team name.",
+  "matchCompetitionTeamAlreadyAdded": "That team is already registered.",
+  "matchCompetitionTeamsListTitle": "Registered teams",
+  "matchCompetitionRemoveTeamTooltip": "Remove {team}",
+  "@matchCompetitionRemoveTeamTooltip": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
   "matchCompetitionTeamsInputLabel": "Participating teams",
   "matchCompetitionTeamsInputHint": "Enter one team per line or separate with commas",
   "matchCompetitionTeamCount": "{count} team(s) registered",

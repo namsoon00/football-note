@@ -14678,6 +14678,42 @@ abstract class AppLocalizations {
   /// **'Team preview'**
   String get matchCompetitionTeamPreviewTitle;
 
+  /// No description provided for @matchCompetitionTeamNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Team name'**
+  String get matchCompetitionTeamNameLabel;
+
+  /// No description provided for @matchCompetitionAddTeamButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get matchCompetitionAddTeamButton;
+
+  /// No description provided for @matchCompetitionTeamNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a team name.'**
+  String get matchCompetitionTeamNameRequired;
+
+  /// No description provided for @matchCompetitionTeamAlreadyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'That team is already registered.'**
+  String get matchCompetitionTeamAlreadyAdded;
+
+  /// No description provided for @matchCompetitionTeamsListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered teams'**
+  String get matchCompetitionTeamsListTitle;
+
+  /// No description provided for @matchCompetitionRemoveTeamTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {team}'**
+  String matchCompetitionRemoveTeamTooltip(String team);
+
   /// No description provided for @matchCompetitionTeamsInputLabel.
   ///
   /// In en, this message translates to:

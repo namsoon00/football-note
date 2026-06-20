@@ -8233,6 +8233,26 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionTeamPreviewTitle => '팀 미리보기';
 
   @override
+  String get matchCompetitionTeamNameLabel => '팀 이름';
+
+  @override
+  String get matchCompetitionAddTeamButton => '추가';
+
+  @override
+  String get matchCompetitionTeamNameRequired => '팀 이름을 입력하세요.';
+
+  @override
+  String get matchCompetitionTeamAlreadyAdded => '이미 등록된 팀이에요.';
+
+  @override
+  String get matchCompetitionTeamsListTitle => '등록 팀';
+
+  @override
+  String matchCompetitionRemoveTeamTooltip(String team) {
+    return '$team 삭제';
+  }
+
+  @override
   String get matchCompetitionTeamsInputLabel => '참가 팀';
 
   @override

@@ -8491,6 +8491,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchCompetitionTeamPreviewTitle => 'Team preview';
 
   @override
+  String get matchCompetitionTeamNameLabel => 'Team name';
+
+  @override
+  String get matchCompetitionAddTeamButton => 'Add';
+
+  @override
+  String get matchCompetitionTeamNameRequired => 'Enter a team name.';
+
+  @override
+  String get matchCompetitionTeamAlreadyAdded =>
+      'That team is already registered.';
+
+  @override
+  String get matchCompetitionTeamsListTitle => 'Registered teams';
+
+  @override
+  String matchCompetitionRemoveTeamTooltip(String team) {
+    return 'Remove $team';
+  }
+
+  @override
   String get matchCompetitionTeamsInputLabel => 'Participating teams';
 
   @override
