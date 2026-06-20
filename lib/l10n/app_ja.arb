@@ -4495,6 +4495,41 @@
   "benchmarkRefreshSuccess": "平均基準データを更新しました。",
   "benchmarkRefreshFailed": "平均基準データの更新に失敗しました。ネットワークを確認してください。",
   "benchmarkReferenceNote": "身長と体重は CDC 成長曲線の中央値を使用します。活動時間はWHOの青少年指導を利用しています。ジャグリング練習場はサッカーのトレーニングの基準であり、医学的な基準ではありません。",
+  "benchmarkAgeTableTitle": "年齢別平均",
+  "benchmarkAgeTableNote": "現在の年齢が設定されている場合、その行を強調します。週間目標は入力したサッカー経験に合わせて調整されます。",
+  "benchmarkAgeColumnAge": "年齢",
+  "benchmarkAgeColumnHeight": "平均身長",
+  "benchmarkAgeColumnWeight": "平均体重",
+  "benchmarkAgeColumnLifting": "リフティング/回",
+  "benchmarkAgeColumnWeeklyTarget": "週間目標",
+  "benchmarkAgeValue": "{age}歳",
+  "@benchmarkAgeValue": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "benchmarkAgeCurrentBadge": "現在",
+  "benchmarkAgeLiftingValue": "{count}回",
+  "@benchmarkAgeLiftingValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "benchmarkAgeWeeklyTargetValue": "{minutes}分 · {sessions}回",
+  "@benchmarkAgeWeeklyTargetValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "sessions": {
+        "type": "int"
+      }
+    }
+  },
   "parentReadOnlyEntryTitle": "親モードではトレーニングノートを編集できません。",
   "parentReadOnlyEntryBody": "トレーニング、食事、日記などの主要な記録はプレーヤー モードに残ります。親モードでは、元のレコードは変更されず、フィードバックと報酬の名前のみが個別に保存されます。",
   "parentReadOnlyLogsSummary": "トレーニング ログを表示し、フィードバックのみを残します。",

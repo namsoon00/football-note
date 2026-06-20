@@ -8428,6 +8428,46 @@ class AppLocalizationsEn extends AppLocalizations {
       'Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.';
 
   @override
+  String get benchmarkAgeTableTitle => 'Averages by age';
+
+  @override
+  String get benchmarkAgeTableNote =>
+      'If the player\'s age is set, that row is highlighted. Weekly targets are adjusted by the entered soccer experience.';
+
+  @override
+  String get benchmarkAgeColumnAge => 'Age';
+
+  @override
+  String get benchmarkAgeColumnHeight => 'Avg height';
+
+  @override
+  String get benchmarkAgeColumnWeight => 'Avg weight';
+
+  @override
+  String get benchmarkAgeColumnLifting => 'Lifting/session';
+
+  @override
+  String get benchmarkAgeColumnWeeklyTarget => 'Weekly target';
+
+  @override
+  String benchmarkAgeValue(int age) {
+    return 'Age $age';
+  }
+
+  @override
+  String get benchmarkAgeCurrentBadge => 'Current';
+
+  @override
+  String benchmarkAgeLiftingValue(int count) {
+    return '$count reps';
+  }
+
+  @override
+  String benchmarkAgeWeeklyTargetValue(int minutes, int sessions) {
+    return '$minutes min · $sessions sessions';
+  }
+
+  @override
   String get parentReadOnlyEntryTitle =>
       'Parent mode cannot edit training notes.';
 

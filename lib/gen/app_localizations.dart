@@ -14475,6 +14475,72 @@ abstract class AppLocalizations {
   /// **'Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.'**
   String get benchmarkReferenceNote;
 
+  /// No description provided for @benchmarkAgeTableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Averages by age'**
+  String get benchmarkAgeTableTitle;
+
+  /// No description provided for @benchmarkAgeTableNote.
+  ///
+  /// In en, this message translates to:
+  /// **'If the player\'s age is set, that row is highlighted. Weekly targets are adjusted by the entered soccer experience.'**
+  String get benchmarkAgeTableNote;
+
+  /// No description provided for @benchmarkAgeColumnAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get benchmarkAgeColumnAge;
+
+  /// No description provided for @benchmarkAgeColumnHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg height'**
+  String get benchmarkAgeColumnHeight;
+
+  /// No description provided for @benchmarkAgeColumnWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg weight'**
+  String get benchmarkAgeColumnWeight;
+
+  /// No description provided for @benchmarkAgeColumnLifting.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting/session'**
+  String get benchmarkAgeColumnLifting;
+
+  /// No description provided for @benchmarkAgeColumnWeeklyTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly target'**
+  String get benchmarkAgeColumnWeeklyTarget;
+
+  /// No description provided for @benchmarkAgeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Age {age}'**
+  String benchmarkAgeValue(int age);
+
+  /// No description provided for @benchmarkAgeCurrentBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get benchmarkAgeCurrentBadge;
+
+  /// No description provided for @benchmarkAgeLiftingValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reps'**
+  String benchmarkAgeLiftingValue(int count);
+
+  /// No description provided for @benchmarkAgeWeeklyTargetValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min · {sessions} sessions'**
+  String benchmarkAgeWeeklyTargetValue(int minutes, int sessions);
+
   /// No description provided for @parentReadOnlyEntryTitle.
   ///
   /// In en, this message translates to:
