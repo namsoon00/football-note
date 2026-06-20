@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppFeedback {
-  static const Duration _quickDuration = Duration(seconds: 1);
+  static const Duration _quickDuration = Duration(milliseconds: 2500);
   static const Duration _undoDuration = Duration(seconds: 5);
 
   static void showMessage(
