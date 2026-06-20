@@ -4495,6 +4495,41 @@
   "benchmarkRefreshSuccess": "평균 기준 데이터를 업데이트했어요.",
   "benchmarkRefreshFailed": "평균 기준 데이터 업데이트에 실패했어요. 네트워크를 확인해 주세요.",
   "benchmarkReferenceNote": "키와 체중은 CDC 성장 차트 중앙값, 활동 시간은 WHO 청소년 신체활동 권고를 기준으로 합니다. 리프팅 범위는 축구 훈련 참고값이며 의학 기준은 아닙니다.",
+  "benchmarkAgeTableTitle": "나이별 평균",
+  "benchmarkAgeTableNote": "현재 나이가 있으면 해당 행을 강조합니다. 주간 목표 시간은 입력한 구력 기준으로 조정됩니다.",
+  "benchmarkAgeColumnAge": "나이",
+  "benchmarkAgeColumnHeight": "키 평균",
+  "benchmarkAgeColumnWeight": "체중 평균",
+  "benchmarkAgeColumnLifting": "리프팅/세션",
+  "benchmarkAgeColumnWeeklyTarget": "주간 목표",
+  "benchmarkAgeValue": "{age}세",
+  "@benchmarkAgeValue": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "benchmarkAgeCurrentBadge": "현재",
+  "benchmarkAgeLiftingValue": "{count}회",
+  "@benchmarkAgeLiftingValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "benchmarkAgeWeeklyTargetValue": "{minutes}분 · {sessions}회",
+  "@benchmarkAgeWeeklyTargetValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "sessions": {
+        "type": "int"
+      }
+    }
+  },
   "parentReadOnlyEntryTitle": "보호자 모드에서는 훈련 노트를 수정할 수 없어요.",
   "parentReadOnlyEntryBody": "훈련, 식사, 다이어리 같은 핵심 기록은 선수 모드에서 작성해 주세요. 보호자 모드에서는 기록 원본은 건드리지 않고 피드백과 선물 입력만 따로 저장합니다.",
   "parentReadOnlyLogsSummary": "훈련기록은 열람하고 피드백만 남겨요.",

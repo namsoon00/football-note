@@ -51,6 +51,12 @@ class _AverageBenchmarkScreenState extends State<AverageBenchmarkScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 16),
                 children: [
+                  _AgeBenchmarkSection(
+                    currentAgeYears: widget.ageYears,
+                    soccerYears: widget.soccerYears,
+                    benchmarkService: widget.benchmarkService,
+                  ),
+                  const SizedBox(height: 18),
                   _SourceSection(
                     title: l10n.benchmarkReferencesTitle,
                     sources: sources,
@@ -90,6 +96,128 @@ class _AverageBenchmarkScreenState extends State<AverageBenchmarkScreen> {
     } finally {
       if (mounted) setState(() => _refreshing = false);
     }
+  }
+}
+
+class _AgeBenchmarkSection extends StatelessWidget {
+  final int? currentAgeYears;
+  final int? soccerYears;
+  final BenchmarkService benchmarkService;
+
+  const _AgeBenchmarkSection({
+    required this.currentAgeYears,
+    required this.soccerYears,
+    required this.benchmarkService,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final currentAge = currentAgeYears?.clamp(6, 18);
+    final rowColor = theme.colorScheme.primary.withValues(alpha: 0.08);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(
+          icon: Icons.table_chart_outlined,
+          title: l10n.benchmarkAgeTableTitle,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.benchmarkAgeTableNote,
+          style: theme.textTheme.bodySmall,
+        ),
+        const SizedBox(height: 10),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            headingTextStyle: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+            columns: [
+              DataColumn(label: Text(l10n.benchmarkAgeColumnAge)),
+              DataColumn(label: Text(l10n.benchmarkAgeColumnHeight)),
+              DataColumn(label: Text(l10n.benchmarkAgeColumnWeight)),
+              DataColumn(label: Text(l10n.benchmarkAgeColumnLifting)),
+              DataColumn(label: Text(l10n.benchmarkAgeColumnWeeklyTarget)),
+            ],
+            rows: [
+              for (var age = 6; age <= 18; age++)
+                _buildRow(
+                  context: context,
+                  age: age,
+                  selected: currentAge == age,
+                  rowColor: rowColor,
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  DataRow _buildRow({
+    required BuildContext context,
+    required int age,
+    required bool selected,
+    required Color rowColor,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final benchmark = benchmarkService.physicalBenchmarkForAge(age);
+    final target = benchmarkTarget(age, soccerYears);
+    return DataRow(
+      color: selected ? WidgetStatePropertyAll<Color>(rowColor) : null,
+      cells: [
+        DataCell(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l10n.benchmarkAgeValue(age)),
+              if (selected) ...[
+                const SizedBox(width: 8),
+                _CurrentAgeBadge(label: l10n.benchmarkAgeCurrentBadge),
+              ],
+            ],
+          ),
+        ),
+        DataCell(Text('${benchmark.heightCmAvg.toStringAsFixed(1)}cm')),
+        DataCell(Text('${benchmark.weightKgAvg.toStringAsFixed(1)}kg')),
+        DataCell(Text(l10n.benchmarkAgeLiftingValue(
+          benchmark.liftsPerSessionAvg,
+        ))),
+        DataCell(Text(l10n.benchmarkAgeWeeklyTargetValue(
+          target.weeklyMinutesTarget,
+          target.weeklySessionsTarget,
+        ))),
+      ],
+    );
+  }
+}
+
+class _CurrentAgeBadge extends StatelessWidget {
+  final String label;
+
+  const _CurrentAgeBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
   }
 }
 

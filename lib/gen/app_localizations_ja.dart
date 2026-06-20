@@ -8171,6 +8171,46 @@ class AppLocalizationsJa extends AppLocalizations {
       '身長と体重は CDC 成長曲線の中央値を使用します。活動時間はWHOの青少年指導を利用しています。ジャグリング練習場はサッカーのトレーニングの基準であり、医学的な基準ではありません。';
 
   @override
+  String get benchmarkAgeTableTitle => '年齢別平均';
+
+  @override
+  String get benchmarkAgeTableNote =>
+      '現在の年齢が設定されている場合、その行を強調します。週間目標は入力したサッカー経験に合わせて調整されます。';
+
+  @override
+  String get benchmarkAgeColumnAge => '年齢';
+
+  @override
+  String get benchmarkAgeColumnHeight => '平均身長';
+
+  @override
+  String get benchmarkAgeColumnWeight => '平均体重';
+
+  @override
+  String get benchmarkAgeColumnLifting => 'リフティング/回';
+
+  @override
+  String get benchmarkAgeColumnWeeklyTarget => '週間目標';
+
+  @override
+  String benchmarkAgeValue(int age) {
+    return '$age歳';
+  }
+
+  @override
+  String get benchmarkAgeCurrentBadge => '現在';
+
+  @override
+  String benchmarkAgeLiftingValue(int count) {
+    return '$count回';
+  }
+
+  @override
+  String benchmarkAgeWeeklyTargetValue(int minutes, int sessions) {
+    return '$minutes分 · $sessions回';
+  }
+
+  @override
   String get parentReadOnlyEntryTitle => '親モードではトレーニングノートを編集できません。';
 
   @override

@@ -4495,6 +4495,41 @@
   "benchmarkRefreshSuccess": "Average benchmark data updated.",
   "benchmarkRefreshFailed": "Failed to update average benchmark data. Check network.",
   "benchmarkReferenceNote": "Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.",
+  "benchmarkAgeTableTitle": "Averages by age",
+  "benchmarkAgeTableNote": "If the player's age is set, that row is highlighted. Weekly targets are adjusted by the entered soccer experience.",
+  "benchmarkAgeColumnAge": "Age",
+  "benchmarkAgeColumnHeight": "Avg height",
+  "benchmarkAgeColumnWeight": "Avg weight",
+  "benchmarkAgeColumnLifting": "Lifting/session",
+  "benchmarkAgeColumnWeeklyTarget": "Weekly target",
+  "benchmarkAgeValue": "Age {age}",
+  "@benchmarkAgeValue": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "benchmarkAgeCurrentBadge": "Current",
+  "benchmarkAgeLiftingValue": "{count} reps",
+  "@benchmarkAgeLiftingValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "benchmarkAgeWeeklyTargetValue": "{minutes} min · {sessions} sessions",
+  "@benchmarkAgeWeeklyTargetValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "sessions": {
+        "type": "int"
+      }
+    }
+  },
   "parentReadOnlyEntryTitle": "Parent mode cannot edit training notes.",
   "parentReadOnlyEntryBody": "Core records like training, meals, and diary stay in player mode. Parent mode leaves the original record untouched and stores only feedback and reward naming separately.",
   "parentReadOnlyLogsSummary": "View training logs and leave feedback only.",

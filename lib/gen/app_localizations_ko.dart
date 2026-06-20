@@ -8181,6 +8181,46 @@ class AppLocalizationsKo extends AppLocalizations {
       '키와 체중은 CDC 성장 차트 중앙값, 활동 시간은 WHO 청소년 신체활동 권고를 기준으로 합니다. 리프팅 범위는 축구 훈련 참고값이며 의학 기준은 아닙니다.';
 
   @override
+  String get benchmarkAgeTableTitle => '나이별 평균';
+
+  @override
+  String get benchmarkAgeTableNote =>
+      '현재 나이가 있으면 해당 행을 강조합니다. 주간 목표 시간은 입력한 구력 기준으로 조정됩니다.';
+
+  @override
+  String get benchmarkAgeColumnAge => '나이';
+
+  @override
+  String get benchmarkAgeColumnHeight => '키 평균';
+
+  @override
+  String get benchmarkAgeColumnWeight => '체중 평균';
+
+  @override
+  String get benchmarkAgeColumnLifting => '리프팅/세션';
+
+  @override
+  String get benchmarkAgeColumnWeeklyTarget => '주간 목표';
+
+  @override
+  String benchmarkAgeValue(int age) {
+    return '$age세';
+  }
+
+  @override
+  String get benchmarkAgeCurrentBadge => '현재';
+
+  @override
+  String benchmarkAgeLiftingValue(int count) {
+    return '$count회';
+  }
+
+  @override
+  String benchmarkAgeWeeklyTargetValue(int minutes, int sessions) {
+    return '$minutes분 · $sessions회';
+  }
+
+  @override
   String get parentReadOnlyEntryTitle => '보호자 모드에서는 훈련 노트를 수정할 수 없어요.';
 
   @override
