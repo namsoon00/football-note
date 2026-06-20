@@ -8347,48 +8347,6 @@ abstract class AppLocalizations {
   /// **'Very heavy rain'**
   String get weatherPrecipitationVeryHeavy;
 
-  /// No description provided for @homeWeatherRainRiskTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Rain check'**
-  String get homeWeatherRainRiskTitle;
-
-  /// No description provided for @homeWeatherRainRiskLevelLow.
-  ///
-  /// In en, this message translates to:
-  /// **'Low'**
-  String get homeWeatherRainRiskLevelLow;
-
-  /// No description provided for @homeWeatherRainRiskLevelMedium.
-  ///
-  /// In en, this message translates to:
-  /// **'Moderate'**
-  String get homeWeatherRainRiskLevelMedium;
-
-  /// No description provided for @homeWeatherRainRiskLevelHigh.
-  ///
-  /// In en, this message translates to:
-  /// **'High'**
-  String get homeWeatherRainRiskLevelHigh;
-
-  /// No description provided for @homeWeatherRainRiskTotal.
-  ///
-  /// In en, this message translates to:
-  /// **'Today\'s total'**
-  String get homeWeatherRainRiskTotal;
-
-  /// No description provided for @homeWeatherRainRiskPeakHour.
-  ///
-  /// In en, this message translates to:
-  /// **'Peak hour'**
-  String get homeWeatherRainRiskPeakHour;
-
-  /// No description provided for @homeWeatherRainRiskTip.
-  ///
-  /// In en, this message translates to:
-  /// **'Prepare studs and spare socks for slippery ground.'**
-  String get homeWeatherRainRiskTip;
-
   /// No description provided for @homeWeatherHourlyPrecipitation.
   ///
   /// In en, this message translates to:

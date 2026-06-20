@@ -4688,28 +4688,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weatherPrecipitationVeryHeavy => 'Very heavy rain';
 
   @override
-  String get homeWeatherRainRiskTitle => 'Rain check';
-
-  @override
-  String get homeWeatherRainRiskLevelLow => 'Low';
-
-  @override
-  String get homeWeatherRainRiskLevelMedium => 'Moderate';
-
-  @override
-  String get homeWeatherRainRiskLevelHigh => 'High';
-
-  @override
-  String get homeWeatherRainRiskTotal => 'Today\'s total';
-
-  @override
-  String get homeWeatherRainRiskPeakHour => 'Peak hour';
-
-  @override
-  String get homeWeatherRainRiskTip =>
-      'Prepare studs and spare socks for slippery ground.';
-
-  @override
   String get homeWeatherHourlyPrecipitation => 'Hourly rain timeline';
 
   @override
