@@ -2293,6 +2293,15 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
     });
   }
 
+  double _sampleProgressFor(VideoPlayerController? controller) {
+    final value = controller?.value;
+    if (value == null || !value.isInitialized) return _controller.value;
+    final durationMs = value.duration.inMilliseconds;
+    if (durationMs <= 0) return _controller.value;
+    final positionMs = value.position.inMilliseconds % durationMs;
+    return (positionMs / durationMs).clamp(0.0, 1.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -2312,6 +2321,10 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
         ? l10n.runningCoachSampleMistakeOverlayBounce
         : l10n.runningCoachSampleOverlayFrames;
     final videoController = _videoController;
+    final overlayTicker = Listenable.merge([
+      _controller,
+      if (videoController != null) videoController,
+    ]);
     return AspectRatio(
       key: const ValueKey('running-coach-sample-video-frame'),
       aspectRatio: 16 / 9,
@@ -2356,17 +2369,20 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
               Positioned.fill(
                 child: IgnorePointer(
                   child: AnimatedBuilder(
-                    animation: _controller,
-                    builder: (context, _) => CustomPaint(
-                      painter: _SampleVideoAnalysisPainter(
-                        progress: _controller.value,
-                        isMistake: isMistake,
-                        primaryColor: runnerColor,
-                        secondaryColor: scheme.secondary,
-                        contactColor: scheme.tertiary,
-                        warningColor: scheme.error,
-                      ),
-                    ),
+                    animation: overlayTicker,
+                    builder: (context, _) {
+                      final progress = _sampleProgressFor(videoController);
+                      return CustomPaint(
+                        painter: _SampleVideoAnalysisPainter(
+                          progress: progress,
+                          isMistake: isMistake,
+                          primaryColor: runnerColor,
+                          secondaryColor: scheme.secondary,
+                          contactColor: scheme.tertiary,
+                          warningColor: scheme.error,
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -2375,11 +2391,11 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                 right: 12,
                 top: 12,
                 child: AnimatedBuilder(
-                  animation: _controller,
+                  animation: overlayTicker,
                   builder: (context, _) {
+                    final progress = _sampleProgressFor(videoController);
                     final frameNumber =
-                        ((_controller.value * _sampleTimelineFrameCount)
-                                    .floor() %
+                        ((progress * _sampleTimelineFrameCount).floor() %
                                 _sampleTimelineFrameCount) +
                             1;
                     return Row(
@@ -2397,10 +2413,7 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                               key: const ValueKey(
                                 'running-coach-sample-analysis-phase',
                               ),
-                              text: _sampleAnalysisPhaseLabel(
-                                l10n,
-                                _controller.value,
-                              ),
+                              text: _sampleAnalysisPhaseLabel(l10n, progress),
                             ),
                           ),
                         ),
@@ -2448,11 +2461,11 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                 right: 12,
                 bottom: 10,
                 child: AnimatedBuilder(
-                  animation: _controller,
+                  animation: overlayTicker,
                   builder: (context, _) => ClipRRect(
                     borderRadius: BorderRadius.circular(999),
                     child: LinearProgressIndicator(
-                      value: _controller.value,
+                      value: _sampleProgressFor(videoController),
                       minHeight: 4,
                       backgroundColor: Colors.white.withValues(alpha: 0.20),
                       color: scheme.primary,
@@ -2923,8 +2936,12 @@ class _SampleVideoRunnerGeometry {
 
   double get scale => size.height;
   double get groundY => size.height * 0.884;
-  double get _shift => math.sin(progress * math.pi * 1.4) * size.width * 0.010;
-  double get _lift => math.sin(progress * math.pi * 2) * size.height * 0.006;
+  double get _gait => math.sin(progress * math.pi * 8);
+  double get _liftPhase => math.cos(progress * math.pi * 8);
+  double get _frontLift => math.max(0.0, _gait);
+  double get _rearLift => math.max(0.0, -_gait);
+  double get _shift => math.sin(progress * math.pi * 1.4) * size.width * 0.014;
+  double get _lift => math.sin(progress * math.pi * 8) * size.height * 0.006;
 
   Offset p(double x, double y) =>
       Offset(size.width * x + _shift, size.height * y + _lift);
@@ -2933,21 +2950,39 @@ class _SampleVideoRunnerGeometry {
   Offset get neck => p(0.470, 0.422);
   Offset get shoulderMid => p(0.458, 0.452);
   Offset get hip => p(0.444, 0.610);
-  Offset get ankleLine => p(0.602, 0.870);
+  Offset get ankleLine => frontAnkle;
   Offset get rearShoulder => p(0.428, 0.452);
   Offset get frontShoulder => p(0.488, 0.452);
-  Offset get rearElbow => p(0.414, 0.548);
-  Offset get rearWrist => p(0.404, 0.598);
-  Offset get frontElbow => p(0.502, 0.526);
-  Offset get frontWrist => p(0.525, 0.552);
+  Offset get rearElbow => p(0.414 + _gait * 0.014, 0.548 - _gait * 0.026);
+  Offset get rearWrist => p(0.404 + _gait * 0.018, 0.598 - _gait * 0.030);
+  Offset get frontElbow => p(0.502 - _gait * 0.014, 0.526 + _gait * 0.024);
+  Offset get frontWrist => p(0.525 - _gait * 0.018, 0.552 + _gait * 0.028);
   Offset get rearHip => p(0.414, 0.610);
   Offset get frontHip => p(0.472, 0.610);
-  Offset get rearKnee => p(0.342, 0.744);
-  Offset get rearAnkle => p(0.292, 0.866);
-  Offset get rearToe => p(0.260, 0.876);
-  Offset get frontKnee => p(0.558, 0.720);
-  Offset get frontAnkle => p(0.610, 0.874);
-  Offset get frontToe => p(0.652, 0.874);
+  Offset get rearKnee => p(
+        0.342 - _gait * 0.020,
+        0.744 - _rearLift * 0.050 + _liftPhase * 0.010,
+      );
+  Offset get rearAnkle => p(
+        0.292 - _gait * 0.038,
+        0.866 - _rearLift * 0.060,
+      );
+  Offset get rearToe => p(
+        0.260 - _gait * 0.046,
+        0.876 - _rearLift * 0.054,
+      );
+  Offset get frontKnee => p(
+        0.558 + _gait * 0.020,
+        0.720 - _frontLift * 0.048 - _liftPhase * 0.010,
+      );
+  Offset get frontAnkle => p(
+        0.610 + _gait * 0.040,
+        0.874 - _frontLift * 0.058,
+      );
+  Offset get frontToe => p(
+        0.652 + _gait * 0.046,
+        0.874 - _frontLift * 0.052,
+      );
 
   List<Offset> get joints => [
         head,
