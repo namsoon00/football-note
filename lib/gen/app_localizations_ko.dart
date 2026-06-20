@@ -3131,6 +3131,234 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String statsReportTrainingTitle(Object sport) {
+    return '$sport 리포트';
+  }
+
+  @override
+  String get statsReportInsightTitle => '기간 리포트';
+
+  @override
+  String get statsReportTargetLabel => '목표 달성';
+
+  @override
+  String statsReportTargetPercentValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get statsReportNoTargetValue => '기준 없음';
+
+  @override
+  String get statsReportActiveDaysLabel => '기록일';
+
+  @override
+  String statsReportActiveDaysValue(int activeDays, int periodDays) {
+    return '$activeDays/$periodDays일';
+  }
+
+  @override
+  String get statsReportPlanExecutionLabel => '계획 실행률';
+
+  @override
+  String get statsReportNoPlanValue => '계획 없음';
+
+  @override
+  String get statsReportMealCoverageLabel => '식사 기록률';
+
+  @override
+  String statsReportMealCoverageValue(
+      int mealDays, int periodDays, int fullMealDays) {
+    return '$mealDays/$periodDays일 · 3끼 $fullMealDays일';
+  }
+
+  @override
+  String get statsReportConditionLabel => '컨디션';
+
+  @override
+  String statsReportConditionValue(
+      Object intensity, Object mood, int injuryDays) {
+    return '강도 $intensity · 기분 $mood · 부상 $injuryDays일';
+  }
+
+  @override
+  String statsReportConditioningValue(int minutes, int count) {
+    return '$minutes분 · $count회';
+  }
+
+  @override
+  String statsReportInsightRecovery(int injuryDays, Object mood) {
+    return '부상 기록 $injuryDays일, 평균 기분 $mood입니다. 다음 기록에서는 회복 강도와 통증 변화를 먼저 확인하세요.';
+  }
+
+  @override
+  String statsReportInsightNeedsVolume(
+      Object sport, int percent, int activeDays, int periodDays) {
+    return '$sport 훈련량은 목표의 $percent%입니다. $activeDays/$periodDays일 기록이라 다음 기간에는 짧은 세션을 더 자주 배치하세요.';
+  }
+
+  @override
+  String statsReportInsightMealGap(int mealDays, int activeDays) {
+    return '훈련 기록일 $activeDays일 중 식사 기록은 $mealDays일입니다. 회복 판단을 위해 훈련일 식사를 함께 남기는 흐름이 필요합니다.';
+  }
+
+  @override
+  String statsReportInsightNoConditioning(
+      Object primaryLabel, Object secondaryLabel) {
+    return '$primaryLabel/$secondaryLabel 기록이 비어 있습니다. 종목 보조운동을 함께 남기면 성장 추세를 더 정확히 볼 수 있습니다.';
+  }
+
+  @override
+  String statsReportInsightBalanced(
+      Object sport, int activeDays, int periodDays) {
+    return '$sport 기록이 $activeDays/$periodDays일 이어졌고 보조운동/식사 흐름도 확인됩니다. 다음 기간에는 가장 많이 한 집중 분야의 품질을 비교하세요.';
+  }
+
+  @override
+  String statsSecondaryConditioningNoRecords(Object label) {
+    return '선택한 기간에 $label 세부 기록이 없습니다.';
+  }
+
+  @override
+  String statsSecondaryConditioningDailyTotals(Object label) {
+    return '일자별 $label 총 횟수';
+  }
+
+  @override
+  String statsPrimaryConditioningStatsTitle(Object label) {
+    return '$label 통계';
+  }
+
+  @override
+  String statsPrimaryConditioningNoRecords(Object label) {
+    return '선택한 기간에 기록된 $label 횟수나 시간이 없습니다.';
+  }
+
+  @override
+  String statsPrimaryConditioningTooltipCount(Object label, int count) {
+    return '$label $count회';
+  }
+
+  @override
+  String statsPrimaryConditioningTooltipMinutes(Object label, int minutes) {
+    return '$label $minutes분';
+  }
+
+  @override
+  String statsPrimaryConditioningDailyCount(Object label) {
+    return '일자별 $label 횟수';
+  }
+
+  @override
+  String statsPrimaryConditioningDailyMinutes(Object label) {
+    return '일자별 $label 시간';
+  }
+
+  @override
+  String statsPrimaryConditioningTotalCount(int count) {
+    return '총합 $count회';
+  }
+
+  @override
+  String statsPrimaryConditioningTotalMinutes(int minutes) {
+    return '총 $minutes분';
+  }
+
+  @override
+  String statsPrimaryConditioningBestCount(int month, int day, int count) {
+    return '최고 $month/$day · $count회';
+  }
+
+  @override
+  String statsPrimaryConditioningBestMinutes(int month, int day, int minutes) {
+    return '최고 $month/$day · $minutes분';
+  }
+
+  @override
+  String statsMatchFormTitle(Object sport) {
+    return '$sport 경기 리포트';
+  }
+
+  @override
+  String get statsMatchFormInsightTitle => '경기 흐름';
+
+  @override
+  String get statsMatchFormLabel => '최근 폼';
+
+  @override
+  String get statsMatchFormUnsetValue => '결과 미입력';
+
+  @override
+  String get statsMatchUnsetValue => '미입력';
+
+  @override
+  String get statsMatchOutcomeWinShort => '승';
+
+  @override
+  String get statsMatchOutcomeDrawShort => '무';
+
+  @override
+  String get statsMatchOutcomeLossShort => '패';
+
+  @override
+  String get statsMatchWinRateLabel => '승률';
+
+  @override
+  String statsMatchWinRateValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get statsMatchAverageScoreLabel => '평균 득실';
+
+  @override
+  String statsMatchAverageScoreValue(Object scored, Object conceded) {
+    return '$scored:$conceded';
+  }
+
+  @override
+  String get statsMatchPersonalPerMatchLabel => '경기당 개인 기록';
+
+  @override
+  String statsMatchPersonalPerMatchValue(Object primaryLabel,
+      Object primaryValue, Object secondaryLabel, Object secondaryValue) {
+    return '$primaryLabel $primaryValue · $secondaryLabel $secondaryValue';
+  }
+
+  @override
+  String statsMatchPerUnitLabel(int minutes) {
+    return '$minutes분 기준';
+  }
+
+  @override
+  String statsMatchPerUnitValue(Object primaryLabel, Object primaryValue,
+      Object secondaryLabel, Object secondaryValue) {
+    return '$primaryLabel $primaryValue · $secondaryLabel $secondaryValue';
+  }
+
+  @override
+  String get statsMatchMinutesLabel => '출전 시간';
+
+  @override
+  String get statsMatchNoMinutesValue => '시간 미입력';
+
+  @override
+  String statsMatchFormInsightNoResults(Object sport) {
+    return '$sport 경기 결과가 아직 부족합니다. 점수와 개인 기록을 함께 남기면 흐름을 계산할 수 있습니다.';
+  }
+
+  @override
+  String statsMatchFormInsightPositive(Object sport, Object form, int winRate) {
+    return '최근 $sport 폼은 $form, 승률 $winRate%입니다. 강점으로 이어진 개인 기록을 다음 경기에서도 반복하세요.';
+  }
+
+  @override
+  String statsMatchFormInsightNeedsWork(
+      Object sport, Object form, int winRate) {
+    return '최근 $sport 폼은 $form, 승률 $winRate%입니다. 실점/실패 패턴과 개인 기록이 함께 떨어지는 구간을 먼저 점검하세요.';
+  }
+
+  @override
   String get averageComparisonProfileMissingTitle => '나이/구력 정보를 입력해 주세요';
 
   @override

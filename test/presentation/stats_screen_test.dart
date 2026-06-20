@@ -12,6 +12,7 @@ import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/application/training_service.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/presentation/screens/stats_screen.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/settings_service.dart';
@@ -427,6 +428,91 @@ void main() {
     expect(find.text('아침'), findsWidgets);
     expect(find.text('점심'), findsWidgets);
     expect(find.text('저녁'), findsWidgets);
+  });
+
+  testWidgets('Stats screen adapts report labels for the selected sport', (
+    WidgetTester tester,
+  ) async {
+    await optionRepository.setValue(
+      SportCatalog.currentSportOptionKey,
+      SportCatalog.basketballId,
+    );
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 50,
+        intensity: 4,
+        type: '슈팅',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '체육관',
+        jumpRopeCount: 80,
+        jumpRopeMinutes: 12,
+        jumpRopeEnabled: true,
+        liftingMinutes: 10,
+        liftingByPart: const <String, int>{'infront': 20},
+        sportId: SportCatalog.basketballId,
+      ),
+    );
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 40,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '체육관',
+        opponentTeam: '블루',
+        scoredGoals: 50,
+        concededGoals: 40,
+        playerGoals: 12,
+        playerAssists: 4,
+        shotsOnTarget: 7,
+        ballsWon: 3,
+        minutesPlayed: 20,
+        sportId: SportCatalog.basketballId,
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: StatsScreen(
+            trainingService: service,
+            mealLogService: mealLogService,
+            localeService: localeService,
+            onCreate: () {},
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('농구 리포트'), findsOneWidget);
+    expect(find.text('셔틀런 통계'), findsOneWidget);
+    expect(find.text('볼 핸들링 세부 기록'), findsOneWidget);
+    expect(find.text('평균 비교'), findsNothing);
+
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('농구 경기 리포트'), findsOneWidget);
+    expect(find.text('40분 기준'), findsOneWidget);
+    expect(find.textContaining('득점 12.0'), findsOneWidget);
   });
 }
 

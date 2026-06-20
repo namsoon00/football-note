@@ -3136,6 +3136,234 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String statsReportTrainingTitle(Object sport) {
+    return '$sportレポート';
+  }
+
+  @override
+  String get statsReportInsightTitle => '期間レポート';
+
+  @override
+  String get statsReportTargetLabel => '目標達成';
+
+  @override
+  String statsReportTargetPercentValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get statsReportNoTargetValue => '基準なし';
+
+  @override
+  String get statsReportActiveDaysLabel => '記録日';
+
+  @override
+  String statsReportActiveDaysValue(int activeDays, int periodDays) {
+    return '$activeDays/$periodDays日';
+  }
+
+  @override
+  String get statsReportPlanExecutionLabel => '計画実行率';
+
+  @override
+  String get statsReportNoPlanValue => '計画なし';
+
+  @override
+  String get statsReportMealCoverageLabel => '食事記録率';
+
+  @override
+  String statsReportMealCoverageValue(
+      int mealDays, int periodDays, int fullMealDays) {
+    return '$mealDays/$periodDays日 · 3食 $fullMealDays日';
+  }
+
+  @override
+  String get statsReportConditionLabel => 'コンディション';
+
+  @override
+  String statsReportConditionValue(
+      Object intensity, Object mood, int injuryDays) {
+    return '強度 $intensity · 気分 $mood · けが $injuryDays日';
+  }
+
+  @override
+  String statsReportConditioningValue(int minutes, int count) {
+    return '$minutes分 · $count回';
+  }
+
+  @override
+  String statsReportInsightRecovery(int injuryDays, Object mood) {
+    return 'けがの記録が$injuryDays日、平均気分は$moodです。次の記録では回復強度と痛みの変化を先に確認しましょう。';
+  }
+
+  @override
+  String statsReportInsightNeedsVolume(
+      Object sport, int percent, int activeDays, int periodDays) {
+    return '$sportの練習量は目標の$percent%です。$activeDays/$periodDays日の記録なので、次の期間は短いセッションをより頻繁に入れましょう。';
+  }
+
+  @override
+  String statsReportInsightMealGap(int mealDays, int activeDays) {
+    return 'トレーニング記録日$activeDays日のうち食事記録は$mealDays日です。回復判断のため、練習日の食事も一緒に残しましょう。';
+  }
+
+  @override
+  String statsReportInsightNoConditioning(
+      Object primaryLabel, Object secondaryLabel) {
+    return '$primaryLabel/$secondaryLabelの記録が空です。競技別の補助運動も残すと成長傾向をより正確に見られます。';
+  }
+
+  @override
+  String statsReportInsightBalanced(
+      Object sport, int activeDays, int periodDays) {
+    return '$sportの記録が$activeDays/$periodDays日続き、補助運動と食事の流れも確認できます。次の期間は最も多い重点項目の質を比べましょう。';
+  }
+
+  @override
+  String statsSecondaryConditioningNoRecords(Object label) {
+    return '選択した期間に$labelの詳細記録はありません。';
+  }
+
+  @override
+  String statsSecondaryConditioningDailyTotals(Object label) {
+    return '日別$label合計';
+  }
+
+  @override
+  String statsPrimaryConditioningStatsTitle(Object label) {
+    return '$label統計';
+  }
+
+  @override
+  String statsPrimaryConditioningNoRecords(Object label) {
+    return '選択した期間に$labelの回数または時間の記録はありません。';
+  }
+
+  @override
+  String statsPrimaryConditioningTooltipCount(Object label, int count) {
+    return '$label $count回';
+  }
+
+  @override
+  String statsPrimaryConditioningTooltipMinutes(Object label, int minutes) {
+    return '$label $minutes分';
+  }
+
+  @override
+  String statsPrimaryConditioningDailyCount(Object label) {
+    return '日別$label回数';
+  }
+
+  @override
+  String statsPrimaryConditioningDailyMinutes(Object label) {
+    return '日別$label時間';
+  }
+
+  @override
+  String statsPrimaryConditioningTotalCount(int count) {
+    return '合計 $count回';
+  }
+
+  @override
+  String statsPrimaryConditioningTotalMinutes(int minutes) {
+    return '合計 $minutes分';
+  }
+
+  @override
+  String statsPrimaryConditioningBestCount(int month, int day, int count) {
+    return '最高 $month/$day · $count回';
+  }
+
+  @override
+  String statsPrimaryConditioningBestMinutes(int month, int day, int minutes) {
+    return '最高 $month/$day · $minutes分';
+  }
+
+  @override
+  String statsMatchFormTitle(Object sport) {
+    return '$sport試合レポート';
+  }
+
+  @override
+  String get statsMatchFormInsightTitle => '試合の流れ';
+
+  @override
+  String get statsMatchFormLabel => '最近のフォーム';
+
+  @override
+  String get statsMatchFormUnsetValue => '結果未入力';
+
+  @override
+  String get statsMatchUnsetValue => '未入力';
+
+  @override
+  String get statsMatchOutcomeWinShort => '勝';
+
+  @override
+  String get statsMatchOutcomeDrawShort => '分';
+
+  @override
+  String get statsMatchOutcomeLossShort => '敗';
+
+  @override
+  String get statsMatchWinRateLabel => '勝率';
+
+  @override
+  String statsMatchWinRateValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get statsMatchAverageScoreLabel => '平均得失点';
+
+  @override
+  String statsMatchAverageScoreValue(Object scored, Object conceded) {
+    return '$scored:$conceded';
+  }
+
+  @override
+  String get statsMatchPersonalPerMatchLabel => '試合ごとの個人記録';
+
+  @override
+  String statsMatchPersonalPerMatchValue(Object primaryLabel,
+      Object primaryValue, Object secondaryLabel, Object secondaryValue) {
+    return '$primaryLabel $primaryValue · $secondaryLabel $secondaryValue';
+  }
+
+  @override
+  String statsMatchPerUnitLabel(int minutes) {
+    return '$minutes分換算';
+  }
+
+  @override
+  String statsMatchPerUnitValue(Object primaryLabel, Object primaryValue,
+      Object secondaryLabel, Object secondaryValue) {
+    return '$primaryLabel $primaryValue · $secondaryLabel $secondaryValue';
+  }
+
+  @override
+  String get statsMatchMinutesLabel => '出場時間';
+
+  @override
+  String get statsMatchNoMinutesValue => '時間未入力';
+
+  @override
+  String statsMatchFormInsightNoResults(Object sport) {
+    return '$sportの試合結果がまだ不足しています。スコアと個人記録を一緒に残すと流れを計算できます。';
+  }
+
+  @override
+  String statsMatchFormInsightPositive(Object sport, Object form, int winRate) {
+    return '最近の$sportフォームは$form、勝率$winRate%です。強みに結びついた個人記録を次の試合でも再現しましょう。';
+  }
+
+  @override
+  String statsMatchFormInsightNeedsWork(
+      Object sport, Object form, int winRate) {
+    return '最近の$sportフォームは$form、勝率$winRate%です。結果パターンと個人記録が同時に落ちる場面を先に確認しましょう。';
+  }
+
+  @override
   String get averageComparisonProfileMissingTitle => '年齢と競技歴を入力してください';
 
   @override

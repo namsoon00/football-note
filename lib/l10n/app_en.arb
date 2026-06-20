@@ -1801,6 +1801,311 @@
       "direction": {}
     }
   },
+  "statsReportTrainingTitle": "{sport} Report",
+  "@statsReportTrainingTitle": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
+  "statsReportInsightTitle": "Period Report",
+  "statsReportTargetLabel": "Target",
+  "statsReportTargetPercentValue": "{percent}%",
+  "@statsReportTargetPercentValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportNoTargetValue": "No baseline",
+  "statsReportActiveDaysLabel": "Logged days",
+  "statsReportActiveDaysValue": "{activeDays}/{periodDays} days",
+  "@statsReportActiveDaysValue": {
+    "placeholders": {
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportPlanExecutionLabel": "Plan execution",
+  "statsReportNoPlanValue": "No plan",
+  "statsReportMealCoverageLabel": "Meal coverage",
+  "statsReportMealCoverageValue": "{mealDays}/{periodDays} days · 3 meals {fullMealDays} days",
+  "@statsReportMealCoverageValue": {
+    "placeholders": {
+      "mealDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      },
+      "fullMealDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportConditionLabel": "Condition",
+  "statsReportConditionValue": "Load {intensity} · Mood {mood} · Injury {injuryDays}d",
+  "@statsReportConditionValue": {
+    "placeholders": {
+      "intensity": {},
+      "mood": {},
+      "injuryDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportConditioningValue": "{minutes} min · {count} reps",
+  "@statsReportConditioningValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportInsightRecovery": "There are {injuryDays} injury days and average mood is {mood}. Check recovery load and pain changes first in the next log.",
+  "@statsReportInsightRecovery": {
+    "placeholders": {
+      "injuryDays": {
+        "type": "int"
+      },
+      "mood": {}
+    }
+  },
+  "statsReportInsightNeedsVolume": "{sport} volume is {percent}% of target. You logged {activeDays}/{periodDays} days, so add shorter sessions more often next period.",
+  "@statsReportInsightNeedsVolume": {
+    "placeholders": {
+      "sport": {},
+      "percent": {
+        "type": "int"
+      },
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportInsightMealGap": "Meals were logged on {mealDays} of {activeDays} training days. Log meals with training days to judge recovery better.",
+  "@statsReportInsightMealGap": {
+    "placeholders": {
+      "mealDays": {
+        "type": "int"
+      },
+      "activeDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportInsightNoConditioning": "{primaryLabel}/{secondaryLabel} records are empty. Add sport-specific conditioning to read growth trends more accurately.",
+  "@statsReportInsightNoConditioning": {
+    "placeholders": {
+      "primaryLabel": {},
+      "secondaryLabel": {}
+    }
+  },
+  "statsReportInsightBalanced": "{sport} was logged on {activeDays}/{periodDays} days, with conditioning and meal flow visible. Next period, compare the quality of your most frequent focus.",
+  "@statsReportInsightBalanced": {
+    "placeholders": {
+      "sport": {},
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsSecondaryConditioningNoRecords": "No {label} detail records in the selected period.",
+  "@statsSecondaryConditioningNoRecords": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsSecondaryConditioningDailyTotals": "Daily {label} totals",
+  "@statsSecondaryConditioningDailyTotals": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningStatsTitle": "{label} Stats",
+  "@statsPrimaryConditioningStatsTitle": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningNoRecords": "No {label} count or time recorded in the selected period.",
+  "@statsPrimaryConditioningNoRecords": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningTooltipCount": "{label} {count} reps",
+  "@statsPrimaryConditioningTooltipCount": {
+    "placeholders": {
+      "label": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningTooltipMinutes": "{label} {minutes} min",
+  "@statsPrimaryConditioningTooltipMinutes": {
+    "placeholders": {
+      "label": {},
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningDailyCount": "Daily {label} count",
+  "@statsPrimaryConditioningDailyCount": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningDailyMinutes": "Daily {label} time",
+  "@statsPrimaryConditioningDailyMinutes": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "statsPrimaryConditioningTotalCount": "Total {count} reps",
+  "@statsPrimaryConditioningTotalCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningTotalMinutes": "Total {minutes} min",
+  "@statsPrimaryConditioningTotalMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningBestCount": "Best {month}/{day} · {count} reps",
+  "@statsPrimaryConditioningBestCount": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPrimaryConditioningBestMinutes": "Best {month}/{day} · {minutes} min",
+  "@statsPrimaryConditioningBestMinutes": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchFormTitle": "{sport} Match Report",
+  "@statsMatchFormTitle": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
+  "statsMatchFormInsightTitle": "Match Flow",
+  "statsMatchFormLabel": "Recent form",
+  "statsMatchFormUnsetValue": "No results",
+  "statsMatchUnsetValue": "Not set",
+  "statsMatchOutcomeWinShort": "W",
+  "statsMatchOutcomeDrawShort": "D",
+  "statsMatchOutcomeLossShort": "L",
+  "statsMatchWinRateLabel": "Win rate",
+  "statsMatchWinRateValue": "{percent}%",
+  "@statsMatchWinRateValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchAverageScoreLabel": "Avg score",
+  "statsMatchAverageScoreValue": "{scored}:{conceded}",
+  "@statsMatchAverageScoreValue": {
+    "placeholders": {
+      "scored": {},
+      "conceded": {}
+    }
+  },
+  "statsMatchPersonalPerMatchLabel": "Personal per match",
+  "statsMatchPersonalPerMatchValue": "{primaryLabel} {primaryValue} · {secondaryLabel} {secondaryValue}",
+  "@statsMatchPersonalPerMatchValue": {
+    "placeholders": {
+      "primaryLabel": {},
+      "primaryValue": {},
+      "secondaryLabel": {},
+      "secondaryValue": {}
+    }
+  },
+  "statsMatchPerUnitLabel": "Per {minutes} min",
+  "@statsMatchPerUnitLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchPerUnitValue": "{primaryLabel} {primaryValue} · {secondaryLabel} {secondaryValue}",
+  "@statsMatchPerUnitValue": {
+    "placeholders": {
+      "primaryLabel": {},
+      "primaryValue": {},
+      "secondaryLabel": {},
+      "secondaryValue": {}
+    }
+  },
+  "statsMatchMinutesLabel": "Minutes played",
+  "statsMatchNoMinutesValue": "No minutes",
+  "statsMatchFormInsightNoResults": "{sport} match results are still missing. Add scores and personal records together to calculate form.",
+  "@statsMatchFormInsightNoResults": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
+  "statsMatchFormInsightPositive": "Recent {sport} form is {form}, with a {winRate}% win rate. Repeat the personal records that led to your strengths next match.",
+  "@statsMatchFormInsightPositive": {
+    "placeholders": {
+      "sport": {},
+      "form": {},
+      "winRate": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchFormInsightNeedsWork": "Recent {sport} form is {form}, with a {winRate}% win rate. Check where result patterns and personal records drop together.",
+  "@statsMatchFormInsightNeedsWork": {
+    "placeholders": {
+      "sport": {},
+      "form": {},
+      "winRate": {
+        "type": "int"
+      }
+    }
+  },
   "averageComparisonProfileMissingTitle": "Enter age and soccer experience",
   "averageComparisonProfileMissingMessage": "Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.",
   "averageComparisonFootballOnlyTitle": "Football average comparison hidden",
