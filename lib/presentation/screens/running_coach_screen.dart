@@ -2608,12 +2608,13 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     double alpha,
   ) {
     final frameColor = primaryColor.withValues(alpha: 0.48 * alpha);
+    final runnerBounds = runner.bounds;
     final bodyRect = RRect.fromRectAndRadius(
       Rect.fromLTRB(
-        runner.rearToe.dx - size.width * 0.032,
-        runner.head.dy - size.height * 0.060,
-        runner.frontToe.dx + size.width * 0.052,
-        runner.groundY + size.height * 0.020,
+        runnerBounds.left - size.width * 0.032,
+        runnerBounds.top - size.height * 0.060,
+        runnerBounds.right + size.width * 0.052,
+        runnerBounds.bottom + size.height * 0.020,
       ),
       const Radius.circular(18),
     );
@@ -2743,7 +2744,7 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     canvas.drawOval(
       Rect.fromCenter(
         center:
-            Offset(runner.frontToe.dx - runner.scale * 0.035, runner.groundY),
+            Offset(runner.contactToe.dx - runner.scale * 0.035, runner.groundY),
         width: runner.scale * 0.150,
         height: runner.scale * 0.038,
       ),
@@ -2751,7 +2752,7 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     );
     canvas.drawLine(
       Offset(runner.hip.dx, runner.groundY + runner.scale * 0.018),
-      Offset(runner.frontAnkle.dx, runner.groundY + runner.scale * 0.018),
+      Offset(runner.contactAnkle.dx, runner.groundY + runner.scale * 0.018),
       Paint()
         ..color = contactColor.withValues(alpha: 0.70 * alpha)
         ..strokeWidth = math.max(1.3, runner.scale * 0.008)
@@ -2760,7 +2761,7 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     _drawBracket(
       canvas,
       Offset(runner.hip.dx, runner.groundY + runner.scale * 0.018),
-      Offset(runner.frontAnkle.dx, runner.groundY + runner.scale * 0.018),
+      Offset(runner.contactAnkle.dx, runner.groundY + runner.scale * 0.018),
       contactColor.withValues(alpha: 0.72 * alpha),
       runner.scale * 0.020,
     );
@@ -2793,9 +2794,9 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
       ..strokeWidth = math.max(2.0, runner.scale * 0.016)
       ..strokeCap = StrokeCap.round;
     final start =
-        Offset(runner.frontToe.dx + runner.scale * 0.050, runner.groundY);
+        Offset(runner.contactToe.dx + runner.scale * 0.050, runner.groundY);
     final end =
-        Offset(runner.frontAnkle.dx - runner.scale * 0.110, runner.groundY);
+        Offset(runner.contactAnkle.dx - runner.scale * 0.110, runner.groundY);
     canvas.drawLine(start, end, warningPaint);
     canvas.drawLine(
       end,
@@ -2809,7 +2810,7 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     );
     canvas.drawLine(
       runner.neck,
-      runner.frontAnkle,
+      runner.contactAnkle,
       Paint()
         ..color = warningColor.withValues(alpha: 0.36 * alpha)
         ..strokeWidth = math.max(1.3, runner.scale * 0.008)
@@ -2818,7 +2819,7 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     canvas.drawOval(
       Rect.fromCenter(
         center:
-            Offset(runner.frontToe.dx - runner.scale * 0.036, runner.groundY),
+            Offset(runner.contactToe.dx - runner.scale * 0.036, runner.groundY),
         width: runner.scale * 0.152,
         height: runner.scale * 0.044,
       ),
@@ -2931,58 +2932,59 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
 class _SampleVideoRunnerGeometry {
   final Size size;
   final double progress;
+  final _SampleVideoPoseKeyframe _pose;
 
-  const _SampleVideoRunnerGeometry(this.size, this.progress);
+  _SampleVideoRunnerGeometry(this.size, this.progress)
+      : _pose = _SampleVideoPoseKeyframe.at(progress);
 
   double get scale => size.height;
-  double get groundY => size.height * 0.884;
-  double get _gait => math.sin(progress * math.pi * 8);
-  double get _liftPhase => math.cos(progress * math.pi * 8);
-  double get _frontLift => math.max(0.0, _gait);
-  double get _rearLift => math.max(0.0, -_gait);
-  double get _shift => math.sin(progress * math.pi * 1.4) * size.width * 0.014;
-  double get _lift => math.sin(progress * math.pi * 8) * size.height * 0.006;
 
-  Offset p(double x, double y) =>
-      Offset(size.width * x + _shift, size.height * y + _lift);
+  double get groundY => size.height * _pose.groundY;
 
-  Offset get head => p(0.480, 0.350);
-  Offset get neck => p(0.470, 0.422);
-  Offset get shoulderMid => p(0.458, 0.452);
-  Offset get hip => p(0.444, 0.610);
-  Offset get ankleLine => frontAnkle;
-  Offset get rearShoulder => p(0.428, 0.452);
-  Offset get frontShoulder => p(0.488, 0.452);
-  Offset get rearElbow => p(0.414 + _gait * 0.014, 0.548 - _gait * 0.026);
-  Offset get rearWrist => p(0.404 + _gait * 0.018, 0.598 - _gait * 0.030);
-  Offset get frontElbow => p(0.502 - _gait * 0.014, 0.526 + _gait * 0.024);
-  Offset get frontWrist => p(0.525 - _gait * 0.018, 0.552 + _gait * 0.028);
-  Offset get rearHip => p(0.414, 0.610);
-  Offset get frontHip => p(0.472, 0.610);
-  Offset get rearKnee => p(
-        0.342 - _gait * 0.020,
-        0.744 - _rearLift * 0.050 + _liftPhase * 0.010,
-      );
-  Offset get rearAnkle => p(
-        0.292 - _gait * 0.038,
-        0.866 - _rearLift * 0.060,
-      );
-  Offset get rearToe => p(
-        0.260 - _gait * 0.046,
-        0.876 - _rearLift * 0.054,
-      );
-  Offset get frontKnee => p(
-        0.558 + _gait * 0.020,
-        0.720 - _frontLift * 0.048 - _liftPhase * 0.010,
-      );
-  Offset get frontAnkle => p(
-        0.610 + _gait * 0.040,
-        0.874 - _frontLift * 0.058,
-      );
-  Offset get frontToe => p(
-        0.652 + _gait * 0.046,
-        0.874 - _frontLift * 0.052,
-      );
+  Offset p(Offset point) =>
+      Offset(size.width * point.dx, size.height * point.dy);
+
+  Offset get head => p(_pose.head);
+  Offset get neck => p(_pose.neck);
+  Offset get rearShoulder => p(_pose.rearShoulder);
+  Offset get frontShoulder => p(_pose.frontShoulder);
+  Offset get rearElbow => p(_pose.rearElbow);
+  Offset get rearWrist => p(_pose.rearWrist);
+  Offset get frontElbow => p(_pose.frontElbow);
+  Offset get frontWrist => p(_pose.frontWrist);
+  Offset get rearHip => p(_pose.rearHip);
+  Offset get frontHip => p(_pose.frontHip);
+  Offset get rearKnee => p(_pose.rearKnee);
+  Offset get rearAnkle => p(_pose.rearAnkle);
+  Offset get rearToe => p(_pose.rearToe);
+  Offset get frontKnee => p(_pose.frontKnee);
+  Offset get frontAnkle => p(_pose.frontAnkle);
+  Offset get frontToe => p(_pose.frontToe);
+
+  Offset get shoulderMid => Offset.lerp(rearShoulder, frontShoulder, 0.5)!;
+  Offset get hip => Offset.lerp(rearHip, frontHip, 0.5)!;
+  Offset get contactAnkle => frontToe.dy >= rearToe.dy ? frontAnkle : rearAnkle;
+  Offset get contactToe => frontToe.dy >= rearToe.dy ? frontToe : rearToe;
+  Offset get ankleLine => contactAnkle;
+
+  Rect get bounds {
+    final trackedPoints = <Offset>[
+      ...joints,
+      rearToe,
+      frontToe,
+    ];
+    var left = trackedPoints.first.dx;
+    var top = trackedPoints.first.dy;
+    var right = trackedPoints.first.dx;
+    var bottom = trackedPoints.first.dy;
+    for (final point in trackedPoints.skip(1)) {
+      left = math.min(left, point.dx);
+      top = math.min(top, point.dy);
+      right = math.max(right, point.dx);
+      bottom = math.max(bottom, point.dy);
+    }
+    return Rect.fromLTRB(left, top, right, bottom);
+  }
 
   List<Offset> get joints => [
         head,
@@ -2993,12 +2995,16 @@ class _SampleVideoRunnerGeometry {
         rearWrist,
         frontElbow,
         frontWrist,
+        shoulderMid,
         rearHip,
         frontHip,
+        hip,
         rearKnee,
         rearAnkle,
+        rearToe,
         frontKnee,
         frontAnkle,
+        frontToe,
       ];
 
   List<(Offset, Offset)> get bones => [
@@ -3015,6 +3021,273 @@ class _SampleVideoRunnerGeometry {
         (frontKnee, frontAnkle),
         (frontAnkle, frontToe),
       ];
+}
+
+class _SampleVideoPoseKeyframe {
+  final double time;
+  final Offset head;
+  final Offset neck;
+  final Offset rearShoulder;
+  final Offset frontShoulder;
+  final Offset rearElbow;
+  final Offset rearWrist;
+  final Offset frontElbow;
+  final Offset frontWrist;
+  final Offset rearHip;
+  final Offset frontHip;
+  final Offset rearKnee;
+  final Offset rearAnkle;
+  final Offset rearToe;
+  final Offset frontKnee;
+  final Offset frontAnkle;
+  final Offset frontToe;
+  final double groundY;
+
+  const _SampleVideoPoseKeyframe({
+    required this.time,
+    required this.head,
+    required this.neck,
+    required this.rearShoulder,
+    required this.frontShoulder,
+    required this.rearElbow,
+    required this.rearWrist,
+    required this.frontElbow,
+    required this.frontWrist,
+    required this.rearHip,
+    required this.frontHip,
+    required this.rearKnee,
+    required this.rearAnkle,
+    required this.rearToe,
+    required this.frontKnee,
+    required this.frontAnkle,
+    required this.frontToe,
+    required this.groundY,
+  });
+
+  static const _trackedClipKeyframes = <_SampleVideoPoseKeyframe>[
+    _SampleVideoPoseKeyframe(
+      time: 0.000,
+      head: Offset(0.527, 0.365),
+      neck: Offset(0.512, 0.435),
+      rearShoulder: Offset(0.484, 0.480),
+      frontShoulder: Offset(0.536, 0.470),
+      rearElbow: Offset(0.480, 0.575),
+      rearWrist: Offset(0.530, 0.585),
+      frontElbow: Offset(0.560, 0.570),
+      frontWrist: Offset(0.584, 0.570),
+      rearHip: Offset(0.498, 0.672),
+      frontHip: Offset(0.548, 0.675),
+      rearKnee: Offset(0.475, 0.760),
+      rearAnkle: Offset(0.410, 0.815),
+      rearToe: Offset(0.384, 0.800),
+      frontKnee: Offset(0.560, 0.790),
+      frontAnkle: Offset(0.570, 0.965),
+      frontToe: Offset(0.585, 0.975),
+      groundY: 0.965,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.120,
+      head: Offset(0.540, 0.360),
+      neck: Offset(0.526, 0.440),
+      rearShoulder: Offset(0.490, 0.493),
+      frontShoulder: Offset(0.552, 0.488),
+      rearElbow: Offset(0.482, 0.565),
+      rearWrist: Offset(0.540, 0.575),
+      frontElbow: Offset(0.585, 0.520),
+      frontWrist: Offset(0.606, 0.495),
+      rearHip: Offset(0.505, 0.638),
+      frontHip: Offset(0.565, 0.638),
+      rearKnee: Offset(0.475, 0.780),
+      rearAnkle: Offset(0.430, 0.930),
+      rearToe: Offset(0.420, 0.905),
+      frontKnee: Offset(0.610, 0.750),
+      frontAnkle: Offset(0.540, 0.870),
+      frontToe: Offset(0.520, 0.855),
+      groundY: 0.915,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.250,
+      head: Offset(0.500, 0.465),
+      neck: Offset(0.490, 0.540),
+      rearShoulder: Offset(0.460, 0.560),
+      frontShoulder: Offset(0.515, 0.555),
+      rearElbow: Offset(0.452, 0.635),
+      rearWrist: Offset(0.480, 0.635),
+      frontElbow: Offset(0.530, 0.610),
+      frontWrist: Offset(0.555, 0.630),
+      rearHip: Offset(0.475, 0.735),
+      frontHip: Offset(0.515, 0.735),
+      rearKnee: Offset(0.455, 0.820),
+      rearAnkle: Offset(0.400, 0.815),
+      rearToe: Offset(0.380, 0.815),
+      frontKnee: Offset(0.530, 0.815),
+      frontAnkle: Offset(0.545, 0.990),
+      frontToe: Offset(0.550, 0.998),
+      groundY: 0.990,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.370,
+      head: Offset(0.438, 0.405),
+      neck: Offset(0.425, 0.492),
+      rearShoulder: Offset(0.395, 0.525),
+      frontShoulder: Offset(0.450, 0.520),
+      rearElbow: Offset(0.380, 0.585),
+      rearWrist: Offset(0.420, 0.640),
+      frontElbow: Offset(0.485, 0.535),
+      frontWrist: Offset(0.505, 0.520),
+      rearHip: Offset(0.395, 0.678),
+      frontHip: Offset(0.445, 0.678),
+      rearKnee: Offset(0.345, 0.800),
+      rearAnkle: Offset(0.305, 0.970),
+      rearToe: Offset(0.300, 0.985),
+      frontKnee: Offset(0.490, 0.760),
+      frontAnkle: Offset(0.430, 0.865),
+      frontToe: Offset(0.415, 0.890),
+      groundY: 0.968,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.500,
+      head: Offset(0.428, 0.360),
+      neck: Offset(0.416, 0.448),
+      rearShoulder: Offset(0.378, 0.475),
+      frontShoulder: Offset(0.440, 0.475),
+      rearElbow: Offset(0.350, 0.510),
+      rearWrist: Offset(0.420, 0.520),
+      frontElbow: Offset(0.468, 0.500),
+      frontWrist: Offset(0.485, 0.485),
+      rearHip: Offset(0.390, 0.630),
+      frontHip: Offset(0.440, 0.632),
+      rearKnee: Offset(0.400, 0.755),
+      rearAnkle: Offset(0.305, 0.680),
+      rearToe: Offset(0.260, 0.670),
+      frontKnee: Offset(0.440, 0.765),
+      frontAnkle: Offset(0.470, 0.905),
+      frontToe: Offset(0.498, 0.900),
+      groundY: 0.905,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.620,
+      head: Offset(0.440, 0.350),
+      neck: Offset(0.430, 0.440),
+      rearShoulder: Offset(0.390, 0.470),
+      frontShoulder: Offset(0.452, 0.468),
+      rearElbow: Offset(0.385, 0.535),
+      rearWrist: Offset(0.440, 0.520),
+      frontElbow: Offset(0.478, 0.485),
+      frontWrist: Offset(0.500, 0.440),
+      rearHip: Offset(0.400, 0.620),
+      frontHip: Offset(0.450, 0.620),
+      rearKnee: Offset(0.360, 0.780),
+      rearAnkle: Offset(0.335, 0.910),
+      rearToe: Offset(0.318, 0.900),
+      frontKnee: Offset(0.480, 0.695),
+      frontAnkle: Offset(0.395, 0.765),
+      frontToe: Offset(0.385, 0.795),
+      groundY: 0.900,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.750,
+      head: Offset(0.465, 0.320),
+      neck: Offset(0.455, 0.420),
+      rearShoulder: Offset(0.420, 0.450),
+      frontShoulder: Offset(0.480, 0.450),
+      rearElbow: Offset(0.395, 0.525),
+      rearWrist: Offset(0.430, 0.548),
+      frontElbow: Offset(0.500, 0.440),
+      frontWrist: Offset(0.520, 0.410),
+      rearHip: Offset(0.425, 0.610),
+      frontHip: Offset(0.480, 0.610),
+      rearKnee: Offset(0.395, 0.695),
+      rearAnkle: Offset(0.280, 0.720),
+      rearToe: Offset(0.260, 0.740),
+      frontKnee: Offset(0.515, 0.755),
+      frontAnkle: Offset(0.535, 0.885),
+      frontToe: Offset(0.575, 0.865),
+      groundY: 0.865,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.870,
+      head: Offset(0.480, 0.360),
+      neck: Offset(0.470, 0.455),
+      rearShoulder: Offset(0.435, 0.485),
+      frontShoulder: Offset(0.495, 0.485),
+      rearElbow: Offset(0.425, 0.560),
+      rearWrist: Offset(0.482, 0.590),
+      frontElbow: Offset(0.520, 0.515),
+      frontWrist: Offset(0.555, 0.500),
+      rearHip: Offset(0.445, 0.625),
+      frontHip: Offset(0.495, 0.625),
+      rearKnee: Offset(0.430, 0.780),
+      rearAnkle: Offset(0.405, 0.760),
+      rearToe: Offset(0.370, 0.720),
+      frontKnee: Offset(0.510, 0.755),
+      frontAnkle: Offset(0.425, 0.910),
+      frontToe: Offset(0.430, 0.955),
+      groundY: 0.940,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 1.000,
+      head: Offset(0.520, 0.250),
+      neck: Offset(0.505, 0.350),
+      rearShoulder: Offset(0.458, 0.382),
+      frontShoulder: Offset(0.525, 0.375),
+      rearElbow: Offset(0.420, 0.430),
+      rearWrist: Offset(0.500, 0.450),
+      frontElbow: Offset(0.560, 0.375),
+      frontWrist: Offset(0.580, 0.335),
+      rearHip: Offset(0.460, 0.555),
+      frontHip: Offset(0.520, 0.555),
+      rearKnee: Offset(0.410, 0.690),
+      rearAnkle: Offset(0.320, 0.745),
+      rearToe: Offset(0.310, 0.790),
+      frontKnee: Offset(0.575, 0.675),
+      frontAnkle: Offset(0.555, 0.850),
+      frontToe: Offset(0.605, 0.840),
+      groundY: 0.845,
+    ),
+  ];
+
+  static _SampleVideoPoseKeyframe at(double progress) {
+    final normalized = progress.clamp(0.0, 0.999999).toDouble();
+    for (var index = 0; index < _trackedClipKeyframes.length - 1; index += 1) {
+      final current = _trackedClipKeyframes[index];
+      final next = _trackedClipKeyframes[index + 1];
+      if (normalized >= current.time && normalized <= next.time) {
+        final localT = (normalized - current.time) / (next.time - current.time);
+        return _SampleVideoPoseKeyframe.lerp(current, next, localT);
+      }
+    }
+    return _trackedClipKeyframes.last;
+  }
+
+  static _SampleVideoPoseKeyframe lerp(
+    _SampleVideoPoseKeyframe a,
+    _SampleVideoPoseKeyframe b,
+    double t,
+  ) {
+    return _SampleVideoPoseKeyframe(
+      time: _lerpDouble(a.time, b.time, t),
+      head: Offset.lerp(a.head, b.head, t)!,
+      neck: Offset.lerp(a.neck, b.neck, t)!,
+      rearShoulder: Offset.lerp(a.rearShoulder, b.rearShoulder, t)!,
+      frontShoulder: Offset.lerp(a.frontShoulder, b.frontShoulder, t)!,
+      rearElbow: Offset.lerp(a.rearElbow, b.rearElbow, t)!,
+      rearWrist: Offset.lerp(a.rearWrist, b.rearWrist, t)!,
+      frontElbow: Offset.lerp(a.frontElbow, b.frontElbow, t)!,
+      frontWrist: Offset.lerp(a.frontWrist, b.frontWrist, t)!,
+      rearHip: Offset.lerp(a.rearHip, b.rearHip, t)!,
+      frontHip: Offset.lerp(a.frontHip, b.frontHip, t)!,
+      rearKnee: Offset.lerp(a.rearKnee, b.rearKnee, t)!,
+      rearAnkle: Offset.lerp(a.rearAnkle, b.rearAnkle, t)!,
+      rearToe: Offset.lerp(a.rearToe, b.rearToe, t)!,
+      frontKnee: Offset.lerp(a.frontKnee, b.frontKnee, t)!,
+      frontAnkle: Offset.lerp(a.frontAnkle, b.frontAnkle, t)!,
+      frontToe: Offset.lerp(a.frontToe, b.frontToe, t)!,
+      groundY: _lerpDouble(a.groundY, b.groundY, t),
+    );
+  }
+
+  static double _lerpDouble(double a, double b, double t) => a + (b - a) * t;
 }
 
 class _SampleRunnerPainter extends CustomPainter {
