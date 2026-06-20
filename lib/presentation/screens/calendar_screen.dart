@@ -2599,11 +2599,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ? competitionName.trim()
           : existing?.name ?? '',
     );
-    final teamsController = TextEditingController(
-      text: teamsText.trim().isNotEmpty
-          ? teamsText
-          : existing?.teams.join('\n') ?? '',
-    );
+    final initialTeamsText = teamsText.trim().isNotEmpty
+        ? teamsText
+        : existing?.teams.join('\n') ?? '';
+    var draftTeams = MatchCompetitionService.parseTeams(initialTeamsText);
+    final teamNameController = TextEditingController();
+    var controllersDisposeScheduled = false;
+
+    void scheduleControllerDispose() {
+      if (controllersDisposeScheduled) return;
+      controllersDisposeScheduled = true;
+      unawaited(
+        Future<void>.delayed(const Duration(milliseconds: 350), () {
+          nameController.dispose();
+          teamNameController.dispose();
+        }),
+      );
+    }
 
     try {
       return await showModalBottomSheet<_MatchCompetitionSheetResult>(
@@ -2616,12 +2628,77 @@ class _CalendarScreenState extends State<CalendarScreen> {
           return StatefulBuilder(
             builder: (context, setSheetState) {
               final currentName = nameController.text.trim();
-              final currentTeams = MatchCompetitionService.parseTeams(
-                teamsController.text,
-              );
+              final currentTeams = draftTeams;
               final title = currentName.isEmpty
                   ? l10n.matchCompetitionManagerNewTitle
                   : l10n.matchCompetitionManagerTitle(currentName);
+              void addTeamFromField() {
+                final additions = MatchCompetitionService.parseTeams(
+                  teamNameController.text,
+                );
+                if (additions.isEmpty) {
+                  AppFeedback.showMessage(
+                    context,
+                    text: l10n.matchCompetitionTeamNameRequired,
+                  );
+                  return;
+                }
+                final next = MatchCompetitionService.normalizeTeams([
+                  ...draftTeams,
+                  ...additions,
+                ]);
+                if (next.length == draftTeams.length) {
+                  AppFeedback.showMessage(
+                    context,
+                    text: l10n.matchCompetitionTeamAlreadyAdded,
+                  );
+                  return;
+                }
+                setSheetState(() {
+                  draftTeams = next;
+                  teamNameController.clear();
+                });
+              }
+
+              void removeTeam(String team) {
+                setSheetState(() {
+                  draftTeams = draftTeams
+                      .where((current) => current != team)
+                      .toList(growable: false);
+                });
+              }
+
+              void closeSheet() {
+                FocusScope.of(context).unfocus();
+                Navigator.of(context).pop();
+              }
+
+              Future<void> saveCompetition() async {
+                final name = nameController.text.trim();
+                if (name.isEmpty) {
+                  AppFeedback.showMessage(
+                    context,
+                    text: l10n.matchCompetitionNameRequired,
+                  );
+                  return;
+                }
+                FocusScope.of(context).unfocus();
+                await service.upsertCompetition(
+                  MatchCompetitionRecord.create(
+                    kind: kind,
+                    name: name,
+                    teams: draftTeams,
+                  ),
+                );
+                if (!context.mounted) return;
+                Navigator.of(context).pop(
+                  _MatchCompetitionSheetResult(
+                    name: name,
+                    teams: draftTeams,
+                  ),
+                );
+              }
+
               return SafeArea(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
@@ -2649,7 +2726,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ),
                               ),
                               IconButton(
-                                onPressed: () => Navigator.of(context).pop(),
+                                onPressed: closeSheet,
                                 tooltip: MaterialLocalizations.of(context)
                                     .closeButtonTooltip,
                                 icon: const Icon(
@@ -2694,87 +2771,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
                                     children: [
-                                      TextFormField(
-                                        controller: teamsController,
-                                        readOnly: readOnly,
-                                        minLines: 5,
-                                        maxLines: 8,
-                                        onChanged: (_) => setSheetState(() {}),
-                                        decoration:
-                                            _calendarInputDecorationWithDone(
-                                          context,
-                                          InputDecoration(
-                                            labelText: l10n
-                                                .matchCompetitionTeamsInputLabel,
-                                            hintText: l10n
-                                                .matchCompetitionTeamsInputHint,
-                                          ),
-                                          enabled: !readOnly,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: OutlinedButton.icon(
-                                              onPressed: () =>
-                                                  Navigator.of(context).pop(),
-                                              icon: const Icon(
-                                                Icons.arrow_back,
-                                              ),
-                                              label: Text(
-                                                l10n.matchCompetitionBackButton,
+                                      if (!readOnly) ...[
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              child: TextFormField(
+                                                controller: teamNameController,
+                                                textInputAction:
+                                                    TextInputAction.done,
+                                                onFieldSubmitted: (_) =>
+                                                    addTeamFromField(),
+                                                decoration:
+                                                    _calendarInputDecorationWithDone(
+                                                  context,
+                                                  InputDecoration(
+                                                    labelText: l10n
+                                                        .matchCompetitionTeamNameLabel,
+                                                  ),
+                                                  enabled: true,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          if (!readOnly) ...[
                                             const SizedBox(width: 8),
-                                            Expanded(
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 2,
+                                              ),
                                               child: FilledButton.icon(
-                                                onPressed: () async {
-                                                  final name = nameController
-                                                      .text
-                                                      .trim();
-                                                  final teams =
-                                                      MatchCompetitionService
-                                                          .parseTeams(
-                                                    teamsController.text,
-                                                  );
-                                                  if (name.isEmpty) {
-                                                    AppFeedback.showMessage(
-                                                      context,
-                                                      text: l10n
-                                                          .matchCompetitionNameRequired,
-                                                    );
-                                                    return;
-                                                  }
-                                                  await service
-                                                      .upsertCompetition(
-                                                    MatchCompetitionRecord
-                                                        .create(
-                                                      kind: kind,
-                                                      name: name,
-                                                      teams: teams,
-                                                    ),
-                                                  );
-                                                  if (!context.mounted) return;
-                                                  Navigator.of(context).pop(
-                                                    _MatchCompetitionSheetResult(
-                                                      name: name,
-                                                      teams: teams,
-                                                    ),
-                                                  );
-                                                },
-                                                icon: const Icon(
-                                                  Icons.save_outlined,
-                                                ),
+                                                onPressed: addTeamFromField,
+                                                icon: const Icon(Icons.add),
                                                 label: Text(
-                                                  l10n.matchCompetitionSaveTeams,
+                                                  l10n.matchCompetitionAddTeamButton,
                                                 ),
                                               ),
                                             ),
                                           ],
-                                        ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                      ],
+                                      _buildMatchCompetitionTeamList(
+                                        context: context,
+                                        l10n: l10n,
+                                        teams: currentTeams,
+                                        readOnly: readOnly,
+                                        onRemove: removeTeam,
                                       ),
                                     ],
                                   ),
@@ -2792,6 +2834,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               ],
                             ),
                           ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: closeSheet,
+                                  icon: const Icon(Icons.arrow_back),
+                                  label: Text(
+                                    l10n.matchCompetitionBackButton,
+                                  ),
+                                ),
+                              ),
+                              if (!readOnly) ...[
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: FilledButton.icon(
+                                    onPressed: saveCompetition,
+                                    icon: const Icon(Icons.save_outlined),
+                                    label: Text(
+                                      l10n.matchCompetitionSaveTeams,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -2803,8 +2871,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         },
       );
     } finally {
-      nameController.dispose();
-      teamsController.dispose();
+      scheduleControllerDispose();
     }
   }
 
@@ -2861,6 +2928,67 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           visualDensity: VisualDensity.compact,
                         ),
                     ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMatchCompetitionTeamList({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required List<String> teams,
+    required bool readOnly,
+    required ValueChanged<String> onRemove,
+  }) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.matchCompetitionTeamsListTitle,
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (teams.isEmpty)
+              Text(
+                l10n.matchCompetitionNoTeams,
+                style: theme.textTheme.bodySmall,
+              )
+            else
+              ...teams.map(
+                (team) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ListTile(
+                      dense: true,
+                      leading: const Icon(Icons.groups_2_outlined),
+                      title: Text(team),
+                      trailing: readOnly
+                          ? null
+                          : IconButton(
+                              tooltip:
+                                  l10n.matchCompetitionRemoveTeamTooltip(team),
+                              onPressed: () => onRemove(team),
+                              icon: const Icon(Icons.close),
+                            ),
+                    ),
                   ),
                 ),
               ),

@@ -8224,6 +8224,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionTeamPreviewTitle => 'チームプレビュー';
 
   @override
+  String get matchCompetitionTeamNameLabel => 'チーム名';
+
+  @override
+  String get matchCompetitionAddTeamButton => '追加';
+
+  @override
+  String get matchCompetitionTeamNameRequired => 'チーム名を入力してください。';
+
+  @override
+  String get matchCompetitionTeamAlreadyAdded => 'すでに登録されたチームです。';
+
+  @override
+  String get matchCompetitionTeamsListTitle => '登録チーム';
+
+  @override
+  String matchCompetitionRemoveTeamTooltip(String team) {
+    return '$teamを削除';
+  }
+
+  @override
   String get matchCompetitionTeamsInputLabel => '参加チーム';
 
   @override

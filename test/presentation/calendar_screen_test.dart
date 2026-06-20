@@ -523,6 +523,71 @@ void main() {
     expect(find.text('시합 수정'), findsOneWidget);
   });
 
+  testWidgets('대회 관리 시트는 팀을 하나씩 추가하고 삭제해 저장한다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+    final today = DateTime.now();
+    await saveTrainingEntry(
+      tester,
+      TrainingEntry(
+        date: DateTime(today.year, today.month, today.day, 9),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '',
+        matchKind: MatchCompetitionRecord.kindLeague,
+        matchCompetitionName: '주말 리그',
+        opponentTeam: '블루 FC',
+      ),
+    );
+
+    await pumpCalendar(tester);
+
+    await tester.tap(find.textContaining('주말 리그').first);
+    await tester.pumpAndSettle();
+
+    final manageButton = find.text('팀 등록/결과 보기');
+    await tester.ensureVisible(manageButton);
+    await tester.tap(manageButton);
+    await tester.pumpAndSettle();
+
+    final teamField = find
+        .ancestor(of: find.text('팀 이름'), matching: find.byType(TextFormField))
+        .first;
+    await tester.enterText(teamField, '레드 FC');
+    await tester.tap(find.text('추가'));
+    await tester.pumpAndSettle();
+    await tester.enterText(teamField, '블루 FC');
+    await tester.tap(find.text('추가'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('레드 FC'), findsWidgets);
+    expect(find.text('블루 FC'), findsWidgets);
+    expect(find.text('2개 팀 등록됨'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('레드 FC 삭제'));
+    await tester.pumpAndSettle();
+    expect(find.text('레드 FC'), findsNothing);
+    expect(find.text('블루 FC'), findsWidgets);
+    expect(find.text('1개 팀 등록됨'), findsOneWidget);
+
+    await tester.tap(find.text('팀 저장'));
+    await tester.pumpAndSettle();
+
+    final savedCompetition = MatchCompetitionService(
+      optionRepository,
+    ).findCompetition(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '주말 리그',
+    );
+    expect(savedCompetition?.teams, <String>['블루 FC']);
+  });
+
   testWidgets('토너먼트 대회 관리 시트는 등록 팀 대진표를 보여준다', (tester) async {
     await tester.binding.setSurfaceSize(const Size(900, 900));
     addTearDown(() async {
