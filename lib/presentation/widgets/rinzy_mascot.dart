@@ -668,7 +668,7 @@ void _drawCheerPomPom(
   final direction = Offset(math.cos(angle), math.sin(angle));
   final normal = Offset(-direction.dy, direction.dx);
   final flick = math.sin(flutter * math.pi * 2);
-  final center = hand + direction * unit * (0.050 + flick * 0.004);
+  final center = hand + direction * unit * (0.056 + flick * 0.007);
 
   final strandColors = <Color>[
     primary,
@@ -683,30 +683,38 @@ void _drawCheerPomPom(
     Colors.white,
     primary,
     accent,
+    Colors.white,
+    primary,
+    accent,
+    primary,
+    Colors.white,
+    accent,
+    primary,
+    Colors.white,
   ];
   for (var index = 0; index < strandColors.length; index += 1) {
     final spread = (index - (strandColors.length - 1) / 2) /
         ((strandColors.length - 1) / 2);
-    final ripple = math.sin(flutter * math.pi * 2 + index * 0.58);
-    final strandAngle = angle + spread * 0.92 + ripple * 0.16;
+    final ripple = math.sin(flutter * math.pi * 2 + index * 0.53);
+    final strandAngle = angle + spread * 1.10 + ripple * 0.23;
     final strandDirection =
         Offset(math.cos(strandAngle), math.sin(strandAngle));
     final strandNormal = Offset(-strandDirection.dy, strandDirection.dx);
     final start = center -
-        strandDirection * unit * (0.014 + index % 3 * 0.002) +
-        normal * unit * spread * 0.010;
+        strandDirection * unit * (0.018 + index % 4 * 0.002) +
+        normal * unit * spread * 0.012;
     final control = center +
-        strandDirection * unit * (0.050 + (index.isEven ? 0.012 : 0.0)) +
-        strandNormal * unit * ripple * 0.018;
+        strandDirection * unit * (0.064 + (index.isEven ? 0.018 : 0.006)) +
+        strandNormal * unit * ripple * 0.030;
     final end = center +
-        strandDirection * unit * (0.096 + math.cos(index * 1.3) * 0.018) +
-        strandNormal * unit * ripple * 0.026;
+        strandDirection * unit * (0.124 + math.cos(index * 1.21) * 0.026) +
+        strandNormal * unit * ripple * 0.038;
     final paint = Paint()
       ..color = strandColors[index].withValues(
-        alpha: strandColors[index] == Colors.white ? 0.76 : 0.88,
+        alpha: strandColors[index] == Colors.white ? 0.70 : 0.86,
       )
       ..style = PaintingStyle.stroke
-      ..strokeWidth = unit * (index.isEven ? 0.014 : 0.011)
+      ..strokeWidth = unit * (index.isEven ? 0.015 : 0.011)
       ..strokeCap = StrokeCap.round;
     final path = Path()
       ..moveTo(start.dx, start.dy)
@@ -714,21 +722,21 @@ void _drawCheerPomPom(
     canvas.drawPath(path, paint);
   }
 
-  for (var index = 0; index < 5; index += 1) {
-    final spread = (index - 2) / 2;
-    final ripple = math.sin(flutter * math.pi * 2 + index * 0.91);
-    final strandAngle = angle + spread * 0.55 - ripple * 0.12;
+  for (var index = 0; index < 11; index += 1) {
+    final spread = (index - 5) / 5;
+    final ripple = math.sin(flutter * math.pi * 2 + index * 0.77);
+    final strandAngle = angle + spread * 0.72 - ripple * 0.18;
     final strandDirection =
         Offset(math.cos(strandAngle), math.sin(strandAngle));
     final strandNormal = Offset(-strandDirection.dy, strandDirection.dx);
-    final start = center - strandDirection * unit * 0.006;
+    final start = center - strandDirection * unit * 0.008;
     final end = center +
-        strandDirection * unit * (0.064 + index * 0.004) +
-        strandNormal * unit * ripple * 0.018;
+        strandDirection * unit * (0.078 + (index % 4) * 0.007) +
+        strandNormal * unit * ripple * 0.026;
     final paint = Paint()
-      ..color = (index.isEven ? primary : accent).withValues(alpha: 0.70)
+      ..color = (index.isEven ? primary : accent).withValues(alpha: 0.74)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = unit * 0.009
+      ..strokeWidth = unit * (index == 5 ? 0.013 : 0.009)
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(start, end, paint);
   }
