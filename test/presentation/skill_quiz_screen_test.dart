@@ -413,7 +413,7 @@ void main() {
 
     expect(find.text('학습 참고서'), findsOneWidget);
     expect(find.text('적용 포인트'), findsOneWidget);
-    expect(find.text('훈련 체크'), findsOneWidget);
+    expect(find.text('훈련 체크'), findsNothing);
   });
 
   testWidgets('daily quiz mixes in due wrong-answer questions', (
