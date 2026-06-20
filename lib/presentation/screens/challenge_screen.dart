@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1279,7 +1278,8 @@ class _ChallengeTemplateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final accent = _challengeTemplateAccent(template.id);
+    final scheme = theme.colorScheme;
+    final accent = scheme.primary;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1289,15 +1289,16 @@ class _ChallengeTemplateCard extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                accent.withValues(alpha: selected ? 0.12 : 0.05),
-                theme.colorScheme.surface,
-              ],
-            ),
+            color: selected
+                ? scheme.primaryContainer.withValues(
+                    alpha: theme.brightness == Brightness.dark ? 0.24 : 0.34,
+                  )
+                : scheme.surface,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: selected ? accent : theme.colorScheme.outlineVariant,
+              color: selected
+                  ? accent.withValues(alpha: 0.78)
+                  : scheme.outlineVariant.withValues(alpha: 0.72),
               width: selected ? 2 : 1,
             ),
           ),
@@ -1311,10 +1312,17 @@ class _ChallengeTemplateCard extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.16),
+                      color: selected
+                          ? accent.withValues(alpha: 0.14)
+                          : scheme.surfaceContainerHighest.withValues(
+                              alpha: 0.74,
+                            ),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(Icons.flag_outlined, color: accent),
+                    child: Icon(
+                      Icons.flag_outlined,
+                      color: selected ? accent : scheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1339,8 +1347,7 @@ class _ChallengeTemplateCard extends StatelessWidget {
                     selected
                         ? Icons.check_circle
                         : Icons.radio_button_unchecked,
-                    color:
-                        selected ? accent : theme.colorScheme.onSurfaceVariant,
+                    color: selected ? accent : scheme.onSurfaceVariant,
                   ),
                 ],
               ),
@@ -3812,7 +3819,7 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
   }
 }
 
-class _RoundCalendarCurrentRoundStatus extends StatefulWidget {
+class _RoundCalendarCurrentRoundStatus extends StatelessWidget {
   final ChallengeRoundProgress round;
   final double size;
 
@@ -3822,214 +3829,85 @@ class _RoundCalendarCurrentRoundStatus extends StatefulWidget {
   });
 
   @override
-  State<_RoundCalendarCurrentRoundStatus> createState() =>
-      _RoundCalendarCurrentRoundStatusState();
-}
-
-class _RoundCalendarCurrentRoundStatusState
-    extends State<_RoundCalendarCurrentRoundStatus>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1600),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final progress = widget.round.missionCompletionRate.clamp(0, 1).toDouble();
+    final progress = round.missionCompletionRate.clamp(0, 1).toDouble();
     final progressPercent = (progress * 100).round();
-    final activeGreen = Color.lerp(
-      scheme.primary,
-      const Color(0xFF22C55E),
-      theme.brightness == Brightness.dark ? 0.48 : 0.72,
-    )!;
     final onActive = theme.brightness == Brightness.dark
         ? const Color(0xFFDCFCE7)
         : const Color(0xFF064E3B);
     return SizedBox.square(
       key: ValueKey(
-        'challenge-current-round-status-${widget.round.round.number}',
+        'challenge-current-round-status-${round.round.number}',
       ),
-      dimension: widget.size,
+      dimension: size,
       child: Semantics(
         label: '${l10n.challengePendingBadge}, '
-            '${l10n.challengeRoundTitle(widget.round.round.number)}, '
+            '${l10n.challengeRoundTitle(round.round.number)}, '
             '${l10n.challengeProgressPercent(progressPercent)}',
         child: RepaintBoundary(
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) {
-              return Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: CustomPaint(
-                        painter: _RoundCalendarActiveBackdropPainter(
-                          progress: progress,
-                          phase: _controller.value,
-                          primary: scheme.primary,
-                        ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: size * 0.09,
+              right: size * 0.09,
+              top: size * 0.08,
+              bottom: size * 0.08,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  constraints: BoxConstraints(
+                    maxHeight: size * 0.22,
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: size * 0.08,
+                    vertical: size * 0.025,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(
+                      alpha: theme.brightness == Brightness.dark ? 0.12 : 0.72,
+                    ),
+                    borderRadius: AppRadius.full,
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      l10n.challengeRoundDateToday,
+                      maxLines: 1,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: onActive,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      left: widget.size * 0.09,
-                      right: widget.size * 0.09,
-                      top: widget.size * 0.08,
-                      bottom: widget.size * 0.08,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          constraints: BoxConstraints(
-                            maxHeight: widget.size * 0.22,
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: widget.size * 0.08,
-                            vertical: widget.size * 0.025,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(
-                              alpha: theme.brightness == Brightness.dark
-                                  ? 0.12
-                                  : 0.72,
-                            ),
-                            borderRadius: AppRadius.full,
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              l10n.challengeRoundDateToday,
-                              maxLines: 1,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: onActive,
-                                fontWeight: FontWeight.w900,
-                                height: 1,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox.square(
-                          dimension: widget.size * 0.42,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              CircularProgressIndicator(
-                                value: progress,
-                                strokeWidth: (widget.size * 0.030)
-                                    .clamp(2.0, 3.2)
-                                    .toDouble(),
-                                backgroundColor: Colors.white.withValues(
-                                  alpha: theme.brightness == Brightness.dark
-                                      ? 0.20
-                                      : 0.58,
-                                ),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  activeGreen,
-                                ),
-                              ),
-                              Icon(
-                                Icons.play_arrow_rounded,
-                                color: onActive,
-                                size: widget.size * 0.24,
-                              ),
-                            ],
-                          ),
-                        ),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            'R${widget.round.round.number} · '
-                            '${l10n.challengeProgressPercent(progressPercent)}',
-                            maxLines: 1,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: onActive,
-                              fontWeight: FontWeight.w900,
-                              height: 1,
-                            ),
-                          ),
-                        ),
-                      ],
+                ),
+                Icon(
+                  Icons.play_arrow_rounded,
+                  color: onActive,
+                  size: size * 0.36,
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'R${round.round.number} · '
+                    '${l10n.challengeProgressPercent(progressPercent)}',
+                    maxLines: 1,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: onActive,
+                      fontWeight: FontWeight.w900,
+                      height: 1,
                     ),
                   ),
-                ],
-              );
-            },
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
-  }
-}
-
-class _RoundCalendarActiveBackdropPainter extends CustomPainter {
-  final double progress;
-  final double phase;
-  final Color primary;
-
-  const _RoundCalendarActiveBackdropPainter({
-    required this.progress,
-    required this.phase,
-    required this.primary,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final unit = size.shortestSide;
-    if (unit <= 0) return;
-
-    final safeProgress = progress.clamp(0, 1).toDouble();
-    final pulse = 0.5 + math.sin(phase * math.pi * 2) * 0.5;
-    final center = Offset(size.width * 0.50, size.height * 0.47);
-    final activeGreen = Color.lerp(primary, const Color(0xFF22C55E), 0.72)!;
-    final activeBlue = Color.lerp(primary, const Color(0xFF38BDF8), 0.62)!;
-    final glowPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          activeGreen.withValues(alpha: 0.24 + pulse * 0.06),
-          activeBlue.withValues(alpha: 0.10),
-          Colors.transparent,
-        ],
-      ).createShader(Rect.fromCircle(center: center, radius: unit * 0.50));
-    canvas.drawCircle(center, unit * 0.50, glowPaint);
-
-    final pulseRing = Paint()
-      ..color = activeGreen.withValues(alpha: 0.14 + pulse * 0.08)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = unit * 0.018
-      ..strokeCap = StrokeCap.round;
-    canvas.drawCircle(
-      center,
-      unit * (0.40 + safeProgress * 0.04 + pulse * 0.01),
-      pulseRing,
-    );
-  }
-
-  @override
-  bool shouldRepaint(
-      covariant _RoundCalendarActiveBackdropPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.phase != phase ||
-        oldDelegate.primary != primary;
   }
 }
 
@@ -4881,15 +4759,6 @@ bool _progressRoundCompleted(ChallengeProgress? progress, int roundNumber) {
     if (round.round.number == roundNumber) return round.completed;
   }
   return false;
-}
-
-Color _challengeTemplateAccent(String templateId) {
-  return switch (templateId) {
-    'starter_3' => const Color(0xFF2A9D8F),
-    'weekly_7' => const Color(0xFFE76F51),
-    'focus_14' => const Color(0xFF5B6CFF),
-    _ => const Color(0xFF256D85),
-  };
 }
 
 List<_ChallengeSkillOption> _challengeProgramSkillOptions(
