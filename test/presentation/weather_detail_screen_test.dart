@@ -239,12 +239,14 @@ void main() {
     expect(find.text('09:00'), findsNothing);
     expect(find.text('10:00'), findsNothing);
     expect(find.text('11:00'), findsAtLeastNWidgets(1));
-    expect(find.text('0.5 mm'), findsAtLeastNWidgets(1));
-    expect(find.text('0.0 mm'), findsOneWidget);
+    expect(find.textContaining('0.5 mm'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('조금 와요'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('0.0 mm'), findsOneWidget);
+    expect(find.textContaining('비가 거의 안 와요'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Rain risk panel combines probability amount and football tips', (
+  testWidgets('Hourly precipitation shows daily total and amount severity', (
     WidgetTester tester,
   ) async {
     WeatherSharedResource.primeSnapshot(
@@ -300,18 +302,15 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.drag(find.byType(ListView).first, const Offset(0, -500));
-    await tester.pumpAndSettle();
 
-    expect(find.text('비 체크'), findsOneWidget);
-    expect(find.text('높음'), findsOneWidget);
+    expect(find.text('비 체크'), findsNothing);
     expect(find.text('강수확률'), findsAtLeastNWidgets(1));
     expect(find.text('85%'), findsAtLeastNWidgets(1));
-    expect(find.text('오늘 총량'), findsOneWidget);
     expect(find.textContaining('3.0 mm'), findsAtLeastNWidgets(1));
     expect(find.text('15:00'), findsAtLeastNWidgets(1));
-    expect(find.text('1.2 mm'), findsAtLeastNWidgets(1));
-    expect(find.textContaining('미끄러운 그라운드'), findsOneWidget);
+    expect(find.textContaining('1.2 mm'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('가볍게 와요'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('미끄러운 그라운드'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

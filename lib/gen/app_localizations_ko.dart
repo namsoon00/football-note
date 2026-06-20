@@ -4559,27 +4559,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get weatherPrecipitationVeryHeavy => '아주 많이 와요';
 
   @override
-  String get homeWeatherRainRiskTitle => '비 체크';
-
-  @override
-  String get homeWeatherRainRiskLevelLow => '낮음';
-
-  @override
-  String get homeWeatherRainRiskLevelMedium => '보통';
-
-  @override
-  String get homeWeatherRainRiskLevelHigh => '높음';
-
-  @override
-  String get homeWeatherRainRiskTotal => '오늘 총량';
-
-  @override
-  String get homeWeatherRainRiskPeakHour => '강한 시간';
-
-  @override
-  String get homeWeatherRainRiskTip => '미끄러운 그라운드에 대비해 스터드와 여벌 양말을 챙기세요.';
-
-  @override
   String get homeWeatherHourlyPrecipitation => '시간별 비 타임라인';
 
   @override

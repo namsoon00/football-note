@@ -4566,27 +4566,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get weatherPrecipitationVeryHeavy => 'とても強く降ります';
 
   @override
-  String get homeWeatherRainRiskTitle => '雨チェック';
-
-  @override
-  String get homeWeatherRainRiskLevelLow => '低い';
-
-  @override
-  String get homeWeatherRainRiskLevelMedium => '中';
-
-  @override
-  String get homeWeatherRainRiskLevelHigh => '高い';
-
-  @override
-  String get homeWeatherRainRiskTotal => '今日の合計';
-
-  @override
-  String get homeWeatherRainRiskPeakHour => 'ピーク時間';
-
-  @override
-  String get homeWeatherRainRiskTip => '滑りやすいグラウンドに備えて、スタッドと予備の靴下を用意してください。';
-
-  @override
   String get homeWeatherHourlyPrecipitation => '時間別の雨タイムライン';
 
   @override
