@@ -6264,6 +6264,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSamplePhaseJoints => 'Track joints';
 
   @override
+  String get runningCoachSamplePhaseMuscles => 'Map muscle load';
+
+  @override
   String get runningCoachSamplePhaseSkeleton => 'Connect pose lines';
 
   @override
@@ -6271,6 +6274,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSamplePhaseContactScore => 'Score contact confidence';
+
+  @override
+  String get runningCoachSampleDecisionTitle => 'Decision evidence';
+
+  @override
+  String get runningCoachSampleMetricPosture => 'Posture';
+
+  @override
+  String get runningCoachSampleMetricArms => 'Arms';
+
+  @override
+  String get runningCoachSampleMetricLanding => 'Landing';
+
+  @override
+  String get runningCoachSampleMetricFrames => 'Frame coverage';
+
+  @override
+  String get runningCoachSampleMetricBounce => 'Bounce';
+
+  @override
+  String get runningCoachSampleStatusPass => 'Pass';
+
+  @override
+  String get runningCoachSampleStatusReview => 'Review';
 
   @override
   String get runningCoachSampleOverlayPosture => 'Lean 10°';

@@ -6086,6 +6086,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSamplePhaseJoints => '関節を追跡';
 
   @override
+  String get runningCoachSamplePhaseMuscles => '筋負荷を表示';
+
+  @override
   String get runningCoachSamplePhaseSkeleton => '姿勢線を接続';
 
   @override
@@ -6093,6 +6096,30 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSamplePhaseContactScore => '接地信頼度を採点';
+
+  @override
+  String get runningCoachSampleDecisionTitle => '判定根拠';
+
+  @override
+  String get runningCoachSampleMetricPosture => '姿勢';
+
+  @override
+  String get runningCoachSampleMetricArms => '腕';
+
+  @override
+  String get runningCoachSampleMetricLanding => '着地';
+
+  @override
+  String get runningCoachSampleMetricFrames => 'フレーム';
+
+  @override
+  String get runningCoachSampleMetricBounce => '上下動';
+
+  @override
+  String get runningCoachSampleStatusPass => '合格';
+
+  @override
+  String get runningCoachSampleStatusReview => '確認';
 
   @override
   String get runningCoachSampleOverlayPosture => 'リーン10°';
