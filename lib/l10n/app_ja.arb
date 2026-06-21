@@ -2542,6 +2542,35 @@
       }
     }
   },
+  "notificationFilteredFeedSubtitle": "全 {total} 件のうち、このカテゴリの通知 {shown} 件を表示しています。",
+  "@notificationFilteredFeedSubtitle": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationCategoryFilterLabel": "カテゴリ別に通知を絞り込む",
+  "notificationCategoryAll": "すべて",
+  "notificationCategoryTrainingPlan": "トレーニング",
+  "notificationCategoryWeather": "天気",
+  "notificationCategoryFixture": "試合",
+  "notificationCategoryXp": "XP",
+  "notificationCategoryFamily": "保護者",
+  "notificationCategoryChipLabel": "{category} {count}件",
+  "@notificationCategoryChipLabel": {
+    "placeholders": {
+      "category": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationCategoryEmptyTitle": "このカテゴリに表示する通知はありません。",
+  "notificationCategoryEmptySubtitle": "別のカテゴリを選ぶか、あとで更新してください。",
   "notificationFeedEmptyTitle": "表示する通知はありません。",
   "notificationFeedEmptySubtitle": "トレーニング、天気、試合通知がここに表示されます。",
   "notificationInactivitySettingsTitle": "記録なしリマインダー",

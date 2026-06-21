@@ -4280,6 +4280,44 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String notificationFilteredFeedSubtitle(int shown, int total) {
+    return '전체 $total개 중 이 카테고리 알림 $shown개를 보고 있어요.';
+  }
+
+  @override
+  String get notificationCategoryFilterLabel => '카테고리별 알림 필터';
+
+  @override
+  String get notificationCategoryAll => '전체';
+
+  @override
+  String get notificationCategoryTrainingPlan => '훈련';
+
+  @override
+  String get notificationCategoryWeather => '날씨';
+
+  @override
+  String get notificationCategoryFixture => '경기';
+
+  @override
+  String get notificationCategoryXp => '경험치';
+
+  @override
+  String get notificationCategoryFamily => '보호자';
+
+  @override
+  String notificationCategoryChipLabel(Object category, int count) {
+    return '$category $count개';
+  }
+
+  @override
+  String get notificationCategoryEmptyTitle => '이 카테고리에는 표시할 알림이 없어요.';
+
+  @override
+  String get notificationCategoryEmptySubtitle =>
+      '다른 카테고리를 선택하거나 나중에 새로고침해 보세요.';
+
+  @override
   String get notificationFeedEmptyTitle => '표시할 알림이 없어요.';
 
   @override

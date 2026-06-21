@@ -7766,6 +7766,72 @@ abstract class AppLocalizations {
   /// **'Alerts shown: {count}'**
   String notificationFeedSubtitle(int count);
 
+  /// No description provided for @notificationFilteredFeedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {shown} of {total} alerts in this category.'**
+  String notificationFilteredFeedSubtitle(int shown, int total);
+
+  /// No description provided for @notificationCategoryFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter alerts by category'**
+  String get notificationCategoryFilterLabel;
+
+  /// No description provided for @notificationCategoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get notificationCategoryAll;
+
+  /// No description provided for @notificationCategoryTrainingPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get notificationCategoryTrainingPlan;
+
+  /// No description provided for @notificationCategoryWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get notificationCategoryWeather;
+
+  /// No description provided for @notificationCategoryFixture.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get notificationCategoryFixture;
+
+  /// No description provided for @notificationCategoryXp.
+  ///
+  /// In en, this message translates to:
+  /// **'XP'**
+  String get notificationCategoryXp;
+
+  /// No description provided for @notificationCategoryFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get notificationCategoryFamily;
+
+  /// No description provided for @notificationCategoryChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} ({count})'**
+  String notificationCategoryChipLabel(Object category, int count);
+
+  /// No description provided for @notificationCategoryEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No alerts in this category.'**
+  String get notificationCategoryEmptyTitle;
+
+  /// No description provided for @notificationCategoryEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another category or refresh later.'**
+  String get notificationCategoryEmptySubtitle;
+
   /// No description provided for @notificationFeedEmptyTitle.
   ///
   /// In en, this message translates to:

@@ -2542,6 +2542,35 @@
       }
     }
   },
+  "notificationFilteredFeedSubtitle": "Showing {shown} of {total} alerts in this category.",
+  "@notificationFilteredFeedSubtitle": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationCategoryFilterLabel": "Filter alerts by category",
+  "notificationCategoryAll": "All",
+  "notificationCategoryTrainingPlan": "Training",
+  "notificationCategoryWeather": "Weather",
+  "notificationCategoryFixture": "Matches",
+  "notificationCategoryXp": "XP",
+  "notificationCategoryFamily": "Family",
+  "notificationCategoryChipLabel": "{category} ({count})",
+  "@notificationCategoryChipLabel": {
+    "placeholders": {
+      "category": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationCategoryEmptyTitle": "No alerts in this category.",
+  "notificationCategoryEmptySubtitle": "Choose another category or refresh later.",
   "notificationFeedEmptyTitle": "No alerts to show.",
   "notificationFeedEmptySubtitle": "Training, weather, and match alerts will appear here.",
   "notificationInactivitySettingsTitle": "Inactivity reminders",

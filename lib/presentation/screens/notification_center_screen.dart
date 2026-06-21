@@ -44,6 +44,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   List<_FixtureMessageRow> _fixtureRows = const [];
   List<_WeatherMessageRow> _weatherRows = const [];
   String? _lastTrainingLogAt;
+  _NotificationCategory _selectedCategory = _NotificationCategory.all;
 
   @override
   void initState() {
@@ -251,7 +252,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
-    final feedItems = _buildFeedItems(l10n: l10n, isKo: isKo);
+    final allFeedItems = _buildFeedItems(l10n: l10n, isKo: isKo);
+    final feedItems = _filterFeedItems(allFeedItems);
+    final categoryOptions = _buildCategoryOptions(allFeedItems, l10n: l10n);
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
@@ -282,20 +285,40 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       widget.settingsService.reminderEnabled,
                   mutedNow: _mutedNow,
                   countLabel: l10n.notificationOverviewCountLabel(
-                    feedItems.length,
+                    allFeedItems.length,
                   ),
                   l10n: l10n,
                 ),
                 const SizedBox(height: 16),
                 _NotificationFeedHeader(
                   title: l10n.notificationFeedTitle,
-                  subtitle: l10n.notificationFeedSubtitle(feedItems.length),
+                  subtitle: _selectedCategory == _NotificationCategory.all
+                      ? l10n.notificationFeedSubtitle(allFeedItems.length)
+                      : l10n.notificationFilteredFeedSubtitle(
+                          feedItems.length,
+                          allFeedItems.length,
+                        ),
                 ),
                 const SizedBox(height: 8),
+                _NotificationCategoryFilterBar(
+                  label: l10n.notificationCategoryFilterLabel,
+                  options: categoryOptions,
+                  selectedCategory: _selectedCategory,
+                  onSelected: (category) {
+                    setState(() {
+                      _selectedCategory = category;
+                    });
+                  },
+                ),
+                const SizedBox(height: 10),
                 if (feedItems.isEmpty)
                   _NotificationEmptyCard(
-                    title: l10n.notificationFeedEmptyTitle,
-                    subtitle: l10n.notificationFeedEmptySubtitle,
+                    title: allFeedItems.isEmpty
+                        ? l10n.notificationFeedEmptyTitle
+                        : l10n.notificationCategoryEmptyTitle,
+                    subtitle: allFeedItems.isEmpty
+                        ? l10n.notificationFeedEmptySubtitle
+                        : l10n.notificationCategoryEmptySubtitle,
                   )
                 else
                   ...feedItems.map(
@@ -321,6 +344,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       items.add(
         _NotificationFeedItem(
           key: 'weather-msg-${item.id}',
+          category: _NotificationCategory.weather,
           title: item.title.isEmpty ? l10n.homeWeatherTitle : item.title,
           subtitle: item.body,
           time: item.scheduledAt,
@@ -337,6 +361,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       items.add(
         _NotificationFeedItem(
           key: 'alarm-msg-${item.messageKey}',
+          category: _NotificationCategory.trainingPlan,
           title: item.category.isEmpty
               ? l10n.notificationPlanFallbackTitle
               : item.category,
@@ -359,6 +384,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       items.add(
         _NotificationFeedItem(
           key: 'fixture-msg-${item.id}',
+          category: _NotificationCategory.fixture,
           title: item.title.isEmpty ? item.leagueName : item.title,
           subtitle: item.body,
           time: item.kickoffAt,
@@ -377,6 +403,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       items.add(
         _NotificationFeedItem(
           key: 'xp-msg-${item.id}',
+          category: _NotificationCategory.xp,
           title: item.label.isEmpty
               ? l10n.notificationXpFallbackTitle
               : item.label,
@@ -399,6 +426,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       items.add(
         _NotificationFeedItem(
           key: 'family-msg-${item.id}',
+          category: _NotificationCategory.family,
           title: item.title,
           subtitle: item.body,
           time: item.createdAt,
@@ -417,6 +445,76 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       return b.time.compareTo(a.time);
     });
     return items;
+  }
+
+  List<_NotificationFeedItem> _filterFeedItems(
+    List<_NotificationFeedItem> items,
+  ) {
+    if (_selectedCategory == _NotificationCategory.all) return items;
+    return items
+        .where((item) => item.category == _selectedCategory)
+        .toList(growable: false);
+  }
+
+  List<_NotificationCategoryOption> _buildCategoryOptions(
+    List<_NotificationFeedItem> items, {
+    required AppLocalizations l10n,
+  }) {
+    final counts = {
+      for (final category in _NotificationCategory.values) category: 0,
+    };
+    counts[_NotificationCategory.all] = items.length;
+    for (final item in items) {
+      counts[item.category] = (counts[item.category] ?? 0) + 1;
+    }
+    return _NotificationCategory.values.map((category) {
+      final label = _categoryLabel(category, l10n);
+      return _NotificationCategoryOption(
+        category: category,
+        label: l10n.notificationCategoryChipLabel(
+          label,
+          counts[category] ?? 0,
+        ),
+        icon: _categoryIcon(category),
+      );
+    }).toList(growable: false);
+  }
+
+  String _categoryLabel(
+    _NotificationCategory category,
+    AppLocalizations l10n,
+  ) {
+    switch (category) {
+      case _NotificationCategory.all:
+        return l10n.notificationCategoryAll;
+      case _NotificationCategory.trainingPlan:
+        return l10n.notificationCategoryTrainingPlan;
+      case _NotificationCategory.weather:
+        return l10n.notificationCategoryWeather;
+      case _NotificationCategory.fixture:
+        return l10n.notificationCategoryFixture;
+      case _NotificationCategory.xp:
+        return l10n.notificationCategoryXp;
+      case _NotificationCategory.family:
+        return l10n.notificationCategoryFamily;
+    }
+  }
+
+  IconData _categoryIcon(_NotificationCategory category) {
+    switch (category) {
+      case _NotificationCategory.all:
+        return Icons.notifications_outlined;
+      case _NotificationCategory.trainingPlan:
+        return Icons.alarm_outlined;
+      case _NotificationCategory.weather:
+        return Icons.cloud_outlined;
+      case _NotificationCategory.fixture:
+        return Icons.sports_soccer_rounded;
+      case _NotificationCategory.xp:
+        return Icons.stars_rounded;
+      case _NotificationCategory.family:
+        return Icons.sync_alt_rounded;
+    }
   }
 
   String _buildPlanSubtitle(_PlanAlarmRow item) {
@@ -958,6 +1056,44 @@ class _NotificationEmptyCard extends StatelessWidget {
   }
 }
 
+class _NotificationCategoryFilterBar extends StatelessWidget {
+  final String label;
+  final List<_NotificationCategoryOption> options;
+  final _NotificationCategory selectedCategory;
+  final ValueChanged<_NotificationCategory> onSelected;
+
+  const _NotificationCategoryFilterBar({
+    required this.label,
+    required this.options,
+    required this.selectedCategory,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: label,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final option in options) ...[
+              ChoiceChip(
+                avatar: Icon(option.icon, size: 17),
+                label: Text(option.label),
+                selected: option.category == selectedCategory,
+                onSelected: (_) => onSelected(option.category),
+                visualDensity: VisualDensity.compact,
+              ),
+              const SizedBox(width: 8),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _NotificationFeedTile extends StatelessWidget {
   final _NotificationFeedItem item;
   final String newLabel;
@@ -1084,8 +1220,30 @@ class _NewBadge extends StatelessWidget {
   }
 }
 
+enum _NotificationCategory {
+  all,
+  trainingPlan,
+  weather,
+  fixture,
+  xp,
+  family,
+}
+
+class _NotificationCategoryOption {
+  final _NotificationCategory category;
+  final String label;
+  final IconData icon;
+
+  const _NotificationCategoryOption({
+    required this.category,
+    required this.label,
+    required this.icon,
+  });
+}
+
 class _NotificationFeedItem {
   final String key;
+  final _NotificationCategory category;
   final String title;
   final String subtitle;
   final DateTime time;
@@ -1099,6 +1257,7 @@ class _NotificationFeedItem {
 
   const _NotificationFeedItem({
     required this.key,
+    required this.category,
     required this.title,
     required this.subtitle,
     required this.time,
