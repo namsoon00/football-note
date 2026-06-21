@@ -9867,18 +9867,37 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String challengeCelebrationCompleteBody(int xp) {
-    return 'すべてのラウンドが終わりました。+$xp XP を受け取りました。';
+    return 'すべてのラウンドを最後までやり切りました。その継続が本物の力になっています。+$xp XP を受け取りました。';
   }
 
   @override
   String get challengeCelebrationCompleteBodyNoXp =>
-      'すべてのミッション記録が完了しました。チャレンジ完了画面で進行状況を確認してください。';
+      'すべてのミッション記録が完了しました。この完走の流れを次のチャレンジにつなげましょう。';
 
   @override
   String get challengeCelebrationMissionsTitle => '完了したミッション';
 
   @override
   String get challengeCelebrationAction => 'いいね!';
+
+  @override
+  String get challengeCelebrationNextChallengeAction => '次のチャレンジを作成';
+
+  @override
+  String get challengeFinishedPraiseTitle => '最後までやり切りました';
+
+  @override
+  String challengeFinishedPraiseBody(Object title, int rounds) {
+    return '$titleで全$roundsラウンドを完走しました。この勢いで次のチャレンジへ進みましょう。';
+  }
+
+  @override
+  String challengeFinishedCompletedRoundsLabel(int rounds) {
+    return '$roundsラウンド完走';
+  }
+
+  @override
+  String get challengeFinishedNextPrompt => '下から次のチャレンジを選びましょう';
 
   @override
   String get challengeHistoryTitle => 'チャレンジ履歴';

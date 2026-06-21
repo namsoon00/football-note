@@ -17448,13 +17448,13 @@ abstract class AppLocalizations {
   /// No description provided for @challengeCelebrationCompleteBody.
   ///
   /// In en, this message translates to:
-  /// **'All rounds are done. You earned +{xp} XP.'**
+  /// **'You finished every round. That consistency is becoming real skill. You earned +{xp} XP.'**
   String challengeCelebrationCompleteBody(int xp);
 
   /// No description provided for @challengeCelebrationCompleteBodyNoXp.
   ///
   /// In en, this message translates to:
-  /// **'All missions are recorded. Review the challenge completion screen.'**
+  /// **'All missions are recorded. Carry this finish into the next challenge.'**
   String get challengeCelebrationCompleteBodyNoXp;
 
   /// No description provided for @challengeCelebrationMissionsTitle.
@@ -17468,6 +17468,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nice!'**
   String get challengeCelebrationAction;
+
+  /// No description provided for @challengeCelebrationNextChallengeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create next challenge'**
+  String get challengeCelebrationNextChallengeAction;
+
+  /// No description provided for @challengeFinishedPraiseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You finished it all'**
+  String get challengeFinishedPraiseTitle;
+
+  /// No description provided for @challengeFinishedPraiseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You completed all {rounds} rounds of {title}. Keep the rhythm going with the next challenge.'**
+  String challengeFinishedPraiseBody(Object title, int rounds);
+
+  /// No description provided for @challengeFinishedCompletedRoundsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{rounds} rounds completed'**
+  String challengeFinishedCompletedRoundsLabel(int rounds);
+
+  /// No description provided for @challengeFinishedNextPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the next challenge below'**
+  String get challengeFinishedNextPrompt;
 
   /// No description provided for @challengeHistoryTitle.
   ///
