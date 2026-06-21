@@ -3178,6 +3178,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get statsReportTotalTimeLabel => '総練習時間';
 
   @override
+  String get statsReportTrainingRhythmLabel => '記録リズム';
+
+  @override
+  String statsReportTrainingRhythmValue(
+      int sessions, int activeDays, int periodDays) {
+    return '$sessions回 · $activeDays/$periodDays日';
+  }
+
+  @override
   String get statsReportActiveDaysLabel => '記録日';
 
   @override
@@ -3189,6 +3198,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get statsReportPlanExecutionLabel => '計画実行率';
 
   @override
+  String get statsReportTargetPlanLabel => '目標/計画';
+
+  @override
+  String statsReportTargetPlanValue(Object target, Object plan) {
+    return '目標 $target · 計画 $plan';
+  }
+
+  @override
   String get statsReportNoPlanValue => '計画なし';
 
   @override
@@ -3196,6 +3213,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get statsReportDefaultFocus => '基礎';
+
+  @override
+  String statsReportFocusStreakValue(Object focus, int days) {
+    return '$focus · $days日連続';
+  }
 
   @override
   String get statsReportStreakLabel => '継続';

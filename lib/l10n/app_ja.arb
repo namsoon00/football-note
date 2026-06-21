@@ -1838,6 +1838,21 @@
     }
   },
   "statsReportTotalTimeLabel": "総練習時間",
+  "statsReportTrainingRhythmLabel": "記録リズム",
+  "statsReportTrainingRhythmValue": "{sessions}回 · {activeDays}/{periodDays}日",
+  "@statsReportTrainingRhythmValue": {
+    "placeholders": {
+      "sessions": {
+        "type": "int"
+      },
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportActiveDaysLabel": "記録日",
   "statsReportActiveDaysValue": "{activeDays}/{periodDays}日",
   "@statsReportActiveDaysValue": {
@@ -1851,9 +1866,26 @@
     }
   },
   "statsReportPlanExecutionLabel": "計画実行率",
+  "statsReportTargetPlanLabel": "目標/計画",
+  "statsReportTargetPlanValue": "目標 {target} · 計画 {plan}",
+  "@statsReportTargetPlanValue": {
+    "placeholders": {
+      "target": {},
+      "plan": {}
+    }
+  },
   "statsReportNoPlanValue": "計画なし",
   "statsReportFocusLabel": "集中分野",
   "statsReportDefaultFocus": "基礎",
+  "statsReportFocusStreakValue": "{focus} · {days}日連続",
+  "@statsReportFocusStreakValue": {
+    "placeholders": {
+      "focus": {},
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportStreakLabel": "継続",
   "statsReportStreakValue": "{days}日連続記録",
   "@statsReportStreakValue": {

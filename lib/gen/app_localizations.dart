@@ -5838,6 +5838,19 @@ abstract class AppLocalizations {
   /// **'Total time'**
   String get statsReportTotalTimeLabel;
 
+  /// No description provided for @statsReportTrainingRhythmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Training rhythm'**
+  String get statsReportTrainingRhythmLabel;
+
+  /// No description provided for @statsReportTrainingRhythmValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{sessions} sessions · {activeDays}/{periodDays} days'**
+  String statsReportTrainingRhythmValue(
+      int sessions, int activeDays, int periodDays);
+
   /// No description provided for @statsReportActiveDaysLabel.
   ///
   /// In en, this message translates to:
@@ -5856,6 +5869,18 @@ abstract class AppLocalizations {
   /// **'Plan execution'**
   String get statsReportPlanExecutionLabel;
 
+  /// No description provided for @statsReportTargetPlanLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target / Plan'**
+  String get statsReportTargetPlanLabel;
+
+  /// No description provided for @statsReportTargetPlanValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Target {target} · Plan {plan}'**
+  String statsReportTargetPlanValue(Object target, Object plan);
+
   /// No description provided for @statsReportNoPlanValue.
   ///
   /// In en, this message translates to:
@@ -5873,6 +5898,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fundamentals'**
   String get statsReportDefaultFocus;
+
+  /// No description provided for @statsReportFocusStreakValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{focus} · {days}-day streak'**
+  String statsReportFocusStreakValue(Object focus, int days);
 
   /// No description provided for @statsReportStreakLabel.
   ///
