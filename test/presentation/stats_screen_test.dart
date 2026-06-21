@@ -11,6 +11,7 @@ import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
+import 'package:football_note/application/player_profile_service.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/presentation/screens/stats_screen.dart';
@@ -440,6 +441,35 @@ void main() {
       SportCatalog.currentSportOptionKey,
       SportCatalog.basketballId,
     );
+    final now = DateTime.now();
+    await optionRepository.setValue(
+      SportCatalog.optionKey(
+        PlayerProfileService.birthDateKey,
+        sportId: SportCatalog.basketballId,
+      ),
+      DateTime(now.year - 13, now.month, now.day).toIso8601String(),
+    );
+    await optionRepository.setValue(
+      SportCatalog.optionKey(
+        PlayerProfileService.soccerStartDateKey,
+        sportId: SportCatalog.basketballId,
+      ),
+      DateTime(now.year - 2, now.month, now.day).toIso8601String(),
+    );
+    await optionRepository.setValue(
+      SportCatalog.optionKey(
+        PlayerProfileService.heightCmKey,
+        sportId: SportCatalog.basketballId,
+      ),
+      '158.0',
+    );
+    await optionRepository.setValue(
+      SportCatalog.optionKey(
+        PlayerProfileService.weightKgKey,
+        sportId: SportCatalog.basketballId,
+      ),
+      '48.0',
+    );
     await service.add(
       TrainingEntry(
         date: DateTime.now(),
@@ -508,7 +538,8 @@ void main() {
     expect(find.text('농구 성장 요약'), findsOneWidget);
     expect(find.text('셔틀런 통계'), findsOneWidget);
     expect(find.text('볼 핸들링 세부 기록'), findsOneWidget);
-    expect(find.text('평균 비교'), findsNothing);
+    expect(find.text('평균 비교'), findsOneWidget);
+    expect(find.text('볼 핸들링/세션'), findsOneWidget);
     expect(find.text('축구 평균 비교는 숨겼어요'), findsNothing);
 
     await tester.tap(find.text('시합'));

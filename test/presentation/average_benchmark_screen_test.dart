@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/benchmark_service.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/average_benchmark_screen.dart';
@@ -47,6 +48,38 @@ void main() {
     expect(find.text('47.1kg'), findsOneWidget);
     expect(find.text('100회'), findsWidgets);
     expect(find.text('378분 · 5회'), findsWidgets);
+  });
+
+  testWidgets('Average benchmark screen adapts benchmark table by sport', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: AverageBenchmarkScreen(
+            entries: const [],
+            ageYears: 13,
+            soccerYears: 2,
+            sportId: SportCatalog.basketballId,
+            benchmarkService: BenchmarkService(_MemoryOptionRepository()),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('볼 핸들링/세션'), findsOneWidget);
+    expect(find.text('90회'), findsWidgets);
+    expect(find.text('351분 · 5회'), findsWidgets);
   });
 }
 

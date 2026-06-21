@@ -6245,13 +6245,13 @@ abstract class AppLocalizations {
   /// No description provided for @averageComparisonProfileMissingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Enter age and soccer experience'**
+  /// **'Enter age and sport experience'**
   String get averageComparisonProfileMissingTitle;
 
   /// No description provided for @averageComparisonProfileMissingMessage.
   ///
   /// In en, this message translates to:
-  /// **'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.'**
+  /// **'Average comparison is hidden because age and sport experience are missing. Add birth date and sport start date in profile.'**
   String get averageComparisonProfileMissingMessage;
 
   /// No description provided for @averageComparisonOpenProfileAction.
@@ -6259,6 +6259,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Profile'**
   String get averageComparisonOpenProfileAction;
+
+  /// No description provided for @averageComparisonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Average Comparison'**
+  String get averageComparisonTitle;
+
+  /// No description provided for @averageComparisonReferenceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'References'**
+  String get averageComparisonReferenceAction;
+
+  /// No description provided for @averageComparisonHiddenMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average comparison is hidden because age/experience is not set.'**
+  String get averageComparisonHiddenMessage;
+
+  /// No description provided for @averageComparisonHeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get averageComparisonHeightLabel;
+
+  /// No description provided for @averageComparisonWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get averageComparisonWeightLabel;
+
+  /// No description provided for @averageComparisonNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get averageComparisonNotSet;
+
+  /// No description provided for @averageComparisonHiddenValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get averageComparisonHiddenValue;
+
+  /// No description provided for @averageComparisonUnavailableValue.
+  ///
+  /// In en, this message translates to:
+  /// **'N/A'**
+  String get averageComparisonUnavailableValue;
+
+  /// No description provided for @averageComparisonHiddenGap.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get averageComparisonHiddenGap;
+
+  /// No description provided for @averageComparisonGapValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{gap} vs avg'**
+  String averageComparisonGapValue(Object gap);
+
+  /// No description provided for @averageComparisonConditioningPerSessionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{metric}/session'**
+  String averageComparisonConditioningPerSessionLabel(Object metric);
 
   /// No description provided for @averageComparisonFootballOnlyTitle.
   ///
@@ -14683,7 +14749,7 @@ abstract class AppLocalizations {
   /// No description provided for @benchmarkReferenceNote.
   ///
   /// In en, this message translates to:
-  /// **'Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.'**
+  /// **'Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Sport-specific conditioning ranges are app training references, not medical standards.'**
   String get benchmarkReferenceNote;
 
   /// No description provided for @benchmarkAgeTableTitle.
@@ -14695,7 +14761,7 @@ abstract class AppLocalizations {
   /// No description provided for @benchmarkAgeTableNote.
   ///
   /// In en, this message translates to:
-  /// **'If the player\'s age is set, that row is highlighted. Weekly targets are adjusted by the entered soccer experience.'**
+  /// **'If the player\'s age is set, that row is highlighted. Weekly targets are adjusted by the entered sport experience.'**
   String get benchmarkAgeTableNote;
 
   /// No description provided for @benchmarkAgeColumnAge.
@@ -14721,6 +14787,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lifting/session'**
   String get benchmarkAgeColumnLifting;
+
+  /// No description provided for @benchmarkAgeColumnConditioning.
+  ///
+  /// In en, this message translates to:
+  /// **'{metric}/session'**
+  String benchmarkAgeColumnConditioning(Object metric);
 
   /// No description provided for @benchmarkAgeColumnWeeklyTarget.
   ///
