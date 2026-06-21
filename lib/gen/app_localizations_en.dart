@@ -8740,6 +8740,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchKindTournament => 'Tournament';
 
   @override
+  String get matchFriendlyResultLabel => 'Friendly result';
+
+  @override
+  String get matchResultUnset => 'Unset';
+
+  @override
+  String get matchResultWin => 'Win';
+
+  @override
+  String get matchResultDraw => 'Draw';
+
+  @override
+  String get matchResultLoss => 'Loss';
+
+  @override
   String get matchLeagueSectionTitle => 'League details';
 
   @override

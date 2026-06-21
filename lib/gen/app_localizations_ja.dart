@@ -8474,6 +8474,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchKindTournament => 'トーナメント';
 
   @override
+  String get matchFriendlyResultLabel => '親善試合の結果';
+
+  @override
+  String get matchResultUnset => '未入力';
+
+  @override
+  String get matchResultWin => '勝ち';
+
+  @override
+  String get matchResultDraw => '引き分け';
+
+  @override
+  String get matchResultLoss => '負け';
+
+  @override
   String get matchLeagueSectionTitle => 'リーグ情報';
 
   @override

@@ -8483,6 +8483,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchKindTournament => '토너먼트';
 
   @override
+  String get matchFriendlyResultLabel => '친선 경기 결과';
+
+  @override
+  String get matchResultUnset => '미입력';
+
+  @override
+  String get matchResultWin => '승';
+
+  @override
+  String get matchResultDraw => '무';
+
+  @override
+  String get matchResultLoss => '패';
+
+  @override
   String get matchLeagueSectionTitle => '리그 정보';
 
   @override
