@@ -1921,6 +1921,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final competitionNameController = TextEditingController(
       text: competitionNameText,
     );
+    final initialCompetition = matchCompetitionService.findCompetition(
+      kind: matchKind,
+      name: competitionNameText,
+    );
+    var selectedCompetitionId = initialCompetition?.id ?? '';
+    var competitionStatus =
+        initialCompetition?.status ?? MatchCompetitionRecord.statusActive;
     var leagueRoundText = editingEntry?.isLeagueMatch == true
         ? editingEntry?.matchStage ?? ''
         : '';
@@ -2008,28 +2015,54 @@ class _CalendarScreenState extends State<CalendarScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
+            List<MatchCompetitionRecord> availableCompetitions() {
+              if (matchKind != MatchCompetitionRecord.kindLeague &&
+                  matchKind != MatchCompetitionRecord.kindTournament) {
+                return const <MatchCompetitionRecord>[];
+              }
+              return matchCompetitionService.competitionsForKind(matchKind);
+            }
+
+            MatchCompetitionRecord? selectedCompetition() {
+              final byId = matchCompetitionService.findCompetitionById(
+                selectedCompetitionId,
+              );
+              if (byId != null && byId.kind == matchKind) return byId;
+              return matchCompetitionService.findCompetition(
+                kind: matchKind,
+                name: competitionNameText,
+              );
+            }
+
+            void applyCompetition(MatchCompetitionRecord record) {
+              selectedCompetitionId = record.id;
+              competitionStatus = record.status;
+              competitionNameText = record.name;
+              competitionNameController.text = record.name;
+              leagueTeamsText = record.teams.join('\n');
+              leagueTeamsController.text = leagueTeamsText;
+              if (!record.teams.any((team) => team == opponent.trim())) {
+                opponent = '';
+              }
+            }
+
+            String competitionOptionLabel(MatchCompetitionRecord record) {
+              return record.isFinished
+                  ? l10n.matchCompetitionOptionFinished(record.name)
+                  : l10n.matchCompetitionOptionActive(record.name);
+            }
+
             List<String> registeredMatchTeams() {
               if (matchKind != 'league' && matchKind != 'tournament') {
                 return const <String>[];
               }
+              final selected = selectedCompetition();
               final inlineTeams = MatchCompetitionService.parseTeams(
                 leagueTeamsText,
               );
-              final existingTeams = competitionNameText.trim().isEmpty
-                  ? matchCompetitionService
-                      .allCompetitions()
-                      .where((record) => record.kind == matchKind)
-                      .expand((record) => record.teams)
-                  : matchCompetitionService
-                          .findCompetition(
-                            kind: matchKind,
-                            name: competitionNameText,
-                          )
-                          ?.teams ??
-                      const <String>[];
               return MatchCompetitionService.normalizeTeams([
                 ...inlineTeams,
-                ...existingTeams,
+                ...?selected?.teams,
               ]);
             }
 
@@ -2115,6 +2148,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
             final opponentFieldOptions = registeredOpponentOptions.isNotEmpty
                 ? registeredOpponentOptions
                 : opponentOptions;
+            final competitionOptions = availableCompetitions();
+            final selectedCompetitionRecord = selectedCompetition();
+            final selectedCompetitionFinished =
+                selectedCompetitionRecord?.isFinished == true ||
+                    competitionStatus == MatchCompetitionRecord.statusFinished;
 
             return DraggableScrollableSheet(
               expand: false,
@@ -2220,7 +2258,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     ? null
                                     : (selection) {
                                         setSheetState(() {
-                                          matchKind = selection.first;
+                                          final nextKind = selection.first;
+                                          if (nextKind == matchKind) return;
+                                          matchKind = nextKind;
+                                          selectedCompetitionId = '';
+                                          competitionStatus =
+                                              MatchCompetitionRecord
+                                                  .statusActive;
+                                          competitionNameText = '';
+                                          competitionNameController.clear();
+                                          leagueTeamsText = '';
+                                          leagueTeamsController.clear();
+                                          opponent = '';
                                         });
                                       },
                               ),
@@ -2273,12 +2322,71 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       ?.copyWith(fontWeight: FontWeight.w800),
                                 ),
                                 const SizedBox(height: 8),
+                                if (competitionOptions.isNotEmpty) ...[
+                                  Text(
+                                    l10n.matchCompetitionSelectLabel,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(fontWeight: FontWeight.w700),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      for (final record in competitionOptions)
+                                        ChoiceChip(
+                                          avatar: Icon(
+                                            record.isFinished
+                                                ? Icons.flag_circle_outlined
+                                                : Icons.play_circle_outline,
+                                            size: 18,
+                                          ),
+                                          label: Text(
+                                            competitionOptionLabel(record),
+                                          ),
+                                          selected:
+                                              selectedCompetitionRecord?.id ==
+                                                  record.id,
+                                          onSelected: readOnly
+                                              ? null
+                                              : (_) {
+                                                  setSheetState(() {
+                                                    applyCompetition(record);
+                                                  });
+                                                },
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (selectedCompetitionFinished)
+                                    _matchCompetitionEmptyMessage(
+                                      context: context,
+                                      message:
+                                          l10n.matchCompetitionFinishedNotice,
+                                    ),
+                                  if (selectedCompetitionFinished)
+                                    const SizedBox(height: 8),
+                                ],
                                 TextFormField(
                                   controller: competitionNameController,
                                   readOnly: readOnly,
                                   onChanged: (value) {
                                     setSheetState(() {
                                       competitionNameText = value;
+                                      final matched = matchCompetitionService
+                                          .findCompetition(
+                                        kind: matchKind,
+                                        name: value,
+                                      );
+                                      if (matched == null) {
+                                        selectedCompetitionId = '';
+                                        competitionStatus =
+                                            MatchCompetitionRecord.statusActive;
+                                      } else {
+                                        applyCompetition(matched);
+                                      }
                                     });
                                   },
                                   textInputAction: TextInputAction.next,
@@ -2314,6 +2422,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       leagueTeamsText = result.teams.join('\n');
                                       leagueTeamsController.text =
                                           leagueTeamsText;
+                                      competitionStatus = result.status;
+                                      selectedCompetitionId =
+                                          MatchCompetitionService.competitionId(
+                                        kind: matchKind,
+                                        name: result.name,
+                                      );
                                     });
                                   },
                                   icon: Icon(
@@ -2832,6 +2946,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ? teamsText
         : existing?.teams.join('\n') ?? '';
     var draftTeams = MatchCompetitionService.parseTeams(initialTeamsText);
+    var competitionStatus =
+        existing?.status ?? MatchCompetitionRecord.statusActive;
     final teamNameController = TextEditingController();
     var controllersDisposeScheduled = false;
 
@@ -2917,6 +3033,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     kind: kind,
                     name: name,
                     teams: draftTeams,
+                    status: competitionStatus,
                   ),
                 );
                 if (!context.mounted) return;
@@ -2924,6 +3041,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   _MatchCompetitionSheetResult(
                     name: name,
                     teams: draftTeams,
+                    status: competitionStatus,
                   ),
                 );
               }
@@ -2977,6 +3095,42 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               ),
                               enabled: !readOnly,
                             ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.matchCompetitionStatusLabel,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 6),
+                          SegmentedButton<String>(
+                            segments: [
+                              ButtonSegment<String>(
+                                value: MatchCompetitionRecord.statusActive,
+                                icon: const Icon(Icons.play_circle_outline),
+                                label: Text(
+                                  l10n.matchCompetitionStatusActive,
+                                ),
+                              ),
+                              ButtonSegment<String>(
+                                value: MatchCompetitionRecord.statusFinished,
+                                icon: const Icon(Icons.flag_circle_outlined),
+                                label: Text(
+                                  l10n.matchCompetitionStatusFinished,
+                                ),
+                              ),
+                            ],
+                            selected: {competitionStatus},
+                            showSelectedIcon: false,
+                            onSelectionChanged: readOnly
+                                ? null
+                                : (selection) {
+                                    setSheetState(() {
+                                      competitionStatus = selection.first;
+                                    });
+                                  },
                           ),
                           const SizedBox(height: 8),
                           _buildMatchCompetitionTeamPreview(
@@ -5521,10 +5675,12 @@ class _PlanSheetResult {
 class _MatchCompetitionSheetResult {
   final String name;
   final List<String> teams;
+  final String status;
 
   const _MatchCompetitionSheetResult({
     required this.name,
     required this.teams,
+    this.status = MatchCompetitionRecord.statusActive,
   });
 }
 

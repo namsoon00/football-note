@@ -27,6 +27,7 @@ void main() {
     expect(competitions, hasLength(1));
     expect(competitions.single.name, '주말 리그');
     expect(competitions.single.teams, <String>['레드 FC', '그린 FC']);
+    expect(competitions.single.status, MatchCompetitionRecord.statusActive);
     expect(
       service
           .findCompetition(
@@ -36,6 +37,76 @@ void main() {
           ?.teams,
       <String>['레드 FC', '그린 FC'],
     );
+  });
+
+  test('대회 상태는 저장하고 진행 중 대회를 먼저 정렬한다', () async {
+    final repository = _MemoryOptionRepository();
+    final service = MatchCompetitionService(repository);
+
+    await service.upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindLeague,
+        name: '종료 리그',
+        teams: const <String>['레드 FC'],
+        status: MatchCompetitionRecord.statusFinished,
+      ),
+    );
+    await service.upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindLeague,
+        name: '진행 리그',
+        teams: const <String>['블루 FC'],
+      ),
+    );
+
+    final leagues = service.competitionsForKind(
+      MatchCompetitionRecord.kindLeague,
+    );
+
+    expect(leagues.map((record) => record.name), <String>[
+      '진행 리그',
+      '종료 리그',
+    ]);
+    expect(leagues.first.status, MatchCompetitionRecord.statusActive);
+    expect(leagues.last.status, MatchCompetitionRecord.statusFinished);
+  });
+
+  test('종료된 대회는 경기 기록으로 갱신해도 종료 상태를 유지한다', () async {
+    final repository = _MemoryOptionRepository();
+    final service = MatchCompetitionService(repository);
+
+    await service.upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindTournament,
+        name: '봄 컵',
+        teams: const <String>['레드 FC'],
+        status: MatchCompetitionRecord.statusFinished,
+      ),
+    );
+    await service.upsertFromEntry(
+      TrainingEntry(
+        date: DateTime(2026, 6, 1),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '',
+        matchKind: MatchCompetitionRecord.kindTournament,
+        matchCompetitionName: '봄 컵',
+        opponentTeam: '블루 FC',
+        leagueTeamNames: const <String>['블루 FC'],
+      ),
+    );
+
+    final competition = service.findCompetition(
+      kind: MatchCompetitionRecord.kindTournament,
+      name: '봄 컵',
+    );
+
+    expect(competition?.status, MatchCompetitionRecord.statusFinished);
+    expect(competition?.teams, <String>['레드 FC', '블루 FC']);
   });
 
   test('리그 순위는 등록 팀과 기록 결과를 합쳐 승점 순으로 계산한다', () {

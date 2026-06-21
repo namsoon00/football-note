@@ -6,11 +6,14 @@ import '../domain/repositories/option_repository.dart';
 class MatchCompetitionRecord {
   static const String kindLeague = 'league';
   static const String kindTournament = 'tournament';
+  static const String statusActive = 'active';
+  static const String statusFinished = 'finished';
 
   final String id;
   final String kind;
   final String name;
   final List<String> teams;
+  final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -19,14 +22,18 @@ class MatchCompetitionRecord {
     required this.kind,
     required this.name,
     required this.teams,
+    this.status = statusActive,
     required this.createdAt,
     required this.updatedAt,
   });
+
+  bool get isFinished => status == statusFinished;
 
   factory MatchCompetitionRecord.create({
     required String kind,
     required String name,
     required List<String> teams,
+    String status = statusActive,
     DateTime? now,
   }) {
     final timestamp = now ?? DateTime.now();
@@ -35,6 +42,7 @@ class MatchCompetitionRecord {
       kind: kind,
       name: name.trim(),
       teams: MatchCompetitionService.normalizeTeams(teams),
+      status: MatchCompetitionService.normalizeStatus(status),
       createdAt: timestamp,
       updatedAt: timestamp,
     );
@@ -50,6 +58,9 @@ class MatchCompetitionRecord {
     final teams = map['teams'] is List
         ? (map['teams'] as List).map((item) => item.toString()).toList()
         : const <String>[];
+    final status = MatchCompetitionService.normalizeStatus(
+      map['status']?.toString() ?? '',
+    );
     return MatchCompetitionRecord(
       id: map['id']?.toString().trim().isNotEmpty == true
           ? map['id'].toString()
@@ -57,6 +68,7 @@ class MatchCompetitionRecord {
       kind: kind,
       name: name,
       teams: MatchCompetitionService.normalizeTeams(teams),
+      status: status,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -67,6 +79,7 @@ class MatchCompetitionRecord {
     String? kind,
     String? name,
     List<String>? teams,
+    String? status,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -77,6 +90,7 @@ class MatchCompetitionRecord {
       teams: teams == null
           ? this.teams
           : MatchCompetitionService.normalizeTeams(teams),
+      status: MatchCompetitionService.normalizeStatus(status ?? this.status),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -88,6 +102,7 @@ class MatchCompetitionRecord {
       'kind': kind,
       'name': name,
       'teams': teams,
+      'status': status,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -172,11 +187,7 @@ class MatchCompetitionService {
           .where((record) =>
               _supportedKind(record.kind) && record.name.trim().isNotEmpty)
           .toList(growable: false)
-        ..sort((a, b) {
-          final kindCompare = a.kind.compareTo(b.kind);
-          if (kindCompare != 0) return kindCompare;
-          return b.updatedAt.compareTo(a.updatedAt);
-        });
+        ..sort(_compareCompetitionRecords);
       return records;
     } catch (_) {
       return const <MatchCompetitionRecord>[];
@@ -197,12 +208,29 @@ class MatchCompetitionService {
     return null;
   }
 
+  MatchCompetitionRecord? findCompetitionById(String id) {
+    final key = id.trim();
+    if (key.isEmpty) return null;
+    for (final record in allCompetitions()) {
+      if (record.id == key) return record;
+    }
+    return null;
+  }
+
+  List<MatchCompetitionRecord> competitionsForKind(String kind) {
+    return allCompetitions()
+        .where((record) => record.kind == kind)
+        .toList(growable: false)
+      ..sort(_compareCompetitionRecords);
+  }
+
   Future<void> upsertCompetition(MatchCompetitionRecord record) async {
     final now = DateTime.now();
     final normalized = record.copyWith(
       id: competitionId(kind: record.kind, name: record.name),
       name: record.name.trim(),
       teams: normalizeTeams(record.teams),
+      status: normalizeStatus(record.status),
       updatedAt: now,
     );
     if (!_supportedKind(normalized.kind) || normalized.name.isEmpty) {
@@ -242,16 +270,13 @@ class MatchCompetitionService {
         kind: kind,
         name: name,
         teams: teams,
+        status: existing?.status ?? MatchCompetitionRecord.statusActive,
       ),
     );
   }
 
   Future<void> _saveAll(List<MatchCompetitionRecord> records) {
-    final normalized = [...records]..sort((a, b) {
-        final kindCompare = a.kind.compareTo(b.kind);
-        if (kindCompare != 0) return kindCompare;
-        return b.updatedAt.compareTo(a.updatedAt);
-      });
+    final normalized = [...records]..sort(_compareCompetitionRecords);
     return _optionRepository.setValue(
       storageKey,
       jsonEncode(normalized.map((record) => record.toMap()).toList()),
@@ -280,6 +305,12 @@ class MatchCompetitionService {
       teams.add(trimmed);
     }
     return teams;
+  }
+
+  static String normalizeStatus(String status) {
+    return status == MatchCompetitionRecord.statusFinished
+        ? MatchCompetitionRecord.statusFinished
+        : MatchCompetitionRecord.statusActive;
   }
 
   static List<TrainingEntry> competitionEntries({
@@ -410,6 +441,17 @@ class MatchCompetitionService {
   static bool _supportedKind(String kind) {
     return kind == MatchCompetitionRecord.kindLeague ||
         kind == MatchCompetitionRecord.kindTournament;
+  }
+
+  static int _compareCompetitionRecords(
+    MatchCompetitionRecord a,
+    MatchCompetitionRecord b,
+  ) {
+    final kindCompare = a.kind.compareTo(b.kind);
+    if (kindCompare != 0) return kindCompare;
+    final statusCompare = a.status.compareTo(b.status);
+    if (statusCompare != 0) return statusCompare;
+    return b.updatedAt.compareTo(a.updatedAt);
   }
 
   static String _normalizeKey(String value) => value.trim().toLowerCase();
