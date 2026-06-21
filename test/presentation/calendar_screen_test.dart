@@ -347,6 +347,30 @@ void main() {
     expect(find.textContaining('공을 뺏은 횟수 1'), findsOneWidget);
   });
 
+  testWidgets('시합 점수와 횟수 입력은 좁은 화면에서도 두 개씩 정렬된다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+
+    await pumpCalendar(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+
+    final ourScoreTopLeft = tester.getTopLeft(find.text('우리 점수').last);
+    final opponentScoreTopLeft = tester.getTopLeft(find.text('상대 점수').last);
+    expect(ourScoreTopLeft.dx, lessThan(opponentScoreTopLeft.dx));
+    expect((ourScoreTopLeft.dy - opponentScoreTopLeft.dy).abs(), lessThan(1));
+
+    final goalTopLeft = tester.getTopLeft(find.text('골').last);
+    final assistTopLeft = tester.getTopLeft(find.text('어시스트').last);
+    expect(goalTopLeft.dx, lessThan(assistTopLeft.dx));
+    expect((goalTopLeft.dy - assistTopLeft.dy).abs(), lessThan(1));
+  });
+
   testWidgets('토너먼트 시합 기록은 별도 유형과 승수를 저장한다', (tester) async {
     await tester.binding.setSurfaceSize(const Size(900, 900));
     addTearDown(() async {
