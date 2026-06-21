@@ -16281,6 +16281,24 @@ abstract class AppLocalizations {
   /// **'Ladder'**
   String get trainingSketchLadderButton;
 
+  /// No description provided for @trainingSketchTargetButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get trainingSketchTargetButton;
+
+  /// No description provided for @trainingSketchBaseButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get trainingSketchBaseButton;
+
+  /// No description provided for @trainingSketchBasketButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Hoop'**
+  String get trainingSketchBasketButton;
+
   /// No description provided for @trainingSketchPenButton.
   ///
   /// In en, this message translates to:
@@ -16628,6 +16646,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cross'**
   String get trainingSketchQuickCrossButton;
+
+  /// No description provided for @trainingSketchQuickDriveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive'**
+  String get trainingSketchQuickDriveButton;
+
+  /// No description provided for @trainingSketchQuickCutButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cut'**
+  String get trainingSketchQuickCutButton;
+
+  /// No description provided for @trainingSketchQuickScreenButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen'**
+  String get trainingSketchQuickScreenButton;
+
+  /// No description provided for @trainingSketchQuickRunBaseButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Base run'**
+  String get trainingSketchQuickRunBaseButton;
+
+  /// No description provided for @trainingSketchQuickFieldingButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Fielding move'**
+  String get trainingSketchQuickFieldingButton;
+
+  /// No description provided for @trainingSketchQuickThrowButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw'**
+  String get trainingSketchQuickThrowButton;
+
+  /// No description provided for @trainingSketchQuickServeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Serve'**
+  String get trainingSketchQuickServeButton;
+
+  /// No description provided for @trainingSketchQuickRallyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Rally'**
+  String get trainingSketchQuickRallyButton;
+
+  /// No description provided for @trainingSketchQuickRecoverButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover'**
+  String get trainingSketchQuickRecoverButton;
+
+  /// No description provided for @trainingSketchPassToPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass to player {index}'**
+  String trainingSketchPassToPlayerButton(int index);
+
+  /// No description provided for @trainingSketchThrowToPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw to player {index}'**
+  String trainingSketchThrowToPlayerButton(int index);
+
+  /// No description provided for @trainingSketchRallyToPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Rally to player {index}'**
+  String trainingSketchRallyToPlayerButton(int index);
 
   /// No description provided for @trainingSketchPlayerRouteLimitReached.
   ///

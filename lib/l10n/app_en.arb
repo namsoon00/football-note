@@ -5150,6 +5150,9 @@
   "trainingSketchPlayerButton": "Player",
   "trainingSketchBallButton": "Ball",
   "trainingSketchLadderButton": "Ladder",
+  "trainingSketchTargetButton": "Target",
+  "trainingSketchBaseButton": "Base",
+  "trainingSketchBasketButton": "Hoop",
   "trainingSketchPenButton": "Pen",
   "trainingSketchClearInkButton": "Clear ink",
   "trainingSketchResetButton": "Clear",
@@ -5227,6 +5230,39 @@
   "trainingSketchQuickOverlapButton": "Overlap",
   "trainingSketchQuickShotButton": "Shoot",
   "trainingSketchQuickCrossButton": "Cross",
+  "trainingSketchQuickDriveButton": "Drive",
+  "trainingSketchQuickCutButton": "Cut",
+  "trainingSketchQuickScreenButton": "Screen",
+  "trainingSketchQuickRunBaseButton": "Base run",
+  "trainingSketchQuickFieldingButton": "Fielding move",
+  "trainingSketchQuickThrowButton": "Throw",
+  "trainingSketchQuickServeButton": "Serve",
+  "trainingSketchQuickRallyButton": "Rally",
+  "trainingSketchQuickRecoverButton": "Recover",
+  "trainingSketchPassToPlayerButton": "Pass to player {index}",
+  "@trainingSketchPassToPlayerButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchThrowToPlayerButton": "Throw to player {index}",
+  "@trainingSketchThrowToPlayerButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRallyToPlayerButton": "Rally to player {index}",
+  "@trainingSketchRallyToPlayerButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchPlayerRouteLimitReached": "All player action lines are already assigned. Select a player to replace or redraw its action.",
   "trainingSketchBallRouteLimitReached": "All ball action lines are already assigned. Select a ball to replace or redraw its action.",
   "trainingSketchTemplatePickerTitle": "Choose template",

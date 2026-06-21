@@ -9199,6 +9199,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchLadderButton => 'ラダー';
 
   @override
+  String get trainingSketchTargetButton => 'ターゲット';
+
+  @override
+  String get trainingSketchBaseButton => 'ベース';
+
+  @override
+  String get trainingSketchBasketButton => 'リング';
+
+  @override
   String get trainingSketchPenButton => 'ペン';
 
   @override
@@ -9387,6 +9396,48 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchQuickCrossButton => 'クロス';
+
+  @override
+  String get trainingSketchQuickDriveButton => 'ドライブ';
+
+  @override
+  String get trainingSketchQuickCutButton => 'カット';
+
+  @override
+  String get trainingSketchQuickScreenButton => 'スクリーン';
+
+  @override
+  String get trainingSketchQuickRunBaseButton => 'ベースラン';
+
+  @override
+  String get trainingSketchQuickFieldingButton => '守備移動';
+
+  @override
+  String get trainingSketchQuickThrowButton => '送球';
+
+  @override
+  String get trainingSketchQuickServeButton => 'サーブ';
+
+  @override
+  String get trainingSketchQuickRallyButton => 'ラリー';
+
+  @override
+  String get trainingSketchQuickRecoverButton => 'リカバリー';
+
+  @override
+  String trainingSketchPassToPlayerButton(int index) {
+    return 'プレイヤー $index へパス';
+  }
+
+  @override
+  String trainingSketchThrowToPlayerButton(int index) {
+    return 'プレイヤー $index へ送球';
+  }
+
+  @override
+  String trainingSketchRallyToPlayerButton(int index) {
+    return 'プレイヤー $index へラリー';
+  }
 
   @override
   String get trainingSketchPlayerRouteLimitReached =>

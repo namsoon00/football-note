@@ -9482,6 +9482,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchLadderButton => 'Ladder';
 
   @override
+  String get trainingSketchTargetButton => 'Target';
+
+  @override
+  String get trainingSketchBaseButton => 'Base';
+
+  @override
+  String get trainingSketchBasketButton => 'Hoop';
+
+  @override
   String get trainingSketchPenButton => 'Pen';
 
   @override
@@ -9675,6 +9684,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchQuickCrossButton => 'Cross';
+
+  @override
+  String get trainingSketchQuickDriveButton => 'Drive';
+
+  @override
+  String get trainingSketchQuickCutButton => 'Cut';
+
+  @override
+  String get trainingSketchQuickScreenButton => 'Screen';
+
+  @override
+  String get trainingSketchQuickRunBaseButton => 'Base run';
+
+  @override
+  String get trainingSketchQuickFieldingButton => 'Fielding move';
+
+  @override
+  String get trainingSketchQuickThrowButton => 'Throw';
+
+  @override
+  String get trainingSketchQuickServeButton => 'Serve';
+
+  @override
+  String get trainingSketchQuickRallyButton => 'Rally';
+
+  @override
+  String get trainingSketchQuickRecoverButton => 'Recover';
+
+  @override
+  String trainingSketchPassToPlayerButton(int index) {
+    return 'Pass to player $index';
+  }
+
+  @override
+  String trainingSketchThrowToPlayerButton(int index) {
+    return 'Throw to player $index';
+  }
+
+  @override
+  String trainingSketchRallyToPlayerButton(int index) {
+    return 'Rally to player $index';
+  }
 
   @override
   String get trainingSketchPlayerRouteLimitReached =>

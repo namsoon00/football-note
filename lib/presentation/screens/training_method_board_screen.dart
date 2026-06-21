@@ -93,6 +93,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool get _isManagedMode => widget.optionRepository != null;
   _BoardPageState get _currentPage => _pages.first;
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
+  String get _currentSportIdOrDefault =>
+      SportCatalog.normalizeSportId(_currentSportId);
 
   bool get _hasUnsavedChanges => _serialize() != _lastSavedLayout;
 
@@ -597,6 +599,62 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     };
   }
 
+  List<_BoardToolSpec> _boardToolSpecsForCurrentSport() {
+    final sportId = _currentSportIdOrDefault;
+    final types = switch (sportId) {
+      SportCatalog.baseballId => const <_BoardItemType>[
+          _BoardItemType.player,
+          _BoardItemType.ball,
+          _BoardItemType.base,
+          _BoardItemType.target,
+          _BoardItemType.cone,
+        ],
+      SportCatalog.basketballId => const <_BoardItemType>[
+          _BoardItemType.player,
+          _BoardItemType.ball,
+          _BoardItemType.basket,
+          _BoardItemType.target,
+          _BoardItemType.cone,
+        ],
+      SportCatalog.tennisId => const <_BoardItemType>[
+          _BoardItemType.player,
+          _BoardItemType.ball,
+          _BoardItemType.target,
+          _BoardItemType.cone,
+        ],
+      _ => const <_BoardItemType>[
+          _BoardItemType.player,
+          _BoardItemType.ball,
+          _BoardItemType.cone,
+          _BoardItemType.hurdle,
+          _BoardItemType.ladder,
+        ],
+    };
+    return types
+        .map(
+          (type) => _BoardToolSpec(
+            type: type,
+            icon: _boardItemIcon(type, sportId: sportId),
+            label: _boardToolLabel(type),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  String _boardToolLabel(_BoardItemType type) {
+    final l10n = _l10n;
+    return switch (type) {
+      _BoardItemType.cone => l10n.trainingSketchConeButton,
+      _BoardItemType.hurdle => l10n.trainingSketchLowHurdleButton,
+      _BoardItemType.player => l10n.trainingSketchPlayerButton,
+      _BoardItemType.ball => l10n.trainingSketchBallButton,
+      _BoardItemType.ladder => l10n.trainingSketchLadderButton,
+      _BoardItemType.target => l10n.trainingSketchTargetButton,
+      _BoardItemType.base => l10n.trainingSketchBaseButton,
+      _BoardItemType.basket => l10n.trainingSketchBasketButton,
+    };
+  }
+
   _BoardItem? _itemById(String id) {
     return _firstWhereOrNull(_currentPage.items, (item) => item.id == id);
   }
@@ -770,6 +828,74 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       return aDistance.compareTo(bDistance);
     });
     return candidates.first;
+  }
+
+  List<_BoardItem> _itemsOfType(_BoardItemType type, {String? excludingId}) {
+    return _currentPage.items
+        .where((item) => item.type == type && item.id != excludingId)
+        .toList(growable: false);
+  }
+
+  _BoardItem? _nearestItemOfTypes(
+    Iterable<_BoardItemType> types,
+    Offset origin, {
+    String? excludingId,
+  }) {
+    final typeSet = types.toSet();
+    final candidates = _currentPage.items
+        .where((item) => typeSet.contains(item.type) && item.id != excludingId)
+        .toList(growable: false);
+    if (candidates.isEmpty) return null;
+    candidates.sort((a, b) {
+      final aDistance =
+          math.pow(a.x - origin.dx, 2) + math.pow(a.y - origin.dy, 2);
+      final bDistance =
+          math.pow(b.x - origin.dx, 2) + math.pow(b.y - origin.dy, 2);
+      return aDistance.compareTo(bDistance);
+    });
+    return candidates.first;
+  }
+
+  int _itemIndexOfType(_BoardItem item) {
+    final items = _itemsOfType(item.type);
+    final index = items.indexWhere((entry) => entry.id == item.id);
+    return index < 0 ? 1 : index + 1;
+  }
+
+  _BoardItem? _nearestBallForAction(_BoardItem selected) {
+    return selected.type == _BoardItemType.ball
+        ? selected
+        : _nearestItemOfType(_BoardItemType.ball, _itemPosition(selected));
+  }
+
+  Offset _basketTargetPointFor(_BoardItem item) {
+    final target = _nearestItemOfTypes(
+      const <_BoardItemType>[_BoardItemType.basket, _BoardItemType.target],
+      _itemPosition(item),
+    );
+    if (target != null) return _itemPosition(target);
+    return _clampedBoardPoint(0.5, item.y > 0.5 ? 0.10 : 0.90);
+  }
+
+  Offset _baseballTargetPointFor(_BoardItem item) {
+    final target = _nearestItemOfTypes(
+      const <_BoardItemType>[_BoardItemType.base, _BoardItemType.target],
+      _itemPosition(item),
+    );
+    if (target != null) return _itemPosition(target);
+    return _defaultRouteEndForItem(item, dx: 0.20, dy: -0.04);
+  }
+
+  Offset _tennisTargetPointFor(_BoardItem item) {
+    final target = _nearestItemOfType(
+      _BoardItemType.target,
+      _itemPosition(item),
+    );
+    if (target != null) return _itemPosition(target);
+    return _clampedBoardPoint(
+      item.x < 0.5 ? 0.74 : 0.26,
+      item.y < 0.5 ? 0.72 : 0.28,
+    );
   }
 
   int _suggestedStageForNewRoute(_PathDrawMode kind) {
@@ -1055,9 +1181,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   int _boardItemPaintPriority(_BoardItem item) {
-    if (item.id == _movingItemId || item.id == _selectedItemId) return 3;
+    if (item.id == _movingItemId || item.id == _selectedItemId) return 4;
     if (item.type == _BoardItemType.player ||
         item.type == _BoardItemType.ball) {
+      return 3;
+    }
+    if (item.type == _BoardItemType.target ||
+        item.type == _BoardItemType.base ||
+        item.type == _BoardItemType.basket) {
       return 2;
     }
     return 1;
@@ -2521,6 +2652,214 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _scheduleAutoSave();
   }
 
+  void _applyQuickBallToItemTemplate(_BoardItem target) {
+    final selected = _selectedItem;
+    if (selected == null) return;
+    final ball = _nearestBallForAction(selected);
+    if (ball == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_l10n.trainingSketchAddBallFirst)),
+      );
+      return;
+    }
+    _applyQuickBallToPointTemplate(ball: ball, end: _itemPosition(target));
+  }
+
+  void _applyQuickBallToPointTemplate({
+    required _BoardItem ball,
+    required Offset end,
+    List<Offset>? points,
+    List<int>? segmentDurationsMs,
+  }) {
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final start = _itemPosition(ball);
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.ball,
+        item: ball,
+        points: points ?? <Offset>[start, end],
+        segmentDurationsMs: segmentDurationsMs ?? const <int>[680],
+        stageIndex: 1,
+      );
+      _selectQuickActionRoute(route, ball);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _applyQuickPlayerToPointTemplate({
+    required _BoardItem player,
+    required Offset end,
+    List<Offset>? points,
+    List<int>? segmentDurationsMs,
+  }) {
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final start = _itemPosition(player);
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: player,
+        points: points ?? <Offset>[start, end],
+        segmentDurationsMs: segmentDurationsMs ?? const <int>[720],
+        stageIndex: _suggestedStageForNewRoute(_PathDrawMode.player),
+      );
+      _selectQuickActionRoute(route, player);
+    });
+    _scheduleAutoSave();
+  }
+
+  void _applyQuickBasketballDriveTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.ball) return;
+    final start = _itemPosition(selected);
+    final end = _basketTargetPointFor(selected);
+    final middle = _clampedBoardPoint(
+      start.dx + ((end.dx - start.dx) * 0.48),
+      start.dy + ((end.dy - start.dy) * 0.48),
+    );
+    _applyQuickBallToPointTemplate(
+      ball: selected,
+      end: end,
+      points: <Offset>[start, middle, end],
+      segmentDurationsMs: const <int>[420, 560],
+    );
+  }
+
+  void _applyQuickBasketballShotTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.ball) return;
+    _applyQuickBallToPointTemplate(
+      ball: selected,
+      end: _basketTargetPointFor(selected),
+      segmentDurationsMs: const <int>[620],
+    );
+  }
+
+  void _applyQuickBasketballCutTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.player) return;
+    _applyQuickPlayerToPointTemplate(
+      player: selected,
+      end: _basketTargetPointFor(selected),
+      segmentDurationsMs: const <int>[760],
+    );
+  }
+
+  void _applyQuickBasketballScreenTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.player) return;
+    final teammate = _nearestItemOfType(
+      _BoardItemType.player,
+      _itemPosition(selected),
+      excludingId: selected.id,
+    );
+    final end = teammate == null
+        ? _defaultRouteEndForItem(selected, dx: 0.09, dy: 0.02)
+        : _clampedBoardPoint(
+            teammate.x - (0.05 * _forwardDirectionForItem(selected)),
+            teammate.y,
+          );
+    _applyQuickPlayerToPointTemplate(
+      player: selected,
+      end: end,
+      points: <Offset>[_itemPosition(selected), end, end],
+      segmentDurationsMs: const <int>[520, 420],
+    );
+  }
+
+  void _applyQuickBaseballThrowTemplate() {
+    final selected = _selectedItem;
+    if (selected == null) return;
+    final ball = _nearestBallForAction(selected);
+    if (ball == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_l10n.trainingSketchAddBallFirst)),
+      );
+      return;
+    }
+    _applyQuickBallToPointTemplate(
+      ball: ball,
+      end: _baseballTargetPointFor(ball),
+      segmentDurationsMs: const <int>[620],
+    );
+  }
+
+  void _applyQuickBaseRunTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.player) return;
+    _applyQuickPlayerToPointTemplate(
+      player: selected,
+      end: _baseballTargetPointFor(selected),
+      segmentDurationsMs: const <int>[780],
+    );
+  }
+
+  void _applyQuickFieldingMoveTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.player) return;
+    final target = _nearestItemOfTypes(
+      const <_BoardItemType>[_BoardItemType.ball, _BoardItemType.target],
+      _itemPosition(selected),
+    );
+    _applyQuickPlayerToPointTemplate(
+      player: selected,
+      end: target == null
+          ? _defaultRouteEndForItem(selected, dx: 0.14, dy: -0.08)
+          : _itemPosition(target),
+      segmentDurationsMs: const <int>[700],
+    );
+  }
+
+  void _applyQuickTennisServeTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.ball) return;
+    final start = _itemPosition(selected);
+    final end = _tennisTargetPointFor(selected);
+    final middle = _clampedBoardPoint(
+      start.dx + ((end.dx - start.dx) * 0.45),
+      0.50,
+    );
+    _applyQuickBallToPointTemplate(
+      ball: selected,
+      end: end,
+      points: <Offset>[start, middle, end],
+      segmentDurationsMs: const <int>[360, 620],
+    );
+  }
+
+  void _applyQuickTennisRallyTemplate() {
+    final selected = _selectedItem;
+    if (selected == null) return;
+    final ball = _nearestBallForAction(selected);
+    if (ball == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_l10n.trainingSketchAddBallFirst)),
+      );
+      return;
+    }
+    final start = _itemPosition(ball);
+    final end = _tennisTargetPointFor(ball);
+    final middle = _clampedBoardPoint(
+      start.dx + ((end.dx - start.dx) * 0.50),
+      0.50,
+    );
+    _applyQuickBallToPointTemplate(
+      ball: ball,
+      end: end,
+      points: <Offset>[start, middle, end],
+      segmentDurationsMs: const <int>[460, 560],
+    );
+  }
+
+  void _applyQuickTennisRecoveryTemplate() {
+    final selected = _selectedItem;
+    if (selected == null || selected.type != _BoardItemType.player) return;
+    _applyQuickPlayerToPointTemplate(
+      player: selected,
+      end: _clampedBoardPoint(selected.x, selected.y < 0.5 ? 0.34 : 0.66),
+      segmentDurationsMs: const <int>[640],
+    );
+  }
+
   Color _activeRoutePreviewColor() {
     final replacementRoute = _routeToUpdateForPath(_pathDrawMode);
     if (replacementRoute != null) {
@@ -3346,6 +3685,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                   selected: item.id == _selectedItemId,
                                   moving: item.id == _movingItemId,
                                   label: _boardTokenLabelFor(item),
+                                  sportId: _currentSportIdOrDefault,
                                 ),
                               ),
                             ),
@@ -3700,31 +4040,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   List<Widget> _buildToolButtonsList(bool isKo) {
     final l10n = _l10n;
     return <Widget>[
-      _toolButton(
-        label: l10n.trainingSketchConeButton,
-        icon: Icons.change_history,
-        onTap: () => _addItem(_BoardItemType.cone),
-      ),
-      _toolButton(
-        label: l10n.trainingSketchLowHurdleButton,
-        icon: Icons.horizontal_rule,
-        onTap: () => _addItem(_BoardItemType.hurdle),
-      ),
-      _toolButton(
-        label: l10n.trainingSketchPlayerButton,
-        icon: Icons.person,
-        onTap: () => _addItem(_BoardItemType.player),
-      ),
-      _toolButton(
-        label: l10n.trainingSketchBallButton,
-        icon: Icons.sports_soccer,
-        onTap: () => _addItem(_BoardItemType.ball),
-      ),
-      _toolButton(
-        label: l10n.trainingSketchLadderButton,
-        icon: Icons.view_week,
-        onTap: () => _addItem(_BoardItemType.ladder),
-      ),
+      for (final tool in _boardToolSpecsForCurrentSport())
+        _toolButton(
+          label: tool.label,
+          icon: tool.icon,
+          onTap: () => _addItem(tool.type),
+        ),
       OutlinedButton.icon(
         onPressed: () => setState(() {
           _penMode = !_penMode;
@@ -3815,6 +4136,222 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       label: Text(label),
       style: _toolButtonStyle(),
     );
+  }
+
+  List<Widget> _buildSelectedQuickActionButtons(
+    _BoardItem selected, {
+    required bool includeRouteTool,
+  }) {
+    final l10n = _l10n;
+    final sportId = _currentSportIdOrDefault;
+    final buttons = <Widget>[];
+    if (includeRouteTool) {
+      buttons.add(
+        OutlinedButton.icon(
+          onPressed: _activateRouteToolForSelectedItem,
+          icon: const Icon(Icons.add_road_outlined),
+          label: Text(
+            selected.type == _BoardItemType.ball
+                ? l10n.trainingSketchCreatePassRouteButton
+                : l10n.trainingSketchCreateMoveRouteButton,
+          ),
+        ),
+      );
+    }
+    if (selected.type == _BoardItemType.player) {
+      buttons.addAll(_buildPlayerQuickActionButtons(sportId));
+    } else if (selected.type == _BoardItemType.ball) {
+      buttons.addAll(_buildBallQuickActionButtons(sportId));
+    }
+    if (selected.type == _BoardItemType.player ||
+        selected.type == _BoardItemType.ball) {
+      buttons.addAll(_buildTargetPlayerActionButtons(selected, sportId));
+    }
+    return buttons;
+  }
+
+  List<Widget> _buildPlayerQuickActionButtons(String sportId) {
+    final l10n = _l10n;
+    switch (sportId) {
+      case SportCatalog.baseballId:
+        return <Widget>[
+          OutlinedButton.icon(
+            onPressed: _applyQuickMoveTemplate,
+            icon: const Icon(Icons.directions_run),
+            label: Text(l10n.trainingSketchQuickMoveButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickBaseRunTemplate,
+            icon: const Icon(Icons.signpost_outlined),
+            label: Text(l10n.trainingSketchQuickRunBaseButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickFieldingMoveTemplate,
+            icon: const Icon(Icons.front_hand_outlined),
+            label: Text(l10n.trainingSketchQuickFieldingButton),
+          ),
+        ];
+      case SportCatalog.basketballId:
+        return <Widget>[
+          OutlinedButton.icon(
+            onPressed: _applyQuickMoveTemplate,
+            icon: const Icon(Icons.directions_run),
+            label: Text(l10n.trainingSketchQuickMoveButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickBasketballCutTemplate,
+            icon: const Icon(Icons.call_split),
+            label: Text(l10n.trainingSketchQuickCutButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickBasketballScreenTemplate,
+            icon: const Icon(Icons.block),
+            label: Text(l10n.trainingSketchQuickScreenButton),
+          ),
+        ];
+      case SportCatalog.tennisId:
+        return <Widget>[
+          OutlinedButton.icon(
+            onPressed: _applyQuickMoveTemplate,
+            icon: const Icon(Icons.directions_run),
+            label: Text(l10n.trainingSketchQuickMoveButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickTennisRecoveryTemplate,
+            icon: const Icon(Icons.keyboard_return),
+            label: Text(l10n.trainingSketchQuickRecoverButton),
+          ),
+        ];
+      default:
+        return <Widget>[
+          OutlinedButton.icon(
+            onPressed: _applyQuickMoveTemplate,
+            icon: const Icon(Icons.directions_run),
+            label: Text(l10n.trainingSketchQuickMoveButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickPassAndMoveTemplate,
+            icon: const Icon(Icons.sync_alt),
+            label: Text(l10n.trainingSketchQuickPassAndMoveButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickReceiveMoveTemplate,
+            icon: const Icon(Icons.call_received),
+            label: Text(l10n.trainingSketchQuickReceiveMoveButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickReturnMoveTemplate,
+            icon: const Icon(Icons.keyboard_return),
+            label: Text(l10n.trainingSketchQuickReturnMoveButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickOverlapMoveTemplate,
+            icon: const Icon(Icons.moving),
+            label: Text(l10n.trainingSketchQuickOverlapButton),
+          ),
+        ];
+    }
+  }
+
+  List<Widget> _buildBallQuickActionButtons(String sportId) {
+    final l10n = _l10n;
+    switch (sportId) {
+      case SportCatalog.baseballId:
+        return <Widget>[
+          OutlinedButton.icon(
+            onPressed: _applyQuickBaseballThrowTemplate,
+            icon: const Icon(Icons.near_me_outlined),
+            label: Text(l10n.trainingSketchQuickThrowButton),
+          ),
+        ];
+      case SportCatalog.basketballId:
+        return <Widget>[
+          OutlinedButton.icon(
+            onPressed: _applyQuickPassTemplate,
+            icon: const Icon(Icons.near_me_outlined),
+            label: Text(l10n.trainingSketchQuickPassButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickBasketballDriveTemplate,
+            icon: const Icon(Icons.sports_basketball_outlined),
+            label: Text(l10n.trainingSketchQuickDriveButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickBasketballShotTemplate,
+            icon: const Icon(Icons.ads_click),
+            label: Text(l10n.trainingSketchQuickShotButton),
+          ),
+        ];
+      case SportCatalog.tennisId:
+        return <Widget>[
+          OutlinedButton.icon(
+            onPressed: _applyQuickTennisServeTemplate,
+            icon: const Icon(Icons.sports_tennis),
+            label: Text(l10n.trainingSketchQuickServeButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickTennisRallyTemplate,
+            icon: const Icon(Icons.sync_alt),
+            label: Text(l10n.trainingSketchQuickRallyButton),
+          ),
+        ];
+      default:
+        return <Widget>[
+          OutlinedButton.icon(
+            onPressed: _applyQuickPassTemplate,
+            icon: const Icon(Icons.near_me_outlined),
+            label: Text(l10n.trainingSketchQuickPassButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickDribbleTemplate,
+            icon: const Icon(Icons.sports_soccer_outlined),
+            label: Text(l10n.trainingSketchQuickDribbleButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickShotTemplate,
+            icon: const Icon(Icons.ads_click),
+            label: Text(l10n.trainingSketchQuickShotButton),
+          ),
+          OutlinedButton.icon(
+            onPressed: _applyQuickCrossTemplate,
+            icon: const Icon(Icons.north_east),
+            label: Text(l10n.trainingSketchQuickCrossButton),
+          ),
+        ];
+    }
+  }
+
+  List<Widget> _buildTargetPlayerActionButtons(
+    _BoardItem selected,
+    String sportId,
+  ) {
+    final excludingId =
+        selected.type == _BoardItemType.player ? selected.id : null;
+    final players = _itemsOfType(
+      _BoardItemType.player,
+      excludingId: excludingId,
+    );
+    if (players.isEmpty) return const <Widget>[];
+    final l10n = _l10n;
+    return players.map((player) {
+      final index = _itemIndexOfType(player);
+      final label = switch (sportId) {
+        SportCatalog.baseballId =>
+          l10n.trainingSketchThrowToPlayerButton(index),
+        SportCatalog.tennisId => l10n.trainingSketchRallyToPlayerButton(index),
+        _ => l10n.trainingSketchPassToPlayerButton(index),
+      };
+      final icon = switch (sportId) {
+        SportCatalog.baseballId => Icons.sports_baseball,
+        SportCatalog.tennisId => Icons.sports_tennis,
+        _ => Icons.near_me_outlined,
+      };
+      return OutlinedButton.icon(
+        onPressed: () => _applyQuickBallToItemTemplate(player),
+        icon: Icon(icon),
+        label: Text(label),
+      );
+    }).toList(growable: false);
   }
 
   Widget _buildSelectedTools(bool isKo) {
@@ -3922,6 +4459,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             (route) =>
                 route.kind == _PathDrawMode.ball && route.points.length >= 2,
           );
+      final selectedPathItem =
+          selected?.type == _boardItemTypeForRouteKind(_pathDrawMode)
+              ? selected
+              : null;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4026,6 +4567,22 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   onSelected: (_) => _selectRouteableItem(item),
                 );
               }).toList(growable: false),
+            ),
+          ],
+          if (selectedPathItem != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              l10n.trainingSketchSelectedItemActionsTitle,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _buildSelectedQuickActionButtons(
+                selectedPathItem,
+                includeRouteTool: false,
+              ),
             ),
           ],
           const SizedBox(height: 6),
@@ -4218,66 +4775,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
-              OutlinedButton.icon(
-                onPressed: _activateRouteToolForSelectedItem,
-                icon: const Icon(Icons.add_road_outlined),
-                label: Text(
-                  selected.type == _BoardItemType.ball
-                      ? l10n.trainingSketchCreatePassRouteButton
-                      : l10n.trainingSketchCreateMoveRouteButton,
-                ),
-              ),
-              if (selected.type == _BoardItemType.player) ...[
-                OutlinedButton.icon(
-                  onPressed: _applyQuickMoveTemplate,
-                  icon: const Icon(Icons.directions_run),
-                  label: Text(l10n.trainingSketchQuickMoveButton),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _applyQuickPassAndMoveTemplate,
-                  icon: const Icon(Icons.sync_alt),
-                  label: Text(l10n.trainingSketchQuickPassAndMoveButton),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _applyQuickReceiveMoveTemplate,
-                  icon: const Icon(Icons.call_received),
-                  label: Text(l10n.trainingSketchQuickReceiveMoveButton),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _applyQuickReturnMoveTemplate,
-                  icon: const Icon(Icons.keyboard_return),
-                  label: Text(l10n.trainingSketchQuickReturnMoveButton),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _applyQuickOverlapMoveTemplate,
-                  icon: const Icon(Icons.moving),
-                  label: Text(l10n.trainingSketchQuickOverlapButton),
-                ),
-              ],
-              if (selected.type == _BoardItemType.ball) ...[
-                OutlinedButton.icon(
-                  onPressed: _applyQuickPassTemplate,
-                  icon: const Icon(Icons.near_me_outlined),
-                  label: Text(l10n.trainingSketchQuickPassButton),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _applyQuickDribbleTemplate,
-                  icon: const Icon(Icons.sports_soccer_outlined),
-                  label: Text(l10n.trainingSketchQuickDribbleButton),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _applyQuickShotTemplate,
-                  icon: const Icon(Icons.ads_click),
-                  label: Text(l10n.trainingSketchQuickShotButton),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _applyQuickCrossTemplate,
-                  icon: const Icon(Icons.north_east),
-                  label: Text(l10n.trainingSketchQuickCrossButton),
-                ),
-              ],
-            ],
+            children: _buildSelectedQuickActionButtons(
+              selected,
+              includeRouteTool: true,
+            ),
           ),
         ],
       ],
@@ -4421,9 +4922,21 @@ enum _TopBarMenuAction {
 
 enum _PathDrawMode { player, ball }
 
-enum _BoardItemType { cone, hurdle, player, ball, ladder }
+enum _BoardItemType { cone, hurdle, player, ball, ladder, target, base, basket }
 
 enum _BoardSurface { football, baseball, basketball, tennis }
+
+class _BoardToolSpec {
+  final _BoardItemType type;
+  final IconData icon;
+  final String label;
+
+  const _BoardToolSpec({
+    required this.type,
+    required this.icon,
+    required this.label,
+  });
+}
 
 _BoardSurface _boardSurfaceForSport(String? sportId) {
   return switch (SportCatalog.normalizeSportId(sportId)) {
@@ -4448,6 +4961,27 @@ Color _defaultColorFor(_BoardItemType type) {
     _BoardItemType.player => _playerItemColors.first,
     _BoardItemType.ball => _ballItemColors.first,
     _BoardItemType.ladder => const Color(0xFFE53935),
+    _BoardItemType.target => const Color(0xFFEC407A),
+    _BoardItemType.base => const Color(0xFFFFFFFF),
+    _BoardItemType.basket => const Color(0xFFFFA726),
+  };
+}
+
+IconData _boardItemIcon(_BoardItemType type, {String? sportId}) {
+  return switch (type) {
+    _BoardItemType.cone => Icons.change_history,
+    _BoardItemType.hurdle => Icons.horizontal_rule,
+    _BoardItemType.player => Icons.person,
+    _BoardItemType.ball => switch (SportCatalog.normalizeSportId(sportId)) {
+        SportCatalog.baseballId => Icons.sports_baseball,
+        SportCatalog.basketballId => Icons.sports_basketball,
+        SportCatalog.tennisId => Icons.sports_tennis,
+        _ => Icons.sports_soccer,
+      },
+    _BoardItemType.ladder => Icons.view_week,
+    _BoardItemType.target => Icons.gps_fixed,
+    _BoardItemType.base => Icons.home_outlined,
+    _BoardItemType.basket => Icons.sports_basketball,
   };
 }
 
@@ -4533,23 +5067,19 @@ class _BoardToken extends StatelessWidget {
   final bool selected;
   final bool moving;
   final String? label;
+  final String sportId;
 
   const _BoardToken({
     required this.item,
     required this.selected,
     required this.moving,
     required this.label,
+    required this.sportId,
   });
 
   @override
   Widget build(BuildContext context) {
-    final icon = switch (item.type) {
-      _BoardItemType.cone => Icons.change_history,
-      _BoardItemType.hurdle => Icons.horizontal_rule,
-      _BoardItemType.player => Icons.person,
-      _BoardItemType.ball => Icons.sports_soccer,
-      _BoardItemType.ladder => Icons.view_week,
-    };
+    final icon = _boardItemIcon(item.type, sportId: sportId);
     final borderColor = moving
         ? Colors.amberAccent
         : selected
