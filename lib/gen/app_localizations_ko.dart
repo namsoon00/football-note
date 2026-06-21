@@ -5654,6 +5654,143 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDialogAction => '좋아요';
 
   @override
+  String get entryFortuneOpenFailed => '운세 화면을 여는 중 문제가 생겼어요.';
+
+  @override
+  String get profileBirthTimeTitle => '출생 시간';
+
+  @override
+  String get profileBirthTimeSelectDateFirst => '생년월일 선택 후 입력';
+
+  @override
+  String get fortuneGeneratedUnknownPlayerName => '선수';
+
+  @override
+  String get fortuneGeneratedBirthNotSet => '프로필 생년월일 미입력';
+
+  @override
+  String fortuneGeneratedBirthFrame(
+      String yearPillar, String monthPillar, String dayPillar) {
+    return '$yearPillar년 $monthPillar월 $dayPillar일주';
+  }
+
+  @override
+  String fortuneGeneratedBirthFrameWithTime(String yearPillar,
+      String monthPillar, String dayPillar, String hourPillar) {
+    return '$yearPillar년 $monthPillar월 $dayPillar일주, $hourPillar시';
+  }
+
+  @override
+  String fortuneGeneratedDailyLineOne(
+      String name, String birthFrame, String dailyPillar, String elementFlow) {
+    return '$name의 $birthFrame에 오늘 $dailyPillar 기운이 들어와 $elementFlow이 도드라져요.';
+  }
+
+  @override
+  String fortuneGeneratedDailyLineTwo(
+      String fortuneTheme, String trainingTone) {
+    return '이 흐름은 $fortuneTheme로 열리니, 훈련에서는 $trainingTone을 재미있게 살려보세요.';
+  }
+
+  @override
+  String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
+    return '이름에서 잡힌 $nameElement 기운까지 더하면 오늘은 $playAdvice';
+  }
+
+  @override
+  String get fortuneGeneratedLuckyInfoHeader => '[행운 정보]';
+
+  @override
+  String fortuneGeneratedLuckyInfoLine(
+      int number, String color, String time, String zone, String cue) {
+    return '행운 숫자 $number, 색상 $color, 시간대 $time에는 $zone에서 $cue를 의식해 보세요.';
+  }
+
+  @override
+  String get fortuneRecommendedRecoveryProgram => '회복 볼터치';
+
+  @override
+  String get fortuneRecommendedLightFirstTouchProgram => '가벼운 퍼스트 터치';
+
+  @override
+  String get fortuneRecommendedForwardPassProgram => '전진 패스 연계';
+
+  @override
+  String get fortuneRecommendedCoreTechniqueProgram => '기본기 루틴';
+
+  @override
+  String fortuneRecommendationInjury(String program) {
+    return '통증 체크를 우선하고, 다음 훈련은 $program 중심으로 강도를 낮춰보세요.';
+  }
+
+  @override
+  String fortuneRecommendationStrongFlow(String program) {
+    return '흐름이 좋습니다. 다음 훈련은 $program로 속도와 선택 연결을 이어가세요.';
+  }
+
+  @override
+  String fortuneRecommendationDefault(String program) {
+    return '다음 훈련은 $program로 리듬을 정리하며 정확도를 끌어올려보세요.';
+  }
+
+  @override
+  String get fortuneSajuHeavenlyStems => '갑|을|병|정|무|기|경|신|임|계';
+
+  @override
+  String get fortuneSajuEarthlyBranches => '자|축|인|묘|진|사|오|미|신|유|술|해';
+
+  @override
+  String get fortuneSajuElementFlows =>
+      '목의 성장|화의 표현|토의 균형|금의 정리|수의 회복|목화의 추진|토금의 집중|수목의 전환';
+
+  @override
+  String get fortuneSajuFortuneThemes =>
+      '새 동작을 받아들이는 힘|친구와 호흡을 맞추는 감각|작은 실수를 빨리 회복하는 운|시야가 넓어지는 흐름|몸의 중심을 다시 잡는 날|집중력이 또렷해지는 시간|말보다 움직임이 먼저 풀리는 분위기|차분하게 속도를 올리는 운';
+
+  @override
+  String get fortuneSajuTrainingTones =>
+      '첫 터치의 방향 정리|짧은 패스 후 다음 선택|몸을 열고 받는 움직임|수비 전환 첫 걸음|마무리 전 호흡 조절|양발 밸런스 확인|공 없는 움직임의 타이밍|리턴 패스 각도 만들기';
+
+  @override
+  String get fortuneSajuNameElements =>
+      '목의 빠른 출발|화의 밝은 표현|토의 안정감|금의 정확함|수의 유연함|목화의 자신감|토금의 꾸준함|수목의 관찰력';
+
+  @override
+  String get fortuneSajuPlayAdvice =>
+      '처음엔 가볍게 시작해도 마지막 선택은 또렷해지는 날이에요.|작은 칭찬 하나가 몸의 리듬을 살려주는 날이에요.|급하게 밀어붙이기보다 한 박자 보고 움직이면 좋아요.|패스보다 먼저 고개를 들어 주변을 보면 운이 붙어요.|준비운동을 꼼꼼히 할수록 플레이가 산뜻해져요.|실수 뒤 표정을 빨리 정리하면 다음 장면이 살아나요.|오늘은 정확한 한 번이 강한 세 번보다 잘 맞아요.|친구의 움직임을 먼저 읽으면 좋은 장면이 열려요.';
+
+  @override
+  String get fortuneLuckyColorTones => '딥|소프트|클린|선셋|쿨|웜|미스트|브라이트|모노|포인트';
+
+  @override
+  String get fortuneLuckyColorBases =>
+      '네이비|에메랄드|코랄|머스타드|스카이블루|카키|아이보리|체리 레드|라임|차콜';
+
+  @override
+  String get fortuneLuckyTimePeriods =>
+      '이른 오전|오전 후반|점심 직후|초반 오후|늦은 오후|해질 무렵|저녁 초반|밤 루틴 시간';
+
+  @override
+  String get fortuneLuckyTimeWindows =>
+      '06:40~07:20|08:10~08:50|09:30~10:10|10:40~11:20|12:20~13:00|14:10~14:50|16:00~16:40|18:20~19:00|20:10~20:50|21:00~21:40';
+
+  @override
+  String get fortuneLuckyZoneModifiers =>
+      '왼쪽|오른쪽|중앙|하프라인 근처|박스 바깥|터치라인 쪽|전진 시작|수비 전환';
+
+  @override
+  String get fortuneLuckyZoneBases =>
+      '하프스페이스|터치라인 안쪽|첫 터치 지점|리턴 패스 각도|세컨드볼 반응 구역|압박 탈출 출발점|원투패스 연결선|침투 타이밍 구간|시야 확보 자리|마무리 직전 공간';
+
+  @override
+  String get fortuneLuckyCueOpenings =>
+      '짧게|첫 세트 전에|호흡 고른 뒤|볼을 받기 전에|발끝을 깨운 다음|고개를 든 직후|턴 동작 직전|리듬이 흔들리면';
+
+  @override
+  String get fortuneLuckyCueActions =>
+      '시선 한 번 더 확인하기|터치 방향 먼저 정하기|왼발과 오른발 간격 맞추기|첫 발 디딤을 가볍게 두기|몸을 열고 다음 선택 보기|짧은 호흡으로 템포 묶기|한 번에 세게보다 정확하게 두기|볼 오기 전에 어깨 방향 정리하기';
+
+  @override
   String get mealStatsNoTrainingOrMealEntries => '선택한 기간에 훈련 기록과 식사 기록이 없습니다.';
 
   @override

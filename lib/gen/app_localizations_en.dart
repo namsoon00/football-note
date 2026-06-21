@@ -5814,6 +5814,146 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDialogAction => 'Nice';
 
   @override
+  String get entryFortuneOpenFailed => 'Failed to open fortune.';
+
+  @override
+  String get profileBirthTimeTitle => 'Birth time';
+
+  @override
+  String get profileBirthTimeSelectDateFirst => 'Select birth date first';
+
+  @override
+  String get fortuneGeneratedUnknownPlayerName => 'Player';
+
+  @override
+  String get fortuneGeneratedBirthNotSet => 'birth date not set in profile';
+
+  @override
+  String fortuneGeneratedBirthFrame(
+      String yearPillar, String monthPillar, String dayPillar) {
+    return 'year $yearPillar, month $monthPillar, day-master $dayPillar';
+  }
+
+  @override
+  String fortuneGeneratedBirthFrameWithTime(String yearPillar,
+      String monthPillar, String dayPillar, String hourPillar) {
+    return 'year $yearPillar, month $monthPillar, day-master $dayPillar, hour $hourPillar';
+  }
+
+  @override
+  String fortuneGeneratedDailyLineOne(
+      String name, String birthFrame, String dailyPillar, String elementFlow) {
+    return 'For $name, $birthFrame meets today\'s $dailyPillar flow, so $elementFlow stands out.';
+  }
+
+  @override
+  String fortuneGeneratedDailyLineTwo(
+      String fortuneTheme, String trainingTone) {
+    return 'That opens as $fortuneTheme, so make practice playful through $trainingTone.';
+  }
+
+  @override
+  String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
+    return 'Add the name signal of $nameElement, and today $playAdvice';
+  }
+
+  @override
+  String get fortuneGeneratedLuckyInfoHeader => '[Lucky info]';
+
+  @override
+  String fortuneGeneratedLuckyInfoLine(
+      int number, String color, String time, String zone, String cue) {
+    return 'Lucky number $number, color $color, and time $time point to the $zone; $cue.';
+  }
+
+  @override
+  String get fortuneRecommendedRecoveryProgram => 'Recovery ball touch';
+
+  @override
+  String get fortuneRecommendedLightFirstTouchProgram => 'Light first touch';
+
+  @override
+  String get fortuneRecommendedForwardPassProgram => 'Forward pass combination';
+
+  @override
+  String get fortuneRecommendedCoreTechniqueProgram => 'Core technique routine';
+
+  @override
+  String fortuneRecommendationInjury(String program) {
+    return 'Check pain first and lower the next session intensity around $program.';
+  }
+
+  @override
+  String fortuneRecommendationStrongFlow(String program) {
+    return 'Your rhythm is good. Keep the next session focused on $program.';
+  }
+
+  @override
+  String fortuneRecommendationDefault(String program) {
+    return 'Use $program next to settle your rhythm and raise accuracy.';
+  }
+
+  @override
+  String get fortuneSajuHeavenlyStems =>
+      'Gap|Eul|Byeong|Jeong|Mu|Gi|Gyeong|Sin|Im|Gye';
+
+  @override
+  String get fortuneSajuEarthlyBranches =>
+      'Ja|Chuk|In|Myo|Jin|Sa|O|Mi|Sin|Yu|Sul|Hae';
+
+  @override
+  String get fortuneSajuElementFlows =>
+      'Wood growth|Fire expression|Earth balance|Metal clarity|Water recovery|Wood-fire drive|Earth-metal focus|Water-wood transition';
+
+  @override
+  String get fortuneSajuFortuneThemes =>
+      'energy for accepting a new move|a sense for matching a teammate\'s rhythm|luck that recovers quickly from small mistakes|a flow that widens your scan|a day for finding your center again|a window where focus gets sharper|a mood where movement speaks before words|luck for raising speed calmly';
+
+  @override
+  String get fortuneSajuTrainingTones =>
+      'setting the first-touch direction|short pass then next choice|receiving with the body open|the first step in defensive transition|breathing before the finish|checking both-foot balance|timing the off-ball movement|making the return-pass angle';
+
+  @override
+  String get fortuneSajuNameElements =>
+      'Wood\'s quick start|Fire\'s bright expression|Earth\'s stability|Metal\'s accuracy|Water\'s flexibility|Wood-fire confidence|Earth-metal steadiness|Water-wood observation';
+
+  @override
+  String get fortuneSajuPlayAdvice =>
+      'you can start light and still make the final choice clearly.|one small compliment can bring your rhythm alive.|it helps to pause one beat before pushing harder.|your luck rises when you lift your head before the pass.|careful warmups make the play feel fresher.|resetting your face after a mistake brings the next scene back.|one accurate touch fits better than three forced ones.|reading a teammate first opens a good scene.';
+
+  @override
+  String get fortuneLuckyColorTones =>
+      'Deep|Soft|Clean|Sunset|Cool|Warm|Mist|Bright|Mono|Accent';
+
+  @override
+  String get fortuneLuckyColorBases =>
+      'Navy|Emerald|Coral|Mustard|Sky Blue|Khaki|Ivory|Cherry Red|Lime|Charcoal';
+
+  @override
+  String get fortuneLuckyTimePeriods =>
+      'Early morning|Late morning|Right after lunch|Early afternoon|Late afternoon|At sunset|Early evening|Night routine window';
+
+  @override
+  String get fortuneLuckyTimeWindows =>
+      '06:40-07:20|08:10-08:50|09:30-10:10|10:40-11:20|12:20-13:00|14:10-14:50|16:00-16:40|18:20-19:00|20:10-20:50|21:00-21:40';
+
+  @override
+  String get fortuneLuckyZoneModifiers =>
+      'Left-side|Right-side|Central|Half-line|Box-edge|Touchline-side|Forward-start|Transition';
+
+  @override
+  String get fortuneLuckyZoneBases =>
+      'half-space|inside channel|first-touch spot|return-pass angle|second-ball lane|press-break starting point|one-two lane|run timing window|scanning pocket|pre-finish space';
+
+  @override
+  String get fortuneLuckyCueOpenings =>
+      'Briefly|Before the first set|After settling the breath|Before receiving the ball|Once the feet wake up|Right after lifting the head|Just before the turn|When the rhythm slips';
+
+  @override
+  String get fortuneLuckyCueActions =>
+      'scan one more time|pick the touch direction first|set the gap between both feet|keep the first step light|open the body and see the next option|bind the tempo with a short breath|choose accuracy before force|set the shoulder angle before the ball arrives';
+
+  @override
   String get mealStatsNoTrainingOrMealEntries =>
       'No training or meal entries in the selected period.';
 

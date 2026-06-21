@@ -1,6 +1,8 @@
+import 'package:football_note/gen/app_localizations.dart';
+import 'package:intl/intl.dart';
+
 import '../domain/entities/player_profile.dart';
 import '../domain/entities/training_entry.dart';
-import 'package:intl/intl.dart';
 
 class LocalFortuneResult {
   final String fortuneText;
@@ -34,26 +36,62 @@ class LocalFortuneService {
     required TrainingEntry entry,
     required PlayerProfile profile,
     required List<TrainingEntry> history,
-    required bool isKo,
+    required AppLocalizations l10n,
   }) {
     final baseSeed = _seed(entry, profile, history);
-    final luckyTime = _luckyTime(seed: baseSeed + 71, isKo: isKo);
-    final luckyColor = _luckyColor(seed: baseSeed + 73, isKo: isKo);
-    final luckyZone = _luckyZone(seed: baseSeed + 79, isKo: isKo);
-    final luckyCue = _luckyCue(seed: baseSeed + 83, isKo: isKo);
+    final birthReading = _birthReading(profile, l10n);
+    final dailyPillar = _dayPillar(entry.date, l10n);
+    final luckyTime = _luckyTime(seed: baseSeed + 71, l10n: l10n);
+    final luckyColor = _luckyColor(seed: baseSeed + 73, l10n: l10n);
+    final luckyZone = _luckyZone(seed: baseSeed + 79, l10n: l10n);
+    final luckyCue = _luckyCue(seed: baseSeed + 83, l10n: l10n);
     final luckyNumber = (baseSeed.abs() % 9) + 1;
-    final recommendedProgram = _recommendedProgram(entry: entry, isKo: isKo);
+    final recommendedProgram = _recommendedProgram(entry: entry, l10n: l10n);
     final recommendationText = _recommendationText(
       entry: entry,
       recommendedProgram: recommendedProgram,
-      isKo: isKo,
+      l10n: l10n,
+    );
+    final name = _playerName(profile, l10n);
+    final fortuneTheme = _pickLocalized(
+      l10n.fortuneSajuFortuneThemes,
+      baseSeed + birthReading.seed + 89,
+    );
+    final trainingTone = _pickLocalized(
+      l10n.fortuneSajuTrainingTones,
+      baseSeed + dailyPillar.stemIndex * 31,
+    );
+    final playAdvice = _pickLocalized(
+      l10n.fortuneSajuPlayAdvice,
+      baseSeed + birthReading.seed + dailyPillar.branchIndex * 43,
+    );
+    final elementFlow = _pickLocalized(
+      l10n.fortuneSajuElementFlows,
+      birthReading.elementSeed + dailyPillar.stemIndex,
+    );
+    final nameElement = _pickLocalized(
+      l10n.fortuneSajuNameElements,
+      _nameSeed(profile) + birthReading.seed,
     );
 
-    final fortuneText = isKo
-        ? '[행운 정보]\n'
-            '행운 숫자 $luckyNumber, 색상 $luckyColor, 시간대 $luckyTime에는 $luckyZone에서 $luckyCue를 의식해 보세요.'
-        : '[Lucky info]\n'
-            'Lucky number $luckyNumber, color $luckyColor, and time $luckyTime point to the $luckyZone; $luckyCue.';
+    final fortuneText = <String>[
+      l10n.fortuneGeneratedDailyLineOne(
+        name,
+        birthReading.frame,
+        dailyPillar.label,
+        elementFlow,
+      ),
+      l10n.fortuneGeneratedDailyLineTwo(fortuneTheme, trainingTone),
+      l10n.fortuneGeneratedDailyLineThree(nameElement, playAdvice),
+      l10n.fortuneGeneratedLuckyInfoHeader,
+      l10n.fortuneGeneratedLuckyInfoLine(
+        luckyNumber,
+        luckyColor,
+        luckyTime,
+        luckyZone,
+        luckyCue,
+      ),
+    ].join('\n');
 
     return LocalFortuneResult(
       fortuneText: fortuneText,
@@ -66,13 +104,13 @@ class LocalFortuneService {
     required TrainingEntry entry,
     required PlayerProfile profile,
     required List<TrainingEntry> history,
-    required bool isKo,
+    required AppLocalizations l10n,
   }) {
     return generateResult(
       entry: entry,
       profile: profile,
       history: history,
-      isKo: isKo,
+      l10n: l10n,
     ).fortuneText;
   }
 
@@ -82,7 +120,8 @@ class LocalFortuneService {
     List<TrainingEntry> history,
   ) {
     final date = DateTime(entry.date.year, entry.date.month, entry.date.day);
-    final p = profile.name.trim().runes.fold<int>(0, (a, b) => a + b);
+    final p = _nameSeed(profile);
+    final b = _birthSeed(profile.birthDate);
     final h = history.length * 17;
     final l = entry.liftingByPart.values.fold<int>(0, (a, b) => a + b);
     return date.year * 37 +
@@ -92,7 +131,8 @@ class LocalFortuneService {
         entry.mood * 13 +
         entry.durationMinutes * 3 +
         l * 5 +
-        p +
+        p * 3 +
+        b +
         h;
   }
 
@@ -103,74 +143,67 @@ class LocalFortuneService {
 
   String _recommendedProgram({
     required TrainingEntry entry,
-    required bool isKo,
+    required AppLocalizations l10n,
   }) {
     final liftingTotal = entry.liftingByPart.values.fold<int>(
       0,
       (sum, count) => sum + count,
     );
     if (entry.injury || (entry.painLevel ?? 0) >= 4) {
-      return isKo ? '회복 볼터치' : 'Recovery ball touch';
+      return l10n.fortuneRecommendedRecoveryProgram;
     }
     if (liftingTotal >= 80) {
-      return isKo ? '가벼운 퍼스트 터치' : 'Light first touch';
+      return l10n.fortuneRecommendedLightFirstTouchProgram;
     }
     if (entry.mood >= 4 && entry.intensity >= 4) {
-      return isKo ? '전진 패스 연계' : 'Forward pass combination';
+      return l10n.fortuneRecommendedForwardPassProgram;
     }
-    return isKo ? '기본기 루틴' : 'Core technique routine';
+    return l10n.fortuneRecommendedCoreTechniqueProgram;
   }
 
   String _recommendationText({
     required TrainingEntry entry,
     required String recommendedProgram,
-    required bool isKo,
+    required AppLocalizations l10n,
   }) {
     if (entry.injury || (entry.painLevel ?? 0) >= 4) {
-      return isKo
-          ? '통증 체크를 우선하고, 다음 훈련은 $recommendedProgram 중심으로 강도를 낮춰보세요.'
-          : 'Check pain first and lower the next session intensity around $recommendedProgram.';
+      return l10n.fortuneRecommendationInjury(recommendedProgram);
     }
     if (entry.mood >= 4 && entry.intensity >= 4) {
-      return isKo
-          ? '흐름이 좋습니다. 다음 훈련은 $recommendedProgram로 속도와 선택 연결을 이어가세요.'
-          : 'Your rhythm is good. Keep the next session focused on $recommendedProgram.';
+      return l10n.fortuneRecommendationStrongFlow(recommendedProgram);
     }
-    return isKo
-        ? '다음 훈련은 $recommendedProgram로 리듬을 정리하며 정확도를 끌어올려보세요.'
-        : 'Use $recommendedProgram next to settle your rhythm and raise accuracy.';
+    return l10n.fortuneRecommendationDefault(recommendedProgram);
   }
 
-  String _luckyColor({required int seed, required bool isKo}) {
+  String _luckyColor({required int seed, required AppLocalizations l10n}) {
     return _composeSegments(
       seed: seed,
-      first: isKo ? _luckyColorTonesKo : _luckyColorTonesEn,
-      second: isKo ? _luckyColorBasesKo : _luckyColorBasesEn,
+      first: _localizedValues(l10n.fortuneLuckyColorTones),
+      second: _localizedValues(l10n.fortuneLuckyColorBases),
     );
   }
 
-  String _luckyTime({required int seed, required bool isKo}) {
+  String _luckyTime({required int seed, required AppLocalizations l10n}) {
     return _composeSegments(
       seed: seed,
-      first: isKo ? _luckyTimePeriodsKo : _luckyTimePeriodsEn,
-      second: isKo ? _luckyTimeWindowsKo : _luckyTimeWindowsEn,
-      separator: isKo ? ' ' : ' ',
+      first: _localizedValues(l10n.fortuneLuckyTimePeriods),
+      second: _localizedValues(l10n.fortuneLuckyTimeWindows),
     );
   }
 
-  String _luckyZone({required int seed, required bool isKo}) {
+  String _luckyZone({required int seed, required AppLocalizations l10n}) {
     return _composeSegments(
       seed: seed,
-      first: isKo ? _luckyZoneModifiersKo : _luckyZoneModifiersEn,
-      second: isKo ? _luckyZoneBasesKo : _luckyZoneBasesEn,
+      first: _localizedValues(l10n.fortuneLuckyZoneModifiers),
+      second: _localizedValues(l10n.fortuneLuckyZoneBases),
     );
   }
 
-  String _luckyCue({required int seed, required bool isKo}) {
+  String _luckyCue({required int seed, required AppLocalizations l10n}) {
     return _composeSegments(
       seed: seed,
-      first: isKo ? _luckyCueOpeningsKo : _luckyCueOpeningsEn,
-      second: isKo ? _luckyCueActionsKo : _luckyCueActionsEn,
+      first: _localizedValues(l10n.fortuneLuckyCueOpenings),
+      second: _localizedValues(l10n.fortuneLuckyCueActions),
     );
   }
 
@@ -189,12 +222,172 @@ class LocalFortuneService {
     return parts.join(separator).replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
+  _BirthReading _birthReading(
+    PlayerProfile profile,
+    AppLocalizations l10n,
+  ) {
+    final birthDate = profile.birthDate;
+    if (birthDate == null) {
+      final seed = _nameSeed(profile);
+      return _BirthReading(
+        frame: l10n.fortuneGeneratedBirthNotSet,
+        seed: seed,
+        elementSeed: seed,
+      );
+    }
+
+    final yearPillar = _yearPillar(birthDate, l10n);
+    final monthPillar = _monthPillar(birthDate, yearPillar.stemIndex, l10n);
+    final dayPillar = _dayPillar(birthDate, l10n);
+    final hourPillar = _hasBirthTime(birthDate)
+        ? _hourPillar(birthDate, dayPillar.stemIndex, l10n)
+        : null;
+    final frame = hourPillar == null
+        ? l10n.fortuneGeneratedBirthFrame(
+            yearPillar.label,
+            monthPillar.label,
+            dayPillar.label,
+          )
+        : l10n.fortuneGeneratedBirthFrameWithTime(
+            yearPillar.label,
+            monthPillar.label,
+            dayPillar.label,
+            hourPillar.label,
+          );
+    final seed = yearPillar.index * 7 +
+        monthPillar.index * 11 +
+        dayPillar.index * 13 +
+        (hourPillar?.index ?? 0) * 17;
+    final elementSeed = yearPillar.stemIndex +
+        monthPillar.stemIndex +
+        dayPillar.stemIndex +
+        (hourPillar?.stemIndex ?? 0);
+    return _BirthReading(frame: frame, seed: seed, elementSeed: elementSeed);
+  }
+
+  _SajuPillar _yearPillar(DateTime date, AppLocalizations l10n) {
+    final pillarYear = date.month == 1 || (date.month == 2 && date.day < 4)
+        ? date.year - 1
+        : date.year;
+    return _pillarForIndex(_positiveMod(pillarYear - 4, 60), l10n);
+  }
+
+  _SajuPillar _monthPillar(
+    DateTime date,
+    int yearStemIndex,
+    AppLocalizations l10n,
+  ) {
+    final branchIndex = date.month % 12;
+    final firstMonthStem = switch (yearStemIndex) {
+      0 || 5 => 2,
+      1 || 6 => 4,
+      2 || 7 => 6,
+      3 || 8 => 8,
+      _ => 0,
+    };
+    final stemIndex = _positiveMod(firstMonthStem + branchIndex - 2, 10);
+    return _pillarForStemBranch(stemIndex, branchIndex, l10n);
+  }
+
+  _SajuPillar _dayPillar(DateTime date, AppLocalizations l10n) {
+    final day = DateTime(date.year, date.month, date.day);
+    final days = day.difference(DateTime(1984, 2, 2)).inDays;
+    return _pillarForIndex(_positiveMod(days, 60), l10n);
+  }
+
+  _SajuPillar _hourPillar(
+    DateTime date,
+    int dayStemIndex,
+    AppLocalizations l10n,
+  ) {
+    final branchIndex = ((date.hour + 1) ~/ 2) % 12;
+    final firstHourStem = switch (dayStemIndex) {
+      0 || 5 => 0,
+      1 || 6 => 2,
+      2 || 7 => 4,
+      3 || 8 => 6,
+      _ => 8,
+    };
+    final stemIndex = _positiveMod(firstHourStem + branchIndex, 10);
+    return _pillarForStemBranch(stemIndex, branchIndex, l10n);
+  }
+
+  _SajuPillar _pillarForIndex(int index, AppLocalizations l10n) {
+    return _pillarForStemBranch(index % 10, index % 12, l10n);
+  }
+
+  _SajuPillar _pillarForStemBranch(
+    int stemIndex,
+    int branchIndex,
+    AppLocalizations l10n,
+  ) {
+    final stems = _localizedValues(l10n.fortuneSajuHeavenlyStems);
+    final branches = _localizedValues(l10n.fortuneSajuEarthlyBranches);
+    final label =
+        '${_valueAt(stems, stemIndex)}${_valueAt(branches, branchIndex)}';
+    final index = _positiveMod(stemIndex * 6 - branchIndex * 5, 60);
+    return _SajuPillar(
+      label: label,
+      index: index,
+      stemIndex: stemIndex,
+      branchIndex: branchIndex,
+    );
+  }
+
+  static String _playerName(PlayerProfile profile, AppLocalizations l10n) {
+    final name = profile.name.trim();
+    return name.isEmpty ? l10n.fortuneGeneratedUnknownPlayerName : name;
+  }
+
+  static int _nameSeed(PlayerProfile profile) {
+    return profile.name.trim().runes.fold<int>(0, (a, b) => a + b);
+  }
+
+  static int _birthSeed(DateTime? birthDate) {
+    if (birthDate == null) return 0;
+    return birthDate.year * 11 +
+        birthDate.month * 47 +
+        birthDate.day * 83 +
+        birthDate.hour * 131 +
+        birthDate.minute * 151;
+  }
+
+  static bool _hasBirthTime(DateTime birthDate) {
+    return birthDate.hour != 0 ||
+        birthDate.minute != 0 ||
+        birthDate.second != 0 ||
+        birthDate.millisecond != 0 ||
+        birthDate.microsecond != 0;
+  }
+
+  static List<String> _localizedValues(String packed) {
+    return packed
+        .split('|')
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  static String _pickLocalized(String packed, int seed) {
+    return _valueAt(_localizedValues(packed), seed);
+  }
+
+  static String _valueAt(List<String> values, int index) {
+    if (values.isEmpty) return '';
+    return values[_positiveMod(index, values.length)];
+  }
+
+  static int _positiveMod(int value, int modulo) {
+    final result = value % modulo;
+    return result < 0 ? result + modulo : result;
+  }
+
   static BigInt _calculateTotalFortunePoolCount() {
-    BigInt count(List<String> values) => BigInt.from(values.length);
+    BigInt count(int value) => BigInt.from(value);
     BigInt countSegments(
-      List<String> first,
-      List<String> second, [
-      List<String>? third,
+      int first,
+      int second, [
+      int? third,
     ]) {
       var total = count(first) * count(second);
       if (third != null) {
@@ -204,20 +397,29 @@ class LocalFortuneService {
     }
 
     final luckyColorCount = countSegments(
-      _luckyColorTonesKo,
-      _luckyColorBasesKo,
+      _fortuneLuckyColorToneCount,
+      _fortuneLuckyColorBaseCount,
     );
     final luckyTimeCount = countSegments(
-      _luckyTimePeriodsKo,
-      _luckyTimeWindowsKo,
+      _fortuneLuckyTimePeriodCount,
+      _fortuneLuckyTimeWindowCount,
     );
     final luckyZoneCount = countSegments(
-      _luckyZoneModifiersKo,
-      _luckyZoneBasesKo,
+      _fortuneLuckyZoneModifierCount,
+      _fortuneLuckyZoneBaseCount,
     );
     final luckyCueCount = countSegments(
-      _luckyCueOpeningsKo,
-      _luckyCueActionsKo,
+      _fortuneLuckyCueOpeningCount,
+      _fortuneLuckyCueActionCount,
+    );
+    final sajuReadingCount = countSegments(
+      _fortuneSajuElementFlowCount,
+      _fortuneSajuThemeCount,
+      _fortuneSajuTrainingToneCount,
+    );
+    final sajuAdviceCount = countSegments(
+      _fortuneSajuNameElementCount,
+      _fortuneSajuPlayAdviceCount,
     );
     const luckyNumberCount = 9;
 
@@ -225,6 +427,8 @@ class LocalFortuneService {
         luckyTimeCount *
         luckyZoneCount *
         luckyCueCount *
+        sajuReadingCount *
+        sajuAdviceCount *
         BigInt.from(luckyNumberCount);
   }
 
@@ -242,194 +446,42 @@ class LocalFortuneService {
   }
 }
 
-const List<String> _luckyColorTonesKo = [
-  '딥',
-  '소프트',
-  '클린',
-  '선셋',
-  '쿨',
-  '웜',
-  '미스트',
-  '브라이트',
-  '모노',
-  '포인트',
-];
+class _BirthReading {
+  final String frame;
+  final int seed;
+  final int elementSeed;
 
-const List<String> _luckyColorBasesKo = [
-  '네이비',
-  '에메랄드',
-  '코랄',
-  '머스타드',
-  '스카이블루',
-  '카키',
-  '아이보리',
-  '체리 레드',
-  '라임',
-  '차콜',
-];
+  const _BirthReading({
+    required this.frame,
+    required this.seed,
+    required this.elementSeed,
+  });
+}
 
-const List<String> _luckyColorTonesEn = [
-  'Deep',
-  'Soft',
-  'Clean',
-  'Sunset',
-  'Cool',
-  'Warm',
-  'Mist',
-  'Bright',
-  'Mono',
-  'Accent',
-];
+class _SajuPillar {
+  final String label;
+  final int index;
+  final int stemIndex;
+  final int branchIndex;
 
-const List<String> _luckyColorBasesEn = [
-  'Navy',
-  'Emerald',
-  'Coral',
-  'Mustard',
-  'Sky Blue',
-  'Khaki',
-  'Ivory',
-  'Cherry Red',
-  'Lime',
-  'Charcoal',
-];
+  const _SajuPillar({
+    required this.label,
+    required this.index,
+    required this.stemIndex,
+    required this.branchIndex,
+  });
+}
 
-const List<String> _luckyTimePeriodsKo = [
-  '이른 오전',
-  '오전 후반',
-  '점심 직후',
-  '초반 오후',
-  '늦은 오후',
-  '해질 무렵',
-  '저녁 초반',
-  '밤 루틴 시간',
-];
-
-const List<String> _luckyTimeWindowsKo = [
-  '06:40~07:20',
-  '08:10~08:50',
-  '09:30~10:10',
-  '10:40~11:20',
-  '12:20~13:00',
-  '14:10~14:50',
-  '16:00~16:40',
-  '18:20~19:00',
-  '20:10~20:50',
-  '21:00~21:40',
-];
-
-const List<String> _luckyTimePeriodsEn = [
-  'Early morning',
-  'Late morning',
-  'Right after lunch',
-  'Early afternoon',
-  'Late afternoon',
-  'At sunset',
-  'Early evening',
-  'Night routine window',
-];
-
-const List<String> _luckyTimeWindowsEn = [
-  '06:40-07:20',
-  '08:10-08:50',
-  '09:30-10:10',
-  '10:40-11:20',
-  '12:20-13:00',
-  '14:10-14:50',
-  '16:00-16:40',
-  '18:20-19:00',
-  '20:10-20:50',
-  '21:00-21:40',
-];
-
-const List<String> _luckyZoneModifiersKo = [
-  '왼쪽',
-  '오른쪽',
-  '중앙',
-  '하프라인 근처',
-  '박스 바깥',
-  '터치라인 쪽',
-  '전진 시작',
-  '수비 전환',
-];
-
-const List<String> _luckyZoneBasesKo = [
-  '하프스페이스',
-  '터치라인 안쪽',
-  '첫 터치 지점',
-  '리턴 패스 각도',
-  '세컨드볼 반응 구역',
-  '압박 탈출 출발점',
-  '원투패스 연결선',
-  '침투 타이밍 구간',
-  '시야 확보 자리',
-  '마무리 직전 공간',
-];
-
-const List<String> _luckyZoneModifiersEn = [
-  'Left-side',
-  'Right-side',
-  'Central',
-  'Half-line',
-  'Box-edge',
-  'Touchline-side',
-  'Forward-start',
-  'Transition',
-];
-
-const List<String> _luckyZoneBasesEn = [
-  'half-space',
-  'inside channel',
-  'first-touch spot',
-  'return-pass angle',
-  'second-ball lane',
-  'press-break starting point',
-  'one-two lane',
-  'run timing window',
-  'scanning pocket',
-  'pre-finish space',
-];
-
-const List<String> _luckyCueOpeningsKo = [
-  '짧게',
-  '첫 세트 전에',
-  '호흡 고른 뒤',
-  '볼을 받기 전에',
-  '발끝을 깨운 다음',
-  '고개를 든 직후',
-  '턴 동작 직전',
-  '리듬이 흔들리면',
-];
-
-const List<String> _luckyCueActionsKo = [
-  '시선 한 번 더 확인하기',
-  '터치 방향 먼저 정하기',
-  '왼발과 오른발 간격 맞추기',
-  '첫 발 디딤을 가볍게 두기',
-  '몸을 열고 다음 선택 보기',
-  '짧은 호흡으로 템포 묶기',
-  '한 번에 세게보다 정확하게 두기',
-  '볼 오기 전에 어깨 방향 정리하기',
-];
-
-const List<String> _luckyCueOpeningsEn = [
-  'Briefly',
-  'Before the first set',
-  'After settling the breath',
-  'Before receiving the ball',
-  'Once the feet wake up',
-  'Right after lifting the head',
-  'Just before the turn',
-  'When the rhythm slips',
-];
-
-const List<String> _luckyCueActionsEn = [
-  'scan one more time',
-  'pick the touch direction first',
-  'set the gap between both feet',
-  'keep the first step light',
-  'open the body and see the next option',
-  'bind the tempo with a short breath',
-  'choose accuracy before force',
-  'set the shoulder angle before the ball arrives',
-];
+const int _fortuneLuckyColorToneCount = 10;
+const int _fortuneLuckyColorBaseCount = 10;
+const int _fortuneLuckyTimePeriodCount = 8;
+const int _fortuneLuckyTimeWindowCount = 10;
+const int _fortuneLuckyZoneModifierCount = 8;
+const int _fortuneLuckyZoneBaseCount = 10;
+const int _fortuneLuckyCueOpeningCount = 8;
+const int _fortuneLuckyCueActionCount = 8;
+const int _fortuneSajuElementFlowCount = 8;
+const int _fortuneSajuThemeCount = 8;
+const int _fortuneSajuTrainingToneCount = 8;
+const int _fortuneSajuNameElementCount = 8;
+const int _fortuneSajuPlayAdviceCount = 8;

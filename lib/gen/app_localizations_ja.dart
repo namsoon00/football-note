@@ -5654,6 +5654,144 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDialogAction => 'ニース';
 
   @override
+  String get entryFortuneOpenFailed => '運勢画面を開けませんでした。';
+
+  @override
+  String get profileBirthTimeTitle => '出生時刻';
+
+  @override
+  String get profileBirthTimeSelectDateFirst => '生年月日を先に選択';
+
+  @override
+  String get fortuneGeneratedUnknownPlayerName => '選手';
+
+  @override
+  String get fortuneGeneratedBirthNotSet => 'プロフィールの生年月日未入力';
+
+  @override
+  String fortuneGeneratedBirthFrame(
+      String yearPillar, String monthPillar, String dayPillar) {
+    return '$yearPillar年 $monthPillar月 $dayPillar日柱';
+  }
+
+  @override
+  String fortuneGeneratedBirthFrameWithTime(String yearPillar,
+      String monthPillar, String dayPillar, String hourPillar) {
+    return '$yearPillar年 $monthPillar月 $dayPillar日柱、$hourPillar時';
+  }
+
+  @override
+  String fortuneGeneratedDailyLineOne(
+      String name, String birthFrame, String dailyPillar, String elementFlow) {
+    return '$nameの$birthFrameに今日の$dailyPillarの気が入り、$elementFlowが目立ちます。';
+  }
+
+  @override
+  String fortuneGeneratedDailyLineTwo(
+      String fortuneTheme, String trainingTone) {
+    return 'この流れは$fortuneThemeとして開くので、練習では$trainingToneを楽しく生かしましょう。';
+  }
+
+  @override
+  String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
+    return '名前から出る$nameElementの気も重なるので、今日は$playAdvice';
+  }
+
+  @override
+  String get fortuneGeneratedLuckyInfoHeader => '[ラッキー情報]';
+
+  @override
+  String fortuneGeneratedLuckyInfoLine(
+      int number, String color, String time, String zone, String cue) {
+    return 'ラッキーナンバー $number、カラー $color、時間帯 $time は $zone で $cue を意識してみましょう。';
+  }
+
+  @override
+  String get fortuneRecommendedRecoveryProgram => 'リカバリー・ボールタッチ';
+
+  @override
+  String get fortuneRecommendedLightFirstTouchProgram => '軽いファーストタッチ';
+
+  @override
+  String get fortuneRecommendedForwardPassProgram => '前進パス連携';
+
+  @override
+  String get fortuneRecommendedCoreTechniqueProgram => '基礎ルーティン';
+
+  @override
+  String fortuneRecommendationInjury(String program) {
+    return '痛みの確認を優先し、次の練習は$programを中心に強度を下げましょう。';
+  }
+
+  @override
+  String fortuneRecommendationStrongFlow(String program) {
+    return '流れは良好です。次の練習は$programでスピードと選択をつなげましょう。';
+  }
+
+  @override
+  String fortuneRecommendationDefault(String program) {
+    return '次の練習は$programでリズムを整え、正確さを上げましょう。';
+  }
+
+  @override
+  String get fortuneSajuHeavenlyStems => '甲|乙|丙|丁|戊|己|庚|辛|壬|癸';
+
+  @override
+  String get fortuneSajuEarthlyBranches => '子|丑|寅|卯|辰|巳|午|未|申|酉|戌|亥';
+
+  @override
+  String get fortuneSajuElementFlows =>
+      '木の成長|火の表現|土の安定|金の整理|水の回復|木火の推進|土金の集中|水木の転換';
+
+  @override
+  String get fortuneSajuFortuneThemes =>
+      '新しい動きを受け入れる力|仲間と呼吸を合わせる感覚|小さなミスから早く戻る運|視野が広がる流れ|体の中心を取り戻す日|集中がはっきりする時間|言葉より動きが先に出る雰囲気|落ち着いて速度を上げる運';
+
+  @override
+  String get fortuneSajuTrainingTones =>
+      'ファーストタッチの方向整理|短いパス後の次の選択|体を開いて受ける動き|守備切り替えの一歩目|フィニッシュ前の呼吸調整|両足バランスの確認|オフボールのタイミング|リターンパスの角度作り';
+
+  @override
+  String get fortuneSajuNameElements =>
+      '木の速い出足|火の明るい表現|土の安定感|金の正確さ|水の柔らかさ|木火の自信|土金の粘り|水木の観察力';
+
+  @override
+  String get fortuneSajuPlayAdvice =>
+      '軽く始めても最後の選択ははっきりする日です。|小さなほめ言葉が体のリズムを起こす日です。|急ぐより一拍見て動くと良いです。|パスの前に顔を上げると運がつきます。|ウォームアップを丁寧にするとプレーが軽くなります。|ミスの後に表情を早く整えると次の場面が生きます。|強い三回より正確な一回が合う日です。|仲間の動きを先に読むと良い場面が開きます。';
+
+  @override
+  String get fortuneLuckyColorTones =>
+      'ディープ|ソフト|クリーン|サンセット|クール|ウォーム|ミスト|ブライト|モノ|アクセント';
+
+  @override
+  String get fortuneLuckyColorBases =>
+      'ネイビー|エメラルド|コーラル|マスタード|スカイブルー|カーキ|アイボリー|チェリーレッド|ライム|チャコール';
+
+  @override
+  String get fortuneLuckyTimePeriods =>
+      '早朝|午前後半|昼食直後|午後前半|午後遅め|夕暮れ|夕方前半|夜のルーティン時間';
+
+  @override
+  String get fortuneLuckyTimeWindows =>
+      '06:40~07:20|08:10~08:50|09:30~10:10|10:40~11:20|12:20~13:00|14:10~14:50|16:00~16:40|18:20~19:00|20:10~20:50|21:00~21:40';
+
+  @override
+  String get fortuneLuckyZoneModifiers =>
+      '左側|右側|中央|ハーフライン付近|ボックス外|タッチライン側|前進開始|守備切替';
+
+  @override
+  String get fortuneLuckyZoneBases =>
+      'ハーフスペース|タッチライン内側|ファーストタッチ地点|リターンパス角度|セカンドボール反応ゾーン|プレス回避の出発点|ワンツー連結線|抜け出しタイミング|視野確保の位置|仕上げ直前の空間';
+
+  @override
+  String get fortuneLuckyCueOpenings =>
+      '短く|最初のセット前に|呼吸を整えた後|ボールを受ける前に|つま先を起こしてから|顔を上げた直後|ターン直前に|リズムが崩れたら';
+
+  @override
+  String get fortuneLuckyCueActions =>
+      'もう一度スキャンする|タッチ方向を先に決める|両足の間隔を整える|一歩目を軽く置く|体を開いて次を見る|短い呼吸でテンポをまとめる|強さより正確さを選ぶ|ボール前に肩の角度を整える';
+
+  @override
   String get mealStatsNoTrainingOrMealEntries =>
       '選択した期間にトレーニングや食事のエントリーはありません。';
 

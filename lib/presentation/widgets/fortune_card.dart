@@ -42,11 +42,13 @@ class FortuneSections {
   int get totalCount => bodyLines.length + luckyInfoLines.length;
 
   static bool _isLuckyInfoHeader(String line) {
-    return line == '[행운 정보]' || line == '[Lucky info]';
+    return line == '[행운 정보]' || line == '[Lucky info]' || line == '[ラッキー情報]';
   }
 
   static bool _isLuckyInfoLine(String line) {
-    return line.startsWith('행운 ') || line.startsWith('Lucky ');
+    return line.startsWith('행운 ') ||
+        line.startsWith('Lucky ') ||
+        line.startsWith('ラッキー');
   }
 
   static List<String> _compactLuckyInfoLines(List<String> lines) {
