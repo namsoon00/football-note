@@ -15016,6 +15016,36 @@ abstract class AppLocalizations {
   /// **'Tournament'**
   String get matchKindTournament;
 
+  /// No description provided for @matchFriendlyResultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Friendly result'**
+  String get matchFriendlyResultLabel;
+
+  /// No description provided for @matchResultUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Unset'**
+  String get matchResultUnset;
+
+  /// No description provided for @matchResultWin.
+  ///
+  /// In en, this message translates to:
+  /// **'Win'**
+  String get matchResultWin;
+
+  /// No description provided for @matchResultDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get matchResultDraw;
+
+  /// No description provided for @matchResultLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'Loss'**
+  String get matchResultLoss;
+
   /// No description provided for @matchLeagueSectionTitle.
   ///
   /// In en, this message translates to:

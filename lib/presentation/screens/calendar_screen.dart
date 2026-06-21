@@ -1929,14 +1929,67 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
     var leaguePointsText = editingEntry?.leaguePoints?.toString() ?? '';
     var tournamentWinsText = editingEntry?.tournamentWins?.toString() ?? '';
-    var ourScoreText = editingEntry?.scoredGoals?.toString() ?? '';
-    var opponentScoreText = editingEntry?.concededGoals?.toString() ?? '';
+    final ourScoreController = TextEditingController(
+      text: editingEntry?.scoredGoals?.toString() ?? '',
+    );
+    final opponentScoreController = TextEditingController(
+      text: editingEntry?.concededGoals?.toString() ?? '',
+    );
+    var scoreControllersDisposeScheduled = false;
     var playerGoalsText = editingEntry?.playerGoals?.toString() ?? '';
     var playerAssistsText = editingEntry?.playerAssists?.toString() ?? '';
     var shotsOnTargetText = editingEntry?.shotsOnTarget?.toString() ?? '';
     var ballsWonText = editingEntry?.ballsWon?.toString() ?? '';
     var minutesPlayedText = editingEntry?.minutesPlayed?.toString() ?? '';
     var memoText = editingEntry?.notes ?? '';
+
+    void scheduleScoreControllerDispose() {
+      if (scoreControllersDisposeScheduled) return;
+      scoreControllersDisposeScheduled = true;
+      unawaited(
+        Future<void>.delayed(const Duration(milliseconds: 350), () {
+          ourScoreController.dispose();
+          opponentScoreController.dispose();
+        }),
+      );
+    }
+
+    const friendlyResultUnset = 'unset';
+    const friendlyResultWin = 'win';
+    const friendlyResultDraw = 'draw';
+    const friendlyResultLoss = 'loss';
+
+    String friendlyResultValue() {
+      final scored = _parseSheetInt(ourScoreController.text);
+      final conceded = _parseSheetInt(opponentScoreController.text);
+      if (scored == null || conceded == null) {
+        return friendlyResultUnset;
+      }
+      if (scored > conceded) return friendlyResultWin;
+      if (scored < conceded) return friendlyResultLoss;
+      return friendlyResultDraw;
+    }
+
+    void applyFriendlyResult(String result) {
+      switch (result) {
+        case friendlyResultWin:
+          ourScoreController.text = '1';
+          opponentScoreController.text = '0';
+          break;
+        case friendlyResultDraw:
+          ourScoreController.text = '1';
+          opponentScoreController.text = '1';
+          break;
+        case friendlyResultLoss:
+          ourScoreController.text = '0';
+          opponentScoreController.text = '1';
+          break;
+        default:
+          ourScoreController.clear();
+          opponentScoreController.clear();
+      }
+    }
+
     final saved = await showModalBottomSheet<TrainingEntry>(
       context: context,
       isScrollControlled: true,
@@ -2241,14 +2294,103 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               maxLength: 40,
                               enabled: !readOnly,
                             ),
+                            if (matchKind == 'friendly') ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                l10n.matchFriendlyResultLabel,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(fontWeight: FontWeight.w800),
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  ChoiceChip(
+                                    avatar: const Icon(
+                                      Icons.remove_circle_outline,
+                                      size: 18,
+                                    ),
+                                    label: Text(l10n.matchResultUnset),
+                                    selected: friendlyResultValue() ==
+                                        friendlyResultUnset,
+                                    onSelected: readOnly
+                                        ? null
+                                        : (_) {
+                                            setSheetState(() {
+                                              applyFriendlyResult(
+                                                friendlyResultUnset,
+                                              );
+                                            });
+                                          },
+                                  ),
+                                  ChoiceChip(
+                                    avatar: const Icon(
+                                      Icons.emoji_events_outlined,
+                                      size: 18,
+                                    ),
+                                    label: Text(l10n.matchResultWin),
+                                    selected: friendlyResultValue() ==
+                                        friendlyResultWin,
+                                    onSelected: readOnly
+                                        ? null
+                                        : (_) {
+                                            setSheetState(() {
+                                              applyFriendlyResult(
+                                                friendlyResultWin,
+                                              );
+                                            });
+                                          },
+                                  ),
+                                  ChoiceChip(
+                                    avatar: const Icon(
+                                      Icons.drag_handle,
+                                      size: 18,
+                                    ),
+                                    label: Text(l10n.matchResultDraw),
+                                    selected: friendlyResultValue() ==
+                                        friendlyResultDraw,
+                                    onSelected: readOnly
+                                        ? null
+                                        : (_) {
+                                            setSheetState(() {
+                                              applyFriendlyResult(
+                                                friendlyResultDraw,
+                                              );
+                                            });
+                                          },
+                                  ),
+                                  ChoiceChip(
+                                    avatar: const Icon(
+                                      Icons.close,
+                                      size: 18,
+                                    ),
+                                    label: Text(l10n.matchResultLoss),
+                                    selected: friendlyResultValue() ==
+                                        friendlyResultLoss,
+                                    onSelected: readOnly
+                                        ? null
+                                        : (_) {
+                                            setSheetState(() {
+                                              applyFriendlyResult(
+                                                friendlyResultLoss,
+                                              );
+                                            });
+                                          },
+                                  ),
+                                ],
+                              ),
+                            ],
                             const SizedBox(height: 8),
                             Row(
                               children: [
                                 Expanded(
                                   child: TextFormField(
-                                    initialValue: ourScoreText,
+                                    controller: ourScoreController,
                                     readOnly: readOnly,
-                                    onChanged: (value) => ourScoreText = value,
+                                    onChanged: (_) => setSheetState(() {}),
                                     keyboardType: TextInputType.number,
                                     textInputAction: TextInputAction.done,
                                     onFieldSubmitted: (_) =>
@@ -2269,10 +2411,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: TextFormField(
-                                    initialValue: opponentScoreText,
+                                    controller: opponentScoreController,
                                     readOnly: readOnly,
-                                    onChanged: (value) =>
-                                        opponentScoreText = value,
+                                    onChanged: (_) => setSheetState(() {}),
                                     keyboardType: TextInputType.number,
                                     textInputAction: TextInputAction.done,
                                     onFieldSubmitted: (_) =>
@@ -2490,9 +2631,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 goalFocuses:
                                     editingEntry?.goalFocuses ?? const [],
                                 createdAt: editingEntry?.createdAt,
-                                scoredGoals: _parseSheetInt(ourScoreText),
+                                scoredGoals: _parseSheetInt(
+                                  ourScoreController.text,
+                                ),
                                 concededGoals: _parseSheetInt(
-                                  opponentScoreText,
+                                  opponentScoreController.text,
                                 ),
                                 playerGoals: _parseSheetInt(playerGoalsText),
                                 playerAssists: _parseSheetInt(
@@ -2543,7 +2686,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           },
         );
       },
-    );
+    ).whenComplete(scheduleScoreControllerDispose);
     if (saved == null) return;
     final trimmedMatchLocation = saved.effectiveMatchLocation.trim();
     if (trimmedMatchLocation.isNotEmpty) {
