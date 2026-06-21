@@ -1134,7 +1134,6 @@ String _formatRunningDuration(Duration duration) {
 
 const int _sampleTimelineFrameCount = 24;
 const int _sampleAnalysisPhaseCount = 6;
-const Duration _sampleVideoLoopDuration = Duration(milliseconds: 4000);
 const String _sampleReferenceVideoAsset =
     'assets/videos/running_coach_reference_sample.mp4';
 const String _sampleMistakeVideoAsset =
@@ -1759,19 +1758,13 @@ class _SampleVideoFrame extends StatefulWidget {
   State<_SampleVideoFrame> createState() => _SampleVideoFrameState();
 }
 
-class _SampleVideoFrameState extends State<_SampleVideoFrame>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+class _SampleVideoFrameState extends State<_SampleVideoFrame> {
   VideoPlayerController? _videoController;
   bool _isVideoReady = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: _sampleVideoLoopDuration,
-    )..repeat();
     _loadVideo();
   }
 
@@ -1785,7 +1778,6 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
 
   @override
   void dispose() {
-    _controller.dispose();
     _videoController?.dispose();
     super.dispose();
   }
@@ -1813,11 +1805,11 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
     });
   }
 
-  double _sampleProgressFor(VideoPlayerController? controller) {
-    final value = controller?.value;
-    if (value == null || !value.isInitialized) return _controller.value;
+  double _sampleProgressFor(VideoPlayerController controller) {
+    final value = controller.value;
+    if (!value.isInitialized) return 0;
     final durationMs = value.duration.inMilliseconds;
-    if (durationMs <= 0) return _controller.value;
+    if (durationMs <= 0) return 0;
     final positionMs = value.position.inMilliseconds % durationMs;
     return (positionMs / durationMs).clamp(0.0, 1.0);
   }
@@ -1844,10 +1836,9 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
         ? l10n.runningCoachSampleMetricBounce
         : l10n.runningCoachSampleMetricFrames;
     final videoController = _videoController;
-    final overlayTicker = Listenable.merge([
-      _controller,
-      if (videoController != null) videoController,
-    ]);
+    final hasVideo = _isVideoReady &&
+        videoController != null &&
+        videoController.value.isInitialized;
     final decisionMetrics = [
       _SampleDecisionMetric(
         icon: Icons.show_chart_rounded,
@@ -1890,113 +1881,107 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
               ),
               child: Stack(
                 children: [
-                  Positioned.fill(
-                    child: _isVideoReady &&
-                            videoController != null &&
-                            videoController.value.isInitialized
-                        ? FittedBox(
-                            fit: BoxFit.cover,
-                            child: SizedBox(
-                              width: videoController.value.size.width,
-                              height: videoController.value.size.height,
-                              child: VideoPlayer(videoController),
-                            ),
-                          )
-                        : AnimatedBuilder(
-                            animation: _controller,
-                            builder: (context, _) => CustomPaint(
-                              painter: _SampleRunnerPainter(
-                                progress: _controller.value,
-                                lineColor: runnerColor,
-                                trackColor: scheme.outlineVariant,
-                                ghostColor: runnerColor.withValues(alpha: 0.18),
-                                frameColor: scheme.tertiary,
-                                markerColor: scheme.secondary,
-                                poseVariant: isMistake
-                                    ? SampleRunnerPoseVariant.mistake
-                                    : SampleRunnerPoseVariant.reference,
+                  if (hasVideo) ...[
+                    Positioned.fill(
+                      child: FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: videoController.value.size.width,
+                          height: videoController.value.size.height,
+                          child: VideoPlayer(videoController),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: AnimatedBuilder(
+                          animation: videoController,
+                          builder: (context, _) {
+                            final progress =
+                                _sampleProgressFor(videoController);
+                            return CustomPaint(
+                              painter: _SampleVideoAnalysisPainter(
+                                progress: progress,
+                                isMistake: isMistake,
+                                primaryColor: runnerColor,
+                                secondaryColor: scheme.secondary,
+                                contactColor: scheme.tertiary,
+                                warningColor: scheme.error,
                               ),
-                            ),
-                          ),
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 12,
+                      right: 12,
+                      top: 12,
                       child: AnimatedBuilder(
-                        animation: overlayTicker,
+                        animation: videoController,
                         builder: (context, _) {
                           final progress = _sampleProgressFor(videoController);
-                          return CustomPaint(
-                            painter: _SampleVideoAnalysisPainter(
-                              progress: progress,
-                              isMistake: isMistake,
-                              primaryColor: runnerColor,
-                              secondaryColor: scheme.secondary,
-                              contactColor: scheme.tertiary,
-                              warningColor: scheme.error,
-                            ),
+                          final frameNumber =
+                              ((progress * _sampleTimelineFrameCount).floor() %
+                                      _sampleTimelineFrameCount) +
+                                  1;
+                          return Row(
+                            children: [
+                              _VideoOverlayPill(
+                                text: l10n.runningCoachSampleFrameLabel(
+                                  frameNumber,
+                                  _sampleTimelineFrameCount,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Center(
+                                  child: _VideoOverlayPill(
+                                    key: const ValueKey(
+                                      'running-coach-sample-analysis-phase',
+                                    ),
+                                    text: _sampleAnalysisPhaseLabel(
+                                      l10n,
+                                      progress,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              _VideoOverlayPill(text: '${widget.score}'),
+                            ],
                           );
                         },
                       ),
                     ),
-                  ),
-                  Positioned(
-                    left: 12,
-                    right: 12,
-                    top: 12,
-                    child: AnimatedBuilder(
-                      animation: overlayTicker,
-                      builder: (context, _) {
-                        final progress = _sampleProgressFor(videoController);
-                        final frameNumber =
-                            ((progress * _sampleTimelineFrameCount).floor() %
-                                    _sampleTimelineFrameCount) +
-                                1;
-                        return Row(
-                          children: [
-                            _VideoOverlayPill(
-                              text: l10n.runningCoachSampleFrameLabel(
-                                frameNumber,
-                                _sampleTimelineFrameCount,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Center(
-                                child: _VideoOverlayPill(
-                                  key: const ValueKey(
-                                    'running-coach-sample-analysis-phase',
-                                  ),
-                                  text: _sampleAnalysisPhaseLabel(
-                                    l10n,
-                                    progress,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            _VideoOverlayPill(text: '${widget.score}'),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                  Positioned(
-                    left: 12,
-                    right: 12,
-                    bottom: 10,
-                    child: AnimatedBuilder(
-                      animation: overlayTicker,
-                      builder: (context, _) => ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: LinearProgressIndicator(
-                          value: _sampleProgressFor(videoController),
-                          minHeight: 4,
-                          backgroundColor: Colors.white.withValues(alpha: 0.20),
-                          color: scheme.primary,
+                    Positioned(
+                      left: 12,
+                      right: 12,
+                      bottom: 10,
+                      child: AnimatedBuilder(
+                        animation: videoController,
+                        builder: (context, _) => ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            value: _sampleProgressFor(videoController),
+                            minHeight: 4,
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.20),
+                            color: scheme.primary,
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ] else
+                    Center(
+                      child: SizedBox.square(
+                        dimension: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.4,
+                          color: runnerColor,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -3490,6 +3475,7 @@ class _SampleVideoPoseKeyframe {
   static double _lerpDouble(double a, double b, double t) => a + (b - a) * t;
 }
 
+// ignore: unused_element
 class _SampleRunnerPainter extends CustomPainter {
   final double progress;
   final Color lineColor;

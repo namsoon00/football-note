@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -6,8 +8,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
+import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
 void main() {
+  late VideoPlayerPlatform previousVideoPlayerPlatform;
+
+  setUp(() {
+    previousVideoPlayerPlatform = VideoPlayerPlatform.instance;
+    VideoPlayerPlatform.instance = _FakeVideoPlayerPlatform();
+  });
+
+  tearDown(() {
+    VideoPlayerPlatform.instance = previousVideoPlayerPlatform;
+  });
+
   testWidgets('growth loop records a sprint time and shows badges', (
     WidgetTester tester,
   ) async {
@@ -142,6 +156,11 @@ void main() {
       findsOneWidget,
     );
     expect(
+      find.byKey(const ValueKey('running-coach-sample-fake-video-view')),
+      findsOneWidget,
+    );
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(
       find.byKey(const ValueKey('running-coach-sample-back-button')),
       findsOneWidget,
     );
@@ -190,6 +209,86 @@ void main() {
     );
     expect(find.text('Running Coach'), findsOneWidget);
   });
+}
+
+class _FakeVideoPlayerPlatform extends VideoPlayerPlatform {
+  final Map<int, StreamController<VideoEvent>> _streams =
+      <int, StreamController<VideoEvent>>{};
+  int _nextPlayerId = 0;
+
+  @override
+  Future<void> init() async {}
+
+  @override
+  Future<int?> create(DataSource dataSource) => _createPlayer();
+
+  @override
+  Future<int?> createWithOptions(VideoCreationOptions options) =>
+      _createPlayer();
+
+  Future<int?> _createPlayer() async {
+    final playerId = _nextPlayerId++;
+    final stream = StreamController<VideoEvent>();
+    _streams[playerId] = stream;
+    scheduleMicrotask(() {
+      if (stream.isClosed) return;
+      stream.add(
+        VideoEvent(
+          eventType: VideoEventType.initialized,
+          duration: const Duration(seconds: 4),
+          size: const Size(1280, 720),
+        ),
+      );
+      stream.add(
+        VideoEvent(
+          eventType: VideoEventType.isPlayingStateUpdate,
+          isPlaying: true,
+        ),
+      );
+    });
+    return playerId;
+  }
+
+  @override
+  Stream<VideoEvent> videoEventsFor(int playerId) => _streams[playerId]!.stream;
+
+  @override
+  Future<void> dispose(int playerId) async {
+    await _streams.remove(playerId)?.close();
+  }
+
+  @override
+  Future<void> setLooping(int playerId, bool looping) async {}
+
+  @override
+  Future<void> setVolume(int playerId, double volume) async {}
+
+  @override
+  Future<void> play(int playerId) async {}
+
+  @override
+  Future<void> pause(int playerId) async {}
+
+  @override
+  Future<Duration> getPosition(int playerId) async =>
+      const Duration(milliseconds: 500);
+
+  @override
+  Future<void> seekTo(int playerId, Duration position) async {}
+
+  @override
+  Future<void> setPlaybackSpeed(int playerId, double speed) async {}
+
+  @override
+  Widget buildView(int playerId) {
+    return const SizedBox.expand(
+      key: ValueKey('running-coach-sample-fake-video-view'),
+    );
+  }
+
+  @override
+  Widget buildViewWithOptions(VideoViewOptions options) =>
+      buildView(options.playerId);
 }
 
 class _MemoryOptionRepository implements OptionRepository {
