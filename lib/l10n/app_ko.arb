@@ -4969,6 +4969,23 @@
   "matchCompetitionNameLabel": "대회 이름",
   "matchLeagueNameHint": "예) 주말 리그",
   "matchTournamentNameHint": "예) 컵 대회",
+  "matchCompetitionSelectLabel": "저장된 대회",
+  "matchCompetitionStatusLabel": "대회 상태",
+  "matchCompetitionStatusActive": "진행 중",
+  "matchCompetitionStatusFinished": "종료",
+  "matchCompetitionOptionActive": "{name} · 진행 중",
+  "@matchCompetitionOptionActive": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "matchCompetitionOptionFinished": "{name} · 종료",
+  "@matchCompetitionOptionFinished": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "matchCompetitionFinishedNotice": "종료된 대회입니다. 이전 경기 기록을 정리할 때 선택하세요.",
   "matchCompetitionManageButton": "팀 등록/결과 보기",
   "matchCompetitionManagerNewTitle": "대회 관리",
   "matchCompetitionManagerTitle": "{name} 관리",

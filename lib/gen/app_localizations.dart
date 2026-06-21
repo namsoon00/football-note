@@ -15710,6 +15710,48 @@ abstract class AppLocalizations {
   /// **'e.g. Cup tournament'**
   String get matchTournamentNameHint;
 
+  /// No description provided for @matchCompetitionSelectLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved competitions'**
+  String get matchCompetitionSelectLabel;
+
+  /// No description provided for @matchCompetitionStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition status'**
+  String get matchCompetitionStatusLabel;
+
+  /// No description provided for @matchCompetitionStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get matchCompetitionStatusActive;
+
+  /// No description provided for @matchCompetitionStatusFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get matchCompetitionStatusFinished;
+
+  /// No description provided for @matchCompetitionOptionActive.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · active'**
+  String matchCompetitionOptionActive(Object name);
+
+  /// No description provided for @matchCompetitionOptionFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · finished'**
+  String matchCompetitionOptionFinished(Object name);
+
+  /// No description provided for @matchCompetitionFinishedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This competition is finished. Select it when organizing past match records.'**
+  String get matchCompetitionFinishedNotice;
+
   /// No description provided for @matchCompetitionManageButton.
   ///
   /// In en, this message translates to:

@@ -8891,6 +8891,32 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchTournamentNameHint => '例: カップ大会';
 
   @override
+  String get matchCompetitionSelectLabel => '保存済み大会';
+
+  @override
+  String get matchCompetitionStatusLabel => '大会ステータス';
+
+  @override
+  String get matchCompetitionStatusActive => '進行中';
+
+  @override
+  String get matchCompetitionStatusFinished => '終了';
+
+  @override
+  String matchCompetitionOptionActive(Object name) {
+    return '$name · 進行中';
+  }
+
+  @override
+  String matchCompetitionOptionFinished(Object name) {
+    return '$name · 終了';
+  }
+
+  @override
+  String get matchCompetitionFinishedNotice =>
+      '終了した大会です。過去の試合記録を整理するときに選択してください。';
+
+  @override
   String get matchCompetitionManageButton => 'チーム登録/結果を見る';
 
   @override

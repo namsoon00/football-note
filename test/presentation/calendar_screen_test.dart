@@ -553,6 +553,63 @@ void main() {
     expect(find.textContaining('승점 3'), findsOneWidget);
   });
 
+  testWidgets('리그 시합은 여러 대회 중 선택한 대회의 등록 팀을 상대팀으로 쓴다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+    final competitionService = MatchCompetitionService(optionRepository);
+    await competitionService.upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindLeague,
+        name: '지난 리그',
+        teams: const <String>['올드 FC'],
+        status: MatchCompetitionRecord.statusFinished,
+      ),
+    );
+    await competitionService.upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindLeague,
+        name: '봄 리그',
+        teams: const <String>['레드 FC', '블루 FC'],
+      ),
+    );
+    await pumpCalendar(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('리그 경기'));
+    await tester.pump();
+
+    expect(find.widgetWithText(ChoiceChip, '봄 리그 · 진행 중'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, '지난 리그 · 종료'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, '봄 리그 · 진행 중'));
+    await tester.pump();
+
+    expect(find.widgetWithText(ChoiceChip, '레드 FC'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, '블루 FC'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, '올드 FC'), findsNothing);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, '블루 FC'));
+    await tester.pump();
+
+    final saveButton = find.widgetWithText(FilledButton, '저장');
+    await tester.ensureVisible(saveButton);
+    await tester.pump();
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle();
+
+    final entries = await trainingService.allEntries();
+    expect(entries, hasLength(1));
+    expect(entries.single.matchKind, MatchCompetitionRecord.kindLeague);
+    expect(entries.single.matchCompetitionName, '봄 리그');
+    expect(entries.single.opponentTeam, '블루 FC');
+    expect(entries.single.leagueTeamNames, <String>['레드 FC', '블루 FC']);
+  });
+
   testWidgets('리그 시합 기록 시트는 저장하지 않고 뒤로 닫을 수 있다', (tester) async {
     await tester.binding.setSurfaceSize(const Size(900, 900));
     addTearDown(() async {
@@ -576,6 +633,57 @@ void main() {
 
     expect(find.text('시합 추가'), findsNothing);
     expect(await trainingService.allEntries(), isEmpty);
+  });
+
+  testWidgets('대회 관리 시트는 리그 대회를 종료 상태로 저장한다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+    await pumpCalendar(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('리그 경기'));
+    await tester.pump();
+    await tester.enterText(
+      find
+          .ancestor(
+              of: find.text('대회 이름'), matching: find.byType(TextFormField))
+          .first,
+      '가을 리그',
+    );
+    await tester.pump();
+
+    final manageButton = find.text('팀 등록/결과 보기');
+    await tester.ensureVisible(manageButton);
+    await tester.tap(manageButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('대회 상태'), findsOneWidget);
+    await tester.tap(find.text('종료'));
+    await tester.pump();
+    await tester.enterText(
+      find
+          .ancestor(of: find.text('팀 이름'), matching: find.byType(TextFormField))
+          .first,
+      '레드 FC',
+    );
+    await tester.tap(find.text('추가'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('팀 저장'));
+    await tester.pumpAndSettle();
+
+    final savedCompetition = MatchCompetitionService(
+      optionRepository,
+    ).findCompetition(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '가을 리그',
+    );
+    expect(savedCompetition?.status, MatchCompetitionRecord.statusFinished);
+    expect(savedCompetition?.teams, <String>['레드 FC']);
   });
 
   testWidgets('리그 대회 관리 시트는 등록 팀 순위를 보여준다', (tester) async {
@@ -717,7 +825,10 @@ void main() {
     expect(find.text('블루 FC'), findsWidgets);
     expect(find.text('2개 팀 등록됨'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('레드 FC 삭제'));
+    final removeRedTeamButton = find.byTooltip('레드 FC 삭제');
+    await tester.ensureVisible(removeRedTeamButton);
+    await tester.pump();
+    await tester.tap(removeRedTeamButton);
     await tester.pumpAndSettle();
     expect(find.text('레드 FC'), findsNothing);
     expect(find.text('블루 FC'), findsWidgets);

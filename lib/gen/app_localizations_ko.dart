@@ -8904,6 +8904,32 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchTournamentNameHint => '예) 컵 대회';
 
   @override
+  String get matchCompetitionSelectLabel => '저장된 대회';
+
+  @override
+  String get matchCompetitionStatusLabel => '대회 상태';
+
+  @override
+  String get matchCompetitionStatusActive => '진행 중';
+
+  @override
+  String get matchCompetitionStatusFinished => '종료';
+
+  @override
+  String matchCompetitionOptionActive(Object name) {
+    return '$name · 진행 중';
+  }
+
+  @override
+  String matchCompetitionOptionFinished(Object name) {
+    return '$name · 종료';
+  }
+
+  @override
+  String get matchCompetitionFinishedNotice =>
+      '종료된 대회입니다. 이전 경기 기록을 정리할 때 선택하세요.';
+
+  @override
   String get matchCompetitionManageButton => '팀 등록/결과 보기';
 
   @override

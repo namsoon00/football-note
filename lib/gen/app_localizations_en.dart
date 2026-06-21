@@ -9169,6 +9169,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchTournamentNameHint => 'e.g. Cup tournament';
 
   @override
+  String get matchCompetitionSelectLabel => 'Saved competitions';
+
+  @override
+  String get matchCompetitionStatusLabel => 'Competition status';
+
+  @override
+  String get matchCompetitionStatusActive => 'Active';
+
+  @override
+  String get matchCompetitionStatusFinished => 'Finished';
+
+  @override
+  String matchCompetitionOptionActive(Object name) {
+    return '$name · active';
+  }
+
+  @override
+  String matchCompetitionOptionFinished(Object name) {
+    return '$name · finished';
+  }
+
+  @override
+  String get matchCompetitionFinishedNotice =>
+      'This competition is finished. Select it when organizing past match records.';
+
+  @override
   String get matchCompetitionManageButton => 'Teams / results';
 
   @override
