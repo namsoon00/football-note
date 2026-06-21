@@ -8692,6 +8692,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchAssistsLabel => 'アシスト';
 
   @override
+  String matchCountIncreaseTooltip(String label) {
+    return '$labelを増やす';
+  }
+
+  @override
+  String matchCountDecreaseTooltip(String label) {
+    return '$labelを減らす';
+  }
+
+  @override
   String get matchMinutesPlayedLabel => 'プレイ時間（分）';
 
   @override

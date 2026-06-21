@@ -4783,6 +4783,22 @@
   "matchOpponentScoreLabel": "Opponent score",
   "matchGoalsLabel": "Goals",
   "matchAssistsLabel": "Assists",
+  "matchCountIncreaseTooltip": "Increase {label}",
+  "@matchCountIncreaseTooltip": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCountDecreaseTooltip": "Decrease {label}",
+  "@matchCountDecreaseTooltip": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "matchMinutesPlayedLabel": "Minutes played",
   "matchMinutesPlayedHint": "e.g. 70",
   "matchNoteOptionalLabel": "Note (optional)",

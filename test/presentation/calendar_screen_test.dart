@@ -288,6 +288,14 @@ void main() {
     addTearDown(() async {
       await tester.binding.setSurfaceSize(null);
     });
+    Future<void> tapTooltip(String tooltip) async {
+      final button = find.byTooltip(tooltip);
+      await tester.ensureVisible(button);
+      await tester.pump();
+      await tester.tap(button);
+      await tester.pump();
+    }
+
     await pumpCalendar(tester);
 
     await tester.tap(find.byType(FloatingActionButton));
@@ -305,6 +313,13 @@ void main() {
     );
     await tester.tap(find.widgetWithText(ChoiceChip, '승'));
     await tester.pump();
+    await tapTooltip('골 늘리기');
+    await tapTooltip('골 늘리기');
+    await tapTooltip('골 줄이기');
+    await tapTooltip('어시스트 늘리기');
+    await tapTooltip('유효 슈팅 늘리기');
+    await tapTooltip('유효 슈팅 늘리기');
+    await tapTooltip('공을 뺏은 횟수 늘리기');
 
     final saveButton = find.widgetWithText(FilledButton, '저장');
     await tester.ensureVisible(saveButton);
@@ -317,8 +332,16 @@ void main() {
     expect(entries.single.matchKind, 'friendly');
     expect(entries.single.scoredGoals, 1);
     expect(entries.single.concededGoals, 0);
+    expect(entries.single.playerGoals, 1);
+    expect(entries.single.playerAssists, 1);
+    expect(entries.single.shotsOnTarget, 2);
+    expect(entries.single.ballsWon, 1);
     expect(find.textContaining('승 · vs 그린 FC'), findsOneWidget);
     expect(find.textContaining('결과 1:0'), findsOneWidget);
+    expect(find.textContaining('골 1'), findsOneWidget);
+    expect(find.textContaining('어시스트 1'), findsOneWidget);
+    expect(find.textContaining('유효 슈팅 2'), findsOneWidget);
+    expect(find.textContaining('공을 뺏은 횟수 1'), findsOneWidget);
   });
 
   testWidgets('토너먼트 시합 기록은 별도 유형과 승수를 저장한다', (tester) async {

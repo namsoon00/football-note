@@ -4783,6 +4783,22 @@
   "matchOpponentScoreLabel": "相手のスコア",
   "matchGoalsLabel": "目標",
   "matchAssistsLabel": "アシスト",
+  "matchCountIncreaseTooltip": "{label}を増やす",
+  "@matchCountIncreaseTooltip": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCountDecreaseTooltip": "{label}を減らす",
+  "@matchCountDecreaseTooltip": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "matchMinutesPlayedLabel": "プレイ時間（分）",
   "matchMinutesPlayedHint": "例えば70",
   "matchNoteOptionalLabel": "注記 (オプション)",

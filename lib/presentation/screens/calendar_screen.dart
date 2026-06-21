@@ -1997,6 +1997,35 @@ class _CalendarScreenState extends State<CalendarScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
+            Widget buildCountStepper({
+              required String label,
+              required String valueText,
+              required ValueChanged<String> onChanged,
+            }) {
+              final parsed = _parseSheetInt(valueText);
+              final value = parsed ?? 0;
+              void updateValue(int nextValue) {
+                onChanged(nextValue <= 0 ? '' : nextValue.toString());
+              }
+
+              return _MatchCountStepper(
+                label: label,
+                value: value,
+                hasValue: parsed != null,
+                enabled: !readOnly,
+                increaseTooltip: l10n.matchCountIncreaseTooltip(label),
+                decreaseTooltip: l10n.matchCountDecreaseTooltip(label),
+                onIncrement: () {
+                  setSheetState(() => updateValue(value + 1));
+                },
+                onDecrement: value <= 0
+                    ? null
+                    : () {
+                        setSheetState(() => updateValue(value - 1));
+                      },
+              );
+            }
+
             return SafeArea(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
@@ -2434,107 +2463,54 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    initialValue: playerGoalsText,
-                                    readOnly: readOnly,
-                                    onChanged: (value) =>
-                                        playerGoalsText = value,
-                                    keyboardType: TextInputType.number,
-                                    textInputAction: TextInputAction.done,
-                                    onFieldSubmitted: (_) =>
-                                        FocusScope.of(context).unfocus(),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    decoration:
-                                        _calendarInputDecorationWithDone(
-                                      context,
-                                      InputDecoration(
-                                        labelText: matchLabels.primary.label,
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final itemWidth = constraints.maxWidth >= 560
+                                    ? (constraints.maxWidth - 8) / 2
+                                    : constraints.maxWidth;
+                                return Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    SizedBox(
+                                      width: itemWidth,
+                                      child: buildCountStepper(
+                                        label: matchLabels.primary.label,
+                                        valueText: playerGoalsText,
+                                        onChanged: (value) =>
+                                            playerGoalsText = value,
                                       ),
-                                      enabled: !readOnly,
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: TextFormField(
-                                    initialValue: playerAssistsText,
-                                    readOnly: readOnly,
-                                    onChanged: (value) =>
-                                        playerAssistsText = value,
-                                    keyboardType: TextInputType.number,
-                                    textInputAction: TextInputAction.done,
-                                    onFieldSubmitted: (_) =>
-                                        FocusScope.of(context).unfocus(),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    decoration:
-                                        _calendarInputDecorationWithDone(
-                                      context,
-                                      InputDecoration(
-                                        labelText: matchLabels.secondary.label,
+                                    SizedBox(
+                                      width: itemWidth,
+                                      child: buildCountStepper(
+                                        label: matchLabels.secondary.label,
+                                        valueText: playerAssistsText,
+                                        onChanged: (value) =>
+                                            playerAssistsText = value,
                                       ),
-                                      enabled: !readOnly,
                                     ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    initialValue: shotsOnTargetText,
-                                    readOnly: readOnly,
-                                    onChanged: (value) =>
-                                        shotsOnTargetText = value,
-                                    keyboardType: TextInputType.number,
-                                    textInputAction: TextInputAction.done,
-                                    onFieldSubmitted: (_) =>
-                                        FocusScope.of(context).unfocus(),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    decoration:
-                                        _calendarInputDecorationWithDone(
-                                      context,
-                                      InputDecoration(
-                                        labelText: matchLabels.tertiary.label,
+                                    SizedBox(
+                                      width: itemWidth,
+                                      child: buildCountStepper(
+                                        label: matchLabels.tertiary.label,
+                                        valueText: shotsOnTargetText,
+                                        onChanged: (value) =>
+                                            shotsOnTargetText = value,
                                       ),
-                                      enabled: !readOnly,
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: TextFormField(
-                                    initialValue: ballsWonText,
-                                    readOnly: readOnly,
-                                    onChanged: (value) => ballsWonText = value,
-                                    keyboardType: TextInputType.number,
-                                    textInputAction: TextInputAction.done,
-                                    onFieldSubmitted: (_) =>
-                                        FocusScope.of(context).unfocus(),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    decoration:
-                                        _calendarInputDecorationWithDone(
-                                      context,
-                                      InputDecoration(
-                                        labelText: matchLabels.quaternary.label,
+                                    SizedBox(
+                                      width: itemWidth,
+                                      child: buildCountStepper(
+                                        label: matchLabels.quaternary.label,
+                                        valueText: ballsWonText,
+                                        onChanged: (value) =>
+                                            ballsWonText = value,
                                       ),
-                                      enabled: !readOnly,
                                     ),
-                                  ),
-                                ),
-                              ],
+                                  ],
+                                );
+                              },
                             ),
                             const SizedBox(height: 8),
                             TextFormField(
@@ -4965,6 +4941,121 @@ class _StatusIcon extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MatchCountStepper extends StatelessWidget {
+  final String label;
+  final int value;
+  final bool hasValue;
+  final bool enabled;
+  final String increaseTooltip;
+  final String decreaseTooltip;
+  final VoidCallback onIncrement;
+  final VoidCallback? onDecrement;
+
+  const _MatchCountStepper({
+    required this.label,
+    required this.value,
+    required this.hasValue,
+    required this.enabled,
+    required this.increaseTooltip,
+    required this.decreaseTooltip,
+    required this.onIncrement,
+    required this.onDecrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final valueColor = hasValue ? scheme.primary : scheme.onSurfaceVariant;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 72),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value.toString(),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: valueColor,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _MatchCountIconButton(
+            tooltip: decreaseTooltip,
+            icon: Icons.remove_rounded,
+            enabled: enabled && value > 0,
+            onPressed: onDecrement,
+          ),
+          const SizedBox(width: 6),
+          _MatchCountIconButton(
+            tooltip: increaseTooltip,
+            icon: Icons.add_rounded,
+            enabled: enabled,
+            onPressed: onIncrement,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MatchCountIconButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback? onPressed;
+
+  const _MatchCountIconButton({
+    required this.tooltip,
+    required this.icon,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: enabled ? onPressed : null,
+      icon: Icon(icon),
+      style: IconButton.styleFrom(
+        fixedSize: const Size.square(40),
+        minimumSize: const Size.square(40),
+        padding: EdgeInsets.zero,
+        backgroundColor: enabled
+            ? scheme.primary.withValues(alpha: 0.10)
+            : scheme.surfaceContainerHighest,
+        foregroundColor: enabled ? scheme.primary : scheme.onSurfaceVariant,
+        disabledBackgroundColor: scheme.surfaceContainerHighest,
+        disabledForegroundColor: scheme.onSurfaceVariant.withValues(alpha: 0.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
