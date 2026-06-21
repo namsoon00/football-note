@@ -3260,6 +3260,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsReportTotalTimeLabel => 'Total time';
 
   @override
+  String get statsReportTrainingRhythmLabel => 'Training rhythm';
+
+  @override
+  String statsReportTrainingRhythmValue(
+      int sessions, int activeDays, int periodDays) {
+    return '$sessions sessions · $activeDays/$periodDays days';
+  }
+
+  @override
   String get statsReportActiveDaysLabel => 'Logged days';
 
   @override
@@ -3271,6 +3280,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsReportPlanExecutionLabel => 'Plan execution';
 
   @override
+  String get statsReportTargetPlanLabel => 'Target / Plan';
+
+  @override
+  String statsReportTargetPlanValue(Object target, Object plan) {
+    return 'Target $target · Plan $plan';
+  }
+
+  @override
   String get statsReportNoPlanValue => 'No plan';
 
   @override
@@ -3278,6 +3295,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsReportDefaultFocus => 'Fundamentals';
+
+  @override
+  String statsReportFocusStreakValue(Object focus, int days) {
+    return '$focus · $days-day streak';
+  }
 
   @override
   String get statsReportStreakLabel => 'Consistency';

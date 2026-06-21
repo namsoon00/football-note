@@ -1838,6 +1838,21 @@
     }
   },
   "statsReportTotalTimeLabel": "Total time",
+  "statsReportTrainingRhythmLabel": "Training rhythm",
+  "statsReportTrainingRhythmValue": "{sessions} sessions · {activeDays}/{periodDays} days",
+  "@statsReportTrainingRhythmValue": {
+    "placeholders": {
+      "sessions": {
+        "type": "int"
+      },
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportActiveDaysLabel": "Logged days",
   "statsReportActiveDaysValue": "{activeDays}/{periodDays} days",
   "@statsReportActiveDaysValue": {
@@ -1851,9 +1866,26 @@
     }
   },
   "statsReportPlanExecutionLabel": "Plan execution",
+  "statsReportTargetPlanLabel": "Target / Plan",
+  "statsReportTargetPlanValue": "Target {target} · Plan {plan}",
+  "@statsReportTargetPlanValue": {
+    "placeholders": {
+      "target": {},
+      "plan": {}
+    }
+  },
   "statsReportNoPlanValue": "No plan",
   "statsReportFocusLabel": "Focus",
   "statsReportDefaultFocus": "Fundamentals",
+  "statsReportFocusStreakValue": "{focus} · {days}-day streak",
+  "@statsReportFocusStreakValue": {
+    "placeholders": {
+      "focus": {},
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportStreakLabel": "Consistency",
   "statsReportStreakValue": "{days}-day streak",
   "@statsReportStreakValue": {

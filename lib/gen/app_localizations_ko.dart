@@ -3173,6 +3173,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get statsReportTotalTimeLabel => '총 훈련 시간';
 
   @override
+  String get statsReportTrainingRhythmLabel => '기록 리듬';
+
+  @override
+  String statsReportTrainingRhythmValue(
+      int sessions, int activeDays, int periodDays) {
+    return '$sessions회 · $activeDays/$periodDays일';
+  }
+
+  @override
   String get statsReportActiveDaysLabel => '기록일';
 
   @override
@@ -3184,6 +3193,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get statsReportPlanExecutionLabel => '계획 실행률';
 
   @override
+  String get statsReportTargetPlanLabel => '목표/계획';
+
+  @override
+  String statsReportTargetPlanValue(Object target, Object plan) {
+    return '목표 $target · 계획 $plan';
+  }
+
+  @override
   String get statsReportNoPlanValue => '계획 없음';
 
   @override
@@ -3191,6 +3208,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get statsReportDefaultFocus => '기본기';
+
+  @override
+  String statsReportFocusStreakValue(Object focus, int days) {
+    return '$focus · $days일 연속';
+  }
 
   @override
   String get statsReportStreakLabel => '꾸준함';

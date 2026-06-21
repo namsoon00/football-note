@@ -84,7 +84,7 @@ void main() {
     expect(find.text('최근 1주일'), findsOneWidget);
     expect(find.text('훈련'), findsOneWidget);
     expect(find.text('시합'), findsOneWidget);
-    expect(find.text('훈련 횟수'), findsOneWidget);
+    expect(find.text('기록 리듬'), findsOneWidget);
     expect(find.text('축구 성장 요약'), findsOneWidget);
     expect(find.byTooltip('다이어리'), findsNothing);
   });
@@ -131,10 +131,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('축구 성장 요약'), findsOneWidget);
-    expect(find.text('훈련 횟수'), findsOneWidget);
     expect(find.text('총 훈련 시간'), findsOneWidget);
+    expect(find.text('기록 리듬'), findsOneWidget);
+    expect(find.text('계획 실행률'), findsOneWidget);
     expect(find.text('집중 분야'), findsOneWidget);
-    expect(find.text('꾸준함'), findsOneWidget);
   });
 
   testWidgets('Stats screen separates match records in match tab', (

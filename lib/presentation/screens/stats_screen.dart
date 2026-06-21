@@ -1570,8 +1570,6 @@ class _TrainingReportSection extends StatelessWidget {
     final periodDays = _periodDayCount(range);
     final activeDays = entries.map((entry) => _dayOnly(entry.date)).toSet();
     final mealDays = mealEntries.map((entry) => _dayOnly(entry.date)).toSet();
-    final fullMealDays =
-        mealEntries.where((entry) => entry.completedMeals >= 3).length;
     final totalMinutes = entries.fold<int>(
       0,
       (sum, entry) => sum + entry.durationMinutes,
@@ -1590,11 +1588,6 @@ class _TrainingReportSection extends StatelessWidget {
     final planPercent = plannedDays.isEmpty
         ? null
         : ((completedPlanDays / plannedDays.length) * 100).round();
-    final avgIntensity = entries.fold<double>(
-          0,
-          (sum, entry) => sum + entry.intensity,
-        ) /
-        entries.length;
     final avgMood = entries.fold<double>(
           0,
           (sum, entry) => sum + entry.mood,
@@ -1630,6 +1623,9 @@ class _TrainingReportSection extends StatelessWidget {
     );
     final conditioningTotal =
         primaryMinutes + primaryCount + secondaryMinutes + secondaryCount;
+    final planText = planPercent == null
+        ? l10n.statsReportNoPlanValue
+        : l10n.statsReportTargetPercentValue(planPercent);
     final insight = _trainingInsight(
       l10n: l10n,
       sportLabel: sportLabel,
@@ -1646,65 +1642,33 @@ class _TrainingReportSection extends StatelessWidget {
 
     final cards = <_MetricCard>[
       _MetricCard(
-        label: l10n.statsReportSessionsLabel,
-        value: l10n.statsReportSessionsValue(entries.length),
-      ),
-      _MetricCard(
         label: l10n.statsReportTotalTimeLabel,
         value: _formatMinutesAsTime(totalMinutes, isKo: isKo),
       ),
       _MetricCard(
-        label: l10n.statsReportActiveDaysLabel,
-        value: l10n.statsReportActiveDaysValue(activeDays.length, periodDays),
+        label: l10n.statsReportTrainingRhythmLabel,
+        value: l10n.statsReportTrainingRhythmValue(
+          entries.length,
+          activeDays.length,
+          periodDays,
+        ),
       ),
       if (targetPercent != null)
         _MetricCard(
-          label: l10n.statsReportTargetLabel,
-          value: l10n.statsReportTargetPercentValue(targetPercent),
+          label: l10n.statsReportTargetPlanLabel,
+          value: l10n.statsReportTargetPlanValue(
+            l10n.statsReportTargetPercentValue(targetPercent),
+            planText,
+          ),
+        )
+      else
+        _MetricCard(
+          label: l10n.statsReportPlanExecutionLabel,
+          value: planText,
         ),
-      _MetricCard(
-        label: l10n.statsReportPlanExecutionLabel,
-        value: planPercent == null
-            ? l10n.statsReportNoPlanValue
-            : l10n.statsReportTargetPercentValue(planPercent),
-      ),
       _MetricCard(
         label: l10n.statsReportFocusLabel,
-        value: focus,
-      ),
-      _MetricCard(
-        label: l10n.statsReportStreakLabel,
-        value: l10n.statsReportStreakValue(streak),
-      ),
-      _MetricCard(
-        label: l10n.statsReportMealCoverageLabel,
-        value: l10n.statsReportMealCoverageValue(
-          mealDays.length,
-          periodDays,
-          fullMealDays,
-        ),
-      ),
-      _MetricCard(
-        label: l10n.statsReportConditionLabel,
-        value: l10n.statsReportConditionValue(
-          _oneDecimal(avgIntensity),
-          _oneDecimal(avgMood),
-          injuryDays,
-        ),
-      ),
-      _MetricCard(
-        label: primaryConditioningLabel,
-        value: l10n.statsReportConditioningValue(
-          primaryMinutes,
-          primaryCount,
-        ),
-      ),
-      _MetricCard(
-        label: secondaryConditioningLabel,
-        value: l10n.statsReportConditioningValue(
-          secondaryMinutes,
-          secondaryCount,
-        ),
+        value: l10n.statsReportFocusStreakValue(focus, streak),
       ),
     ];
 
@@ -1716,15 +1680,9 @@ class _TrainingReportSection extends StatelessWidget {
           title: l10n.statsReportTrainingTitle(sportLabel),
         ),
         const SizedBox(height: 12),
-        _CoachMessage(
-          icon: Icons.tips_and_updates_outlined,
-          title: l10n.statsReportInsightTitle,
-          message: insight,
-        ),
-        const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
-            final columns = constraints.maxWidth >= 760 ? 3 : 2;
+            final columns = constraints.maxWidth >= 520 ? 2 : 1;
             final cardWidth =
                 (constraints.maxWidth - (10 * (columns - 1))) / columns;
             return Wrap(
@@ -1735,6 +1693,12 @@ class _TrainingReportSection extends StatelessWidget {
                   .toList(growable: false),
             );
           },
+        ),
+        const SizedBox(height: 12),
+        _CoachMessage(
+          icon: Icons.tips_and_updates_outlined,
+          title: l10n.statsReportInsightTitle,
+          message: insight,
         ),
       ],
     );
