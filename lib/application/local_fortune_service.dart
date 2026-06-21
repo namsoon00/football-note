@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../domain/entities/player_profile.dart';
 import '../domain/entities/training_entry.dart';
+import 'myeongli_database.dart';
 
 class LocalFortuneResult {
   final String fortuneText;
@@ -17,6 +18,7 @@ class LocalFortuneResult {
 }
 
 class LocalFortuneService {
+  static const MyeongliDatabase _myeongli = MyeongliDatabase.instance;
   static final BigInt totalFortunePoolCount = _calculateTotalFortunePoolCount();
 
   static String formatFortunePoolCount(String localeName) {
@@ -40,7 +42,7 @@ class LocalFortuneService {
   }) {
     final baseSeed = _seed(entry, profile, history);
     final birthReading = _birthReading(profile, l10n);
-    final dailyPillar = _dayPillar(entry.date, l10n);
+    final dailyPillar = _myeongli.dayPillar(entry.date);
     final luckyTime = _luckyTime(seed: baseSeed + 71, l10n: l10n);
     final luckyColor = _luckyColor(seed: baseSeed + 73, l10n: l10n);
     final luckyZone = _luckyZone(seed: baseSeed + 79, l10n: l10n);
@@ -59,15 +61,15 @@ class LocalFortuneService {
     );
     final trainingTone = _pickLocalized(
       l10n.fortuneSajuTrainingTones,
-      baseSeed + dailyPillar.stemIndex * 31,
+      baseSeed + dailyPillar.stem.index * 31,
     );
     final playAdvice = _pickLocalized(
       l10n.fortuneSajuPlayAdvice,
-      baseSeed + birthReading.seed + dailyPillar.branchIndex * 43,
+      baseSeed + birthReading.seed + dailyPillar.branch.index * 43,
     );
     final elementFlow = _pickLocalized(
       l10n.fortuneSajuElementFlows,
-      birthReading.elementSeed + dailyPillar.stemIndex,
+      birthReading.elementSeed + dailyPillar.stem.index,
     );
     final nameElement = _pickLocalized(
       l10n.fortuneSajuNameElements,
@@ -78,7 +80,7 @@ class LocalFortuneService {
       l10n.fortuneGeneratedDailyLineOne(
         name,
         birthReading.frame,
-        dailyPillar.label,
+        _pillarLabel(dailyPillar, l10n),
         elementFlow,
       ),
       l10n.fortuneGeneratedDailyLineTwo(fortuneTheme, trainingTone),
@@ -236,102 +238,31 @@ class LocalFortuneService {
       );
     }
 
-    final yearPillar = _yearPillar(birthDate, l10n);
-    final monthPillar = _monthPillar(birthDate, yearPillar.stemIndex, l10n);
-    final dayPillar = _dayPillar(birthDate, l10n);
-    final hourPillar = _hasBirthTime(birthDate)
-        ? _hourPillar(birthDate, dayPillar.stemIndex, l10n)
-        : null;
-    final frame = hourPillar == null
+    final chart = _myeongli.chartForBirth(birthDate);
+    final frame = chart.hour == null
         ? l10n.fortuneGeneratedBirthFrame(
-            yearPillar.label,
-            monthPillar.label,
-            dayPillar.label,
+            _pillarLabel(chart.year, l10n),
+            _pillarLabel(chart.month, l10n),
+            _pillarLabel(chart.day, l10n),
           )
         : l10n.fortuneGeneratedBirthFrameWithTime(
-            yearPillar.label,
-            monthPillar.label,
-            dayPillar.label,
-            hourPillar.label,
+            _pillarLabel(chart.year, l10n),
+            _pillarLabel(chart.month, l10n),
+            _pillarLabel(chart.day, l10n),
+            _pillarLabel(chart.hour!, l10n),
           );
-    final seed = yearPillar.index * 7 +
-        monthPillar.index * 11 +
-        dayPillar.index * 13 +
-        (hourPillar?.index ?? 0) * 17;
-    final elementSeed = yearPillar.stemIndex +
-        monthPillar.stemIndex +
-        dayPillar.stemIndex +
-        (hourPillar?.stemIndex ?? 0);
-    return _BirthReading(frame: frame, seed: seed, elementSeed: elementSeed);
+    return _BirthReading(
+      frame: frame,
+      seed: chart.seed,
+      elementSeed: chart.elementSeed,
+    );
   }
 
-  _SajuPillar _yearPillar(DateTime date, AppLocalizations l10n) {
-    final pillarYear = date.month == 1 || (date.month == 2 && date.day < 4)
-        ? date.year - 1
-        : date.year;
-    return _pillarForIndex(_positiveMod(pillarYear - 4, 60), l10n);
-  }
-
-  _SajuPillar _monthPillar(
-    DateTime date,
-    int yearStemIndex,
-    AppLocalizations l10n,
-  ) {
-    final branchIndex = date.month % 12;
-    final firstMonthStem = switch (yearStemIndex) {
-      0 || 5 => 2,
-      1 || 6 => 4,
-      2 || 7 => 6,
-      3 || 8 => 8,
-      _ => 0,
-    };
-    final stemIndex = _positiveMod(firstMonthStem + branchIndex - 2, 10);
-    return _pillarForStemBranch(stemIndex, branchIndex, l10n);
-  }
-
-  _SajuPillar _dayPillar(DateTime date, AppLocalizations l10n) {
-    final day = DateTime(date.year, date.month, date.day);
-    final days = day.difference(DateTime(1984, 2, 2)).inDays;
-    return _pillarForIndex(_positiveMod(days, 60), l10n);
-  }
-
-  _SajuPillar _hourPillar(
-    DateTime date,
-    int dayStemIndex,
-    AppLocalizations l10n,
-  ) {
-    final branchIndex = ((date.hour + 1) ~/ 2) % 12;
-    final firstHourStem = switch (dayStemIndex) {
-      0 || 5 => 0,
-      1 || 6 => 2,
-      2 || 7 => 4,
-      3 || 8 => 6,
-      _ => 8,
-    };
-    final stemIndex = _positiveMod(firstHourStem + branchIndex, 10);
-    return _pillarForStemBranch(stemIndex, branchIndex, l10n);
-  }
-
-  _SajuPillar _pillarForIndex(int index, AppLocalizations l10n) {
-    return _pillarForStemBranch(index % 10, index % 12, l10n);
-  }
-
-  _SajuPillar _pillarForStemBranch(
-    int stemIndex,
-    int branchIndex,
-    AppLocalizations l10n,
-  ) {
+  String _pillarLabel(MyeongliPillar pillar, AppLocalizations l10n) {
     final stems = _localizedValues(l10n.fortuneSajuHeavenlyStems);
     final branches = _localizedValues(l10n.fortuneSajuEarthlyBranches);
-    final label =
-        '${_valueAt(stems, stemIndex)}${_valueAt(branches, branchIndex)}';
-    final index = _positiveMod(stemIndex * 6 - branchIndex * 5, 60);
-    return _SajuPillar(
-      label: label,
-      index: index,
-      stemIndex: stemIndex,
-      branchIndex: branchIndex,
-    );
+    return '${_valueAt(stems, pillar.stem.index)}'
+        '${_valueAt(branches, pillar.branch.index)}';
   }
 
   static String _playerName(PlayerProfile profile, AppLocalizations l10n) {
@@ -350,14 +281,6 @@ class LocalFortuneService {
         birthDate.day * 83 +
         birthDate.hour * 131 +
         birthDate.minute * 151;
-  }
-
-  static bool _hasBirthTime(DateTime birthDate) {
-    return birthDate.hour != 0 ||
-        birthDate.minute != 0 ||
-        birthDate.second != 0 ||
-        birthDate.millisecond != 0 ||
-        birthDate.microsecond != 0;
   }
 
   static List<String> _localizedValues(String packed) {
@@ -421,9 +344,11 @@ class LocalFortuneService {
       _fortuneSajuNameElementCount,
       _fortuneSajuPlayAdviceCount,
     );
+    final pillarCount = BigInt.from(_myeongli.pillars.length);
     const luckyNumberCount = 9;
 
-    return luckyColorCount *
+    return pillarCount *
+        luckyColorCount *
         luckyTimeCount *
         luckyZoneCount *
         luckyCueCount *
@@ -455,20 +380,6 @@ class _BirthReading {
     required this.frame,
     required this.seed,
     required this.elementSeed,
-  });
-}
-
-class _SajuPillar {
-  final String label;
-  final int index;
-  final int stemIndex;
-  final int branchIndex;
-
-  const _SajuPillar({
-    required this.label,
-    required this.index,
-    required this.stemIndex,
-    required this.branchIndex,
   });
 }
 
