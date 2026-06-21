@@ -4560,20 +4560,27 @@ class _EntryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final hasParentFeedback = parentFeedbackMessage.trim().isNotEmpty;
+    if (entry.isMatch) {
+      return _buildMatchTile(
+        context,
+        l10n: l10n,
+        isKo: isKo,
+        hasParentFeedback: hasParentFeedback,
+      );
+    }
+
     final focusText = _entryFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
-    final titleParts = entry.isMatch
-        ? _matchTitleParts(entry, l10n: l10n, isKo: isKo)
-        : <String>[
-            _trainingTitle(entry, l10n),
-            _trainingProgramDurationText(entry, l10n: l10n),
-          ].where((part) => part.trim().isNotEmpty).toList(growable: false);
+    final titleParts = <String>[
+      _trainingTitle(entry, l10n),
+      _trainingProgramDurationText(entry, l10n: l10n),
+    ].where((part) => part.trim().isNotEmpty).toList(growable: false);
     final trainingSummaryParts = [
       ...trainingEntryConditioningParts(entry, l10n, includeEmptyMessage: true),
       trainingEntryInjuryLabel(entry, l10n),
       trainingEntryLocationWeatherLabel(entry),
     ].where((part) => part.trim().isNotEmpty).toList(growable: false);
-    final hasParentFeedback = parentFeedbackMessage.trim().isNotEmpty;
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Stack(
@@ -4585,9 +4592,7 @@ class _EntryTile extends StatelessWidget {
               hasParentFeedback ? 34 : 6,
               2,
             ),
-            leading: entry.isMatch
-                ? _MatchResultIcon(entry: entry)
-                : _StatusIcon(status: entry.status),
+            leading: _StatusIcon(status: entry.status),
             title: Text(
               titleParts.join(' · '),
               style: _calendarTimelineTitleStyle(context),
@@ -4596,19 +4601,7 @@ class _EntryTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (entry.isMatch) ...[
-                  if (_matchPersonalRecord(
-                    entry,
-                    l10n: l10n,
-                    isKo: isKo,
-                  ).isNotEmpty)
-                    Text(
-                      _matchPersonalRecord(entry, l10n: l10n, isKo: isKo),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: _calendarTimelineSubtitleStyle(context),
-                    ),
-                ] else if (trainingSummaryParts.isNotEmpty)
+                if (trainingSummaryParts.isNotEmpty)
                   Text(
                     trainingSummaryParts.join(' · '),
                     maxLines: 1,
@@ -4640,6 +4633,229 @@ class _EntryTile extends StatelessWidget {
     );
   }
 
+  Widget _buildMatchTile(
+    BuildContext context, {
+    required AppLocalizations l10n,
+    required bool isKo,
+    required bool hasParentFeedback,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final opponentText = entry.opponentTeam.trim().isEmpty
+        ? ''
+        : 'vs ${entry.opponentTeam.trim()}';
+    final scoreText = _matchScoreText(entry);
+    final detailParts = [
+      ...matchCompetitionDetailParts(entry, l10n),
+      if (entry.effectiveMatchLocation.trim().isNotEmpty)
+        entry.effectiveMatchLocation.trim(),
+    ].where((part) => part.trim().isNotEmpty).toList(growable: false);
+    final personalParts = _matchPersonalRecordParts(
+      entry,
+      l10n: l10n,
+      isKo: isKo,
+    );
+    final outcomeLabel = _matchOutcomeLabel(entry, isKo: isKo);
+
+    return WatchCartCard(
+      padding: EdgeInsets.zero,
+      child: Stack(
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                12,
+                10,
+                hasParentFeedback ? 36 : 12,
+                10,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _MatchResultIcon(entry: entry),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              children: [
+                                _matchInfoPill(
+                                  context,
+                                  matchKindLabel(entry, l10n),
+                                  icon: Icons.sports_soccer,
+                                  backgroundColor:
+                                      scheme.surfaceContainerHighest,
+                                  foregroundColor: scheme.onSurfaceVariant,
+                                ),
+                                _matchInfoPill(
+                                  context,
+                                  outcomeLabel,
+                                  backgroundColor:
+                                      _matchOutcomeColor(entry).withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  foregroundColor: _matchOutcomeColor(entry),
+                                ),
+                              ],
+                            ),
+                            if (opponentText.isNotEmpty) ...[
+                              const SizedBox(height: 5),
+                              Text(
+                                opponentText,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: _calendarTimelineTitleStyle(context),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      if (scoreText.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        _matchScoreBadge(context, scoreText),
+                      ],
+                      if (onTap != null) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.chevron_right,
+                          size: 20,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (detailParts.isNotEmpty) ...[
+                    const SizedBox(height: 9),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final part in detailParts)
+                          _matchInfoPill(context, part),
+                      ],
+                    ),
+                  ],
+                  if (personalParts.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final part in personalParts)
+                          _matchInfoPill(
+                            context,
+                            part,
+                            backgroundColor:
+                                scheme.primary.withValues(alpha: 0.08),
+                            foregroundColor: scheme.primary,
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          if (hasParentFeedback)
+            const Positioned(
+              top: 6,
+              right: 6,
+              child: _CalendarParentFeedbackCornerMark(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _matchInfoPill(
+    BuildContext context,
+    String text, {
+    IconData? icon,
+    Color? backgroundColor,
+    Color? foregroundColor,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final resolvedForeground = foregroundColor ?? scheme.onSurfaceVariant;
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 260),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: backgroundColor ?? scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 13, color: resolvedForeground),
+            const SizedBox(width: 4),
+          ],
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: resolvedForeground,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _matchScoreBadge(BuildContext context, String scoreText) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 54),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: _matchOutcomeColor(entry).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _matchOutcomeColor(entry).withValues(alpha: 0.24),
+        ),
+      ),
+      child: Text(
+        scoreText,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: _matchOutcomeColor(entry),
+              fontWeight: FontWeight.w900,
+            ),
+      ),
+    );
+  }
+
+  String _matchScoreText(TrainingEntry entry) {
+    if (entry.scoredGoals == null && entry.concededGoals == null) return '';
+    return '${entry.scoredGoals ?? '-'}:${entry.concededGoals ?? '-'}';
+  }
+
+  Color _matchOutcomeColor(TrainingEntry entry) {
+    final scored = entry.scoredGoals;
+    final conceded = entry.concededGoals;
+    if (scored != null && conceded != null && scored > conceded) {
+      return const Color(0xFF0FA968);
+    }
+    if (scored != null && conceded != null && scored < conceded) {
+      return const Color(0xFFEB5757);
+    }
+    return const Color(0xFF2F80ED);
+  }
+
   String _entryFocusText(TrainingEntry entry) {
     if (!entry.isMatch && entry.opponentTeam.trim().isNotEmpty) {
       return entry.opponentTeam.trim();
@@ -4665,32 +4881,6 @@ class _EntryTile extends StatelessWidget {
     return trainingEntryDurationLabel(entry, l10n);
   }
 
-  List<String> _matchTitleParts(
-    TrainingEntry entry, {
-    required AppLocalizations l10n,
-    required bool isKo,
-  }) {
-    final parts = <String>[];
-    parts.add(matchKindLabel(entry, l10n));
-    parts.add(_matchOutcomeLabel(entry, isKo: isKo));
-    if (entry.opponentTeam.trim().isNotEmpty) {
-      parts.add('vs ${entry.opponentTeam.trim()}');
-    }
-    parts.addAll(matchCompetitionDetailParts(entry, l10n));
-    final matchLocation = entry.effectiveMatchLocation.trim();
-    if (matchLocation.isNotEmpty) {
-      parts.add(matchLocation);
-    }
-    if (entry.scoredGoals != null || entry.concededGoals != null) {
-      parts.add(
-        isKo
-            ? '결과 ${entry.scoredGoals ?? '-'}:${entry.concededGoals ?? '-'}'
-            : 'Result ${entry.scoredGoals ?? '-'}:${entry.concededGoals ?? '-'}',
-      );
-    }
-    return parts;
-  }
-
   String _matchOutcomeLabel(TrainingEntry entry, {required bool isKo}) {
     final scored = entry.scoredGoals;
     final conceded = entry.concededGoals;
@@ -4706,7 +4896,7 @@ class _EntryTile extends StatelessWidget {
     return isKo ? '무' : 'Draw';
   }
 
-  String _matchPersonalRecord(
+  List<String> _matchPersonalRecordParts(
     TrainingEntry entry, {
     required AppLocalizations l10n,
     required bool isKo,
@@ -4723,7 +4913,7 @@ class _EntryTile extends StatelessWidget {
             : '${entry.minutesPlayed} min played',
       );
     }
-    return parts.join(' · ');
+    return parts;
   }
 }
 
