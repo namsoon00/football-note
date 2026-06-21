@@ -144,11 +144,15 @@ void main() {
     expect(find.text('Analysis process on the real clip'), findsOneWidget);
     expect(find.text('Sample frame'), findsWidgets);
     expect(find.textContaining('Track joints'), findsOneWidget);
+    expect(find.textContaining('Map muscle load'), findsOneWidget);
     expect(find.textContaining('Connect pose lines'), findsOneWidget);
     expect(find.textContaining('Measure angles'), findsOneWidget);
     expect(find.textContaining('Score contact confidence'), findsOneWidget);
+    expect(find.text('Decision evidence'), findsOneWidget);
+    expect(find.text('Posture'), findsWidgets);
     expect(find.textContaining('Frame '), findsWidgets);
     expect(find.text('Landing 0.08'), findsOneWidget);
+    expect(find.text('Pass'), findsWidgets);
     expect(
       find.text('Foot lands under the hip with toes forward'),
       findsOneWidget,
@@ -161,6 +165,7 @@ void main() {
     expect(find.text('Wrong-form readouts'), findsOneWidget);
     expect(find.text('Overstride 0.24'), findsOneWidget);
     expect(find.text('Bounce 12%'), findsOneWidget);
+    expect(find.text('Review'), findsWidgets);
     expect(
       find.textContaining('overstride is 0.24 ahead of the hip'),
       findsOneWidget,

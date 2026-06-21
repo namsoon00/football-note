@@ -6094,6 +6094,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSamplePhaseJoints => '관절 추적';
 
   @override
+  String get runningCoachSamplePhaseMuscles => '근육 부하 맵';
+
+  @override
   String get runningCoachSamplePhaseSkeleton => '자세선 연결';
 
   @override
@@ -6101,6 +6104,30 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSamplePhaseContactScore => '착지 신뢰도 점수';
+
+  @override
+  String get runningCoachSampleDecisionTitle => '판정 근거';
+
+  @override
+  String get runningCoachSampleMetricPosture => '상체';
+
+  @override
+  String get runningCoachSampleMetricArms => '팔';
+
+  @override
+  String get runningCoachSampleMetricLanding => '착지';
+
+  @override
+  String get runningCoachSampleMetricFrames => '프레임';
+
+  @override
+  String get runningCoachSampleMetricBounce => '바운스';
+
+  @override
+  String get runningCoachSampleStatusPass => '통과';
+
+  @override
+  String get runningCoachSampleStatusReview => '확인';
 
   @override
   String get runningCoachSampleOverlayPosture => '전경사 10도';

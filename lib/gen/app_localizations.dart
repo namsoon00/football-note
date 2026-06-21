@@ -10971,6 +10971,12 @@ abstract class AppLocalizations {
   /// **'Track joints'**
   String get runningCoachSamplePhaseJoints;
 
+  /// No description provided for @runningCoachSamplePhaseMuscles.
+  ///
+  /// In en, this message translates to:
+  /// **'Map muscle load'**
+  String get runningCoachSamplePhaseMuscles;
+
   /// No description provided for @runningCoachSamplePhaseSkeleton.
   ///
   /// In en, this message translates to:
@@ -10988,6 +10994,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Score contact confidence'**
   String get runningCoachSamplePhaseContactScore;
+
+  /// No description provided for @runningCoachSampleDecisionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision evidence'**
+  String get runningCoachSampleDecisionTitle;
+
+  /// No description provided for @runningCoachSampleMetricPosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Posture'**
+  String get runningCoachSampleMetricPosture;
+
+  /// No description provided for @runningCoachSampleMetricArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arms'**
+  String get runningCoachSampleMetricArms;
+
+  /// No description provided for @runningCoachSampleMetricLanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing'**
+  String get runningCoachSampleMetricLanding;
+
+  /// No description provided for @runningCoachSampleMetricFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame coverage'**
+  String get runningCoachSampleMetricFrames;
+
+  /// No description provided for @runningCoachSampleMetricBounce.
+  ///
+  /// In en, this message translates to:
+  /// **'Bounce'**
+  String get runningCoachSampleMetricBounce;
+
+  /// No description provided for @runningCoachSampleStatusPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get runningCoachSampleStatusPass;
+
+  /// No description provided for @runningCoachSampleStatusReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get runningCoachSampleStatusReview;
 
   /// No description provided for @runningCoachSampleOverlayPosture.
   ///

@@ -1617,7 +1617,7 @@ String _formatRunningDuration(Duration duration) {
 }
 
 const int _sampleTimelineFrameCount = 24;
-const int _sampleAnalysisPhaseCount = 5;
+const int _sampleAnalysisPhaseCount = 6;
 const Duration _sampleVideoLoopDuration = Duration(milliseconds: 4000);
 const String _sampleReferenceVideoAsset =
     'assets/videos/running_coach_reference_sample.mp4';
@@ -1739,6 +1739,10 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
                 _SampleAnalysisStep(
                   icon: Icons.scatter_plot_outlined,
                   label: l10n.runningCoachSamplePhaseJoints,
+                ),
+                _SampleAnalysisStep(
+                  icon: Icons.accessibility_new_rounded,
+                  label: l10n.runningCoachSamplePhaseMuscles,
                 ),
                 _SampleAnalysisStep(
                   icon: Icons.polyline_outlined,
@@ -2320,6 +2324,9 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
     final fourthOverlay = isMistake
         ? l10n.runningCoachSampleMistakeOverlayBounce
         : l10n.runningCoachSampleOverlayFrames;
+    final fourthMetricLabel = isMistake
+        ? l10n.runningCoachSampleMetricBounce
+        : l10n.runningCoachSampleMetricFrames;
     final videoController = _videoController;
     final overlayTicker = Listenable.merge([
       _controller,
@@ -2386,6 +2393,52 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
                   ),
                 ),
               ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final compact = constraints.maxWidth < 640 ||
+                          constraints.maxHeight < 340;
+                      return _SampleDecisionOverlay(
+                        compact: compact,
+                        score: widget.score,
+                        title: l10n.runningCoachSampleDecisionTitle,
+                        scoreLabel: l10n.runningCoachOverallScoreLabel,
+                        statusPass: l10n.runningCoachSampleStatusPass,
+                        statusReview: l10n.runningCoachSampleStatusReview,
+                        metrics: [
+                          _SampleDecisionMetric(
+                            icon: Icons.show_chart_rounded,
+                            label: l10n.runningCoachSampleMetricPosture,
+                            value: postureOverlay,
+                            isPass: !isMistake,
+                          ),
+                          _SampleDecisionMetric(
+                            icon: Icons.sync_alt_rounded,
+                            label: l10n.runningCoachSampleMetricArms,
+                            value: armsOverlay,
+                            isPass: !isMistake,
+                          ),
+                          _SampleDecisionMetric(
+                            icon: Icons.ads_click_rounded,
+                            label: l10n.runningCoachSampleMetricLanding,
+                            value: footOverlay,
+                            isPass: !isMistake,
+                          ),
+                          _SampleDecisionMetric(
+                            icon: isMistake
+                                ? Icons.warning_amber_rounded
+                                : Icons.fact_check_outlined,
+                            label: fourthMetricLabel,
+                            value: fourthOverlay,
+                            isPass: !isMistake,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
               Positioned(
                 left: 12,
                 right: 12,
@@ -2426,38 +2479,6 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
               ),
               Positioned(
                 left: 12,
-                top: 48,
-                child: _VideoOverlayLabel(
-                  text: postureOverlay,
-                  color: runnerColor,
-                ),
-              ),
-              Positioned(
-                right: 12,
-                top: 48,
-                child: _VideoOverlayLabel(
-                  text: armsOverlay,
-                  color: scheme.secondary,
-                ),
-              ),
-              Positioned(
-                left: 12,
-                bottom: 24,
-                child: _VideoOverlayLabel(
-                  text: footOverlay,
-                  color: scheme.tertiary,
-                ),
-              ),
-              Positioned(
-                right: 12,
-                bottom: 24,
-                child: _VideoOverlayLabel(
-                  text: fourthOverlay,
-                  color: runnerColor,
-                ),
-              ),
-              Positioned(
-                left: 12,
                 right: 12,
                 bottom: 10,
                 child: AnimatedBuilder(
@@ -2489,37 +2510,237 @@ String _sampleAnalysisPhaseLabel(AppLocalizations l10n, double progress) {
   return switch (phase) {
     0 => l10n.runningCoachSamplePhaseFrame,
     1 => l10n.runningCoachSamplePhaseJoints,
-    2 => l10n.runningCoachSamplePhaseSkeleton,
-    3 => l10n.runningCoachSamplePhaseAngles,
+    2 => l10n.runningCoachSamplePhaseMuscles,
+    3 => l10n.runningCoachSamplePhaseSkeleton,
+    4 => l10n.runningCoachSamplePhaseAngles,
     _ => l10n.runningCoachSamplePhaseContactScore,
   };
 }
 
-class _VideoOverlayLabel extends StatelessWidget {
-  final String text;
-  final Color color;
+class _SampleDecisionMetric {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool isPass;
 
-  const _VideoOverlayLabel({required this.text, required this.color});
+  const _SampleDecisionMetric({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.isPass,
+  });
+}
+
+class _SampleDecisionOverlay extends StatelessWidget {
+  final bool compact;
+  final int score;
+  final String title;
+  final String scoreLabel;
+  final String statusPass;
+  final String statusReview;
+  final List<_SampleDecisionMetric> metrics;
+
+  const _SampleDecisionOverlay({
+    required this.compact,
+    required this.score,
+    required this.title,
+    required this.scoreLabel,
+    required this.statusPass,
+    required this.statusReview,
+    required this.metrics,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
+    final panel = DecoratedBox(
       decoration: BoxDecoration(
         color: scheme.surface.withValues(alpha: 0.82),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.50)),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: scheme.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        child: Text(
-          text,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w900,
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    '$scoreLabel $score',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (compact)
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final metric in metrics)
+                    _SampleDecisionMetricTile(
+                      metric: metric,
+                      compact: true,
+                      statusPass: statusPass,
+                      statusReview: statusReview,
+                    ),
+                ],
+              )
+            else
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final metric in metrics)
+                    _SampleDecisionMetricTile(
+                      metric: metric,
+                      compact: false,
+                      statusPass: statusPass,
+                      statusReview: statusReview,
+                    ),
+                ],
               ),
+          ],
         ),
       ),
+    );
+
+    return Align(
+      alignment: compact ? Alignment.bottomCenter : Alignment.centerRight,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(12, 76, 12, compact ? 28 : 34),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: compact ? 420 : 218),
+          child: panel,
+        ),
+      ),
+    );
+  }
+}
+
+class _SampleDecisionMetricTile extends StatelessWidget {
+  final _SampleDecisionMetric metric;
+  final bool compact;
+  final String statusPass;
+  final String statusReview;
+
+  const _SampleDecisionMetricTile({
+    required this.metric,
+    required this.compact,
+    required this.statusPass,
+    required this.statusReview,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final statusColor = metric.isPass ? scheme.primary : scheme.error;
+    final status = metric.isPass ? statusPass : statusReview;
+    final tile = DecoratedBox(
+      decoration: BoxDecoration(
+        color: statusColor.withValues(alpha: metric.isPass ? 0.10 : 0.14),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: statusColor.withValues(alpha: 0.42)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 7 : 8,
+          vertical: compact ? 6 : 7,
+        ),
+        child: Row(
+          mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+          children: [
+            Icon(metric.icon, size: 15, color: statusColor),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    metric.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  Text(
+                    metric.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: statusColor,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  if (compact)
+                    Text(
+                      status,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: statusColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                ],
+              ),
+            ),
+            if (!compact) ...[
+              const SizedBox(width: 8),
+              Text(
+                status,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+    if (compact) {
+      return ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 128, maxWidth: 180),
+        child: tile,
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: tile,
     );
   }
 }
@@ -2580,11 +2801,13 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     final runner = _SampleVideoRunnerGeometry(size, progress);
     final frameAlpha = _phaseAlpha(activePhase, 0);
     final jointAlpha = _phaseAlpha(activePhase, 1);
-    final skeletonAlpha = _phaseAlpha(activePhase, 2);
-    final angleAlpha = _phaseAlpha(activePhase, 3);
-    final scoreAlpha = _phaseAlpha(activePhase, 4);
+    final muscleAlpha = _phaseAlpha(activePhase, 2);
+    final skeletonAlpha = _phaseAlpha(activePhase, 3);
+    final angleAlpha = _phaseAlpha(activePhase, 4);
+    final scoreAlpha = _phaseAlpha(activePhase, 5);
 
     _drawFrameSampling(canvas, size, runner, phaseProgress, frameAlpha);
+    _drawMuscleMap(canvas, runner, muscleAlpha);
     _drawLandmarks(canvas, runner, jointAlpha);
     _drawSkeleton(canvas, runner, skeletonAlpha);
     _drawAngles(canvas, runner, angleAlpha);
@@ -2666,6 +2889,204 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     }
   }
 
+  void _drawMuscleMap(
+    Canvas canvas,
+    _SampleVideoRunnerGeometry runner,
+    double alpha,
+  ) {
+    if (alpha <= 0) return;
+    final contactColorForLoad = isMistake ? warningColor : contactColor;
+    final quietColor = secondaryColor;
+
+    _drawTorsoMass(canvas, runner, alpha);
+    _drawMuscleSegment(
+      canvas,
+      runner.contactHip,
+      runner.contactKnee,
+      runner.scale * 0.048,
+      contactColorForLoad,
+      alpha,
+    );
+    _drawMuscleSegment(
+      canvas,
+      runner.contactKnee,
+      runner.contactAnkle,
+      runner.scale * 0.040,
+      contactColorForLoad,
+      alpha,
+    );
+    _drawMuscleSegment(
+      canvas,
+      runner.swingHip,
+      runner.swingKnee,
+      runner.scale * 0.043,
+      quietColor,
+      alpha * 0.82,
+    );
+    _drawMuscleSegment(
+      canvas,
+      runner.swingKnee,
+      runner.swingAnkle,
+      runner.scale * 0.034,
+      quietColor,
+      alpha * 0.82,
+    );
+    _drawMuscleSegment(
+      canvas,
+      runner.frontShoulder,
+      runner.frontElbow,
+      runner.scale * 0.030,
+      secondaryColor,
+      alpha * 0.76,
+    );
+    _drawMuscleSegment(
+      canvas,
+      runner.frontElbow,
+      runner.frontWrist,
+      runner.scale * 0.024,
+      secondaryColor,
+      alpha * 0.70,
+    );
+    _drawMuscleSegment(
+      canvas,
+      runner.rearShoulder,
+      runner.rearElbow,
+      runner.scale * 0.030,
+      primaryColor,
+      alpha * 0.70,
+    );
+    _drawMuscleSegment(
+      canvas,
+      runner.rearElbow,
+      runner.rearWrist,
+      runner.scale * 0.024,
+      primaryColor,
+      alpha * 0.64,
+    );
+    _drawLoadHalo(
+      canvas,
+      runner.contactKnee,
+      runner.scale * 0.060,
+      contactColorForLoad,
+      alpha,
+    );
+    _drawLoadHalo(
+      canvas,
+      runner.contactAnkle,
+      runner.scale * 0.046,
+      contactColorForLoad,
+      alpha * 0.74,
+    );
+  }
+
+  void _drawTorsoMass(
+    Canvas canvas,
+    _SampleVideoRunnerGeometry runner,
+    double alpha,
+  ) {
+    final torsoPath = Path()
+      ..moveTo(runner.rearShoulder.dx, runner.rearShoulder.dy)
+      ..quadraticBezierTo(
+        runner.shoulderMid.dx,
+        runner.shoulderMid.dy - runner.scale * 0.022,
+        runner.frontShoulder.dx,
+        runner.frontShoulder.dy,
+      )
+      ..lineTo(
+        runner.frontHip.dx + runner.scale * 0.018,
+        runner.frontHip.dy + runner.scale * 0.010,
+      )
+      ..quadraticBezierTo(
+        runner.hip.dx,
+        runner.hip.dy + runner.scale * 0.030,
+        runner.rearHip.dx - runner.scale * 0.018,
+        runner.rearHip.dy + runner.scale * 0.010,
+      )
+      ..close();
+    canvas.drawPath(
+      torsoPath,
+      Paint()
+        ..color = primaryColor.withValues(alpha: 0.16 * alpha)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawPath(
+      torsoPath,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.22 * alpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, runner.scale * 0.004),
+    );
+    canvas.drawLine(
+      runner.shoulderMid,
+      runner.hip,
+      Paint()
+        ..color = primaryColor.withValues(alpha: 0.28 * alpha)
+        ..strokeWidth = runner.scale * 0.014
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  void _drawMuscleSegment(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    double width,
+    Color color,
+    double alpha,
+  ) {
+    final outerPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.16 * alpha)
+      ..strokeWidth = width * 1.18
+      ..strokeCap = StrokeCap.round;
+    final fillPaint = Paint()
+      ..color = color.withValues(alpha: 0.20 * alpha)
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round;
+    final fiberPaint = Paint()
+      ..color = color.withValues(alpha: 0.42 * alpha)
+      ..strokeWidth = math.max(1.0, width * 0.16)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(start, end, outerPaint);
+    canvas.drawLine(start, end, fillPaint);
+    final delta = end - start;
+    if (delta.distance == 0) return;
+    final normal = Offset(-delta.dy, delta.dx) / delta.distance;
+    canvas.drawLine(
+      start + normal * width * 0.18,
+      end + normal * width * 0.18,
+      fiberPaint,
+    );
+    canvas.drawLine(
+      start - normal * width * 0.18,
+      end - normal * width * 0.18,
+      fiberPaint..color = color.withValues(alpha: 0.24 * alpha),
+    );
+  }
+
+  void _drawLoadHalo(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    Color color,
+    double alpha,
+  ) {
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = color.withValues(alpha: 0.10 * alpha)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = color.withValues(alpha: 0.36 * alpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, radius * 0.10),
+    );
+  }
+
   void _drawSkeleton(
     Canvas canvas,
     _SampleVideoRunnerGeometry runner,
@@ -2738,8 +3159,38 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     _SampleVideoRunnerGeometry runner,
     double alpha,
   ) {
+    final readColor = isMistake ? warningColor : contactColor;
+    final landingWindow = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: Offset(runner.hip.dx, runner.groundY),
+        width: runner.scale * 0.250,
+        height: runner.scale * 0.044,
+      ),
+      Radius.circular(runner.scale * 0.022),
+    );
+    canvas.drawRRect(
+      landingWindow,
+      Paint()
+        ..color = readColor.withValues(alpha: 0.10 * alpha)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawRRect(
+      landingWindow,
+      Paint()
+        ..color = readColor.withValues(alpha: 0.46 * alpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, runner.scale * 0.005),
+    );
+    canvas.drawLine(
+      Offset(runner.hip.dx, runner.hip.dy),
+      Offset(runner.hip.dx, runner.groundY),
+      Paint()
+        ..color = primaryColor.withValues(alpha: 0.32 * alpha)
+        ..strokeWidth = math.max(1.0, runner.scale * 0.006)
+        ..strokeCap = StrokeCap.round,
+    );
     final contactPaint = Paint()
-      ..color = contactColor.withValues(alpha: 0.28 * alpha)
+      ..color = readColor.withValues(alpha: 0.28 * alpha)
       ..style = PaintingStyle.fill;
     canvas.drawOval(
       Rect.fromCenter(
@@ -2750,11 +3201,21 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
       ),
       contactPaint,
     );
+    _drawArrow(
+      canvas,
+      Offset(runner.contactToe.dx, runner.groundY - runner.scale * 0.006),
+      Offset(
+        runner.hip.dx + (isMistake ? -runner.scale * 0.050 : 0),
+        runner.hip.dy + runner.scale * 0.030,
+      ),
+      readColor.withValues(alpha: 0.66 * alpha),
+      runner.scale * 0.011,
+    );
     canvas.drawLine(
       Offset(runner.hip.dx, runner.groundY + runner.scale * 0.018),
       Offset(runner.contactAnkle.dx, runner.groundY + runner.scale * 0.018),
       Paint()
-        ..color = contactColor.withValues(alpha: 0.70 * alpha)
+        ..color = readColor.withValues(alpha: 0.70 * alpha)
         ..strokeWidth = math.max(1.3, runner.scale * 0.008)
         ..strokeCap = StrokeCap.round,
     );
@@ -2762,7 +3223,7 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
       canvas,
       Offset(runner.hip.dx, runner.groundY + runner.scale * 0.018),
       Offset(runner.contactAnkle.dx, runner.groundY + runner.scale * 0.018),
-      contactColor.withValues(alpha: 0.72 * alpha),
+      readColor.withValues(alpha: 0.72 * alpha),
       runner.scale * 0.020,
     );
     for (final offset in const <double>[0.0, 0.34, 0.68]) {
@@ -2868,6 +3329,37 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
         Offset(end.dx, end.dy + height), paint);
   }
 
+  void _drawArrow(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Color color,
+    double strokeWidth,
+  ) {
+    final delta = end - start;
+    final distance = delta.distance;
+    if (distance == 0) return;
+    final direction = delta / distance;
+    final headLength = math.max(6.0, strokeWidth * 3.8);
+    final normal = Offset(-direction.dy, direction.dx);
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawLine(start, end, paint);
+    canvas.drawLine(
+      end,
+      end - direction * headLength + normal * headLength * 0.52,
+      paint,
+    );
+    canvas.drawLine(
+      end,
+      end - direction * headLength - normal * headLength * 0.52,
+      paint,
+    );
+  }
+
   void _drawDashedRRect(
     Canvas canvas,
     RRect rrect,
@@ -2963,8 +3455,14 @@ class _SampleVideoRunnerGeometry {
 
   Offset get shoulderMid => Offset.lerp(rearShoulder, frontShoulder, 0.5)!;
   Offset get hip => Offset.lerp(rearHip, frontHip, 0.5)!;
-  Offset get contactAnkle => frontToe.dy >= rearToe.dy ? frontAnkle : rearAnkle;
-  Offset get contactToe => frontToe.dy >= rearToe.dy ? frontToe : rearToe;
+  bool get _frontLegIsContact => frontToe.dy >= rearToe.dy;
+  Offset get contactHip => _frontLegIsContact ? frontHip : rearHip;
+  Offset get contactKnee => _frontLegIsContact ? frontKnee : rearKnee;
+  Offset get contactAnkle => _frontLegIsContact ? frontAnkle : rearAnkle;
+  Offset get contactToe => _frontLegIsContact ? frontToe : rearToe;
+  Offset get swingHip => _frontLegIsContact ? rearHip : frontHip;
+  Offset get swingKnee => _frontLegIsContact ? rearKnee : frontKnee;
+  Offset get swingAnkle => _frontLegIsContact ? rearAnkle : frontAnkle;
   Offset get ankleLine => contactAnkle;
 
   Rect get bounds {
