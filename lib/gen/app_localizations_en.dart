@@ -6526,6 +6526,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleOverlayFoot => 'Landing 0.08';
 
   @override
+  String get runningCoachSampleOverlayBounce => 'Bounce 6%';
+
+  @override
   String get runningCoachSampleOverlayFrames => '24/24 frames';
 
   @override

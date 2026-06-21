@@ -6342,6 +6342,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleOverlayFoot => '着地 0.08';
 
   @override
+  String get runningCoachSampleOverlayBounce => '上下 6%';
+
+  @override
   String get runningCoachSampleOverlayFrames => '24/24フレーム';
 
   @override

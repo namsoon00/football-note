@@ -3723,6 +3723,7 @@
   "runningCoachSampleOverlayPosture": "Lean 10°",
   "runningCoachSampleOverlayArms": "Arms 90°",
   "runningCoachSampleOverlayFoot": "Landing 0.08",
+  "runningCoachSampleOverlayBounce": "Bounce 6%",
   "runningCoachSampleOverlayFrames": "24/24 frames",
   "runningCoachSampleMistakeOverlayPosture": "Upright 4°",
   "runningCoachSampleMistakeOverlayArms": "Arms 118°",
