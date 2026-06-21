@@ -15419,6 +15419,18 @@ abstract class AppLocalizations {
   /// **'Assists'**
   String get matchAssistsLabel;
 
+  /// No description provided for @matchCountIncreaseTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase {label}'**
+  String matchCountIncreaseTooltip(String label);
+
+  /// No description provided for @matchCountDecreaseTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease {label}'**
+  String matchCountDecreaseTooltip(String label);
+
   /// No description provided for @matchMinutesPlayedLabel.
   ///
   /// In en, this message translates to:

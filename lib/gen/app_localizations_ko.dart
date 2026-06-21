@@ -8701,6 +8701,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchAssistsLabel => '어시스트';
 
   @override
+  String matchCountIncreaseTooltip(String label) {
+    return '$label 늘리기';
+  }
+
+  @override
+  String matchCountDecreaseTooltip(String label) {
+    return '$label 줄이기';
+  }
+
+  @override
   String get matchMinutesPlayedLabel => '출전 시간(분)';
 
   @override

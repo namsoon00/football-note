@@ -4783,6 +4783,22 @@
   "matchOpponentScoreLabel": "상대 점수",
   "matchGoalsLabel": "골",
   "matchAssistsLabel": "어시스트",
+  "matchCountIncreaseTooltip": "{label} 늘리기",
+  "@matchCountIncreaseTooltip": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCountDecreaseTooltip": "{label} 줄이기",
+  "@matchCountDecreaseTooltip": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "matchMinutesPlayedLabel": "출전 시간(분)",
   "matchMinutesPlayedHint": "예) 70",
   "matchNoteOptionalLabel": "메모(선택)",
