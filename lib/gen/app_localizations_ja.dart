@@ -5046,7 +5046,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diaryStickerPlan => 'プラン';
 
   @override
-  String get diaryStickerFortune => '運';
+  String get diaryStickerFortune => 'プレーヒント';
 
   @override
   String get diaryStickerBoard => 'ボード';
@@ -5269,13 +5269,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diaryFortunePinSummary => '今日の記録に残った運勢の流れを日記ステッカーとして貼れます。';
+  String get diaryFortunePinSummary => '今日の記録に残ったプレーヒントを日記ステッカーとして貼れます。';
 
   @override
-  String get diaryFortuneStorySentence => '今日の運勢で残したい流れや応援の一言を書いてみる。';
+  String get diaryFortuneStorySentence => '今日のプレーヒントで残したい場面や応援の一言を書いてみる。';
 
   @override
-  String get diaryFortuneNoteTitle => '今日の運勢メモ';
+  String get diaryFortuneNoteTitle => '今日のプレーヒントメモ';
 
   @override
   String get diaryMatchTodoTitleNoOpponent => '試合';
@@ -5760,19 +5760,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeRiceBowlEmpty => 'スキップされました';
 
   @override
-  String get fortuneDialogTitle => '今日の運勢';
+  String get fortuneDialogTitle => '今日のプレーヒント';
 
   @override
-  String get fortuneDialogSubtitle => '今日のラッキー情報をチェック。';
+  String get fortuneDialogSubtitle => '生年月日と名前から選んだ、今日の軽いプレーヒントです。';
 
   @override
-  String get fortuneDialogOverviewTitle => 'フォーチュンの概要';
+  String get fortuneDialogOverviewTitle => 'ヒントを見る';
 
   @override
-  String get fortuneDialogOverallFortuneLabel => '全体的な運勢';
+  String get fortuneDialogOverallFortuneLabel => '今日のヒント';
 
   @override
-  String get fortuneDialogLuckyInfoLabel => 'ラッキー情報';
+  String get fortuneDialogLuckyInfoLabel => '楽しいポイント';
 
   @override
   String fortuneDialogOverallFortuneCount(int count) {
@@ -5785,10 +5785,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogLuckyInfoTitle => 'ラッキー情報';
+  String get fortuneDialogLuckyInfoTitle => '楽しいポイント';
 
   @override
-  String get fortuneDialogPoolSizeLabel => 'フォーチュンプール';
+  String get fortuneDialogPoolSizeLabel => 'ヒントの組み合わせ';
 
   @override
   String fortuneDialogPoolSizeCount(String count) {
@@ -5799,16 +5799,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDialogRecommendedProgramTitle => 'おすすめのトレーニング';
 
   @override
-  String get fortuneDialogRecommendationTitle => 'フォーチュンノート';
+  String get fortuneDialogRecommendationTitle => 'プレーコメント';
 
   @override
-  String get fortuneDialogEncouragement => '今日も最高のプレーを応援します。';
+  String get fortuneDialogEncouragement => '今日も楽しいワンプレーを作ってみましょう。';
 
   @override
-  String get fortuneDialogAction => 'ニース';
+  String get fortuneDialogAction => 'OK';
 
   @override
-  String get entryFortuneOpenFailed => '運勢画面を開けませんでした。';
+  String get entryFortuneOpenFailed => 'プレーヒント画面を開けませんでした。';
 
   @override
   String get profileBirthTimeTitle => '出生時刻';
@@ -5820,44 +5820,44 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneGeneratedUnknownPlayerName => '選手';
 
   @override
-  String get fortuneGeneratedBirthNotSet => 'プロフィールの生年月日未入力';
+  String get fortuneGeneratedBirthNotSet => '生年月日なし';
 
   @override
   String fortuneGeneratedBirthFrame(
       String yearPillar, String monthPillar, String dayPillar) {
-    return '$yearPillar年 $monthPillar月 $dayPillar日柱';
+    return '誕生日コード $yearPillar/$monthPillar/$dayPillar';
   }
 
   @override
   String fortuneGeneratedBirthFrameWithTime(String yearPillar,
       String monthPillar, String dayPillar, String hourPillar) {
-    return '$yearPillar年 $monthPillar月 $dayPillar日柱、$hourPillar時';
+    return '誕生日コード $yearPillar/$monthPillar/$dayPillar/$hourPillar';
   }
 
   @override
   String fortuneGeneratedDailyLineOne(
       String name, String birthFrame, String dailyPillar, String elementFlow) {
-    return '$nameの$birthFrameに今日の$dailyPillarの気が入り、$elementFlowが目立ちます。';
+    return '$nameの基準は$birthFrame。今日のコード$dailyPillarを足すと、$elementFlowポイントが見えてきます。';
   }
 
   @override
   String fortuneGeneratedDailyLineTwo(
       String fortuneTheme, String trainingTone) {
-    return 'この流れは$fortuneThemeとして開くので、練習では$trainingToneを楽しく生かしましょう。';
+    return '今日は$fortuneThemeを軽く試しやすく、練習では$trainingToneに集中してみましょう。';
   }
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return '名前から出る$nameElementの気も重なるので、今日は$playAdvice';
+    return '名前のリズムは$nameElementタイプなので、今日の一言ヒントは$playAdvice';
   }
 
   @override
-  String get fortuneGeneratedLuckyInfoHeader => '[ラッキー情報]';
+  String get fortuneGeneratedLuckyInfoHeader => '[楽しいポイント]';
 
   @override
   String fortuneGeneratedLuckyInfoLine(
       int number, String color, String time, String zone, String cue) {
-    return 'ラッキーナンバー $number、カラー $color、時間帯 $time は $zone で $cue を意識してみましょう。';
+    return '今日の数字 $number、カラー $color、時間帯 $time は $zone で $cue を思い出してみましょう。';
   }
 
   @override
@@ -5879,7 +5879,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String fortuneRecommendationStrongFlow(String program) {
-    return '流れは良好です。次の練習は$programでスピードと選択をつなげましょう。';
+    return '今日のリズムは良好です。次の練習は$programでスピードと選択をつなげましょう。';
   }
 
   @override
@@ -5895,11 +5895,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get fortuneSajuElementFlows =>
-      '木の成長|火の表現|土の安定|金の整理|水の回復|木火の推進|土金の集中|水木の転換';
+      '新しく学ぶ力|表現と自信|バランス作り|正確さアップ|回復と観察|前へ進むエネルギー|落ち着いた集中|方向転換の感覚';
 
   @override
   String get fortuneSajuFortuneThemes =>
-      '新しい動きを受け入れる力|仲間と呼吸を合わせる感覚|小さなミスから早く戻る運|視野が広がる流れ|体の中心を取り戻す日|集中がはっきりする時間|言葉より動きが先に出る雰囲気|落ち着いて速度を上げる運';
+      '新しい動きを軽く試すこと|仲間とタイミングを合わせること|小さなミスをすぐ切り替えること|周りを広く見ること|体の中心を取り戻すこと|集中ポイントを一つ決めること|動きで見せること|落ち着いて速度を上げること';
 
   @override
   String get fortuneSajuTrainingTones =>
@@ -5907,11 +5907,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get fortuneSajuNameElements =>
-      '木の速い出足|火の明るい表現|土の安定感|金の正確さ|水の柔らかさ|木火の自信|土金の粘り|水木の観察力';
+      '素早いスタート型|明るく表現する型|安定して支える型|正確に合わせる型|柔らかく切り替える型|自信を持って進む型|コツコツ積み上げる型|よく見て動く型';
 
   @override
   String get fortuneSajuPlayAdvice =>
-      '軽く始めても最後の選択ははっきりする日です。|小さなほめ言葉が体のリズムを起こす日です。|急ぐより一拍見て動くと良いです。|パスの前に顔を上げると運がつきます。|ウォームアップを丁寧にするとプレーが軽くなります。|ミスの後に表情を早く整えると次の場面が生きます。|強い三回より正確な一回が合う日です。|仲間の動きを先に読むと良い場面が開きます。';
+      '軽く始めても最後の選択ははっきりできます。|小さな声かけが体のリズムを起こしてくれます。|急ぐより一拍見て動くと良いです。|パスの前に顔を上げると周りが見えやすくなります。|ウォームアップを丁寧にするとプレーが軽くなります。|ミスの後に表情を早く整えると次の場面が生きます。|強い三回より正確な一回が合います。|仲間の動きを先に読むと良い場面が開きます。';
 
   @override
   String get fortuneLuckyColorTones =>
@@ -8693,7 +8693,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get parentReadOnlySketchMessage => '親モードではトレーニング スケッチを編集できません。';
 
   @override
-  String get parentReadOnlyFortuneEmpty => '保存されたフォーチュンはまだありません。';
+  String get parentReadOnlyFortuneEmpty => '保存されたプレーヒントはまだありません。';
 
   @override
   String get parentFeedbackSectionTitle => '保護者からのフィードバック';

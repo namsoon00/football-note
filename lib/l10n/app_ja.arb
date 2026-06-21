@@ -2832,7 +2832,7 @@
   "diaryStickerTraining": "トレーニング",
   "diaryStickerMatch": "マッチ",
   "diaryStickerPlan": "プラン",
-  "diaryStickerFortune": "運",
+  "diaryStickerFortune": "プレーヒント",
   "diaryStickerBoard": "ボード",
   "diaryStickerNews": "ニュース",
   "diaryStickerMeal": "丼もの",
@@ -3101,9 +3101,9 @@
       }
     }
   },
-  "diaryFortunePinSummary": "今日の記録に残った運勢の流れを日記ステッカーとして貼れます。",
-  "diaryFortuneStorySentence": "今日の運勢で残したい流れや応援の一言を書いてみる。",
-  "diaryFortuneNoteTitle": "今日の運勢メモ",
+  "diaryFortunePinSummary": "今日の記録に残ったプレーヒントを日記ステッカーとして貼れます。",
+  "diaryFortuneStorySentence": "今日のプレーヒントで残したい場面や応援の一言を書いてみる。",
+  "diaryFortuneNoteTitle": "今日のプレーヒントメモ",
   "diaryMatchTodoTitleNoOpponent": "試合",
   "diaryMatchTodoTitleWithOpponent": "試合 · {opponent}戦",
   "@diaryMatchTodoTitleWithOpponent": {
@@ -3400,11 +3400,11 @@
   "homeRiceBowlFull": "ボウルいっぱい",
   "homeRiceBowlHalf": "半丼",
   "homeRiceBowlEmpty": "スキップされました",
-  "fortuneDialogTitle": "今日の運勢",
-  "fortuneDialogSubtitle": "今日のラッキー情報をチェック。",
-  "fortuneDialogOverviewTitle": "フォーチュンの概要",
-  "fortuneDialogOverallFortuneLabel": "全体的な運勢",
-  "fortuneDialogLuckyInfoLabel": "ラッキー情報",
+  "fortuneDialogTitle": "今日のプレーヒント",
+  "fortuneDialogSubtitle": "生年月日と名前から選んだ、今日の軽いプレーヒントです。",
+  "fortuneDialogOverviewTitle": "ヒントを見る",
+  "fortuneDialogOverallFortuneLabel": "今日のヒント",
+  "fortuneDialogLuckyInfoLabel": "楽しいポイント",
   "fortuneDialogOverallFortuneCount": "{count} ライン",
   "@fortuneDialogOverallFortuneCount": {
     "placeholders": {
@@ -3421,8 +3421,8 @@
       }
     }
   },
-  "fortuneDialogLuckyInfoTitle": "ラッキー情報",
-  "fortuneDialogPoolSizeLabel": "フォーチュンプール",
+  "fortuneDialogLuckyInfoTitle": "楽しいポイント",
+  "fortuneDialogPoolSizeLabel": "ヒントの組み合わせ",
   "fortuneDialogPoolSizeCount": "{count} ケース",
   "@fortuneDialogPoolSizeCount": {
     "placeholders": {
@@ -3432,15 +3432,15 @@
     }
   },
   "fortuneDialogRecommendedProgramTitle": "おすすめのトレーニング",
-  "fortuneDialogRecommendationTitle": "フォーチュンノート",
-  "fortuneDialogEncouragement": "今日も最高のプレーを応援します。",
-  "fortuneDialogAction": "ニース",
-  "entryFortuneOpenFailed": "運勢画面を開けませんでした。",
+  "fortuneDialogRecommendationTitle": "プレーコメント",
+  "fortuneDialogEncouragement": "今日も楽しいワンプレーを作ってみましょう。",
+  "fortuneDialogAction": "OK",
+  "entryFortuneOpenFailed": "プレーヒント画面を開けませんでした。",
   "profileBirthTimeTitle": "出生時刻",
   "profileBirthTimeSelectDateFirst": "生年月日を先に選択",
   "fortuneGeneratedUnknownPlayerName": "選手",
-  "fortuneGeneratedBirthNotSet": "プロフィールの生年月日未入力",
-  "fortuneGeneratedBirthFrame": "{yearPillar}年 {monthPillar}月 {dayPillar}日柱",
+  "fortuneGeneratedBirthNotSet": "生年月日なし",
+  "fortuneGeneratedBirthFrame": "誕生日コード {yearPillar}/{monthPillar}/{dayPillar}",
   "@fortuneGeneratedBirthFrame": {
     "placeholders": {
       "yearPillar": {
@@ -3454,7 +3454,7 @@
       }
     }
   },
-  "fortuneGeneratedBirthFrameWithTime": "{yearPillar}年 {monthPillar}月 {dayPillar}日柱、{hourPillar}時",
+  "fortuneGeneratedBirthFrameWithTime": "誕生日コード {yearPillar}/{monthPillar}/{dayPillar}/{hourPillar}",
   "@fortuneGeneratedBirthFrameWithTime": {
     "placeholders": {
       "yearPillar": {
@@ -3471,7 +3471,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineOne": "{name}の{birthFrame}に今日の{dailyPillar}の気が入り、{elementFlow}が目立ちます。",
+  "fortuneGeneratedDailyLineOne": "{name}の基準は{birthFrame}。今日のコード{dailyPillar}を足すと、{elementFlow}ポイントが見えてきます。",
   "@fortuneGeneratedDailyLineOne": {
     "placeholders": {
       "name": {
@@ -3488,7 +3488,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineTwo": "この流れは{fortuneTheme}として開くので、練習では{trainingTone}を楽しく生かしましょう。",
+  "fortuneGeneratedDailyLineTwo": "今日は{fortuneTheme}を軽く試しやすく、練習では{trainingTone}に集中してみましょう。",
   "@fortuneGeneratedDailyLineTwo": {
     "placeholders": {
       "fortuneTheme": {
@@ -3499,7 +3499,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineThree": "名前から出る{nameElement}の気も重なるので、今日は{playAdvice}",
+  "fortuneGeneratedDailyLineThree": "名前のリズムは{nameElement}タイプなので、今日の一言ヒントは{playAdvice}",
   "@fortuneGeneratedDailyLineThree": {
     "placeholders": {
       "nameElement": {
@@ -3510,8 +3510,8 @@
       }
     }
   },
-  "fortuneGeneratedLuckyInfoHeader": "[ラッキー情報]",
-  "fortuneGeneratedLuckyInfoLine": "ラッキーナンバー {number}、カラー {color}、時間帯 {time} は {zone} で {cue} を意識してみましょう。",
+  "fortuneGeneratedLuckyInfoHeader": "[楽しいポイント]",
+  "fortuneGeneratedLuckyInfoLine": "今日の数字 {number}、カラー {color}、時間帯 {time} は {zone} で {cue} を思い出してみましょう。",
   "@fortuneGeneratedLuckyInfoLine": {
     "placeholders": {
       "number": {
@@ -3543,7 +3543,7 @@
       }
     }
   },
-  "fortuneRecommendationStrongFlow": "流れは良好です。次の練習は{program}でスピードと選択をつなげましょう。",
+  "fortuneRecommendationStrongFlow": "今日のリズムは良好です。次の練習は{program}でスピードと選択をつなげましょう。",
   "@fortuneRecommendationStrongFlow": {
     "placeholders": {
       "program": {
@@ -3561,11 +3561,11 @@
   },
   "fortuneSajuHeavenlyStems": "甲|乙|丙|丁|戊|己|庚|辛|壬|癸",
   "fortuneSajuEarthlyBranches": "子|丑|寅|卯|辰|巳|午|未|申|酉|戌|亥",
-  "fortuneSajuElementFlows": "木の成長|火の表現|土の安定|金の整理|水の回復|木火の推進|土金の集中|水木の転換",
-  "fortuneSajuFortuneThemes": "新しい動きを受け入れる力|仲間と呼吸を合わせる感覚|小さなミスから早く戻る運|視野が広がる流れ|体の中心を取り戻す日|集中がはっきりする時間|言葉より動きが先に出る雰囲気|落ち着いて速度を上げる運",
+  "fortuneSajuElementFlows": "新しく学ぶ力|表現と自信|バランス作り|正確さアップ|回復と観察|前へ進むエネルギー|落ち着いた集中|方向転換の感覚",
+  "fortuneSajuFortuneThemes": "新しい動きを軽く試すこと|仲間とタイミングを合わせること|小さなミスをすぐ切り替えること|周りを広く見ること|体の中心を取り戻すこと|集中ポイントを一つ決めること|動きで見せること|落ち着いて速度を上げること",
   "fortuneSajuTrainingTones": "ファーストタッチの方向整理|短いパス後の次の選択|体を開いて受ける動き|守備切り替えの一歩目|フィニッシュ前の呼吸調整|両足バランスの確認|オフボールのタイミング|リターンパスの角度作り",
-  "fortuneSajuNameElements": "木の速い出足|火の明るい表現|土の安定感|金の正確さ|水の柔らかさ|木火の自信|土金の粘り|水木の観察力",
-  "fortuneSajuPlayAdvice": "軽く始めても最後の選択ははっきりする日です。|小さなほめ言葉が体のリズムを起こす日です。|急ぐより一拍見て動くと良いです。|パスの前に顔を上げると運がつきます。|ウォームアップを丁寧にするとプレーが軽くなります。|ミスの後に表情を早く整えると次の場面が生きます。|強い三回より正確な一回が合う日です。|仲間の動きを先に読むと良い場面が開きます。",
+  "fortuneSajuNameElements": "素早いスタート型|明るく表現する型|安定して支える型|正確に合わせる型|柔らかく切り替える型|自信を持って進む型|コツコツ積み上げる型|よく見て動く型",
+  "fortuneSajuPlayAdvice": "軽く始めても最後の選択ははっきりできます。|小さな声かけが体のリズムを起こしてくれます。|急ぐより一拍見て動くと良いです。|パスの前に顔を上げると周りが見えやすくなります。|ウォームアップを丁寧にするとプレーが軽くなります。|ミスの後に表情を早く整えると次の場面が生きます。|強い三回より正確な一回が合います。|仲間の動きを先に読むと良い場面が開きます。",
   "fortuneLuckyColorTones": "ディープ|ソフト|クリーン|サンセット|クール|ウォーム|ミスト|ブライト|モノ|アクセント",
   "fortuneLuckyColorBases": "ネイビー|エメラルド|コーラル|マスタード|スカイブルー|カーキ|アイボリー|チェリーレッド|ライム|チャコール",
   "fortuneLuckyTimePeriods": "早朝|午前後半|昼食直後|午後前半|午後遅め|夕暮れ|夕方前半|夜のルーティン時間",
@@ -4892,7 +4892,7 @@
   "parentReadOnlyDiaryMessage": "親モードでは日記を編集できません。",
   "parentReadOnlyDiaryBadge": "親モードは読み取り専用",
   "parentReadOnlySketchMessage": "親モードではトレーニング スケッチを編集できません。",
-  "parentReadOnlyFortuneEmpty": "保存されたフォーチュンはまだありません。",
+  "parentReadOnlyFortuneEmpty": "保存されたプレーヒントはまだありません。",
   "parentFeedbackSectionTitle": "保護者からのフィードバック",
   "parentFeedbackHelper": "元のトレーニング記録はそのままにして、このセッションの親のフィードバックのみを個別に保存します。",
   "parentFeedbackReadOnlyHint": "保護者がこのトレーニング ログに残したフィードバック。",

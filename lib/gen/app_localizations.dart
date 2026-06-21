@@ -9209,7 +9209,7 @@ abstract class AppLocalizations {
   /// No description provided for @diaryStickerFortune.
   ///
   /// In en, this message translates to:
-  /// **'Fortune'**
+  /// **'Play hint'**
   String get diaryStickerFortune;
 
   /// No description provided for @diaryStickerBoard.
@@ -9546,19 +9546,19 @@ abstract class AppLocalizations {
   /// No description provided for @diaryFortunePinSummary.
   ///
   /// In en, this message translates to:
-  /// **'Pin today\'s fortune flow as a diary sticker.'**
+  /// **'Pin today\'s play hint as a diary sticker.'**
   String get diaryFortunePinSummary;
 
   /// No description provided for @diaryFortuneStorySentence.
   ///
   /// In en, this message translates to:
-  /// **'Write the one flow or encouragement you want to keep from today\'s fortune.'**
+  /// **'Write the scene or encouragement you want to keep from today\'s play hint.'**
   String get diaryFortuneStorySentence;
 
   /// No description provided for @diaryFortuneNoteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Today fortune note'**
+  /// **'Today play hint note'**
   String get diaryFortuneNoteTitle;
 
   /// No description provided for @diaryMatchTodoTitleNoOpponent.
@@ -10392,31 +10392,31 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogTitle.
   ///
   /// In en, this message translates to:
-  /// **'Today fortune'**
+  /// **'Today\'s play hint'**
   String get fortuneDialogTitle;
 
   /// No description provided for @fortuneDialogSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Check today lucky info.'**
+  /// **'A light play hint picked from birth date and name.'**
   String get fortuneDialogSubtitle;
 
   /// No description provided for @fortuneDialogOverviewTitle.
   ///
   /// In en, this message translates to:
-  /// **'Fortune overview'**
+  /// **'Play hint'**
   String get fortuneDialogOverviewTitle;
 
   /// No description provided for @fortuneDialogOverallFortuneLabel.
   ///
   /// In en, this message translates to:
-  /// **'Overall fortune'**
+  /// **'Today hint'**
   String get fortuneDialogOverallFortuneLabel;
 
   /// No description provided for @fortuneDialogLuckyInfoLabel.
   ///
   /// In en, this message translates to:
-  /// **'Lucky info'**
+  /// **'Fun points'**
   String get fortuneDialogLuckyInfoLabel;
 
   /// No description provided for @fortuneDialogOverallFortuneCount.
@@ -10434,13 +10434,13 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogLuckyInfoTitle.
   ///
   /// In en, this message translates to:
-  /// **'Lucky info'**
+  /// **'Fun points'**
   String get fortuneDialogLuckyInfoTitle;
 
   /// No description provided for @fortuneDialogPoolSizeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Fortune pool'**
+  /// **'Hint combinations'**
   String get fortuneDialogPoolSizeLabel;
 
   /// No description provided for @fortuneDialogPoolSizeCount.
@@ -10458,25 +10458,25 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogRecommendationTitle.
   ///
   /// In en, this message translates to:
-  /// **'Fortune note'**
+  /// **'Play note'**
   String get fortuneDialogRecommendationTitle;
 
   /// No description provided for @fortuneDialogEncouragement.
   ///
   /// In en, this message translates to:
-  /// **'Cheering for your best play today.'**
+  /// **'Make one fun play today.'**
   String get fortuneDialogEncouragement;
 
   /// No description provided for @fortuneDialogAction.
   ///
   /// In en, this message translates to:
-  /// **'Nice'**
+  /// **'Got it'**
   String get fortuneDialogAction;
 
   /// No description provided for @entryFortuneOpenFailed.
   ///
   /// In en, this message translates to:
-  /// **'Failed to open fortune.'**
+  /// **'Failed to open play hint.'**
   String get entryFortuneOpenFailed;
 
   /// No description provided for @profileBirthTimeTitle.
@@ -10500,52 +10500,52 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedBirthNotSet.
   ///
   /// In en, this message translates to:
-  /// **'birth date not set in profile'**
+  /// **'no birth date set'**
   String get fortuneGeneratedBirthNotSet;
 
   /// No description provided for @fortuneGeneratedBirthFrame.
   ///
   /// In en, this message translates to:
-  /// **'year {yearPillar}, month {monthPillar}, day-master {dayPillar}'**
+  /// **'birth code {yearPillar}/{monthPillar}/{dayPillar}'**
   String fortuneGeneratedBirthFrame(
       String yearPillar, String monthPillar, String dayPillar);
 
   /// No description provided for @fortuneGeneratedBirthFrameWithTime.
   ///
   /// In en, this message translates to:
-  /// **'year {yearPillar}, month {monthPillar}, day-master {dayPillar}, hour {hourPillar}'**
+  /// **'birth code {yearPillar}/{monthPillar}/{dayPillar}/{hourPillar}'**
   String fortuneGeneratedBirthFrameWithTime(String yearPillar,
       String monthPillar, String dayPillar, String hourPillar);
 
   /// No description provided for @fortuneGeneratedDailyLineOne.
   ///
   /// In en, this message translates to:
-  /// **'For {name}, {birthFrame} meets today\'s {dailyPillar} flow, so {elementFlow} stands out.'**
+  /// **'{name}\'s base is {birthFrame}. Add today\'s code {dailyPillar}, and {elementFlow} stands out.'**
   String fortuneGeneratedDailyLineOne(
       String name, String birthFrame, String dailyPillar, String elementFlow);
 
   /// No description provided for @fortuneGeneratedDailyLineTwo.
   ///
   /// In en, this message translates to:
-  /// **'That opens as {fortuneTheme}, so make practice playful through {trainingTone}.'**
+  /// **'Today is good for trying {fortuneTheme}, with practice focused on {trainingTone}.'**
   String fortuneGeneratedDailyLineTwo(String fortuneTheme, String trainingTone);
 
   /// No description provided for @fortuneGeneratedDailyLineThree.
   ///
   /// In en, this message translates to:
-  /// **'Add the name signal of {nameElement}, and today {playAdvice}'**
+  /// **'The name rhythm feels like {nameElement}, so today\'s quick hint is: {playAdvice}'**
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice);
 
   /// No description provided for @fortuneGeneratedLuckyInfoHeader.
   ///
   /// In en, this message translates to:
-  /// **'[Lucky info]'**
+  /// **'[Fun points]'**
   String get fortuneGeneratedLuckyInfoHeader;
 
   /// No description provided for @fortuneGeneratedLuckyInfoLine.
   ///
   /// In en, this message translates to:
-  /// **'Lucky number {number}, color {color}, and time {time} point to the {zone}; {cue}.'**
+  /// **'Today\'s number {number}, color {color}, and time {time}: try {cue} in the {zone}.'**
   String fortuneGeneratedLuckyInfoLine(
       int number, String color, String time, String zone, String cue);
 
@@ -10582,7 +10582,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneRecommendationStrongFlow.
   ///
   /// In en, this message translates to:
-  /// **'Your rhythm is good. Keep the next session focused on {program}.'**
+  /// **'Your practice rhythm is good. Keep the next session focused on {program}.'**
   String fortuneRecommendationStrongFlow(String program);
 
   /// No description provided for @fortuneRecommendationDefault.
@@ -10606,13 +10606,13 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneSajuElementFlows.
   ///
   /// In en, this message translates to:
-  /// **'Wood growth|Fire expression|Earth balance|Metal clarity|Water recovery|Wood-fire drive|Earth-metal focus|Water-wood transition'**
+  /// **'learning something new|clear expression|finding balance|raising accuracy|recovering and watching|moving forward|calm focus|quick direction changes'**
   String get fortuneSajuElementFlows;
 
   /// No description provided for @fortuneSajuFortuneThemes.
   ///
   /// In en, this message translates to:
-  /// **'energy for accepting a new move|a sense for matching a teammate\'s rhythm|luck that recovers quickly from small mistakes|a flow that widens your scan|a day for finding your center again|a window where focus gets sharper|a mood where movement speaks before words|luck for raising speed calmly'**
+  /// **'a new move lightly|teammate timing|bouncing back after small mistakes|scanning the field wider|finding your body center again|choosing one focus point|showing it through movement|raising speed calmly'**
   String get fortuneSajuFortuneThemes;
 
   /// No description provided for @fortuneSajuTrainingTones.
@@ -10624,13 +10624,13 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneSajuNameElements.
   ///
   /// In en, this message translates to:
-  /// **'Wood\'s quick start|Fire\'s bright expression|Earth\'s stability|Metal\'s accuracy|Water\'s flexibility|Wood-fire confidence|Earth-metal steadiness|Water-wood observation'**
+  /// **'a quick starter|a bright communicator|a steady base|an accuracy builder|a flexible mover|a confident driver|a steady stacker|an observant mover'**
   String get fortuneSajuNameElements;
 
   /// No description provided for @fortuneSajuPlayAdvice.
   ///
   /// In en, this message translates to:
-  /// **'you can start light and still make the final choice clearly.|one small compliment can bring your rhythm alive.|it helps to pause one beat before pushing harder.|your luck rises when you lift your head before the pass.|careful warmups make the play feel fresher.|resetting your face after a mistake brings the next scene back.|one accurate touch fits better than three forced ones.|reading a teammate first opens a good scene.'**
+  /// **'start light and still make the final choice clear.|one small compliment can bring your rhythm alive.|pause one beat before pushing harder.|lift your head before the pass so the field opens up.|careful warmups make the play feel fresher.|reset your face after a mistake and the next scene comes back.|one accurate touch fits better than three forced ones.|read a teammate first and a good scene opens.'**
   String get fortuneSajuPlayAdvice;
 
   /// No description provided for @fortuneLuckyColorTones.
@@ -15341,7 +15341,7 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyFortuneEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No saved fortune is available yet.'**
+  /// **'No saved play hint is available yet.'**
   String get parentReadOnlyFortuneEmpty;
 
   /// No description provided for @parentFeedbackSectionTitle.
