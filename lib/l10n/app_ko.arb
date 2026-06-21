@@ -1465,6 +1465,12 @@
       "rewardName": {}
     }
   },
+  "profileSportStartDateLabel": "{sport} 시작일",
+  "@profileSportStartDateLabel": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
   "profileLevelProgressMax": "마스터리 별 {stars}개 · 다음 {remainingXp} XP",
   "@profileLevelProgressMax": {
     "placeholders": {

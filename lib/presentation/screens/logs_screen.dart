@@ -10,6 +10,7 @@ import '../../application/news_badge_service.dart';
 import '../../application/family_access_service.dart';
 import '../../application/parent_shared_feedback_service.dart';
 import '../../application/player_level_service.dart';
+import '../../application/player_profile_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/watch_cart/home_options.dart';
@@ -256,10 +257,9 @@ class _LogsScreenState extends State<LogsScreen> {
                                 _openNotifications(context),
                             notificationBadgeCount: reminderUnreadCount,
                             profilePhotoSource:
-                                widget.optionRepository.getValue<String>(
-                                      'profile_photo_url',
-                                    ) ??
-                                    '',
+                                PlayerProfileService(widget.optionRepository)
+                                    .load()
+                                    .photoUrl,
                             onProfileTap: () => _openProfile(context),
                             onSettingsTap: () => _openSettings(context),
                             title:

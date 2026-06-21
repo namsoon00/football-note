@@ -14,12 +14,77 @@ import 'package:path_provider/path_provider.dart';
 import '../../application/family_access_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
+import '../../application/sport_defaults.dart';
 import '../../application/sport_service.dart';
 import '../../domain/entities/player_profile.dart';
+import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
 import '../widgets/player_level_visuals.dart';
 import 'player_level_guide_screen.dart';
+
+String _sportStartDateLabel(AppLocalizations l10n, String sportId) {
+  return l10n.profileSportStartDateLabel(
+    SportDefaults.label(l10n: l10n, sportId: sportId),
+  );
+}
+
+IconData _sportStartDateIcon(String sportId) {
+  return switch (SportCatalog.normalizeSportId(sportId)) {
+    SportCatalog.baseballId => Icons.sports_baseball,
+    SportCatalog.basketballId => Icons.sports_basketball,
+    SportCatalog.tennisId => Icons.sports_tennis,
+    _ => Icons.sports_soccer,
+  };
+}
+
+String _roleChipPrefix(bool isKo, String sportId) {
+  if (SportCatalog.normalizeSportId(sportId) == SportCatalog.tennisId) {
+    return isKo ? '스타일' : 'Style';
+  }
+  return isKo ? '포지션' : 'Position';
+}
+
+_ProfileSportRole? _profileRoleForScoreKey(
+  String scoreKey, {
+  required String sportId,
+  required bool isKo,
+}) {
+  final roles = switch (SportCatalog.normalizeSportId(sportId)) {
+    SportCatalog.baseballId => <String, _ProfileSportRole>{
+        'GK': _ProfileSportRole('P', isKo ? '투수형' : 'Pitcher'),
+        'DF': _ProfileSportRole('C', isKo ? '포수형' : 'Catcher'),
+        'MF': _ProfileSportRole('IF', isKo ? '내야수형' : 'Infielder'),
+        'FW': _ProfileSportRole('OF', isKo ? '외야수형' : 'Outfielder'),
+      },
+    SportCatalog.basketballId => <String, _ProfileSportRole>{
+        'GK': _ProfileSportRole('C', isKo ? '센터형' : 'Center'),
+        'DF': _ProfileSportRole('F', isKo ? '포워드형' : 'Forward'),
+        'MF': _ProfileSportRole('G', isKo ? '가드형' : 'Guard'),
+        'FW': _ProfileSportRole('SG', isKo ? '슈터형' : 'Shooter'),
+      },
+    SportCatalog.tennisId => <String, _ProfileSportRole>{
+        'GK': _ProfileSportRole('DEF', isKo ? '수비형' : 'Defender'),
+        'DF': _ProfileSportRole('NET', isKo ? '네트 플레이형' : 'Net Player'),
+        'MF': _ProfileSportRole('BASE', isKo ? '베이스라인형' : 'Baseliner'),
+        'FW': _ProfileSportRole('SERVE', isKo ? '서브 공격형' : 'Serve Attacker'),
+      },
+    _ => <String, _ProfileSportRole>{
+        'GK': _ProfileSportRole('GK', isKo ? '골키퍼형' : 'Goalkeeper'),
+        'DF': _ProfileSportRole('DF', isKo ? '수비수형' : 'Defender'),
+        'MF': _ProfileSportRole('MF', isKo ? '미드필더형' : 'Midfielder'),
+        'FW': _ProfileSportRole('FW', isKo ? '공격수형' : 'Forward'),
+      },
+  };
+  return roles[scoreKey.trim().toUpperCase()];
+}
+
+class _ProfileSportRole {
+  final String code;
+  final String label;
+
+  const _ProfileSportRole(this.code, this.label);
+}
 
 class ProfileScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -32,6 +97,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late final PlayerProfileService _profileService;
+  late final String _sportId;
   late final TextEditingController _nameController;
   late final TextEditingController _heightController;
   late final TextEditingController _weightController;
@@ -51,7 +117,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _profileService = PlayerProfileService(widget.optionRepository);
+    _sportId = SportService(widget.optionRepository).currentSportId();
+    _profileService = PlayerProfileService(
+      widget.optionRepository,
+      sportId: _sportId,
+    );
     final profile = _profileService.load();
     _nameController = TextEditingController(text: profile.name);
     _heightController = TextEditingController(
@@ -92,17 +162,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       widget.optionRepository,
     ).loadState();
     final isReadOnly = familyState.isParentMode;
-    final sportId = SportService(widget.optionRepository).currentSportId();
     final levelState = PlayerLevelService(
       widget.optionRepository,
-      sportId: sportId,
+      sportId: _sportId,
     ).loadState();
     final rewardStatuses = PlayerLevelService(
       widget.optionRepository,
-      sportId: sportId,
+      sportId: _sportId,
     ).loadRewardStatuses();
     final mbtiSummary = _mbtiResultSummary(_mbtiResult, isKo);
-    final positionSummary = _positionResultSummary(_positionTestResult, isKo);
+    final positionSummary = _positionResultSummary(
+      _positionTestResult,
+      isKo,
+      sportId: _sportId,
+    );
     final compactProfileTags = <Widget>[
       if (mbtiSummary.title.trim().isNotEmpty)
         _resultChip(
@@ -113,7 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (positionSummary.title.trim().isNotEmpty)
         _resultChip(
           label:
-              '${isKo ? '포지션' : 'Position'} ${positionSummary.title.split('·').first.trim()}',
+              '${_roleChipPrefix(isKo, _sportId)} ${positionSummary.title.split('·').first.trim()}',
           onTap: () => _openProfileTestsScreen(context),
         ),
     ];
@@ -155,7 +228,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _ProfileLevelHeroCard(
               levelState: levelState,
               rewardStatuses: rewardStatuses,
-              sportId: sportId,
+              sportId: _sportId,
               onTap: _openLevelGuide,
             ),
             const SizedBox(height: 12),
@@ -308,10 +381,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(isKo ? '축구 시작일' : 'Soccer start date'),
+              title: Text(_sportStartDateLabel(l10n, _sportId)),
               subtitle: Text(_formatDate(_soccerStartDate, isKo)),
               trailing: IconButton(
-                icon: const Icon(Icons.sports_soccer),
+                icon: Icon(_sportStartDateIcon(_sportId)),
                 onPressed: isReadOnly
                     ? null
                     : () => _pickDate(
@@ -405,6 +478,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (_) => ProfileTestsScreen(
           optionRepository: widget.optionRepository,
           readOnly: _isParentReadOnlyMode,
+          sportId: _sportId,
         ),
       ),
     );
@@ -421,7 +495,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ignore: unused_element
   Widget _buildProfileTestSection(bool isKo) {
     final mbtiSummary = _mbtiResultSummary(_mbtiResult, isKo);
-    final positionSummary = _positionResultSummary(_positionTestResult, isKo);
+    final positionSummary = _positionResultSummary(
+      _positionTestResult,
+      isKo,
+      sportId: _sportId,
+    );
     final mbtiSavedAnswers = _savedMbtiAnswerEntries(isKo);
     final positionSavedAnswers = _savedPositionAnswerEntries(isKo);
     return Column(
@@ -661,7 +739,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               )
               .toList(growable: false),
           savedAnswers: _positionTestAnswers,
-          buildResult: (answers) => _buildPositionResult(answers, isKo),
+          buildResult: (answers) =>
+              _buildPositionResult(answers, isKo, _sportId),
         ),
       ),
     );
@@ -797,7 +876,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  _TestResultSummary _positionResultSummary(String raw, bool isKo) {
+  _TestResultSummary _positionResultSummary(
+    String raw,
+    bool isKo, {
+    required String sportId,
+  }) {
     final trimmed = raw.trim();
     if (trimmed.isEmpty) {
       return const _TestResultSummary(title: '', subtitle: null);
@@ -806,13 +889,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (parts.length >= 2) {
       return _TestResultSummary(title: trimmed, subtitle: null);
     }
-    final label = switch (trimmed) {
-      'GK' => isKo ? '골키퍼형' : 'Goalkeeper',
-      'DF' => isKo ? '수비수형' : 'Defender',
-      'MF' => isKo ? '미드필더형' : 'Midfielder',
-      'FW' => isKo ? '공격수형' : 'Forward',
-      _ => null,
-    };
+    final role = _profileRoleForScoreKey(trimmed, sportId: sportId, isKo: isKo);
+    final label = role?.label;
     return _TestResultSummary(
       title: label == null ? trimmed : '$trimmed · $label',
       subtitle: null,
@@ -895,7 +973,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     };
   }
 
-  String _buildPositionResult(List<int> answers, bool isKo) {
+  String _buildPositionResult(List<int> answers, bool isKo, String sportId) {
     final scores = <String, int>{'GK': 0, 'DF': 0, 'MF': 0, 'FW': 0};
     for (var i = 0; i < answers.length; i++) {
       final option = _positionQuestions[i].options[answers[i]];
@@ -910,28 +988,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return a.key.compareTo(b.key);
       });
     final best = sorted.first.key;
-    final label = isKo ? _positionLabelKo(best) : _positionLabelEn(best);
-    return '$best · $label';
-  }
-
-  String _positionLabelKo(String value) {
-    return switch (value) {
-      'GK' => '골키퍼형',
-      'DF' => '수비수형',
-      'MF' => '미드필더형',
-      'FW' => '공격수형',
-      _ => value,
-    };
-  }
-
-  String _positionLabelEn(String value) {
-    return switch (value) {
-      'GK' => 'Goalkeeper',
-      'DF' => 'Defender',
-      'MF' => 'Midfielder',
-      'FW' => 'Forward',
-      _ => value,
-    };
+    final role = _profileRoleForScoreKey(best, sportId: sportId, isKo: isKo);
+    return role == null ? best : '${role.code} · ${role.label}';
   }
 
   double? _parseDouble(String raw) {
@@ -1079,13 +1137,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _openLevelGuide() async {
-    final sportId = SportService(widget.optionRepository).currentSportId();
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PlayerLevelGuideScreen(
           currentLevel: PlayerLevelService(
             widget.optionRepository,
-            sportId: sportId,
+            sportId: _sportId,
           ).loadState().level,
           optionRepository: widget.optionRepository,
         ),
@@ -1336,11 +1393,13 @@ class _ProfileLevelIllustration extends StatelessWidget {
 class ProfileTestsScreen extends StatefulWidget {
   final OptionRepository optionRepository;
   final bool readOnly;
+  final String? sportId;
 
   const ProfileTestsScreen({
     super.key,
     required this.optionRepository,
     this.readOnly = false,
+    this.sportId,
   });
 
   @override
@@ -1349,6 +1408,7 @@ class ProfileTestsScreen extends StatefulWidget {
 
 class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
   late final PlayerProfileService _profileService;
+  late final String _sportId;
 
   String _mbtiResult = '';
   String _positionTestResult = '';
@@ -1358,7 +1418,13 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
   @override
   void initState() {
     super.initState();
-    _profileService = PlayerProfileService(widget.optionRepository);
+    _sportId = SportCatalog.normalizeSportId(
+      widget.sportId ?? SportService(widget.optionRepository).currentSportId(),
+    );
+    _profileService = PlayerProfileService(
+      widget.optionRepository,
+      sportId: _sportId,
+    );
     final profile = _profileService.load();
     _mbtiResult = profile.mbtiResult;
     _positionTestResult = profile.positionTestResult;
@@ -1381,7 +1447,11 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
 
   Widget _buildProfileTestSection(bool isKo, {required bool canEdit}) {
     final mbtiSummary = _mbtiResultSummary(_mbtiResult, isKo);
-    final positionSummary = _positionResultSummary(_positionTestResult, isKo);
+    final positionSummary = _positionResultSummary(
+      _positionTestResult,
+      isKo,
+      sportId: _sportId,
+    );
     final mbtiSavedAnswers = _savedMbtiAnswerEntries(isKo);
     final positionSavedAnswers = _savedPositionAnswerEntries(isKo);
     return Column(
@@ -1648,7 +1718,8 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
               )
               .toList(growable: false),
           savedAnswers: _positionTestAnswers,
-          buildResult: (answers) => _buildPositionResult(answers, isKo),
+          buildResult: (answers) =>
+              _buildPositionResult(answers, isKo, _sportId),
         ),
       ),
     );
@@ -1790,7 +1861,11 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
     );
   }
 
-  _TestResultSummary _positionResultSummary(String raw, bool isKo) {
+  _TestResultSummary _positionResultSummary(
+    String raw,
+    bool isKo, {
+    required String sportId,
+  }) {
     final trimmed = raw.trim();
     if (trimmed.isEmpty) {
       return const _TestResultSummary(title: '', subtitle: null);
@@ -1799,13 +1874,8 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
     if (parts.length >= 2) {
       return _TestResultSummary(title: trimmed, subtitle: null);
     }
-    final label = switch (trimmed) {
-      'GK' => isKo ? '골키퍼형' : 'Goalkeeper',
-      'DF' => isKo ? '수비수형' : 'Defender',
-      'MF' => isKo ? '미드필더형' : 'Midfielder',
-      'FW' => isKo ? '공격수형' : 'Forward',
-      _ => null,
-    };
+    final role = _profileRoleForScoreKey(trimmed, sportId: sportId, isKo: isKo);
+    final label = role?.label;
     return _TestResultSummary(
       title: label == null ? trimmed : '$trimmed · $label',
       subtitle: null,
@@ -1888,7 +1958,7 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
     };
   }
 
-  String _buildPositionResult(List<int> answers, bool isKo) {
+  String _buildPositionResult(List<int> answers, bool isKo, String sportId) {
     final scores = <String, int>{'GK': 0, 'DF': 0, 'MF': 0, 'FW': 0};
     for (var i = 0; i < answers.length; i++) {
       final option = _positionQuestions[i].options[answers[i]];
@@ -1903,28 +1973,8 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
         return a.key.compareTo(b.key);
       });
     final best = sorted.first.key;
-    final label = isKo ? _positionLabelKo(best) : _positionLabelEn(best);
-    return '$best · $label';
-  }
-
-  String _positionLabelKo(String value) {
-    return switch (value) {
-      'GK' => '골키퍼형',
-      'DF' => '수비수형',
-      'MF' => '미드필더형',
-      'FW' => '공격수형',
-      _ => value,
-    };
-  }
-
-  String _positionLabelEn(String value) {
-    return switch (value) {
-      'GK' => 'Goalkeeper',
-      'DF' => 'Defender',
-      'MF' => 'Midfielder',
-      'FW' => 'Forward',
-      _ => value,
-    };
+    final role = _profileRoleForScoreKey(best, sportId: sportId, isKo: isKo);
+    return role == null ? best : '${role.code} · ${role.label}';
   }
 }
 

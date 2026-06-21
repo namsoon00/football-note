@@ -25,6 +25,7 @@ import '../infrastructure/hive_option_repository.dart';
 import 'family_access_service.dart';
 import 'parent_shared_feedback_service.dart';
 import 'player_level_service.dart';
+import 'player_profile_service.dart';
 import 'running_coach_history_service.dart';
 import 'running_growth_service.dart';
 import 'training_board_service.dart';
@@ -184,17 +185,7 @@ class DriveBackupService implements BackupRepository {
   };
   static const Set<String> _backedUpOptionKeys = {
     // Profile and app-owned player state.
-    'profile_name',
-    _profilePhotoOptionKey,
-    'profile_birth_date',
-    'profile_soccer_start_date',
-    'profile_height_cm',
-    'profile_weight_kg',
-    'profile_gender',
-    'profile_mbti_result',
-    'profile_position_test_result',
-    'profile_mbti_answers',
-    'profile_position_test_answers',
+    ...PlayerProfileService.optionKeys,
     SportCatalog.currentSportOptionKey,
 
     // Training entry defaults and user-managed option lists.
@@ -281,6 +272,7 @@ class DriveBackupService implements BackupRepository {
   };
   static const List<String> _backedUpOptionKeyPrefixes = [
     CoachRosterService.scopedOptionKeyPrefix,
+    ...PlayerProfileService.sportScopedOptionKeyPrefixes,
     ...PlayerLevelService.sportScopedOptionKeyPrefixes,
     'programs_',
     'daily_goals_',
@@ -390,7 +382,6 @@ class DriveBackupService implements BackupRepository {
   static const _familyMetadataKey = 'family';
   static const _assetRecordsKey = 'assetRecords';
   static const _assetRefPrefix = 'backup_asset://';
-  static const _profilePhotoOptionKey = 'profile_photo_url';
   static const _backupFormatKey = 'format';
   static const _backupFormatValue = 'football_note_backup';
   Stream<void> driveAccountStateChanges() =>
@@ -2171,10 +2162,10 @@ class DriveBackupService implements BackupRepository {
     required Map<String, dynamic> assetRecords,
     required Map<String, String> assetIdBySourcePath,
   }) {
-    if (key == _profilePhotoOptionKey && value is String) {
+    if (PlayerProfileService.isPhotoUrlKey(key) && value is String) {
       return _toBackupValue(
         _replacePathWithAssetReferenceIfNeeded(
-          assetId: 'option:$_profilePhotoOptionKey',
+          assetId: 'option:$key',
           sourcePath: value,
           assetRecords: assetRecords,
           assetIdBySourcePath: assetIdBySourcePath,
@@ -2235,7 +2226,7 @@ class DriveBackupService implements BackupRepository {
     dynamic value,
     Map<String, BackupAssetRecord> assetRecords,
   ) async {
-    if (key != _profilePhotoOptionKey || value is! String) {
+    if (!PlayerProfileService.isPhotoUrlKey(key) || value is! String) {
       return value;
     }
     return await _restoreAssetReference(value, assetRecords) ?? value;

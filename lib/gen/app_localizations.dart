@@ -4392,6 +4392,12 @@ abstract class AppLocalizations {
   /// **'Next reward Lv.{level} {rewardName}'**
   String profileNextReward(int level, Object rewardName);
 
+  /// No description provided for @profileSportStartDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{sport} start date'**
+  String profileSportStartDateLabel(Object sport);
+
   /// No description provided for @profileLevelProgressMax.
   ///
   /// In en, this message translates to:

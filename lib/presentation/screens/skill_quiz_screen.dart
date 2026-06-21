@@ -184,7 +184,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       for (final question in _allQuestions) question.id: question,
       for (final question in _allQuestions) ..._legacyQuestionAliases(question),
     };
-    _profileService = PlayerProfileService(widget.optionRepository);
+    _profileService = PlayerProfileService(
+      widget.optionRepository,
+      sportId: _sportId,
+    );
     _resumeSummary = SkillQuizScreen.loadResumeSummary(
       widget.optionRepository,
       sportId: _sportId,

@@ -2396,6 +2396,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String profileSportStartDateLabel(Object sport) {
+    return '$sport 시작일';
+  }
+
+  @override
   String profileLevelProgressMax(int stars, int remainingXp) {
     return '마스터리 별 $stars개 · 다음 $remainingXp XP';
   }

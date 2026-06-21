@@ -1,5 +1,6 @@
 import '../domain/repositories/option_repository.dart';
 import 'player_level_service.dart';
+import 'player_profile_service.dart';
 
 enum FamilyRole { child, parent, coach }
 
@@ -125,8 +126,10 @@ class FamilyAccessService {
     final currentRole = roleFromStorage(
       _options.getValue<String>(currentRoleLocalKey),
     );
+    final profileName = PlayerProfileService(_options).load().name.trim();
     final childName = _options.getValue<String>(childNameKey)?.trim() ??
-        _options.getValue<String>('profile_name')?.trim() ??
+        (profileName.isNotEmpty ? profileName : null) ??
+        _options.getValue<String>(PlayerProfileService.nameKey)?.trim() ??
         '';
     final parentName = _options.getValue<String>(parentNameKey)?.trim() ?? '';
     final syncRoleRaw = _options.getValue<String>(lastSharedSyncRoleKey);

@@ -16,6 +16,7 @@ import '../../application/locale_service.dart';
 import '../../application/match_competition_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
+import '../../application/player_profile_service.dart';
 import '../../application/parent_shared_feedback_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/sport_capabilities.dart';
@@ -410,10 +411,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   _openNotifications(context),
                               notificationBadgeCount: reminderUnreadCount,
                               profilePhotoSource:
-                                  widget.optionRepository.getValue<String>(
-                                        'profile_photo_url',
-                                      ) ??
-                                      '',
+                                  PlayerProfileService(widget.optionRepository)
+                                      .load()
+                                      .photoUrl,
                               onProfileTap: () => _openProfile(context),
                               onSettingsTap: () => _openSettings(context),
                               title: AppLocalizations.of(context)!.calendar,
