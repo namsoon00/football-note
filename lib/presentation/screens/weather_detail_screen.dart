@@ -12,7 +12,12 @@ import '../../application/weather_shared_resource.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_background.dart';
 
-enum WeatherDetailInitialAction { none, outfitGuide }
+enum WeatherDetailInitialAction {
+  none,
+  outfitGuide,
+  tomorrowForecast,
+  weeklyForecast
+}
 
 class WeatherDetailScreen extends StatefulWidget {
   final String initialLocation;
@@ -69,7 +74,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       }
       _maybeHandleInitialAction();
       final shouldRequestPermission =
-          widget.initialAction == WeatherDetailInitialAction.outfitGuide &&
+          widget.initialAction != WeatherDetailInitialAction.none &&
               _summary.isEmpty;
       unawaited(
         _loadWeather(
@@ -443,22 +448,47 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   void _maybeHandleInitialAction() {
     if (_handledInitialAction ||
-        widget.initialAction != WeatherDetailInitialAction.outfitGuide ||
+        widget.initialAction == WeatherDetailInitialAction.none ||
         !mounted ||
-        _summary.trim().isEmpty) {
+        (_summary.trim().isEmpty && _dailyForecasts.isEmpty)) {
       return;
     }
     _handledInitialAction = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      _openOutfitGuideScreen(
-        l10n: l10n,
-        guide: _buildDetailedOutfitGuide(
-          Localizations.localeOf(context).languageCode == 'ko',
-          l10n,
-        ),
-      );
+      final isKo = Localizations.localeOf(context).languageCode == 'ko';
+      switch (widget.initialAction) {
+        case WeatherDetailInitialAction.outfitGuide:
+          _openOutfitGuideScreen(
+            l10n: l10n,
+            guide: _buildDetailedOutfitGuide(isKo, l10n),
+          );
+          break;
+        case WeatherDetailInitialAction.tomorrowForecast:
+          final tomorrowForecast =
+              _dailyForecasts.length > 1 ? _dailyForecasts[1] : null;
+          _openWeatherForecastScreen(
+            title: l10n.homeWeatherTomorrowTitle,
+            child: _buildTomorrowWeatherCard(
+              l10n: l10n,
+              isKo: isKo,
+              tomorrowForecast: tomorrowForecast,
+            ),
+          );
+          break;
+        case WeatherDetailInitialAction.weeklyForecast:
+          _openWeatherForecastScreen(
+            title: l10n.homeWeatherWeeklyTitle,
+            child: _buildWeeklyForecastCard(
+              l10n: l10n,
+              weeklyForecasts: _dailyForecasts.take(7).toList(growable: false),
+            ),
+          );
+          break;
+        case WeatherDetailInitialAction.none:
+          break;
+      }
     });
   }
 

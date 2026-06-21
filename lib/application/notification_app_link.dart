@@ -7,6 +7,7 @@ class NotificationAppLink {
     'level',
     'league',
     'notifications',
+    'weather',
     'world-cup',
     'xp',
   };
@@ -113,6 +114,23 @@ class NotificationAppLink {
         'team': teamName,
         'date': _dateToken(kickoffAt),
       },
+    ).toString();
+  }
+
+  static String weatherToday() => _weather(action: 'today');
+
+  static String weatherOutfit() => _weather(action: 'outfit');
+
+  static String weatherTomorrow() => _weather(action: 'tomorrow');
+
+  static String weatherWeekly() => _weather(action: 'weekly');
+
+  static String _weather({required String action}) {
+    return Uri(
+      scheme: scheme,
+      host: 'weather',
+      path: '/detail',
+      queryParameters: {'action': action},
     ).toString();
   }
 

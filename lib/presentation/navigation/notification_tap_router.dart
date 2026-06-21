@@ -19,6 +19,7 @@ import '../screens/league_standings_screen.dart';
 import '../screens/notification_center_screen.dart';
 import '../screens/player_level_guide_screen.dart';
 import '../screens/player_xp_history_screen.dart';
+import '../screens/weather_detail_screen.dart';
 import '../screens/world_cup_screen.dart';
 import '../widgets/app_page_route.dart';
 
@@ -79,8 +80,7 @@ class NotificationTapRouter {
       }
       if (normalized.startsWith('levelup:')) {
         final level = int.tryParse(normalized.split(':').last);
-        final currentLevel =
-            level ??
+        final currentLevel = level ??
             PlayerLevelService(dependencies.optionRepository).loadState().level;
         return PlayerLevelGuideScreen(
           currentLevel: currentLevel,
@@ -108,8 +108,7 @@ class NotificationTapRouter {
       }
       if (normalized.startsWith('league_fixture:')) {
         return LeagueStandingsScreen(
-          initialType:
-              _leagueTypeFromPayload(normalized) ??
+          initialType: _leagueTypeFromPayload(normalized) ??
               LeagueStandingsType.kLeague1,
           optionRepository: dependencies.optionRepository,
           settingsService: dependencies.settingsService,
@@ -125,6 +124,11 @@ class NotificationTapRouter {
       }
       if (normalized.startsWith('family-sync:')) {
         return _notificationCenterBuilder(dependencies);
+      }
+      if (normalized.startsWith('weather:')) {
+        return WeatherDetailScreen(
+          initialAction: _weatherActionFromLegacyPayload(normalized),
+        );
       }
       return _homeScreen(
         dependencies,
@@ -151,8 +155,7 @@ class NotificationTapRouter {
         );
       case 'level':
         final level = int.tryParse(uri.queryParameters['level'] ?? '');
-        final currentLevel =
-            level ??
+        final currentLevel = level ??
             PlayerLevelService(dependencies.optionRepository).loadState().level;
         return PlayerLevelGuideScreen(
           currentLevel: currentLevel,
@@ -178,10 +181,12 @@ class NotificationTapRouter {
         return LeagueStandingsScreen(
           initialType:
               _leagueTypeFromName(uri.queryParameters['leagueType'] ?? '') ??
-              LeagueStandingsType.kLeague1,
+                  LeagueStandingsType.kLeague1,
           optionRepository: dependencies.optionRepository,
           settingsService: dependencies.settingsService,
         );
+      case 'weather':
+        return WeatherDetailScreen(initialAction: _weatherActionFromLink(uri));
       case 'notifications':
         return _notificationCenterBuilder(dependencies);
     }
@@ -249,6 +254,37 @@ class NotificationTapRouter {
     final parsed = DateTime.tryParse(raw.trim());
     if (parsed == null) return null;
     return DateTime(parsed.year, parsed.month, parsed.day);
+  }
+
+  static WeatherDetailInitialAction _weatherActionFromLink(Uri uri) {
+    final action = (uri.queryParameters['action'] ??
+            (uri.pathSegments.isEmpty ? '' : uri.pathSegments.last))
+        .trim()
+        .toLowerCase();
+    return _weatherActionFromToken(action);
+  }
+
+  static WeatherDetailInitialAction _weatherActionFromLegacyPayload(
+    String payload,
+  ) {
+    final parts = payload.split(':');
+    final token = parts.length > 1 ? parts[1] : '';
+    return _weatherActionFromToken(token);
+  }
+
+  static WeatherDetailInitialAction _weatherActionFromToken(String token) {
+    switch (token.trim().toLowerCase()) {
+      case 'outfit':
+      case 'outfit-guide':
+        return WeatherDetailInitialAction.outfitGuide;
+      case 'tomorrow':
+        return WeatherDetailInitialAction.tomorrowForecast;
+      case 'weekly':
+      case 'week':
+        return WeatherDetailInitialAction.weeklyForecast;
+      default:
+        return WeatherDetailInitialAction.none;
+    }
   }
 
   static DateTime? _planDayForId(

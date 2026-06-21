@@ -27,6 +27,7 @@ import 'application/sport_service.dart';
 import 'application/sport_state_controller.dart';
 import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
+import 'application/weather_reminder_service.dart';
 import 'domain/entities/sport_definition.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/sport_start_selection_screen.dart';
@@ -87,6 +88,10 @@ Future<void> main() async {
     optionRepository,
     settingsService,
   );
+  final weatherReminderService = WeatherReminderService(
+    optionRepository,
+    settingsService,
+  );
   final badgeService = TrainingPlanBadgeService(optionRepository);
   NotificationTapRouter.configure(
     NotificationTapDependencies(
@@ -102,12 +107,19 @@ Future<void> main() async {
       NotificationTapRouter.handlePayload;
   LeagueFixtureReminderService.onNotificationPayloadTap =
       NotificationTapRouter.handlePayload;
+  WeatherReminderService.onNotificationPayloadTap =
+      NotificationTapRouter.handlePayload;
   settingsService.addListener(() {
     unawaited(reminderService.syncSettingsDrivenReminders());
+    unawaited(weatherReminderService.syncSettingsDrivenReminders());
     if (!settingsService.reminderEnabled ||
         !settingsService.leagueFixtureAlertEnabled) {
       unawaited(leagueFixtureReminderService.clearAllReminders());
       unawaited(leagueFixtureReminderService.clearWorldCupReminders());
+    }
+    if (!settingsService.reminderEnabled ||
+        !settingsService.weatherAlertEnabled) {
+      unawaited(weatherReminderService.clearAllReminders());
     }
   });
 
@@ -127,6 +139,7 @@ Future<void> main() async {
     _warmStartupServices(
       backupService: backupService,
       reminderService: reminderService,
+      weatherReminderService: weatherReminderService,
       badgeService: badgeService,
       trainingService: trainingService,
     ),
@@ -136,6 +149,7 @@ Future<void> main() async {
 Future<void> _warmStartupServices({
   required BackupService backupService,
   required TrainingPlanReminderService reminderService,
+  required WeatherReminderService weatherReminderService,
   required TrainingPlanBadgeService badgeService,
   required TrainingService trainingService,
 }) async {
@@ -161,6 +175,12 @@ Future<void> _warmStartupServices({
     await reminderService.syncAll(entries: await trainingService.allEntries());
   } catch (_) {
     // Reminder sync can recover on later app interactions.
+  }
+  try {
+    await weatherReminderService.initialize();
+    await weatherReminderService.syncSettingsDrivenReminders();
+  } catch (_) {
+    // Weather reminder sync can recover on later settings or app interactions.
   }
   try {
     await badgeService.syncFromStorage();

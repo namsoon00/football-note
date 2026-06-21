@@ -16,6 +16,8 @@ class SettingsService extends ChangeNotifier {
   bool _inactivityAlertEnabled = true;
   bool _familySyncAlertEnabled = true;
   bool _leagueFixtureAlertEnabled = true;
+  bool _weatherAlertEnabled = true;
+  TimeOfDay _weatherAlertTime = const TimeOfDay(hour: 7, minute: 0);
   int _inactivityAlertDays = 3;
 
   SettingsService(this._repository);
@@ -29,6 +31,8 @@ class SettingsService extends ChangeNotifier {
   bool get inactivityAlertEnabled => _inactivityAlertEnabled;
   bool get familySyncAlertEnabled => _familySyncAlertEnabled;
   bool get leagueFixtureAlertEnabled => _leagueFixtureAlertEnabled;
+  bool get weatherAlertEnabled => _weatherAlertEnabled;
+  TimeOfDay get weatherAlertTime => _weatherAlertTime;
   int get inactivityAlertDays => _inactivityAlertDays;
 
   void load() {
@@ -53,6 +57,11 @@ class SettingsService extends ChangeNotifier {
     _leagueFixtureAlertEnabled =
         _repository.getValue<bool>('league_fixture_alert_enabled') ??
             _leagueFixtureAlertEnabled;
+    _weatherAlertEnabled =
+        _repository.getValue<bool>('weather_alert_enabled') ??
+            _weatherAlertEnabled;
+    final weatherTime = _repository.getValue<String>('weather_alert_time');
+    _weatherAlertTime = _parseTime(weatherTime) ?? _weatherAlertTime;
     _inactivityAlertDays = _clampInt(
       _repository.getValue<num>('inactivity_alert_days')?.toInt(),
       fallback: _inactivityAlertDays,
@@ -113,6 +122,18 @@ class SettingsService extends ChangeNotifier {
   Future<void> setLeagueFixtureAlertEnabled(bool enabled) async {
     _leagueFixtureAlertEnabled = enabled;
     await _repository.setValue('league_fixture_alert_enabled', enabled);
+    _notifyListenersSafely();
+  }
+
+  Future<void> setWeatherAlertEnabled(bool enabled) async {
+    _weatherAlertEnabled = enabled;
+    await _repository.setValue('weather_alert_enabled', enabled);
+    _notifyListenersSafely();
+  }
+
+  Future<void> setWeatherAlertTime(TimeOfDay time) async {
+    _weatherAlertTime = time;
+    await _repository.setValue('weather_alert_time', _formatTime(time));
     _notifyListenersSafely();
   }
 

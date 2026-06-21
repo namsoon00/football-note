@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../domain/repositories/option_repository.dart';
 import 'league_fixture_reminder_service.dart';
 import 'training_plan_reminder_service.dart';
+import 'weather_reminder_service.dart';
 
 class TrainingPlanBadgeService {
   static const MethodChannel _badgeChannel = MethodChannel(
@@ -50,7 +51,20 @@ class TrainingPlanBadgeService {
         return !fixtureReadIds.contains(id);
       }).length;
 
-      final count = xpUnread + fixtureUnread;
+      final weatherLogs =
+          _options.getValue<List>(WeatherReminderService.messageLogKey) ??
+              const [];
+      final weatherReadRaw =
+          _options.getValue<List>(WeatherReminderService.messageReadIdsKey) ??
+              const [];
+      final weatherReadIds = weatherReadRaw.map((e) => e.toString()).toSet();
+      final weatherUnread = weatherLogs.whereType<Map>().where((item) {
+        final id = item['id']?.toString() ?? '';
+        if (id.isEmpty) return false;
+        return !weatherReadIds.contains(id);
+      }).length;
+
+      final count = xpUnread + fixtureUnread + weatherUnread;
 
       if (count <= 0) {
         await _setBadgeCount(0);

@@ -2498,6 +2498,96 @@
   "notificationFamilySettingsSubtitle": "Notify when player logs or guardian feedback/rewards sync.",
   "notificationLeagueFixtureSettingsTitle": "Favorite team match alerts",
   "notificationLeagueFixtureSettingsSubtitle": "Notify before loaded fixtures for selected favorite teams.",
+  "notificationOverviewOnTitle": "Phone notifications are on",
+  "notificationOverviewOffTitle": "Phone notifications are off",
+  "notificationOverviewAllOnSubtitle": "Device notifications and in-app alerts are both enabled.",
+  "notificationOverviewAppOffSubtitle": "Device notifications are on, but all in-app alerts are off.",
+  "notificationOverviewPermissionOffSubtitle": "Allow notifications for this app in Settings > Notifications to receive alerts.",
+  "notificationOverviewPausedLabel": "Paused",
+  "notificationOverviewCountLabel": "{count} alerts",
+  "@notificationOverviewCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationFeedTitle": "Alert feed",
+  "notificationFeedSubtitle": "Alerts shown: {count}",
+  "@notificationFeedSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationFeedEmptyTitle": "No alerts to show.",
+  "notificationFeedEmptySubtitle": "Training, weather, and match alerts will appear here.",
+  "notificationInactivitySettingsTitle": "Inactivity reminders",
+  "notificationInactivityOnTitle": "Inactivity reminder is on",
+  "notificationInactivityOffTitle": "Inactivity reminder is off",
+  "notificationInactivityOnSubtitle": "Alert at {time} after {days} inactive days",
+  "@notificationInactivityOnSubtitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "time": {}
+    }
+  },
+  "notificationInactivityOffSubtitle": "Turn it on to get nudges after quiet periods.",
+  "notificationLastTrainingLog": "Last log: {time}",
+  "@notificationLastTrainingLog": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "notificationInactivityTimeTitle": "Training reminder time",
+  "notificationInactivityTimeSubtitle": "{days} day threshold · {time}",
+  "@notificationInactivityTimeSubtitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "time": {}
+    }
+  },
+  "notificationInactivityThresholdLabel": "Inactivity threshold",
+  "notificationInactivityThresholdDayOption": "{value} day(s)",
+  "@notificationInactivityThresholdDayOption": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationChangeTimeAction": "Change",
+  "notificationXpFallbackTitle": "XP alert",
+  "notificationXpSubtitle": "+{gainedXp} XP · total {totalXp} XP",
+  "@notificationXpSubtitle": {
+    "placeholders": {
+      "gainedXp": {
+        "type": "int"
+      },
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationPlanFallbackTitle": "Training plan",
+  "notificationWeatherSettingsTitle": "Weather alert",
+  "notificationWeatherSettingsSubtitle": "Send a daily reminder to check weather and training outfit.",
+  "notificationWeatherTimeTitle": "Weather alert time",
+  "notificationWeatherTimeSubtitle": "Every day at {time}",
+  "@notificationWeatherTimeSubtitle": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "notificationNewBadge": "NEW",
+  "weatherNotificationChannelName": "Weather alerts",
+  "weatherNotificationChannelDescription": "Daily weather and training outfit reminders",
+  "weatherNotificationDailyBody": "Check today's weather and training outfit.",
   "reminderEnabled": "Enable daily reminder",
   "reminderTime": "Reminder time",
   "photo": "Photo",

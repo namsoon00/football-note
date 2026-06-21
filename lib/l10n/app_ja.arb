@@ -2498,6 +2498,96 @@
   "notificationFamilySettingsSubtitle": "選手の記録や保護者フィードバック/報酬が同期されたときに通知します。",
   "notificationLeagueFixtureSettingsTitle": "お気に入りのチームの試合アラート",
   "notificationLeagueFixtureSettingsSubtitle": "選択したお気に入りチームの試合をロードする前に通知します。",
+  "notificationOverviewOnTitle": "端末通知が有効です",
+  "notificationOverviewOffTitle": "端末通知が無効です",
+  "notificationOverviewAllOnSubtitle": "端末通知とアプリ内通知の両方が有効です。",
+  "notificationOverviewAppOffSubtitle": "端末通知は有効ですが、アプリ内のすべての通知はオフです。",
+  "notificationOverviewPermissionOffSubtitle": "通知を受け取るには、設定 > 通知でこのアプリの通知を許可してください。",
+  "notificationOverviewPausedLabel": "一時停止",
+  "notificationOverviewCountLabel": "{count} 件",
+  "@notificationOverviewCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationFeedTitle": "通知フィード",
+  "notificationFeedSubtitle": "{count} 件の通知を時間順に表示します。",
+  "@notificationFeedSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationFeedEmptyTitle": "表示する通知はありません。",
+  "notificationFeedEmptySubtitle": "トレーニング、天気、試合通知がここに表示されます。",
+  "notificationInactivitySettingsTitle": "記録なしリマインダー",
+  "notificationInactivityOnTitle": "記録なしリマインダーはオンです",
+  "notificationInactivityOffTitle": "記録なしリマインダーはオフです",
+  "notificationInactivityOnSubtitle": "{days}日間記録がない場合、{time}に通知",
+  "@notificationInactivityOnSubtitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "time": {}
+    }
+  },
+  "notificationInactivityOffSubtitle": "オンにすると、記録が空いたときに知らせます。",
+  "notificationLastTrainingLog": "最後の記録: {time}",
+  "@notificationLastTrainingLog": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "notificationInactivityTimeTitle": "記録リマインダー時間",
+  "notificationInactivityTimeSubtitle": "{days}日基準 · {time}",
+  "@notificationInactivityTimeSubtitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "time": {}
+    }
+  },
+  "notificationInactivityThresholdLabel": "記録なしの基準",
+  "notificationInactivityThresholdDayOption": "{value}日",
+  "@notificationInactivityThresholdDayOption": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationChangeTimeAction": "時間変更",
+  "notificationXpFallbackTitle": "XP通知",
+  "notificationXpSubtitle": "+{gainedXp} XP · 合計 {totalXp} XP",
+  "@notificationXpSubtitle": {
+    "placeholders": {
+      "gainedXp": {
+        "type": "int"
+      },
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationPlanFallbackTitle": "トレーニング計画",
+  "notificationWeatherSettingsTitle": "天気通知",
+  "notificationWeatherSettingsSubtitle": "毎日、天気と運動ウェアを確認できるよう通知します。",
+  "notificationWeatherTimeTitle": "天気通知時間",
+  "notificationWeatherTimeSubtitle": "毎日 {time} に通知",
+  "@notificationWeatherTimeSubtitle": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "notificationNewBadge": "NEW",
+  "weatherNotificationChannelName": "天気通知",
+  "weatherNotificationChannelDescription": "毎日の天気と運動ウェア確認通知",
+  "weatherNotificationDailyBody": "今日の天気と運動ウェアを確認しましょう。",
   "reminderEnabled": "毎日のリマインダーを有効にする",
   "reminderTime": "リマインダー時間",
   "photo": "写真",
