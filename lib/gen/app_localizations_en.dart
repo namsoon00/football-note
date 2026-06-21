@@ -3219,7 +3219,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String statsReportTrainingTitle(Object sport) {
-    return '$sport Report';
+    return '$sport Growth Summary';
   }
 
   @override
@@ -3237,6 +3237,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsReportNoTargetValue => 'No baseline';
 
   @override
+  String get statsReportSessionsLabel => 'Sessions';
+
+  @override
+  String statsReportSessionsValue(int count) {
+    return '$count';
+  }
+
+  @override
+  String get statsReportTotalTimeLabel => 'Total time';
+
+  @override
   String get statsReportActiveDaysLabel => 'Logged days';
 
   @override
@@ -3249,6 +3260,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsReportNoPlanValue => 'No plan';
+
+  @override
+  String get statsReportFocusLabel => 'Focus';
+
+  @override
+  String get statsReportDefaultFocus => 'Fundamentals';
+
+  @override
+  String get statsReportStreakLabel => 'Consistency';
+
+  @override
+  String statsReportStreakValue(int days) {
+    return '$days-day streak';
+  }
 
   @override
   String get statsReportMealCoverageLabel => 'Meal coverage';
@@ -3452,6 +3477,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get averageComparisonProfileMissingMessage =>
       'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.';
+
+  @override
+  String get averageComparisonOpenProfileAction => 'Open Profile';
 
   @override
   String get averageComparisonFootballOnlyTitle =>
