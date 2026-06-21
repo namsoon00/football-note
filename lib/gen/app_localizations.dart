@@ -2425,16 +2425,15 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupQualificationOpponentCandidate.
   ///
   /// In en, this message translates to:
-  /// **'M{matchNumber} · {opponent}'**
-  String worldCupQualificationOpponentCandidate(
-      int matchNumber, String opponent);
+  /// **'{opponent}'**
+  String worldCupQualificationOpponentCandidate(String opponent);
 
   /// No description provided for @worldCupQualificationOpponentCandidateWithCountries.
   ///
   /// In en, this message translates to:
-  /// **'M{matchNumber} · {opponent} → {countries}'**
+  /// **'{opponent} → {countries}'**
   String worldCupQualificationOpponentCandidateWithCountries(
-      int matchNumber, String opponent, String countries);
+      String opponent, String countries);
 
   /// No description provided for @worldCupQualificationOpponentTeamSeparator.
   ///

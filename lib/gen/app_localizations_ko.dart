@@ -1277,15 +1277,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupQualificationNoOpponent => '이 조합에서는 32강 진출 경로가 없어요.';
 
   @override
-  String worldCupQualificationOpponentCandidate(
-      int matchNumber, String opponent) {
-    return 'M$matchNumber · $opponent';
+  String worldCupQualificationOpponentCandidate(String opponent) {
+    return '$opponent';
   }
 
   @override
   String worldCupQualificationOpponentCandidateWithCountries(
-      int matchNumber, String opponent, String countries) {
-    return 'M$matchNumber · $opponent → $countries';
+      String opponent, String countries) {
+    return '$opponent → $countries';
   }
 
   @override

@@ -4346,12 +4346,8 @@ String _qualificationOpponentText(
         .map((team) => _worldCupCountryName(l10n, team))
         .join(l10n.worldCupQualificationOpponentTeamSeparator);
     final label = countries.isEmpty
-        ? l10n.worldCupQualificationOpponentCandidate(
-            path.matchNumber,
-            slot,
-          )
+        ? l10n.worldCupQualificationOpponentCandidate(slot)
         : l10n.worldCupQualificationOpponentCandidateWithCountries(
-            path.matchNumber,
             slot,
             countries,
           );
