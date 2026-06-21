@@ -4938,51 +4938,67 @@ class _MatchCountStepper extends StatelessWidget {
     final scheme = theme.colorScheme;
     final valueColor = hasValue ? scheme.primary : scheme.onSurfaceVariant;
     return Container(
-      constraints: const BoxConstraints(minHeight: 72),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      constraints: const BoxConstraints(minHeight: 92),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: scheme.surface.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: scheme.outlineVariant),
       ),
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value.toString(),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: valueColor,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          _MatchCountIconButton(
-            tooltip: decreaseTooltip,
-            icon: Icons.remove_rounded,
-            enabled: enabled && value > 0,
-            onPressed: onDecrement,
-          ),
-          const SizedBox(width: 6),
-          _MatchCountIconButton(
-            tooltip: increaseTooltip,
-            icon: Icons.add_rounded,
-            enabled: enabled,
-            onPressed: onIncrement,
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _MatchCountIconButton(
+                tooltip: decreaseTooltip,
+                icon: Icons.remove_rounded,
+                enabled: enabled && value > 0,
+                onPressed: onDecrement,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Container(
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: hasValue
+                        ? scheme.primary.withValues(alpha: 0.08)
+                        : scheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      value.toString(),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: valueColor,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              _MatchCountIconButton(
+                tooltip: increaseTooltip,
+                icon: Icons.add_rounded,
+                enabled: enabled,
+                onPressed: onIncrement,
+              ),
+            ],
           ),
         ],
       ),
@@ -5006,21 +5022,24 @@ class _MatchCountIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return IconButton(
-      tooltip: tooltip,
-      onPressed: enabled ? onPressed : null,
-      icon: Icon(icon),
-      style: IconButton.styleFrom(
-        fixedSize: const Size.square(40),
-        minimumSize: const Size.square(40),
-        padding: EdgeInsets.zero,
-        backgroundColor: enabled
-            ? scheme.primary.withValues(alpha: 0.10)
-            : scheme.surfaceContainerHighest,
-        foregroundColor: enabled ? scheme.primary : scheme.onSurfaceVariant,
-        disabledBackgroundColor: scheme.surfaceContainerHighest,
-        disabledForegroundColor: scheme.onSurfaceVariant.withValues(alpha: 0.5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    return SizedBox.square(
+      dimension: 40,
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: enabled ? onPressed : null,
+        icon: Icon(icon, size: 20),
+        style: IconButton.styleFrom(
+          padding: EdgeInsets.zero,
+          backgroundColor: enabled
+              ? scheme.primary.withValues(alpha: 0.10)
+              : scheme.surfaceContainerHighest,
+          foregroundColor: enabled ? scheme.primary : scheme.onSurfaceVariant,
+          disabledBackgroundColor: scheme.surfaceContainerHighest,
+          disabledForegroundColor: scheme.onSurfaceVariant.withValues(
+            alpha: 0.5,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
       ),
     );
   }
