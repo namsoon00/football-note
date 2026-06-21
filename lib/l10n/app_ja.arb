@@ -3345,6 +3345,145 @@
   "fortuneDialogRecommendationTitle": "フォーチュンノート",
   "fortuneDialogEncouragement": "今日も最高のプレーを応援します。",
   "fortuneDialogAction": "ニース",
+  "entryFortuneOpenFailed": "運勢画面を開けませんでした。",
+  "profileBirthTimeTitle": "出生時刻",
+  "profileBirthTimeSelectDateFirst": "生年月日を先に選択",
+  "fortuneGeneratedUnknownPlayerName": "選手",
+  "fortuneGeneratedBirthNotSet": "プロフィールの生年月日未入力",
+  "fortuneGeneratedBirthFrame": "{yearPillar}年 {monthPillar}月 {dayPillar}日柱",
+  "@fortuneGeneratedBirthFrame": {
+    "placeholders": {
+      "yearPillar": {
+        "type": "String"
+      },
+      "monthPillar": {
+        "type": "String"
+      },
+      "dayPillar": {
+        "type": "String"
+      }
+    }
+  },
+  "fortuneGeneratedBirthFrameWithTime": "{yearPillar}年 {monthPillar}月 {dayPillar}日柱、{hourPillar}時",
+  "@fortuneGeneratedBirthFrameWithTime": {
+    "placeholders": {
+      "yearPillar": {
+        "type": "String"
+      },
+      "monthPillar": {
+        "type": "String"
+      },
+      "dayPillar": {
+        "type": "String"
+      },
+      "hourPillar": {
+        "type": "String"
+      }
+    }
+  },
+  "fortuneGeneratedDailyLineOne": "{name}の{birthFrame}に今日の{dailyPillar}の気が入り、{elementFlow}が目立ちます。",
+  "@fortuneGeneratedDailyLineOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "birthFrame": {
+        "type": "String"
+      },
+      "dailyPillar": {
+        "type": "String"
+      },
+      "elementFlow": {
+        "type": "String"
+      }
+    }
+  },
+  "fortuneGeneratedDailyLineTwo": "この流れは{fortuneTheme}として開くので、練習では{trainingTone}を楽しく生かしましょう。",
+  "@fortuneGeneratedDailyLineTwo": {
+    "placeholders": {
+      "fortuneTheme": {
+        "type": "String"
+      },
+      "trainingTone": {
+        "type": "String"
+      }
+    }
+  },
+  "fortuneGeneratedDailyLineThree": "名前から出る{nameElement}の気も重なるので、今日は{playAdvice}",
+  "@fortuneGeneratedDailyLineThree": {
+    "placeholders": {
+      "nameElement": {
+        "type": "String"
+      },
+      "playAdvice": {
+        "type": "String"
+      }
+    }
+  },
+  "fortuneGeneratedLuckyInfoHeader": "[ラッキー情報]",
+  "fortuneGeneratedLuckyInfoLine": "ラッキーナンバー {number}、カラー {color}、時間帯 {time} は {zone} で {cue} を意識してみましょう。",
+  "@fortuneGeneratedLuckyInfoLine": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "color": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      },
+      "cue": {
+        "type": "String"
+      }
+    }
+  },
+  "fortuneRecommendedRecoveryProgram": "リカバリー・ボールタッチ",
+  "fortuneRecommendedLightFirstTouchProgram": "軽いファーストタッチ",
+  "fortuneRecommendedForwardPassProgram": "前進パス連携",
+  "fortuneRecommendedCoreTechniqueProgram": "基礎ルーティン",
+  "fortuneRecommendationInjury": "痛みの確認を優先し、次の練習は{program}を中心に強度を下げましょう。",
+  "@fortuneRecommendationInjury": {
+    "placeholders": {
+      "program": {
+        "type": "String"
+      }
+    }
+  },
+  "fortuneRecommendationStrongFlow": "流れは良好です。次の練習は{program}でスピードと選択をつなげましょう。",
+  "@fortuneRecommendationStrongFlow": {
+    "placeholders": {
+      "program": {
+        "type": "String"
+      }
+    }
+  },
+  "fortuneRecommendationDefault": "次の練習は{program}でリズムを整え、正確さを上げましょう。",
+  "@fortuneRecommendationDefault": {
+    "placeholders": {
+      "program": {
+        "type": "String"
+      }
+    }
+  },
+  "fortuneSajuHeavenlyStems": "甲|乙|丙|丁|戊|己|庚|辛|壬|癸",
+  "fortuneSajuEarthlyBranches": "子|丑|寅|卯|辰|巳|午|未|申|酉|戌|亥",
+  "fortuneSajuElementFlows": "木の成長|火の表現|土の安定|金の整理|水の回復|木火の推進|土金の集中|水木の転換",
+  "fortuneSajuFortuneThemes": "新しい動きを受け入れる力|仲間と呼吸を合わせる感覚|小さなミスから早く戻る運|視野が広がる流れ|体の中心を取り戻す日|集中がはっきりする時間|言葉より動きが先に出る雰囲気|落ち着いて速度を上げる運",
+  "fortuneSajuTrainingTones": "ファーストタッチの方向整理|短いパス後の次の選択|体を開いて受ける動き|守備切り替えの一歩目|フィニッシュ前の呼吸調整|両足バランスの確認|オフボールのタイミング|リターンパスの角度作り",
+  "fortuneSajuNameElements": "木の速い出足|火の明るい表現|土の安定感|金の正確さ|水の柔らかさ|木火の自信|土金の粘り|水木の観察力",
+  "fortuneSajuPlayAdvice": "軽く始めても最後の選択ははっきりする日です。|小さなほめ言葉が体のリズムを起こす日です。|急ぐより一拍見て動くと良いです。|パスの前に顔を上げると運がつきます。|ウォームアップを丁寧にするとプレーが軽くなります。|ミスの後に表情を早く整えると次の場面が生きます。|強い三回より正確な一回が合う日です。|仲間の動きを先に読むと良い場面が開きます。",
+  "fortuneLuckyColorTones": "ディープ|ソフト|クリーン|サンセット|クール|ウォーム|ミスト|ブライト|モノ|アクセント",
+  "fortuneLuckyColorBases": "ネイビー|エメラルド|コーラル|マスタード|スカイブルー|カーキ|アイボリー|チェリーレッド|ライム|チャコール",
+  "fortuneLuckyTimePeriods": "早朝|午前後半|昼食直後|午後前半|午後遅め|夕暮れ|夕方前半|夜のルーティン時間",
+  "fortuneLuckyTimeWindows": "06:40~07:20|08:10~08:50|09:30~10:10|10:40~11:20|12:20~13:00|14:10~14:50|16:00~16:40|18:20~19:00|20:10~20:50|21:00~21:40",
+  "fortuneLuckyZoneModifiers": "左側|右側|中央|ハーフライン付近|ボックス外|タッチライン側|前進開始|守備切替",
+  "fortuneLuckyZoneBases": "ハーフスペース|タッチライン内側|ファーストタッチ地点|リターンパス角度|セカンドボール反応ゾーン|プレス回避の出発点|ワンツー連結線|抜け出しタイミング|視野確保の位置|仕上げ直前の空間",
+  "fortuneLuckyCueOpenings": "短く|最初のセット前に|呼吸を整えた後|ボールを受ける前に|つま先を起こしてから|顔を上げた直後|ターン直前に|リズムが崩れたら",
+  "fortuneLuckyCueActions": "もう一度スキャンする|タッチ方向を先に決める|両足の間隔を整える|一歩目を軽く置く|体を開いて次を見る|短い呼吸でテンポをまとめる|強さより正確さを選ぶ|ボール前に肩の角度を整える",
   "mealStatsNoTrainingOrMealEntries": "選択した期間にトレーニングや食事のエントリーはありません。",
   "drawerRunningCoach": "ランニングコーチ",
   "runningCoachScreenTitle": "ランニングコーチ",

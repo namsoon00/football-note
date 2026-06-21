@@ -10275,6 +10275,214 @@ abstract class AppLocalizations {
   /// **'Nice'**
   String get fortuneDialogAction;
 
+  /// No description provided for @entryFortuneOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to open fortune.'**
+  String get entryFortuneOpenFailed;
+
+  /// No description provided for @profileBirthTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth time'**
+  String get profileBirthTimeTitle;
+
+  /// No description provided for @profileBirthTimeSelectDateFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select birth date first'**
+  String get profileBirthTimeSelectDateFirst;
+
+  /// No description provided for @fortuneGeneratedUnknownPlayerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Player'**
+  String get fortuneGeneratedUnknownPlayerName;
+
+  /// No description provided for @fortuneGeneratedBirthNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'birth date not set in profile'**
+  String get fortuneGeneratedBirthNotSet;
+
+  /// No description provided for @fortuneGeneratedBirthFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'year {yearPillar}, month {monthPillar}, day-master {dayPillar}'**
+  String fortuneGeneratedBirthFrame(
+      String yearPillar, String monthPillar, String dayPillar);
+
+  /// No description provided for @fortuneGeneratedBirthFrameWithTime.
+  ///
+  /// In en, this message translates to:
+  /// **'year {yearPillar}, month {monthPillar}, day-master {dayPillar}, hour {hourPillar}'**
+  String fortuneGeneratedBirthFrameWithTime(String yearPillar,
+      String monthPillar, String dayPillar, String hourPillar);
+
+  /// No description provided for @fortuneGeneratedDailyLineOne.
+  ///
+  /// In en, this message translates to:
+  /// **'For {name}, {birthFrame} meets today\'s {dailyPillar} flow, so {elementFlow} stands out.'**
+  String fortuneGeneratedDailyLineOne(
+      String name, String birthFrame, String dailyPillar, String elementFlow);
+
+  /// No description provided for @fortuneGeneratedDailyLineTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'That opens as {fortuneTheme}, so make practice playful through {trainingTone}.'**
+  String fortuneGeneratedDailyLineTwo(String fortuneTheme, String trainingTone);
+
+  /// No description provided for @fortuneGeneratedDailyLineThree.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the name signal of {nameElement}, and today {playAdvice}'**
+  String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice);
+
+  /// No description provided for @fortuneGeneratedLuckyInfoHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'[Lucky info]'**
+  String get fortuneGeneratedLuckyInfoHeader;
+
+  /// No description provided for @fortuneGeneratedLuckyInfoLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Lucky number {number}, color {color}, and time {time} point to the {zone}; {cue}.'**
+  String fortuneGeneratedLuckyInfoLine(
+      int number, String color, String time, String zone, String cue);
+
+  /// No description provided for @fortuneRecommendedRecoveryProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery ball touch'**
+  String get fortuneRecommendedRecoveryProgram;
+
+  /// No description provided for @fortuneRecommendedLightFirstTouchProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Light first touch'**
+  String get fortuneRecommendedLightFirstTouchProgram;
+
+  /// No description provided for @fortuneRecommendedForwardPassProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward pass combination'**
+  String get fortuneRecommendedForwardPassProgram;
+
+  /// No description provided for @fortuneRecommendedCoreTechniqueProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Core technique routine'**
+  String get fortuneRecommendedCoreTechniqueProgram;
+
+  /// No description provided for @fortuneRecommendationInjury.
+  ///
+  /// In en, this message translates to:
+  /// **'Check pain first and lower the next session intensity around {program}.'**
+  String fortuneRecommendationInjury(String program);
+
+  /// No description provided for @fortuneRecommendationStrongFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rhythm is good. Keep the next session focused on {program}.'**
+  String fortuneRecommendationStrongFlow(String program);
+
+  /// No description provided for @fortuneRecommendationDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {program} next to settle your rhythm and raise accuracy.'**
+  String fortuneRecommendationDefault(String program);
+
+  /// No description provided for @fortuneSajuHeavenlyStems.
+  ///
+  /// In en, this message translates to:
+  /// **'Gap|Eul|Byeong|Jeong|Mu|Gi|Gyeong|Sin|Im|Gye'**
+  String get fortuneSajuHeavenlyStems;
+
+  /// No description provided for @fortuneSajuEarthlyBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Ja|Chuk|In|Myo|Jin|Sa|O|Mi|Sin|Yu|Sul|Hae'**
+  String get fortuneSajuEarthlyBranches;
+
+  /// No description provided for @fortuneSajuElementFlows.
+  ///
+  /// In en, this message translates to:
+  /// **'Wood growth|Fire expression|Earth balance|Metal clarity|Water recovery|Wood-fire drive|Earth-metal focus|Water-wood transition'**
+  String get fortuneSajuElementFlows;
+
+  /// No description provided for @fortuneSajuFortuneThemes.
+  ///
+  /// In en, this message translates to:
+  /// **'energy for accepting a new move|a sense for matching a teammate\'s rhythm|luck that recovers quickly from small mistakes|a flow that widens your scan|a day for finding your center again|a window where focus gets sharper|a mood where movement speaks before words|luck for raising speed calmly'**
+  String get fortuneSajuFortuneThemes;
+
+  /// No description provided for @fortuneSajuTrainingTones.
+  ///
+  /// In en, this message translates to:
+  /// **'setting the first-touch direction|short pass then next choice|receiving with the body open|the first step in defensive transition|breathing before the finish|checking both-foot balance|timing the off-ball movement|making the return-pass angle'**
+  String get fortuneSajuTrainingTones;
+
+  /// No description provided for @fortuneSajuNameElements.
+  ///
+  /// In en, this message translates to:
+  /// **'Wood\'s quick start|Fire\'s bright expression|Earth\'s stability|Metal\'s accuracy|Water\'s flexibility|Wood-fire confidence|Earth-metal steadiness|Water-wood observation'**
+  String get fortuneSajuNameElements;
+
+  /// No description provided for @fortuneSajuPlayAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'you can start light and still make the final choice clearly.|one small compliment can bring your rhythm alive.|it helps to pause one beat before pushing harder.|your luck rises when you lift your head before the pass.|careful warmups make the play feel fresher.|resetting your face after a mistake brings the next scene back.|one accurate touch fits better than three forced ones.|reading a teammate first opens a good scene.'**
+  String get fortuneSajuPlayAdvice;
+
+  /// No description provided for @fortuneLuckyColorTones.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep|Soft|Clean|Sunset|Cool|Warm|Mist|Bright|Mono|Accent'**
+  String get fortuneLuckyColorTones;
+
+  /// No description provided for @fortuneLuckyColorBases.
+  ///
+  /// In en, this message translates to:
+  /// **'Navy|Emerald|Coral|Mustard|Sky Blue|Khaki|Ivory|Cherry Red|Lime|Charcoal'**
+  String get fortuneLuckyColorBases;
+
+  /// No description provided for @fortuneLuckyTimePeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'Early morning|Late morning|Right after lunch|Early afternoon|Late afternoon|At sunset|Early evening|Night routine window'**
+  String get fortuneLuckyTimePeriods;
+
+  /// No description provided for @fortuneLuckyTimeWindows.
+  ///
+  /// In en, this message translates to:
+  /// **'06:40-07:20|08:10-08:50|09:30-10:10|10:40-11:20|12:20-13:00|14:10-14:50|16:00-16:40|18:20-19:00|20:10-20:50|21:00-21:40'**
+  String get fortuneLuckyTimeWindows;
+
+  /// No description provided for @fortuneLuckyZoneModifiers.
+  ///
+  /// In en, this message translates to:
+  /// **'Left-side|Right-side|Central|Half-line|Box-edge|Touchline-side|Forward-start|Transition'**
+  String get fortuneLuckyZoneModifiers;
+
+  /// No description provided for @fortuneLuckyZoneBases.
+  ///
+  /// In en, this message translates to:
+  /// **'half-space|inside channel|first-touch spot|return-pass angle|second-ball lane|press-break starting point|one-two lane|run timing window|scanning pocket|pre-finish space'**
+  String get fortuneLuckyZoneBases;
+
+  /// No description provided for @fortuneLuckyCueOpenings.
+  ///
+  /// In en, this message translates to:
+  /// **'Briefly|Before the first set|After settling the breath|Before receiving the ball|Once the feet wake up|Right after lifting the head|Just before the turn|When the rhythm slips'**
+  String get fortuneLuckyCueOpenings;
+
+  /// No description provided for @fortuneLuckyCueActions.
+  ///
+  /// In en, this message translates to:
+  /// **'scan one more time|pick the touch direction first|set the gap between both feet|keep the first step light|open the body and see the next option|bind the tempo with a short breath|choose accuracy before force|set the shoulder angle before the ball arrives'**
+  String get fortuneLuckyCueActions;
+
   /// No description provided for @mealStatsNoTrainingOrMealEntries.
   ///
   /// In en, this message translates to:

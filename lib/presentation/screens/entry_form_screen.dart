@@ -3343,10 +3343,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       await _showTodayFortuneInNote(forceShow: true);
     } catch (_) {
       if (!mounted || _disposing) return;
-      final isKo = Localizations.localeOf(context).languageCode == 'ko';
-      _showWeatherSnack(
-        isKo ? '운세 화면을 여는 중 문제가 생겼어요.' : 'Failed to open fortune.',
-      );
+      _showWeatherSnack(AppLocalizations.of(context)!.entryFortuneOpenFailed);
     }
   }
 
@@ -3364,6 +3361,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final sportId = widget.entry?.sportId ??
         SportService(widget.optionRepository).currentSportId();
     final profile = PlayerProfileService(
@@ -3432,7 +3430,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       entry: draft,
       profile: profile,
       history: allEntries,
-      isKo: isKo,
+      l10n: l10n,
     );
     _cachedFortuneComment = fortune.fortuneText;
     _cachedFortuneRecommendation = fortune.recommendationText;
@@ -3634,7 +3632,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           entry: draftEntry,
           profile: profile,
           history: allEntries,
-          isKo: isKo,
+          l10n: l10n,
         );
         _cachedFortuneComment = generatedFortune.fortuneText;
         _cachedFortuneRecommendation = generatedFortune.recommendationText;

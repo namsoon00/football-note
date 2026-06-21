@@ -2,10 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/local_fortune_service.dart';
 import 'package:football_note/domain/entities/player_profile.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
+import 'package:football_note/gen/app_localizations_ko.dart';
 
 void main() {
-  test('generateResult keeps lucky info to one sentence', () {
+  test('generateResult adds saju-style daily reading before lucky info', () {
     final service = LocalFortuneService();
+    final l10n = AppLocalizationsKo();
     final result = service.generateResult(
       entry: TrainingEntry(
         date: DateTime(2026, 3, 15, 18),
@@ -19,9 +21,12 @@ void main() {
         location: '학교 운동장',
         program: '볼터치',
       ),
-      profile: const PlayerProfile(name: 'Tester'),
+      profile: PlayerProfile(
+        name: '민준',
+        birthDate: DateTime(2012, 3, 10, 7, 30),
+      ),
       history: const <TrainingEntry>[],
-      isKo: true,
+      l10n: l10n,
     );
 
     expect(result.fortuneText, isNot(contains('행운 흐름:')));
@@ -29,11 +34,55 @@ void main() {
     expect(result.fortuneText, isNot(contains('행운 준비도:')));
     expect(result.fortuneText, isNot(contains('행운 최근 흐름:')));
     final lines = result.fortuneText.split('\n');
-    expect(lines, hasLength(2));
-    expect(lines.first, '[행운 정보]');
+    expect(lines, hasLength(5));
+    expect(lines.first, contains('민준'));
+    expect(lines.first, contains('임진년'));
+    expect(lines.first, contains('일주'));
+    expect(lines.first, contains('시'));
+    expect(lines[3], '[행운 정보]');
     expect(lines.last, contains('행운 숫자 '));
     expect(lines.last, contains('색상 '));
     expect(lines.last, contains('시간대 '));
     expect(lines.last, contains('의식해 보세요.'));
+  });
+
+  test('birth date and name change the generated fortune', () {
+    final service = LocalFortuneService();
+    final l10n = AppLocalizationsKo();
+    final entry = TrainingEntry(
+      date: DateTime(2026, 4, 2, 18),
+      createdAt: DateTime(2026, 4, 2, 18),
+      durationMinutes: 60,
+      intensity: 3,
+      type: '패스',
+      mood: 3,
+      injury: false,
+      notes: '',
+      location: '',
+      program: '패스',
+    );
+
+    final first = service.generateResult(
+      entry: entry,
+      profile: PlayerProfile(
+        name: '민준',
+        birthDate: DateTime(2012, 3, 10, 7, 30),
+      ),
+      history: const <TrainingEntry>[],
+      l10n: l10n,
+    );
+    final second = service.generateResult(
+      entry: entry,
+      profile: PlayerProfile(
+        name: '서윤',
+        birthDate: DateTime(2014, 9, 20, 15, 10),
+      ),
+      history: const <TrainingEntry>[],
+      l10n: l10n,
+    );
+
+    expect(first.fortuneText, isNot(second.fortuneText));
+    expect(first.fortuneText, contains('민준'));
+    expect(second.fortuneText, contains('서윤'));
   });
 }

@@ -372,6 +372,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ? null
                     : () => _pickDate(
                           initial: _birthDate,
+                          preserveTime: true,
+                          onPicked: (value) {
+                            setState(() => _birthDate = value);
+                            _scheduleAutoSave();
+                          },
+                        ),
+              ),
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.profileBirthTimeTitle),
+              subtitle: Text(_formatBirthTime(_birthDate, l10n)),
+              trailing: IconButton(
+                icon: const Icon(Icons.schedule),
+                onPressed: isReadOnly || _birthDate == null
+                    ? null
+                    : () => _pickBirthTime(
+                          initial: _birthDate!,
                           onPicked: (value) {
                             setState(() => _birthDate = value);
                             _scheduleAutoSave();
@@ -431,9 +449,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return DateFormat('yyyy.MM.dd').format(value);
   }
 
+  String _formatBirthTime(DateTime? value, AppLocalizations l10n) {
+    if (value == null) return l10n.profileBirthTimeSelectDateFirst;
+    if (!_hasBirthTime(value)) return l10n.notSet;
+    return DateFormat('HH:mm').format(value);
+  }
+
   Future<void> _pickDate({
     required DateTime? initial,
     required ValueChanged<DateTime?> onPicked,
+    bool preserveTime = false,
   }) async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -443,7 +468,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
       lastDate: DateTime(now.year, now.month, now.day),
     );
     if (picked == null) return;
-    onPicked(DateTime(picked.year, picked.month, picked.day));
+    final hour = preserveTime ? initial?.hour ?? 0 : 0;
+    final minute = preserveTime ? initial?.minute ?? 0 : 0;
+    onPicked(DateTime(picked.year, picked.month, picked.day, hour, minute));
+  }
+
+  Future<void> _pickBirthTime({
+    required DateTime initial,
+    required ValueChanged<DateTime?> onPicked,
+  }) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _hasBirthTime(initial)
+          ? TimeOfDay.fromDateTime(initial)
+          : const TimeOfDay(hour: 12, minute: 0),
+    );
+    if (picked == null) return;
+    onPicked(
+      DateTime(
+        initial.year,
+        initial.month,
+        initial.day,
+        picked.hour,
+        picked.minute,
+      ),
+    );
+  }
+
+  bool _hasBirthTime(DateTime value) {
+    return value.hour != 0 ||
+        value.minute != 0 ||
+        value.second != 0 ||
+        value.millisecond != 0 ||
+        value.microsecond != 0;
   }
 
   void _scheduleAutoSave() {
