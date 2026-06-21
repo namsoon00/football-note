@@ -4670,7 +4670,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherPrecipitationProbability => 'Rain chance';
 
   @override
-  String get weatherPrecipitationNone => 'Almost no rain';
+  String get weatherPrecipitationNone => 'No rain';
 
   @override
   String get weatherPrecipitationTrace => 'A little rain';

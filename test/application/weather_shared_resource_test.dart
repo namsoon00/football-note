@@ -290,5 +290,20 @@ void main() {
 
       expect(WeatherSharedResource.cachedSnapshot(locale: locale), isNull);
     });
+
+    test('primeSnapshot publishes snapshot updates', () async {
+      final snapshot = WeatherSharedSnapshot(
+        location: '탄천',
+        localeTag: 'ko-KR',
+        fetchedAt: DateTime(2026, 4, 26, 9),
+        summary: '맑음 17°C',
+        weatherCode: 0,
+      );
+      final nextUpdate = WeatherSharedResource.snapshotUpdates.first;
+
+      WeatherSharedResource.primeSnapshot(snapshot);
+
+      expect(await nextUpdate, same(snapshot));
+    });
   });
 }

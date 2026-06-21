@@ -119,6 +119,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   String _weatherSummary = '';
   int? _weatherCode;
   Timer? _initialWeatherTimer;
+  StreamSubscription<WeatherSharedSnapshot>? _weatherSnapshotSubscription;
   late Stream<List<TrainingEntry>> _trainingEntriesStream;
   bool _dailyTaskAwardInFlight = false;
   bool _dailyTaskRevokeInFlight = false;
@@ -146,6 +147,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   void initState() {
     super.initState();
     _trainingEntriesStream = _watchHomeTrainingEntries();
+    _weatherSnapshotSubscription = WeatherSharedResource.snapshotUpdates.listen(
+      _handleSharedWeatherSnapshot,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final hasFreshWeather = _applyCachedHomeWeather();
@@ -168,6 +172,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   @override
   void dispose() {
     _initialWeatherTimer?.cancel();
+    unawaited(_weatherSnapshotSubscription?.cancel());
     super.dispose();
   }
 
@@ -474,6 +479,17 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     _applyHomeWeatherSnapshot(persistedSnapshot);
     return DateTime.now().difference(persistedSnapshot.fetchedAt) <
         WeatherSharedResource.cacheTtl;
+  }
+
+  void _handleSharedWeatherSnapshot(WeatherSharedSnapshot snapshot) {
+    if (!mounted) return;
+    final locale = Localizations.localeOf(context);
+    if (snapshot.localeTag != locale.toLanguageTag()) return;
+    if (snapshot.summary.trim().isEmpty && snapshot.weatherCode == null) {
+      return;
+    }
+    _applyHomeWeatherSnapshot(snapshot);
+    unawaited(_persistHomeWeatherSnapshot(snapshot));
   }
 
   void _applyHomeWeatherSnapshot(WeatherSharedSnapshot snapshot) {

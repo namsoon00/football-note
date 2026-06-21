@@ -10,6 +10,7 @@ import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
+import 'package:football_note/application/weather_shared_resource.dart';
 import 'package:football_note/domain/entities/training_board.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/backup_repository.dart';
@@ -24,6 +25,8 @@ import 'package:football_note/presentation/screens/meal_log_screen.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
 
 void main() {
+  setUp(WeatherSharedResource.debugClearCache);
+
   testWidgets(
     'home startup sync checks daily backup before family refresh',
     (WidgetTester tester) async {
@@ -57,6 +60,65 @@ void main() {
       await tester.pump();
     },
   );
+
+  testWidgets('home weather badge follows shared weather snapshot updates', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeHubScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          onCreate: () {},
+          onQuickPlan: () {},
+          onQuickMatch: () {},
+          onQuickQuiz: () {},
+          onQuickMeal: () {},
+          onQuickBoard: () {},
+          onOpenPlans: () {},
+          onOpenLogs: () {},
+          onOpenDiary: () {},
+          onOpenWeeklyStats: () {},
+          onEdit: (_) {},
+          onEditTrainingBoard: (_) {},
+          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '탄천',
+        localeTag: 'ko',
+        fetchedAt: DateTime(2026, 6, 21, 9),
+        summary: '소나기 18°C',
+        weatherCode: 61,
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('소나기'), findsOneWidget);
+    expect(find.text('18°C'), findsOneWidget);
+    expect(
+      optionRepository.getValue<String>('home_weather_snapshot_v1'),
+      contains('소나기 18°C'),
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
 
   testWidgets('home first-run guide uses coach marks and starts an action', (
     WidgetTester tester,

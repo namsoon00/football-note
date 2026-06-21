@@ -242,7 +242,7 @@ void main() {
     expect(find.textContaining('0.5 mm'), findsAtLeastNWidgets(1));
     expect(find.textContaining('조금 와요'), findsAtLeastNWidgets(1));
     expect(find.textContaining('0.0 mm'), findsOneWidget);
-    expect(find.textContaining('비가 거의 안 와요'), findsOneWidget);
+    expect(find.textContaining('비가 안 와요'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
