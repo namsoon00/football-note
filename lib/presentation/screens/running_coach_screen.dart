@@ -2332,172 +2332,171 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame>
       _controller,
       if (videoController != null) videoController,
     ]);
-    return AspectRatio(
-      key: const ValueKey('running-coach-sample-video-frame'),
-      aspectRatio: 16 / 9,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest,
-            border: Border.all(color: scheme.outlineVariant),
-          ),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: _isVideoReady &&
-                        videoController != null &&
-                        videoController.value.isInitialized
-                    ? FittedBox(
-                        fit: BoxFit.cover,
-                        child: SizedBox(
-                          width: videoController.value.size.width,
-                          height: videoController.value.size.height,
-                          child: VideoPlayer(videoController),
-                        ),
-                      )
-                    : AnimatedBuilder(
-                        animation: _controller,
-                        builder: (context, _) => CustomPaint(
-                          painter: _SampleRunnerPainter(
-                            progress: _controller.value,
-                            lineColor: runnerColor,
-                            trackColor: scheme.outlineVariant,
-                            ghostColor: runnerColor.withValues(alpha: 0.18),
-                            frameColor: scheme.tertiary,
-                            markerColor: scheme.secondary,
-                            poseVariant: isMistake
-                                ? SampleRunnerPoseVariant.mistake
-                                : SampleRunnerPoseVariant.reference,
-                          ),
-                        ),
-                      ),
+    final decisionMetrics = [
+      _SampleDecisionMetric(
+        icon: Icons.show_chart_rounded,
+        label: l10n.runningCoachSampleMetricPosture,
+        value: postureOverlay,
+        isPass: !isMistake,
+      ),
+      _SampleDecisionMetric(
+        icon: Icons.sync_alt_rounded,
+        label: l10n.runningCoachSampleMetricArms,
+        value: armsOverlay,
+        isPass: !isMistake,
+      ),
+      _SampleDecisionMetric(
+        icon: Icons.ads_click_rounded,
+        label: l10n.runningCoachSampleMetricLanding,
+        value: footOverlay,
+        isPass: !isMistake,
+      ),
+      _SampleDecisionMetric(
+        icon:
+            isMistake ? Icons.warning_amber_rounded : Icons.fact_check_outlined,
+        label: fourthMetricLabel,
+        value: fourthOverlay,
+        isPass: !isMistake,
+      ),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AspectRatio(
+          key: const ValueKey('running-coach-sample-video-frame'),
+          aspectRatio: 16 / 9,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                border: Border.all(color: scheme.outlineVariant),
               ),
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: AnimatedBuilder(
-                    animation: overlayTicker,
-                    builder: (context, _) {
-                      final progress = _sampleProgressFor(videoController);
-                      return CustomPaint(
-                        painter: _SampleVideoAnalysisPainter(
-                          progress: progress,
-                          isMistake: isMistake,
-                          primaryColor: runnerColor,
-                          secondaryColor: scheme.secondary,
-                          contactColor: scheme.tertiary,
-                          warningColor: scheme.error,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final compact = constraints.maxWidth < 640 ||
-                          constraints.maxHeight < 340;
-                      return _SampleDecisionOverlay(
-                        compact: compact,
-                        score: widget.score,
-                        title: l10n.runningCoachSampleDecisionTitle,
-                        scoreLabel: l10n.runningCoachOverallScoreLabel,
-                        statusPass: l10n.runningCoachSampleStatusPass,
-                        statusReview: l10n.runningCoachSampleStatusReview,
-                        metrics: [
-                          _SampleDecisionMetric(
-                            icon: Icons.show_chart_rounded,
-                            label: l10n.runningCoachSampleMetricPosture,
-                            value: postureOverlay,
-                            isPass: !isMistake,
-                          ),
-                          _SampleDecisionMetric(
-                            icon: Icons.sync_alt_rounded,
-                            label: l10n.runningCoachSampleMetricArms,
-                            value: armsOverlay,
-                            isPass: !isMistake,
-                          ),
-                          _SampleDecisionMetric(
-                            icon: Icons.ads_click_rounded,
-                            label: l10n.runningCoachSampleMetricLanding,
-                            value: footOverlay,
-                            isPass: !isMistake,
-                          ),
-                          _SampleDecisionMetric(
-                            icon: isMistake
-                                ? Icons.warning_amber_rounded
-                                : Icons.fact_check_outlined,
-                            label: fourthMetricLabel,
-                            value: fourthOverlay,
-                            isPass: !isMistake,
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 12,
-                right: 12,
-                top: 12,
-                child: AnimatedBuilder(
-                  animation: overlayTicker,
-                  builder: (context, _) {
-                    final progress = _sampleProgressFor(videoController);
-                    final frameNumber =
-                        ((progress * _sampleTimelineFrameCount).floor() %
-                                _sampleTimelineFrameCount) +
-                            1;
-                    return Row(
-                      children: [
-                        _VideoOverlayPill(
-                          text: l10n.runningCoachSampleFrameLabel(
-                            frameNumber,
-                            _sampleTimelineFrameCount,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Center(
-                            child: _VideoOverlayPill(
-                              key: const ValueKey(
-                                'running-coach-sample-analysis-phase',
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: _isVideoReady &&
+                            videoController != null &&
+                            videoController.value.isInitialized
+                        ? FittedBox(
+                            fit: BoxFit.cover,
+                            child: SizedBox(
+                              width: videoController.value.size.width,
+                              height: videoController.value.size.height,
+                              child: VideoPlayer(videoController),
+                            ),
+                          )
+                        : AnimatedBuilder(
+                            animation: _controller,
+                            builder: (context, _) => CustomPaint(
+                              painter: _SampleRunnerPainter(
+                                progress: _controller.value,
+                                lineColor: runnerColor,
+                                trackColor: scheme.outlineVariant,
+                                ghostColor: runnerColor.withValues(alpha: 0.18),
+                                frameColor: scheme.tertiary,
+                                markerColor: scheme.secondary,
+                                poseVariant: isMistake
+                                    ? SampleRunnerPoseVariant.mistake
+                                    : SampleRunnerPoseVariant.reference,
                               ),
-                              text: _sampleAnalysisPhaseLabel(l10n, progress),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        _VideoOverlayPill(text: '${widget.score}'),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              Positioned(
-                left: 12,
-                right: 12,
-                bottom: 10,
-                child: AnimatedBuilder(
-                  animation: overlayTicker,
-                  builder: (context, _) => ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
-                    child: LinearProgressIndicator(
-                      value: _sampleProgressFor(videoController),
-                      minHeight: 4,
-                      backgroundColor: Colors.white.withValues(alpha: 0.20),
-                      color: scheme.primary,
+                  ),
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: AnimatedBuilder(
+                        animation: overlayTicker,
+                        builder: (context, _) {
+                          final progress = _sampleProgressFor(videoController);
+                          return CustomPaint(
+                            painter: _SampleVideoAnalysisPainter(
+                              progress: progress,
+                              isMistake: isMistake,
+                              primaryColor: runnerColor,
+                              secondaryColor: scheme.secondary,
+                              contactColor: scheme.tertiary,
+                              warningColor: scheme.error,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
+                  Positioned(
+                    left: 12,
+                    right: 12,
+                    top: 12,
+                    child: AnimatedBuilder(
+                      animation: overlayTicker,
+                      builder: (context, _) {
+                        final progress = _sampleProgressFor(videoController);
+                        final frameNumber =
+                            ((progress * _sampleTimelineFrameCount).floor() %
+                                    _sampleTimelineFrameCount) +
+                                1;
+                        return Row(
+                          children: [
+                            _VideoOverlayPill(
+                              text: l10n.runningCoachSampleFrameLabel(
+                                frameNumber,
+                                _sampleTimelineFrameCount,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Center(
+                                child: _VideoOverlayPill(
+                                  key: const ValueKey(
+                                    'running-coach-sample-analysis-phase',
+                                  ),
+                                  text: _sampleAnalysisPhaseLabel(
+                                    l10n,
+                                    progress,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _VideoOverlayPill(text: '${widget.score}'),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    left: 12,
+                    right: 12,
+                    bottom: 10,
+                    child: AnimatedBuilder(
+                      animation: overlayTicker,
+                      builder: (context, _) => ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: LinearProgressIndicator(
+                          value: _sampleProgressFor(videoController),
+                          minHeight: 4,
+                          backgroundColor: Colors.white.withValues(alpha: 0.20),
+                          color: scheme.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        _SampleDecisionOverlay(
+          compact: true,
+          score: widget.score,
+          title: l10n.runningCoachSampleDecisionTitle,
+          scoreLabel: l10n.runningCoachOverallScoreLabel,
+          statusPass: l10n.runningCoachSampleStatusPass,
+          statusReview: l10n.runningCoachSampleStatusReview,
+          metrics: decisionMetrics,
+        ),
+      ],
     );
   }
 }
@@ -2553,9 +2552,9 @@ class _SampleDecisionOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final panel = DecoratedBox(
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: scheme.surface.withValues(alpha: 0.82),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.76),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: scheme.outlineVariant),
         boxShadow: [
@@ -2629,17 +2628,6 @@ class _SampleDecisionOverlay extends StatelessWidget {
                 ],
               ),
           ],
-        ),
-      ),
-    );
-
-    return Align(
-      alignment: compact ? Alignment.bottomCenter : Alignment.centerRight,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(12, 76, 12, compact ? 28 : 34),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: compact ? 420 : 218),
-          child: panel,
         ),
       ),
     );
