@@ -303,7 +303,7 @@ void main() {
     await tester.tap(find.text('시합'));
     await tester.pumpAndSettle();
 
-    expect(find.text('친선 경기 결과'), findsOneWidget);
+    expect(find.text('경기 결과'), findsOneWidget);
 
     await tester.enterText(
       find
@@ -398,6 +398,10 @@ void main() {
           .first,
       '2',
     );
+    await tester.ensureVisible(find.widgetWithText(ChoiceChip, '승'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(ChoiceChip, '승'));
+    await tester.pump();
 
     final saveButton = find.widgetWithText(FilledButton, '저장');
     await tester.ensureVisible(saveButton);
@@ -414,10 +418,13 @@ void main() {
     expect(entries.single.matchStage, 'quarterfinal');
     expect(entries.single.tournamentOutcome, 'advanced');
     expect(entries.single.tournamentWins, 2);
+    expect(entries.single.scoredGoals, 1);
+    expect(entries.single.concededGoals, 0);
     expect(find.textContaining('토너먼트'), findsWidgets);
     expect(find.textContaining('봄 컵'), findsOneWidget);
     expect(find.textContaining('8강'), findsOneWidget);
     expect(find.textContaining('다음 라운드 진출'), findsOneWidget);
+    expect(find.textContaining('결과 1:0'), findsOneWidget);
     expect(find.textContaining('2승'), findsOneWidget);
   });
 
@@ -468,6 +475,10 @@ void main() {
           .first,
       '3',
     );
+    await tester.ensureVisible(find.widgetWithText(ChoiceChip, '무'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(ChoiceChip, '무'));
+    await tester.pump();
 
     final saveButton = find.widgetWithText(FilledButton, '저장');
     await tester.ensureVisible(saveButton);
@@ -487,9 +498,12 @@ void main() {
       '그린 FC',
     ]);
     expect(entries.single.leaguePoints, 3);
+    expect(entries.single.scoredGoals, 1);
+    expect(entries.single.concededGoals, 1);
     expect(find.textContaining('리그 경기'), findsWidgets);
     expect(find.textContaining('주말 리그'), findsOneWidget);
     expect(find.textContaining('3라운드'), findsOneWidget);
+    expect(find.textContaining('결과 1:1'), findsOneWidget);
     expect(find.textContaining('승점 3'), findsOneWidget);
   });
 

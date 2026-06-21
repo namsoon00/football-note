@@ -8743,6 +8743,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchFriendlyResultLabel => 'Friendly result';
 
   @override
+  String get matchResultLabel => 'Match result';
+
+  @override
   String get matchResultUnset => 'Unset';
 
   @override

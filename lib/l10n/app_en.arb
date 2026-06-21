@@ -4652,6 +4652,7 @@
   "matchKindLeague": "League",
   "matchKindTournament": "Tournament",
   "matchFriendlyResultLabel": "Friendly result",
+  "matchResultLabel": "Match result",
   "matchResultUnset": "Unset",
   "matchResultWin": "Win",
   "matchResultDraw": "Draw",
