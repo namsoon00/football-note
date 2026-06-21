@@ -1882,7 +1882,6 @@ class _FixtureRow extends StatelessWidget {
             runSpacing: 6,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              _SmallPill(label: l10n.worldCupMatchNumber(fixture.matchNumber)),
               _SmallPill(label: _stageLabel(l10n, fixture)),
               if (supportMatch || interestMatch) ...[
                 _SmallPill(
