@@ -19,13 +19,17 @@ import 'application/locale_service.dart';
 import 'application/settings_service.dart';
 import 'application/backup_service.dart';
 import 'application/drive_backup_service.dart';
+import 'application/family_access_service.dart';
 import 'application/meal_log_service.dart';
 import 'application/league_fixture_reminder_service.dart';
 import 'application/notification_app_link.dart';
+import 'application/sport_service.dart';
 import 'application/sport_state_controller.dart';
 import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
+import 'domain/entities/sport_definition.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/sport_start_selection_screen.dart';
 import 'presentation/screens/welcome_screen.dart';
 import 'presentation/theme/app_theme.dart';
 import 'presentation/navigation/notification_tap_router.dart';
@@ -321,6 +325,8 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
 
   late final HomeScreen _homeScreen;
   bool _parentRefreshBusy = false;
+  bool _startupSportSelected = false;
+  bool _sportSelectionInFlight = false;
   bool _welcomeSeen = false;
   bool _welcomeDismissInFlight = false;
 
@@ -330,6 +336,13 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _welcomeSeen =
         widget.optionRepository.getValue<bool>(_welcomeSeenKey) ?? false;
+    final hasStoredSport = widget.optionRepository.getValue<String>(
+          SportCatalog.currentSportOptionKey,
+        ) !=
+        null;
+    final isSupportMode =
+        FamilyAccessService(widget.optionRepository).loadState().isSupportMode;
+    _startupSportSelected = hasStoredSport || isSupportMode;
     _homeScreen = HomeScreen(
       key: const ValueKey('home-screen'),
       trainingService: widget.trainingService,
@@ -404,8 +417,38 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
     }
   }
 
+  void _markStartupSportSelected(String sportId) {
+    if (_sportSelectionInFlight) {
+      return;
+    }
+    _sportSelectionInFlight = true;
+    unawaited(_markStartupSportSelectedAsync(sportId));
+  }
+
+  Future<void> _markStartupSportSelectedAsync(String sportId) async {
+    try {
+      await SportService(widget.optionRepository).setCurrentSportId(sportId);
+      if (!mounted) {
+        return;
+      }
+      SportScope.read(context)?.reloadFromStorage();
+      setState(() {
+        _startupSportSelected = true;
+        _sportSelectionInFlight = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _sportSelectionInFlight = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_startupSportSelected) {
+      return SportStartSelectionScreen(onSelected: _markStartupSportSelected);
+    }
     if (!_welcomeSeen) {
       return WelcomeScreen(onStart: _markWelcomeSeen);
     }

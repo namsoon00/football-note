@@ -214,6 +214,48 @@ abstract class AppLocalizations {
   /// **'One small action is enough. Log it, restart, and take one more step tomorrow.'**
   String get welcomeSlideFlameBody;
 
+  /// No description provided for @startupSportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your sport first'**
+  String get startupSportTitle;
+
+  /// No description provided for @startupSportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Records, goals, stats, and news start around the sport you choose. You can change it later in Settings.'**
+  String get startupSportSubtitle;
+
+  /// No description provided for @startupSportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with this sport'**
+  String get startupSportAction;
+
+  /// No description provided for @startupSportFootballDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with football training, matches, sketches, and news.'**
+  String get startupSportFootballDescription;
+
+  /// No description provided for @startupSportBaseballDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Track throwing, batting, fielding, and conditioning for baseball.'**
+  String get startupSportBaseballDescription;
+
+  /// No description provided for @startupSportBasketballDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Log shooting, dribbling, game flow, and conditioning for basketball.'**
+  String get startupSportBasketballDescription;
+
+  /// No description provided for @startupSportTennisDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Track strokes, serves, rallies, and support training for tennis.'**
+  String get startupSportTennisDescription;
+
   /// No description provided for @tabGuideCoachMarkStep.
   ///
   /// In en, this message translates to:
