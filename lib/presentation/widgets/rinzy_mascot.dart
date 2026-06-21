@@ -632,18 +632,18 @@ class _ChallengeCheerPomPomsPainter extends CustomPainter {
     final wave = math.sin(phase * math.pi * 2);
     _drawCheerPomPom(
       canvas,
-      hand: Offset(size.width * 0.26, size.height * 0.42),
+      hand: Offset(size.width * 0.26, size.height * (0.42 + wave * 0.012)),
       unit: unit,
-      angle: -math.pi * 0.68 + wave * 0.24,
+      angle: -math.pi * 0.68,
       flutter: phase + 0.10,
       primary: const Color(0xFFFFC857),
       accent: const Color(0xFFFF7A90),
     );
     _drawCheerPomPom(
       canvas,
-      hand: Offset(size.width * 0.74, size.height * 0.42),
+      hand: Offset(size.width * 0.74, size.height * (0.42 - wave * 0.012)),
       unit: unit,
-      angle: -math.pi * 0.32 - wave * 0.24,
+      angle: -math.pi * 0.32,
       flutter: phase + 0.58,
       primary: const Color(0xFF7DD3FC),
       accent: const Color(0xFF86EFAC),
@@ -666,8 +666,10 @@ void _drawCheerPomPom(
   required Color accent,
 }) {
   final direction = Offset(math.cos(angle), math.sin(angle));
-  final flick = math.sin(flutter * math.pi * 2);
-  final center = hand + direction * unit * (0.030 + flick * 0.004);
+  final flutterPhase = flutter * math.pi * 2;
+  final sway = math.sin(flutterPhase);
+  final center =
+      hand + direction * unit * 0.030 + Offset(0, sway * unit * 0.002);
 
   final colors = <Color>[
     primary,
@@ -680,11 +682,12 @@ void _drawCheerPomPom(
     accent,
   ];
 
-  for (var index = 0; index < 42; index += 1) {
-    final progress = index / 41;
+  for (var index = 0; index < 48; index += 1) {
+    final progress = index / 47;
     final spread = (progress - 0.5) * math.pi * 2.08;
-    final ripple = math.sin(flutter * math.pi * 2 + index * 0.41);
-    final strandAngle = angle + spread + ripple * 0.14;
+    final ripple = math.sin(flutterPhase + index * 0.43);
+    final shimmer = math.cos(flutterPhase * 1.35 + index * 0.31);
+    final strandAngle = angle + spread;
     final strandDirection =
         Offset(math.cos(strandAngle), math.sin(strandAngle));
     final strandNormal = Offset(-strandDirection.dy, strandDirection.dx);
@@ -692,12 +695,17 @@ void _drawCheerPomPom(
         center - strandDirection * unit * (0.014 + (index % 3) * 0.002);
     final control = center +
         strandDirection * unit * (0.050 + (index % 4) * 0.006) +
-        strandNormal * unit * ripple * 0.032;
+        strandNormal * unit * ripple * 0.036 +
+        direction * unit * shimmer * 0.004;
     final end = center +
         strandDirection *
             unit *
-            (0.088 + (index % 5) * 0.006 + math.sin(index * 1.37) * 0.010) +
-        strandNormal * unit * ripple * 0.036;
+            (0.090 +
+                (index % 5) * 0.006 +
+                math.sin(index * 1.37) * 0.010 +
+                shimmer * 0.006) +
+        strandNormal * unit * ripple * 0.042 +
+        direction * unit * shimmer * 0.006;
     final color = colors[index % colors.length];
     final paint = Paint()
       ..color = color.withValues(alpha: color == Colors.white ? 0.72 : 0.84)
@@ -710,18 +718,22 @@ void _drawCheerPomPom(
     canvas.drawPath(path, paint);
   }
 
-  for (var index = 0; index < 24; index += 1) {
-    final progress = index / 23;
+  for (var index = 0; index < 30; index += 1) {
+    final progress = index / 29;
     final spread = (progress - 0.5) * math.pi * 1.70;
-    final ripple = math.sin(flutter * math.pi * 2 + index * 0.77);
-    final strandAngle = angle + spread - ripple * 0.11;
+    final ripple = math.sin(flutterPhase + index * 0.79);
+    final shimmer = math.cos(flutterPhase * 1.25 + index * 0.47);
+    final strandAngle = angle + spread;
     final strandDirection =
         Offset(math.cos(strandAngle), math.sin(strandAngle));
     final strandNormal = Offset(-strandDirection.dy, strandDirection.dx);
     final start = center - strandDirection * unit * 0.006;
     final end = center +
-        strandDirection * unit * (0.050 + (index % 4) * 0.006) +
-        strandNormal * unit * ripple * 0.024;
+        strandDirection *
+            unit *
+            (0.052 + (index % 4) * 0.006 + shimmer * 0.004) +
+        strandNormal * unit * ripple * 0.030 +
+        direction * unit * shimmer * 0.004;
     final color = colors[(index * 3 + 1) % colors.length];
     final paint = Paint()
       ..color = color.withValues(alpha: color == Colors.white ? 0.68 : 0.78)
@@ -946,7 +958,7 @@ class _RinzyChibiPainter extends CustomPainter {
         canvas,
         hand: leftPomPom,
         unit: unit,
-        angle: -math.pi * 0.68 + cheerWave * 0.24,
+        angle: -math.pi * 0.68,
         flutter: phase + 0.10,
         primary: const Color(0xFFFFC857),
         accent: const Color(0xFFFF7A90),
@@ -955,7 +967,7 @@ class _RinzyChibiPainter extends CustomPainter {
         canvas,
         hand: rightPomPom,
         unit: unit,
-        angle: -math.pi * 0.32 - cheerWave * 0.24,
+        angle: -math.pi * 0.32,
         flutter: phase + 0.58,
         primary: const Color(0xFF7DD3FC),
         accent: const Color(0xFF86EFAC),
