@@ -281,10 +281,13 @@ void main() {
 
     expect(find.text('멕시코 선수 명단'), findsOneWidget);
     expect(find.text('상대별 결과'), findsOneWidget);
+    final rosterScroll = find.byType(Scrollable).last;
+    await tester.drag(rosterScroll, const Offset(0, -140));
+    await tester.pumpAndSettle();
     await tester.tap(find.textContaining('남아프리카').hitTestable().first);
     await tester.pumpAndSettle();
 
-    expect(find.text('남아프리카공화국 선수 명단'), findsOneWidget);
+    expect(find.text('남아프리카공화국 선수 명단').hitTestable(), findsOneWidget);
     expect(find.text('멕시코 선수 명단'), findsNothing);
   });
 
