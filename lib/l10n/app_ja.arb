@@ -2185,8 +2185,29 @@
     }
   },
   "averageComparisonProfileMissingTitle": "年齢と競技歴を入力してください",
-  "averageComparisonProfileMissingMessage": "年齢とサッカー経験が未入力のため、平均比較を表示できません。プロフィールで生年月日とサッカー開始日を入力してください。",
+  "averageComparisonProfileMissingMessage": "年齢と競技経験が未入力のため、平均比較を表示できません。プロフィールで生年月日と競技開始日を入力してください。",
   "averageComparisonOpenProfileAction": "プロフィールを開く",
+  "averageComparisonTitle": "平均比較",
+  "averageComparisonReferenceAction": "基準の出典",
+  "averageComparisonHiddenMessage": "年齢または競技歴が未入力のため、平均比較は非表示です。",
+  "averageComparisonHeightLabel": "身長",
+  "averageComparisonWeightLabel": "体重",
+  "averageComparisonNotSet": "未入力",
+  "averageComparisonHiddenValue": "非表示",
+  "averageComparisonUnavailableValue": "比較不可",
+  "averageComparisonHiddenGap": "比較非表示",
+  "averageComparisonGapValue": "平均比 {gap}",
+  "@averageComparisonGapValue": {
+    "placeholders": {
+      "gap": {}
+    }
+  },
+  "averageComparisonConditioningPerSessionLabel": "{metric}/セッション",
+  "@averageComparisonConditioningPerSessionLabel": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
   "averageComparisonFootballOnlyTitle": "サッカー平均比較は非表示です",
   "averageComparisonFootballOnlyMessage": "この平均比較はサッカーのリフティング基準を使用するため、現在の競技では表示しません。",
   "durationNotSet": "時間がない",
@@ -4582,13 +4603,19 @@
   },
   "benchmarkRefreshSuccess": "平均基準データを更新しました。",
   "benchmarkRefreshFailed": "平均基準データの更新に失敗しました。ネットワークを確認してください。",
-  "benchmarkReferenceNote": "身長と体重は CDC 成長曲線の中央値を使用します。活動時間はWHOの青少年指導を利用しています。ジャグリング練習場はサッカーのトレーニングの基準であり、医学的な基準ではありません。",
+  "benchmarkReferenceNote": "身長と体重はCDC成長曲線の中央値を使用します。活動時間はWHOの青少年向け指針を使用します。競技別の補助指標範囲はアプリ内の練習参考値であり、医学的な基準ではありません。",
   "benchmarkAgeTableTitle": "年齢別平均",
-  "benchmarkAgeTableNote": "現在の年齢が設定されている場合、その行を強調します。週間目標は入力したサッカー経験に合わせて調整されます。",
+  "benchmarkAgeTableNote": "現在の年齢が設定されている場合、その行を強調します。週間目標は入力した競技歴に合わせて調整されます。",
   "benchmarkAgeColumnAge": "年齢",
   "benchmarkAgeColumnHeight": "平均身長",
   "benchmarkAgeColumnWeight": "平均体重",
   "benchmarkAgeColumnLifting": "リフティング/回",
+  "benchmarkAgeColumnConditioning": "{metric}/セッション",
+  "@benchmarkAgeColumnConditioning": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
   "benchmarkAgeColumnWeeklyTarget": "週間目標",
   "benchmarkAgeValue": "{age}歳",
   "@benchmarkAgeValue": {

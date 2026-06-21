@@ -2184,9 +2184,30 @@
       }
     }
   },
-  "averageComparisonProfileMissingTitle": "Enter age and soccer experience",
-  "averageComparisonProfileMissingMessage": "Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.",
+  "averageComparisonProfileMissingTitle": "Enter age and sport experience",
+  "averageComparisonProfileMissingMessage": "Average comparison is hidden because age and sport experience are missing. Add birth date and sport start date in profile.",
   "averageComparisonOpenProfileAction": "Open Profile",
+  "averageComparisonTitle": "Average Comparison",
+  "averageComparisonReferenceAction": "References",
+  "averageComparisonHiddenMessage": "Average comparison is hidden because age/experience is not set.",
+  "averageComparisonHeightLabel": "Height",
+  "averageComparisonWeightLabel": "Weight",
+  "averageComparisonNotSet": "Not set",
+  "averageComparisonHiddenValue": "Hidden",
+  "averageComparisonUnavailableValue": "N/A",
+  "averageComparisonHiddenGap": "Hidden",
+  "averageComparisonGapValue": "{gap} vs avg",
+  "@averageComparisonGapValue": {
+    "placeholders": {
+      "gap": {}
+    }
+  },
+  "averageComparisonConditioningPerSessionLabel": "{metric}/session",
+  "@averageComparisonConditioningPerSessionLabel": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
   "averageComparisonFootballOnlyTitle": "Football average comparison hidden",
   "averageComparisonFootballOnlyMessage": "This average comparison uses soccer juggling reference ranges, so it is not shown for the current sport.",
   "durationNotSet": "No time",
@@ -4582,13 +4603,19 @@
   },
   "benchmarkRefreshSuccess": "Average benchmark data updated.",
   "benchmarkRefreshFailed": "Failed to update average benchmark data. Check network.",
-  "benchmarkReferenceNote": "Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.",
+  "benchmarkReferenceNote": "Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Sport-specific conditioning ranges are app training references, not medical standards.",
   "benchmarkAgeTableTitle": "Averages by age",
-  "benchmarkAgeTableNote": "If the player's age is set, that row is highlighted. Weekly targets are adjusted by the entered soccer experience.",
+  "benchmarkAgeTableNote": "If the player's age is set, that row is highlighted. Weekly targets are adjusted by the entered sport experience.",
   "benchmarkAgeColumnAge": "Age",
   "benchmarkAgeColumnHeight": "Avg height",
   "benchmarkAgeColumnWeight": "Avg weight",
   "benchmarkAgeColumnLifting": "Lifting/session",
+  "benchmarkAgeColumnConditioning": "{metric}/session",
+  "@benchmarkAgeColumnConditioning": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
   "benchmarkAgeColumnWeeklyTarget": "Weekly target",
   "benchmarkAgeValue": "Age {age}",
   "@benchmarkAgeValue": {

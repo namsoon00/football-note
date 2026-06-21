@@ -3457,14 +3457,51 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get averageComparisonProfileMissingTitle => '나이/구력 정보를 입력해 주세요';
+  String get averageComparisonProfileMissingTitle => '나이/경력 정보를 입력해 주세요';
 
   @override
   String get averageComparisonProfileMissingMessage =>
-      '현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.';
+      '현재는 판단 기준(나이/종목 경력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 종목 시작일을 입력해 주세요.';
 
   @override
   String get averageComparisonOpenProfileAction => '프로필 입력하기';
+
+  @override
+  String get averageComparisonTitle => '평균 비교';
+
+  @override
+  String get averageComparisonReferenceAction => '기준 출처';
+
+  @override
+  String get averageComparisonHiddenMessage => '나이/경력 미입력으로 평균 비교는 숨김 상태입니다.';
+
+  @override
+  String get averageComparisonHeightLabel => '키';
+
+  @override
+  String get averageComparisonWeightLabel => '몸무게';
+
+  @override
+  String get averageComparisonNotSet => '미입력';
+
+  @override
+  String get averageComparisonHiddenValue => '숨김';
+
+  @override
+  String get averageComparisonUnavailableValue => '비교 불가';
+
+  @override
+  String get averageComparisonHiddenGap => '비교 숨김';
+
+  @override
+  String averageComparisonGapValue(Object gap) {
+    return '$gap 평균대비';
+  }
+
+  @override
+  String averageComparisonConditioningPerSessionLabel(Object metric) {
+    return '$metric/세션';
+  }
 
   @override
   String get averageComparisonFootballOnlyTitle => '축구 평균 비교는 숨겼어요';
@@ -8306,14 +8343,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get benchmarkReferenceNote =>
-      '키와 체중은 CDC 성장 차트 중앙값, 활동 시간은 WHO 청소년 신체활동 권고를 기준으로 합니다. 리프팅 범위는 축구 훈련 참고값이며 의학 기준은 아닙니다.';
+      '키와 체중은 CDC 성장 차트 중앙값, 활동 시간은 WHO 청소년 신체활동 권고를 기준으로 합니다. 종목별 보조 지표 범위는 앱의 훈련 참고값이며 의학 기준은 아닙니다.';
 
   @override
   String get benchmarkAgeTableTitle => '나이별 평균';
 
   @override
   String get benchmarkAgeTableNote =>
-      '현재 나이가 있으면 해당 행을 강조합니다. 주간 목표 시간은 입력한 구력 기준으로 조정됩니다.';
+      '현재 나이가 있으면 해당 행을 강조합니다. 주간 목표 시간은 입력한 종목 경력 기준으로 조정됩니다.';
 
   @override
   String get benchmarkAgeColumnAge => '나이';
@@ -8326,6 +8363,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get benchmarkAgeColumnLifting => '리프팅/세션';
+
+  @override
+  String benchmarkAgeColumnConditioning(Object metric) {
+    return '$metric/세션';
+  }
 
   @override
   String get benchmarkAgeColumnWeeklyTarget => '주간 목표';

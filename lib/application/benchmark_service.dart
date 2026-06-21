@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import '../domain/entities/sport_definition.dart';
 import '../domain/repositories/option_repository.dart';
 
 class TargetBenchmark {
@@ -59,16 +60,28 @@ class BenchmarkService {
     http.Client? client,
   }) : _client = client ?? http.Client();
 
-  PhysicalBenchmark physicalBenchmarkForAge(int? ageYears) {
+  PhysicalBenchmark physicalBenchmarkForAge(
+    int? ageYears, {
+    String? sportId,
+  }) {
     final age = (ageYears ?? 13).clamp(6, 18);
     final physicalTable = _readPhysicalByAge() ?? _defaultPhysicalByAge();
-    final liftingTable = _readLiftingByAge() ?? _defaultLiftingByAge();
+    final conditioningTable = _conditioningByAgeForSport(sportId);
     final physical = physicalTable[age] ?? physicalTable[13]!;
     return PhysicalBenchmark(
       heightCmAvg: physical.heightCmAvg,
       weightKgAvg: physical.weightKgAvg,
-      liftsPerSessionAvg: liftingTable[age] ?? liftingTable[13]!,
+      liftsPerSessionAvg: conditioningTable[age] ?? conditioningTable[13]!,
     );
+  }
+
+  Map<int, int> _conditioningByAgeForSport(String? sportId) {
+    final normalizedSportId = SportCatalog.normalizeSportId(sportId);
+    if (normalizedSportId == SportCatalog.footballId) {
+      return _readLiftingByAge() ??
+          _defaultConditioningByAge(normalizedSportId);
+    }
+    return _defaultConditioningByAge(normalizedSportId);
   }
 
   DateTime? lastSyncedAt() {
@@ -377,13 +390,44 @@ class _RemoteRequest {
 }
 
 TargetBenchmark benchmarkTarget(int? ageYears, int? soccerYears) {
-  final age = ageYears ?? 13;
-  // WHO: Children and adolescents (5-17y) should do at least 60 min/day.
-  // Source: https://www.who.int/news-room/fact-sheets/detail/physical-activity
-  var minutes = age <= 17 ? 420 : 225;
-  var sessions = age <= 17 ? 5 : 3;
+  return benchmarkTargetForSport(
+    sportId: SportCatalog.footballId,
+    ageYears: ageYears,
+    sportYears: soccerYears,
+  );
+}
 
-  final years = soccerYears ?? 1;
+TargetBenchmark benchmarkTargetForSport({
+  required String? sportId,
+  required int? ageYears,
+  required int? sportYears,
+}) {
+  final age = ageYears ?? 13;
+  final normalizedSportId = SportCatalog.normalizeSportId(sportId);
+  final youth = age <= 17;
+  // WHO gives the youth activity floor. Sport multipliers tune that floor into
+  // practical weekly practice targets by sport.
+  var minutes = youth ? 420 : 225;
+  var sessions = youth ? 5 : 3;
+  switch (normalizedSportId) {
+    case SportCatalog.baseballId:
+      minutes = youth ? 330 : 180;
+      sessions = youth ? 4 : 3;
+      break;
+    case SportCatalog.basketballId:
+      minutes = youth ? 390 : 210;
+      sessions = youth ? 5 : 3;
+      break;
+    case SportCatalog.tennisId:
+      minutes = youth ? 360 : 200;
+      sessions = youth ? 4 : 3;
+      break;
+    case SportCatalog.footballId:
+    default:
+      break;
+  }
+
+  final years = sportYears ?? 1;
   if (years < 1) {
     minutes = (minutes * 0.75).round();
     sessions = sessions > 2 ? sessions - 1 : sessions;
@@ -399,10 +443,12 @@ TargetBenchmark benchmarkTarget(int? ageYears, int? soccerYears) {
   );
 }
 
-PhysicalBenchmark physicalBenchmark(int? ageYears) {
+PhysicalBenchmark physicalBenchmark(int? ageYears, {String? sportId}) {
   final age = (ageYears ?? 13).clamp(6, 18);
   final body = _defaultPhysicalByAge()[age] ?? _defaultPhysicalByAge()[13]!;
-  final lifts = _defaultLiftingByAge()[age] ?? _defaultLiftingByAge()[13]!;
+  final conditioningTable =
+      _defaultConditioningByAge(SportCatalog.normalizeSportId(sportId));
+  final lifts = conditioningTable[age] ?? conditioningTable[13]!;
   return PhysicalBenchmark(
     heightCmAvg: body.heightCmAvg,
     weightKgAvg: body.weightKgAvg,
@@ -410,25 +456,31 @@ PhysicalBenchmark physicalBenchmark(int? ageYears) {
   );
 }
 
-List<BenchmarkSource> benchmarkSources() {
-  return const [
-    BenchmarkSource(
+List<BenchmarkSource> benchmarkSources({String? sportId}) {
+  final sources = <BenchmarkSource>[
+    const BenchmarkSource(
       title: 'WHO Physical Activity Guidelines (5-17y)',
       url: 'https://www.who.int/news-room/fact-sheets/detail/physical-activity',
     ),
-    BenchmarkSource(
+    const BenchmarkSource(
       title: 'CDC Height-for-Age (statage.csv)',
       url: 'https://www.cdc.gov/growthcharts/data/zscore/statage.csv',
     ),
-    BenchmarkSource(
+    const BenchmarkSource(
       title: 'CDC Weight-for-Age (wtage.csv)',
       url: 'https://www.cdc.gov/growthcharts/data/zscore/wtage.csv',
     ),
-    BenchmarkSource(
-      title: 'Soccer Juggling by Age (reference ranges)',
-      url: 'https://www.progressivesoccertraining.com/soccer-juggling-by-age/',
-    ),
   ];
+  if (SportCatalog.normalizeSportId(sportId) == SportCatalog.footballId) {
+    sources.add(
+      const BenchmarkSource(
+        title: 'Soccer Juggling by Age (reference ranges)',
+        url:
+            'https://www.progressivesoccertraining.com/soccer-juggling-by-age/',
+      ),
+    );
+  }
+  return sources;
 }
 
 Map<int, PhysicalBenchmark> _defaultPhysicalByAge() {
@@ -478,4 +530,60 @@ Map<int, int> _defaultLiftingByAge() {
     17: 150,
     18: 150,
   };
+}
+
+Map<int, int> _defaultConditioningByAge(String? sportId) {
+  switch (SportCatalog.normalizeSportId(sportId)) {
+    case SportCatalog.baseballId:
+      return const {
+        6: 24,
+        7: 28,
+        8: 32,
+        9: 38,
+        10: 44,
+        11: 50,
+        12: 58,
+        13: 66,
+        14: 74,
+        15: 82,
+        16: 90,
+        17: 98,
+        18: 106,
+      };
+    case SportCatalog.basketballId:
+      return const {
+        6: 36,
+        7: 40,
+        8: 46,
+        9: 54,
+        10: 62,
+        11: 70,
+        12: 80,
+        13: 90,
+        14: 100,
+        15: 110,
+        16: 120,
+        17: 130,
+        18: 140,
+      };
+    case SportCatalog.tennisId:
+      return const {
+        6: 30,
+        7: 34,
+        8: 40,
+        9: 48,
+        10: 56,
+        11: 64,
+        12: 74,
+        13: 84,
+        14: 94,
+        15: 104,
+        16: 114,
+        17: 124,
+        18: 134,
+      };
+    case SportCatalog.footballId:
+    default:
+      return _defaultLiftingByAge();
+  }
 }

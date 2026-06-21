@@ -2184,9 +2184,30 @@
       }
     }
   },
-  "averageComparisonProfileMissingTitle": "나이/구력 정보를 입력해 주세요",
-  "averageComparisonProfileMissingMessage": "현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.",
+  "averageComparisonProfileMissingTitle": "나이/경력 정보를 입력해 주세요",
+  "averageComparisonProfileMissingMessage": "현재는 판단 기준(나이/종목 경력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 종목 시작일을 입력해 주세요.",
   "averageComparisonOpenProfileAction": "프로필 입력하기",
+  "averageComparisonTitle": "평균 비교",
+  "averageComparisonReferenceAction": "기준 출처",
+  "averageComparisonHiddenMessage": "나이/경력 미입력으로 평균 비교는 숨김 상태입니다.",
+  "averageComparisonHeightLabel": "키",
+  "averageComparisonWeightLabel": "몸무게",
+  "averageComparisonNotSet": "미입력",
+  "averageComparisonHiddenValue": "숨김",
+  "averageComparisonUnavailableValue": "비교 불가",
+  "averageComparisonHiddenGap": "비교 숨김",
+  "averageComparisonGapValue": "{gap} 평균대비",
+  "@averageComparisonGapValue": {
+    "placeholders": {
+      "gap": {}
+    }
+  },
+  "averageComparisonConditioningPerSessionLabel": "{metric}/세션",
+  "@averageComparisonConditioningPerSessionLabel": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
   "averageComparisonFootballOnlyTitle": "축구 평균 비교는 숨겼어요",
   "averageComparisonFootballOnlyMessage": "이 평균 비교는 축구 저글링 기준을 사용하므로 현재 종목에서는 표시하지 않습니다.",
   "durationNotSet": "시간 미입력",
@@ -4582,13 +4603,19 @@
   },
   "benchmarkRefreshSuccess": "평균 기준 데이터를 업데이트했어요.",
   "benchmarkRefreshFailed": "평균 기준 데이터 업데이트에 실패했어요. 네트워크를 확인해 주세요.",
-  "benchmarkReferenceNote": "키와 체중은 CDC 성장 차트 중앙값, 활동 시간은 WHO 청소년 신체활동 권고를 기준으로 합니다. 리프팅 범위는 축구 훈련 참고값이며 의학 기준은 아닙니다.",
+  "benchmarkReferenceNote": "키와 체중은 CDC 성장 차트 중앙값, 활동 시간은 WHO 청소년 신체활동 권고를 기준으로 합니다. 종목별 보조 지표 범위는 앱의 훈련 참고값이며 의학 기준은 아닙니다.",
   "benchmarkAgeTableTitle": "나이별 평균",
-  "benchmarkAgeTableNote": "현재 나이가 있으면 해당 행을 강조합니다. 주간 목표 시간은 입력한 구력 기준으로 조정됩니다.",
+  "benchmarkAgeTableNote": "현재 나이가 있으면 해당 행을 강조합니다. 주간 목표 시간은 입력한 종목 경력 기준으로 조정됩니다.",
   "benchmarkAgeColumnAge": "나이",
   "benchmarkAgeColumnHeight": "키 평균",
   "benchmarkAgeColumnWeight": "체중 평균",
   "benchmarkAgeColumnLifting": "리프팅/세션",
+  "benchmarkAgeColumnConditioning": "{metric}/세션",
+  "@benchmarkAgeColumnConditioning": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
   "benchmarkAgeColumnWeeklyTarget": "주간 목표",
   "benchmarkAgeValue": "{age}세",
   "@benchmarkAgeValue": {

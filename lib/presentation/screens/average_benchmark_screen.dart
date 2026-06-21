@@ -3,7 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/benchmark_service.dart';
+import '../../application/sport_defaults.dart';
 import '../../domain/entities/training_entry.dart';
+import '../../domain/entities/sport_definition.dart';
 import '../../gen/app_localizations.dart';
 import '../widgets/app_background.dart';
 
@@ -12,6 +14,7 @@ class AverageBenchmarkScreen extends StatefulWidget {
   final int? ageYears;
   final int? soccerYears;
   final BenchmarkService benchmarkService;
+  final String sportId;
 
   const AverageBenchmarkScreen({
     super.key,
@@ -19,6 +22,7 @@ class AverageBenchmarkScreen extends StatefulWidget {
     required this.ageYears,
     required this.soccerYears,
     required this.benchmarkService,
+    this.sportId = SportCatalog.defaultSportId,
   });
 
   @override
@@ -38,7 +42,7 @@ class _AverageBenchmarkScreenState extends State<AverageBenchmarkScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final sources = benchmarkSources();
+    final sources = benchmarkSources(sportId: widget.sportId);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.benchmarkReferencesTitle)),
@@ -54,6 +58,7 @@ class _AverageBenchmarkScreenState extends State<AverageBenchmarkScreen> {
                   _AgeBenchmarkSection(
                     currentAgeYears: widget.ageYears,
                     soccerYears: widget.soccerYears,
+                    sportId: widget.sportId,
                     benchmarkService: widget.benchmarkService,
                   ),
                   const SizedBox(height: 18),
@@ -102,11 +107,13 @@ class _AverageBenchmarkScreenState extends State<AverageBenchmarkScreen> {
 class _AgeBenchmarkSection extends StatelessWidget {
   final int? currentAgeYears;
   final int? soccerYears;
+  final String sportId;
   final BenchmarkService benchmarkService;
 
   const _AgeBenchmarkSection({
     required this.currentAgeYears,
     required this.soccerYears,
+    required this.sportId,
     required this.benchmarkService,
   });
 
@@ -116,6 +123,10 @@ class _AgeBenchmarkSection extends StatelessWidget {
     final theme = Theme.of(context);
     final currentAge = currentAgeYears?.clamp(6, 18);
     final rowColor = theme.colorScheme.primary.withValues(alpha: 0.08);
+    final conditioningLabel = SportDefaults.secondaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +151,11 @@ class _AgeBenchmarkSection extends StatelessWidget {
               DataColumn(label: Text(l10n.benchmarkAgeColumnAge)),
               DataColumn(label: Text(l10n.benchmarkAgeColumnHeight)),
               DataColumn(label: Text(l10n.benchmarkAgeColumnWeight)),
-              DataColumn(label: Text(l10n.benchmarkAgeColumnLifting)),
+              DataColumn(
+                label: Text(
+                  l10n.benchmarkAgeColumnConditioning(conditioningLabel),
+                ),
+              ),
               DataColumn(label: Text(l10n.benchmarkAgeColumnWeeklyTarget)),
             ],
             rows: [
@@ -165,8 +180,15 @@ class _AgeBenchmarkSection extends StatelessWidget {
     required Color rowColor,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    final benchmark = benchmarkService.physicalBenchmarkForAge(age);
-    final target = benchmarkTarget(age, soccerYears);
+    final benchmark = benchmarkService.physicalBenchmarkForAge(
+      age,
+      sportId: sportId,
+    );
+    final target = benchmarkTargetForSport(
+      sportId: sportId,
+      ageYears: age,
+      sportYears: soccerYears,
+    );
     return DataRow(
       color: selected ? WidgetStatePropertyAll<Color>(rowColor) : null,
       cells: [

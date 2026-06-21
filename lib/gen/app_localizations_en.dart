@@ -3545,14 +3545,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get averageComparisonProfileMissingTitle =>
-      'Enter age and soccer experience';
+      'Enter age and sport experience';
 
   @override
   String get averageComparisonProfileMissingMessage =>
-      'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.';
+      'Average comparison is hidden because age and sport experience are missing. Add birth date and sport start date in profile.';
 
   @override
   String get averageComparisonOpenProfileAction => 'Open Profile';
+
+  @override
+  String get averageComparisonTitle => 'Average Comparison';
+
+  @override
+  String get averageComparisonReferenceAction => 'References';
+
+  @override
+  String get averageComparisonHiddenMessage =>
+      'Average comparison is hidden because age/experience is not set.';
+
+  @override
+  String get averageComparisonHeightLabel => 'Height';
+
+  @override
+  String get averageComparisonWeightLabel => 'Weight';
+
+  @override
+  String get averageComparisonNotSet => 'Not set';
+
+  @override
+  String get averageComparisonHiddenValue => 'Hidden';
+
+  @override
+  String get averageComparisonUnavailableValue => 'N/A';
+
+  @override
+  String get averageComparisonHiddenGap => 'Hidden';
+
+  @override
+  String averageComparisonGapValue(Object gap) {
+    return '$gap vs avg';
+  }
+
+  @override
+  String averageComparisonConditioningPerSessionLabel(Object metric) {
+    return '$metric/session';
+  }
 
   @override
   String get averageComparisonFootballOnlyTitle =>
@@ -8553,14 +8591,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get benchmarkReferenceNote =>
-      'Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Juggling ranges are a soccer training reference, not a medical standard.';
+      'Height and weight use CDC growth-chart medians. Activity time uses WHO youth guidance. Sport-specific conditioning ranges are app training references, not medical standards.';
 
   @override
   String get benchmarkAgeTableTitle => 'Averages by age';
 
   @override
   String get benchmarkAgeTableNote =>
-      'If the player\'s age is set, that row is highlighted. Weekly targets are adjusted by the entered soccer experience.';
+      'If the player\'s age is set, that row is highlighted. Weekly targets are adjusted by the entered sport experience.';
 
   @override
   String get benchmarkAgeColumnAge => 'Age';
@@ -8573,6 +8611,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get benchmarkAgeColumnLifting => 'Lifting/session';
+
+  @override
+  String benchmarkAgeColumnConditioning(Object metric) {
+    return '$metric/session';
+  }
 
   @override
   String get benchmarkAgeColumnWeeklyTarget => 'Weekly target';

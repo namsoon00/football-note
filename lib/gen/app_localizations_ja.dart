@@ -3463,10 +3463,47 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get averageComparisonProfileMissingMessage =>
-      '年齢とサッカー経験が未入力のため、平均比較を表示できません。プロフィールで生年月日とサッカー開始日を入力してください。';
+      '年齢と競技経験が未入力のため、平均比較を表示できません。プロフィールで生年月日と競技開始日を入力してください。';
 
   @override
   String get averageComparisonOpenProfileAction => 'プロフィールを開く';
+
+  @override
+  String get averageComparisonTitle => '平均比較';
+
+  @override
+  String get averageComparisonReferenceAction => '基準の出典';
+
+  @override
+  String get averageComparisonHiddenMessage => '年齢または競技歴が未入力のため、平均比較は非表示です。';
+
+  @override
+  String get averageComparisonHeightLabel => '身長';
+
+  @override
+  String get averageComparisonWeightLabel => '体重';
+
+  @override
+  String get averageComparisonNotSet => '未入力';
+
+  @override
+  String get averageComparisonHiddenValue => '非表示';
+
+  @override
+  String get averageComparisonUnavailableValue => '比較不可';
+
+  @override
+  String get averageComparisonHiddenGap => '比較非表示';
+
+  @override
+  String averageComparisonGapValue(Object gap) {
+    return '平均比 $gap';
+  }
+
+  @override
+  String averageComparisonConditioningPerSessionLabel(Object metric) {
+    return '$metric/セッション';
+  }
 
   @override
   String get averageComparisonFootballOnlyTitle => 'サッカー平均比較は非表示です';
@@ -8293,14 +8330,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get benchmarkReferenceNote =>
-      '身長と体重は CDC 成長曲線の中央値を使用します。活動時間はWHOの青少年指導を利用しています。ジャグリング練習場はサッカーのトレーニングの基準であり、医学的な基準ではありません。';
+      '身長と体重はCDC成長曲線の中央値を使用します。活動時間はWHOの青少年向け指針を使用します。競技別の補助指標範囲はアプリ内の練習参考値であり、医学的な基準ではありません。';
 
   @override
   String get benchmarkAgeTableTitle => '年齢別平均';
 
   @override
   String get benchmarkAgeTableNote =>
-      '現在の年齢が設定されている場合、その行を強調します。週間目標は入力したサッカー経験に合わせて調整されます。';
+      '現在の年齢が設定されている場合、その行を強調します。週間目標は入力した競技歴に合わせて調整されます。';
 
   @override
   String get benchmarkAgeColumnAge => '年齢';
@@ -8313,6 +8350,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get benchmarkAgeColumnLifting => 'リフティング/回';
+
+  @override
+  String benchmarkAgeColumnConditioning(Object metric) {
+    return '$metric/セッション';
+  }
 
   @override
   String get benchmarkAgeColumnWeeklyTarget => '週間目標';

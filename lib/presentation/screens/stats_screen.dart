@@ -201,7 +201,6 @@ class _StatsScreenState extends State<StatsScreen> {
   }) {
     final l10n = AppLocalizations.of(context)!;
     final sportId = SportService(widget.optionRepository).currentSportId();
-    final sportCapabilities = SportCapabilities.forSport(sportId);
     final sportEntries = filterEntriesForSport(entries, sportId);
     final profileService = PlayerProfileService(
       widget.optionRepository,
@@ -215,9 +214,7 @@ class _StatsScreenState extends State<StatsScreen> {
     final now = DateTime.now();
     final ageYears = profileService.ageInYears(profile, now);
     final soccerYears = profileService.soccerYears(profile, now);
-    final canShowAverage = sportCapabilities.supportsFootballContent &&
-        ageYears != null &&
-        soccerYears != null;
+    final canShowAverage = ageYears != null && soccerYears != null;
     final rangeStart = _rangeStartFor(_selectedRange);
     final rangeEndExclusive = _rangeEndExclusiveFor(_selectedRange);
     final filteredEntries = sportEntries
@@ -324,7 +321,6 @@ class _StatsScreenState extends State<StatsScreen> {
               ageYears: ageYears,
               soccerYears: soccerYears,
               canShowAverage: canShowAverage,
-              averageHiddenBySport: !sportCapabilities.supportsFootballContent,
               trainingEntries: trainingEntries,
               mealEntries: filteredMealEntries,
               plansInRange: plansInRange,
@@ -374,7 +370,6 @@ class _StatsScreenState extends State<StatsScreen> {
     required int? ageYears,
     required int? soccerYears,
     required bool canShowAverage,
-    required bool averageHiddenBySport,
     required List<TrainingEntry> trainingEntries,
     required List<MealEntry> mealEntries,
     required List<_StatsPlanLite> plansInRange,
@@ -405,7 +400,7 @@ class _StatsScreenState extends State<StatsScreen> {
           ),
           const SizedBox(height: 18),
         ],
-        if (!canShowAverage && !averageHiddenBySport) ...[
+        if (!canShowAverage) ...[
           _InlineNotice(
             text: l10n.averageComparisonProfileMissingMessage,
             title: l10n.averageComparisonProfileMissingTitle,
@@ -426,33 +421,34 @@ class _StatsScreenState extends State<StatsScreen> {
               entries: trainingEntries,
               ageYears: ageYears,
               soccerYears: soccerYears,
+              sportId: sportId,
               isKo: isKo,
               showAverage: canShowAverage,
               range: _selectedRange,
             ),
           ),
           const SizedBox(height: 18),
-          if (!averageHiddenBySport) ...[
-            _StatsPanel(
-              child: _BodyAndLiftingBenchmarkCard(
-                entries: trainingEntries,
-                profile: profile,
-                ageYears: ageYears,
-                isKo: isKo,
-                benchmarkService: _benchmarkService,
-                showAverage: canShowAverage,
-                onReferenceTap: canShowAverage
-                    ? () => _openAverageBenchmark(
-                          context,
-                          trainingEntries,
-                          ageYears,
-                          soccerYears,
-                        )
-                    : null,
-              ),
+          _StatsPanel(
+            child: _BodyAndLiftingBenchmarkCard(
+              entries: trainingEntries,
+              profile: profile,
+              ageYears: ageYears,
+              sportId: sportId,
+              isKo: isKo,
+              benchmarkService: _benchmarkService,
+              showAverage: canShowAverage,
+              onReferenceTap: canShowAverage
+                  ? () => _openAverageBenchmark(
+                        context,
+                        trainingEntries,
+                        ageYears,
+                        soccerYears,
+                        sportId,
+                      )
+                  : null,
             ),
-            const SizedBox(height: 18),
-          ],
+          ),
+          const SizedBox(height: 18),
           _StatsPanel(
             child: _LiftingSummaryCard(
               entries: trainingEntries,
@@ -694,6 +690,7 @@ class _StatsScreenState extends State<StatsScreen> {
     List<TrainingEntry> entries,
     int? ageYears,
     int? soccerYears,
+    String sportId,
   ) {
     Navigator.of(context).push(
       AppPageRoute(
@@ -701,6 +698,7 @@ class _StatsScreenState extends State<StatsScreen> {
           entries: entries,
           ageYears: ageYears,
           soccerYears: soccerYears,
+          sportId: sportId,
           benchmarkService: _benchmarkService,
         ),
       ),
@@ -712,6 +710,7 @@ class _TargetGrowthChart extends StatelessWidget {
   final List<TrainingEntry> entries;
   final int? ageYears;
   final int? soccerYears;
+  final String sportId;
   final bool isKo;
   final bool showAverage;
   final DateTimeRange range;
@@ -720,6 +719,7 @@ class _TargetGrowthChart extends StatelessWidget {
     required this.entries,
     required this.ageYears,
     required this.soccerYears,
+    required this.sportId,
     required this.isKo,
     required this.showAverage,
     required this.range,
@@ -727,7 +727,11 @@ class _TargetGrowthChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final target = benchmarkTarget(ageYears, soccerYears);
+    final target = benchmarkTargetForSport(
+      sportId: sportId,
+      ageYears: ageYears,
+      sportYears: soccerYears,
+    );
     final periodStart = DateTime(
       range.start.year,
       range.start.month,
@@ -888,6 +892,7 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
   final List<TrainingEntry> entries;
   final PlayerProfile profile;
   final int? ageYears;
+  final String sportId;
   final bool isKo;
   final BenchmarkService benchmarkService;
   final bool showAverage;
@@ -897,6 +902,7 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
     required this.entries,
     required this.profile,
     required this.ageYears,
+    required this.sportId,
     required this.isKo,
     required this.benchmarkService,
     required this.showAverage,
@@ -905,8 +911,13 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final latestHeight = profile.heightCm;
     final latestWeight = profile.weightKg;
+    final conditioningLabel = SportDefaults.secondaryConditioningLabel(
+      l10n: l10n,
+      sportId: sportId,
+    );
 
     final totalLifts = entries.fold<int>(
       0,
@@ -916,20 +927,23 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
     );
     final avgLiftPerSession =
         entries.isEmpty ? 0 : (totalLifts / entries.length).round();
-    final benchmark = benchmarkService.physicalBenchmarkForAge(ageYears);
+    final benchmark = benchmarkService.physicalBenchmarkForAge(
+      ageYears,
+      sportId: sportId,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionTitle(
           icon: Icons.balance,
-          title: isKo ? '평균 비교' : 'Average Comparison',
+          title: l10n.averageComparisonTitle,
           trailing: onReferenceTap == null
               ? null
               : OutlinedButton.icon(
                   onPressed: onReferenceTap,
                   icon: const Icon(Icons.analytics_outlined, size: 16),
-                  label: Text(isKo ? '기준 출처' : 'References'),
+                  label: Text(l10n.averageComparisonReferenceAction),
                   style: OutlinedButton.styleFrom(
                     visualDensity: VisualDensity.compact,
                     minimumSize: const Size(1, 34),
@@ -943,27 +957,23 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (!showAverage) ...[
-          Text(
-            isKo
-                ? '나이/구력 미입력으로 평균 비교는 숨김 상태입니다.'
-                : 'Average comparison is hidden because age/experience is not set.',
-          ),
+          Text(l10n.averageComparisonHiddenMessage),
           const SizedBox(height: 10),
         ],
         _ComparisonRow(
           isKo: isKo,
-          label: isKo ? '키' : 'Height',
+          label: l10n.averageComparisonHeightLabel,
           current: latestHeight == null
-              ? (isKo ? '미입력' : 'Not set')
+              ? l10n.averageComparisonNotSet
               : '${latestHeight.toStringAsFixed(1)}cm',
           average: showAverage
               ? '${benchmark.heightCmAvg.toStringAsFixed(1)}cm'
-              : (isKo ? '숨김' : 'Hidden'),
+              : l10n.averageComparisonHiddenValue,
           gap: latestHeight == null
-              ? (isKo ? '비교 불가' : 'N/A')
+              ? l10n.averageComparisonUnavailableValue
               : showAverage
-                  ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
-                  : (isKo ? '비교 숨김' : 'Hidden'),
+                  ? _gapText(latestHeight - benchmark.heightCmAvg, l10n)
+                  : l10n.averageComparisonHiddenGap,
           isPositive: showAverage &&
               latestHeight != null &&
               latestHeight - benchmark.heightCmAvg >= 0,
@@ -971,18 +981,18 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
         const SizedBox(height: 8),
         _ComparisonRow(
           isKo: isKo,
-          label: isKo ? '몸무게' : 'Weight',
+          label: l10n.averageComparisonWeightLabel,
           current: latestWeight == null
-              ? (isKo ? '미입력' : 'Not set')
+              ? l10n.averageComparisonNotSet
               : '${latestWeight.toStringAsFixed(1)}kg',
           average: showAverage
               ? '${benchmark.weightKgAvg.toStringAsFixed(1)}kg'
-              : (isKo ? '숨김' : 'Hidden'),
+              : l10n.averageComparisonHiddenValue,
           gap: latestWeight == null
-              ? (isKo ? '비교 불가' : 'N/A')
+              ? l10n.averageComparisonUnavailableValue
               : showAverage
-                  ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
-                  : (isKo ? '비교 숨김' : 'Hidden'),
+                  ? _gapText(latestWeight - benchmark.weightKgAvg, l10n)
+                  : l10n.averageComparisonHiddenGap,
           isPositive: showAverage &&
               latestWeight != null &&
               latestWeight - benchmark.weightKgAvg >= 0,
@@ -990,17 +1000,19 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
         const SizedBox(height: 8),
         _ComparisonRow(
           isKo: isKo,
-          label: isKo ? '리프팅/세션' : 'Lifting/Session',
+          label: l10n.averageComparisonConditioningPerSessionLabel(
+            conditioningLabel,
+          ),
           current: '$avgLiftPerSession',
           average: showAverage
               ? '${benchmark.liftsPerSessionAvg}'
-              : (isKo ? '숨김' : 'Hidden'),
+              : l10n.averageComparisonHiddenValue,
           gap: showAverage
               ? _gapText(
                   (avgLiftPerSession - benchmark.liftsPerSessionAvg).toDouble(),
-                  isKo,
+                  l10n,
                 )
-              : (isKo ? '비교 숨김' : 'Hidden'),
+              : l10n.averageComparisonHiddenGap,
           isPositive: showAverage &&
               avgLiftPerSession - benchmark.liftsPerSessionAvg >= 0,
         ),
@@ -1009,11 +1021,9 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
   }
 }
 
-String _gapText(double gap, bool isKo) {
+String _gapText(double gap, AppLocalizations l10n) {
   final sign = gap >= 0 ? '+' : '';
-  return isKo
-      ? '$sign${gap.toStringAsFixed(1)} 평균대비'
-      : '$sign${gap.toStringAsFixed(1)} vs avg';
+  return l10n.averageComparisonGapValue('$sign${gap.toStringAsFixed(1)}');
 }
 
 class _LegendDot extends StatelessWidget {
@@ -1579,7 +1589,11 @@ class _TrainingReportSection extends StatelessWidget {
     );
     final focus = _topFocusLabel(entries, l10n);
     final streak = _currentTrainingStreak(entries);
-    final target = benchmarkTarget(ageYears, soccerYears);
+    final target = benchmarkTargetForSport(
+      sportId: sportId,
+      ageYears: ageYears,
+      sportYears: soccerYears,
+    );
     final targetMinutes = showTarget
         ? ((target.weeklyMinutesTarget / 7) * periodDays).round()
         : 0;
