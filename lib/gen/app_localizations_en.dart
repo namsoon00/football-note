@@ -10299,18 +10299,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String challengeCelebrationCompleteBody(int xp) {
-    return 'All rounds are done. You earned +$xp XP.';
+    return 'You finished every round. That consistency is becoming real skill. You earned +$xp XP.';
   }
 
   @override
   String get challengeCelebrationCompleteBodyNoXp =>
-      'All missions are recorded. Review the challenge completion screen.';
+      'All missions are recorded. Carry this finish into the next challenge.';
 
   @override
   String get challengeCelebrationMissionsTitle => 'Completed missions';
 
   @override
   String get challengeCelebrationAction => 'Nice!';
+
+  @override
+  String get challengeCelebrationNextChallengeAction => 'Create next challenge';
+
+  @override
+  String get challengeFinishedPraiseTitle => 'You finished it all';
+
+  @override
+  String challengeFinishedPraiseBody(Object title, int rounds) {
+    return 'You completed all $rounds rounds of $title. Keep the rhythm going with the next challenge.';
+  }
+
+  @override
+  String challengeFinishedCompletedRoundsLabel(int rounds) {
+    return '$rounds rounds completed';
+  }
+
+  @override
+  String get challengeFinishedNextPrompt => 'Choose the next challenge below';
 
   @override
   String get challengeHistoryTitle => 'Challenge history';
