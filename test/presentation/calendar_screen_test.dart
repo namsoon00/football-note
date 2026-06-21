@@ -377,6 +377,20 @@ void main() {
     addTearDown(() async {
       await tester.binding.setSurfaceSize(null);
     });
+    Future<void> selectDropdownValue(String current, String next) async {
+      final currentFinder = find.text(current).last;
+      await Scrollable.ensureVisible(
+        tester.element(currentFinder),
+        alignment: 0.35,
+      );
+      await tester.pump();
+      await tester.tap(currentFinder);
+      await tester.pumpAndSettle();
+      final nextFinder = find.text(next).last;
+      await tester.tap(nextFinder);
+      await tester.pumpAndSettle();
+    }
+
     await pumpCalendar(tester);
 
     await tester.tap(find.byType(FloatingActionButton));
@@ -394,20 +408,8 @@ void main() {
           .first,
       '봄 컵',
     );
-    await tester.tap(find.text('예선').last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('8강').last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('진행 중').last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('다음 라운드 진출').last);
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find
-          .ancestor(of: find.text('상대 팀'), matching: find.byType(TextField))
-          .first,
-      '레드 FC',
-    );
+    await selectDropdownValue('예선', '8강');
+    await selectDropdownValue('진행 중', '다음 라운드 진출');
     await tester.enterText(
       find
           .ancestor(
@@ -417,6 +419,12 @@ void main() {
           .first,
       '레드 FC, 블루 FC',
     );
+    await tester.pump();
+    final redTeamChip = find.widgetWithText(ChoiceChip, '레드 FC');
+    await tester.ensureVisible(redTeamChip);
+    await tester.pump();
+    await tester.tap(redTeamChip);
+    await tester.pump();
     await tester.enterText(
       find
           .ancestor(
@@ -426,7 +434,11 @@ void main() {
           .first,
       '2',
     );
-    await tester.ensureVisible(find.widgetWithText(ChoiceChip, '승'));
+    await tester.scrollUntilVisible(
+      find.widgetWithText(ChoiceChip, '승'),
+      120,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.pump();
     await tester.tap(find.widgetWithText(ChoiceChip, '승'));
     await tester.pump();
@@ -446,6 +458,7 @@ void main() {
     expect(entries.single.matchStage, 'quarterfinal');
     expect(entries.single.tournamentOutcome, 'advanced');
     expect(entries.single.tournamentWins, 2);
+    expect(entries.single.opponentTeam, '레드 FC');
     expect(entries.single.scoredGoals, 1);
     expect(entries.single.concededGoals, 0);
     expect(find.textContaining('토너먼트'), findsWidgets);
@@ -487,23 +500,27 @@ void main() {
     );
     await tester.enterText(
       find
-          .ancestor(of: find.text('상대 팀'), matching: find.byType(TextField))
-          .first,
-      '블루 FC',
-    );
-    await tester.enterText(
-      find
           .ancestor(of: find.text('리그 팀'), matching: find.byType(TextFormField))
           .first,
       '레드 FC, 블루 FC, 그린 FC',
     );
+    await tester.pump();
+    final blueTeamChip = find.widgetWithText(ChoiceChip, '블루 FC');
+    await tester.ensureVisible(blueTeamChip);
+    await tester.pump();
+    await tester.tap(blueTeamChip);
+    await tester.pump();
     await tester.enterText(
       find
           .ancestor(of: find.text('승점'), matching: find.byType(TextFormField))
           .first,
       '3',
     );
-    await tester.ensureVisible(find.widgetWithText(ChoiceChip, '무'));
+    await tester.scrollUntilVisible(
+      find.widgetWithText(ChoiceChip, '무'),
+      120,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.pump();
     await tester.tap(find.widgetWithText(ChoiceChip, '무'));
     await tester.pump();
@@ -520,6 +537,7 @@ void main() {
     expect(entries.single.isLeagueMatch, isTrue);
     expect(entries.single.matchCompetitionName, '주말 리그');
     expect(entries.single.matchStage, '3라운드');
+    expect(entries.single.opponentTeam, '블루 FC');
     expect(entries.single.leagueTeamNames, <String>[
       '레드 FC',
       '블루 FC',
@@ -533,6 +551,31 @@ void main() {
     expect(find.textContaining('3라운드'), findsOneWidget);
     expect(find.text('1:1'), findsOneWidget);
     expect(find.textContaining('승점 3'), findsOneWidget);
+  });
+
+  testWidgets('리그 시합 기록 시트는 저장하지 않고 뒤로 닫을 수 있다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+    await pumpCalendar(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('리그 경기'));
+    await tester.pump();
+
+    final backButton = find.widgetWithText(OutlinedButton, '뒤로').last;
+    await tester.ensureVisible(backButton);
+    await tester.pump();
+    await tester.tap(backButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('시합 추가'), findsNothing);
+    expect(await trainingService.allEntries(), isEmpty);
   });
 
   testWidgets('리그 대회 관리 시트는 등록 팀 순위를 보여준다', (tester) async {
@@ -617,9 +660,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('팀 미리보기'), findsOneWidget);
-    expect(find.text('뒤로'), findsOneWidget);
+    final backButton = find.widgetWithText(OutlinedButton, '뒤로').last;
+    expect(backButton, findsOneWidget);
 
-    await tester.tap(find.text('뒤로'));
+    await tester.tap(backButton);
     await tester.pumpAndSettle();
 
     expect(find.text('팀 미리보기'), findsNothing);

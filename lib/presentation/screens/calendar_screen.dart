@@ -1912,8 +1912,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
     var location = editingEntry?.effectiveMatchLocation ?? '';
     final opponentOptions = _matchOpponentOptions(entries);
     final locationOptions = _matchLocationOptions(entries);
-    var leagueTeamsText = editingEntry?.leagueTeamNames.join(', ') ?? '';
+    final matchCompetitionService = MatchCompetitionService(
+      widget.optionRepository,
+    );
+    var leagueTeamsText = editingEntry?.leagueTeamNames.join('\n') ?? '';
     var competitionNameText = editingEntry?.matchCompetitionName ?? '';
+    final leagueTeamsController = TextEditingController(text: leagueTeamsText);
+    final competitionNameController = TextEditingController(
+      text: competitionNameText,
+    );
     var leagueRoundText = editingEntry?.isLeagueMatch == true
         ? editingEntry?.matchStage ?? ''
         : '';
@@ -1935,7 +1942,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final opponentScoreController = TextEditingController(
       text: editingEntry?.concededGoals?.toString() ?? '',
     );
-    var scoreControllersDisposeScheduled = false;
+    var sheetControllersDisposeScheduled = false;
     var playerGoalsText = editingEntry?.playerGoals?.toString() ?? '';
     var playerAssistsText = editingEntry?.playerAssists?.toString() ?? '';
     var shotsOnTargetText = editingEntry?.shotsOnTarget?.toString() ?? '';
@@ -1943,13 +1950,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
     var minutesPlayedText = editingEntry?.minutesPlayed?.toString() ?? '';
     var memoText = editingEntry?.notes ?? '';
 
-    void scheduleScoreControllerDispose() {
-      if (scoreControllersDisposeScheduled) return;
-      scoreControllersDisposeScheduled = true;
+    void scheduleSheetControllerDispose() {
+      if (sheetControllersDisposeScheduled) return;
+      sheetControllersDisposeScheduled = true;
       unawaited(
         Future<void>.delayed(const Duration(milliseconds: 350), () {
           ourScoreController.dispose();
           opponentScoreController.dispose();
+          leagueTeamsController.dispose();
+          competitionNameController.dispose();
         }),
       );
     }
@@ -1993,10 +2002,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final saved = await showModalBottomSheet<TrainingEntry>(
       context: context,
       isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
       showDragHandle: true,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
+            List<String> registeredMatchTeams() {
+              if (matchKind != 'league' && matchKind != 'tournament') {
+                return const <String>[];
+              }
+              final inlineTeams = MatchCompetitionService.parseTeams(
+                leagueTeamsText,
+              );
+              final existingTeams = competitionNameText.trim().isEmpty
+                  ? matchCompetitionService
+                      .allCompetitions()
+                      .where((record) => record.kind == matchKind)
+                      .expand((record) => record.teams)
+                  : matchCompetitionService
+                          .findCompetition(
+                            kind: matchKind,
+                            name: competitionNameText,
+                          )
+                          ?.teams ??
+                      const <String>[];
+              return MatchCompetitionService.normalizeTeams([
+                ...inlineTeams,
+                ...existingTeams,
+              ]);
+            }
+
             Widget buildCountStepper({
               required String label,
               required String valueText,
@@ -2070,274 +2106,497 @@ class _CalendarScreenState extends State<CalendarScreen> {
               );
             }
 
-            return SafeArea(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  8,
-                  16,
-                  16 + MediaQuery.of(context).viewInsets.bottom,
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        readOnly
-                            ? l10n.matchViewTitle
-                            : editingEntry == null
-                                ? l10n.matchAddTitle
-                                : l10n.matchEditTitle,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 10),
-                      IgnorePointer(
-                        ignoring: readOnly,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+            void closeSheet() {
+              FocusScope.of(context).unfocus();
+              Navigator.of(context).pop();
+            }
+
+            final registeredOpponentOptions = registeredMatchTeams();
+            final opponentFieldOptions = registeredOpponentOptions.isNotEmpty
+                ? registeredOpponentOptions
+                : opponentOptions;
+
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.9,
+              minChildSize: 0.45,
+              maxChildSize: 0.95,
+              builder: (context, scrollController) {
+                return SafeArea(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    padding: EdgeInsets.fromLTRB(
+                      16,
+                      8,
+                      16,
+                      16 + MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
                           children: [
-                            OutlinedButton.icon(
-                              onPressed: readOnly
-                                  ? null
-                                  : () async {
-                                      final picked = await showDatePicker(
-                                        context: context,
-                                        initialDate: matchDay,
-                                        firstDate: DateTime(2022),
-                                        lastDate: DateTime(2032),
-                                      );
-                                      if (picked == null || !context.mounted) {
-                                        return;
-                                      }
-                                      setSheetState(() {
-                                        matchDay = DateTime(
-                                          picked.year,
-                                          picked.month,
-                                          picked.day,
-                                        );
-                                      });
-                                    },
-                              icon: const Icon(Icons.calendar_today_outlined),
-                              label: Text(
-                                DateFormat('yyyy-MM-dd').format(matchDay),
+                            Expanded(
+                              child: Text(
+                                readOnly
+                                    ? l10n.matchViewTitle
+                                    : editingEntry == null
+                                        ? l10n.matchAddTitle
+                                        : l10n.matchEditTitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            SegmentedButton<String>(
-                              segments: [
-                                ButtonSegment<String>(
-                                  value: 'friendly',
-                                  icon: const Icon(Icons.handshake_outlined),
-                                  label: Text(l10n.matchKindFriendly),
+                            IconButton(
+                              onPressed: closeSheet,
+                              tooltip: MaterialLocalizations.of(context)
+                                  .closeButtonTooltip,
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down_outlined,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        IgnorePointer(
+                          ignoring: readOnly,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: readOnly
+                                    ? null
+                                    : () async {
+                                        final picked = await showDatePicker(
+                                          context: context,
+                                          initialDate: matchDay,
+                                          firstDate: DateTime(2022),
+                                          lastDate: DateTime(2032),
+                                        );
+                                        if (picked == null ||
+                                            !context.mounted) {
+                                          return;
+                                        }
+                                        setSheetState(() {
+                                          matchDay = DateTime(
+                                            picked.year,
+                                            picked.month,
+                                            picked.day,
+                                          );
+                                        });
+                                      },
+                                icon: const Icon(Icons.calendar_today_outlined),
+                                label: Text(
+                                  DateFormat('yyyy-MM-dd').format(matchDay),
                                 ),
-                                ButtonSegment<String>(
-                                  value: 'league',
-                                  icon: const Icon(Icons.emoji_events_outlined),
-                                  label: Text(l10n.matchKindLeague),
-                                ),
-                                ButtonSegment<String>(
-                                  value: 'tournament',
-                                  icon: const Icon(
-                                    Icons.account_tree_outlined,
+                              ),
+                              const SizedBox(height: 8),
+                              SegmentedButton<String>(
+                                segments: [
+                                  ButtonSegment<String>(
+                                    value: 'friendly',
+                                    icon: const Icon(Icons.handshake_outlined),
+                                    label: Text(l10n.matchKindFriendly),
                                   ),
-                                  label: Text(l10n.matchKindTournament),
+                                  ButtonSegment<String>(
+                                    value: 'league',
+                                    icon:
+                                        const Icon(Icons.emoji_events_outlined),
+                                    label: Text(l10n.matchKindLeague),
+                                  ),
+                                  ButtonSegment<String>(
+                                    value: 'tournament',
+                                    icon: const Icon(
+                                      Icons.account_tree_outlined,
+                                    ),
+                                    label: Text(l10n.matchKindTournament),
+                                  ),
+                                ],
+                                selected: {matchKind},
+                                showSelectedIcon: false,
+                                onSelectionChanged: readOnly
+                                    ? null
+                                    : (selection) {
+                                        setSheetState(() {
+                                          matchKind = selection.first;
+                                        });
+                                      },
+                              ),
+                              const SizedBox(height: 8),
+                              _CalendarAutocompleteField(
+                                key: ValueKey<String>(
+                                  'match-opponent-$matchKind-$opponent',
+                                ),
+                                initialValue: opponent,
+                                options: opponentFieldOptions,
+                                onChanged: (value) => opponent = value,
+                                textInputAction: TextInputAction.next,
+                                labelText: l10n.matchOpponentTeamLabel,
+                                hintText: l10n.matchOpponentTeamHint,
+                                maxLength: 40,
+                                enabled: !readOnly,
+                              ),
+                              if (registeredOpponentOptions.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    for (final team
+                                        in registeredOpponentOptions)
+                                      ChoiceChip(
+                                        label: Text(team),
+                                        selected: opponent.trim() == team,
+                                        onSelected: readOnly
+                                            ? null
+                                            : (_) {
+                                                setSheetState(() {
+                                                  opponent = team;
+                                                });
+                                              },
+                                      ),
+                                  ],
                                 ),
                               ],
-                              selected: {matchKind},
-                              showSelectedIcon: false,
-                              onSelectionChanged: readOnly
-                                  ? null
-                                  : (selection) {
-                                      setSheetState(() {
-                                        matchKind = selection.first;
-                                      });
-                                    },
-                            ),
-                            const SizedBox(height: 8),
-                            _CalendarAutocompleteField(
-                              initialValue: opponent,
-                              options: opponentOptions,
-                              onChanged: (value) => opponent = value,
-                              textInputAction: TextInputAction.next,
-                              labelText: l10n.matchOpponentTeamLabel,
-                              hintText: l10n.matchOpponentTeamHint,
-                              maxLength: 40,
-                              enabled: !readOnly,
-                            ),
-                            if (matchKind == 'league' ||
-                                matchKind == 'tournament') ...[
+                              if (matchKind == 'league' ||
+                                  matchKind == 'tournament') ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  matchKind == 'tournament'
+                                      ? l10n.matchTournamentSectionTitle
+                                      : l10n.matchLeagueSectionTitle,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: competitionNameController,
+                                  readOnly: readOnly,
+                                  onChanged: (value) {
+                                    setSheetState(() {
+                                      competitionNameText = value;
+                                    });
+                                  },
+                                  textInputAction: TextInputAction.next,
+                                  decoration: _calendarInputDecorationWithDone(
+                                    context,
+                                    InputDecoration(
+                                      labelText: l10n.matchCompetitionNameLabel,
+                                      hintText: matchKind == 'tournament'
+                                          ? l10n.matchTournamentNameHint
+                                          : l10n.matchLeagueNameHint,
+                                    ),
+                                    enabled: !readOnly,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                OutlinedButton.icon(
+                                  onPressed: () async {
+                                    final result =
+                                        await _openMatchCompetitionManagerSheet(
+                                      kind: matchKind,
+                                      competitionName: competitionNameText,
+                                      teamsText: leagueTeamsText,
+                                      entries: entries,
+                                      readOnly: readOnly,
+                                    );
+                                    if (result == null || !context.mounted) {
+                                      return;
+                                    }
+                                    setSheetState(() {
+                                      competitionNameText = result.name;
+                                      competitionNameController.text =
+                                          result.name;
+                                      leagueTeamsText = result.teams.join('\n');
+                                      leagueTeamsController.text =
+                                          leagueTeamsText;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    matchKind == 'tournament'
+                                        ? Icons.account_tree_outlined
+                                        : Icons.leaderboard_outlined,
+                                  ),
+                                  label: Text(
+                                    l10n.matchCompetitionManageButton,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                if (matchKind == 'league')
+                                  TextFormField(
+                                    initialValue: leagueRoundText,
+                                    readOnly: readOnly,
+                                    onChanged: (value) =>
+                                        leagueRoundText = value,
+                                    textInputAction: TextInputAction.next,
+                                    decoration:
+                                        _calendarInputDecorationWithDone(
+                                      context,
+                                      InputDecoration(
+                                        labelText: l10n.matchLeagueRoundLabel,
+                                        hintText: l10n.matchLeagueRoundHint,
+                                      ),
+                                      enabled: !readOnly,
+                                    ),
+                                  )
+                                else ...[
+                                  DropdownButtonFormField<String>(
+                                    initialValue: tournamentStage,
+                                    items: [
+                                      for (final value
+                                          in matchTournamentStageValues)
+                                        DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(
+                                            matchTournamentStageLabel(
+                                              l10n,
+                                              value,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                    onChanged: readOnly
+                                        ? null
+                                        : (value) {
+                                            if (value == null) return;
+                                            setSheetState(() {
+                                              tournamentStage = value;
+                                            });
+                                          },
+                                    decoration:
+                                        _calendarInputDecorationWithDone(
+                                      context,
+                                      InputDecoration(
+                                        labelText:
+                                            l10n.matchTournamentStageLabel,
+                                      ),
+                                      enabled: !readOnly,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  DropdownButtonFormField<String>(
+                                    initialValue: tournamentOutcome,
+                                    items: [
+                                      for (final value
+                                          in matchTournamentOutcomeValues)
+                                        DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(
+                                            matchTournamentOutcomeLabel(
+                                              l10n,
+                                              value,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                    onChanged: readOnly
+                                        ? null
+                                        : (value) {
+                                            if (value == null) return;
+                                            setSheetState(() {
+                                              tournamentOutcome = value;
+                                            });
+                                          },
+                                    decoration:
+                                        _calendarInputDecorationWithDone(
+                                      context,
+                                      InputDecoration(
+                                        labelText:
+                                            l10n.matchTournamentOutcomeLabel,
+                                      ),
+                                      enabled: !readOnly,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: leagueTeamsController,
+                                  readOnly: readOnly,
+                                  onChanged: (value) {
+                                    setSheetState(() {
+                                      leagueTeamsText = value;
+                                    });
+                                  },
+                                  textInputAction: TextInputAction.next,
+                                  decoration: _calendarInputDecorationWithDone(
+                                    context,
+                                    InputDecoration(
+                                      labelText: matchKind == 'tournament'
+                                          ? l10n.matchTournamentTeamsLabel
+                                          : l10n.matchLeagueTeamsLabel,
+                                      hintText: matchKind == 'tournament'
+                                          ? l10n.matchTournamentTeamsHint
+                                          : l10n.matchLeagueTeamsHint,
+                                    ),
+                                    enabled: !readOnly,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  initialValue: matchKind == 'league'
+                                      ? leaguePointsText
+                                      : tournamentWinsText,
+                                  key: ValueKey<String>(matchKind),
+                                  readOnly: readOnly,
+                                  onChanged: (value) {
+                                    if (matchKind == 'league') {
+                                      leaguePointsText = value;
+                                    } else {
+                                      tournamentWinsText = value;
+                                    }
+                                  },
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.done,
+                                  onFieldSubmitted: (_) =>
+                                      FocusScope.of(context).unfocus(),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  decoration: _calendarInputDecorationWithDone(
+                                    context,
+                                    InputDecoration(
+                                      labelText: matchKind == 'league'
+                                          ? l10n.matchLeaguePointsLabel
+                                          : l10n.matchTournamentWinsLabel,
+                                    ),
+                                    enabled: !readOnly,
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 8),
+                              _CalendarAutocompleteField(
+                                initialValue: location,
+                                options: locationOptions,
+                                onChanged: (value) => location = value,
+                                textInputAction: TextInputAction.next,
+                                labelText: l10n.location,
+                                hintText:
+                                    isKo ? '예) 메인 구장' : 'e.g. Main stadium',
+                                maxLength: 40,
+                                enabled: !readOnly,
+                              ),
                               const SizedBox(height: 8),
                               Text(
-                                matchKind == 'tournament'
-                                    ? l10n.matchTournamentSectionTitle
-                                    : l10n.matchLeagueSectionTitle,
+                                l10n.matchResultLabel,
                                 style: Theme.of(context)
                                     .textTheme
                                     .labelLarge
                                     ?.copyWith(fontWeight: FontWeight.w800),
                               ),
                               const SizedBox(height: 8),
-                              TextFormField(
-                                initialValue: competitionNameText,
-                                readOnly: readOnly,
-                                onChanged: (value) =>
-                                    competitionNameText = value,
-                                textInputAction: TextInputAction.next,
-                                decoration: _calendarInputDecorationWithDone(
-                                  context,
-                                  InputDecoration(
-                                    labelText: l10n.matchCompetitionNameLabel,
-                                    hintText: matchKind == 'tournament'
-                                        ? l10n.matchTournamentNameHint
-                                        : l10n.matchLeagueNameHint,
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  ChoiceChip(
+                                    avatar: const Icon(
+                                      Icons.remove_circle_outline,
+                                      size: 18,
+                                    ),
+                                    label: Text(l10n.matchResultUnset),
+                                    selected:
+                                        matchResultValue() == matchResultUnset,
+                                    onSelected: readOnly
+                                        ? null
+                                        : (_) {
+                                            setSheetState(() {
+                                              applyMatchResult(
+                                                  matchResultUnset);
+                                            });
+                                          },
                                   ),
-                                  enabled: !readOnly,
-                                ),
+                                  ChoiceChip(
+                                    avatar: const Icon(
+                                      Icons.emoji_events_outlined,
+                                      size: 18,
+                                    ),
+                                    label: Text(l10n.matchResultWin),
+                                    selected:
+                                        matchResultValue() == matchResultWin,
+                                    onSelected: readOnly
+                                        ? null
+                                        : (_) {
+                                            setSheetState(() {
+                                              applyMatchResult(matchResultWin);
+                                            });
+                                          },
+                                  ),
+                                  ChoiceChip(
+                                    avatar: const Icon(
+                                      Icons.drag_handle,
+                                      size: 18,
+                                    ),
+                                    label: Text(l10n.matchResultDraw),
+                                    selected:
+                                        matchResultValue() == matchResultDraw,
+                                    onSelected: readOnly
+                                        ? null
+                                        : (_) {
+                                            setSheetState(() {
+                                              applyMatchResult(matchResultDraw);
+                                            });
+                                          },
+                                  ),
+                                  ChoiceChip(
+                                    avatar: const Icon(Icons.close, size: 18),
+                                    label: Text(l10n.matchResultLoss),
+                                    selected:
+                                        matchResultValue() == matchResultLoss,
+                                    onSelected: readOnly
+                                        ? null
+                                        : (_) {
+                                            setSheetState(() {
+                                              applyMatchResult(matchResultLoss);
+                                            });
+                                          },
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 8),
-                              OutlinedButton.icon(
-                                onPressed: () async {
-                                  final result =
-                                      await _openMatchCompetitionManagerSheet(
-                                    kind: matchKind,
-                                    competitionName: competitionNameText,
-                                    teamsText: leagueTeamsText,
-                                    entries: entries,
-                                    readOnly: readOnly,
-                                  );
-                                  if (result == null || !context.mounted) {
-                                    return;
-                                  }
-                                  setSheetState(() {
-                                    competitionNameText = result.name;
-                                    leagueTeamsText = result.teams.join('\n');
-                                  });
-                                },
-                                icon: Icon(
-                                  matchKind == 'tournament'
-                                      ? Icons.account_tree_outlined
-                                      : Icons.leaderboard_outlined,
+                              buildTwoColumnCounters([
+                                buildScoreStepper(
+                                  label: l10n.matchOurScoreLabel,
+                                  controller: ourScoreController,
                                 ),
-                                label: Text(
-                                  l10n.matchCompetitionManageButton,
+                                buildScoreStepper(
+                                  label: l10n.matchOpponentScoreLabel,
+                                  controller: opponentScoreController,
                                 ),
-                              ),
+                              ]),
                               const SizedBox(height: 8),
-                              if (matchKind == 'league')
-                                TextFormField(
-                                  initialValue: leagueRoundText,
-                                  readOnly: readOnly,
-                                  onChanged: (value) => leagueRoundText = value,
-                                  textInputAction: TextInputAction.next,
-                                  decoration: _calendarInputDecorationWithDone(
-                                    context,
-                                    InputDecoration(
-                                      labelText: l10n.matchLeagueRoundLabel,
-                                      hintText: l10n.matchLeagueRoundHint,
-                                    ),
-                                    enabled: !readOnly,
-                                  ),
-                                )
-                              else ...[
-                                DropdownButtonFormField<String>(
-                                  initialValue: tournamentStage,
-                                  items: [
-                                    for (final value
-                                        in matchTournamentStageValues)
-                                      DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(
-                                          matchTournamentStageLabel(
-                                            l10n,
-                                            value,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                  onChanged: readOnly
-                                      ? null
-                                      : (value) {
-                                          if (value == null) return;
-                                          setSheetState(() {
-                                            tournamentStage = value;
-                                          });
-                                        },
-                                  decoration: _calendarInputDecorationWithDone(
-                                    context,
-                                    InputDecoration(
-                                      labelText: l10n.matchTournamentStageLabel,
-                                    ),
-                                    enabled: !readOnly,
-                                  ),
+                              buildTwoColumnCounters([
+                                buildCountStepper(
+                                  label: matchLabels.primary.label,
+                                  valueText: playerGoalsText,
+                                  onChanged: (value) => playerGoalsText = value,
                                 ),
-                                const SizedBox(height: 8),
-                                DropdownButtonFormField<String>(
-                                  initialValue: tournamentOutcome,
-                                  items: [
-                                    for (final value
-                                        in matchTournamentOutcomeValues)
-                                      DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(
-                                          matchTournamentOutcomeLabel(
-                                            l10n,
-                                            value,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                  onChanged: readOnly
-                                      ? null
-                                      : (value) {
-                                          if (value == null) return;
-                                          setSheetState(() {
-                                            tournamentOutcome = value;
-                                          });
-                                        },
-                                  decoration: _calendarInputDecorationWithDone(
-                                    context,
-                                    InputDecoration(
-                                      labelText:
-                                          l10n.matchTournamentOutcomeLabel,
-                                    ),
-                                    enabled: !readOnly,
-                                  ),
+                                buildCountStepper(
+                                  label: matchLabels.secondary.label,
+                                  valueText: playerAssistsText,
+                                  onChanged: (value) =>
+                                      playerAssistsText = value,
                                 ),
-                              ],
+                                buildCountStepper(
+                                  label: matchLabels.tertiary.label,
+                                  valueText: shotsOnTargetText,
+                                  onChanged: (value) =>
+                                      shotsOnTargetText = value,
+                                ),
+                                buildCountStepper(
+                                  label: matchLabels.quaternary.label,
+                                  valueText: ballsWonText,
+                                  onChanged: (value) => ballsWonText = value,
+                                ),
+                              ]),
                               const SizedBox(height: 8),
                               TextFormField(
-                                initialValue: leagueTeamsText,
+                                initialValue: minutesPlayedText,
                                 readOnly: readOnly,
-                                onChanged: (value) => leagueTeamsText = value,
-                                textInputAction: TextInputAction.next,
-                                decoration: _calendarInputDecorationWithDone(
-                                  context,
-                                  InputDecoration(
-                                    labelText: matchKind == 'tournament'
-                                        ? l10n.matchTournamentTeamsLabel
-                                        : l10n.matchLeagueTeamsLabel,
-                                    hintText: matchKind == 'tournament'
-                                        ? l10n.matchTournamentTeamsHint
-                                        : l10n.matchLeagueTeamsHint,
-                                  ),
-                                  enabled: !readOnly,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              TextFormField(
-                                initialValue: matchKind == 'league'
-                                    ? leaguePointsText
-                                    : tournamentWinsText,
-                                key: ValueKey<String>(matchKind),
-                                readOnly: readOnly,
-                                onChanged: (value) {
-                                  if (matchKind == 'league') {
-                                    leaguePointsText = value;
-                                  } else {
-                                    tournamentWinsText = value;
-                                  }
-                                },
+                                onChanged: (value) => minutesPlayedText = value,
                                 keyboardType: TextInputType.number,
                                 textInputAction: TextInputAction.done,
                                 onFieldSubmitted: (_) =>
@@ -2348,286 +2607,172 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 decoration: _calendarInputDecorationWithDone(
                                   context,
                                   InputDecoration(
-                                    labelText: matchKind == 'league'
-                                        ? l10n.matchLeaguePointsLabel
-                                        : l10n.matchTournamentWinsLabel,
+                                    labelText: l10n.matchMinutesPlayedLabel,
+                                    hintText: l10n.matchMinutesPlayedHint,
+                                  ),
+                                  enabled: !readOnly,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                initialValue: memoText,
+                                readOnly: readOnly,
+                                onChanged: (value) => memoText = value,
+                                maxLength: 60,
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (_) =>
+                                    FocusScope.of(context).unfocus(),
+                                decoration: _calendarInputDecorationWithDone(
+                                  context,
+                                  InputDecoration(
+                                    labelText: l10n.matchNoteOptionalLabel,
                                   ),
                                   enabled: !readOnly,
                                 ),
                               ),
                             ],
-                            const SizedBox(height: 8),
-                            _CalendarAutocompleteField(
-                              initialValue: location,
-                              options: locationOptions,
-                              onChanged: (value) => location = value,
-                              textInputAction: TextInputAction.next,
-                              labelText: l10n.location,
-                              hintText: isKo ? '예) 메인 구장' : 'e.g. Main stadium',
-                              maxLength: 40,
-                              enabled: !readOnly,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.matchResultLabel,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(fontWeight: FontWeight.w800),
-                            ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                ChoiceChip(
-                                  avatar: const Icon(
-                                    Icons.remove_circle_outline,
-                                    size: 18,
-                                  ),
-                                  label: Text(l10n.matchResultUnset),
-                                  selected:
-                                      matchResultValue() == matchResultUnset,
-                                  onSelected: readOnly
-                                      ? null
-                                      : (_) {
-                                          setSheetState(() {
-                                            applyMatchResult(matchResultUnset);
-                                          });
-                                        },
-                                ),
-                                ChoiceChip(
-                                  avatar: const Icon(
-                                    Icons.emoji_events_outlined,
-                                    size: 18,
-                                  ),
-                                  label: Text(l10n.matchResultWin),
-                                  selected:
-                                      matchResultValue() == matchResultWin,
-                                  onSelected: readOnly
-                                      ? null
-                                      : (_) {
-                                          setSheetState(() {
-                                            applyMatchResult(matchResultWin);
-                                          });
-                                        },
-                                ),
-                                ChoiceChip(
-                                  avatar: const Icon(
-                                    Icons.drag_handle,
-                                    size: 18,
-                                  ),
-                                  label: Text(l10n.matchResultDraw),
-                                  selected:
-                                      matchResultValue() == matchResultDraw,
-                                  onSelected: readOnly
-                                      ? null
-                                      : (_) {
-                                          setSheetState(() {
-                                            applyMatchResult(matchResultDraw);
-                                          });
-                                        },
-                                ),
-                                ChoiceChip(
-                                  avatar: const Icon(Icons.close, size: 18),
-                                  label: Text(l10n.matchResultLoss),
-                                  selected:
-                                      matchResultValue() == matchResultLoss,
-                                  onSelected: readOnly
-                                      ? null
-                                      : (_) {
-                                          setSheetState(() {
-                                            applyMatchResult(matchResultLoss);
-                                          });
-                                        },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            buildTwoColumnCounters([
-                              buildScoreStepper(
-                                label: l10n.matchOurScoreLabel,
-                                controller: ourScoreController,
-                              ),
-                              buildScoreStepper(
-                                label: l10n.matchOpponentScoreLabel,
-                                controller: opponentScoreController,
-                              ),
-                            ]),
-                            const SizedBox(height: 8),
-                            buildTwoColumnCounters([
-                              buildCountStepper(
-                                label: matchLabels.primary.label,
-                                valueText: playerGoalsText,
-                                onChanged: (value) => playerGoalsText = value,
-                              ),
-                              buildCountStepper(
-                                label: matchLabels.secondary.label,
-                                valueText: playerAssistsText,
-                                onChanged: (value) => playerAssistsText = value,
-                              ),
-                              buildCountStepper(
-                                label: matchLabels.tertiary.label,
-                                valueText: shotsOnTargetText,
-                                onChanged: (value) => shotsOnTargetText = value,
-                              ),
-                              buildCountStepper(
-                                label: matchLabels.quaternary.label,
-                                valueText: ballsWonText,
-                                onChanged: (value) => ballsWonText = value,
-                              ),
-                            ]),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              initialValue: minutesPlayedText,
-                              readOnly: readOnly,
-                              onChanged: (value) => minutesPlayedText = value,
-                              keyboardType: TextInputType.number,
-                              textInputAction: TextInputAction.done,
-                              onFieldSubmitted: (_) =>
-                                  FocusScope.of(context).unfocus(),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              decoration: _calendarInputDecorationWithDone(
-                                context,
-                                InputDecoration(
-                                  labelText: l10n.matchMinutesPlayedLabel,
-                                  hintText: l10n.matchMinutesPlayedHint,
-                                ),
-                                enabled: !readOnly,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              initialValue: memoText,
-                              readOnly: readOnly,
-                              onChanged: (value) => memoText = value,
-                              maxLength: 60,
-                              textInputAction: TextInputAction.done,
-                              onFieldSubmitted: (_) =>
-                                  FocusScope.of(context).unfocus(),
-                              decoration: _calendarInputDecorationWithDone(
-                                context,
-                                InputDecoration(
-                                  labelText: l10n.matchNoteOptionalLabel,
-                                ),
-                                enabled: !readOnly,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (readOnly)
-                        OutlinedButton.icon(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close),
-                          label: Text(
-                            MaterialLocalizations.of(context).closeButtonLabel,
                           ),
-                        )
-                      else
-                        FilledButton.icon(
-                          onPressed: () {
-                            final leagueTeams = _parseSheetStringList(
-                              leagueTeamsText,
-                            );
-                            final trimmedOpponent = opponent.trim();
-                            if (matchKind == 'friendly' &&
-                                trimmedOpponent.isEmpty) {
-                              return;
-                            }
-                            if (matchKind == 'league' &&
-                                trimmedOpponent.isEmpty &&
-                                leagueTeams.isEmpty) {
-                              return;
-                            }
-                            if (matchKind == 'tournament' &&
-                                trimmedOpponent.isEmpty &&
-                                leagueTeams.isEmpty) {
-                              return;
-                            }
-                            final savedOpponent = trimmedOpponent.isNotEmpty
-                                ? trimmedOpponent
-                                : leagueTeams.first;
-                            Navigator.of(context).pop(
-                              TrainingEntry(
-                                date: matchDay,
-                                durationMinutes:
-                                    editingEntry?.durationMinutes ?? 90,
-                                intensity: editingEntry?.intensity ?? 3,
-                                type: l10n.typeMatch,
-                                mood: editingEntry?.mood ?? 3,
-                                injury: editingEntry?.injury ?? false,
-                                notes: memoText.trim(),
-                                location: location.trim(),
-                                program: l10n.typeMatch,
-                                club: savedOpponent,
-                                opponentTeam: savedOpponent,
-                                status: editingEntry?.status ?? 'normal',
-                                goodPoints: editingEntry?.goodPoints ?? '',
-                                improvements: editingEntry?.improvements ?? '',
-                                nextGoal: editingEntry?.nextGoal ?? '',
-                                goalFocuses:
-                                    editingEntry?.goalFocuses ?? const [],
-                                createdAt: editingEntry?.createdAt,
-                                scoredGoals: _parseSheetInt(
-                                  ourScoreController.text,
-                                ),
-                                concededGoals: _parseSheetInt(
-                                  opponentScoreController.text,
-                                ),
-                                playerGoals: _parseSheetInt(playerGoalsText),
-                                playerAssists: _parseSheetInt(
-                                  playerAssistsText,
-                                ),
-                                shotsOnTarget: _parseSheetInt(
-                                  shotsOnTargetText,
-                                ),
-                                ballsWon: _parseSheetInt(ballsWonText),
-                                minutesPlayed: _parseSheetInt(
-                                  minutesPlayedText,
-                                ),
-                                matchLocation: location.trim(),
-                                matchKind: matchKind,
-                                leagueTeamNames: leagueTeams,
-                                leagueResultMode: matchKind == 'tournament'
-                                    ? 'tournamentWins'
-                                    : 'points',
-                                leaguePoints: matchKind == 'league'
-                                    ? _parseSheetInt(leaguePointsText)
-                                    : null,
-                                tournamentWins: matchKind == 'tournament'
-                                    ? _parseSheetInt(tournamentWinsText)
-                                    : null,
-                                matchCompetitionName: matchKind == 'friendly'
-                                    ? ''
-                                    : competitionNameText.trim(),
-                                matchStage: matchKind == 'tournament'
-                                    ? tournamentStage
-                                    : matchKind == 'league'
-                                        ? leagueRoundText.trim()
-                                        : '',
-                                tournamentOutcome: matchKind == 'tournament'
-                                    ? tournamentOutcome
-                                    : '',
-                                sportId: sportId,
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.check),
-                          label: Text(isKo ? '저장' : 'Save'),
                         ),
-                    ],
+                        const SizedBox(height: 8),
+                        if (readOnly)
+                          OutlinedButton.icon(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.close),
+                            label: Text(
+                              MaterialLocalizations.of(context)
+                                  .closeButtonLabel,
+                            ),
+                          )
+                        else
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: closeSheet,
+                                  icon: const Icon(Icons.arrow_back),
+                                  label: Text(
+                                    l10n.matchCompetitionBackButton,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: FilledButton.icon(
+                                  onPressed: () {
+                                    final leagueTeams = _parseSheetStringList(
+                                      leagueTeamsText,
+                                    );
+                                    final trimmedOpponent = opponent.trim();
+                                    if (matchKind == 'friendly' &&
+                                        trimmedOpponent.isEmpty) {
+                                      return;
+                                    }
+                                    if (matchKind == 'league' &&
+                                        trimmedOpponent.isEmpty &&
+                                        leagueTeams.isEmpty) {
+                                      return;
+                                    }
+                                    if (matchKind == 'tournament' &&
+                                        trimmedOpponent.isEmpty &&
+                                        leagueTeams.isEmpty) {
+                                      return;
+                                    }
+                                    final savedOpponent =
+                                        trimmedOpponent.isNotEmpty
+                                            ? trimmedOpponent
+                                            : leagueTeams.first;
+                                    Navigator.of(context).pop(
+                                      TrainingEntry(
+                                        date: matchDay,
+                                        durationMinutes:
+                                            editingEntry?.durationMinutes ?? 90,
+                                        intensity: editingEntry?.intensity ?? 3,
+                                        type: l10n.typeMatch,
+                                        mood: editingEntry?.mood ?? 3,
+                                        injury: editingEntry?.injury ?? false,
+                                        notes: memoText.trim(),
+                                        location: location.trim(),
+                                        program: l10n.typeMatch,
+                                        club: savedOpponent,
+                                        opponentTeam: savedOpponent,
+                                        status:
+                                            editingEntry?.status ?? 'normal',
+                                        goodPoints:
+                                            editingEntry?.goodPoints ?? '',
+                                        improvements:
+                                            editingEntry?.improvements ?? '',
+                                        nextGoal: editingEntry?.nextGoal ?? '',
+                                        goalFocuses:
+                                            editingEntry?.goalFocuses ??
+                                                const [],
+                                        createdAt: editingEntry?.createdAt,
+                                        scoredGoals: _parseSheetInt(
+                                          ourScoreController.text,
+                                        ),
+                                        concededGoals: _parseSheetInt(
+                                          opponentScoreController.text,
+                                        ),
+                                        playerGoals:
+                                            _parseSheetInt(playerGoalsText),
+                                        playerAssists: _parseSheetInt(
+                                          playerAssistsText,
+                                        ),
+                                        shotsOnTarget: _parseSheetInt(
+                                          shotsOnTargetText,
+                                        ),
+                                        ballsWon: _parseSheetInt(ballsWonText),
+                                        minutesPlayed: _parseSheetInt(
+                                          minutesPlayedText,
+                                        ),
+                                        matchLocation: location.trim(),
+                                        matchKind: matchKind,
+                                        leagueTeamNames: leagueTeams,
+                                        leagueResultMode:
+                                            matchKind == 'tournament'
+                                                ? 'tournamentWins'
+                                                : 'points',
+                                        leaguePoints: matchKind == 'league'
+                                            ? _parseSheetInt(leaguePointsText)
+                                            : null,
+                                        tournamentWins:
+                                            matchKind == 'tournament'
+                                                ? _parseSheetInt(
+                                                    tournamentWinsText,
+                                                  )
+                                                : null,
+                                        matchCompetitionName:
+                                            matchKind == 'friendly'
+                                                ? ''
+                                                : competitionNameText.trim(),
+                                        matchStage: matchKind == 'tournament'
+                                            ? tournamentStage
+                                            : matchKind == 'league'
+                                                ? leagueRoundText.trim()
+                                                : '',
+                                        tournamentOutcome:
+                                            matchKind == 'tournament'
+                                                ? tournamentOutcome
+                                                : '',
+                                        sportId: sportId,
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.check),
+                                  label: Text(isKo ? '저장' : 'Save'),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             );
           },
         );
       },
-    ).whenComplete(scheduleScoreControllerDispose);
+    ).whenComplete(scheduleSheetControllerDispose);
     if (saved == null) return;
     final trimmedMatchLocation = saved.effectiveMatchLocation.trim();
     if (trimmedMatchLocation.isNotEmpty) {
@@ -5246,6 +5391,7 @@ class _CalendarAutocompleteField extends StatelessWidget {
   final bool enabled;
 
   const _CalendarAutocompleteField({
+    super.key,
     required this.initialValue,
     required this.options,
     required this.onChanged,
