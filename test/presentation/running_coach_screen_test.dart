@@ -188,18 +188,64 @@ void main() {
     );
     expect(find.textContaining('landing distance is 0.08'), findsOneWidget);
 
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-sample-decision-posture')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-metric-detail')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-metric-detail-visual')),
+      findsOneWidget,
+    );
+    expect(find.text('Evidence detail'), findsOneWidget);
+    expect(find.text('Measured value'), findsOneWidget);
+    expect(find.text('Lean 10°'), findsWidgets);
+    expect(find.textContaining('shoulder midpoint'), findsWidgets);
+
+    Navigator.of(
+      tester.element(
+        find.byKey(const ValueKey('running-coach-sample-metric-detail')),
+      ),
+    ).pop();
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Wrong form sample'));
     await tester.pump();
 
     expect(find.text('Wrong-form readouts'), findsOneWidget);
     expect(find.text('Ahead 0.20'), findsOneWidget);
     expect(find.text('Bounce'), findsOneWidget);
-    expect(find.text('Bounce 10%'), findsOneWidget);
+    expect(find.text('Bounce 10%'), findsWidgets);
     expect(find.text('Review'), findsWidgets);
     expect(
       find.textContaining('landing is 0.20 ahead of the hip'),
       findsOneWidget,
     );
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-sample-decision-bounce')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-metric-detail')),
+      findsOneWidget,
+    );
+    expect(find.text('Bounce 10%'), findsWidgets);
+    expect(find.textContaining('head and hip height band'), findsOneWidget);
+
+    Navigator.of(
+      tester.element(
+        find.byKey(const ValueKey('running-coach-sample-metric-detail')),
+      ),
+    ).pop();
+    await tester.pumpAndSettle();
 
     await tester.tap(
       find.byKey(const ValueKey('running-coach-sample-back-button')),

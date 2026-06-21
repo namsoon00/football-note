@@ -6477,6 +6477,98 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleMistakeOverlayBounce => '上下 10%';
 
   @override
+  String get runningCoachSampleMetricDetailScreenTitle => '根拠の詳細';
+
+  @override
+  String get runningCoachSampleMetricDetailHeroBody =>
+      'この画面では、選択した判定項目を出す前にサンプルオーバーレイが読む体の位置を拡大して確認できます。';
+
+  @override
+  String get runningCoachSampleMetricDetailSampleLabel => 'サンプル';
+
+  @override
+  String get runningCoachSampleMetricDetailValueLabel => '測定値';
+
+  @override
+  String get runningCoachSampleMetricDetailStatusLabel => '判定';
+
+  @override
+  String get runningCoachSampleMetricDetailKeyPositionTitle => '重要な位置';
+
+  @override
+  String get runningCoachSampleMetricDetailReferenceTitle => '良い動き';
+
+  @override
+  String get runningCoachSampleMetricDetailReviewTitle => '確認する動き';
+
+  @override
+  String get runningCoachSampleMetricDetailHowReadTitle => 'オーバーレイの読み取り方';
+
+  @override
+  String get runningCoachSamplePostureDetailKeyPosition =>
+      '中間接地: 肩の中心、腰の線、支持足首で前傾角度を定義します。';
+
+  @override
+  String get runningCoachSamplePostureDetailReference =>
+      '良いサンプルは腰から軽く前傾し、頭が胸の上に安定して乗っています。';
+
+  @override
+  String get runningCoachSamplePostureDetailReview =>
+      '確認サンプルは上体が立ちすぎて、押し出す線が短く加速が遅れて見えます。';
+
+  @override
+  String get runningCoachSamplePostureDetailHowRead =>
+      'アプリは腰と肩の中心を結び、腰の垂直線と比較してフレームごとの前傾角度を確認します。';
+
+  @override
+  String get runningCoachSampleArmsDetailKeyPosition =>
+      '腕振りの位置: 反対側の膝が前に出る瞬間に肘角度を読みます。';
+
+  @override
+  String get runningCoachSampleArmsDetailReference =>
+      '良いサンプルは肘を90度付近に保ち、肋骨の近くで前後に振ります。';
+
+  @override
+  String get runningCoachSampleArmsDetailReview =>
+      '確認サンプルは肘が開きすぎ、リズムが遅くなり体幹の回旋が増えます。';
+
+  @override
+  String get runningCoachSampleArmsDetailHowRead =>
+      'アプリは肩、肘、手首のランドマークを結び、肘が開きすぎるフレームを示します。';
+
+  @override
+  String get runningCoachSampleLandingDetailKeyPosition =>
+      '初期接地: 足、足首、腰の線で、足が体の下に落ちているかを見ます。';
+
+  @override
+  String get runningCoachSampleLandingDetailReference =>
+      '良いサンプルは足が腰の線に近く着き、接地が前進を支えます。';
+
+  @override
+  String get runningCoachSampleLandingDetailReview =>
+      '確認サンプルは足が腰より前に出すぎ、ブレーキとして読まれます。';
+
+  @override
+  String get runningCoachSampleLandingDetailHowRead =>
+      'アプリは着地区間で腰の線から接地足首とつま先までの水平距離を測定します。';
+
+  @override
+  String get runningCoachSampleBounceDetailKeyPosition =>
+      '浮遊から接地への区間: 隣接フレームの頭と腰の高さを比較します。';
+
+  @override
+  String get runningCoachSampleBounceDetailReference =>
+      '良いサンプルは上下動が小さく、エネルギーが前方に向きます。';
+
+  @override
+  String get runningCoachSampleBounceDetailReview =>
+      '確認サンプルは上下の動きが大きく、接地タイミングが不安定になります。';
+
+  @override
+  String get runningCoachSampleBounceDetailHowRead =>
+      'アプリはストライド中の頭と腰の高さ帯を追跡し、垂直変化の比率を採点します。';
+
+  @override
   String get runningCoachLiveCardTitle => 'ライブコーチ';
 
   @override
