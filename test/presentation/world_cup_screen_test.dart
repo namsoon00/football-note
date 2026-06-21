@@ -313,6 +313,7 @@ void main() {
 
     expect(find.textContaining('멕시코'), findsWidgets);
     expect(find.textContaining('남아프리카공화국'), findsWidgets);
+    expect(find.text('M1'), findsNothing);
     expect(find.text('에스타디오 아스테카, 멕시코시티'), findsOneWidget);
     expect(find.textContaining('Mexico'), findsNothing);
   });
