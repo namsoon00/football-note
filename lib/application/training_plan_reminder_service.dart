@@ -867,7 +867,17 @@ class TrainingPlanReminderService {
       if (id.isEmpty) return false;
       return !fixtureReadIds.contains(id);
     }).length;
-    return xpUnread + familyUnread + fixtureUnread;
+    final weatherLogs =
+        _options.getValue<List>('weather_message_log_v1') ?? const [];
+    final weatherReadRaw =
+        _options.getValue<List>('weather_message_read_ids_v1') ?? const [];
+    final weatherReadIds = weatherReadRaw.map((e) => e.toString()).toSet();
+    final weatherUnread = weatherLogs.whereType<Map>().where((item) {
+      final id = item['id']?.toString() ?? '';
+      if (id.isEmpty) return false;
+      return !weatherReadIds.contains(id);
+    }).length;
+    return xpUnread + familyUnread + fixtureUnread + weatherUnread;
   }
 
   Future<void> markAllRemindersRead() async {

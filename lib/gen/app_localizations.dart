@@ -7712,6 +7712,204 @@ abstract class AppLocalizations {
   /// **'Notify before loaded fixtures for selected favorite teams.'**
   String get notificationLeagueFixtureSettingsSubtitle;
 
+  /// No description provided for @notificationOverviewOnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone notifications are on'**
+  String get notificationOverviewOnTitle;
+
+  /// No description provided for @notificationOverviewOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone notifications are off'**
+  String get notificationOverviewOffTitle;
+
+  /// No description provided for @notificationOverviewAllOnSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device notifications and in-app alerts are both enabled.'**
+  String get notificationOverviewAllOnSubtitle;
+
+  /// No description provided for @notificationOverviewAppOffSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device notifications are on, but all in-app alerts are off.'**
+  String get notificationOverviewAppOffSubtitle;
+
+  /// No description provided for @notificationOverviewPermissionOffSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications for this app in Settings > Notifications to receive alerts.'**
+  String get notificationOverviewPermissionOffSubtitle;
+
+  /// No description provided for @notificationOverviewPausedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get notificationOverviewPausedLabel;
+
+  /// No description provided for @notificationOverviewCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} alerts'**
+  String notificationOverviewCountLabel(int count);
+
+  /// No description provided for @notificationFeedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert feed'**
+  String get notificationFeedTitle;
+
+  /// No description provided for @notificationFeedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts shown: {count}'**
+  String notificationFeedSubtitle(int count);
+
+  /// No description provided for @notificationFeedEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No alerts to show.'**
+  String get notificationFeedEmptyTitle;
+
+  /// No description provided for @notificationFeedEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training, weather, and match alerts will appear here.'**
+  String get notificationFeedEmptySubtitle;
+
+  /// No description provided for @notificationInactivitySettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactivity reminders'**
+  String get notificationInactivitySettingsTitle;
+
+  /// No description provided for @notificationInactivityOnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactivity reminder is on'**
+  String get notificationInactivityOnTitle;
+
+  /// No description provided for @notificationInactivityOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactivity reminder is off'**
+  String get notificationInactivityOffTitle;
+
+  /// No description provided for @notificationInactivityOnSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert at {time} after {days} inactive days'**
+  String notificationInactivityOnSubtitle(int days, Object time);
+
+  /// No description provided for @notificationInactivityOffSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn it on to get nudges after quiet periods.'**
+  String get notificationInactivityOffSubtitle;
+
+  /// No description provided for @notificationLastTrainingLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Last log: {time}'**
+  String notificationLastTrainingLog(Object time);
+
+  /// No description provided for @notificationInactivityTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training reminder time'**
+  String get notificationInactivityTimeTitle;
+
+  /// No description provided for @notificationInactivityTimeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} day threshold · {time}'**
+  String notificationInactivityTimeSubtitle(int days, Object time);
+
+  /// No description provided for @notificationInactivityThresholdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactivity threshold'**
+  String get notificationInactivityThresholdLabel;
+
+  /// No description provided for @notificationInactivityThresholdDayOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} day(s)'**
+  String notificationInactivityThresholdDayOption(int value);
+
+  /// No description provided for @notificationChangeTimeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get notificationChangeTimeAction;
+
+  /// No description provided for @notificationXpFallbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'XP alert'**
+  String get notificationXpFallbackTitle;
+
+  /// No description provided for @notificationXpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'+{gainedXp} XP · total {totalXp} XP'**
+  String notificationXpSubtitle(int gainedXp, int totalXp);
+
+  /// No description provided for @notificationPlanFallbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan'**
+  String get notificationPlanFallbackTitle;
+
+  /// No description provided for @notificationWeatherSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather alert'**
+  String get notificationWeatherSettingsTitle;
+
+  /// No description provided for @notificationWeatherSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a daily reminder to check weather and training outfit.'**
+  String get notificationWeatherSettingsSubtitle;
+
+  /// No description provided for @notificationWeatherTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather alert time'**
+  String get notificationWeatherTimeTitle;
+
+  /// No description provided for @notificationWeatherTimeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day at {time}'**
+  String notificationWeatherTimeSubtitle(Object time);
+
+  /// No description provided for @notificationNewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get notificationNewBadge;
+
+  /// No description provided for @weatherNotificationChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather alerts'**
+  String get weatherNotificationChannelName;
+
+  /// No description provided for @weatherNotificationChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily weather and training outfit reminders'**
+  String get weatherNotificationChannelDescription;
+
+  /// No description provided for @weatherNotificationDailyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check today\'s weather and training outfit.'**
+  String get weatherNotificationDailyBody;
+
   /// No description provided for @reminderEnabled.
   ///
   /// In en, this message translates to:

@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +9,7 @@ import '../../application/notification_app_link.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_plan_badge_service.dart';
 import '../../application/training_plan_reminder_service.dart';
+import '../../application/weather_reminder_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
 import '../navigation/notification_tap_router.dart';
@@ -30,27 +31,18 @@ class NotificationCenterScreen extends StatefulWidget {
 
 class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   static const _seenXpIdsStorageKey = 'notification_seen_xp_ids_v1';
-  static const _showInactivitySectionKey =
-      'notification_show_inactivity_section_v1';
-  static const _showXpSectionKey = 'notification_show_xp_section_v1';
-  static const _showPlanSectionKey = 'notification_show_plan_section_v1';
-  static const _showFamilySectionKey = 'notification_show_family_section_v1';
-  static const _showFixtureSectionKey = 'notification_show_fixture_section_v1';
 
   late final TrainingPlanReminderService _reminderService;
   late final LeagueFixtureReminderService _fixtureReminderService;
+  late final WeatherReminderService _weatherReminderService;
   bool _permissionGranted = true;
   bool _loading = true;
   bool _mutedNow = false;
-  bool _showInactivitySection = true;
-  bool _showXpSection = true;
-  bool _showPlanSection = true;
-  bool _showFamilySection = true;
-  bool _showFixtureSection = true;
   List<_PlanAlarmRow> _planRows = const [];
   List<_XpMessageRow> _xpRows = const [];
   List<_FamilyMessageRow> _familyRows = const [];
   List<_FixtureMessageRow> _fixtureRows = const [];
+  List<_WeatherMessageRow> _weatherRows = const [];
   String? _lastTrainingLogAt;
 
   @override
@@ -64,36 +56,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       widget.optionRepository,
       widget.settingsService,
     );
-    _restoreSectionExpandedState();
+    _weatherReminderService = WeatherReminderService(
+      widget.optionRepository,
+      widget.settingsService,
+    );
     _load();
-  }
-
-  void _restoreSectionExpandedState() {
-    _showInactivitySection =
-        widget.optionRepository.getValue<bool>(_showInactivitySectionKey) ??
-        _showInactivitySection;
-    _showXpSection =
-        widget.optionRepository.getValue<bool>(_showXpSectionKey) ??
-        _showXpSection;
-    _showPlanSection =
-        widget.optionRepository.getValue<bool>(_showPlanSectionKey) ??
-        _showPlanSection;
-    _showFamilySection =
-        widget.optionRepository.getValue<bool>(_showFamilySectionKey) ??
-        _showFamilySection;
-    _showFixtureSection =
-        widget.optionRepository.getValue<bool>(_showFixtureSectionKey) ??
-        _showFixtureSection;
-  }
-
-  void _toggleSection({
-    required String storageKey,
-    required bool currentValue,
-    required void Function(bool next) apply,
-  }) {
-    final next = !currentValue;
-    setState(() => apply(next));
-    unawaited(widget.optionRepository.setValue(storageKey, next));
   }
 
   Future<void> _load() async {
@@ -106,7 +73,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       final xpRows = _loadXpRows(seenXpIds);
       final familyRows = _loadFamilyRows();
       final fixtureRows = _loadFixtureRows();
+      final weatherRows = _loadWeatherRows();
       await _fixtureReminderService.markAllFixtureMessagesRead();
+      await _weatherReminderService.markAllWeatherMessagesRead();
       final lastTrainingLogAt = widget.optionRepository.getValue<String>(
         TrainingPlanReminderService.lastTrainingLogAtKey,
       );
@@ -119,6 +88,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         _xpRows = xpRows;
         _familyRows = familyRows;
         _fixtureRows = fixtureRows;
+        _weatherRows = weatherRows;
         _lastTrainingLogAt = lastTrainingLogAt;
         _loading = false;
       });
@@ -130,6 +100,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         _xpRows = _loadXpRows(const <String>{});
         _familyRows = _loadFamilyRows();
         _fixtureRows = _loadFixtureRows();
+        _weatherRows = _loadWeatherRows();
         _loading = false;
       });
     }
@@ -155,13 +126,12 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return const [];
-      final rows =
-          decoded
-              .whereType<Map>()
-              .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
-              .where((e) => e.scheduledAt.isAfter(DateTime.now()))
-              .toList(growable: false)
-            ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+      final rows = decoded
+          .whereType<Map>()
+          .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
+          .where((e) => e.scheduledAt.isAfter(DateTime.now()))
+          .toList(growable: false)
+        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
       final dismissed = _reminderService.dismissedMessageKeysSync().toSet();
       return rows
           .where((row) => !dismissed.contains(row.messageKey))
@@ -188,6 +158,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     return logs.map(_FixtureMessageRow.fromMap).toList(growable: false);
   }
 
+  List<_WeatherMessageRow> _loadWeatherRows() {
+    final logs = _weatherReminderService.loadWeatherMessageLogSync();
+    return logs.map(_WeatherMessageRow.fromMap).toList(growable: false);
+  }
+
   Future<void> _deleteMessage(_PlanAlarmRow row) async {
     await _reminderService.dismissMessageKey(row.messageKey);
     await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
@@ -204,9 +179,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
     if (!mounted) return;
     setState(() {
-      _xpRows = _xpRows
-          .where((item) => item.id != row.id)
-          .toList(growable: false);
+      _xpRows =
+          _xpRows.where((item) => item.id != row.id).toList(growable: false);
     });
   }
 
@@ -232,6 +206,17 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     });
   }
 
+  Future<void> _deleteWeatherMessage(_WeatherMessageRow row) async {
+    await _weatherReminderService.deleteWeatherMessage(row.id);
+    await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
+    if (!mounted) return;
+    setState(() {
+      _weatherRows = _weatherRows
+          .where((item) => item.id != row.id)
+          .toList(growable: false);
+    });
+  }
+
   Widget _deleteBackground(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
@@ -249,6 +234,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     await _reminderService.muteAlarmsUntil(
       DateTime.now().add(Duration(hours: hours)),
     );
+    await _weatherReminderService.clearAllReminders();
     if (!mounted) return;
     await _load();
   }
@@ -256,6 +242,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   Future<void> _resumeAlerts() async {
     await _reminderService.clearAlarmMute();
     await _reminderService.syncSettingsDrivenReminders();
+    await _weatherReminderService.syncSettingsDrivenReminders();
     if (!mounted) return;
     await _load();
   }
@@ -264,7 +251,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
-    final xpNewCount = _xpRows.where((row) => row.isNew).length;
+    final feedItems = _buildFeedItems(l10n: l10n, isKo: isKo);
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
@@ -289,350 +276,177 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
-                Card(
-                  child: ListTile(
-                    leading: Icon(
-                      _permissionGranted
-                          ? Icons.notifications_active_outlined
-                          : Icons.notifications_off_outlined,
+                _NotificationOverviewCard(
+                  permissionGranted: _permissionGranted,
+                  appNotificationEnabled:
+                      widget.settingsService.reminderEnabled,
+                  mutedNow: _mutedNow,
+                  countLabel: l10n.notificationOverviewCountLabel(
+                    feedItems.length,
+                  ),
+                  l10n: l10n,
+                ),
+                const SizedBox(height: 16),
+                _NotificationFeedHeader(
+                  title: l10n.notificationFeedTitle,
+                  subtitle: l10n.notificationFeedSubtitle(feedItems.length),
+                ),
+                const SizedBox(height: 8),
+                if (feedItems.isEmpty)
+                  _NotificationEmptyCard(
+                    title: l10n.notificationFeedEmptyTitle,
+                    subtitle: l10n.notificationFeedEmptySubtitle,
+                  )
+                else
+                  ...feedItems.map(
+                    (item) => _NotificationFeedTile(
+                      item: item,
+                      newLabel: l10n.notificationNewBadge,
+                      deleteTooltip: l10n.delete,
+                      deleteBackground: _deleteBackground(context),
                     ),
-                    title: Text(
-                      _permissionGranted
-                          ? (isKo ? '폰 알림 활성화' : 'Phone notifications are on')
-                          : (isKo
-                                ? '폰 알림 비활성화'
-                                : 'Phone notifications are off'),
-                    ),
-                    subtitle: Text(
-                      _permissionGranted
-                          ? (widget.settingsService.reminderEnabled
-                                ? (isKo
-                                      ? '기기 알림과 앱 알림이 모두 켜져 있습니다.'
-                                      : 'Both device notifications and in-app alerts are enabled.')
-                                : (isKo
-                                      ? '기기 알림은 켜져 있지만 앱 내 전체 알림은 꺼져 있습니다.'
-                                      : 'Device notifications are on, but in-app alerts are turned off.'))
-                          : (isKo
-                                ? '설정 > 알림에서 이 앱의 알림을 허용해야 실제 알림이 도착합니다.'
-                                : 'Allow notifications for this app in Settings > Notifications to receive alerts.'),
-                    ),
-                    trailing: _permissionGranted
-                        ? const Icon(Icons.check_circle_outline)
-                        : const Icon(Icons.error_outline),
                   ),
-                ),
-                const SizedBox(height: 8),
-                _NotificationSectionCard(
-                  title: isKo ? '기록 리마인드' : 'Inactivity reminder',
-                  icon: Icons.edit_calendar_outlined,
-                  expanded: _showInactivitySection,
-                  onTap: () => _toggleSection(
-                    storageKey: _showInactivitySectionKey,
-                    currentValue: _showInactivitySection,
-                    apply: (next) => _showInactivitySection = next,
-                  ),
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.edit_calendar_outlined),
-                    title: Text(
-                      widget.settingsService.inactivityAlertEnabled
-                          ? (isKo
-                                ? '기록 공백 리마인드 사용 중'
-                                : 'Inactivity reminder is on')
-                          : (isKo
-                                ? '기록 공백 리마인드 꺼짐'
-                                : 'Inactivity reminder is off'),
-                    ),
-                    subtitle: Text(_buildInactivitySubtitle(isKo)),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _NotificationSectionCard(
-                  title: isKo
-                      ? '경험치 알림 ${_xpRows.length}개'
-                      : '${_xpRows.length} XP alerts',
-                  icon: Icons.stars_rounded,
-                  expanded: _showXpSection,
-                  newCount: xpNewCount,
-                  onTap: () => _toggleSection(
-                    storageKey: _showXpSectionKey,
-                    currentValue: _showXpSection,
-                    apply: (next) => _showXpSection = next,
-                  ),
-                  child: _xpRows.isEmpty
-                      ? ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.stars_outlined),
-                          title: Text(
-                            isKo ? '경험치 알림이 없어요.' : 'No XP alerts yet.',
-                          ),
-                        )
-                      : Column(
-                          children: _xpRows
-                              .map(
-                                (item) => Dismissible(
-                                  key: ValueKey('xp-msg-${item.id}'),
-                                  direction: DismissDirection.endToStart,
-                                  background: _deleteBackground(context),
-                                  onDismissed: (_) => _deleteXpMessage(item),
-                                  child: Card(
-                                    margin: const EdgeInsets.only(bottom: 8),
-                                    child: ListTile(
-                                      onTap: () =>
-                                          NotificationTapRouter.handlePayload(
-                                            NotificationAppLink.xpHistory(
-                                              totalXp: item.totalXp,
-                                            ),
-                                          ),
-                                      leading: const Icon(Icons.stars_rounded),
-                                      title: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              item.label.isEmpty
-                                                  ? (isKo
-                                                        ? '경험치 알림'
-                                                        : 'XP alert')
-                                                  : item.label,
-                                            ),
-                                          ),
-                                          if (item.isNew) const _NewBadge(),
-                                        ],
-                                      ),
-                                      subtitle: Text(
-                                        '${isKo ? '+${item.gainedXp} XP · 누적 ${item.totalXp} XP' : '+${item.gainedXp} XP · total ${item.totalXp} XP'}\n${DateFormat(isKo ? 'M/d HH:mm' : 'MMM d HH:mm').format(item.createdAt)}',
-                                      ),
-                                      trailing: IconButton(
-                                        tooltip: isKo ? '삭제' : 'Delete',
-                                        onPressed: () => _deleteXpMessage(item),
-                                        icon: const Icon(Icons.delete_outline),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(growable: false),
-                        ),
-                ),
-                const SizedBox(height: 8),
-                _NotificationSectionCard(
-                  title: l10n.notificationFamilySectionTitle(
-                    _familyRows.length,
-                  ),
-                  icon: Icons.family_restroom_outlined,
-                  expanded: _showFamilySection,
-                  onTap: () => _toggleSection(
-                    storageKey: _showFamilySectionKey,
-                    currentValue: _showFamilySection,
-                    apply: (next) => _showFamilySection = next,
-                  ),
-                  child: _familyRows.isEmpty
-                      ? ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.family_restroom_outlined),
-                          title: Text(l10n.notificationFamilyEmpty),
-                        )
-                      : Column(
-                          children: _familyRows
-                              .map(
-                                (item) => Dismissible(
-                                  key: ValueKey('family-msg-${item.id}'),
-                                  direction: DismissDirection.endToStart,
-                                  background: _deleteBackground(context),
-                                  onDismissed: (_) =>
-                                      _deleteFamilyMessage(item),
-                                  child: Card(
-                                    margin: const EdgeInsets.only(bottom: 8),
-                                    child: ListTile(
-                                      onTap: () =>
-                                          NotificationTapRouter.handlePayload(
-                                            item.payload,
-                                          ),
-                                      leading: const Icon(
-                                        Icons.sync_alt_rounded,
-                                      ),
-                                      title: Text(item.title),
-                                      subtitle: Text(
-                                        '${item.body}\n${DateFormat(isKo ? 'M/d HH:mm' : 'MMM d HH:mm').format(item.createdAt)}',
-                                      ),
-                                      trailing: IconButton(
-                                        tooltip: l10n.delete,
-                                        onPressed: () =>
-                                            _deleteFamilyMessage(item),
-                                        icon: const Icon(Icons.delete_outline),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(growable: false),
-                        ),
-                ),
-                const SizedBox(height: 8),
-                _NotificationSectionCard(
-                  title: l10n.notificationFixtureSectionTitle(
-                    _fixtureRows.length,
-                  ),
-                  icon: Icons.sports_soccer_rounded,
-                  expanded: _showFixtureSection,
-                  onTap: () => _toggleSection(
-                    storageKey: _showFixtureSectionKey,
-                    currentValue: _showFixtureSection,
-                    apply: (next) => _showFixtureSection = next,
-                  ),
-                  child: _fixtureRows.isEmpty
-                      ? ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.sports_soccer_outlined),
-                          title: Text(l10n.notificationFixtureEmpty),
-                        )
-                      : Column(
-                          children: _fixtureRows
-                              .map(
-                                (item) => Dismissible(
-                                  key: ValueKey('fixture-msg-${item.id}'),
-                                  direction: DismissDirection.endToStart,
-                                  background: _deleteBackground(context),
-                                  onDismissed: (_) =>
-                                      _deleteFixtureMessage(item),
-                                  child: Card(
-                                    margin: const EdgeInsets.only(bottom: 8),
-                                    child: ListTile(
-                                      onTap: () =>
-                                          NotificationTapRouter.handlePayload(
-                                            item.payload,
-                                          ),
-                                      leading: Icon(
-                                        item.isWorldCup
-                                            ? Icons.emoji_events_outlined
-                                            : Icons.sports_soccer_rounded,
-                                      ),
-                                      title: Text(
-                                        item.title.isEmpty
-                                            ? item.leagueName
-                                            : item.title,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      subtitle: Text(
-                                        '${item.body}\n${DateFormat(isKo ? 'M/d(E) HH:mm' : 'EEE, M/d HH:mm').format(item.kickoffAt)}',
-                                      ),
-                                      trailing: IconButton(
-                                        tooltip: l10n.delete,
-                                        onPressed: () =>
-                                            _deleteFixtureMessage(item),
-                                        icon: const Icon(Icons.delete_outline),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(growable: false),
-                        ),
-                ),
-                const SizedBox(height: 8),
-                _NotificationSectionCard(
-                  title: isKo
-                      ? '훈련 알림 ${_planRows.length}개'
-                      : '${_planRows.length} training alerts',
-                  icon: Icons.alarm_outlined,
-                  expanded: _showPlanSection,
-                  onTap: () => _toggleSection(
-                    storageKey: _showPlanSectionKey,
-                    currentValue: _showPlanSection,
-                    apply: (next) => _showPlanSection = next,
-                  ),
-                  child: _planRows.isEmpty
-                      ? ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.inbox_outlined),
-                          title: Text(
-                            isKo ? '예약된 알림이 없어요.' : 'No scheduled alerts.',
-                          ),
-                          subtitle: Text(
-                            isKo
-                                ? '훈련 계획을 추가하면 알림이 여기에 표시돼요.'
-                                : 'Add a training plan to see reminders here.',
-                          ),
-                        )
-                      : Column(
-                          children: _planRows
-                              .map(
-                                (item) => Dismissible(
-                                  key: ValueKey('alarm-msg-${item.messageKey}'),
-                                  direction: DismissDirection.endToStart,
-                                  background: _deleteBackground(context),
-                                  onDismissed: (_) => _deleteMessage(item),
-                                  child: Card(
-                                    margin: const EdgeInsets.only(bottom: 8),
-                                    child: ListTile(
-                                      leading: const Icon(Icons.alarm_outlined),
-                                      title: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              item.category.isEmpty
-                                                  ? (isKo
-                                                        ? '훈련 계획'
-                                                        : 'Training plan')
-                                                  : item.category,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            _formatPlanTime(
-                                              item.scheduledAt,
-                                              isKo: isKo,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      subtitle: Text(
-                                        '${DateFormat(isKo ? 'M/d(E)' : 'EEE, M/d').format(item.scheduledAt)}'
-                                        '${item.scheduleSummary.isEmpty ? '' : '\n${item.scheduleSummary}'}',
-                                      ),
-                                      onTap: () =>
-                                          NotificationTapRouter.handlePayload(
-                                            NotificationAppLink.calendarPlan(
-                                              planId: item.id,
-                                              scheduledAt: item.scheduledAt,
-                                              atStartTime: false,
-                                            ),
-                                          ),
-                                      trailing: IconButton(
-                                        tooltip: isKo ? '삭제' : 'Delete',
-                                        onPressed: () => _deleteMessage(item),
-                                        icon: const Icon(Icons.delete_outline),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(growable: false),
-                        ),
-                ),
               ],
             ),
     );
   }
 
-  String _buildInactivitySubtitle(bool isKo) {
+  List<_NotificationFeedItem> _buildFeedItems({
+    required AppLocalizations l10n,
+    required bool isKo,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final items = <_NotificationFeedItem>[];
+    for (final item in _weatherRows) {
+      items.add(
+        _NotificationFeedItem(
+          key: 'weather-msg-${item.id}',
+          title: item.title.isEmpty ? l10n.homeWeatherTitle : item.title,
+          subtitle: item.body,
+          time: item.scheduledAt,
+          timeLabel: _formatFeedTime(item.scheduledAt, isKo: isKo),
+          icon: Icons.cloud_outlined,
+          color: scheme.tertiary,
+          payload: item.payload,
+          upcoming: true,
+          onDelete: () => _deleteWeatherMessage(item),
+        ),
+      );
+    }
+    for (final item in _planRows) {
+      items.add(
+        _NotificationFeedItem(
+          key: 'alarm-msg-${item.messageKey}',
+          title: item.category.isEmpty
+              ? l10n.notificationPlanFallbackTitle
+              : item.category,
+          subtitle: _buildPlanSubtitle(item),
+          time: item.scheduledAt,
+          timeLabel: _formatFeedTime(item.scheduledAt, isKo: isKo),
+          icon: Icons.alarm_outlined,
+          color: scheme.primary,
+          payload: NotificationAppLink.calendarPlan(
+            planId: item.id,
+            scheduledAt: item.scheduledAt,
+            atStartTime: false,
+          ),
+          upcoming: true,
+          onDelete: () => _deleteMessage(item),
+        ),
+      );
+    }
+    for (final item in _fixtureRows) {
+      items.add(
+        _NotificationFeedItem(
+          key: 'fixture-msg-${item.id}',
+          title: item.title.isEmpty ? item.leagueName : item.title,
+          subtitle: item.body,
+          time: item.kickoffAt,
+          timeLabel: _formatFeedTime(item.kickoffAt, isKo: isKo),
+          icon: item.isWorldCup
+              ? Icons.emoji_events_outlined
+              : Icons.sports_soccer_rounded,
+          color: scheme.secondary,
+          payload: item.payload,
+          upcoming: true,
+          onDelete: () => _deleteFixtureMessage(item),
+        ),
+      );
+    }
+    for (final item in _xpRows) {
+      items.add(
+        _NotificationFeedItem(
+          key: 'xp-msg-${item.id}',
+          title: item.label.isEmpty
+              ? l10n.notificationXpFallbackTitle
+              : item.label,
+          subtitle: l10n.notificationXpSubtitle(
+            item.gainedXp,
+            item.totalXp,
+          ),
+          time: item.createdAt,
+          timeLabel: _formatFeedTime(item.createdAt, isKo: isKo),
+          icon: Icons.stars_rounded,
+          color: scheme.primary,
+          payload: NotificationAppLink.xpHistory(totalXp: item.totalXp),
+          isNew: item.isNew,
+          upcoming: false,
+          onDelete: () => _deleteXpMessage(item),
+        ),
+      );
+    }
+    for (final item in _familyRows) {
+      items.add(
+        _NotificationFeedItem(
+          key: 'family-msg-${item.id}',
+          title: item.title,
+          subtitle: item.body,
+          time: item.createdAt,
+          timeLabel: _formatFeedTime(item.createdAt, isKo: isKo),
+          icon: Icons.sync_alt_rounded,
+          color: scheme.secondary,
+          payload: item.payload,
+          upcoming: false,
+          onDelete: () => _deleteFamilyMessage(item),
+        ),
+      );
+    }
+    items.sort((a, b) {
+      if (a.upcoming != b.upcoming) return a.upcoming ? -1 : 1;
+      if (a.upcoming) return a.time.compareTo(b.time);
+      return b.time.compareTo(a.time);
+    });
+    return items;
+  }
+
+  String _buildPlanSubtitle(_PlanAlarmRow item) {
+    return item.scheduleSummary;
+  }
+
+  String _formatFeedTime(DateTime value, {required bool isKo}) {
+    return DateFormat(
+      isKo ? 'M/d(E) HH:mm' : 'EEE, MMM d HH:mm',
+      isKo ? 'ko' : 'en',
+    ).format(value);
+  }
+
+  String _buildInactivitySubtitle(AppLocalizations l10n) {
     final raw = _lastTrainingLogAt;
     final parsed = raw == null ? null : DateTime.tryParse(raw);
+    final time = widget.settingsService.reminderTime.format(context);
     final base = widget.settingsService.inactivityAlertEnabled
-        ? (isKo
-              ? '${widget.settingsService.inactivityAlertDays}일 동안 기록이 없으면 ${widget.settingsService.reminderTime.format(context)}에 알림'
-              : 'Alert at ${widget.settingsService.reminderTime.format(context)} after ${widget.settingsService.inactivityAlertDays} inactive days')
-        : (isKo
-              ? '설정에서 켜면 훈련 기록 공백을 알려줍니다.'
-              : 'Enable it in Settings to get nudges after quiet periods.');
+        ? l10n.notificationInactivityOnSubtitle(
+            widget.settingsService.inactivityAlertDays,
+            time,
+          )
+        : l10n.notificationInactivityOffSubtitle;
     if (parsed == null) return base;
     final formatted = DateFormat(
-      isKo ? 'M/d HH:mm' : 'MMM d HH:mm',
+      Localizations.localeOf(context).languageCode == 'ko'
+          ? 'M/d HH:mm'
+          : 'MMM d HH:mm',
     ).format(parsed);
-    return isKo ? '$base\n마지막 기록: $formatted' : '$base\nLast log: $formatted';
+    return '$base\n${l10n.notificationLastTrainingLog(formatted)}';
   }
 
   Widget _buildHeaderAction({
@@ -655,12 +469,12 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _syncNotificationSettings() async {
     await _reminderService.syncSettingsDrivenReminders();
+    await _weatherReminderService.syncSettingsDrivenReminders();
     if (!mounted) return;
     await _load();
   }
 
   Future<void> _openNotificationSettingsSheet() async {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     await showModalBottomSheet<void>(
       context: context,
@@ -719,7 +533,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                               _mutedNow
                                   ? l10n.notificationMuteStatusPaused
                                   : l10n.notificationMuteControlTitle,
-                              style: Theme.of(context).textTheme.titleSmall
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 8),
@@ -796,6 +612,52 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
+                        title: Text(l10n.notificationWeatherSettingsTitle),
+                        subtitle:
+                            Text(l10n.notificationWeatherSettingsSubtitle),
+                        value: widget.settingsService.weatherAlertEnabled,
+                        onChanged: widget.settingsService.reminderEnabled
+                            ? (value) async {
+                                await widget.settingsService
+                                    .setWeatherAlertEnabled(value);
+                                if (!value) {
+                                  await _weatherReminderService
+                                      .clearAllReminders();
+                                }
+                                await refreshSheet();
+                              }
+                            : null,
+                      ),
+                      if (widget.settingsService.weatherAlertEnabled)
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(l10n.notificationWeatherTimeTitle),
+                          subtitle: Text(
+                            l10n.notificationWeatherTimeSubtitle(
+                              widget.settingsService.weatherAlertTime.format(
+                                context,
+                              ),
+                            ),
+                          ),
+                          trailing: OutlinedButton(
+                            onPressed: widget.settingsService.reminderEnabled
+                                ? () async {
+                                    final picked = await showTimePicker(
+                                      context: context,
+                                      initialTime: widget
+                                          .settingsService.weatherAlertTime,
+                                    );
+                                    if (picked == null) return;
+                                    await widget.settingsService
+                                        .setWeatherAlertTime(picked);
+                                    await refreshSheet();
+                                  }
+                                : null,
+                            child: Text(l10n.notificationChangeTimeAction),
+                          ),
+                        ),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
                         title: Text(l10n.notificationXpAlertSettingsTitle),
                         subtitle: Text(
                           l10n.notificationXpAlertSettingsSubtitle,
@@ -849,10 +711,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                 await widget.settingsService
                                     .setLeagueFixtureAlertEnabled(value);
                                 if (!value) {
-                                  await LeagueFixtureReminderService(
-                                    widget.optionRepository,
-                                    widget.settingsService,
-                                  ).clearAllReminders();
+                                  await _fixtureReminderService
+                                      .clearAllReminders();
+                                  await _fixtureReminderService
+                                      .clearWorldCupReminders();
                                 }
                                 await refreshSheet();
                               }
@@ -860,9 +722,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          isKo ? '기록 공백 리마인드' : 'Inactivity reminders',
-                        ),
+                        title: Text(l10n.notificationInactivitySettingsTitle),
+                        subtitle: Text(_buildInactivitySubtitle(l10n)),
                         value: widget.settingsService.inactivityAlertEnabled,
                         onChanged: widget.settingsService.reminderEnabled
                             ? (value) async {
@@ -875,12 +736,14 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       if (widget.settingsService.inactivityAlertEnabled)
                         ListTile(
                           contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            isKo ? '기록 리마인드 시간' : 'Training reminder time',
-                          ),
+                          title: Text(l10n.notificationInactivityTimeTitle),
                           subtitle: Text(
-                            '${widget.settingsService.reminderTime.format(context)} · '
-                            '${isKo ? '${widget.settingsService.inactivityAlertDays}일 기준' : '${widget.settingsService.inactivityAlertDays} day threshold'}',
+                            l10n.notificationInactivityTimeSubtitle(
+                              widget.settingsService.inactivityAlertDays,
+                              widget.settingsService.reminderTime.format(
+                                context,
+                              ),
+                            ),
                           ),
                           trailing: OutlinedButton(
                             onPressed: widget.settingsService.reminderEnabled
@@ -896,7 +759,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                     await refreshSheet();
                                   }
                                 : null,
-                            child: Text(isKo ? '시간 변경' : 'Change'),
+                            child: Text(l10n.notificationChangeTimeAction),
                           ),
                         ),
                       if (widget.settingsService.inactivityAlertEnabled)
@@ -904,18 +767,17 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           initialValue:
                               widget.settingsService.inactivityAlertDays,
                           decoration: InputDecoration(
-                            labelText: isKo
-                                ? '기록 공백 기준'
-                                : 'Inactivity threshold',
+                            labelText:
+                                l10n.notificationInactivityThresholdLabel,
                           ),
                           items: const [1, 2, 3, 5, 7, 10, 14]
                               .map(
                                 (value) => DropdownMenuItem<int>(
                                   value: value,
                                   child: Text(
-                                    isKo
-                                        ? '$value일'
-                                        : '$value day${value == 1 ? '' : 's'}',
+                                    l10n.notificationInactivityThresholdDayOption(
+                                      value,
+                                    ),
                                   ),
                                 ),
                               )
@@ -943,62 +805,255 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   }
 }
 
-class _NotificationSectionCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final bool expanded;
-  final VoidCallback onTap;
-  final Widget child;
-  final int newCount;
+class _NotificationOverviewCard extends StatelessWidget {
+  final bool permissionGranted;
+  final bool appNotificationEnabled;
+  final bool mutedNow;
+  final String countLabel;
+  final AppLocalizations l10n;
 
-  const _NotificationSectionCard({
+  const _NotificationOverviewCard({
+    required this.permissionGranted,
+    required this.appNotificationEnabled,
+    required this.mutedNow,
+    required this.countLabel,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isFullyEnabled = permissionGranted && appNotificationEnabled;
+    final title = permissionGranted
+        ? l10n.notificationOverviewOnTitle
+        : l10n.notificationOverviewOffTitle;
+    final subtitle = permissionGranted
+        ? (appNotificationEnabled
+            ? l10n.notificationOverviewAllOnSubtitle
+            : l10n.notificationOverviewAppOffSubtitle)
+        : l10n.notificationOverviewPermissionOffSubtitle;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: (isFullyEnabled ? scheme.primary : scheme.error)
+                    .withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isFullyEnabled
+                    ? Icons.notifications_active_outlined
+                    : Icons.notifications_off_outlined,
+                color: isFullyEnabled ? scheme.primary : scheme.error,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                      _StatusPill(
+                        label: mutedNow
+                            ? l10n.notificationOverviewPausedLabel
+                            : countLabel,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationFeedHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _NotificationFeedHeader({
     required this.title,
-    required this.icon,
-    required this.expanded,
-    required this.onTap,
-    required this.child,
-    this.newCount = 0,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 2),
+          Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotificationEmptyCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _NotificationEmptyCard({
+    required this.title,
+    required this.subtitle,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        child: Column(
+        padding: const EdgeInsets.all(16),
+        child: Row(
           children: [
-            InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Icon(icon, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                    if (newCount > 0) ...[
-                      _NewBadge(label: 'NEW $newCount'),
-                      const SizedBox(width: 8),
-                    ],
-                    Icon(
-                      expanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                    ),
-                  ],
-                ),
+            const Icon(Icons.inbox_outlined),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                ],
               ),
             ),
-            if (expanded) ...[const SizedBox(height: 8), child],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _NotificationFeedTile extends StatelessWidget {
+  final _NotificationFeedItem item;
+  final String newLabel;
+  final String deleteTooltip;
+  final Widget deleteBackground;
+
+  const _NotificationFeedTile({
+    required this.item,
+    required this.newLabel,
+    required this.deleteTooltip,
+    required this.deleteBackground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = item.subtitle.trim();
+    final subtitleText =
+        subtitle.isEmpty ? item.timeLabel : '$subtitle\n${item.timeLabel}';
+    final tile = Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        contentPadding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+        onTap: item.payload.trim().isEmpty
+            ? null
+            : () => NotificationTapRouter.handlePayload(item.payload),
+        leading: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: item.color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(item.icon, color: item.color),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                item.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            if (item.isNew) ...[
+              const SizedBox(width: 6),
+              _NewBadge(label: newLabel),
+            ],
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(subtitleText),
+        ),
+        trailing: item.onDelete == null
+            ? null
+            : IconButton(
+                tooltip: deleteTooltip,
+                onPressed: () => unawaited(item.onDelete!()),
+                icon: const Icon(Icons.delete_outline),
+              ),
+      ),
+    );
+    if (item.onDelete == null) return tile;
+    return Dismissible(
+      key: ValueKey(item.key),
+      direction: DismissDirection.endToStart,
+      background: deleteBackground,
+      onDismissed: (_) => unawaited(item.onDelete!()),
+      child: tile,
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final String label;
+
+  const _StatusPill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
@@ -1007,7 +1062,7 @@ class _NotificationSectionCard extends StatelessWidget {
 class _NewBadge extends StatelessWidget {
   final String label;
 
-  const _NewBadge({this.label = 'NEW'});
+  const _NewBadge({required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -1021,12 +1076,40 @@ class _NewBadge extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w800,
-        ),
+              color: color,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }
+}
+
+class _NotificationFeedItem {
+  final String key;
+  final String title;
+  final String subtitle;
+  final DateTime time;
+  final String timeLabel;
+  final IconData icon;
+  final Color color;
+  final String payload;
+  final bool isNew;
+  final bool upcoming;
+  final Future<void> Function()? onDelete;
+
+  const _NotificationFeedItem({
+    required this.key,
+    required this.title,
+    required this.subtitle,
+    required this.time,
+    required this.timeLabel,
+    required this.icon,
+    required this.color,
+    required this.payload,
+    required this.upcoming,
+    this.isNew = false,
+    this.onDelete,
+  });
 }
 
 class _PlanAlarmRow {
@@ -1064,8 +1147,7 @@ class _PlanAlarmRow {
         '${map['id']?.toString() ?? ''}|${map['scheduledAt']?.toString() ?? ''}';
     return _PlanAlarmRow(
       id: map['id']?.toString() ?? '',
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       scheduleSummary: [
@@ -1075,12 +1157,6 @@ class _PlanAlarmRow {
       messageKey: messageKey,
     );
   }
-}
-
-String _formatPlanTime(DateTime value, {required bool isKo}) {
-  return isKo
-      ? DateFormat('a h:mm', 'ko').format(value)
-      : DateFormat('h:mm a', 'en').format(value);
 }
 
 class _XpMessageRow {
@@ -1107,8 +1183,7 @@ class _XpMessageRow {
     final id = map['id']?.toString() ?? '';
     return _XpMessageRow(
       id: id,
-      createdAt:
-          DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
+      createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
           DateTime.now(),
       gainedXp: (map['gainedXp'] as num?)?.toInt() ?? 0,
       totalXp: (map['totalXp'] as num?)?.toInt() ?? 0,
@@ -1136,8 +1211,7 @@ class _FamilyMessageRow {
   factory _FamilyMessageRow.fromMap(Map<String, dynamic> map) {
     return _FamilyMessageRow(
       id: map['id']?.toString() ?? '',
-      createdAt:
-          DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
+      createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
           DateTime.now(),
       title: map['title']?.toString() ?? '',
       body: map['body']?.toString() ?? '',
@@ -1168,8 +1242,7 @@ class _FixtureMessageRow {
   });
 
   factory _FixtureMessageRow.fromMap(Map<String, dynamic> map) {
-    final kickoffAt =
-        DateTime.tryParse(map['kickoffAt']?.toString() ?? '') ??
+    final kickoffAt = DateTime.tryParse(map['kickoffAt']?.toString() ?? '') ??
         DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
         DateTime.now();
     return _FixtureMessageRow(
@@ -1182,6 +1255,39 @@ class _FixtureMessageRow {
       body: map['body']?.toString() ?? '',
       leagueName: map['leagueName']?.toString() ?? '',
       isWorldCup: (map['kind']?.toString() ?? '') == 'worldCup',
+    );
+  }
+}
+
+class _WeatherMessageRow {
+  final String id;
+  final String payload;
+  final DateTime createdAt;
+  final DateTime scheduledAt;
+  final String title;
+  final String body;
+
+  const _WeatherMessageRow({
+    required this.id,
+    required this.payload,
+    required this.createdAt,
+    required this.scheduledAt,
+    required this.title,
+    required this.body,
+  });
+
+  factory _WeatherMessageRow.fromMap(Map<String, dynamic> map) {
+    final scheduledAt =
+        DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+            DateTime.now();
+    return _WeatherMessageRow(
+      id: map['id']?.toString() ?? '',
+      payload: map['payload']?.toString() ?? '',
+      createdAt:
+          DateTime.tryParse(map['createdAt']?.toString() ?? '') ?? scheduledAt,
+      scheduledAt: scheduledAt,
+      title: map['title']?.toString() ?? '',
+      body: map['body']?.toString() ?? '',
     );
   }
 }

@@ -2519,6 +2519,96 @@
   "notificationFamilySettingsSubtitle": "선수 기록 또는 보호자 피드백/선물이 동기화되면 알림을 보냅니다.",
   "notificationLeagueFixtureSettingsTitle": "좋아하는 팀 경기 알림",
   "notificationLeagueFixtureSettingsSubtitle": "선택한 좋아하는 팀의 불러온 경기 일정 전에 알림을 보냅니다.",
+  "notificationOverviewOnTitle": "폰 알림 활성화",
+  "notificationOverviewOffTitle": "폰 알림 비활성화",
+  "notificationOverviewAllOnSubtitle": "기기 알림과 앱 알림이 모두 켜져 있습니다.",
+  "notificationOverviewAppOffSubtitle": "기기 알림은 켜져 있지만 앱 내 전체 알림은 꺼져 있습니다.",
+  "notificationOverviewPermissionOffSubtitle": "설정 > 알림에서 이 앱의 알림을 허용해야 실제 알림이 도착합니다.",
+  "notificationOverviewPausedLabel": "일시중지",
+  "notificationOverviewCountLabel": "{count}개",
+  "@notificationOverviewCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationFeedTitle": "알림 피드",
+  "notificationFeedSubtitle": "{count}개 알림을 시간순으로 정리했어요.",
+  "@notificationFeedSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationFeedEmptyTitle": "표시할 알림이 없어요.",
+  "notificationFeedEmptySubtitle": "훈련, 날씨, 경기 알림이 생기면 여기에 모아 보여드려요.",
+  "notificationInactivitySettingsTitle": "기록 공백 리마인드",
+  "notificationInactivityOnTitle": "기록 공백 리마인드 사용 중",
+  "notificationInactivityOffTitle": "기록 공백 리마인드 꺼짐",
+  "notificationInactivityOnSubtitle": "{days}일 동안 기록이 없으면 {time}에 알림",
+  "@notificationInactivityOnSubtitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "time": {}
+    }
+  },
+  "notificationInactivityOffSubtitle": "켜면 훈련 기록 공백을 알려줍니다.",
+  "notificationLastTrainingLog": "마지막 기록: {time}",
+  "@notificationLastTrainingLog": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "notificationInactivityTimeTitle": "기록 리마인드 시간",
+  "notificationInactivityTimeSubtitle": "{days}일 기준 · {time}",
+  "@notificationInactivityTimeSubtitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "time": {}
+    }
+  },
+  "notificationInactivityThresholdLabel": "기록 공백 기준",
+  "notificationInactivityThresholdDayOption": "{value}일",
+  "@notificationInactivityThresholdDayOption": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationChangeTimeAction": "시간 변경",
+  "notificationXpFallbackTitle": "경험치 알림",
+  "notificationXpSubtitle": "+{gainedXp} XP · 누적 {totalXp} XP",
+  "@notificationXpSubtitle": {
+    "placeholders": {
+      "gainedXp": {
+        "type": "int"
+      },
+      "totalXp": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationPlanFallbackTitle": "훈련 계획",
+  "notificationWeatherSettingsTitle": "날씨 알림",
+  "notificationWeatherSettingsSubtitle": "매일 날씨와 운동 복장을 확인할 수 있게 알려줍니다.",
+  "notificationWeatherTimeTitle": "날씨 알림 시간",
+  "notificationWeatherTimeSubtitle": "매일 {time}에 알림",
+  "@notificationWeatherTimeSubtitle": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "notificationNewBadge": "NEW",
+  "weatherNotificationChannelName": "날씨 알림",
+  "weatherNotificationChannelDescription": "매일 날씨와 운동 복장 확인 알림",
+  "weatherNotificationDailyBody": "오늘 날씨와 운동 복장을 확인해요.",
   "reminderEnabled": "일일 알림 사용",
   "reminderTime": "알림 시간",
   "photo": "사진",

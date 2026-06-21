@@ -4250,6 +4250,123 @@ class AppLocalizationsJa extends AppLocalizations {
       '選択したお気に入りチームの試合をロードする前に通知します。';
 
   @override
+  String get notificationOverviewOnTitle => '端末通知が有効です';
+
+  @override
+  String get notificationOverviewOffTitle => '端末通知が無効です';
+
+  @override
+  String get notificationOverviewAllOnSubtitle => '端末通知とアプリ内通知の両方が有効です。';
+
+  @override
+  String get notificationOverviewAppOffSubtitle =>
+      '端末通知は有効ですが、アプリ内のすべての通知はオフです。';
+
+  @override
+  String get notificationOverviewPermissionOffSubtitle =>
+      '通知を受け取るには、設定 > 通知でこのアプリの通知を許可してください。';
+
+  @override
+  String get notificationOverviewPausedLabel => '一時停止';
+
+  @override
+  String notificationOverviewCountLabel(int count) {
+    return '$count 件';
+  }
+
+  @override
+  String get notificationFeedTitle => '通知フィード';
+
+  @override
+  String notificationFeedSubtitle(int count) {
+    return '$count 件の通知を時間順に表示します。';
+  }
+
+  @override
+  String get notificationFeedEmptyTitle => '表示する通知はありません。';
+
+  @override
+  String get notificationFeedEmptySubtitle => 'トレーニング、天気、試合通知がここに表示されます。';
+
+  @override
+  String get notificationInactivitySettingsTitle => '記録なしリマインダー';
+
+  @override
+  String get notificationInactivityOnTitle => '記録なしリマインダーはオンです';
+
+  @override
+  String get notificationInactivityOffTitle => '記録なしリマインダーはオフです';
+
+  @override
+  String notificationInactivityOnSubtitle(int days, Object time) {
+    return '$days日間記録がない場合、$timeに通知';
+  }
+
+  @override
+  String get notificationInactivityOffSubtitle => 'オンにすると、記録が空いたときに知らせます。';
+
+  @override
+  String notificationLastTrainingLog(Object time) {
+    return '最後の記録: $time';
+  }
+
+  @override
+  String get notificationInactivityTimeTitle => '記録リマインダー時間';
+
+  @override
+  String notificationInactivityTimeSubtitle(int days, Object time) {
+    return '$days日基準 · $time';
+  }
+
+  @override
+  String get notificationInactivityThresholdLabel => '記録なしの基準';
+
+  @override
+  String notificationInactivityThresholdDayOption(int value) {
+    return '$value日';
+  }
+
+  @override
+  String get notificationChangeTimeAction => '時間変更';
+
+  @override
+  String get notificationXpFallbackTitle => 'XP通知';
+
+  @override
+  String notificationXpSubtitle(int gainedXp, int totalXp) {
+    return '+$gainedXp XP · 合計 $totalXp XP';
+  }
+
+  @override
+  String get notificationPlanFallbackTitle => 'トレーニング計画';
+
+  @override
+  String get notificationWeatherSettingsTitle => '天気通知';
+
+  @override
+  String get notificationWeatherSettingsSubtitle => '毎日、天気と運動ウェアを確認できるよう通知します。';
+
+  @override
+  String get notificationWeatherTimeTitle => '天気通知時間';
+
+  @override
+  String notificationWeatherTimeSubtitle(Object time) {
+    return '毎日 $time に通知';
+  }
+
+  @override
+  String get notificationNewBadge => 'NEW';
+
+  @override
+  String get weatherNotificationChannelName => '天気通知';
+
+  @override
+  String get weatherNotificationChannelDescription => '毎日の天気と運動ウェア確認通知';
+
+  @override
+  String get weatherNotificationDailyBody => '今日の天気と運動ウェアを確認しましょう。';
+
+  @override
   String get reminderEnabled => '毎日のリマインダーを有効にする';
 
   @override

@@ -4247,6 +4247,125 @@ class AppLocalizationsKo extends AppLocalizations {
       '선택한 좋아하는 팀의 불러온 경기 일정 전에 알림을 보냅니다.';
 
   @override
+  String get notificationOverviewOnTitle => '폰 알림 활성화';
+
+  @override
+  String get notificationOverviewOffTitle => '폰 알림 비활성화';
+
+  @override
+  String get notificationOverviewAllOnSubtitle => '기기 알림과 앱 알림이 모두 켜져 있습니다.';
+
+  @override
+  String get notificationOverviewAppOffSubtitle =>
+      '기기 알림은 켜져 있지만 앱 내 전체 알림은 꺼져 있습니다.';
+
+  @override
+  String get notificationOverviewPermissionOffSubtitle =>
+      '설정 > 알림에서 이 앱의 알림을 허용해야 실제 알림이 도착합니다.';
+
+  @override
+  String get notificationOverviewPausedLabel => '일시중지';
+
+  @override
+  String notificationOverviewCountLabel(int count) {
+    return '$count개';
+  }
+
+  @override
+  String get notificationFeedTitle => '알림 피드';
+
+  @override
+  String notificationFeedSubtitle(int count) {
+    return '$count개 알림을 시간순으로 정리했어요.';
+  }
+
+  @override
+  String get notificationFeedEmptyTitle => '표시할 알림이 없어요.';
+
+  @override
+  String get notificationFeedEmptySubtitle =>
+      '훈련, 날씨, 경기 알림이 생기면 여기에 모아 보여드려요.';
+
+  @override
+  String get notificationInactivitySettingsTitle => '기록 공백 리마인드';
+
+  @override
+  String get notificationInactivityOnTitle => '기록 공백 리마인드 사용 중';
+
+  @override
+  String get notificationInactivityOffTitle => '기록 공백 리마인드 꺼짐';
+
+  @override
+  String notificationInactivityOnSubtitle(int days, Object time) {
+    return '$days일 동안 기록이 없으면 $time에 알림';
+  }
+
+  @override
+  String get notificationInactivityOffSubtitle => '켜면 훈련 기록 공백을 알려줍니다.';
+
+  @override
+  String notificationLastTrainingLog(Object time) {
+    return '마지막 기록: $time';
+  }
+
+  @override
+  String get notificationInactivityTimeTitle => '기록 리마인드 시간';
+
+  @override
+  String notificationInactivityTimeSubtitle(int days, Object time) {
+    return '$days일 기준 · $time';
+  }
+
+  @override
+  String get notificationInactivityThresholdLabel => '기록 공백 기준';
+
+  @override
+  String notificationInactivityThresholdDayOption(int value) {
+    return '$value일';
+  }
+
+  @override
+  String get notificationChangeTimeAction => '시간 변경';
+
+  @override
+  String get notificationXpFallbackTitle => '경험치 알림';
+
+  @override
+  String notificationXpSubtitle(int gainedXp, int totalXp) {
+    return '+$gainedXp XP · 누적 $totalXp XP';
+  }
+
+  @override
+  String get notificationPlanFallbackTitle => '훈련 계획';
+
+  @override
+  String get notificationWeatherSettingsTitle => '날씨 알림';
+
+  @override
+  String get notificationWeatherSettingsSubtitle =>
+      '매일 날씨와 운동 복장을 확인할 수 있게 알려줍니다.';
+
+  @override
+  String get notificationWeatherTimeTitle => '날씨 알림 시간';
+
+  @override
+  String notificationWeatherTimeSubtitle(Object time) {
+    return '매일 $time에 알림';
+  }
+
+  @override
+  String get notificationNewBadge => 'NEW';
+
+  @override
+  String get weatherNotificationChannelName => '날씨 알림';
+
+  @override
+  String get weatherNotificationChannelDescription => '매일 날씨와 운동 복장 확인 알림';
+
+  @override
+  String get weatherNotificationDailyBody => '오늘 날씨와 운동 복장을 확인해요.';
+
+  @override
   String get reminderEnabled => '일일 알림 사용';
 
   @override

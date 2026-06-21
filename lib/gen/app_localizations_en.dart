@@ -4354,6 +4354,129 @@ class AppLocalizationsEn extends AppLocalizations {
       'Notify before loaded fixtures for selected favorite teams.';
 
   @override
+  String get notificationOverviewOnTitle => 'Phone notifications are on';
+
+  @override
+  String get notificationOverviewOffTitle => 'Phone notifications are off';
+
+  @override
+  String get notificationOverviewAllOnSubtitle =>
+      'Device notifications and in-app alerts are both enabled.';
+
+  @override
+  String get notificationOverviewAppOffSubtitle =>
+      'Device notifications are on, but all in-app alerts are off.';
+
+  @override
+  String get notificationOverviewPermissionOffSubtitle =>
+      'Allow notifications for this app in Settings > Notifications to receive alerts.';
+
+  @override
+  String get notificationOverviewPausedLabel => 'Paused';
+
+  @override
+  String notificationOverviewCountLabel(int count) {
+    return '$count alerts';
+  }
+
+  @override
+  String get notificationFeedTitle => 'Alert feed';
+
+  @override
+  String notificationFeedSubtitle(int count) {
+    return 'Alerts shown: $count';
+  }
+
+  @override
+  String get notificationFeedEmptyTitle => 'No alerts to show.';
+
+  @override
+  String get notificationFeedEmptySubtitle =>
+      'Training, weather, and match alerts will appear here.';
+
+  @override
+  String get notificationInactivitySettingsTitle => 'Inactivity reminders';
+
+  @override
+  String get notificationInactivityOnTitle => 'Inactivity reminder is on';
+
+  @override
+  String get notificationInactivityOffTitle => 'Inactivity reminder is off';
+
+  @override
+  String notificationInactivityOnSubtitle(int days, Object time) {
+    return 'Alert at $time after $days inactive days';
+  }
+
+  @override
+  String get notificationInactivityOffSubtitle =>
+      'Turn it on to get nudges after quiet periods.';
+
+  @override
+  String notificationLastTrainingLog(Object time) {
+    return 'Last log: $time';
+  }
+
+  @override
+  String get notificationInactivityTimeTitle => 'Training reminder time';
+
+  @override
+  String notificationInactivityTimeSubtitle(int days, Object time) {
+    return '$days day threshold · $time';
+  }
+
+  @override
+  String get notificationInactivityThresholdLabel => 'Inactivity threshold';
+
+  @override
+  String notificationInactivityThresholdDayOption(int value) {
+    return '$value day(s)';
+  }
+
+  @override
+  String get notificationChangeTimeAction => 'Change';
+
+  @override
+  String get notificationXpFallbackTitle => 'XP alert';
+
+  @override
+  String notificationXpSubtitle(int gainedXp, int totalXp) {
+    return '+$gainedXp XP · total $totalXp XP';
+  }
+
+  @override
+  String get notificationPlanFallbackTitle => 'Training plan';
+
+  @override
+  String get notificationWeatherSettingsTitle => 'Weather alert';
+
+  @override
+  String get notificationWeatherSettingsSubtitle =>
+      'Send a daily reminder to check weather and training outfit.';
+
+  @override
+  String get notificationWeatherTimeTitle => 'Weather alert time';
+
+  @override
+  String notificationWeatherTimeSubtitle(Object time) {
+    return 'Every day at $time';
+  }
+
+  @override
+  String get notificationNewBadge => 'NEW';
+
+  @override
+  String get weatherNotificationChannelName => 'Weather alerts';
+
+  @override
+  String get weatherNotificationChannelDescription =>
+      'Daily weather and training outfit reminders';
+
+  @override
+  String get weatherNotificationDailyBody =>
+      'Check today\'s weather and training outfit.';
+
+  @override
   String get reminderEnabled => 'Enable daily reminder';
 
   @override
