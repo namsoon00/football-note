@@ -146,6 +146,13 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     l10n,
                     widget.optionRepository,
                   );
+                  final latestCompletedRun =
+                      _challengeService.latestCompletedRun();
+                  final latestCompletedTemplate = latestCompletedRun == null
+                      ? null
+                      : _challengeService.templateById(
+                          latestCompletedRun.templateId,
+                        );
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
                     children: [
@@ -159,6 +166,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                               _templateTitle(l10n, template),
                           templateDescription: (template) =>
                               _templateDescription(l10n, template),
+                          latestCompletedRun: latestCompletedRun,
+                          latestCompletedTemplate: latestCompletedTemplate,
                           skillOptions: skillOptions,
                           onOpenTrainingPrograms: _openTrainingProgramSetup,
                           onStart: _startChallenge,
@@ -981,6 +990,8 @@ class _ChallengeStartSection extends StatefulWidget {
   final List<ChallengeTemplate> templates;
   final String Function(ChallengeTemplate template) templateTitle;
   final String Function(ChallengeTemplate template) templateDescription;
+  final ChallengeRun? latestCompletedRun;
+  final ChallengeTemplate? latestCompletedTemplate;
   final List<_ChallengeSkillOption> skillOptions;
   final VoidCallback onOpenTrainingPrograms;
   final void Function(
@@ -994,6 +1005,8 @@ class _ChallengeStartSection extends StatefulWidget {
     required this.templates,
     required this.templateTitle,
     required this.templateDescription,
+    required this.latestCompletedRun,
+    required this.latestCompletedTemplate,
     required this.skillOptions,
     required this.onOpenTrainingPrograms,
     required this.onStart,
@@ -1040,14 +1053,23 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final latestCompletedRun = widget.latestCompletedRun;
+    final latestCompletedTemplate = widget.latestCompletedTemplate;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _ChallengeIntroCard(
-          title: l10n.challengeStartHeroTitle,
-          body: l10n.challengeStartHeroBody,
-          progress: 0,
-        ),
+        if (latestCompletedRun != null && latestCompletedTemplate != null)
+          _ChallengeFinishedPraiseCard(
+            run: latestCompletedRun,
+            template: latestCompletedTemplate,
+            templateTitle: widget.templateTitle(latestCompletedTemplate),
+          )
+        else
+          _ChallengeIntroCard(
+            title: l10n.challengeStartHeroTitle,
+            body: l10n.challengeStartHeroBody,
+            progress: 0,
+          ),
         const SizedBox(height: 18),
         Text(
           l10n.challengeDurationSelectTitle,
@@ -1256,6 +1278,151 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
         alignment: 0.08,
       );
     });
+  }
+}
+
+class _ChallengeFinishedPraiseCard extends StatelessWidget {
+  final ChallengeRun run;
+  final ChallengeTemplate template;
+  final String templateTitle;
+
+  const _ChallengeFinishedPraiseCard({
+    required this.run,
+    required this.template,
+    required this.templateTitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final completedRoundCount = (run.completedRoundNumbers.isEmpty
+            ? template.dayCount
+            : run.completedRoundNumbers.toSet().length)
+        .clamp(1, template.dayCount)
+        .toInt();
+    return Container(
+      key: const ValueKey('challenge-finished-praise-card'),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(
+          alpha: theme.brightness == Brightness.dark ? 0.22 : 0.34,
+        ),
+        borderRadius: AppRadius.surface,
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.22)),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 350;
+          final promptMaxWidth = (constraints.maxWidth - (compact ? 78 : 44))
+              .clamp(120.0, 260.0)
+              .toDouble();
+          final mascot = ChallengeCheerRinzyMascot(
+            size: compact ? 138 : 116,
+            progress: 1,
+            useImage: true,
+          );
+          final content = Column(
+            crossAxisAlignment:
+                compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            children: [
+              _SmallStatusPill(label: l10n.challengeCompletedBadge),
+              const SizedBox(height: 10),
+              Text(
+                l10n.challengeFinishedPraiseTitle,
+                textAlign: compact ? TextAlign.center : TextAlign.start,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.challengeFinishedPraiseBody(
+                  templateTitle,
+                  completedRoundCount,
+                ),
+                textAlign: compact ? TextAlign.center : TextAlign.start,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onPrimaryContainer,
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                alignment: compact ? WrapAlignment.center : WrapAlignment.start,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _SmallStatusPill(
+                    label: l10n.challengeFinishedCompletedRoundsLabel(
+                      completedRoundCount,
+                    ),
+                  ),
+                  _SmallStatusPill(
+                    label: l10n.challengeDaysLabel(template.dayCount),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: scheme.surface.withValues(alpha: 0.74),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: scheme.primary.withValues(alpha: 0.16),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add_task_rounded,
+                      color: scheme.primary,
+                      size: 19,
+                    ),
+                    const SizedBox(width: 8),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: promptMaxWidth),
+                      child: Text(
+                        l10n.challengeFinishedNextPrompt,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+          if (compact) {
+            return Column(
+              children: [
+                mascot,
+                const SizedBox(height: 12),
+                content,
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              mascot,
+              const SizedBox(width: 16),
+              Expanded(child: content),
+            ],
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -4263,6 +4430,12 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
         : (gainedXp > 0
             ? l10n.challengeCelebrationBody(awardedRoundCount, gainedXp)
             : l10n.challengeCelebrationBodyNoXp);
+    final actionLabel = challengeCompleted
+        ? l10n.challengeCelebrationNextChallengeAction
+        : l10n.challengeCelebrationAction;
+    final actionIcon = challengeCompleted
+        ? Icons.add_task_rounded
+        : Icons.celebration_outlined;
     final mascotSize = MediaQuery.sizeOf(
       context,
     ).shortestSide.clamp(154, 220).toDouble();
@@ -4378,8 +4551,8 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
                   width: double.infinity,
                   child: FilledButton.icon(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.celebration_outlined),
-                    label: Text(l10n.challengeCelebrationAction),
+                    icon: Icon(actionIcon),
+                    label: Text(actionLabel),
                   ),
                 ),
               ],

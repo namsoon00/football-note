@@ -3813,6 +3813,7 @@
   "runningCoachSampleOverlayPosture": "Lean 10°",
   "runningCoachSampleOverlayArms": "Arms 90°",
   "runningCoachSampleOverlayFoot": "Landing 0.08",
+  "runningCoachSampleOverlayBounce": "Bounce 6%",
   "runningCoachSampleOverlayFrames": "24/24 frames",
   "runningCoachSampleMistakeOverlayPosture": "Upright 4°",
   "runningCoachSampleMistakeOverlayArms": "Arms 118°",
@@ -5615,7 +5616,7 @@
   },
   "challengeCelebrationBodyNoXp": "Round missions complete. Review the record.",
   "challengeCelebrationCompleteTitle": "Challenge complete!",
-  "challengeCelebrationCompleteBody": "All rounds are done. You earned +{xp} XP.",
+  "challengeCelebrationCompleteBody": "You finished every round. That consistency is becoming real skill. You earned +{xp} XP.",
   "@challengeCelebrationCompleteBody": {
     "placeholders": {
       "xp": {
@@ -5623,9 +5624,29 @@
       }
     }
   },
-  "challengeCelebrationCompleteBodyNoXp": "All missions are recorded. Review the challenge completion screen.",
+  "challengeCelebrationCompleteBodyNoXp": "All missions are recorded. Carry this finish into the next challenge.",
   "challengeCelebrationMissionsTitle": "Completed missions",
   "challengeCelebrationAction": "Nice!",
+  "challengeCelebrationNextChallengeAction": "Create next challenge",
+  "challengeFinishedPraiseTitle": "You finished it all",
+  "challengeFinishedPraiseBody": "You completed all {rounds} rounds of {title}. Keep the rhythm going with the next challenge.",
+  "@challengeFinishedPraiseBody": {
+    "placeholders": {
+      "title": {},
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeFinishedCompletedRoundsLabel": "{rounds} rounds completed",
+  "@challengeFinishedCompletedRoundsLabel": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeFinishedNextPrompt": "Choose the next challenge below",
   "challengeHistoryTitle": "Challenge history",
   "challengeHistorySummaryTitle": "Challenge summary",
   "challengeHistoryListTitle": "Challenge records",

@@ -3813,6 +3813,7 @@
   "runningCoachSampleOverlayPosture": "リーン10°",
   "runningCoachSampleOverlayArms": "アーム90°",
   "runningCoachSampleOverlayFoot": "着地 0.08",
+  "runningCoachSampleOverlayBounce": "上下 6%",
   "runningCoachSampleOverlayFrames": "24/24フレーム",
   "runningCoachSampleMistakeOverlayPosture": "直立 4°",
   "runningCoachSampleMistakeOverlayArms": "腕 118°",
@@ -5615,7 +5616,7 @@
   },
   "challengeCelebrationBodyNoXp": "ラウンドミッションを完了しました。記録を確認してください。",
   "challengeCelebrationCompleteTitle": "チャレンジ完走!",
-  "challengeCelebrationCompleteBody": "すべてのラウンドが終わりました。+{xp} XP を受け取りました。",
+  "challengeCelebrationCompleteBody": "すべてのラウンドを最後までやり切りました。その継続が本物の力になっています。+{xp} XP を受け取りました。",
   "@challengeCelebrationCompleteBody": {
     "placeholders": {
       "xp": {
@@ -5623,9 +5624,29 @@
       }
     }
   },
-  "challengeCelebrationCompleteBodyNoXp": "すべてのミッション記録が完了しました。チャレンジ完了画面で進行状況を確認してください。",
+  "challengeCelebrationCompleteBodyNoXp": "すべてのミッション記録が完了しました。この完走の流れを次のチャレンジにつなげましょう。",
   "challengeCelebrationMissionsTitle": "完了したミッション",
   "challengeCelebrationAction": "いいね!",
+  "challengeCelebrationNextChallengeAction": "次のチャレンジを作成",
+  "challengeFinishedPraiseTitle": "最後までやり切りました",
+  "challengeFinishedPraiseBody": "{title}で全{rounds}ラウンドを完走しました。この勢いで次のチャレンジへ進みましょう。",
+  "@challengeFinishedPraiseBody": {
+    "placeholders": {
+      "title": {},
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeFinishedCompletedRoundsLabel": "{rounds}ラウンド完走",
+  "@challengeFinishedCompletedRoundsLabel": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeFinishedNextPrompt": "下から次のチャレンジを選びましょう",
   "challengeHistoryTitle": "チャレンジ履歴",
   "challengeHistorySummaryTitle": "チャレンジ概要",
   "challengeHistoryListTitle": "チャレンジ記録",

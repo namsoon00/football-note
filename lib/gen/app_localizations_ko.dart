@@ -6471,6 +6471,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleOverlayFoot => '착지 0.08';
 
   @override
+  String get runningCoachSampleOverlayBounce => '바운스 6%';
+
+  @override
   String get runningCoachSampleOverlayFrames => '24/24프레임';
 
   @override
@@ -9999,18 +10002,37 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String challengeCelebrationCompleteBody(int xp) {
-    return '모든 라운드를 끝냈어요. +$xp XP를 받았어요.';
+    return '모든 라운드를 끝까지 해냈어요. 꾸준함이 진짜 실력이 되고 있어요. +$xp XP를 받았어요.';
   }
 
   @override
   String get challengeCelebrationCompleteBodyNoXp =>
-      '모든 미션 기록이 끝났어요. 챌린지 완료 화면에서 진행을 확인하세요.';
+      '모든 미션 기록이 끝났어요. 끝까지 해낸 흐름을 다음 챌린지로 이어가 보세요.';
 
   @override
   String get challengeCelebrationMissionsTitle => '수행한 미션';
 
   @override
   String get challengeCelebrationAction => '좋아!';
+
+  @override
+  String get challengeCelebrationNextChallengeAction => '다음 챌린지 만들기';
+
+  @override
+  String get challengeFinishedPraiseTitle => '끝까지 해낸 챌린지예요';
+
+  @override
+  String challengeFinishedPraiseBody(Object title, int rounds) {
+    return '$title에서 $rounds라운드를 모두 완주했어요. 이 꾸준함을 다음 챌린지로 이어가 볼까요?';
+  }
+
+  @override
+  String challengeFinishedCompletedRoundsLabel(int rounds) {
+    return '$rounds라운드 완주';
+  }
+
+  @override
+  String get challengeFinishedNextPrompt => '아래에서 다음 챌린지를 선택해요';
 
   @override
   String get challengeHistoryTitle => '챌린지 히스토리';

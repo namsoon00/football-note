@@ -143,6 +143,91 @@ void main() {
     await mealLogService.dispose();
   });
 
+  testWidgets('completed challenge encourages starting the next challenge', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    final challengeService = ChallengeService(optionRepository);
+    final template = challengeService.templateById('starter_3')!;
+    final run = await challengeService.startChallenge(
+      template,
+      selectedSkillIds: const <String>['passing'],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 1,
+        jumpRopeMinutes: 0,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
+      startedAt: DateTime(2026, 6, 1, 9),
+    );
+    await challengeService.completeRun(
+      run.id,
+      completedAt: DateTime(2026, 6, 3, 18),
+      completedRoundNumbers: const <int>[1, 2, 3],
+    );
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('challenge-finished-praise-card')),
+      findsOneWidget,
+    );
+    expect(find.text('끝까지 해낸 챌린지예요'), findsOneWidget);
+    expect(
+      find.text('3일 챌린지에서 3라운드를 모두 완주했어요. 이 꾸준함을 다음 챌린지로 이어가 볼까요?'),
+      findsOneWidget,
+    );
+    expect(find.text('아래에서 다음 챌린지를 선택해요'), findsOneWidget);
+    expect(find.text('1. 기간 선택'), findsOneWidget);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('challenge-template-weekly_7')),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(
+      find.byKey(const ValueKey('challenge-template-weekly_7')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('2. 미션 선택'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+
   testWidgets('challenge screen uses sport-specific conditioning missions', (
     WidgetTester tester,
   ) async {

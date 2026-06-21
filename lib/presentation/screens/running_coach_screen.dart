@@ -1831,10 +1831,7 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
         : l10n.runningCoachSampleOverlayFoot;
     final fourthOverlay = isMistake
         ? l10n.runningCoachSampleMistakeOverlayBounce
-        : l10n.runningCoachSampleOverlayFrames;
-    final fourthMetricLabel = isMistake
-        ? l10n.runningCoachSampleMetricBounce
-        : l10n.runningCoachSampleMetricFrames;
+        : l10n.runningCoachSampleOverlayBounce;
     final videoController = _videoController;
     final hasVideo = _isVideoReady &&
         videoController != null &&
@@ -1861,7 +1858,7 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
       _SampleDecisionMetric(
         icon:
             isMistake ? Icons.warning_amber_rounded : Icons.fact_check_outlined,
-        label: fourthMetricLabel,
+        label: l10n.runningCoachSampleMetricBounce,
         value: fourthOverlay,
         isPass: !isMistake,
       ),
@@ -2305,9 +2302,7 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     _drawSkeleton(canvas, runner, skeletonAlpha);
     _drawAngles(canvas, runner, angleAlpha);
     _drawContactRead(canvas, runner, scoreAlpha);
-    if (isMistake) {
-      _drawMistakeRead(canvas, runner, scoreAlpha);
-    }
+    _drawFormRead(canvas, runner, scoreAlpha);
   }
 
   double _phaseAlpha(int activePhase, int phase) {
@@ -2738,35 +2733,36 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     }
   }
 
-  void _drawMistakeRead(
+  void _drawFormRead(
     Canvas canvas,
     _SampleVideoRunnerGeometry runner,
     double alpha,
   ) {
-    final warningPaint = Paint()
-      ..color = warningColor.withValues(alpha: 0.80 * alpha)
+    final readColor = isMistake ? warningColor : contactColor;
+    final readPaint = Paint()
+      ..color = readColor.withValues(alpha: (isMistake ? 0.80 : 0.56) * alpha)
       ..strokeWidth = math.max(2.0, runner.scale * 0.016)
       ..strokeCap = StrokeCap.round;
     final start =
         Offset(runner.contactToe.dx + runner.scale * 0.050, runner.groundY);
     final end =
         Offset(runner.contactAnkle.dx - runner.scale * 0.110, runner.groundY);
-    canvas.drawLine(start, end, warningPaint);
+    canvas.drawLine(start, end, readPaint);
     canvas.drawLine(
       end,
       Offset(end.dx + runner.scale * 0.048, end.dy - runner.scale * 0.034),
-      warningPaint,
+      readPaint,
     );
     canvas.drawLine(
       end,
       Offset(end.dx + runner.scale * 0.048, end.dy + runner.scale * 0.034),
-      warningPaint,
+      readPaint,
     );
     canvas.drawLine(
       runner.neck,
       runner.contactAnkle,
       Paint()
-        ..color = warningColor.withValues(alpha: 0.36 * alpha)
+        ..color = readColor.withValues(alpha: (isMistake ? 0.36 : 0.26) * alpha)
         ..strokeWidth = math.max(1.3, runner.scale * 0.008)
         ..strokeCap = StrokeCap.round,
     );
@@ -2777,7 +2773,9 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
         width: runner.scale * 0.152,
         height: runner.scale * 0.044,
       ),
-      Paint()..color = warningColor.withValues(alpha: 0.26 * alpha),
+      Paint()
+        ..color =
+            readColor.withValues(alpha: (isMistake ? 0.26 : 0.16) * alpha),
     );
   }
 
