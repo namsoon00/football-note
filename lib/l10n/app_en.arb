@@ -2861,7 +2861,7 @@
   "diaryStickerTraining": "Training",
   "diaryStickerMatch": "Match",
   "diaryStickerPlan": "Plan",
-  "diaryStickerFortune": "Fortune",
+  "diaryStickerFortune": "Play hint",
   "diaryStickerBoard": "Board",
   "diaryStickerNews": "News",
   "diaryStickerMeal": "Rice bowl",
@@ -3130,9 +3130,9 @@
       }
     }
   },
-  "diaryFortunePinSummary": "Pin today's fortune flow as a diary sticker.",
-  "diaryFortuneStorySentence": "Write the one flow or encouragement you want to keep from today's fortune.",
-  "diaryFortuneNoteTitle": "Today fortune note",
+  "diaryFortunePinSummary": "Pin today's play hint as a diary sticker.",
+  "diaryFortuneStorySentence": "Write the scene or encouragement you want to keep from today's play hint.",
+  "diaryFortuneNoteTitle": "Today play hint note",
   "diaryMatchTodoTitleNoOpponent": "Match",
   "diaryMatchTodoTitleWithOpponent": "Match · vs {opponent}",
   "@diaryMatchTodoTitleWithOpponent": {
@@ -3429,11 +3429,11 @@
   "homeRiceBowlFull": "Full bowl",
   "homeRiceBowlHalf": "Half bowl",
   "homeRiceBowlEmpty": "Skipped",
-  "fortuneDialogTitle": "Today fortune",
-  "fortuneDialogSubtitle": "Check today lucky info.",
-  "fortuneDialogOverviewTitle": "Fortune overview",
-  "fortuneDialogOverallFortuneLabel": "Overall fortune",
-  "fortuneDialogLuckyInfoLabel": "Lucky info",
+  "fortuneDialogTitle": "Today's play hint",
+  "fortuneDialogSubtitle": "A light play hint picked from birth date and name.",
+  "fortuneDialogOverviewTitle": "Play hint",
+  "fortuneDialogOverallFortuneLabel": "Today hint",
+  "fortuneDialogLuckyInfoLabel": "Fun points",
   "fortuneDialogOverallFortuneCount": "{count} lines",
   "@fortuneDialogOverallFortuneCount": {
     "placeholders": {
@@ -3450,8 +3450,8 @@
       }
     }
   },
-  "fortuneDialogLuckyInfoTitle": "Lucky info",
-  "fortuneDialogPoolSizeLabel": "Fortune pool",
+  "fortuneDialogLuckyInfoTitle": "Fun points",
+  "fortuneDialogPoolSizeLabel": "Hint combinations",
   "fortuneDialogPoolSizeCount": "{count} cases",
   "@fortuneDialogPoolSizeCount": {
     "placeholders": {
@@ -3461,15 +3461,15 @@
     }
   },
   "fortuneDialogRecommendedProgramTitle": "Recommended training",
-  "fortuneDialogRecommendationTitle": "Fortune note",
-  "fortuneDialogEncouragement": "Cheering for your best play today.",
-  "fortuneDialogAction": "Nice",
-  "entryFortuneOpenFailed": "Failed to open fortune.",
+  "fortuneDialogRecommendationTitle": "Play note",
+  "fortuneDialogEncouragement": "Make one fun play today.",
+  "fortuneDialogAction": "Got it",
+  "entryFortuneOpenFailed": "Failed to open play hint.",
   "profileBirthTimeTitle": "Birth time",
   "profileBirthTimeSelectDateFirst": "Select birth date first",
   "fortuneGeneratedUnknownPlayerName": "Player",
-  "fortuneGeneratedBirthNotSet": "birth date not set in profile",
-  "fortuneGeneratedBirthFrame": "year {yearPillar}, month {monthPillar}, day-master {dayPillar}",
+  "fortuneGeneratedBirthNotSet": "no birth date set",
+  "fortuneGeneratedBirthFrame": "birth code {yearPillar}/{monthPillar}/{dayPillar}",
   "@fortuneGeneratedBirthFrame": {
     "placeholders": {
       "yearPillar": {
@@ -3483,7 +3483,7 @@
       }
     }
   },
-  "fortuneGeneratedBirthFrameWithTime": "year {yearPillar}, month {monthPillar}, day-master {dayPillar}, hour {hourPillar}",
+  "fortuneGeneratedBirthFrameWithTime": "birth code {yearPillar}/{monthPillar}/{dayPillar}/{hourPillar}",
   "@fortuneGeneratedBirthFrameWithTime": {
     "placeholders": {
       "yearPillar": {
@@ -3500,7 +3500,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineOne": "For {name}, {birthFrame} meets today's {dailyPillar} flow, so {elementFlow} stands out.",
+  "fortuneGeneratedDailyLineOne": "{name}'s base is {birthFrame}. Add today's code {dailyPillar}, and {elementFlow} stands out.",
   "@fortuneGeneratedDailyLineOne": {
     "placeholders": {
       "name": {
@@ -3517,7 +3517,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineTwo": "That opens as {fortuneTheme}, so make practice playful through {trainingTone}.",
+  "fortuneGeneratedDailyLineTwo": "Today is good for trying {fortuneTheme}, with practice focused on {trainingTone}.",
   "@fortuneGeneratedDailyLineTwo": {
     "placeholders": {
       "fortuneTheme": {
@@ -3528,7 +3528,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineThree": "Add the name signal of {nameElement}, and today {playAdvice}",
+  "fortuneGeneratedDailyLineThree": "The name rhythm feels like {nameElement}, so today's quick hint is: {playAdvice}",
   "@fortuneGeneratedDailyLineThree": {
     "placeholders": {
       "nameElement": {
@@ -3539,8 +3539,8 @@
       }
     }
   },
-  "fortuneGeneratedLuckyInfoHeader": "[Lucky info]",
-  "fortuneGeneratedLuckyInfoLine": "Lucky number {number}, color {color}, and time {time} point to the {zone}; {cue}.",
+  "fortuneGeneratedLuckyInfoHeader": "[Fun points]",
+  "fortuneGeneratedLuckyInfoLine": "Today's number {number}, color {color}, and time {time}: try {cue} in the {zone}.",
   "@fortuneGeneratedLuckyInfoLine": {
     "placeholders": {
       "number": {
@@ -3572,7 +3572,7 @@
       }
     }
   },
-  "fortuneRecommendationStrongFlow": "Your rhythm is good. Keep the next session focused on {program}.",
+  "fortuneRecommendationStrongFlow": "Your practice rhythm is good. Keep the next session focused on {program}.",
   "@fortuneRecommendationStrongFlow": {
     "placeholders": {
       "program": {
@@ -3590,11 +3590,11 @@
   },
   "fortuneSajuHeavenlyStems": "Gap|Eul|Byeong|Jeong|Mu|Gi|Gyeong|Sin|Im|Gye",
   "fortuneSajuEarthlyBranches": "Ja|Chuk|In|Myo|Jin|Sa|O|Mi|Sin|Yu|Sul|Hae",
-  "fortuneSajuElementFlows": "Wood growth|Fire expression|Earth balance|Metal clarity|Water recovery|Wood-fire drive|Earth-metal focus|Water-wood transition",
-  "fortuneSajuFortuneThemes": "energy for accepting a new move|a sense for matching a teammate's rhythm|luck that recovers quickly from small mistakes|a flow that widens your scan|a day for finding your center again|a window where focus gets sharper|a mood where movement speaks before words|luck for raising speed calmly",
+  "fortuneSajuElementFlows": "learning something new|clear expression|finding balance|raising accuracy|recovering and watching|moving forward|calm focus|quick direction changes",
+  "fortuneSajuFortuneThemes": "a new move lightly|teammate timing|bouncing back after small mistakes|scanning the field wider|finding your body center again|choosing one focus point|showing it through movement|raising speed calmly",
   "fortuneSajuTrainingTones": "setting the first-touch direction|short pass then next choice|receiving with the body open|the first step in defensive transition|breathing before the finish|checking both-foot balance|timing the off-ball movement|making the return-pass angle",
-  "fortuneSajuNameElements": "Wood's quick start|Fire's bright expression|Earth's stability|Metal's accuracy|Water's flexibility|Wood-fire confidence|Earth-metal steadiness|Water-wood observation",
-  "fortuneSajuPlayAdvice": "you can start light and still make the final choice clearly.|one small compliment can bring your rhythm alive.|it helps to pause one beat before pushing harder.|your luck rises when you lift your head before the pass.|careful warmups make the play feel fresher.|resetting your face after a mistake brings the next scene back.|one accurate touch fits better than three forced ones.|reading a teammate first opens a good scene.",
+  "fortuneSajuNameElements": "a quick starter|a bright communicator|a steady base|an accuracy builder|a flexible mover|a confident driver|a steady stacker|an observant mover",
+  "fortuneSajuPlayAdvice": "start light and still make the final choice clear.|one small compliment can bring your rhythm alive.|pause one beat before pushing harder.|lift your head before the pass so the field opens up.|careful warmups make the play feel fresher.|reset your face after a mistake and the next scene comes back.|one accurate touch fits better than three forced ones.|read a teammate first and a good scene opens.",
   "fortuneLuckyColorTones": "Deep|Soft|Clean|Sunset|Cool|Warm|Mist|Bright|Mono|Accent",
   "fortuneLuckyColorBases": "Navy|Emerald|Coral|Mustard|Sky Blue|Khaki|Ivory|Cherry Red|Lime|Charcoal",
   "fortuneLuckyTimePeriods": "Early morning|Late morning|Right after lunch|Early afternoon|Late afternoon|At sunset|Early evening|Night routine window",
@@ -4921,7 +4921,7 @@
   "parentReadOnlyDiaryMessage": "Parent mode cannot edit the diary.",
   "parentReadOnlyDiaryBadge": "Parent mode read-only",
   "parentReadOnlySketchMessage": "Parent mode cannot edit training sketches.",
-  "parentReadOnlyFortuneEmpty": "No saved fortune is available yet.",
+  "parentReadOnlyFortuneEmpty": "No saved play hint is available yet.",
   "parentFeedbackSectionTitle": "Parent feedback",
   "parentFeedbackHelper": "Keep the original training record untouched and store only the parent feedback for this session separately.",
   "parentFeedbackReadOnlyHint": "Feedback left on this training log by a parent.",

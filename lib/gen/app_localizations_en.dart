@@ -5226,7 +5226,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryStickerPlan => 'Plan';
 
   @override
-  String get diaryStickerFortune => 'Fortune';
+  String get diaryStickerFortune => 'Play hint';
 
   @override
   String get diaryStickerBoard => 'Board';
@@ -5453,14 +5453,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diaryFortunePinSummary =>
-      'Pin today\'s fortune flow as a diary sticker.';
+      'Pin today\'s play hint as a diary sticker.';
 
   @override
   String get diaryFortuneStorySentence =>
-      'Write the one flow or encouragement you want to keep from today\'s fortune.';
+      'Write the scene or encouragement you want to keep from today\'s play hint.';
 
   @override
-  String get diaryFortuneNoteTitle => 'Today fortune note';
+  String get diaryFortuneNoteTitle => 'Today play hint note';
 
   @override
   String get diaryMatchTodoTitleNoOpponent => 'Match';
@@ -5965,19 +5965,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRiceBowlEmpty => 'Skipped';
 
   @override
-  String get fortuneDialogTitle => 'Today fortune';
+  String get fortuneDialogTitle => 'Today\'s play hint';
 
   @override
-  String get fortuneDialogSubtitle => 'Check today lucky info.';
+  String get fortuneDialogSubtitle =>
+      'A light play hint picked from birth date and name.';
 
   @override
-  String get fortuneDialogOverviewTitle => 'Fortune overview';
+  String get fortuneDialogOverviewTitle => 'Play hint';
 
   @override
-  String get fortuneDialogOverallFortuneLabel => 'Overall fortune';
+  String get fortuneDialogOverallFortuneLabel => 'Today hint';
 
   @override
-  String get fortuneDialogLuckyInfoLabel => 'Lucky info';
+  String get fortuneDialogLuckyInfoLabel => 'Fun points';
 
   @override
   String fortuneDialogOverallFortuneCount(int count) {
@@ -5990,10 +5991,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogLuckyInfoTitle => 'Lucky info';
+  String get fortuneDialogLuckyInfoTitle => 'Fun points';
 
   @override
-  String get fortuneDialogPoolSizeLabel => 'Fortune pool';
+  String get fortuneDialogPoolSizeLabel => 'Hint combinations';
 
   @override
   String fortuneDialogPoolSizeCount(String count) {
@@ -6004,16 +6005,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDialogRecommendedProgramTitle => 'Recommended training';
 
   @override
-  String get fortuneDialogRecommendationTitle => 'Fortune note';
+  String get fortuneDialogRecommendationTitle => 'Play note';
 
   @override
-  String get fortuneDialogEncouragement => 'Cheering for your best play today.';
+  String get fortuneDialogEncouragement => 'Make one fun play today.';
 
   @override
-  String get fortuneDialogAction => 'Nice';
+  String get fortuneDialogAction => 'Got it';
 
   @override
-  String get entryFortuneOpenFailed => 'Failed to open fortune.';
+  String get entryFortuneOpenFailed => 'Failed to open play hint.';
 
   @override
   String get profileBirthTimeTitle => 'Birth time';
@@ -6025,44 +6026,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneGeneratedUnknownPlayerName => 'Player';
 
   @override
-  String get fortuneGeneratedBirthNotSet => 'birth date not set in profile';
+  String get fortuneGeneratedBirthNotSet => 'no birth date set';
 
   @override
   String fortuneGeneratedBirthFrame(
       String yearPillar, String monthPillar, String dayPillar) {
-    return 'year $yearPillar, month $monthPillar, day-master $dayPillar';
+    return 'birth code $yearPillar/$monthPillar/$dayPillar';
   }
 
   @override
   String fortuneGeneratedBirthFrameWithTime(String yearPillar,
       String monthPillar, String dayPillar, String hourPillar) {
-    return 'year $yearPillar, month $monthPillar, day-master $dayPillar, hour $hourPillar';
+    return 'birth code $yearPillar/$monthPillar/$dayPillar/$hourPillar';
   }
 
   @override
   String fortuneGeneratedDailyLineOne(
       String name, String birthFrame, String dailyPillar, String elementFlow) {
-    return 'For $name, $birthFrame meets today\'s $dailyPillar flow, so $elementFlow stands out.';
+    return '$name\'s base is $birthFrame. Add today\'s code $dailyPillar, and $elementFlow stands out.';
   }
 
   @override
   String fortuneGeneratedDailyLineTwo(
       String fortuneTheme, String trainingTone) {
-    return 'That opens as $fortuneTheme, so make practice playful through $trainingTone.';
+    return 'Today is good for trying $fortuneTheme, with practice focused on $trainingTone.';
   }
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return 'Add the name signal of $nameElement, and today $playAdvice';
+    return 'The name rhythm feels like $nameElement, so today\'s quick hint is: $playAdvice';
   }
 
   @override
-  String get fortuneGeneratedLuckyInfoHeader => '[Lucky info]';
+  String get fortuneGeneratedLuckyInfoHeader => '[Fun points]';
 
   @override
   String fortuneGeneratedLuckyInfoLine(
       int number, String color, String time, String zone, String cue) {
-    return 'Lucky number $number, color $color, and time $time point to the $zone; $cue.';
+    return 'Today\'s number $number, color $color, and time $time: try $cue in the $zone.';
   }
 
   @override
@@ -6084,7 +6085,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneRecommendationStrongFlow(String program) {
-    return 'Your rhythm is good. Keep the next session focused on $program.';
+    return 'Your practice rhythm is good. Keep the next session focused on $program.';
   }
 
   @override
@@ -6102,11 +6103,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneSajuElementFlows =>
-      'Wood growth|Fire expression|Earth balance|Metal clarity|Water recovery|Wood-fire drive|Earth-metal focus|Water-wood transition';
+      'learning something new|clear expression|finding balance|raising accuracy|recovering and watching|moving forward|calm focus|quick direction changes';
 
   @override
   String get fortuneSajuFortuneThemes =>
-      'energy for accepting a new move|a sense for matching a teammate\'s rhythm|luck that recovers quickly from small mistakes|a flow that widens your scan|a day for finding your center again|a window where focus gets sharper|a mood where movement speaks before words|luck for raising speed calmly';
+      'a new move lightly|teammate timing|bouncing back after small mistakes|scanning the field wider|finding your body center again|choosing one focus point|showing it through movement|raising speed calmly';
 
   @override
   String get fortuneSajuTrainingTones =>
@@ -6114,11 +6115,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneSajuNameElements =>
-      'Wood\'s quick start|Fire\'s bright expression|Earth\'s stability|Metal\'s accuracy|Water\'s flexibility|Wood-fire confidence|Earth-metal steadiness|Water-wood observation';
+      'a quick starter|a bright communicator|a steady base|an accuracy builder|a flexible mover|a confident driver|a steady stacker|an observant mover';
 
   @override
   String get fortuneSajuPlayAdvice =>
-      'you can start light and still make the final choice clearly.|one small compliment can bring your rhythm alive.|it helps to pause one beat before pushing harder.|your luck rises when you lift your head before the pass.|careful warmups make the play feel fresher.|resetting your face after a mistake brings the next scene back.|one accurate touch fits better than three forced ones.|reading a teammate first opens a good scene.';
+      'start light and still make the final choice clear.|one small compliment can bring your rhythm alive.|pause one beat before pushing harder.|lift your head before the pass so the field opens up.|careful warmups make the play feel fresher.|reset your face after a mistake and the next scene comes back.|one accurate touch fits better than three forced ones.|read a teammate first and a good scene opens.';
 
   @override
   String get fortuneLuckyColorTones =>
@@ -9006,7 +9007,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent mode cannot edit training sketches.';
 
   @override
-  String get parentReadOnlyFortuneEmpty => 'No saved fortune is available yet.';
+  String get parentReadOnlyFortuneEmpty =>
+      'No saved play hint is available yet.';
 
   @override
   String get parentFeedbackSectionTitle => 'Parent feedback';

@@ -36,14 +36,13 @@ void main() {
     final lines = result.fortuneText.split('\n');
     expect(lines, hasLength(5));
     expect(lines.first, contains('민준'));
-    expect(lines.first, contains('임진년'));
-    expect(lines.first, contains('일주'));
-    expect(lines.first, contains('시'));
-    expect(lines[3], '[행운 정보]');
-    expect(lines.last, contains('행운 숫자 '));
+    expect(lines.first, contains('생일 코드'));
+    expect(lines.first, contains('임진/'));
+    expect(lines[3], '[재미 포인트]');
+    expect(lines.last, contains('오늘 숫자 '));
     expect(lines.last, contains('색상 '));
     expect(lines.last, contains('시간대 '));
-    expect(lines.last, contains('의식해 보세요.'));
+    expect(lines.last, contains('떠올려 보세요.'));
   });
 
   test('birth date and name change the generated fortune', () {

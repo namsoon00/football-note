@@ -42,18 +42,29 @@ class FortuneSections {
   int get totalCount => bodyLines.length + luckyInfoLines.length;
 
   static bool _isLuckyInfoHeader(String line) {
-    return line == '[행운 정보]' || line == '[Lucky info]' || line == '[ラッキー情報]';
+    return line == '[행운 정보]' ||
+        line == '[재미 포인트]' ||
+        line == '[Lucky info]' ||
+        line == '[Fun points]' ||
+        line == '[ラッキー情報]' ||
+        line == '[楽しいポイント]';
   }
 
   static bool _isLuckyInfoLine(String line) {
     return line.startsWith('행운 ') ||
+        line.startsWith('오늘 ') ||
         line.startsWith('Lucky ') ||
+        line.startsWith("Today's ") ||
+        line.startsWith('Today ') ||
+        line.startsWith('今日の') ||
         line.startsWith('ラッキー');
   }
 
   static List<String> _compactLuckyInfoLines(List<String> lines) {
     if (lines.length <= 1) return lines;
-    final isKo = lines.any((line) => line.startsWith('행운 '));
+    final isKo = lines.any(
+      (line) => line.startsWith('행운 ') || line.startsWith('오늘 '),
+    );
     final values = <String, String>{};
     for (final line in lines) {
       final separator = line.indexOf(':');
@@ -79,14 +90,14 @@ class FortuneSections {
         if (time.isNotEmpty) '시간대 $time',
       ];
       final cueText = cue.isNotEmpty
-          ? '$cue를 의식해 보세요'
+          ? '$cue를 떠올려 보세요'
           : zone.isNotEmpty
               ? '$zone에서 기본 리듬을 맞춰보세요'
               : '기본 리듬을 차분히 맞춰보세요';
       if (parts.isEmpty) {
         return [_ensureSentence(cueText)];
       }
-      final prefix = '행운 ${parts.join(', ')}';
+      final prefix = '오늘 ${parts.join(', ')}';
       final place = zone.isNotEmpty && cue.isNotEmpty ? '$zone에서 ' : '';
       return [_ensureSentence('$prefix에는 $place$cueText')];
     }
@@ -110,7 +121,7 @@ class FortuneSections {
       return [_ensureSentence(cueText)];
     }
     final place = zone.isNotEmpty && cue.isNotEmpty ? ' in the $zone' : '';
-    return [_ensureSentence('Lucky ${parts.join(', ')}$place: $cueText')];
+    return [_ensureSentence("Today's ${parts.join(', ')}$place: $cueText")];
   }
 
   static String _valueFor(Map<String, String> values, List<String> keys) {
@@ -124,7 +135,7 @@ class FortuneSections {
   static String _singleSentenceFallback(String line, {required bool isKo}) {
     final text = _stripTerminalPunctuation(line);
     if (text.isEmpty) {
-      return isKo ? '오늘의 행운 흐름을 가볍게 이어가세요.' : 'Keep today rhythm light.';
+      return isKo ? '오늘의 플레이 리듬을 가볍게 이어가세요.' : 'Keep today rhythm light.';
     }
     return _ensureSentence(text);
   }

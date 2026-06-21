@@ -187,7 +187,7 @@ void main() {
     await tapSaveAndFinish(tester);
 
     expect(find.byType(AlertDialog), findsNothing);
-    expect(find.text('오늘의 행운 정보를 확인해 보세요.'), findsNothing);
+    expect(find.text('생일과 이름으로 고른 오늘의 가벼운 플레이 힌트예요.'), findsNothing);
     expect(find.text('open'), findsOneWidget);
   });
 
@@ -424,21 +424,21 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text('오늘의 운세'));
+    await tester.tap(find.text('오늘의 플레이 힌트'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('오늘의 운세'), findsWidgets);
-    expect(find.text('오늘의 행운 정보를 확인해 보세요.'), findsOneWidget);
-    expect(find.text('운세 보기'), findsNothing);
-    expect(find.text('전체 운세 pool'), findsNothing);
+    expect(find.text('오늘의 플레이 힌트'), findsWidgets);
+    expect(find.text('생일과 이름으로 고른 오늘의 가벼운 플레이 힌트예요.'), findsOneWidget);
+    expect(find.text('힌트 보기'), findsNothing);
+    expect(find.text('힌트 조합'), findsNothing);
     expect(
-      find.textContaining('행운 색상 에메랄드, 시간대 오전 후반 08:10~08:50'),
+      find.textContaining('오늘 색상 에메랄드, 시간대 오전 후반 08:10~08:50'),
       findsOneWidget,
     );
     expect(find.textContaining('행운 색상: 에메랄드'), findsNothing);
     expect(find.text('추천 훈련'), findsNothing);
-    expect(find.text('운세 코멘트'), findsNothing);
+    expect(find.text('플레이 코멘트'), findsNothing);
   });
 
   testWidgets(
@@ -666,12 +666,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('오늘의 운세'));
+    await tester.tap(find.text('오늘의 플레이 힌트'));
     await tester.pumpAndSettle();
 
-    expect(find.text('오늘의 운세'), findsWidgets);
-    expect(find.text('오늘의 행운 정보를 확인해 보세요.'), findsOneWidget);
-    expect(find.textContaining('행운 색상 에메랄드'), findsOneWidget);
+    expect(find.text('오늘의 플레이 힌트'), findsWidgets);
+    expect(find.text('생일과 이름으로 고른 오늘의 가벼운 플레이 힌트예요.'), findsOneWidget);
+    expect(find.textContaining('오늘 색상 에메랄드'), findsOneWidget);
   });
 
   testWidgets('parent mode keeps training sketch action visible', (
