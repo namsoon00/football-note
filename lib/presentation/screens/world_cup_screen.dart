@@ -3739,6 +3739,7 @@ class _WorldCupTeamRosterSheet extends StatefulWidget {
 }
 
 class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
+  final ScrollController _scrollController = ScrollController();
   late String _team;
 
   @override
@@ -3752,6 +3753,22 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
     setState(() {
       _team = team;
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      unawaited(
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic,
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -3770,6 +3787,7 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
       child: FractionallySizedBox(
         heightFactor: 0.9,
         child: ListView(
+          controller: _scrollController,
           padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
           children: [
             Row(
