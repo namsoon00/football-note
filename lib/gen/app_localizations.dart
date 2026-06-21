@@ -10860,7 +10860,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMistakeBody.
   ///
   /// In en, this message translates to:
-  /// **'This loop shows the common failure pattern: upright torso, overstride, straight contact knee, open elbows, and extra vertical bounce.'**
+  /// **'This loop shows the review pattern: upright torso, foot landing ahead of the hip, a stiff contact knee, a high arm swing, and extra vertical bounce.'**
   String get runningCoachSampleMistakeBody;
 
   /// No description provided for @runningCoachSampleReferencePosture.
@@ -10896,31 +10896,31 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMistakePosture.
   ///
   /// In en, this message translates to:
-  /// **'Posture line: lean is only 2°, so the runner sits tall instead of driving forward.'**
+  /// **'Posture line: lean is only 4°, so the runner sits tall instead of driving forward.'**
   String get runningCoachSampleMistakePosture;
 
   /// No description provided for @runningCoachSampleMistakeFoot.
   ///
   /// In en, this message translates to:
-  /// **'Contact point: overstride is 0.24 ahead of the hip, increasing braking.'**
+  /// **'Contact point: landing is 0.20 ahead of the hip, increasing braking.'**
   String get runningCoachSampleMistakeFoot;
 
   /// No description provided for @runningCoachSampleMistakeKnee.
   ///
   /// In en, this message translates to:
-  /// **'Stance knee: 176° at contact, too straight to absorb and push.'**
+  /// **'Stance knee: 172° at contact, too straight to absorb and push.'**
   String get runningCoachSampleMistakeKnee;
 
   /// No description provided for @runningCoachSampleMistakeArms.
   ///
   /// In en, this message translates to:
-  /// **'Arm angle: elbows open to 132°, slowing the arm-leg rhythm.'**
+  /// **'Arm angle: elbows rise near 118°, making the swing high and tight.'**
   String get runningCoachSampleMistakeArms;
 
   /// No description provided for @runningCoachSampleMistakeBounce.
   ///
   /// In en, this message translates to:
-  /// **'Bounce: vertical motion rises to 12%, wasting force upward.'**
+  /// **'Bounce: vertical motion rises to 10%, wasting force upward.'**
   String get runningCoachSampleMistakeBounce;
 
   /// No description provided for @runningCoachSampleAnalysisMethodTitle.
@@ -11088,25 +11088,25 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMistakeOverlayPosture.
   ///
   /// In en, this message translates to:
-  /// **'Upright 2°'**
+  /// **'Upright 4°'**
   String get runningCoachSampleMistakeOverlayPosture;
 
   /// No description provided for @runningCoachSampleMistakeOverlayArms.
   ///
   /// In en, this message translates to:
-  /// **'Arms 132°'**
+  /// **'Arms 118°'**
   String get runningCoachSampleMistakeOverlayArms;
 
   /// No description provided for @runningCoachSampleMistakeOverlayFoot.
   ///
   /// In en, this message translates to:
-  /// **'Overstride 0.24'**
+  /// **'Ahead 0.20'**
   String get runningCoachSampleMistakeOverlayFoot;
 
   /// No description provided for @runningCoachSampleMistakeOverlayBounce.
   ///
   /// In en, this message translates to:
-  /// **'Bounce 12%'**
+  /// **'Bounce 10%'**
   String get runningCoachSampleMistakeOverlayBounce;
 
   /// No description provided for @runningCoachLiveCardTitle.

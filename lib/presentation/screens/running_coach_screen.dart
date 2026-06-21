@@ -433,7 +433,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   RunningVideoAnalysisResult _sampleAnalysisResult() {
     return const RunningVideoAnalysisResult(
-      videoDuration: Duration(seconds: 6),
+      videoDuration: Duration(seconds: 4),
       sampledFrames: 24,
       validFrames: 24,
       direction: RunningDirection.leftToRight,
@@ -469,15 +469,15 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   RunningVideoAnalysisResult _mistakeSampleAnalysisResult() {
     return const RunningVideoAnalysisResult(
-      videoDuration: Duration(seconds: 6),
+      videoDuration: Duration(seconds: 4),
       sampledFrames: 24,
       validFrames: 24,
       direction: RunningDirection.leftToRight,
-      forwardLeanDegrees: 2,
-      verticalBounceRatio: 0.12,
-      footStrikeDistanceRatio: 0.24,
-      stanceKneeAngleDegrees: 176,
-      elbowAngleDegrees: 132,
+      forwardLeanDegrees: 4,
+      verticalBounceRatio: 0.10,
+      footStrikeDistanceRatio: 0.20,
+      stanceKneeAngleDegrees: 172,
+      elbowAngleDegrees: 118,
       metricQualities: <RunningCoachMetric, RunningMetricQuality>{
         RunningCoachMetric.posture: RunningMetricQuality(
           confidence: 1,
@@ -2786,7 +2786,11 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
     final activePhase =
         phasePosition.floor().clamp(0, _sampleAnalysisPhaseCount - 1).toInt();
     final phaseProgress = phasePosition - activePhase;
-    final runner = _SampleVideoRunnerGeometry(size, progress);
+    final runner = _SampleVideoRunnerGeometry(
+      size,
+      progress,
+      isMistake: isMistake,
+    );
     final frameAlpha = _phaseAlpha(activePhase, 0);
     final jointAlpha = _phaseAlpha(activePhase, 1);
     final muscleAlpha = _phaseAlpha(activePhase, 2);
@@ -3414,8 +3418,14 @@ class _SampleVideoRunnerGeometry {
   final double progress;
   final _SampleVideoPoseKeyframe _pose;
 
-  _SampleVideoRunnerGeometry(this.size, this.progress)
-      : _pose = _SampleVideoPoseKeyframe.at(progress);
+  _SampleVideoRunnerGeometry(
+    this.size,
+    this.progress, {
+    required bool isMistake,
+  }) : _pose = _SampleVideoPoseKeyframe.at(
+          progress,
+          isMistake: isMistake,
+        );
 
   double get scale => size.height;
 
@@ -3550,7 +3560,7 @@ class _SampleVideoPoseKeyframe {
     required this.groundY,
   });
 
-  static const _trackedClipKeyframes = <_SampleVideoPoseKeyframe>[
+  static const _referenceClipKeyframes = <_SampleVideoPoseKeyframe>[
     _SampleVideoPoseKeyframe(
       time: 0.000,
       head: Offset(0.527, 0.365),
@@ -3733,17 +3743,205 @@ class _SampleVideoPoseKeyframe {
     ),
   ];
 
-  static _SampleVideoPoseKeyframe at(double progress) {
+  static const _mistakeClipKeyframes = <_SampleVideoPoseKeyframe>[
+    _SampleVideoPoseKeyframe(
+      time: 0.000,
+      head: Offset(0.253, 0.196),
+      neck: Offset(0.209, 0.257),
+      rearShoulder: Offset(0.213, 0.255),
+      frontShoulder: Offset(0.204, 0.259),
+      rearElbow: Offset(0.189, 0.342),
+      rearWrist: Offset(0.188, 0.430),
+      frontElbow: Offset(0.195, 0.359),
+      frontWrist: Offset(0.244, 0.353),
+      rearHip: Offset(0.191, 0.447),
+      frontHip: Offset(0.177, 0.448),
+      rearKnee: Offset(0.219, 0.547),
+      rearAnkle: Offset(0.147, 0.540),
+      rearToe: Offset(0.133, 0.597),
+      frontKnee: Offset(0.188, 0.563),
+      frontAnkle: Offset(0.154, 0.681),
+      frontToe: Offset(0.182, 0.718),
+      groundY: 0.720,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.105,
+      head: Offset(0.308, 0.177),
+      neck: Offset(0.278, 0.239),
+      rearShoulder: Offset(0.270, 0.235),
+      frontShoulder: Offset(0.286, 0.242),
+      rearElbow: Offset(0.236, 0.286),
+      rearWrist: Offset(0.258, 0.272),
+      frontElbow: Offset(0.286, 0.340),
+      frontWrist: Offset(0.316, 0.302),
+      rearHip: Offset(0.257, 0.430),
+      frontHip: Offset(0.245, 0.431),
+      rearKnee: Offset(0.311, 0.505),
+      rearAnkle: Offset(0.263, 0.607),
+      rearToe: Offset(0.284, 0.663),
+      frontKnee: Offset(0.216, 0.553),
+      frontAnkle: Offset(0.166, 0.657),
+      frontToe: Offset(0.181, 0.715),
+      groundY: 0.720,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.237,
+      head: Offset(0.404, 0.176),
+      neck: Offset(0.366, 0.224),
+      rearShoulder: Offset(0.353, 0.226),
+      frontShoulder: Offset(0.378, 0.222),
+      rearElbow: Offset(0.320, 0.284),
+      rearWrist: Offset(0.353, 0.313),
+      frontElbow: Offset(0.371, 0.313),
+      frontWrist: Offset(0.397, 0.304),
+      rearHip: Offset(0.345, 0.422),
+      frontHip: Offset(0.336, 0.423),
+      rearKnee: Offset(0.382, 0.528),
+      rearAnkle: Offset(0.401, 0.660),
+      rearToe: Offset(0.438, 0.659),
+      frontKnee: Offset(0.305, 0.551),
+      frontAnkle: Offset(0.226, 0.566),
+      frontToe: Offset(0.212, 0.633),
+      groundY: 0.715,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.368,
+      head: Offset(0.491, 0.197),
+      neck: Offset(0.457, 0.244),
+      rearShoulder: Offset(0.456, 0.243),
+      frontShoulder: Offset(0.457, 0.245),
+      rearElbow: Offset(0.436, 0.307),
+      rearWrist: Offset(0.457, 0.338),
+      frontElbow: Offset(0.422, 0.311),
+      frontWrist: Offset(0.457, 0.364),
+      rearHip: Offset(0.436, 0.438),
+      frontHip: Offset(0.429, 0.446),
+      rearKnee: Offset(0.449, 0.547),
+      rearAnkle: Offset(0.438, 0.677),
+      rearToe: Offset(0.471, 0.715),
+      frontKnee: Offset(0.434, 0.557),
+      frontAnkle: Offset(0.364, 0.508),
+      frontToe: Offset(0.337, 0.552),
+      groundY: 0.715,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.500,
+      head: Offset(0.570, 0.189),
+      neck: Offset(0.546, 0.239),
+      rearShoulder: Offset(0.551, 0.239),
+      frontShoulder: Offset(0.540, 0.239),
+      rearElbow: Offset(0.579, 0.286),
+      rearWrist: Offset(0.599, 0.302),
+      frontElbow: Offset(0.494, 0.281),
+      frontWrist: Offset(0.525, 0.337),
+      rearHip: Offset(0.507, 0.424),
+      frontHip: Offset(0.511, 0.428),
+      rearKnee: Offset(0.491, 0.554),
+      rearAnkle: Offset(0.449, 0.665),
+      rearToe: Offset(0.471, 0.714),
+      frontKnee: Offset(0.573, 0.505),
+      frontAnkle: Offset(0.506, 0.572),
+      frontToe: Offset(0.516, 0.630),
+      groundY: 0.715,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.605,
+      head: Offset(0.647, 0.163),
+      neck: Offset(0.613, 0.229),
+      rearShoulder: Offset(0.617, 0.234),
+      frontShoulder: Offset(0.609, 0.223),
+      rearElbow: Offset(0.644, 0.282),
+      rearWrist: Offset(0.659, 0.294),
+      frontElbow: Offset(0.566, 0.280),
+      frontWrist: Offset(0.614, 0.329),
+      rearHip: Offset(0.583, 0.418),
+      frontHip: Offset(0.595, 0.422),
+      rearKnee: Offset(0.544, 0.543),
+      rearAnkle: Offset(0.482, 0.614),
+      rearToe: Offset(0.479, 0.669),
+      frontKnee: Offset(0.647, 0.509),
+      frontAnkle: Offset(0.635, 0.644),
+      frontToe: Offset(0.668, 0.670),
+      groundY: 0.715,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.737,
+      head: Offset(0.728, 0.183),
+      neck: Offset(0.693, 0.244),
+      rearShoulder: Offset(0.692, 0.242),
+      frontShoulder: Offset(0.693, 0.245),
+      rearElbow: Offset(0.695, 0.316),
+      rearWrist: Offset(0.723, 0.328),
+      frontElbow: Offset(0.667, 0.324),
+      frontWrist: Offset(0.714, 0.356),
+      rearHip: Offset(0.673, 0.449),
+      frontHip: Offset(0.677, 0.452),
+      rearKnee: Offset(0.651, 0.562),
+      rearAnkle: Offset(0.583, 0.537),
+      rearToe: Offset(0.559, 0.587),
+      frontKnee: Offset(0.720, 0.564),
+      frontAnkle: Offset(0.729, 0.696),
+      frontToe: Offset(0.746, 0.718),
+      groundY: 0.720,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 0.868,
+      head: Offset(0.815, 0.197),
+      neck: Offset(0.783, 0.267),
+      rearShoulder: Offset(0.776, 0.264),
+      frontShoulder: Offset(0.789, 0.269),
+      rearElbow: Offset(0.780, 0.353),
+      rearWrist: Offset(0.811, 0.325),
+      frontElbow: Offset(0.791, 0.371),
+      frontWrist: Offset(0.817, 0.335),
+      rearHip: Offset(0.760, 0.457),
+      frontHip: Offset(0.763, 0.462),
+      rearKnee: Offset(0.784, 0.573),
+      rearAnkle: Offset(0.717, 0.558),
+      rearToe: Offset(0.703, 0.611),
+      frontKnee: Offset(0.781, 0.586),
+      frontAnkle: Offset(0.744, 0.702),
+      frontToe: Offset(0.771, 0.735),
+      groundY: 0.735,
+    ),
+    _SampleVideoPoseKeyframe(
+      time: 1.000,
+      head: Offset(0.880, 0.176),
+      neck: Offset(0.850, 0.247),
+      rearShoulder: Offset(0.829, 0.244),
+      frontShoulder: Offset(0.871, 0.250),
+      rearElbow: Offset(0.792, 0.304),
+      rearWrist: Offset(0.820, 0.314),
+      frontElbow: Offset(0.877, 0.357),
+      frontWrist: Offset(0.888, 0.310),
+      rearHip: Offset(0.832, 0.443),
+      frontHip: Offset(0.834, 0.447),
+      rearKnee: Offset(0.880, 0.525),
+      rearAnkle: Offset(0.826, 0.621),
+      rearToe: Offset(0.840, 0.682),
+      frontKnee: Offset(0.810, 0.574),
+      frontAnkle: Offset(0.757, 0.681),
+      frontToe: Offset(0.776, 0.736),
+      groundY: 0.736,
+    ),
+  ];
+
+  static _SampleVideoPoseKeyframe at(
+    double progress, {
+    required bool isMistake,
+  }) {
+    final keyframes =
+        isMistake ? _mistakeClipKeyframes : _referenceClipKeyframes;
     final normalized = progress.clamp(0.0, 0.999999).toDouble();
-    for (var index = 0; index < _trackedClipKeyframes.length - 1; index += 1) {
-      final current = _trackedClipKeyframes[index];
-      final next = _trackedClipKeyframes[index + 1];
+    for (var index = 0; index < keyframes.length - 1; index += 1) {
+      final current = keyframes[index];
+      final next = keyframes[index + 1];
       if (normalized >= current.time && normalized <= next.time) {
         final localT = (normalized - current.time) / (next.time - current.time);
         return _SampleVideoPoseKeyframe.lerp(current, next, localT);
       }
     }
-    return _trackedClipKeyframes.last;
+    return keyframes.last;
   }
 
   static _SampleVideoPoseKeyframe lerp(

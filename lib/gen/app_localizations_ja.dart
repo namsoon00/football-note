@@ -6026,7 +6026,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleMistakeBody =>
-      'よくある失敗例です。胴体が立ち、足が前に出過ぎ、接地膝が伸び、肘が開き、上下のバウンスが増えます。';
+      '確認が必要なパターンです。胴体が立ち、足が腰より前に着き、接地膝が硬く、腕振りが高くなり、上下のバウンスが増えます。';
 
   @override
   String get runningCoachSampleReferencePosture =>
@@ -6046,19 +6046,19 @@ class AppLocalizationsJa extends AppLocalizations {
       'フレーム品質: 主要関節が見える24/24の使用可能フレーム。';
 
   @override
-  String get runningCoachSampleMistakePosture => '姿勢線: 前傾は2°だけで、前へ押せず体が立っています。';
+  String get runningCoachSampleMistakePosture => '姿勢線: 前傾は4°だけで、前へ押せず体が立っています。';
 
   @override
-  String get runningCoachSampleMistakeFoot => '接地点: 腰より0.24前に着くオーバーストライドです。';
+  String get runningCoachSampleMistakeFoot => '接地点: 腰より0.20前に着き、ブレーキが増えます。';
 
   @override
-  String get runningCoachSampleMistakeKnee => '接地膝: 176°で、受けて押すには伸びすぎています。';
+  String get runningCoachSampleMistakeKnee => '接地膝: 172°で、受けて押すには伸びすぎています。';
 
   @override
-  String get runningCoachSampleMistakeArms => '腕角度: 肘が132°まで開き、腕と脚のリズムが遅れます。';
+  String get runningCoachSampleMistakeArms => '腕角度: 肘が118°付近まで上がり、腕振りが高く窮屈です。';
 
   @override
-  String get runningCoachSampleMistakeBounce => 'バウンス: 上下動が12%まで増え、力が上へ逃げます。';
+  String get runningCoachSampleMistakeBounce => 'バウンス: 上下動が10%まで増え、力が上へ逃げます。';
 
   @override
   String get runningCoachSampleAnalysisMethodTitle => 'コーチの分析方法';
@@ -6147,16 +6147,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleOverlayFrames => '24/24フレーム';
 
   @override
-  String get runningCoachSampleMistakeOverlayPosture => '直立 2°';
+  String get runningCoachSampleMistakeOverlayPosture => '直立 4°';
 
   @override
-  String get runningCoachSampleMistakeOverlayArms => '腕 132°';
+  String get runningCoachSampleMistakeOverlayArms => '腕 118°';
 
   @override
-  String get runningCoachSampleMistakeOverlayFoot => '過大 0.24';
+  String get runningCoachSampleMistakeOverlayFoot => '前 0.20';
 
   @override
-  String get runningCoachSampleMistakeOverlayBounce => '上下 12%';
+  String get runningCoachSampleMistakeOverlayBounce => '上下 10%';
 
   @override
   String get runningCoachLiveCardTitle => 'ライブコーチ';

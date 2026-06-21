@@ -6026,7 +6026,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleMistakeBody =>
-      '흔한 실패 패턴이에요. 상체가 서고, 발이 앞에 떨어지고, 접지 무릎이 펴지며, 팔꿈치가 열리고, 위아래 바운스가 커져요.';
+      '확인이 필요한 패턴이에요. 상체가 서고, 발이 엉덩이보다 앞에 떨어지고, 접지 무릎이 뻣뻣하며, 팔 스윙이 높고, 위아래 바운스가 커져요.';
 
   @override
   String get runningCoachSampleReferencePosture =>
@@ -6050,22 +6050,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleMistakePosture =>
-      '상체 선: 전경사 2도라 앞으로 밀지 못하고 몸이 선 상태.';
+      '상체 선: 전경사 4도라 앞으로 밀지 못하고 몸이 선 상태.';
 
   @override
   String get runningCoachSampleMistakeFoot =>
-      '접지 지점: 엉덩이보다 0.24 앞에 떨어지는 오버스트라이드.';
+      '접지 지점: 엉덩이보다 0.20 앞에 떨어져 제동이 커짐.';
 
   @override
   String get runningCoachSampleMistakeKnee =>
-      '접지 무릎: 176도, 충격을 받고 밀기에는 너무 곧게 펴짐.';
+      '접지 무릎: 172도, 충격을 받고 밀기에는 너무 곧게 펴짐.';
 
   @override
   String get runningCoachSampleMistakeArms =>
-      '팔 각도: 팔꿈치가 132도로 열려 팔-다리 리듬이 느려짐.';
+      '팔 각도: 팔꿈치가 118도 근처까지 올라와 스윙이 높고 좁아짐.';
 
   @override
-  String get runningCoachSampleMistakeBounce => '바운스: 수직 움직임 12%, 힘이 위로 새어 나감.';
+  String get runningCoachSampleMistakeBounce => '바운스: 수직 움직임 10%, 힘이 위로 새어 나감.';
 
   @override
   String get runningCoachSampleAnalysisMethodTitle => '코치가 분석하는 방식';
@@ -6155,16 +6155,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleOverlayFrames => '24/24프레임';
 
   @override
-  String get runningCoachSampleMistakeOverlayPosture => '상체 2도';
+  String get runningCoachSampleMistakeOverlayPosture => '상체 4도';
 
   @override
-  String get runningCoachSampleMistakeOverlayArms => '팔 132도';
+  String get runningCoachSampleMistakeOverlayArms => '팔 118도';
 
   @override
-  String get runningCoachSampleMistakeOverlayFoot => '오버 0.24';
+  String get runningCoachSampleMistakeOverlayFoot => '앞착지 0.20';
 
   @override
-  String get runningCoachSampleMistakeOverlayBounce => '바운스 12%';
+  String get runningCoachSampleMistakeOverlayBounce => '바운스 10%';
 
   @override
   String get runningCoachLiveCardTitle => '실시간 코치';
