@@ -2542,6 +2542,35 @@
       }
     }
   },
+  "notificationFilteredFeedSubtitle": "전체 {total}개 중 이 카테고리 알림 {shown}개를 보고 있어요.",
+  "@notificationFilteredFeedSubtitle": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationCategoryFilterLabel": "카테고리별 알림 필터",
+  "notificationCategoryAll": "전체",
+  "notificationCategoryTrainingPlan": "훈련",
+  "notificationCategoryWeather": "날씨",
+  "notificationCategoryFixture": "경기",
+  "notificationCategoryXp": "경험치",
+  "notificationCategoryFamily": "보호자",
+  "notificationCategoryChipLabel": "{category} {count}개",
+  "@notificationCategoryChipLabel": {
+    "placeholders": {
+      "category": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationCategoryEmptyTitle": "이 카테고리에는 표시할 알림이 없어요.",
+  "notificationCategoryEmptySubtitle": "다른 카테고리를 선택하거나 나중에 새로고침해 보세요.",
   "notificationFeedEmptyTitle": "표시할 알림이 없어요.",
   "notificationFeedEmptySubtitle": "훈련, 날씨, 경기 알림이 생기면 여기에 모아 보여드려요.",
   "notificationInactivitySettingsTitle": "기록 공백 리마인드",

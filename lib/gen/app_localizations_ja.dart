@@ -4283,6 +4283,43 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String notificationFilteredFeedSubtitle(int shown, int total) {
+    return '全 $total 件のうち、このカテゴリの通知 $shown 件を表示しています。';
+  }
+
+  @override
+  String get notificationCategoryFilterLabel => 'カテゴリ別に通知を絞り込む';
+
+  @override
+  String get notificationCategoryAll => 'すべて';
+
+  @override
+  String get notificationCategoryTrainingPlan => 'トレーニング';
+
+  @override
+  String get notificationCategoryWeather => '天気';
+
+  @override
+  String get notificationCategoryFixture => '試合';
+
+  @override
+  String get notificationCategoryXp => 'XP';
+
+  @override
+  String get notificationCategoryFamily => '保護者';
+
+  @override
+  String notificationCategoryChipLabel(Object category, int count) {
+    return '$category $count件';
+  }
+
+  @override
+  String get notificationCategoryEmptyTitle => 'このカテゴリに表示する通知はありません。';
+
+  @override
+  String get notificationCategoryEmptySubtitle => '別のカテゴリを選ぶか、あとで更新してください。';
+
+  @override
   String get notificationFeedEmptyTitle => '表示する通知はありません。';
 
   @override

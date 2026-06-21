@@ -4388,6 +4388,44 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String notificationFilteredFeedSubtitle(int shown, int total) {
+    return 'Showing $shown of $total alerts in this category.';
+  }
+
+  @override
+  String get notificationCategoryFilterLabel => 'Filter alerts by category';
+
+  @override
+  String get notificationCategoryAll => 'All';
+
+  @override
+  String get notificationCategoryTrainingPlan => 'Training';
+
+  @override
+  String get notificationCategoryWeather => 'Weather';
+
+  @override
+  String get notificationCategoryFixture => 'Matches';
+
+  @override
+  String get notificationCategoryXp => 'XP';
+
+  @override
+  String get notificationCategoryFamily => 'Family';
+
+  @override
+  String notificationCategoryChipLabel(Object category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get notificationCategoryEmptyTitle => 'No alerts in this category.';
+
+  @override
+  String get notificationCategoryEmptySubtitle =>
+      'Choose another category or refresh later.';
+
+  @override
   String get notificationFeedEmptyTitle => 'No alerts to show.';
 
   @override
