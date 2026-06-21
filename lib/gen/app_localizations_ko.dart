@@ -6528,6 +6528,98 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleMistakeOverlayBounce => '바운스 10%';
 
   @override
+  String get runningCoachSampleMetricDetailScreenTitle => '근거 상세';
+
+  @override
+  String get runningCoachSampleMetricDetailHeroBody =>
+      '이 화면은 선택한 판정 항목을 매기기 전에 샘플 오버레이가 실제로 읽는 신체 위치를 확대해서 보여줘요.';
+
+  @override
+  String get runningCoachSampleMetricDetailSampleLabel => '샘플';
+
+  @override
+  String get runningCoachSampleMetricDetailValueLabel => '측정값';
+
+  @override
+  String get runningCoachSampleMetricDetailStatusLabel => '판정';
+
+  @override
+  String get runningCoachSampleMetricDetailKeyPositionTitle => '핵심 위치';
+
+  @override
+  String get runningCoachSampleMetricDetailReferenceTitle => '좋은 동작';
+
+  @override
+  String get runningCoachSampleMetricDetailReviewTitle => '확인 동작';
+
+  @override
+  String get runningCoachSampleMetricDetailHowReadTitle => '오버레이가 읽는 방식';
+
+  @override
+  String get runningCoachSamplePostureDetailKeyPosition =>
+      '중간 접지 위치: 어깨 중심, 엉덩이 선, 지지 발목을 연결해 상체 기울기를 봐요.';
+
+  @override
+  String get runningCoachSamplePostureDetailReference =>
+      '좋은 샘플은 엉덩이부터 가볍게 앞으로 기울고, 머리가 가슴 위에 안정적으로 실려 있어요.';
+
+  @override
+  String get runningCoachSamplePostureDetailReview =>
+      '확인 샘플은 상체가 너무 서 있어 밀어내는 선이 짧고 가속이 늦어 보일 수 있어요.';
+
+  @override
+  String get runningCoachSamplePostureDetailHowRead =>
+      '앱은 엉덩이와 어깨 중심을 연결하고, 엉덩이의 수직선과 비교해 프레임마다 전경사 각도를 확인해요.';
+
+  @override
+  String get runningCoachSampleArmsDetailKeyPosition =>
+      '팔 드라이브 위치: 반대쪽 무릎이 앞으로 나오는 순간 팔꿈치 각도를 읽어요.';
+
+  @override
+  String get runningCoachSampleArmsDetailReference =>
+      '좋은 샘플은 팔꿈치를 90도에 가깝게 유지하고 갈비뼈 옆에서 앞뒤로 흔들어요.';
+
+  @override
+  String get runningCoachSampleArmsDetailReview =>
+      '확인 샘플은 팔꿈치가 많이 열려 보폭 리듬이 느려지고 몸통 회전이 커질 수 있어요.';
+
+  @override
+  String get runningCoachSampleArmsDetailHowRead =>
+      '앱은 어깨, 팔꿈치, 손목 랜드마크를 연결하고 팔꿈치가 지나치게 열리는 프레임을 표시해요.';
+
+  @override
+  String get runningCoachSampleLandingDetailKeyPosition =>
+      '첫 접지 위치: 발, 발목, 엉덩이 선으로 발이 몸 아래에 떨어지는지 봐요.';
+
+  @override
+  String get runningCoachSampleLandingDetailReference =>
+      '좋은 샘플은 발이 엉덩이 선 가까이에 닿아 접지가 앞으로 밀어주는 힘으로 이어져요.';
+
+  @override
+  String get runningCoachSampleLandingDetailReview =>
+      '확인 샘플은 발이 엉덩이보다 너무 앞에 떨어져 브레이크처럼 읽혀요.';
+
+  @override
+  String get runningCoachSampleLandingDetailHowRead =>
+      '앱은 착지 구간에서 엉덩이 선과 접지 발목, 발끝 사이의 가로 거리를 측정해요.';
+
+  @override
+  String get runningCoachSampleBounceDetailKeyPosition =>
+      '공중-접지 전환 구간: 이웃 프레임의 머리와 엉덩이 높이 변화를 비교해요.';
+
+  @override
+  String get runningCoachSampleBounceDetailReference =>
+      '좋은 샘플은 위아래 움직임이 작아 에너지가 앞으로 유지돼요.';
+
+  @override
+  String get runningCoachSampleBounceDetailReview =>
+      '확인 샘플은 몸이 더 크게 뜨고 내려와 접지 타이밍이 불안정해져요.';
+
+  @override
+  String get runningCoachSampleBounceDetailHowRead =>
+      '앱은 보폭 전체에서 머리와 엉덩이 높이 범위를 추적하고 수직 변화 비율을 점수화해요.';
+
+  @override
   String get runningCoachLiveCardTitle => '실시간 코치';
 
   @override

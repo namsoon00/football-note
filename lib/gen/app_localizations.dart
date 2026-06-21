@@ -11695,6 +11695,156 @@ abstract class AppLocalizations {
   /// **'Bounce 10%'**
   String get runningCoachSampleMistakeOverlayBounce;
 
+  /// No description provided for @runningCoachSampleMetricDetailScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence detail'**
+  String get runningCoachSampleMetricDetailScreenTitle;
+
+  /// No description provided for @runningCoachSampleMetricDetailHeroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this view to inspect the exact body position the sample overlay reads before it assigns this evidence item.'**
+  String get runningCoachSampleMetricDetailHeroBody;
+
+  /// No description provided for @runningCoachSampleMetricDetailSampleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample'**
+  String get runningCoachSampleMetricDetailSampleLabel;
+
+  /// No description provided for @runningCoachSampleMetricDetailValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured value'**
+  String get runningCoachSampleMetricDetailValueLabel;
+
+  /// No description provided for @runningCoachSampleMetricDetailStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Judgment'**
+  String get runningCoachSampleMetricDetailStatusLabel;
+
+  /// No description provided for @runningCoachSampleMetricDetailKeyPositionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Key position'**
+  String get runningCoachSampleMetricDetailKeyPositionTitle;
+
+  /// No description provided for @runningCoachSampleMetricDetailReferenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference motion'**
+  String get runningCoachSampleMetricDetailReferenceTitle;
+
+  /// No description provided for @runningCoachSampleMetricDetailReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review trigger'**
+  String get runningCoachSampleMetricDetailReviewTitle;
+
+  /// No description provided for @runningCoachSampleMetricDetailHowReadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How the overlay reads it'**
+  String get runningCoachSampleMetricDetailHowReadTitle;
+
+  /// No description provided for @runningCoachSamplePostureDetailKeyPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid-stance: the shoulder midpoint, hip line, and support ankle define the lean angle.'**
+  String get runningCoachSamplePostureDetailKeyPosition;
+
+  /// No description provided for @runningCoachSamplePostureDetailReference.
+  ///
+  /// In en, this message translates to:
+  /// **'The reference clip keeps a light forward lean from the hip, with the head carried over the chest.'**
+  String get runningCoachSamplePostureDetailReference;
+
+  /// No description provided for @runningCoachSamplePostureDetailReview.
+  ///
+  /// In en, this message translates to:
+  /// **'The review clip is too upright, so the push line is shorter and acceleration looks late.'**
+  String get runningCoachSamplePostureDetailReview;
+
+  /// No description provided for @runningCoachSamplePostureDetailHowRead.
+  ///
+  /// In en, this message translates to:
+  /// **'The app connects hip to shoulder midpoint, compares it with the vertical hip line, and checks the lean frame by frame.'**
+  String get runningCoachSamplePostureDetailHowRead;
+
+  /// No description provided for @runningCoachSampleArmsDetailKeyPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm-drive frame: each elbow angle is read while the opposite knee is driving forward.'**
+  String get runningCoachSampleArmsDetailKeyPosition;
+
+  /// No description provided for @runningCoachSampleArmsDetailReference.
+  ///
+  /// In en, this message translates to:
+  /// **'The reference clip keeps the elbows near 90 degrees and swings front-to-back close to the ribs.'**
+  String get runningCoachSampleArmsDetailReference;
+
+  /// No description provided for @runningCoachSampleArmsDetailReview.
+  ///
+  /// In en, this message translates to:
+  /// **'The review clip opens the elbow angle, which can slow cadence and rotate the torso.'**
+  String get runningCoachSampleArmsDetailReview;
+
+  /// No description provided for @runningCoachSampleArmsDetailHowRead.
+  ///
+  /// In en, this message translates to:
+  /// **'The app connects shoulder, elbow, and wrist landmarks and flags the frame when the elbow opens too far.'**
+  String get runningCoachSampleArmsDetailHowRead;
+
+  /// No description provided for @runningCoachSampleLandingDetailKeyPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'First-contact frame: the foot, ankle, and hip line show whether the step lands under the body.'**
+  String get runningCoachSampleLandingDetailKeyPosition;
+
+  /// No description provided for @runningCoachSampleLandingDetailReference.
+  ///
+  /// In en, this message translates to:
+  /// **'The reference clip lands close to the hip line, so contact supports forward movement.'**
+  String get runningCoachSampleLandingDetailReference;
+
+  /// No description provided for @runningCoachSampleLandingDetailReview.
+  ///
+  /// In en, this message translates to:
+  /// **'The review clip lands too far ahead of the hip, which reads as braking.'**
+  String get runningCoachSampleLandingDetailReview;
+
+  /// No description provided for @runningCoachSampleLandingDetailHowRead.
+  ///
+  /// In en, this message translates to:
+  /// **'The app measures the horizontal gap from the hip line to the contact ankle and toe during the landing window.'**
+  String get runningCoachSampleLandingDetailHowRead;
+
+  /// No description provided for @runningCoachSampleBounceDetailKeyPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight-to-contact window: head and hip height are compared across neighboring frames.'**
+  String get runningCoachSampleBounceDetailKeyPosition;
+
+  /// No description provided for @runningCoachSampleBounceDetailReference.
+  ///
+  /// In en, this message translates to:
+  /// **'The reference clip keeps vertical motion compact, so energy stays directed forward.'**
+  String get runningCoachSampleBounceDetailReference;
+
+  /// No description provided for @runningCoachSampleBounceDetailReview.
+  ///
+  /// In en, this message translates to:
+  /// **'The review clip rises and drops more, making contact timing less stable.'**
+  String get runningCoachSampleBounceDetailReview;
+
+  /// No description provided for @runningCoachSampleBounceDetailHowRead.
+  ///
+  /// In en, this message translates to:
+  /// **'The app tracks the head and hip height band through the stride and scores the vertical change ratio.'**
+  String get runningCoachSampleBounceDetailHowRead;
+
   /// No description provided for @runningCoachLiveCardTitle.
   ///
   /// In en, this message translates to:

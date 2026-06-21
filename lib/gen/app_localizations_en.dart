@@ -6706,6 +6706,99 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleMistakeOverlayBounce => 'Bounce 10%';
 
   @override
+  String get runningCoachSampleMetricDetailScreenTitle => 'Evidence detail';
+
+  @override
+  String get runningCoachSampleMetricDetailHeroBody =>
+      'Use this view to inspect the exact body position the sample overlay reads before it assigns this evidence item.';
+
+  @override
+  String get runningCoachSampleMetricDetailSampleLabel => 'Sample';
+
+  @override
+  String get runningCoachSampleMetricDetailValueLabel => 'Measured value';
+
+  @override
+  String get runningCoachSampleMetricDetailStatusLabel => 'Judgment';
+
+  @override
+  String get runningCoachSampleMetricDetailKeyPositionTitle => 'Key position';
+
+  @override
+  String get runningCoachSampleMetricDetailReferenceTitle => 'Reference motion';
+
+  @override
+  String get runningCoachSampleMetricDetailReviewTitle => 'Review trigger';
+
+  @override
+  String get runningCoachSampleMetricDetailHowReadTitle =>
+      'How the overlay reads it';
+
+  @override
+  String get runningCoachSamplePostureDetailKeyPosition =>
+      'Mid-stance: the shoulder midpoint, hip line, and support ankle define the lean angle.';
+
+  @override
+  String get runningCoachSamplePostureDetailReference =>
+      'The reference clip keeps a light forward lean from the hip, with the head carried over the chest.';
+
+  @override
+  String get runningCoachSamplePostureDetailReview =>
+      'The review clip is too upright, so the push line is shorter and acceleration looks late.';
+
+  @override
+  String get runningCoachSamplePostureDetailHowRead =>
+      'The app connects hip to shoulder midpoint, compares it with the vertical hip line, and checks the lean frame by frame.';
+
+  @override
+  String get runningCoachSampleArmsDetailKeyPosition =>
+      'Arm-drive frame: each elbow angle is read while the opposite knee is driving forward.';
+
+  @override
+  String get runningCoachSampleArmsDetailReference =>
+      'The reference clip keeps the elbows near 90 degrees and swings front-to-back close to the ribs.';
+
+  @override
+  String get runningCoachSampleArmsDetailReview =>
+      'The review clip opens the elbow angle, which can slow cadence and rotate the torso.';
+
+  @override
+  String get runningCoachSampleArmsDetailHowRead =>
+      'The app connects shoulder, elbow, and wrist landmarks and flags the frame when the elbow opens too far.';
+
+  @override
+  String get runningCoachSampleLandingDetailKeyPosition =>
+      'First-contact frame: the foot, ankle, and hip line show whether the step lands under the body.';
+
+  @override
+  String get runningCoachSampleLandingDetailReference =>
+      'The reference clip lands close to the hip line, so contact supports forward movement.';
+
+  @override
+  String get runningCoachSampleLandingDetailReview =>
+      'The review clip lands too far ahead of the hip, which reads as braking.';
+
+  @override
+  String get runningCoachSampleLandingDetailHowRead =>
+      'The app measures the horizontal gap from the hip line to the contact ankle and toe during the landing window.';
+
+  @override
+  String get runningCoachSampleBounceDetailKeyPosition =>
+      'Flight-to-contact window: head and hip height are compared across neighboring frames.';
+
+  @override
+  String get runningCoachSampleBounceDetailReference =>
+      'The reference clip keeps vertical motion compact, so energy stays directed forward.';
+
+  @override
+  String get runningCoachSampleBounceDetailReview =>
+      'The review clip rises and drops more, making contact timing less stable.';
+
+  @override
+  String get runningCoachSampleBounceDetailHowRead =>
+      'The app tracks the head and hip height band through the stride and scores the vertical change ratio.';
+
+  @override
   String get runningCoachLiveCardTitle => 'Live coach';
 
   @override

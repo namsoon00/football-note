@@ -1141,6 +1141,8 @@ const String _sampleMistakeVideoAsset =
 
 enum _SampleVideoMode { reference, mistake }
 
+enum _SampleDecisionMetricKind { posture, arms, landing, bounce }
+
 class _RunningCoachSampleCard extends StatefulWidget {
   final String title;
   final String body;
@@ -1838,24 +1840,28 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
         videoController.value.isInitialized;
     final decisionMetrics = [
       _SampleDecisionMetric(
+        kind: _SampleDecisionMetricKind.posture,
         icon: Icons.show_chart_rounded,
         label: l10n.runningCoachSampleMetricPosture,
         value: postureOverlay,
         isPass: !isMistake,
       ),
       _SampleDecisionMetric(
+        kind: _SampleDecisionMetricKind.arms,
         icon: Icons.sync_alt_rounded,
         label: l10n.runningCoachSampleMetricArms,
         value: armsOverlay,
         isPass: !isMistake,
       ),
       _SampleDecisionMetric(
+        kind: _SampleDecisionMetricKind.landing,
         icon: Icons.ads_click_rounded,
         label: l10n.runningCoachSampleMetricLanding,
         value: footOverlay,
         isPass: !isMistake,
       ),
       _SampleDecisionMetric(
+        kind: _SampleDecisionMetricKind.bounce,
         icon:
             isMistake ? Icons.warning_amber_rounded : Icons.fact_check_outlined,
         label: l10n.runningCoachSampleMetricBounce,
@@ -1993,8 +1999,20 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
           statusPass: l10n.runningCoachSampleStatusPass,
           statusReview: l10n.runningCoachSampleStatusReview,
           metrics: decisionMetrics,
+          onMetricTap: _openMetricDetail,
         ),
       ],
+    );
+  }
+
+  void _openMetricDetail(_SampleDecisionMetric metric) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _SampleMetricDetailScreen(
+          metric: metric,
+          mode: widget.mode,
+        ),
+      ),
     );
   }
 }
@@ -2015,12 +2033,14 @@ String _sampleAnalysisPhaseLabel(AppLocalizations l10n, double progress) {
 }
 
 class _SampleDecisionMetric {
+  final _SampleDecisionMetricKind kind;
   final IconData icon;
   final String label;
   final String value;
   final bool isPass;
 
   const _SampleDecisionMetric({
+    required this.kind,
     required this.icon,
     required this.label,
     required this.value,
@@ -2036,6 +2056,7 @@ class _SampleDecisionOverlay extends StatelessWidget {
   final String statusPass;
   final String statusReview;
   final List<_SampleDecisionMetric> metrics;
+  final ValueChanged<_SampleDecisionMetric>? onMetricTap;
 
   const _SampleDecisionOverlay({
     required this.compact,
@@ -2045,6 +2066,7 @@ class _SampleDecisionOverlay extends StatelessWidget {
     required this.statusPass,
     required this.statusReview,
     required this.metrics,
+    this.onMetricTap,
   });
 
   @override
@@ -2109,6 +2131,9 @@ class _SampleDecisionOverlay extends StatelessWidget {
                       compact: true,
                       statusPass: statusPass,
                       statusReview: statusReview,
+                      onTap: onMetricTap == null
+                          ? null
+                          : () => onMetricTap!(metric),
                     ),
                 ],
               )
@@ -2122,6 +2147,9 @@ class _SampleDecisionOverlay extends StatelessWidget {
                       compact: false,
                       statusPass: statusPass,
                       statusReview: statusReview,
+                      onTap: onMetricTap == null
+                          ? null
+                          : () => onMetricTap!(metric),
                     ),
                 ],
               ),
@@ -2137,12 +2165,14 @@ class _SampleDecisionMetricTile extends StatelessWidget {
   final bool compact;
   final String statusPass;
   final String statusReview;
+  final VoidCallback? onTap;
 
   const _SampleDecisionMetricTile({
     required this.metric,
     required this.compact,
     required this.statusPass,
     required this.statusReview,
+    this.onTap,
   });
 
   @override
@@ -2150,71 +2180,77 @@ class _SampleDecisionMetricTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final statusColor = metric.isPass ? scheme.primary : scheme.error;
     final status = metric.isPass ? statusPass : statusReview;
-    final tile = DecoratedBox(
-      decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: metric.isPass ? 0.10 : 0.14),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: statusColor.withValues(alpha: 0.42)),
+    final borderRadius = BorderRadius.circular(8);
+    final tile = Material(
+      color: statusColor.withValues(alpha: metric.isPass ? 0.10 : 0.14),
+      shape: RoundedRectangleBorder(
+        borderRadius: borderRadius,
+        side: BorderSide(color: statusColor.withValues(alpha: 0.42)),
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: compact ? 7 : 8,
-          vertical: compact ? 6 : 7,
-        ),
-        child: Row(
-          mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
-          children: [
-            Icon(metric.icon, size: 15, color: statusColor),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    metric.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurface,
-                          fontWeight: FontWeight.w800,
-                        ),
-                  ),
-                  Text(
-                    metric.value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: statusColor,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                  if (compact)
+      child: InkWell(
+        key: ValueKey('running-coach-sample-decision-${metric.kind.name}'),
+        borderRadius: borderRadius,
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 7 : 8,
+            vertical: compact ? 6 : 7,
+          ),
+          child: Row(
+            mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+            children: [
+              Icon(metric.icon, size: 15, color: statusColor),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      status,
+                      metric.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: scheme.onSurface,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    Text(
+                      metric.value,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: statusColor,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w900,
                           ),
                     ),
-                ],
+                    if (compact)
+                      Text(
+                        status,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            if (!compact) ...[
-              const SizedBox(width: 8),
-              Text(
-                status,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.w900,
-                    ),
-              ),
+              if (!compact) ...[
+                const SizedBox(width: 8),
+                Text(
+                  status,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -2228,6 +2264,573 @@ class _SampleDecisionMetricTile extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: tile,
     );
+  }
+}
+
+class _SampleMetricDetailScreen extends StatelessWidget {
+  final _SampleDecisionMetric metric;
+  final _SampleVideoMode mode;
+
+  const _SampleMetricDetailScreen({
+    required this.metric,
+    required this.mode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final isMistake = mode == _SampleVideoMode.mistake;
+    final sampleLabel = isMistake
+        ? l10n.runningCoachSampleMistakeTab
+        : l10n.runningCoachSampleReferenceTab;
+    final status = metric.isPass
+        ? l10n.runningCoachSampleStatusPass
+        : l10n.runningCoachSampleStatusReview;
+    final detail = _SampleMetricDetailCopy.forKind(l10n, metric.kind);
+    return Scaffold(
+      key: const ValueKey('running-coach-sample-metric-detail'),
+      appBar: AppBar(title: Text(metric.label)),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            l10n.runningCoachSampleMetricDetailScreenTitle,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.runningCoachSampleMetricDetailHeroBody,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 14),
+          _SampleMetricDetailVisual(
+            kind: metric.kind,
+            isMistake: isMistake,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _StatChip(
+                label: l10n.runningCoachSampleMetricDetailSampleLabel,
+                value: sampleLabel,
+              ),
+              _StatChip(
+                label: l10n.runningCoachSampleMetricDetailValueLabel,
+                value: metric.value,
+              ),
+              _StatChip(
+                label: l10n.runningCoachSampleMetricDetailStatusLabel,
+                value: status,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _SampleMetricDetailSection(
+            icon: Icons.center_focus_strong_rounded,
+            title: l10n.runningCoachSampleMetricDetailKeyPositionTitle,
+            body: detail.keyPosition,
+          ),
+          const SizedBox(height: 10),
+          _SampleMetricDetailSection(
+            icon: Icons.check_circle_outline_rounded,
+            title: l10n.runningCoachSampleMetricDetailReferenceTitle,
+            body: detail.referenceMotion,
+          ),
+          const SizedBox(height: 10),
+          _SampleMetricDetailSection(
+            icon: Icons.report_problem_outlined,
+            title: l10n.runningCoachSampleMetricDetailReviewTitle,
+            body: detail.reviewTrigger,
+          ),
+          const SizedBox(height: 10),
+          _SampleMetricDetailSection(
+            icon: Icons.polyline_outlined,
+            title: l10n.runningCoachSampleMetricDetailHowReadTitle,
+            body: detail.howRead,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SampleMetricDetailCopy {
+  final String keyPosition;
+  final String referenceMotion;
+  final String reviewTrigger;
+  final String howRead;
+
+  const _SampleMetricDetailCopy({
+    required this.keyPosition,
+    required this.referenceMotion,
+    required this.reviewTrigger,
+    required this.howRead,
+  });
+
+  factory _SampleMetricDetailCopy.forKind(
+    AppLocalizations l10n,
+    _SampleDecisionMetricKind kind,
+  ) {
+    return switch (kind) {
+      _SampleDecisionMetricKind.posture => _SampleMetricDetailCopy(
+          keyPosition: l10n.runningCoachSamplePostureDetailKeyPosition,
+          referenceMotion: l10n.runningCoachSamplePostureDetailReference,
+          reviewTrigger: l10n.runningCoachSamplePostureDetailReview,
+          howRead: l10n.runningCoachSamplePostureDetailHowRead,
+        ),
+      _SampleDecisionMetricKind.arms => _SampleMetricDetailCopy(
+          keyPosition: l10n.runningCoachSampleArmsDetailKeyPosition,
+          referenceMotion: l10n.runningCoachSampleArmsDetailReference,
+          reviewTrigger: l10n.runningCoachSampleArmsDetailReview,
+          howRead: l10n.runningCoachSampleArmsDetailHowRead,
+        ),
+      _SampleDecisionMetricKind.landing => _SampleMetricDetailCopy(
+          keyPosition: l10n.runningCoachSampleLandingDetailKeyPosition,
+          referenceMotion: l10n.runningCoachSampleLandingDetailReference,
+          reviewTrigger: l10n.runningCoachSampleLandingDetailReview,
+          howRead: l10n.runningCoachSampleLandingDetailHowRead,
+        ),
+      _SampleDecisionMetricKind.bounce => _SampleMetricDetailCopy(
+          keyPosition: l10n.runningCoachSampleBounceDetailKeyPosition,
+          referenceMotion: l10n.runningCoachSampleBounceDetailReference,
+          reviewTrigger: l10n.runningCoachSampleBounceDetailReview,
+          howRead: l10n.runningCoachSampleBounceDetailHowRead,
+        ),
+    };
+  }
+}
+
+class _SampleMetricDetailSection extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+
+  const _SampleMetricDetailSection({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: scheme.primary),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(body, style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SampleMetricDetailVisual extends StatelessWidget {
+  final _SampleDecisionMetricKind kind;
+  final bool isMistake;
+
+  const _SampleMetricDetailVisual({
+    required this.kind,
+    required this.isMistake,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final highlight = isMistake ? scheme.error : scheme.primary;
+    return AspectRatio(
+      key: const ValueKey('running-coach-sample-metric-detail-visual'),
+      aspectRatio: 16 / 9,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest,
+            border: Border.all(color: scheme.outlineVariant),
+          ),
+          child: CustomPaint(
+            painter: _SampleMetricDetailPainter(
+              kind: kind,
+              isMistake: isMistake,
+              baseColor: scheme.onSurfaceVariant,
+              highlightColor: highlight,
+              secondaryColor: scheme.secondary,
+              contactColor: scheme.tertiary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SampleMetricDetailPainter extends CustomPainter {
+  final _SampleDecisionMetricKind kind;
+  final bool isMistake;
+  final Color baseColor;
+  final Color highlightColor;
+  final Color secondaryColor;
+  final Color contactColor;
+
+  const _SampleMetricDetailPainter({
+    required this.kind,
+    required this.isMistake,
+    required this.baseColor,
+    required this.highlightColor,
+    required this.secondaryColor,
+    required this.contactColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final progress = switch (kind) {
+      _SampleDecisionMetricKind.posture => 0.16,
+      _SampleDecisionMetricKind.arms => 0.32,
+      _SampleDecisionMetricKind.landing => 0.54,
+      _SampleDecisionMetricKind.bounce => 0.74,
+    };
+    final runner = _SampleVideoRunnerGeometry(
+      size,
+      progress,
+      isMistake: isMistake,
+    );
+    _drawGround(canvas, runner);
+    _drawRunner(canvas, runner);
+    switch (kind) {
+      case _SampleDecisionMetricKind.posture:
+        _drawPostureRead(canvas, runner);
+        break;
+      case _SampleDecisionMetricKind.arms:
+        _drawArmRead(canvas, runner);
+        break;
+      case _SampleDecisionMetricKind.landing:
+        _drawLandingRead(canvas, runner);
+        break;
+      case _SampleDecisionMetricKind.bounce:
+        _drawBounceRead(canvas, runner);
+        break;
+    }
+  }
+
+  void _drawGround(Canvas canvas, _SampleVideoRunnerGeometry runner) {
+    canvas.drawLine(
+      Offset(runner.size.width * 0.08, runner.groundY),
+      Offset(runner.size.width * 0.92, runner.groundY),
+      Paint()
+        ..color = baseColor.withValues(alpha: 0.22)
+        ..strokeWidth = math.max(1.0, runner.scale * 0.008)
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  void _drawRunner(Canvas canvas, _SampleVideoRunnerGeometry runner) {
+    final bonePaint = Paint()
+      ..color = baseColor.withValues(alpha: 0.34)
+      ..strokeWidth = math.max(2.0, runner.scale * 0.010)
+      ..strokeCap = StrokeCap.round;
+    for (final bone in runner.bones) {
+      canvas.drawLine(bone.$1, bone.$2, bonePaint);
+    }
+    canvas.drawLine(runner.neck, runner.hip, bonePaint);
+    canvas.drawCircle(
+      runner.head,
+      runner.scale * 0.038,
+      Paint()
+        ..color = baseColor.withValues(alpha: 0.18)
+        ..style = PaintingStyle.fill,
+    );
+    for (final joint in runner.joints) {
+      canvas.drawCircle(
+        joint,
+        runner.scale * 0.008,
+        Paint()..color = baseColor.withValues(alpha: 0.48),
+      );
+    }
+  }
+
+  void _drawPostureRead(Canvas canvas, _SampleVideoRunnerGeometry runner) {
+    final readPaint = Paint()
+      ..color = highlightColor.withValues(alpha: 0.82)
+      ..strokeWidth = math.max(2.0, runner.scale * 0.012)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(runner.hip, runner.shoulderMid, readPaint);
+    canvas.drawLine(
+      runner.hip,
+      Offset(runner.hip.dx, runner.groundY),
+      readPaint..color = highlightColor.withValues(alpha: 0.42),
+    );
+    _drawAngleArc(
+      canvas,
+      center: runner.hip,
+      start: Offset(runner.hip.dx, runner.groundY),
+      end: runner.shoulderMid,
+      radius: runner.scale * 0.090,
+      color: highlightColor.withValues(alpha: 0.88),
+      strokeWidth: runner.scale * 0.012,
+    );
+    _drawHalo(canvas, runner.shoulderMid, runner.scale * 0.060);
+    _drawHalo(canvas, runner.hip, runner.scale * 0.066);
+  }
+
+  void _drawArmRead(Canvas canvas, _SampleVideoRunnerGeometry runner) {
+    final armPaint = Paint()
+      ..color = highlightColor.withValues(alpha: 0.78)
+      ..strokeWidth = math.max(3.0, runner.scale * 0.018)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(runner.frontShoulder, runner.frontElbow, armPaint);
+    canvas.drawLine(runner.frontElbow, runner.frontWrist, armPaint);
+    canvas.drawLine(
+      runner.rearShoulder,
+      runner.rearElbow,
+      armPaint..color = secondaryColor.withValues(alpha: 0.70),
+    );
+    canvas.drawLine(runner.rearElbow, runner.rearWrist, armPaint);
+    _drawAngleArc(
+      canvas,
+      center: runner.frontElbow,
+      start: runner.frontShoulder,
+      end: runner.frontWrist,
+      radius: runner.scale * 0.060,
+      color: highlightColor.withValues(alpha: 0.88),
+      strokeWidth: runner.scale * 0.010,
+    );
+    _drawAngleArc(
+      canvas,
+      center: runner.rearElbow,
+      start: runner.rearShoulder,
+      end: runner.rearWrist,
+      radius: runner.scale * 0.052,
+      color: secondaryColor.withValues(alpha: 0.76),
+      strokeWidth: runner.scale * 0.009,
+    );
+    _drawHalo(canvas, runner.frontElbow, runner.scale * 0.056);
+    _drawHalo(canvas, runner.rearElbow, runner.scale * 0.050);
+  }
+
+  void _drawLandingRead(Canvas canvas, _SampleVideoRunnerGeometry runner) {
+    final readColor = isMistake ? highlightColor : contactColor;
+    final hipFootStart = Offset(
+      runner.hip.dx,
+      runner.groundY + runner.scale * 0.028,
+    );
+    final hipFootEnd = Offset(
+      runner.contactAnkle.dx,
+      runner.groundY + runner.scale * 0.028,
+    );
+    canvas.drawLine(
+      Offset(runner.hip.dx, runner.hip.dy),
+      Offset(runner.hip.dx, runner.groundY),
+      Paint()
+        ..color = readColor.withValues(alpha: 0.52)
+        ..strokeWidth = math.max(1.5, runner.scale * 0.008)
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center:
+            Offset(runner.contactToe.dx - runner.scale * 0.030, runner.groundY),
+        width: runner.scale * 0.170,
+        height: runner.scale * 0.046,
+      ),
+      Paint()..color = readColor.withValues(alpha: 0.22),
+    );
+    _drawBracket(canvas, hipFootStart, hipFootEnd, readColor);
+    _drawArrow(
+      canvas,
+      Offset(runner.contactToe.dx, runner.groundY - runner.scale * 0.010),
+      Offset(runner.hip.dx, runner.hip.dy + runner.scale * 0.030),
+      readColor.withValues(alpha: 0.82),
+      runner.scale * 0.012,
+    );
+    _drawHalo(canvas, runner.contactAnkle, runner.scale * 0.056);
+    _drawHalo(canvas, runner.hip, runner.scale * 0.060);
+  }
+
+  void _drawBounceRead(Canvas canvas, _SampleVideoRunnerGeometry runner) {
+    final top = runner.head.dy - runner.scale * 0.020;
+    final bottom = runner.head.dy + runner.scale * (isMistake ? 0.130 : 0.088);
+    final left = runner.head.dx - runner.scale * 0.180;
+    final right = runner.head.dx + runner.scale * 0.200;
+    final guidePaint = Paint()
+      ..color = highlightColor.withValues(alpha: 0.50)
+      ..strokeWidth = math.max(1.0, runner.scale * 0.007)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(left, top), Offset(right, top), guidePaint);
+    canvas.drawLine(Offset(left, bottom), Offset(right, bottom), guidePaint);
+    _drawDoubleArrow(
+      canvas,
+      Offset(right - runner.scale * 0.030, top),
+      Offset(right - runner.scale * 0.030, bottom),
+      highlightColor.withValues(alpha: 0.82),
+      runner.scale * 0.010,
+    );
+    final hipBandTop = runner.hip.dy - runner.scale * 0.032;
+    final hipBandBottom = runner.hip.dy + runner.scale * 0.032;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTRB(
+          runner.hip.dx - runner.scale * 0.115,
+          hipBandTop,
+          runner.hip.dx + runner.scale * 0.115,
+          hipBandBottom,
+        ),
+        Radius.circular(runner.scale * 0.016),
+      ),
+      Paint()
+        ..color = contactColor.withValues(alpha: 0.16)
+        ..style = PaintingStyle.fill,
+    );
+    _drawHalo(canvas, runner.head, runner.scale * 0.060);
+    _drawHalo(canvas, runner.hip, runner.scale * 0.064);
+  }
+
+  void _drawHalo(Canvas canvas, Offset center, double radius) {
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = highlightColor.withValues(alpha: 0.10)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = highlightColor.withValues(alpha: 0.42)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, radius * 0.10),
+    );
+  }
+
+  void _drawBracket(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Color color,
+  ) {
+    final height = math.max(7.0, (end - start).distance * 0.16);
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.78)
+      ..strokeWidth = math.max(1.2, height * 0.20)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(start, end, paint);
+    canvas.drawLine(Offset(start.dx, start.dy - height),
+        Offset(start.dx, start.dy + height), paint);
+    canvas.drawLine(Offset(end.dx, end.dy - height),
+        Offset(end.dx, end.dy + height), paint);
+  }
+
+  void _drawDoubleArrow(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Color color,
+    double strokeWidth,
+  ) {
+    _drawArrow(canvas, start, end, color, strokeWidth);
+    _drawArrow(canvas, end, start, color, strokeWidth);
+  }
+
+  void _drawArrow(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Color color,
+    double strokeWidth,
+  ) {
+    final delta = end - start;
+    final distance = delta.distance;
+    if (distance == 0) return;
+    final direction = delta / distance;
+    final normal = Offset(-direction.dy, direction.dx);
+    final headLength = math.max(5.0, strokeWidth * 4.0);
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawLine(start, end, paint);
+    canvas.drawLine(
+      end,
+      end - direction * headLength + normal * headLength * 0.52,
+      paint,
+    );
+    canvas.drawLine(
+      end,
+      end - direction * headLength - normal * headLength * 0.52,
+      paint,
+    );
+  }
+
+  void _drawAngleArc(
+    Canvas canvas, {
+    required Offset center,
+    required Offset start,
+    required Offset end,
+    required double radius,
+    required Color color,
+    required double strokeWidth,
+  }) {
+    final startAngle = math.atan2(start.dy - center.dy, start.dx - center.dx);
+    final endAngle = math.atan2(end.dy - center.dy, end.dx - center.dx);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      _shortestAngleSweep(startAngle, endAngle),
+      false,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  double _shortestAngleSweep(double start, double end) {
+    var sweep = (end - start) % (math.pi * 2);
+    if (sweep > math.pi) sweep -= math.pi * 2;
+    if (sweep < -math.pi) sweep += math.pi * 2;
+    return sweep;
+  }
+
+  @override
+  bool shouldRepaint(covariant _SampleMetricDetailPainter oldDelegate) {
+    return oldDelegate.kind != kind ||
+        oldDelegate.isMistake != isMistake ||
+        oldDelegate.baseColor != baseColor ||
+        oldDelegate.highlightColor != highlightColor ||
+        oldDelegate.secondaryColor != secondaryColor ||
+        oldDelegate.contactColor != contactColor;
   }
 }
 
