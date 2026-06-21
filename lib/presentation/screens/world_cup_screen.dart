@@ -4089,6 +4089,14 @@ class _WorldCupRoundOf32ScenarioPanel extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.worldCupQualificationScenariosGuide,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.35,
+            ),
+          ),
           const SizedBox(height: 10),
           for (final scenario in scenarios) ...[
             _WorldCupQualificationScenarioRow(scenario: scenario),
@@ -4333,10 +4341,20 @@ String _qualificationOpponentText(
   final seen = <String>{};
   final labels = <String>[];
   for (final path in scenario.opponentPaths) {
-    final label = l10n.worldCupQualificationOpponentCandidate(
-      path.matchNumber,
-      _worldCupBracketSlotLabel(l10n, path.opponentSlot),
-    );
+    final slot = _worldCupBracketSlotLabel(l10n, path.opponentSlot);
+    final countries = path.opponentTeams
+        .map((team) => _worldCupCountryName(l10n, team))
+        .join(l10n.worldCupQualificationOpponentTeamSeparator);
+    final label = countries.isEmpty
+        ? l10n.worldCupQualificationOpponentCandidate(
+            path.matchNumber,
+            slot,
+          )
+        : l10n.worldCupQualificationOpponentCandidateWithCountries(
+            path.matchNumber,
+            slot,
+            countries,
+          );
     if (seen.add(label)) labels.add(label);
   }
   return labels.join(l10n.worldCupQualificationOpponentSeparator);

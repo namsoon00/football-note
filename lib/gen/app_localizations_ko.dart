@@ -1223,6 +1223,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get worldCupQualificationScenariosGuide =>
+      '각 행은 이 팀의 남은 경기 결과 조합이에요. 직행은 조 1~2위, 3위 비교는 조 3위 뒤 전체 3위 팀 중 상위 8팀에 들어야 한다는 뜻입니다. 직행/3위 비교/탈락의 분모는 같은 조의 다른 남은 경기 승·무·패를 모두 섞어 본 경우 수예요. 상대 국가는 현재 순위로 브래킷 슬롯을 나라명으로 풀어쓴 후보입니다.';
+
+  @override
   String get worldCupQualificationScenariosEmpty =>
       '이 국가의 32강 경우의 수를 계산할 조별리그 정보가 아직 없어요.';
 
@@ -1266,7 +1270,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String worldCupQualificationOpponentCandidates(String opponents) {
-    return '32강 상대 후보: $opponents';
+    return '32강 상대 후보(현재 순위): $opponents';
   }
 
   @override
@@ -1277,6 +1281,15 @@ class AppLocalizationsKo extends AppLocalizations {
       int matchNumber, String opponent) {
     return 'M$matchNumber · $opponent';
   }
+
+  @override
+  String worldCupQualificationOpponentCandidateWithCountries(
+      int matchNumber, String opponent, String countries) {
+    return 'M$matchNumber · $opponent → $countries';
+  }
+
+  @override
+  String get worldCupQualificationOpponentTeamSeparator => ', ';
 
   @override
   String get worldCupQualificationOpponentSeparator => ' 또는 ';

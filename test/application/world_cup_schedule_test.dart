@@ -240,6 +240,16 @@ void main() {
       winOut.opponentPaths.map(_opponentPathKey),
       contains('1:79:3C/E/F/H/I'),
     );
+    final winOutOpponentPath = winOut.opponentPaths.singleWhere(
+      (path) => path.opponentSlot == '3C/E/F/H/I',
+    );
+    expect(winOutOpponentPath.opponentTeams, hasLength(5));
+    expect(
+      winOutOpponentPath.opponentTeams.every(
+        (team) => team.trim().isNotEmpty && !team.contains('/'),
+      ),
+      isTrue,
+    );
 
     final loseOut = _pathScenarioFor(
       scenarios,
@@ -252,10 +262,12 @@ void main() {
   });
 
   test('round of 32 opponent paths follow bracket slots by group rank', () {
-    expect(
-      worldCupRoundOf32OpponentPathsForGroupRank('A', 1).map(_opponentPathKey),
-      ['1:79:3C/E/F/H/I'],
+    final groupWinnerPaths = worldCupRoundOf32OpponentPathsForGroupRank(
+      'A',
+      1,
     );
+    expect(groupWinnerPaths.map(_opponentPathKey), ['1:79:3C/E/F/H/I']);
+    expect(groupWinnerPaths.single.opponentTeams, hasLength(5));
     expect(
       worldCupRoundOf32OpponentPathsForGroupRank('A', 2).map(_opponentPathKey),
       ['2:73:2B'],
