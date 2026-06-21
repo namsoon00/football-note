@@ -9212,6 +9212,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchLadderButton => '사다리';
 
   @override
+  String get trainingSketchTargetButton => '목표';
+
+  @override
+  String get trainingSketchBaseButton => '베이스';
+
+  @override
+  String get trainingSketchBasketButton => '골대';
+
+  @override
   String get trainingSketchPenButton => '펜';
 
   @override
@@ -9401,6 +9410,48 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchQuickCrossButton => '크로스';
+
+  @override
+  String get trainingSketchQuickDriveButton => '드라이브';
+
+  @override
+  String get trainingSketchQuickCutButton => '컷인';
+
+  @override
+  String get trainingSketchQuickScreenButton => '스크린';
+
+  @override
+  String get trainingSketchQuickRunBaseButton => '베이스 러닝';
+
+  @override
+  String get trainingSketchQuickFieldingButton => '수비 이동';
+
+  @override
+  String get trainingSketchQuickThrowButton => '송구';
+
+  @override
+  String get trainingSketchQuickServeButton => '서브';
+
+  @override
+  String get trainingSketchQuickRallyButton => '랠리';
+
+  @override
+  String get trainingSketchQuickRecoverButton => '리커버리';
+
+  @override
+  String trainingSketchPassToPlayerButton(int index) {
+    return '사람 $index에게 패스';
+  }
+
+  @override
+  String trainingSketchThrowToPlayerButton(int index) {
+    return '사람 $index에게 송구';
+  }
+
+  @override
+  String trainingSketchRallyToPlayerButton(int index) {
+    return '사람 $index에게 랠리';
+  }
 
   @override
   String get trainingSketchPlayerRouteLimitReached =>

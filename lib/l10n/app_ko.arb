@@ -5150,6 +5150,9 @@
   "trainingSketchPlayerButton": "사람",
   "trainingSketchBallButton": "공",
   "trainingSketchLadderButton": "사다리",
+  "trainingSketchTargetButton": "목표",
+  "trainingSketchBaseButton": "베이스",
+  "trainingSketchBasketButton": "골대",
   "trainingSketchPenButton": "펜",
   "trainingSketchClearInkButton": "펜 지우기",
   "trainingSketchResetButton": "초기화",
@@ -5227,6 +5230,39 @@
   "trainingSketchQuickOverlapButton": "오버랩",
   "trainingSketchQuickShotButton": "슈팅",
   "trainingSketchQuickCrossButton": "크로스",
+  "trainingSketchQuickDriveButton": "드라이브",
+  "trainingSketchQuickCutButton": "컷인",
+  "trainingSketchQuickScreenButton": "스크린",
+  "trainingSketchQuickRunBaseButton": "베이스 러닝",
+  "trainingSketchQuickFieldingButton": "수비 이동",
+  "trainingSketchQuickThrowButton": "송구",
+  "trainingSketchQuickServeButton": "서브",
+  "trainingSketchQuickRallyButton": "랠리",
+  "trainingSketchQuickRecoverButton": "리커버리",
+  "trainingSketchPassToPlayerButton": "사람 {index}에게 패스",
+  "@trainingSketchPassToPlayerButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchThrowToPlayerButton": "사람 {index}에게 송구",
+  "@trainingSketchThrowToPlayerButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRallyToPlayerButton": "사람 {index}에게 랠리",
+  "@trainingSketchRallyToPlayerButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchPlayerRouteLimitReached": "모든 사람 동작선이 이미 있어요. 사람을 선택해서 동작선을 바꾸거나 다시 그려 주세요.",
   "trainingSketchBallRouteLimitReached": "모든 공 동작선이 이미 있어요. 공을 선택해서 동작선을 바꾸거나 다시 그려 주세요.",
   "trainingSketchTemplatePickerTitle": "템플릿 선택",

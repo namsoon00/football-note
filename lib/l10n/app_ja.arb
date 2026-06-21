@@ -5150,6 +5150,9 @@
   "trainingSketchPlayerButton": "プレーヤー",
   "trainingSketchBallButton": "ボール",
   "trainingSketchLadderButton": "ラダー",
+  "trainingSketchTargetButton": "ターゲット",
+  "trainingSketchBaseButton": "ベース",
+  "trainingSketchBasketButton": "リング",
   "trainingSketchPenButton": "ペン",
   "trainingSketchClearInkButton": "クリアインク",
   "trainingSketchResetButton": "クリア",
@@ -5227,6 +5230,39 @@
   "trainingSketchQuickOverlapButton": "オーバーラップ",
   "trainingSketchQuickShotButton": "シュート",
   "trainingSketchQuickCrossButton": "クロス",
+  "trainingSketchQuickDriveButton": "ドライブ",
+  "trainingSketchQuickCutButton": "カット",
+  "trainingSketchQuickScreenButton": "スクリーン",
+  "trainingSketchQuickRunBaseButton": "ベースラン",
+  "trainingSketchQuickFieldingButton": "守備移動",
+  "trainingSketchQuickThrowButton": "送球",
+  "trainingSketchQuickServeButton": "サーブ",
+  "trainingSketchQuickRallyButton": "ラリー",
+  "trainingSketchQuickRecoverButton": "リカバリー",
+  "trainingSketchPassToPlayerButton": "プレイヤー {index} へパス",
+  "@trainingSketchPassToPlayerButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchThrowToPlayerButton": "プレイヤー {index} へ送球",
+  "@trainingSketchThrowToPlayerButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRallyToPlayerButton": "プレイヤー {index} へラリー",
+  "@trainingSketchRallyToPlayerButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchPlayerRouteLimitReached": "すべてのプレイヤー動作線はすでに割り当てられています。プレイヤーを選んで動作を置き換えるか再描画します。",
   "trainingSketchBallRouteLimitReached": "すべてのボール動作線はすでに割り当てられています。ボールを選んで動作を置き換えるか再描画します。",
   "trainingSketchTemplatePickerTitle": "テンプレートを選択",
