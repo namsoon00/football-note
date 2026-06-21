@@ -174,10 +174,10 @@ void main() {
 
     await pumpCalendar(tester);
 
-    expect(find.textContaining('승 · vs 라이벌 FC'), findsOneWidget);
-    expect(find.textContaining('vs 라이벌 FC'), findsOneWidget);
+    expect(find.text('승'), findsOneWidget);
+    expect(find.text('vs 라이벌 FC'), findsOneWidget);
     expect(find.textContaining('메인 구장'), findsOneWidget);
-    expect(find.textContaining('결과 3:2'), findsOneWidget);
+    expect(find.text('3:2'), findsOneWidget);
     expect(find.textContaining('골 1'), findsOneWidget);
     expect(find.textContaining('어시스트 2'), findsOneWidget);
     expect(find.textContaining('유효 슈팅 4'), findsOneWidget);
@@ -339,8 +339,9 @@ void main() {
     expect(entries.single.playerAssists, 1);
     expect(entries.single.shotsOnTarget, 2);
     expect(entries.single.ballsWon, 1);
-    expect(find.textContaining('승 · vs 그린 FC'), findsOneWidget);
-    expect(find.textContaining('결과 2:0'), findsOneWidget);
+    expect(find.text('승'), findsOneWidget);
+    expect(find.text('vs 그린 FC'), findsOneWidget);
+    expect(find.text('2:0'), findsOneWidget);
     expect(find.textContaining('골 1'), findsOneWidget);
     expect(find.textContaining('어시스트 1'), findsOneWidget);
     expect(find.textContaining('유효 슈팅 2'), findsOneWidget);
@@ -451,7 +452,7 @@ void main() {
     expect(find.textContaining('봄 컵'), findsOneWidget);
     expect(find.textContaining('8강'), findsOneWidget);
     expect(find.textContaining('다음 라운드 진출'), findsOneWidget);
-    expect(find.textContaining('결과 1:0'), findsOneWidget);
+    expect(find.text('1:0'), findsOneWidget);
     expect(find.textContaining('2승'), findsOneWidget);
   });
 
@@ -530,7 +531,7 @@ void main() {
     expect(find.textContaining('리그 경기'), findsWidgets);
     expect(find.textContaining('주말 리그'), findsOneWidget);
     expect(find.textContaining('3라운드'), findsOneWidget);
-    expect(find.textContaining('결과 1:1'), findsOneWidget);
+    expect(find.text('1:1'), findsOneWidget);
     expect(find.textContaining('승점 3'), findsOneWidget);
   });
 
