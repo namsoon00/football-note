@@ -3137,7 +3137,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String statsReportTrainingTitle(Object sport) {
-    return '$sportレポート';
+    return '$sport成長サマリー';
   }
 
   @override
@@ -3155,6 +3155,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get statsReportNoTargetValue => '基準なし';
 
   @override
+  String get statsReportSessionsLabel => '練習回数';
+
+  @override
+  String statsReportSessionsValue(int count) {
+    return '$count回';
+  }
+
+  @override
+  String get statsReportTotalTimeLabel => '総練習時間';
+
+  @override
   String get statsReportActiveDaysLabel => '記録日';
 
   @override
@@ -3167,6 +3178,20 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get statsReportNoPlanValue => '計画なし';
+
+  @override
+  String get statsReportFocusLabel => '集中分野';
+
+  @override
+  String get statsReportDefaultFocus => '基礎';
+
+  @override
+  String get statsReportStreakLabel => '継続';
+
+  @override
+  String statsReportStreakValue(int days) {
+    return '$days日連続記録';
+  }
 
   @override
   String get statsReportMealCoverageLabel => '食事記録率';
@@ -3369,6 +3394,9 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get averageComparisonProfileMissingMessage =>
       '年齢とサッカー経験が未入力のため、平均比較を表示できません。プロフィールで生年月日とサッカー開始日を入力してください。';
+
+  @override
+  String get averageComparisonOpenProfileAction => 'プロフィールを開く';
 
   @override
   String get averageComparisonFootballOnlyTitle => 'サッカー平均比較は非表示です';

@@ -85,7 +85,7 @@ void main() {
     expect(find.text('훈련'), findsOneWidget);
     expect(find.text('시합'), findsOneWidget);
     expect(find.text('훈련 횟수'), findsOneWidget);
-    expect(find.text('이번 기간 성장 요약'), findsOneWidget);
+    expect(find.text('축구 성장 요약'), findsOneWidget);
     expect(find.byTooltip('다이어리'), findsNothing);
   });
 
@@ -130,8 +130,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('이번 기간 성장 요약'), findsOneWidget);
+    expect(find.text('축구 성장 요약'), findsOneWidget);
     expect(find.text('훈련 횟수'), findsOneWidget);
+    expect(find.text('총 훈련 시간'), findsOneWidget);
+    expect(find.text('집중 분야'), findsOneWidget);
+    expect(find.text('꾸준함'), findsOneWidget);
   });
 
   testWidgets('Stats screen separates match records in match tab', (
@@ -322,7 +325,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('이번 기간 성장 요약'), findsOneWidget);
+    expect(find.text('축구 성장 요약'), findsOneWidget);
     expect(find.text('줄넘기 통계'), findsOneWidget);
     expect(find.text('식사 기록'), findsOneWidget);
 
@@ -502,10 +505,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('농구 리포트'), findsOneWidget);
+    expect(find.text('농구 성장 요약'), findsOneWidget);
     expect(find.text('셔틀런 통계'), findsOneWidget);
     expect(find.text('볼 핸들링 세부 기록'), findsOneWidget);
     expect(find.text('평균 비교'), findsNothing);
+    expect(find.text('축구 평균 비교는 숨겼어요'), findsNothing);
 
     await tester.tap(find.text('시합'));
     await tester.pumpAndSettle();

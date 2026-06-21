@@ -5775,7 +5775,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsReportTrainingTitle.
   ///
   /// In en, this message translates to:
-  /// **'{sport} Report'**
+  /// **'{sport} Growth Summary'**
   String statsReportTrainingTitle(Object sport);
 
   /// No description provided for @statsReportInsightTitle.
@@ -5802,6 +5802,24 @@ abstract class AppLocalizations {
   /// **'No baseline'**
   String get statsReportNoTargetValue;
 
+  /// No description provided for @statsReportSessionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sessions'**
+  String get statsReportSessionsLabel;
+
+  /// No description provided for @statsReportSessionsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}'**
+  String statsReportSessionsValue(int count);
+
+  /// No description provided for @statsReportTotalTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total time'**
+  String get statsReportTotalTimeLabel;
+
   /// No description provided for @statsReportActiveDaysLabel.
   ///
   /// In en, this message translates to:
@@ -5825,6 +5843,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No plan'**
   String get statsReportNoPlanValue;
+
+  /// No description provided for @statsReportFocusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get statsReportFocusLabel;
+
+  /// No description provided for @statsReportDefaultFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Fundamentals'**
+  String get statsReportDefaultFocus;
+
+  /// No description provided for @statsReportStreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Consistency'**
+  String get statsReportStreakLabel;
+
+  /// No description provided for @statsReportStreakValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}-day streak'**
+  String statsReportStreakValue(int days);
 
   /// No description provided for @statsReportMealCoverageLabel.
   ///
@@ -6102,6 +6144,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.'**
   String get averageComparisonProfileMissingMessage;
+
+  /// No description provided for @averageComparisonOpenProfileAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Profile'**
+  String get averageComparisonOpenProfileAction;
 
   /// No description provided for @averageComparisonFootballOnlyTitle.
   ///

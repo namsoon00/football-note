@@ -3132,7 +3132,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String statsReportTrainingTitle(Object sport) {
-    return '$sport 리포트';
+    return '$sport 성장 요약';
   }
 
   @override
@@ -3150,6 +3150,17 @@ class AppLocalizationsKo extends AppLocalizations {
   String get statsReportNoTargetValue => '기준 없음';
 
   @override
+  String get statsReportSessionsLabel => '훈련 횟수';
+
+  @override
+  String statsReportSessionsValue(int count) {
+    return '$count회';
+  }
+
+  @override
+  String get statsReportTotalTimeLabel => '총 훈련 시간';
+
+  @override
   String get statsReportActiveDaysLabel => '기록일';
 
   @override
@@ -3162,6 +3173,20 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get statsReportNoPlanValue => '계획 없음';
+
+  @override
+  String get statsReportFocusLabel => '집중 분야';
+
+  @override
+  String get statsReportDefaultFocus => '기본기';
+
+  @override
+  String get statsReportStreakLabel => '꾸준함';
+
+  @override
+  String statsReportStreakValue(int days) {
+    return '$days일 연속 기록';
+  }
 
   @override
   String get statsReportMealCoverageLabel => '식사 기록률';
@@ -3364,6 +3389,9 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get averageComparisonProfileMissingMessage =>
       '현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.';
+
+  @override
+  String get averageComparisonOpenProfileAction => '프로필 입력하기';
 
   @override
   String get averageComparisonFootballOnlyTitle => '축구 평균 비교는 숨겼어요';

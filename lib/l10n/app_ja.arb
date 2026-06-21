@@ -1801,7 +1801,7 @@
       "direction": {}
     }
   },
-  "statsReportTrainingTitle": "{sport}レポート",
+  "statsReportTrainingTitle": "{sport}成長サマリー",
   "@statsReportTrainingTitle": {
     "placeholders": {
       "sport": {}
@@ -1818,6 +1818,16 @@
     }
   },
   "statsReportNoTargetValue": "基準なし",
+  "statsReportSessionsLabel": "練習回数",
+  "statsReportSessionsValue": "{count}回",
+  "@statsReportSessionsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportTotalTimeLabel": "総練習時間",
   "statsReportActiveDaysLabel": "記録日",
   "statsReportActiveDaysValue": "{activeDays}/{periodDays}日",
   "@statsReportActiveDaysValue": {
@@ -1832,6 +1842,17 @@
   },
   "statsReportPlanExecutionLabel": "計画実行率",
   "statsReportNoPlanValue": "計画なし",
+  "statsReportFocusLabel": "集中分野",
+  "statsReportDefaultFocus": "基礎",
+  "statsReportStreakLabel": "継続",
+  "statsReportStreakValue": "{days}日連続記録",
+  "@statsReportStreakValue": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportMealCoverageLabel": "食事記録率",
   "statsReportMealCoverageValue": "{mealDays}/{periodDays}日 · 3食 {fullMealDays}日",
   "@statsReportMealCoverageValue": {
@@ -2108,6 +2129,7 @@
   },
   "averageComparisonProfileMissingTitle": "年齢と競技歴を入力してください",
   "averageComparisonProfileMissingMessage": "年齢とサッカー経験が未入力のため、平均比較を表示できません。プロフィールで生年月日とサッカー開始日を入力してください。",
+  "averageComparisonOpenProfileAction": "プロフィールを開く",
   "averageComparisonFootballOnlyTitle": "サッカー平均比較は非表示です",
   "averageComparisonFootballOnlyMessage": "この平均比較はサッカーのリフティング基準を使用するため、現在の競技では表示しません。",
   "durationNotSet": "時間がない",

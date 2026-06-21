@@ -1801,7 +1801,7 @@
       "direction": {}
     }
   },
-  "statsReportTrainingTitle": "{sport} 리포트",
+  "statsReportTrainingTitle": "{sport} 성장 요약",
   "@statsReportTrainingTitle": {
     "placeholders": {
       "sport": {}
@@ -1818,6 +1818,16 @@
     }
   },
   "statsReportNoTargetValue": "기준 없음",
+  "statsReportSessionsLabel": "훈련 횟수",
+  "statsReportSessionsValue": "{count}회",
+  "@statsReportSessionsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportTotalTimeLabel": "총 훈련 시간",
   "statsReportActiveDaysLabel": "기록일",
   "statsReportActiveDaysValue": "{activeDays}/{periodDays}일",
   "@statsReportActiveDaysValue": {
@@ -1832,6 +1842,17 @@
   },
   "statsReportPlanExecutionLabel": "계획 실행률",
   "statsReportNoPlanValue": "계획 없음",
+  "statsReportFocusLabel": "집중 분야",
+  "statsReportDefaultFocus": "기본기",
+  "statsReportStreakLabel": "꾸준함",
+  "statsReportStreakValue": "{days}일 연속 기록",
+  "@statsReportStreakValue": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportMealCoverageLabel": "식사 기록률",
   "statsReportMealCoverageValue": "{mealDays}/{periodDays}일 · 3끼 {fullMealDays}일",
   "@statsReportMealCoverageValue": {
@@ -2108,6 +2129,7 @@
   },
   "averageComparisonProfileMissingTitle": "나이/구력 정보를 입력해 주세요",
   "averageComparisonProfileMissingMessage": "현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.",
+  "averageComparisonOpenProfileAction": "프로필 입력하기",
   "averageComparisonFootballOnlyTitle": "축구 평균 비교는 숨겼어요",
   "averageComparisonFootballOnlyMessage": "이 평균 비교는 축구 저글링 기준을 사용하므로 현재 종목에서는 표시하지 않습니다.",
   "durationNotSet": "시간 미입력",

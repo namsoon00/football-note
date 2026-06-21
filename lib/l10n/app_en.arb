@@ -1801,7 +1801,7 @@
       "direction": {}
     }
   },
-  "statsReportTrainingTitle": "{sport} Report",
+  "statsReportTrainingTitle": "{sport} Growth Summary",
   "@statsReportTrainingTitle": {
     "placeholders": {
       "sport": {}
@@ -1818,6 +1818,16 @@
     }
   },
   "statsReportNoTargetValue": "No baseline",
+  "statsReportSessionsLabel": "Sessions",
+  "statsReportSessionsValue": "{count}",
+  "@statsReportSessionsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportTotalTimeLabel": "Total time",
   "statsReportActiveDaysLabel": "Logged days",
   "statsReportActiveDaysValue": "{activeDays}/{periodDays} days",
   "@statsReportActiveDaysValue": {
@@ -1832,6 +1842,17 @@
   },
   "statsReportPlanExecutionLabel": "Plan execution",
   "statsReportNoPlanValue": "No plan",
+  "statsReportFocusLabel": "Focus",
+  "statsReportDefaultFocus": "Fundamentals",
+  "statsReportStreakLabel": "Consistency",
+  "statsReportStreakValue": "{days}-day streak",
+  "@statsReportStreakValue": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportMealCoverageLabel": "Meal coverage",
   "statsReportMealCoverageValue": "{mealDays}/{periodDays} days · 3 meals {fullMealDays} days",
   "@statsReportMealCoverageValue": {
@@ -2108,6 +2129,7 @@
   },
   "averageComparisonProfileMissingTitle": "Enter age and soccer experience",
   "averageComparisonProfileMissingMessage": "Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.",
+  "averageComparisonOpenProfileAction": "Open Profile",
   "averageComparisonFootballOnlyTitle": "Football average comparison hidden",
   "averageComparisonFootballOnlyMessage": "This average comparison uses soccer juggling reference ranges, so it is not shown for the current sport.",
   "durationNotSet": "No time",
