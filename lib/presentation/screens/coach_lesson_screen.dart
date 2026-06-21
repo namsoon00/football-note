@@ -18,6 +18,7 @@ import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/parent_shared_feedback_service.dart';
 import '../../application/player_level_service.dart';
+import '../../application/player_profile_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/sport_capabilities.dart';
 import '../../application/sport_scoped_storage.dart';
@@ -180,7 +181,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         widget.localeService != null &&
         widget.settingsService != null;
     final profilePhotoSource =
-        widget.optionRepository.getValue<String>('profile_photo_url') ?? '';
+        PlayerProfileService(widget.optionRepository).load().photoUrl;
     final reminderUnreadCount = widget.settingsService == null
         ? 0
         : TrainingPlanReminderService(

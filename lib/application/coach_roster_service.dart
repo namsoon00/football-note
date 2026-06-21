@@ -1,4 +1,5 @@
 import '../domain/repositories/option_repository.dart';
+import 'player_profile_service.dart';
 import 'drive_connection_info.dart';
 
 class CoachPlayerProfile {
@@ -109,7 +110,6 @@ class CoachRosterService {
       'family_current_role_local_v1';
   static const String _familyChildNameKey = 'family_child_name_v1';
   static const String _familyIdKey = 'family_shared_id_v1';
-  static const String _profileNameKey = 'profile_name';
   static const String _coachRoleStorageValue = 'coach';
 
   final OptionRepository _options;
@@ -361,8 +361,13 @@ class CoachRosterService {
   String _fallbackPlayerName() {
     final childName = _options.getValue<String>(_familyChildNameKey)?.trim();
     if (childName != null && childName.isNotEmpty) return childName;
-    final profileName = _options.getValue<String>(_profileNameKey)?.trim();
-    if (profileName != null && profileName.isNotEmpty) return profileName;
+    final profileName = PlayerProfileService(_options).load().name.trim();
+    if (profileName.isNotEmpty) return profileName;
+    final legacyProfileName =
+        _options.getValue<String>(PlayerProfileService.nameKey)?.trim();
+    if (legacyProfileName != null && legacyProfileName.isNotEmpty) {
+      return legacyProfileName;
+    }
     return 'Player';
   }
 }

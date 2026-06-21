@@ -1465,6 +1465,12 @@
       "rewardName": {}
     }
   },
+  "profileSportStartDateLabel": "{sport} start date",
+  "@profileSportStartDateLabel": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
   "profileLevelProgressMax": "{stars} mastery star(s) · {remainingXp} XP left",
   "@profileLevelProgressMax": {
     "placeholders": {

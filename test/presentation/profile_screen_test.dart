@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/family_access_service.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/profile_screen.dart';
@@ -128,6 +129,38 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('테스트 결과와 응답'), findsOneWidget);
+  });
+
+  testWidgets('Profile screen reads visible profile data for current sport', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository()
+      ..seed(SportCatalog.currentSportOptionKey, SportCatalog.basketballId)
+      ..seed('profile_name', 'Football player')
+      ..seed('profile_position_test_result', 'MF · 미드필더형')
+      ..seed('profile_name_basketball', 'Basketball player')
+      ..seed('profile_position_test_result_basketball', 'G · 가드형');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ProfileScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Basketball player'), findsWidgets);
+    expect(find.text('Football player'), findsNothing);
+    expect(find.text('농구 시작일'), findsOneWidget);
+    expect(find.text('포지션 G'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.psychology_alt_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('G · 가드형'), findsOneWidget);
+    expect(find.text('MF · 미드필더형'), findsNothing);
   });
 
   testWidgets('Profile level card opens level guide on tap', (

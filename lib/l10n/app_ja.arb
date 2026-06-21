@@ -1465,6 +1465,12 @@
       "rewardName": {}
     }
   },
+  "profileSportStartDateLabel": "{sport}開始日",
+  "@profileSportStartDateLabel": {
+    "placeholders": {
+      "sport": {}
+    }
+  },
   "profileLevelProgressMax": "{stars} マスタリー スター · {remainingXp} XP が残っています",
   "@profileLevelProgressMax": {
     "placeholders": {

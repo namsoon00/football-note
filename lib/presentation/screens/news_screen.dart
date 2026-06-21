@@ -154,8 +154,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _newsService = widget.newsService ??
         NewsService(RssNewsRepository(widget.optionRepository));
-    _profileService = PlayerProfileService(widget.optionRepository);
     _sportId = SportService(widget.optionRepository).currentSportId();
+    _profileService = PlayerProfileService(
+      widget.optionRepository,
+      sportId: _sportId,
+    );
     _channels = _newsService.channels(sportId: _sportId);
     _regionPageController = PageController(
       initialPage: _regionIndex(_regionFilter),

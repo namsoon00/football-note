@@ -14,6 +14,7 @@ import '../../application/locale_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
+import '../../application/player_profile_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/sport_capabilities.dart';
 import '../../application/sport_defaults.dart';
@@ -267,11 +268,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                 padding: EdgeInsets.zero,
                                 onLeadingTap: () =>
                                     Scaffold.of(context).openDrawer(),
-                                profilePhotoSource:
-                                    widget.optionRepository.getValue<String>(
-                                          'profile_photo_url',
-                                        ) ??
-                                        '',
+                                profilePhotoSource: PlayerProfileService(
+                                        widget.optionRepository)
+                                    .load()
+                                    .photoUrl,
                                 onNewsTap: _openNews,
                                 newsBadgeCount: newsCount,
                                 onQuizTap: _openQuizShortcut,

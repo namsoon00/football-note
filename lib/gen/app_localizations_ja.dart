@@ -2403,6 +2403,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String profileSportStartDateLabel(Object sport) {
+    return '$sport開始日';
+  }
+
+  @override
   String profileLevelProgressMax(int stars, int remainingXp) {
     return '$stars マスタリー スター · $remainingXp XP が残っています';
   }

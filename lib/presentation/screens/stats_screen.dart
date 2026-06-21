@@ -203,7 +203,10 @@ class _StatsScreenState extends State<StatsScreen> {
     final sportId = SportService(widget.optionRepository).currentSportId();
     final sportCapabilities = SportCapabilities.forSport(sportId);
     final sportEntries = filterEntriesForSport(entries, sportId);
-    final profileService = PlayerProfileService(widget.optionRepository);
+    final profileService = PlayerProfileService(
+      widget.optionRepository,
+      sportId: sportId,
+    );
     final reminderUnreadCount = TrainingPlanReminderService(
       widget.optionRepository,
       widget.settingsService,
@@ -263,10 +266,10 @@ class _StatsScreenState extends State<StatsScreen> {
                 onQuizTap: () => _openQuiz(context),
                 onNotificationTap: () => _openNotifications(context),
                 notificationBadgeCount: reminderUnreadCount,
-                profilePhotoSource: widget.optionRepository.getValue<String>(
-                      'profile_photo_url',
-                    ) ??
-                    '',
+                profilePhotoSource: PlayerProfileService(
+                  widget.optionRepository,
+                  sportId: sportId,
+                ).load().photoUrl,
                 onProfileTap: () => _openProfile(context),
                 onSettingsTap: () => _openSettings(context),
                 title: '${l10n.statsHeadline1} ${l10n.statsHeadline2}',

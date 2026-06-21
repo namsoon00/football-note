@@ -3364,12 +3364,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final profile = PlayerProfileService(widget.optionRepository).load();
+    final sportId = widget.entry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
+    final profile = PlayerProfileService(
+      widget.optionRepository,
+      sportId: sportId,
+    ).load();
     final allEntries = await widget.trainingService.allEntries();
     if (!mounted || _disposing) return;
     final trainingProgramMinutes = _persistedTrainingProgramMinutes();
-    final sportId = widget.entry?.sportId ??
-        SportService(widget.optionRepository).currentSportId();
     final durationMinutes =
         _trainingProgramMinutesTotal(trainingProgramMinutes) > 0
             ? _trainingProgramMinutesTotal(trainingProgramMinutes)
@@ -3542,7 +3545,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           _trainingProgramMinutesTotal(trainingProgramMinutes) > 0
               ? _trainingProgramMinutesTotal(trainingProgramMinutes)
               : _durationMinutes;
-      final profile = PlayerProfileService(widget.optionRepository).load();
+      final profile = PlayerProfileService(
+        widget.optionRepository,
+        sportId: sportId,
+      ).load();
       final allEntries = await widget.trainingService.allEntries();
       if (!mounted || _disposing) return;
       final liftingByPart = _liftingEnabled
