@@ -499,30 +499,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   void _selectAnswer(int choice) {
     if (_finished || _answered) return;
-    final question = _questions[_index];
-    final isCorrect = choice == question.correctIndex;
-
-    if (isCorrect) {
-      _onAnswerResolved(choice: choice, correct: true);
-      return;
-    }
-
-    if (!_retryUsed) {
-      setState(() {
-        _selectedIndex = choice;
-        _retryUsed = true;
-        _retryFeedback = 'incorrect';
-      });
-      unawaited(_trackMetric('football_option_selected'));
-      unawaited(_persistSession());
-      return;
-    }
-
-    _onAnswerResolved(
-      choice: choice,
-      correct: false,
-      wrongQuestionId: question.id,
-    );
+    setState(() {
+      _selectedIndex = choice;
+      _retryFeedback = null;
+      _answerFx = _AnswerFx.none;
+    });
+    unawaited(_trackMetric('football_option_selected'));
+    unawaited(_persistSession());
   }
 
   void _submitShortAnswer() {
@@ -745,10 +728,25 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Future<void> _goNext() async {
     if (_finished) return;
+    if (_questions.isEmpty) return;
+
+    final question = _questions[_index];
+    final pendingOptionChoice = !_answered &&
+        question.style != _QuestionStyle.shortAnswer &&
+        _selectedIndex != null;
+    if (pendingOptionChoice) {
+      final choice = _selectedIndex!;
+      final correct = choice == question.correctIndex;
+      _onAnswerResolved(
+        choice: choice,
+        correct: correct,
+        wrongQuestionId: correct ? null : question.id,
+      );
+      return;
+    }
 
     if (!_answered) {
       if (!_retryUsed || _questions.isEmpty) return;
-      final question = _questions[_index];
       final responseMs = DateTime.now()
           .difference(_questionStartedAt ?? DateTime.now())
           .inMilliseconds;
@@ -940,8 +938,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final l10n = AppLocalizations.of(context)!;
     final progressText = '${_index + 1}/${_questions.length}';
     final missionTarget = _mode == _QuizMode.review ? 4 : 6;
-    final canGoNext = _answered || _retryUsed;
-    final showStudyGuide = _answered || _retryUsed;
+    final hasPendingOptionChoice = !_answered &&
+        question.style != _QuestionStyle.shortAnswer &&
+        _selectedIndex != null;
+    final canGoNext = _answered || _retryUsed || hasPendingOptionChoice;
+    final showStudyGuide = _answered;
     final heroOverlay = _buildHeroOverlay(question, isKo);
 
     return Column(
@@ -989,9 +990,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       : l10n.quizStudyGuidePending,
                   answerInsightLabel:
                       showStudyGuide ? l10n.quizStudyGuideTitle : '',
-                  answerLine: (_answered &&
-                          (_answerRevealed ||
-                              question.style == _QuestionStyle.shortAnswer))
+                  answerLine: _answered
                       ? '${l10n.quizStudyGuideAnswerLabel}: '
                           '${_primaryAnswerLabel(question)}'
                       : '',
@@ -1099,7 +1098,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
                     Color? borderColor;
                     Color? bgColor;
-                    if (_answered || (_retryUsed && selected)) {
+                    if (_answered) {
                       if (isCorrect) {
                         borderColor = const Color(0xFF0FA968);
                         bgColor = const Color(0x1A0FA968);
@@ -1107,6 +1106,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                         borderColor = const Color(0xFFEB5757);
                         bgColor = const Color(0x1AEB5757);
                       }
+                    } else if (selected) {
+                      borderColor = Theme.of(context).colorScheme.primary;
+                      bgColor = Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.10);
                     }
 
                     return Padding(
@@ -1152,9 +1156,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                                         ?.copyWith(fontWeight: FontWeight.w800),
                                   ),
                                 ),
-                                if ((_answered || _retryUsed) &&
-                                    selected &&
-                                    !isCorrect)
+                                if (_answered && selected && !isCorrect)
                                   const Icon(
                                     Icons.cancel,
                                     color: Color(0xFFEB5757),

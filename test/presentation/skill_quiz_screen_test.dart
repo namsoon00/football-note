@@ -405,13 +405,15 @@ void main() {
     await tester.tap(find.text('O').first);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
-    if (find.text('학습 참고서').evaluate().isEmpty) {
-      await tester.tap(find.text('X').first);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-    }
+
+    expect(find.text('학습 참고서'), findsNothing);
+
+    await tester.tap(find.text('다음'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('학습 참고서'), findsOneWidget);
+    expect(find.textContaining('정답:'), findsOneWidget);
     expect(find.text('적용 포인트'), findsOneWidget);
     expect(find.text('훈련 체크'), findsNothing);
   });
@@ -629,7 +631,7 @@ void main() {
     },
   );
 
-  testWidgets('correct answer does not show green success badge', (
+  testWidgets('option answer feedback waits until next', (
     WidgetTester tester,
   ) async {
     final repository = _MemoryOptionRepository()
@@ -671,6 +673,7 @@ void main() {
     await tester.tap(find.text('O').first);
     await tester.pump();
 
+    expect(find.text('학습 참고서'), findsNothing);
     expect(
       find.byWidgetPredicate(
         (widget) =>
@@ -680,6 +683,12 @@ void main() {
       ),
       findsNothing,
     );
+
+    await tester.tap(find.text('다음'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('학습 참고서'), findsOneWidget);
+    expect(find.textContaining('정답:'), findsOneWidget);
   });
 
   testWidgets('short answer can reveal answer before submitting', (
