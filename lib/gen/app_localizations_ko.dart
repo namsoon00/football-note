@@ -1299,6 +1299,14 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get worldCupTeamRosterFormationEstimatedNote =>
+      '공식 경기 라인업이 아니라 현재 선수단 데이터를 기준으로 배치한 예상 포메이션이에요. 실제 경기 전술과 선발은 달라질 수 있어요.';
+
+  @override
+  String get worldCupTeamRosterFormationPlaceholderNote =>
+      '공식 선수단 데이터가 없어서 기본 포지션 슬롯으로 배치했어요. 실제 포메이션으로 보지 마세요.';
+
+  @override
   String get worldCupTeamRosterSourceNote =>
       '이 국가는 아직 앱에 공식 2026 선수단 데이터가 포함되지 않아 안정적이고 합법적인 출처가 연결될 때까지 포지션 슬롯으로 표시됩니다.';
 

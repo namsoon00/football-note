@@ -1306,6 +1306,14 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get worldCupTeamRosterFormationEstimatedNote =>
+      '公式の試合ラインアップではなく、現在のスカッドデータをもとに配置した予想フォーメーションです。実際の戦術や先発は変わる可能性があります。';
+
+  @override
+  String get worldCupTeamRosterFormationPlaceholderNote =>
+      '公式スカッドデータがないため、標準のポジション枠で表示しています。実際のフォーメーションとして扱わないでください。';
+
+  @override
   String get worldCupTeamRosterSourceNote =>
       'この国の公式2026年スカッドデータはまだアプリに含まれていないため、安定した合法的なソースが接続されるまでポジション枠を表示します。';
 

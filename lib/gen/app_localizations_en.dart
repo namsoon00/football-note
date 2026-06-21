@@ -1347,6 +1347,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get worldCupTeamRosterFormationEstimatedNote =>
+      'This is an expected formation arranged from the current squad data, not an official match lineup. Actual match tactics and starters can change.';
+
+  @override
+  String get worldCupTeamRosterFormationPlaceholderNote =>
+      'Official squad data is unavailable, so this uses default position slots. Do not treat it as an actual formation.';
+
+  @override
   String get worldCupTeamRosterSourceNote =>
       'Official 2026 squad data is not bundled for this country yet, so position slots are shown until a stable legal source is connected.';
 
