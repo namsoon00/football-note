@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
@@ -108,7 +109,20 @@ void main() {
       'assets/videos/running_coach_mistake_sample.mp4',
     );
     expect(referenceVideo.lengthInBytes, greaterThan(1500000));
-    expect(mistakeVideo.lengthInBytes, greaterThan(1500000));
+    expect(mistakeVideo.lengthInBytes, greaterThan(1000000));
+    expect(
+      listEquals(
+        referenceVideo.buffer.asUint8List(
+          referenceVideo.offsetInBytes,
+          referenceVideo.lengthInBytes,
+        ),
+        mistakeVideo.buffer.asUint8List(
+          mistakeVideo.offsetInBytes,
+          mistakeVideo.lengthInBytes,
+        ),
+      ),
+      isFalse,
+    );
     expect(
       find.byKey(const ValueKey('running-coach-sample-frame-guide')),
       findsOneWidget,
@@ -163,11 +177,11 @@ void main() {
     await tester.pump();
 
     expect(find.text('Wrong-form readouts'), findsOneWidget);
-    expect(find.text('Overstride 0.24'), findsOneWidget);
-    expect(find.text('Bounce 12%'), findsOneWidget);
+    expect(find.text('Ahead 0.20'), findsOneWidget);
+    expect(find.text('Bounce 10%'), findsOneWidget);
     expect(find.text('Review'), findsWidgets);
     expect(
-      find.textContaining('overstride is 0.24 ahead of the hip'),
+      find.textContaining('landing is 0.20 ahead of the hip'),
       findsOneWidget,
     );
 

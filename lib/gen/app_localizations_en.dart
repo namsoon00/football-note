@@ -6185,7 +6185,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleMistakeBody =>
-      'This loop shows the common failure pattern: upright torso, overstride, straight contact knee, open elbows, and extra vertical bounce.';
+      'This loop shows the review pattern: upright torso, foot landing ahead of the hip, a stiff contact knee, a high arm swing, and extra vertical bounce.';
 
   @override
   String get runningCoachSampleReferencePosture =>
@@ -6209,23 +6209,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleMistakePosture =>
-      'Posture line: lean is only 2°, so the runner sits tall instead of driving forward.';
+      'Posture line: lean is only 4°, so the runner sits tall instead of driving forward.';
 
   @override
   String get runningCoachSampleMistakeFoot =>
-      'Contact point: overstride is 0.24 ahead of the hip, increasing braking.';
+      'Contact point: landing is 0.20 ahead of the hip, increasing braking.';
 
   @override
   String get runningCoachSampleMistakeKnee =>
-      'Stance knee: 176° at contact, too straight to absorb and push.';
+      'Stance knee: 172° at contact, too straight to absorb and push.';
 
   @override
   String get runningCoachSampleMistakeArms =>
-      'Arm angle: elbows open to 132°, slowing the arm-leg rhythm.';
+      'Arm angle: elbows rise near 118°, making the swing high and tight.';
 
   @override
   String get runningCoachSampleMistakeBounce =>
-      'Bounce: vertical motion rises to 12%, wasting force upward.';
+      'Bounce: vertical motion rises to 10%, wasting force upward.';
 
   @override
   String get runningCoachSampleAnalysisMethodTitle =>
@@ -6317,16 +6317,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleOverlayFrames => '24/24 frames';
 
   @override
-  String get runningCoachSampleMistakeOverlayPosture => 'Upright 2°';
+  String get runningCoachSampleMistakeOverlayPosture => 'Upright 4°';
 
   @override
-  String get runningCoachSampleMistakeOverlayArms => 'Arms 132°';
+  String get runningCoachSampleMistakeOverlayArms => 'Arms 118°';
 
   @override
-  String get runningCoachSampleMistakeOverlayFoot => 'Overstride 0.24';
+  String get runningCoachSampleMistakeOverlayFoot => 'Ahead 0.20';
 
   @override
-  String get runningCoachSampleMistakeOverlayBounce => 'Bounce 12%';
+  String get runningCoachSampleMistakeOverlayBounce => 'Bounce 10%';
 
   @override
   String get runningCoachLiveCardTitle => 'Live coach';
