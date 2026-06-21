@@ -2453,6 +2453,18 @@ abstract class AppLocalizations {
   /// **'{formation} formation'**
   String worldCupTeamRosterFormationLabel(String formation);
 
+  /// No description provided for @worldCupTeamRosterFormationEstimatedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This is an expected formation arranged from the current squad data, not an official match lineup. Actual match tactics and starters can change.'**
+  String get worldCupTeamRosterFormationEstimatedNote;
+
+  /// No description provided for @worldCupTeamRosterFormationPlaceholderNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Official squad data is unavailable, so this uses default position slots. Do not treat it as an actual formation.'**
+  String get worldCupTeamRosterFormationPlaceholderNote;
+
   /// No description provided for @worldCupTeamRosterSourceNote.
   ///
   /// In en, this message translates to:

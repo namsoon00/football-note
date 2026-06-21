@@ -227,6 +227,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('4-3-3 포메이션'), findsOneWidget);
+    expect(find.textContaining('공식 경기 라인업이 아니라'), findsOneWidget);
     expect(find.text('Raul Rangel'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Deportivo Guadalajara'),
@@ -243,6 +244,48 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Cesar Huerta'), findsOneWidget);
     expect(find.text('RSC Anderlecht'), findsOneWidget);
+  });
+
+  testWidgets('team match history country opens that team roster', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('순위'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('순위'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('조별 순위표'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('멕시코').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('멕시코 선수 명단'), findsOneWidget);
+    expect(find.text('상대별 결과'), findsOneWidget);
+    await tester.tap(find.textContaining('남아프리카').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('남아프리카공화국 선수 명단'), findsOneWidget);
+    expect(find.text('멕시코 선수 명단'), findsNothing);
   });
 
   testWidgets('Korean roster names render in Korean locale', (tester) async {

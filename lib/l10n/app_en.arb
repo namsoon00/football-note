@@ -723,6 +723,8 @@
       }
     }
   },
+  "worldCupTeamRosterFormationEstimatedNote": "This is an expected formation arranged from the current squad data, not an official match lineup. Actual match tactics and starters can change.",
+  "worldCupTeamRosterFormationPlaceholderNote": "Official squad data is unavailable, so this uses default position slots. Do not treat it as an actual formation.",
   "worldCupTeamRosterSourceNote": "Official 2026 squad data is not bundled for this country yet, so position slots are shown until a stable legal source is connected.",
   "worldCupTeamRosterCandidateSourceNote": "Shown from published 2026 squad information and expected formation data. Injury replacements and match-day choices can still change before kickoff.",
   "worldCupTeamRosterGoalkeepers": "Goalkeepers",
