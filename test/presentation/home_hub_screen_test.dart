@@ -9,14 +9,17 @@ import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/settings_service.dart';
+import 'package:football_note/application/sport_state_controller.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/application/weather_shared_resource.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_board.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/backup_repository.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
+import 'package:football_note/main.dart' as app;
 import 'package:football_note/presentation/models/training_method_layout.dart';
 import 'package:football_note/presentation/screens/entry_form_screen.dart';
 import 'package:football_note/presentation/screens/home_hub_screen.dart';
@@ -26,6 +29,57 @@ import 'package:football_note/presentation/screens/training_method_board_screen.
 
 void main() {
   setUp(WeatherSharedResource.debugClearCache);
+
+  testWidgets('app recreates the home tree when the sport changes', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      SportCatalog.currentSportOptionKey,
+      SportCatalog.footballId,
+    );
+    await optionRepository.setValue('welcome_seen_v1', true);
+    await optionRepository.setValue('tab_quick_guide_seen_v1_0', true);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final sportController = SportStateController(optionRepository);
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      app.FootballNoteApp(
+        trainingService: trainingService,
+        mealLogService: mealLogService,
+        optionRepository: optionRepository,
+        localeService: localeService,
+        settingsService: settingsService,
+        sportController: sportController,
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      find.byKey(const ValueKey<String>('home-screen-football')),
+      findsOneWidget,
+    );
+
+    await sportController.setCurrentSportId(SportCatalog.basketballId);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      find.byKey(const ValueKey<String>('home-screen-basketball')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('home-screen-football')),
+      findsNothing,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
 
   testWidgets(
     'home startup sync checks daily backup before family refresh',

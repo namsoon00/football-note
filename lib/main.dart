@@ -211,7 +211,9 @@ class FootballNoteApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget entryGate() => _EntryGate(
+    Widget entryGate(String sportId) => _EntryGate(
+          key: ValueKey<String>('entry-gate-$sportId'),
+          sportId: sportId,
           trainingService: trainingService,
           mealLogService: mealLogService,
           optionRepository: optionRepository,
@@ -225,59 +227,67 @@ class FootballNoteApp extends StatelessWidget {
       child: ScreenUtilInit(
         designSize: const Size(375, 812),
         builder: (context, child) => AnimatedBuilder(
-          animation: Listenable.merge([localeService, settingsService]),
-          builder: (context, _) => MaterialApp(
-            onGenerateTitle: (context) =>
-                AppLocalizations.of(context)!.appTitle,
-            theme: AppTheme.light(),
-            darkTheme: AppTheme.dark(),
-            themeMode: settingsService.themeMode,
-            navigatorKey: NotificationTapRouter.navigatorKey,
-            locale: localeService.locale,
-            supportedLocales: AppLocalizations.supportedLocales,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            onGenerateRoute: (settings) {
-              final routeName = settings.name?.trim();
-              if (routeName == null ||
-                  NotificationAppLink.tryParse(routeName) == null) {
-                return null;
-              }
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                NotificationTapRouter.handlePayload(routeName);
-              });
-              return MaterialPageRoute<void>(
-                settings: settings,
-                builder: (_) => entryGate(),
-              );
-            },
-            builder: (context, child) {
-              final isDark = Theme.of(context).brightness == Brightness.dark;
-              final overlayStyle = (isDark
-                      ? SystemUiOverlayStyle.light
-                      : SystemUiOverlayStyle.dark)
-                  .copyWith(
-                statusBarColor: Colors.transparent,
-                systemNavigationBarColor:
-                    isDark ? const Color(0xFF0F131A) : const Color(0xFFF6F8FC),
-                systemNavigationBarIconBrightness:
-                    isDark ? Brightness.light : Brightness.dark,
-              );
-              return AnnotatedRegion<SystemUiOverlayStyle>(
-                value: overlayStyle,
-                child: _WebInitialFocusGuard(
-                  child: KeyboardDismissOverlay(
-                    child: child ?? const SizedBox.shrink(),
+          animation: Listenable.merge([
+            localeService,
+            settingsService,
+            sportController,
+          ]),
+          builder: (context, _) {
+            final sportId = sportController.currentSportId;
+            return MaterialApp(
+              onGenerateTitle: (context) =>
+                  AppLocalizations.of(context)!.appTitle,
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
+              themeMode: settingsService.themeMode,
+              navigatorKey: NotificationTapRouter.navigatorKey,
+              locale: localeService.locale,
+              supportedLocales: AppLocalizations.supportedLocales,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              onGenerateRoute: (settings) {
+                final routeName = settings.name?.trim();
+                if (routeName == null ||
+                    NotificationAppLink.tryParse(routeName) == null) {
+                  return null;
+                }
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  NotificationTapRouter.handlePayload(routeName);
+                });
+                return MaterialPageRoute<void>(
+                  settings: settings,
+                  builder: (_) => entryGate(sportId),
+                );
+              },
+              builder: (context, child) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                final overlayStyle = (isDark
+                        ? SystemUiOverlayStyle.light
+                        : SystemUiOverlayStyle.dark)
+                    .copyWith(
+                  statusBarColor: Colors.transparent,
+                  systemNavigationBarColor: isDark
+                      ? const Color(0xFF0F131A)
+                      : const Color(0xFFF6F8FC),
+                  systemNavigationBarIconBrightness:
+                      isDark ? Brightness.light : Brightness.dark,
+                );
+                return AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: overlayStyle,
+                  child: _WebInitialFocusGuard(
+                    child: KeyboardDismissOverlay(
+                      child: child ?? const SizedBox.shrink(),
+                    ),
                   ),
-                ),
-              );
-            },
-            home: entryGate(),
-          ),
+                );
+              },
+              home: entryGate(sportId),
+            );
+          },
         ),
       ),
     );
@@ -326,8 +336,11 @@ class _EntryGate extends StatefulWidget {
   final LocaleService localeService;
   final SettingsService settingsService;
   final BackupService? driveBackupService;
+  final String sportId;
 
   const _EntryGate({
+    super.key,
+    required this.sportId,
     required this.trainingService,
     required this.mealLogService,
     required this.optionRepository,
@@ -343,7 +356,6 @@ class _EntryGate extends StatefulWidget {
 class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
   static const String _welcomeSeenKey = 'welcome_seen_v1';
 
-  late final HomeScreen _homeScreen;
   bool _parentRefreshBusy = false;
   bool _startupSportSelected = false;
   bool _sportSelectionInFlight = false;
@@ -363,15 +375,6 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
     final isSupportMode =
         FamilyAccessService(widget.optionRepository).loadState().isSupportMode;
     _startupSportSelected = hasStoredSport || isSupportMode;
-    _homeScreen = HomeScreen(
-      key: const ValueKey('home-screen'),
-      trainingService: widget.trainingService,
-      mealLogService: widget.mealLogService,
-      optionRepository: widget.optionRepository,
-      localeService: widget.localeService,
-      settingsService: widget.settingsService,
-      driveBackupService: widget.driveBackupService,
-    );
   }
 
   @override
@@ -472,6 +475,14 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
     if (!_welcomeSeen) {
       return WelcomeScreen(onStart: _markWelcomeSeen);
     }
-    return _homeScreen;
+    return HomeScreen(
+      key: ValueKey<String>('home-screen-${widget.sportId}'),
+      trainingService: widget.trainingService,
+      mealLogService: widget.mealLogService,
+      optionRepository: widget.optionRepository,
+      localeService: widget.localeService,
+      settingsService: widget.settingsService,
+      driveBackupService: widget.driveBackupService,
+    );
   }
 }

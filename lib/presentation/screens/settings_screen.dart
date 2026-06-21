@@ -2219,6 +2219,10 @@ class _SettingsScreenState extends State<SettingsScreen>
     unawaited(NewsBadgeService.refresh(widget.optionRepository, force: true));
     if (!mounted) return;
     setState(() {});
+    final navigator = Navigator.maybeOf(context);
+    if (navigator != null && navigator.canPop()) {
+      navigator.popUntil((route) => route.isFirst);
+    }
   }
 
   Future<bool> _setSportWithoutController(String sportId) async {
