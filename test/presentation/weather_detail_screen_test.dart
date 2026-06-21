@@ -246,6 +246,87 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Hourly precipitation labels only appear when severity changes', (
+    WidgetTester tester,
+  ) async {
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: DateTime.now(),
+        summary: '비',
+        weatherCode: 61,
+        temperature: 18,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: DateTime(2026, 5, 5),
+            summary: '비',
+            weatherCode: 61,
+            precipitationSum: 3.6,
+            hourlyPrecipitations: [
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 11),
+                precipitation: 0.5,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 12),
+                precipitation: 0.8,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 13),
+                precipitation: 1.2,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 14),
+                precipitation: 1.1,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: DateTime(2026, 5, 5, 15),
+                precipitation: 0,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '비 18°C',
+            initialWeatherCode: 61,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('시간별 비 타임라인'), findsOneWidget);
+    expect(find.text('11:00'), findsAtLeastNWidgets(1));
+    expect(find.text('12:00'), findsAtLeastNWidgets(1));
+    expect(find.text('13:00'), findsAtLeastNWidgets(1));
+    expect(find.text('14:00'), findsAtLeastNWidgets(1));
+    expect(find.text('15:00'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('0.5 mm'), findsOneWidget);
+    expect(find.textContaining('0.8 mm'), findsNothing);
+    expect(find.textContaining('1.1 mm'), findsNothing);
+    expect(find.textContaining('0.0 mm'), findsOneWidget);
+    expect(find.textContaining('조금 와요'), findsOneWidget);
+    expect(find.textContaining('비가 안 와요'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Hourly precipitation shows daily total and amount severity', (
     WidgetTester tester,
   ) async {

@@ -757,12 +757,14 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   String _precipitationAmountLabel(double value) {
     final l10n = AppLocalizations.of(context)!;
-    if (value <= 0.05) return l10n.weatherPrecipitationNone;
-    if (value < 1) return l10n.weatherPrecipitationTrace;
-    if (value < 5) return l10n.weatherPrecipitationLight;
-    if (value < 15) return l10n.weatherPrecipitationModerate;
-    if (value < 30) return l10n.weatherPrecipitationHeavy;
-    return l10n.weatherPrecipitationVeryHeavy;
+    return switch (_precipitationAmountLevel(value)) {
+      _PrecipitationAmountLevel.none => l10n.weatherPrecipitationNone,
+      _PrecipitationAmountLevel.trace => l10n.weatherPrecipitationTrace,
+      _PrecipitationAmountLevel.light => l10n.weatherPrecipitationLight,
+      _PrecipitationAmountLevel.moderate => l10n.weatherPrecipitationModerate,
+      _PrecipitationAmountLevel.heavy => l10n.weatherPrecipitationHeavy,
+      _PrecipitationAmountLevel.veryHeavy => l10n.weatherPrecipitationVeryHeavy,
+    };
   }
 
   String _formatHourlyTime(DateTime value) => DateFormat('HH:mm').format(value);
@@ -3309,6 +3311,24 @@ List<_HourlyPrecipitationEntry> _visibleHourlyPrecipitationEntries(
   return sortedEntries.skip(firstRainIndex).toList(growable: false);
 }
 
+enum _PrecipitationAmountLevel {
+  none,
+  trace,
+  light,
+  moderate,
+  heavy,
+  veryHeavy,
+}
+
+_PrecipitationAmountLevel _precipitationAmountLevel(double value) {
+  if (value <= 0.05) return _PrecipitationAmountLevel.none;
+  if (value < 1) return _PrecipitationAmountLevel.trace;
+  if (value < 5) return _PrecipitationAmountLevel.light;
+  if (value < 15) return _PrecipitationAmountLevel.moderate;
+  if (value < 30) return _PrecipitationAmountLevel.heavy;
+  return _PrecipitationAmountLevel.veryHeavy;
+}
+
 class _HourlyPrecipitationSection extends StatelessWidget {
   final String title;
   final List<_HourlyPrecipitationEntry> entries;
@@ -3443,6 +3463,7 @@ class _HourlyPrecipitationChart extends StatelessWidget {
     if (entries.isEmpty) return const SizedBox.shrink();
     final width = math.max(320.0, entries.length * 62.0);
     const chartHeight = 72.0;
+    const precipitationLabelHeight = 34.0;
     return SizedBox(
       width: width,
       child: Column(
@@ -3460,39 +3481,54 @@ class _HourlyPrecipitationChart extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Row(
-            children: [
-              for (final entry in entries)
-                SizedBox(
-                  width: width / entries.length,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        formatPrecipitation(entry),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style:
-                            Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: labelColor,
-                                  fontWeight: FontWeight.w900,
-                                  height: 1.05,
-                                ),
+            children: List<Widget>.generate(entries.length, (index) {
+              final entry = entries[index];
+              final previousEntry = index == 0 ? null : entries[index - 1];
+              final showPrecipitationLabel = previousEntry == null ||
+                  _precipitationAmountLevel(entry.precipitation) !=
+                      _precipitationAmountLevel(
+                        previousEntry.precipitation,
+                      );
+              return SizedBox(
+                width: width / entries.length,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: precipitationLabelHeight,
+                      child: Center(
+                        child: showPrecipitationLabel
+                            ? Text(
+                                formatPrecipitation(entry),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium
+                                    ?.copyWith(
+                                      color: labelColor,
+                                      fontWeight: FontWeight.w900,
+                                      height: 1.05,
+                                    ),
+                              )
+                            : const SizedBox.shrink(),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        formatTime(entry.time),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: mutedLabelColor,
-                              fontWeight: FontWeight.w800,
-                            ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formatTime(entry.time),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: mutedLabelColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ],
                 ),
-            ],
+              );
+            }),
           ),
         ],
       ),
