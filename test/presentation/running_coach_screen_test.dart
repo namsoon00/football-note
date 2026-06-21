@@ -33,15 +33,14 @@ void main() {
       findsOneWidget,
     );
     expect(find.text("Today's speed mission"), findsOneWidget);
-    expect(find.text('Session plan'), findsOneWidget);
-    expect(find.text('Coach checkpoint'), findsOneWidget);
-    expect(find.text('Records'), findsOneWidget);
-    expect(find.text('Analysis'), findsOneWidget);
+    expect(find.text('Session plan'), findsNothing);
+    expect(find.text('Coach checkpoint'), findsNothing);
 
-    await tester.tap(find.text('Records'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Timing protocol'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('running-coach-growth-record-card')),
+      -220,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Beat your own runner'), findsOneWidget);
     expect(find.text('No time yet'), findsWidgets);
 
@@ -83,11 +82,6 @@ void main() {
         home: RunningCoachScreen(),
       ),
     );
-
-    await tester.tap(find.text('Analysis'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Video analysis protocol'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.text('Open sample video guide'),

@@ -19,8 +19,6 @@ import 'running_live_coach_screen.dart';
 import 'sprint_live_coaching_screen.dart';
 import '../widgets/app_feedback.dart';
 
-enum _RunningCoachSection { today, records, analysis }
-
 class RunningCoachScreen extends StatefulWidget {
   final OptionRepository? optionRepository;
 
@@ -49,7 +47,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       const <RunningCoachSessionAnalysis>[];
   RunningSprintDistance _selectedSprintDistance =
       RunningSprintDistance.twentyMeters;
-  _RunningCoachSection _selectedSection = _RunningCoachSection.today;
   bool _isAnalyzing = false;
   bool _isSavingRecord = false;
 
@@ -74,10 +71,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final sections = _availableSections;
-    final selectedSection =
-        sections.contains(_selectedSection) ? _selectedSection : sections.first;
-    final selectedIndex = sections.indexOf(selectedSection);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -87,150 +80,13 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         ),
         title: Text(l10n.runningCoachScreenTitle),
       ),
-      body: IndexedStack(
-        index: selectedIndex,
-        children: [
-          for (final section in sections) _buildSectionPage(section, l10n),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) => _selectSection(sections[index]),
-        destinations: [
-          for (final section in sections)
-            NavigationDestination(
-              icon: Icon(_sectionIcon(section)),
-              selectedIcon: Icon(_sectionSelectedIcon(section)),
-              label: _sectionLabel(l10n, section),
-            ),
-        ],
-      ),
+      body: _buildCoachPage(l10n),
     );
   }
 
-  List<_RunningCoachSection> get _availableSections => [
-        _RunningCoachSection.today,
-        if (_growthSnapshot != null) _RunningCoachSection.records,
-        _RunningCoachSection.analysis,
-      ];
-
-  Widget _buildSectionPage(
-    _RunningCoachSection section,
-    AppLocalizations l10n,
-  ) {
-    return switch (section) {
-      _RunningCoachSection.today => _buildTodayMissionPage(l10n),
-      _RunningCoachSection.records => _buildRecordsPage(),
-      _RunningCoachSection.analysis => _buildAnalysisPage(l10n),
-    };
-  }
-
-  Widget _buildTodayMissionPage(AppLocalizations l10n) {
+  Widget _buildCoachPage(AppLocalizations l10n) {
     final mission = _missionForToday(DateTime.now());
-    return ListView(
-      key: const PageStorageKey('running-coach-today-page'),
-      padding: const EdgeInsets.all(16),
-      children: [
-        _HeroCard(
-          title: l10n.runningCoachHeroTitle,
-          body: l10n.runningCoachHeroBody,
-        ),
-        const SizedBox(height: 12),
-        _RunningCoachFlowCard(
-          key: const ValueKey('running-coach-today-plan-card'),
-          icon: Icons.route_outlined,
-          title: l10n.runningCoachTodayPlanTitle,
-          steps: [
-            _RunningCoachFlowStep(
-              icon: Icons.flag_outlined,
-              title: l10n.runningCoachTodayPlanMissionTitle,
-              body: l10n.runningCoachTodayPlanMissionBody,
-            ),
-            _RunningCoachFlowStep(
-              icon: Icons.timer_outlined,
-              title: l10n.runningCoachTodayPlanRecordTitle,
-              body: l10n.runningCoachTodayPlanRecordBody,
-            ),
-            _RunningCoachFlowStep(
-              icon: Icons.video_camera_back_outlined,
-              title: l10n.runningCoachTodayPlanAnalysisTitle,
-              body: l10n.runningCoachTodayPlanAnalysisBody,
-            ),
-          ],
-          actions: [
-            if (_growthSnapshot != null)
-              _RunningCoachFlowAction(
-                icon: Icons.show_chart_rounded,
-                label: l10n.runningCoachTodayPlanRecordAction,
-                onPressed: () => _selectSection(_RunningCoachSection.records),
-              ),
-            _RunningCoachFlowAction(
-              icon: Icons.video_camera_back_rounded,
-              label: l10n.runningCoachTodayPlanAnalysisAction,
-              onPressed: () => _selectSection(_RunningCoachSection.analysis),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _RunningCoachControlPanel(mission: mission),
-        const SizedBox(height: 12),
-        _RunningMissionCard(
-          mission: mission,
-          onStartLiveCoach: _openLiveCoach,
-          onStartSprintCoach: _openSprintCoach,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecordsPage() {
     final growthSnapshot = _growthSnapshot;
-    if (growthSnapshot == null) {
-      return const SizedBox.shrink();
-    }
-    final l10n = AppLocalizations.of(context)!;
-    return ListView(
-      key: const PageStorageKey('running-coach-records-page'),
-      padding: const EdgeInsets.all(16),
-      children: [
-        _RunningCoachFlowCard(
-          key: const ValueKey('running-coach-records-plan-card'),
-          icon: Icons.monitor_heart_outlined,
-          title: l10n.runningCoachRecordsPlanTitle,
-          steps: [
-            _RunningCoachFlowStep(
-              icon: Icons.straighten_rounded,
-              title: l10n.runningCoachRecordsPlanDistanceTitle,
-              body: l10n.runningCoachRecordsPlanDistanceBody,
-            ),
-            _RunningCoachFlowStep(
-              icon: Icons.speed_rounded,
-              title: l10n.runningCoachRecordsPlanSecondsTitle,
-              body: l10n.runningCoachRecordsPlanSecondsBody,
-            ),
-            _RunningCoachFlowStep(
-              icon: Icons.compare_arrows_rounded,
-              title: l10n.runningCoachRecordsPlanCompareTitle,
-              body: l10n.runningCoachRecordsPlanCompareBody,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _RunningGrowthRecordCard(
-          snapshot: growthSnapshot,
-          selectedDistance: _selectedSprintDistance,
-          secondsController: _recordSecondsController,
-          isSaving: _isSavingRecord,
-          onDistanceChanged: (distance) {
-            setState(() => _selectedSprintDistance = distance);
-          },
-          onSave: _saveSprintRecord,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAnalysisPage(AppLocalizations l10n) {
     final insightSections = _coachingReport == null
         ? const <_InsightRegionSection>[]
         : _buildInsightSections(l10n, _coachingReport!);
@@ -241,31 +97,32 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       mistakeSampleResult,
     );
     return ListView(
-      key: const PageStorageKey('running-coach-analysis-page'),
+      key: const PageStorageKey('running-coach-simple-page'),
       padding: const EdgeInsets.all(16),
       children: [
-        _RunningCoachFlowCard(
-          key: const ValueKey('running-coach-analysis-plan-card'),
-          icon: Icons.fact_check_outlined,
-          title: l10n.runningCoachAnalysisPlanTitle,
-          steps: [
-            _RunningCoachFlowStep(
-              icon: Icons.photo_camera_back_outlined,
-              title: l10n.runningCoachAnalysisPlanRecordTitle,
-              body: l10n.runningCoachAnalysisPlanRecordBody,
-            ),
-            _RunningCoachFlowStep(
-              icon: Icons.visibility_outlined,
-              title: l10n.runningCoachAnalysisPlanSampleTitle,
-              body: l10n.runningCoachAnalysisPlanSampleBody,
-            ),
-            _RunningCoachFlowStep(
-              icon: Icons.analytics_outlined,
-              title: l10n.runningCoachAnalysisPlanAnalyzeTitle,
-              body: l10n.runningCoachAnalysisPlanAnalyzeBody,
-            ),
-          ],
+        _HeroCard(
+          title: l10n.runningCoachHeroTitle,
+          body: l10n.runningCoachHeroBody,
         ),
+        const SizedBox(height: 12),
+        _RunningMissionCard(
+          mission: mission,
+          onStartLiveCoach: _openLiveCoach,
+          onStartSprintCoach: _openSprintCoach,
+        ),
+        if (growthSnapshot != null) ...[
+          const SizedBox(height: 12),
+          _RunningGrowthRecordCard(
+            snapshot: growthSnapshot,
+            selectedDistance: _selectedSprintDistance,
+            secondsController: _recordSecondsController,
+            isSaving: _isSavingRecord,
+            onDistanceChanged: (distance) {
+              setState(() => _selectedSprintDistance = distance);
+            },
+            onSave: _saveSprintRecord,
+          ),
+        ],
         const SizedBox(height: 12),
         _RunningCoachUploadGuideCard(
           title: l10n.runningCoachUploadGuideTitle,
@@ -316,35 +173,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         ],
       ],
     );
-  }
-
-  IconData _sectionIcon(_RunningCoachSection section) {
-    return switch (section) {
-      _RunningCoachSection.today => Icons.flag_outlined,
-      _RunningCoachSection.records => Icons.show_chart_outlined,
-      _RunningCoachSection.analysis => Icons.video_camera_back_outlined,
-    };
-  }
-
-  IconData _sectionSelectedIcon(_RunningCoachSection section) {
-    return switch (section) {
-      _RunningCoachSection.today => Icons.flag_rounded,
-      _RunningCoachSection.records => Icons.show_chart_rounded,
-      _RunningCoachSection.analysis => Icons.video_camera_back_rounded,
-    };
-  }
-
-  String _sectionLabel(AppLocalizations l10n, _RunningCoachSection section) {
-    return switch (section) {
-      _RunningCoachSection.today => l10n.runningCoachSectionToday,
-      _RunningCoachSection.records => l10n.runningCoachSectionRecords,
-      _RunningCoachSection.analysis => l10n.runningCoachSectionAnalysis,
-    };
-  }
-
-  void _selectSection(_RunningCoachSection section) {
-    if (!_availableSections.contains(section)) return;
-    setState(() => _selectedSection = section);
   }
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
@@ -841,318 +669,6 @@ class _MissionChip extends StatelessWidget {
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RunningCoachFlowStep {
-  final IconData icon;
-  final String title;
-  final String body;
-
-  const _RunningCoachFlowStep({
-    required this.icon,
-    required this.title,
-    required this.body,
-  });
-}
-
-class _RunningCoachFlowAction {
-  final IconData icon;
-  final String label;
-  final VoidCallback onPressed;
-
-  const _RunningCoachFlowAction({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
-}
-
-class _RunningCoachControlPanel extends StatelessWidget {
-  final _RunningMission mission;
-
-  const _RunningCoachControlPanel({required this.mission});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      key: const ValueKey('running-coach-control-panel-card'),
-      clipBehavior: Clip.antiAlias,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: scheme.primary, width: 3),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.tune_rounded, color: scheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.runningCoachControlPanelTitle,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  final tileWidth = width >= 640
-                      ? (width - 30) / 4
-                      : width >= 420
-                          ? (width - 10) / 2
-                          : width;
-                  return Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: [
-                      SizedBox(
-                        width: tileWidth,
-                        child: _CoachControlMetricTile(
-                          icon: Icons.fitness_center_outlined,
-                          label: l10n.runningCoachControlPanelLoadLabel,
-                          value: l10n.runningCoachControlPanelLoadValue,
-                        ),
-                      ),
-                      SizedBox(
-                        width: tileWidth,
-                        child: _CoachControlMetricTile(
-                          icon: Icons.straighten_rounded,
-                          label: l10n.runningCoachControlPanelDistanceLabel,
-                          value: l10n.runningCoachControlPanelDistanceValue(
-                            mission.distanceMeters,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: tileWidth,
-                        child: _CoachControlMetricTile(
-                          icon: Icons.timer_outlined,
-                          label: l10n.runningCoachControlPanelRecordLabel,
-                          value: l10n.runningCoachControlPanelRecordValue,
-                        ),
-                      ),
-                      SizedBox(
-                        width: tileWidth,
-                        child: _CoachControlMetricTile(
-                          icon: Icons.video_camera_back_outlined,
-                          label: l10n.runningCoachControlPanelReviewLabel,
-                          value: l10n.runningCoachControlPanelReviewValue,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CoachControlMetricTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _CoachControlMetricTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: scheme.primary),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RunningCoachFlowCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final List<_RunningCoachFlowStep> steps;
-  final List<_RunningCoachFlowAction> actions;
-
-  const _RunningCoachFlowCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.steps,
-    this.actions = const <_RunningCoachFlowAction>[],
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(color: scheme.secondary, width: 4),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(icon, color: scheme.secondary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              for (var index = 0; index < steps.length; index += 1) ...[
-                _RunningCoachFlowStepTile(
-                  number: index + 1,
-                  step: steps[index],
-                ),
-                if (index != steps.length - 1) const SizedBox(height: 10),
-              ],
-              if (actions.isNotEmpty) ...[
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    for (final action in actions)
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: scheme.primary,
-                        ),
-                        onPressed: action.onPressed,
-                        icon: Icon(action.icon),
-                        label: Text(action.label),
-                      ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RunningCoachFlowStepTile extends StatelessWidget {
-  final int number;
-  final _RunningCoachFlowStep step;
-
-  const _RunningCoachFlowStepTile({
-    required this.number,
-    required this.step,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox.square(
-              dimension: 34,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    number.toString(),
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: scheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Icon(step.icon, color: scheme.primary),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    step.title,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(step.body, style: Theme.of(context).textTheme.bodySmall),
-                ],
               ),
             ),
           ],
