@@ -197,6 +197,11 @@ class WeatherSharedResource {
   static const Duration _retryDelay = Duration(milliseconds: 300);
   static const int _maxFetchAttempts = 2;
   static WeatherSharedSnapshot? _cachedSnapshot;
+  static final StreamController<WeatherSharedSnapshot> _snapshotController =
+      StreamController<WeatherSharedSnapshot>.broadcast();
+
+  static Stream<WeatherSharedSnapshot> get snapshotUpdates =>
+      _snapshotController.stream;
 
   static WeatherSharedSnapshot? cachedSnapshot({required Locale locale}) {
     final cachedSnapshot = _cachedSnapshot;
@@ -212,6 +217,7 @@ class WeatherSharedResource {
 
   static void primeSnapshot(WeatherSharedSnapshot snapshot) {
     _cachedSnapshot = snapshot;
+    _snapshotController.add(snapshot);
   }
 
   static void debugClearCache() {
@@ -331,7 +337,7 @@ class WeatherSharedResource {
         yesterdayTemperature: responses[3] as double?,
       );
       if (cacheSnapshot && snapshot.hasData) {
-        _cachedSnapshot = snapshot;
+        primeSnapshot(snapshot);
       }
       return snapshot;
     } finally {

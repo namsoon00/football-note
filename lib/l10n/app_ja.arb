@@ -2601,7 +2601,7 @@
   "homeWeatherHumidity": "湿度",
   "homeWeatherPrecipitation": "降水量",
   "homeWeatherPrecipitationProbability": "降水確率",
-  "weatherPrecipitationNone": "雨はほとんど降りません",
+  "weatherPrecipitationNone": "雨は降りません",
   "weatherPrecipitationTrace": "少し降ります",
   "weatherPrecipitationLight": "弱く降ります",
   "weatherPrecipitationModerate": "しっかり降ります",

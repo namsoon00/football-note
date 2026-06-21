@@ -4582,7 +4582,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherPrecipitationProbability => '강수확률';
 
   @override
-  String get weatherPrecipitationNone => '비가 거의 안 와요';
+  String get weatherPrecipitationNone => '비가 안 와요';
 
   @override
   String get weatherPrecipitationTrace => '조금 와요';

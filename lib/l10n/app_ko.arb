@@ -2601,7 +2601,7 @@
   "homeWeatherHumidity": "습도",
   "homeWeatherPrecipitation": "강수량",
   "homeWeatherPrecipitationProbability": "강수확률",
-  "weatherPrecipitationNone": "비가 거의 안 와요",
+  "weatherPrecipitationNone": "비가 안 와요",
   "weatherPrecipitationTrace": "조금 와요",
   "weatherPrecipitationLight": "가볍게 와요",
   "weatherPrecipitationModerate": "꽤 와요",
