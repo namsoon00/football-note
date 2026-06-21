@@ -1284,15 +1284,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupQualificationNoOpponent => 'この結果ではラウンド32へ進むルートがありません。';
 
   @override
-  String worldCupQualificationOpponentCandidate(
-      int matchNumber, String opponent) {
-    return 'M$matchNumber · $opponent';
+  String worldCupQualificationOpponentCandidate(String opponent) {
+    return '$opponent';
   }
 
   @override
   String worldCupQualificationOpponentCandidateWithCountries(
-      int matchNumber, String opponent, String countries) {
-    return 'M$matchNumber · $opponent → $countries';
+      String opponent, String countries) {
+    return '$opponent → $countries';
   }
 
   @override

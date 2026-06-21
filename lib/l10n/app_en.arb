@@ -694,23 +694,17 @@
     }
   },
   "worldCupQualificationNoOpponent": "This result path has no Round of 32 route.",
-  "worldCupQualificationOpponentCandidate": "M{matchNumber} · {opponent}",
+  "worldCupQualificationOpponentCandidate": "{opponent}",
   "@worldCupQualificationOpponentCandidate": {
     "placeholders": {
-      "matchNumber": {
-        "type": "int"
-      },
       "opponent": {
         "type": "String"
       }
     }
   },
-  "worldCupQualificationOpponentCandidateWithCountries": "M{matchNumber} · {opponent} → {countries}",
+  "worldCupQualificationOpponentCandidateWithCountries": "{opponent} → {countries}",
   "@worldCupQualificationOpponentCandidateWithCountries": {
     "placeholders": {
-      "matchNumber": {
-        "type": "int"
-      },
       "opponent": {
         "type": "String"
       },

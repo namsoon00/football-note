@@ -694,23 +694,17 @@
     }
   },
   "worldCupQualificationNoOpponent": "이 조합에서는 32강 진출 경로가 없어요.",
-  "worldCupQualificationOpponentCandidate": "M{matchNumber} · {opponent}",
+  "worldCupQualificationOpponentCandidate": "{opponent}",
   "@worldCupQualificationOpponentCandidate": {
     "placeholders": {
-      "matchNumber": {
-        "type": "int"
-      },
       "opponent": {
         "type": "String"
       }
     }
   },
-  "worldCupQualificationOpponentCandidateWithCountries": "M{matchNumber} · {opponent} → {countries}",
+  "worldCupQualificationOpponentCandidateWithCountries": "{opponent} → {countries}",
   "@worldCupQualificationOpponentCandidateWithCountries": {
     "placeholders": {
-      "matchNumber": {
-        "type": "int"
-      },
       "opponent": {
         "type": "String"
       },
