@@ -1230,6 +1230,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get worldCupQualificationScenariosGuide =>
+      '各行はこのチームの残り試合の結果組み合わせです。自動進出はグループ1〜2位、3位比較はグループ3位になったあと全体の3位チーム上位8組に入る必要があるという意味です。自動進出/3位比較/敗退の分母は、同じグループの他の残り試合の勝ち・引き分け・負けをすべて組み合わせた件数です。相手国は現在の順位でブラケット枠を国名に置き換えた候補です。';
+
+  @override
   String get worldCupQualificationScenariosEmpty =>
       'このチームのラウンド32の可能性を計算するグループステージ情報がまだありません。';
 
@@ -1273,7 +1277,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String worldCupQualificationOpponentCandidates(String opponents) {
-    return 'ラウンド32の相手候補: $opponents';
+    return 'ラウンド32の相手候補（現在順位）: $opponents';
   }
 
   @override
@@ -1284,6 +1288,15 @@ class AppLocalizationsJa extends AppLocalizations {
       int matchNumber, String opponent) {
     return 'M$matchNumber · $opponent';
   }
+
+  @override
+  String worldCupQualificationOpponentCandidateWithCountries(
+      int matchNumber, String opponent, String countries) {
+    return 'M$matchNumber · $opponent → $countries';
+  }
+
+  @override
+  String get worldCupQualificationOpponentTeamSeparator => '、';
 
   @override
   String get worldCupQualificationOpponentSeparator => ' または ';

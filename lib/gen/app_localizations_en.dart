@@ -1270,6 +1270,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get worldCupQualificationScenariosGuide =>
+      'Each row is one result combination for this team\'s remaining matches. Auto means finishing 1st or 2nd in the group. 3rd-place race means finishing 3rd, then needing to be among the 8 best third-place teams overall. The denominators for auto, 3rd-place race, and out count every win/draw/loss combination for the other remaining matches in the same group. Opponent countries translate the bracket slot using the current table.';
+
+  @override
   String get worldCupQualificationScenariosEmpty =>
       'There is not enough group-stage data to calculate Round of 32 scenarios for this team yet.';
 
@@ -1313,7 +1317,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String worldCupQualificationOpponentCandidates(String opponents) {
-    return 'Round of 32 opponent slots: $opponents';
+    return 'Round of 32 opponents (current table): $opponents';
   }
 
   @override
@@ -1325,6 +1329,15 @@ class AppLocalizationsEn extends AppLocalizations {
       int matchNumber, String opponent) {
     return 'M$matchNumber · $opponent';
   }
+
+  @override
+  String worldCupQualificationOpponentCandidateWithCountries(
+      int matchNumber, String opponent, String countries) {
+    return 'M$matchNumber · $opponent → $countries';
+  }
+
+  @override
+  String get worldCupQualificationOpponentTeamSeparator => ', ';
 
   @override
   String get worldCupQualificationOpponentSeparator => ' or ';

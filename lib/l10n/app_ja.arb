@@ -628,6 +628,7 @@
       }
     }
   },
+  "worldCupQualificationScenariosGuide": "各行はこのチームの残り試合の結果組み合わせです。自動進出はグループ1〜2位、3位比較はグループ3位になったあと全体の3位チーム上位8組に入る必要があるという意味です。自動進出/3位比較/敗退の分母は、同じグループの他の残り試合の勝ち・引き分け・負けをすべて組み合わせた件数です。相手国は現在の順位でブラケット枠を国名に置き換えた候補です。",
   "worldCupQualificationScenariosEmpty": "このチームのラウンド32の可能性を計算するグループステージ情報がまだありません。",
   "worldCupQualificationScenarioPoints": "残り勝点 +{remainingPoints} · 最終 {finalPoints} 点",
   "@worldCupQualificationScenarioPoints": {
@@ -684,7 +685,7 @@
   "worldCupQualificationOutcomePossible": "進出可能",
   "worldCupQualificationOutcomeThird": "3位比較",
   "worldCupQualificationOutcomeOut": "敗退",
-  "worldCupQualificationOpponentCandidates": "ラウンド32の相手候補: {opponents}",
+  "worldCupQualificationOpponentCandidates": "ラウンド32の相手候補（現在順位）: {opponents}",
   "@worldCupQualificationOpponentCandidates": {
     "placeholders": {
       "opponents": {
@@ -704,6 +705,21 @@
       }
     }
   },
+  "worldCupQualificationOpponentCandidateWithCountries": "M{matchNumber} · {opponent} → {countries}",
+  "@worldCupQualificationOpponentCandidateWithCountries": {
+    "placeholders": {
+      "matchNumber": {
+        "type": "int"
+      },
+      "opponent": {
+        "type": "String"
+      },
+      "countries": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOpponentTeamSeparator": "、",
   "worldCupQualificationOpponentSeparator": " または ",
   "worldCupTeamRosterFormationLabel": "{formation} フォーメーション",
   "@worldCupTeamRosterFormationLabel": {

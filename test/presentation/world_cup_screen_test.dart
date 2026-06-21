@@ -216,7 +216,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('32강 경우의 수'), findsOneWidget);
     expect(find.textContaining('대한민국전 승'), findsWidgets);
-    expect(find.textContaining('32강 상대 후보'), findsWidgets);
+    expect(find.textContaining('각 행은 이 팀의 남은 경기 결과 조합'), findsOneWidget);
+    expect(find.textContaining('32강 상대 후보(현재 순위)'), findsWidgets);
+    expect(find.textContaining('→'), findsWidgets);
     await tester.scrollUntilVisible(
       find.text('4-3-3 포메이션'),
       180,

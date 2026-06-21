@@ -628,6 +628,7 @@
       }
     }
   },
+  "worldCupQualificationScenariosGuide": "Each row is one result combination for this team's remaining matches. Auto means finishing 1st or 2nd in the group. 3rd-place race means finishing 3rd, then needing to be among the 8 best third-place teams overall. The denominators for auto, 3rd-place race, and out count every win/draw/loss combination for the other remaining matches in the same group. Opponent countries translate the bracket slot using the current table.",
   "worldCupQualificationScenariosEmpty": "There is not enough group-stage data to calculate Round of 32 scenarios for this team yet.",
   "worldCupQualificationScenarioPoints": "+{remainingPoints} remaining pts · {finalPoints} pts total",
   "@worldCupQualificationScenarioPoints": {
@@ -684,7 +685,7 @@
   "worldCupQualificationOutcomePossible": "Can advance",
   "worldCupQualificationOutcomeThird": "3rd-place race",
   "worldCupQualificationOutcomeOut": "Out",
-  "worldCupQualificationOpponentCandidates": "Round of 32 opponent slots: {opponents}",
+  "worldCupQualificationOpponentCandidates": "Round of 32 opponents (current table): {opponents}",
   "@worldCupQualificationOpponentCandidates": {
     "placeholders": {
       "opponents": {
@@ -704,6 +705,21 @@
       }
     }
   },
+  "worldCupQualificationOpponentCandidateWithCountries": "M{matchNumber} · {opponent} → {countries}",
+  "@worldCupQualificationOpponentCandidateWithCountries": {
+    "placeholders": {
+      "matchNumber": {
+        "type": "int"
+      },
+      "opponent": {
+        "type": "String"
+      },
+      "countries": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOpponentTeamSeparator": ", ",
   "worldCupQualificationOpponentSeparator": " or ",
   "worldCupTeamRosterFormationLabel": "{formation} formation",
   "@worldCupTeamRosterFormationLabel": {

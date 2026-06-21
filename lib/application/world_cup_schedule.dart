@@ -157,11 +157,13 @@ class WorldCupQualificationOpponentPath {
   final int rank;
   final int matchNumber;
   final String opponentSlot;
+  final List<String> opponentTeams;
 
   const WorldCupQualificationOpponentPath({
     required this.rank,
     required this.matchNumber,
     required this.opponentSlot,
+    this.opponentTeams = const <String>[],
   });
 }
 
@@ -638,9 +640,11 @@ List<WorldCupQualificationOpponentPath>
   if (normalizedGroup.isEmpty || rank < 1 || rank > 3) {
     return const <WorldCupQualificationOpponentPath>[];
   }
+  final sourceFixtures = fixtures ?? worldCupFixtures;
+  final standingsByGroup = worldCupGroupStandings(fixtures: sourceFixtures);
   final seen = <String>{};
   final paths = <WorldCupQualificationOpponentPath>[];
-  for (final fixture in fixtures ?? worldCupFixtures) {
+  for (final fixture in sourceFixtures) {
     if (fixture.stage != WorldCupStage.roundOf32) continue;
     final homeMatches = _roundOf32SlotMatchesGroupRank(
       fixture.homeTeam,
@@ -661,10 +665,35 @@ List<WorldCupQualificationOpponentPath>
         rank: rank,
         matchNumber: fixture.matchNumber,
         opponentSlot: opponentSlot,
+        opponentTeams: _roundOf32OpponentTeamsForSlot(
+          opponentSlot,
+          standingsByGroup,
+        ),
       ),
     );
   }
   return paths..sort((a, b) => a.matchNumber.compareTo(b.matchNumber));
+}
+
+List<String> _roundOf32OpponentTeamsForSlot(
+  String slot,
+  Map<String, List<WorldCupGroupStanding>> standingsByGroup,
+) {
+  final match = RegExp(
+    r'^([123])([A-L](?:/[A-L])*)$',
+  ).firstMatch(slot.trim().toUpperCase());
+  if (match == null) return const <String>[];
+  final rank = int.parse(match.group(1)!);
+  final groups = match.group(2)!.split('/');
+  final seen = <String>{};
+  final teams = <String>[];
+  for (final group in groups) {
+    final standings = standingsByGroup[group];
+    if (standings == null || standings.length < rank) continue;
+    final team = standings[rank - 1].team;
+    if (seen.add(team)) teams.add(team);
+  }
+  return List<String>.unmodifiable(teams);
 }
 
 List<WorldCupFixture> _replaceFixtureScore(

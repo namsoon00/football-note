@@ -2342,6 +2342,12 @@ abstract class AppLocalizations {
   String worldCupQualificationScenariosSubtitle(
       int currentPoints, int remainingMatches);
 
+  /// No description provided for @worldCupQualificationScenariosGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Each row is one result combination for this team\'s remaining matches. Auto means finishing 1st or 2nd in the group. 3rd-place race means finishing 3rd, then needing to be among the 8 best third-place teams overall. The denominators for auto, 3rd-place race, and out count every win/draw/loss combination for the other remaining matches in the same group. Opponent countries translate the bracket slot using the current table.'**
+  String get worldCupQualificationScenariosGuide;
+
   /// No description provided for @worldCupQualificationScenariosEmpty.
   ///
   /// In en, this message translates to:
@@ -2407,7 +2413,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupQualificationOpponentCandidates.
   ///
   /// In en, this message translates to:
-  /// **'Round of 32 opponent slots: {opponents}'**
+  /// **'Round of 32 opponents (current table): {opponents}'**
   String worldCupQualificationOpponentCandidates(String opponents);
 
   /// No description provided for @worldCupQualificationNoOpponent.
@@ -2422,6 +2428,19 @@ abstract class AppLocalizations {
   /// **'M{matchNumber} · {opponent}'**
   String worldCupQualificationOpponentCandidate(
       int matchNumber, String opponent);
+
+  /// No description provided for @worldCupQualificationOpponentCandidateWithCountries.
+  ///
+  /// In en, this message translates to:
+  /// **'M{matchNumber} · {opponent} → {countries}'**
+  String worldCupQualificationOpponentCandidateWithCountries(
+      int matchNumber, String opponent, String countries);
+
+  /// No description provided for @worldCupQualificationOpponentTeamSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get worldCupQualificationOpponentTeamSeparator;
 
   /// No description provided for @worldCupQualificationOpponentSeparator.
   ///
