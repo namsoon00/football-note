@@ -177,8 +177,10 @@ void main() {
     expect(find.textContaining('Score contact confidence'), findsOneWidget);
     expect(find.text('Decision evidence'), findsOneWidget);
     expect(find.text('Posture'), findsWidgets);
+    expect(find.text('Bounce'), findsOneWidget);
     expect(find.textContaining('Frame '), findsWidgets);
     expect(find.text('Landing 0.08'), findsOneWidget);
+    expect(find.text('Bounce 6%'), findsOneWidget);
     expect(find.text('Pass'), findsWidgets);
     expect(
       find.text('Foot lands under the hip with toes forward'),
@@ -191,6 +193,7 @@ void main() {
 
     expect(find.text('Wrong-form readouts'), findsOneWidget);
     expect(find.text('Ahead 0.20'), findsOneWidget);
+    expect(find.text('Bounce'), findsOneWidget);
     expect(find.text('Bounce 10%'), findsOneWidget);
     expect(find.text('Review'), findsWidgets);
     expect(

@@ -11593,6 +11593,12 @@ abstract class AppLocalizations {
   /// **'Landing 0.08'**
   String get runningCoachSampleOverlayFoot;
 
+  /// No description provided for @runningCoachSampleOverlayBounce.
+  ///
+  /// In en, this message translates to:
+  /// **'Bounce 6%'**
+  String get runningCoachSampleOverlayBounce;
+
   /// No description provided for @runningCoachSampleOverlayFrames.
   ///
   /// In en, this message translates to:

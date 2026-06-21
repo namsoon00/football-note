@@ -6471,6 +6471,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleOverlayFoot => '착지 0.08';
 
   @override
+  String get runningCoachSampleOverlayBounce => '바운스 6%';
+
+  @override
   String get runningCoachSampleOverlayFrames => '24/24프레임';
 
   @override
