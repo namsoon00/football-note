@@ -15021,6 +15021,12 @@ abstract class AppLocalizations {
   /// **'Friendly result'**
   String get matchFriendlyResultLabel;
 
+  /// No description provided for @matchResultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Match result'**
+  String get matchResultLabel;
+
   /// No description provided for @matchResultUnset.
   ///
   /// In en, this message translates to:

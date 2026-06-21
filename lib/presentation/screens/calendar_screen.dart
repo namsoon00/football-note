@@ -1954,33 +1954,33 @@ class _CalendarScreenState extends State<CalendarScreen> {
       );
     }
 
-    const friendlyResultUnset = 'unset';
-    const friendlyResultWin = 'win';
-    const friendlyResultDraw = 'draw';
-    const friendlyResultLoss = 'loss';
+    const matchResultUnset = 'unset';
+    const matchResultWin = 'win';
+    const matchResultDraw = 'draw';
+    const matchResultLoss = 'loss';
 
-    String friendlyResultValue() {
+    String matchResultValue() {
       final scored = _parseSheetInt(ourScoreController.text);
       final conceded = _parseSheetInt(opponentScoreController.text);
       if (scored == null || conceded == null) {
-        return friendlyResultUnset;
+        return matchResultUnset;
       }
-      if (scored > conceded) return friendlyResultWin;
-      if (scored < conceded) return friendlyResultLoss;
-      return friendlyResultDraw;
+      if (scored > conceded) return matchResultWin;
+      if (scored < conceded) return matchResultLoss;
+      return matchResultDraw;
     }
 
-    void applyFriendlyResult(String result) {
+    void applyMatchResult(String result) {
       switch (result) {
-        case friendlyResultWin:
+        case matchResultWin:
           ourScoreController.text = '1';
           opponentScoreController.text = '0';
           break;
-        case friendlyResultDraw:
+        case matchResultDraw:
           ourScoreController.text = '1';
           opponentScoreController.text = '1';
           break;
-        case friendlyResultLoss:
+        case matchResultLoss:
           ourScoreController.text = '0';
           opponentScoreController.text = '1';
           break;
@@ -2323,95 +2323,82 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               maxLength: 40,
                               enabled: !readOnly,
                             ),
-                            if (matchKind == 'friendly') ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                l10n.matchFriendlyResultLabel,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelLarge
-                                    ?.copyWith(fontWeight: FontWeight.w800),
-                              ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  ChoiceChip(
-                                    avatar: const Icon(
-                                      Icons.remove_circle_outline,
-                                      size: 18,
-                                    ),
-                                    label: Text(l10n.matchResultUnset),
-                                    selected: friendlyResultValue() ==
-                                        friendlyResultUnset,
-                                    onSelected: readOnly
-                                        ? null
-                                        : (_) {
-                                            setSheetState(() {
-                                              applyFriendlyResult(
-                                                friendlyResultUnset,
-                                              );
-                                            });
-                                          },
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.matchResultLabel,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                ChoiceChip(
+                                  avatar: const Icon(
+                                    Icons.remove_circle_outline,
+                                    size: 18,
                                   ),
-                                  ChoiceChip(
-                                    avatar: const Icon(
-                                      Icons.emoji_events_outlined,
-                                      size: 18,
-                                    ),
-                                    label: Text(l10n.matchResultWin),
-                                    selected: friendlyResultValue() ==
-                                        friendlyResultWin,
-                                    onSelected: readOnly
-                                        ? null
-                                        : (_) {
-                                            setSheetState(() {
-                                              applyFriendlyResult(
-                                                friendlyResultWin,
-                                              );
-                                            });
-                                          },
+                                  label: Text(l10n.matchResultUnset),
+                                  selected:
+                                      matchResultValue() == matchResultUnset,
+                                  onSelected: readOnly
+                                      ? null
+                                      : (_) {
+                                          setSheetState(() {
+                                            applyMatchResult(matchResultUnset);
+                                          });
+                                        },
+                                ),
+                                ChoiceChip(
+                                  avatar: const Icon(
+                                    Icons.emoji_events_outlined,
+                                    size: 18,
                                   ),
-                                  ChoiceChip(
-                                    avatar: const Icon(
-                                      Icons.drag_handle,
-                                      size: 18,
-                                    ),
-                                    label: Text(l10n.matchResultDraw),
-                                    selected: friendlyResultValue() ==
-                                        friendlyResultDraw,
-                                    onSelected: readOnly
-                                        ? null
-                                        : (_) {
-                                            setSheetState(() {
-                                              applyFriendlyResult(
-                                                friendlyResultDraw,
-                                              );
-                                            });
-                                          },
+                                  label: Text(l10n.matchResultWin),
+                                  selected:
+                                      matchResultValue() == matchResultWin,
+                                  onSelected: readOnly
+                                      ? null
+                                      : (_) {
+                                          setSheetState(() {
+                                            applyMatchResult(matchResultWin);
+                                          });
+                                        },
+                                ),
+                                ChoiceChip(
+                                  avatar: const Icon(
+                                    Icons.drag_handle,
+                                    size: 18,
                                   ),
-                                  ChoiceChip(
-                                    avatar: const Icon(
-                                      Icons.close,
-                                      size: 18,
-                                    ),
-                                    label: Text(l10n.matchResultLoss),
-                                    selected: friendlyResultValue() ==
-                                        friendlyResultLoss,
-                                    onSelected: readOnly
-                                        ? null
-                                        : (_) {
-                                            setSheetState(() {
-                                              applyFriendlyResult(
-                                                friendlyResultLoss,
-                                              );
-                                            });
-                                          },
-                                  ),
-                                ],
-                              ),
-                            ],
+                                  label: Text(l10n.matchResultDraw),
+                                  selected:
+                                      matchResultValue() == matchResultDraw,
+                                  onSelected: readOnly
+                                      ? null
+                                      : (_) {
+                                          setSheetState(() {
+                                            applyMatchResult(matchResultDraw);
+                                          });
+                                        },
+                                ),
+                                ChoiceChip(
+                                  avatar: const Icon(Icons.close, size: 18),
+                                  label: Text(l10n.matchResultLoss),
+                                  selected:
+                                      matchResultValue() == matchResultLoss,
+                                  onSelected: readOnly
+                                      ? null
+                                      : (_) {
+                                          setSheetState(() {
+                                            applyMatchResult(matchResultLoss);
+                                          });
+                                        },
+                                ),
+                              ],
+                            ),
                             const SizedBox(height: 8),
                             Row(
                               children: [

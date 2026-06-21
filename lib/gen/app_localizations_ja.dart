@@ -8476,6 +8476,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchFriendlyResultLabel => '親善試合の結果';
 
   @override
+  String get matchResultLabel => '試合結果';
+
+  @override
   String get matchResultUnset => '未入力';
 
   @override

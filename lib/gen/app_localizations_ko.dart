@@ -8485,6 +8485,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchFriendlyResultLabel => '친선 경기 결과';
 
   @override
+  String get matchResultLabel => '경기 결과';
+
+  @override
   String get matchResultUnset => '미입력';
 
   @override
