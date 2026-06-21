@@ -263,6 +263,62 @@ void main() {
     );
   });
 
+  testWidgets('player mode sport change returns to the root route', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final sportController = SportStateController(optionRepository);
+
+    await tester.pumpWidget(
+      SportScope(
+        controller: sportController,
+        child: MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                key: const ValueKey<String>('open-settings-route'),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => SettingsScreen(
+                        localeService: localeService,
+                        settingsService: settingsService,
+                        optionRepository: optionRepository,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Open settings'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey<String>('open-settings-route')));
+    await tester.pumpAndSettle();
+    expect(find.text('일반 설정'), findsOneWidget);
+
+    await tester.tap(find.text('일반 설정'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownMenu<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('농구').last);
+    await tester.pumpAndSettle();
+
+    expect(sportController.currentSportId, SportCatalog.basketballId);
+    expect(find.byKey(const ValueKey<String>('open-settings-route')),
+        findsOneWidget);
+    expect(find.text('일반 설정'), findsNothing);
+  });
+
   testWidgets('parent mode disables sport selector', (
     WidgetTester tester,
   ) async {
