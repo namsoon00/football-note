@@ -313,6 +313,9 @@ void main() {
     );
     await tester.tap(find.widgetWithText(ChoiceChip, '승'));
     await tester.pump();
+    await tapTooltip('우리 점수 늘리기');
+    await tapTooltip('상대 점수 늘리기');
+    await tapTooltip('상대 점수 줄이기');
     await tapTooltip('골 늘리기');
     await tapTooltip('골 늘리기');
     await tapTooltip('골 줄이기');
@@ -330,14 +333,14 @@ void main() {
     final entries = await trainingService.allEntries();
     expect(entries, hasLength(1));
     expect(entries.single.matchKind, 'friendly');
-    expect(entries.single.scoredGoals, 1);
+    expect(entries.single.scoredGoals, 2);
     expect(entries.single.concededGoals, 0);
     expect(entries.single.playerGoals, 1);
     expect(entries.single.playerAssists, 1);
     expect(entries.single.shotsOnTarget, 2);
     expect(entries.single.ballsWon, 1);
     expect(find.textContaining('승 · vs 그린 FC'), findsOneWidget);
-    expect(find.textContaining('결과 1:0'), findsOneWidget);
+    expect(find.textContaining('결과 2:0'), findsOneWidget);
     expect(find.textContaining('골 1'), findsOneWidget);
     expect(find.textContaining('어시스트 1'), findsOneWidget);
     expect(find.textContaining('유효 슈팅 2'), findsOneWidget);

@@ -2026,6 +2026,50 @@ class _CalendarScreenState extends State<CalendarScreen> {
               );
             }
 
+            Widget buildScoreStepper({
+              required String label,
+              required TextEditingController controller,
+            }) {
+              final parsed = _parseSheetInt(controller.text);
+              final value = parsed ?? 0;
+              void updateValue(int nextValue) {
+                controller.text = nextValue < 0 ? '0' : nextValue.toString();
+              }
+
+              return _MatchCountStepper(
+                label: label,
+                value: value,
+                hasValue: parsed != null,
+                enabled: !readOnly,
+                increaseTooltip: l10n.matchCountIncreaseTooltip(label),
+                decreaseTooltip: l10n.matchCountDecreaseTooltip(label),
+                onIncrement: () {
+                  setSheetState(() => updateValue(value + 1));
+                },
+                onDecrement: value <= 0
+                    ? null
+                    : () {
+                        setSheetState(() => updateValue(value - 1));
+                      },
+              );
+            }
+
+            Widget buildTwoColumnCounters(List<Widget> children) {
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final itemWidth = (constraints.maxWidth - 8) / 2;
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final child in children)
+                        SizedBox(width: itemWidth, child: child),
+                    ],
+                  );
+                },
+              );
+            }
+
             return SafeArea(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
@@ -2400,105 +2444,39 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: ourScoreController,
-                                    readOnly: readOnly,
-                                    onChanged: (_) => setSheetState(() {}),
-                                    keyboardType: TextInputType.number,
-                                    textInputAction: TextInputAction.done,
-                                    onFieldSubmitted: (_) =>
-                                        FocusScope.of(context).unfocus(),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    decoration:
-                                        _calendarInputDecorationWithDone(
-                                      context,
-                                      InputDecoration(
-                                        labelText: l10n.matchOurScoreLabel,
-                                      ),
-                                      enabled: !readOnly,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: opponentScoreController,
-                                    readOnly: readOnly,
-                                    onChanged: (_) => setSheetState(() {}),
-                                    keyboardType: TextInputType.number,
-                                    textInputAction: TextInputAction.done,
-                                    onFieldSubmitted: (_) =>
-                                        FocusScope.of(context).unfocus(),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    decoration:
-                                        _calendarInputDecorationWithDone(
-                                      context,
-                                      InputDecoration(
-                                        labelText: l10n.matchOpponentScoreLabel,
-                                      ),
-                                      enabled: !readOnly,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                            buildTwoColumnCounters([
+                              buildScoreStepper(
+                                label: l10n.matchOurScoreLabel,
+                                controller: ourScoreController,
+                              ),
+                              buildScoreStepper(
+                                label: l10n.matchOpponentScoreLabel,
+                                controller: opponentScoreController,
+                              ),
+                            ]),
                             const SizedBox(height: 8),
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                final itemWidth = constraints.maxWidth >= 560
-                                    ? (constraints.maxWidth - 8) / 2
-                                    : constraints.maxWidth;
-                                return Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    SizedBox(
-                                      width: itemWidth,
-                                      child: buildCountStepper(
-                                        label: matchLabels.primary.label,
-                                        valueText: playerGoalsText,
-                                        onChanged: (value) =>
-                                            playerGoalsText = value,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: itemWidth,
-                                      child: buildCountStepper(
-                                        label: matchLabels.secondary.label,
-                                        valueText: playerAssistsText,
-                                        onChanged: (value) =>
-                                            playerAssistsText = value,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: itemWidth,
-                                      child: buildCountStepper(
-                                        label: matchLabels.tertiary.label,
-                                        valueText: shotsOnTargetText,
-                                        onChanged: (value) =>
-                                            shotsOnTargetText = value,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: itemWidth,
-                                      child: buildCountStepper(
-                                        label: matchLabels.quaternary.label,
-                                        valueText: ballsWonText,
-                                        onChanged: (value) =>
-                                            ballsWonText = value,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
+                            buildTwoColumnCounters([
+                              buildCountStepper(
+                                label: matchLabels.primary.label,
+                                valueText: playerGoalsText,
+                                onChanged: (value) => playerGoalsText = value,
+                              ),
+                              buildCountStepper(
+                                label: matchLabels.secondary.label,
+                                valueText: playerAssistsText,
+                                onChanged: (value) => playerAssistsText = value,
+                              ),
+                              buildCountStepper(
+                                label: matchLabels.tertiary.label,
+                                valueText: shotsOnTargetText,
+                                onChanged: (value) => shotsOnTargetText = value,
+                              ),
+                              buildCountStepper(
+                                label: matchLabels.quaternary.label,
+                                valueText: ballsWonText,
+                                onChanged: (value) => ballsWonText = value,
+                              ),
+                            ]),
                             const SizedBox(height: 8),
                             TextFormField(
                               initialValue: minutesPlayedText,
