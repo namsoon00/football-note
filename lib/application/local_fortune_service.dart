@@ -77,15 +77,9 @@ class LocalFortuneService {
     );
 
     final fortuneText = <String>[
-      l10n.fortuneGeneratedDailyLineOne(
-        name,
-        birthReading.frame,
-        _pillarLabel(dailyPillar, l10n),
-        elementFlow,
-      ),
+      l10n.fortuneGeneratedDailyLineOne(name, elementFlow),
       l10n.fortuneGeneratedDailyLineTwo(fortuneTheme, trainingTone),
       l10n.fortuneGeneratedDailyLineThree(nameElement, playAdvice),
-      l10n.fortuneGeneratedLuckyInfoHeader,
       l10n.fortuneGeneratedLuckyInfoLine(
         luckyNumber,
         luckyColor,
@@ -383,16 +377,16 @@ class _BirthReading {
   });
 }
 
-const int _fortuneLuckyColorToneCount = 10;
-const int _fortuneLuckyColorBaseCount = 10;
-const int _fortuneLuckyTimePeriodCount = 8;
-const int _fortuneLuckyTimeWindowCount = 10;
-const int _fortuneLuckyZoneModifierCount = 8;
-const int _fortuneLuckyZoneBaseCount = 10;
-const int _fortuneLuckyCueOpeningCount = 8;
-const int _fortuneLuckyCueActionCount = 8;
-const int _fortuneSajuElementFlowCount = 8;
-const int _fortuneSajuThemeCount = 8;
-const int _fortuneSajuTrainingToneCount = 8;
-const int _fortuneSajuNameElementCount = 8;
-const int _fortuneSajuPlayAdviceCount = 8;
+const int _fortuneLuckyColorToneCount = 16;
+const int _fortuneLuckyColorBaseCount = 20;
+const int _fortuneLuckyTimePeriodCount = 12;
+const int _fortuneLuckyTimeWindowCount = 16;
+const int _fortuneLuckyZoneModifierCount = 16;
+const int _fortuneLuckyZoneBaseCount = 20;
+const int _fortuneLuckyCueOpeningCount = 16;
+const int _fortuneLuckyCueActionCount = 24;
+const int _fortuneSajuElementFlowCount = 16;
+const int _fortuneSajuThemeCount = 24;
+const int _fortuneSajuTrainingToneCount = 24;
+const int _fortuneSajuNameElementCount = 16;
+const int _fortuneSajuPlayAdviceCount = 24;
