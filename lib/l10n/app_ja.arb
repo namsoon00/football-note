@@ -972,6 +972,7 @@
   "trainingXpDialogMessage": "記録を保存しました。",
   "trainingRecordSavedDialogMessage": "記録を保存しました。",
   "trainingEntryConditioningEmpty": "縄跳び/リフティングの記録なし",
+  "trainingEntryLessonSummary": "レッスン",
   "trainingEntryInjuryPresent": "けがの記録あり",
   "trainingEntryInjurySummary": "けが: {detail}",
   "@trainingEntryInjurySummary": {
@@ -1743,6 +1744,7 @@
   "injuryPart": "損傷部位",
   "painLevel": "痛みのレベル (1-10)",
   "rehab": "リハビリ",
+  "entryLesson": "レッスン",
   "goal": "ゴール",
   "feedback": "フィードバック",
   "notes": "注意事項",
@@ -1864,6 +1866,15 @@
         "type": "int"
       },
       "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportLessonCountLabel": "レッスン回数",
+  "statsReportLessonCountValue": "{count}回",
+  "@statsReportLessonCountValue": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

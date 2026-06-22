@@ -54,6 +54,7 @@ void main() {
       location: '학교 운동장',
       heightCm: 150,
       weightKg: 42.5,
+      isLesson: true,
     );
     await service.add(entry);
 
@@ -86,6 +87,8 @@ void main() {
     expect(find.text('훈련'), findsOneWidget);
     expect(find.text('시합'), findsOneWidget);
     expect(find.text('기록 리듬'), findsOneWidget);
+    expect(find.text('레슨 횟수'), findsOneWidget);
+    expect(find.text('1회'), findsOneWidget);
     expect(find.text('축구 성장 요약'), findsOneWidget);
     expect(find.byTooltip('다이어리'), findsNothing);
   });

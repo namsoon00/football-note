@@ -2963,6 +2963,12 @@ abstract class AppLocalizations {
   /// **'No jump rope/lifting record'**
   String get trainingEntryConditioningEmpty;
 
+  /// No description provided for @trainingEntryLessonSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson'**
+  String get trainingEntryLessonSummary;
+
   /// No description provided for @trainingEntryInjuryPresent.
   ///
   /// In en, this message translates to:
@@ -5442,6 +5448,12 @@ abstract class AppLocalizations {
   /// **'Rehab'**
   String get rehab;
 
+  /// No description provided for @entryLesson.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson'**
+  String get entryLesson;
+
   /// No description provided for @goal.
   ///
   /// In en, this message translates to:
@@ -5910,6 +5922,18 @@ abstract class AppLocalizations {
   /// **'{sessions} sessions · {activeDays}/{periodDays} days'**
   String statsReportTrainingRhythmValue(
       int sessions, int activeDays, int periodDays);
+
+  /// No description provided for @statsReportLessonCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons'**
+  String get statsReportLessonCountLabel;
+
+  /// No description provided for @statsReportLessonCountValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}'**
+  String statsReportLessonCountValue(int count);
 
   /// No description provided for @statsReportActiveDaysLabel.
   ///

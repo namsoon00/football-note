@@ -1583,6 +1583,7 @@ class _TrainingReportSection extends StatelessWidget {
     final periodDays = _periodDayCount(range);
     final activeDays = entries.map((entry) => _dayOnly(entry.date)).toSet();
     final mealDays = mealEntries.map((entry) => _dayOnly(entry.date)).toSet();
+    final lessonCount = entries.where((entry) => entry.isLesson).length;
     final totalMinutes = entries.fold<int>(
       0,
       (sum, entry) => sum + entry.durationMinutes,
@@ -1669,6 +1670,10 @@ class _TrainingReportSection extends StatelessWidget {
           activeDays.length,
           periodDays,
         ),
+      ),
+      _MetricCard(
+        label: l10n.statsReportLessonCountLabel,
+        value: l10n.statsReportLessonCountValue(lessonCount),
       ),
       if (targetPercent != null)
         _MetricCard(

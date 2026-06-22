@@ -1604,6 +1604,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingEntryConditioningEmpty => '줄넘기/리프팅 기록 없음';
 
   @override
+  String get trainingEntryLessonSummary => '레슨';
+
+  @override
   String get trainingEntryInjuryPresent => '부상 있음';
 
   @override
@@ -2969,6 +2972,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get rehab => '재활 여부';
 
   @override
+  String get entryLesson => '레슨 여부';
+
+  @override
   String get goal => '오늘 목표';
 
   @override
@@ -3218,6 +3224,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String statsReportTrainingRhythmValue(
       int sessions, int activeDays, int periodDays) {
     return '$sessions회 · $activeDays/$periodDays일';
+  }
+
+  @override
+  String get statsReportLessonCountLabel => '레슨 횟수';
+
+  @override
+  String statsReportLessonCountValue(int count) {
+    return '$count회';
   }
 
   @override

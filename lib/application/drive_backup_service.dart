@@ -2313,6 +2313,7 @@ class DriveBackupService implements BackupRepository {
       matchCompetitionName: entry.matchCompetitionName,
       matchStage: entry.matchStage,
       tournamentOutcome: entry.tournamentOutcome,
+      isLesson: entry.isLesson,
     );
   }
 
@@ -3331,6 +3332,7 @@ class DriveBackupService implements BackupRepository {
       'matchCompetitionName': entry.matchCompetitionName,
       'matchStage': entry.matchStage,
       'tournamentOutcome': entry.tournamentOutcome,
+      'isLesson': entry.isLesson,
       'trainingProgramMinutes': entry.trainingProgramMinutes,
     };
   }
@@ -3429,6 +3431,7 @@ class DriveBackupService implements BackupRepository {
       matchCompetitionName: map['matchCompetitionName'] as String? ?? '',
       matchStage: map['matchStage'] as String? ?? '',
       tournamentOutcome: map['tournamentOutcome'] as String? ?? '',
+      isLesson: map['isLesson'] as bool? ?? false,
       trainingProgramMinutes: (map['trainingProgramMinutes'] as Map?)?.map(
             (key, value) =>
                 MapEntry(key.toString(), (value is num) ? value.toInt() : 0),

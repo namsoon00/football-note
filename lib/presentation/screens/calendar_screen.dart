@@ -4876,6 +4876,7 @@ class _EntryTile extends StatelessWidget {
       _trainingProgramDurationText(entry, l10n: l10n),
     ].where((part) => part.trim().isNotEmpty).toList(growable: false);
     final trainingSummaryParts = [
+      trainingEntryLessonLabel(entry, l10n),
       ...trainingEntryConditioningParts(entry, l10n, includeEmptyMessage: true),
       trainingEntryInjuryLabel(entry, l10n),
       trainingEntryLocationWeatherLabel(entry),

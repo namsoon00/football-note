@@ -972,6 +972,7 @@
   "trainingXpDialogMessage": "훈련 기록이 저장됐어요.",
   "trainingRecordSavedDialogMessage": "기록이 저장됐어요.",
   "trainingEntryConditioningEmpty": "줄넘기/리프팅 기록 없음",
+  "trainingEntryLessonSummary": "레슨",
   "trainingEntryInjuryPresent": "부상 있음",
   "trainingEntryInjurySummary": "부상: {detail}",
   "@trainingEntryInjurySummary": {
@@ -1743,6 +1744,7 @@
   "injuryPart": "부상 부위",
   "painLevel": "통증 강도(1-10)",
   "rehab": "재활 여부",
+  "entryLesson": "레슨 여부",
   "goal": "오늘 목표",
   "feedback": "피드백/코멘트",
   "notes": "메모",
@@ -1864,6 +1866,15 @@
         "type": "int"
       },
       "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportLessonCountLabel": "레슨 횟수",
+  "statsReportLessonCountValue": "{count}회",
+  "@statsReportLessonCountValue": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

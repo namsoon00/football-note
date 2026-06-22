@@ -114,6 +114,7 @@ void main() {
         liftingByPart: const {'inside': 40},
         jumpRopeCount: 120,
         jumpRopeEnabled: true,
+        isLesson: true,
       ),
     );
 
@@ -144,6 +145,7 @@ void main() {
 
     expect(find.text('볼터치, 패스 · 50분'), findsOneWidget);
     expect(find.textContaining('볼터치 50분'), findsNothing);
+    expect(find.textContaining('레슨'), findsOneWidget);
     expect(find.textContaining('리프팅 40회'), findsOneWidget);
     expect(find.textContaining('줄넘기 120회'), findsOneWidget);
   });

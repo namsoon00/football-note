@@ -133,6 +133,7 @@ void main() {
         leaguePoints: 3,
         matchCompetitionName: 'Weekend League',
         matchStage: 'Round 2',
+        isLesson: true,
       ),
     );
 
@@ -168,6 +169,7 @@ void main() {
     expect(backedUpEntry['matchCompetitionName'], 'Weekend League');
     expect(backedUpEntry['matchStage'], 'Round 2');
     expect(backedUpEntry['leaguePoints'], 3);
+    expect(backedUpEntry['isLesson'], isTrue);
     expect(backupOptions['profile_name'], 'Lee');
     expect(backupOptions['default_duration'], 90);
     expect(backupOptions['type_options'], ['technique', 'tactics']);
@@ -194,6 +196,7 @@ void main() {
     expect(trainingBox.values.first.matchCompetitionName, 'Weekend League');
     expect(trainingBox.values.first.matchStage, 'Round 2');
     expect(trainingBox.values.first.leaguePoints, 3);
+    expect(trainingBox.values.first.isLesson, isTrue);
 
     expect(optionBox.get('profile_name'), 'Lee');
     expect(optionBox.get('profile_height_cm'), '160.5');

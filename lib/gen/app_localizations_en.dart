@@ -1655,6 +1655,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingEntryConditioningEmpty => 'No jump rope/lifting record';
 
   @override
+  String get trainingEntryLessonSummary => 'Lesson';
+
+  @override
   String get trainingEntryInjuryPresent => 'Injury recorded';
 
   @override
@@ -3054,6 +3057,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rehab => 'Rehab';
 
   @override
+  String get entryLesson => 'Lesson';
+
+  @override
   String get goal => 'Goal';
 
   @override
@@ -3305,6 +3311,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String statsReportTrainingRhythmValue(
       int sessions, int activeDays, int periodDays) {
     return '$sessions sessions · $activeDays/$periodDays days';
+  }
+
+  @override
+  String get statsReportLessonCountLabel => 'Lessons';
+
+  @override
+  String statsReportLessonCountValue(int count) {
+    return '$count';
   }
 
   @override

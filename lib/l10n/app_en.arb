@@ -972,6 +972,7 @@
   "trainingXpDialogMessage": "Training log saved.",
   "trainingRecordSavedDialogMessage": "Record saved.",
   "trainingEntryConditioningEmpty": "No jump rope/lifting record",
+  "trainingEntryLessonSummary": "Lesson",
   "trainingEntryInjuryPresent": "Injury recorded",
   "trainingEntryInjurySummary": "Injury: {detail}",
   "@trainingEntryInjurySummary": {
@@ -1743,6 +1744,7 @@
   "injuryPart": "Injury Part",
   "painLevel": "Pain Level (1-10)",
   "rehab": "Rehab",
+  "entryLesson": "Lesson",
   "goal": "Goal",
   "feedback": "Feedback",
   "notes": "Notes",
@@ -1864,6 +1866,15 @@
         "type": "int"
       },
       "periodDays": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportLessonCountLabel": "Lessons",
+  "statsReportLessonCountValue": "{count}",
+  "@statsReportLessonCountValue": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }
