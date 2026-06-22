@@ -9662,7 +9662,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStart =>
-      'Quick start: Select a player or ball, tap an action, then tap the target player or space.';
+      'Quick start: Select a player, tap an action, then tap the target player or space.';
 
   @override
   String get trainingSketchSelectedItemTitle => 'Selected item';
@@ -9797,11 +9797,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      'Tap an action, then tap a destination or target player. Drag the player to adjust the position.';
+      'Tap an action, then tap a destination or target player. Actions that need a ball create one beside the player automatically.';
 
   @override
   String get trainingSketchLinkBallHint =>
-      'Tap an action, then tap a pass, serve, or shot target. Drag the ball to adjust the position.';
+      'Use this only when you want to move the ball by itself. Player actions create the needed ball movement together.';
 
   @override
   String trainingSketchActionTargetHint(Object action) {
@@ -9813,6 +9813,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchSelectedItemActionsTitle => 'Quick actions';
+
+  @override
+  String get trainingSketchPlayerActionsTitle => 'Player actions';
+
+  @override
+  String get trainingSketchBallActionsTitle => 'Ball actions';
 
   @override
   String get trainingSketchCreateMoveRouteButton => 'Create move';

@@ -9390,7 +9390,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStart =>
-      '빠른 시작: 사람이나 공을 선택하고 동작을 누른 뒤, 대상 사람이나 공간을 찍으세요.';
+      '빠른 시작: 선수를 선택하고 액션을 누른 뒤, 대상 사람이나 공간을 찍으세요.';
 
   @override
   String get trainingSketchSelectedItemTitle => '선택 요소';
@@ -9522,11 +9522,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      '동작을 누른 뒤 도착 지점이나 대상 사람을 찍으세요. 사람을 잡고 움직이면 위치를 조정할 수 있어요.';
+      '액션을 누른 뒤 도착 지점이나 대상 사람을 찍으세요. 공이 필요한 액션은 선수 옆에 공을 자동으로 만들어요.';
 
   @override
   String get trainingSketchLinkBallHint =>
-      '동작을 누른 뒤 패스·서브·슈팅 지점이나 대상 사람을 찍으세요. 공을 잡고 움직이면 위치를 조정할 수 있어요.';
+      '공만 따로 움직이고 싶을 때 사용하세요. 선수 액션을 쓰면 필요한 공 움직임이 함께 만들어져요.';
 
   @override
   String trainingSketchActionTargetHint(Object action) {
@@ -9538,6 +9538,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchSelectedItemActionsTitle => '빠른 동작';
+
+  @override
+  String get trainingSketchPlayerActionsTitle => '선수 액션';
+
+  @override
+  String get trainingSketchBallActionsTitle => '공 액션';
 
   @override
   String get trainingSketchCreateMoveRouteButton => '이동 만들기';

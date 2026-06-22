@@ -5219,7 +5219,7 @@
   "trainingSketchResetButton": "クリア",
   "trainingSketchPenModeHint": "ペンモード: ボード上をドラッグして描画します。",
   "trainingSketchPenColorLabel": "ペンの色",
-  "trainingSketchQuickStart": "クイックスタート: プレイヤーやボールを選び、動作を押してから対象の人やスペースをタップします。",
+  "trainingSketchQuickStart": "クイックスタート: プレイヤーを選び、動作を押してから対象の人やスペースをタップします。",
   "trainingSketchSelectedItemTitle": "選択した項目",
   "trainingSketchAssignColorLabel": "色の割り当て",
   "trainingSketchDrawRouteFirst": "まずルートを描画または選択します。",
@@ -5277,8 +5277,8 @@
   "trainingSketchSelectedBallRouteHint": "パスの到着地点をタップしてからルート完了を押します。ドラッグでも描けます。",
   "trainingSketchPlayerRouteHint": "プレイヤーを選ぶかボードをタップして開始し、到着地点をタップして完了します。",
   "trainingSketchBallRouteHint": "ボールを選ぶかボードをタップして開始し、パスの到着地点をタップして完了します。",
-  "trainingSketchLinkPlayerHint": "動作を押してから到着地点や対象プレイヤーをタップします。プレイヤーをドラッグすると位置を調整できます。",
-  "trainingSketchLinkBallHint": "動作を押してからパス・サーブ・シュートの目標をタップします。ボールをドラッグすると位置を調整できます。",
+  "trainingSketchLinkPlayerHint": "動作を押してから到着地点や対象プレイヤーをタップします。ボールが必要な動作では、プレイヤーの近くにボールを自動で作成します。",
+  "trainingSketchLinkBallHint": "ボールだけを動かしたい時に使います。プレイヤー動作では必要なボールの動きも一緒に作成されます。",
   "trainingSketchActionTargetHint": "{action} の対象またはスペースをタップします。",
   "@trainingSketchActionTargetHint": {
     "placeholders": {
@@ -5287,6 +5287,8 @@
   },
   "trainingSketchActionTargetCancelButton": "キャンセル",
   "trainingSketchSelectedItemActionsTitle": "クイック動作",
+  "trainingSketchPlayerActionsTitle": "プレイヤー動作",
+  "trainingSketchBallActionsTitle": "ボール動作",
   "trainingSketchCreateMoveRouteButton": "移動作成",
   "trainingSketchCreatePassRouteButton": "パス作成",
   "trainingSketchQuickMoveButton": "移動",
