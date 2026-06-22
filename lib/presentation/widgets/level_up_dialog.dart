@@ -1553,9 +1553,13 @@ class _StreakTrail extends StatelessWidget {
         for (var index = 0; index < visibleDays; index += 1)
           _StreakCheckToken(
             color: color,
-            scale: 1 + math.min(index.toDouble(), 3) * 0.035,
-            opacity: 0.12 + index * 0.018,
+            scale: 1 +
+                math.min(index.toDouble(), 3) * 0.035 +
+                (index == visibleDays - 1 ? 0.05 : 0),
+            opacity:
+                0.12 + index * 0.018 + (index == visibleDays - 1 ? 0.08 : 0),
             animateIn: index == visibleDays - 1,
+            isLatest: index == visibleDays - 1,
           ),
         if (days > visibleDays)
           Container(
@@ -1587,12 +1591,14 @@ class _StreakCheckToken extends StatelessWidget {
   final double scale;
   final double opacity;
   final bool animateIn;
+  final bool isLatest;
 
   const _StreakCheckToken({
     required this.color,
     required this.scale,
     required this.opacity,
     this.animateIn = false,
+    this.isLatest = false,
   });
 
   @override
@@ -1614,29 +1620,236 @@ class _StreakCheckToken extends StatelessWidget {
           ),
         );
       },
-      child: Container(
-        width: 48,
-        height: 58,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: opacity),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.28)),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.13),
-              blurRadius: 12,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Icon(
-          Icons.check_rounded,
-          color: Color.lerp(color, Colors.white, 0.10),
-          size: 30,
-        ),
+      child: isLatest
+          ? _LatestStreakCheckToken(color: color, opacity: opacity)
+          : _BaseStreakCheckToken(color: color, opacity: opacity),
+    );
+  }
+}
+
+class _BaseStreakCheckToken extends StatelessWidget {
+  final Color color;
+  final double opacity;
+
+  const _BaseStreakCheckToken({required this.color, required this.opacity});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 48,
+      height: 58,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: opacity),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.13),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Icon(
+        Icons.check_rounded,
+        color: Color.lerp(color, Colors.white, 0.10),
+        size: 30,
       ),
     );
+  }
+}
+
+class _LatestStreakCheckToken extends StatefulWidget {
+  final Color color;
+  final double opacity;
+
+  const _LatestStreakCheckToken({
+    required this.color,
+    required this.opacity,
+  });
+
+  @override
+  State<_LatestStreakCheckToken> createState() =>
+      _LatestStreakCheckTokenState();
+}
+
+class _LatestStreakCheckTokenState extends State<_LatestStreakCheckToken>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1300),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 60,
+      height: 70,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final pulse = _controller.value;
+          return Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: _LatestStreakCheckBurstPainter(
+                      color: widget.color,
+                      progress: pulse,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                width: 50,
+                height: 60,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color.lerp(widget.color, Colors.white, 0.78)!
+                          .withValues(alpha: 0.96),
+                      widget.color.withValues(alpha: widget.opacity),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(17),
+                  border: Border.all(
+                    color: Color.lerp(widget.color, Colors.white, 0.28)!,
+                    width: 1.8,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: widget.color.withValues(alpha: 0.24),
+                      blurRadius: 18,
+                      offset: const Offset(0, 7),
+                    ),
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.42),
+                      blurRadius: 10,
+                      offset: const Offset(-2, -3),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.check_rounded,
+                  color: Color.lerp(widget.color, Colors.white, 0.06),
+                  size: 32,
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 1,
+                child: Container(
+                  width: 22,
+                  height: 22,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Color.lerp(widget.color, Colors.white, 0.12),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.88),
+                      width: 1.6,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: widget.color.withValues(alpha: 0.28),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LatestStreakCheckBurstPainter extends CustomPainter {
+  final Color color;
+  final double progress;
+
+  const _LatestStreakCheckBurstPainter({
+    required this.color,
+    required this.progress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final unit = size.shortestSide;
+    if (unit <= 0) return;
+
+    final center = Offset(size.width * 0.50, size.height * 0.52);
+    final ringProgress = Curves.easeOut.transform(progress);
+    final ringPaint = Paint()
+      ..color = color.withValues(alpha: (1 - ringProgress) * 0.24)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = unit * (0.018 + ringProgress * 0.010);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: center,
+          width: unit * (0.68 + ringProgress * 0.42),
+          height: unit * (0.82 + ringProgress * 0.44),
+        ),
+        Radius.circular(unit * 0.22),
+      ),
+      ringPaint,
+    );
+
+    final sparklePaint = Paint()
+      ..color = Color.lerp(color, Colors.white, 0.18)!
+          .withValues(alpha: 0.34 + (1 - ringProgress) * 0.24)
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = unit * 0.018;
+    for (var index = 0; index < 6; index += 1) {
+      final angle = -math.pi / 2 + index * math.pi / 3 + progress * math.pi;
+      final distance = unit * (0.42 + ringProgress * 0.16);
+      final sparkleCenter =
+          center + Offset(math.cos(angle), math.sin(angle)) * distance;
+      final length = unit * (0.055 + (index.isEven ? 0.015 : 0));
+      canvas.drawLine(
+        sparkleCenter.translate(0, -length),
+        sparkleCenter.translate(0, length),
+        sparklePaint,
+      );
+      canvas.drawLine(
+        sparkleCenter.translate(-length, 0),
+        sparkleCenter.translate(length, 0),
+        sparklePaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _LatestStreakCheckBurstPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.progress != progress;
   }
 }
 

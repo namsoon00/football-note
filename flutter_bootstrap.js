@@ -43,7 +43,7 @@ const removeLoadingIndicator = () => {
   }
 };
 
-const webAssetVersion = '__WEB_ASSET_VERSION__';
+const webAssetVersion = '20260623a';
 const legacyCleanupKey = 'football-note:legacy-flutter-cleanup:v7';
 const legacyCleanupReloadKey = 'football-note:legacy-flutter-cleanup-reload:v7';
 
@@ -153,7 +153,7 @@ const clearLegacyFlutterServiceWorker = async () => {
 const loadFlutterApp = () => {
   return _flutter.loader.load({
     config: {
-      useLocalCanvasKit: false,
+      useLocalCanvasKit: true,
     },
     onEntrypointLoaded: async (engineInitializer) => {
       const loadingOverlayWatchdog = window.setTimeout(
