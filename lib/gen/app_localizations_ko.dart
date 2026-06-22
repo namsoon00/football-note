@@ -10011,7 +10011,32 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeSelectTitle => '챌린지 선택';
 
   @override
+  String challengeActiveCardTitle(Object title) {
+    return '$title 진행 중';
+  }
+
+  @override
+  String get challengeCreateAnotherTitle => '새 챌린지 추가';
+
+  @override
   String get challengeDurationSelectTitle => '1. 기간 선택';
+
+  @override
+  String get challengeCadenceSelectTitle => '진행 간격';
+
+  @override
+  String get challengeCadenceDaily => '매일';
+
+  @override
+  String get challengeCadenceEveryTwoDays => '이틀에 한 번';
+
+  @override
+  String get challengeCadenceWeekly => '일주일에 한 번';
+
+  @override
+  String challengeCadenceEveryNDays(int days) {
+    return '$days일에 한 번';
+  }
 
   @override
   String get challengeTemplateStarterTitle => '3일 챌린지';

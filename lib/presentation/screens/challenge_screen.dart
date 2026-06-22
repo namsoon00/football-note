@@ -35,9 +35,15 @@ import 'meal_log_screen.dart';
 import 'settings_screen.dart';
 
 typedef _OpenChallengeTrainingMission = Future<void> Function(
+  ChallengeProgress progress,
   ChallengeRoundProgress round, {
   ChallengeTrainingProgramProgress? program,
 });
+
+typedef _OpenChallengeMission = Future<void> Function(
+  ChallengeProgress progress,
+  ChallengeRoundProgress round,
+);
 
 class ChallengeScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -68,11 +74,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   bool _finalizeInFlight = false;
   bool _roundAwardInFlight = false;
   bool _reminderSyncInFlight = false;
-  String? _lastFinalizeSignature;
-  String? _lastRoundAwardSignature;
+  final Map<String, String> _lastFinalizeSignatures = <String, String>{};
+  final Map<String, String> _lastRoundAwardSignatures = <String, String>{};
   String? _lastReminderSignature;
-  String? _pendingFinalizeSignature;
-  String? _pendingRoundAwardSignature;
+  final Set<String> _pendingFinalizeSignatures = <String>{};
+  final Set<String> _pendingRoundAwardSignatures = <String>{};
 
   @override
   void initState() {
@@ -91,6 +97,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     final isParentReadOnlyMode = _isParentReadOnlyMode;
     final canRunChallengeSideEffects =
         !isParentReadOnlyMode && (ModalRoute.of(context)?.isCurrent ?? true);
+    final challengeTrainingRange = _activeChallengeTrainingRange();
+    final challengeTrainingRangeSignature = challengeTrainingRange == null
+        ? 'none'
+        : '${challengeTrainingRange.start.millisecondsSinceEpoch}-'
+            '${challengeTrainingRange.end.millisecondsSinceEpoch}';
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.challengeTitle),
@@ -116,7 +127,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       body: AppBackground(
         child: SafeArea(
           child: StreamBuilder<List<TrainingEntry>>(
-            stream: _watchChallengeTrainingEntries(),
+            key: ValueKey(
+              'challenge-training-entries-$challengeTrainingRangeSignature',
+            ),
+            stream: _watchChallengeTrainingEntries(challengeTrainingRange),
             builder: (context, trainingSnapshot) {
               final sportId =
                   SportService(widget.optionRepository).currentSportId();
@@ -131,16 +145,18 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     directEntries: mealSnapshot.data ?? const <MealEntry>[],
                     legacyEntries: trainingEntries,
                   );
-                  final progress = _challengeService.activeProgress(
+                  final progresses = _challengeService.activeProgresses(
                     trainingEntries: trainingEntries,
                     mealEntries: mealEntries,
                   );
-                  if (progress != null && canRunChallengeSideEffects) {
-                    _scheduleRoundAwardSync(progress);
-                    _scheduleFinalizeSync(progress);
+                  if (canRunChallengeSideEffects) {
+                    for (final progress in progresses) {
+                      _scheduleRoundAwardSync(progress);
+                      _scheduleFinalizeSync(progress);
+                    }
                   }
                   if (canRunChallengeSideEffects) {
-                    _scheduleChallengeReminderSync(progress);
+                    _scheduleChallengeReminderSync(progresses);
                   }
                   final skillOptions = _challengeProgramSkillOptions(
                     l10n,
@@ -156,9 +172,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
                     children: [
-                      if (progress == null && isParentReadOnlyMode)
+                      if (progresses.isEmpty && isParentReadOnlyMode)
                         const _ChallengeReadOnlyEmptySection()
-                      else if (progress == null)
+                      else if (progresses.isEmpty)
                         _ChallengeStartSection(
                           sportId: sportId,
                           templates: _challengeService.templates(),
@@ -172,22 +188,55 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                           onOpenTrainingPrograms: _openTrainingProgramSetup,
                           onStart: _startChallenge,
                         )
-                      else
-                        _ActiveChallengeSection(
-                          sportId: sportId,
-                          progress: progress,
-                          templateTitle: _templateTitle(
-                            l10n,
-                            progress.template,
+                      else ...[
+                        for (var index = 0;
+                            index < progresses.length;
+                            index += 1) ...[
+                          _ActiveChallengeSection(
+                            sportId: sportId,
+                            progress: progresses[index],
+                            templateTitle: _templateTitle(
+                              l10n,
+                              progresses[index].template,
+                            ),
+                            readOnly: isParentReadOnlyMode,
+                            onAbandon: () => _confirmAbandon(
+                              progresses[index],
+                            ),
+                            onOpenTraining: _openTrainingMission,
+                            onOpenJumpRope: _openJumpRopeMission,
+                            onOpenLifting: _openLiftingMission,
+                            onOpenMeal: _openMealMission,
+                            onOpenTrainingPrograms: _openTrainingProgramSetup,
                           ),
-                          readOnly: isParentReadOnlyMode,
-                          onAbandon: _confirmAbandon,
-                          onOpenTraining: _openTrainingMission,
-                          onOpenJumpRope: _openJumpRopeMission,
-                          onOpenLifting: _openLiftingMission,
-                          onOpenMeal: _openMealMission,
-                          onOpenTrainingPrograms: _openTrainingProgramSetup,
-                        ),
+                          if (index != progresses.length - 1)
+                            const SizedBox(height: 22),
+                        ],
+                        if (!isParentReadOnlyMode) ...[
+                          const SizedBox(height: 26),
+                          Text(
+                            l10n.challengeCreateAnotherTitle,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
+                          const SizedBox(height: 10),
+                          _ChallengeStartSection(
+                            sportId: sportId,
+                            templates: _challengeService.templates(),
+                            templateTitle: (template) =>
+                                _templateTitle(l10n, template),
+                            templateDescription: (template) =>
+                                _templateDescription(l10n, template),
+                            latestCompletedRun: null,
+                            latestCompletedTemplate: null,
+                            skillOptions: skillOptions,
+                            onOpenTrainingPrograms: _openTrainingProgramSetup,
+                            onStart: _startChallenge,
+                          ),
+                        ],
+                      ],
                     ],
                   );
                 },
@@ -203,16 +252,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     if (!progress.readyToFinalize()) return;
     final signature = _finalizationSignature(progress);
     if (_finalizeInFlight ||
-        _pendingFinalizeSignature == signature ||
-        _lastFinalizeSignature == signature) {
+        _pendingFinalizeSignatures.contains(signature) ||
+        _lastFinalizeSignatures[progress.run.id] == signature) {
       return;
     }
-    _pendingFinalizeSignature = signature;
+    _pendingFinalizeSignatures.add(signature);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
-        if (_pendingFinalizeSignature == signature) {
-          _pendingFinalizeSignature = null;
-        }
+        _pendingFinalizeSignatures.remove(signature);
         return;
       }
       unawaited(_runScheduledFinalization(progress, signature));
@@ -223,16 +270,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     if (progress.readyToFinalize()) return;
     final signature = _roundAwardSignature(progress);
     if (_roundAwardInFlight ||
-        _pendingRoundAwardSignature == signature ||
-        _lastRoundAwardSignature == signature) {
+        _pendingRoundAwardSignatures.contains(signature) ||
+        _lastRoundAwardSignatures[progress.run.id] == signature) {
       return;
     }
-    _pendingRoundAwardSignature = signature;
+    _pendingRoundAwardSignatures.add(signature);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
-        if (_pendingRoundAwardSignature == signature) {
-          _pendingRoundAwardSignature = null;
-        }
+        _pendingRoundAwardSignatures.remove(signature);
         return;
       }
       unawaited(_runScheduledRoundAwardSync(progress, signature));
@@ -244,15 +289,13 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     String signature,
   ) async {
     try {
-      if (_pendingFinalizeSignature != signature ||
-          _lastFinalizeSignature == signature) {
+      if (!_pendingFinalizeSignatures.contains(signature) ||
+          _lastFinalizeSignatures[progress.run.id] == signature) {
         return;
       }
       await _syncFinalization(progress, signature, presentResult: false);
     } finally {
-      if (_pendingFinalizeSignature == signature) {
-        _pendingFinalizeSignature = null;
-      }
+      _pendingFinalizeSignatures.remove(signature);
     }
   }
 
@@ -261,8 +304,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     String signature,
   ) async {
     try {
-      if (_pendingRoundAwardSignature != signature ||
-          _lastRoundAwardSignature == signature) {
+      if (!_pendingRoundAwardSignatures.contains(signature) ||
+          _lastRoundAwardSignatures[progress.run.id] == signature) {
         return;
       }
       final completedRounds = _completedRoundNumbersToken(progress);
@@ -272,9 +315,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         await _syncRoundAwards(progress, signature, presentResult: false);
       }
     } finally {
-      if (_pendingRoundAwardSignature == signature) {
-        _pendingRoundAwardSignature = null;
-      }
+      _pendingRoundAwardSignatures.remove(signature);
     }
   }
 
@@ -310,7 +351,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       setState(() {});
     } finally {
       _roundAwardInFlight = false;
-      _lastRoundAwardSignature = signature;
+      _lastRoundAwardSignatures[progress.run.id] = signature;
     }
   }
 
@@ -368,32 +409,38 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       setState(() {});
     } finally {
       _roundAwardInFlight = false;
-      _lastRoundAwardSignature = signature;
+      _lastRoundAwardSignatures[progress.run.id] = signature;
     }
   }
 
-  void _scheduleChallengeReminderSync(ChallengeProgress? progress) {
-    final signature = progress == null
+  void _scheduleChallengeReminderSync(List<ChallengeProgress> progresses) {
+    final signature = progresses.isEmpty
         ? 'none'
-        : '${progress.run.id}:'
-            '${progress.rounds.where((round) => round.completed).map((round) => round.round.number).join(',')}:'
-            '${progress.rounds.length}';
+        : progresses
+            .map(
+              (progress) => '${progress.run.id}:'
+                  '${progress.rounds.where((round) => round.completed).map((round) => round.round.number).join(',')}:'
+                  '${progress.rounds.length}',
+            )
+            .join('|');
     if (_reminderSyncInFlight || _lastReminderSignature == signature) return;
     _lastReminderSignature = signature;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      unawaited(_syncChallengeReminders(progress, signature));
+      unawaited(_syncChallengeReminders(progresses, signature));
     });
   }
 
   Future<void> _syncChallengeReminders(
-    ChallengeProgress? progress,
+    List<ChallengeProgress> progresses,
     String signature,
   ) async {
     if (_reminderSyncInFlight) return;
     _reminderSyncInFlight = true;
     try {
-      await _reminderService.syncChallengeReminders(progress);
+      await _reminderService.syncChallengeReminders(
+        progresses.isEmpty ? null : progresses.first,
+      );
     } finally {
       _reminderSyncInFlight = false;
       _lastReminderSignature = signature;
@@ -465,7 +512,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       setState(() {});
     } finally {
       _finalizeInFlight = false;
-      _lastFinalizeSignature = signature;
+      _lastFinalizeSignatures[progress.run.id] = signature;
     }
   }
 
@@ -477,7 +524,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     return '${progress.run.id}:finalize:$completedRounds:${progress.rounds.length}';
   }
 
-  Future<void> _syncChallengeProgressAfterMissionReturn() async {
+  Future<void> _syncChallengeProgressAfterMissionReturn(String runId) async {
     if (_isParentReadOnlyMode) return;
     final trainingEntries = (await _activeChallengeTrainingEntries())
         .where((entry) => !entry.isMatch)
@@ -486,7 +533,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       directEntries: widget.mealLogService.allEntries(),
       legacyEntries: trainingEntries,
     );
-    final progress = _challengeService.activeProgress(
+    final progress = _challengeService.activeProgressForRun(
+      runId: runId,
       trainingEntries: trainingEntries,
       mealEntries: mealEntries,
     );
@@ -494,15 +542,15 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     if (progress.readyToFinalize()) {
       if (_finalizeInFlight) return;
       final signature = _finalizationSignature(progress);
-      if (_lastFinalizeSignature == signature) return;
-      _pendingFinalizeSignature = null;
+      if (_lastFinalizeSignatures[progress.run.id] == signature) return;
+      _pendingFinalizeSignatures.remove(signature);
       await _syncFinalization(progress, signature, presentResult: true);
       return;
     }
     if (_roundAwardInFlight) return;
     final signature = _roundAwardSignature(progress);
-    if (_lastRoundAwardSignature == signature) return;
-    _pendingRoundAwardSignature = null;
+    if (_lastRoundAwardSignatures[progress.run.id] == signature) return;
+    _pendingRoundAwardSignatures.remove(signature);
     final completedRounds = _completedRoundNumbersToken(progress);
     if (completedRounds.isEmpty) {
       await _syncRoundAwardRevocations(progress, signature);
@@ -560,8 +608,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     );
   }
 
-  Stream<List<TrainingEntry>> _watchChallengeTrainingEntries() {
-    final range = _activeChallengeTrainingRange();
+  Stream<List<TrainingEntry>> _watchChallengeTrainingEntries(
+    DateTimeRange? range,
+  ) {
     if (range == null) {
       return Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
     }
@@ -582,15 +631,19 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   DateTimeRange? _activeChallengeTrainingRange() {
-    final run = _challengeService.activeRun();
-    if (run == null) return null;
-    final template = _challengeService.templateById(run.templateId);
-    if (template == null) return null;
-    final start = run.startDay;
-    return DateTimeRange(
-      start: start,
-      end: start.add(Duration(days: template.dayCount)),
-    );
+    DateTime? start;
+    DateTime? end;
+    for (final run in _challengeService.activeRuns()) {
+      final template = _challengeService.templateById(run.templateId);
+      if (template == null) continue;
+      final runStart = run.startDay;
+      final runEnd =
+          run.dayForRound(template.dayCount).add(const Duration(days: 1));
+      start = start == null || runStart.isBefore(start) ? runStart : start;
+      end = end == null || runEnd.isAfter(end) ? runEnd : end;
+    }
+    if (start == null || end == null) return null;
+    return DateTimeRange(start: start, end: end);
   }
 
   Future<void> _openRewardGuide() async {
@@ -619,6 +672,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     ChallengeTemplate template,
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
+    int cadenceDays,
   ) async {
     if (_isParentReadOnlyMode) {
       _showParentReadOnlyMessage();
@@ -630,6 +684,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       template,
       selectedSkillIds: selectedSkillIds,
       missionTargets: missionTargets,
+      cadenceDays: cadenceDays,
     );
     if (!mounted) return;
     setState(() {});
@@ -640,7 +695,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     );
   }
 
-  Future<void> _confirmAbandon() async {
+  Future<void> _confirmAbandon(ChallengeProgress progress) async {
     if (_isParentReadOnlyMode) {
       _showParentReadOnlyMessage();
       return;
@@ -671,21 +726,22 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       directEntries: widget.mealLogService.allEntries(),
       legacyEntries: trainingEntries,
     );
-    final progress = _challengeService.activeProgress(
+    var gainedXp = 0;
+    var awardedRoundCount = 0;
+    final currentProgress = _challengeService.activeProgressForRun(
+      runId: progress.run.id,
       trainingEntries: trainingEntries,
       mealEntries: mealEntries,
     );
-    var gainedXp = 0;
-    var awardedRoundCount = 0;
-    final completedRoundNumbers = progress == null
+    final completedRoundNumbers = currentProgress == null
         ? const <int>[]
-        : progress.rounds
+        : currentProgress.rounds
             .where((round) => round.completed)
             .map((round) => round.round.number)
             .toList(growable: false);
-    if (progress != null && completedRoundNumbers.isNotEmpty) {
+    if (currentProgress != null && completedRoundNumbers.isNotEmpty) {
       final awards = await _challengeService.awardCompletedRounds(
-        progress: progress,
+        progress: currentProgress,
         playerLevelService: PlayerLevelService(
           widget.optionRepository,
           sportId: SportService(widget.optionRepository).currentSportId(),
@@ -695,10 +751,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       awardedRoundCount = awards
           .where((award) => award.reasons.contains('challenge_round_completed'))
           .length
-          .clamp(0, progress.rounds.length)
+          .clamp(0, currentProgress.rounds.length)
           .toInt();
     }
-    await _challengeService.abandonActiveRun(
+    await _challengeService.abandonRun(
+      progress.run.id,
       completedRoundNumbers: completedRoundNumbers,
     );
     if (!mounted) return;
@@ -715,7 +772,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             missionSummaries: _completedMissionSummariesForRounds(
               l10n,
               SportService(widget.optionRepository).currentSportId(),
-              progress?.rounds.where((round) => round.completed) ??
+              currentProgress?.rounds.where((round) => round.completed) ??
                   const <ChallengeRoundProgress>[],
             ),
           ),
@@ -727,31 +784,42 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   Future<void> _openTrainingMission(
+    ChallengeProgress progress,
     ChallengeRoundProgress round, {
     ChallengeTrainingProgramProgress? program,
   }) {
     return _openTrainingEntryMission(
+      progress,
       round,
       initialFocusTarget: null,
       programMission: program,
     );
   }
 
-  Future<void> _openJumpRopeMission(ChallengeRoundProgress round) {
+  Future<void> _openJumpRopeMission(
+    ChallengeProgress progress,
+    ChallengeRoundProgress round,
+  ) {
     return _openTrainingEntryMission(
+      progress,
       round,
       initialFocusTarget: EntryFormInitialFocusTarget.jumpRope,
     );
   }
 
-  Future<void> _openLiftingMission(ChallengeRoundProgress round) {
+  Future<void> _openLiftingMission(
+    ChallengeProgress progress,
+    ChallengeRoundProgress round,
+  ) {
     return _openTrainingEntryMission(
+      progress,
       round,
       initialFocusTarget: EntryFormInitialFocusTarget.lifting,
     );
   }
 
   Future<void> _openTrainingEntryMission(
+    ChallengeProgress progress,
     ChallengeRoundProgress round, {
     required EntryFormInitialFocusTarget? initialFocusTarget,
     ChallengeTrainingProgramProgress? programMission,
@@ -812,7 +880,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       ),
     );
     if (!mounted) return;
-    await _syncChallengeProgressAfterMissionReturn();
+    await _syncChallengeProgressAfterMissionReturn(progress.run.id);
     if (!mounted) return;
     setState(() {});
   }
@@ -846,7 +914,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     return sameDayEntries.first;
   }
 
-  Future<void> _openMealMission(ChallengeRoundProgress round) async {
+  Future<void> _openMealMission(
+    ChallengeProgress progress,
+    ChallengeRoundProgress round,
+  ) async {
     if (_isParentReadOnlyMode) {
       _showParentReadOnlyMessage();
       return;
@@ -863,7 +934,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       ),
     );
     if (!mounted) return;
-    await _syncChallengeProgressAfterMissionReturn();
+    await _syncChallengeProgressAfterMissionReturn(progress.run.id);
     if (mounted) setState(() {});
   }
 
@@ -998,6 +1069,7 @@ class _ChallengeStartSection extends StatefulWidget {
     ChallengeTemplate template,
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
+    int cadenceDays,
   ) onStart;
 
   const _ChallengeStartSection({
@@ -1021,6 +1093,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   final GlobalKey _readySectionKey = GlobalKey();
   ChallengeTemplate? _selectedTemplate;
   late Set<String> _selectedSkillIds;
+  int _selectedCadenceDays = 1;
   ChallengeMissionTargets? _missionTargets;
 
   @override
@@ -1091,6 +1164,28 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
         if (_selectedTemplate != null) ...[
           const SizedBox(height: 6),
           Text(
+            l10n.challengeCadenceSelectTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final cadenceDays in _challengeCadenceOptions)
+                ChoiceChip(
+                  label: Text(_challengeCadenceLabel(l10n, cadenceDays)),
+                  selected: cadenceDays == _selectedCadenceDays,
+                  onSelected: (_) => setState(() {
+                    _selectedCadenceDays = cadenceDays;
+                  }),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
             l10n.challengeSkillSelectTitle,
             key: _missionSectionKey,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -1158,6 +1253,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
                 allowEmpty: !_effectiveMissionTargets.hasTrainingMission,
               ),
               _effectiveMissionTargets,
+              _selectedCadenceDays,
             ),
             icon: const Icon(Icons.play_arrow),
             label: Text(l10n.challengeStartAction),
@@ -1547,6 +1643,17 @@ const List<int> _challengeTrainingTargetOptions = <int>[
   150,
   180,
 ];
+
+const List<int> _challengeCadenceOptions = <int>[1, 2, 7];
+
+String _challengeCadenceLabel(AppLocalizations l10n, int cadenceDays) {
+  return switch (cadenceDays) {
+    1 => l10n.challengeCadenceDaily,
+    2 => l10n.challengeCadenceEveryTwoDays,
+    7 => l10n.challengeCadenceWeekly,
+    _ => l10n.challengeCadenceEveryNDays(cadenceDays),
+  };
+}
 
 const List<int> _challengeConditioningTargetOptions = <int>[
   5,
@@ -3290,9 +3397,9 @@ class _ActiveChallengeSection extends StatelessWidget {
   final bool readOnly;
   final VoidCallback onAbandon;
   final _OpenChallengeTrainingMission onOpenTraining;
-  final ValueChanged<ChallengeRoundProgress> onOpenJumpRope;
-  final ValueChanged<ChallengeRoundProgress> onOpenLifting;
-  final ValueChanged<ChallengeRoundProgress> onOpenMeal;
+  final _OpenChallengeMission onOpenJumpRope;
+  final _OpenChallengeMission onOpenLifting;
+  final _OpenChallengeMission onOpenMeal;
   final VoidCallback onOpenTrainingPrograms;
 
   const _ActiveChallengeSection({
@@ -3310,6 +3417,8 @@ class _ActiveChallengeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final activeRound = progress.activeRound;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -3318,6 +3427,13 @@ class _ActiveChallengeSection extends StatelessWidget {
           const _ParentReadOnlyChallengeNotice(),
           const SizedBox(height: 18),
         ],
+        Text(
+          l10n.challengeActiveCardTitle(templateTitle),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 10),
         _ChallengeRoundsCalendar(
           progress: progress,
           onAbandon: readOnly ? null : onAbandon,
@@ -3348,9 +3464,9 @@ class _RoundFocusCard extends StatelessWidget {
   final ChallengeRoundProgress round;
   final bool readOnly;
   final _OpenChallengeTrainingMission onOpenTraining;
-  final ValueChanged<ChallengeRoundProgress> onOpenJumpRope;
-  final ValueChanged<ChallengeRoundProgress> onOpenLifting;
-  final ValueChanged<ChallengeRoundProgress> onOpenMeal;
+  final _OpenChallengeMission onOpenJumpRope;
+  final _OpenChallengeMission onOpenLifting;
+  final _OpenChallengeMission onOpenMeal;
   final VoidCallback onOpenTrainingPrograms;
 
   const _RoundFocusCard({
@@ -3470,7 +3586,7 @@ class _RoundFocusCard extends StatelessWidget {
                   round.round.targetTrainingMinutes,
                 ),
                 completed: round.trainingCompleted,
-                onTap: readOnly ? null : () => onOpenTraining(round),
+                onTap: readOnly ? null : () => onOpenTraining(progress, round),
               )
             else
               for (final program in round.trainingPrograms) ...[
@@ -3489,7 +3605,11 @@ class _RoundFocusCard extends StatelessWidget {
                   completed: program.completed,
                   onTap: readOnly
                       ? null
-                      : () => onOpenTraining(round, program: program),
+                      : () => onOpenTraining(
+                            progress,
+                            round,
+                            program: program,
+                          ),
                 ),
                 if (program != round.trainingPrograms.last)
                   const SizedBox(height: 10),
@@ -3511,7 +3631,7 @@ class _RoundFocusCard extends StatelessWidget {
                 round.round.targetJumpRopeMinutes,
               ),
               completed: round.jumpRopeCompleted,
-              onTap: readOnly ? null : () => onOpenJumpRope(round),
+              onTap: readOnly ? null : () => onOpenJumpRope(progress, round),
             ),
           ],
           if (round.round.targetLiftingMinutes > 0) ...[
@@ -3530,7 +3650,7 @@ class _RoundFocusCard extends StatelessWidget {
                 round.round.targetLiftingMinutes,
               ),
               completed: round.liftingCompleted,
-              onTap: readOnly ? null : () => onOpenLifting(round),
+              onTap: readOnly ? null : () => onOpenLifting(progress, round),
             ),
           ],
           if (round.round.targetRiceBowls > 0) ...[
@@ -3548,7 +3668,7 @@ class _RoundFocusCard extends StatelessWidget {
                 round.round.targetRiceBowls,
               ),
               completed: round.mealCompleted,
-              onTap: readOnly ? null : () => onOpenMeal(round),
+              onTap: readOnly ? null : () => onOpenMeal(progress, round),
             ),
           ],
         ],
@@ -4051,10 +4171,27 @@ class _RoundCalendarCurrentRoundStatus extends StatelessWidget {
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.play_arrow_rounded,
-                  color: onActive,
-                  size: size * 0.36,
+                Container(
+                  key: ValueKey(
+                    'challenge-current-round-play-button-${round.round.number}',
+                  ),
+                  width: size * 0.46,
+                  height: size * 0.46,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(
+                      alpha: theme.brightness == Brightness.dark ? 0.10 : 0.58,
+                    ),
+                    border: Border.all(
+                      color: onActive.withValues(alpha: 0.84),
+                      width: size * 0.035,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.play_arrow_rounded,
+                    color: onActive,
+                    size: size * 0.30,
+                  ),
                 ),
                 FittedBox(
                   fit: BoxFit.scaleDown,

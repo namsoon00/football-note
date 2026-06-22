@@ -76,6 +76,8 @@ void main() {
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('진행 간격'), findsOneWidget);
+    expect(find.text('이틀에 한 번'), findsOneWidget);
     expect(find.text('2. 미션 선택'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('challenge-add-training-program-button')),
@@ -119,8 +121,8 @@ void main() {
     await tester.tap(startButton);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(seconds: 1));
 
-    expect(find.text('라운드'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('challenge-rounds-calendar')),
       findsOneWidget,
@@ -131,6 +133,10 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('challenge-current-round-status-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('challenge-current-round-play-button-1')),
       findsOneWidget,
     );
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));
@@ -221,6 +227,75 @@ void main() {
 
     expect(find.text('2. 미션 선택'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+
+  testWidgets('challenge screen shows multiple active challenges', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 720));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    final challengeService = ChallengeService(optionRepository);
+    final starter = challengeService.templateById('starter_3')!;
+    final weekly = challengeService.templateById('weekly_7')!;
+    final today = DateTime.now();
+    await challengeService.startChallenge(
+      starter,
+      startedAt: DateTime(today.year, today.month, today.day, 9),
+    );
+    await challengeService.startChallenge(
+      weekly,
+      startedAt: DateTime(today.year, today.month, today.day, 10),
+      cadenceDays: 2,
+    );
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('7일 챌린지 진행 중'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('challenge-current-round-play-button-1')),
+      findsOneWidget,
+    );
+    await tester.drag(find.byType(ListView), const Offset(0, -560));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('3일 챌린지 진행 중'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, -720));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('새 챌린지 추가'), findsOneWidget);
+    expect(find.text('1. 기간 선택'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());

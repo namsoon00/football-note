@@ -5531,7 +5531,26 @@
   "challengeStartHeroBody": "Choose a duration and mission amounts, then press start to begin. Missing even one day ends the challenge.",
   "challengeLatestComplete": "Latest challenge complete",
   "challengeSelectTitle": "Choose a challenge",
+  "challengeActiveCardTitle": "{title} in progress",
+  "@challengeActiveCardTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeCreateAnotherTitle": "Add another challenge",
   "challengeDurationSelectTitle": "1. Choose duration",
+  "challengeCadenceSelectTitle": "Round frequency",
+  "challengeCadenceDaily": "Every day",
+  "challengeCadenceEveryTwoDays": "Every 2 days",
+  "challengeCadenceWeekly": "Once a week",
+  "challengeCadenceEveryNDays": "Every {days} days",
+  "@challengeCadenceEveryNDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "challengeTemplateStarterTitle": "3-day Challenge",
   "challengeTemplateStarterDescription": "Learn the challenge rhythm with a short focused run.",
   "challengeTemplateWeeklyTitle": "7-day Challenge",

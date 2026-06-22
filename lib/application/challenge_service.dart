@@ -50,10 +50,12 @@ class ChallengeService {
   }
 
   ChallengeRun? activeRun() {
-    for (final run in loadRuns()) {
-      if (!run.isEnded) return run;
-    }
-    return null;
+    final runs = activeRuns();
+    return runs.isEmpty ? null : runs.first;
+  }
+
+  List<ChallengeRun> activeRuns() {
+    return loadRuns().where((run) => !run.isEnded).toList(growable: false);
   }
 
   ChallengeRun? latestCompletedRun() {
@@ -68,6 +70,7 @@ class ChallengeService {
     ChallengeTrainingLevel trainingLevel = ChallengeTrainingLevel.rookie,
     List<String> selectedSkillIds = defaultChallengeSkillIds,
     ChallengeMissionTargets? missionTargets,
+    int cadenceDays = 1,
     DateTime? startedAt,
   }) async {
     final start = startedAt ?? DateTime.now();
@@ -81,18 +84,9 @@ class ChallengeService {
         allowEmpty: missionTargets?.hasTrainingMission == false,
       ),
       missionTargets: missionTargets,
+      cadenceDays: cadenceDays,
     );
-    final runs = loadRuns()
-        .map(
-          (item) => item.isEnded
-              ? item
-              : item.copyWith(
-                  completedAt: start,
-                  abandoned: true,
-                  result: ChallengeRunResult.abandoned,
-                ),
-        )
-        .toList(growable: true);
+    final runs = loadRuns().toList(growable: true);
     runs.insert(0, run);
     await _saveRuns(runs);
     return run;
@@ -148,10 +142,22 @@ class ChallengeService {
   }) async {
     final active = activeRun();
     if (active == null) return;
+    await abandonRun(
+      active.id,
+      abandonedAt: abandonedAt,
+      completedRoundNumbers: completedRoundNumbers,
+    );
+  }
+
+  Future<void> abandonRun(
+    String runId, {
+    DateTime? abandonedAt,
+    List<int> completedRoundNumbers = const <int>[],
+  }) async {
     final endedAt = abandonedAt ?? DateTime.now();
     final runs = loadRuns()
         .map(
-          (run) => run.id == active.id
+          (run) => run.id == runId
               ? run.copyWith(
                   completedAt: endedAt,
                   abandoned: true,
@@ -222,6 +228,38 @@ class ChallengeService {
       trainingEntries: trainingEntries,
       mealEntries: mealEntries,
     );
+  }
+
+  List<ChallengeProgress> activeProgresses({
+    required List<TrainingEntry> trainingEntries,
+    required List<MealEntry> mealEntries,
+  }) {
+    return activeRuns()
+        .map(
+          (run) => progressForRun(
+            run: run,
+            trainingEntries: trainingEntries,
+            mealEntries: mealEntries,
+          ),
+        )
+        .whereType<ChallengeProgress>()
+        .toList(growable: false);
+  }
+
+  ChallengeProgress? activeProgressForRun({
+    required String runId,
+    required List<TrainingEntry> trainingEntries,
+    required List<MealEntry> mealEntries,
+  }) {
+    for (final run in activeRuns()) {
+      if (run.id != runId) continue;
+      return progressForRun(
+        run: run,
+        trainingEntries: trainingEntries,
+        mealEntries: mealEntries,
+      );
+    }
+    return null;
   }
 
   Future<List<PlayerLevelAward>> awardCompletedRounds({

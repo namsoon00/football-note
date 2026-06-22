@@ -179,6 +179,7 @@ class ChallengeRun {
   final List<int> completedRoundNumbers;
   final List<String> selectedSkillIds;
   final ChallengeMissionTargets? missionTargets;
+  final int cadenceDays;
 
   const ChallengeRun({
     required this.id,
@@ -192,6 +193,7 @@ class ChallengeRun {
     this.completedRoundNumbers = const <int>[],
     this.selectedSkillIds = defaultChallengeSkillIds,
     this.missionTargets,
+    this.cadenceDays = 1,
   });
 
   bool get isEnded => completedAt != null || result != null;
@@ -208,8 +210,12 @@ class ChallengeRun {
 
   DateTime get startDay => normalizeDay(startedAt);
 
+  int get normalizedCadenceDays => cadenceDays < 1 ? 1 : cadenceDays;
+
   DateTime dayForRound(int roundNumber) {
-    return startDay.add(Duration(days: roundNumber - 1));
+    return startDay.add(
+      Duration(days: (roundNumber - 1) * normalizedCadenceDays),
+    );
   }
 
   ChallengeRun copyWith({
@@ -224,6 +230,7 @@ class ChallengeRun {
     List<int>? completedRoundNumbers,
     List<String>? selectedSkillIds,
     ChallengeMissionTargets? missionTargets,
+    int? cadenceDays,
   }) {
     return ChallengeRun(
       id: id ?? this.id,
@@ -238,6 +245,7 @@ class ChallengeRun {
           completedRoundNumbers ?? this.completedRoundNumbers,
       selectedSkillIds: selectedSkillIds ?? this.selectedSkillIds,
       missionTargets: missionTargets ?? this.missionTargets,
+      cadenceDays: cadenceDays ?? this.cadenceDays,
     );
   }
 
@@ -254,6 +262,7 @@ class ChallengeRun {
       'completedRoundNumbers': completedRoundNumbers,
       'selectedSkillIds': selectedSkillIds,
       'missionTargets': missionTargets?.toMap(),
+      'cadenceDays': normalizedCadenceDays,
     };
   }
 
@@ -265,26 +274,23 @@ class ChallengeRun {
     final rawSelectedSkillIds = map['selectedSkillIds'];
     final rawMissionTargets = map['missionTargets'];
     return ChallengeRun(
-      id:
-          map['id']?.toString() ??
+      id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       templateId: map['templateId']?.toString() ?? '',
       trainingLevel: _challengeTrainingLevelFromName(
         map['trainingLevel']?.toString(),
         templateId: map['templateId']?.toString() ?? '',
       ),
-      startedAt:
-          DateTime.tryParse(map['startedAt']?.toString() ?? '') ??
+      startedAt: DateTime.tryParse(map['startedAt']?.toString() ?? '') ??
           DateTime.now(),
       completedAt: completedAt,
       abandoned: abandoned,
-      result:
-          parsedResult ??
+      result: parsedResult ??
           (completedAt == null
               ? null
               : abandoned
-              ? ChallengeRunResult.abandoned
-              : ChallengeRunResult.completed),
+                  ? ChallengeRunResult.abandoned
+                  : ChallengeRunResult.completed),
       failedRoundNumber: (map['failedRoundNumber'] as num?)?.toInt(),
       completedRoundNumbers: _positiveUniqueIntList(rawCompletedRoundNumbers),
       selectedSkillIds: normalizeChallengeSkillIds(
@@ -297,6 +303,7 @@ class ChallengeRun {
               rawMissionTargets.cast<String, dynamic>(),
             )
           : null,
+      cadenceDays: _positiveIntOrDefault(map['cadenceDays'], 1),
     );
   }
 }
@@ -424,8 +431,8 @@ class ChallengeRoundProgress {
     final trainingCount = round.targetTrainingMinutes <= 0
         ? 0
         : trainingPrograms.isEmpty
-        ? (trainingCompleted ? 1 : 0)
-        : trainingPrograms.where((mission) => mission.completed).length;
+            ? (trainingCompleted ? 1 : 0)
+            : trainingPrograms.where((mission) => mission.completed).length;
     return trainingCount +
         (round.targetJumpRopeMinutes > 0 && jumpRopeCompleted ? 1 : 0) +
         (round.targetLiftingMinutes > 0 && liftingCompleted ? 1 : 0) +
@@ -494,8 +501,8 @@ int trainingMinutesForDay(
             (usesTrainingPrograms
                 ? trainingProgramMinutesForEntry(entry, skillIds)
                 : entry.durationMinutes +
-                      entry.jumpRopeMinutes +
-                      entry.liftingMinutes),
+                    entry.jumpRopeMinutes +
+                    entry.liftingMinutes),
       );
 }
 
@@ -684,15 +691,20 @@ List<int> _positiveUniqueIntList(Object? raw) {
   final seen = <int>{};
   final result = <int>[];
   for (final item in raw) {
-    final value = item is num
-        ? item.toInt()
-        : int.tryParse(item?.toString() ?? '');
+    final value =
+        item is num ? item.toInt() : int.tryParse(item?.toString() ?? '');
     if (value == null || value <= 0 || seen.contains(value)) continue;
     seen.add(value);
     result.add(value);
   }
   result.sort();
   return List<int>.unmodifiable(result);
+}
+
+int _positiveIntOrDefault(Object? raw, int fallback) {
+  final value = raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '');
+  if (value == null || value <= 0) return fallback;
+  return value;
 }
 
 String _normalizeChallengeSkillText(String value) {
@@ -731,9 +743,8 @@ Map<String, int> _nonNegativeIntMap(Object? raw) {
 }
 
 double _nonNegativeDouble(Object? raw) {
-  final value = raw is num
-      ? raw.toDouble()
-      : double.tryParse(raw?.toString() ?? '');
+  final value =
+      raw is num ? raw.toDouble() : double.tryParse(raw?.toString() ?? '');
   if (value == null || value < 0) return 0;
   return value;
 }

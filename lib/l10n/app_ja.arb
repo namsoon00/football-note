@@ -5531,7 +5531,26 @@
   "challengeStartHeroBody": "期間とミッション別の量を選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。",
   "challengeLatestComplete": "最新チャレンジ完了",
   "challengeSelectTitle": "チャレンジを選択",
+  "challengeActiveCardTitle": "{title} 進行中",
+  "@challengeActiveCardTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeCreateAnotherTitle": "新しいチャレンジを追加",
   "challengeDurationSelectTitle": "1. 期間を選択",
+  "challengeCadenceSelectTitle": "進行間隔",
+  "challengeCadenceDaily": "毎日",
+  "challengeCadenceEveryTwoDays": "2日に1回",
+  "challengeCadenceWeekly": "週に1回",
+  "challengeCadenceEveryNDays": "{days}日に1回",
+  "@challengeCadenceEveryNDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "challengeTemplateStarterTitle": "3日チャレンジ",
   "challengeTemplateStarterDescription": "短く集中してチャレンジのリズムを覚えます。",
   "challengeTemplateWeeklyTitle": "7日チャレンジ",
