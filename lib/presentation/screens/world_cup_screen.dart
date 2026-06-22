@@ -424,51 +424,76 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
 
   Widget _buildTournamentPlan(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    const stages = [
-      WorldCupStage.roundOf32,
-      WorldCupStage.roundOf16,
-      WorldCupStage.quarterFinal,
-      WorldCupStage.semiFinal,
-      WorldCupStage.thirdPlace,
-      WorldCupStage.finalMatch,
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        WatchCartCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _SectionTitle(
-                icon: Icons.account_tree_rounded,
-                title: l10n.worldCupTournamentTitle,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                l10n.worldCupTournamentPlanBody,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  height: 1.35,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        for (final stage in stages) ...[
-          _TournamentRoundSection(
-            title: _stageLabelForStage(l10n, stage),
-            subtitle: l10n.worldCupBracketRoundSummary(
-              _dateRangeForFixtures(context, _fixturesForStage(stage)),
-              _fixturesForStage(stage).length,
+    return _WorldCupTournamentBracket(
+      rounds: [
+        _TournamentBracketRound(
+          title: _stageLabelForStage(l10n, WorldCupStage.finalMatch),
+          subtitle: l10n.worldCupBracketRoundSummary(
+            _dateRangeForFixtures(
+              context,
+              _fixturesForStage(WorldCupStage.finalMatch),
             ),
-            fixtures: _fixturesForStage(stage),
-            slotBuilder: (slot) => _bracketSlotData(l10n, slot),
+            _fixturesForStage(WorldCupStage.finalMatch).length,
           ),
-          if (stage != stages.last) const SizedBox(height: 12),
-        ],
+          fixtures: _fixturesForStage(WorldCupStage.finalMatch),
+        ),
+        _TournamentBracketRound(
+          title: _stageLabelForStage(l10n, WorldCupStage.semiFinal),
+          subtitle: l10n.worldCupBracketRoundSummary(
+            _dateRangeForFixtures(
+              context,
+              _fixturesForStage(WorldCupStage.semiFinal),
+            ),
+            _fixturesForStage(WorldCupStage.semiFinal).length,
+          ),
+          fixtures: _fixturesForStage(WorldCupStage.semiFinal),
+        ),
+        _TournamentBracketRound(
+          title: _stageLabelForStage(l10n, WorldCupStage.quarterFinal),
+          subtitle: l10n.worldCupBracketRoundSummary(
+            _dateRangeForFixtures(
+              context,
+              _fixturesForStage(WorldCupStage.quarterFinal),
+            ),
+            _fixturesForStage(WorldCupStage.quarterFinal).length,
+          ),
+          fixtures: _fixturesForStage(WorldCupStage.quarterFinal),
+        ),
+        _TournamentBracketRound(
+          title: _stageLabelForStage(l10n, WorldCupStage.roundOf16),
+          subtitle: l10n.worldCupBracketRoundSummary(
+            _dateRangeForFixtures(
+              context,
+              _fixturesForStage(WorldCupStage.roundOf16),
+            ),
+            _fixturesForStage(WorldCupStage.roundOf16).length,
+          ),
+          fixtures: _fixturesForStage(WorldCupStage.roundOf16),
+        ),
+        _TournamentBracketRound(
+          title: _stageLabelForStage(l10n, WorldCupStage.roundOf32),
+          subtitle: l10n.worldCupBracketRoundSummary(
+            _dateRangeForFixtures(
+              context,
+              _fixturesForStage(WorldCupStage.roundOf32),
+            ),
+            _fixturesForStage(WorldCupStage.roundOf32).length,
+          ),
+          fixtures: _fixturesForStage(WorldCupStage.roundOf32),
+        ),
       ],
+      thirdPlace: _TournamentBracketRound(
+        title: _stageLabelForStage(l10n, WorldCupStage.thirdPlace),
+        subtitle: l10n.worldCupBracketRoundSummary(
+          _dateRangeForFixtures(
+            context,
+            _fixturesForStage(WorldCupStage.thirdPlace),
+          ),
+          _fixturesForStage(WorldCupStage.thirdPlace).length,
+        ),
+        fixtures: _fixturesForStage(WorldCupStage.thirdPlace),
+      ),
+      slotBuilder: (slot) => _bracketSlotData(l10n, slot),
     );
   }
 
@@ -1877,22 +1902,6 @@ class _FixtureRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              _SmallPill(label: _stageLabel(l10n, fixture)),
-              if (supportMatch || interestMatch) ...[
-                _SmallPill(
-                  label: supportMatch
-                      ? l10n.worldCupSupportBadge
-                      : l10n.worldCupInterestBadge,
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 10),
           LayoutBuilder(
             builder: (context, constraints) {
               final compact = constraints.maxWidth < 380;
@@ -1972,18 +1981,6 @@ class _FixtureRow extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _stageLabel(AppLocalizations l10n, WorldCupFixture fixture) {
-    return switch (fixture.stage) {
-      WorldCupStage.group => l10n.worldCupGroupStageLabel(fixture.group ?? ''),
-      WorldCupStage.roundOf32 => l10n.worldCupRoundOf32Label,
-      WorldCupStage.roundOf16 => l10n.worldCupRoundOf16Label,
-      WorldCupStage.quarterFinal => l10n.worldCupQuarterFinalLabel,
-      WorldCupStage.semiFinal => l10n.worldCupSemiFinalLabel,
-      WorldCupStage.thirdPlace => l10n.worldCupThirdPlaceLabel,
-      WorldCupStage.finalMatch => l10n.worldCupFinalLabel,
-    };
   }
 }
 
@@ -2147,17 +2144,23 @@ class _WorldCupScoreLine extends StatelessWidget {
     }
 
     final label = '$home : $away';
-    if (!applyResultColors || home == away) {
+    if (!applyResultColors) {
       return Text(
         label,
         maxLines: maxLines,
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.center,
-        style: style?.copyWith(
-          color: home == away
-              ? theme.colorScheme.onSurface
-              : theme.colorScheme.primary,
-        ),
+        style: style?.copyWith(color: theme.colorScheme.primary),
+      );
+    }
+
+    if (home == away) {
+      return Text(
+        label,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+        style: style?.copyWith(color: theme.colorScheme.tertiary),
       );
     }
 
@@ -3394,15 +3397,6 @@ class _GroupStandingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final tiedPointCounts = <int, int>{};
-    for (final standing in standings) {
-      if (standing.played == 0) continue;
-      tiedPointCounts.update(
-        standing.points,
-        (count) => count + 1,
-        ifAbsent: () => 1,
-      );
-    }
     final headerStyle = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
       fontWeight: FontWeight.w900,
@@ -3487,8 +3481,6 @@ class _GroupStandingsCard extends StatelessWidget {
             _GroupStandingRow(
               rank: index + 1,
               standing: standings[index],
-              showTieBreakHint:
-                  (tiedPointCounts[standings[index].points] ?? 0) > 1,
               onTeamTap: onTeamTap,
             ),
             if (index != standings.length - 1)
@@ -3507,13 +3499,11 @@ class _GroupStandingsCard extends StatelessWidget {
 class _GroupStandingRow extends StatelessWidget {
   final int rank;
   final WorldCupGroupStanding standing;
-  final bool showTieBreakHint;
   final ValueChanged<String> onTeamTap;
 
   const _GroupStandingRow({
     required this.rank,
     required this.standing,
-    required this.showTieBreakHint,
     required this.onTeamTap,
   });
 
@@ -3604,24 +3594,6 @@ class _GroupStandingRow extends StatelessWidget {
                   ),
                 ],
               ),
-              if (showTieBreakHint) ...[
-                const SizedBox(height: 2),
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 30),
-                  child: Text(
-                    l10n.worldCupStandingsTieReasonValue(
-                      _formatStandingGoalDifference(standing.goalDifference),
-                      standing.goalsFor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -5208,63 +5180,143 @@ Color _positionColor(ThemeData theme, _WorldCupRosterPosition position) {
   };
 }
 
-class _TournamentRoundSection extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final List<WorldCupFixture> fixtures;
+class _WorldCupTournamentBracket extends StatelessWidget {
+  final List<_TournamentBracketRound> rounds;
+  final _TournamentBracketRound thirdPlace;
   final _BracketSlotData Function(String slot) slotBuilder;
 
-  const _TournamentRoundSection({
-    required this.title,
-    required this.subtitle,
-    required this.fixtures,
+  const _WorldCupTournamentBracket({
+    required this.rounds,
+    required this.thirdPlace,
     required this.slotBuilder,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              _SmallPill(label: subtitle),
-            ],
+          _SectionTitle(
+            icon: Icons.account_tree_rounded,
+            title: l10n.worldCupTournamentTitle,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
+          Text(
+            l10n.worldCupTournamentPlanBody,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 14),
           LayoutBuilder(
             builder: (context, constraints) {
-              final columns = constraints.maxWidth >= 760 ? 2 : 1;
+              final slotWidth = constraints.maxWidth < 520 ? 148.0 : 166.0;
               const spacing = 10.0;
-              final width =
-                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                children: [
-                  for (final fixture in fixtures)
-                    SizedBox(
-                      width: width,
-                      child: _BracketMatchCard(
-                        fixture: fixture,
-                        homeSlot: slotBuilder(fixture.homeTeam),
-                        awaySlot: slotBuilder(fixture.awayTeam),
-                      ),
-                    ),
-                ],
+              final widestRoundCount = rounds
+                  .map((round) => round.fixtures.length)
+                  .fold<int>(1, (max, count) => count > max ? count : max);
+              final bracketWidth = math.max(
+                constraints.maxWidth,
+                widestRoundCount * slotWidth + (widestRoundCount - 1) * spacing,
+              );
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: bracketWidth,
+                  child: Column(
+                    children: [
+                      for (var index = 0; index < rounds.length; index += 1)
+                        _TournamentBracketRoundRow(
+                          round: rounds[index],
+                          slotBuilder: slotBuilder,
+                          slotWidth: slotWidth,
+                          spacing: spacing,
+                          compact: constraints.maxWidth < 520,
+                        ),
+                    ],
+                  ),
+                ),
               );
             },
+          ),
+          if (thirdPlace.fixtures.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            _TournamentThirdPlaceStrip(
+              round: thirdPlace,
+              slotBuilder: slotBuilder,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TournamentBracketRoundRow extends StatelessWidget {
+  final _TournamentBracketRound round;
+  final _BracketSlotData Function(String slot) slotBuilder;
+  final double slotWidth;
+  final double spacing;
+  final bool compact;
+
+  const _TournamentBracketRoundRow({
+    required this.round,
+    required this.slotBuilder,
+    required this.slotWidth,
+    required this.spacing,
+    required this.compact,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        children: [
+          Text(
+            round.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            round.subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var index = 0;
+                  index < round.fixtures.length;
+                  index += 1) ...[
+                SizedBox(
+                  width: slotWidth,
+                  child: _BracketMatchCard(
+                    fixture: round.fixtures[index],
+                    homeSlot: slotBuilder(round.fixtures[index].homeTeam),
+                    awaySlot: slotBuilder(round.fixtures[index].awayTeam),
+                    compact: compact,
+                  ),
+                ),
+                if (index != round.fixtures.length - 1)
+                  SizedBox(width: spacing),
+              ],
+            ],
           ),
         ],
       ),
@@ -5272,15 +5324,81 @@ class _TournamentRoundSection extends StatelessWidget {
   }
 }
 
+class _TournamentThirdPlaceStrip extends StatelessWidget {
+  final _TournamentBracketRound round;
+  final _BracketSlotData Function(String slot) slotBuilder;
+
+  const _TournamentThirdPlaceStrip({
+    required this.round,
+    required this.slotBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.42,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  round.title,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              _SmallPill(label: round.subtitle),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (final fixture in round.fixtures)
+            _BracketMatchCard(
+              fixture: fixture,
+              homeSlot: slotBuilder(fixture.homeTeam),
+              awaySlot: slotBuilder(fixture.awayTeam),
+              compact: true,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TournamentBracketRound {
+  final String title;
+  final String subtitle;
+  final List<WorldCupFixture> fixtures;
+
+  const _TournamentBracketRound({
+    required this.title,
+    required this.subtitle,
+    required this.fixtures,
+  });
+}
+
 class _BracketMatchCard extends StatelessWidget {
   final WorldCupFixture fixture;
   final _BracketSlotData homeSlot;
   final _BracketSlotData awaySlot;
+  final bool compact;
 
   const _BracketMatchCard({
     required this.fixture,
     required this.homeSlot,
     required this.awaySlot,
+    this.compact = false,
   });
 
   @override
@@ -5289,7 +5407,7 @@ class _BracketMatchCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final kickoffText = formatKickoffWithKoreaTime(context, fixture.kickoffUtc);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(compact ? 9 : 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(
           alpha: 0.48,
@@ -5303,7 +5421,7 @@ class _BracketMatchCard extends StatelessWidget {
           Row(
             children: [
               _SmallPill(label: l10n.worldCupMatchNumber(fixture.matchNumber)),
-              const SizedBox(width: 8),
+              SizedBox(width: compact ? 6 : 8),
               Expanded(
                 child: Text(
                   kickoffText,
@@ -5318,10 +5436,10 @@ class _BracketMatchCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          _BracketTeamSlot(slot: homeSlot),
+          SizedBox(height: compact ? 8 : 10),
+          _BracketTeamSlot(slot: homeSlot, compact: compact),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 7),
+            padding: EdgeInsets.symmetric(vertical: compact ? 5 : 7),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -5344,28 +5462,30 @@ class _BracketMatchCard extends StatelessWidget {
               ],
             ),
           ),
-          _BracketTeamSlot(slot: awaySlot),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(
-                Icons.stadium_outlined,
-                size: 15,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  _worldCupVenueLabel(l10n, fixture.venue),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+          _BracketTeamSlot(slot: awaySlot, compact: compact),
+          if (!compact) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  Icons.stadium_outlined,
+                  size: 15,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    _worldCupVenueLabel(l10n, fixture.venue),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -5374,8 +5494,9 @@ class _BracketMatchCard extends StatelessWidget {
 
 class _BracketTeamSlot extends StatelessWidget {
   final _BracketSlotData slot;
+  final bool compact;
 
-  const _BracketTeamSlot({required this.slot});
+  const _BracketTeamSlot({required this.slot, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
@@ -5384,15 +5505,15 @@ class _BracketTeamSlot extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 8,
-          height: 8,
-          margin: const EdgeInsets.only(top: 7),
+          width: compact ? 6 : 8,
+          height: compact ? 6 : 8,
+          margin: EdgeInsets.only(top: compact ? 6 : 7),
           decoration: BoxDecoration(
             color: theme.colorScheme.primary,
             shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: compact ? 6 : 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -5401,7 +5522,10 @@ class _BracketTeamSlot extends StatelessWidget {
                 slot.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall?.copyWith(
+                style: (compact
+                        ? theme.textTheme.labelSmall
+                        : theme.textTheme.titleSmall)
+                    ?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -5409,7 +5533,7 @@ class _BracketTeamSlot extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   slot.detail!,
-                  maxLines: 2,
+                  maxLines: compact ? 1 : 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
