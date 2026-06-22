@@ -121,6 +121,57 @@ void main() {
     await tester.pump();
   }
 
+  testWidgets('entry form saves lesson flag', (WidgetTester tester) async {
+    await resetStorage(tester);
+    final original = TrainingEntry(
+      date: DateTime(2026, 3, 14, 18),
+      createdAt: DateTime(2026, 3, 14, 18),
+      durationMinutes: 60,
+      intensity: 3,
+      type: '패스',
+      mood: 4,
+      injury: false,
+      notes: '',
+      location: '학교 운동장',
+      program: '패스',
+    );
+    await addEntry(tester, original);
+    final storedEntry = (await allEntries(tester)).single;
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: EntryFormScreen(
+            trainingService: trainingService,
+            optionRepository: optionRepository,
+            localeService: localeService,
+            settingsService: settingsService,
+            entry: storedEntry,
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final lessonToggle = find.widgetWithText(SwitchListTile, '레슨 여부');
+    await tester.ensureVisible(lessonToggle);
+    await tester.tap(lessonToggle);
+    await tester.pump();
+    await tapSaveAndFinish(tester);
+
+    final savedEntry = (await allEntries(tester)).single;
+    expect(savedEntry.isLesson, isTrue);
+  });
+
   testWidgets('entry edit save does not reopen fortune dialog', (
     WidgetTester tester,
   ) async {

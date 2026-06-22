@@ -170,6 +170,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   String _type = '';
   final Map<String, int> _trainingProgramMinutes = <String, int>{};
   String _status = 'normal';
+  bool _isLesson = false;
   bool _injury = false;
   bool _rehab = false;
   bool _liftingEnabled = false;
@@ -292,6 +293,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           ),
         );
       _status = entry.status.isEmpty ? 'normal' : entry.status;
+      _isLesson = entry.isLesson;
       _injury = entry.injury;
       _injuryPartController.text = entry.injuryPart;
       _painController.text = entry.painLevel?.toString() ?? '';
@@ -391,6 +393,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               : const <String, int>{},
         );
       _status = 'normal';
+      _isLesson = false;
       _linkedBoardIds.clear();
       _syncDrillsPayloadFromBoardLinks();
       _jumpRopeEnabled = false;
@@ -636,6 +639,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _mood.toString(),
       _type.trim(),
       _status.trim(),
+      _isLesson.toString(),
       _injury.toString(),
       _rehab.toString(),
       _liftingEnabled.toString(),
@@ -2141,6 +2145,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               children: [
                                 SwitchListTile(
                                   contentPadding: EdgeInsets.zero,
+                                  secondary: const Icon(
+                                    Icons.school_outlined,
+                                  ),
+                                  title: Text(l10n.entryLesson),
+                                  value: _isLesson,
+                                  onChanged: (value) {
+                                    setState(() => _isLesson = value);
+                                    _scheduleAutoSave();
+                                  },
+                                ),
+                                SwitchListTile(
+                                  contentPadding: EdgeInsets.zero,
                                   title: Text(l10n.injury),
                                   value: _injury,
                                   onChanged: (value) {
@@ -3402,6 +3418,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       imagePath: _imagePaths.isNotEmpty ? _imagePaths.first : '',
       imagePaths: _imagePaths,
       status: _status,
+      isLesson: _isLesson,
       liftingByPart: const <String, int>{},
       liftingMinutes: _liftingEnabled
           ? (_parseInt(_liftingMinutesController.text.trim()) ?? 0)
@@ -3607,6 +3624,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         imagePath: _imagePaths.isNotEmpty ? _imagePaths.first : '',
         imagePaths: _imagePaths,
         status: _status,
+        isLesson: _isLesson,
         liftingByPart: liftingByPart,
         liftingMinutes: liftingMinutes,
         goalFocuses: selectedGoals,
@@ -3668,6 +3686,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         imagePath: draftEntry.imagePath,
         imagePaths: draftEntry.imagePaths,
         status: draftEntry.status,
+        isLesson: draftEntry.isLesson,
         liftingByPart: draftEntry.liftingByPart,
         liftingMinutes: draftEntry.liftingMinutes,
         coachComment: '',

@@ -1706,6 +1706,7 @@ class _ThumbPitchPainter extends CustomPainter {
 
 String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
   return [
+    trainingEntryLessonLabel(entry, l10n),
     ...trainingEntryConditioningParts(entry, l10n, includeEmptyMessage: true),
     trainingEntryInjuryLabel(entry, l10n),
     trainingEntryLocationWeatherLabel(entry),

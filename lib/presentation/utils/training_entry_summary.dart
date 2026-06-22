@@ -85,6 +85,10 @@ String trainingEntryLocationWeatherLabel(TrainingEntry entry) {
   return trainingEntryWeatherLabel(entry);
 }
 
+String trainingEntryLessonLabel(TrainingEntry entry, AppLocalizations l10n) {
+  return entry.isLesson ? l10n.trainingEntryLessonSummary : '';
+}
+
 String trainingEntryInjuryLabel(TrainingEntry entry, AppLocalizations l10n) {
   if (!entry.injury) return '';
   final parts = <String>[

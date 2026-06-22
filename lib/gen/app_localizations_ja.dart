@@ -1608,6 +1608,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingEntryConditioningEmpty => '縄跳び/リフティングの記録なし';
 
   @override
+  String get trainingEntryLessonSummary => 'レッスン';
+
+  @override
   String get trainingEntryInjuryPresent => 'けがの記録あり';
 
   @override
@@ -2971,6 +2974,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rehab => 'リハビリ';
 
   @override
+  String get entryLesson => 'レッスン';
+
+  @override
   String get goal => 'ゴール';
 
   @override
@@ -3220,6 +3226,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String statsReportTrainingRhythmValue(
       int sessions, int activeDays, int periodDays) {
     return '$sessions回 · $activeDays/$periodDays日';
+  }
+
+  @override
+  String get statsReportLessonCountLabel => 'レッスン回数';
+
+  @override
+  String statsReportLessonCountValue(int count) {
+    return '$count回';
   }
 
   @override
