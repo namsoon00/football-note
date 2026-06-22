@@ -3786,7 +3786,7 @@
   },
   "runningCoachSampleFrameGuideTitle": "영상에서 같이 볼 기준",
   "runningCoachSampleFrameGuideBody": "텍스트만 나열하지 않고 샘플 러너 위에 자세, 착지, 팔 타이밍, 프레임 판독을 같이 표시해 비교하기 쉽게 했어요.",
-  "runningCoachSampleCueLean": "발목부터 어깨까지, 허리 꺾임 없는 전경사",
+  "runningCoachSampleCueLean": "엉덩이-어깨 중심선이 엉덩이 수직선보다 앞으로 기울어진 정도",
   "runningCoachSampleCueFrame": "머리, 엉덩이, 무릎, 발이 계속 보임",
   "runningCoachSampleCueFoot": "발끝이 앞으로 향하고 엉덩이 아래 착지",
   "runningCoachSampleCueArms": "팔꿈치를 접고 다리와 반대로 스윙",
@@ -3796,12 +3796,12 @@
   "runningCoachSampleMistakeTitle": "잘못된 자세 판독",
   "runningCoachSampleReferenceBody": "목표 루프예요. 러너가 몸 전체를 살짝 기울이고, 엉덩이 가까이 착지하며, 무릎을 부드럽게 받고, 팔은 간결하게 유지해요.",
   "runningCoachSampleMistakeBody": "확인이 필요한 패턴이에요. 상체가 서고, 발이 엉덩이보다 앞에 떨어지고, 접지 무릎이 뻣뻣하며, 팔 스윙이 높고, 위아래 바운스가 커져요.",
-  "runningCoachSampleReferencePosture": "상체 선: 발목-엉덩이-어깨 전경사 10도, 허리 접힘 없음.",
+  "runningCoachSampleReferencePosture": "전경사: 어깨 중심이 엉덩이 수직선보다 10도 앞에 있고, 허리 접힘은 없음.",
   "runningCoachSampleReferenceFoot": "접지 지점: 착지 거리 0.08, 엉덩이 아래에 가깝게 착지.",
   "runningCoachSampleReferenceKnee": "접지 무릎: 155도, 잠그지 않고 부드럽게 부하를 받음.",
   "runningCoachSampleReferenceArms": "팔 각도: 팔꿈치가 90도 근처에서 다리와 반대로 스윙.",
   "runningCoachSampleReferenceFrame": "프레임 품질: 주요 관절이 보이는 24/24 사용 가능 프레임.",
-  "runningCoachSampleMistakePosture": "상체 선: 전경사 4도라 앞으로 밀지 못하고 몸이 선 상태.",
+  "runningCoachSampleMistakePosture": "전경사: 어깨 중심이 엉덩이 수직선에서 4도만 벗어나 몸이 너무 선 상태.",
   "runningCoachSampleMistakeFoot": "접지 지점: 엉덩이보다 0.20 앞에 떨어져 제동이 커짐.",
   "runningCoachSampleMistakeKnee": "접지 무릎: 172도, 충격을 받고 밀기에는 너무 곧게 펴짐.",
   "runningCoachSampleMistakeArms": "팔 각도: 팔꿈치가 118도 근처까지 올라와 스윙이 높고 좁아짐.",
@@ -3822,7 +3822,7 @@
   "runningCoachSamplePhaseAngles": "각도 측정",
   "runningCoachSamplePhaseContactScore": "착지 신뢰도 점수",
   "runningCoachSampleDecisionTitle": "판정 근거",
-  "runningCoachSampleMetricPosture": "상체",
+  "runningCoachSampleMetricPosture": "전경사",
   "runningCoachSampleMetricArms": "팔",
   "runningCoachSampleMetricLanding": "착지",
   "runningCoachSampleMetricFrames": "프레임",
@@ -3847,18 +3847,23 @@
   "runningCoachSampleMetricDetailReferenceTitle": "좋은 동작",
   "runningCoachSampleMetricDetailReviewTitle": "확인 동작",
   "runningCoachSampleMetricDetailHowReadTitle": "오버레이가 읽는 방식",
-  "runningCoachSamplePostureDetailKeyPosition": "중간 접지 위치: 어깨 중심, 엉덩이 선, 지지 발목을 연결해 상체 기울기를 봐요.",
-  "runningCoachSamplePostureDetailReference": "좋은 샘플은 엉덩이부터 가볍게 앞으로 기울고, 머리가 가슴 위에 안정적으로 실려 있어요.",
-  "runningCoachSamplePostureDetailReview": "확인 샘플은 상체가 너무 서 있어 밀어내는 선이 짧고 가속이 늦어 보일 수 있어요.",
-  "runningCoachSamplePostureDetailHowRead": "앱은 엉덩이와 어깨 중심을 연결하고, 엉덩이의 수직선과 비교해 프레임마다 전경사 각도를 확인해요.",
+  "runningCoachSampleMetricDetailGoodRangeTitle": "좋은 범위",
+  "runningCoachSamplePostureDetailGoodRange": "엉덩이-어깨 중심선 기준 전경사 8-24도. 좋은 샘플 값은 10도예요.",
+  "runningCoachSamplePostureDetailKeyPosition": "중간 접지 위치: 앱은 엉덩이 중심에서 위로 수직선을 세우고, 엉덩이-어깨 중심선과 비교해요.",
+  "runningCoachSamplePostureDetailReference": "좋은 샘플은 허리를 접지 않고 어깨가 엉덩이보다 살짝 앞에 있어요.",
+  "runningCoachSamplePostureDetailReview": "확인 샘플은 4도로 스프린트 범위보다 낮아 앞으로 밀기보다 몸이 서 있는 형태예요.",
+  "runningCoachSamplePostureDetailHowRead": "앱은 좌우 어깨와 엉덩이를 평균 내 몸통 축을 만들고, 그 축이 수직선에서 몇 도 벗어났는지 측정해요.",
+  "runningCoachSampleArmsDetailGoodRange": "팔꿈치 80-105도, 손은 갈비뼈 가까이 앞뒤로 움직이고 반대쪽 팔과 다리가 짝을 이뤄야 해요.",
   "runningCoachSampleArmsDetailKeyPosition": "팔 드라이브 위치: 반대쪽 무릎이 앞으로 나오는 순간 팔꿈치 각도를 읽어요.",
   "runningCoachSampleArmsDetailReference": "좋은 샘플은 팔꿈치를 90도에 가깝게 유지하고 갈비뼈 옆에서 앞뒤로 흔들어요.",
   "runningCoachSampleArmsDetailReview": "확인 샘플은 팔꿈치가 많이 열려 보폭 리듬이 느려지고 몸통 회전이 커질 수 있어요.",
   "runningCoachSampleArmsDetailHowRead": "앱은 어깨, 팔꿈치, 손목 랜드마크를 연결하고 팔꿈치가 지나치게 열리는 프레임을 표시해요.",
+  "runningCoachSampleLandingDetailGoodRange": "엉덩이 선 기준 착지 거리 0.00-0.10 몸길이. 좋은 샘플 값은 0.08이에요.",
   "runningCoachSampleLandingDetailKeyPosition": "첫 접지 위치: 발, 발목, 엉덩이 선으로 발이 몸 아래에 떨어지는지 봐요.",
   "runningCoachSampleLandingDetailReference": "좋은 샘플은 발이 엉덩이 선 가까이에 닿아 접지가 앞으로 밀어주는 힘으로 이어져요.",
   "runningCoachSampleLandingDetailReview": "확인 샘플은 발이 엉덩이보다 너무 앞에 떨어져 브레이크처럼 읽혀요.",
   "runningCoachSampleLandingDetailHowRead": "앱은 착지 구간에서 엉덩이 선과 접지 발목, 발끝 사이의 가로 거리를 측정해요.",
+  "runningCoachSampleBounceDetailGoodRange": "보폭 중 머리/엉덩이 높이 변화 7% 이하. 좋은 샘플 값은 6%예요.",
   "runningCoachSampleBounceDetailKeyPosition": "공중-접지 전환 구간: 이웃 프레임의 머리와 엉덩이 높이 변화를 비교해요.",
   "runningCoachSampleBounceDetailReference": "좋은 샘플은 위아래 움직임이 작아 에너지가 앞으로 유지돼요.",
   "runningCoachSampleBounceDetailReview": "확인 샘플은 몸이 더 크게 뜨고 내려와 접지 타이밍이 불안정해져요.",
@@ -4103,11 +4108,47 @@
       "value": {}
     }
   },
+  "runningCoachSprintMetricTargetRangeDegrees": "목표 {minimum}-{maximum}도",
+  "@runningCoachSprintMetricTargetRangeDegrees": {
+    "placeholders": {
+      "minimum": {
+        "type": "int"
+      },
+      "maximum": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetMinimumPercent": "목표 {percent}% 이상",
+  "@runningCoachSprintMetricTargetMinimumPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetMaximumMs": "목표 {milliseconds}ms 미만",
+  "@runningCoachSprintMetricTargetMaximumMs": {
+    "placeholders": {
+      "milliseconds": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetMaximumPercent": "목표 {percent}% 미만",
+  "@runningCoachSprintMetricTargetMaximumPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetLiveReference": "실시간 기준",
   "runningCoachSprintBodyVisibilityFull": "전신 확보",
   "runningCoachSprintBodyVisibilityPartial": "일부 누락",
   "runningCoachSprintBodyVisibilityNotVisible": "전신 미확보",
   "runningCoachSprintCueBodyVisible": "몸 전체가 프레임 안에 보이도록 한 걸음만 더 조정해 주세요.",
-  "runningCoachSprintCueLeanForward": "허리로 꺾지 말고 발목부터 상체를 조금 더 앞으로 유지해 주세요.",
+  "runningCoachSprintCueLeanForward": "허리를 접지 말고 어깨 중심이 엉덩이 선보다 살짝 앞에 오게 유지해 주세요.",
   "runningCoachSprintCueDriveKnee": "지면에서 밀어낸 뒤 무릎을 조금 더 강하게 앞으로 끌어올려 보세요.",
   "runningCoachSprintCueKeepRhythm": "좌우 리듬이 흔들리고 있어요. 접지 간격을 조금 더 일정하게 맞춰 보세요.",
   "runningCoachSprintCueBalanceArms": "팔 스윙 좌우 차이가 커요. 뒤로 당기는 길이를 비슷하게 맞춰 보세요.",
@@ -4317,7 +4358,7 @@
   "runningCoachSprintDiagnosisKeepRhythm": "스텝 간격 변동이 커서 좌우 스프린트 리듬이 흔들리고 있습니다.",
   "runningCoachSprintDiagnosisBalanceArms": "한쪽 팔의 뒤로 미는 기여가 작아서 상체 리듬 지원이 비대칭으로 보입니다.",
   "runningCoachSprintDiagnosisKeepPushing": "핵심 스프린트 지표가 안정 범위 안에 있어 지금 형태를 유지하는 안내를 주고 있습니다.",
-  "runningCoachSprintActionLeanForward": "첫 세 걸음 동안 가슴을 더 낮게 두고 발목부터 기울어지는 느낌을 유지해 보세요.",
+  "runningCoachSprintActionLeanForward": "첫 세 걸음 동안 가슴을 낮게 두어 엉덩이-어깨 축이 8-24도 범위에 남게 해 보세요.",
   "runningCoachSprintActionDriveKnee": "무릎만 억지로 들기보다 지면을 더 강하게 밀어내고 그 결과로 무릎이 지나오게 해 보세요.",
   "runningCoachSprintActionKeepRhythm": "보폭을 억지로 늘리지 말고 다음 몇 걸음의 접지 간격을 더 고르게 맞춰 보세요.",
   "runningCoachSprintActionBalanceArms": "양쪽 팔의 뒤로 미는 길이를 비슷하게 맞추고 어깨 흔들림을 줄여 보세요.",

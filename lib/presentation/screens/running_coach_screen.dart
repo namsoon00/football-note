@@ -2332,6 +2332,12 @@ class _SampleMetricDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _SampleMetricDetailSection(
+            icon: Icons.rule_rounded,
+            title: l10n.runningCoachSampleMetricDetailGoodRangeTitle,
+            body: detail.goodRange,
+          ),
+          const SizedBox(height: 10),
+          _SampleMetricDetailSection(
             icon: Icons.center_focus_strong_rounded,
             title: l10n.runningCoachSampleMetricDetailKeyPositionTitle,
             body: detail.keyPosition,
@@ -2361,12 +2367,14 @@ class _SampleMetricDetailScreen extends StatelessWidget {
 }
 
 class _SampleMetricDetailCopy {
+  final String goodRange;
   final String keyPosition;
   final String referenceMotion;
   final String reviewTrigger;
   final String howRead;
 
   const _SampleMetricDetailCopy({
+    required this.goodRange,
     required this.keyPosition,
     required this.referenceMotion,
     required this.reviewTrigger,
@@ -2379,24 +2387,28 @@ class _SampleMetricDetailCopy {
   ) {
     return switch (kind) {
       _SampleDecisionMetricKind.posture => _SampleMetricDetailCopy(
+          goodRange: l10n.runningCoachSamplePostureDetailGoodRange,
           keyPosition: l10n.runningCoachSamplePostureDetailKeyPosition,
           referenceMotion: l10n.runningCoachSamplePostureDetailReference,
           reviewTrigger: l10n.runningCoachSamplePostureDetailReview,
           howRead: l10n.runningCoachSamplePostureDetailHowRead,
         ),
       _SampleDecisionMetricKind.arms => _SampleMetricDetailCopy(
+          goodRange: l10n.runningCoachSampleArmsDetailGoodRange,
           keyPosition: l10n.runningCoachSampleArmsDetailKeyPosition,
           referenceMotion: l10n.runningCoachSampleArmsDetailReference,
           reviewTrigger: l10n.runningCoachSampleArmsDetailReview,
           howRead: l10n.runningCoachSampleArmsDetailHowRead,
         ),
       _SampleDecisionMetricKind.landing => _SampleMetricDetailCopy(
+          goodRange: l10n.runningCoachSampleLandingDetailGoodRange,
           keyPosition: l10n.runningCoachSampleLandingDetailKeyPosition,
           referenceMotion: l10n.runningCoachSampleLandingDetailReference,
           reviewTrigger: l10n.runningCoachSampleLandingDetailReview,
           howRead: l10n.runningCoachSampleLandingDetailHowRead,
         ),
       _SampleDecisionMetricKind.bounce => _SampleMetricDetailCopy(
+          goodRange: l10n.runningCoachSampleBounceDetailGoodRange,
           keyPosition: l10n.runningCoachSampleBounceDetailKeyPosition,
           referenceMotion: l10n.runningCoachSampleBounceDetailReference,
           reviewTrigger: l10n.runningCoachSampleBounceDetailReview,
@@ -2586,13 +2598,13 @@ class _SampleMetricDetailPainter extends CustomPainter {
     canvas.drawLine(runner.hip, runner.shoulderMid, readPaint);
     canvas.drawLine(
       runner.hip,
-      Offset(runner.hip.dx, runner.groundY),
+      runner.postureVerticalTop,
       readPaint..color = highlightColor.withValues(alpha: 0.42),
     );
     _drawAngleArc(
       canvas,
       center: runner.hip,
-      start: Offset(runner.hip.dx, runner.groundY),
+      start: runner.postureVerticalTop,
       end: runner.shoulderMid,
       radius: runner.scale * 0.090,
       color: highlightColor.withValues(alpha: 0.88),
@@ -3209,10 +3221,9 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
       ..color = primaryColor.withValues(alpha: 0.55 * alpha)
       ..strokeWidth = math.max(1.2, runner.scale * 0.006)
       ..strokeCap = StrokeCap.round;
+    canvas.drawLine(runner.hip, runner.postureVerticalTop, guidePaint);
     canvas.drawLine(
-        runner.hip, Offset(runner.hip.dx, runner.groundY), guidePaint);
-    canvas.drawLine(
-      runner.ankleLine,
+      runner.hip,
       runner.shoulderMid,
       guidePaint..color = primaryColor.withValues(alpha: 0.42 * alpha),
     );
@@ -3541,20 +3552,30 @@ class _SampleVideoRunnerGeometry {
   Offset get rearShoulder => p(_pose.rearShoulder);
   Offset get frontShoulder => p(_pose.frontShoulder);
   Offset get rearElbow => p(_pose.rearElbow);
-  Offset get rearWrist => p(_pose.rearWrist);
+  Offset get rearWrist => _oppositeArmWrist(
+        elbow: rearElbow,
+        rawWrist: p(_pose.rearWrist),
+        swingsForward: false,
+      );
   Offset get frontElbow => p(_pose.frontElbow);
-  Offset get frontWrist => p(_pose.frontWrist);
+  Offset get frontWrist => _oppositeArmWrist(
+        elbow: frontElbow,
+        rawWrist: p(_pose.frontWrist),
+        swingsForward: true,
+      );
   Offset get rearHip => p(_pose.rearHip);
   Offset get frontHip => p(_pose.frontHip);
   Offset get rearKnee => p(_pose.rearKnee);
   Offset get rearAnkle => p(_pose.rearAnkle);
-  Offset get rearToe => p(_pose.rearToe);
+  Offset get rearToe => _forwardToe(ankle: rearAnkle, rawToe: p(_pose.rearToe));
   Offset get frontKnee => p(_pose.frontKnee);
   Offset get frontAnkle => p(_pose.frontAnkle);
-  Offset get frontToe => p(_pose.frontToe);
+  Offset get frontToe =>
+      _forwardToe(ankle: frontAnkle, rawToe: p(_pose.frontToe));
 
   Offset get shoulderMid => Offset.lerp(rearShoulder, frontShoulder, 0.5)!;
   Offset get hip => Offset.lerp(rearHip, frontHip, 0.5)!;
+  Offset get postureVerticalTop => Offset(hip.dx, hip.dy - scale * 0.28);
   bool get _frontLegIsContact => frontToe.dy >= rearToe.dy;
   Offset get contactHip => _frontLegIsContact ? frontHip : rearHip;
   Offset get contactKnee => _frontLegIsContact ? frontKnee : rearKnee;
@@ -3619,6 +3640,27 @@ class _SampleVideoRunnerGeometry {
         (frontKnee, frontAnkle),
         (frontAnkle, frontToe),
       ];
+
+  Offset _forwardToe({required Offset ankle, required Offset rawToe}) {
+    final forwardDx = (rawToe.dx - ankle.dx)
+        .abs()
+        .clamp(size.width * 0.018, size.width * 0.070)
+        .toDouble();
+    return Offset(ankle.dx + forwardDx, rawToe.dy);
+  }
+
+  Offset _oppositeArmWrist({
+    required Offset elbow,
+    required Offset rawWrist,
+    required bool swingsForward,
+  }) {
+    final wristDx = (rawWrist.dx - elbow.dx)
+        .abs()
+        .clamp(size.width * 0.020, size.width * 0.085)
+        .toDouble();
+    final resolvedX = swingsForward ? elbow.dx + wristDx : elbow.dx - wristDx;
+    return Offset(resolvedX, rawWrist.dy);
+  }
 }
 
 class _SampleVideoPoseKeyframe {

@@ -3786,7 +3786,7 @@
   },
   "runningCoachSampleFrameGuideTitle": "What to compare in the video",
   "runningCoachSampleFrameGuideBody": "Read the overlays with the runner: posture, landing, arm timing, and frame coverage are shown on top of the sample instead of only as a text list.",
-  "runningCoachSampleCueLean": "Ankle-to-shoulder lean without folding at the waist",
+  "runningCoachSampleCueLean": "Hip-to-shoulder lean compared with the vertical hip line",
   "runningCoachSampleCueFrame": "Head, hips, knees, and feet stay visible",
   "runningCoachSampleCueFoot": "Foot lands under the hip with toes forward",
   "runningCoachSampleCueArms": "Elbows stay bent and swing opposite the legs",
@@ -3796,12 +3796,12 @@
   "runningCoachSampleMistakeTitle": "Wrong-form readouts",
   "runningCoachSampleReferenceBody": "This is the target loop: the runner keeps a slight whole-body lean, lands close to the hip, loads the knee softly, and keeps the arms compact.",
   "runningCoachSampleMistakeBody": "This loop shows the review pattern: upright torso, foot landing ahead of the hip, a stiff contact knee, a high arm swing, and extra vertical bounce.",
-  "runningCoachSampleReferencePosture": "Posture line: ankle-hip-shoulder lean is 10° without folding at the waist.",
+  "runningCoachSampleReferencePosture": "Forward lean: shoulder center is 10° ahead of the vertical hip line without waist folding.",
   "runningCoachSampleReferenceFoot": "Contact point: landing distance is 0.08, close enough to stay under the hip.",
   "runningCoachSampleReferenceKnee": "Stance knee: 155° at contact, softly loaded instead of locked.",
   "runningCoachSampleReferenceArms": "Arm angle: elbows stay near 90° and swing opposite the legs.",
   "runningCoachSampleReferenceFrame": "Frame quality: 24/24 usable frames with all main joints visible.",
-  "runningCoachSampleMistakePosture": "Posture line: lean is only 4°, so the runner sits tall instead of driving forward.",
+  "runningCoachSampleMistakePosture": "Forward lean: shoulder center is only 4° from the vertical hip line, so the runner sits tall.",
   "runningCoachSampleMistakeFoot": "Contact point: landing is 0.20 ahead of the hip, increasing braking.",
   "runningCoachSampleMistakeKnee": "Stance knee: 172° at contact, too straight to absorb and push.",
   "runningCoachSampleMistakeArms": "Arm angle: elbows rise near 118°, making the swing high and tight.",
@@ -3822,7 +3822,7 @@
   "runningCoachSamplePhaseAngles": "Measure angles",
   "runningCoachSamplePhaseContactScore": "Score contact confidence",
   "runningCoachSampleDecisionTitle": "Decision evidence",
-  "runningCoachSampleMetricPosture": "Posture",
+  "runningCoachSampleMetricPosture": "Forward lean",
   "runningCoachSampleMetricArms": "Arms",
   "runningCoachSampleMetricLanding": "Landing",
   "runningCoachSampleMetricFrames": "Frame coverage",
@@ -3847,18 +3847,23 @@
   "runningCoachSampleMetricDetailReferenceTitle": "Reference motion",
   "runningCoachSampleMetricDetailReviewTitle": "Review trigger",
   "runningCoachSampleMetricDetailHowReadTitle": "How the overlay reads it",
-  "runningCoachSamplePostureDetailKeyPosition": "Mid-stance: the shoulder midpoint, hip line, and support ankle define the lean angle.",
-  "runningCoachSamplePostureDetailReference": "The reference clip keeps a light forward lean from the hip, with the head carried over the chest.",
-  "runningCoachSamplePostureDetailReview": "The review clip is too upright, so the push line is shorter and acceleration looks late.",
-  "runningCoachSamplePostureDetailHowRead": "The app connects hip to shoulder midpoint, compares it with the vertical hip line, and checks the lean frame by frame.",
+  "runningCoachSampleMetricDetailGoodRangeTitle": "Good range",
+  "runningCoachSamplePostureDetailGoodRange": "8-24° forward lean from the hip-to-shoulder center line. The sample value is 10°.",
+  "runningCoachSamplePostureDetailKeyPosition": "Mid-stance: the app draws a vertical line up from the hip center, then compares it with the hip-to-shoulder center line.",
+  "runningCoachSamplePostureDetailReference": "The reference clip keeps the shoulders slightly ahead of the hips without folding at the waist.",
+  "runningCoachSamplePostureDetailReview": "The review clip is only 4°, below the sprint range, so the runner looks tall instead of driving forward.",
+  "runningCoachSamplePostureDetailHowRead": "The app averages left/right shoulders and hips, builds one trunk axis, and measures how many degrees that axis moves away from vertical.",
+  "runningCoachSampleArmsDetailGoodRange": "Elbow angle 80-105°, hands moving front-to-back near the ribs, with the opposite arm and leg paired.",
   "runningCoachSampleArmsDetailKeyPosition": "Arm-drive frame: each elbow angle is read while the opposite knee is driving forward.",
   "runningCoachSampleArmsDetailReference": "The reference clip keeps the elbows near 90 degrees and swings front-to-back close to the ribs.",
   "runningCoachSampleArmsDetailReview": "The review clip opens the elbow angle, which can slow cadence and rotate the torso.",
   "runningCoachSampleArmsDetailHowRead": "The app connects shoulder, elbow, and wrist landmarks and flags the frame when the elbow opens too far.",
+  "runningCoachSampleLandingDetailGoodRange": "Foot contact within 0.00-0.10 body-length of the hip line. The sample value is 0.08.",
   "runningCoachSampleLandingDetailKeyPosition": "First-contact frame: the foot, ankle, and hip line show whether the step lands under the body.",
   "runningCoachSampleLandingDetailReference": "The reference clip lands close to the hip line, so contact supports forward movement.",
   "runningCoachSampleLandingDetailReview": "The review clip lands too far ahead of the hip, which reads as braking.",
   "runningCoachSampleLandingDetailHowRead": "The app measures the horizontal gap from the hip line to the contact ankle and toe during the landing window.",
+  "runningCoachSampleBounceDetailGoodRange": "Vertical head/hip change under 7% through the stride. The sample value is 6%.",
   "runningCoachSampleBounceDetailKeyPosition": "Flight-to-contact window: head and hip height are compared across neighboring frames.",
   "runningCoachSampleBounceDetailReference": "The reference clip keeps vertical motion compact, so energy stays directed forward.",
   "runningCoachSampleBounceDetailReview": "The review clip rises and drops more, making contact timing less stable.",
@@ -4103,11 +4108,47 @@
       "value": {}
     }
   },
+  "runningCoachSprintMetricTargetRangeDegrees": "Target {minimum}-{maximum}°",
+  "@runningCoachSprintMetricTargetRangeDegrees": {
+    "placeholders": {
+      "minimum": {
+        "type": "int"
+      },
+      "maximum": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetMinimumPercent": "Target {percent}%+",
+  "@runningCoachSprintMetricTargetMinimumPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetMaximumMs": "Target <{milliseconds}ms",
+  "@runningCoachSprintMetricTargetMaximumMs": {
+    "placeholders": {
+      "milliseconds": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetMaximumPercent": "Target <{percent}%",
+  "@runningCoachSprintMetricTargetMaximumPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetLiveReference": "Live reference",
   "runningCoachSprintBodyVisibilityFull": "Full body locked",
   "runningCoachSprintBodyVisibilityPartial": "Partial landmarks",
   "runningCoachSprintBodyVisibilityNotVisible": "Body lost",
   "runningCoachSprintCueBodyVisible": "Adjust one more step so the full body stays inside the frame.",
-  "runningCoachSprintCueLeanForward": "Keep the lean slightly more forward from the ankles, not by folding at the waist.",
+  "runningCoachSprintCueLeanForward": "Bring the shoulder center slightly ahead of the hip line without folding at the waist.",
   "runningCoachSprintCueDriveKnee": "After the push-off, drive the knee forward a little more aggressively.",
   "runningCoachSprintCueKeepRhythm": "The left-right rhythm is drifting. Try to keep the ground contacts more even.",
   "runningCoachSprintCueBalanceArms": "The arm swing is unbalanced. Match the backward drive on both sides more closely.",
@@ -4317,7 +4358,7 @@
   "runningCoachSprintDiagnosisKeepRhythm": "Step timing is varying too much, so the left-right sprint rhythm is drifting.",
   "runningCoachSprintDiagnosisBalanceArms": "One arm is contributing less backward drive, so rhythm support from the upper body is uneven.",
   "runningCoachSprintDiagnosisKeepPushing": "The main sprint metrics are inside the stable range, so the app is holding the current cue.",
-  "runningCoachSprintActionLeanForward": "Keep the chest lower for the first three steps and let the lean come from the ankles.",
+  "runningCoachSprintActionLeanForward": "Keep the chest low for the first three steps so the hip-to-shoulder axis stays inside the 8-24° range.",
   "runningCoachSprintActionDriveKnee": "Push the ground harder and let the knee come through instead of trying to lift it by itself.",
   "runningCoachSprintActionKeepRhythm": "Do not reach for a longer step. Keep ground contacts evenly spaced for the next few strides.",
   "runningCoachSprintActionBalanceArms": "Match the backward arm drive on both sides and keep the shoulders quieter.",

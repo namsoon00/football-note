@@ -238,13 +238,13 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
               padding: const EdgeInsets.all(12),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final railWidth = math.min(
-                    132.0,
-                    math.max(100.0, constraints.maxWidth * 0.24),
-                  );
                   final bannerWidth = math.min(
-                    360.0,
-                    constraints.maxWidth - (railWidth * 2) - 28,
+                    420.0,
+                    math.max(260.0, constraints.maxWidth * 0.58),
+                  );
+                  final metricsWidth = math.min(
+                    660.0,
+                    math.max(320.0, constraints.maxWidth - 16),
                   );
                   final sessionWidth = math.min(
                     248.0,
@@ -253,10 +253,10 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                   return Stack(
                     children: [
                       Align(
-                        alignment: Alignment.topCenter,
+                        alignment: Alignment.topLeft,
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxWidth: math.max(210.0, bannerWidth),
+                            maxWidth: bannerWidth,
                           ),
                           child: _CueBanner(
                             theme: statusTheme,
@@ -269,11 +269,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                         ),
                       ),
                       Align(
-                        alignment: Alignment.centerRight,
-                        child: _MetricsRail(width: railWidth, metrics: metrics),
-                      ),
-                      Align(
-                        alignment: Alignment.bottomLeft,
+                        alignment: Alignment.topRight,
                         child: _StatusDock(
                           items: [
                             _InfoChipData(text: _bodyVisibilityText(l10n)),
@@ -282,28 +278,14 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                                   ? l10n.runningCoachLiveVoiceOn
                                   : l10n.runningCoachLiveVoiceOff,
                             ),
-                            if (_isDebugModeEnabled) ...[
-                              _InfoChipData(
-                                text: l10n
-                                    .runningCoachSprintTrackingConfidenceValue(
-                                  (_coachingState.stateEstimate
-                                              .trackingConfidence *
-                                          100)
-                                      .round(),
-                                ),
-                              ),
-                              _InfoChipData(
-                                text: l10n.runningCoachSprintTrackedFrames(
-                                  _coachingState.trackedFrames,
-                                ),
-                              ),
-                              _InfoChipData(
-                                text: l10n.runningCoachSprintDetectedSteps(
-                                  _coachingState.features.detectedStepEvents,
-                                ),
-                              ),
-                            ],
                           ],
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: _MetricsRail(
+                          width: metricsWidth,
+                          metrics: metrics,
                         ),
                       ),
                       if (_isDebugModeEnabled)
@@ -1460,6 +1442,10 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     return [
       _MetricTileData(
         label: l10n.runningCoachSprintMetricTrunkLabel,
+        target: l10n.runningCoachSprintMetricTargetRangeDegrees(
+          _pipelineConfig.minimumTrunkAngleDegrees.round(),
+          _pipelineConfig.maximumAccelerationTrunkAngleDegrees.round(),
+        ),
         value: _coachingState.features.trunkAngleDegrees == null
             ? l10n.runningCoachSprintMetricPending
             : l10n.runningCoachSprintMetricTrunkValue(
@@ -1473,6 +1459,9 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       ),
       _MetricTileData(
         label: l10n.runningCoachSprintMetricKneeDriveLabel,
+        target: l10n.runningCoachSprintMetricTargetMinimumPercent(
+          (_pipelineConfig.minimumKneeDriveHeight * 100).round(),
+        ),
         value: _coachingState.features.kneeDriveHeightRatio == null
             ? l10n.runningCoachSprintMetricPending
             : l10n.runningCoachSprintMetricKneeDriveValue(
@@ -1488,6 +1477,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       ),
       _MetricTileData(
         label: l10n.runningCoachSprintMetricCadenceLabel,
+        target: l10n.runningCoachSprintMetricTargetLiveReference,
         value: _coachingState.features.cadenceStepsPerMinute == null
             ? l10n.runningCoachSprintMetricPending
             : l10n.runningCoachSprintMetricCadenceValue(
@@ -1499,6 +1489,9 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       ),
       _MetricTileData(
         label: l10n.runningCoachSprintMetricRhythmLabel,
+        target: l10n.runningCoachSprintMetricTargetMaximumMs(
+          _pipelineConfig.maximumStepIntervalStdMs.round(),
+        ),
         value: _coachingState.features.stepIntervalStdMs == null
             ? l10n.runningCoachSprintMetricPending
             : l10n.runningCoachSprintMetricRhythmValue(
@@ -1511,6 +1504,9 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       ),
       _MetricTileData(
         label: l10n.runningCoachSprintMetricArmBalanceLabel,
+        target: l10n.runningCoachSprintMetricTargetMaximumPercent(
+          (_pipelineConfig.maximumArmAsymmetryRatio * 100).round(),
+        ),
         value: _coachingState.features.armSwingAsymmetryRatio == null
             ? l10n.runningCoachSprintMetricPending
             : l10n.runningCoachSprintMetricArmBalanceValue(
@@ -1834,82 +1830,71 @@ class _CueBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final detailText = actionTip.isNotEmpty ? actionTip : diagnosis;
+    final detailLabel = actionTip.isNotEmpty
+        ? l10n.runningCoachSprintCueTryLabel
+        : l10n.runningCoachSprintCueWhyLabel;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: theme.background,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: theme.color.withAlpha(178)),
+        color: theme.background.withAlpha(150),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.color.withAlpha(150)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x33000000),
-            blurRadius: 12,
-            offset: Offset(0, 8),
+            blurRadius: 10,
+            offset: Offset(0, 6),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 142),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(theme.icon, color: theme.color, size: 20),
-              const SizedBox(width: 10),
-              Flexible(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                          ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(theme.icon, color: theme.color, size: 18),
+            const SizedBox(width: 9),
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    body,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Colors.white70,
+                          height: 1.15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  if (detailText.isNotEmpty) ...[
+                    const SizedBox(height: 5),
+                    _CueDetailLine(
+                      label: detailLabel,
+                      text: detailText,
+                      color: theme.color.withAlpha(220),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      body,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
-                            height: 1.25,
-                          ),
-                    ),
-                    if (diagnosis.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      _CueDetailLine(
-                        label: AppLocalizations.of(context)!
-                            .runningCoachSprintCueWhyLabel,
-                        text: diagnosis,
-                        color: Colors.white70,
-                      ),
-                    ],
-                    if (actionTip.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      _CueDetailLine(
-                        label: AppLocalizations.of(context)!
-                            .runningCoachSprintCueTryLabel,
-                        text: actionTip,
-                        color: theme.color.withAlpha(220),
-                      ),
-                    ],
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final hint in hints)
-                          _CueHintPill(text: hint, color: theme.color),
-                      ],
-                    ),
+                  ] else if (hints.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    _CueHintPill(text: hints.first, color: theme.color),
                   ],
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1930,7 +1915,7 @@ class _CueDetailLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RichText(
-      maxLines: 2,
+      maxLines: 1,
       overflow: TextOverflow.ellipsis,
       text: TextSpan(
         style: Theme.of(
@@ -1969,9 +1954,11 @@ class _CueHintPill extends StatelessWidget {
         border: Border.all(color: color.withAlpha(96)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
         child: Text(
           text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Colors.white70,
                 fontWeight: FontWeight.w700,
@@ -1984,11 +1971,13 @@ class _CueHintPill extends StatelessWidget {
 
 class _MetricTileData {
   final String label;
+  final String target;
   final String value;
   final Color accent;
 
   const _MetricTileData({
     required this.label,
+    required this.target,
     required this.value,
     required this.accent,
   });
@@ -2002,29 +1991,33 @@ class _MetricsRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tileWidth = math.max(96.0, math.min(122.0, (width - 56) / 5));
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xB8121720),
-        borderRadius: BorderRadius.circular(24),
+        color: const Color(0xA8121720),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.white10),
         boxShadow: const [
           BoxShadow(
             color: Color(0x33000000),
-            blurRadius: 12,
-            offset: Offset(0, 8),
+            blurRadius: 10,
+            offset: Offset(0, 6),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var index = 0; index < metrics.length; index += 1) ...[
-              _MetricTile(metric: metrics[index], width: width - 24),
-              if (index != metrics.length - 1) const SizedBox(height: 8),
+        padding: const EdgeInsets.all(8),
+        child: SizedBox(
+          width: width,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final metric in metrics)
+                _MetricTile(metric: metric, width: tileWidth),
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -2042,34 +2035,46 @@ class _MetricTile extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white.withAlpha(10),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: metric.accent.withAlpha(140)),
       ),
       child: SizedBox(
         width: width,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 metric.label,
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: Colors.white70,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 3),
+              Text(
+                metric.target,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: metric.accent.withAlpha(220),
+                      fontWeight: FontWeight.w700,
+                      height: 1.1,
+                    ),
+              ),
+              const SizedBox(height: 4),
               Text(
                 metric.value,
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      height: 1.25,
+                      fontWeight: FontWeight.w900,
+                      height: 1.15,
                     ),
               ),
             ],
@@ -2305,13 +2310,13 @@ class _GuideFramePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final overlayPaint = Paint()..color = Colors.black.withAlpha(70);
+    final overlayPaint = Paint()..color = Colors.black.withAlpha(42);
     canvas.drawRect(Offset.zero & size, overlayPaint);
 
     final guideRect = Rect.fromCenter(
-      center: Offset(size.width / 2, size.height / 2),
-      width: size.width * 0.56,
-      height: size.height * 0.78,
+      center: Offset(size.width / 2, size.height * 0.49),
+      width: size.width * 0.78,
+      height: size.height * 0.84,
     );
 
     final clearPaint = Paint()..blendMode = BlendMode.clear;
@@ -2326,7 +2331,7 @@ class _GuideFramePainter extends CustomPainter {
     final borderPaint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
+      ..strokeWidth = 2.2;
     canvas.drawRRect(
       RRect.fromRectAndRadius(guideRect, const Radius.circular(28)),
       borderPaint,
@@ -2335,9 +2340,9 @@ class _GuideFramePainter extends CustomPainter {
     final accentPaint = Paint()
       ..color = color.withAlpha(180)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
+      ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
-    const corner = 28.0;
+    const corner = 36.0;
     final corners = [
       (guideRect.left, guideRect.top, 1, 1),
       (guideRect.right, guideRect.top, -1, 1),
