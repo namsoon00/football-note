@@ -3558,6 +3558,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get statsCompetitionDashboardTitle => 'Competition board';
+
+  @override
+  String get statsCompetitionLeagueSectionTitle => 'League competitions';
+
+  @override
+  String get statsCompetitionTournamentSectionTitle =>
+      'Tournament competitions';
+
+  @override
+  String statsCompetitionProgressValue(int recorded, int total) {
+    return '$recorded/$total';
+  }
+
+  @override
+  String statsCompetitionMoreCount(int count) {
+    return '$count more';
+  }
+
+  @override
+  String get statsCompetitionOpponentUnset => 'Opponent unset';
+
+  @override
   String get averageComparisonProfileMissingTitle =>
       'Enter age and sport experience';
 

@@ -2195,6 +2195,29 @@
       }
     }
   },
+  "statsCompetitionDashboardTitle": "대회 결과 보드",
+  "statsCompetitionLeagueSectionTitle": "리그 대회",
+  "statsCompetitionTournamentSectionTitle": "토너먼트 대회",
+  "statsCompetitionProgressValue": "{recorded}/{total}",
+  "@statsCompetitionProgressValue": {
+    "placeholders": {
+      "recorded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "statsCompetitionMoreCount": "외 {count}개",
+  "@statsCompetitionMoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsCompetitionOpponentUnset": "상대 미입력",
   "averageComparisonProfileMissingTitle": "나이/경력 정보를 입력해 주세요",
   "averageComparisonProfileMissingMessage": "현재는 판단 기준(나이/종목 경력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 종목 시작일을 입력해 주세요.",
   "averageComparisonOpenProfileAction": "프로필 입력하기",

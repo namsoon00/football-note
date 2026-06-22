@@ -3471,6 +3471,28 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get statsCompetitionDashboardTitle => '대회 결과 보드';
+
+  @override
+  String get statsCompetitionLeagueSectionTitle => '리그 대회';
+
+  @override
+  String get statsCompetitionTournamentSectionTitle => '토너먼트 대회';
+
+  @override
+  String statsCompetitionProgressValue(int recorded, int total) {
+    return '$recorded/$total';
+  }
+
+  @override
+  String statsCompetitionMoreCount(int count) {
+    return '외 $count개';
+  }
+
+  @override
+  String get statsCompetitionOpponentUnset => '상대 미입력';
+
+  @override
   String get averageComparisonProfileMissingTitle => '나이/경력 정보를 입력해 주세요';
 
   @override

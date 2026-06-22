@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:football_note/application/family_access_service.dart';
+import 'package:football_note/application/match_competition_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
@@ -251,10 +252,112 @@ void main() {
 
     expect(find.textContaining('친선 경기 0 · 리그 경기 0 · 토너먼트 1'), findsOneWidget);
     expect(find.textContaining('토너먼트 · 컵 FC'), findsOneWidget);
-    expect(find.textContaining('봄 컵'), findsOneWidget);
-    expect(find.textContaining('결승'), findsOneWidget);
-    expect(find.textContaining('우승'), findsOneWidget);
+    expect(find.textContaining('봄 컵'), findsWidgets);
+    expect(find.textContaining('결승'), findsWidgets);
+    expect(find.textContaining('우승'), findsWidgets);
     expect(find.textContaining('2승'), findsWidgets);
+  });
+
+  testWidgets('Stats screen presents league and tournament competition boards',
+      (
+    WidgetTester tester,
+  ) async {
+    final competitionService = MatchCompetitionService(optionRepository);
+    await competitionService.upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindLeague,
+        name: '주말 리그',
+        teams: const <String>['레드 FC', '블루 FC', '그린 FC'],
+      ),
+    );
+    await competitionService.upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindTournament,
+        name: '겨울 컵',
+        teams: const <String>['레드 FC', '컵 FC', '블루 FC', '그린 FC'],
+        status: MatchCompetitionRecord.statusFinished,
+      ),
+    );
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 80,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '리그 구장',
+        opponentTeam: '블루 FC',
+        scoredGoals: 2,
+        concededGoals: 1,
+        matchKind: 'league',
+        matchCompetitionName: '주말 리그',
+        leagueTeamNames: const <String>['레드 FC', '블루 FC', '그린 FC'],
+        leaguePoints: 3,
+      ),
+    );
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '컵 구장',
+        opponentTeam: '컵 FC',
+        scoredGoals: 1,
+        concededGoals: 0,
+        matchKind: 'tournament',
+        matchCompetitionName: '봄 컵',
+        matchStage: 'semifinal',
+        tournamentOutcome: 'advanced',
+        leagueTeamNames: const <String>['레드 FC', '컵 FC'],
+        tournamentWins: 1,
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: StatsScreen(
+            trainingService: service,
+            mealLogService: mealLogService,
+            localeService: localeService,
+            onCreate: () {},
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('대회 결과 보드'), findsOneWidget);
+    expect(find.text('리그 대회'), findsOneWidget);
+    expect(find.text('토너먼트 대회'), findsOneWidget);
+    expect(find.text('주말 리그'), findsOneWidget);
+    expect(find.text('리그 순위'), findsOneWidget);
+    expect(find.textContaining('승점 3'), findsWidgets);
+    expect(find.text('봄 컵'), findsOneWidget);
+    expect(find.text('겨울 컵'), findsOneWidget);
+    expect(find.text('토너먼트 대진표'), findsWidgets);
+    expect(find.text('기록된 진행'), findsWidgets);
+    expect(find.textContaining('4강'), findsWidgets);
   });
 
   testWidgets('Parent mode stats shows training, match, and meal records', (
