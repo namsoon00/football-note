@@ -5180,7 +5180,7 @@ Color _positionColor(ThemeData theme, _WorldCupRosterPosition position) {
   };
 }
 
-class _WorldCupTournamentBracket extends StatelessWidget {
+class _WorldCupTournamentBracket extends StatefulWidget {
   final List<_TournamentBracketRound> rounds;
   final _TournamentBracketRound thirdPlace;
   final _BracketSlotData Function(String slot) slotBuilder;
@@ -5192,16 +5192,193 @@ class _WorldCupTournamentBracket extends StatelessWidget {
   });
 
   @override
+  State<_WorldCupTournamentBracket> createState() =>
+      _WorldCupTournamentBracketState();
+}
+
+class _WorldCupTournamentBracketState
+    extends State<_WorldCupTournamentBracket> {
+  static const _minScale = 0.32;
+  static const _maxScale = 2.4;
+  static const _zoomStep = 1.22;
+
+  final TransformationController _transformationController =
+      TransformationController();
+
+  String? _layoutSignature;
+  Matrix4? _initialMatrix;
+  Size _lastViewportSize = const Size(360, 420);
+
+  @override
+  void initState() {
+    super.initState();
+    _transformationController.addListener(_handleTransformChanged);
+  }
+
+  @override
+  void dispose() {
+    _transformationController.removeListener(_handleTransformChanged);
+    _transformationController.dispose();
+    super.dispose();
+  }
+
+  double get _currentScale => _transformationController.value
+      .getMaxScaleOnAxis()
+      .clamp(
+        _minScale,
+        _maxScale,
+      )
+      .toDouble();
+
+  void _handleTransformChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _scheduleInitialTransform({
+    required double contentWidth,
+    required double viewportWidth,
+    required bool compact,
+  }) {
+    final signature =
+        '${contentWidth.toStringAsFixed(1)}:${viewportWidth.toStringAsFixed(1)}'
+        ':$compact';
+    if (_layoutSignature == signature) return;
+    _layoutSignature = signature;
+    final initialScale = (compact ? 0.52 : 0.72)
+        .clamp(
+          _minScale,
+          _maxScale,
+        )
+        .toDouble();
+    final initialOffsetX = math.min(
+      0.0,
+      (viewportWidth - contentWidth * initialScale) / 2,
+    );
+    final initialMatrix = _matrixForTransform(
+      scale: initialScale,
+      offset: Offset(initialOffsetX, 0),
+    );
+    _initialMatrix = Matrix4.copy(initialMatrix);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _layoutSignature != signature) return;
+      _transformationController.value = Matrix4.copy(initialMatrix);
+    });
+  }
+
+  void _zoomBy(double factor) {
+    final currentScale = _currentScale;
+    final nextScale = (currentScale * factor)
+        .clamp(
+          _minScale,
+          _maxScale,
+        )
+        .toDouble();
+    if ((nextScale - currentScale).abs() < 0.001) return;
+
+    final translation = _transformationController.value.getTranslation();
+    final focalPoint = Offset(
+      _lastViewportSize.width / 2,
+      _lastViewportSize.height / 2,
+    );
+    final worldFocalPoint = Offset(
+      (focalPoint.dx - translation.x) / currentScale,
+      (focalPoint.dy - translation.y) / currentScale,
+    );
+    final nextOffset = Offset(
+      focalPoint.dx - worldFocalPoint.dx * nextScale,
+      focalPoint.dy - worldFocalPoint.dy * nextScale,
+    );
+    _transformationController.value = _matrixForTransform(
+      scale: nextScale,
+      offset: nextOffset,
+    );
+  }
+
+  void _resetZoom() {
+    final matrix = _initialMatrix;
+    _transformationController.value =
+        matrix == null ? Matrix4.identity() : Matrix4.copy(matrix);
+  }
+
+  Matrix4 _matrixForTransform({
+    required double scale,
+    required Offset offset,
+  }) {
+    final matrix = Matrix4.identity();
+    matrix.setEntry(0, 0, scale);
+    matrix.setEntry(1, 1, scale);
+    matrix.setEntry(2, 2, scale);
+    matrix.setEntry(0, 3, offset.dx);
+    matrix.setEntry(1, 3, offset.dy);
+    return matrix;
+  }
+
+  Widget _zoomButton({
+    required String tooltip,
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    final theme = Theme.of(context);
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Icon(icon),
+      constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+      padding: EdgeInsets.zero,
+      style: IconButton.styleFrom(
+        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        foregroundColor: theme.colorScheme.primary,
+        disabledForegroundColor: theme.colorScheme.onSurfaceVariant.withValues(
+          alpha: 0.38,
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final currentScale = _currentScale;
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionTitle(
-            icon: Icons.account_tree_rounded,
-            title: l10n.worldCupTournamentTitle,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: _SectionTitle(
+                  icon: Icons.account_tree_rounded,
+                  title: l10n.worldCupTournamentTitle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Wrap(
+                spacing: 4,
+                children: [
+                  _zoomButton(
+                    tooltip: l10n.worldCupTournamentZoomOut,
+                    icon: Icons.zoom_out_rounded,
+                    onPressed: currentScale > _minScale + 0.01
+                        ? () => _zoomBy(1 / _zoomStep)
+                        : null,
+                  ),
+                  _zoomButton(
+                    tooltip: l10n.worldCupTournamentZoomReset,
+                    icon: Icons.restart_alt_rounded,
+                    onPressed: _resetZoom,
+                  ),
+                  _zoomButton(
+                    tooltip: l10n.worldCupTournamentZoomIn,
+                    icon: Icons.zoom_in_rounded,
+                    onPressed: currentScale < _maxScale - 0.01
+                        ? () => _zoomBy(_zoomStep)
+                        : null,
+                  ),
+                ],
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           Text(
@@ -5215,39 +5392,77 @@ class _WorldCupTournamentBracket extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final slotWidth = constraints.maxWidth < 520 ? 148.0 : 166.0;
+              final compact = constraints.maxWidth < 520;
               const spacing = 10.0;
-              final widestRoundCount = rounds
+              final viewportHeight = compact ? 390.0 : 470.0;
+              final widestRoundCount = widget.rounds
                   .map((round) => round.fixtures.length)
                   .fold<int>(1, (max, count) => count > max ? count : max);
               final bracketWidth = math.max(
                 constraints.maxWidth,
                 widestRoundCount * slotWidth + (widestRoundCount - 1) * spacing,
               );
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: bracketWidth,
-                  child: Column(
-                    children: [
-                      for (var index = 0; index < rounds.length; index += 1)
-                        _TournamentBracketRoundRow(
-                          round: rounds[index],
-                          slotBuilder: slotBuilder,
-                          slotWidth: slotWidth,
-                          spacing: spacing,
-                          compact: constraints.maxWidth < 520,
+              final contentWidth = bracketWidth + 24;
+              _lastViewportSize = Size(constraints.maxWidth, viewportHeight);
+              _scheduleInitialTransform(
+                contentWidth: contentWidth,
+                viewportWidth: constraints.maxWidth,
+                compact: compact,
+              );
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  height: viewportHeight,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.28,
+                    ),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: InteractiveViewer(
+                    transformationController: _transformationController,
+                    minScale: _minScale,
+                    maxScale: _maxScale,
+                    boundaryMargin: const EdgeInsets.all(220),
+                    constrained: false,
+                    child: SizedBox(
+                      width: contentWidth,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: bracketWidth,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              for (var index = 0;
+                                  index < widget.rounds.length;
+                                  index += 1)
+                                _TournamentBracketRoundRow(
+                                  round: widget.rounds[index],
+                                  slotBuilder: widget.slotBuilder,
+                                  slotWidth: slotWidth,
+                                  spacing: spacing,
+                                  compact: compact,
+                                ),
+                            ],
+                          ),
                         ),
-                    ],
+                      ),
+                    ),
                   ),
                 ),
               );
             },
           ),
-          if (thirdPlace.fixtures.isNotEmpty) ...[
+          if (widget.thirdPlace.fixtures.isNotEmpty) ...[
             const SizedBox(height: 14),
             _TournamentThirdPlaceStrip(
-              round: thirdPlace,
-              slotBuilder: slotBuilder,
+              round: widget.thirdPlace,
+              slotBuilder: widget.slotBuilder,
             ),
           ],
         ],

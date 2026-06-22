@@ -1377,6 +1377,15 @@ class AppLocalizationsKo extends AppLocalizations {
       '현재는 공식 일정의 조 순위와 이전 경기 승자 슬롯 기준으로 보여줘요. 조별리그 결과가 확정되면 각 슬롯을 실제 국가명으로 따라갈 수 있어요.';
 
   @override
+  String get worldCupTournamentZoomOut => '브래킷 축소';
+
+  @override
+  String get worldCupTournamentZoomReset => '브래킷 크기 초기화';
+
+  @override
+  String get worldCupTournamentZoomIn => '브래킷 확대';
+
+  @override
   String worldCupStageMatchCount(int count) {
     return '$count경기';
   }

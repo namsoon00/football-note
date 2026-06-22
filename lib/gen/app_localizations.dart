@@ -2585,6 +2585,24 @@ abstract class AppLocalizations {
   /// **'This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.'**
   String get worldCupTournamentPlanBody;
 
+  /// No description provided for @worldCupTournamentZoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom bracket out'**
+  String get worldCupTournamentZoomOut;
+
+  /// No description provided for @worldCupTournamentZoomReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset bracket zoom'**
+  String get worldCupTournamentZoomReset;
+
+  /// No description provided for @worldCupTournamentZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom bracket in'**
+  String get worldCupTournamentZoomIn;
+
   /// No description provided for @worldCupStageMatchCount.
   ///
   /// In en, this message translates to:
