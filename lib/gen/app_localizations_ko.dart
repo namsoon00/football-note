@@ -6404,7 +6404,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '텍스트만 나열하지 않고 샘플 러너 위에 자세, 착지, 팔 타이밍, 프레임 판독을 같이 표시해 비교하기 쉽게 했어요.';
 
   @override
-  String get runningCoachSampleCueLean => '발목부터 어깨까지, 허리 꺾임 없는 전경사';
+  String get runningCoachSampleCueLean => '엉덩이-어깨 중심선이 엉덩이 수직선보다 앞으로 기울어진 정도';
 
   @override
   String get runningCoachSampleCueFrame => '머리, 엉덩이, 무릎, 발이 계속 보임';
@@ -6437,7 +6437,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferencePosture =>
-      '상체 선: 발목-엉덩이-어깨 전경사 10도, 허리 접힘 없음.';
+      '전경사: 어깨 중심이 엉덩이 수직선보다 10도 앞에 있고, 허리 접힘은 없음.';
 
   @override
   String get runningCoachSampleReferenceFoot =>
@@ -6457,7 +6457,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleMistakePosture =>
-      '상체 선: 전경사 4도라 앞으로 밀지 못하고 몸이 선 상태.';
+      '전경사: 어깨 중심이 엉덩이 수직선에서 4도만 벗어나 몸이 너무 선 상태.';
 
   @override
   String get runningCoachSampleMistakeFoot =>
@@ -6529,7 +6529,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleDecisionTitle => '판정 근거';
 
   @override
-  String get runningCoachSampleMetricPosture => '상체';
+  String get runningCoachSampleMetricPosture => '전경사';
 
   @override
   String get runningCoachSampleMetricArms => '팔';
@@ -6605,20 +6605,31 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleMetricDetailHowReadTitle => '오버레이가 읽는 방식';
 
   @override
+  String get runningCoachSampleMetricDetailGoodRangeTitle => '좋은 범위';
+
+  @override
+  String get runningCoachSamplePostureDetailGoodRange =>
+      '엉덩이-어깨 중심선 기준 전경사 8-24도. 좋은 샘플 값은 10도예요.';
+
+  @override
   String get runningCoachSamplePostureDetailKeyPosition =>
-      '중간 접지 위치: 어깨 중심, 엉덩이 선, 지지 발목을 연결해 상체 기울기를 봐요.';
+      '중간 접지 위치: 앱은 엉덩이 중심에서 위로 수직선을 세우고, 엉덩이-어깨 중심선과 비교해요.';
 
   @override
   String get runningCoachSamplePostureDetailReference =>
-      '좋은 샘플은 엉덩이부터 가볍게 앞으로 기울고, 머리가 가슴 위에 안정적으로 실려 있어요.';
+      '좋은 샘플은 허리를 접지 않고 어깨가 엉덩이보다 살짝 앞에 있어요.';
 
   @override
   String get runningCoachSamplePostureDetailReview =>
-      '확인 샘플은 상체가 너무 서 있어 밀어내는 선이 짧고 가속이 늦어 보일 수 있어요.';
+      '확인 샘플은 4도로 스프린트 범위보다 낮아 앞으로 밀기보다 몸이 서 있는 형태예요.';
 
   @override
   String get runningCoachSamplePostureDetailHowRead =>
-      '앱은 엉덩이와 어깨 중심을 연결하고, 엉덩이의 수직선과 비교해 프레임마다 전경사 각도를 확인해요.';
+      '앱은 좌우 어깨와 엉덩이를 평균 내 몸통 축을 만들고, 그 축이 수직선에서 몇 도 벗어났는지 측정해요.';
+
+  @override
+  String get runningCoachSampleArmsDetailGoodRange =>
+      '팔꿈치 80-105도, 손은 갈비뼈 가까이 앞뒤로 움직이고 반대쪽 팔과 다리가 짝을 이뤄야 해요.';
 
   @override
   String get runningCoachSampleArmsDetailKeyPosition =>
@@ -6637,6 +6648,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '앱은 어깨, 팔꿈치, 손목 랜드마크를 연결하고 팔꿈치가 지나치게 열리는 프레임을 표시해요.';
 
   @override
+  String get runningCoachSampleLandingDetailGoodRange =>
+      '엉덩이 선 기준 착지 거리 0.00-0.10 몸길이. 좋은 샘플 값은 0.08이에요.';
+
+  @override
   String get runningCoachSampleLandingDetailKeyPosition =>
       '첫 접지 위치: 발, 발목, 엉덩이 선으로 발이 몸 아래에 떨어지는지 봐요.';
 
@@ -6651,6 +6666,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachSampleLandingDetailHowRead =>
       '앱은 착지 구간에서 엉덩이 선과 접지 발목, 발끝 사이의 가로 거리를 측정해요.';
+
+  @override
+  String get runningCoachSampleBounceDetailGoodRange =>
+      '보폭 중 머리/엉덩이 높이 변화 7% 이하. 좋은 샘플 값은 6%예요.';
 
   @override
   String get runningCoachSampleBounceDetailKeyPosition =>
@@ -6987,6 +7006,29 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String runningCoachSprintMetricTargetRangeDegrees(int minimum, int maximum) {
+    return '목표 $minimum-$maximum도';
+  }
+
+  @override
+  String runningCoachSprintMetricTargetMinimumPercent(int percent) {
+    return '목표 $percent% 이상';
+  }
+
+  @override
+  String runningCoachSprintMetricTargetMaximumMs(int milliseconds) {
+    return '목표 ${milliseconds}ms 미만';
+  }
+
+  @override
+  String runningCoachSprintMetricTargetMaximumPercent(int percent) {
+    return '목표 $percent% 미만';
+  }
+
+  @override
+  String get runningCoachSprintMetricTargetLiveReference => '실시간 기준';
+
+  @override
   String get runningCoachSprintBodyVisibilityFull => '전신 확보';
 
   @override
@@ -7001,7 +7043,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSprintCueLeanForward =>
-      '허리로 꺾지 말고 발목부터 상체를 조금 더 앞으로 유지해 주세요.';
+      '허리를 접지 말고 어깨 중심이 엉덩이 선보다 살짝 앞에 오게 유지해 주세요.';
 
   @override
   String get runningCoachSprintCueDriveKnee =>
@@ -7524,7 +7566,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSprintActionLeanForward =>
-      '첫 세 걸음 동안 가슴을 더 낮게 두고 발목부터 기울어지는 느낌을 유지해 보세요.';
+      '첫 세 걸음 동안 가슴을 낮게 두어 엉덩이-어깨 축이 8-24도 범위에 남게 해 보세요.';
 
   @override
   String get runningCoachSprintActionDriveKnee =>

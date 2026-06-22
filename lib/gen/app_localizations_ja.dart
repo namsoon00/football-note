@@ -6398,7 +6398,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'ランナーと一緒にオーバーレイを読み取ります。姿勢、着地、腕のタイミング、フレーム カバレッジが、単なるテキスト リストとしてではなく、サンプルの上に表示されます。';
 
   @override
-  String get runningCoachSampleCueLean => 'ウエストを折らずに足首から肩まで傾ける';
+  String get runningCoachSampleCueLean => '腰-肩の中心線が腰の垂直線から前に傾く角度';
 
   @override
   String get runningCoachSampleCueFrame => '頭、腰、膝、足は見えたままになります';
@@ -6431,7 +6431,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferencePosture =>
-      '姿勢線: 足首-腰-肩の前傾は10°で、腰折れはありません。';
+      '前傾: 肩の中心が腰の垂直線より10°前にあり、腰折れはありません。';
 
   @override
   String get runningCoachSampleReferenceFoot => '接地点: 着地距離は0.08で、腰の下に近く収まります。';
@@ -6447,7 +6447,8 @@ class AppLocalizationsJa extends AppLocalizations {
       'フレーム品質: 主要関節が見える24/24の使用可能フレーム。';
 
   @override
-  String get runningCoachSampleMistakePosture => '姿勢線: 前傾は4°だけで、前へ押せず体が立っています。';
+  String get runningCoachSampleMistakePosture =>
+      '前傾: 肩の中心が腰の垂直線から4°だけで、体が立ちすぎています。';
 
   @override
   String get runningCoachSampleMistakeFoot => '接地点: 腰より0.20前に着き、ブレーキが増えます。';
@@ -6515,7 +6516,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleDecisionTitle => '判定根拠';
 
   @override
-  String get runningCoachSampleMetricPosture => '姿勢';
+  String get runningCoachSampleMetricPosture => '前傾';
 
   @override
   String get runningCoachSampleMetricArms => '腕';
@@ -6591,20 +6592,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleMetricDetailHowReadTitle => 'オーバーレイの読み取り方';
 
   @override
+  String get runningCoachSampleMetricDetailGoodRangeTitle => '良い範囲';
+
+  @override
+  String get runningCoachSamplePostureDetailGoodRange =>
+      '腰-肩の中心線で前傾8-24°。良いサンプル値は10°です。';
+
+  @override
   String get runningCoachSamplePostureDetailKeyPosition =>
-      '中間接地: 肩の中心、腰の線、支持足首で前傾角度を定義します。';
+      '中間接地: アプリは腰の中心から上へ垂直線を引き、腰-肩の中心線と比較します。';
 
   @override
   String get runningCoachSamplePostureDetailReference =>
-      '良いサンプルは腰から軽く前傾し、頭が胸の上に安定して乗っています。';
+      '良いサンプルは腰を折らず、肩が腰より少し前にあります。';
 
   @override
   String get runningCoachSamplePostureDetailReview =>
-      '確認サンプルは上体が立ちすぎて、押し出す線が短く加速が遅れて見えます。';
+      '確認サンプルは4°でスプリント範囲より低く、前へ押すより体が立っています。';
 
   @override
   String get runningCoachSamplePostureDetailHowRead =>
-      'アプリは腰と肩の中心を結び、腰の垂直線と比較してフレームごとの前傾角度を確認します。';
+      'アプリは左右の肩と腰を平均して体幹軸を作り、その軸が垂直線から何度離れたかを測定します。';
+
+  @override
+  String get runningCoachSampleArmsDetailGoodRange =>
+      '肘80-105°、手は肋骨近くを前後に動き、反対の腕と脚が対になります。';
 
   @override
   String get runningCoachSampleArmsDetailKeyPosition =>
@@ -6623,6 +6635,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'アプリは肩、肘、手首のランドマークを結び、肘が開きすぎるフレームを示します。';
 
   @override
+  String get runningCoachSampleLandingDetailGoodRange =>
+      '腰の線から接地距離0.00-0.10体長。良いサンプル値は0.08です。';
+
+  @override
   String get runningCoachSampleLandingDetailKeyPosition =>
       '初期接地: 足、足首、腰の線で、足が体の下に落ちているかを見ます。';
 
@@ -6637,6 +6653,10 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachSampleLandingDetailHowRead =>
       'アプリは着地区間で腰の線から接地足首とつま先までの水平距離を測定します。';
+
+  @override
+  String get runningCoachSampleBounceDetailGoodRange =>
+      'ストライド中の頭/腰の高さ変化7%以下。良いサンプル値は6%です。';
 
   @override
   String get runningCoachSampleBounceDetailKeyPosition =>
@@ -6972,6 +6992,29 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String runningCoachSprintMetricTargetRangeDegrees(int minimum, int maximum) {
+    return '目標 $minimum-$maximum°';
+  }
+
+  @override
+  String runningCoachSprintMetricTargetMinimumPercent(int percent) {
+    return '目標 $percent%以上';
+  }
+
+  @override
+  String runningCoachSprintMetricTargetMaximumMs(int milliseconds) {
+    return '目標 ${milliseconds}ms未満';
+  }
+
+  @override
+  String runningCoachSprintMetricTargetMaximumPercent(int percent) {
+    return '目標 $percent%未満';
+  }
+
+  @override
+  String get runningCoachSprintMetricTargetLiveReference => 'ライブ基準';
+
+  @override
   String get runningCoachSprintBodyVisibilityFull => '全身ロック';
 
   @override
@@ -6985,7 +7028,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSprintCueLeanForward =>
-      'ウエストで折るのではなく、足首から少し前傾するようにします。';
+      '腰を折らず、肩の中心が腰の線より少し前に来るように保ちます。';
 
   @override
   String get runningCoachSprintCueDriveKnee => '押し出した後、膝をもう少し積極的に前に動かします。';
@@ -7500,7 +7543,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSprintActionLeanForward =>
-      '最初の 3 ステップでは胸を低く保ち、足首から前傾するようにします。';
+      '最初の3歩は胸を低く保ち、腰-肩の軸が8-24°の範囲に残るようにします。';
 
   @override
   String get runningCoachSprintActionDriveKnee =>

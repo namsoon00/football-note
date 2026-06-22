@@ -3795,7 +3795,7 @@
   },
   "runningCoachSampleFrameGuideTitle": "動画で比較するもの",
   "runningCoachSampleFrameGuideBody": "ランナーと一緒にオーバーレイを読み取ります。姿勢、着地、腕のタイミング、フレーム カバレッジが、単なるテキスト リストとしてではなく、サンプルの上に表示されます。",
-  "runningCoachSampleCueLean": "ウエストを折らずに足首から肩まで傾ける",
+  "runningCoachSampleCueLean": "腰-肩の中心線が腰の垂直線から前に傾く角度",
   "runningCoachSampleCueFrame": "頭、腰、膝、足は見えたままになります",
   "runningCoachSampleCueFoot": "足はつま先を前にして腰の下で着地する",
   "runningCoachSampleCueArms": "肘は曲げたままにし、足とは反対側に振ります",
@@ -3805,12 +3805,12 @@
   "runningCoachSampleMistakeTitle": "悪いフォームの読み取り",
   "runningCoachSampleReferenceBody": "目標のループです。全身を少し前傾させ、腰の近くに着地し、膝で柔らかく受け、腕はコンパクトに保ちます。",
   "runningCoachSampleMistakeBody": "確認が必要なパターンです。胴体が立ち、足が腰より前に着き、接地膝が硬く、腕振りが高くなり、上下のバウンスが増えます。",
-  "runningCoachSampleReferencePosture": "姿勢線: 足首-腰-肩の前傾は10°で、腰折れはありません。",
+  "runningCoachSampleReferencePosture": "前傾: 肩の中心が腰の垂直線より10°前にあり、腰折れはありません。",
   "runningCoachSampleReferenceFoot": "接地点: 着地距離は0.08で、腰の下に近く収まります。",
   "runningCoachSampleReferenceKnee": "接地膝: 155°で、ロックせず柔らかく負荷を受けます。",
   "runningCoachSampleReferenceArms": "腕角度: 肘は90°付近で、脚と反対に振れます。",
   "runningCoachSampleReferenceFrame": "フレーム品質: 主要関節が見える24/24の使用可能フレーム。",
-  "runningCoachSampleMistakePosture": "姿勢線: 前傾は4°だけで、前へ押せず体が立っています。",
+  "runningCoachSampleMistakePosture": "前傾: 肩の中心が腰の垂直線から4°だけで、体が立ちすぎています。",
   "runningCoachSampleMistakeFoot": "接地点: 腰より0.20前に着き、ブレーキが増えます。",
   "runningCoachSampleMistakeKnee": "接地膝: 172°で、受けて押すには伸びすぎています。",
   "runningCoachSampleMistakeArms": "腕角度: 肘が118°付近まで上がり、腕振りが高く窮屈です。",
@@ -3831,7 +3831,7 @@
   "runningCoachSamplePhaseAngles": "角度を測定",
   "runningCoachSamplePhaseContactScore": "接地信頼度を採点",
   "runningCoachSampleDecisionTitle": "判定根拠",
-  "runningCoachSampleMetricPosture": "姿勢",
+  "runningCoachSampleMetricPosture": "前傾",
   "runningCoachSampleMetricArms": "腕",
   "runningCoachSampleMetricLanding": "着地",
   "runningCoachSampleMetricFrames": "フレーム",
@@ -3856,18 +3856,23 @@
   "runningCoachSampleMetricDetailReferenceTitle": "良い動き",
   "runningCoachSampleMetricDetailReviewTitle": "確認する動き",
   "runningCoachSampleMetricDetailHowReadTitle": "オーバーレイの読み取り方",
-  "runningCoachSamplePostureDetailKeyPosition": "中間接地: 肩の中心、腰の線、支持足首で前傾角度を定義します。",
-  "runningCoachSamplePostureDetailReference": "良いサンプルは腰から軽く前傾し、頭が胸の上に安定して乗っています。",
-  "runningCoachSamplePostureDetailReview": "確認サンプルは上体が立ちすぎて、押し出す線が短く加速が遅れて見えます。",
-  "runningCoachSamplePostureDetailHowRead": "アプリは腰と肩の中心を結び、腰の垂直線と比較してフレームごとの前傾角度を確認します。",
+  "runningCoachSampleMetricDetailGoodRangeTitle": "良い範囲",
+  "runningCoachSamplePostureDetailGoodRange": "腰-肩の中心線で前傾8-24°。良いサンプル値は10°です。",
+  "runningCoachSamplePostureDetailKeyPosition": "中間接地: アプリは腰の中心から上へ垂直線を引き、腰-肩の中心線と比較します。",
+  "runningCoachSamplePostureDetailReference": "良いサンプルは腰を折らず、肩が腰より少し前にあります。",
+  "runningCoachSamplePostureDetailReview": "確認サンプルは4°でスプリント範囲より低く、前へ押すより体が立っています。",
+  "runningCoachSamplePostureDetailHowRead": "アプリは左右の肩と腰を平均して体幹軸を作り、その軸が垂直線から何度離れたかを測定します。",
+  "runningCoachSampleArmsDetailGoodRange": "肘80-105°、手は肋骨近くを前後に動き、反対の腕と脚が対になります。",
   "runningCoachSampleArmsDetailKeyPosition": "腕振りの位置: 反対側の膝が前に出る瞬間に肘角度を読みます。",
   "runningCoachSampleArmsDetailReference": "良いサンプルは肘を90度付近に保ち、肋骨の近くで前後に振ります。",
   "runningCoachSampleArmsDetailReview": "確認サンプルは肘が開きすぎ、リズムが遅くなり体幹の回旋が増えます。",
   "runningCoachSampleArmsDetailHowRead": "アプリは肩、肘、手首のランドマークを結び、肘が開きすぎるフレームを示します。",
+  "runningCoachSampleLandingDetailGoodRange": "腰の線から接地距離0.00-0.10体長。良いサンプル値は0.08です。",
   "runningCoachSampleLandingDetailKeyPosition": "初期接地: 足、足首、腰の線で、足が体の下に落ちているかを見ます。",
   "runningCoachSampleLandingDetailReference": "良いサンプルは足が腰の線に近く着き、接地が前進を支えます。",
   "runningCoachSampleLandingDetailReview": "確認サンプルは足が腰より前に出すぎ、ブレーキとして読まれます。",
   "runningCoachSampleLandingDetailHowRead": "アプリは着地区間で腰の線から接地足首とつま先までの水平距離を測定します。",
+  "runningCoachSampleBounceDetailGoodRange": "ストライド中の頭/腰の高さ変化7%以下。良いサンプル値は6%です。",
   "runningCoachSampleBounceDetailKeyPosition": "浮遊から接地への区間: 隣接フレームの頭と腰の高さを比較します。",
   "runningCoachSampleBounceDetailReference": "良いサンプルは上下動が小さく、エネルギーが前方に向きます。",
   "runningCoachSampleBounceDetailReview": "確認サンプルは上下の動きが大きく、接地タイミングが不安定になります。",
@@ -4112,11 +4117,47 @@
       "value": {}
     }
   },
+  "runningCoachSprintMetricTargetRangeDegrees": "目標 {minimum}-{maximum}°",
+  "@runningCoachSprintMetricTargetRangeDegrees": {
+    "placeholders": {
+      "minimum": {
+        "type": "int"
+      },
+      "maximum": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetMinimumPercent": "目標 {percent}%以上",
+  "@runningCoachSprintMetricTargetMinimumPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetMaximumMs": "目標 {milliseconds}ms未満",
+  "@runningCoachSprintMetricTargetMaximumMs": {
+    "placeholders": {
+      "milliseconds": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetMaximumPercent": "目標 {percent}%未満",
+  "@runningCoachSprintMetricTargetMaximumPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricTargetLiveReference": "ライブ基準",
   "runningCoachSprintBodyVisibilityFull": "全身ロック",
   "runningCoachSprintBodyVisibilityPartial": "部分的なランドマーク",
   "runningCoachSprintBodyVisibilityNotVisible": "身体が失われた",
   "runningCoachSprintCueBodyVisible": "全身がフレーム内に収まるようにもう 1 段階調整します。",
-  "runningCoachSprintCueLeanForward": "ウエストで折るのではなく、足首から少し前傾するようにします。",
+  "runningCoachSprintCueLeanForward": "腰を折らず、肩の中心が腰の線より少し前に来るように保ちます。",
   "runningCoachSprintCueDriveKnee": "押し出した後、膝をもう少し積極的に前に動かします。",
   "runningCoachSprintCueKeepRhythm": "左右のリズムが漂います。接地接触をより均一に保つようにしてください。",
   "runningCoachSprintCueBalanceArms": "腕の振りがアンバランスです。両側の後進ドライブをより厳密に一致させます。",
@@ -4326,7 +4367,7 @@
   "runningCoachSprintDiagnosisKeepRhythm": "ステップのタイミングがばらつきすぎて、左右のスプリントのリズムがズレてしまいます。",
   "runningCoachSprintDiagnosisBalanceArms": "片方の腕は後方への駆動にあまり貢献していないため、上半身からのリズムサポートが不均一になります。",
   "runningCoachSprintDiagnosisKeepPushing": "主要なスプリント指標は安定範囲内にあるため、アプリは現在のキューを保持しています。",
-  "runningCoachSprintActionLeanForward": "最初の 3 ステップでは胸を低く保ち、足首から前傾するようにします。",
+  "runningCoachSprintActionLeanForward": "最初の3歩は胸を低く保ち、腰-肩の軸が8-24°の範囲に残るようにします。",
   "runningCoachSprintActionDriveKnee": "地面を強く押して、膝を自分で持ち上げようとするのではなく、膝を通すようにします。",
   "runningCoachSprintActionKeepRhythm": "それ以上長いステップに手を伸ばさないでください。次の数歩の間、接地点を等間隔に保ちます。",
   "runningCoachSprintActionBalanceArms": "両側の後方アームドライブを一致させ、肩を静かに保ちます。",

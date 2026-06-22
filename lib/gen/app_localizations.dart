@@ -11486,7 +11486,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleCueLean.
   ///
   /// In en, this message translates to:
-  /// **'Ankle-to-shoulder lean without folding at the waist'**
+  /// **'Hip-to-shoulder lean compared with the vertical hip line'**
   String get runningCoachSampleCueLean;
 
   /// No description provided for @runningCoachSampleCueFrame.
@@ -11546,7 +11546,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleReferencePosture.
   ///
   /// In en, this message translates to:
-  /// **'Posture line: ankle-hip-shoulder lean is 10° without folding at the waist.'**
+  /// **'Forward lean: shoulder center is 10° ahead of the vertical hip line without waist folding.'**
   String get runningCoachSampleReferencePosture;
 
   /// No description provided for @runningCoachSampleReferenceFoot.
@@ -11576,7 +11576,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMistakePosture.
   ///
   /// In en, this message translates to:
-  /// **'Posture line: lean is only 4°, so the runner sits tall instead of driving forward.'**
+  /// **'Forward lean: shoulder center is only 4° from the vertical hip line, so the runner sits tall.'**
   String get runningCoachSampleMistakePosture;
 
   /// No description provided for @runningCoachSampleMistakeFoot.
@@ -11702,7 +11702,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMetricPosture.
   ///
   /// In en, this message translates to:
-  /// **'Posture'**
+  /// **'Forward lean'**
   String get runningCoachSampleMetricPosture;
 
   /// No description provided for @runningCoachSampleMetricArms.
@@ -11849,29 +11849,47 @@ abstract class AppLocalizations {
   /// **'How the overlay reads it'**
   String get runningCoachSampleMetricDetailHowReadTitle;
 
+  /// No description provided for @runningCoachSampleMetricDetailGoodRangeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Good range'**
+  String get runningCoachSampleMetricDetailGoodRangeTitle;
+
+  /// No description provided for @runningCoachSamplePostureDetailGoodRange.
+  ///
+  /// In en, this message translates to:
+  /// **'8-24° forward lean from the hip-to-shoulder center line. The sample value is 10°.'**
+  String get runningCoachSamplePostureDetailGoodRange;
+
   /// No description provided for @runningCoachSamplePostureDetailKeyPosition.
   ///
   /// In en, this message translates to:
-  /// **'Mid-stance: the shoulder midpoint, hip line, and support ankle define the lean angle.'**
+  /// **'Mid-stance: the app draws a vertical line up from the hip center, then compares it with the hip-to-shoulder center line.'**
   String get runningCoachSamplePostureDetailKeyPosition;
 
   /// No description provided for @runningCoachSamplePostureDetailReference.
   ///
   /// In en, this message translates to:
-  /// **'The reference clip keeps a light forward lean from the hip, with the head carried over the chest.'**
+  /// **'The reference clip keeps the shoulders slightly ahead of the hips without folding at the waist.'**
   String get runningCoachSamplePostureDetailReference;
 
   /// No description provided for @runningCoachSamplePostureDetailReview.
   ///
   /// In en, this message translates to:
-  /// **'The review clip is too upright, so the push line is shorter and acceleration looks late.'**
+  /// **'The review clip is only 4°, below the sprint range, so the runner looks tall instead of driving forward.'**
   String get runningCoachSamplePostureDetailReview;
 
   /// No description provided for @runningCoachSamplePostureDetailHowRead.
   ///
   /// In en, this message translates to:
-  /// **'The app connects hip to shoulder midpoint, compares it with the vertical hip line, and checks the lean frame by frame.'**
+  /// **'The app averages left/right shoulders and hips, builds one trunk axis, and measures how many degrees that axis moves away from vertical.'**
   String get runningCoachSamplePostureDetailHowRead;
+
+  /// No description provided for @runningCoachSampleArmsDetailGoodRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Elbow angle 80-105°, hands moving front-to-back near the ribs, with the opposite arm and leg paired.'**
+  String get runningCoachSampleArmsDetailGoodRange;
 
   /// No description provided for @runningCoachSampleArmsDetailKeyPosition.
   ///
@@ -11897,6 +11915,12 @@ abstract class AppLocalizations {
   /// **'The app connects shoulder, elbow, and wrist landmarks and flags the frame when the elbow opens too far.'**
   String get runningCoachSampleArmsDetailHowRead;
 
+  /// No description provided for @runningCoachSampleLandingDetailGoodRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Foot contact within 0.00-0.10 body-length of the hip line. The sample value is 0.08.'**
+  String get runningCoachSampleLandingDetailGoodRange;
+
   /// No description provided for @runningCoachSampleLandingDetailKeyPosition.
   ///
   /// In en, this message translates to:
@@ -11920,6 +11944,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The app measures the horizontal gap from the hip line to the contact ankle and toe during the landing window.'**
   String get runningCoachSampleLandingDetailHowRead;
+
+  /// No description provided for @runningCoachSampleBounceDetailGoodRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical head/hip change under 7% through the stride. The sample value is 6%.'**
+  String get runningCoachSampleBounceDetailGoodRange;
 
   /// No description provided for @runningCoachSampleBounceDetailKeyPosition.
   ///
@@ -12472,6 +12502,36 @@ abstract class AppLocalizations {
   /// **'Gap {value}%'**
   String runningCoachSprintMetricArmBalanceValue(Object value);
 
+  /// No description provided for @runningCoachSprintMetricTargetRangeDegrees.
+  ///
+  /// In en, this message translates to:
+  /// **'Target {minimum}-{maximum}°'**
+  String runningCoachSprintMetricTargetRangeDegrees(int minimum, int maximum);
+
+  /// No description provided for @runningCoachSprintMetricTargetMinimumPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Target {percent}%+'**
+  String runningCoachSprintMetricTargetMinimumPercent(int percent);
+
+  /// No description provided for @runningCoachSprintMetricTargetMaximumMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Target <{milliseconds}ms'**
+  String runningCoachSprintMetricTargetMaximumMs(int milliseconds);
+
+  /// No description provided for @runningCoachSprintMetricTargetMaximumPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Target <{percent}%'**
+  String runningCoachSprintMetricTargetMaximumPercent(int percent);
+
+  /// No description provided for @runningCoachSprintMetricTargetLiveReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Live reference'**
+  String get runningCoachSprintMetricTargetLiveReference;
+
   /// No description provided for @runningCoachSprintBodyVisibilityFull.
   ///
   /// In en, this message translates to:
@@ -12499,7 +12559,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintCueLeanForward.
   ///
   /// In en, this message translates to:
-  /// **'Keep the lean slightly more forward from the ankles, not by folding at the waist.'**
+  /// **'Bring the shoulder center slightly ahead of the hip line without folding at the waist.'**
   String get runningCoachSprintCueLeanForward;
 
   /// No description provided for @runningCoachSprintCueDriveKnee.
@@ -13352,7 +13412,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintActionLeanForward.
   ///
   /// In en, this message translates to:
-  /// **'Keep the chest lower for the first three steps and let the lean come from the ankles.'**
+  /// **'Keep the chest low for the first three steps so the hip-to-shoulder axis stays inside the 8-24° range.'**
   String get runningCoachSprintActionLeanForward;
 
   /// No description provided for @runningCoachSprintActionDriveKnee.

@@ -176,7 +176,7 @@ void main() {
     expect(find.textContaining('Measure angles'), findsOneWidget);
     expect(find.textContaining('Score contact confidence'), findsOneWidget);
     expect(find.text('Decision evidence'), findsOneWidget);
-    expect(find.text('Posture'), findsWidgets);
+    expect(find.text('Forward lean'), findsWidgets);
     expect(find.text('Bounce'), findsOneWidget);
     expect(find.textContaining('Frame '), findsWidgets);
     expect(find.text('Landing 0.08'), findsOneWidget);
@@ -204,8 +204,10 @@ void main() {
     );
     expect(find.text('Evidence detail'), findsOneWidget);
     expect(find.text('Measured value'), findsOneWidget);
+    expect(find.text('Good range'), findsOneWidget);
     expect(find.text('Lean 10°'), findsWidgets);
-    expect(find.textContaining('shoulder midpoint'), findsWidgets);
+    expect(find.textContaining('8-24°'), findsWidgets);
+    expect(find.textContaining('vertical hip line'), findsWidgets);
 
     Navigator.of(
       tester.element(

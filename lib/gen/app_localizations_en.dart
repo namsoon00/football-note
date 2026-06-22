@@ -6577,7 +6577,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleCueLean =>
-      'Ankle-to-shoulder lean without folding at the waist';
+      'Hip-to-shoulder lean compared with the vertical hip line';
 
   @override
   String get runningCoachSampleCueFrame =>
@@ -6613,7 +6613,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferencePosture =>
-      'Posture line: ankle-hip-shoulder lean is 10° without folding at the waist.';
+      'Forward lean: shoulder center is 10° ahead of the vertical hip line without waist folding.';
 
   @override
   String get runningCoachSampleReferenceFoot =>
@@ -6633,7 +6633,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleMistakePosture =>
-      'Posture line: lean is only 4°, so the runner sits tall instead of driving forward.';
+      'Forward lean: shoulder center is only 4° from the vertical hip line, so the runner sits tall.';
 
   @override
   String get runningCoachSampleMistakeFoot =>
@@ -6708,7 +6708,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleDecisionTitle => 'Decision evidence';
 
   @override
-  String get runningCoachSampleMetricPosture => 'Posture';
+  String get runningCoachSampleMetricPosture => 'Forward lean';
 
   @override
   String get runningCoachSampleMetricArms => 'Arms';
@@ -6785,20 +6785,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'How the overlay reads it';
 
   @override
+  String get runningCoachSampleMetricDetailGoodRangeTitle => 'Good range';
+
+  @override
+  String get runningCoachSamplePostureDetailGoodRange =>
+      '8-24° forward lean from the hip-to-shoulder center line. The sample value is 10°.';
+
+  @override
   String get runningCoachSamplePostureDetailKeyPosition =>
-      'Mid-stance: the shoulder midpoint, hip line, and support ankle define the lean angle.';
+      'Mid-stance: the app draws a vertical line up from the hip center, then compares it with the hip-to-shoulder center line.';
 
   @override
   String get runningCoachSamplePostureDetailReference =>
-      'The reference clip keeps a light forward lean from the hip, with the head carried over the chest.';
+      'The reference clip keeps the shoulders slightly ahead of the hips without folding at the waist.';
 
   @override
   String get runningCoachSamplePostureDetailReview =>
-      'The review clip is too upright, so the push line is shorter and acceleration looks late.';
+      'The review clip is only 4°, below the sprint range, so the runner looks tall instead of driving forward.';
 
   @override
   String get runningCoachSamplePostureDetailHowRead =>
-      'The app connects hip to shoulder midpoint, compares it with the vertical hip line, and checks the lean frame by frame.';
+      'The app averages left/right shoulders and hips, builds one trunk axis, and measures how many degrees that axis moves away from vertical.';
+
+  @override
+  String get runningCoachSampleArmsDetailGoodRange =>
+      'Elbow angle 80-105°, hands moving front-to-back near the ribs, with the opposite arm and leg paired.';
 
   @override
   String get runningCoachSampleArmsDetailKeyPosition =>
@@ -6817,6 +6828,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The app connects shoulder, elbow, and wrist landmarks and flags the frame when the elbow opens too far.';
 
   @override
+  String get runningCoachSampleLandingDetailGoodRange =>
+      'Foot contact within 0.00-0.10 body-length of the hip line. The sample value is 0.08.';
+
+  @override
   String get runningCoachSampleLandingDetailKeyPosition =>
       'First-contact frame: the foot, ankle, and hip line show whether the step lands under the body.';
 
@@ -6831,6 +6846,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachSampleLandingDetailHowRead =>
       'The app measures the horizontal gap from the hip line to the contact ankle and toe during the landing window.';
+
+  @override
+  String get runningCoachSampleBounceDetailGoodRange =>
+      'Vertical head/hip change under 7% through the stride. The sample value is 6%.';
 
   @override
   String get runningCoachSampleBounceDetailKeyPosition =>
@@ -7181,6 +7200,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String runningCoachSprintMetricTargetRangeDegrees(int minimum, int maximum) {
+    return 'Target $minimum-$maximum°';
+  }
+
+  @override
+  String runningCoachSprintMetricTargetMinimumPercent(int percent) {
+    return 'Target $percent%+';
+  }
+
+  @override
+  String runningCoachSprintMetricTargetMaximumMs(int milliseconds) {
+    return 'Target <${milliseconds}ms';
+  }
+
+  @override
+  String runningCoachSprintMetricTargetMaximumPercent(int percent) {
+    return 'Target <$percent%';
+  }
+
+  @override
+  String get runningCoachSprintMetricTargetLiveReference => 'Live reference';
+
+  @override
   String get runningCoachSprintBodyVisibilityFull => 'Full body locked';
 
   @override
@@ -7195,7 +7237,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintCueLeanForward =>
-      'Keep the lean slightly more forward from the ankles, not by folding at the waist.';
+      'Bring the shoulder center slightly ahead of the hip line without folding at the waist.';
 
   @override
   String get runningCoachSprintCueDriveKnee =>
@@ -7731,7 +7773,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintActionLeanForward =>
-      'Keep the chest lower for the first three steps and let the lean come from the ankles.';
+      'Keep the chest low for the first three steps so the hip-to-shoulder axis stays inside the 8-24° range.';
 
   @override
   String get runningCoachSprintActionDriveKnee =>
