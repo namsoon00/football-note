@@ -9375,7 +9375,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStart =>
-      'クイックスタート: プレイヤーやボールを選び、動作を押してから対象の人やスペースをタップします。';
+      'クイックスタート: プレイヤーを選び、動作を押してから対象の人やスペースをタップします。';
 
   @override
   String get trainingSketchSelectedItemTitle => '選択した項目';
@@ -9506,11 +9506,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      '動作を押してから到着地点や対象プレイヤーをタップします。プレイヤーをドラッグすると位置を調整できます。';
+      '動作を押してから到着地点や対象プレイヤーをタップします。ボールが必要な動作では、プレイヤーの近くにボールを自動で作成します。';
 
   @override
   String get trainingSketchLinkBallHint =>
-      '動作を押してからパス・サーブ・シュートの目標をタップします。ボールをドラッグすると位置を調整できます。';
+      'ボールだけを動かしたい時に使います。プレイヤー動作では必要なボールの動きも一緒に作成されます。';
 
   @override
   String trainingSketchActionTargetHint(Object action) {
@@ -9522,6 +9522,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchSelectedItemActionsTitle => 'クイック動作';
+
+  @override
+  String get trainingSketchPlayerActionsTitle => 'プレイヤー動作';
+
+  @override
+  String get trainingSketchBallActionsTitle => 'ボール動作';
 
   @override
   String get trainingSketchCreateMoveRouteButton => '移動作成';

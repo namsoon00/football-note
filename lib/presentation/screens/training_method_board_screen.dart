@@ -821,6 +821,41 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         : _nearestItemOfType(_BoardItemType.ball, _itemPosition(selected));
   }
 
+  _BoardItem? _controlledBallForPlayer(_BoardItem player) {
+    final balls = _itemsOfType(_BoardItemType.ball);
+    if (balls.isEmpty) return null;
+    balls.sort((a, b) {
+      final playerPosition = _itemPosition(player);
+      final aDistance = (_itemPosition(a) - playerPosition).distance;
+      final bDistance = (_itemPosition(b) - playerPosition).distance;
+      return aDistance.compareTo(bDistance);
+    });
+    final nearest = balls.first;
+    return (_itemPosition(nearest) - _itemPosition(player)).distance <= 0.14
+        ? nearest
+        : null;
+  }
+
+  Offset _ballCarryPointForPlayer(_BoardItem player) {
+    final offsetX = player.x > 0.82 ? -0.045 : 0.045;
+    return _clampedBoardPoint(player.x + offsetX, player.y + 0.018);
+  }
+
+  _BoardItem _createControlledBallForPlayer(_BoardItem player) {
+    final ballPoint = _ballCarryPointForPlayer(player);
+    final ball = _BoardItem(
+      id: _nextBoardItemId(),
+      type: _BoardItemType.ball,
+      x: ballPoint.dx,
+      y: ballPoint.dy,
+      size: 32,
+      rotationDeg: 0,
+      color: _nextItemColor(_BoardItemType.ball),
+    );
+    _currentPage.items.add(ball);
+    return ball;
+  }
+
   bool _requiresBallTargetAction(_SketchTargetAction action) {
     return switch (action) {
       _SketchTargetAction.move ||
@@ -876,7 +911,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   _BoardItem? _ballForTargetAction(_BoardItem selected) {
-    final ball = _nearestBallForAction(selected);
+    final ball = selected.type == _BoardItemType.player
+        ? (_controlledBallForPlayer(selected) ??
+            _createControlledBallForPlayer(selected))
+        : _nearestBallForAction(selected);
     if (ball == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(_l10n.trainingSketchAddBallFirst)),
@@ -2413,7 +2451,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       return;
     }
     if (_requiresBallTargetAction(action) &&
-        _ballForTargetAction(selected) == null) {
+        selected.type != _BoardItemType.player &&
+        selected.type != _BoardItemType.ball) {
       return;
     }
     _stopRoutePlayback(restoreStart: false);
@@ -2535,8 +2574,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
   }
 
-  void _selectQuickActionRoute(_BoardRoute route, _BoardItem item) {
-    _selectedItemId = item.id;
+  void _selectQuickActionRoute(
+    _BoardRoute route,
+    _BoardItem item, {
+    _BoardItem? selectedItemOverride,
+  }) {
+    _selectedItemId = selectedItemOverride?.id ?? item.id;
     _selectedRouteId = route.id;
     _pathDrawMode = route.kind;
     _pathMode = false;
@@ -2591,6 +2634,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       end: target,
       points: points,
       segmentDurationsMs: segmentDurationsMs ?? <int>[durationMs],
+      selectedItemOverride:
+          selected.type == _BoardItemType.player ? selected : null,
     );
   }
 
@@ -2676,16 +2721,69 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  bool _applyDribbleTargetAction(_BoardItem selected, Offset target) {
-    final ball = _ballForTargetAction(selected);
+  bool _applyCarryBallTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    required List<int> segmentDurationsMs,
+    double curveYOffset = 0,
+  }) {
+    final player = _playerForTargetAction(selected);
+    if (player == null) {
+      final ball = _ballForTargetAction(selected);
+      if (ball == null) return false;
+      final start = _itemPosition(ball);
+      final middle = _midTargetPoint(start, target, yOffset: curveYOffset);
+      return _applyQuickBallToPointTemplate(
+        ball: ball,
+        end: target,
+        points: <Offset>[start, middle, target],
+        segmentDurationsMs: segmentDurationsMs,
+      );
+    }
+
+    final ball = _ballForTargetAction(player);
     if (ball == null) return false;
-    final start = _itemPosition(ball);
-    final middle = _midTargetPoint(start, target, yOffset: -0.035);
-    return _applyQuickBallToPointTemplate(
-      ball: ball,
-      end: target,
-      points: <Offset>[start, middle, target],
+    final playerStart = _itemPosition(player);
+    final ballStart = _itemPosition(ball);
+    final playerMiddle = _midTargetPoint(
+      playerStart,
+      target,
+      yOffset: curveYOffset,
+    );
+    final ballMiddle = _midTargetPoint(
+      ballStart,
+      target,
+      yOffset: curveYOffset,
+    );
+    final stageIndex = _suggestedStageForNewRoute(_PathDrawMode.player);
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      _upsertRouteForItem(
+        kind: _PathDrawMode.ball,
+        item: ball,
+        points: <Offset>[ballStart, ballMiddle, target],
+        segmentDurationsMs: segmentDurationsMs,
+        stageIndex: stageIndex,
+      );
+      final playerRoute = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: player,
+        points: <Offset>[playerStart, playerMiddle, target],
+        segmentDurationsMs: segmentDurationsMs,
+        stageIndex: stageIndex,
+      );
+      _selectQuickActionRoute(playerRoute, player);
+    });
+    _scheduleAutoSave();
+    return true;
+  }
+
+  bool _applyDribbleTargetAction(_BoardItem selected, Offset target) {
+    return _applyCarryBallTargetAction(
+      selected,
+      target,
       segmentDurationsMs: const <int>[440, 520],
+      curveYOffset: -0.035,
     );
   }
 
@@ -2699,18 +2797,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       end: target,
       points: <Offset>[start, middle, target],
       segmentDurationsMs: const <int>[520, 680],
+      selectedItemOverride:
+          selected.type == _BoardItemType.player ? selected : null,
     );
   }
 
   bool _applyDriveTargetAction(_BoardItem selected, Offset target) {
-    final ball = _ballForTargetAction(selected);
-    if (ball == null) return false;
-    final start = _itemPosition(ball);
-    final middle = _midTargetPoint(start, target);
-    return _applyQuickBallToPointTemplate(
-      ball: ball,
-      end: target,
-      points: <Offset>[start, middle, target],
+    return _applyCarryBallTargetAction(
+      selected,
+      target,
       segmentDurationsMs: const <int>[420, 560],
     );
   }
@@ -2739,6 +2834,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       end: target,
       points: <Offset>[start, middle, target],
       segmentDurationsMs: const <int>[360, 620],
+      selectedItemOverride:
+          selected.type == _BoardItemType.player ? selected : null,
     );
   }
 
@@ -2755,20 +2852,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       end: target,
       points: <Offset>[start, middle, target],
       segmentDurationsMs: const <int>[460, 560],
+      selectedItemOverride:
+          selected.type == _BoardItemType.player ? selected : null,
     );
   }
 
   void _applyQuickBallToItemTemplate(_BoardItem target) {
     final selected = _selectedItem;
     if (selected == null) return;
-    final ball = _nearestBallForAction(selected);
-    if (ball == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_l10n.trainingSketchAddBallFirst)),
-      );
-      return;
-    }
-    _applyQuickBallToPointTemplate(ball: ball, end: _itemPosition(target));
+    _applyBallTargetAction(
+      selected: selected,
+      target: _itemPosition(target),
+      durationMs: 680,
+    );
   }
 
   bool _applyQuickBallToPointTemplate({
@@ -2776,6 +2872,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required Offset end,
     List<Offset>? points,
     List<int>? segmentDurationsMs,
+    _BoardItem? selectedItemOverride,
   }) {
     _stopRoutePlayback(restoreStart: false);
     setState(() {
@@ -2787,7 +2884,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         segmentDurationsMs: segmentDurationsMs ?? const <int>[680],
         stageIndex: 1,
       );
-      _selectQuickActionRoute(route, ball);
+      _selectQuickActionRoute(
+        route,
+        ball,
+        selectedItemOverride: selectedItemOverride,
+      );
     });
     _scheduleAutoSave();
     return true;
@@ -4191,6 +4292,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  String _selectedActionSectionTitle(_BoardItem selected) {
+    return selected.type == _BoardItemType.player
+        ? _l10n.trainingSketchPlayerActionsTitle
+        : _l10n.trainingSketchBallActionsTitle;
+  }
+
   List<Widget> _buildSelectedQuickActionButtons(
     _BoardItem selected, {
     required bool includeRouteTool,
@@ -4198,6 +4305,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final l10n = _l10n;
     final sportId = _currentSportIdOrDefault;
     final buttons = <Widget>[];
+    if (selected.type == _BoardItemType.player) {
+      buttons.addAll(_buildPlayerQuickActionButtons(sportId));
+    } else if (selected.type == _BoardItemType.ball) {
+      buttons.addAll(_buildBallQuickActionButtons(sportId));
+    }
+    if (selected.type == _BoardItemType.player ||
+        selected.type == _BoardItemType.ball) {
+      buttons.addAll(_buildTargetPlayerActionButtons(selected, sportId));
+    }
     if (includeRouteTool) {
       buttons.add(
         OutlinedButton.icon(
@@ -4210,15 +4326,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ),
         ),
       );
-    }
-    if (selected.type == _BoardItemType.player) {
-      buttons.addAll(_buildPlayerQuickActionButtons(sportId));
-    } else if (selected.type == _BoardItemType.ball) {
-      buttons.addAll(_buildBallQuickActionButtons(sportId));
-    }
-    if (selected.type == _BoardItemType.player ||
-        selected.type == _BoardItemType.ball) {
-      buttons.addAll(_buildTargetPlayerActionButtons(selected, sportId));
     }
     return buttons;
   }
@@ -4239,12 +4346,28 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             action: _SketchTargetAction.fielding,
             icon: Icons.front_hand_outlined,
           ),
+          _targetActionButton(
+            action: _SketchTargetAction.throwBall,
+            icon: Icons.near_me_outlined,
+          ),
         ];
       case SportCatalog.basketballId:
         return <Widget>[
           _targetActionButton(
             action: _SketchTargetAction.move,
             icon: Icons.directions_run,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.drive,
+            icon: Icons.sports_basketball_outlined,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.pass,
+            icon: Icons.near_me_outlined,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.shot,
+            icon: Icons.ads_click,
           ),
           _targetActionButton(
             action: _SketchTargetAction.cut,
@@ -4262,6 +4385,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             icon: Icons.directions_run,
           ),
           _targetActionButton(
+            action: _SketchTargetAction.serve,
+            icon: Icons.sports_tennis,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.rally,
+            icon: Icons.sync_alt,
+          ),
+          _targetActionButton(
             action: _SketchTargetAction.recover,
             icon: Icons.keyboard_return,
           ),
@@ -4273,8 +4404,24 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             icon: Icons.directions_run,
           ),
           _targetActionButton(
+            action: _SketchTargetAction.dribble,
+            icon: Icons.sports_soccer_outlined,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.pass,
+            icon: Icons.near_me_outlined,
+          ),
+          _targetActionButton(
             action: _SketchTargetAction.passAndMove,
             icon: Icons.sync_alt,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.shot,
+            icon: Icons.ads_click,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.cross,
+            icon: Icons.north_east,
           ),
           _targetActionButton(
             action: _SketchTargetAction.receiveMove,
@@ -4800,7 +4947,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ],
           const SizedBox(height: 10),
           Text(
-            l10n.trainingSketchSelectedItemActionsTitle,
+            _selectedActionSectionTitle(selected),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 6),

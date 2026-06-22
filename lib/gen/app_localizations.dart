@@ -16583,7 +16583,7 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchQuickStart.
   ///
   /// In en, this message translates to:
-  /// **'Quick start: Select a player or ball, tap an action, then tap the target player or space.'**
+  /// **'Quick start: Select a player, tap an action, then tap the target player or space.'**
   String get trainingSketchQuickStart;
 
   /// No description provided for @trainingSketchSelectedItemTitle.
@@ -16817,13 +16817,13 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchLinkPlayerHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap an action, then tap a destination or target player. Drag the player to adjust the position.'**
+  /// **'Tap an action, then tap a destination or target player. Actions that need a ball create one beside the player automatically.'**
   String get trainingSketchLinkPlayerHint;
 
   /// No description provided for @trainingSketchLinkBallHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap an action, then tap a pass, serve, or shot target. Drag the ball to adjust the position.'**
+  /// **'Use this only when you want to move the ball by itself. Player actions create the needed ball movement together.'**
   String get trainingSketchLinkBallHint;
 
   /// No description provided for @trainingSketchActionTargetHint.
@@ -16843,6 +16843,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Quick actions'**
   String get trainingSketchSelectedItemActionsTitle;
+
+  /// No description provided for @trainingSketchPlayerActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Player actions'**
+  String get trainingSketchPlayerActionsTitle;
+
+  /// No description provided for @trainingSketchBallActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball actions'**
+  String get trainingSketchBallActionsTitle;
 
   /// No description provided for @trainingSketchCreateMoveRouteButton.
   ///

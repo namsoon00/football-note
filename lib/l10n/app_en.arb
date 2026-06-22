@@ -5219,7 +5219,7 @@
   "trainingSketchResetButton": "Clear",
   "trainingSketchPenModeHint": "Pen mode: drag on the board to draw.",
   "trainingSketchPenColorLabel": "Pen color",
-  "trainingSketchQuickStart": "Quick start: Select a player or ball, tap an action, then tap the target player or space.",
+  "trainingSketchQuickStart": "Quick start: Select a player, tap an action, then tap the target player or space.",
   "trainingSketchSelectedItemTitle": "Selected item",
   "trainingSketchAssignColorLabel": "Assign color",
   "trainingSketchDrawRouteFirst": "Draw or select a route first.",
@@ -5277,8 +5277,8 @@
   "trainingSketchSelectedBallRouteHint": "Tap a pass destination, then finish the route. You can still drag to draw.",
   "trainingSketchPlayerRouteHint": "Select a player or tap the board to start, then tap a destination and finish.",
   "trainingSketchBallRouteHint": "Select a ball or tap the board to start, then tap a pass destination and finish.",
-  "trainingSketchLinkPlayerHint": "Tap an action, then tap a destination or target player. Drag the player to adjust the position.",
-  "trainingSketchLinkBallHint": "Tap an action, then tap a pass, serve, or shot target. Drag the ball to adjust the position.",
+  "trainingSketchLinkPlayerHint": "Tap an action, then tap a destination or target player. Actions that need a ball create one beside the player automatically.",
+  "trainingSketchLinkBallHint": "Use this only when you want to move the ball by itself. Player actions create the needed ball movement together.",
   "trainingSketchActionTargetHint": "Tap the target or space for {action}.",
   "@trainingSketchActionTargetHint": {
     "placeholders": {
@@ -5287,6 +5287,8 @@
   },
   "trainingSketchActionTargetCancelButton": "Cancel",
   "trainingSketchSelectedItemActionsTitle": "Quick actions",
+  "trainingSketchPlayerActionsTitle": "Player actions",
+  "trainingSketchBallActionsTitle": "Ball actions",
   "trainingSketchCreateMoveRouteButton": "Create move",
   "trainingSketchCreatePassRouteButton": "Create pass",
   "trainingSketchQuickMoveButton": "Move",
