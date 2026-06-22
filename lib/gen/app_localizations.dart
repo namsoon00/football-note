@@ -10586,20 +10586,19 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedDailyLineOne.
   ///
   /// In en, this message translates to:
-  /// **'{name}\'s base is {birthFrame}. Add today\'s code {dailyPillar}, and {elementFlow} stands out.'**
-  String fortuneGeneratedDailyLineOne(
-      String name, String birthFrame, String dailyPillar, String elementFlow);
+  /// **'{name}, today {elementFlow} comes forward first.'**
+  String fortuneGeneratedDailyLineOne(String name, String elementFlow);
 
   /// No description provided for @fortuneGeneratedDailyLineTwo.
   ///
   /// In en, this message translates to:
-  /// **'Today is good for trying {fortuneTheme}, with practice focused on {trainingTone}.'**
+  /// **'Keyword: {fortuneTheme}. Practice focus: {trainingTone}.'**
   String fortuneGeneratedDailyLineTwo(String fortuneTheme, String trainingTone);
 
   /// No description provided for @fortuneGeneratedDailyLineThree.
   ///
   /// In en, this message translates to:
-  /// **'The name rhythm feels like {nameElement}, so today\'s quick hint is: {playAdvice}'**
+  /// **'Lean into {nameElement}: {playAdvice}'**
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice);
 
   /// No description provided for @fortuneGeneratedLuckyInfoHeader.
@@ -10611,7 +10610,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedLuckyInfoLine.
   ///
   /// In en, this message translates to:
-  /// **'Today\'s number {number}, color {color}, and time {time}: try {cue} in the {zone}.'**
+  /// **'Fun points: number {number}, color {color}, time {time}. Try {cue} in the {zone}.'**
   String fortuneGeneratedLuckyInfoLine(
       int number, String color, String time, String zone, String cue);
 
@@ -10672,79 +10671,79 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneSajuElementFlows.
   ///
   /// In en, this message translates to:
-  /// **'learning something new|clear expression|finding balance|raising accuracy|recovering and watching|moving forward|calm focus|quick direction changes'**
+  /// **'learning something new|clear expression|finding balance|raising accuracy|recovering and watching|moving forward|calm focus|quick direction changes|fast decisions|smooth tempo|wide scanning|a strong center|a light start|finishing sense|team rhythm|resetting after mistakes'**
   String get fortuneSajuElementFlows;
 
   /// No description provided for @fortuneSajuFortuneThemes.
   ///
   /// In en, this message translates to:
-  /// **'a new move lightly|teammate timing|bouncing back after small mistakes|scanning the field wider|finding your body center again|choosing one focus point|showing it through movement|raising speed calmly'**
+  /// **'trying a new move lightly|matching teammate timing|moving past small mistakes quickly|scanning the field wider|finding your body center again|choosing one focus point|showing it through movement|raising speed calmly|making the first choice fast|resting once and trying again|seeing a good passing lane early|turning pressure into a game|keeping the last touch clean|reading a teammate first|turning the body in a new direction|stacking small wins|getting ready before receiving|starting defensive transition lightly|breathing before the finish|switching feet often|creating space off the ball|leaving one good scene today|controlling your own tempo|lifting the mood with one compliment'**
   String get fortuneSajuFortuneThemes;
 
   /// No description provided for @fortuneSajuTrainingTones.
   ///
   /// In en, this message translates to:
-  /// **'setting the first-touch direction|short pass then next choice|receiving with the body open|the first step in defensive transition|breathing before the finish|checking both-foot balance|timing the off-ball movement|making the return-pass angle'**
+  /// **'setting the first-touch direction|short pass then next choice|receiving with the body open|the first step in defensive transition|breathing before the finish|checking both-foot balance|timing the off-ball movement|making the return-pass angle|receiving with the head up|turning before pressure arrives|connecting short with the weaker foot|stopping the ball then scanning|making the first set accurate|keeping the last set light|reducing touch count|linking dribble into pass|finding space after the pass|dropping behind the defender|getting ready for second balls|making the turn smaller|the first three sprint steps|foot placement before shooting|remembering one coach cue|calling a name before passing'**
   String get fortuneSajuTrainingTones;
 
   /// No description provided for @fortuneSajuNameElements.
   ///
   /// In en, this message translates to:
-  /// **'a quick starter|a bright communicator|a steady base|an accuracy builder|a flexible mover|a confident driver|a steady stacker|an observant mover'**
+  /// **'a quick starter|a bright communicator|a steady base|an accuracy builder|a flexible mover|a confident driver|a steady stacker|an observant mover|a mood lifter|a one-beat waiter|a challenge seeker|a team connector|a quiet focuser|a last-minute holder|a new-lane finder|a rhythm maker'**
   String get fortuneSajuNameElements;
 
   /// No description provided for @fortuneSajuPlayAdvice.
   ///
   /// In en, this message translates to:
-  /// **'start light and still make the final choice clear.|one small compliment can bring your rhythm alive.|pause one beat before pushing harder.|lift your head before the pass so the field opens up.|careful warmups make the play feel fresher.|reset your face after a mistake and the next scene comes back.|one accurate touch fits better than three forced ones.|read a teammate first and a good scene opens.'**
+  /// **'start light and still make the final choice clear.|one small compliment can bring your rhythm alive.|pause one beat before pushing harder.|lift your head before the pass so the field opens up.|careful warmups make the play feel fresher.|reset your face after a mistake and the next scene comes back.|one accurate touch fits better than three forced ones.|read a teammate first and a good scene opens.|repeat the rhythm twice when the first touch feels right.|turn your shoulder before receiving and the choice gets easier.|one small success can change the whole session mood.|even with heavy legs, the first five light minutes can help.|one hand signal can sync the team faster than words.|the pass before the final shot may shine more today.|clean finishes beat big gestures today.|a sip of water and one deep breath can help.|chase right after losing the ball and you can rebuild the scene.|say something good to a teammate first and the play gets softer.|one extra scan can become today\'s easiest weapon.|start with a small smile and the body may loosen faster.|keep the first defensive step small for easier turns.|move one step off the ball and space can open.|keep one best scene from today clearly.|finish with accuracy before power.'**
   String get fortuneSajuPlayAdvice;
 
   /// No description provided for @fortuneLuckyColorTones.
   ///
   /// In en, this message translates to:
-  /// **'Deep|Soft|Clean|Sunset|Cool|Warm|Mist|Bright|Mono|Accent'**
+  /// **'Deep|Soft|Clean|Sunset|Cool|Warm|Mist|Bright|Mono|Accent|Neon|Pastel|Metallic|Fresh|Calm|Spark'**
   String get fortuneLuckyColorTones;
 
   /// No description provided for @fortuneLuckyColorBases.
   ///
   /// In en, this message translates to:
-  /// **'Navy|Emerald|Coral|Mustard|Sky Blue|Khaki|Ivory|Cherry Red|Lime|Charcoal'**
+  /// **'Navy|Emerald|Coral|Mustard|Sky Blue|Khaki|Ivory|Cherry Red|Lime|Charcoal|Royal Blue|Mint|Peach|Violet|Silver|Gold|White|Black|Olive|Turquoise'**
   String get fortuneLuckyColorBases;
 
   /// No description provided for @fortuneLuckyTimePeriods.
   ///
   /// In en, this message translates to:
-  /// **'Early morning|Late morning|Right after lunch|Early afternoon|Late afternoon|At sunset|Early evening|Night routine window'**
+  /// **'Early morning|Late morning|Right after lunch|Early afternoon|Late afternoon|At sunset|Early evening|Night routine window|Before school|Break time|Before training starts|Cool-down stretch'**
   String get fortuneLuckyTimePeriods;
 
   /// No description provided for @fortuneLuckyTimeWindows.
   ///
   /// In en, this message translates to:
-  /// **'06:40-07:20|08:10-08:50|09:30-10:10|10:40-11:20|12:20-13:00|14:10-14:50|16:00-16:40|18:20-19:00|20:10-20:50|21:00-21:40'**
+  /// **'06:40-07:20|08:10-08:50|09:30-10:10|10:40-11:20|12:20-13:00|14:10-14:50|16:00-16:40|18:20-19:00|20:10-20:50|21:00-21:40|07:30-08:00|11:40-12:10|13:20-13:50|15:10-15:40|17:20-17:50|19:30-20:00'**
   String get fortuneLuckyTimeWindows;
 
   /// No description provided for @fortuneLuckyZoneModifiers.
   ///
   /// In en, this message translates to:
-  /// **'Left-side|Right-side|Central|Half-line|Box-edge|Touchline-side|Forward-start|Transition'**
+  /// **'Left-side|Right-side|Central|Half-line|Box-edge|Touchline-side|Forward-start|Transition|Goal-front|Dropped-back|Pre-pressure|Pre-receive|Sprint-start|After-return-pass|Corner-near|Behind-midline'**
   String get fortuneLuckyZoneModifiers;
 
   /// No description provided for @fortuneLuckyZoneBases.
   ///
   /// In en, this message translates to:
-  /// **'half-space|inside channel|first-touch spot|return-pass angle|second-ball lane|press-break starting point|one-two lane|run timing window|scanning pocket|pre-finish space'**
+  /// **'half-space|inside channel|first-touch spot|return-pass angle|second-ball lane|press-break starting point|one-two lane|run timing window|scanning pocket|pre-finish space|space behind the defender|one meter in front of goal|short-pass triangle|first step after the turn|teammate eye-contact spot|back space for a cross|sprint start line|lane cutting inside|slow-breath spot|final-check zone'**
   String get fortuneLuckyZoneBases;
 
   /// No description provided for @fortuneLuckyCueOpenings.
   ///
   /// In en, this message translates to:
-  /// **'Briefly|Before the first set|After settling the breath|Before receiving the ball|Once the feet wake up|Right after lifting the head|Just before the turn|When the rhythm slips'**
+  /// **'Briefly|Before the first set|After settling the breath|Before receiving the ball|Once the feet wake up|Right after lifting the head|Just before the turn|When the rhythm slips|After a water break|After calling a teammate name|After the first mistake|When a pass breaks down|Once before shooting|When switching to defense|After hearing the coach cue|Before the cool-down stretch'**
   String get fortuneLuckyCueOpenings;
 
   /// No description provided for @fortuneLuckyCueActions.
   ///
   /// In en, this message translates to:
-  /// **'scan one more time|pick the touch direction first|set the gap between both feet|keep the first step light|open the body and see the next option|bind the tempo with a short breath|choose accuracy before force|set the shoulder angle before the ball arrives'**
+  /// **'scan one more time|pick the touch direction first|set the gap between both feet|keep the first step light|open the body and see the next option|bind the tempo with a short breath|choose accuracy before force|set the shoulder angle before the ball arrives|call out a teammate position|make the second touch smaller|move one step off the ball first|see the pass lane right after dribbling|chase right after a mistake|check the feet once before shooting|make a spot for the return pass|turn before pressure arrives|lift the mood with one short compliment|stay low in the last 10 minutes|expect the second ball first|check the space near the touchline|raise speed after lifting the head|keep moving after the pass|connect lightly with the weaker foot|remember today\'s good scene'**
   String get fortuneLuckyCueActions;
 
   /// No description provided for @mealStatsNoTrainingOrMealEntries.

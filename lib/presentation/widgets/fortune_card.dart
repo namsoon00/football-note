@@ -34,8 +34,11 @@ class FortuneSections {
     }
 
     return FortuneSections(
-      bodyLines: bodyLines,
-      luckyInfoLines: _compactLuckyInfoLines(luckyInfoLines),
+      bodyLines: <String>[
+        ...bodyLines,
+        ..._compactLuckyInfoLines(luckyInfoLines),
+      ],
+      luckyInfoLines: const <String>[],
     );
   }
 
