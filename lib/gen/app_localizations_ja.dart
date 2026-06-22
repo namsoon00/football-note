@@ -9379,7 +9379,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStart =>
-      'クイックスタート: プレイヤーやボールを選び、移動・パス・ドリブルなどのクイック動作を押します。';
+      'クイックスタート: プレイヤーやボールを選び、動作を押してから対象の人やスペースをタップします。';
 
   @override
   String get trainingSketchSelectedItemTitle => '選択した項目';
@@ -9510,11 +9510,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      '到着地点をタップすると移動を作れます。プレイヤーをドラッグすると位置を調整できます。';
+      '動作を押してから到着地点や対象プレイヤーをタップします。プレイヤーをドラッグすると位置を調整できます。';
 
   @override
   String get trainingSketchLinkBallHint =>
-      'パスの到着地点をタップするとボール動作を作れます。ボールをドラッグすると位置を調整できます。';
+      '動作を押してからパス・サーブ・シュートの目標をタップします。ボールをドラッグすると位置を調整できます。';
+
+  @override
+  String trainingSketchActionTargetHint(Object action) {
+    return '$action の対象またはスペースをタップします。';
+  }
+
+  @override
+  String get trainingSketchActionTargetCancelButton => 'キャンセル';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => 'クイック動作';

@@ -5229,7 +5229,7 @@
   "trainingSketchResetButton": "Clear",
   "trainingSketchPenModeHint": "Pen mode: drag on the board to draw.",
   "trainingSketchPenColorLabel": "Pen color",
-  "trainingSketchQuickStart": "Quick start: Select a player or ball, then tap a quick action like move, pass, or dribble.",
+  "trainingSketchQuickStart": "Quick start: Select a player or ball, tap an action, then tap the target player or space.",
   "trainingSketchSelectedItemTitle": "Selected item",
   "trainingSketchAssignColorLabel": "Assign color",
   "trainingSketchDrawRouteFirst": "Draw or select a route first.",
@@ -5287,8 +5287,15 @@
   "trainingSketchSelectedBallRouteHint": "Tap a pass destination, then finish the route. You can still drag to draw.",
   "trainingSketchPlayerRouteHint": "Select a player or tap the board to start, then tap a destination and finish.",
   "trainingSketchBallRouteHint": "Select a ball or tap the board to start, then tap a pass destination and finish.",
-  "trainingSketchLinkPlayerHint": "Tap a destination to create a move, or drag the player to adjust the position.",
-  "trainingSketchLinkBallHint": "Tap a pass destination to create a ball action, or drag the ball to adjust the position.",
+  "trainingSketchLinkPlayerHint": "Tap an action, then tap a destination or target player. Drag the player to adjust the position.",
+  "trainingSketchLinkBallHint": "Tap an action, then tap a pass, serve, or shot target. Drag the ball to adjust the position.",
+  "trainingSketchActionTargetHint": "Tap the target or space for {action}.",
+  "@trainingSketchActionTargetHint": {
+    "placeholders": {
+      "action": {}
+    }
+  },
+  "trainingSketchActionTargetCancelButton": "Cancel",
   "trainingSketchSelectedItemActionsTitle": "Quick actions",
   "trainingSketchCreateMoveRouteButton": "Create move",
   "trainingSketchCreatePassRouteButton": "Create pass",

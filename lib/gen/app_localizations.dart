@@ -16590,7 +16590,7 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchQuickStart.
   ///
   /// In en, this message translates to:
-  /// **'Quick start: Select a player or ball, then tap a quick action like move, pass, or dribble.'**
+  /// **'Quick start: Select a player or ball, tap an action, then tap the target player or space.'**
   String get trainingSketchQuickStart;
 
   /// No description provided for @trainingSketchSelectedItemTitle.
@@ -16824,14 +16824,26 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchLinkPlayerHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap a destination to create a move, or drag the player to adjust the position.'**
+  /// **'Tap an action, then tap a destination or target player. Drag the player to adjust the position.'**
   String get trainingSketchLinkPlayerHint;
 
   /// No description provided for @trainingSketchLinkBallHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap a pass destination to create a ball action, or drag the ball to adjust the position.'**
+  /// **'Tap an action, then tap a pass, serve, or shot target. Drag the ball to adjust the position.'**
   String get trainingSketchLinkBallHint;
+
+  /// No description provided for @trainingSketchActionTargetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the target or space for {action}.'**
+  String trainingSketchActionTargetHint(Object action);
+
+  /// No description provided for @trainingSketchActionTargetCancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get trainingSketchActionTargetCancelButton;
 
   /// No description provided for @trainingSketchSelectedItemActionsTitle.
   ///
