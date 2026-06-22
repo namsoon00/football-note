@@ -6266,6 +6266,42 @@ abstract class AppLocalizations {
   /// **'Recent {sport} form is {form}, with a {winRate}% win rate. Check where result patterns and personal records drop together.'**
   String statsMatchFormInsightNeedsWork(Object sport, Object form, int winRate);
 
+  /// No description provided for @statsCompetitionDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition board'**
+  String get statsCompetitionDashboardTitle;
+
+  /// No description provided for @statsCompetitionLeagueSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'League competitions'**
+  String get statsCompetitionLeagueSectionTitle;
+
+  /// No description provided for @statsCompetitionTournamentSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament competitions'**
+  String get statsCompetitionTournamentSectionTitle;
+
+  /// No description provided for @statsCompetitionProgressValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{recorded}/{total}'**
+  String statsCompetitionProgressValue(int recorded, int total);
+
+  /// No description provided for @statsCompetitionMoreCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more'**
+  String statsCompetitionMoreCount(int count);
+
+  /// No description provided for @statsCompetitionOpponentUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent unset'**
+  String get statsCompetitionOpponentUnset;
+
   /// No description provided for @averageComparisonProfileMissingTitle.
   ///
   /// In en, this message translates to:

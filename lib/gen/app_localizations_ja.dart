@@ -3473,6 +3473,28 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get statsCompetitionDashboardTitle => '大会結果ボード';
+
+  @override
+  String get statsCompetitionLeagueSectionTitle => 'リーグ大会';
+
+  @override
+  String get statsCompetitionTournamentSectionTitle => 'トーナメント大会';
+
+  @override
+  String statsCompetitionProgressValue(int recorded, int total) {
+    return '$recorded/$total';
+  }
+
+  @override
+  String statsCompetitionMoreCount(int count) {
+    return 'ほか$count件';
+  }
+
+  @override
+  String get statsCompetitionOpponentUnset => '相手未入力';
+
+  @override
   String get averageComparisonProfileMissingTitle => '年齢と競技歴を入力してください';
 
   @override

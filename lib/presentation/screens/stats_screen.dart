@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../application/benchmark_service.dart';
+import '../../application/match_competition_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/sport_capabilities.dart';
@@ -492,12 +493,32 @@ class _StatsScreenState extends State<StatsScreen> {
       );
     }
 
+    final competitionRecords =
+        MatchCompetitionService(widget.optionRepository).allCompetitions();
+    final hasCompetitionRecords = competitionRecords.any(
+      (record) =>
+          record.kind == MatchCompetitionRecord.kindLeague ||
+          record.kind == MatchCompetitionRecord.kindTournament,
+    );
+    final hasCompetitionEntries = matchEntries.any(
+      (entry) => entry.isLeagueMatch || entry.isTournamentMatch,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _StatsPanel(
           child: _MatchOverviewSection(entries: matchEntries, isKo: isKo),
         ),
+        if (hasCompetitionRecords || hasCompetitionEntries) ...[
+          const SizedBox(height: 18),
+          _StatsPanel(
+            child: _MatchCompetitionStatsSection(
+              entries: matchEntries,
+              competitionRecords: competitionRecords,
+            ),
+          ),
+        ],
         const SizedBox(height: 18),
         _StatsPanel(
           child: _MatchFormReportSection(
@@ -2241,6 +2262,704 @@ class _MatchFormReportSection extends StatelessWidget {
         _ => l10n.statsMatchOutcomeDrawShort,
       };
     }).join(' ');
+  }
+}
+
+class _MatchCompetitionStatsSection extends StatelessWidget {
+  final List<TrainingEntry> entries;
+  final List<MatchCompetitionRecord> competitionRecords;
+
+  const _MatchCompetitionStatsSection({
+    required this.entries,
+    required this.competitionRecords,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final leagueSummaries = _buildCompetitionSummaries(
+      kind: MatchCompetitionRecord.kindLeague,
+      entries: entries,
+      competitionRecords: competitionRecords,
+    );
+    final tournamentSummaries = _buildCompetitionSummaries(
+      kind: MatchCompetitionRecord.kindTournament,
+      entries: entries,
+      competitionRecords: competitionRecords,
+    );
+
+    if (leagueSummaries.isEmpty && tournamentSummaries.isEmpty) {
+      return _InlineNotice(text: l10n.matchCompetitionNoMatches);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionTitle(
+          icon: Icons.emoji_events_outlined,
+          title: l10n.statsCompetitionDashboardTitle,
+        ),
+        if (leagueSummaries.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _CompetitionGroupHeader(
+            icon: Icons.table_chart_outlined,
+            title: l10n.statsCompetitionLeagueSectionTitle,
+            count: leagueSummaries.length,
+          ),
+          const SizedBox(height: 10),
+          ...leagueSummaries.map(
+            (summary) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _LeagueCompetitionCard(summary: summary),
+            ),
+          ),
+        ],
+        if (tournamentSummaries.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _CompetitionGroupHeader(
+            icon: Icons.account_tree_outlined,
+            title: l10n.statsCompetitionTournamentSectionTitle,
+            count: tournamentSummaries.length,
+          ),
+          const SizedBox(height: 10),
+          ...tournamentSummaries.map(
+            (summary) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _TournamentCompetitionCard(summary: summary),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _CompetitionSummary {
+  final String kind;
+  final String name;
+  final List<String> teams;
+  final List<TrainingEntry> entries;
+  final MatchCompetitionRecord? record;
+
+  const _CompetitionSummary({
+    required this.kind,
+    required this.name,
+    required this.teams,
+    required this.entries,
+    required this.record,
+  });
+
+  bool get isFinished => record?.isFinished ?? false;
+
+  DateTime get updatedAt =>
+      record?.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+}
+
+class _CompetitionMetric {
+  final String label;
+  final String value;
+
+  const _CompetitionMetric({required this.label, required this.value});
+}
+
+List<_CompetitionSummary> _buildCompetitionSummaries({
+  required String kind,
+  required List<TrainingEntry> entries,
+  required List<MatchCompetitionRecord> competitionRecords,
+}) {
+  final recordsByKey = <String, MatchCompetitionRecord>{};
+  final namesByKey = <String, String>{};
+  final entriesByKey = <String, List<TrainingEntry>>{};
+
+  for (final record in competitionRecords) {
+    if (record.kind != kind) continue;
+    final name = record.name.trim();
+    final key = _competitionKey(name);
+    if (key.isEmpty) continue;
+    recordsByKey[key] = record;
+    namesByKey[key] = name;
+  }
+
+  for (final entry in entries) {
+    final matchesKind = kind == MatchCompetitionRecord.kindTournament
+        ? entry.isTournamentMatch
+        : entry.isLeagueMatch;
+    if (!matchesKind) continue;
+    final name = entry.matchCompetitionName.trim();
+    final key = _competitionKey(name);
+    if (key.isEmpty) continue;
+    namesByKey.putIfAbsent(key, () => name);
+    entriesByKey.putIfAbsent(key, () => <TrainingEntry>[]).add(entry);
+  }
+
+  final summaries = <_CompetitionSummary>[];
+  for (final key in namesByKey.keys) {
+    final record = recordsByKey[key];
+    final groupedEntries =
+        entriesByKey[key]?.toList(growable: false) ?? const <TrainingEntry>[];
+    final teams = MatchCompetitionService.normalizeTeams([
+      ...?record?.teams,
+      for (final entry in groupedEntries) ...entry.leagueTeamNames,
+      for (final entry in groupedEntries) entry.opponentTeam,
+    ]);
+    summaries.add(
+      _CompetitionSummary(
+        kind: kind,
+        name: record?.name.trim().isNotEmpty == true
+            ? record!.name.trim()
+            : namesByKey[key]!,
+        teams: teams,
+        entries: groupedEntries,
+        record: record,
+      ),
+    );
+  }
+
+  summaries.sort((a, b) {
+    final statusCompare =
+        (a.isFinished ? 1 : 0).compareTo(b.isFinished ? 1 : 0);
+    if (statusCompare != 0) return statusCompare;
+    final entryCompare = b.entries.length.compareTo(a.entries.length);
+    if (entryCompare != 0) return entryCompare;
+    final updatedCompare = b.updatedAt.compareTo(a.updatedAt);
+    if (updatedCompare != 0) return updatedCompare;
+    return a.name.compareTo(b.name);
+  });
+  return summaries;
+}
+
+String _competitionKey(String value) => value.trim().toLowerCase();
+
+class _CompetitionGroupHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final int count;
+
+  const _CompetitionGroupHeader({
+    required this.icon,
+    required this.title,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            title,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        _CompetitionStatusPill(text: '$count'),
+      ],
+    );
+  }
+}
+
+class _LeagueCompetitionCard extends StatelessWidget {
+  final _CompetitionSummary summary;
+
+  const _LeagueCompetitionCard({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final standings = MatchCompetitionService.buildLeagueStandings(
+      competitionName: summary.name,
+      registeredTeams: summary.teams,
+      entries: summary.entries,
+      ownTeamName: l10n.matchCompetitionMyTeamFallback,
+    );
+    final leader = standings.isEmpty
+        ? l10n.matchCompetitionNoLeader
+        : standings.first.team;
+    final expectedMatches = summary.teams.length <= 1
+        ? summary.entries.length
+        : math.max(summary.entries.length, summary.teams.length - 1);
+    final topRows = standings.take(4).toList(growable: false);
+
+    return _CompetitionCardShell(
+      icon: Icons.table_rows_outlined,
+      title: summary.name,
+      statusText: summary.isFinished
+          ? l10n.matchCompetitionStatusFinished
+          : l10n.matchCompetitionStatusActive,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _CompetitionMetricGrid(
+            metrics: [
+              _CompetitionMetric(
+                label: l10n.matchCompetitionSummaryTeams,
+                value: '${summary.teams.length}',
+              ),
+              _CompetitionMetric(
+                label: l10n.matchCompetitionSummaryMatches,
+                value: '${summary.entries.length}',
+              ),
+              _CompetitionMetric(
+                label: l10n.matchCompetitionSummaryLeader,
+                value: leader,
+              ),
+              _CompetitionMetric(
+                label: l10n.matchCompetitionSummaryProgress,
+                value: l10n.statsCompetitionProgressValue(
+                  summary.entries.length,
+                  expectedMatches,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _MiniSectionHeader(
+            icon: Icons.leaderboard_outlined,
+            title: l10n.matchLeagueStandingsTitle,
+          ),
+          const SizedBox(height: 8),
+          if (topRows.isEmpty)
+            _InlineNotice(text: l10n.matchCompetitionNoMatches)
+          else ...[
+            ...topRows.asMap().entries.map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _LeagueStandingCompactRow(
+                      rank: entry.key + 1,
+                      row: entry.value,
+                    ),
+                  ),
+                ),
+            if (standings.length > topRows.length)
+              _MoreCountLine(
+                text: l10n.statsCompetitionMoreCount(
+                  standings.length - topRows.length,
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TournamentCompetitionCard extends StatelessWidget {
+  final _CompetitionSummary summary;
+
+  const _TournamentCompetitionCard({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final pairs = MatchCompetitionService.buildTournamentBracketPairs(
+      summary.teams,
+    );
+    final expectedSlots = math.max(pairs.length, summary.entries.length);
+    final visiblePairs = pairs.take(4).toList(growable: false);
+    final recentEntries = summary.entries.toList(growable: false)
+      ..sort(TrainingEntry.compareByRecentCreated);
+    final visibleEntries = recentEntries.take(3).toList(growable: false);
+
+    return _CompetitionCardShell(
+      icon: Icons.account_tree_outlined,
+      title: summary.name,
+      statusText: summary.isFinished
+          ? l10n.matchCompetitionStatusFinished
+          : l10n.matchCompetitionStatusActive,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _CompetitionMetricGrid(
+            metrics: [
+              _CompetitionMetric(
+                label: l10n.matchCompetitionSummaryTeams,
+                value: '${summary.teams.length}',
+              ),
+              _CompetitionMetric(
+                label: l10n.matchTournamentSummarySlots,
+                value: '${pairs.length}',
+              ),
+              _CompetitionMetric(
+                label: l10n.matchCompetitionSummaryRecorded,
+                value: '${summary.entries.length}',
+              ),
+              _CompetitionMetric(
+                label: l10n.matchCompetitionSummaryProgress,
+                value: l10n.statsCompetitionProgressValue(
+                  summary.entries.length,
+                  expectedSlots,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _MiniSectionHeader(
+            icon: Icons.schema_outlined,
+            title: l10n.matchTournamentBracketTitle,
+          ),
+          const SizedBox(height: 8),
+          if (visiblePairs.isEmpty)
+            _InlineNotice(text: l10n.matchCompetitionNoTeams)
+          else ...[
+            ...visiblePairs.map(
+              (pair) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _TournamentPairCompactRow(pair: pair),
+              ),
+            ),
+            if (pairs.length > visiblePairs.length)
+              _MoreCountLine(
+                text: l10n.statsCompetitionMoreCount(
+                  pairs.length - visiblePairs.length,
+                ),
+              ),
+          ],
+          const SizedBox(height: 10),
+          _MiniSectionHeader(
+            icon: Icons.history_toggle_off_outlined,
+            title: l10n.matchTournamentRecordedProgressTitle,
+          ),
+          const SizedBox(height: 8),
+          if (visibleEntries.isEmpty)
+            _InlineNotice(text: l10n.matchCompetitionNoMatches)
+          else ...[
+            ...visibleEntries.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _TournamentProgressCompactRow(entry: entry),
+              ),
+            ),
+            if (recentEntries.length > visibleEntries.length)
+              _MoreCountLine(
+                text: l10n.statsCompetitionMoreCount(
+                  recentEntries.length - visibleEntries.length,
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CompetitionCardShell extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String statusText;
+  final Widget child;
+
+  const _CompetitionCardShell({
+    required this.icon,
+    required this.title,
+    required this.statusText,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: AppSurfaces.subtleDecoration(
+        theme.colorScheme,
+        theme.brightness,
+        accentAlpha: 0.06,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.small,
+                ),
+                child: Icon(icon, size: 18, color: theme.colorScheme.primary),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _CompetitionStatusPill(text: statusText),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _CompetitionMetricGrid extends StatelessWidget {
+  final List<_CompetitionMetric> metrics;
+
+  const _CompetitionMetricGrid({required this.metrics});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 680 ? 4 : 2;
+        final width = (constraints.maxWidth - (8 * (columns - 1))) / columns;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: metrics
+              .map(
+                (metric) => SizedBox(
+                  width: width,
+                  child: _CompactMetricChip(
+                    label: metric.label,
+                    value: metric.value,
+                  ),
+                ),
+              )
+              .toList(growable: false),
+        );
+      },
+    );
+  }
+}
+
+class _MiniSectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+
+  const _MiniSectionHeader({required this.icon, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            title,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CompetitionStatusPill extends StatelessWidget {
+  final String text;
+
+  const _CompetitionStatusPill({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _LeagueStandingCompactRow extends StatelessWidget {
+  final int rank;
+  final LeagueStandingRow row;
+
+  const _LeagueStandingCompactRow({required this.rank, required this.row});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return _CompetitionDataRow(
+      leading: Text(
+        '#$rank',
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      title: row.team,
+      subtitle: [
+        l10n.matchLeaguePlayedSummary(row.played),
+        l10n.matchLeagueRecordSummary(row.wins, row.draws, row.losses),
+        l10n.matchLeagueGoalDifferenceSummary(row.goalDifference),
+      ].join(' · '),
+      trailing: l10n.matchLeaguePointsSummary(row.points),
+    );
+  }
+}
+
+class _TournamentPairCompactRow extends StatelessWidget {
+  final TournamentBracketPair pair;
+
+  const _TournamentPairCompactRow({required this.pair});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return _CompetitionDataRow(
+      leading: const Icon(Icons.sports_outlined, size: 18),
+      title: pair.hasBye
+          ? pair.teamA
+          : l10n.matchTournamentPairText(pair.teamA, pair.teamB),
+      subtitle: l10n.matchTournamentPairLabel(pair.slotNumber),
+      trailing: pair.hasBye
+          ? l10n.matchTournamentPairByeStatus
+          : l10n.matchTournamentPairPending,
+    );
+  }
+}
+
+class _TournamentProgressCompactRow extends StatelessWidget {
+  final TrainingEntry entry;
+
+  const _TournamentProgressCompactRow({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final opponent = entry.opponentTeam.trim().isEmpty
+        ? l10n.statsCompetitionOpponentUnset
+        : entry.opponentTeam.trim();
+    final stage = matchTournamentStageLabel(l10n, entry.matchStage);
+    final outcome = matchTournamentOutcomeLabel(l10n, entry.tournamentOutcome);
+    return _CompetitionDataRow(
+      leading: Icon(
+        Icons.flag_outlined,
+        size: 18,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+      title: l10n.matchTournamentRecordedProgress(stage, opponent, outcome),
+      subtitle: DateFormat.yMMMd(Localizations.localeOf(context).toString())
+          .format(entry.date),
+      trailing: entry.tournamentWins == null
+          ? null
+          : l10n.matchTournamentWinsValue(entry.tournamentWins!),
+    );
+  }
+}
+
+class _CompetitionDataRow extends StatelessWidget {
+  final Widget leading;
+  final String title;
+  final String subtitle;
+  final String? trailing;
+
+  const _CompetitionDataRow({
+    required this.leading,
+    required this.title,
+    required this.subtitle,
+    required this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.42),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.14),
+        ),
+      ),
+      child: Row(
+        children: [
+          SizedBox(width: 34, child: Center(child: leading)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            Text(
+              trailing!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MoreCountLine extends StatelessWidget {
+  final String text;
+
+  const _MoreCountLine({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
   }
 }
 

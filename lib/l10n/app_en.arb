@@ -2195,6 +2195,29 @@
       }
     }
   },
+  "statsCompetitionDashboardTitle": "Competition board",
+  "statsCompetitionLeagueSectionTitle": "League competitions",
+  "statsCompetitionTournamentSectionTitle": "Tournament competitions",
+  "statsCompetitionProgressValue": "{recorded}/{total}",
+  "@statsCompetitionProgressValue": {
+    "placeholders": {
+      "recorded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "statsCompetitionMoreCount": "{count} more",
+  "@statsCompetitionMoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsCompetitionOpponentUnset": "Opponent unset",
   "averageComparisonProfileMissingTitle": "Enter age and sport experience",
   "averageComparisonProfileMissingMessage": "Average comparison is hidden because age and sport experience are missing. Add birth date and sport start date in profile.",
   "averageComparisonOpenProfileAction": "Open Profile",
