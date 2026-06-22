@@ -755,6 +755,9 @@
   },
   "worldCupTournamentTitle": "Tournament bracket",
   "worldCupTournamentPlanBody": "This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.",
+  "worldCupTournamentZoomOut": "Zoom bracket out",
+  "worldCupTournamentZoomReset": "Reset bracket zoom",
+  "worldCupTournamentZoomIn": "Zoom bracket in",
   "worldCupStageMatchCount": "{count} matches",
   "@worldCupStageMatchCount": {
     "placeholders": {

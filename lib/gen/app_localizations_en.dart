@@ -1425,6 +1425,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.';
 
   @override
+  String get worldCupTournamentZoomOut => 'Zoom bracket out';
+
+  @override
+  String get worldCupTournamentZoomReset => 'Reset bracket zoom';
+
+  @override
+  String get worldCupTournamentZoomIn => 'Zoom bracket in';
+
+  @override
   String worldCupStageMatchCount(int count) {
     return '$count matches';
   }

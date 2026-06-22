@@ -170,6 +170,22 @@ void main() {
     expect(find.text('B조 2위'), findsOneWidget);
     expect(find.text('M73 승자'), findsOneWidget);
     expect(find.text('M73: A조 2위 대 B조 2위'), findsOneWidget);
+    expect(find.byType(InteractiveViewer), findsOneWidget);
+    final bracketViewer = tester.widget<InteractiveViewer>(
+      find.byType(InteractiveViewer),
+    );
+    expect(bracketViewer.minScale, lessThan(1));
+    expect(bracketViewer.maxScale, greaterThan(1));
+    expect(find.byIcon(Icons.zoom_out_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.restart_alt_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.zoom_in_rounded), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.zoom_in_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.zoom_out_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.restart_alt_rounded));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('team roster sheet shows expanded squad and formation data', (

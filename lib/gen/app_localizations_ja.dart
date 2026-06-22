@@ -1381,6 +1381,15 @@ class AppLocalizationsJa extends AppLocalizations {
       '現在は公式日程のグループ順位枠と前試合の勝者枠を基準に表示します。グループ結果が確定したら、各枠を実際の国の道筋として追えます。';
 
   @override
+  String get worldCupTournamentZoomOut => 'ブラケットを縮小';
+
+  @override
+  String get worldCupTournamentZoomReset => 'ブラケットの拡大率をリセット';
+
+  @override
+  String get worldCupTournamentZoomIn => 'ブラケットを拡大';
+
+  @override
   String worldCupStageMatchCount(int count) {
     return '$count試合';
   }
