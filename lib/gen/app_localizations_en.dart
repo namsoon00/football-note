@@ -9518,6 +9518,61 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get matchCompetitionSummaryTeams => 'Teams';
+
+  @override
+  String get matchCompetitionSummaryMatches => 'Recorded matches';
+
+  @override
+  String get matchCompetitionSummaryLeader => 'Leader';
+
+  @override
+  String get matchCompetitionSummaryRecorded => 'Recorded';
+
+  @override
+  String get matchCompetitionSummaryProgress => 'Progress';
+
+  @override
+  String get matchCompetitionNoLeader => 'None yet';
+
+  @override
+  String get matchTournamentSummarySlots => 'Bracket slots';
+
+  @override
+  String matchTournamentSlotProgress(int recorded, int total) {
+    return '$recorded/$total';
+  }
+
+  @override
+  String get matchTournamentPairPending => 'Pending';
+
+  @override
+  String get matchTournamentPairByeStatus => 'Bye';
+
+  @override
+  String get matchTournamentVersusLabel => 'vs';
+
+  @override
+  String matchLeaguePlayedSummary(int played) {
+    return '$played played';
+  }
+
+  @override
+  String matchLeagueRecordSummary(int wins, int draws, int losses) {
+    return '${wins}W ${draws}D ${losses}L';
+  }
+
+  @override
+  String matchLeagueGoalDifferenceSummary(int difference) {
+    return 'GD $difference';
+  }
+
+  @override
+  String matchLeaguePointsSummary(int points) {
+    return '$points pts';
+  }
+
+  @override
   String get matchLeagueRoundLabel => 'Round or matchday';
 
   @override

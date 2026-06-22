@@ -9249,6 +9249,61 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get matchCompetitionSummaryTeams => '참가 팀';
+
+  @override
+  String get matchCompetitionSummaryMatches => '기록 경기';
+
+  @override
+  String get matchCompetitionSummaryLeader => '선두';
+
+  @override
+  String get matchCompetitionSummaryRecorded => '기록';
+
+  @override
+  String get matchCompetitionSummaryProgress => '진행률';
+
+  @override
+  String get matchCompetitionNoLeader => '아직 없음';
+
+  @override
+  String get matchTournamentSummarySlots => '대진';
+
+  @override
+  String matchTournamentSlotProgress(int recorded, int total) {
+    return '$recorded/$total';
+  }
+
+  @override
+  String get matchTournamentPairPending => '경기 전';
+
+  @override
+  String get matchTournamentPairByeStatus => '부전승';
+
+  @override
+  String get matchTournamentVersusLabel => 'vs';
+
+  @override
+  String matchLeaguePlayedSummary(int played) {
+    return '$played경기';
+  }
+
+  @override
+  String matchLeagueRecordSummary(int wins, int draws, int losses) {
+    return '$wins승 $draws무 $losses패';
+  }
+
+  @override
+  String matchLeagueGoalDifferenceSummary(int difference) {
+    return '득실 $difference';
+  }
+
+  @override
+  String matchLeaguePointsSummary(int points) {
+    return '승점 $points';
+  }
+
+  @override
   String get matchLeagueRoundLabel => '라운드/주차';
 
   @override

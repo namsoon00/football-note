@@ -5159,6 +5159,65 @@
       }
     }
   },
+  "matchCompetitionSummaryTeams": "参加チーム",
+  "matchCompetitionSummaryMatches": "記録済み試合",
+  "matchCompetitionSummaryLeader": "首位",
+  "matchCompetitionSummaryRecorded": "記録",
+  "matchCompetitionSummaryProgress": "進行率",
+  "matchCompetitionNoLeader": "まだありません",
+  "matchTournamentSummarySlots": "組み合わせ",
+  "matchTournamentSlotProgress": "{recorded}/{total}",
+  "@matchTournamentSlotProgress": {
+    "placeholders": {
+      "recorded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentPairPending": "試合前",
+  "matchTournamentPairByeStatus": "不戦勝",
+  "matchTournamentVersusLabel": "vs",
+  "matchLeaguePlayedSummary": "{played}試合",
+  "@matchLeaguePlayedSummary": {
+    "placeholders": {
+      "played": {
+        "type": "int"
+      }
+    }
+  },
+  "matchLeagueRecordSummary": "{wins}勝 {draws}分 {losses}敗",
+  "@matchLeagueRecordSummary": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      }
+    }
+  },
+  "matchLeagueGoalDifferenceSummary": "得失 {difference}",
+  "@matchLeagueGoalDifferenceSummary": {
+    "placeholders": {
+      "difference": {
+        "type": "int"
+      }
+    }
+  },
+  "matchLeaguePointsSummary": "勝ち点 {points}",
+  "@matchLeaguePointsSummary": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "matchLeagueRoundLabel": "ラウンド/節",
   "matchLeagueRoundHint": "例: 第3節",
   "matchTournamentStageLabel": "トーナメント段階",

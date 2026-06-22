@@ -256,7 +256,7 @@ class MatchCompetitionService {
   Future<void> upsertFromEntry(TrainingEntry entry) async {
     if (!entry.isLeagueMatch && !entry.isTournamentMatch) return;
     final name = entry.matchCompetitionName.trim();
-    if (name.isEmpty || entry.leagueTeamNames.isEmpty) return;
+    if (name.isEmpty) return;
     final kind = entry.isTournamentMatch
         ? MatchCompetitionRecord.kindTournament
         : MatchCompetitionRecord.kindLeague;
@@ -264,6 +264,7 @@ class MatchCompetitionService {
     final teams = normalizeTeams([
       ...?existing?.teams,
       ...entry.leagueTeamNames,
+      entry.opponentTeam,
     ]);
     await upsertCompetition(
       MatchCompetitionRecord.create(

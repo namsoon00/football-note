@@ -109,6 +109,35 @@ void main() {
     expect(competition?.teams, <String>['레드 FC', '블루 FC']);
   });
 
+  test('팀 목록이 없는 토너먼트 기록도 저장 대회로 보존한다', () async {
+    final repository = _MemoryOptionRepository();
+    final service = MatchCompetitionService(repository);
+
+    await service.upsertFromEntry(
+      TrainingEntry(
+        date: DateTime(2026, 6, 1),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '',
+        matchKind: MatchCompetitionRecord.kindTournament,
+        matchCompetitionName: '여름 컵',
+        opponentTeam: '블루 FC',
+      ),
+    );
+
+    final tournaments = service.competitionsForKind(
+      MatchCompetitionRecord.kindTournament,
+    );
+
+    expect(tournaments, hasLength(1));
+    expect(tournaments.single.name, '여름 컵');
+    expect(tournaments.single.teams, <String>['블루 FC']);
+  });
+
   test('리그 순위는 등록 팀과 기록 결과를 합쳐 승점 순으로 계산한다', () {
     final entries = <TrainingEntry>[
       TrainingEntry(
