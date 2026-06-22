@@ -17,9 +17,85 @@ class LocalFortuneResult {
   });
 }
 
+class FortuneDatabaseSection {
+  final String title;
+  final List<String> values;
+
+  const FortuneDatabaseSection({
+    required this.title,
+    required this.values,
+  });
+}
+
 class LocalFortuneService {
   static const MyeongliDatabase _myeongli = MyeongliDatabase.instance;
   static final BigInt totalFortunePoolCount = _calculateTotalFortunePoolCount();
+
+  static List<FortuneDatabaseSection> databaseSections(
+    AppLocalizations l10n,
+  ) {
+    return <FortuneDatabaseSection>[
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionBirthCodes,
+        values: <String>[
+          ..._localizedValues(l10n.fortuneSajuHeavenlyStems),
+          ..._localizedValues(l10n.fortuneSajuEarthlyBranches),
+        ],
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionDayMoods,
+        values: _localizedValues(l10n.fortuneSajuElementFlows),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionDailyEvents,
+        values: _localizedValues(l10n.fortuneSajuFortuneThemes),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionActionCues,
+        values: _localizedValues(l10n.fortuneSajuTrainingTones),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionNameRhythms,
+        values: _localizedValues(l10n.fortuneSajuNameElements),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionAdvice,
+        values: _localizedValues(l10n.fortuneSajuPlayAdvice),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionColorTones,
+        values: _localizedValues(l10n.fortuneLuckyColorTones),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionColorBases,
+        values: _localizedValues(l10n.fortuneLuckyColorBases),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionTimePeriods,
+        values: _localizedValues(l10n.fortuneLuckyTimePeriods),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionTimeWindows,
+        values: _localizedValues(l10n.fortuneLuckyTimeWindows),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionSceneModifiers,
+        values: _localizedValues(l10n.fortuneLuckyZoneModifiers),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionSceneBases,
+        values: _localizedValues(l10n.fortuneLuckyZoneBases),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionCueOpenings,
+        values: _localizedValues(l10n.fortuneLuckyCueOpenings),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionCueActions,
+        values: _localizedValues(l10n.fortuneLuckyCueActions),
+      ),
+    ];
+  }
 
   static String formatFortunePoolCount(String localeName) {
     final groupSeparator = _resolveGroupSeparator(localeName);
@@ -43,10 +119,7 @@ class LocalFortuneService {
     final baseSeed = _seed(entry, profile, history);
     final birthReading = _birthReading(profile, l10n);
     final dailyPillar = _myeongli.dayPillar(entry.date);
-    final luckyTime = _luckyTime(seed: baseSeed + 71, l10n: l10n);
     final luckyColor = _luckyColor(seed: baseSeed + 73, l10n: l10n);
-    final luckyZone = _luckyZone(seed: baseSeed + 79, l10n: l10n);
-    final luckyCue = _luckyCue(seed: baseSeed + 83, l10n: l10n);
     final luckyNumber = (baseSeed.abs() % 9) + 1;
     final recommendedProgram = _recommendedProgram(entry: entry, l10n: l10n);
     final recommendationText = _recommendationText(
@@ -80,13 +153,7 @@ class LocalFortuneService {
       l10n.fortuneGeneratedDailyLineOne(name, elementFlow),
       l10n.fortuneGeneratedDailyLineTwo(fortuneTheme, trainingTone),
       l10n.fortuneGeneratedDailyLineThree(nameElement, playAdvice),
-      l10n.fortuneGeneratedLuckyInfoLine(
-        luckyNumber,
-        luckyColor,
-        luckyTime,
-        luckyZone,
-        luckyCue,
-      ),
+      l10n.fortuneGeneratedLuckyInfoLine(luckyNumber, luckyColor),
     ].join('\n');
 
     return LocalFortuneResult(
@@ -176,30 +243,6 @@ class LocalFortuneService {
       seed: seed,
       first: _localizedValues(l10n.fortuneLuckyColorTones),
       second: _localizedValues(l10n.fortuneLuckyColorBases),
-    );
-  }
-
-  String _luckyTime({required int seed, required AppLocalizations l10n}) {
-    return _composeSegments(
-      seed: seed,
-      first: _localizedValues(l10n.fortuneLuckyTimePeriods),
-      second: _localizedValues(l10n.fortuneLuckyTimeWindows),
-    );
-  }
-
-  String _luckyZone({required int seed, required AppLocalizations l10n}) {
-    return _composeSegments(
-      seed: seed,
-      first: _localizedValues(l10n.fortuneLuckyZoneModifiers),
-      second: _localizedValues(l10n.fortuneLuckyZoneBases),
-    );
-  }
-
-  String _luckyCue({required int seed, required AppLocalizations l10n}) {
-    return _composeSegments(
-      seed: seed,
-      first: _localizedValues(l10n.fortuneLuckyCueOpenings),
-      second: _localizedValues(l10n.fortuneLuckyCueActions),
     );
   }
 
@@ -377,16 +420,16 @@ class _BirthReading {
   });
 }
 
-const int _fortuneLuckyColorToneCount = 16;
-const int _fortuneLuckyColorBaseCount = 20;
-const int _fortuneLuckyTimePeriodCount = 12;
-const int _fortuneLuckyTimeWindowCount = 16;
-const int _fortuneLuckyZoneModifierCount = 16;
-const int _fortuneLuckyZoneBaseCount = 20;
-const int _fortuneLuckyCueOpeningCount = 16;
-const int _fortuneLuckyCueActionCount = 24;
-const int _fortuneSajuElementFlowCount = 16;
-const int _fortuneSajuThemeCount = 24;
-const int _fortuneSajuTrainingToneCount = 24;
-const int _fortuneSajuNameElementCount = 16;
-const int _fortuneSajuPlayAdviceCount = 24;
+const int _fortuneLuckyColorToneCount = 20;
+const int _fortuneLuckyColorBaseCount = 24;
+const int _fortuneLuckyTimePeriodCount = 16;
+const int _fortuneLuckyTimeWindowCount = 20;
+const int _fortuneLuckyZoneModifierCount = 20;
+const int _fortuneLuckyZoneBaseCount = 24;
+const int _fortuneLuckyCueOpeningCount = 20;
+const int _fortuneLuckyCueActionCount = 32;
+const int _fortuneSajuElementFlowCount = 24;
+const int _fortuneSajuThemeCount = 36;
+const int _fortuneSajuTrainingToneCount = 36;
+const int _fortuneSajuNameElementCount = 24;
+const int _fortuneSajuPlayAdviceCount = 36;

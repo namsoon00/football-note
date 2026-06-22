@@ -84,47 +84,26 @@ class FortuneSections {
     if (isKo) {
       final number = _valueFor(values, const ['행운 숫자']);
       final color = _valueFor(values, const ['행운 색상']);
-      final time = _valueFor(values, const ['행운 시간대']);
-      final zone = _valueFor(values, const ['행운 구역']);
-      final cue = _valueFor(values, const ['행운 루틴 큐']);
       final parts = <String>[
         if (number.isNotEmpty) '숫자 $number',
         if (color.isNotEmpty) '색상 $color',
-        if (time.isNotEmpty) '시간대 $time',
       ];
-      final cueText = cue.isNotEmpty
-          ? '$cue를 떠올려 보세요'
-          : zone.isNotEmpty
-              ? '$zone에서 기본 리듬을 맞춰보세요'
-              : '기본 리듬을 차분히 맞춰보세요';
       if (parts.isEmpty) {
-        return [_ensureSentence(cueText)];
+        return const <String>[];
       }
-      final prefix = '오늘 ${parts.join(', ')}';
-      final place = zone.isNotEmpty && cue.isNotEmpty ? '$zone에서 ' : '';
-      return [_ensureSentence('$prefix에는 $place$cueText')];
+      return [_ensureSentence('재미 포인트: ${parts.join(', ')}')];
     }
 
     final number = _valueFor(values, const ['Lucky number']);
     final color = _valueFor(values, const ['Lucky color']);
-    final time = _valueFor(values, const ['Lucky time']);
-    final zone = _valueFor(values, const ['Lucky zone']);
-    final cue = _valueFor(values, const ['Lucky routine cue']);
     final parts = <String>[
       if (number.isNotEmpty) 'number $number',
       if (color.isNotEmpty) 'color $color',
-      if (time.isNotEmpty) 'time $time',
     ];
-    final cueText = cue.isNotEmpty
-        ? _stripTerminalPunctuation(cue)
-        : zone.isNotEmpty
-            ? 'keep your rhythm in the $zone'
-            : 'keep the rhythm calm';
     if (parts.isEmpty) {
-      return [_ensureSentence(cueText)];
+      return const <String>[];
     }
-    final place = zone.isNotEmpty && cue.isNotEmpty ? ' in the $zone' : '';
-    return [_ensureSentence("Today's ${parts.join(', ')}$place: $cueText")];
+    return [_ensureSentence('Fun points: ${parts.join(', ')}')];
   }
 
   static String _valueFor(Map<String, String> values, List<String> keys) {

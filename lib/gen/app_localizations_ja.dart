@@ -5080,7 +5080,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diaryStickerPlan => 'プラン';
 
   @override
-  String get diaryStickerFortune => 'プレーヒント';
+  String get diaryStickerFortune => '今日の運勢';
 
   @override
   String get diaryStickerBoard => 'ボード';
@@ -5303,13 +5303,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diaryFortunePinSummary => '今日の記録に残ったプレーヒントを日記ステッカーとして貼れます。';
+  String get diaryFortunePinSummary => '今日の記録に残った運勢を日記ステッカーとして貼れます。';
 
   @override
-  String get diaryFortuneStorySentence => '今日のプレーヒントで残したい場面や応援の一言を書いてみる。';
+  String get diaryFortuneStorySentence => '今日の運勢で残したい場面や応援の一言を書いてみる。';
 
   @override
-  String get diaryFortuneNoteTitle => '今日のプレーヒントメモ';
+  String get diaryFortuneNoteTitle => '今日の運勢メモ';
 
   @override
   String get diaryMatchTodoTitleNoOpponent => '試合';
@@ -5794,16 +5794,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeRiceBowlEmpty => 'スキップされました';
 
   @override
-  String get fortuneDialogTitle => '今日のプレーヒント';
+  String get fortuneDialogTitle => '今日の運勢';
 
   @override
-  String get fortuneDialogSubtitle => '生年月日と名前から選んだ、今日の軽いプレーヒントです。';
+  String get fortuneDialogSubtitle => '生年月日と名前から選んだ、今日の軽い運勢です。';
 
   @override
-  String get fortuneDialogOverviewTitle => 'ヒントを見る';
+  String get fortuneDialogOverviewTitle => '運勢を見る';
 
   @override
-  String get fortuneDialogOverallFortuneLabel => '今日のヒント';
+  String get fortuneDialogOverallFortuneLabel => '今日の運勢';
 
   @override
   String get fortuneDialogLuckyInfoLabel => '楽しいポイント';
@@ -5822,7 +5822,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDialogLuckyInfoTitle => '楽しいポイント';
 
   @override
-  String get fortuneDialogPoolSizeLabel => 'ヒントの組み合わせ';
+  String get fortuneDialogPoolSizeLabel => '運勢の組み合わせ';
 
   @override
   String fortuneDialogPoolSizeCount(String count) {
@@ -5836,13 +5836,67 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDialogRecommendationTitle => 'プレーコメント';
 
   @override
-  String get fortuneDialogEncouragement => '今日も楽しいワンプレーを作ってみましょう。';
+  String get fortuneDialogEncouragement => '今日も楽しい小さな場面を一つ残しましょう。';
 
   @override
   String get fortuneDialogAction => 'OK';
 
   @override
-  String get entryFortuneOpenFailed => 'プレーヒント画面を開けませんでした。';
+  String get fortuneDatabaseViewAction => '全データを見る';
+
+  @override
+  String get fortuneDatabaseTitle => '運勢データベース全体';
+
+  @override
+  String get fortuneDatabaseSubtitle => '今日の運勢を作る文のかけらと楽しいポイントをすべて集めました。';
+
+  @override
+  String get fortuneDatabaseCloseAction => '閉じる';
+
+  @override
+  String get fortuneDatabaseSectionBirthCodes => '命理コード';
+
+  @override
+  String get fortuneDatabaseSectionDayMoods => '一日の雰囲気';
+
+  @override
+  String get fortuneDatabaseSectionDailyEvents => '今日起こりそうなこと';
+
+  @override
+  String get fortuneDatabaseSectionActionCues => '軽く試すこと';
+
+  @override
+  String get fortuneDatabaseSectionNameRhythms => '名前リズム';
+
+  @override
+  String get fortuneDatabaseSectionAdvice => '今日のひとこと';
+
+  @override
+  String get fortuneDatabaseSectionColorTones => 'カラートーン';
+
+  @override
+  String get fortuneDatabaseSectionColorBases => 'カラー';
+
+  @override
+  String get fortuneDatabaseSectionTimePeriods => '時間の雰囲気';
+
+  @override
+  String get fortuneDatabaseSectionTimeWindows => '時間帯';
+
+  @override
+  String get fortuneDatabaseSectionSceneModifiers => '場所の雰囲気';
+
+  @override
+  String get fortuneDatabaseSectionSceneBases => '場所と場面';
+
+  @override
+  String get fortuneDatabaseSectionCueOpenings => 'ルーティンの始まり';
+
+  @override
+  String get fortuneDatabaseSectionCueActions => '小さなルーティン';
+
+  @override
+  String get entryFortuneOpenFailed => '運勢画面を開けませんでした。';
 
   @override
   String get profileBirthTimeTitle => '出生時刻';
@@ -5870,27 +5924,26 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name、今日は$elementFlowがまず目に入ります。';
+    return '$name、今日は$elementFlowの雰囲気から始まります。';
   }
 
   @override
   String fortuneGeneratedDailyLineTwo(
       String fortuneTheme, String trainingTone) {
-    return 'キーワードは$fortuneTheme。練習ポイントは$trainingTone。';
+    return '$fortuneTheme $trainingTone';
   }
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return '$nameElementリズムを生かすなら、$playAdvice';
+    return '$nameElementの流れなので、$playAdvice';
   }
 
   @override
   String get fortuneGeneratedLuckyInfoHeader => '[楽しいポイント]';
 
   @override
-  String fortuneGeneratedLuckyInfoLine(
-      int number, String color, String time, String zone, String cue) {
-    return '楽しいポイント: 数字 $number、カラー $color、時間帯 $time。$zoneで$cue。';
+  String fortuneGeneratedLuckyInfoLine(int number, String color) {
+    return '楽しいポイント: 数字 $number、カラー $color。';
   }
 
   @override
@@ -5928,55 +5981,55 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get fortuneSajuElementFlows =>
-      '新しく学ぶ力|表現と自信|バランス作り|正確さアップ|回復と観察|前へ進むエネルギー|落ち着いた集中|方向転換の感覚|速い判断|なめらかなテンポ|広い視野|強い中心|軽いスタート|仕上げの感覚|チームの呼吸|ミス後の立て直し';
+      'ゆるやかな始まり|うれしい連絡|小さな幸運|整う気持ち|軽いときめき|はっきりした選択|あたたかい出会い|気持ちいい集中|思わぬ助け|落ち着いた回復|新しいアイデア|隠れたチャンス|すっきりした流れ|早い直感|やわらかなタイミング|小さな勇気|良い知らせの気配|心地よいペース|流れがほどける感じ|自分に合うリズム|先に笑う雰囲気|小さな変化の風|待っていた答え|静かな自信';
 
   @override
   String get fortuneSajuFortuneThemes =>
-      '新しい動きを軽く試すこと|仲間とタイミングを合わせること|小さなミスをすぐ切り替えること|周りを広く見ること|体の中心を取り戻すこと|集中ポイントを一つ決めること|動きで見せること|落ち着いて速度を上げること|最初の選択を早く決めること|一度休んでまた挑戦すること|良いパスコースを先に見ること|プレッシャーを遊びに変えること|最後のタッチまできれいにすること|仲間の動きを先に読むこと|新しい方向へ体を向けること|小さな成功を積み重ねること|受ける前に準備すること|守備切り替えを軽く始めること|フィニッシュ前に呼吸を合わせること|両足を交互に使うこと|オフボールで空間を作ること|今日の良い場面を一つ残すこと|自分でテンポを整えること|一言のほめ言葉で雰囲気を上げること';
+      '朝に思いがけない笑いが起こりそうです。|後回しにしたことが思ったより簡単に進みそうです。|待っていた返事が少し遅れても届きそうです。|知らない提案が意外としっくり来そうです。|小さな買い物より気分のいい発見がありそうです。|絡まった考えが一つの文にまとまりそうです。|身近な人との短い会話が長く残りそうです。|いつも通る場所で良いヒントが見つかりそうです。|午後に集中力が急に戻りそうです。|誰かの一言が自信をそっと押してくれそうです。|予定が少し変わってもより良い道が開きそうです。|忘れていた約束や物を思い出しそうです。|片づけの途中でうれしい記憶を見つけそうです。|なぜか気になる色や物が一日の空気を変えそうです。|待つ時間が短く感じて選択が早くなりそうです。|小さなほめ言葉を受けたり先に渡したりしやすい日です。|必要な瞬間に新しい情報が入ってきそうです。|一人の時間が思ったより甘く感じられそうです。|軽い散歩や移動中に考えがほどけそうです。|迷っていた気持ちが夕方ごろにはっきりしそうです。|言わなくても通じる瞬間がありそうです。|小さなミスがかえって笑える話になりそうです。|いつもより勘が早くタイミングをつかみやすいです。|長く送れなかったメッセージを送るのに良い流れです。|新しく知ったことが好みを少し変えそうです。|気分転換が思ったより早く効きそうです。|お金より時間が大事に感じる瞬間がありそうです。|良い偶然が次の約束につながりそうです。|静かな集中で結果がはっきりしそうです。|気にしていたことが思ったより軽く過ぎそうです。|昼より夜に勘が良くなりそうです。|誰かの頼みごとの中に小さなチャンスが隠れていそうです。|待っていた物や知らせが近づきそうです。|思ったより話が通じる人に会えそうです。|小さな片づけが一日全体を軽くしそうです。|最初に選んだものが意外と長く合いそうです。';
 
   @override
   String get fortuneSajuTrainingTones =>
-      'ファーストタッチの方向整理|短いパス後の次の選択|体を開いて受ける動き|守備切り替えの一歩目|フィニッシュ前の呼吸調整|両足バランスの確認|オフボールのタイミング|リターンパスの角度作り|顔を上げて受けること|プレッシャー前に体を向けること|弱い足で短くつなぐこと|ボールを止めてすぐ見ること|最初のセットを正確にすること|最後のセットを軽くすること|タッチ数を減らすこと|ドリブルからパスへつなぐこと|パス後に空いた場所を探すこと|守備の背後へ下がること|セカンドボールの準備|ターン動作を小さくすること|スプリント最初の三歩|シュート前の足位置|コーチの一言を覚えること|名前を呼んでからパスすること';
+      'なんとなく急がなければもっとすっきりします。|先に一言かけると空気がほどけます。|小さく片づけて始めると流れが早くなります。|気になることは短くメモしておくと良いです。|今日は早い決断より気持ちが楽な選択が合います。|軽い冗談がぎこちなさを溶かしてくれます。|複雑なことは順番を三つに減らしてみましょう。|午前中に大事なメッセージを確認すると楽です。|昼以降は無理な予定を減らすほうが合います。|気分の良い色を近くに置くと集中しやすいです。|小さな頼まれごとはすぐ片づけると心が広がります。|良い考えは保存するか書いておきましょう。|話が長くなるときは要点だけで十分です。|今日は新しい道より慣れた道に楽しさがあります。|少し止まって息を整えると選択がはっきりします。|一人で抱えたことは助けを借りても大丈夫です。|待つ間にできる小さなことを一つ選びましょう。|うれしい連絡にはあまり長く間を置かないでください。|正解より好みを信じるほうが合います。|比べすぎを減らすだけで気分が戻ります。|なくしたと思った物はもう一度探す価値があります。|知らない情報はすぐ信じず一度確認しましょう。|身近な人の調子を先に聞くと良いです。|後回しにした予約や確認を終えるのに良い時です。|短い外出が思ったより大きな気分転換になります。|スマホの通知を少し減らすと集中が続きます。|後でより今できる小さな選択が良いです。|心配は大きく言わず小さく分けてみましょう。|今日はきれいな締めくくりが運を上げます。|軽く選んだメニューが意外と満足できそうです。|送る前にもう一度読むと誤解が減ります。|進まない時は席や背景を変えてみましょう。|先に笑うと会話がずっと楽になります。|いらない荷物を一つ減らすと心も軽くなります。|約束の前後10分をゆったり取ってみましょう。|今日の良い場面は写真より言葉で残しても良いです。';
 
   @override
   String get fortuneSajuNameElements =>
-      '素早いスタート型|明るく表現する型|安定して支える型|正確に合わせる型|柔らかく切り替える型|自信を持って進む型|コツコツ積み上げる型|よく見て動く型|雰囲気を上げる型|一拍待てる型|挑戦が好きな型|チームをつなぐ型|静かに集中する型|最後まで粘る型|新しい道を探す型|リズムを作る型';
+      '素早いスタート型|やさしいつなぎ型|落ち着いた整理型|ひらめき型|ゆっくり観察型|雰囲気転換型|繊細に選ぶ型|直感が早い型|着実に回復する型|先に笑う型|チャンスを見つける型|小さな幸せ型|心を見守る型|タイミングを合わせる型|言葉より行動型|一拍待てる型|新しさに開いた型|正確に選ぶ型|関係があたたかい型|小さく実行する型|気分を上げる型|流れを変える型|好奇心が強い型|締めくくり上手型';
 
   @override
   String get fortuneSajuPlayAdvice =>
-      '軽く始めても最後の選択ははっきりできます。|小さな声かけが体のリズムを起こしてくれます。|急ぐより一拍見て動くと良いです。|パスの前に顔を上げると周りが見えやすくなります。|ウォームアップを丁寧にするとプレーが軽くなります。|ミスの後に表情を早く整えると次の場面が生きます。|強い三回より正確な一回が合います。|仲間の動きを先に読むと良い場面が開きます。|最初のタッチが良ければ、そのリズムを二回続けてみましょう。|受ける前に肩を向けると選択が楽になります。|小さな成功一つでセッション全体の空気が変わります。|体が重くても最初の5分を軽く越えると楽になります。|手の合図一つで言葉より早くチームが合います。|最後のシュートより、その前のパスが光ることもあります。|今日は大きく見せるよりきれいに終える方が合います。|水を一口飲んで深く息をすると助けになります。|ボールを失った後すぐ追えば場面を作り直せます。|仲間に先に良い声をかけるとプレーも柔らかくなります。|もう一度見る習慣が今日いちばん簡単な武器になります。|軽く笑って始めると体が早くほぐれます。|守備では最初の一歩を小さくすると切り替えやすいです。|ボールがない時も一歩動くと空間が開きます。|今日のベスト場面を一つはっきり残しましょう。|仕上げは強さより正確さを選ぶと良いです。';
+      '小さな偶然も見逃さないと一日がもっと楽しくなります。|先に片づけた人が今日の速度をつかめます。|軽く選んだものが思ったより長く気分を上げます。|言葉を減らすよりやさしく言う瞬間に力があります。|待っていた答えは思ったより単純な形で来そうです。|良い提案はすぐ断らず少しだけ開いておきましょう。|一日のどこかで自分に簡単な選択をあげてください。|今日は大きな変化より小さな方向転換が合います。|慣れた人の新しい一面を見られそうです。|何気ないことを一度だけ見直すとヒントが見えます。|少しの余裕が午後のミスを減らします。|軽く動くと頭の中の絡まりもほどけます。|気分が沈む時は鮮やかな色を近くに置いてみましょう。|知らない会話が思ったより早く楽になります。|急ぐ気持ちだけ減らせば結果は十分ついてきます。|小さな約束を守ると信頼が目に見えて積もります。|今日出会う情報の一つが後でかなり役に立ちます。|笑って流したことが夜には良い話題になります。|残すものと手放すものを分けると心が軽くなります。|新しく始めるより止まっていたことを再開するのに良い日です。|思いがけずほめられたらそのまま受け取って大丈夫です。|短い集中時間が長く運ぶ力になります。|ぎこちない瞬間は先に質問するとすぐほどけます。|今日の幸運は大きくではなく小さな繰り返しで来ます。|選択肢が多い時は一番楽なものを選びましょう。|微妙な勘が当たるかもしれないので記録しておくと良いです。|助けてもらったら感謝をすぐ残してみましょう。|早く終えられることは先に終えるほうが運を生かします。|好きな一文が一日の表情まで変えます。|待ったあとに来た知らせは少しゆっくり読んでも大丈夫です。|今日は整った始まりが整った終わりにつながります。|期待せずにしたことが小さな成果で戻りそうです。|誤解が生まれたら短くやわらかく確認するのが良いです。|自分の速度を守ると周りの流れも楽になります。|少しの沈黙がより良い答えを連れてきます。|最後に選んだものが今日の記憶になりそうです。';
 
   @override
   String get fortuneLuckyColorTones =>
-      'ディープ|ソフト|クリーン|サンセット|クール|ウォーム|ミスト|ブライト|モノ|アクセント|ネオン|パステル|メタリック|フレッシュ|落ち着いた|スパーク';
+      'ディープ|ソフト|クリーン|サンセット|クール|ウォーム|ミスト|ブライト|モノ|アクセント|ネオン|パステル|メタリック|フレッシュ|落ち着いた|スパーク|ライト|ムード|グロウ|ナチュラル';
 
   @override
   String get fortuneLuckyColorBases =>
-      'ネイビー|エメラルド|コーラル|マスタード|スカイブルー|カーキ|アイボリー|チェリーレッド|ライム|チャコール|ロイヤルブルー|ミント|ピーチ|バイオレット|シルバー|ゴールド|ホワイト|ブラック|オリーブ|ターコイズ';
+      'ネイビー|エメラルド|コーラル|マスタード|スカイブルー|カーキ|アイボリー|チェリーレッド|ライム|チャコール|ロイヤルブルー|ミント|ピーチ|バイオレット|シルバー|ゴールド|ホワイト|ブラック|オリーブ|ターコイズ|ラベンダー|バターイエロー|ローズピンク|ディープグリーン';
 
   @override
   String get fortuneLuckyTimePeriods =>
-      '早朝|午前後半|昼食直後|午後前半|午後遅め|夕暮れ|夕方前半|夜のルーティン時間|登校前|休み時間|練習開始前|クールダウンストレッチ';
+      '早朝|午前後半|昼食直後|午後前半|午後遅め|夕暮れ|夕方前半|夜のルーティン時間|登校前|休み時間|移動中|寝る前|メッセージ確認時間|おやつ時間|帰宅直後|一日の整理時間';
 
   @override
   String get fortuneLuckyTimeWindows =>
-      '06:40~07:20|08:10~08:50|09:30~10:10|10:40~11:20|12:20~13:00|14:10~14:50|16:00~16:40|18:20~19:00|20:10~20:50|21:00~21:40|07:30~08:00|11:40~12:10|13:20~13:50|15:10~15:40|17:20~17:50|19:30~20:00';
+      '06:40~07:20|08:10~08:50|09:30~10:10|10:40~11:20|12:20~13:00|14:10~14:50|16:00~16:40|18:20~19:00|20:10~20:50|21:00~21:40|07:30~08:00|11:40~12:10|13:20~13:50|15:10~15:40|17:20~17:50|19:30~20:00|22:00~22:30|06:10~06:30|12:50~13:20|18:50~19:20';
 
   @override
   String get fortuneLuckyZoneModifiers =>
-      '左側|右側|中央|ハーフライン付近|ボックス外|タッチライン側|前進開始|守備切替|ゴール前|少し下がった|プレッシャー直前|受ける前|スプリント開始|リターンパス後|コーナー付近|中央線の後ろ';
+      '窓側|ドアの近く|左の席|右の席|中央の席|静かな場所|明るい場所|日陰の場所|机の前|玄関の近く|エレベーター前|バス停の近く|カフェの角|廊下の端|階段の近く|水を飲む場所|鏡の前|バッグの横|食卓の近く|ベッドの横';
 
   @override
   String get fortuneLuckyZoneBases =>
-      'ハーフスペース|タッチライン内側|ファーストタッチ地点|リターンパス角度|セカンドボール反応ゾーン|プレス回避の出発点|ワンツー連結線|抜け出しタイミング|視野確保の位置|仕上げ直前の空間|守備の背後の空き|ゴール正面1メートル|短いパスの三角形|ターン後の一歩目|仲間と目が合う場所|クロスを受ける裏側|スプリントの出発線|中央へ入る道|ゆっくり呼吸する場所|最後の確認ゾーン';
+      '小さなメモの場所|スマホを置く場所|最初にあいさつする瞬間|軽く笑う場所|少し休む椅子|整った机の上|バッグを開ける瞬間|窓の外が見える席|水を飲む場所|静かに考える場所|メッセージを確認する瞬間|靴を直す場所|エレベーターを待つ場所|好きな音楽を聴く時間|手を洗う場所|軽くおやつを食べる席|計画を見直す場所|少し立ち止まる場所|家に入る瞬間|明かりをつける場所|先に譲る瞬間|知らない道が見える場所|今日の物を探す場所|一日を閉じる場所';
 
   @override
   String get fortuneLuckyCueOpenings =>
-      '短く|最初のセット前に|呼吸を整えた後|ボールを受ける前に|つま先を起こしてから|顔を上げた直後|ターン直前に|リズムが崩れたら|水を飲んだ後|仲間の名前を呼んで|最初のミスの後に|パスが切れたら|シュート前に一度|守備へ切り替わったら|コーチの言葉を聞いた後|クールダウン前に';
+      '短く|最初の始まりの前に|呼吸を整えた後|メッセージを送る前に|ドアを出る前に|顔を上げた直後|席に座る前に|リズムが崩れたら|水を飲んだ後|名前を呼ぶ前に|最初のミスの後に|会話が止まったら|選ぶ前に一度|気持ちが急いだら|良い言葉を聞いた後|寝る前に|通知を見る前に|階段を上る前に|新しい場所に入ったら|一日を整理しながら';
 
   @override
   String get fortuneLuckyCueActions =>
-      'もう一度スキャンする|タッチ方向を先に決める|両足の間隔を整える|一歩目を軽く置く|体を開いて次を見る|短い呼吸でテンポをまとめる|強さより正確さを選ぶ|ボール前に肩の角度を整える|仲間の位置を声で知らせる|二回目のタッチを小さくする|オフボールで一歩先に動く|ドリブル後すぐパスコースを見る|ミス後すぐ追いかける|シュート前に足元を一度見る|リターンパスを受ける場所を作る|プレッシャー前に体を向ける|短いほめ言葉で雰囲気を上げる|最後の10分も姿勢を低くする|セカンドボールを先に予想する|タッチライン側の空間を確認する|顔を上げてから速度を上げる|パス後に止まらず動く|弱い足で軽くつなぐ|今日良かった場面を覚える';
+      'もう一度確認する|先に笑ってみる|両手を軽く払う|最初の文を短く言う|感謝できることを一つ探す|短い呼吸で心をまとめる|速さより正確さを選ぶ|肩の力を抜く|相手の名前をやさしく呼ぶ|二つ目の選択を小さく変える|メモを一つ残す|歩みを少し遅くする|ミスの後すぐ整える|送る前に一度読む|助けを頼む人を思い浮かべる|確答の前に少し止まる|短いほめ言葉で雰囲気を上げる|最後の10分は軽く片づける|次のことを先に予想する|近くの色を一つ選ぶ|顔を上げてゆっくり見る|終えたらすぐ片づける|ぎこちなければ質問を一つする|今日良かった場面を覚える|静かな曲を一つ選ぶ|バッグの中を一度整える|水を一口飲む|心配を三行に減らす|気分の良い写真をもう一度見る|小さな約束を先に守る|座る場所を少し変える|夜にほめ言葉を一つ残す';
 
   @override
   String get mealStatsNoTrainingOrMealEntries =>
@@ -8818,7 +8871,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get parentReadOnlySketchMessage => '親モードではトレーニング スケッチを編集できません。';
 
   @override
-  String get parentReadOnlyFortuneEmpty => '保存されたプレーヒントはまだありません。';
+  String get parentReadOnlyFortuneEmpty => '保存された運勢はまだありません。';
 
   @override
   String get parentFeedbackSectionTitle => '保護者からのフィードバック';
