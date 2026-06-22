@@ -5222,7 +5222,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryStickerPlan => 'Plan';
 
   @override
-  String get diaryStickerFortune => 'Play hint';
+  String get diaryStickerFortune => 'Daily fortune';
 
   @override
   String get diaryStickerBoard => 'Board';
@@ -5449,14 +5449,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diaryFortunePinSummary =>
-      'Pin today\'s play hint as a diary sticker.';
+      'Pin today\'s fortune as a diary sticker.';
 
   @override
   String get diaryFortuneStorySentence =>
-      'Write the scene or encouragement you want to keep from today\'s play hint.';
+      'Write the scene or encouragement you want to keep from today\'s fortune.';
 
   @override
-  String get diaryFortuneNoteTitle => 'Today play hint note';
+  String get diaryFortuneNoteTitle => 'Today fortune note';
 
   @override
   String get diaryMatchTodoTitleNoOpponent => 'Match';
@@ -5961,17 +5961,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRiceBowlEmpty => 'Skipped';
 
   @override
-  String get fortuneDialogTitle => 'Today\'s play hint';
+  String get fortuneDialogTitle => 'Today\'s fortune';
 
   @override
   String get fortuneDialogSubtitle =>
-      'A light play hint picked from birth date and name.';
+      'A light daily fortune picked from birth date and name.';
 
   @override
-  String get fortuneDialogOverviewTitle => 'Play hint';
+  String get fortuneDialogOverviewTitle => 'Fortune view';
 
   @override
-  String get fortuneDialogOverallFortuneLabel => 'Today hint';
+  String get fortuneDialogOverallFortuneLabel => 'Today fortune';
 
   @override
   String get fortuneDialogLuckyInfoLabel => 'Fun points';
@@ -5990,7 +5990,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDialogLuckyInfoTitle => 'Fun points';
 
   @override
-  String get fortuneDialogPoolSizeLabel => 'Hint combinations';
+  String get fortuneDialogPoolSizeLabel => 'Fortune combinations';
 
   @override
   String fortuneDialogPoolSizeCount(String count) {
@@ -6004,13 +6004,69 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDialogRecommendationTitle => 'Play note';
 
   @override
-  String get fortuneDialogEncouragement => 'Make one fun play today.';
+  String get fortuneDialogEncouragement =>
+      'Keep one interesting little scene from today.';
 
   @override
   String get fortuneDialogAction => 'Got it';
 
   @override
-  String get entryFortuneOpenFailed => 'Failed to open play hint.';
+  String get fortuneDatabaseViewAction => 'View full database';
+
+  @override
+  String get fortuneDatabaseTitle => 'Full Fortune Database';
+
+  @override
+  String get fortuneDatabaseSubtitle =>
+      'All sentence pieces and fun points used to build today\'s fortune.';
+
+  @override
+  String get fortuneDatabaseCloseAction => 'Close';
+
+  @override
+  String get fortuneDatabaseSectionBirthCodes => 'Myeongli codes';
+
+  @override
+  String get fortuneDatabaseSectionDayMoods => 'Day moods';
+
+  @override
+  String get fortuneDatabaseSectionDailyEvents => 'Possible events today';
+
+  @override
+  String get fortuneDatabaseSectionActionCues => 'Small things to try';
+
+  @override
+  String get fortuneDatabaseSectionNameRhythms => 'Name rhythms';
+
+  @override
+  String get fortuneDatabaseSectionAdvice => 'Daily notes';
+
+  @override
+  String get fortuneDatabaseSectionColorTones => 'Color tones';
+
+  @override
+  String get fortuneDatabaseSectionColorBases => 'Colors';
+
+  @override
+  String get fortuneDatabaseSectionTimePeriods => 'Time moods';
+
+  @override
+  String get fortuneDatabaseSectionTimeWindows => 'Time windows';
+
+  @override
+  String get fortuneDatabaseSectionSceneModifiers => 'Place moods';
+
+  @override
+  String get fortuneDatabaseSectionSceneBases => 'Places and scenes';
+
+  @override
+  String get fortuneDatabaseSectionCueOpenings => 'Routine starts';
+
+  @override
+  String get fortuneDatabaseSectionCueActions => 'Small routines';
+
+  @override
+  String get entryFortuneOpenFailed => 'Failed to open fortune.';
 
   @override
   String get profileBirthTimeTitle => 'Birth time';
@@ -6038,27 +6094,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name, today $elementFlow comes forward first.';
+    return '$name, today starts with $elementFlow.';
   }
 
   @override
   String fortuneGeneratedDailyLineTwo(
       String fortuneTheme, String trainingTone) {
-    return 'Keyword: $fortuneTheme. Practice focus: $trainingTone.';
+    return '$fortuneTheme $trainingTone';
   }
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return 'Lean into $nameElement: $playAdvice';
+    return 'With your $nameElement flow, $playAdvice';
   }
 
   @override
   String get fortuneGeneratedLuckyInfoHeader => '[Fun points]';
 
   @override
-  String fortuneGeneratedLuckyInfoLine(
-      int number, String color, String time, String zone, String cue) {
-    return 'Fun points: number $number, color $color, time $time. Try $cue in the $zone.';
+  String fortuneGeneratedLuckyInfoLine(int number, String color) {
+    return 'Fun points: number $number, color $color.';
   }
 
   @override
@@ -6098,55 +6153,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneSajuElementFlows =>
-      'learning something new|clear expression|finding balance|raising accuracy|recovering and watching|moving forward|calm focus|quick direction changes|fast decisions|smooth tempo|wide scanning|a strong center|a light start|finishing sense|team rhythm|resetting after mistakes';
+      'an easy start|a welcome message|a small lucky break|a clearer mind|a light flutter|a clean choice|a warm encounter|pleasant focus|unexpected help|calm recovery|a fresh idea|a hidden chance|tidy momentum|quick intuition|soft timing|small courage|a hint of good news|a comfortable pace|a feeling that things loosen|your own rhythm|a smile-first mood|a small change in the air|the answer you waited for|quiet confidence';
 
   @override
   String get fortuneSajuFortuneThemes =>
-      'trying a new move lightly|matching teammate timing|moving past small mistakes quickly|scanning the field wider|finding your body center again|choosing one focus point|showing it through movement|raising speed calmly|making the first choice fast|resting once and trying again|seeing a good passing lane early|turning pressure into a game|keeping the last touch clean|reading a teammate first|turning the body in a new direction|stacking small wins|getting ready before receiving|starting defensive transition lightly|breathing before the finish|switching feet often|creating space off the ball|leaving one good scene today|controlling your own tempo|lifting the mood with one compliment';
+      'an unexpected laugh may show up in the morning.|something you postponed may turn out easier than expected.|a reply you waited for may arrive, even a little late.|an unfamiliar suggestion may feel surprisingly right.|a small discovery may feel better than a small purchase.|a tangled thought may settle into one clear sentence.|a short talk with someone close may stay with you.|a place you usually pass by may give you a useful hint.|your focus may wake up suddenly in the afternoon.|one sentence from someone may touch your confidence.|a small plan change may open a better route.|a forgotten promise or item may come back to mind.|tidying up may bring back a pleasant memory.|a color or object you keep noticing may change the day\'s mood.|waiting may feel shorter and choices may come faster.|it is a good day to receive or give a small compliment.|new information may arrive right when you need it.|time alone may feel sweeter than expected.|a light walk or short commute may untangle your thoughts.|a confused feeling may become clear by evening.|a moment of quiet understanding may appear.|a small mistake may turn into a funny story.|your timing may improve because you notice things faster.|it is a good flow for sending a message you delayed.|a new fact may shift your taste a little.|a quick mood reset may work better than expected.|you may value time more than money in one moment.|a good coincidence may lead to the next plan.|quiet focus may make the result clearer.|something on your mind may pass more lightly than expected.|your intuition may improve more at night than during the day.|a small chance may hide inside someone\'s request.|news or an item you waited for may come closer.|you may meet someone who understands you faster than expected.|one small tidy-up may make the whole day feel lighter.|the first choice you pick may stay right longer than expected.';
 
   @override
   String get fortuneSajuTrainingTones =>
-      'setting the first-touch direction|short pass then next choice|receiving with the body open|the first step in defensive transition|breathing before the finish|checking both-foot balance|timing the off-ball movement|making the return-pass angle|receiving with the head up|turning before pressure arrives|connecting short with the weaker foot|stopping the ball then scanning|making the first set accurate|keeping the last set light|reducing touch count|linking dribble into pass|finding space after the pass|dropping behind the defender|getting ready for second balls|making the turn smaller|the first three sprint steps|foot placement before shooting|remembering one coach cue|calling a name before passing';
+      'things feel cleaner if you do not rush for no reason.|one first word can loosen the mood quickly.|start with a small tidy-up and the flow speeds up.|write down what bothers you in a short note.|a comfortable choice fits better than a fast decision today.|one light joke can melt the awkwardness.|reduce a complex task to three steps.|check important messages in the morning for an easier day.|after lunch, fewer extra plans may suit you better.|keep a pleasing color nearby and focus gets easier.|handle a small request quickly and your mind opens up.|save or write down any decent idea.|when words get long, the core is enough.|fun may come from a familiar route rather than a new one.|pause for one breath and the choice becomes clearer.|it is okay to get help with something you were solving alone.|pick one small thing to do while waiting.|do not wait too long before answering welcome news.|trust your taste more than the perfect answer.|drop the comparisons and your mood recovers fast.|look once more for something you thought was lost.|check unfamiliar information once before trusting it.|ask how someone close is doing first.|it is a good time to finish a delayed booking or check.|a short outing may refresh you more than expected.|fewer phone alerts can stretch your focus.|a small choice you can make now is better than later.|split a worry into smaller pieces instead of saying it big.|a neat finish raises the day\'s luck.|a casually chosen menu may satisfy you more than expected.|read once more before sending and misunderstandings shrink.|if the pace stalls, change your seat or background.|smiling first makes conversation much easier.|drop one unnecessary thing and your mind gets lighter.|keep ten minutes of room around appointments.|today\'s good scene can stay in words, not only photos.';
 
   @override
   String get fortuneSajuNameElements =>
-      'a quick starter|a bright communicator|a steady base|an accuracy builder|a flexible mover|a confident driver|a steady stacker|an observant mover|a mood lifter|a one-beat waiter|a challenge seeker|a team connector|a quiet focuser|a last-minute holder|a new-lane finder|a rhythm maker';
+      'quick-starter|kind connector|calm organizer|spark-idea|slow observer|mood-shifter|careful chooser|fast intuition|steady recovery|smile-first|chance spotter|small-happiness|heart-aware|timing matcher|action over words|one-beat waiter|open to newness|accurate picker|warm relationship|small-practice|mood lifter|flow changer|curious mind|clean finisher';
 
   @override
   String get fortuneSajuPlayAdvice =>
-      'start light and still make the final choice clear.|one small compliment can bring your rhythm alive.|pause one beat before pushing harder.|lift your head before the pass so the field opens up.|careful warmups make the play feel fresher.|reset your face after a mistake and the next scene comes back.|one accurate touch fits better than three forced ones.|read a teammate first and a good scene opens.|repeat the rhythm twice when the first touch feels right.|turn your shoulder before receiving and the choice gets easier.|one small success can change the whole session mood.|even with heavy legs, the first five light minutes can help.|one hand signal can sync the team faster than words.|the pass before the final shot may shine more today.|clean finishes beat big gestures today.|a sip of water and one deep breath can help.|chase right after losing the ball and you can rebuild the scene.|say something good to a teammate first and the play gets softer.|one extra scan can become today\'s easiest weapon.|start with a small smile and the body may loosen faster.|keep the first defensive step small for easier turns.|move one step off the ball and space can open.|keep one best scene from today clearly.|finish with accuracy before power.';
+      'a small coincidence gets more fun when you do not pass over it.|the person who tidies first may own today\'s pace.|a light choice may keep your mood up longer than expected.|a kind sentence has more power than saving every word.|the answer you waited for may arrive in a simpler shape.|leave a decent suggestion open for a moment before refusing it.|give yourself one easy choice during the day.|a small direction change fits better than a big reset today.|you may see a new side of someone familiar.|one extra look at an ordinary thing may reveal the hint.|a short pause may reduce afternoon mistakes.|a light move can loosen tangled thoughts too.|keep a vivid color nearby when your mood dips.|an unfamiliar conversation may become comfortable quickly.|reduce the rush and the result can follow enough.|keeping a small promise makes trust visible.|one piece of information today may become useful later.|something you laughed off may become a good evening story.|sorting what to keep and let go makes the mind lighter.|it is a good day to restart something paused rather than begin new.|if you receive unexpected praise, you can simply accept it.|a short focus window can carry you farther.|ask one question first and awkwardness fades fast.|today\'s luck arrives through small repeats more than big events.|when there are many options, choose the most comfortable one.|your subtle hunch may be right, so write it down.|thank someone quickly when you get help.|finishing what can end early keeps the luck alive.|one phrase you like can change your whole expression.|read slowly when news arrives after a wait.|a neat start can lead to a neat finish today.|something you do without big expectations may return as a small result.|check misunderstandings briefly and softly.|keep your own pace and nearby flows feel easier.|a short silence may bring a better answer.|the last choice you make may become today\'s memory.';
 
   @override
   String get fortuneLuckyColorTones =>
-      'Deep|Soft|Clean|Sunset|Cool|Warm|Mist|Bright|Mono|Accent|Neon|Pastel|Metallic|Fresh|Calm|Spark';
+      'Deep|Soft|Clean|Sunset|Cool|Warm|Mist|Bright|Mono|Accent|Neon|Pastel|Metallic|Fresh|Calm|Spark|Light|Mood|Glow|Natural';
 
   @override
   String get fortuneLuckyColorBases =>
-      'Navy|Emerald|Coral|Mustard|Sky Blue|Khaki|Ivory|Cherry Red|Lime|Charcoal|Royal Blue|Mint|Peach|Violet|Silver|Gold|White|Black|Olive|Turquoise';
+      'Navy|Emerald|Coral|Mustard|Sky Blue|Khaki|Ivory|Cherry Red|Lime|Charcoal|Royal Blue|Mint|Peach|Violet|Silver|Gold|White|Black|Olive|Turquoise|Lavender|Butter Yellow|Rose Pink|Deep Green';
 
   @override
   String get fortuneLuckyTimePeriods =>
-      'Early morning|Late morning|Right after lunch|Early afternoon|Late afternoon|At sunset|Early evening|Night routine window|Before school|Break time|Before training starts|Cool-down stretch';
+      'Early morning|Late morning|Right after lunch|Early afternoon|Late afternoon|At sunset|Early evening|Night routine window|Before school|Break time|On the move|Before sleep|Message-check time|Snack time|Right after getting home|Day wrap-up time';
 
   @override
   String get fortuneLuckyTimeWindows =>
-      '06:40-07:20|08:10-08:50|09:30-10:10|10:40-11:20|12:20-13:00|14:10-14:50|16:00-16:40|18:20-19:00|20:10-20:50|21:00-21:40|07:30-08:00|11:40-12:10|13:20-13:50|15:10-15:40|17:20-17:50|19:30-20:00';
+      '06:40-07:20|08:10-08:50|09:30-10:10|10:40-11:20|12:20-13:00|14:10-14:50|16:00-16:40|18:20-19:00|20:10-20:50|21:00-21:40|07:30-08:00|11:40-12:10|13:20-13:50|15:10-15:40|17:20-17:50|19:30-20:00|22:00-22:30|06:10-06:30|12:50-13:20|18:50-19:20';
 
   @override
   String get fortuneLuckyZoneModifiers =>
-      'Left-side|Right-side|Central|Half-line|Box-edge|Touchline-side|Forward-start|Transition|Goal-front|Dropped-back|Pre-pressure|Pre-receive|Sprint-start|After-return-pass|Corner-near|Behind-midline';
+      'By the window|Near the door|Left seat|Right seat|Center seat|Quiet spot|Bright spot|Shaded spot|In front of the desk|Near the entrance|By the elevator|Near the bus stop|Cafe corner|End of the hallway|Near the stairs|Water spot|In front of the mirror|Beside the bag|Near the table|Beside the bed';
 
   @override
   String get fortuneLuckyZoneBases =>
-      'half-space|inside channel|first-touch spot|return-pass angle|second-ball lane|press-break starting point|one-two lane|run timing window|scanning pocket|pre-finish space|space behind the defender|one meter in front of goal|short-pass triangle|first step after the turn|teammate eye-contact spot|back space for a cross|sprint start line|lane cutting inside|slow-breath spot|final-check zone';
+      'small memo space|place to put the phone down|moment of the first hello|spot for a light smile|chair for a short break|tidy desk surface|moment of opening the bag|seat with a window view|place to drink water|quiet thinking spot|moment of checking a message|place to fix your shoes|place waiting for the elevator|time with favorite music|place to wash your hands|quick snack spot|place to review the plan|place to pause for a moment|moment of coming home|spot where you turn on the light|moment you yield first|place where a new path appears|spot to find today\'s item|place that closes the day';
 
   @override
   String get fortuneLuckyCueOpenings =>
-      'Briefly|Before the first set|After settling the breath|Before receiving the ball|Once the feet wake up|Right after lifting the head|Just before the turn|When the rhythm slips|After a water break|After calling a teammate name|After the first mistake|When a pass breaks down|Once before shooting|When switching to defense|After hearing the coach cue|Before the cool-down stretch';
+      'Briefly|Before the first start|After settling the breath|Before sending a message|Before leaving the door|Right after lifting your head|Before sitting down|When the rhythm slips|After drinking water|Before calling a name|After the first mistake|When conversation pauses|Once before choosing|When your mind rushes|After hearing a good word|Before sleeping|Before checking alerts|Before climbing the stairs|When entering a new place|While wrapping up the day';
 
   @override
   String get fortuneLuckyCueActions =>
-      'scan one more time|pick the touch direction first|set the gap between both feet|keep the first step light|open the body and see the next option|bind the tempo with a short breath|choose accuracy before force|set the shoulder angle before the ball arrives|call out a teammate position|make the second touch smaller|move one step off the ball first|see the pass lane right after dribbling|chase right after a mistake|check the feet once before shooting|make a spot for the return pass|turn before pressure arrives|lift the mood with one short compliment|stay low in the last 10 minutes|expect the second ball first|check the space near the touchline|raise speed after lifting the head|keep moving after the pass|connect lightly with the weaker foot|remember today\'s good scene';
+      'check one more time|smile first|shake both hands lightly|say the first sentence short|find one thing to appreciate|bind the mind with a short breath|choose accuracy over speed|relax the shoulders|call the other person\'s name gently|make the second choice smaller|leave one memo|slow the steps a little|tidy up right after a mistake|read once before sending|think of someone to ask for help|pause before a firm answer|lift the mood with a short compliment|tidy lightly in the last 10 minutes|expect the next task first|pick one nearby color|lift your head and look slowly|clean up right after finishing|ask one question if it feels awkward|remember today\'s good scene|choose one quiet song|tidy the inside of your bag|drink one sip of water|reduce worries to three lines|look again at a pleasant photo|keep one small promise first|change your seat slightly|leave one compliment in the evening';
 
   @override
   String get mealStatsNoTrainingOrMealEntries =>
@@ -9095,8 +9150,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent mode cannot edit training sketches.';
 
   @override
-  String get parentReadOnlyFortuneEmpty =>
-      'No saved play hint is available yet.';
+  String get parentReadOnlyFortuneEmpty => 'No saved fortune is available yet.';
 
   @override
   String get parentFeedbackSectionTitle => 'Parent feedback';

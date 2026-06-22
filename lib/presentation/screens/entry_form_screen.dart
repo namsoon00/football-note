@@ -3885,29 +3885,65 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: 560, maxHeight: dialogMaxHeight),
         child: SingleChildScrollView(
-          child: FortuneCard(
-            sections: sections,
-            title: l10n.fortuneDialogTitle,
-            subtitle: l10n.fortuneDialogSubtitle,
-            luckyInfoTitle: l10n.fortuneDialogLuckyInfoTitle,
-            overviewTitle: l10n.fortuneDialogOverviewTitle,
-            overallFortuneLabel: l10n.fortuneDialogOverallFortuneLabel,
-            overallFortuneCount: l10n.fortuneDialogOverallFortuneCount(
-              sections.bodyLines.length,
-            ),
-            luckyInfoLabel: l10n.fortuneDialogLuckyInfoLabel,
-            luckyInfoCount: l10n.fortuneDialogLuckyInfoCount(
-              sections.luckyInfoLines.length,
-            ),
-            poolSizeLabel: l10n.fortuneDialogPoolSizeLabel,
-            poolSizeValue: l10n.fortuneDialogPoolSizeCount(formattedPoolSize),
-            actionLabel: l10n.fortuneDialogAction,
-            showOverview: false,
-            isKo: isKo,
-            onActionPressed: () => Navigator.of(contextForClose).pop(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FortuneCard(
+                sections: sections,
+                title: l10n.fortuneDialogTitle,
+                subtitle: l10n.fortuneDialogSubtitle,
+                luckyInfoTitle: l10n.fortuneDialogLuckyInfoTitle,
+                overviewTitle: l10n.fortuneDialogOverviewTitle,
+                overallFortuneLabel: l10n.fortuneDialogOverallFortuneLabel,
+                overallFortuneCount: l10n.fortuneDialogOverallFortuneCount(
+                  sections.bodyLines.length,
+                ),
+                luckyInfoLabel: l10n.fortuneDialogLuckyInfoLabel,
+                luckyInfoCount: l10n.fortuneDialogLuckyInfoCount(
+                  sections.luckyInfoLines.length,
+                ),
+                poolSizeLabel: l10n.fortuneDialogPoolSizeLabel,
+                poolSizeValue: l10n.fortuneDialogPoolSizeCount(
+                  formattedPoolSize,
+                ),
+                actionLabel: l10n.fortuneDialogAction,
+                showOverview: false,
+                isKo: isKo,
+                onActionPressed: () => Navigator.of(contextForClose).pop(),
+              ),
+              const SizedBox(height: 10),
+              FilledButton.tonalIcon(
+                onPressed: () => _showFortuneDatabaseSheet(
+                  contextForClose,
+                  l10n,
+                  formattedPoolSize,
+                ),
+                icon: const Icon(Icons.dataset_outlined),
+                label: Text(l10n.fortuneDatabaseViewAction),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _showFortuneDatabaseSheet(
+    BuildContext context,
+    AppLocalizations l10n,
+    String formattedPoolSize,
+  ) {
+    final sections = LocalFortuneService.databaseSections(l10n);
+    return showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return _FortuneDatabaseSheet(
+          sections: sections,
+          formattedPoolSize: formattedPoolSize,
+        );
+      },
     );
   }
 
@@ -4644,6 +4680,180 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   String _liftingText(Map<String, int> liftingByPart, String key) {
     final value = liftingByPart[key] ?? 0;
     return value <= 0 ? '' : value.toString();
+  }
+}
+
+class _FortuneDatabaseSheet extends StatelessWidget {
+  final List<FortuneDatabaseSection> sections;
+  final String formattedPoolSize;
+
+  const _FortuneDatabaseSheet({
+    required this.sections,
+    required this.formattedPoolSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final colors = theme.colorScheme;
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.86,
+      minChildSize: 0.5,
+      maxChildSize: 0.96,
+      builder: (context, scrollController) {
+        return ListView(
+          controller: scrollController,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+          children: [
+            Center(
+              child: Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colors.outlineVariant,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.fortuneDatabaseTitle,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.fortuneDatabaseSubtitle,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: l10n.fortuneDatabaseCloseAction,
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: colors.primaryContainer.withValues(alpha: 0.58),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: colors.primary.withValues(alpha: 0.16),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome, color: colors.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.fortuneDialogPoolSizeLabel,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: colors.onPrimaryContainer,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    l10n.fortuneDialogPoolSizeCount(formattedPoolSize),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colors.onPrimaryContainer,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            for (final section in sections) ...[
+              _FortuneDatabaseSectionView(section: section),
+              const SizedBox(height: 12),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _FortuneDatabaseSectionView extends StatelessWidget {
+  final FortuneDatabaseSection section;
+
+  const _FortuneDatabaseSectionView({required this.section});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final colors = theme.colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.54),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  section.title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              Text(
+                l10n.fortuneDialogLuckyInfoCount(section.values.length),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          for (final value in section.values) ...[
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: colors.surface.withValues(alpha: 0.78),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                value,
+                style: theme.textTheme.bodySmall?.copyWith(height: 1.35),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 

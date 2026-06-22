@@ -13,7 +13,7 @@ void main() {
     expect(sections.bodyLines, hasLength(1));
     expect(
       sections.bodyLines.single,
-      contains('오늘 색상 에메랄드, 시간대 오전 후반 08:10~08:50'),
+      '재미 포인트: 색상 에메랄드.',
     );
   });
 }

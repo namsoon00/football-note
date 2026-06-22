@@ -38,12 +38,13 @@ void main() {
     final lines = result.fortuneText.split('\n');
     expect(lines, hasLength(4));
     expect(lines.first, contains('민준'));
-    expect(lines.first, contains('눈에 들어와요.'));
-    expect(lines[1], contains('키워드는 '));
-    expect(lines[2], contains('리듬을 살리면 '));
+    expect(lines.first, contains('분위기가 먼저 찾아와요.'));
+    expect(lines[1], isNot(contains('훈련')));
+    expect(lines[1], isNot(contains('패스')));
+    expect(lines[2], contains('흐름이라 '));
     expect(lines.last, contains('재미 포인트: 숫자 '));
-    expect(lines.last, contains('색상 '));
-    expect(lines.last, contains('시간대 '));
+    expect(lines.last, contains('컬러 '));
+    expect(lines.last, isNot(contains('시간대 ')));
   });
 
   test('birth date and name change the generated fortune', () {
