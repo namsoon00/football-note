@@ -7790,24 +7790,6 @@ abstract class AppLocalizations {
   /// **'Alerts shown: {count}'**
   String notificationFeedSubtitle(int count);
 
-  /// No description provided for @notificationFilteredFeedSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Showing {shown} of {total} alerts in this category.'**
-  String notificationFilteredFeedSubtitle(int shown, int total);
-
-  /// No description provided for @notificationCategoryFilterLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Filter alerts by category'**
-  String get notificationCategoryFilterLabel;
-
-  /// No description provided for @notificationCategoryAll.
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get notificationCategoryAll;
-
   /// No description provided for @notificationCategoryTrainingPlan.
   ///
   /// In en, this message translates to:
@@ -7838,23 +7820,11 @@ abstract class AppLocalizations {
   /// **'Family'**
   String get notificationCategoryFamily;
 
-  /// No description provided for @notificationCategoryChipLabel.
+  /// No description provided for @notificationCategorySectionTitle.
   ///
   /// In en, this message translates to:
   /// **'{category} ({count})'**
-  String notificationCategoryChipLabel(Object category, int count);
-
-  /// No description provided for @notificationCategoryEmptyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'No alerts in this category.'**
-  String get notificationCategoryEmptyTitle;
-
-  /// No description provided for @notificationCategoryEmptySubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose another category or refresh later.'**
-  String get notificationCategoryEmptySubtitle;
+  String notificationCategorySectionTitle(Object category, int count);
 
   /// No description provided for @notificationFeedEmptyTitle.
   ///
