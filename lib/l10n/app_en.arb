@@ -5159,6 +5159,65 @@
       }
     }
   },
+  "matchCompetitionSummaryTeams": "Teams",
+  "matchCompetitionSummaryMatches": "Recorded matches",
+  "matchCompetitionSummaryLeader": "Leader",
+  "matchCompetitionSummaryRecorded": "Recorded",
+  "matchCompetitionSummaryProgress": "Progress",
+  "matchCompetitionNoLeader": "None yet",
+  "matchTournamentSummarySlots": "Bracket slots",
+  "matchTournamentSlotProgress": "{recorded}/{total}",
+  "@matchTournamentSlotProgress": {
+    "placeholders": {
+      "recorded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentPairPending": "Pending",
+  "matchTournamentPairByeStatus": "Bye",
+  "matchTournamentVersusLabel": "vs",
+  "matchLeaguePlayedSummary": "{played} played",
+  "@matchLeaguePlayedSummary": {
+    "placeholders": {
+      "played": {
+        "type": "int"
+      }
+    }
+  },
+  "matchLeagueRecordSummary": "{wins}W {draws}D {losses}L",
+  "@matchLeagueRecordSummary": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      }
+    }
+  },
+  "matchLeagueGoalDifferenceSummary": "GD {difference}",
+  "@matchLeagueGoalDifferenceSummary": {
+    "placeholders": {
+      "difference": {
+        "type": "int"
+      }
+    }
+  },
+  "matchLeaguePointsSummary": "{points} pts",
+  "@matchLeaguePointsSummary": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "matchLeagueRoundLabel": "Round or matchday",
   "matchLeagueRoundHint": "e.g. Round 3",
   "matchTournamentStageLabel": "Tournament stage",

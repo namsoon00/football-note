@@ -16297,6 +16297,96 @@ abstract class AppLocalizations {
   String matchTournamentRecordedProgress(
       String stage, String opponent, String outcome);
 
+  /// No description provided for @matchCompetitionSummaryTeams.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get matchCompetitionSummaryTeams;
+
+  /// No description provided for @matchCompetitionSummaryMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded matches'**
+  String get matchCompetitionSummaryMatches;
+
+  /// No description provided for @matchCompetitionSummaryLeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Leader'**
+  String get matchCompetitionSummaryLeader;
+
+  /// No description provided for @matchCompetitionSummaryRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded'**
+  String get matchCompetitionSummaryRecorded;
+
+  /// No description provided for @matchCompetitionSummaryProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get matchCompetitionSummaryProgress;
+
+  /// No description provided for @matchCompetitionNoLeader.
+  ///
+  /// In en, this message translates to:
+  /// **'None yet'**
+  String get matchCompetitionNoLeader;
+
+  /// No description provided for @matchTournamentSummarySlots.
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket slots'**
+  String get matchTournamentSummarySlots;
+
+  /// No description provided for @matchTournamentSlotProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{recorded}/{total}'**
+  String matchTournamentSlotProgress(int recorded, int total);
+
+  /// No description provided for @matchTournamentPairPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get matchTournamentPairPending;
+
+  /// No description provided for @matchTournamentPairByeStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Bye'**
+  String get matchTournamentPairByeStatus;
+
+  /// No description provided for @matchTournamentVersusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'vs'**
+  String get matchTournamentVersusLabel;
+
+  /// No description provided for @matchLeaguePlayedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{played} played'**
+  String matchLeaguePlayedSummary(int played);
+
+  /// No description provided for @matchLeagueRecordSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{wins}W {draws}D {losses}L'**
+  String matchLeagueRecordSummary(int wins, int draws, int losses);
+
+  /// No description provided for @matchLeagueGoalDifferenceSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'GD {difference}'**
+  String matchLeagueGoalDifferenceSummary(int difference);
+
+  /// No description provided for @matchLeaguePointsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{points} pts'**
+  String matchLeaguePointsSummary(int points);
+
   /// No description provided for @matchLeagueRoundLabel.
   ///
   /// In en, this message translates to:

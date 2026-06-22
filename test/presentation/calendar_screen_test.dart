@@ -610,6 +610,47 @@ void main() {
     expect(entries.single.leagueTeamNames, <String>['레드 FC', '블루 FC']);
   });
 
+  testWidgets('토너먼트 시합은 저장된 토너먼트 대회를 모두 보여준다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+    final competitionService = MatchCompetitionService(optionRepository);
+    await competitionService.upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindTournament,
+        name: '지난 컵',
+        teams: const <String>['올드 FC'],
+        status: MatchCompetitionRecord.statusFinished,
+      ),
+    );
+    await competitionService.upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindTournament,
+        name: '봄 컵',
+        teams: const <String>['레드 FC', '블루 FC'],
+      ),
+    );
+    await pumpCalendar(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('토너먼트'));
+    await tester.pump();
+
+    expect(find.widgetWithText(ChoiceChip, '봄 컵 · 진행 중'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, '지난 컵 · 종료'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, '봄 컵 · 진행 중'));
+    await tester.pump();
+
+    expect(find.widgetWithText(ChoiceChip, '레드 FC'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, '블루 FC'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, '올드 FC'), findsNothing);
+  });
+
   testWidgets('리그 시합 기록 시트는 저장하지 않고 뒤로 닫을 수 있다', (tester) async {
     await tester.binding.setSurfaceSize(const Size(900, 900));
     addTearDown(() async {
@@ -727,10 +768,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('리그 순위'), findsOneWidget);
+    expect(find.text('참가 팀'), findsOneWidget);
+    expect(find.text('기록 경기'), findsOneWidget);
+    expect(find.text('선두'), findsOneWidget);
     expect(find.text('레드 FC'), findsWidgets);
     expect(find.text('블루 FC'), findsWidgets);
     expect(find.text('그린 FC'), findsWidgets);
-    expect(find.text('승점'), findsWidgets);
+    expect(find.text('승점 3'), findsWidgets);
+    expect(find.text('1승 0무 0패'), findsOneWidget);
   });
 
   testWidgets('대회 관리 시트는 저장하지 않고 뒤로 돌아갈 수 있다', (tester) async {
@@ -892,10 +937,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('토너먼트 대진표'), findsOneWidget);
+    expect(find.text('참가 팀'), findsOneWidget);
+    expect(find.text('대진'), findsOneWidget);
+    expect(find.text('진행률'), findsOneWidget);
+    expect(find.text('1/2'), findsOneWidget);
     expect(find.text('1경기'), findsOneWidget);
     expect(find.text('레드 FC vs 블루 FC'), findsOneWidget);
     expect(find.text('2경기'), findsOneWidget);
     expect(find.text('그린 FC vs 부전승'), findsOneWidget);
+    expect(find.text('경기 전'), findsWidgets);
     expect(find.text('기록된 진행'), findsOneWidget);
     expect(find.text('8강 · 블루 FC전 · 다음 라운드 진출'), findsOneWidget);
   });

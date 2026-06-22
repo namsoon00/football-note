@@ -5159,6 +5159,65 @@
       }
     }
   },
+  "matchCompetitionSummaryTeams": "참가 팀",
+  "matchCompetitionSummaryMatches": "기록 경기",
+  "matchCompetitionSummaryLeader": "선두",
+  "matchCompetitionSummaryRecorded": "기록",
+  "matchCompetitionSummaryProgress": "진행률",
+  "matchCompetitionNoLeader": "아직 없음",
+  "matchTournamentSummarySlots": "대진",
+  "matchTournamentSlotProgress": "{recorded}/{total}",
+  "@matchTournamentSlotProgress": {
+    "placeholders": {
+      "recorded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentPairPending": "경기 전",
+  "matchTournamentPairByeStatus": "부전승",
+  "matchTournamentVersusLabel": "vs",
+  "matchLeaguePlayedSummary": "{played}경기",
+  "@matchLeaguePlayedSummary": {
+    "placeholders": {
+      "played": {
+        "type": "int"
+      }
+    }
+  },
+  "matchLeagueRecordSummary": "{wins}승 {draws}무 {losses}패",
+  "@matchLeagueRecordSummary": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      }
+    }
+  },
+  "matchLeagueGoalDifferenceSummary": "득실 {difference}",
+  "@matchLeagueGoalDifferenceSummary": {
+    "placeholders": {
+      "difference": {
+        "type": "int"
+      }
+    }
+  },
+  "matchLeaguePointsSummary": "승점 {points}",
+  "@matchLeaguePointsSummary": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "matchLeagueRoundLabel": "라운드/주차",
   "matchLeagueRoundHint": "예) 3라운드",
   "matchTournamentStageLabel": "토너먼트 단계",

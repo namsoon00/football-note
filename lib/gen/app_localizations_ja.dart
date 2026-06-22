@@ -9235,6 +9235,61 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get matchCompetitionSummaryTeams => '参加チーム';
+
+  @override
+  String get matchCompetitionSummaryMatches => '記録済み試合';
+
+  @override
+  String get matchCompetitionSummaryLeader => '首位';
+
+  @override
+  String get matchCompetitionSummaryRecorded => '記録';
+
+  @override
+  String get matchCompetitionSummaryProgress => '進行率';
+
+  @override
+  String get matchCompetitionNoLeader => 'まだありません';
+
+  @override
+  String get matchTournamentSummarySlots => '組み合わせ';
+
+  @override
+  String matchTournamentSlotProgress(int recorded, int total) {
+    return '$recorded/$total';
+  }
+
+  @override
+  String get matchTournamentPairPending => '試合前';
+
+  @override
+  String get matchTournamentPairByeStatus => '不戦勝';
+
+  @override
+  String get matchTournamentVersusLabel => 'vs';
+
+  @override
+  String matchLeaguePlayedSummary(int played) {
+    return '$played試合';
+  }
+
+  @override
+  String matchLeagueRecordSummary(int wins, int draws, int losses) {
+    return '$wins勝 $draws分 $losses敗';
+  }
+
+  @override
+  String matchLeagueGoalDifferenceSummary(int difference) {
+    return '得失 $difference';
+  }
+
+  @override
+  String matchLeaguePointsSummary(int points) {
+    return '勝ち点 $points';
+  }
+
+  @override
   String get matchLeagueRoundLabel => 'ラウンド/節';
 
   @override
