@@ -9394,7 +9394,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStart =>
-      '빠른 시작: 사람이나 공을 선택하고 이동, 패스, 드리블 같은 빠른 동작을 누르세요.';
+      '빠른 시작: 사람이나 공을 선택하고 동작을 누른 뒤, 대상 사람이나 공간을 찍으세요.';
 
   @override
   String get trainingSketchSelectedItemTitle => '선택 요소';
@@ -9526,11 +9526,19 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      '도착 지점을 누르면 이동을 만들고, 사람을 잡고 움직이면 위치를 조정할 수 있어요.';
+      '동작을 누른 뒤 도착 지점이나 대상 사람을 찍으세요. 사람을 잡고 움직이면 위치를 조정할 수 있어요.';
 
   @override
   String get trainingSketchLinkBallHint =>
-      '패스 도착 지점을 누르면 공 움직임을 만들고, 공을 잡고 움직이면 위치를 조정할 수 있어요.';
+      '동작을 누른 뒤 패스·서브·슈팅 지점이나 대상 사람을 찍으세요. 공을 잡고 움직이면 위치를 조정할 수 있어요.';
+
+  @override
+  String trainingSketchActionTargetHint(Object action) {
+    return '$action 대상이나 공간을 누르세요.';
+  }
+
+  @override
+  String get trainingSketchActionTargetCancelButton => '취소';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => '빠른 동작';

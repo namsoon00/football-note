@@ -305,7 +305,7 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '낮은 뜀틀'), findsNothing);
   });
 
-  testWidgets('new player immediately creates a movement route from its spot', (
+  testWidgets('new player creates a movement route by action and target tap', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -326,8 +326,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _tapVisibleOutlinedButton(tester, '이동');
+    expect(find.text('이동 대상이나 공간을 누르세요.'), findsOneWidget);
     await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.38));
-    await _tapVisibleOutlinedButton(tester, '이동선 완료');
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
 
@@ -343,7 +344,7 @@ void main() {
     expect(route.points.last.y, closeTo(0.38, 0.02));
   });
 
-  testWidgets('new ball immediately creates a ball route from its spot', (
+  testWidgets('new ball creates a ball route by action and target tap', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -364,8 +365,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _tapVisibleOutlinedButton(tester, '패스');
+    expect(find.text('패스 대상이나 공간을 누르세요.'), findsOneWidget);
     await _tapBoardRelative(tester, boardFinder, const Offset(0.70, 0.42));
-    await _tapVisibleOutlinedButton(tester, '이동선 완료');
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
 
@@ -490,6 +492,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '패스 후 이동');
+    expect(find.text('패스 후 이동 대상이나 공간을 누르세요.'), findsOneWidget);
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.62, 0.46));
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -562,7 +566,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await _tapVisibleOutlinedButton(tester, '사람 2에게 패스');
+    await _tapVisibleOutlinedButton(tester, '패스');
+    expect(find.text('패스 대상이나 공간을 누르세요.'), findsOneWidget);
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.68, 0.42));
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -624,6 +630,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '서브');
+    expect(find.text('서브 대상이나 공간을 누르세요.'), findsOneWidget);
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.70, 0.34));
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -1387,12 +1395,8 @@ void main() {
       );
 
       final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-      await _drawRoute(
-        tester,
-        boardFinder,
-        const Offset(520, 320),
-        const Offset(760, 260),
-      );
+      await _tapVisibleOutlinedButton(tester, '패스');
+      await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.32));
 
       await tester.tap(find.widgetWithText(TextButton, '저장'));
       await tester.pumpAndSettle();
@@ -1781,6 +1785,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      await _tapVisibleOutlinedButton(tester, '이동 만들기');
       await _drawRoute(
         tester,
         boardFinder,
