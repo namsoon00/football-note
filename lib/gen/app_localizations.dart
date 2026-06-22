@@ -17647,11 +17647,53 @@ abstract class AppLocalizations {
   /// **'Choose a challenge'**
   String get challengeSelectTitle;
 
+  /// No description provided for @challengeActiveCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} in progress'**
+  String challengeActiveCardTitle(Object title);
+
+  /// No description provided for @challengeCreateAnotherTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another challenge'**
+  String get challengeCreateAnotherTitle;
+
   /// No description provided for @challengeDurationSelectTitle.
   ///
   /// In en, this message translates to:
   /// **'1. Choose duration'**
   String get challengeDurationSelectTitle;
+
+  /// No description provided for @challengeCadenceSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Round frequency'**
+  String get challengeCadenceSelectTitle;
+
+  /// No description provided for @challengeCadenceDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get challengeCadenceDaily;
+
+  /// No description provided for @challengeCadenceEveryTwoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Every 2 days'**
+  String get challengeCadenceEveryTwoDays;
+
+  /// No description provided for @challengeCadenceWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a week'**
+  String get challengeCadenceWeekly;
+
+  /// No description provided for @challengeCadenceEveryNDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days} days'**
+  String challengeCadenceEveryNDays(int days);
 
   /// No description provided for @challengeTemplateStarterTitle.
   ///

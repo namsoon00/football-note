@@ -9973,7 +9973,32 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeSelectTitle => 'チャレンジを選択';
 
   @override
+  String challengeActiveCardTitle(Object title) {
+    return '$title 進行中';
+  }
+
+  @override
+  String get challengeCreateAnotherTitle => '新しいチャレンジを追加';
+
+  @override
   String get challengeDurationSelectTitle => '1. 期間を選択';
+
+  @override
+  String get challengeCadenceSelectTitle => '進行間隔';
+
+  @override
+  String get challengeCadenceDaily => '毎日';
+
+  @override
+  String get challengeCadenceEveryTwoDays => '2日に1回';
+
+  @override
+  String get challengeCadenceWeekly => '週に1回';
+
+  @override
+  String challengeCadenceEveryNDays(int days) {
+    return '$days日に1回';
+  }
 
   @override
   String get challengeTemplateStarterTitle => '3日チャレンジ';

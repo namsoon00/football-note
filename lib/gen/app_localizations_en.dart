@@ -10282,7 +10282,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeSelectTitle => 'Choose a challenge';
 
   @override
+  String challengeActiveCardTitle(Object title) {
+    return '$title in progress';
+  }
+
+  @override
+  String get challengeCreateAnotherTitle => 'Add another challenge';
+
+  @override
   String get challengeDurationSelectTitle => '1. Choose duration';
+
+  @override
+  String get challengeCadenceSelectTitle => 'Round frequency';
+
+  @override
+  String get challengeCadenceDaily => 'Every day';
+
+  @override
+  String get challengeCadenceEveryTwoDays => 'Every 2 days';
+
+  @override
+  String get challengeCadenceWeekly => 'Once a week';
+
+  @override
+  String challengeCadenceEveryNDays(int days) {
+    return 'Every $days days';
+  }
 
   @override
   String get challengeTemplateStarterTitle => '3-day Challenge';

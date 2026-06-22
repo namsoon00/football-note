@@ -88,6 +88,46 @@ void main() {
     );
   });
 
+  test('multiple active challenges keep their own cadence', () async {
+    final service = ChallengeService(_MemoryOptionRepository());
+    final starter = service.templateById('starter_3')!;
+    final weekly = service.templateById('weekly_7')!;
+
+    final starterRun = await service.startChallenge(
+      starter,
+      startedAt: DateTime(2026, 6, 1, 9),
+      cadenceDays: 2,
+    );
+    final weeklyRun = await service.startChallenge(
+      weekly,
+      startedAt: DateTime(2026, 6, 2, 9),
+      cadenceDays: 7,
+    );
+
+    expect(service.activeRuns().map((run) => run.id), <String>[
+      weeklyRun.id,
+      starterRun.id,
+    ]);
+    expect(starterRun.dayForRound(2), DateTime(2026, 6, 3));
+    expect(starterRun.dayForRound(3), DateTime(2026, 6, 5));
+    expect(weeklyRun.dayForRound(2), DateTime(2026, 6, 9));
+    expect(weeklyRun.dayForRound(7), DateTime(2026, 7, 14));
+
+    final progresses = service.activeProgresses(
+      trainingEntries: const <TrainingEntry>[],
+      mealEntries: const <MealEntry>[],
+    );
+
+    expect(progresses, hasLength(2));
+    expect(progresses.first.run.id, weeklyRun.id);
+    expect(progresses.last.run.id, starterRun.id);
+    expect(progresses.last.rounds.map((round) => round.date), <DateTime>[
+      DateTime(2026, 6),
+      DateTime(2026, 6, 3),
+      DateTime(2026, 6, 5),
+    ]);
+  });
+
   test('progress is completed only when every mission goal is met', () async {
     final service = ChallengeService(_MemoryOptionRepository());
     final template = service.templateById('starter_3')!;
