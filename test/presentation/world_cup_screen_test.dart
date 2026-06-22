@@ -147,7 +147,7 @@ void main() {
     expect(find.text('승-무-패'), findsWidgets);
     expect(find.text('득실'), findsWidgets);
     expect(find.text('득점'), findsWidgets);
-    expect(find.text('동률 비교: 득실차 +2 · 득점 2'), findsWidgets);
+    expect(find.text('동률 비교: 득실차 +2 · 득점 2'), findsNothing);
     expect(find.text('조별 팀 구성'), findsOneWidget);
     expect(find.text('A조'), findsWidgets);
 
@@ -161,12 +161,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('토너먼트 대진표'), findsOneWidget);
+    expect(find.text('결승'), findsOneWidget);
+    expect(find.text('준결승'), findsOneWidget);
+    expect(find.text('8강'), findsOneWidget);
+    expect(find.text('16강'), findsOneWidget);
     expect(find.text('32강'), findsOneWidget);
     expect(find.text('A조 2위'), findsOneWidget);
     expect(find.text('B조 2위'), findsOneWidget);
     expect(find.text('M73 승자'), findsOneWidget);
     expect(find.text('M73: A조 2위 대 B조 2위'), findsOneWidget);
-    expect(find.text('결승'), findsOneWidget);
   });
 
   testWidgets('team roster sheet shows expanded squad and formation data', (
@@ -477,6 +480,39 @@ void main() {
     await tester.pump();
 
     expect(navigatorObserver.pushedRouteCount, 1);
+  });
+
+  testWidgets('finished draw fixture highlights tied score', (tester) async {
+    final fixture = worldCupFixtures.firstWhere(
+      (fixture) => fixture.hasScore && fixture.homeScore == fixture.awayScore,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          initialSelectedDay: fixture.localDay,
+          currentTime: fixture.kickoffUtc.add(const Duration(hours: 3)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final score = '${fixture.homeScore} : ${fixture.awayScore}';
+    final scrollable = find.byType(Scrollable).first;
+    for (var i = 0;
+        i < 8 && find.text(score).hitTestable().evaluate().isEmpty;
+        i += 1) {
+      await tester.drag(scrollable, const Offset(0, -220));
+      await tester.pumpAndSettle();
+    }
+
+    final scoreText = tester.widget<Text>(find.text(score).hitTestable().first);
+    expect(scoreText.style?.color, AppTheme.light().colorScheme.tertiary);
   });
 
   testWidgets('scheduled fixture hides status beside time', (tester) async {
