@@ -9847,80 +9847,105 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchTemplateBlankDescription => '空のボードから始める';
 
   @override
-  String get trainingSketchTemplatePassWarmupLabel => 'パスウォームアップ';
+  String get trainingSketchTemplatePassWarmupLabel => 'パス＆ムーブ';
 
   @override
-  String get trainingSketchTemplatePassWarmupDescription =>
-      '基本的な 3 プレーヤーのパスのセットアップ';
+  String get trainingSketchTemplatePassWarmupDescription => 'パス、サポート、位置交代';
 
   @override
-  String get trainingSketchTemplatePassWarmupMethod => 'ツータッチパスとローテーション';
+  String get trainingSketchTemplatePassWarmupMethod =>
+      '受ける前に体を開き、パス後に次の位置へ移動する';
 
   @override
-  String get trainingSketchTemplateBuildUpLabel => 'ビルドアップパターン';
+  String get trainingSketchTemplateBuildUpLabel => '後方ビルドアップ脱出';
 
   @override
-  String get trainingSketchTemplateBuildUpDescription => '背面ビルドアップ構造';
+  String get trainingSketchTemplateBuildUpDescription => 'GK、CB、6番をつなぐ形';
 
   @override
-  String get trainingSketchTemplateBuildUpMethod => '3-2の形での後方ビルドアップ';
+  String get trainingSketchTemplateBuildUpMethod =>
+      '圧力を引き出し、6番を経由して逆サイドのSBへ展開する';
 
   @override
-  String get trainingSketchTemplatePressingLabel => 'プレストランジション';
+  String get trainingSketchTemplatePressingLabel => '5秒カウンタープレス';
 
   @override
-  String get trainingSketchTemplatePressingDescription => '前押しトリガー形状';
+  String get trainingSketchTemplatePressingDescription => '失った直後の圧力とカバー';
 
   @override
-  String get trainingSketchTemplatePressingMethod => '前押しトリガーのキューを確認する';
+  String get trainingSketchTemplatePressingMethod => '最寄りがプレスし、周囲がパスコースを消す';
 
   @override
-  String get trainingSketchTemplateSetPieceLabel => 'セットピース';
+  String get trainingSketchTemplateSetPieceLabel => 'ニア・ファーCK';
 
   @override
-  String get trainingSketchTemplateSetPieceDescription => 'コーナーキックのレイアウト';
+  String get trainingSketchTemplateSetPieceDescription => 'スクリーン、ニアタッチ、ファー侵入';
 
   @override
-  String get trainingSketchTemplateSetPieceMethod => 'コーナーキック攻撃のセットアップ';
+  String get trainingSketchTemplateSetPieceMethod =>
+      'ブロッカーで道を作り、ニアで触ってファーを攻撃する';
 
   @override
-  String get trainingSketchTemplateRondoLabel => 'ロンド';
+  String get trainingSketchTemplateRondoLabel => '5対2ロンド展開';
 
   @override
-  String get trainingSketchTemplateRondoDescription => '4対1のキープアウェイシェイプ';
+  String get trainingSketchTemplateRondoDescription => 'ジョーカーを使う縦パスと回転';
 
   @override
-  String get trainingSketchTemplateRondoMethod => '2 タッチ制限のある 4 対 1 ロンド';
+  String get trainingSketchTemplateRondoMethod => '圧力の間を通し、サポート位置を回転する';
 
   @override
-  String get trainingSketchTemplateFinishingLabel => '仕上げパターン';
+  String get trainingSketchTemplateFinishingLabel => 'カットバック仕上げ';
 
   @override
-  String get trainingSketchTemplateFinishingDescription => 'クロス・ボックス仕上げの流れ';
+  String get trainingSketchTemplateFinishingDescription =>
+      'ワイド突破、カットバック、ボックス侵入';
 
   @override
-  String get trainingSketchTemplateFinishingMethod => '幅広い組み合わせでボックス仕上げ';
+  String get trainingSketchTemplateFinishingMethod => 'ニア、カットバック、ファーを同時に攻撃する';
 
   @override
-  String get trainingSketchTemplateWingCombinationLabel => '幅広い組み合わせ';
+  String get trainingSketchTemplateWingCombinationLabel => 'オーバーラップ/インナーラップ';
 
   @override
   String get trainingSketchTemplateWingCombinationDescription =>
-      'ウィンガーとフルバックのオーバーラップパターン';
+      'SB、WG、8番のサイド過負荷';
 
   @override
   String get trainingSketchTemplateWingCombinationMethod =>
-      'ウィンガーとフルバックのオーバーラップからカットバックへ';
+      'WGが内側を固定し、外か内の追い越しでカットバックへ入る';
 
   @override
-  String get trainingSketchTemplateTransitionAttackLabel => 'トランジション攻撃';
+  String get trainingSketchTemplateTransitionAttackLabel => '6秒カウンター';
 
   @override
-  String get trainingSketchTemplateTransitionAttackDescription => 'リゲイン直後の速攻';
+  String get trainingSketchTemplateTransitionAttackDescription =>
+      '最初のパス、深さ、ワイド運搬';
 
   @override
   String get trainingSketchTemplateTransitionAttackMethod =>
-      '取り戻してから6秒以内に前方に攻撃する';
+      '守備が整う前に最初の縦パスで前進する';
+
+  @override
+  String get trainingSketchTemplateSwitchPlayLabel => 'サイドチェンジ';
+
+  @override
+  String get trainingSketchTemplateSwitchPlayDescription => '圧力を集めて逆サイドへ展開';
+
+  @override
+  String get trainingSketchTemplateSwitchPlayMethod =>
+      '片側に圧力を集め、6番とCBを経由して逆へ展開する';
+
+  @override
+  String get trainingSketchTemplateDefensiveShiftLabel => '守備ライン移動';
+
+  @override
+  String get trainingSketchTemplateDefensiveShiftDescription =>
+      'ボール移動に合わせたスライドとカバー';
+
+  @override
+  String get trainingSketchTemplateDefensiveShiftMethod =>
+      'ボールが逆へ動く時、4バックと6番が間隔を保って移動する';
 
   @override
   String get trainingSketchTemplateBaseballThrowingLabel => '送球リレー';
