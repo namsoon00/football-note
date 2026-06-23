@@ -2603,6 +2603,12 @@ abstract class AppLocalizations {
   /// **'Zoom bracket in'**
   String get worldCupTournamentZoomIn;
 
+  /// No description provided for @worldCupTournamentOpenFullScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open full screen'**
+  String get worldCupTournamentOpenFullScreen;
+
   /// No description provided for @worldCupStageMatchCount.
   ///
   /// In en, this message translates to:

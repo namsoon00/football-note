@@ -1434,6 +1434,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupTournamentZoomIn => 'Zoom bracket in';
 
   @override
+  String get worldCupTournamentOpenFullScreen => 'Open full screen';
+
+  @override
   String worldCupStageMatchCount(int count) {
     return '$count matches';
   }

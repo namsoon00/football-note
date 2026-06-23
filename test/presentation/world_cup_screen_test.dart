@@ -121,12 +121,14 @@ void main() {
   testWidgets('standings and tournament views show structured plan cards', (
     tester,
   ) async {
+    final navigatorObserver = _RecordingNavigatorObserver();
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko', 'KR'),
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        navigatorObservers: [navigatorObserver],
         home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
       ),
     );
@@ -179,6 +181,7 @@ void main() {
     expect(find.byIcon(Icons.zoom_out_rounded), findsOneWidget);
     expect(find.byIcon(Icons.restart_alt_rounded), findsOneWidget);
     expect(find.byIcon(Icons.zoom_in_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.open_in_full_rounded), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.zoom_in_rounded));
     await tester.pumpAndSettle();
@@ -186,6 +189,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.restart_alt_rounded));
     await tester.pumpAndSettle();
+
+    navigatorObserver.reset();
+    await tester.tap(find.byIcon(Icons.open_in_full_rounded));
+    await tester.pumpAndSettle();
+
+    expect(navigatorObserver.pushedRouteCount, 1);
+    expect(find.text('토너먼트 대진표'), findsWidgets);
+    expect(find.byType(InteractiveViewer), findsOneWidget);
+    expect(find.byIcon(Icons.open_in_full_rounded), findsNothing);
   });
 
   testWidgets('team roster sheet shows expanded squad and formation data', (

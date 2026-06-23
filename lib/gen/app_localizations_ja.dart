@@ -1390,6 +1390,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupTournamentZoomIn => 'ブラケットを拡大';
 
   @override
+  String get worldCupTournamentOpenFullScreen => '全画面で表示';
+
+  @override
   String worldCupStageMatchCount(int count) {
     return '$count試合';
   }

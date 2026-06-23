@@ -758,6 +758,7 @@
   "worldCupTournamentZoomOut": "ブラケットを縮小",
   "worldCupTournamentZoomReset": "ブラケットの拡大率をリセット",
   "worldCupTournamentZoomIn": "ブラケットを拡大",
+  "worldCupTournamentOpenFullScreen": "全画面で表示",
   "worldCupStageMatchCount": "{count}試合",
   "@worldCupStageMatchCount": {
     "placeholders": {

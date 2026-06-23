@@ -425,75 +425,59 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   Widget _buildTournamentPlan(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return _WorldCupTournamentBracket(
-      rounds: [
-        _TournamentBracketRound(
-          title: _stageLabelForStage(l10n, WorldCupStage.finalMatch),
-          subtitle: l10n.worldCupBracketRoundSummary(
-            _dateRangeForFixtures(
-              context,
-              _fixturesForStage(WorldCupStage.finalMatch),
-            ),
-            _fixturesForStage(WorldCupStage.finalMatch).length,
-          ),
-          fixtures: _fixturesForStage(WorldCupStage.finalMatch),
-        ),
-        _TournamentBracketRound(
-          title: _stageLabelForStage(l10n, WorldCupStage.semiFinal),
-          subtitle: l10n.worldCupBracketRoundSummary(
-            _dateRangeForFixtures(
-              context,
-              _fixturesForStage(WorldCupStage.semiFinal),
-            ),
-            _fixturesForStage(WorldCupStage.semiFinal).length,
-          ),
-          fixtures: _fixturesForStage(WorldCupStage.semiFinal),
-        ),
-        _TournamentBracketRound(
-          title: _stageLabelForStage(l10n, WorldCupStage.quarterFinal),
-          subtitle: l10n.worldCupBracketRoundSummary(
-            _dateRangeForFixtures(
-              context,
-              _fixturesForStage(WorldCupStage.quarterFinal),
-            ),
-            _fixturesForStage(WorldCupStage.quarterFinal).length,
-          ),
-          fixtures: _fixturesForStage(WorldCupStage.quarterFinal),
-        ),
-        _TournamentBracketRound(
-          title: _stageLabelForStage(l10n, WorldCupStage.roundOf16),
-          subtitle: l10n.worldCupBracketRoundSummary(
-            _dateRangeForFixtures(
-              context,
-              _fixturesForStage(WorldCupStage.roundOf16),
-            ),
-            _fixturesForStage(WorldCupStage.roundOf16).length,
-          ),
-          fixtures: _fixturesForStage(WorldCupStage.roundOf16),
-        ),
-        _TournamentBracketRound(
-          title: _stageLabelForStage(l10n, WorldCupStage.roundOf32),
-          subtitle: l10n.worldCupBracketRoundSummary(
-            _dateRangeForFixtures(
-              context,
-              _fixturesForStage(WorldCupStage.roundOf32),
-            ),
-            _fixturesForStage(WorldCupStage.roundOf32).length,
-          ),
-          fixtures: _fixturesForStage(WorldCupStage.roundOf32),
-        ),
-      ],
-      thirdPlace: _TournamentBracketRound(
-        title: _stageLabelForStage(l10n, WorldCupStage.thirdPlace),
-        subtitle: l10n.worldCupBracketRoundSummary(
-          _dateRangeForFixtures(
-            context,
-            _fixturesForStage(WorldCupStage.thirdPlace),
-          ),
-          _fixturesForStage(WorldCupStage.thirdPlace).length,
-        ),
-        fixtures: _fixturesForStage(WorldCupStage.thirdPlace),
-      ),
+      rounds: _tournamentRounds(context, l10n),
+      thirdPlace: _tournamentThirdPlace(context, l10n),
       slotBuilder: (slot) => _bracketSlotData(l10n, slot),
+      onOpenFullScreen: _openTournamentFullScreen,
+    );
+  }
+
+  List<_TournamentBracketRound> _tournamentRounds(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    return [
+      _tournamentRound(context, l10n, WorldCupStage.finalMatch),
+      _tournamentRound(context, l10n, WorldCupStage.semiFinal),
+      _tournamentRound(context, l10n, WorldCupStage.quarterFinal),
+      _tournamentRound(context, l10n, WorldCupStage.roundOf16),
+      _tournamentRound(context, l10n, WorldCupStage.roundOf32),
+    ];
+  }
+
+  _TournamentBracketRound _tournamentThirdPlace(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    return _tournamentRound(context, l10n, WorldCupStage.thirdPlace);
+  }
+
+  _TournamentBracketRound _tournamentRound(
+    BuildContext context,
+    AppLocalizations l10n,
+    WorldCupStage stage,
+  ) {
+    final fixtures = _fixturesForStage(stage);
+    return _TournamentBracketRound(
+      title: _stageLabelForStage(l10n, stage),
+      subtitle: l10n.worldCupBracketRoundSummary(
+        _dateRangeForFixtures(context, fixtures),
+        fixtures.length,
+      ),
+      fixtures: fixtures,
+    );
+  }
+
+  Future<void> _openTournamentFullScreen() async {
+    final l10n = AppLocalizations.of(context)!;
+    await Navigator.of(context).push<void>(
+      AppPageRoute(
+        builder: (_) => _WorldCupTournamentBracketFullScreen(
+          rounds: _tournamentRounds(context, l10n),
+          thirdPlace: _tournamentThirdPlace(context, l10n),
+          slotBuilder: (slot) => _bracketSlotData(l10n, slot),
+        ),
+      ),
     );
   }
 
@@ -5180,15 +5164,50 @@ Color _positionColor(ThemeData theme, _WorldCupRosterPosition position) {
   };
 }
 
+class _WorldCupTournamentBracketFullScreen extends StatelessWidget {
+  final List<_TournamentBracketRound> rounds;
+  final _TournamentBracketRound thirdPlace;
+  final _BracketSlotData Function(String slot) slotBuilder;
+
+  const _WorldCupTournamentBracketFullScreen({
+    required this.rounds,
+    required this.thirdPlace,
+    required this.slotBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.worldCupTournamentTitle)),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+          child: _WorldCupTournamentBracket(
+            rounds: rounds,
+            thirdPlace: thirdPlace,
+            slotBuilder: slotBuilder,
+            fullScreen: true,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _WorldCupTournamentBracket extends StatefulWidget {
   final List<_TournamentBracketRound> rounds;
   final _TournamentBracketRound thirdPlace;
   final _BracketSlotData Function(String slot) slotBuilder;
+  final bool fullScreen;
+  final VoidCallback? onOpenFullScreen;
 
   const _WorldCupTournamentBracket({
     required this.rounds,
     required this.thirdPlace,
     required this.slotBuilder,
+    this.fullScreen = false,
+    this.onOpenFullScreen,
   });
 
   @override
@@ -5340,133 +5359,151 @@ class _WorldCupTournamentBracketState
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final currentScale = _currentScale;
-    return WatchCartCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: _SectionTitle(
-                  icon: Icons.account_tree_rounded,
-                  title: l10n.worldCupTournamentTitle,
-                ),
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: _SectionTitle(
+                icon: Icons.account_tree_rounded,
+                title: l10n.worldCupTournamentTitle,
               ),
-              const SizedBox(width: 8),
-              Wrap(
-                spacing: 4,
-                children: [
-                  _zoomButton(
-                    tooltip: l10n.worldCupTournamentZoomOut,
-                    icon: Icons.zoom_out_rounded,
-                    onPressed: currentScale > _minScale + 0.01
-                        ? () => _zoomBy(1 / _zoomStep)
-                        : null,
-                  ),
-                  _zoomButton(
-                    tooltip: l10n.worldCupTournamentZoomReset,
-                    icon: Icons.restart_alt_rounded,
-                    onPressed: _resetZoom,
-                  ),
-                  _zoomButton(
-                    tooltip: l10n.worldCupTournamentZoomIn,
-                    icon: Icons.zoom_in_rounded,
-                    onPressed: currentScale < _maxScale - 0.01
-                        ? () => _zoomBy(_zoomStep)
-                        : null,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            l10n.worldCupTournamentPlanBody,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              height: 1.35,
             ),
-          ),
-          const SizedBox(height: 14),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final slotWidth = constraints.maxWidth < 520 ? 148.0 : 166.0;
-              final compact = constraints.maxWidth < 520;
-              const spacing = 10.0;
-              final viewportHeight = compact ? 390.0 : 470.0;
-              final widestRoundCount = widget.rounds
-                  .map((round) => round.fixtures.length)
-                  .fold<int>(1, (max, count) => count > max ? count : max);
-              final bracketWidth = math.max(
-                constraints.maxWidth,
-                widestRoundCount * slotWidth + (widestRoundCount - 1) * spacing,
-              );
-              final contentWidth = bracketWidth + 24;
-              _lastViewportSize = Size(constraints.maxWidth, viewportHeight);
-              _scheduleInitialTransform(
-                contentWidth: contentWidth,
-                viewportWidth: constraints.maxWidth,
-                compact: compact,
-              );
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Container(
-                  height: viewportHeight,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withValues(
-                      alpha: 0.28,
-                    ),
-                    border: Border.all(
-                      color: theme.colorScheme.outlineVariant,
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: InteractiveViewer(
-                    transformationController: _transformationController,
-                    minScale: _minScale,
-                    maxScale: _maxScale,
-                    boundaryMargin: const EdgeInsets.all(220),
-                    constrained: false,
-                    child: SizedBox(
-                      width: contentWidth,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: SizedBox(
-                          width: bracketWidth,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              for (var index = 0;
-                                  index < widget.rounds.length;
-                                  index += 1)
-                                _TournamentBracketRoundRow(
-                                  round: widget.rounds[index],
-                                  slotBuilder: widget.slotBuilder,
-                                  slotWidth: slotWidth,
-                                  spacing: spacing,
-                                  compact: compact,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+            const SizedBox(width: 8),
+            Wrap(
+              spacing: 4,
+              children: [
+                _zoomButton(
+                  tooltip: l10n.worldCupTournamentZoomOut,
+                  icon: Icons.zoom_out_rounded,
+                  onPressed: currentScale > _minScale + 0.01
+                      ? () => _zoomBy(1 / _zoomStep)
+                      : null,
                 ),
-              );
-            },
-          ),
-          if (widget.thirdPlace.fixtures.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            _TournamentThirdPlaceStrip(
-              round: widget.thirdPlace,
-              slotBuilder: widget.slotBuilder,
+                _zoomButton(
+                  tooltip: l10n.worldCupTournamentZoomReset,
+                  icon: Icons.restart_alt_rounded,
+                  onPressed: _resetZoom,
+                ),
+                _zoomButton(
+                  tooltip: l10n.worldCupTournamentZoomIn,
+                  icon: Icons.zoom_in_rounded,
+                  onPressed: currentScale < _maxScale - 0.01
+                      ? () => _zoomBy(_zoomStep)
+                      : null,
+                ),
+                if (widget.onOpenFullScreen != null)
+                  _zoomButton(
+                    tooltip: l10n.worldCupTournamentOpenFullScreen,
+                    icon: Icons.open_in_full_rounded,
+                    onPressed: widget.onOpenFullScreen,
+                  ),
+              ],
             ),
           ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          l10n.worldCupTournamentPlanBody,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            height: 1.35,
+          ),
+        ),
+        const SizedBox(height: 14),
+        if (widget.fullScreen)
+          Expanded(child: _buildBracketViewport(context))
+        else
+          _buildBracketViewport(context),
+        if (widget.thirdPlace.fixtures.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _TournamentThirdPlaceStrip(
+            round: widget.thirdPlace,
+            slotBuilder: widget.slotBuilder,
+          ),
         ],
-      ),
+      ],
+    );
+    return widget.fullScreen ? content : WatchCartCard(child: content);
+  }
+
+  Widget _buildBracketViewport(BuildContext context) {
+    final theme = Theme.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 520;
+        final slotWidth = compact ? 148.0 : 166.0;
+        const spacing = 10.0;
+        final viewportHeight =
+            widget.fullScreen && constraints.maxHeight.isFinite
+                ? constraints.maxHeight
+                : compact
+                    ? 390.0
+                    : 470.0;
+        final widestRoundCount = widget.rounds
+            .map((round) => round.fixtures.length)
+            .fold<int>(1, (max, count) => count > max ? count : max);
+        final bracketWidth = math.max(
+          constraints.maxWidth,
+          widestRoundCount * slotWidth + (widestRoundCount - 1) * spacing,
+        );
+        final contentWidth = bracketWidth + 24;
+        _lastViewportSize = Size(constraints.maxWidth, viewportHeight);
+        _scheduleInitialTransform(
+          contentWidth: contentWidth,
+          viewportWidth: constraints.maxWidth,
+          compact: compact,
+        );
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            height: viewportHeight,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.28,
+              ),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant,
+              ),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: InteractiveViewer(
+              transformationController: _transformationController,
+              minScale: _minScale,
+              maxScale: _maxScale,
+              boundaryMargin: const EdgeInsets.all(220),
+              constrained: false,
+              child: SizedBox(
+                width: contentWidth,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SizedBox(
+                    width: bracketWidth,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (var index = 0;
+                            index < widget.rounds.length;
+                            index += 1)
+                          _TournamentBracketRoundRow(
+                            round: widget.rounds[index],
+                            slotBuilder: widget.slotBuilder,
+                            slotWidth: slotWidth,
+                            spacing: spacing,
+                            compact: compact,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

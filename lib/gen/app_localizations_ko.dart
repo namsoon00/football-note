@@ -1386,6 +1386,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupTournamentZoomIn => '브래킷 확대';
 
   @override
+  String get worldCupTournamentOpenFullScreen => '전체 화면에서 보기';
+
+  @override
   String worldCupStageMatchCount(int count) {
     return '$count경기';
   }
