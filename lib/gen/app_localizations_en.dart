@@ -3491,6 +3491,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get statsMatchSummaryTitle => 'Match Summary';
+
+  @override
+  String get statsMatchResultGroupTitle => 'Result Metrics';
+
+  @override
+  String get statsMatchPersonalGroupTitle => 'Personal Contribution';
+
+  @override
+  String get statsMatchTotalMatchesLabel => 'Matches';
+
+  @override
+  String statsMatchTotalMatchesValue(int count) {
+    return '$count';
+  }
+
+  @override
+  String get statsMatchRecordLabel => 'Record';
+
+  @override
+  String statsMatchRecordValue(int wins, int draws, int losses) {
+    return '$wins-$draws-$losses';
+  }
+
+  @override
+  String get statsMatchTypeLabel => 'Match type';
+
+  @override
+  String get statsMatchGoalsLabel => 'Scoreline';
+
+  @override
+  String get statsMatchPersonalTotalLabel => 'Personal total';
+
+  @override
+  String get statsMatchPersonalDetailLabel => 'Detail contribution';
+
+  @override
   String get statsMatchFormInsightTitle => 'Match Flow';
 
   @override

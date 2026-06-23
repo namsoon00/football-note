@@ -6168,6 +6168,72 @@ abstract class AppLocalizations {
   /// **'{sport} Match Report'**
   String statsMatchFormTitle(Object sport);
 
+  /// No description provided for @statsMatchSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match Summary'**
+  String get statsMatchSummaryTitle;
+
+  /// No description provided for @statsMatchResultGroupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Result Metrics'**
+  String get statsMatchResultGroupTitle;
+
+  /// No description provided for @statsMatchPersonalGroupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Contribution'**
+  String get statsMatchPersonalGroupTitle;
+
+  /// No description provided for @statsMatchTotalMatchesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get statsMatchTotalMatchesLabel;
+
+  /// No description provided for @statsMatchTotalMatchesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}'**
+  String statsMatchTotalMatchesValue(int count);
+
+  /// No description provided for @statsMatchRecordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get statsMatchRecordLabel;
+
+  /// No description provided for @statsMatchRecordValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{wins}-{draws}-{losses}'**
+  String statsMatchRecordValue(int wins, int draws, int losses);
+
+  /// No description provided for @statsMatchTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Match type'**
+  String get statsMatchTypeLabel;
+
+  /// No description provided for @statsMatchGoalsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoreline'**
+  String get statsMatchGoalsLabel;
+
+  /// No description provided for @statsMatchPersonalTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal total'**
+  String get statsMatchPersonalTotalLabel;
+
+  /// No description provided for @statsMatchPersonalDetailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Detail contribution'**
+  String get statsMatchPersonalDetailLabel;
+
   /// No description provided for @statsMatchFormInsightTitle.
   ///
   /// In en, this message translates to:
