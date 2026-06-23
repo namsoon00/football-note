@@ -17,6 +17,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
 import '../models/training_board_templates.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
 import '../theme/app_motion.dart';
@@ -454,17 +455,18 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       appBar: AppBar(
         title: Text(listTitle),
         actions: [
-          IconButton(
+          AppBarActionButton.icon(
             tooltip: _showSearch
                 ? (isKo ? '검색 닫기' : 'Close search')
                 : (isKo ? '보드 검색' : 'Search boards'),
             onPressed: _toggleSearch,
-            icon: Icon(_showSearch ? Icons.close : Icons.search),
+            icon: _showSearch ? Icons.close : Icons.search,
+            selected: _showSearch,
           ),
           if (!widget.selectionMode)
-            PopupMenuButton<_BoardListSort>(
+            AppBarActionMenuButton<_BoardListSort>(
               tooltip: isKo ? '정렬' : 'Sort',
-              icon: const Icon(Icons.sort),
+              icon: Icons.sort,
               initialValue: _sort,
               onSelected: (next) => setState(() => _sort = next),
               itemBuilder: (_) => [
@@ -483,10 +485,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
               ],
             ),
           if (!widget.selectionMode)
-            PopupMenuButton<String>(
+            AppBarActionMenuButton<String>(
               tooltip: isKo ? '훈련 스케치 추가' : 'Add training sketch',
               enabled: !isParentMode,
-              icon: const Icon(Icons.add),
+              icon: Icons.add,
               onSelected: (value) {
                 switch (value) {
                   case 'new':
@@ -509,9 +511,12 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
               ],
             ),
           if (widget.selectionMode)
-            TextButton(
+            AppBarActionButton.label(
               onPressed: _submitSelection,
-              child: Text(isKo ? '완료' : 'Done'),
+              tooltip: isKo ? '완료' : 'Done',
+              icon: const Icon(Icons.check_rounded),
+              label: isKo ? '완료' : 'Done',
+              maxLabelWidth: 64,
             ),
         ],
       ),

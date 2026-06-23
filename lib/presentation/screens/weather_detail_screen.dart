@@ -10,6 +10,7 @@ import '../../application/korean_air_quality_service.dart';
 import '../../application/weather_location_service.dart';
 import '../../application/weather_shared_resource.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 
 enum WeatherDetailInitialAction {
@@ -1407,35 +1408,12 @@ class _WeatherHeaderActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Tooltip(
-      message: tooltip,
-      child: Padding(
-        padding: const EdgeInsets.only(right: 2),
-        child: TextButton.icon(
-          onPressed: onPressed,
-          icon: IconTheme.merge(
-            data: const IconThemeData(size: 18),
-            child: icon,
-          ),
-          label: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 64),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          style: TextButton.styleFrom(
-            foregroundColor:
-                theme.appBarTheme.foregroundColor ?? theme.colorScheme.primary,
-            minimumSize: const Size(0, 40),
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            visualDensity: VisualDensity.compact,
-          ),
-        ),
-      ),
+    return AppBarActionButton.label(
+      tooltip: tooltip,
+      icon: icon,
+      label: label,
+      maxLabelWidth: 64,
+      onPressed: onPressed,
     );
   }
 }

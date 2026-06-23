@@ -15,6 +15,7 @@ import '../../domain/entities/fifa_world_overview.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
 import '../utils/kickoff_time_format.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
@@ -129,33 +130,22 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       appBar: AppBar(
         title: Text(l10n.worldCupTitle),
         actions: [
-          Tooltip(
-            message: l10n.worldCupOverviewTitle,
-            child: TextButton.icon(
-              onPressed: _showTournamentInfo,
-              style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.onSurface,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-              icon: const Icon(Icons.info_outline_rounded, size: 18),
-              label: Text(l10n.worldCupInfoAction),
-            ),
+          AppBarActionButton.label(
+            tooltip: l10n.worldCupOverviewTitle,
+            onPressed: _showTournamentInfo,
+            icon: const Icon(Icons.info_outline_rounded),
+            label: l10n.worldCupInfoAction,
+            maxLabelWidth: 84,
           ),
-          Tooltip(
-            message: l10n.worldCupSourceAction,
-            child: TextButton.icon(
-              onPressed: () => unawaited(
-                launchUrl(_sourceUri, mode: LaunchMode.inAppBrowserView),
-              ),
-              style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.onSurface,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-              icon: const Icon(Icons.open_in_new_rounded, size: 18),
-              label: Text(l10n.worldCupSourceShortAction),
+          AppBarActionButton.label(
+            tooltip: l10n.worldCupSourceAction,
+            onPressed: () => unawaited(
+              launchUrl(_sourceUri, mode: LaunchMode.inAppBrowserView),
             ),
+            icon: const Icon(Icons.open_in_new_rounded),
+            label: l10n.worldCupSourceShortAction,
+            maxLabelWidth: 84,
           ),
-          const SizedBox(width: 4),
         ],
       ),
       body: AppBackground(

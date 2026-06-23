@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
+import 'app_bar_action_button.dart';
 
 class LanguageMenuButton extends StatelessWidget {
   final LocaleService localeService;
@@ -9,8 +10,9 @@ class LanguageMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.language),
+    return AppBarActionMenuButton<String>(
+      icon: Icons.language,
+      tooltip: AppLocalizations.of(context)!.language,
       onSelected: (value) {
         if (value == 'en') {
           localeService.setLocale(const Locale('en'));

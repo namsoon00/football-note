@@ -12,6 +12,7 @@ import '../../application/settings_service.dart';
 import '../../domain/entities/league_standings.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../utils/kickoff_time_format.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
 
@@ -50,7 +51,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   final Map<LeagueStandingsType, Future<_LeagueOverviewSnapshot>> _futures = {};
   final Map<LeagueStandingsType, ScrollController> _scrollControllers = {};
   final Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>
-  _leagueTabKeys = {
+      _leagueTabKeys = {
     for (final type in LeagueStandingsType.values)
       type: GlobalKey<State<StatefulWidget>>(),
   };
@@ -64,8 +65,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     super.initState();
     _ownsService = widget.service == null;
     _service = widget.service ?? LeagueStandingsService();
-    _reminderService =
-        widget.reminderService ??
+    _reminderService = widget.reminderService ??
         (widget.optionRepository != null && widget.settingsService != null
             ? LeagueFixtureReminderService(
                 widget.optionRepository!,
@@ -122,7 +122,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   void _restoreFavoriteFixtureFilters() {
     final stored =
         widget.optionRepository?.getValue<List>(_favoriteFixtureFilterKey) ??
-        const <dynamic>[];
+            const <dynamic>[];
     _favoriteFixtureFilterTypes
       ..clear()
       ..addAll(
@@ -308,10 +308,10 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
           l10n.newsLeagueFixtureNotificationChannelDescription,
       bodyBuilder: (entry, teamName, opponentName) =>
           l10n.newsLeagueFavoriteTeamNotificationBody(
-            teamName,
-            opponentName,
-            formatter.format(entry.kickoffAt.toLocal()),
-          ),
+        teamName,
+        opponentName,
+        formatter.format(entry.kickoffAt.toLocal()),
+      ),
     );
     return count;
   }
@@ -367,20 +367,24 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
         title: Text(l10n.newsLeagueStandingsTitle),
         actions: [
           if (_reminderService != null)
-            TextButton.icon(
+            AppBarActionButton.label(
               onPressed: _openFavoriteTeamScreen,
+              tooltip: l10n.newsLeagueFavoriteTeamManage,
               icon: const Icon(Icons.favorite_border_rounded),
-              label: Text(l10n.newsLeagueFavoriteTeamManage),
+              label: l10n.newsLeagueFavoriteTeamManage,
+              maxLabelWidth: 100,
             ),
           FutureBuilder<_LeagueOverviewSnapshot>(
             future: _future,
             builder: (context, snapshot) {
               final sourceUrl = snapshot.data?.standings.sourceUrl.trim() ?? '';
               if (sourceUrl.isEmpty) return const SizedBox.shrink();
-              return TextButton.icon(
+              return AppBarActionButton.label(
                 onPressed: () => _openSource(sourceUrl),
+                tooltip: l10n.newsLeagueStandingsOpenSource,
                 icon: const Icon(Icons.open_in_new_rounded),
-                label: Text(l10n.newsLeagueStandingsOpenSource),
+                label: l10n.newsLeagueStandingsOpenSource,
+                maxLabelWidth: 88,
               );
             },
           ),
@@ -457,9 +461,9 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                                 .contains(data.standings.type),
                             onFilterFavoriteFixturesChanged: (enabled) =>
                                 _setFavoriteFixtureFilter(
-                                  data.standings.type,
-                                  enabled,
-                                ),
+                              data.standings.type,
+                              enabled,
+                            ),
                             onTeamTap: (entry) => _openTeamDetail(
                               standings: data.standings,
                               fixtures: data.fixtures,
@@ -533,7 +537,7 @@ class _LeagueFavoriteTeamScreenState extends State<_LeagueFavoriteTeamScreen> {
   final Map<LeagueStandingsType, _LeagueOverviewSnapshot> _cache = {};
   final Map<LeagueStandingsType, Future<_LeagueOverviewSnapshot>> _futures = {};
   final Map<LeagueStandingsType, GlobalKey<State<StatefulWidget>>>
-  _leagueTabKeys = {
+      _leagueTabKeys = {
     for (final type in LeagueStandingsType.values)
       type: GlobalKey<State<StatefulWidget>>(),
   };
@@ -833,8 +837,8 @@ class _FavoriteTeamLeaguePage extends StatelessWidget {
                               selectedCount,
                             ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                   TextButton.icon(
@@ -1027,68 +1031,68 @@ ButtonSegment<LeagueStandingsType> _leagueStandingsSegment(
 ) {
   return switch (type) {
     LeagueStandingsType.kLeague1 => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.flag_outlined, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsKLeagueStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.flag_outlined, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsKLeagueStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.premierLeague => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.shield_outlined, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsPremierLeagueStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.shield_outlined, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsPremierLeagueStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.championsLeague => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.emoji_events_outlined, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsChampionsLeagueStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.emoji_events_outlined, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsChampionsLeagueStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.laLiga => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.sports_soccer, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsLaLigaStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.sports_soccer, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsLaLigaStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.bundesliga => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.shield, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsBundesligaStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.shield, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsBundesligaStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.majorLeagueSoccer => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.public, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsMajorLeagueSoccerStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.public, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsMajorLeagueSoccerStandingsTitle,
+        ),
       ),
-    ),
     LeagueStandingsType.saudiProLeague => ButtonSegment<LeagueStandingsType>(
-      value: type,
-      icon: const Icon(Icons.flag_outlined, size: 18),
-      label: _leagueSegmentLabel(
-        labelKeys,
-        type,
-        l10n.newsSaudiProLeagueStandingsTitle,
+        value: type,
+        icon: const Icon(Icons.flag_outlined, size: 18),
+        label: _leagueSegmentLabel(
+          labelKeys,
+          type,
+          l10n.newsSaudiProLeagueStandingsTitle,
+        ),
       ),
-    ),
   };
 }
 
@@ -1375,14 +1379,14 @@ class _FixtureSection extends StatelessWidget {
     );
     final entries = filterFavorites && hasFavoriteTeamsForLeague
         ? snapshot.entries
-              .where(
-                (entry) => _fixtureMatchesFavoriteTeam(
-                  snapshot.type,
-                  entry,
-                  favoriteTeamKeys,
-                ),
-              )
-              .toList(growable: false)
+            .where(
+              (entry) => _fixtureMatchesFavoriteTeam(
+                snapshot.type,
+                entry,
+                favoriteTeamKeys,
+              ),
+            )
+            .toList(growable: false)
         : snapshot.entries;
     final visibleEntries = entries.take(5).toList(growable: false);
     return Column(
@@ -1598,11 +1602,9 @@ class _LeagueTeamDetailScreen extends StatelessWidget {
                       )
                     : Column(
                         children: [
-                          for (
-                            var index = 0;
-                            index < teamFixtures.length;
-                            index++
-                          ) ...[
+                          for (var index = 0;
+                              index < teamFixtures.length;
+                              index++) ...[
                             _FixtureRow(entry: teamFixtures[index]),
                             if (index != teamFixtures.length - 1)
                               const SizedBox(height: 8),
@@ -1823,9 +1825,9 @@ class _LeagueFixtureCalendarScreenState
     _entriesByDay = _groupByDay(entries);
     final now = DateTime.now();
     final defaultEntry = entries.cast<LeagueFixtureEntry?>().firstWhere(
-      (entry) => entry!.kickoffAt.toLocal().isAfter(now),
-      orElse: () => entries.isEmpty ? null : entries.first,
-    );
+          (entry) => entry!.kickoffAt.toLocal().isAfter(now),
+          orElse: () => entries.isEmpty ? null : entries.first,
+        );
     final defaultDay = defaultEntry == null
         ? _normalizeDay(now)
         : _normalizeDay(defaultEntry.kickoffAt.toLocal());
@@ -1931,8 +1933,7 @@ class _LeagueFixtureCalendarScreenState
                     headerStyle: HeaderStyle(
                       titleCentered: true,
                       formatButtonVisible: false,
-                      titleTextStyle:
-                          theme.textTheme.titleMedium?.copyWith(
+                      titleTextStyle: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w900,
                           ) ??
                           const TextStyle(fontWeight: FontWeight.w900),
@@ -1981,11 +1982,9 @@ class _LeagueFixtureCalendarScreenState
                   ),
                 )
               else
-                for (
-                  var index = 0;
-                  index < selectedEntries.length;
-                  index++
-                ) ...[
+                for (var index = 0;
+                    index < selectedEntries.length;
+                    index++) ...[
                   _FixtureRow(entry: selectedEntries[index]),
                   if (index != selectedEntries.length - 1)
                     const SizedBox(height: 8),
@@ -2229,9 +2228,9 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w900,
-        ),
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
       ),
     );
   }
@@ -2317,8 +2316,8 @@ class _StandingTeamRow extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                              fontWeight: FontWeight.w800,
+                            ),
                       ),
                     ),
                   ],
@@ -2394,9 +2393,8 @@ class _LogoCircle extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      padding: trimmedLogoUrl.isEmpty
-          ? EdgeInsets.zero
-          : const EdgeInsets.all(4),
+      padding:
+          trimmedLogoUrl.isEmpty ? EdgeInsets.zero : const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(
           alpha: theme.brightness == Brightness.dark ? 0.72 : 1.0,
@@ -2432,9 +2430,8 @@ class _LogoCircle extends StatelessWidget {
 }
 
 String _logoFallbackText(String shortName, String name) {
-  final preferred = shortName.trim().isNotEmpty
-      ? shortName.trim()
-      : name.trim();
+  final preferred =
+      shortName.trim().isNotEmpty ? shortName.trim() : name.trim();
   if (preferred.isEmpty) return '?';
   final words = preferred
       .split(RegExp(r'\s+'))
@@ -2494,15 +2491,12 @@ Widget _cell(
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
-      style:
-          (header
-                  ? Theme.of(context).textTheme.labelMedium
-                  : Theme.of(context).textTheme.bodyMedium)
-              ?.copyWith(
-                fontWeight: header || strong
-                    ? FontWeight.w900
-                    : FontWeight.w600,
-              ),
+      style: (header
+              ? Theme.of(context).textTheme.labelMedium
+              : Theme.of(context).textTheme.bodyMedium)
+          ?.copyWith(
+        fontWeight: header || strong ? FontWeight.w900 : FontWeight.w600,
+      ),
     ),
   );
 }

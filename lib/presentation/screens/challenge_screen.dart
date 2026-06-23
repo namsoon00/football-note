@@ -26,6 +26,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../utils/sport_conditioning_visuals.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/progress_star_gauge.dart';
@@ -117,21 +118,19 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               ),
         title: Text(_challengeScreenTitle(l10n)),
         actions: [
-          Padding(
-            padding: const EdgeInsetsDirectional.only(end: 4),
-            child: TextButton.icon(
-              onPressed: _openRewardGuide,
-              icon: const Icon(Icons.workspace_premium_outlined),
-              label: Text(l10n.challengeRewardAction),
-            ),
+          AppBarActionButton.label(
+            onPressed: _openRewardGuide,
+            tooltip: l10n.challengeRewardAction,
+            icon: const Icon(Icons.workspace_premium_outlined),
+            label: l10n.challengeRewardAction,
+            maxLabelWidth: 84,
           ),
-          Padding(
-            padding: const EdgeInsetsDirectional.only(end: 8),
-            child: TextButton.icon(
-              onPressed: _openHistory,
-              icon: const Icon(Icons.history),
-              label: Text(l10n.challengeHistoryAction),
-            ),
+          AppBarActionButton.label(
+            onPressed: _openHistory,
+            tooltip: l10n.challengeHistoryAction,
+            icon: const Icon(Icons.history),
+            label: l10n.challengeHistoryAction,
+            maxLabelWidth: 84,
           ),
         ],
       ),

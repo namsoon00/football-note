@@ -34,6 +34,7 @@ class AppRadius {
 
 class AppSizes {
   static const double minTouchTarget = 48;
+  static const double appBarAction = 40;
   static const double iconControl = 56;
   static const double primaryButtonHeight = 54;
 }

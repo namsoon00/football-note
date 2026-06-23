@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 
@@ -39,9 +40,12 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
         title: Text(l10n.xpHistoryTitle),
         actions: [
           if (history.isNotEmpty)
-            TextButton(
+            AppBarActionButton.label(
               onPressed: () => _confirmClearHistory(l10n),
-              child: Text(l10n.xpHistoryClearAllAction),
+              tooltip: l10n.xpHistoryClearAllAction,
+              icon: const Icon(Icons.delete_sweep_outlined),
+              label: l10n.xpHistoryClearAllAction,
+              maxLabelWidth: 96,
             ),
         ],
       ),

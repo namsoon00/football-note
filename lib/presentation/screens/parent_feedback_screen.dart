@@ -9,6 +9,7 @@ import '../../application/parent_shared_feedback_service.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 
@@ -208,8 +209,8 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     final localeTag = Localizations.localeOf(context).toString();
     final previewText = _savedMessage.trim().isEmpty
         ? (_savedReactions.isEmpty
-              ? l10n.parentFeedbackEmpty
-              : l10n.parentFeedbackReactionOnly)
+            ? l10n.parentFeedbackEmpty
+            : l10n.parentFeedbackReactionOnly)
         : _savedMessage.trim();
     final updatedLabel = _savedUpdatedAt == null
         ? ''
@@ -243,9 +244,12 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
           title: Text(l10n.parentFeedbackSectionTitle),
           actions: [
             if (_canEdit)
-              TextButton(
+              AppBarActionButton.label(
                 onPressed: (_isSaving || !_hasChanges) ? null : _saveFeedback,
-                child: Text(l10n.parentFeedbackSave),
+                tooltip: l10n.parentFeedbackSave,
+                icon: const Icon(Icons.check_rounded),
+                label: l10n.parentFeedbackSave,
+                maxLabelWidth: 80,
               ),
           ],
         ),
@@ -261,7 +265,9 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                     children: [
                       Text(
                         l10n.parentFeedbackSectionTitle,
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 6),
@@ -367,16 +373,14 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                     children: [
                       if (_canEdit)
                         TextButton(
-                          onPressed: _canClear
-                              ? () => _controller.clear()
-                              : null,
+                          onPressed:
+                              _canClear ? () => _controller.clear() : null,
                           child: Text(l10n.parentFeedbackClear),
                         ),
                       const Spacer(),
                       FilledButton.icon(
-                        onPressed: (_isSaving || !_hasChanges)
-                            ? null
-                            : _saveFeedback,
+                        onPressed:
+                            (_isSaving || !_hasChanges) ? null : _saveFeedback,
                         icon: const Icon(Icons.save_outlined),
                         label: Text(l10n.parentFeedbackSave),
                       ),

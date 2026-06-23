@@ -9,6 +9,7 @@ import '../../application/player_level_service.dart';
 import '../../application/sport_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/player_level_visuals.dart';
@@ -66,15 +67,15 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
       appBar: AppBar(
         title: Text(l10n.levelGuideTitle),
         actions: [
-          IconButton(
+          AppBarActionButton.icon(
             tooltip: l10n.levelGuideOpenXpGuideTooltip,
             onPressed: () => _openXpGuide(context),
-            icon: const Icon(Icons.menu_book_outlined),
+            icon: Icons.menu_book_outlined,
           ),
-          IconButton(
+          AppBarActionButton.icon(
             tooltip: l10n.levelGuideXpHistoryTooltip,
             onPressed: () => _openXpHistory(context),
-            icon: const Icon(Icons.schedule_outlined),
+            icon: Icons.schedule_outlined,
           ),
         ],
       ),

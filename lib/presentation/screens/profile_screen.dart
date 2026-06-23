@@ -20,6 +20,7 @@ import '../../domain/entities/player_profile.dart';
 import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/player_level_visuals.dart';
 import 'player_level_guide_screen.dart';
 
@@ -201,25 +202,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           centerTitle: false,
           title: Text(isKo ? '유저 프로필' : 'Player Profile'),
           actions: [
-            OutlinedButton.icon(
+            AppBarActionButton.label(
               onPressed: () => _openProfileTestsScreen(context),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 40),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 10,
-                ),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-              ),
-              icon: const Icon(Icons.psychology_alt_outlined, size: 17),
-              label: Text(
-                l10n.profileTestsActionLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              tooltip: l10n.profileTestsActionLabel,
+              icon: const Icon(Icons.psychology_alt_outlined),
+              label: l10n.profileTestsActionLabel,
+              maxLabelWidth: 104,
             ),
-            const SizedBox(width: 8),
           ],
         ),
         body: ListView(
