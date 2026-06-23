@@ -2121,6 +2121,37 @@
       "sport": {}
     }
   },
+  "statsMatchSummaryTitle": "試合サマリー",
+  "statsMatchResultGroupTitle": "結果指標",
+  "statsMatchPersonalGroupTitle": "個人貢献",
+  "statsMatchTotalMatchesLabel": "試合数",
+  "statsMatchTotalMatchesValue": "{count}試合",
+  "@statsMatchTotalMatchesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchRecordLabel": "成績",
+  "statsMatchRecordValue": "{wins}勝 {draws}分 {losses}敗",
+  "@statsMatchRecordValue": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchTypeLabel": "試合タイプ",
+  "statsMatchGoalsLabel": "得失点",
+  "statsMatchPersonalTotalLabel": "個人記録合計",
+  "statsMatchPersonalDetailLabel": "詳細貢献",
   "statsMatchFormInsightTitle": "試合の流れ",
   "statsMatchFormLabel": "最近のフォーム",
   "statsMatchFormUnsetValue": "結果未入力",

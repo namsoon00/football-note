@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 import '../../theme/app_theme.dart';
+import '../app_bar_action_button.dart';
 
 class WatchCartAppBar extends StatelessWidget {
   final VoidCallback? onLeadingTap;
@@ -41,14 +42,9 @@ class WatchCartAppBar extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    const actionConstraints = BoxConstraints(
-      minWidth: AppSizes.minTouchTarget,
-      minHeight: AppSizes.minTouchTarget,
-    );
-    const actionPadding = EdgeInsets.all(AppSpacing.xs);
     final leadingButton = Container(
-      width: AppSizes.minTouchTarget,
-      height: AppSizes.minTouchTarget,
+      width: AppSizes.appBarAction,
+      height: AppSizes.appBarAction,
       decoration: BoxDecoration(
         color: AppSurfaces.subtleColor(scheme, theme.brightness),
         borderRadius: AppRadius.small,
@@ -85,110 +81,32 @@ class WatchCartAppBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (onNewsTap != null)
-              IconButton(
-                icon: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(Icons.newspaper_outlined),
-                    if (newsBadgeCount > 0)
-                      Positioned(
-                        right: -6,
-                        top: -4,
-                        child: Container(
-                          constraints: const BoxConstraints(
-                            minWidth: 16,
-                            minHeight: 16,
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE53935),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Center(
-                            child: Text(
-                              newsBadgeCount > 99 ? '99+' : '$newsBadgeCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+              AppBarActionButton.icon(
+                icon: Icons.newspaper_outlined,
                 tooltip: l10n.tabNews,
-                iconSize: 28,
-                padding: actionPadding,
-                constraints: actionConstraints,
+                badgeCount: newsBadgeCount,
                 onPressed: onNewsTap,
               ),
             if (onQuizTap != null)
-              IconButton(
-                icon: const Icon(Icons.quiz_outlined),
+              AppBarActionButton.icon(
+                icon: Icons.quiz_outlined,
                 tooltip: l10n.drawerQuiz,
-                iconSize: 28,
-                padding: actionPadding,
-                constraints: actionConstraints,
                 onPressed: onQuizTap,
               ),
-            IconButton(
+            AppBarActionButton(
               icon: _ProfileAppBarAvatar(photoSource: profilePhotoSource),
-              iconSize: 30,
-              padding: actionPadding,
-              constraints: actionConstraints,
               onPressed: onProfileTap,
             ),
             if (onNotificationTap != null)
-              IconButton(
-                icon: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(Icons.notifications_outlined),
-                    if (notificationBadgeCount > 0)
-                      Positioned(
-                        right: -6,
-                        top: -4,
-                        child: Container(
-                          constraints: const BoxConstraints(
-                            minWidth: 16,
-                            minHeight: 16,
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE53935),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Center(
-                            child: Text(
-                              notificationBadgeCount > 99
-                                  ? '99+'
-                                  : '$notificationBadgeCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+              AppBarActionButton.icon(
+                icon: Icons.notifications_outlined,
                 tooltip: l10n.notifications,
-                iconSize: 30,
-                padding: actionPadding,
-                constraints: actionConstraints,
+                badgeCount: notificationBadgeCount,
                 onPressed: onNotificationTap,
               ),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              iconSize: 30,
-              padding: actionPadding,
-              constraints: actionConstraints,
+            AppBarActionButton.icon(
+              icon: Icons.settings,
+              tooltip: l10n.settings,
               onPressed: onSettingsTap,
             ),
           ],
@@ -208,7 +126,7 @@ class _ProfileAppBarAvatar extends StatelessWidget {
     final source = photoSource.trim();
     final provider = _imageProvider(source);
     if (provider == null) {
-      return const Icon(Icons.person_outline, size: 30);
+      return const Icon(Icons.person_outline, size: 20);
     }
     return SizedBox(
       width: 30,

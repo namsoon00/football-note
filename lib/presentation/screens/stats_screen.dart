@@ -20,7 +20,6 @@ import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/entities/player_profile.dart';
 import '../../domain/entities/sport_definition.dart';
-import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
 import '../theme/app_theme.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -131,7 +130,8 @@ class _StatsScreenState extends State<StatsScreen> {
         driveBackupService: widget.driveBackupService,
         currentIndex: 3,
       ),
-      body: AppBackground(
+      body: ColoredBox(
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: SafeArea(
           child: StreamBuilder<List<TrainingEntry>>(
             stream: _trainingEntriesStream,
@@ -508,7 +508,10 @@ class _StatsScreenState extends State<StatsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _StatsPanel(
-          child: _MatchOverviewSection(entries: matchEntries, isKo: isKo),
+          child: _MatchSummaryCard(
+            entries: matchEntries,
+            sportId: sportId,
+          ),
         ),
         if (hasCompetitionRecords || hasCompetitionEntries) ...[
           const SizedBox(height: 18),
@@ -519,15 +522,6 @@ class _StatsScreenState extends State<StatsScreen> {
             ),
           ),
         ],
-        const SizedBox(height: 18),
-        _StatsPanel(
-          child: _MatchFormReportSection(
-            entries: matchEntries,
-            sportId: sportId,
-          ),
-        ),
-        const SizedBox(height: 18),
-        _StatsPanel(child: _MatchSummaryCard(entries: matchEntries)),
         const SizedBox(height: 18),
         _StatsPanel(child: _MatchHistorySection(entries: matchEntries)),
       ],
@@ -1220,11 +1214,7 @@ class _LiftingSummaryCard extends StatelessWidget {
                         toY: entry.value.value.toDouble(),
                         width: 16,
                         borderRadius: BorderRadius.circular(6),
-                        gradient: const LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [Color(0xFF2F80ED), Color(0xFF6FCF97)],
-                        ),
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ],
                   );
@@ -2065,11 +2055,7 @@ class _CompactMetricChip extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: AppSurfaces.subtleDecoration(
-        theme.colorScheme,
-        theme.brightness,
-        accentAlpha: 0.06,
-      ),
+      decoration: _statsFlatDecoration(context, accentAlpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -2098,170 +2084,6 @@ class _CompactMetricChip extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class _MatchFormReportSection extends StatelessWidget {
-  final List<TrainingEntry> entries;
-  final String sportId;
-
-  const _MatchFormReportSection({
-    required this.entries,
-    required this.sportId,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final labels = SportMatchLabels.forSport(
-      l10n: l10n,
-      sportId: sportId,
-    );
-    final sportLabel = SportDefaults.label(l10n: l10n, sportId: sportId);
-    final resultEntries = entries
-        .where(
-          (entry) => entry.scoredGoals != null || entry.concededGoals != null,
-        )
-        .toList(growable: false);
-    final wins =
-        resultEntries.where((entry) => _matchOutcome(entry) == 1).length;
-    final winRate = resultEntries.isEmpty
-        ? null
-        : ((wins / resultEntries.length) * 100).round();
-    final scoredEntries = entries
-        .where(
-          (entry) => entry.scoredGoals != null && entry.concededGoals != null,
-        )
-        .toList(growable: false);
-    final scoredAverage = scoredEntries.isEmpty
-        ? null
-        : scoredEntries.fold<double>(
-              0,
-              (sum, entry) => sum + (entry.scoredGoals ?? 0),
-            ) /
-            scoredEntries.length;
-    final concededAverage = scoredEntries.isEmpty
-        ? null
-        : scoredEntries.fold<double>(
-              0,
-              (sum, entry) => sum + (entry.concededGoals ?? 0),
-            ) /
-            scoredEntries.length;
-    final primaryTotal = entries.fold<int>(
-      0,
-      (sum, entry) => sum + (entry.playerGoals ?? 0),
-    );
-    final secondaryTotal = entries.fold<int>(
-      0,
-      (sum, entry) => sum + (entry.playerAssists ?? 0),
-    );
-    final primaryAverage = primaryTotal / entries.length;
-    final secondaryAverage = secondaryTotal / entries.length;
-    final totalMinutes = entries.fold<int>(
-      0,
-      (sum, entry) => sum + (entry.minutesPlayed ?? 0),
-    );
-    final rateMinutes = _matchRateMinutesForSport(sportId);
-    final canShowRate = rateMinutes != null && totalMinutes > 0;
-    final recentResults = [...resultEntries]
-      ..sort((a, b) => b.date.compareTo(a.date));
-    final form = _matchFormText(recentResults.take(5).toList(), l10n);
-    final insight = winRate == null
-        ? l10n.statsMatchFormInsightNoResults(sportLabel)
-        : winRate >= 50
-            ? l10n.statsMatchFormInsightPositive(sportLabel, form, winRate)
-            : l10n.statsMatchFormInsightNeedsWork(sportLabel, form, winRate);
-    final cards = <_MetricCard>[
-      _MetricCard(label: l10n.statsMatchFormLabel, value: form),
-      _MetricCard(
-        label: l10n.statsMatchWinRateLabel,
-        value: winRate == null
-            ? l10n.statsMatchUnsetValue
-            : l10n.statsMatchWinRateValue(winRate),
-      ),
-      _MetricCard(
-        label: l10n.statsMatchAverageScoreLabel,
-        value: scoredAverage == null || concededAverage == null
-            ? l10n.statsMatchUnsetValue
-            : l10n.statsMatchAverageScoreValue(
-                _oneDecimal(scoredAverage),
-                _oneDecimal(concededAverage),
-              ),
-      ),
-      _MetricCard(
-        label: l10n.statsMatchPersonalPerMatchLabel,
-        value: l10n.statsMatchPersonalPerMatchValue(
-          labels.primary.label,
-          _oneDecimal(primaryAverage),
-          labels.secondary.label,
-          _oneDecimal(secondaryAverage),
-        ),
-      ),
-      if (canShowRate)
-        _MetricCard(
-          label: l10n.statsMatchPerUnitLabel(rateMinutes),
-          value: l10n.statsMatchPerUnitValue(
-            labels.primary.label,
-            _oneDecimal(primaryTotal * rateMinutes / totalMinutes),
-            labels.secondary.label,
-            _oneDecimal(secondaryTotal * rateMinutes / totalMinutes),
-          ),
-        )
-      else
-        _MetricCard(
-          label: l10n.statsMatchMinutesLabel,
-          value: totalMinutes > 0
-              ? l10n.minutes(totalMinutes)
-              : l10n.statsMatchNoMinutesValue,
-        ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _SectionTitle(
-          icon: Icons.timeline_outlined,
-          title: l10n.statsMatchFormTitle(sportLabel),
-        ),
-        const SizedBox(height: 12),
-        _CoachMessage(
-          icon: Icons.insights_outlined,
-          title: l10n.statsMatchFormInsightTitle,
-          message: insight,
-        ),
-        const SizedBox(height: 12),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final columns = constraints.maxWidth >= 760 ? 3 : 2;
-            final cardWidth =
-                (constraints.maxWidth - (10 * (columns - 1))) / columns;
-            return Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: cards
-                  .map((card) => SizedBox(width: cardWidth, child: card))
-                  .toList(growable: false),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  String _matchFormText(
-    List<TrainingEntry> recentResultEntries,
-    AppLocalizations l10n,
-  ) {
-    if (recentResultEntries.isEmpty) return l10n.statsMatchFormUnsetValue;
-    final chronological = recentResultEntries.toList(growable: false)
-      ..sort((a, b) => a.date.compareTo(b.date));
-    return chronological.map((entry) {
-      return switch (_matchOutcome(entry)) {
-        1 => l10n.statsMatchOutcomeWinShort,
-        -1 => l10n.statsMatchOutcomeLossShort,
-        _ => l10n.statsMatchOutcomeDrawShort,
-      };
-    }).join(' ');
   }
 }
 
@@ -2664,11 +2486,7 @@ class _CompetitionCardShell extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: AppSurfaces.subtleDecoration(
-        theme.colorScheme,
-        theme.brightness,
-        accentAlpha: 0.06,
-      ),
+      decoration: _statsFlatDecoration(context, accentAlpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -2963,82 +2781,61 @@ class _MoreCountLine extends StatelessWidget {
   }
 }
 
-class _MatchOverviewSection extends StatelessWidget {
-  final List<TrainingEntry> entries;
-  final bool isKo;
-
-  const _MatchOverviewSection({required this.entries, required this.isKo});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final labels = SportMatchLabels.forSport(
-      l10n: l10n,
-      sportId: entries.isEmpty ? null : entries.first.sportId,
-    );
-    final wins = entries.where((entry) => _matchOutcome(entry) == 1).length;
-    final losses = entries.where((entry) => _matchOutcome(entry) == -1).length;
-    final playerGoals = entries.fold<int>(
-      0,
-      (sum, entry) => sum + (entry.playerGoals ?? 0),
-    );
-    final playerAssists = entries.fold<int>(
-      0,
-      (sum, entry) => sum + (entry.playerAssists ?? 0),
-    );
-    final direction = wins >= losses
-        ? l10n.statsMatchTrendStable
-        : l10n.statsMatchTrendNeedsAttention;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _SectionTitle(
-          icon: Icons.sports_soccer_outlined,
-          title: isKo ? '시합 해석' : 'Match Insight',
-        ),
-        const SizedBox(height: 12),
-        _CoachMessage(
-          icon: Icons.tips_and_updates_outlined,
-          title: isKo ? '기간 해석' : 'Period Insight',
-          message: l10n.statsMatchInsightMessage(
-            entries.length,
-            labels.primary.label,
-            playerGoals,
-            labels.secondary.label,
-            playerAssists,
-            direction,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _MatchSummaryCard extends StatelessWidget {
   final List<TrainingEntry> entries;
+  final String sportId;
 
-  const _MatchSummaryCard({required this.entries});
+  const _MatchSummaryCard({required this.entries, required this.sportId});
 
   @override
   Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
+    final sportLabel = SportDefaults.label(l10n: l10n, sportId: sportId);
     final labels = SportMatchLabels.forSport(
       l10n: l10n,
-      sportId: entries.isEmpty ? null : entries.first.sportId,
+      sportId: sportId,
     );
-    final wins = entries.where((entry) => _matchOutcome(entry) == 1).length;
-    final draws = entries.where((entry) => _matchOutcome(entry) == 0).length;
-    final losses = entries.where((entry) => _matchOutcome(entry) == -1).length;
-    final scored = entries.fold<int>(
+    final resultEntries = entries
+        .where(
+          (entry) => entry.scoredGoals != null || entry.concededGoals != null,
+        )
+        .toList(growable: false);
+    final wins =
+        resultEntries.where((entry) => _matchOutcome(entry) == 1).length;
+    final draws =
+        resultEntries.where((entry) => _matchOutcome(entry) == 0).length;
+    final losses =
+        resultEntries.where((entry) => _matchOutcome(entry) == -1).length;
+    final scoredEntries = entries
+        .where(
+          (entry) => entry.scoredGoals != null && entry.concededGoals != null,
+        )
+        .toList(growable: false);
+    final scored = scoredEntries.fold<int>(
       0,
       (sum, entry) => sum + (entry.scoredGoals ?? 0),
     );
-    final conceded = entries.fold<int>(
+    final conceded = scoredEntries.fold<int>(
       0,
       (sum, entry) => sum + (entry.concededGoals ?? 0),
     );
+    final winRate = resultEntries.isEmpty
+        ? null
+        : ((wins / resultEntries.length) * 100).round();
+    final scoredAverage = scoredEntries.isEmpty
+        ? null
+        : scoredEntries.fold<double>(
+              0,
+              (sum, entry) => sum + (entry.scoredGoals ?? 0),
+            ) /
+            scoredEntries.length;
+    final concededAverage = scoredEntries.isEmpty
+        ? null
+        : scoredEntries.fold<double>(
+              0,
+              (sum, entry) => sum + (entry.concededGoals ?? 0),
+            ) /
+            scoredEntries.length;
     final playerGoals = entries.fold<int>(
       0,
       (sum, entry) => sum + (entry.playerGoals ?? 0),
@@ -3067,56 +2864,162 @@ class _MatchSummaryCard extends StatelessWidget {
     final tournamentWins = entries
         .where((entry) => entry.isTournamentMatch)
         .fold<int>(0, (sum, entry) => sum + (entry.tournamentWins ?? 0));
+    final totalMinutes = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.minutesPlayed ?? 0),
+    );
+    final primaryAverage = playerGoals / entries.length;
+    final secondaryAverage = playerAssists / entries.length;
+    final rateMinutes = _matchRateMinutesForSport(sportId);
+    final canShowRate = rateMinutes != null && totalMinutes > 0;
+    final recentResults = [...resultEntries]
+      ..sort((a, b) => b.date.compareTo(a.date));
+    final form = _matchFormText(recentResults.take(5).toList(), l10n);
+    final insight = winRate == null
+        ? l10n.statsMatchFormInsightNoResults(sportLabel)
+        : winRate >= 50
+            ? l10n.statsMatchFormInsightPositive(sportLabel, form, winRate)
+            : l10n.statsMatchFormInsightNeedsWork(sportLabel, form, winRate);
+    final resultCards = <_MetricCard>[
+      _MetricCard(
+        label: l10n.statsMatchTotalMatchesLabel,
+        value: l10n.statsMatchTotalMatchesValue(entries.length),
+      ),
+      _MetricCard(
+        label: l10n.statsMatchRecordLabel,
+        value: resultEntries.isEmpty
+            ? l10n.statsMatchUnsetValue
+            : l10n.statsMatchRecordValue(wins, draws, losses),
+      ),
+      _MetricCard(
+        label: l10n.statsMatchWinRateLabel,
+        value: winRate == null
+            ? l10n.statsMatchUnsetValue
+            : l10n.statsMatchWinRateValue(winRate),
+      ),
+      _MetricCard(
+        label: l10n.statsMatchAverageScoreLabel,
+        value: scoredAverage == null || concededAverage == null
+            ? l10n.statsMatchUnsetValue
+            : l10n.statsMatchAverageScoreValue(
+                _oneDecimal(scoredAverage),
+                _oneDecimal(concededAverage),
+              ),
+      ),
+      _MetricCard(
+        label: l10n.statsMatchTypeLabel,
+        value:
+            '${l10n.matchKindFriendly} $friendlyCount · ${l10n.matchKindLeague} $leagueCount · ${l10n.matchKindTournament} $tournamentCount',
+      ),
+      if (leagueCount > 0)
+        _MetricCard(
+          label: l10n.matchKindLeague,
+          value: l10n.matchLeaguePointsValue(leaguePoints),
+        ),
+      if (tournamentCount > 0)
+        _MetricCard(
+          label: l10n.matchKindTournament,
+          value: l10n.matchTournamentWinsValue(tournamentWins),
+        ),
+      _MetricCard(
+        label: l10n.statsMatchGoalsLabel,
+        value: '$scored:$conceded',
+      ),
+    ];
+    final personalCards = <_MetricCard>[
+      _MetricCard(
+        label: l10n.statsMatchFormLabel,
+        value: form,
+      ),
+      _MetricCard(
+        label: l10n.statsMatchPersonalPerMatchLabel,
+        value: l10n.statsMatchPersonalPerMatchValue(
+          labels.primary.label,
+          _oneDecimal(primaryAverage),
+          labels.secondary.label,
+          _oneDecimal(secondaryAverage),
+        ),
+      ),
+      if (canShowRate)
+        _MetricCard(
+          label: l10n.statsMatchPerUnitLabel(rateMinutes),
+          value: l10n.statsMatchPerUnitValue(
+            labels.primary.label,
+            _oneDecimal(playerGoals * rateMinutes / totalMinutes),
+            labels.secondary.label,
+            _oneDecimal(playerAssists * rateMinutes / totalMinutes),
+          ),
+        )
+      else
+        _MetricCard(
+          label: l10n.statsMatchMinutesLabel,
+          value: totalMinutes > 0
+              ? l10n.minutes(totalMinutes)
+              : l10n.statsMatchNoMinutesValue,
+        ),
+      _MetricCard(
+        label: l10n.statsMatchPersonalTotalLabel,
+        value: l10n.statsMatchPersonalPerMatchValue(
+          labels.primary.label,
+          '$playerGoals',
+          labels.secondary.label,
+          '$playerAssists',
+        ),
+      ),
+      _MetricCard(
+        label: l10n.statsMatchPersonalDetailLabel,
+        value: l10n.statsMatchPersonalPerMatchValue(
+          labels.tertiary.label,
+          '$shotsOnTarget',
+          labels.quaternary.label,
+          '$ballsWon',
+        ),
+      ),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionTitle(
           icon: Icons.scoreboard_outlined,
-          title: isKo ? '시합 요약' : 'Match Summary',
+          title: l10n.statsMatchSummaryTitle,
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _MetricCard(
-              label: isKo ? '총 시합' : 'Matches',
-              value: isKo ? '${entries.length}경기' : '${entries.length}',
-            ),
-            _MetricCard(
-              label: isKo ? '전적' : 'Record',
-              value: isKo ? '$wins승 $draws무 $losses패' : '$wins-$draws-$losses',
-            ),
-            _MetricCard(
-              label: isKo ? '경기 유형' : 'Match type',
-              value:
-                  '${l10n.matchKindFriendly} $friendlyCount · ${l10n.matchKindLeague} $leagueCount · ${l10n.matchKindTournament} $tournamentCount',
-            ),
-            if (leagueCount > 0)
-              _MetricCard(
-                label: l10n.matchKindLeague,
-                value: l10n.matchLeaguePointsValue(leaguePoints),
-              ),
-            if (tournamentCount > 0)
-              _MetricCard(
-                label: l10n.matchKindTournament,
-                value: l10n.matchTournamentWinsValue(tournamentWins),
-              ),
-            _MetricCard(
-              label: isKo ? '득실점' : 'Goals',
-              value: '$scored:$conceded',
-            ),
-            _MetricCard(
-              label: isKo ? '개인 기록' : 'Personal',
-              value:
-                  '${labels.primary.label} $playerGoals · ${labels.secondary.label} $playerAssists\n'
-                  '${labels.tertiary.label} $shotsOnTarget · ${labels.quaternary.label} $ballsWon',
-            ),
-          ],
+        _CoachMessage(
+          icon: Icons.insights_outlined,
+          title: l10n.statsMatchFormInsightTitle,
+          message: insight,
+        ),
+        const SizedBox(height: 14),
+        _MetricGroup(
+          icon: Icons.query_stats_outlined,
+          title: l10n.statsMatchResultGroupTitle,
+          cards: resultCards,
+        ),
+        const SizedBox(height: 14),
+        _MetricGroup(
+          icon: Icons.person_search_outlined,
+          title: l10n.statsMatchPersonalGroupTitle,
+          cards: personalCards,
         ),
       ],
     );
+  }
+
+  String _matchFormText(
+    List<TrainingEntry> recentResultEntries,
+    AppLocalizations l10n,
+  ) {
+    if (recentResultEntries.isEmpty) return l10n.statsMatchFormUnsetValue;
+    final chronological = recentResultEntries.toList(growable: false)
+      ..sort((a, b) => a.date.compareTo(b.date));
+    return chronological.map((entry) {
+      return switch (_matchOutcome(entry)) {
+        1 => l10n.statsMatchOutcomeWinShort,
+        -1 => l10n.statsMatchOutcomeLossShort,
+        _ => l10n.statsMatchOutcomeDrawShort,
+      };
+    }).join(' ');
   }
 }
 
@@ -3174,14 +3077,9 @@ class _MatchHistoryTile extends StatelessWidget {
         isKo ? '${entry.minutesPlayed}분 출전' : '${entry.minutesPlayed} min',
     ].join(' · ');
 
-    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: AppSurfaces.subtleDecoration(
-        theme.colorScheme,
-        theme.brightness,
-        accentAlpha: 0.05,
-      ),
+      decoration: _statsFlatDecoration(context, accentAlpha: 0.04),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -3221,6 +3119,43 @@ class _MatchHistoryTile extends StatelessWidget {
   }
 }
 
+class _MetricGroup extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final List<_MetricCard> cards;
+
+  const _MetricGroup({
+    required this.icon,
+    required this.title,
+    required this.cards,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _MiniSectionHeader(icon: icon, title: title),
+        const SizedBox(height: 10),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 760 ? 4 : 2;
+            final width =
+                (constraints.maxWidth - (10 * (columns - 1))) / columns;
+            return Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: cards
+                  .map((card) => SizedBox(width: width, child: card))
+                  .toList(growable: false),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
 class _MetricCard extends StatelessWidget {
   final String label;
   final String value;
@@ -3233,21 +3168,17 @@ class _MetricCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: AppSurfaces.subtleDecoration(
-        theme.colorScheme,
-        theme.brightness,
-        accentAlpha: 0.05,
-      ),
+      decoration: _statsFlatDecoration(context, accentAlpha: 0.04),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: Theme.of(context).textTheme.labelMedium),
+          Text(label, style: theme.textTheme.labelMedium),
           const SizedBox(height: 6),
           Text(
             value,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ],
       ),
@@ -3447,6 +3378,30 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
+BoxDecoration _statsFlatDecoration(
+  BuildContext context, {
+  Color? accent,
+  double accentAlpha = 0.06,
+}) {
+  final theme = Theme.of(context);
+  final scheme = theme.colorScheme;
+  final brightness = theme.brightness;
+  final tint = accent ?? scheme.primary;
+  final base = AppSurfaces.cardColor(scheme, brightness);
+  final overlayAlpha = brightness == Brightness.dark
+      ? (accentAlpha + 0.05).clamp(0.0, 1.0).toDouble()
+      : accentAlpha;
+  return BoxDecoration(
+    color: Color.alphaBlend(tint.withValues(alpha: overlayAlpha), base),
+    borderRadius: AppRadius.surface,
+    border: Border.all(
+      color:
+          tint.withValues(alpha: brightness == Brightness.dark ? 0.28 : 0.18),
+    ),
+    boxShadow: AppShadows.surface(brightness),
+  );
+}
+
 class _StatsPanel extends StatelessWidget {
   final Widget child;
 
@@ -3483,15 +3438,11 @@ class _CoachMessage extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: AppSurfaces.subtleDecoration(
-        theme.colorScheme,
-        theme.brightness,
-        accentAlpha: 0.06,
-      ),
+      decoration: _statsFlatDecoration(context, accentAlpha: 0.05),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18),
+          Icon(icon, size: 18, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -3499,9 +3450,9 @@ class _CoachMessage extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -3579,11 +3530,10 @@ class _ComparisonRow extends StatelessWidget {
         isPositive ? const Color(0xFF3DDC84) : theme.colorScheme.error;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: AppSurfaces.subtleDecoration(
-        theme.colorScheme,
-        theme.brightness,
+      decoration: _statsFlatDecoration(
+        context,
         accent: gapColor,
-        accentAlpha: 0.05,
+        accentAlpha: 0.04,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

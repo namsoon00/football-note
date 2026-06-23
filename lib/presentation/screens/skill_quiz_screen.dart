@@ -17,6 +17,7 @@ import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_bar_action_button.dart';
 
 class SkillQuizScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -911,19 +912,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     required Widget icon,
     required String label,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(0, 36),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
-        ),
-        icon: icon,
-        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-      ),
+    return AppBarActionButton.label(
+      onPressed: onPressed,
+      tooltip: label,
+      icon: icon,
+      label: label,
+      maxLabelWidth: 96,
     );
   }
 

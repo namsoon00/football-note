@@ -2121,6 +2121,37 @@
       "sport": {}
     }
   },
+  "statsMatchSummaryTitle": "시합 요약",
+  "statsMatchResultGroupTitle": "결과 지표",
+  "statsMatchPersonalGroupTitle": "개인 기여",
+  "statsMatchTotalMatchesLabel": "총 시합",
+  "statsMatchTotalMatchesValue": "{count}경기",
+  "@statsMatchTotalMatchesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchRecordLabel": "전적",
+  "statsMatchRecordValue": "{wins}승 {draws}무 {losses}패",
+  "@statsMatchRecordValue": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchTypeLabel": "경기 유형",
+  "statsMatchGoalsLabel": "득실점",
+  "statsMatchPersonalTotalLabel": "개인 기록 합계",
+  "statsMatchPersonalDetailLabel": "세부 기여",
   "statsMatchFormInsightTitle": "경기 흐름",
   "statsMatchFormLabel": "최근 폼",
   "statsMatchFormUnsetValue": "결과 미입력",

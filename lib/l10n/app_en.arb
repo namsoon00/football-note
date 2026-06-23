@@ -2121,6 +2121,37 @@
       "sport": {}
     }
   },
+  "statsMatchSummaryTitle": "Match Summary",
+  "statsMatchResultGroupTitle": "Result Metrics",
+  "statsMatchPersonalGroupTitle": "Personal Contribution",
+  "statsMatchTotalMatchesLabel": "Matches",
+  "statsMatchTotalMatchesValue": "{count}",
+  "@statsMatchTotalMatchesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchRecordLabel": "Record",
+  "statsMatchRecordValue": "{wins}-{draws}-{losses}",
+  "@statsMatchRecordValue": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchTypeLabel": "Match type",
+  "statsMatchGoalsLabel": "Scoreline",
+  "statsMatchPersonalTotalLabel": "Personal total",
+  "statsMatchPersonalDetailLabel": "Detail contribution",
   "statsMatchFormInsightTitle": "Match Flow",
   "statsMatchFormLabel": "Recent form",
   "statsMatchFormUnsetValue": "No results",

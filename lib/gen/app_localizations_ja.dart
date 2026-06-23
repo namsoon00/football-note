@@ -3409,6 +3409,43 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get statsMatchSummaryTitle => '試合サマリー';
+
+  @override
+  String get statsMatchResultGroupTitle => '結果指標';
+
+  @override
+  String get statsMatchPersonalGroupTitle => '個人貢献';
+
+  @override
+  String get statsMatchTotalMatchesLabel => '試合数';
+
+  @override
+  String statsMatchTotalMatchesValue(int count) {
+    return '$count試合';
+  }
+
+  @override
+  String get statsMatchRecordLabel => '成績';
+
+  @override
+  String statsMatchRecordValue(int wins, int draws, int losses) {
+    return '$wins勝 $draws分 $losses敗';
+  }
+
+  @override
+  String get statsMatchTypeLabel => '試合タイプ';
+
+  @override
+  String get statsMatchGoalsLabel => '得失点';
+
+  @override
+  String get statsMatchPersonalTotalLabel => '個人記録合計';
+
+  @override
+  String get statsMatchPersonalDetailLabel => '詳細貢献';
+
+  @override
   String get statsMatchFormInsightTitle => '試合の流れ';
 
   @override

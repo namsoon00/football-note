@@ -16,6 +16,7 @@ import '../../domain/entities/sprint_realtime_coaching_state.dart';
 import '../../gen/app_localizations.dart';
 import '../../realtime_analysis/sprint_coaching/sprint_pipeline_config.dart';
 import '../../realtime_analysis/sprint_coaching/sprint_landmark_smoother.dart';
+import '../widgets/app_bar_action_button.dart';
 import 'running_live_coach_guide_screen.dart';
 
 class SprintLiveCoachingScreen extends StatefulWidget {
@@ -146,39 +147,37 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       appBar: AppBar(
         title: Text(l10n.runningCoachSprintLiveScreenTitle),
         actions: [
-          IconButton(
+          AppBarActionButton.icon(
             onPressed: () {
               setState(() {
                 _isDebugModeEnabled = !_isDebugModeEnabled;
               });
             },
-            icon: Icon(
-              _isDebugModeEnabled
-                  ? Icons.bug_report_rounded
-                  : Icons.bug_report_outlined,
-            ),
+            icon: _isDebugModeEnabled
+                ? Icons.bug_report_rounded
+                : Icons.bug_report_outlined,
+            selected: _isDebugModeEnabled,
             tooltip: l10n.runningCoachSprintDebugToggle,
           ),
-          IconButton(
+          AppBarActionButton.icon(
             onPressed: _openGuide,
-            icon: const Icon(Icons.info_outline_rounded),
+            icon: Icons.info_outline_rounded,
             tooltip: l10n.runningCoachLiveGuideAction,
           ),
-          IconButton(
+          AppBarActionButton.icon(
             onPressed: _toggleSpeech,
-            icon: Icon(
-              _isSpeechEnabled
-                  ? Icons.volume_up_rounded
-                  : Icons.volume_off_rounded,
-            ),
+            icon: _isSpeechEnabled
+                ? Icons.volume_up_rounded
+                : Icons.volume_off_rounded,
+            selected: _isSpeechEnabled,
             tooltip: _isSpeechEnabled
                 ? l10n.runningCoachLiveVoiceOn
                 : l10n.runningCoachLiveVoiceOff,
           ),
           if (_cameras.length > 1)
-            IconButton(
+            AppBarActionButton.icon(
               onPressed: _isInitializing ? null : _switchCamera,
-              icon: const Icon(Icons.cameraswitch_outlined),
+              icon: Icons.cameraswitch_outlined,
               tooltip: l10n.runningCoachLiveSwitchCamera,
             ),
         ],

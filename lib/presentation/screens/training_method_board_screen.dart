@@ -16,6 +16,7 @@ import '../../domain/entities/training_board.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_templates.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_page_route.dart';
 import 'training_board_template_gallery_screen.dart';
 
@@ -3798,18 +3799,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   List<Widget> _buildTopBarActions(bool isKo, {required bool isLandscape}) {
     return [
       if (!widget.readOnly)
-        TextButton.icon(
+        AppBarActionButton.label(
           onPressed: () => _saveBoard(isKo),
+          tooltip: _l10n.save,
           icon: const Icon(Icons.save_outlined),
-          label: Text(_l10n.save),
+          label: _l10n.save,
+          maxLabelWidth: 72,
         ),
-      IconButton(
+      AppBarActionButton.icon(
         onPressed: () => _playPlayerPath(isKo),
-        icon: Icon(
-          _playController.isAnimating
-              ? Icons.stop_circle_outlined
-              : Icons.play_circle_outline,
-        ),
+        icon: _playController.isAnimating
+            ? Icons.stop_circle_outlined
+            : Icons.play_circle_outline,
+        selected: _playController.isAnimating,
         tooltip: _l10n.trainingSketchPlayTooltip,
       ),
       _buildTopBarMenuButton(isKo, isLandscape: isLandscape),
@@ -3821,13 +3823,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final controlsExpanded =
         isLandscape ? _showLandscapeControls : _showPortraitInspector;
     final l10n = _l10n;
-    return PopupMenuButton<_TopBarMenuAction>(
+    return AppBarActionMenuButton<_TopBarMenuAction>(
       key: ValueKey(
         isLandscape
             ? 'training-landscape-topbar-menu'
             : 'training-portrait-topbar-menu',
       ),
       tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+      icon: Icons.more_horiz_rounded,
       onSelected: (action) {
         unawaited(
           _handleTopBarMenuAction(action, isKo, isLandscape: isLandscape),

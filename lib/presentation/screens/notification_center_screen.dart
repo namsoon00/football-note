@@ -13,6 +13,7 @@ import '../../application/weather_reminder_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
 import '../navigation/notification_tap_router.dart';
+import '../widgets/app_bar_action_button.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -520,16 +521,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    return OutlinedButton.icon(
+    return AppBarActionButton.label(
       onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(0, 40),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-      ),
-      icon: Icon(icon, size: 17),
-      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      tooltip: label,
+      icon: Icon(icon),
+      label: label,
     );
   }
 

@@ -651,7 +651,9 @@ void main() {
     await tester.tap(find.text('시합'));
     await tester.pumpAndSettle();
 
-    expect(find.text('농구 경기 리포트'), findsOneWidget);
+    expect(find.text('시합 요약'), findsOneWidget);
+    expect(find.text('결과 지표'), findsOneWidget);
+    expect(find.text('개인 기여'), findsOneWidget);
     expect(find.text('40분 기준'), findsOneWidget);
     expect(find.textContaining('득점 12.0'), findsOneWidget);
   });

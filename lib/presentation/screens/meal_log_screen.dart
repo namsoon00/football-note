@@ -11,6 +11,7 @@ import '../../application/settings_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/meal_entry.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/rice_bowl_summary.dart';
@@ -78,10 +79,10 @@ class _MealLogScreenState extends State<MealLogScreen> {
         title: Text(l10n.mealLogScreenTitle),
         actions: [
           if (_persistedEntry != null && !_isParentMode)
-            IconButton(
+            AppBarActionButton.icon(
               tooltip: l10n.mealDeleteAction,
               onPressed: _delete,
-              icon: const Icon(Icons.delete_outline),
+              icon: Icons.delete_outline,
             ),
         ],
       ),

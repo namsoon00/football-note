@@ -12,6 +12,7 @@ import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../models/space_speed_pass_state.dart';
 import 'game_guide_screen.dart';
@@ -1170,18 +1171,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     required String label,
     required VoidCallback onPressed,
   }) {
-    return Tooltip(
-      message: label,
-      child: IconButton.outlined(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 20),
-        visualDensity: VisualDensity.compact,
-        style: IconButton.styleFrom(
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.surface.withValues(alpha: 0.76),
-        ),
-      ),
+    return AppBarActionButton.icon(
+      icon: icon,
+      tooltip: label,
+      onPressed: onPressed,
     );
   }
 

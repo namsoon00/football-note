@@ -3407,6 +3407,43 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get statsMatchSummaryTitle => '시합 요약';
+
+  @override
+  String get statsMatchResultGroupTitle => '결과 지표';
+
+  @override
+  String get statsMatchPersonalGroupTitle => '개인 기여';
+
+  @override
+  String get statsMatchTotalMatchesLabel => '총 시합';
+
+  @override
+  String statsMatchTotalMatchesValue(int count) {
+    return '$count경기';
+  }
+
+  @override
+  String get statsMatchRecordLabel => '전적';
+
+  @override
+  String statsMatchRecordValue(int wins, int draws, int losses) {
+    return '$wins승 $draws무 $losses패';
+  }
+
+  @override
+  String get statsMatchTypeLabel => '경기 유형';
+
+  @override
+  String get statsMatchGoalsLabel => '득실점';
+
+  @override
+  String get statsMatchPersonalTotalLabel => '개인 기록 합계';
+
+  @override
+  String get statsMatchPersonalDetailLabel => '세부 기여';
+
+  @override
   String get statsMatchFormInsightTitle => '경기 흐름';
 
   @override
