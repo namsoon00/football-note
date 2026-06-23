@@ -758,6 +758,7 @@
   "worldCupTournamentZoomOut": "브래킷 축소",
   "worldCupTournamentZoomReset": "브래킷 크기 초기화",
   "worldCupTournamentZoomIn": "브래킷 확대",
+  "worldCupTournamentOpenFullScreen": "전체 화면에서 보기",
   "worldCupStageMatchCount": "{count}경기",
   "@worldCupStageMatchCount": {
     "placeholders": {

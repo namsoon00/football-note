@@ -758,6 +758,7 @@
   "worldCupTournamentZoomOut": "Zoom bracket out",
   "worldCupTournamentZoomReset": "Reset bracket zoom",
   "worldCupTournamentZoomIn": "Zoom bracket in",
+  "worldCupTournamentOpenFullScreen": "Open full screen",
   "worldCupStageMatchCount": "{count} matches",
   "@worldCupStageMatchCount": {
     "placeholders": {
