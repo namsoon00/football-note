@@ -836,9 +836,30 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         : null;
   }
 
+  _BoardItem? _controlledPlayerForBall(_BoardItem ball) {
+    final players = _itemsOfType(_BoardItemType.player);
+    if (players.isEmpty) return null;
+    players.sort((a, b) {
+      final ballPosition = _itemPosition(ball);
+      final aDistance = (_itemPosition(a) - ballPosition).distance;
+      final bDistance = (_itemPosition(b) - ballPosition).distance;
+      return aDistance.compareTo(bDistance);
+    });
+    final nearest = players.first;
+    return (_itemPosition(nearest) - _itemPosition(ball)).distance <= 0.16
+        ? nearest
+        : null;
+  }
+
   Offset _ballCarryPointForPlayer(_BoardItem player) {
     final offsetX = player.x > 0.82 ? -0.045 : 0.045;
     return _clampedBoardPoint(player.x + offsetX, player.y + 0.018);
+  }
+
+  Offset _playerCarryPointForBall(_BoardItem ball) {
+    final offsetX = ball.x < 0.18 ? 0.045 : -0.045;
+    final offsetY = ball.y < 0.18 ? 0.025 : -0.025;
+    return _clampedBoardPoint(ball.x + offsetX, ball.y + offsetY);
   }
 
   _BoardItem _createControlledBallForPlayer(_BoardItem player) {
@@ -854,6 +875,27 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
     _currentPage.items.add(ball);
     return ball;
+  }
+
+  _BoardItem _createControlledPlayerForBall(_BoardItem ball) {
+    final playerPoint = _playerCarryPointForBall(ball);
+    final player = _BoardItem(
+      id: _nextBoardItemId(),
+      type: _BoardItemType.player,
+      x: playerPoint.dx,
+      y: playerPoint.dy,
+      size: 32,
+      rotationDeg: 0,
+      color: _nextItemColor(_BoardItemType.player),
+    );
+    _currentPage.items.add(player);
+    return player;
+  }
+
+  _BoardItem? _ensureControlledPlayerForSelectedBall(_BoardItem selected) {
+    if (selected.type != _BoardItemType.ball) return null;
+    return _controlledPlayerForBall(selected) ??
+        _createControlledPlayerForBall(selected);
   }
 
   bool _requiresBallTargetAction(_SketchTargetAction action) {
@@ -2629,6 +2671,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }) {
     final ball = _ballForTargetAction(selected);
     if (ball == null) return false;
+    _ensureControlledPlayerForSelectedBall(selected);
     return _applyQuickBallToPointTemplate(
       ball: ball,
       end: target,
@@ -2731,6 +2774,42 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (player == null) {
       final ball = _ballForTargetAction(selected);
       if (ball == null) return false;
+      final controlledPlayer = _ensureControlledPlayerForSelectedBall(selected);
+      if (controlledPlayer != null) {
+        final playerStart = _itemPosition(controlledPlayer);
+        final ballStart = _itemPosition(ball);
+        final playerMiddle = _midTargetPoint(
+          playerStart,
+          target,
+          yOffset: curveYOffset,
+        );
+        final ballMiddle = _midTargetPoint(
+          ballStart,
+          target,
+          yOffset: curveYOffset,
+        );
+        final stageIndex = _suggestedStageForNewRoute(_PathDrawMode.player);
+        _stopRoutePlayback(restoreStart: false);
+        setState(() {
+          _upsertRouteForItem(
+            kind: _PathDrawMode.ball,
+            item: ball,
+            points: <Offset>[ballStart, ballMiddle, target],
+            segmentDurationsMs: segmentDurationsMs,
+            stageIndex: stageIndex,
+          );
+          final playerRoute = _upsertRouteForItem(
+            kind: _PathDrawMode.player,
+            item: controlledPlayer,
+            points: <Offset>[playerStart, playerMiddle, target],
+            segmentDurationsMs: segmentDurationsMs,
+            stageIndex: stageIndex,
+          );
+          _selectQuickActionRoute(playerRoute, controlledPlayer);
+        });
+        _scheduleAutoSave();
+        return true;
+      }
       final start = _itemPosition(ball);
       final middle = _midTargetPoint(start, target, yOffset: curveYOffset);
       return _applyQuickBallToPointTemplate(
@@ -2790,6 +2869,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _applyCrossTargetAction(_BoardItem selected, Offset target) {
     final ball = _ballForTargetAction(selected);
     if (ball == null) return false;
+    _ensureControlledPlayerForSelectedBall(selected);
     final start = _itemPosition(ball);
     final middle = _midTargetPoint(start, target, yOffset: -0.04);
     return _applyQuickBallToPointTemplate(
@@ -2824,6 +2904,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _applyServeTargetAction(_BoardItem selected, Offset target) {
     final ball = _ballForTargetAction(selected);
     if (ball == null) return false;
+    _ensureControlledPlayerForSelectedBall(selected);
     final start = _itemPosition(ball);
     final middle = _clampedBoardPoint(
       start.dx + ((target.dx - start.dx) * 0.45),
@@ -2842,6 +2923,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _applyRallyTargetAction(_BoardItem selected, Offset target) {
     final ball = _ballForTargetAction(selected);
     if (ball == null) return false;
+    _ensureControlledPlayerForSelectedBall(selected);
     final start = _itemPosition(ball);
     final middle = _clampedBoardPoint(
       start.dx + ((target.dx - start.dx) * 0.50),

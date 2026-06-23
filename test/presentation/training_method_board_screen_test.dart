@@ -8,6 +8,8 @@ import 'package:football_note/application/training_board_service.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
+import 'package:football_note/gen/app_localizations_ko.dart';
+import 'package:football_note/presentation/models/training_board_templates.dart';
 import 'package:football_note/presentation/models/training_method_layout.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
 
@@ -305,6 +307,39 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '낮은 뜀틀'), findsNothing);
   });
 
+  test('football templates include coach-ready action layouts', () {
+    final templates = buildTrainingBoardTemplateOptions(
+      AppLocalizationsKo(),
+      sportId: SportCatalog.footballId,
+    );
+
+    expect(templates.map((template) => template.id), contains('switch_play'));
+    expect(
+      templates.map((template) => template.id),
+      contains('defensive_shift'),
+    );
+    expect(templates, hasLength(11));
+
+    for (final template in templates.where((entry) => entry.id != 'blank')) {
+      final page = template.buildLayout(template.label).pages.single;
+      expect(page.items.where((item) => item.type == 'player').length,
+          greaterThanOrEqualTo(3));
+      expect(
+        page.routes.any((route) => route.kind == TrainingMethodRouteKind.ball),
+        isTrue,
+      );
+      expect(
+        page.routes
+            .any((route) => route.kind == TrainingMethodRouteKind.player),
+        isTrue,
+      );
+      expect(
+        page.routes.every((route) => route.linkedItemId?.isNotEmpty == true),
+        isTrue,
+      );
+    }
+  });
+
   testWidgets('new player creates a movement route by action and target tap', (
     WidgetTester tester,
   ) async {
@@ -372,8 +407,12 @@ void main() {
     await tester.pumpAndSettle();
 
     final saved = TrainingMethodLayout.decode(savedLayout ?? '');
-    final item = saved.pages.single.items.single;
+    final page = saved.pages.single;
+    final item = page.items.singleWhere((entry) => entry.type == 'ball');
+    final player = page.items.singleWhere((entry) => entry.type == 'player');
     final route = saved.pages.single.routes.single;
+    expect((player.x - item.x).abs(), lessThan(0.08));
+    expect((player.y - item.y).abs(), lessThan(0.06));
     expect(item.type, 'ball');
     expect(route.kind, TrainingMethodRouteKind.ball);
     expect(route.linkedItemId, item.id);
@@ -493,6 +532,75 @@ void main() {
     );
 
     expect(playerRoute.linkedItemId, 'player-1');
+    expect(ballRoute.stageIndex, playerRoute.stageIndex);
+    expect(playerRoute.points.last.x, closeTo(0.62, 0.02));
+    expect(playerRoute.points.last.y, closeTo(0.42, 0.02));
+    expect(ballRoute.points.last.x, closeTo(0.62, 0.02));
+    expect(ballRoute.points.last.y, closeTo(0.42, 0.02));
+  });
+
+  testWidgets('ball dribble action creates a controlled player when needed', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '공 드리블',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.36,
+                    y: 0.54,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.sports_soccer),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '드리블');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.62, 0.42));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    expect(page.items.where((item) => item.type == 'player'), hasLength(1));
+    final player = page.items.singleWhere((item) => item.type == 'player');
+    final ball = page.items.singleWhere((item) => item.type == 'ball');
+    final playerRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.player,
+    );
+    final ballRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.ball,
+    );
+
+    expect((player.x - ball.x).abs(), lessThan(0.08));
+    expect((player.y - ball.y).abs(), lessThan(0.06));
+    expect(playerRoute.linkedItemId, player.id);
+    expect(ballRoute.linkedItemId, 'ball-1');
     expect(ballRoute.stageIndex, playerRoute.stageIndex);
     expect(playerRoute.points.last.x, closeTo(0.62, 0.02));
     expect(playerRoute.points.last.y, closeTo(0.42, 0.02));

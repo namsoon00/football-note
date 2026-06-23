@@ -9825,78 +9825,106 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchTemplateBlankDescription => '아무 요소 없이 바로 시작';
 
   @override
-  String get trainingSketchTemplatePassWarmupLabel => '패스 워밍업';
+  String get trainingSketchTemplatePassWarmupLabel => '3인 패스 앤 무브';
 
   @override
-  String get trainingSketchTemplatePassWarmupDescription => '기본 3인 패스 구조';
+  String get trainingSketchTemplatePassWarmupDescription => '패스, 지원, 자리 교대 흐름';
 
   @override
-  String get trainingSketchTemplatePassWarmupMethod => '2터치 패스 + 움직임 교대';
+  String get trainingSketchTemplatePassWarmupMethod =>
+      '받기 전 몸 열기, 패스 후 다음 위치로 이동';
 
   @override
-  String get trainingSketchTemplateBuildUpLabel => '빌드업 패턴';
+  String get trainingSketchTemplateBuildUpLabel => '후방 빌드업 탈압박';
 
   @override
-  String get trainingSketchTemplateBuildUpDescription => '후방 전개 기본 구조';
+  String get trainingSketchTemplateBuildUpDescription => '골키퍼-센터백-6번 연결';
 
   @override
-  String get trainingSketchTemplateBuildUpMethod => '후방 빌드업 3-2 전개';
+  String get trainingSketchTemplateBuildUpMethod =>
+      '압박을 끌어낸 뒤 6번을 거쳐 반대 풀백으로 전개';
 
   @override
-  String get trainingSketchTemplatePressingLabel => '압박 전환';
+  String get trainingSketchTemplatePressingLabel => '5초 역압박';
 
   @override
-  String get trainingSketchTemplatePressingDescription => '전방 압박 시작 위치';
+  String get trainingSketchTemplatePressingDescription => '볼 잃은 뒤 즉시 압박과 커버';
 
   @override
-  String get trainingSketchTemplatePressingMethod => '전방 압박 트리거 확인';
+  String get trainingSketchTemplatePressingMethod =>
+      '가장 가까운 선수는 압박, 주변 선수는 패스길 차단';
 
   @override
-  String get trainingSketchTemplateSetPieceLabel => '세트피스';
+  String get trainingSketchTemplateSetPieceLabel => '코너킥 니어-파';
 
   @override
-  String get trainingSketchTemplateSetPieceDescription => '코너킥 기본 배치';
+  String get trainingSketchTemplateSetPieceDescription => '스크린, 니어 터치, 파포스트 침투';
 
   @override
-  String get trainingSketchTemplateSetPieceMethod => '코너킥 공격 패턴';
+  String get trainingSketchTemplateSetPieceMethod =>
+      '블로커가 길을 만들고 니어 플릭 뒤 파포스트 마무리';
 
   @override
-  String get trainingSketchTemplateRondoLabel => '론도';
+  String get trainingSketchTemplateRondoLabel => '5대2 론도 전환';
 
   @override
-  String get trainingSketchTemplateRondoDescription => '4대1 볼 돌리기 구조';
+  String get trainingSketchTemplateRondoDescription => '조커를 활용한 분할 패스와 회전';
 
   @override
-  String get trainingSketchTemplateRondoMethod => '4대1 론도, 2터치 제한';
+  String get trainingSketchTemplateRondoMethod => '압박 사이를 찢는 패스 후 지원 위치를 회전';
 
   @override
-  String get trainingSketchTemplateFinishingLabel => '마무리 슈팅';
+  String get trainingSketchTemplateFinishingLabel => '컷백 마무리';
 
   @override
-  String get trainingSketchTemplateFinishingDescription => '크로스 후 박스 침투 마무리';
+  String get trainingSketchTemplateFinishingDescription => '측면 드라이브, 컷백, 박스 침투';
 
   @override
-  String get trainingSketchTemplateFinishingMethod => '측면 전개 후 박스 침투 슈팅';
+  String get trainingSketchTemplateFinishingMethod =>
+      '측면 돌파 후 니어, 컷백, 파포스트를 동시에 공격';
 
   @override
-  String get trainingSketchTemplateWingCombinationLabel => '측면 연계';
+  String get trainingSketchTemplateWingCombinationLabel => '측면 오버랩/언더랩';
 
   @override
   String get trainingSketchTemplateWingCombinationDescription =>
-      '윙어와 풀백 오버래핑 패턴';
+      '풀백, 윙어, 8번의 측면 과부하';
 
   @override
-  String get trainingSketchTemplateWingCombinationMethod => '윙어-풀백 오버래핑 후 컷백';
+  String get trainingSketchTemplateWingCombinationMethod =>
+      '윙어가 안쪽을 묶고 오버랩 또는 언더랩으로 컷백';
 
   @override
-  String get trainingSketchTemplateTransitionAttackLabel => '전환 공격';
+  String get trainingSketchTemplateTransitionAttackLabel => '탈취 후 6초 역습';
 
   @override
   String get trainingSketchTemplateTransitionAttackDescription =>
-      '볼 탈취 직후 빠른 전개';
+      '첫 패스, 깊이 침투, 측면 운반';
 
   @override
-  String get trainingSketchTemplateTransitionAttackMethod => '볼 탈취 후 6초 안에 전진';
+  String get trainingSketchTemplateTransitionAttackMethod =>
+      '탈취 직후 첫 전진 패스로 수비가 정렬되기 전에 마무리';
+
+  @override
+  String get trainingSketchTemplateSwitchPlayLabel => '반대 전환';
+
+  @override
+  String get trainingSketchTemplateSwitchPlayDescription => '밀집 유도 후 반대 윙으로 전환';
+
+  @override
+  String get trainingSketchTemplateSwitchPlayMethod =>
+      '한쪽으로 압박을 모은 뒤 6번과 센터백을 거쳐 반대로 전개';
+
+  @override
+  String get trainingSketchTemplateDefensiveShiftLabel => '수비 라인 이동';
+
+  @override
+  String get trainingSketchTemplateDefensiveShiftDescription =>
+      '볼 이동에 맞춘 라인 슬라이드와 커버';
+
+  @override
+  String get trainingSketchTemplateDefensiveShiftMethod =>
+      '공이 반대로 이동할 때 4백과 6번이 간격을 유지하며 이동';
 
   @override
   String get trainingSketchTemplateBaseballThrowingLabel => '송구 릴레이';

@@ -10103,90 +10103,117 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start from an empty board';
 
   @override
-  String get trainingSketchTemplatePassWarmupLabel => 'Pass warm-up';
+  String get trainingSketchTemplatePassWarmupLabel => 'Pass and move triangle';
 
   @override
   String get trainingSketchTemplatePassWarmupDescription =>
-      'Basic 3-player passing setup';
+      'Pass, support, and rotate';
 
   @override
   String get trainingSketchTemplatePassWarmupMethod =>
-      'Two-touch pass plus rotate';
+      'Open the body before receiving and move after every pass';
 
   @override
-  String get trainingSketchTemplateBuildUpLabel => 'Build-up pattern';
+  String get trainingSketchTemplateBuildUpLabel => 'Build-out escape';
 
   @override
   String get trainingSketchTemplateBuildUpDescription =>
-      'Back build-up structure';
+      'Goalkeeper, center backs, and the 6';
 
   @override
   String get trainingSketchTemplateBuildUpMethod =>
-      'Back build-up in a 3-2 shape';
+      'Draw pressure, find the 6, then release to the far fullback';
 
   @override
-  String get trainingSketchTemplatePressingLabel => 'Pressing transition';
+  String get trainingSketchTemplatePressingLabel => '5-second counterpress';
 
   @override
   String get trainingSketchTemplatePressingDescription =>
-      'Front pressing trigger shape';
+      'Immediate pressure and cover after loss';
 
   @override
   String get trainingSketchTemplatePressingMethod =>
-      'Check front-press trigger cues';
+      'Nearest player presses while support players block passing lanes';
 
   @override
-  String get trainingSketchTemplateSetPieceLabel => 'Set piece';
+  String get trainingSketchTemplateSetPieceLabel => 'Near-far corner';
 
   @override
-  String get trainingSketchTemplateSetPieceDescription => 'Corner-kick layout';
+  String get trainingSketchTemplateSetPieceDescription =>
+      'Screen, near touch, far-post run';
 
   @override
   String get trainingSketchTemplateSetPieceMethod =>
-      'Corner-kick attacking setup';
+      'Use the blocker, flick near-post, then attack the far post';
 
   @override
-  String get trainingSketchTemplateRondoLabel => 'Rondo';
+  String get trainingSketchTemplateRondoLabel => '5v2 rondo switch';
 
   @override
-  String get trainingSketchTemplateRondoDescription => '4v1 keep-away shape';
+  String get trainingSketchTemplateRondoDescription =>
+      'Split pass and support rotation with a joker';
 
   @override
   String get trainingSketchTemplateRondoMethod =>
-      '4v1 rondo with a two-touch limit';
+      'Break the pressure line, then rotate the support positions';
 
   @override
-  String get trainingSketchTemplateFinishingLabel => 'Finishing pattern';
+  String get trainingSketchTemplateFinishingLabel => 'Cutback finishing';
 
   @override
   String get trainingSketchTemplateFinishingDescription =>
-      'Cross and box-finishing flow';
+      'Wide drive, cutback, box arrivals';
 
   @override
   String get trainingSketchTemplateFinishingMethod =>
-      'Wide combination into a box finish';
+      'Attack near post, cutback zone, and far post at the same time';
 
   @override
-  String get trainingSketchTemplateWingCombinationLabel => 'Wide combination';
+  String get trainingSketchTemplateWingCombinationLabel =>
+      'Overlap and underlap';
 
   @override
   String get trainingSketchTemplateWingCombinationDescription =>
-      'Winger and fullback overlap pattern';
+      'Wide overload with fullback, winger, and 8';
 
   @override
   String get trainingSketchTemplateWingCombinationMethod =>
-      'Winger-fullback overlap into a cutback';
+      'Pin inside with the winger, then overlap or underlap for a cutback';
 
   @override
-  String get trainingSketchTemplateTransitionAttackLabel => 'Transition attack';
+  String get trainingSketchTemplateTransitionAttackLabel =>
+      '6-second counterattack';
 
   @override
   String get trainingSketchTemplateTransitionAttackDescription =>
-      'Quick attack right after the regain';
+      'First pass, depth run, and wide carry';
 
   @override
   String get trainingSketchTemplateTransitionAttackMethod =>
-      'Attack forward within six seconds of the regain';
+      'Use the first forward pass before the defense can reset';
+
+  @override
+  String get trainingSketchTemplateSwitchPlayLabel => 'Switch of play';
+
+  @override
+  String get trainingSketchTemplateSwitchPlayDescription =>
+      'Draw pressure, then switch to the far winger';
+
+  @override
+  String get trainingSketchTemplateSwitchPlayMethod =>
+      'Attract pressure on one side, then use the 6 and center back to switch';
+
+  @override
+  String get trainingSketchTemplateDefensiveShiftLabel =>
+      'Defensive line shift';
+
+  @override
+  String get trainingSketchTemplateDefensiveShiftDescription =>
+      'Line slide and cover as the ball moves';
+
+  @override
+  String get trainingSketchTemplateDefensiveShiftMethod =>
+      'When the ball switches sides, the back four and 6 move together';
 
   @override
   String get trainingSketchTemplateBaseballThrowingLabel => 'Throwing relay';

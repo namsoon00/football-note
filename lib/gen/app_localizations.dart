@@ -17350,146 +17350,182 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchTemplatePassWarmupLabel.
   ///
   /// In en, this message translates to:
-  /// **'Pass warm-up'**
+  /// **'Pass and move triangle'**
   String get trainingSketchTemplatePassWarmupLabel;
 
   /// No description provided for @trainingSketchTemplatePassWarmupDescription.
   ///
   /// In en, this message translates to:
-  /// **'Basic 3-player passing setup'**
+  /// **'Pass, support, and rotate'**
   String get trainingSketchTemplatePassWarmupDescription;
 
   /// No description provided for @trainingSketchTemplatePassWarmupMethod.
   ///
   /// In en, this message translates to:
-  /// **'Two-touch pass plus rotate'**
+  /// **'Open the body before receiving and move after every pass'**
   String get trainingSketchTemplatePassWarmupMethod;
 
   /// No description provided for @trainingSketchTemplateBuildUpLabel.
   ///
   /// In en, this message translates to:
-  /// **'Build-up pattern'**
+  /// **'Build-out escape'**
   String get trainingSketchTemplateBuildUpLabel;
 
   /// No description provided for @trainingSketchTemplateBuildUpDescription.
   ///
   /// In en, this message translates to:
-  /// **'Back build-up structure'**
+  /// **'Goalkeeper, center backs, and the 6'**
   String get trainingSketchTemplateBuildUpDescription;
 
   /// No description provided for @trainingSketchTemplateBuildUpMethod.
   ///
   /// In en, this message translates to:
-  /// **'Back build-up in a 3-2 shape'**
+  /// **'Draw pressure, find the 6, then release to the far fullback'**
   String get trainingSketchTemplateBuildUpMethod;
 
   /// No description provided for @trainingSketchTemplatePressingLabel.
   ///
   /// In en, this message translates to:
-  /// **'Pressing transition'**
+  /// **'5-second counterpress'**
   String get trainingSketchTemplatePressingLabel;
 
   /// No description provided for @trainingSketchTemplatePressingDescription.
   ///
   /// In en, this message translates to:
-  /// **'Front pressing trigger shape'**
+  /// **'Immediate pressure and cover after loss'**
   String get trainingSketchTemplatePressingDescription;
 
   /// No description provided for @trainingSketchTemplatePressingMethod.
   ///
   /// In en, this message translates to:
-  /// **'Check front-press trigger cues'**
+  /// **'Nearest player presses while support players block passing lanes'**
   String get trainingSketchTemplatePressingMethod;
 
   /// No description provided for @trainingSketchTemplateSetPieceLabel.
   ///
   /// In en, this message translates to:
-  /// **'Set piece'**
+  /// **'Near-far corner'**
   String get trainingSketchTemplateSetPieceLabel;
 
   /// No description provided for @trainingSketchTemplateSetPieceDescription.
   ///
   /// In en, this message translates to:
-  /// **'Corner-kick layout'**
+  /// **'Screen, near touch, far-post run'**
   String get trainingSketchTemplateSetPieceDescription;
 
   /// No description provided for @trainingSketchTemplateSetPieceMethod.
   ///
   /// In en, this message translates to:
-  /// **'Corner-kick attacking setup'**
+  /// **'Use the blocker, flick near-post, then attack the far post'**
   String get trainingSketchTemplateSetPieceMethod;
 
   /// No description provided for @trainingSketchTemplateRondoLabel.
   ///
   /// In en, this message translates to:
-  /// **'Rondo'**
+  /// **'5v2 rondo switch'**
   String get trainingSketchTemplateRondoLabel;
 
   /// No description provided for @trainingSketchTemplateRondoDescription.
   ///
   /// In en, this message translates to:
-  /// **'4v1 keep-away shape'**
+  /// **'Split pass and support rotation with a joker'**
   String get trainingSketchTemplateRondoDescription;
 
   /// No description provided for @trainingSketchTemplateRondoMethod.
   ///
   /// In en, this message translates to:
-  /// **'4v1 rondo with a two-touch limit'**
+  /// **'Break the pressure line, then rotate the support positions'**
   String get trainingSketchTemplateRondoMethod;
 
   /// No description provided for @trainingSketchTemplateFinishingLabel.
   ///
   /// In en, this message translates to:
-  /// **'Finishing pattern'**
+  /// **'Cutback finishing'**
   String get trainingSketchTemplateFinishingLabel;
 
   /// No description provided for @trainingSketchTemplateFinishingDescription.
   ///
   /// In en, this message translates to:
-  /// **'Cross and box-finishing flow'**
+  /// **'Wide drive, cutback, box arrivals'**
   String get trainingSketchTemplateFinishingDescription;
 
   /// No description provided for @trainingSketchTemplateFinishingMethod.
   ///
   /// In en, this message translates to:
-  /// **'Wide combination into a box finish'**
+  /// **'Attack near post, cutback zone, and far post at the same time'**
   String get trainingSketchTemplateFinishingMethod;
 
   /// No description provided for @trainingSketchTemplateWingCombinationLabel.
   ///
   /// In en, this message translates to:
-  /// **'Wide combination'**
+  /// **'Overlap and underlap'**
   String get trainingSketchTemplateWingCombinationLabel;
 
   /// No description provided for @trainingSketchTemplateWingCombinationDescription.
   ///
   /// In en, this message translates to:
-  /// **'Winger and fullback overlap pattern'**
+  /// **'Wide overload with fullback, winger, and 8'**
   String get trainingSketchTemplateWingCombinationDescription;
 
   /// No description provided for @trainingSketchTemplateWingCombinationMethod.
   ///
   /// In en, this message translates to:
-  /// **'Winger-fullback overlap into a cutback'**
+  /// **'Pin inside with the winger, then overlap or underlap for a cutback'**
   String get trainingSketchTemplateWingCombinationMethod;
 
   /// No description provided for @trainingSketchTemplateTransitionAttackLabel.
   ///
   /// In en, this message translates to:
-  /// **'Transition attack'**
+  /// **'6-second counterattack'**
   String get trainingSketchTemplateTransitionAttackLabel;
 
   /// No description provided for @trainingSketchTemplateTransitionAttackDescription.
   ///
   /// In en, this message translates to:
-  /// **'Quick attack right after the regain'**
+  /// **'First pass, depth run, and wide carry'**
   String get trainingSketchTemplateTransitionAttackDescription;
 
   /// No description provided for @trainingSketchTemplateTransitionAttackMethod.
   ///
   /// In en, this message translates to:
-  /// **'Attack forward within six seconds of the regain'**
+  /// **'Use the first forward pass before the defense can reset'**
   String get trainingSketchTemplateTransitionAttackMethod;
+
+  /// No description provided for @trainingSketchTemplateSwitchPlayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch of play'**
+  String get trainingSketchTemplateSwitchPlayLabel;
+
+  /// No description provided for @trainingSketchTemplateSwitchPlayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw pressure, then switch to the far winger'**
+  String get trainingSketchTemplateSwitchPlayDescription;
+
+  /// No description provided for @trainingSketchTemplateSwitchPlayMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Attract pressure on one side, then use the 6 and center back to switch'**
+  String get trainingSketchTemplateSwitchPlayMethod;
+
+  /// No description provided for @trainingSketchTemplateDefensiveShiftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Defensive line shift'**
+  String get trainingSketchTemplateDefensiveShiftLabel;
+
+  /// No description provided for @trainingSketchTemplateDefensiveShiftDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Line slide and cover as the ball moves'**
+  String get trainingSketchTemplateDefensiveShiftDescription;
+
+  /// No description provided for @trainingSketchTemplateDefensiveShiftMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'When the ball switches sides, the back four and 6 move together'**
+  String get trainingSketchTemplateDefensiveShiftMethod;
 
   /// No description provided for @trainingSketchTemplateBaseballThrowingLabel.
   ///
