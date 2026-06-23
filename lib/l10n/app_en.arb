@@ -5530,6 +5530,24 @@
   "challengeTitle": "Challenge",
   "challengeRewardAction": "Rewards",
   "challengeHistoryAction": "History",
+  "challengeListTitle": "Active challenges",
+  "challengeListBody": "{count} challenges are in progress. Today's rounds and overall progress are grouped here.",
+  "@challengeListBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCreateTitle": "Create challenge",
+  "challengeCreateAction": "Create challenge",
+  "challengeDetailTitle": "Challenge detail",
+  "challengeDetailAction": "Details",
+  "challengeEditTitle": "Edit challenge",
+  "challengeEditAction": "Edit",
+  "challengeEditBody": "Adjust the duration, round frequency, and mission setup. Rounds already recorded stay in place.",
+  "challengeUpdateAction": "Save changes",
+  "challengeUpdateSnack": "Challenge updated.",
   "challengeStartHeroTitle": "Rinzy's Challenge Mode",
   "challengeStartHeroBody": "Choose a duration and mission amounts, then press start to begin. Missing even one day ends the challenge.",
   "challengeLatestComplete": "Latest challenge complete",

@@ -10007,6 +10007,42 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeHistoryAction => '히스토리';
 
   @override
+  String get challengeListTitle => '진행 중인 챌린지';
+
+  @override
+  String challengeListBody(int count) {
+    return '$count개의 챌린지가 진행 중이에요. 오늘 라운드와 전체 진행률을 한눈에 모았어요.';
+  }
+
+  @override
+  String get challengeCreateTitle => '챌린지 만들기';
+
+  @override
+  String get challengeCreateAction => '챌린지 만들기';
+
+  @override
+  String get challengeDetailTitle => '챌린지 상세';
+
+  @override
+  String get challengeDetailAction => '상세';
+
+  @override
+  String get challengeEditTitle => '챌린지 수정';
+
+  @override
+  String get challengeEditAction => '수정';
+
+  @override
+  String get challengeEditBody =>
+      '기간, 진행 간격, 미션 구성을 조정할 수 있어요. 이미 기록한 라운드는 그대로 유지됩니다.';
+
+  @override
+  String get challengeUpdateAction => '수정 저장';
+
+  @override
+  String get challengeUpdateSnack => '챌린지를 수정했어요.';
+
+  @override
   String get challengeStartHeroTitle => '린지의 챌린지 모드';
 
   @override

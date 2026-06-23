@@ -10301,6 +10301,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeHistoryAction => 'History';
 
   @override
+  String get challengeListTitle => 'Active challenges';
+
+  @override
+  String challengeListBody(int count) {
+    return '$count challenges are in progress. Today\'s rounds and overall progress are grouped here.';
+  }
+
+  @override
+  String get challengeCreateTitle => 'Create challenge';
+
+  @override
+  String get challengeCreateAction => 'Create challenge';
+
+  @override
+  String get challengeDetailTitle => 'Challenge detail';
+
+  @override
+  String get challengeDetailAction => 'Details';
+
+  @override
+  String get challengeEditTitle => 'Edit challenge';
+
+  @override
+  String get challengeEditAction => 'Edit';
+
+  @override
+  String get challengeEditBody =>
+      'Adjust the duration, round frequency, and mission setup. Rounds already recorded stay in place.';
+
+  @override
+  String get challengeUpdateAction => 'Save changes';
+
+  @override
+  String get challengeUpdateSnack => 'Challenge updated.';
+
+  @override
   String get challengeStartHeroTitle => 'Rinzy\'s Challenge Mode';
 
   @override

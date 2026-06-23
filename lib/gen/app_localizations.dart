@@ -17677,6 +17677,72 @@ abstract class AppLocalizations {
   /// **'History'**
   String get challengeHistoryAction;
 
+  /// No description provided for @challengeListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Active challenges'**
+  String get challengeListTitle;
+
+  /// No description provided for @challengeListBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} challenges are in progress. Today\'s rounds and overall progress are grouped here.'**
+  String challengeListBody(int count);
+
+  /// No description provided for @challengeCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create challenge'**
+  String get challengeCreateTitle;
+
+  /// No description provided for @challengeCreateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create challenge'**
+  String get challengeCreateAction;
+
+  /// No description provided for @challengeDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge detail'**
+  String get challengeDetailTitle;
+
+  /// No description provided for @challengeDetailAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get challengeDetailAction;
+
+  /// No description provided for @challengeEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit challenge'**
+  String get challengeEditTitle;
+
+  /// No description provided for @challengeEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get challengeEditAction;
+
+  /// No description provided for @challengeEditBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust the duration, round frequency, and mission setup. Rounds already recorded stay in place.'**
+  String get challengeEditBody;
+
+  /// No description provided for @challengeUpdateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get challengeUpdateAction;
+
+  /// No description provided for @challengeUpdateSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge updated.'**
+  String get challengeUpdateSnack;
+
   /// No description provided for @challengeStartHeroTitle.
   ///
   /// In en, this message translates to:

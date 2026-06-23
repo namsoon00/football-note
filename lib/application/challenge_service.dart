@@ -92,6 +92,39 @@ class ChallengeService {
     return run;
   }
 
+  Future<ChallengeRun?> updateRun(
+    String runId, {
+    required ChallengeTemplate template,
+    List<String> selectedSkillIds = defaultChallengeSkillIds,
+    ChallengeMissionTargets? missionTargets,
+    int cadenceDays = 1,
+  }) async {
+    ChallengeRun? updatedRun;
+    final completedRoundLimit = template.dayCount;
+    final runs = loadRuns().map(
+      (run) {
+        if (run.id != runId || run.isEnded) return run;
+        final completedRoundNumbers = run.completedRoundNumbers
+            .where((roundNumber) => roundNumber <= completedRoundLimit)
+            .toList(growable: false);
+        updatedRun = run.copyWith(
+          templateId: template.id,
+          selectedSkillIds: normalizeChallengeSkillIds(
+            selectedSkillIds,
+            allowEmpty: missionTargets?.hasTrainingMission == false,
+          ),
+          missionTargets: missionTargets,
+          cadenceDays: cadenceDays,
+          completedRoundNumbers: completedRoundNumbers,
+        );
+        return updatedRun!;
+      },
+    ).toList(growable: false);
+    if (updatedRun == null) return null;
+    await _saveRuns(runs);
+    return updatedRun;
+  }
+
   Future<void> completeRun(
     String runId, {
     DateTime? completedAt,
