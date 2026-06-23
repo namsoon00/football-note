@@ -2145,18 +2145,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               children: [
                                 SwitchListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  secondary: const Icon(
-                                    Icons.school_outlined,
-                                  ),
-                                  title: Text(l10n.entryLesson),
-                                  value: _isLesson,
-                                  onChanged: (value) {
-                                    setState(() => _isLesson = value);
-                                    _scheduleAutoSave();
-                                  },
-                                ),
-                                SwitchListTile(
-                                  contentPadding: EdgeInsets.zero,
                                   title: Text(l10n.injury),
                                   value: _injury,
                                   onChanged: (value) {
@@ -2468,6 +2456,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               ],
                             ),
                           ),
+                          const SizedBox(height: 16),
+                          _buildLessonSection(l10n),
                         ],
                       ),
                     ),
@@ -2586,6 +2576,21 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           Wrap(spacing: 4, runSpacing: 4, children: actions),
         ],
       ],
+    );
+  }
+
+  Widget _buildLessonSection(AppLocalizations l10n) {
+    return WatchCartCard(
+      child: SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        secondary: const Icon(Icons.school_outlined),
+        title: Text(l10n.entryLesson),
+        value: _isLesson,
+        onChanged: (value) {
+          setState(() => _isLesson = value);
+          _scheduleAutoSave();
+        },
+      ),
     );
   }
 
