@@ -3129,6 +3129,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterFeedbackOnly => 'Feedback only';
 
   @override
+  String get filterLessonOnly => 'Lesson only';
+
+  @override
   String get filterEmptyResetHint => 'Reset filters to see more entries.';
 
   @override

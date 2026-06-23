@@ -5592,6 +5592,12 @@ abstract class AppLocalizations {
   /// **'Feedback only'**
   String get filterFeedbackOnly;
 
+  /// No description provided for @filterLessonOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson only'**
+  String get filterLessonOnly;
+
   /// No description provided for @filterEmptyResetHint.
   ///
   /// In en, this message translates to:
