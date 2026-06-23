@@ -9991,6 +9991,41 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeHistoryAction => '履歴';
 
   @override
+  String get challengeListTitle => '進行中のチャレンジ';
+
+  @override
+  String challengeListBody(int count) {
+    return '$count件のチャレンジが進行中です。今日のラウンドと全体の進行率をまとめました。';
+  }
+
+  @override
+  String get challengeCreateTitle => 'チャレンジ作成';
+
+  @override
+  String get challengeCreateAction => 'チャレンジ作成';
+
+  @override
+  String get challengeDetailTitle => 'チャレンジ詳細';
+
+  @override
+  String get challengeDetailAction => '詳細';
+
+  @override
+  String get challengeEditTitle => 'チャレンジ編集';
+
+  @override
+  String get challengeEditAction => '編集';
+
+  @override
+  String get challengeEditBody => '期間、進行間隔、ミッション構成を調整できます。記録済みのラウンドはそのまま残ります。';
+
+  @override
+  String get challengeUpdateAction => '変更を保存';
+
+  @override
+  String get challengeUpdateSnack => 'チャレンジを更新しました。';
+
+  @override
   String get challengeStartHeroTitle => 'リンジーのチャレンジモード';
 
   @override

@@ -5530,6 +5530,24 @@
   "challengeTitle": "チャレンジ",
   "challengeRewardAction": "報酬",
   "challengeHistoryAction": "履歴",
+  "challengeListTitle": "進行中のチャレンジ",
+  "challengeListBody": "{count}件のチャレンジが進行中です。今日のラウンドと全体の進行率をまとめました。",
+  "@challengeListBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeCreateTitle": "チャレンジ作成",
+  "challengeCreateAction": "チャレンジ作成",
+  "challengeDetailTitle": "チャレンジ詳細",
+  "challengeDetailAction": "詳細",
+  "challengeEditTitle": "チャレンジ編集",
+  "challengeEditAction": "編集",
+  "challengeEditBody": "期間、進行間隔、ミッション構成を調整できます。記録済みのラウンドはそのまま残ります。",
+  "challengeUpdateAction": "変更を保存",
+  "challengeUpdateSnack": "チャレンジを更新しました。",
   "challengeStartHeroTitle": "リンジーのチャレンジモード",
   "challengeStartHeroBody": "期間とミッション別の量を選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。",
   "challengeLatestComplete": "最新チャレンジ完了",

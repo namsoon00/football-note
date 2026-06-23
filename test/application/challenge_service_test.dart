@@ -128,6 +128,45 @@ void main() {
     ]);
   });
 
+  test('active challenge can be edited without replacing its run id', () async {
+    final service = ChallengeService(_MemoryOptionRepository());
+    final starter = service.templateById('starter_3')!;
+    final weekly = service.templateById('weekly_7')!;
+    final run = await service.startChallenge(
+      starter,
+      selectedSkillIds: const <String>['passing'],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 30,
+        jumpRopeMinutes: 10,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
+      startedAt: DateTime(2026, 6, 1, 9),
+    );
+
+    final updated = await service.updateRun(
+      run.id,
+      template: weekly,
+      selectedSkillIds: const <String>['shooting'],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 20,
+        jumpRopeMinutes: 0,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
+      cadenceDays: 2,
+    );
+
+    expect(updated, isNotNull);
+    expect(updated!.id, run.id);
+    expect(updated.templateId, weekly.id);
+    expect(updated.selectedSkillIds, <String>['shooting']);
+    expect(updated.cadenceDays, 2);
+    expect(updated.dayForRound(2), DateTime(2026, 6, 3));
+    expect(service.activeRuns(), hasLength(1));
+    expect(service.activeRuns().single.templateId, weekly.id);
+  });
+
   test('progress is completed only when every mission goal is met', () async {
     final service = ChallengeService(_MemoryOptionRepository());
     final template = service.templateById('starter_3')!;

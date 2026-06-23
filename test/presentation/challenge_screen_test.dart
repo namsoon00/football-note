@@ -56,8 +56,9 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('1. 기간 선택'), findsOneWidget);
-    expect(find.text('3일 챌린지'), findsOneWidget);
+    expect(find.text('챌린지 만들기'), findsOneWidget);
+    expect(find.text('1. 기간 선택'), findsNothing);
+    expect(find.text('3일 챌린지'), findsNothing);
     expect(find.text('2. 미션 선택'), findsNothing);
     expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -70,6 +71,12 @@ void main() {
     Navigator.of(tester.element(find.text('챌린지 히스토리'))).pop();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byKey(const ValueKey('challenge-create-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('1. 기간 선택'), findsOneWidget);
+    expect(find.text('3일 챌린지'), findsOneWidget);
 
     await tester.tap(
       find.byKey(const ValueKey('challenge-template-starter_3')),
@@ -136,7 +143,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('challenge-current-round-play-button-1')),
+      find.byKey(const ValueKey('challenge-current-round-cute-marker-1')),
       findsOneWidget,
     );
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));
@@ -213,6 +220,12 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('아래에서 다음 챌린지를 선택해요'), findsOneWidget);
+    expect(find.text('1. 기간 선택'), findsNothing);
+    expect(find.text('챌린지 만들기'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('challenge-create-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('1. 기간 선택'), findsOneWidget);
 
     await tester.ensureVisible(
@@ -248,11 +261,11 @@ void main() {
     final starter = challengeService.templateById('starter_3')!;
     final weekly = challengeService.templateById('weekly_7')!;
     final today = DateTime.now();
-    await challengeService.startChallenge(
+    final starterRun = await challengeService.startChallenge(
       starter,
       startedAt: DateTime(today.year, today.month, today.day, 9),
     );
-    await challengeService.startChallenge(
+    final weeklyRun = await challengeService.startChallenge(
       weekly,
       startedAt: DateTime(today.year, today.month, today.day, 10),
       cadenceDays: 2,
@@ -284,17 +297,67 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('7일 챌린지 진행 중'), findsOneWidget);
+    expect(find.text('진행 중인 챌린지'), findsAtLeastNWidgets(1));
+    expect(find.text('7일 챌린지'), findsOneWidget);
+    expect(find.text('3일 챌린지'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('challenge-current-round-play-button-1')),
+      find.byKey(ValueKey('challenge-list-card-${weeklyRun.id}')),
       findsOneWidget,
     );
-    await tester.drag(find.byType(ListView), const Offset(0, -560));
+    expect(
+      find.byKey(ValueKey('challenge-list-card-${starterRun.id}')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('challenge-current-round-cute-marker-1')),
+      findsNothing,
+    );
+
+    await tester
+        .tap(find.byKey(ValueKey('challenge-list-card-${weeklyRun.id}')));
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('3일 챌린지 진행 중'), findsOneWidget);
-    await tester.drag(find.byType(ListView), const Offset(0, -720));
+    expect(find.text('챌린지 상세'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('challenge-edit-button')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('challenge-edit-button')));
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('새 챌린지 추가'), findsOneWidget);
+    expect(find.text('챌린지 수정'), findsAtLeastNWidgets(1));
+    expect(find.widgetWithText(FilledButton, '수정 저장'), findsOneWidget);
+    await tester.ensureVisible(find.widgetWithText(ChoiceChip, '일주일에 한 번'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.widgetWithText(ChoiceChip, '일주일에 한 번'));
+    await tester.pump();
+    await tester.ensureVisible(find.widgetWithText(FilledButton, '수정 저장'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.widgetWithText(FilledButton, '수정 저장'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      challengeService
+          .activeRuns()
+          .firstWhere((run) => run.id == weeklyRun.id)
+          .cadenceDays,
+      7,
+    );
+    expect(find.text('챌린지 상세'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('진행 중인 챌린지'), findsAtLeastNWidgets(1));
+
+    await tester.tap(find.byKey(const ValueKey('challenge-create-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('1. 기간 선택'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
@@ -342,6 +405,10 @@ void main() {
       ),
     );
     await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('challenge-create-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     await tester.tap(
       find.byKey(const ValueKey('challenge-template-starter_3')),
@@ -439,6 +506,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
+    await _openChallengeDetailByTitle(tester, '3일 챌린지');
+
     expect(find.text('R1'), findsNothing);
     expect(find.text('R2'), findsNothing);
     expect(find.text('R3'), findsNothing);
@@ -503,6 +572,14 @@ void main() {
     expect(find.text('챌린지는 읽기 전용이에요.'), findsOneWidget);
     expect(find.text('챌린지 포기'), findsNothing);
     expect(find.text('훈련 프로그램 편집'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsNothing,
+    );
+
+    await _openChallengeDetailByTitle(tester, '3일 챌린지');
+
+    expect(find.text('챌린지는 읽기 전용이에요.'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('challenge-rounds-calendar')),
       findsOneWidget,
@@ -618,6 +695,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
+    await _openChallengeDetailByTitle(tester, '3일 챌린지');
+
     await tester.tap(find.byKey(const ValueKey('challenge-mission-training')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -702,6 +781,8 @@ void main() {
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+
+    await _openChallengeDetailByTitle(tester, '3일 챌린지');
 
     await tester.tap(find.byKey(const ValueKey('challenge-mission-training')));
     await tester.pump();
@@ -801,8 +882,10 @@ void main() {
     expect(find.text('미션 완료!'), findsNothing);
     expect(
       find.byKey(const ValueKey('challenge-rounds-calendar')),
-      findsOneWidget,
+      findsNothing,
     );
+    expect(find.text('진행 중인 챌린지'), findsAtLeastNWidgets(1));
+    expect(find.text('3일 챌린지'), findsOneWidget);
     expect(PlayerLevelService(optionRepository).loadState().totalXp, 10);
     expect(tester.takeException(), isNull);
 
@@ -850,6 +933,11 @@ Future<Size> _pumpActiveChallengeRoundCard(
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 300));
 
+  await _openChallengeDetailByTitle(
+    tester,
+    _challengeTemplateTitleForTest(templateId),
+  );
+
   final size = tester.getSize(
     find.byKey(const ValueKey('challenge-calendar-round-1')),
   );
@@ -857,6 +945,24 @@ Future<Size> _pumpActiveChallengeRoundCard(
   await tester.pump();
   await mealLogService.dispose();
   return size;
+}
+
+Future<void> _openChallengeDetailByTitle(
+  WidgetTester tester,
+  String title,
+) async {
+  await tester.tap(find.text(title).first);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
+}
+
+String _challengeTemplateTitleForTest(String templateId) {
+  return switch (templateId) {
+    'starter_3' => '3일 챌린지',
+    'weekly_7' => '7일 챌린지',
+    'focus_14' => '14일 챌린지',
+    _ => '챌린지',
+  };
 }
 
 TrainingEntry _trainingEntry({
