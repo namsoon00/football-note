@@ -8855,7 +8855,7 @@ abstract class AppLocalizations {
   /// No description provided for @weatherPrecipitationNone.
   ///
   /// In en, this message translates to:
-  /// **'No rain'**
+  /// **'None'**
   String get weatherPrecipitationNone;
 
   /// No description provided for @weatherPrecipitationTrace.

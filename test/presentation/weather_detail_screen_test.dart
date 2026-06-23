@@ -242,7 +242,7 @@ void main() {
     expect(find.textContaining('0.5 mm'), findsAtLeastNWidgets(1));
     expect(find.textContaining('조금 와요'), findsAtLeastNWidgets(1));
     expect(find.textContaining('0.0 mm'), findsOneWidget);
-    expect(find.textContaining('비가 안 와요'), findsOneWidget);
+    expect(find.textContaining('안 와요'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -323,7 +323,7 @@ void main() {
     expect(find.textContaining('1.1 mm'), findsNothing);
     expect(find.textContaining('0.0 mm'), findsOneWidget);
     expect(find.textContaining('조금 와요'), findsOneWidget);
-    expect(find.textContaining('비가 안 와요'), findsOneWidget);
+    expect(find.textContaining('안 와요'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -392,6 +392,107 @@ void main() {
     expect(find.textContaining('1.2 mm'), findsAtLeastNWidgets(1));
     expect(find.textContaining('가볍게 와요'), findsAtLeastNWidgets(1));
     expect(find.textContaining('미끄러운 그라운드'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Tomorrow forecast uses the same hourly weather format as today',
+      (
+    WidgetTester tester,
+  ) async {
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final tomorrow = todayDate.add(const Duration(days: 1));
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: DateTime.now(),
+        summary: '맑음',
+        weatherCode: 0,
+        temperature: 21,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: todayDate,
+            summary: '맑음',
+            weatherCode: 0,
+            temperatureMax: 24,
+            temperatureMin: 18,
+          ),
+          WeatherSharedDailyForecast(
+            date: tomorrow,
+            summary: '비',
+            weatherCode: 61,
+            temperatureMax: 22,
+            temperatureMin: 17,
+            precipitationSum: 1.2,
+            precipitationProbabilityMax: 70,
+            windSpeedMax: 6,
+            pm10: 30,
+            pm25: 12,
+            hourlyForecasts: [
+              WeatherSharedForecastMoment(
+                time: tomorrow.add(const Duration(hours: 9)),
+                temperature: 18,
+                weatherCode: 3,
+              ),
+              WeatherSharedForecastMoment(
+                time: tomorrow.add(const Duration(hours: 12)),
+                temperature: 22,
+                weatherCode: 61,
+              ),
+            ],
+            hourlyPrecipitations: [
+              WeatherSharedHourlyPrecipitation(
+                time: tomorrow.add(const Duration(hours: 14)),
+                precipitation: 1.2,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: tomorrow.add(const Duration(hours: 15)),
+                precipitation: 0,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '맑음 21°C',
+            initialWeatherCode: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('내일'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('내일 상세 날씨'), findsAtLeastNWidgets(1));
+    expect(find.text('22°C'), findsAtLeastNWidgets(1));
+    expect(find.text('비'), findsAtLeastNWidgets(1));
+    expect(find.text('날씨 상태'), findsNothing);
+    expect(find.text('시간대별 기온'), findsOneWidget);
+    expect(find.text('시간별 비 타임라인'), findsOneWidget);
+    expect(find.text('09:00'), findsOneWidget);
+    expect(find.text('12:00'), findsOneWidget);
+    expect(find.text('14:00'), findsAtLeastNWidgets(1));
+    expect(find.text('15:00'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('1.2 mm'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('가볍게 와요'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('안 와요'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
