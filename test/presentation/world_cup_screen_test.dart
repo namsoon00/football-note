@@ -259,7 +259,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('4-3-3 포메이션'), findsOneWidget);
     expect(find.textContaining('공식 경기 라인업이 아니라'), findsOneWidget);
-    expect(find.text('Raul Rangel'), findsOneWidget);
+    expect(find.text('라울 랑헬'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Deportivo Guadalajara'),
       180,
@@ -273,7 +273,7 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
-    expect(find.text('Cesar Huerta'), findsOneWidget);
+    expect(find.text('세사르 우에르타'), findsOneWidget);
     expect(find.text('RSC Anderlecht'), findsOneWidget);
   });
 
