@@ -1768,6 +1768,7 @@
   "filterInjuryOnly": "怪我のみ",
   "filterJumpRopeOnly": "縄跳びの日のみ",
   "filterFeedbackOnly": "フィードバックありのみ",
+  "filterLessonOnly": "レッスンのみ",
   "filterEmptyResetHint": "フィルターをリセットすると、ほかの記録も表示できます。",
   "filterReset": "リセット",
   "filterApply": "適用する",

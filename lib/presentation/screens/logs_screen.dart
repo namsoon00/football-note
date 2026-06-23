@@ -83,6 +83,7 @@ class _LogsScreenState extends State<LogsScreen> {
   static const String _injuryOnlyFilterKey = 'logs_filter_injury_only';
   static const String _jumpRopeOnlyFilterKey = 'logs_filter_jump_rope_only';
   static const String _feedbackOnlyFilterKey = 'logs_filter_feedback_only';
+  static const String _lessonOnlyFilterKey = 'logs_filter_lesson_only';
   static const String _quickGuideSeenKey = 'logs_quick_guide_seen_v1';
   final TextEditingController _searchController = TextEditingController();
   bool _showSearch = false;
@@ -92,6 +93,7 @@ class _LogsScreenState extends State<LogsScreen> {
   bool _injuryOnly = false;
   bool _jumpRopeOnly = false;
   bool _feedbackOnly = false;
+  bool _lessonOnly = false;
   _LogsLayout _layout = _LogsLayout.card;
   bool _optionsLoaded = false;
   bool _quickGuideOpened = false;
@@ -171,6 +173,9 @@ class _LogsScreenState extends State<LogsScreen> {
         false;
     _feedbackOnly = widget.optionRepository
             .getValue<bool>(_sportScopedKey(_feedbackOnlyFilterKey)) ??
+        false;
+    _lessonOnly = widget.optionRepository
+            .getValue<bool>(_sportScopedKey(_lessonOnlyFilterKey)) ??
         false;
   }
 
@@ -339,6 +344,7 @@ class _LogsScreenState extends State<LogsScreen> {
                                           injuryOnly: false,
                                           jumpRopeOnly: false,
                                           feedbackOnly: false,
+                                          lessonOnly: false,
                                         );
                                         setState(() {
                                           _statusFilter = reset.status;
@@ -346,6 +352,7 @@ class _LogsScreenState extends State<LogsScreen> {
                                           _injuryOnly = reset.injuryOnly;
                                           _jumpRopeOnly = reset.jumpRopeOnly;
                                           _feedbackOnly = reset.feedbackOnly;
+                                          _lessonOnly = reset.lessonOnly;
                                           _resetPagination();
                                         });
                                         await _persistFilters(reset);
@@ -588,7 +595,8 @@ class _LogsScreenState extends State<LogsScreen> {
         _programFilter != _allFilterValue ||
         _injuryOnly ||
         _jumpRopeOnly ||
-        _feedbackOnly;
+        _feedbackOnly ||
+        _lessonOnly;
   }
 
   List<TrainingEntry> _applyFilters(
@@ -618,6 +626,9 @@ class _LogsScreenState extends State<LogsScreen> {
         parentFeedbackByEntryId,
       );
       if (_feedbackOnly && parentFeedback.trim().isEmpty) {
+        return false;
+      }
+      if (_lessonOnly && !entry.isLesson) {
         return false;
       }
       if (query.isEmpty) return true;
@@ -659,6 +670,7 @@ class _LogsScreenState extends State<LogsScreen> {
     final injuryOnlyValue = _injuryOnly;
     final jumpRopeOnlyValue = _jumpRopeOnly;
     final feedbackOnlyValue = _feedbackOnly;
+    final lessonOnlyValue = _lessonOnly;
 
     final result = await showModalBottomSheet<_LogFilters>(
       context: context,
@@ -675,6 +687,7 @@ class _LogsScreenState extends State<LogsScreen> {
         var localInjuryOnly = injuryOnlyValue;
         var localJumpRopeOnly = jumpRopeOnlyValue;
         var localFeedbackOnly = feedbackOnlyValue;
+        var localLessonOnly = lessonOnlyValue;
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Padding(
@@ -727,6 +740,12 @@ class _LogsScreenState extends State<LogsScreen> {
                         setModalState(() => localFeedbackOnly = value),
                     title: Text(l10n.filterFeedbackOnly),
                   ),
+                  SwitchListTile(
+                    value: localLessonOnly,
+                    onChanged: (value) =>
+                        setModalState(() => localLessonOnly = value),
+                    title: Text(l10n.filterLessonOnly),
+                  ),
                   const SizedBox(height: 20),
                   Row(
                     children: [
@@ -740,6 +759,7 @@ class _LogsScreenState extends State<LogsScreen> {
                                 injuryOnly: false,
                                 jumpRopeOnly: false,
                                 feedbackOnly: false,
+                                lessonOnly: false,
                               ),
                             );
                           },
@@ -757,6 +777,7 @@ class _LogsScreenState extends State<LogsScreen> {
                                 injuryOnly: localInjuryOnly,
                                 jumpRopeOnly: localJumpRopeOnly,
                                 feedbackOnly: localFeedbackOnly,
+                                lessonOnly: localLessonOnly,
                               ),
                             );
                           },
@@ -780,6 +801,7 @@ class _LogsScreenState extends State<LogsScreen> {
       _injuryOnly = result.injuryOnly;
       _jumpRopeOnly = result.jumpRopeOnly;
       _feedbackOnly = result.feedbackOnly;
+      _lessonOnly = result.lessonOnly;
       _resetPagination();
     });
     await _persistFilters(result);
@@ -984,6 +1006,10 @@ class _LogsScreenState extends State<LogsScreen> {
       widget.optionRepository.setValue(
         _sportScopedKey(_feedbackOnlyFilterKey),
         filters.feedbackOnly,
+      ),
+      widget.optionRepository.setValue(
+        _sportScopedKey(_lessonOnlyFilterKey),
+        filters.lessonOnly,
       ),
     ]);
   }
@@ -1263,6 +1289,7 @@ class _LogFilters {
   final bool injuryOnly;
   final bool jumpRopeOnly;
   final bool feedbackOnly;
+  final bool lessonOnly;
 
   const _LogFilters({
     required this.status,
@@ -1270,6 +1297,7 @@ class _LogFilters {
     required this.injuryOnly,
     required this.jumpRopeOnly,
     required this.feedbackOnly,
+    required this.lessonOnly,
   });
 }
 

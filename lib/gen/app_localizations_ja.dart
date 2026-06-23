@@ -3046,6 +3046,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get filterFeedbackOnly => 'フィードバックありのみ';
 
   @override
+  String get filterLessonOnly => 'レッスンのみ';
+
+  @override
   String get filterEmptyResetHint => 'フィルターをリセットすると、ほかの記録も表示できます。';
 
   @override

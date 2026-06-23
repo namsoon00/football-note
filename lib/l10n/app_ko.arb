@@ -1768,6 +1768,7 @@
   "filterInjuryOnly": "부상 기록만",
   "filterJumpRopeOnly": "줄넘기 한 날만",
   "filterFeedbackOnly": "피드백 있는 기록만",
+  "filterLessonOnly": "레슨 기록만",
   "filterEmptyResetHint": "필터를 초기화하면 더 많은 기록을 볼 수 있어요.",
   "filterReset": "초기화",
   "filterApply": "적용",

@@ -1768,6 +1768,7 @@
   "filterInjuryOnly": "Injury only",
   "filterJumpRopeOnly": "Jump rope days only",
   "filterFeedbackOnly": "Feedback only",
+  "filterLessonOnly": "Lesson only",
   "filterEmptyResetHint": "Reset filters to see more entries.",
   "filterReset": "Reset",
   "filterApply": "Apply",

@@ -263,6 +263,78 @@ void main() {
     expect(find.byKey(activeIndicatorKey), findsOneWidget);
   });
 
+  testWidgets('Logs screen filters lesson entries', (
+    WidgetTester tester,
+  ) async {
+    await clearTrainingBox();
+    optionRepository.clear();
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 1, 5),
+        durationMinutes: 50,
+        intensity: 3,
+        type: '볼터치',
+        mood: 3,
+        injury: false,
+        notes: '레슨 필터 대상',
+        location: '학교 운동장',
+        program: '볼터치',
+        isLesson: true,
+      ),
+    );
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 1, 6),
+        durationMinutes: 45,
+        intensity: 3,
+        type: '패스',
+        mood: 3,
+        injury: false,
+        notes: '일반 기록',
+        location: '학교 운동장',
+        program: '패스',
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: LogsScreen(
+            trainingService: service,
+            localeService: localeService,
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+            onEdit: (_) {},
+            onCreate: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.textContaining('볼터치'), findsOneWidget);
+    expect(find.textContaining('패스'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.tune));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('레슨 기록만'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('적용'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('볼터치'), findsOneWidget);
+    expect(find.textContaining('패스'), findsNothing);
+  });
+
   testWidgets('Logs screen shows quick guide only when there are no entries', (
     WidgetTester tester,
   ) async {

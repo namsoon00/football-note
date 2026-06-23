@@ -3044,6 +3044,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filterFeedbackOnly => '피드백 있는 기록만';
 
   @override
+  String get filterLessonOnly => '레슨 기록만';
+
+  @override
   String get filterEmptyResetHint => '필터를 초기화하면 더 많은 기록을 볼 수 있어요.';
 
   @override
