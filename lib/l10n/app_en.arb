@@ -2805,7 +2805,7 @@
   "homeWeatherHumidity": "Humidity",
   "homeWeatherPrecipitation": "Precipitation",
   "homeWeatherPrecipitationProbability": "Rain chance",
-  "weatherPrecipitationNone": "No rain",
+  "weatherPrecipitationNone": "None",
   "weatherPrecipitationTrace": "A little rain",
   "weatherPrecipitationLight": "Light rain",
   "weatherPrecipitationModerate": "Steady rain",
