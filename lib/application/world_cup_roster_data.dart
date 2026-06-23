@@ -75,10 +75,425 @@ String worldCupRosterDisplayNameForPlayer(
   if (!localeName.toLowerCase().startsWith('ko')) {
     return normalizedPlayerName;
   }
+  if (_hasHangul(normalizedPlayerName)) return normalizedPlayerName;
   final teamNames = worldCupRosterPlayerKoreanNames[team.trim()];
-  if (teamNames == null) return normalizedPlayerName;
-  return teamNames[normalizedPlayerName] ?? normalizedPlayerName;
+  if (teamNames != null) {
+    final exactName = teamNames[normalizedPlayerName];
+    if (exactName != null) return exactName;
+    final normalizedKey = _normalizeRosterLookupKey(normalizedPlayerName);
+    for (final entry in teamNames.entries) {
+      if (_normalizeRosterLookupKey(entry.key) == normalizedKey) {
+        return entry.value;
+      }
+    }
+  }
+  return _transliterateRosterNameToKorean(normalizedPlayerName);
 }
+
+bool _hasHangul(String value) {
+  return RegExp(r'[가-힣]').hasMatch(value);
+}
+
+String _transliterateRosterNameToKorean(String playerName) {
+  final parts = playerName
+      .trim()
+      .split(RegExp(r'\s+'))
+      .map(_transliterateRosterNamePart)
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
+  if (parts.isEmpty) return playerName.trim();
+  return parts.join(' ');
+}
+
+String _transliterateRosterNamePart(String part) {
+  final normalized = _foldRosterLookupDiacritics(part)
+      .replaceAll(RegExp(r'[’`´]'), "'")
+      .split(RegExp(r"[-']+"))
+      .map(_transliterateRosterNameToken)
+      .where((token) => token.isNotEmpty)
+      .join(' ');
+  return normalized.trim();
+}
+
+String _transliterateRosterNameToken(String token) {
+  final normalized =
+      token.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+  if (normalized.isEmpty) return '';
+  if (RegExp(r'^[0-9]+$').hasMatch(normalized)) return normalized;
+  final override = _koreanRosterNameTokenOverrides[normalized];
+  if (override != null) return override;
+
+  final buffer = StringBuffer();
+  var index = 0;
+  while (index < normalized.length) {
+    if (_isRosterVowel(normalized[index])) {
+      final vowel = _matchRosterVowel(normalized, index);
+      buffer.write(_composeKoreanSyllable('', vowel.text));
+      index += vowel.length;
+      continue;
+    }
+
+    final onset = _matchRosterOnset(normalized, index);
+    index += onset.length;
+    if (index >= normalized.length || !_isRosterVowel(normalized[index])) {
+      buffer.write(_koreanRosterLooseConsonants[onset.text] ?? '으');
+      continue;
+    }
+
+    var vowel = _matchRosterVowel(normalized, index);
+    index += vowel.length;
+    var coda = '';
+    final consonantStart = index;
+    while (index < normalized.length && !_isRosterVowel(normalized[index])) {
+      index += 1;
+    }
+    final consonants = normalized.substring(consonantStart, index);
+    if (consonants.isNotEmpty) {
+      if (index >= normalized.length) {
+        coda = _bestRosterCoda(consonants);
+        final loose = consonants.substring(coda.length);
+        buffer.write(_composeKoreanSyllable(onset.text, vowel.text, coda));
+        buffer.write(_transliterateRosterNameToken(loose));
+        continue;
+      }
+      if (consonants.length >= 2) {
+        coda = _bestRosterCoda(consonants[0]);
+        index = consonantStart + coda.length;
+      } else {
+        index = consonantStart;
+      }
+    }
+    if (onset.text == 'sh') {
+      vowel = switch (vowel.text) {
+        'a' => const _RosterVowelMatch('ya', 1),
+        'e' => const _RosterVowelMatch('ye', 1),
+        'o' => const _RosterVowelMatch('yo', 1),
+        'u' => const _RosterVowelMatch('yu', 1),
+        _ => vowel,
+      };
+    }
+    buffer.write(_composeKoreanSyllable(onset.text, vowel.text, coda));
+  }
+  return buffer.toString();
+}
+
+bool _isRosterVowel(String value) {
+  return value == 'a' ||
+      value == 'e' ||
+      value == 'i' ||
+      value == 'o' ||
+      value == 'u' ||
+      value == 'y';
+}
+
+_RosterTextMatch _matchRosterOnset(String value, int index) {
+  for (final onset in const ['sch', 'ch', 'sh', 'ph', 'th', 'kh', 'gh', 'ng']) {
+    if (value.startsWith(onset, index)) {
+      return _RosterTextMatch(onset, onset.length);
+    }
+  }
+  final char = value[index];
+  if (char == 'c') {
+    final next = index + 1 < value.length ? value[index + 1] : '';
+    return _RosterTextMatch(
+        next == 'e' || next == 'i' || next == 'y' ? 's' : 'k', 1);
+  }
+  if (char == 'q') return const _RosterTextMatch('k', 1);
+  if (char == 'x') return const _RosterTextMatch('s', 1);
+  return _RosterTextMatch(char, 1);
+}
+
+_RosterVowelMatch _matchRosterVowel(String value, int index) {
+  for (final vowel in const [
+    'yeo',
+    'ya',
+    'ye',
+    'yo',
+    'yu',
+    'ae',
+    'ai',
+    'au',
+    'ei',
+    'eu',
+    'oi',
+    'oo',
+    'ou',
+    'ue',
+    'ui',
+  ]) {
+    if (value.startsWith(vowel, index)) {
+      return _RosterVowelMatch(vowel, vowel.length);
+    }
+  }
+  return _RosterVowelMatch(value[index], 1);
+}
+
+String _bestRosterCoda(String consonants) {
+  if (consonants.startsWith('ng')) return 'ng';
+  final first = consonants.isEmpty ? '' : consonants[0];
+  return _koreanRosterCodaIndexes.containsKey(first) ? first : '';
+}
+
+String _composeKoreanSyllable(
+  String onset,
+  String vowel, [
+  String coda = '',
+]) {
+  final onsetIndex = _koreanRosterOnsetIndexes[onset] ?? 11;
+  final vowelIndex = _koreanRosterVowelIndexes[vowel] ??
+      _koreanRosterVowelIndexes[vowel.isEmpty ? 'eu' : vowel[0]] ??
+      18;
+  final codaIndex = _koreanRosterCodaIndexes[coda] ?? 0;
+  return String.fromCharCode(
+    0xAC00 + (onsetIndex * 21 + vowelIndex) * 28 + codaIndex,
+  );
+}
+
+class _RosterTextMatch {
+  final String text;
+  final int length;
+
+  const _RosterTextMatch(this.text, this.length);
+}
+
+class _RosterVowelMatch {
+  final String text;
+  final int length;
+
+  const _RosterVowelMatch(this.text, this.length);
+}
+
+const Map<String, String> _koreanRosterNameTokenOverrides = <String, String>{
+  'abdullah': '압둘라',
+  'abdukodir': '압두코디르',
+  'abdulla': '압둘라',
+  'abraham': '에이브러햄',
+  'achraf': '아슈라프',
+  'ademola': '아데몰라',
+  'ahmed': '아흐메드',
+  'ait': '아이트',
+  'aleksandar': '알렉산다르',
+  'alexander': '알렉산더',
+  'alexis': '알렉시스',
+  'alisson': '알리송',
+  'alvarez': '알바레스',
+  'amine': '아민',
+  'antoine': '앙투안',
+  'aurelien': '오렐리앵',
+  'bernardo': '베르나르두',
+  'bellingham': '벨링엄',
+  'bruno': '브루노',
+  'bukayo': '부카요',
+  'camavinga': '카마빙가',
+  'cancelo': '칸셀루',
+  'casemiro': '카세미루',
+  'cesar': '세사르',
+  'cristian': '크리스티안',
+  'cristiano': '크리스티아누',
+  'dani': '다니',
+  'darwin': '다르윈',
+  'declan': '데클런',
+  'dembele': '뎀벨레',
+  'diogo': '디오구',
+  'eduardo': '에두아르도',
+  'ederson': '에데르송',
+  'emiliano': '에밀리아노',
+  'enzo': '엔소',
+  'felix': '펠릭스',
+  'fernandes': '페르난데스',
+  'fernandez': '페르난데스',
+  'foden': '포든',
+  'gavi': '가비',
+  'gimenez': '히메네스',
+  'griezmann': '그리즈만',
+  'guehi': '게히',
+  'gvardiol': '그바르디올',
+  'hakimi': '하키미',
+  'harry': '해리',
+  'heung': '흥',
+  'hernandez': '에르난데스',
+  'huerta': '우에르타',
+  'julian': '훌리안',
+  'junior': '주니오르',
+  'joao': '주앙',
+  'jose': '호세',
+  'jota': '조타',
+  'jude': '주드',
+  'juan': '후안',
+  'kane': '케인',
+  'khvicha': '흐비차',
+  'kylian': '킬리안',
+  'lamine': '라민',
+  'lautaro': '라우타로',
+  'leandro': '레안드로',
+  'leao': '레앙',
+  'leonardo': '레오나르도',
+  'lionel': '리오넬',
+  'luka': '루카',
+  'lucas': '뤼카',
+  'luis': '루이스',
+  'mahrez': '마레즈',
+  'marc': '마크',
+  'marquinhos': '마르키뉴스',
+  'martinez': '마르티네스',
+  'mbappe': '음바페',
+  'messi': '메시',
+  'militao': '밀리탕',
+  'min': '민',
+  'modric': '모드리치',
+  'mohamed': '모하메드',
+  'mohammed': '모하메드',
+  'morata': '모라타',
+  'muhammad': '무함마드',
+  'neymar': '네이마르',
+  'nicolas': '니콜라스',
+  'nico': '니코',
+  'olmo': '올모',
+  'otamendi': '오타멘디',
+  'ousmane': '우스만',
+  'paqueta': '파케타',
+  'pedri': '페드리',
+  'perisic': '페리시치',
+  'phil': '필',
+  'pino': '피노',
+  'rangel': '랑헬',
+  'raphinha': '하피냐',
+  'raul': '라울',
+  'rice': '라이스',
+  'richarlison': '히샤를리송',
+  'riyad': '리야드',
+  'rodri': '로드리',
+  'rodrigo': '로드리고',
+  'rodrygo': '호드리구',
+  'romero': '로메로',
+  'ronaldo': '호날두',
+  'ruben': '후벵',
+  'saka': '사카',
+  'saliba': '살리바',
+  'salah': '살라',
+  'santiago': '산티아고',
+  'son': '손',
+  'tagliafico': '탈리아피코',
+  'tchouameni': '추아메니',
+  'theo': '테오',
+  'vini': '비니',
+  'vinicius': '비니시우스',
+  'vitinha': '비티냐',
+  'williams': '윌리엄스',
+  'yamal': '야말',
+  'yeremy': '예레미',
+  'youssef': '유세프',
+  'zidane': '지단',
+};
+
+const Map<String, int> _koreanRosterOnsetIndexes = <String, int>{
+  'g': 0,
+  'k': 15,
+  'n': 2,
+  'd': 3,
+  't': 16,
+  'r': 5,
+  'l': 5,
+  'm': 6,
+  'b': 7,
+  'v': 7,
+  'p': 17,
+  'f': 17,
+  's': 9,
+  'ss': 10,
+  'x': 9,
+  'j': 12,
+  'z': 12,
+  'ch': 14,
+  'sh': 9,
+  'h': 18,
+  'w': 11,
+  'y': 11,
+  'ng': 11,
+  'ph': 17,
+  'th': 16,
+  'kh': 15,
+  'gh': 0,
+  'sch': 9,
+};
+
+const Map<String, int> _koreanRosterVowelIndexes = <String, int>{
+  'a': 0,
+  'ae': 1,
+  'ya': 2,
+  'e': 5,
+  'ye': 6,
+  'yeo': 7,
+  'o': 8,
+  'wa': 9,
+  'oe': 11,
+  'yo': 12,
+  'u': 13,
+  'wo': 14,
+  'we': 15,
+  'wi': 16,
+  'yu': 17,
+  'eu': 18,
+  'ui': 19,
+  'i': 20,
+  'y': 20,
+  'ai': 1,
+  'au': 9,
+  'ei': 5,
+  'oi': 11,
+  'oo': 13,
+  'ou': 13,
+  'ue': 15,
+};
+
+const Map<String, int> _koreanRosterCodaIndexes = <String, int>{
+  '': 0,
+  'g': 1,
+  'k': 1,
+  'n': 4,
+  'd': 7,
+  't': 7,
+  'l': 8,
+  'r': 8,
+  'm': 16,
+  'b': 17,
+  'p': 17,
+  's': 19,
+  'x': 19,
+  'ng': 21,
+};
+
+const Map<String, String> _koreanRosterLooseConsonants = <String, String>{
+  'b': '브',
+  'c': '크',
+  'ch': '치',
+  'd': '드',
+  'f': '프',
+  'g': '그',
+  'gh': '그',
+  'h': '흐',
+  'j': '지',
+  'k': '크',
+  'kh': '크',
+  'l': '르',
+  'm': '므',
+  'n': '느',
+  'ng': '응',
+  'p': '프',
+  'ph': '프',
+  'q': '크',
+  'r': '르',
+  's': '스',
+  'sch': '슈',
+  'sh': '시',
+  't': '트',
+  'th': '트',
+  'v': '브',
+  'w': '우',
+  'x': '크스',
+  'y': '이',
+  'z': '즈',
+};
 
 String _normalizeRosterLookupKey(String value) {
   return _foldRosterLookupDiacritics(value)

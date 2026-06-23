@@ -102,6 +102,67 @@ void main() {
     );
   });
 
+  test('Korean locale displays managed roster players in Hangul', () {
+    expect(
+      worldCupRosterDisplayNameForPlayer(
+        'Korea Republic',
+        'Son Heung-min',
+        'ko_KR',
+      ),
+      '손흥민',
+    );
+    expect(
+      worldCupRosterDisplayNameForPlayer('Mexico', 'Raul Rangel', 'ko_KR'),
+      '라울 랑헬',
+    );
+    expect(
+      worldCupRosterDisplayNameForPlayer(
+        'Mexico',
+        'Santiago Gimenez',
+        'ko_KR',
+      ),
+      '산티아고 히메네스',
+    );
+    expect(
+      worldCupRosterDisplayNameForPlayer('Portugal', 'João Félix', 'ko_KR'),
+      '주앙 펠릭스',
+    );
+    expect(
+      worldCupRosterDisplayNameForPlayer('England', 'Marc Guéhi', 'ko_KR'),
+      '마크 게히',
+    );
+    expect(
+      worldCupRosterDisplayNameForPlayer('Mexico', 'Raul Rangel', 'en'),
+      'Raul Rangel',
+    );
+  });
+
+  test('Korean locale has no Latin fallback for scheduled roster players', () {
+    for (final team in worldCupCountries()) {
+      final roster = worldCupRosterPoolForTeam(team);
+      expect(roster, isNotNull, reason: team);
+
+      for (final player in _rosterPlayers(roster!)) {
+        final displayName = worldCupRosterDisplayNameForPlayer(
+          team,
+          player,
+          'ko_KR',
+        );
+        expect(displayName, isNotEmpty, reason: '$team / $player');
+        expect(
+          RegExp('[A-Za-z]').hasMatch(displayName),
+          isFalse,
+          reason: '$team / $player -> $displayName',
+        );
+        expect(
+          RegExp('[가-힣]').hasMatch(displayName),
+          isTrue,
+          reason: '$team / $player -> $displayName',
+        );
+      }
+    }
+  });
+
   test('all scheduled World Cup countries have roster and formation data', () {
     for (final country in worldCupCountries()) {
       final roster = worldCupRosterPoolForTeam(country);
