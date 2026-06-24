@@ -30,6 +30,7 @@ import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../utils/sport_conditioning_visuals.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
@@ -57,6 +58,32 @@ import 'weather_detail_screen.dart';
 typedef _HomeHubData = DailyLoopSnapshot;
 typedef _DashboardPlan = DailyLoopPlan;
 typedef _RecentTrainingMarker = DailyLoopTrainingMarker;
+
+enum _HomeHubLayout {
+  overviewFirst('overview_first'),
+  routineFirst('routine_first');
+
+  final String storageValue;
+
+  const _HomeHubLayout(this.storageValue);
+
+  static _HomeHubLayout fromStorage(String? value) {
+    for (final layout in values) {
+      if (layout.storageValue == value) return layout;
+    }
+    return overviewFirst;
+  }
+
+  IconData get icon => switch (this) {
+        overviewFirst => Icons.dashboard_outlined,
+        routineFirst => Icons.today_outlined,
+      };
+
+  String label(AppLocalizations l10n) => switch (this) {
+        overviewFirst => l10n.homeLayoutOverviewFirst,
+        routineFirst => l10n.homeLayoutRoutineFirst,
+      };
+}
 
 class HomeHubScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -110,8 +137,10 @@ class HomeHubScreen extends StatefulWidget {
 
 class _HomeHubScreenState extends State<HomeHubScreen> {
   static const String _homeWeatherSnapshotKey = 'home_weather_snapshot_v1';
+  static const String _homeLayoutKey = 'home_hub_layout_v1';
   static const int _homeTrainingLookbackDays = 400;
 
+  late _HomeHubLayout _homeLayout;
   bool _weatherLoading = false;
   bool _weatherNeedsLocation = true;
   bool _weatherLoadFailed = false;
@@ -147,6 +176,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   @override
   void initState() {
     super.initState();
+    _homeLayout = _loadHomeLayout();
     _trainingEntriesStream = _watchHomeTrainingEntries();
     _weatherSnapshotSubscription = WeatherSharedResource.snapshotUpdates.listen(
       _handleSharedWeatherSnapshot,
@@ -166,6 +196,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   @override
   void didUpdateWidget(covariant HomeHubScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.optionRepository != oldWidget.optionRepository) {
+      _homeLayout = _loadHomeLayout();
+    }
     if (widget.trainingService == oldWidget.trainingService) return;
     _trainingEntriesStream = _watchHomeTrainingEntries();
   }
@@ -175,6 +208,18 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     _initialWeatherTimer?.cancel();
     unawaited(_weatherSnapshotSubscription?.cancel());
     super.dispose();
+  }
+
+  _HomeHubLayout _loadHomeLayout() {
+    return _HomeHubLayout.fromStorage(
+      widget.optionRepository.getValue<String>(_homeLayoutKey),
+    );
+  }
+
+  Future<void> _setHomeLayout(_HomeHubLayout layout) async {
+    if (_homeLayout == layout) return;
+    setState(() => _homeLayout = layout);
+    await widget.optionRepository.setValue(_homeLayoutKey, layout.storageValue);
   }
 
   @override
@@ -250,6 +295,234 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     widget.settingsService,
                   ).unreadReminderCountSync();
 
+                  Widget keyedSection(String key, Widget child) {
+                    return KeyedSubtree(
+                      key: ValueKey<String>(key),
+                      child: child,
+                    );
+                  }
+
+                  final titleSection = keyedSection(
+                    'home-layout-title-section',
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            l10n.homeHubTitleShort,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _HomeLayoutMenuButton(
+                          layout: _homeLayout,
+                          onSelected: (layout) =>
+                              unawaited(_setHomeLayout(layout)),
+                        ),
+                        const SizedBox(width: 8),
+                        _TodayWeatherButton(
+                          l10n: l10n,
+                          weatherLoading: _weatherLoading,
+                          weatherNeedsLocation: _weatherNeedsLocation,
+                          weatherLoadFailed: _weatherLoadFailed,
+                          weatherSummary: _weatherSummary.trim(),
+                          weatherCode: _weatherCode,
+                          onTap: _weatherBadgeTapAction(),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  final overviewSections = <Widget>[
+                    keyedSection(
+                      'home-layout-level-section',
+                      _LevelHeroCard(
+                        levelState: levelState,
+                        sportId: sportId,
+                        onTap: _openLevelGuide,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    keyedSection(
+                      'home-layout-challenge-section',
+                      _ChallengeHomeCard(
+                        progress: challengeProgress,
+                        title: challengeProgress == null
+                            ? l10n.challengeTitle
+                            : _challengeTemplateTitle(
+                                l10n,
+                                challengeProgress.template,
+                              ),
+                        onTap: _openChallenge,
+                      ),
+                    ),
+                    if (data.showStreakHighlight) ...[
+                      const SizedBox(height: 10),
+                      keyedSection(
+                        'home-layout-streak-section',
+                        _TrainingStreakSpotlightCard(
+                          data: data,
+                          l10n: l10n,
+                          onTap: data.latestTrainingGapDays == 0
+                              ? widget.onOpenWeeklyStats
+                              : () => _openTodayEntryOrCreate(data),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    keyedSection(
+                      'home-layout-meal-section',
+                      RiceBowlSummaryCard(
+                        entry: data.todayMealEntry,
+                        title: l10n.homeRiceBowlTitle,
+                        compact: true,
+                        onTap: widget.onQuickMeal,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surface.withValues(alpha: 0.86),
+                      ),
+                    ),
+                  ];
+
+                  final routineSections = <Widget>[
+                    if (data.todayPlanCount > 0) ...[
+                      keyedSection(
+                        'home-layout-today-plan-section',
+                        Builder(
+                          builder: (context) {
+                            final firstPlan = data.todayPlans.first;
+                            final showLogAction = DateTime.now().isAfter(
+                              firstPlan.endsAt,
+                            );
+                            return _TodayPlanHighlightCard(
+                              l10n: l10n,
+                              plans: data.todayPlans,
+                              count: data.todayPlanCount,
+                              onOpenPlans: widget.onOpenPlans,
+                              onPrimaryAction: _isParentMode
+                                  ? widget.onOpenPlans
+                                  : showLogAction
+                                      ? _trackedAction(
+                                          'today_plan_log',
+                                          () => unawaited(
+                                            _openTodayPlanLog(data),
+                                          ),
+                                        )
+                                      : widget.onOpenPlans,
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    keyedSection(
+                      'home-layout-daily-flow-section',
+                      _DailyFlowCard(
+                        data: data,
+                        l10n: l10n,
+                        sportId: sportId,
+                        onLog: _trackedAction(
+                          'daily_flow_log',
+                          () => _openTodayEntryOrCreate(data),
+                        ),
+                        onLifting: _trackedAction(
+                          'daily_flow_lifting',
+                          () => _openTodayEntryOrCreate(
+                            data,
+                            initialFocusTarget:
+                                EntryFormInitialFocusTarget.lifting,
+                          ),
+                        ),
+                        onJumpRope: _trackedAction(
+                          'daily_flow_jump_rope',
+                          () => _openTodayEntryOrCreate(
+                            data,
+                            initialFocusTarget:
+                                EntryFormInitialFocusTarget.jumpRope,
+                          ),
+                        ),
+                        onQuiz: _trackedAction(
+                          'daily_flow_quiz',
+                          widget.onQuickQuiz,
+                        ),
+                        onReview: _trackedAction(
+                          'daily_flow_review',
+                          widget.onOpenDiary,
+                        ),
+                        onNews: _trackedAction(
+                          'daily_flow_news',
+                          _openNews,
+                        ),
+                        onBoard: _trackedAction(
+                          'daily_flow_board',
+                          () => _openTodayBoardSketch(data),
+                        ),
+                        onMeal: _trackedAction(
+                          'daily_flow_meal',
+                          widget.onQuickMeal,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    keyedSection(
+                      'home-layout-quick-actions-section',
+                      _QuickActionGrid(
+                        weatherOutfitLabel: l10n.homeWeatherOutfitButton,
+                        runningCoachLabel: l10n.drawerRunningCoach,
+                        onQuickMatch: _trackedAction(
+                          'quick_create_match',
+                          widget.onQuickMatch,
+                        ),
+                        onQuickPlan: _trackedAction(
+                          'quick_create_plan',
+                          widget.onQuickPlan,
+                        ),
+                        onQuickWeatherOutfit: _trackedAction(
+                          'quick_weather_outfit',
+                          _openWeatherOutfitGuide,
+                        ),
+                        onQuickRunningCoach: _trackedAction(
+                          'quick_running_coach',
+                          _openRunningCoach,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    keyedSection(
+                      'home-layout-continue-section',
+                      _ContinueCard(
+                        data: data,
+                        showQuiz: true,
+                        onContinueQuiz: widget.onQuickQuiz,
+                        onContinueTraining: () => _openTodayEntryOrCreate(data),
+                        onContinueMatch: widget.onQuickMatch,
+                        onContinuePlan: widget.onOpenPlans,
+                        onContinueBoard: data.latestBoard == null
+                            ? widget.onQuickBoard
+                            : () => _openBoard(context, data.latestBoard!),
+                      ),
+                    ),
+                  ];
+
+                  final homeLayoutSections = switch (_homeLayout) {
+                    _HomeHubLayout.overviewFirst => <Widget>[
+                        ...overviewSections,
+                        const SizedBox(height: 12),
+                        titleSection,
+                        const SizedBox(height: 8),
+                        ...routineSections,
+                      ],
+                    _HomeHubLayout.routineFirst => <Widget>[
+                        titleSection,
+                        const SizedBox(height: 8),
+                        ...routineSections,
+                        const SizedBox(height: 12),
+                        ...overviewSections,
+                      ],
+                  };
+
                   return SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -284,172 +557,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           },
                         ),
                         const SizedBox(height: 12),
-                        _LevelHeroCard(
-                          levelState: levelState,
-                          sportId: sportId,
-                          onTap: _openLevelGuide,
-                        ),
-                        const SizedBox(height: 10),
-                        _ChallengeHomeCard(
-                          progress: challengeProgress,
-                          title: challengeProgress == null
-                              ? l10n.challengeTitle
-                              : _challengeTemplateTitle(
-                                  l10n,
-                                  challengeProgress.template,
-                                ),
-                          onTap: _openChallenge,
-                        ),
-                        if (data.showStreakHighlight) ...[
-                          const SizedBox(height: 10),
-                          _TrainingStreakSpotlightCard(
-                            data: data,
-                            l10n: l10n,
-                            onTap: data.latestTrainingGapDays == 0
-                                ? widget.onOpenWeeklyStats
-                                : () => _openTodayEntryOrCreate(data),
-                          ),
-                        ],
-                        const SizedBox(height: 10),
-                        RiceBowlSummaryCard(
-                          entry: data.todayMealEntry,
-                          title: l10n.homeRiceBowlTitle,
-                          compact: true,
-                          onTap: widget.onQuickMeal,
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surface.withValues(alpha: 0.86),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                l10n.homeHubTitleShort,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(fontWeight: FontWeight.w900),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            _TodayWeatherButton(
-                              l10n: l10n,
-                              weatherLoading: _weatherLoading,
-                              weatherNeedsLocation: _weatherNeedsLocation,
-                              weatherLoadFailed: _weatherLoadFailed,
-                              weatherSummary: _weatherSummary.trim(),
-                              weatherCode: _weatherCode,
-                              onTap: _weatherBadgeTapAction(),
-                            ),
-                          ],
-                        ),
-                        if (data.todayPlanCount > 0) ...[
-                          const SizedBox(height: 8),
-                          Builder(
-                            builder: (context) {
-                              final firstPlan = data.todayPlans.first;
-                              final showLogAction = DateTime.now().isAfter(
-                                firstPlan.endsAt,
-                              );
-                              return _TodayPlanHighlightCard(
-                                l10n: l10n,
-                                plans: data.todayPlans,
-                                count: data.todayPlanCount,
-                                onOpenPlans: widget.onOpenPlans,
-                                onPrimaryAction: _isParentMode
-                                    ? widget.onOpenPlans
-                                    : showLogAction
-                                        ? _trackedAction(
-                                            'today_plan_log',
-                                            () => unawaited(
-                                                _openTodayPlanLog(data)),
-                                          )
-                                        : widget.onOpenPlans,
-                              );
-                            },
-                          ),
-                        ],
-                        const SizedBox(height: 12),
-                        _DailyFlowCard(
-                          data: data,
-                          l10n: l10n,
-                          sportId: sportId,
-                          onLog: _trackedAction(
-                            'daily_flow_log',
-                            () => _openTodayEntryOrCreate(data),
-                          ),
-                          onLifting: _trackedAction(
-                            'daily_flow_lifting',
-                            () => _openTodayEntryOrCreate(
-                              data,
-                              initialFocusTarget:
-                                  EntryFormInitialFocusTarget.lifting,
-                            ),
-                          ),
-                          onJumpRope: _trackedAction(
-                            'daily_flow_jump_rope',
-                            () => _openTodayEntryOrCreate(
-                              data,
-                              initialFocusTarget:
-                                  EntryFormInitialFocusTarget.jumpRope,
-                            ),
-                          ),
-                          onQuiz: _trackedAction(
-                            'daily_flow_quiz',
-                            widget.onQuickQuiz,
-                          ),
-                          onReview: _trackedAction(
-                            'daily_flow_review',
-                            widget.onOpenDiary,
-                          ),
-                          onNews: _trackedAction(
-                            'daily_flow_news',
-                            _openNews,
-                          ),
-                          onBoard: _trackedAction(
-                            'daily_flow_board',
-                            () => _openTodayBoardSketch(data),
-                          ),
-                          onMeal: _trackedAction(
-                            'daily_flow_meal',
-                            widget.onQuickMeal,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _QuickActionGrid(
-                          weatherOutfitLabel: l10n.homeWeatherOutfitButton,
-                          runningCoachLabel: l10n.drawerRunningCoach,
-                          onQuickMatch: _trackedAction(
-                            'quick_create_match',
-                            widget.onQuickMatch,
-                          ),
-                          onQuickPlan: _trackedAction(
-                            'quick_create_plan',
-                            widget.onQuickPlan,
-                          ),
-                          onQuickWeatherOutfit: _trackedAction(
-                            'quick_weather_outfit',
-                            _openWeatherOutfitGuide,
-                          ),
-                          onQuickRunningCoach: _trackedAction(
-                            'quick_running_coach',
-                            _openRunningCoach,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _ContinueCard(
-                          data: data,
-                          showQuiz: true,
-                          onContinueQuiz: widget.onQuickQuiz,
-                          onContinueTraining: () =>
-                              _openTodayEntryOrCreate(data),
-                          onContinueMatch: widget.onQuickMatch,
-                          onContinuePlan: widget.onOpenPlans,
-                          onContinueBoard: data.latestBoard == null
-                              ? widget.onQuickBoard
-                              : () => _openBoard(context, data.latestBoard!),
-                        ),
+                        ...homeLayoutSections,
                       ],
                     ),
                   );
@@ -2322,6 +2430,47 @@ String _formatPlanTime(DateTime value, {required AppLocalizations l10n}) {
     _ => 'h:mm a',
   };
   return DateFormat(pattern, l10n.localeName).format(value);
+}
+
+class _HomeLayoutMenuButton extends StatelessWidget {
+  final _HomeHubLayout layout;
+  final ValueChanged<_HomeHubLayout> onSelected;
+
+  const _HomeLayoutMenuButton({
+    required this.layout,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return AppBarActionMenuButton<_HomeHubLayout>(
+      key: const ValueKey<String>('home-layout-menu-button'),
+      icon: Icons.view_quilt_outlined,
+      tooltip: l10n.homeLayoutMenuTooltip,
+      initialValue: layout,
+      margin: EdgeInsets.zero,
+      onSelected: onSelected,
+      itemBuilder: (context) => _HomeHubLayout.values.map((option) {
+        final selected = option == layout;
+        return PopupMenuItem<_HomeHubLayout>(
+          value: option,
+          child: Row(
+            children: [
+              Icon(
+                selected ? Icons.check_circle : option.icon,
+                size: 18,
+                color: selected ? scheme.primary : scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 10),
+              Text(option.label(l10n)),
+            ],
+          ),
+        );
+      }).toList(growable: false),
+    );
+  }
 }
 
 class _QuickActionGrid extends StatelessWidget {

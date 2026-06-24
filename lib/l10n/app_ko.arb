@@ -856,6 +856,9 @@
   "homeTodayPlanOpenAction": "계획 보기",
   "homeTodayPlanSelectForLogTitle": "훈련기록으로 만들 계획을 선택하세요",
   "homeHubTitleShort": "홈",
+  "homeLayoutMenuTooltip": "홈 배치 변경",
+  "homeLayoutOverviewFirst": "요약 먼저",
+  "homeLayoutRoutineFirst": "루틴 먼저",
   "homeDailyCheckTitle": "오늘 할일",
   "homeDailyCheckCompletedCount": "{completed}/{total} 완료",
   "@homeDailyCheckCompletedCount": {

@@ -174,6 +174,75 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('home layout menu persists routine-first layout', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeHubScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          onCreate: () {},
+          onQuickPlan: () {},
+          onQuickMatch: () {},
+          onQuickQuiz: () {},
+          onQuickMeal: () {},
+          onQuickBoard: () {},
+          onOpenPlans: () {},
+          onOpenLogs: () {},
+          onOpenDiary: () {},
+          onOpenWeeklyStats: () {},
+          onEdit: (_) {},
+          onEditTrainingBoard: (_) {},
+          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    double sectionTop(String key) {
+      return tester.getTopLeft(find.byKey(ValueKey<String>(key))).dy;
+    }
+
+    expect(
+      sectionTop('home-layout-level-section'),
+      lessThan(sectionTop('home-layout-title-section')),
+    );
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('home-layout-menu-button')),
+    );
+    await tester
+        .tap(find.byKey(const ValueKey<String>('home-layout-menu-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.tap(find.text('루틴 먼저').last);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(
+      optionRepository.getValue<String>('home_hub_layout_v1'),
+      'routine_first',
+    );
+    expect(
+      sectionTop('home-layout-daily-flow-section'),
+      lessThan(sectionTop('home-layout-level-section')),
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets('home first-run guide uses coach marks and starts an action', (
     WidgetTester tester,
   ) async {

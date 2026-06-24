@@ -856,6 +856,9 @@
   "homeTodayPlanOpenAction": "Open plans",
   "homeTodayPlanSelectForLogTitle": "Choose a plan to turn into a training log",
   "homeHubTitleShort": "Home",
+  "homeLayoutMenuTooltip": "Change home layout",
+  "homeLayoutOverviewFirst": "Overview first",
+  "homeLayoutRoutineFirst": "Routine first",
   "homeDailyCheckTitle": "Today's tasks",
   "homeDailyCheckCompletedCount": "{completed}/{total} done",
   "@homeDailyCheckCompletedCount": {

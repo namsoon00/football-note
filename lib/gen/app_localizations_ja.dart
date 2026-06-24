@@ -1470,6 +1470,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeHubTitleShort => '家';
 
   @override
+  String get homeLayoutMenuTooltip => 'ホーム配置を変更';
+
+  @override
+  String get homeLayoutOverviewFirst => '概要を先に';
+
+  @override
+  String get homeLayoutRoutineFirst => 'ルーティンを先に';
+
+  @override
   String get homeDailyCheckTitle => '今日のタスク';
 
   @override

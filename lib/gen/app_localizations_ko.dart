@@ -1463,6 +1463,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeHubTitleShort => '홈';
 
   @override
+  String get homeLayoutMenuTooltip => '홈 배치 변경';
+
+  @override
+  String get homeLayoutOverviewFirst => '요약 먼저';
+
+  @override
+  String get homeLayoutRoutineFirst => '루틴 먼저';
+
+  @override
   String get homeDailyCheckTitle => '오늘 할일';
 
   @override
