@@ -45,6 +45,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   List<_FixtureMessageRow> _fixtureRows = const [];
   List<_WeatherMessageRow> _weatherRows = const [];
   String? _lastTrainingLogAt;
+  final Set<_NotificationCategory> _expandedCategories =
+      <_NotificationCategory>{};
 
   @override
   void initState() {
@@ -301,15 +303,17 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   )
                 else
                   for (final section in feedSections) ...[
-                    _NotificationCategorySectionHeader(section: section),
-                    const SizedBox(height: 8),
-                    ...section.items.map(
-                      (item) => _NotificationFeedTile(
-                        item: item,
-                        newLabel: l10n.notificationNewBadge,
-                        deleteTooltip: l10n.delete,
-                        deleteBackground: _deleteBackground(context),
+                    _NotificationFeedSectionView(
+                      section: section,
+                      expanded: _expandedCategories.contains(
+                        section.category,
                       ),
+                      onToggle: () => _toggleCategorySection(
+                        section.category,
+                      ),
+                      newLabel: l10n.notificationNewBadge,
+                      deleteTooltip: l10n.delete,
+                      deleteBackground: _deleteBackground(context),
                     ),
                     const SizedBox(height: 8),
                   ],
@@ -423,34 +427,49 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         ),
       );
     }
-    items.sort((a, b) {
-      if (a.upcoming != b.upcoming) return a.upcoming ? -1 : 1;
-      if (a.upcoming) return a.time.compareTo(b.time);
-      return b.time.compareTo(a.time);
-    });
+    items.sort(_compareFeedItems);
     return items;
+  }
+
+  int _compareFeedItems(_NotificationFeedItem a, _NotificationFeedItem b) {
+    if (a.upcoming != b.upcoming) return a.upcoming ? -1 : 1;
+    if (a.upcoming) return a.time.compareTo(b.time);
+    return b.time.compareTo(a.time);
   }
 
   List<_NotificationFeedSection> _buildFeedSections(
     List<_NotificationFeedItem> items, {
     required AppLocalizations l10n,
   }) {
-    return _NotificationCategory.values.expand((category) {
+    final sections = _NotificationCategory.values.expand((category) {
       final categoryItems = items
           .where((item) => item.category == category)
           .toList(growable: false);
       if (categoryItems.isEmpty) return const <_NotificationFeedSection>[];
+      categoryItems.sort(_compareFeedItems);
       return [
         _NotificationFeedSection(
+          category: category,
           title: l10n.notificationCategorySectionTitle(
             _categoryLabel(category, l10n),
             categoryItems.length,
           ),
           icon: _categoryIcon(category),
+          timeLabel: categoryItems.first.timeLabel,
           items: categoryItems,
         ),
       ];
     }).toList(growable: false);
+    sections.sort((a, b) => _compareFeedItems(a.items.first, b.items.first));
+    return sections;
+  }
+
+  void _toggleCategorySection(_NotificationCategory category) {
+    setState(() {
+      if (!_expandedCategories.add(category)) {
+        _expandedCategories.remove(category);
+      }
+    });
   }
 
   String _categoryLabel(
@@ -1020,43 +1039,119 @@ class _NotificationEmptyCard extends StatelessWidget {
   }
 }
 
-class _NotificationCategorySectionHeader extends StatelessWidget {
+class _NotificationFeedSectionView extends StatelessWidget {
   final _NotificationFeedSection section;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final String newLabel;
+  final String deleteTooltip;
+  final Widget deleteBackground;
 
-  const _NotificationCategorySectionHeader({required this.section});
+  const _NotificationFeedSectionView({
+    required this.section,
+    required this.expanded,
+    required this.onToggle,
+    required this.newLabel,
+    required this.deleteTooltip,
+    required this.deleteBackground,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(2, 8, 2, 0),
-      child: Row(
-        children: [
-          Icon(section.icon, size: 18, color: scheme.onSurfaceVariant),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              section.title,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w800,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Material(
+          color: scheme.surfaceContainerHighest.withValues(alpha: 0.42),
+          borderRadius: BorderRadius.circular(8),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: onToggle,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+              child: Row(
+                children: [
+                  Icon(section.icon, size: 18, color: scheme.onSurfaceVariant),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      section.title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
                   ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    flex: 2,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        section.timeLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  AnimatedRotation(
+                    turns: expanded ? 0.5 : 0,
+                    duration: kThemeAnimationDuration,
+                    child: Icon(
+                      Icons.expand_more_rounded,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Column(
+              children: section.items
+                  .map(
+                    (item) => _NotificationFeedTile(
+                      item: item,
+                      newLabel: newLabel,
+                      deleteTooltip: deleteTooltip,
+                      deleteBackground: deleteBackground,
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ),
+          crossFadeState:
+              expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          duration: kThemeAnimationDuration,
+        ),
+      ],
     );
   }
 }
 
 class _NotificationFeedSection {
+  final _NotificationCategory category;
   final String title;
   final IconData icon;
+  final String timeLabel;
   final List<_NotificationFeedItem> items;
 
   const _NotificationFeedSection({
+    required this.category,
     required this.title,
     required this.icon,
+    required this.timeLabel,
     required this.items,
   });
 }
