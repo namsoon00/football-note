@@ -44,55 +44,94 @@ class LocalFortuneService {
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionDayMoods,
-        values: _localizedValues(l10n.fortuneSajuElementFlows),
+        values: _combinedLocalizedValues(
+          l10n.fortuneSajuElementFlows,
+          l10n.fortuneSajuElementFlowExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionDailyEvents,
-        values: _localizedValues(l10n.fortuneSajuFortuneThemes),
+        values: _combinedLocalizedValues(
+          l10n.fortuneSajuFortuneThemes,
+          l10n.fortuneSajuFortuneThemeExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionActionCues,
-        values: _localizedValues(l10n.fortuneSajuTrainingTones),
+        values: _combinedLocalizedValues(
+          l10n.fortuneSajuTrainingTones,
+          l10n.fortuneSajuTrainingToneExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionNameRhythms,
-        values: _localizedValues(l10n.fortuneSajuNameElements),
+        values: _combinedLocalizedValues(
+          l10n.fortuneSajuNameElements,
+          l10n.fortuneSajuNameElementExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionAdvice,
-        values: _localizedValues(l10n.fortuneSajuPlayAdvice),
+        values: _combinedLocalizedValues(
+          l10n.fortuneSajuPlayAdvice,
+          l10n.fortuneSajuPlayAdviceExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionColorTones,
-        values: _localizedValues(l10n.fortuneLuckyColorTones),
+        values: _combinedLocalizedValues(
+          l10n.fortuneLuckyColorTones,
+          l10n.fortuneLuckyColorToneExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionColorBases,
-        values: _localizedValues(l10n.fortuneLuckyColorBases),
+        values: _combinedLocalizedValues(
+          l10n.fortuneLuckyColorBases,
+          l10n.fortuneLuckyColorBaseExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionTimePeriods,
-        values: _localizedValues(l10n.fortuneLuckyTimePeriods),
+        values: _combinedLocalizedValues(
+          l10n.fortuneLuckyTimePeriods,
+          l10n.fortuneLuckyTimePeriodExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionTimeWindows,
-        values: _localizedValues(l10n.fortuneLuckyTimeWindows),
+        values: _combinedLocalizedValues(
+          l10n.fortuneLuckyTimeWindows,
+          l10n.fortuneLuckyTimeWindowExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionSceneModifiers,
-        values: _localizedValues(l10n.fortuneLuckyZoneModifiers),
+        values: _combinedLocalizedValues(
+          l10n.fortuneLuckyZoneModifiers,
+          l10n.fortuneLuckyZoneModifierExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionSceneBases,
-        values: _localizedValues(l10n.fortuneLuckyZoneBases),
+        values: _combinedLocalizedValues(
+          l10n.fortuneLuckyZoneBases,
+          l10n.fortuneLuckyZoneBaseExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionCueOpenings,
-        values: _localizedValues(l10n.fortuneLuckyCueOpenings),
+        values: _combinedLocalizedValues(
+          l10n.fortuneLuckyCueOpenings,
+          l10n.fortuneLuckyCueOpeningExtras,
+        ),
       ),
       FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionCueActions,
-        values: _localizedValues(l10n.fortuneLuckyCueActions),
+        values: _combinedLocalizedValues(
+          l10n.fortuneLuckyCueActions,
+          l10n.fortuneLuckyCueActionExtras,
+        ),
       ),
     ];
   }
@@ -128,12 +167,14 @@ class LocalFortuneService {
       l10n: l10n,
     );
     final name = _playerName(profile, l10n);
-    final fortuneTheme = _pickLocalized(
+    final fortuneTheme = _pickCombinedLocalized(
       l10n.fortuneSajuFortuneThemes,
+      l10n.fortuneSajuFortuneThemeExtras,
       baseSeed + birthReading.seed + 89,
     );
-    final elementFlow = _pickLocalized(
+    final elementFlow = _pickCombinedLocalized(
       l10n.fortuneSajuElementFlows,
+      l10n.fortuneSajuElementFlowExtras,
       baseSeed + birthReading.elementSeed + dailyPillar.stem.index * 37,
     );
 
@@ -239,8 +280,14 @@ class LocalFortuneService {
   String _luckyColor({required int seed, required AppLocalizations l10n}) {
     return _composeSegments(
       seed: seed,
-      first: _localizedValues(l10n.fortuneLuckyColorTones),
-      second: _localizedValues(l10n.fortuneLuckyColorBases),
+      first: _combinedLocalizedValues(
+        l10n.fortuneLuckyColorTones,
+        l10n.fortuneLuckyColorToneExtras,
+      ),
+      second: _combinedLocalizedValues(
+        l10n.fortuneLuckyColorBases,
+        l10n.fortuneLuckyColorBaseExtras,
+      ),
     );
   }
 
@@ -330,8 +377,15 @@ class LocalFortuneService {
         .toList(growable: false);
   }
 
-  static String _pickLocalized(String packed, int seed) {
-    return _valueAt(_localizedValues(packed), seed);
+  static List<String> _combinedLocalizedValues(String base, String extra) {
+    return <String>[
+      ..._localizedValues(base),
+      ..._localizedValues(extra),
+    ];
+  }
+
+  static String _pickCombinedLocalized(String base, String extra, int seed) {
+    return _valueAt(_combinedLocalizedValues(base, extra), seed);
   }
 
   static String _valueAt(List<String> values, int index) {
@@ -422,16 +476,16 @@ class _BirthReading {
   });
 }
 
-const int _fortuneLuckyColorToneCount = 20;
-const int _fortuneLuckyColorBaseCount = 24;
-const int _fortuneLuckyTimePeriodCount = 16;
-const int _fortuneLuckyTimeWindowCount = 20;
-const int _fortuneLuckyZoneModifierCount = 20;
-const int _fortuneLuckyZoneBaseCount = 24;
-const int _fortuneLuckyCueOpeningCount = 20;
-const int _fortuneLuckyCueActionCount = 32;
-const int _fortuneSajuElementFlowCount = 24;
-const int _fortuneSajuThemeCount = 36;
-const int _fortuneSajuTrainingToneCount = 36;
-const int _fortuneSajuNameElementCount = 24;
-const int _fortuneSajuPlayAdviceCount = 36;
+const int _fortuneLuckyColorToneCount = 40;
+const int _fortuneLuckyColorBaseCount = 48;
+const int _fortuneLuckyTimePeriodCount = 32;
+const int _fortuneLuckyTimeWindowCount = 48;
+const int _fortuneLuckyZoneModifierCount = 40;
+const int _fortuneLuckyZoneBaseCount = 48;
+const int _fortuneLuckyCueOpeningCount = 40;
+const int _fortuneLuckyCueActionCount = 64;
+const int _fortuneSajuElementFlowCount = 60;
+const int _fortuneSajuThemeCount = 96;
+const int _fortuneSajuTrainingToneCount = 72;
+const int _fortuneSajuNameElementCount = 60;
+const int _fortuneSajuPlayAdviceCount = 96;

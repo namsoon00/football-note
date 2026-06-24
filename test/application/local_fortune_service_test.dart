@@ -46,6 +46,15 @@ void main() {
     expect(lines.last, isNot(contains('시간대 ')));
   });
 
+  test('databaseSections exposes expanded fortune database', () {
+    final sections = LocalFortuneService.databaseSections(AppLocalizationsKo());
+
+    expect(
+      sections.map((section) => section.values.length),
+      <int>[22, 60, 96, 72, 60, 96, 40, 48, 32, 48, 40, 48, 40, 64],
+    );
+  });
+
   test('birth date and name change the generated fortune', () {
     final service = LocalFortuneService();
     final l10n = AppLocalizationsKo();
