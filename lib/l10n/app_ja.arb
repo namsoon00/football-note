@@ -3573,7 +3573,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineOne": "{name}さん、今日は{elementFlow}の雰囲気です。",
+  "fortuneGeneratedDailyLineOne": "{name}さん、今日は{elementFlow}寄りの流れです。",
   "@fortuneGeneratedDailyLineOne": {
     "placeholders": {
       "name": {

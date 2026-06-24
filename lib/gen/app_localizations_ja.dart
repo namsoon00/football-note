@@ -5998,7 +5998,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$nameさん、今日は$elementFlowの雰囲気です。';
+    return '$nameさん、今日は$elementFlow寄りの流れです。';
   }
 
   @override

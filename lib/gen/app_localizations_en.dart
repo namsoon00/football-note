@@ -6169,7 +6169,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name, today\'s mood is $elementFlow.';
+    return '$name, today\'s flow leans toward $elementFlow.';
   }
 
   @override

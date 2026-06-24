@@ -10820,7 +10820,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedDailyLineOne.
   ///
   /// In en, this message translates to:
-  /// **'{name}, today\'s mood is {elementFlow}.'**
+  /// **'{name}, today\'s flow leans toward {elementFlow}.'**
   String fortuneGeneratedDailyLineOne(String name, String elementFlow);
 
   /// No description provided for @fortuneGeneratedDailyLineTwo.
