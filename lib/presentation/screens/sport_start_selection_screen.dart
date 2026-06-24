@@ -20,113 +20,114 @@ class _SportStartSelectionScreenState extends State<SportStartSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final choices = _buildSportChoices(l10n);
-    final selectedSportId = _selectedSportId;
-    final selectedChoice =
-        choices.where((choice) => choice.id == selectedSportId).firstOrNull;
+    final darkTheme = AppTheme.dark().copyWith(
+      scaffoldBackgroundColor: _SportSelectionPalette.background,
+    );
+    return Theme(
+      data: darkTheme,
+      child: Builder(
+        builder: (context) {
+          final l10n = AppLocalizations.of(context)!;
+          final choices = _buildSportChoices(l10n);
+          final selectedSportId = _selectedSportId;
+          final selectedChoice = choices
+              .where((choice) => choice.id == selectedSportId)
+              .firstOrNull;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: AppBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final listLayout = constraints.maxWidth < 360;
-                    final crossAxisCount =
-                        listLayout ? 1 : (constraints.maxWidth >= 760 ? 4 : 2);
-                    final aspectRatio =
-                        listLayout ? 3.05 : (crossAxisCount == 4 ? 0.78 : 0.84);
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg,
-                        AppSpacing.xl,
-                        AppSpacing.lg,
-                        AppSpacing.xl,
-                      ),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 840),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _SportSelectionHeader(
-                                title: l10n.startupSportTitle,
-                                subtitle: l10n.startupSportSubtitle,
-                              ),
-                              const SizedBox(height: AppSpacing.xl),
-                              GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: choices.length,
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  crossAxisSpacing: AppSpacing.sm,
-                                  mainAxisSpacing: AppSpacing.sm,
-                                  childAspectRatio: aspectRatio,
-                                ),
-                                itemBuilder: (context, index) {
-                                  final choice = choices[index];
-                                  return _SportChoiceCard(
-                                    choice: choice,
-                                    selected: selectedSportId == choice.id,
-                                    listLayout: listLayout,
-                                    onTap: () => setState(
-                                      () => _selectedSportId = choice.id,
+          return Scaffold(
+            backgroundColor: _SportSelectionPalette.background,
+            body: AppBackground(
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final listLayout = constraints.maxWidth < 560;
+                          final crossAxisCount = listLayout
+                              ? 1
+                              : (constraints.maxWidth >= 920 ? 4 : 2);
+                          final aspectRatio = listLayout
+                              ? 4.2
+                              : (crossAxisCount == 4 ? 1.02 : 1.82);
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.lg,
+                              AppSpacing.xxl,
+                              AppSpacing.lg,
+                              AppSpacing.xl,
+                            ),
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints:
+                                    const BoxConstraints(maxWidth: 960),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    _SportSelectionHeader(
+                                      title: l10n.startupSportTitle,
+                                      subtitle: l10n.startupSportSubtitle,
                                     ),
-                                  );
-                                },
+                                    const SizedBox(height: AppSpacing.xl),
+                                    GridView.builder(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemCount: choices.length,
+                                      gridDelegate:
+                                          SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: crossAxisCount,
+                                        crossAxisSpacing: AppSpacing.sm,
+                                        mainAxisSpacing: AppSpacing.sm,
+                                        childAspectRatio: aspectRatio,
+                                      ),
+                                      itemBuilder: (context, index) {
+                                        final choice = choices[index];
+                                        return _SportChoiceCard(
+                                          index: index,
+                                          choice: choice,
+                                          selected:
+                                              selectedSportId == choice.id,
+                                          listLayout: listLayout,
+                                          onTap: () => setState(
+                                            () => _selectedSportId = choice.id,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: AppSurfaces.cardColor(scheme, theme.brightness),
-                  border: Border(
-                    top: BorderSide(
-                      color: AppSurfaces.borderColor(scheme, theme.brightness),
-                    ),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.lg,
-                    AppSpacing.sm,
-                    AppSpacing.lg,
-                    AppSpacing.md,
-                  ),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 840),
-                      child: _SportStartAction(
-                        selectedChoice: selectedChoice,
-                        label: l10n.startupSportAction,
-                        onPressed: selectedSportId == null
-                            ? null
-                            : () => widget.onSelected(selectedSportId),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  ),
+                    _SportStartDock(
+                      selectedChoice: selectedChoice,
+                      label: l10n.startupSportAction,
+                      onPressed: selectedSportId == null
+                          ? null
+                          : () => widget.onSelected(selectedSportId),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
+}
+
+class _SportSelectionPalette {
+  static const background = Color(0xFF070A10);
+  static const panel = Color(0xFF0D121C);
+  static const panelRaised = Color(0xFF111827);
+  static const border = Color(0xFF273244);
+  static const muted = Color(0xFF9CA7BA);
 }
 
 class _SportSelectionHeader extends StatelessWidget {
@@ -142,49 +143,36 @@ class _SportSelectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 56,
-          height: 56,
-          alignment: Alignment.center,
+          width: 52,
+          height: 3,
           decoration: BoxDecoration(
-            color: scheme.primary.withValues(alpha: 0.10),
-            borderRadius: AppRadius.control,
-            border: Border.all(
-              color: scheme.primary.withValues(alpha: 0.18),
-            ),
-          ),
-          child: Icon(
-            Icons.sports_rounded,
-            size: 30,
             color: scheme.primary,
+            borderRadius: AppRadius.full,
           ),
         ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  color: scheme.onSurface,
-                  fontWeight: FontWeight.w900,
-                  height: 1.16,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.46,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          title,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            color: scheme.onSurface,
+            fontWeight: FontWeight.w900,
+            height: 1.12,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: Text(
+            subtitle,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: _SportSelectionPalette.muted,
+              height: 1.48,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -193,12 +181,14 @@ class _SportSelectionHeader extends StatelessWidget {
 }
 
 class _SportChoiceCard extends StatelessWidget {
+  final int index;
   final _SportChoice choice;
   final bool selected;
   final bool listLayout;
   final VoidCallback onTap;
 
   const _SportChoiceCard({
+    required this.index,
     required this.choice,
     required this.selected,
     required this.listLayout,
@@ -207,55 +197,71 @@ class _SportChoiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final brightness = theme.brightness;
+    final scheme = Theme.of(context).colorScheme;
     final borderColor = selected
-        ? choice.color
-            .withValues(alpha: brightness == Brightness.dark ? 0.82 : 0.68)
-        : AppSurfaces.borderColor(scheme, brightness);
+        ? choice.color.withValues(alpha: 0.78)
+        : _SportSelectionPalette.border;
+    final background = selected
+        ? Color.lerp(_SportSelectionPalette.panelRaised, choice.color, 0.12)!
+        : _SportSelectionPalette.panel;
     return Semantics(
       button: true,
       selected: selected,
       label: choice.title,
-      child: AnimatedScale(
-        scale: selected ? 1.012 : 1,
-        duration: const Duration(milliseconds: 160),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         curve: Curves.easeOutCubic,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          decoration: BoxDecoration(
-            gradient: selected
-                ? LinearGradient(
-                    begin: AlignmentDirectional.topStart,
-                    end: AlignmentDirectional.bottomEnd,
-                    colors: [
-                      choice.color.withValues(
-                        alpha: brightness == Brightness.dark ? 0.24 : 0.14,
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: AppRadius.small,
+          border: Border.all(color: borderColor, width: selected ? 1.4 : 1),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: AppRadius.small,
+          child: InkWell(
+            key: ValueKey('startup-sport-choice-${choice.id}'),
+            borderRadius: AppRadius.small,
+            onTap: onTap,
+            child: Stack(
+              children: [
+                PositionedDirectional(
+                  start: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: selected ? 4 : 2,
+                    decoration: BoxDecoration(
+                      color: choice.color.withValues(
+                        alpha: selected ? 0.95 : 0.42,
                       ),
-                      AppSurfaces.cardColor(scheme, brightness),
-                    ],
-                  )
-                : null,
-            color: selected ? null : AppSurfaces.cardColor(scheme, brightness),
-            borderRadius: AppRadius.surface,
-            border: Border.all(color: borderColor, width: selected ? 1.6 : 1),
-            boxShadow: AppShadows.surface(brightness),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: AppRadius.surface,
-            child: InkWell(
-              key: ValueKey('startup-sport-choice-${choice.id}'),
-              borderRadius: AppRadius.surface,
-              onTap: onTap,
-              child: Padding(
-                padding: EdgeInsets.all(listLayout ? AppSpacing.md : 18),
-                child: listLayout
-                    ? _buildListContent(context)
-                    : _buildTileContent(context),
-              ),
+                      borderRadius: const BorderRadiusDirectional.only(
+                        topStart: Radius.circular(AppRadius.xs),
+                        bottomStart: Radius.circular(AppRadius.xs),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(listLayout ? AppSpacing.md : 18),
+                  child: listLayout
+                      ? _buildListContent(context, scheme)
+                      : _buildTileContent(context, scheme),
+                ),
+                PositionedDirectional(
+                  top: AppSpacing.sm,
+                  end: AppSpacing.sm,
+                  child: Text(
+                    (index + 1).toString().padLeft(2, '0'),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.36),
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0,
+                        ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -263,9 +269,8 @@ class _SportChoiceCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTileContent(BuildContext context) {
+  Widget _buildTileContent(BuildContext context, ColorScheme scheme) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -274,9 +279,12 @@ class _SportChoiceCard extends StatelessWidget {
           children: [
             _SportIconMark(choice: choice, selected: selected),
             const Spacer(),
-            _SportSelectionMark(
-              selected: selected,
-              color: choice.color,
+            Padding(
+              padding: const EdgeInsetsDirectional.only(top: AppSpacing.xl),
+              child: _SportSelectionMark(
+                selected: selected,
+                color: choice.color,
+              ),
             ),
           ],
         ),
@@ -293,11 +301,11 @@ class _SportChoiceCard extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         Text(
           choice.description,
-          maxLines: 3,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: scheme.onSurfaceVariant,
-            height: 1.32,
+            color: _SportSelectionPalette.muted,
+            height: 1.35,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -305,9 +313,8 @@ class _SportChoiceCard extends StatelessWidget {
     );
   }
 
-  Widget _buildListContent(BuildContext context) {
+  Widget _buildListContent(BuildContext context, ColorScheme scheme) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     return Row(
       children: [
         _SportIconMark(choice: choice, selected: selected),
@@ -329,10 +336,10 @@ class _SportChoiceCard extends StatelessWidget {
               const SizedBox(height: AppSpacing.xxs),
               Text(
                 choice.description,
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
+                  color: _SportSelectionPalette.muted,
                   height: 1.28,
                   fontWeight: FontWeight.w600,
                 ),
@@ -341,7 +348,10 @@ class _SportChoiceCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        _SportSelectionMark(selected: selected, color: choice.color),
+        Padding(
+          padding: const EdgeInsetsDirectional.only(end: AppSpacing.lg),
+          child: _SportSelectionMark(selected: selected, color: choice.color),
+        ),
       ],
     );
   }
@@ -361,14 +371,21 @@ class _SportIconMark extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
-      width: 52,
-      height: 52,
+      width: 42,
+      height: 42,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: choice.color.withValues(alpha: selected ? 0.18 : 0.12),
-        borderRadius: AppRadius.control,
+        color: selected
+            ? choice.color.withValues(alpha: 0.20)
+            : Colors.white.withValues(alpha: 0.04),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: selected
+              ? choice.color.withValues(alpha: 0.54)
+              : Colors.white.withValues(alpha: 0.08),
+        ),
       ),
-      child: Icon(choice.icon, color: choice.color, size: 29),
+      child: Icon(choice.icon, color: choice.color, size: 23),
     );
   }
 }
@@ -388,29 +405,29 @@ class _SportSelectionMark extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
-      width: 28,
-      height: 28,
+      width: 24,
+      height: 24,
       decoration: BoxDecoration(
-        color: selected ? color : Colors.transparent,
-        borderRadius: AppRadius.full,
+        color: selected ? color : Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
         border: Border.all(
-          color: selected ? color : scheme.outline,
-          width: 1.4,
+          color: selected ? color : scheme.outline.withValues(alpha: 0.44),
+          width: 1.2,
         ),
       ),
       child: selected
-          ? const Icon(Icons.check_rounded, size: 18, color: Colors.white)
+          ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
           : null,
     );
   }
 }
 
-class _SportStartAction extends StatelessWidget {
+class _SportStartDock extends StatelessWidget {
   final _SportChoice? selectedChoice;
   final String label;
   final VoidCallback? onPressed;
 
-  const _SportStartAction({
+  const _SportStartDock({
     required this.selectedChoice,
     required this.label,
     required this.onPressed,
@@ -419,17 +436,48 @@ class _SportStartAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final choice = selectedChoice;
-    return SizedBox(
-      width: double.infinity,
-      child: FilledButton.icon(
-        key: const ValueKey('startup-sport-start-button'),
-        onPressed: onPressed,
-        icon: Icon(choice == null ? Icons.arrow_forward_rounded : choice.icon),
-        style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(AppSizes.primaryButtonHeight),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
+    final theme = Theme.of(context);
+    final background = choice?.color ?? theme.colorScheme.primary;
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: _SportSelectionPalette.panel,
+        border: Border(
+          top: BorderSide(color: _SportSelectionPalette.border),
         ),
-        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.sm,
+          AppSpacing.lg,
+          AppSpacing.md,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                key: const ValueKey('startup-sport-start-button'),
+                onPressed: onPressed,
+                icon: Icon(
+                  choice == null ? Icons.arrow_forward_rounded : choice.icon,
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: background,
+                  disabledBackgroundColor: Colors.white.withValues(alpha: 0.08),
+                  disabledForegroundColor: Colors.white.withValues(alpha: 0.36),
+                  foregroundColor: Colors.white,
+                  minimumSize:
+                      const Size.fromHeight(AppSizes.primaryButtonHeight),
+                  shape: RoundedRectangleBorder(borderRadius: AppRadius.small),
+                ),
+                label:
+                    Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -458,28 +506,28 @@ List<_SportChoice> _buildSportChoices(AppLocalizations l10n) {
       title: l10n.sportFootball,
       description: l10n.startupSportFootballDescription,
       icon: Icons.sports_soccer_rounded,
-      color: const Color(0xFF2563EB),
+      color: const Color(0xFF4F8BFF),
     ),
     _SportChoice(
       id: SportCatalog.baseballId,
       title: l10n.sportBaseball,
       description: l10n.startupSportBaseballDescription,
       icon: Icons.sports_baseball,
-      color: const Color(0xFFB45309),
+      color: const Color(0xFFE5A449),
     ),
     _SportChoice(
       id: SportCatalog.basketballId,
       title: l10n.sportBasketball,
       description: l10n.startupSportBasketballDescription,
       icon: Icons.sports_basketball_rounded,
-      color: const Color(0xFFDC2626),
+      color: const Color(0xFFFF6B5F),
     ),
     _SportChoice(
       id: SportCatalog.tennisId,
       title: l10n.sportTennis,
       description: l10n.startupSportTennisDescription,
       icon: Icons.sports_tennis_rounded,
-      color: const Color(0xFF15803D),
+      color: const Color(0xFF5BBF7A),
     ),
   ];
 }
