@@ -6001,7 +6001,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name님, 오늘은 $elementFlow 분위기예요.';
+    return '$name님, 오늘은 $elementFlow 쪽으로 흐름이 잡혀요.';
   }
 
   @override

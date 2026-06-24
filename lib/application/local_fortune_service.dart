@@ -134,7 +134,7 @@ class LocalFortuneService {
     );
     final elementFlow = _pickLocalized(
       l10n.fortuneSajuElementFlows,
-      birthReading.elementSeed + dailyPillar.stem.index,
+      baseSeed + birthReading.elementSeed + dailyPillar.stem.index * 37,
     );
 
     final fortuneText = <String>[
