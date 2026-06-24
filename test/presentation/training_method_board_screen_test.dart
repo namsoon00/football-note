@@ -1703,6 +1703,9 @@ void main() {
       await _tapVisibleOutlinedButton(tester, '패스');
       await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.32));
 
+      expect(find.text('동작 단계'), findsOneWidget);
+      await _tapVisibleOutlinedButton(tester, '다음 단계');
+
       await tester.tap(find.widgetWithText(TextButton, '저장'));
       await tester.pumpAndSettle();
 
@@ -1716,6 +1719,64 @@ void main() {
       expect(ballRoute.kind, TrainingMethodRouteKind.ball);
       expect(ballRoute.linkedItemId, ball.id);
       expect(ballRoute.colorValue, ball.colorValue);
+      expect(ballRoute.stageIndex, 2);
+    },
+  );
+
+  testWidgets(
+    'selected player shooting action can set the ball route stage',
+    (WidgetTester tester) async {
+      _setLandscapeSurface(tester);
+      String? savedLayout;
+
+      await tester.pumpWidget(
+        _buildApp(
+          TrainingMethodBoardScreen(
+            boardTitle: '슈팅 훈련',
+            initialLayoutJson: const TrainingMethodLayout(
+              pages: <TrainingMethodPage>[
+                TrainingMethodPage(
+                  name: 'Board',
+                  items: <TrainingMethodItem>[
+                    TrainingMethodItem(
+                      id: 'player-1',
+                      type: 'player',
+                      x: 0.28,
+                      y: 0.58,
+                    ),
+                  ],
+                ),
+              ],
+            ).encode(),
+            onSaved: (value) => savedLayout = value,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      await tester.tap(
+        find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+      );
+      await tester.pumpAndSettle();
+
+      await _tapVisibleOutlinedButton(tester, '슈팅');
+      await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
+
+      expect(find.text('동작 단계'), findsOneWidget);
+      await _tapVisibleOutlinedButton(tester, '다음 단계');
+
+      await tester.tap(find.widgetWithText(TextButton, '저장'));
+      await tester.pumpAndSettle();
+
+      final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+      final page = saved.pages.single;
+      final ballRoute = page.routes.singleWhere(
+        (route) => route.kind == TrainingMethodRouteKind.ball,
+      );
+
+      expect(page.items.where((item) => item.type == 'ball'), hasLength(1));
+      expect(ballRoute.stageIndex, 2);
     },
   );
 
