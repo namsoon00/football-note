@@ -6169,13 +6169,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name, today starts with $elementFlow.';
+    return '$name, today\'s mood is $elementFlow.';
   }
 
   @override
-  String fortuneGeneratedDailyLineTwo(
-      String fortuneTheme, String trainingTone) {
-    return '$fortuneTheme $trainingTone';
+  String fortuneGeneratedDailyLineTwo(String fortuneTheme) {
+    return '$fortuneTheme';
   }
 
   @override
@@ -6188,7 +6187,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return 'Fun points: number $number, color $color.';
+    return 'Fun points are number $number and $color.';
   }
 
   @override

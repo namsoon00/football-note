@@ -13,7 +13,7 @@ void main() {
     expect(sections.bodyLines, hasLength(1));
     expect(
       sections.bodyLines.single,
-      '재미 포인트: 색상 에메랄드.',
+      '재미 포인트는 에메랄드 컬러예요.',
     );
   });
 }

@@ -36,14 +36,13 @@ void main() {
     expect(result.fortuneText, isNot(contains('생일 코드')));
     expect(result.fortuneText, isNot(contains('[재미 포인트]')));
     final lines = result.fortuneText.split('\n');
-    expect(lines, hasLength(4));
-    expect(lines.first, contains('민준'));
-    expect(lines.first, contains('분위기가 먼저 찾아와요.'));
+    expect(lines, hasLength(3));
+    expect(lines.first, contains('민준님'));
+    expect(lines.first, contains('분위기예요.'));
     expect(lines[1], isNot(contains('훈련')));
     expect(lines[1], isNot(contains('패스')));
-    expect(lines[2], contains('흐름이라 '));
-    expect(lines.last, contains('재미 포인트: 숫자 '));
-    expect(lines.last, contains('컬러 '));
+    expect(lines.last, contains('재미 포인트는 '));
+    expect(lines.last, contains('컬러와 숫자 '));
     expect(lines.last, isNot(contains('시간대 ')));
   });
 
@@ -83,7 +82,55 @@ void main() {
     );
 
     expect(first.fortuneText, isNot(second.fortuneText));
-    expect(first.fortuneText, contains('민준'));
-    expect(second.fortuneText, contains('서윤'));
+    expect(first.fortuneText, contains('민준님'));
+    expect(second.fortuneText, contains('서윤님'));
+  });
+
+  test('same-day records use record timing for different fortunes', () {
+    final service = LocalFortuneService();
+    final l10n = AppLocalizationsKo();
+    final profile = PlayerProfile(
+      name: '민준',
+      birthDate: DateTime(2012, 3, 10, 7, 30),
+    );
+    final firstEntry = TrainingEntry(
+      date: DateTime(2026, 4, 2, 18),
+      createdAt: DateTime(2026, 4, 2, 18),
+      durationMinutes: 60,
+      intensity: 3,
+      type: '일상 기록',
+      mood: 3,
+      injury: false,
+      notes: '첫 번째 기록',
+      location: '집',
+      program: '기록',
+    );
+    final secondEntry = TrainingEntry(
+      date: DateTime(2026, 4, 2, 18),
+      createdAt: DateTime(2026, 4, 2, 18, 5),
+      durationMinutes: 60,
+      intensity: 3,
+      type: '일상 기록',
+      mood: 3,
+      injury: false,
+      notes: '두 번째 기록',
+      location: '집',
+      program: '기록',
+    );
+
+    final first = service.generateResult(
+      entry: firstEntry,
+      profile: profile,
+      history: const <TrainingEntry>[],
+      l10n: l10n,
+    );
+    final second = service.generateResult(
+      entry: secondEntry,
+      profile: profile,
+      history: const <TrainingEntry>[],
+      l10n: l10n,
+    );
+
+    expect(first.fortuneText, isNot(second.fortuneText));
   });
 }

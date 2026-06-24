@@ -484,7 +484,7 @@ void main() {
     expect(find.text('운세 보기'), findsNothing);
     expect(find.text('운세 조합'), findsNothing);
     expect(
-      find.textContaining('재미 포인트: 색상 에메랄드'),
+      find.textContaining('재미 포인트는 에메랄드 컬러예요'),
       findsOneWidget,
     );
     expect(find.textContaining('시간대 오전 후반'), findsNothing);
@@ -730,7 +730,7 @@ void main() {
 
     expect(find.text('오늘의 운세'), findsWidgets);
     expect(find.text('생일과 이름으로 고른 오늘의 가벼운 운세예요.'), findsOneWidget);
-    expect(find.textContaining('재미 포인트: 색상 에메랄드'), findsOneWidget);
+    expect(find.textContaining('재미 포인트는 에메랄드 컬러예요'), findsOneWidget);
   });
 
   testWidgets('parent mode keeps training sketch action visible', (

@@ -3573,7 +3573,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineOne": "{name}、今日は{elementFlow}の雰囲気から始まります。",
+  "fortuneGeneratedDailyLineOne": "{name}さん、今日は{elementFlow}の雰囲気です。",
   "@fortuneGeneratedDailyLineOne": {
     "placeholders": {
       "name": {
@@ -3584,13 +3584,10 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineTwo": "{fortuneTheme} {trainingTone}",
+  "fortuneGeneratedDailyLineTwo": "{fortuneTheme}",
   "@fortuneGeneratedDailyLineTwo": {
     "placeholders": {
       "fortuneTheme": {
-        "type": "String"
-      },
-      "trainingTone": {
         "type": "String"
       }
     }
@@ -3607,7 +3604,7 @@
     }
   },
   "fortuneGeneratedLuckyInfoHeader": "[楽しいポイント]",
-  "fortuneGeneratedLuckyInfoLine": "楽しいポイント: 数字 {number}、カラー {color}。",
+  "fortuneGeneratedLuckyInfoLine": "楽しいポイントは数字 {number} と {color} カラーです。",
   "@fortuneGeneratedLuckyInfoLine": {
     "placeholders": {
       "number": {
