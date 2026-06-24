@@ -69,27 +69,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeSlideFlameBody => '今日ひとつだけでも大丈夫です。記録してもう一度始めれば、明日もう一歩進めます。';
 
   @override
-  String get startupSportTitle => 'まず使う競技を選びましょう';
+  String get startupSportTitle => '開始する競技を選択';
 
   @override
   String get startupSportSubtitle =>
-      '選んだ競技に合わせて、記録、目標、統計、ニュースが始まります。あとで設定から変更できます。';
+      '選択した競技を基準に、記録、目標、統計、ニュースの構成が設定されます。あとで設定から変更できます。';
 
   @override
-  String get startupSportAction => 'この競技で始める';
+  String get startupSportAction => '選択した競技で開始';
 
   @override
-  String get startupSportFootballDescription => '練習、試合、スケッチ、ニュースをサッカー中心で始めます。';
+  String get startupSportFootballDescription =>
+      '練習、試合、戦術スケッチ、ニュースをサッカー基準で構成します。';
 
   @override
-  String get startupSportBaseballDescription => '投球、打撃、守備、コンディションを野球向けに記録します。';
+  String get startupSportBaseballDescription =>
+      '投球、打撃、守備、コンディション記録を野球基準で構成します。';
 
   @override
   String get startupSportBasketballDescription =>
-      'シュート、ドリブル、試合の流れ、コンディションをバスケットボール向けに記録します。';
+      'シュート、ドリブル、試合の流れ、コンディション記録をバスケットボール基準で構成します。';
 
   @override
-  String get startupSportTennisDescription => 'ストローク、サーブ、ラリー、補強運動をテニス向けに記録します。';
+  String get startupSportTennisDescription =>
+      'ストローク、サーブ、ラリー、補強トレーニングをテニス基準で構成します。';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {

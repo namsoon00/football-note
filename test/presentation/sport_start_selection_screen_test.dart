@@ -24,7 +24,7 @@ void main() {
     final startButton = find.byKey(
       const ValueKey('startup-sport-start-button'),
     );
-    expect(find.text('먼저 사용할 종목을 골라요'), findsOneWidget);
+    expect(find.text('시작할 종목 선택'), findsOneWidget);
     expect(find.text('축구'), findsOneWidget);
     expect(find.text('야구'), findsOneWidget);
     expect(find.text('농구'), findsOneWidget);
