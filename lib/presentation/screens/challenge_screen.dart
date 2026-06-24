@@ -4137,8 +4137,13 @@ class _ChallengeListCard extends StatelessWidget {
 
 class _ChallengeCurrentRoundBadge extends StatelessWidget {
   final ChallengeRoundProgress? round;
+  final double size;
 
-  const _ChallengeCurrentRoundBadge({required this.round});
+  const _ChallengeCurrentRoundBadge({
+    super.key,
+    required this.round,
+    this.size = 62,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -4161,30 +4166,30 @@ class _ChallengeCurrentRoundBadge extends StatelessWidget {
                 ? l10n.challengeRoundDateToday
                 : l10n.challengeRoundTitle(round.round.number);
     return Container(
-      width: 62,
-      height: 62,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: activeGreen.withValues(
           alpha: theme.brightness == Brightness.dark ? 0.18 : 0.12,
         ),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(size * 0.29),
         border: Border.all(color: activeGreen.withValues(alpha: 0.42)),
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
           SizedBox.square(
-            dimension: 42,
+            dimension: size * 0.68,
             child: CircularProgressIndicator(
               value: progress,
-              strokeWidth: 4,
+              strokeWidth: size * 0.064,
               backgroundColor: activeGreen.withValues(alpha: 0.14),
               valueColor: AlwaysStoppedAnimation<Color>(activeGreen),
             ),
           ),
           Container(
-            width: 31,
-            height: 31,
+            width: size * 0.50,
+            height: size * 0.50,
             decoration: BoxDecoration(
               color: theme.colorScheme.surface.withValues(alpha: 0.84),
               shape: BoxShape.circle,
@@ -4196,22 +4201,22 @@ class _ChallengeCurrentRoundBadge extends StatelessWidget {
                       ? Icons.directions_run_rounded
                       : Icons.flag_rounded,
               color: activeGreen,
-              size: 21,
+              size: size * 0.34,
             ),
           ),
           PositionedDirectional(
-            top: 7,
-            end: 8,
+            top: size * 0.11,
+            end: size * 0.13,
             child: Icon(
               Icons.auto_awesome_rounded,
               color: scheme.tertiary,
-              size: 14,
+              size: size * 0.23,
             ),
           ),
           PositionedDirectional(
-            bottom: 6,
-            start: 6,
-            end: 6,
+            bottom: size * 0.10,
+            start: size * 0.10,
+            end: size * 0.10,
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
@@ -4598,9 +4603,20 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
             }
             if (current) {
               return Center(
-                child: _RoundCalendarCurrentRoundStatus(
-                  round: round,
-                  size: mascotSize,
+                child: SizedBox.square(
+                  key: ValueKey(
+                    'challenge-current-round-status-${round.round.number}',
+                  ),
+                  dimension: mascotSize,
+                  child: Center(
+                    child: _ChallengeCurrentRoundBadge(
+                      key: ValueKey(
+                        'challenge-current-round-cute-marker-${round.round.number}',
+                      ),
+                      round: round,
+                      size: mascotSize,
+                    ),
+                  ),
                 ),
               );
             }
@@ -4654,150 +4670,6 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
               ],
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class _RoundCalendarCurrentRoundStatus extends StatelessWidget {
-  final ChallengeRoundProgress round;
-  final double size;
-
-  const _RoundCalendarCurrentRoundStatus({
-    required this.round,
-    required this.size,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final progress = round.missionCompletionRate.clamp(0, 1).toDouble();
-    final progressPercent = (progress * 100).round();
-    final onActive = theme.brightness == Brightness.dark
-        ? const Color(0xFFDCFCE7)
-        : const Color(0xFF064E3B);
-    final activeProgress = progress.clamp(0.08, 1).toDouble();
-    return SizedBox.square(
-      key: ValueKey(
-        'challenge-current-round-status-${round.round.number}',
-      ),
-      dimension: size,
-      child: Semantics(
-        label: '${l10n.challengePendingBadge}, '
-            '${l10n.challengeRoundTitle(round.round.number)}, '
-            '${l10n.challengeProgressPercent(progressPercent)}',
-        child: RepaintBoundary(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: size * 0.09,
-              right: size * 0.09,
-              top: size * 0.08,
-              bottom: size * 0.08,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  constraints: BoxConstraints(
-                    maxHeight: size * 0.22,
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: size * 0.08,
-                    vertical: size * 0.025,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(
-                      alpha: theme.brightness == Brightness.dark ? 0.12 : 0.72,
-                    ),
-                    borderRadius: AppRadius.full,
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      l10n.challengePendingBadge,
-                      maxLines: 1,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: onActive,
-                        fontWeight: FontWeight.w900,
-                        height: 1,
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  key: ValueKey(
-                    'challenge-current-round-cute-marker-${round.round.number}',
-                  ),
-                  width: size * 0.54,
-                  height: size * 0.46,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(
-                      alpha: theme.brightness == Brightness.dark ? 0.12 : 0.62,
-                    ),
-                    borderRadius: BorderRadius.circular(size * 0.16),
-                    border: Border.all(
-                      color: onActive.withValues(alpha: 0.72),
-                      width: size * 0.025,
-                    ),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      SizedBox.square(
-                        dimension: size * 0.34,
-                        child: CircularProgressIndicator(
-                          value: activeProgress,
-                          strokeWidth: size * 0.028,
-                          backgroundColor: onActive.withValues(alpha: 0.14),
-                          valueColor: AlwaysStoppedAnimation<Color>(onActive),
-                        ),
-                      ),
-                      Container(
-                        width: size * 0.25,
-                        height: size * 0.25,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surface.withValues(
-                            alpha: 0.88,
-                          ),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.directions_run_rounded,
-                          color: onActive,
-                          size: size * 0.18,
-                        ),
-                      ),
-                      PositionedDirectional(
-                        top: size * 0.045,
-                        end: size * 0.06,
-                        child: Icon(
-                          Icons.auto_awesome_rounded,
-                          color: theme.colorScheme.tertiary,
-                          size: size * 0.13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    'R${round.round.number} · '
-                    '${l10n.challengePendingBadge} '
-                    '${l10n.challengeProgressPercent(progressPercent)}',
-                    maxLines: 1,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: onActive,
-                      fontWeight: FontWeight.w900,
-                      height: 1,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
