@@ -4149,11 +4149,17 @@ class _ChallengeCurrentRoundBadge extends StatelessWidget {
     final activeGreen = theme.brightness == Brightness.dark
         ? const Color(0xFF63C986)
         : const Color(0xFF2E7D32);
+    final inProgress = round != null && round.isToday && !round.completed;
+    final progress = round == null
+        ? 1.0
+        : round.missionCompletionRate.clamp(0.08, 1).toDouble();
     final label = round == null
         ? l10n.challengeCompletedBadge
-        : round.isToday
-            ? l10n.challengeRoundDateToday
-            : l10n.challengeRoundTitle(round.round.number);
+        : inProgress
+            ? l10n.challengePendingBadge
+            : round.isToday
+                ? l10n.challengeRoundDateToday
+                : l10n.challengeRoundTitle(round.round.number);
     return Container(
       width: 62,
       height: 62,
@@ -4167,10 +4173,31 @@ class _ChallengeCurrentRoundBadge extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Icon(
-            round == null ? Icons.emoji_events_rounded : Icons.flag_rounded,
-            color: activeGreen,
-            size: 30,
+          SizedBox.square(
+            dimension: 42,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 4,
+              backgroundColor: activeGreen.withValues(alpha: 0.14),
+              valueColor: AlwaysStoppedAnimation<Color>(activeGreen),
+            ),
+          ),
+          Container(
+            width: 31,
+            height: 31,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withValues(alpha: 0.84),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              round == null
+                  ? Icons.emoji_events_rounded
+                  : inProgress
+                      ? Icons.directions_run_rounded
+                      : Icons.flag_rounded,
+              color: activeGreen,
+              size: 21,
+            ),
           ),
           PositionedDirectional(
             top: 7,
@@ -4651,6 +4678,7 @@ class _RoundCalendarCurrentRoundStatus extends StatelessWidget {
     final onActive = theme.brightness == Brightness.dark
         ? const Color(0xFFDCFCE7)
         : const Color(0xFF064E3B);
+    final activeProgress = progress.clamp(0.08, 1).toDouble();
     return SizedBox.square(
       key: ValueKey(
         'challenge-current-round-status-${round.round.number}',
@@ -4688,7 +4716,7 @@ class _RoundCalendarCurrentRoundStatus extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
-                      l10n.challengeRoundDateToday,
+                      l10n.challengePendingBadge,
                       maxLines: 1,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: onActive,
@@ -4717,10 +4745,29 @@ class _RoundCalendarCurrentRoundStatus extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      Icon(
-                        Icons.flag_rounded,
-                        color: onActive,
-                        size: size * 0.28,
+                      SizedBox.square(
+                        dimension: size * 0.34,
+                        child: CircularProgressIndicator(
+                          value: activeProgress,
+                          strokeWidth: size * 0.028,
+                          backgroundColor: onActive.withValues(alpha: 0.14),
+                          valueColor: AlwaysStoppedAnimation<Color>(onActive),
+                        ),
+                      ),
+                      Container(
+                        width: size * 0.25,
+                        height: size * 0.25,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface.withValues(
+                            alpha: 0.88,
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.directions_run_rounded,
+                          color: onActive,
+                          size: size * 0.18,
+                        ),
                       ),
                       PositionedDirectional(
                         top: size * 0.045,
@@ -4738,6 +4785,7 @@ class _RoundCalendarCurrentRoundStatus extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     'R${round.round.number} · '
+                    '${l10n.challengePendingBadge} '
                     '${l10n.challengeProgressPercent(progressPercent)}',
                     maxLines: 1,
                     style: theme.textTheme.labelSmall?.copyWith(
