@@ -2425,6 +2425,7 @@ class _SprintPosePainter extends CustomPainter {
     SprintPoseLandmarkType.rightAnkle,
   ];
   static const _debugMinimumConfidence = 0.35;
+  static const _displayMinimumConfidence = 0.52;
   static const _coachingMinimumConfidence = 0.62;
 
   @override
@@ -2537,14 +2538,32 @@ class _SprintPosePainter extends CustomPainter {
   ) {
     final personBounds =
         _paintDetectedPersonFrame(canvas, size, mapper, overlay);
+    final displayPoints = _visiblePoints(
+      mapper,
+      frame,
+      minimumConfidence: _displayMinimumConfidence,
+    );
+    final displayScale = _bodyScalePx(personBounds, displayPoints);
     final readyForAnalysis = overlay.stateEstimate.trackingReadiness ==
             SprintTrackingReadiness.readyForAnalysis &&
         overlay.stateEstimate.trackingConfidence >= 0.52;
+    if (displayScale > 0 && displayPoints.length >= 5) {
+      _paintHumanShape(
+        canvas,
+        displayPoints,
+        displayScale,
+        readyForAnalysis: readyForAnalysis,
+      );
+    }
     if (!readyForAnalysis) {
       return;
     }
 
-    final points = _visiblePoints(mapper, frame);
+    final points = _visiblePoints(
+      mapper,
+      frame,
+      minimumConfidence: _coachingMinimumConfidence,
+    );
     if (points.length < 8) {
       return;
     }
@@ -2640,12 +2659,11 @@ class _SprintPosePainter extends CustomPainter {
   }
 
   Map<SprintPoseLandmarkType, Offset> _visiblePoints(
-    _SprintViewportMapper mapper,
-    SprintPoseFrame frame,
-  ) {
+      _SprintViewportMapper mapper, SprintPoseFrame frame,
+      {required double minimumConfidence}) {
     final points = <SprintPoseLandmarkType, Offset>{};
     for (final entry in frame.landmarks.entries) {
-      if (entry.value.confidence < _coachingMinimumConfidence) {
+      if (entry.value.confidence < minimumConfidence) {
         continue;
       }
       points[entry.key] = mapper.translatePoint(entry.value.position);
@@ -2668,6 +2686,242 @@ class _SprintPosePainter extends CustomPainter {
     final width = xs.reduce(math.max) - xs.reduce(math.min);
     final height = ys.reduce(math.max) - ys.reduce(math.min);
     return math.max(width, height);
+  }
+
+  void _paintHumanShape(
+    Canvas canvas,
+    Map<SprintPoseLandmarkType, Offset> points,
+    double bodyScale, {
+    required bool readyForAnalysis,
+  }) {
+    final color =
+        readyForAnalysis ? const Color(0xFF73F3B4) : const Color(0xFFFFD54F);
+    _paintHeadShape(canvas, points, bodyScale, color);
+    _paintLimbSilhouette(
+      canvas,
+      points,
+      bodyScale,
+      color,
+      from: SprintPoseLandmarkType.leftShoulder,
+      joint: SprintPoseLandmarkType.leftElbow,
+      to: SprintPoseLandmarkType.leftWrist,
+      minRatio: 0.05,
+      maxRatio: 0.34,
+    );
+    _paintLimbSilhouette(
+      canvas,
+      points,
+      bodyScale,
+      color,
+      from: SprintPoseLandmarkType.rightShoulder,
+      joint: SprintPoseLandmarkType.rightElbow,
+      to: SprintPoseLandmarkType.rightWrist,
+      minRatio: 0.05,
+      maxRatio: 0.34,
+    );
+    _paintLimbSilhouette(
+      canvas,
+      points,
+      bodyScale,
+      color,
+      from: SprintPoseLandmarkType.leftHip,
+      joint: SprintPoseLandmarkType.leftKnee,
+      to: SprintPoseLandmarkType.leftAnkle,
+      minRatio: 0.08,
+      maxRatio: 0.48,
+    );
+    _paintLimbSilhouette(
+      canvas,
+      points,
+      bodyScale,
+      color,
+      from: SprintPoseLandmarkType.rightHip,
+      joint: SprintPoseLandmarkType.rightKnee,
+      to: SprintPoseLandmarkType.rightAnkle,
+      minRatio: 0.08,
+      maxRatio: 0.48,
+    );
+    _paintTorsoShape(canvas, points, bodyScale, color);
+  }
+
+  void _paintHeadShape(
+    Canvas canvas,
+    Map<SprintPoseLandmarkType, Offset> points,
+    double bodyScale,
+    Color color,
+  ) {
+    final nose = points[SprintPoseLandmarkType.nose];
+    final leftEar = points[SprintPoseLandmarkType.leftEar];
+    final rightEar = points[SprintPoseLandmarkType.rightEar];
+    final shoulder = _midpoint(
+      points,
+      SprintPoseLandmarkType.leftShoulder,
+      SprintPoseLandmarkType.rightShoulder,
+    );
+    Offset? center;
+    if (nose != null && leftEar != null && rightEar != null) {
+      center = Offset(
+        (nose.dx + leftEar.dx + rightEar.dx) / 3,
+        (nose.dy + leftEar.dy + rightEar.dy) / 3,
+      );
+    } else if (nose != null) {
+      center = nose;
+    } else if (shoulder != null) {
+      center = Offset(shoulder.dx, shoulder.dy - (bodyScale * 0.11));
+    }
+    if (center == null) {
+      return;
+    }
+
+    final radius = (bodyScale * 0.045).clamp(9.0, 24.0).toDouble();
+    final fillPaint = Paint()
+      ..color = color.withAlpha(44)
+      ..style = PaintingStyle.fill;
+    final strokePaint = Paint()
+      ..color = color.withAlpha(135)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawCircle(center, radius, fillPaint);
+    canvas.drawCircle(center, radius, strokePaint);
+  }
+
+  void _paintTorsoShape(
+    Canvas canvas,
+    Map<SprintPoseLandmarkType, Offset> points,
+    double bodyScale,
+    Color color,
+  ) {
+    final leftShoulder = points[SprintPoseLandmarkType.leftShoulder];
+    final rightShoulder = points[SprintPoseLandmarkType.rightShoulder];
+    final leftHip = points[SprintPoseLandmarkType.leftHip];
+    final rightHip = points[SprintPoseLandmarkType.rightHip];
+    if (leftShoulder == null ||
+        rightShoulder == null ||
+        leftHip == null ||
+        rightHip == null) {
+      return;
+    }
+
+    final shoulderWidth = (leftShoulder - rightShoulder).distance;
+    final hipWidth = (leftHip - rightHip).distance;
+    if (shoulderWidth < bodyScale * 0.08 ||
+        shoulderWidth > bodyScale * 0.42 ||
+        hipWidth < bodyScale * 0.05 ||
+        hipWidth > bodyScale * 0.36) {
+      return;
+    }
+
+    final torsoPath = Path()
+      ..moveTo(leftShoulder.dx, leftShoulder.dy)
+      ..lineTo(rightShoulder.dx, rightShoulder.dy)
+      ..lineTo(rightHip.dx, rightHip.dy)
+      ..lineTo(leftHip.dx, leftHip.dy)
+      ..close();
+    final fillPaint = Paint()
+      ..color = color.withAlpha(36)
+      ..style = PaintingStyle.fill;
+    final strokePaint = Paint()
+      ..color = color.withAlpha(132)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2;
+    canvas.drawPath(torsoPath, fillPaint);
+    canvas.drawPath(torsoPath, strokePaint);
+
+    final shoulder = _midpoint(
+      points,
+      SprintPoseLandmarkType.leftShoulder,
+      SprintPoseLandmarkType.rightShoulder,
+    );
+    final hip = _midpoint(
+      points,
+      SprintPoseLandmarkType.leftHip,
+      SprintPoseLandmarkType.rightHip,
+    );
+    if (shoulder != null &&
+        hip != null &&
+        _isPlausibleSegment(
+          hip,
+          shoulder,
+          bodyScale,
+          minRatio: 0.12,
+          maxRatio: 0.48,
+        )) {
+      final spinePaint = Paint()
+        ..color = color.withAlpha(90)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (bodyScale * 0.018).clamp(6.0, 14.0).toDouble()
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(hip, shoulder, spinePaint);
+    }
+  }
+
+  void _paintLimbSilhouette(
+    Canvas canvas,
+    Map<SprintPoseLandmarkType, Offset> points,
+    double bodyScale,
+    Color color, {
+    required SprintPoseLandmarkType from,
+    required SprintPoseLandmarkType joint,
+    required SprintPoseLandmarkType to,
+    required double minRatio,
+    required double maxRatio,
+  }) {
+    final fromPoint = points[from];
+    final jointPoint = points[joint];
+    final toPoint = points[to];
+    if (fromPoint == null || jointPoint == null || toPoint == null) {
+      return;
+    }
+
+    final bodyPaint = Paint()
+      ..color = color.withAlpha(58)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (bodyScale * 0.024).clamp(8.0, 18.0).toDouble()
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final edgePaint = Paint()
+      ..color = color.withAlpha(125)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.1
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    _drawSegmentIfPlausible(
+      canvas,
+      fromPoint,
+      jointPoint,
+      bodyScale,
+      paint: bodyPaint,
+      minRatio: minRatio,
+      maxRatio: maxRatio,
+    );
+    _drawSegmentIfPlausible(
+      canvas,
+      jointPoint,
+      toPoint,
+      bodyScale,
+      paint: bodyPaint,
+      minRatio: minRatio,
+      maxRatio: maxRatio,
+    );
+    _drawSegmentIfPlausible(
+      canvas,
+      fromPoint,
+      jointPoint,
+      bodyScale,
+      paint: edgePaint,
+      minRatio: minRatio,
+      maxRatio: maxRatio,
+    );
+    _drawSegmentIfPlausible(
+      canvas,
+      jointPoint,
+      toPoint,
+      bodyScale,
+      paint: edgePaint,
+      minRatio: minRatio,
+      maxRatio: maxRatio,
+    );
   }
 
   void _paintTorsoGuide(
