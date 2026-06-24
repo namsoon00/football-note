@@ -2434,11 +2434,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _removeLeadingRouteWait(route);
   }
 
-  void _setSelectedRouteStage(int stageIndex) {
-    final route = _selectedRoute;
-    if (route == null) return;
+  void _setRouteStageAndSelect(_BoardRoute route, int stageIndex) {
     _stopRoutePlayback(restoreStart: false);
     setState(() {
+      _selectedRouteId = route.id;
+      _pathDrawMode = route.kind;
       _setRouteStage(route, stageIndex);
       _routeReplaceMode = false;
       _activeRoutePoints = null;
@@ -2449,15 +2449,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _scheduleAutoSave();
   }
 
-  void _shiftSelectedRouteStage(int delta) {
-    final route = _selectedRoute;
-    if (route == null) return;
-    _setSelectedRouteStage(route.stageIndex + delta);
+  void _shiftRouteStage(_BoardRoute route, int delta) {
+    _setRouteStageAndSelect(route, route.stageIndex + delta);
   }
 
-  void _moveSelectedRouteAfterBall() {
-    final route = _selectedRoute;
-    if (route == null || route.kind != _PathDrawMode.player) return;
+  void _moveRouteAfterBall(_BoardRoute route) {
+    if (route.kind != _PathDrawMode.player) return;
     final ballStages = _currentPage.routes
         .where(
           (entry) =>
@@ -2467,7 +2464,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         .toList(growable: false);
     if (ballStages.isEmpty) return;
     final nextStage = ballStages.fold<int>(1, math.max) + 1;
-    _setSelectedRouteStage(nextStage);
+    _setRouteStageAndSelect(route, nextStage);
   }
 
   void _splitRoutesIntoStages() {
@@ -4723,6 +4720,146 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  _BoardRoute? _stageRouteForSelectedItem(
+    _BoardItem selected,
+    _BoardRoute? selectedRoute,
+  ) {
+    if (selectedRoute != null) {
+      return selectedRoute;
+    }
+    final kind = _routeKindForItem(selected);
+    if (kind == null) return null;
+    return _routeForItem(selected.id, kind);
+  }
+
+  Widget _buildRouteStageControls({
+    required _BoardRoute? route,
+    required List<int> visibleStages,
+    required Color accentColor,
+    required bool showStageChoices,
+    required bool includeActiveRouteControls,
+    required bool includeRouteEditControls,
+  }) {
+    final l10n = _l10n;
+    final hasRoute = route != null;
+    final selectedRouteStage =
+        hasRoute ? _normalizedRouteStageIndex(route.stageIndex) : 1;
+    final canMoveRouteAfterBall = hasRoute &&
+        route.kind == _PathDrawMode.player &&
+        _currentPage.routes.any(
+          (entry) =>
+              entry.kind == _PathDrawMode.ball && entry.points.length >= 2,
+        );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (showStageChoices) ...[
+          Text(
+            l10n.trainingSketchRouteStageTitle,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: visibleStages
+                .map(
+                  (stage) => ChoiceChip(
+                    selected: hasRoute && selectedRouteStage == stage,
+                    showCheckmark: false,
+                    label: Text(_routeStageLabel(stage)),
+                    avatar: CircleAvatar(
+                      radius: 10,
+                      backgroundColor: hasRoute && stage == selectedRouteStage
+                          ? accentColor
+                          : accentColor.withValues(alpha: 0.18),
+                      child: Text(
+                        '$stage',
+                        style: TextStyle(
+                          color: hasRoute && stage == selectedRouteStage
+                              ? Colors.white
+                              : accentColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    onSelected: hasRoute
+                        ? (_) => _setRouteStageAndSelect(route, stage)
+                        : null,
+                  ),
+                )
+                .toList(growable: false),
+          ),
+          if (!hasRoute) ...[
+            const SizedBox(height: 6),
+            Text(
+              l10n.trainingSketchSelectRouteForStageHint,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+          const SizedBox(height: 10),
+        ],
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (includeActiveRouteControls) ...[
+              OutlinedButton.icon(
+                onPressed: _canFinishActiveRoute ? _finishActiveRoute : null,
+                icon: const Icon(Icons.check_circle_outline),
+                label: Text(l10n.trainingSketchFinishRouteButton),
+              ),
+              OutlinedButton.icon(
+                onPressed: _canUndoLastRoutePoint ? _undoLastRoutePoint : null,
+                icon: const Icon(Icons.undo),
+                label: Text(l10n.trainingSketchUndoLastRoutePointButton),
+              ),
+            ],
+            OutlinedButton.icon(
+              onPressed: _splitRoutesIntoStages,
+              icon: const Icon(Icons.view_timeline_outlined),
+              label: Text(l10n.trainingSketchAutoStagesButton),
+            ),
+            OutlinedButton.icon(
+              onPressed: hasRoute && selectedRouteStage > 1
+                  ? () => _shiftRouteStage(route, -1)
+                  : null,
+              icon: const Icon(Icons.chevron_left),
+              label: Text(l10n.trainingSketchPreviousStageButton),
+            ),
+            OutlinedButton.icon(
+              onPressed: hasRoute && selectedRouteStage < _maxRouteStageIndex
+                  ? () => _shiftRouteStage(route, 1)
+                  : null,
+              icon: const Icon(Icons.chevron_right),
+              label: Text(l10n.trainingSketchNextStageButton),
+            ),
+            OutlinedButton.icon(
+              onPressed: canMoveRouteAfterBall
+                  ? () => _moveRouteAfterBall(route)
+                  : null,
+              icon: const Icon(Icons.sports_soccer_outlined),
+              label: Text(l10n.trainingSketchRouteAfterBallButton),
+            ),
+            if (includeRouteEditControls) ...[
+              OutlinedButton.icon(
+                onPressed: hasRoute ? _prepareSelectedRouteRedraw : null,
+                icon: const Icon(Icons.edit_outlined),
+                label: Text(l10n.trainingSketchRedrawRouteButton),
+              ),
+              OutlinedButton.icon(
+                onPressed: hasRoute ? _deleteSelectedRoute : null,
+                icon: const Icon(Icons.delete_outline),
+                label: Text(l10n.trainingSketchDeleteRouteButton),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildSelectedToolsContent(bool isKo) {
     final selected = _selectedItem;
     final selectedRoute = _selectedRoute;
@@ -4783,19 +4920,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       final routeableCount = routeableItems.length;
       final hasSelectedCurrentRoute =
           selectedRoute != null && selectedRoute.kind == _pathDrawMode;
+      final pathStageRoute = hasSelectedCurrentRoute ? selectedRoute : null;
       final accentColor = _routeGroupAccentColor(_pathDrawMode);
-      final selectedRouteStage = hasSelectedCurrentRoute
-          ? _normalizedRouteStageIndex(selectedRoute.stageIndex)
-          : 1;
       final visibleStages = _visibleRouteStages();
-      final canFinishActiveRoute = _canFinishActiveRoute;
-      final canUndoLastRoutePoint = _canUndoLastRoutePoint;
-      final canMoveSelectedAfterBall = hasSelectedCurrentRoute &&
-          selectedRoute.kind == _PathDrawMode.player &&
-          _currentPage.routes.any(
-            (route) =>
-                route.kind == _PathDrawMode.ball && route.points.length >= 2,
-          );
       final selectedPathItem =
           selected?.type == _boardItemTypeForRouteKind(_pathDrawMode)
               ? selected
@@ -4928,110 +5055,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               l10n.trainingSketchRoutesEmpty,
               style: Theme.of(context).textTheme.bodySmall,
             ),
-          if (routes.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(
-              l10n.trainingSketchRouteStageTitle,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: visibleStages
-                  .map(
-                    (stage) => ChoiceChip(
-                      selected: hasSelectedCurrentRoute &&
-                          selectedRouteStage == stage,
-                      showCheckmark: false,
-                      label: Text(_routeStageLabel(stage)),
-                      avatar: CircleAvatar(
-                        radius: 10,
-                        backgroundColor: stage == selectedRouteStage
-                            ? accentColor
-                            : accentColor.withValues(alpha: 0.18),
-                        child: Text(
-                          '$stage',
-                          style: TextStyle(
-                            color: stage == selectedRouteStage
-                                ? Colors.white
-                                : accentColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                      onSelected: hasSelectedCurrentRoute
-                          ? (_) => _setSelectedRouteStage(stage)
-                          : null,
-                    ),
-                  )
-                  .toList(growable: false),
-            ),
-            if (!hasSelectedCurrentRoute) ...[
-              const SizedBox(height: 6),
-              Text(
-                l10n.trainingSketchSelectRouteForStageHint,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ],
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OutlinedButton.icon(
-                onPressed: canFinishActiveRoute ? _finishActiveRoute : null,
-                icon: const Icon(Icons.check_circle_outline),
-                label: Text(l10n.trainingSketchFinishRouteButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: canUndoLastRoutePoint ? _undoLastRoutePoint : null,
-                icon: const Icon(Icons.undo),
-                label: Text(l10n.trainingSketchUndoLastRoutePointButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: _splitRoutesIntoStages,
-                icon: const Icon(Icons.view_timeline_outlined),
-                label: Text(l10n.trainingSketchAutoStagesButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: hasSelectedCurrentRoute && selectedRouteStage > 1
-                    ? () => _shiftSelectedRouteStage(-1)
-                    : null,
-                icon: const Icon(Icons.chevron_left),
-                label: Text(l10n.trainingSketchPreviousStageButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: hasSelectedCurrentRoute &&
-                        selectedRouteStage < _maxRouteStageIndex
-                    ? () => _shiftSelectedRouteStage(1)
-                    : null,
-                icon: const Icon(Icons.chevron_right),
-                label: Text(l10n.trainingSketchNextStageButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: canMoveSelectedAfterBall
-                    ? _moveSelectedRouteAfterBall
-                    : null,
-                icon: const Icon(Icons.sports_soccer_outlined),
-                label: Text(l10n.trainingSketchRouteAfterBallButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: hasSelectedCurrentRoute
-                    ? _prepareSelectedRouteRedraw
-                    : null,
-                icon: const Icon(Icons.edit_outlined),
-                label: Text(l10n.trainingSketchRedrawRouteButton),
-              ),
-              OutlinedButton.icon(
-                onPressed:
-                    hasSelectedCurrentRoute ? _deleteSelectedRoute : null,
-                icon: const Icon(Icons.delete_outline),
-                label: Text(l10n.trainingSketchDeleteRouteButton),
-              ),
-            ],
+          _buildRouteStageControls(
+            route: pathStageRoute,
+            visibleStages: visibleStages,
+            accentColor: accentColor,
+            showStageChoices: routes.isNotEmpty,
+            includeActiveRouteControls: true,
+            includeRouteEditControls: true,
           ),
         ],
       );
@@ -5042,6 +5073,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         style: Theme.of(context).textTheme.bodySmall,
       );
     }
+    final selectedStageRoute = _stageRouteForSelectedItem(
+      selected,
+      selectedRoute,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -5121,6 +5156,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               includeRouteTool: true,
             ),
           ),
+          if (selectedStageRoute != null) ...[
+            const SizedBox(height: 10),
+            _buildRouteStageControls(
+              route: selectedStageRoute,
+              visibleStages: _visibleRouteStages(),
+              accentColor: _routeGroupAccentColor(selectedStageRoute.kind),
+              showStageChoices: true,
+              includeActiveRouteControls: false,
+              includeRouteEditControls: false,
+            ),
+          ],
         ],
       ],
     );
