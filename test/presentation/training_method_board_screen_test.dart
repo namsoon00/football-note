@@ -413,6 +413,7 @@ void main() {
     final route = saved.pages.single.routes.single;
     expect((player.x - item.x).abs(), lessThan(0.08));
     expect((player.y - item.y).abs(), lessThan(0.06));
+    expect(_isItemAheadOf(item, player, const Offset(0.70, 0.42)), isTrue);
     expect(item.type, 'ball');
     expect(route.kind, TrainingMethodRouteKind.ball);
     expect(route.linkedItemId, item.id);
@@ -473,6 +474,7 @@ void main() {
 
     expect((ball.x - player.x).abs(), lessThan(0.08));
     expect((ball.y - player.y).abs(), lessThan(0.05));
+    expect(_isItemAheadOf(ball, player, const Offset(0.70, 0.44)), isTrue);
     expect(route.kind, TrainingMethodRouteKind.ball);
     expect(route.linkedItemId, ball.id);
     expect(route.points.last.x, closeTo(0.70, 0.02));
@@ -524,6 +526,8 @@ void main() {
     final saved = TrainingMethodLayout.decode(savedLayout ?? '');
     final page = saved.pages.single;
     expect(page.items.where((item) => item.type == 'ball'), hasLength(1));
+    final player = page.items.singleWhere((item) => item.type == 'player');
+    final ball = page.items.singleWhere((item) => item.type == 'ball');
     final playerRoute = page.routes.singleWhere(
       (route) => route.kind == TrainingMethodRouteKind.player,
     );
@@ -533,10 +537,85 @@ void main() {
 
     expect(playerRoute.linkedItemId, 'player-1');
     expect(ballRoute.stageIndex, playerRoute.stageIndex);
+    expect(playerRoute.stageIndex, 1);
+    expect(_isItemAheadOf(ball, player, const Offset(0.62, 0.42)), isTrue);
     expect(playerRoute.points.last.x, closeTo(0.62, 0.02));
     expect(playerRoute.points.last.y, closeTo(0.42, 0.02));
     expect(ballRoute.points.last.x, closeTo(0.62, 0.02));
     expect(ballRoute.points.last.y, closeTo(0.42, 0.02));
+  });
+
+  testWidgets('dribble does not move a paired carry route to stage two', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '드리블 단계',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.30,
+                    y: 0.55,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.36,
+                    y: 0.55,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+                routes: <TrainingMethodRoute>[
+                  TrainingMethodRoute(
+                    id: 'route-ball-1',
+                    kind: TrainingMethodRouteKind.ball,
+                    linkedItemId: 'ball-1',
+                    stageIndex: 1,
+                    points: <TrainingMethodPoint>[
+                      TrainingMethodPoint(x: 0.36, y: 0.55),
+                      TrainingMethodPoint(x: 0.48, y: 0.50),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '드리블');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.62, 0.42));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final playerRoute = saved.pages.single.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.player,
+    );
+    final ballRoute = saved.pages.single.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.ball,
+    );
+
+    expect(playerRoute.stageIndex, 1);
+    expect(ballRoute.stageIndex, 1);
   });
 
   testWidgets('ball dribble action creates a controlled player when needed', (
@@ -599,6 +678,7 @@ void main() {
 
     expect((player.x - ball.x).abs(), lessThan(0.08));
     expect((player.y - ball.y).abs(), lessThan(0.06));
+    expect(_isItemAheadOf(ball, player, const Offset(0.62, 0.42)), isTrue);
     expect(playerRoute.linkedItemId, player.id);
     expect(ballRoute.linkedItemId, 'ball-1');
     expect(ballRoute.stageIndex, playerRoute.stageIndex);
@@ -2346,6 +2426,18 @@ void _setPortraitSurface(
   Size size = const Size(430, 900),
 }) {
   _setLandscapeSurface(tester, size: size);
+}
+
+bool _isItemAheadOf(
+  TrainingMethodItem item,
+  TrainingMethodItem origin,
+  Offset target,
+) {
+  final itemVector = Offset(item.x - origin.x, item.y - origin.y);
+  final targetVector = Offset(target.dx - origin.x, target.dy - origin.y);
+  final dot =
+      (itemVector.dx * targetVector.dx) + (itemVector.dy * targetVector.dy);
+  return dot > 0 && itemVector.distance > 0.045;
 }
 
 class _MemoryOptionRepository implements OptionRepository {
