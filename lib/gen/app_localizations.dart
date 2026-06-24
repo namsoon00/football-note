@@ -2717,6 +2717,24 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get homeHubTitleShort;
 
+  /// No description provided for @homeLayoutMenuTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Change home layout'**
+  String get homeLayoutMenuTooltip;
+
+  /// No description provided for @homeLayoutOverviewFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview first'**
+  String get homeLayoutOverviewFirst;
+
+  /// No description provided for @homeLayoutRoutineFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine first'**
+  String get homeLayoutRoutineFirst;
+
   /// No description provided for @homeDailyCheckTitle.
   ///
   /// In en, this message translates to:

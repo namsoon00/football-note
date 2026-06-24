@@ -856,6 +856,9 @@
   "homeTodayPlanOpenAction": "オープンプラン",
   "homeTodayPlanSelectForLogTitle": "トレーニングログにするプランを選択してください",
   "homeHubTitleShort": "家",
+  "homeLayoutMenuTooltip": "ホーム配置を変更",
+  "homeLayoutOverviewFirst": "概要を先に",
+  "homeLayoutRoutineFirst": "ルーティンを先に",
   "homeDailyCheckTitle": "今日のタスク",
   "homeDailyCheckCompletedCount": "{completed}/{total}完成しました",
   "@homeDailyCheckCompletedCount": {

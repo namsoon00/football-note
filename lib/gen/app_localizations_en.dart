@@ -1512,6 +1512,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeHubTitleShort => 'Home';
 
   @override
+  String get homeLayoutMenuTooltip => 'Change home layout';
+
+  @override
+  String get homeLayoutOverviewFirst => 'Overview first';
+
+  @override
+  String get homeLayoutRoutineFirst => 'Routine first';
+
+  @override
   String get homeDailyCheckTitle => 'Today\'s tasks';
 
   @override
