@@ -132,27 +132,14 @@ class LocalFortuneService {
       l10n.fortuneSajuFortuneThemes,
       baseSeed + birthReading.seed + 89,
     );
-    final trainingTone = _pickLocalized(
-      l10n.fortuneSajuTrainingTones,
-      baseSeed + dailyPillar.stem.index * 31,
-    );
-    final playAdvice = _pickLocalized(
-      l10n.fortuneSajuPlayAdvice,
-      baseSeed + birthReading.seed + dailyPillar.branch.index * 43,
-    );
     final elementFlow = _pickLocalized(
       l10n.fortuneSajuElementFlows,
       birthReading.elementSeed + dailyPillar.stem.index,
     );
-    final nameElement = _pickLocalized(
-      l10n.fortuneSajuNameElements,
-      _nameSeed(profile) + birthReading.seed,
-    );
 
     final fortuneText = <String>[
       l10n.fortuneGeneratedDailyLineOne(name, elementFlow),
-      l10n.fortuneGeneratedDailyLineTwo(fortuneTheme, trainingTone),
-      l10n.fortuneGeneratedDailyLineThree(nameElement, playAdvice),
+      l10n.fortuneGeneratedDailyLineTwo(fortuneTheme),
       l10n.fortuneGeneratedLuckyInfoLine(luckyNumber, luckyColor),
     ].join('\n');
 
@@ -182,7 +169,14 @@ class LocalFortuneService {
     PlayerProfile profile,
     List<TrainingEntry> history,
   ) {
-    final date = DateTime(entry.date.year, entry.date.month, entry.date.day);
+    final date = entry.date;
+    final createdAtSeed = entry.createdAt.millisecondsSinceEpoch.remainder(
+      1000003,
+    );
+    final recordTextSeed = _textSeed(entry.type) * 7 +
+        _textSeed(entry.program) * 11 +
+        _textSeed(entry.location) * 13 +
+        _textSeed(entry.notes) * 17;
     final p = _nameSeed(profile);
     final b = _birthSeed(profile.birthDate);
     final h = history.length * 17;
@@ -190,9 +184,13 @@ class LocalFortuneService {
     return date.year * 37 +
         date.month * 101 +
         date.day * 271 +
+        date.hour * 389 +
+        date.minute * 397 +
         entry.intensity * 17 +
         entry.mood * 13 +
         entry.durationMinutes * 3 +
+        createdAtSeed * 19 +
+        recordTextSeed +
         l * 5 +
         p * 3 +
         b +
@@ -308,7 +306,11 @@ class LocalFortuneService {
   }
 
   static int _nameSeed(PlayerProfile profile) {
-    return profile.name.trim().runes.fold<int>(0, (a, b) => a + b);
+    return _textSeed(profile.name);
+  }
+
+  static int _textSeed(String text) {
+    return text.trim().runes.fold<int>(0, (a, b) => a + b);
   }
 
   static int _birthSeed(DateTime? birthDate) {

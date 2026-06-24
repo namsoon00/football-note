@@ -84,26 +84,31 @@ class FortuneSections {
     if (isKo) {
       final number = _valueFor(values, const ['행운 숫자']);
       final color = _valueFor(values, const ['행운 색상']);
-      final parts = <String>[
-        if (number.isNotEmpty) '숫자 $number',
-        if (color.isNotEmpty) '색상 $color',
-      ];
-      if (parts.isEmpty) {
+      if (number.isEmpty && color.isEmpty) {
         return const <String>[];
       }
-      return [_ensureSentence('재미 포인트: ${parts.join(', ')}')];
+      if (number.isNotEmpty && color.isNotEmpty) {
+        return [_ensureSentence('재미 포인트는 $color 컬러와 숫자 $number예요')];
+      }
+      final text =
+          color.isNotEmpty ? '재미 포인트는 $color 컬러예요' : '재미 포인트는 숫자 $number예요';
+      return [_ensureSentence(text)];
     }
 
     final number = _valueFor(values, const ['Lucky number']);
     final color = _valueFor(values, const ['Lucky color']);
-    final parts = <String>[
-      if (number.isNotEmpty) 'number $number',
-      if (color.isNotEmpty) 'color $color',
-    ];
-    if (parts.isEmpty) {
+    if (number.isEmpty && color.isEmpty) {
       return const <String>[];
     }
-    return [_ensureSentence('Fun points: ${parts.join(', ')}')];
+    if (number.isNotEmpty && color.isNotEmpty) {
+      return [
+        _ensureSentence('Fun points are color $color and number $number')
+      ];
+    }
+    final text = color.isNotEmpty
+        ? 'Fun point is color $color'
+        : 'Fun point is number $number';
+    return [_ensureSentence(text)];
   }
 
   static String _valueFor(Map<String, String> values, List<String> keys) {

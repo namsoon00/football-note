@@ -3573,7 +3573,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineOne": "{name}, 오늘은 {elementFlow} 분위기가 먼저 찾아와요.",
+  "fortuneGeneratedDailyLineOne": "{name}님, 오늘은 {elementFlow} 분위기예요.",
   "@fortuneGeneratedDailyLineOne": {
     "placeholders": {
       "name": {
@@ -3584,13 +3584,10 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineTwo": "{fortuneTheme} {trainingTone}",
+  "fortuneGeneratedDailyLineTwo": "{fortuneTheme}",
   "@fortuneGeneratedDailyLineTwo": {
     "placeholders": {
       "fortuneTheme": {
-        "type": "String"
-      },
-      "trainingTone": {
         "type": "String"
       }
     }
@@ -3607,7 +3604,7 @@
     }
   },
   "fortuneGeneratedLuckyInfoHeader": "[재미 포인트]",
-  "fortuneGeneratedLuckyInfoLine": "재미 포인트: 숫자 {number}, 컬러 {color}.",
+  "fortuneGeneratedLuckyInfoLine": "재미 포인트는 {color} 컬러와 숫자 {number}예요.",
   "@fortuneGeneratedLuckyInfoLine": {
     "placeholders": {
       "number": {

@@ -10820,14 +10820,14 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedDailyLineOne.
   ///
   /// In en, this message translates to:
-  /// **'{name}, today starts with {elementFlow}.'**
+  /// **'{name}, today\'s mood is {elementFlow}.'**
   String fortuneGeneratedDailyLineOne(String name, String elementFlow);
 
   /// No description provided for @fortuneGeneratedDailyLineTwo.
   ///
   /// In en, this message translates to:
-  /// **'{fortuneTheme} {trainingTone}'**
-  String fortuneGeneratedDailyLineTwo(String fortuneTheme, String trainingTone);
+  /// **'{fortuneTheme}'**
+  String fortuneGeneratedDailyLineTwo(String fortuneTheme);
 
   /// No description provided for @fortuneGeneratedDailyLineThree.
   ///
@@ -10844,7 +10844,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedLuckyInfoLine.
   ///
   /// In en, this message translates to:
-  /// **'Fun points: number {number}, color {color}.'**
+  /// **'Fun points are number {number} and {color}.'**
   String fortuneGeneratedLuckyInfoLine(int number, String color);
 
   /// No description provided for @fortuneRecommendedRecoveryProgram.

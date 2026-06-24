@@ -6001,13 +6001,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name, 오늘은 $elementFlow 분위기가 먼저 찾아와요.';
+    return '$name님, 오늘은 $elementFlow 분위기예요.';
   }
 
   @override
-  String fortuneGeneratedDailyLineTwo(
-      String fortuneTheme, String trainingTone) {
-    return '$fortuneTheme $trainingTone';
+  String fortuneGeneratedDailyLineTwo(String fortuneTheme) {
+    return '$fortuneTheme';
   }
 
   @override
@@ -6020,7 +6019,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return '재미 포인트: 숫자 $number, 컬러 $color.';
+    return '재미 포인트는 $color 컬러와 숫자 $number예요.';
   }
 
   @override
