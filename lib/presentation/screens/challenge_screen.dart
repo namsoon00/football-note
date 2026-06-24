@@ -4198,7 +4198,7 @@ class _ChallengeCurrentRoundBadge extends StatelessWidget {
               round == null
                   ? Icons.emoji_events_rounded
                   : inProgress
-                      ? Icons.directions_run_rounded
+                      ? Icons.radio_button_checked_rounded
                       : Icons.flag_rounded,
               color: activeGreen,
               size: size * 0.34,
