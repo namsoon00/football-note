@@ -2827,23 +2827,77 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get homeHubTitleShort;
 
-  /// No description provided for @homeLayoutMenuTooltip.
+  /// No description provided for @homeLayoutSettingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Change home layout'**
-  String get homeLayoutMenuTooltip;
+  /// **'Home screen settings'**
+  String get homeLayoutSettingsTitle;
 
-  /// No description provided for @homeLayoutOverviewFirst.
+  /// No description provided for @homeLayoutSettingsReset.
   ///
   /// In en, this message translates to:
-  /// **'Overview first'**
-  String get homeLayoutOverviewFirst;
+  /// **'Reset'**
+  String get homeLayoutSettingsReset;
 
-  /// No description provided for @homeLayoutRoutineFirst.
+  /// No description provided for @homeLayoutReorderTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Routine first'**
-  String get homeLayoutRoutineFirst;
+  /// **'Move section'**
+  String get homeLayoutReorderTooltip;
+
+  /// No description provided for @homeLayoutNoVisibleSections.
+  ///
+  /// In en, this message translates to:
+  /// **'All home sections are hidden.'**
+  String get homeLayoutNoVisibleSections;
+
+  /// No description provided for @homeSectionLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level summary'**
+  String get homeSectionLevel;
+
+  /// No description provided for @homeSectionChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge'**
+  String get homeSectionChallenge;
+
+  /// No description provided for @homeSectionStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Training streak'**
+  String get homeSectionStreak;
+
+  /// No description provided for @homeSectionMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal summary'**
+  String get homeSectionMeal;
+
+  /// No description provided for @homeSectionTodayPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Today training plan'**
+  String get homeSectionTodayPlan;
+
+  /// No description provided for @homeSectionDailyFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s tasks'**
+  String get homeSectionDailyFlow;
+
+  /// No description provided for @homeSectionQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get homeSectionQuickActions;
+
+  /// No description provided for @homeSectionContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get homeSectionContinue;
 
   /// No description provided for @homeDailyCheckTitle.
   ///

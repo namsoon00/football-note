@@ -1545,13 +1545,40 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeHubTitleShort => '家';
 
   @override
-  String get homeLayoutMenuTooltip => 'ホーム配置を変更';
+  String get homeLayoutSettingsTitle => 'ホーム画面設定';
 
   @override
-  String get homeLayoutOverviewFirst => '概要を先に';
+  String get homeLayoutSettingsReset => 'リセット';
 
   @override
-  String get homeLayoutRoutineFirst => 'ルーティンを先に';
+  String get homeLayoutReorderTooltip => 'セクションを移動';
+
+  @override
+  String get homeLayoutNoVisibleSections => '表示中のホームセクションがありません。';
+
+  @override
+  String get homeSectionLevel => 'レベル概要';
+
+  @override
+  String get homeSectionChallenge => 'チャレンジ';
+
+  @override
+  String get homeSectionStreak => 'トレーニング連続記録';
+
+  @override
+  String get homeSectionMeal => '食事サマリー';
+
+  @override
+  String get homeSectionTodayPlan => '今日のトレーニングプラン';
+
+  @override
+  String get homeSectionDailyFlow => '今日のタスク';
+
+  @override
+  String get homeSectionQuickActions => 'クイック操作';
+
+  @override
+  String get homeSectionContinue => '続きから';
 
   @override
   String get homeDailyCheckTitle => '今日のタスク';
