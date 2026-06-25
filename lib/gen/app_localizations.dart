@@ -17607,6 +17607,18 @@ abstract class AppLocalizations {
   /// **'Screen'**
   String get trainingSketchQuickScreenButton;
 
+  /// No description provided for @trainingSketchQuickConeTurnButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle cone'**
+  String get trainingSketchQuickConeTurnButton;
+
+  /// No description provided for @trainingSketchQuickHurdleJumpButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump hurdle'**
+  String get trainingSketchQuickHurdleJumpButton;
+
   /// No description provided for @trainingSketchQuickRunBaseButton.
   ///
   /// In en, this message translates to:

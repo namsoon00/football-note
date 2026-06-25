@@ -966,6 +966,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.overlap ||
       _SketchTargetAction.cut ||
       _SketchTargetAction.screen ||
+      _SketchTargetAction.coneTurn ||
+      _SketchTargetAction.hurdleJump ||
       _SketchTargetAction.runBase ||
       _SketchTargetAction.fielding ||
       _SketchTargetAction.recover =>
@@ -992,6 +994,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.overlap ||
       _SketchTargetAction.cut ||
       _SketchTargetAction.screen ||
+      _SketchTargetAction.coneTurn ||
+      _SketchTargetAction.hurdleJump ||
       _SketchTargetAction.runBase ||
       _SketchTargetAction.fielding ||
       _SketchTargetAction.recover =>
@@ -2672,6 +2676,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           durationMs: 760,
         ),
       _SketchTargetAction.screen => _applyScreenTargetAction(selected, target),
+      _SketchTargetAction.coneTurn => _applyConeTurnTargetAction(
+          selected,
+          target,
+          targetItem: targetItem,
+        ),
+      _SketchTargetAction.hurdleJump => _applyHurdleJumpTargetAction(
+          selected,
+          target,
+          targetItem: targetItem,
+        ),
       _SketchTargetAction.runBase => _applyMoveTargetAction(
           selected,
           target,
@@ -2990,6 +3004,123 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       points: <Offset>[_itemPosition(player), target, target],
       segmentDurationsMs: const <int>[520, 420],
     );
+  }
+
+  _BoardItem _ensureTrainingPropForAction({
+    required _BoardItemType type,
+    required Offset target,
+    _BoardItem? targetItem,
+  }) {
+    if (targetItem?.type == type) return targetItem!;
+    final nearest = _nearestItemOfType(type, target);
+    if (nearest != null &&
+        (_itemPosition(nearest) - target).distance <= 0.055) {
+      return nearest;
+    }
+    final prop = _BoardItem(
+      id: _nextBoardItemId(),
+      type: type,
+      x: target.dx,
+      y: target.dy,
+      size: 32,
+      rotationDeg: 0,
+      color: _defaultColorFor(type),
+    );
+    _currentPage.items.add(prop);
+    return prop;
+  }
+
+  bool _applyConeTurnTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    _BoardItem? targetItem,
+  }) {
+    final player = _playerForTargetAction(selected);
+    if (player == null) return false;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final cone = _ensureTrainingPropForAction(
+        type: _BoardItemType.cone,
+        target: target,
+        targetItem: targetItem,
+      );
+      final start = _itemPosition(player);
+      final center = _itemPosition(cone);
+      final delta = center - start;
+      final direction =
+          delta.distance < 0.01 ? const Offset(1, 0) : delta / delta.distance;
+      final normal = Offset(-direction.dy, direction.dx);
+      final approach = _clampedBoardPoint(
+        center.dx - (direction.dx * 0.09),
+        center.dy - (direction.dy * 0.09),
+      );
+      final sideA = _clampedBoardPoint(
+        center.dx + (normal.dx * 0.045),
+        center.dy + (normal.dy * 0.045),
+      );
+      final around = _clampedBoardPoint(
+        center.dx + (direction.dx * 0.045),
+        center.dy + (direction.dy * 0.045),
+      );
+      final sideB = _clampedBoardPoint(
+        center.dx - (normal.dx * 0.045),
+        center.dy - (normal.dy * 0.045),
+      );
+      final exit = _clampedBoardPoint(
+        center.dx + (direction.dx * 0.11),
+        center.dy + (direction.dy * 0.11),
+      );
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: player,
+        points: <Offset>[start, approach, sideA, around, sideB, exit],
+        segmentDurationsMs: const <int>[360, 280, 260, 260, 420],
+      );
+      _selectQuickActionRoute(route, player);
+    });
+    _scheduleAutoSave();
+    return true;
+  }
+
+  bool _applyHurdleJumpTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    _BoardItem? targetItem,
+  }) {
+    final player = _playerForTargetAction(selected);
+    if (player == null) return false;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final hurdle = _ensureTrainingPropForAction(
+        type: _BoardItemType.hurdle,
+        target: target,
+        targetItem: targetItem,
+      );
+      final start = _itemPosition(player);
+      final center = _itemPosition(hurdle);
+      final delta = center - start;
+      final direction =
+          delta.distance < 0.01 ? const Offset(1, 0) : delta / delta.distance;
+      hurdle.rotationDeg =
+          (math.atan2(direction.dy, direction.dx) * 180) / math.pi + 90;
+      final takeoff = _clampedBoardPoint(
+        center.dx - (direction.dx * 0.075),
+        center.dy - (direction.dy * 0.075),
+      );
+      final landing = _clampedBoardPoint(
+        center.dx + (direction.dx * 0.095),
+        center.dy + (direction.dy * 0.095),
+      );
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: player,
+        points: <Offset>[start, takeoff, center, landing],
+        segmentDurationsMs: const <int>[360, 240, 420],
+      );
+      _selectQuickActionRoute(route, player);
+    });
+    _scheduleAutoSave();
+    return true;
   }
 
   bool _applyServeTargetAction(_BoardItem selected, Offset target) {
@@ -4390,6 +4521,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.drive => l10n.trainingSketchQuickDriveButton,
       _SketchTargetAction.cut => l10n.trainingSketchQuickCutButton,
       _SketchTargetAction.screen => l10n.trainingSketchQuickScreenButton,
+      _SketchTargetAction.coneTurn => l10n.trainingSketchQuickConeTurnButton,
+      _SketchTargetAction.hurdleJump =>
+        l10n.trainingSketchQuickHurdleJumpButton,
       _SketchTargetAction.runBase => l10n.trainingSketchQuickRunBaseButton,
       _SketchTargetAction.fielding => l10n.trainingSketchQuickFieldingButton,
       _SketchTargetAction.throwBall => l10n.trainingSketchQuickThrowButton,
@@ -4515,6 +4649,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             icon: Icons.directions_run,
           ),
           _targetActionButton(
+            action: _SketchTargetAction.coneTurn,
+            icon: Icons.change_history,
+          ),
+          _targetActionButton(
             action: _SketchTargetAction.runBase,
             icon: Icons.signpost_outlined,
           ),
@@ -4532,6 +4670,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           _targetActionButton(
             action: _SketchTargetAction.move,
             icon: Icons.directions_run,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.coneTurn,
+            icon: Icons.change_history,
           ),
           _targetActionButton(
             action: _SketchTargetAction.drive,
@@ -4561,6 +4703,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             icon: Icons.directions_run,
           ),
           _targetActionButton(
+            action: _SketchTargetAction.coneTurn,
+            icon: Icons.change_history,
+          ),
+          _targetActionButton(
             action: _SketchTargetAction.serve,
             icon: Icons.sports_tennis,
           ),
@@ -4578,6 +4724,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           _targetActionButton(
             action: _SketchTargetAction.move,
             icon: Icons.directions_run,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.coneTurn,
+            icon: Icons.change_history,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.hurdleJump,
+            icon: Icons.arrow_upward,
           ),
           _targetActionButton(
             action: _SketchTargetAction.dribble,
@@ -5419,6 +5573,8 @@ enum _SketchTargetAction {
   drive,
   cut,
   screen,
+  coneTurn,
+  hurdleJump,
   runBase,
   fielding,
   throwBall,
