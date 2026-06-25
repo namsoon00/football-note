@@ -17541,6 +17541,18 @@ abstract class AppLocalizations {
   /// **'No action lines yet for this type.'**
   String get trainingSketchRoutesEmpty;
 
+  /// No description provided for @trainingSketchExtendRouteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Extend from end'**
+  String get trainingSketchExtendRouteButton;
+
+  /// No description provided for @trainingSketchReverseRouteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse direction'**
+  String get trainingSketchReverseRouteButton;
+
   /// No description provided for @trainingSketchRedrawRouteButton.
   ///
   /// In en, this message translates to:
@@ -17727,6 +17739,12 @@ abstract class AppLocalizations {
   /// **'Circle cone'**
   String get trainingSketchQuickConeTurnButton;
 
+  /// No description provided for @trainingSketchQuickConeJumpButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump cone'**
+  String get trainingSketchQuickConeJumpButton;
+
   /// No description provided for @trainingSketchQuickHurdleJumpButton.
   ///
   /// In en, this message translates to:
@@ -17775,17 +17793,35 @@ abstract class AppLocalizations {
   /// **'Pass to player {index}'**
   String trainingSketchPassToPlayerButton(int index);
 
+  /// No description provided for @trainingSketchPassToSpotButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass to {target} {index}'**
+  String trainingSketchPassToSpotButton(Object target, int index);
+
   /// No description provided for @trainingSketchThrowToPlayerButton.
   ///
   /// In en, this message translates to:
   /// **'Throw to player {index}'**
   String trainingSketchThrowToPlayerButton(int index);
 
+  /// No description provided for @trainingSketchThrowToSpotButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw to {target} {index}'**
+  String trainingSketchThrowToSpotButton(Object target, int index);
+
   /// No description provided for @trainingSketchRallyToPlayerButton.
   ///
   /// In en, this message translates to:
   /// **'Rally to player {index}'**
   String trainingSketchRallyToPlayerButton(int index);
+
+  /// No description provided for @trainingSketchRallyToSpotButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Rally to {target} {index}'**
+  String trainingSketchRallyToSpotButton(Object target, int index);
 
   /// No description provided for @trainingSketchPlayerRouteLimitReached.
   ///

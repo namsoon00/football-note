@@ -10233,6 +10233,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchRoutesEmpty => 'No action lines yet for this type.';
 
   @override
+  String get trainingSketchExtendRouteButton => 'Extend from end';
+
+  @override
+  String get trainingSketchReverseRouteButton => 'Reverse direction';
+
+  @override
   String get trainingSketchRedrawRouteButton => 'Redraw selected';
 
   @override
@@ -10339,6 +10345,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchQuickConeTurnButton => 'Circle cone';
 
   @override
+  String get trainingSketchQuickConeJumpButton => 'Jump cone';
+
+  @override
   String get trainingSketchQuickHurdleJumpButton => 'Jump hurdle';
 
   @override
@@ -10365,13 +10374,28 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String trainingSketchPassToSpotButton(Object target, int index) {
+    return 'Pass to $target $index';
+  }
+
+  @override
   String trainingSketchThrowToPlayerButton(int index) {
     return 'Throw to player $index';
   }
 
   @override
+  String trainingSketchThrowToSpotButton(Object target, int index) {
+    return 'Throw to $target $index';
+  }
+
+  @override
   String trainingSketchRallyToPlayerButton(int index) {
     return 'Rally to player $index';
+  }
+
+  @override
+  String trainingSketchRallyToSpotButton(Object target, int index) {
+    return 'Rally to $target $index';
   }
 
   @override

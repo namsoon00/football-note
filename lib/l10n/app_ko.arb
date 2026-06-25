@@ -5612,6 +5612,8 @@
   "trainingSketchPlayerRoutesTitle": "사람 동작",
   "trainingSketchBallRoutesTitle": "공 동작",
   "trainingSketchRoutesEmpty": "아직 이 종류의 동작선이 없어요.",
+  "trainingSketchExtendRouteButton": "끝에 이어 그리기",
+  "trainingSketchReverseRouteButton": "방향 뒤집기",
   "trainingSketchRedrawRouteButton": "선택 이동선 다시 그리기",
   "trainingSketchDeleteRouteButton": "선택 이동선 삭제",
   "trainingSketchPlayerRouteChip": "사람 {index}",
@@ -5662,6 +5664,7 @@
   "trainingSketchQuickCutButton": "컷인",
   "trainingSketchQuickScreenButton": "스크린",
   "trainingSketchQuickConeTurnButton": "콘 돌기",
+  "trainingSketchQuickConeJumpButton": "콘 넘기",
   "trainingSketchQuickHurdleJumpButton": "뜀틀 넘기",
   "trainingSketchQuickRunBaseButton": "베이스 러닝",
   "trainingSketchQuickFieldingButton": "수비 이동",
@@ -5677,6 +5680,15 @@
       }
     }
   },
+  "trainingSketchPassToSpotButton": "{target} {index}에 패스",
+  "@trainingSketchPassToSpotButton": {
+    "placeholders": {
+      "target": {},
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchThrowToPlayerButton": "사람 {index}에게 송구",
   "@trainingSketchThrowToPlayerButton": {
     "placeholders": {
@@ -5685,9 +5697,27 @@
       }
     }
   },
+  "trainingSketchThrowToSpotButton": "{target} {index}에 송구",
+  "@trainingSketchThrowToSpotButton": {
+    "placeholders": {
+      "target": {},
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchRallyToPlayerButton": "사람 {index}에게 랠리",
   "@trainingSketchRallyToPlayerButton": {
     "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRallyToSpotButton": "{target} {index}로 랠리",
+  "@trainingSketchRallyToSpotButton": {
+    "placeholders": {
+      "target": {},
       "index": {
         "type": "int"
       }

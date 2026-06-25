@@ -9953,6 +9953,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchRoutesEmpty => '아직 이 종류의 동작선이 없어요.';
 
   @override
+  String get trainingSketchExtendRouteButton => '끝에 이어 그리기';
+
+  @override
+  String get trainingSketchReverseRouteButton => '방향 뒤집기';
+
+  @override
   String get trainingSketchRedrawRouteButton => '선택 이동선 다시 그리기';
 
   @override
@@ -10059,6 +10065,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchQuickConeTurnButton => '콘 돌기';
 
   @override
+  String get trainingSketchQuickConeJumpButton => '콘 넘기';
+
+  @override
   String get trainingSketchQuickHurdleJumpButton => '뜀틀 넘기';
 
   @override
@@ -10085,13 +10094,28 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String trainingSketchPassToSpotButton(Object target, int index) {
+    return '$target $index에 패스';
+  }
+
+  @override
   String trainingSketchThrowToPlayerButton(int index) {
     return '사람 $index에게 송구';
   }
 
   @override
+  String trainingSketchThrowToSpotButton(Object target, int index) {
+    return '$target $index에 송구';
+  }
+
+  @override
   String trainingSketchRallyToPlayerButton(int index) {
     return '사람 $index에게 랠리';
+  }
+
+  @override
+  String trainingSketchRallyToSpotButton(Object target, int index) {
+    return '$target $index로 랠리';
   }
 
   @override

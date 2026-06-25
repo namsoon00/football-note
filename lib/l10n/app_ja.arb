@@ -5612,6 +5612,8 @@
   "trainingSketchPlayerRoutesTitle": "プレイヤー動作",
   "trainingSketchBallRoutesTitle": "ボール動作",
   "trainingSketchRoutesEmpty": "このタイプにはまだ動作線がありません。",
+  "trainingSketchExtendRouteButton": "末尾から延長",
+  "trainingSketchReverseRouteButton": "方向を反転",
   "trainingSketchRedrawRouteButton": "選択された再描画",
   "trainingSketchDeleteRouteButton": "選択したものを削除",
   "trainingSketchPlayerRouteChip": "プレイヤー {index}",
@@ -5662,6 +5664,7 @@
   "trainingSketchQuickCutButton": "カット",
   "trainingSketchQuickScreenButton": "スクリーン",
   "trainingSketchQuickConeTurnButton": "コーン回り",
+  "trainingSketchQuickConeJumpButton": "コーン越え",
   "trainingSketchQuickHurdleJumpButton": "ハードル越え",
   "trainingSketchQuickRunBaseButton": "ベースラン",
   "trainingSketchQuickFieldingButton": "守備移動",
@@ -5677,6 +5680,15 @@
       }
     }
   },
+  "trainingSketchPassToSpotButton": "{target} {index} へパス",
+  "@trainingSketchPassToSpotButton": {
+    "placeholders": {
+      "target": {},
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchThrowToPlayerButton": "プレイヤー {index} へ送球",
   "@trainingSketchThrowToPlayerButton": {
     "placeholders": {
@@ -5685,9 +5697,27 @@
       }
     }
   },
+  "trainingSketchThrowToSpotButton": "{target} {index} へ送球",
+  "@trainingSketchThrowToSpotButton": {
+    "placeholders": {
+      "target": {},
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchRallyToPlayerButton": "プレイヤー {index} へラリー",
   "@trainingSketchRallyToPlayerButton": {
     "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRallyToSpotButton": "{target} {index} へラリー",
+  "@trainingSketchRallyToSpotButton": {
+    "placeholders": {
+      "target": {},
       "index": {
         "type": "int"
       }

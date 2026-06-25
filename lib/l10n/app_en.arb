@@ -5612,6 +5612,8 @@
   "trainingSketchPlayerRoutesTitle": "Player actions",
   "trainingSketchBallRoutesTitle": "Ball actions",
   "trainingSketchRoutesEmpty": "No action lines yet for this type.",
+  "trainingSketchExtendRouteButton": "Extend from end",
+  "trainingSketchReverseRouteButton": "Reverse direction",
   "trainingSketchRedrawRouteButton": "Redraw selected",
   "trainingSketchDeleteRouteButton": "Delete selected",
   "trainingSketchPlayerRouteChip": "Player {index}",
@@ -5662,6 +5664,7 @@
   "trainingSketchQuickCutButton": "Cut",
   "trainingSketchQuickScreenButton": "Screen",
   "trainingSketchQuickConeTurnButton": "Circle cone",
+  "trainingSketchQuickConeJumpButton": "Jump cone",
   "trainingSketchQuickHurdleJumpButton": "Jump hurdle",
   "trainingSketchQuickRunBaseButton": "Base run",
   "trainingSketchQuickFieldingButton": "Fielding move",
@@ -5677,6 +5680,15 @@
       }
     }
   },
+  "trainingSketchPassToSpotButton": "Pass to {target} {index}",
+  "@trainingSketchPassToSpotButton": {
+    "placeholders": {
+      "target": {},
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchThrowToPlayerButton": "Throw to player {index}",
   "@trainingSketchThrowToPlayerButton": {
     "placeholders": {
@@ -5685,9 +5697,27 @@
       }
     }
   },
+  "trainingSketchThrowToSpotButton": "Throw to {target} {index}",
+  "@trainingSketchThrowToSpotButton": {
+    "placeholders": {
+      "target": {},
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchRallyToPlayerButton": "Rally to player {index}",
   "@trainingSketchRallyToPlayerButton": {
     "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRallyToSpotButton": "Rally to {target} {index}",
+  "@trainingSketchRallyToSpotButton": {
+    "placeholders": {
+      "target": {},
       "index": {
         "type": "int"
       }

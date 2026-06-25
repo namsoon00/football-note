@@ -9940,6 +9940,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchRoutesEmpty => 'このタイプにはまだ動作線がありません。';
 
   @override
+  String get trainingSketchExtendRouteButton => '末尾から延長';
+
+  @override
+  String get trainingSketchReverseRouteButton => '方向を反転';
+
+  @override
   String get trainingSketchRedrawRouteButton => '選択された再描画';
 
   @override
@@ -10046,6 +10052,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchQuickConeTurnButton => 'コーン回り';
 
   @override
+  String get trainingSketchQuickConeJumpButton => 'コーン越え';
+
+  @override
   String get trainingSketchQuickHurdleJumpButton => 'ハードル越え';
 
   @override
@@ -10072,13 +10081,28 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String trainingSketchPassToSpotButton(Object target, int index) {
+    return '$target $index へパス';
+  }
+
+  @override
   String trainingSketchThrowToPlayerButton(int index) {
     return 'プレイヤー $index へ送球';
   }
 
   @override
+  String trainingSketchThrowToSpotButton(Object target, int index) {
+    return '$target $index へ送球';
+  }
+
+  @override
   String trainingSketchRallyToPlayerButton(int index) {
     return 'プレイヤー $index へラリー';
+  }
+
+  @override
+  String trainingSketchRallyToSpotButton(Object target, int index) {
+    return '$target $index へラリー';
   }
 
   @override
