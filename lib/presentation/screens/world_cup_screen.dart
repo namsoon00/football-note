@@ -4186,6 +4186,11 @@ class _WorldCupQualificationScenarioRow extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
+          if (scenario.remainingOtherMatches > 0 &&
+              scenario.otherMatchPaths.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            _WorldCupQualificationOtherMatches(scenario: scenario),
+          ],
           const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -4217,6 +4222,142 @@ class _WorldCupQualificationScenarioRow extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _WorldCupQualificationOtherMatches extends StatelessWidget {
+  final WorldCupQualificationPathScenario scenario;
+
+  const _WorldCupQualificationOtherMatches({required this.scenario});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Theme(
+      data: theme.copyWith(dividerColor: Colors.transparent),
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface.withValues(alpha: 0.72),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 10),
+          childrenPadding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+          dense: true,
+          visualDensity: VisualDensity.compact,
+          initiallyExpanded: scenario.remainingMatches == 0,
+          leading: Icon(
+            Icons.tune_rounded,
+            size: 18,
+            color: theme.colorScheme.primary,
+          ),
+          title: Text(
+            l10n.worldCupQualificationOtherMatchesTitle(
+              scenario.otherMatchPaths.length,
+            ),
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          subtitle: Text(
+            l10n.worldCupQualificationOtherMatchesSubtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.25,
+            ),
+          ),
+          children: [
+            for (final path in scenario.otherMatchPaths) ...[
+              _WorldCupQualificationOtherPathRow(path: path),
+              if (path != scenario.otherMatchPaths.last)
+                const SizedBox(height: 6),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WorldCupQualificationOtherPathRow extends StatelessWidget {
+  final WorldCupQualificationOtherMatchPath path;
+
+  const _WorldCupQualificationOtherPathRow({required this.path});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final color = _qualificationOtherPathColor(theme, path);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.worldCupQualificationOtherPathOutcome(
+              path.rank,
+              _qualificationOtherPathOutcomeLabel(l10n, path),
+            ),
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          if (path.picks.isNotEmpty) ...[
+            const SizedBox(height: 5),
+            Wrap(
+              spacing: 5,
+              runSpacing: 5,
+              children: [
+                for (final pick in path.picks)
+                  _WorldCupQualificationOtherPickChip(pick: pick),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _WorldCupQualificationOtherPickChip extends StatelessWidget {
+  final WorldCupQualificationOtherMatchPick pick;
+
+  const _WorldCupQualificationOtherPickChip({required this.pick});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final result = _qualificationOtherMatchResultLabel(l10n, pick);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Text(
+        l10n.worldCupQualificationOtherMatchPick(
+          _worldCupCountryName(l10n, pick.homeTeam),
+          _worldCupCountryName(l10n, pick.awayTeam),
+          result,
+        ),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurface,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -4349,6 +4490,15 @@ String _qualificationResultLabel(
   };
 }
 
+Color _qualificationOtherPathColor(
+  ThemeData theme,
+  WorldCupQualificationOtherMatchPath path,
+) {
+  if (path.isAutomaticAdvance) return theme.colorScheme.primary;
+  if (path.isThirdPlaceRace) return const Color(0xFF9A6A00);
+  return theme.colorScheme.error;
+}
+
 String _qualificationScenariosSubtitle(
   AppLocalizations l10n,
   WorldCupQualificationPathScenario scenario,
@@ -4384,6 +4534,34 @@ String _qualificationScenariosGuide(
     return l10n.worldCupQualificationScenariosNoTeamMatchesGuide;
   }
   return l10n.worldCupQualificationScenariosGuide;
+}
+
+String _qualificationOtherPathOutcomeLabel(
+  AppLocalizations l10n,
+  WorldCupQualificationOtherMatchPath path,
+) {
+  if (path.isAutomaticAdvance) return l10n.worldCupQualificationOutcomeAuto;
+  if (path.isThirdPlaceRace) return l10n.worldCupQualificationOutcomeThird;
+  return l10n.worldCupQualificationOutcomeOut;
+}
+
+String _qualificationOtherMatchResultLabel(
+  AppLocalizations l10n,
+  WorldCupQualificationOtherMatchPick pick,
+) {
+  return switch (pick.resultForHomeTeam) {
+    WorldCupFixtureTeamResult.win =>
+      l10n.worldCupQualificationOtherMatchWinResult(
+        _worldCupCountryName(l10n, pick.homeTeam),
+      ),
+    WorldCupFixtureTeamResult.draw =>
+      l10n.worldCupQualificationOtherMatchDrawResult,
+    WorldCupFixtureTeamResult.loss =>
+      l10n.worldCupQualificationOtherMatchWinResult(
+        _worldCupCountryName(l10n, pick.awayTeam),
+      ),
+    WorldCupFixtureTeamResult.scheduled => l10n.worldCupResultPendingTeam,
+  };
 }
 
 String _qualificationOutcomeLabel(

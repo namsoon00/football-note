@@ -1294,6 +1294,34 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String worldCupQualificationOtherMatchesTitle(int count) {
+    return '다른 경기 결과 $count가지';
+  }
+
+  @override
+  String get worldCupQualificationOtherMatchesSubtitle =>
+      '이 팀 결과가 같아도 같은 조의 다른 경기 승·무·패에 따라 순위와 진출 상태가 달라질 수 있어요.';
+
+  @override
+  String worldCupQualificationOtherPathOutcome(int rank, String outcome) {
+    return '$rank위 · $outcome';
+  }
+
+  @override
+  String worldCupQualificationOtherMatchPick(
+      String home, String away, String result) {
+    return '$home - $away: $result';
+  }
+
+  @override
+  String worldCupQualificationOtherMatchWinResult(String team) {
+    return '$team 승';
+  }
+
+  @override
+  String get worldCupQualificationOtherMatchDrawResult => '무승부';
+
+  @override
   String get worldCupQualificationThirdPlaceNote =>
       '조 3위는 12개 조 3위 중 상위 8팀에 들어야 32강에 올라갑니다.';
 

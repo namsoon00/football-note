@@ -334,6 +334,18 @@ void main() {
 
     expect(find.textContaining('마지막 1경기'), findsOneWidget);
     expect(find.textContaining('남아프리카공화국전 승'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.textContaining('다른 경기 결과 9가지').first,
+      180,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('다른 경기 결과 9가지'), findsWidgets);
+    await tester.tap(find.textContaining('다른 경기 결과 9가지').hitTestable().first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('체코 - 남아프리카공화국'), findsWidgets);
+    expect(find.textContaining('체코 - 멕시코'), findsWidgets);
+    expect(find.textContaining('위 ·'), findsWidgets);
     expect(find.text('이 팀 남은 경기 없음'), findsNothing);
   });
 
