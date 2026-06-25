@@ -5301,6 +5301,7 @@
     }
   },
   "matchCompetitionSaveTeams": "팀 저장",
+  "matchCompetitionSavedFeedback": "대회 정보를 저장했어요.",
   "matchCompetitionNameRequired": "대회 이름을 입력하세요.",
   "matchLeagueStandingsTitle": "리그 순위",
   "matchTournamentBracketTitle": "토너먼트 대진표",
@@ -5416,6 +5417,16 @@
   "matchTournamentOutcomeChampion": "우승",
   "matchOpponentTeamLabel": "상대 팀",
   "matchOpponentTeamHint": "예) 수원 U15",
+  "matchLocationHint": "예) 메인 구장",
+  "matchFlowBasicSectionTitle": "기본 정보",
+  "matchFlowCompetitionSectionTitle": "대회 설정",
+  "matchFlowCompetitionSectionHelper": "저장된 대회를 먼저 고르면 참가 팀과 상태가 함께 채워집니다.",
+  "matchFlowOpponentSectionTitle": "상대팀 선택",
+  "matchFlowOpponentSectionHelper": "등록된 참가 팀 중 이번 경기 상대를 선택하세요.",
+  "matchFlowResultSectionTitle": "결과 입력",
+  "matchFlowResultSectionHelper": "승/무/패를 먼저 고른 뒤 점수와 대회 결과를 조정하세요.",
+  "matchFlowPersonalSectionTitle": "개인 기록",
+  "matchFlowPersonalSectionHelper": "득점, 도움, 출전 시간처럼 나중에 통계로 볼 값을 남기세요.",
   "matchLeagueTeamsLabel": "리그 팀",
   "matchLeagueTeamsHint": "한 줄에 한 팀씩 입력하거나 쉼표로 구분하세요",
   "matchTournamentTeamsLabel": "토너먼트 팀",
@@ -5478,6 +5489,8 @@
   "tennisMatchFirstServesInLabel": "첫 서브 성공",
   "tennisMatchBreakPointsWonLabel": "브레이크 성공",
   "calendarMatchXpSourceLabel": "시합 기록",
+  "matchSavedFeedback": "시합 기록을 저장했어요.",
+  "matchUpdatedFeedback": "시합 기록을 수정했어요.",
   "matchSavedWithXpFeedback": "시합 저장 +{count} XP",
   "@matchSavedWithXpFeedback": {
     "placeholders": {

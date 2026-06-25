@@ -9418,6 +9418,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionSaveTeams => '팀 저장';
 
   @override
+  String get matchCompetitionSavedFeedback => '대회 정보를 저장했어요.';
+
+  @override
   String get matchCompetitionNameRequired => '대회 이름을 입력하세요.';
 
   @override
@@ -9558,6 +9561,38 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchOpponentTeamHint => '예) 수원 U15';
 
   @override
+  String get matchLocationHint => '예) 메인 구장';
+
+  @override
+  String get matchFlowBasicSectionTitle => '기본 정보';
+
+  @override
+  String get matchFlowCompetitionSectionTitle => '대회 설정';
+
+  @override
+  String get matchFlowCompetitionSectionHelper =>
+      '저장된 대회를 먼저 고르면 참가 팀과 상태가 함께 채워집니다.';
+
+  @override
+  String get matchFlowOpponentSectionTitle => '상대팀 선택';
+
+  @override
+  String get matchFlowOpponentSectionHelper => '등록된 참가 팀 중 이번 경기 상대를 선택하세요.';
+
+  @override
+  String get matchFlowResultSectionTitle => '결과 입력';
+
+  @override
+  String get matchFlowResultSectionHelper => '승/무/패를 먼저 고른 뒤 점수와 대회 결과를 조정하세요.';
+
+  @override
+  String get matchFlowPersonalSectionTitle => '개인 기록';
+
+  @override
+  String get matchFlowPersonalSectionHelper =>
+      '득점, 도움, 출전 시간처럼 나중에 통계로 볼 값을 남기세요.';
+
+  @override
   String get matchLeagueTeamsLabel => '리그 팀';
 
   @override
@@ -9666,6 +9701,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get calendarMatchXpSourceLabel => '시합 기록';
+
+  @override
+  String get matchSavedFeedback => '시합 기록을 저장했어요.';
+
+  @override
+  String get matchUpdatedFeedback => '시합 기록을 수정했어요.';
 
   @override
   String matchSavedWithXpFeedback(int count) {

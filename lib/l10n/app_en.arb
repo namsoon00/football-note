@@ -5301,6 +5301,7 @@
     }
   },
   "matchCompetitionSaveTeams": "Save teams",
+  "matchCompetitionSavedFeedback": "Competition details saved.",
   "matchCompetitionNameRequired": "Enter a competition name.",
   "matchLeagueStandingsTitle": "League standings",
   "matchTournamentBracketTitle": "Tournament bracket",
@@ -5416,6 +5417,16 @@
   "matchTournamentOutcomeChampion": "Champion",
   "matchOpponentTeamLabel": "Opponent team",
   "matchOpponentTeamHint": "e.g. Suwon U15",
+  "matchLocationHint": "e.g. Main stadium",
+  "matchFlowBasicSectionTitle": "Basics",
+  "matchFlowCompetitionSectionTitle": "Competition setup",
+  "matchFlowCompetitionSectionHelper": "Select a saved competition first to fill teams and status together.",
+  "matchFlowOpponentSectionTitle": "Opponent",
+  "matchFlowOpponentSectionHelper": "Choose this match's opponent from the registered teams.",
+  "matchFlowResultSectionTitle": "Result",
+  "matchFlowResultSectionHelper": "Pick W/D/L first, then adjust the score and competition result.",
+  "matchFlowPersonalSectionTitle": "Personal record",
+  "matchFlowPersonalSectionHelper": "Add values you want to review later, such as goals, assists, and minutes.",
   "matchLeagueTeamsLabel": "League teams",
   "matchLeagueTeamsHint": "Enter one team per line or separate with commas",
   "matchTournamentTeamsLabel": "Tournament teams",
@@ -5478,6 +5489,8 @@
   "tennisMatchFirstServesInLabel": "First serves in",
   "tennisMatchBreakPointsWonLabel": "Break points won",
   "calendarMatchXpSourceLabel": "Match record",
+  "matchSavedFeedback": "Match record saved.",
+  "matchUpdatedFeedback": "Match record updated.",
   "matchSavedWithXpFeedback": "Match saved +{count} XP",
   "@matchSavedWithXpFeedback": {
     "placeholders": {

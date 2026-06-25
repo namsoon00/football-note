@@ -9688,6 +9688,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchCompetitionSaveTeams => 'Save teams';
 
   @override
+  String get matchCompetitionSavedFeedback => 'Competition details saved.';
+
+  @override
   String get matchCompetitionNameRequired => 'Enter a competition name.';
 
   @override
@@ -9828,6 +9831,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchOpponentTeamHint => 'e.g. Suwon U15';
 
   @override
+  String get matchLocationHint => 'e.g. Main stadium';
+
+  @override
+  String get matchFlowBasicSectionTitle => 'Basics';
+
+  @override
+  String get matchFlowCompetitionSectionTitle => 'Competition setup';
+
+  @override
+  String get matchFlowCompetitionSectionHelper =>
+      'Select a saved competition first to fill teams and status together.';
+
+  @override
+  String get matchFlowOpponentSectionTitle => 'Opponent';
+
+  @override
+  String get matchFlowOpponentSectionHelper =>
+      'Choose this match\'s opponent from the registered teams.';
+
+  @override
+  String get matchFlowResultSectionTitle => 'Result';
+
+  @override
+  String get matchFlowResultSectionHelper =>
+      'Pick W/D/L first, then adjust the score and competition result.';
+
+  @override
+  String get matchFlowPersonalSectionTitle => 'Personal record';
+
+  @override
+  String get matchFlowPersonalSectionHelper =>
+      'Add values you want to review later, such as goals, assists, and minutes.';
+
+  @override
   String get matchLeagueTeamsLabel => 'League teams';
 
   @override
@@ -9938,6 +9975,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendarMatchXpSourceLabel => 'Match record';
+
+  @override
+  String get matchSavedFeedback => 'Match record saved.';
+
+  @override
+  String get matchUpdatedFeedback => 'Match record updated.';
 
   @override
   String matchSavedWithXpFeedback(int count) {
