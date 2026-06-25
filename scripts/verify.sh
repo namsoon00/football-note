@@ -45,6 +45,9 @@ flutter gen-l10n
 echo "==> flutter analyze"
 flutter analyze
 
+echo "==> design consistency guardrails"
+./scripts/check_design_consistency.sh
+
 echo "==> quiz quality harness"
 ./scripts/quiz_quality_harness.sh
 

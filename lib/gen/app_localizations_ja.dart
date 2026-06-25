@@ -4612,6 +4612,27 @@ class AppLocalizationsJa extends AppLocalizations {
       'ハイスコ​​アルート: 安全なパスでリズムを築き、キラー/リスキーなパスで展開し、ミッションとゴールの報酬で終了します。';
 
   @override
+  String get gameRankingTitle => 'ゲームランキング';
+
+  @override
+  String get gameRankingEmpty => 'ランキング記録はまだありません。';
+
+  @override
+  String gameRankingEntryTitle(String rankLabel, int rankScore, int score) {
+    return 'ランク$rankLabel ($rankScore点) - スコア $score';
+  }
+
+  @override
+  String gameRankingEntrySubtitle(int level, int goals, String date) {
+    return 'レベル Lv.$level - ゴール $goals - $date';
+  }
+
+  @override
+  String gameRankingPosition(int rankNo) {
+    return '$rankNo位';
+  }
+
+  @override
   String get gameGuideCharPacTitle => 'パックマンアタッカー';
 
   @override

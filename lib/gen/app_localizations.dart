@@ -8336,6 +8336,36 @@ abstract class AppLocalizations {
   /// **'High-score route: build rhythm with safe passes, expand with killer/risky passes, then finish with mission and goal rewards.'**
   String get gameGuideRankingLine4;
 
+  /// No description provided for @gameRankingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Game Rankings'**
+  String get gameRankingTitle;
+
+  /// No description provided for @gameRankingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No ranking records yet.'**
+  String get gameRankingEmpty;
+
+  /// No description provided for @gameRankingEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank {rankLabel} ({rankScore} pts) - Score {score}'**
+  String gameRankingEntryTitle(String rankLabel, int rankScore, int score);
+
+  /// No description provided for @gameRankingEntrySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Level Lv.{level} - Goals {goals} - {date}'**
+  String gameRankingEntrySubtitle(int level, int goals, String date);
+
+  /// No description provided for @gameRankingPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'#{rankNo}'**
+  String gameRankingPosition(int rankNo);
+
   /// No description provided for @gameGuideCharPacTitle.
   ///
   /// In en, this message translates to:

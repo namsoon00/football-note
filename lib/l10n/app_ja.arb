@@ -2732,6 +2732,44 @@
   "gameGuideRankingLine2": "ボーナススコアソース: パスタイプの報酬、オープンスペースの報酬、リズム報酬、ミッション報酬。",
   "gameGuideRankingLine3": "フィーバー中はボーナススコアが2倍になり、短い時間で大きなジャンプが可能になります。",
   "gameGuideRankingLine4": "ハイスコ​​アルート: 安全なパスでリズムを築き、キラー/リスキーなパスで展開し、ミッションとゴールの報酬で終了します。",
+  "gameRankingTitle": "ゲームランキング",
+  "gameRankingEmpty": "ランキング記録はまだありません。",
+  "gameRankingEntryTitle": "ランク{rankLabel} ({rankScore}点) - スコア {score}",
+  "@gameRankingEntryTitle": {
+    "placeholders": {
+      "rankLabel": {
+        "type": "String"
+      },
+      "rankScore": {
+        "type": "int"
+      },
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "gameRankingEntrySubtitle": "レベル Lv.{level} - ゴール {goals} - {date}",
+  "@gameRankingEntrySubtitle": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "goals": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "gameRankingPosition": "{rankNo}位",
+  "@gameRankingPosition": {
+    "placeholders": {
+      "rankNo": {
+        "type": "int"
+      }
+    }
+  },
   "gameGuideCharPacTitle": "パックマンアタッカー",
   "gameGuideCharPacSubtitle": "スタートとリンクのパス",
   "gameGuideCharPacTag": "攻撃",

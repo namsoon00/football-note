@@ -2732,6 +2732,44 @@
   "gameGuideRankingLine2": "Bonus score sources: pass-type rewards, open-space rewards, rhythm rewards, mission rewards.",
   "gameGuideRankingLine3": "During Fever, bonus score is doubled, enabling big jumps in a short window.",
   "gameGuideRankingLine4": "High-score route: build rhythm with safe passes, expand with killer/risky passes, then finish with mission and goal rewards.",
+  "gameRankingTitle": "Game Rankings",
+  "gameRankingEmpty": "No ranking records yet.",
+  "gameRankingEntryTitle": "Rank {rankLabel} ({rankScore} pts) - Score {score}",
+  "@gameRankingEntryTitle": {
+    "placeholders": {
+      "rankLabel": {
+        "type": "String"
+      },
+      "rankScore": {
+        "type": "int"
+      },
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "gameRankingEntrySubtitle": "Level Lv.{level} - Goals {goals} - {date}",
+  "@gameRankingEntrySubtitle": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "goals": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "gameRankingPosition": "#{rankNo}",
+  "@gameRankingPosition": {
+    "placeholders": {
+      "rankNo": {
+        "type": "int"
+      }
+    }
+  },
   "gameGuideCharPacTitle": "Pacman Attacker",
   "gameGuideCharPacSubtitle": "Starts and links passes",
   "gameGuideCharPacTag": "ATTACK",
