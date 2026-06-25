@@ -596,7 +596,7 @@
       }
     }
   },
-  "worldCupTeamRosterSubtitle": "포지션별 명단과 포메이션 배치로 팀 구성을 빠르게 확인해요.",
+  "worldCupTeamRosterSubtitle": "포지션별 명단에서 직접 베스트 11과 포메이션을 구성해요.",
   "worldCupTeamHistoryTitle": "축구 역사와 설명",
   "worldCupTeamHistoryBody": "{team}의 축구사는 대표팀의 국제 대회 경험, 자국 리그와 해외파 선수 흐름, 월드컵 예선에서 쌓인 경쟁력이 함께 만든 이야기입니다. 이 화면에서는 현재 조별 일정, 승점, 선수 소속팀을 묶어 {team}이 이번 대회에서 어떤 흐름을 만들 수 있는지 확인할 수 있어요.",
   "@worldCupTeamHistoryBody": {
@@ -819,10 +819,58 @@
       }
     }
   },
+  "worldCupTeamRosterBestXiTitle": "나의 베스트 11",
+  "worldCupTeamRosterBestXiNote": "공식 경기 라인업이 아니라 사용자가 선택한 포메이션과 선수로 그린 보드예요. 선수 행을 눌러 포함하거나 제외할 수 있어요.",
+  "worldCupTeamRosterFormationPickerLabel": "포메이션",
+  "worldCupTeamRosterBestXiCount": "{count}/11명 선택",
+  "@worldCupTeamRosterBestXiCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiComplete": "베스트 11 완성",
+  "worldCupTeamRosterBestXiNeedMore": "{count}명 더 선택",
+  "@worldCupTeamRosterBestXiNeedMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiReset": "자동 추천",
+  "worldCupTeamRosterBestXiPositionLimit": "{selected}/{required}",
+  "@worldCupTeamRosterBestXiPositionLimit": {
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiSelectTooltip": "{player} 선택",
+  "@worldCupTeamRosterBestXiSelectTooltip": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiRemoveTooltip": "{player} 제외",
+  "@worldCupTeamRosterBestXiRemoveTooltip": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupTeamRosterFormationEstimatedNote": "공식 경기 라인업이 아니라 현재 선수단 데이터를 기준으로 배치한 예상 포메이션이에요. 실제 경기 전술과 선발은 달라질 수 있어요.",
   "worldCupTeamRosterFormationPlaceholderNote": "공식 선수단 데이터가 없어서 기본 포지션 슬롯으로 배치했어요. 실제 포메이션으로 보지 마세요.",
   "worldCupTeamRosterSourceNote": "이 국가는 아직 앱에 공식 2026 선수단 데이터가 포함되지 않아 안정적이고 합법적인 출처가 연결될 때까지 포지션 슬롯으로 표시됩니다.",
-  "worldCupTeamRosterCandidateSourceNote": "공개된 2026 선수단 정보와 예상 포메이션 데이터를 바탕으로 보여줘요. 부상 교체와 경기 당일 선택은 킥오프 전까지 바뀔 수 있어요.",
+  "worldCupTeamRosterCandidateSourceNote": "공개된 2026 선수단 정보와 소속팀 정보를 바탕으로 보여줘요. 부상 교체와 경기 당일 선택은 킥오프 전까지 바뀔 수 있어요.",
   "worldCupTeamRosterGoalkeepers": "골키퍼",
   "worldCupTeamRosterDefenders": "수비수",
   "worldCupTeamRosterMidfielders": "미드필더",

@@ -252,14 +252,22 @@ void main() {
     expect(find.textContaining('32강 상대 후보(현재 순위): M'), findsNothing);
     expect(find.textContaining('→'), findsWidgets);
     await tester.scrollUntilVisible(
-      find.text('4-3-3 포메이션'),
+      find.text('나의 베스트 11'),
       180,
       scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
+    expect(find.text('나의 베스트 11'), findsOneWidget);
     expect(find.text('4-3-3 포메이션'), findsOneWidget);
     expect(find.textContaining('공식 경기 라인업이 아니라'), findsOneWidget);
-    expect(find.text('라울 랑헬'), findsOneWidget);
+    expect(find.text('포메이션'), findsOneWidget);
+    expect(find.text('11/11명 선택'), findsOneWidget);
+    expect(find.text('베스트 11 완성'), findsOneWidget);
+    await tester.tap(find.text('4-4-2').hitTestable().first);
+    await tester.pumpAndSettle();
+    expect(find.text('4-4-2 포메이션'), findsOneWidget);
+    expect(find.text('11/11명 선택'), findsOneWidget);
+    expect(find.text('라울 랑헬'), findsWidgets);
     await tester.scrollUntilVisible(
       find.text('Deportivo Guadalajara'),
       180,
@@ -275,6 +283,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('세사르 우에르타'), findsOneWidget);
     expect(find.text('RSC Anderlecht'), findsOneWidget);
+    final huertaToggle = find.byTooltip('세사르 우에르타 제외').first;
+    await tester.ensureVisible(huertaToggle);
+    await tester.pumpAndSettle();
+    await tester.tap(huertaToggle);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('나의 베스트 11'),
+      -220,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('10/11명 선택'), findsOneWidget);
+    expect(find.text('1명 더 선택'), findsOneWidget);
+    await tester.tap(find.text('자동 추천'));
+    await tester.pumpAndSettle();
+    expect(find.text('11/11명 선택'), findsOneWidget);
   });
 
   testWidgets('qualification scenarios adapt to one remaining team match', (

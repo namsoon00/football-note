@@ -1261,7 +1261,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterSubtitle =>
-      'Position groups and a formation view for quickly reading the squad shape.';
+      'Build your own best XI and formation from the position groups.';
 
   @override
   String get worldCupTeamHistoryTitle => 'Football history and context';
@@ -1451,6 +1451,47 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get worldCupTeamRosterBestXiTitle => 'My best XI';
+
+  @override
+  String get worldCupTeamRosterBestXiNote =>
+      'This is not an official match lineup. It is a board drawn from the formation and players you choose. Tap player rows to include or remove them.';
+
+  @override
+  String get worldCupTeamRosterFormationPickerLabel => 'Formation';
+
+  @override
+  String worldCupTeamRosterBestXiCount(int count) {
+    return '$count/11 selected';
+  }
+
+  @override
+  String get worldCupTeamRosterBestXiComplete => 'Best XI complete';
+
+  @override
+  String worldCupTeamRosterBestXiNeedMore(int count) {
+    return '$count more needed';
+  }
+
+  @override
+  String get worldCupTeamRosterBestXiReset => 'Auto pick';
+
+  @override
+  String worldCupTeamRosterBestXiPositionLimit(int selected, int required) {
+    return '$selected/$required';
+  }
+
+  @override
+  String worldCupTeamRosterBestXiSelectTooltip(String player) {
+    return 'Select $player';
+  }
+
+  @override
+  String worldCupTeamRosterBestXiRemoveTooltip(String player) {
+    return 'Remove $player';
+  }
+
+  @override
   String get worldCupTeamRosterFormationEstimatedNote =>
       'This is an expected formation arranged from the current squad data, not an official match lineup. Actual match tactics and starters can change.';
 
@@ -1464,7 +1505,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterCandidateSourceNote =>
-      'Shown from published 2026 squad information and expected formation data. Injury replacements and match-day choices can still change before kickoff.';
+      'Shown from published 2026 squad and club information. Injury replacements and match-day choices can still change before kickoff.';
 
   @override
   String get worldCupTeamRosterGoalkeepers => 'Goalkeepers';

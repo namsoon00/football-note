@@ -596,7 +596,7 @@
       }
     }
   },
-  "worldCupTeamRosterSubtitle": "Position groups and a formation view for quickly reading the squad shape.",
+  "worldCupTeamRosterSubtitle": "Build your own best XI and formation from the position groups.",
   "worldCupTeamHistoryTitle": "Football history and context",
   "worldCupTeamHistoryBody": "{team}'s football story is shaped by its national-team tournament experience, domestic league base, overseas-player pipeline, and World Cup qualifying record. This view brings the group fixtures, points, and player clubs together so you can read how {team} may build its tournament rhythm.",
   "@worldCupTeamHistoryBody": {
@@ -819,10 +819,58 @@
       }
     }
   },
+  "worldCupTeamRosterBestXiTitle": "My best XI",
+  "worldCupTeamRosterBestXiNote": "This is not an official match lineup. It is a board drawn from the formation and players you choose. Tap player rows to include or remove them.",
+  "worldCupTeamRosterFormationPickerLabel": "Formation",
+  "worldCupTeamRosterBestXiCount": "{count}/11 selected",
+  "@worldCupTeamRosterBestXiCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiComplete": "Best XI complete",
+  "worldCupTeamRosterBestXiNeedMore": "{count} more needed",
+  "@worldCupTeamRosterBestXiNeedMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiReset": "Auto pick",
+  "worldCupTeamRosterBestXiPositionLimit": "{selected}/{required}",
+  "@worldCupTeamRosterBestXiPositionLimit": {
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiSelectTooltip": "Select {player}",
+  "@worldCupTeamRosterBestXiSelectTooltip": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiRemoveTooltip": "Remove {player}",
+  "@worldCupTeamRosterBestXiRemoveTooltip": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupTeamRosterFormationEstimatedNote": "This is an expected formation arranged from the current squad data, not an official match lineup. Actual match tactics and starters can change.",
   "worldCupTeamRosterFormationPlaceholderNote": "Official squad data is unavailable, so this uses default position slots. Do not treat it as an actual formation.",
   "worldCupTeamRosterSourceNote": "Official 2026 squad data is not bundled for this country yet, so position slots are shown until a stable legal source is connected.",
-  "worldCupTeamRosterCandidateSourceNote": "Shown from published 2026 squad information and expected formation data. Injury replacements and match-day choices can still change before kickoff.",
+  "worldCupTeamRosterCandidateSourceNote": "Shown from published 2026 squad and club information. Injury replacements and match-day choices can still change before kickoff.",
   "worldCupTeamRosterGoalkeepers": "Goalkeepers",
   "worldCupTeamRosterDefenders": "Defenders",
   "worldCupTeamRosterMidfielders": "Midfielders",

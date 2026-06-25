@@ -2331,7 +2331,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupTeamRosterSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Position groups and a formation view for quickly reading the squad shape.'**
+  /// **'Build your own best XI and formation from the position groups.'**
   String get worldCupTeamRosterSubtitle;
 
   /// No description provided for @worldCupTeamHistoryTitle.
@@ -2605,6 +2605,66 @@ abstract class AppLocalizations {
   /// **'{formation} formation'**
   String worldCupTeamRosterFormationLabel(String formation);
 
+  /// No description provided for @worldCupTeamRosterBestXiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My best XI'**
+  String get worldCupTeamRosterBestXiTitle;
+
+  /// No description provided for @worldCupTeamRosterBestXiNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not an official match lineup. It is a board drawn from the formation and players you choose. Tap player rows to include or remove them.'**
+  String get worldCupTeamRosterBestXiNote;
+
+  /// No description provided for @worldCupTeamRosterFormationPickerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Formation'**
+  String get worldCupTeamRosterFormationPickerLabel;
+
+  /// No description provided for @worldCupTeamRosterBestXiCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/11 selected'**
+  String worldCupTeamRosterBestXiCount(int count);
+
+  /// No description provided for @worldCupTeamRosterBestXiComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Best XI complete'**
+  String get worldCupTeamRosterBestXiComplete;
+
+  /// No description provided for @worldCupTeamRosterBestXiNeedMore.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more needed'**
+  String worldCupTeamRosterBestXiNeedMore(int count);
+
+  /// No description provided for @worldCupTeamRosterBestXiReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto pick'**
+  String get worldCupTeamRosterBestXiReset;
+
+  /// No description provided for @worldCupTeamRosterBestXiPositionLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'{selected}/{required}'**
+  String worldCupTeamRosterBestXiPositionLimit(int selected, int required);
+
+  /// No description provided for @worldCupTeamRosterBestXiSelectTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Select {player}'**
+  String worldCupTeamRosterBestXiSelectTooltip(String player);
+
+  /// No description provided for @worldCupTeamRosterBestXiRemoveTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {player}'**
+  String worldCupTeamRosterBestXiRemoveTooltip(String player);
+
   /// No description provided for @worldCupTeamRosterFormationEstimatedNote.
   ///
   /// In en, this message translates to:
@@ -2626,7 +2686,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupTeamRosterCandidateSourceNote.
   ///
   /// In en, this message translates to:
-  /// **'Shown from published 2026 squad information and expected formation data. Injury replacements and match-day choices can still change before kickoff.'**
+  /// **'Shown from published 2026 squad and club information. Injury replacements and match-day choices can still change before kickoff.'**
   String get worldCupTeamRosterCandidateSourceNote;
 
   /// No description provided for @worldCupTeamRosterGoalkeepers.
