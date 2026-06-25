@@ -25,6 +25,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../../infrastructure/rss_news_repository.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_skeleton.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'fifa_ranking_screen.dart';
 import 'league_standings_screen.dart';
@@ -565,11 +566,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final visibleArticles = _filteredArticles(filter);
     final showScrappedOnly = _showScrappedOnly;
     if (_isLoading && _articles.isEmpty) {
-      return ListView(
-        children: const [
-          SizedBox(height: 120),
-          Center(child: CircularProgressIndicator()),
-        ],
+      return const AppSkeletonList(
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 24),
+        itemCount: 6,
       );
     }
     final items = <Widget>[];

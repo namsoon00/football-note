@@ -6,6 +6,7 @@ import '../../application/fifa_world_overview_service.dart';
 import '../../domain/entities/fifa_world_overview.dart';
 import '../../gen/app_localizations.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_skeleton.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 
 class FifaCountryDetailScreen extends StatefulWidget {
@@ -210,21 +211,20 @@ class _FifaCountryDetailScreenState extends State<FifaCountryDetailScreen> {
                       ?.copyWith(fontWeight: FontWeight.w800),
                 ),
               ),
-              if (_isLoading)
-                const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
             ],
           ),
           const SizedBox(height: 12),
-          if (!_isLoading && (detail == null || !detail.hasTeamProfile))
+          if (_isLoading)
+            const AppSkeletonTextLines(
+              count: 6,
+              widthFactors: [0.88, 0.52, 0.74, 0.46, 0.68, 0.56],
+            )
+          else if (detail == null || !detail.hasTeamProfile)
             Text(
               l10n.fifaCountryDetailProfileUnavailable,
               style: Theme.of(context).textTheme.bodyMedium,
             )
-          else if (detail != null)
+          else
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -273,8 +273,6 @@ class _FifaCountryDetailScreenState extends State<FifaCountryDetailScreen> {
                 ],
               ],
             )
-          else
-            const LinearProgressIndicator(minHeight: 2),
         ],
       ),
     );

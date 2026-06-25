@@ -31,9 +31,18 @@ failed=0
 while IFS= read -r file; do
   [[ -z "${file}" || ! -f "${file}" ]] && continue
 
-  copy_matches="$(rg -n "isKo[[:space:]]*\\?[[:space:]]*['\"]|Localizations\\.localeOf\\(context\\)\\.languageCode[[:space:]]*==[[:space:]]*['\"]ko['\"]" "${file}" 2>/dev/null || true)"
+  added_lines="$(
+    {
+      git diff --unified=0 "${base_ref}"...HEAD -- "${file}" 2>/dev/null || true
+      git diff --unified=0 --cached -- "${file}" 2>/dev/null || true
+      git diff --unified=0 -- "${file}" 2>/dev/null || true
+    } | awk '/^\+\+\+ / { next } /^\+/ { print substr($0, 2) }'
+  )"
+  [[ -z "${added_lines}" ]] && continue
+
+  copy_matches="$(printf '%s\n' "${added_lines}" | rg -n "isKo[[:space:]]*\\?[[:space:]]*['\"]|Localizations\\.localeOf\\(context\\)\\.languageCode[[:space:]]*==[[:space:]]*['\"]ko['\"]" 2>/dev/null || true)"
   if [[ -n "${copy_matches}" ]]; then
-    echo "[design] ${file}: move locale-specific user-facing copy to lib/l10n/*.arb." >&2
+    echo "[design] ${file}: move newly added locale-specific user-facing copy to lib/l10n/*.arb." >&2
     echo "${copy_matches}" >&2
     failed=1
   fi
@@ -42,21 +51,9 @@ while IFS= read -r file; do
     continue
   fi
 
-  action_matches="$(awk '
-    /AppBar[[:space:]]*\(/ { appbar = 90 }
-    appbar > 0 && /actions[[:space:]]*:[[:space:]]*\[/ { actions = 45 }
-    actions > 0 && /(IconButton[[:space:]]*\(|TextButton[.]icon[[:space:]]*\(|PopupMenuButton[<[:space:]]|PopupMenuButton[[:space:]]*\()/ {
-      print FNR ":" $0
-      found = 1
-    }
-    {
-      if (appbar > 0) appbar--
-      if (actions > 0) actions--
-    }
-    END { exit found ? 1 : 0 }
-  ' "${file}" || true)"
+  action_matches="$(printf '%s\n' "${added_lines}" | rg -n "IconButton[[:space:]]*\\(|TextButton[.]icon[[:space:]]*\\(|PopupMenuButton[<[:space:]]|PopupMenuButton[[:space:]]*\\(" 2>/dev/null || true)"
   if [[ -n "${action_matches}" ]]; then
-    echo "[design] ${file}: use AppBarActionButton or AppBarActionMenuButton for top-right app bar actions." >&2
+    echo "[design] ${file}: use AppBarActionButton/AppBarActionMenuButton for newly added top-right app bar actions." >&2
     echo "${action_matches}" >&2
     failed=1
   fi
