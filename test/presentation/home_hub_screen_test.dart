@@ -228,6 +228,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 250));
 
     expect(find.text('홈 화면 설정'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('home-section-drag-area-level')),
+      findsOneWidget,
+    );
     await tester.tap(
       find.byKey(const ValueKey<String>('home-section-visible-level')),
     );
@@ -238,6 +242,8 @@ void main() {
     );
     reorderableList.onReorder(6, 5);
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(find.text('홈 화면 순서를 저장했어요.'), findsOneWidget);
 
     final rawSettings = optionRepository.getValue<String>(
       HomeHubSectionSettings.storageKey,

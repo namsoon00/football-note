@@ -949,6 +949,7 @@
   "homeLayoutSettingsTitle": "ホーム画面設定",
   "homeLayoutSettingsReset": "リセット",
   "homeLayoutReorderTooltip": "セクションを移動",
+  "homeLayoutSavedMessage": "ホーム画面の順序を保存しました。",
   "homeLayoutNoVisibleSections": "表示中のホームセクションがありません。",
   "homeSectionLevel": "レベル概要",
   "homeSectionChallenge": "チャレンジ",

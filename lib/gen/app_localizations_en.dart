@@ -1602,6 +1602,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeLayoutReorderTooltip => 'Move section';
 
   @override
+  String get homeLayoutSavedMessage => 'Home screen order saved.';
+
+  @override
   String get homeLayoutNoVisibleSections => 'All home sections are hidden.';
 
   @override

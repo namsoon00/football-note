@@ -33,14 +33,35 @@ class _HomeSectionSettingsScreenState extends State<HomeSectionSettingsScreen> {
     _settings = widget.initialSettings;
   }
 
-  void _update(HomeHubSectionSettings settings) {
+  void _update(
+    HomeHubSectionSettings settings, {
+    bool showSavedMessage = false,
+  }) {
     setState(() => _settings = settings);
     unawaited(
-      widget.optionRepository.setValue(
-        HomeHubSectionSettings.storageKey,
-        settings.encode(),
+      _saveSettings(
+        settings,
+        showSavedMessage: showSavedMessage,
       ),
     );
+  }
+
+  Future<void> _saveSettings(
+    HomeHubSectionSettings settings, {
+    required bool showSavedMessage,
+  }) async {
+    await widget.optionRepository.setValue(
+      HomeHubSectionSettings.storageKey,
+      settings.encode(),
+    );
+    if (!mounted || !showSavedMessage) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.homeLayoutSavedMessage),
+        ),
+      );
   }
 
   void _reset() {
@@ -111,7 +132,10 @@ class _HomeSectionSettingsScreenState extends State<HomeSectionSettingsScreen> {
                   buildDefaultDragHandles: false,
                   itemCount: _settings.sections.length,
                   onReorder: (oldIndex, newIndex) {
-                    _update(_settings.move(oldIndex, newIndex));
+                    _update(
+                      _settings.move(oldIndex, newIndex),
+                      showSavedMessage: true,
+                    );
                   },
                   itemBuilder: (context, index) {
                     final setting = _settings.sections[index];
@@ -155,23 +179,23 @@ class _HomeSectionSettingTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.sm,
-        AppSpacing.sm,
-        AppSpacing.xs,
-        AppSpacing.sm,
+    return ReorderableDelayedDragStartListener(
+      key: ValueKey<String>(
+        'home-section-drag-area-${setting.section.storageId}',
       ),
-      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
-      child: Row(
-        children: [
-          ReorderableDragStartListener(
-            key: ValueKey<String>(
-              'home-section-drag-${setting.section.storageId}',
-            ),
-            index: index,
-            child: Tooltip(
+      index: index,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.sm,
+          AppSpacing.sm,
+          AppSpacing.xs,
+          AppSpacing.sm,
+        ),
+        decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
+        child: Row(
+          children: [
+            Tooltip(
               message: l10n.homeLayoutReorderTooltip,
               child: Container(
                 width: 40,
@@ -187,40 +211,40 @@ class _HomeSectionSettingTile extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: scheme.secondaryContainer.withValues(alpha: 0.52),
-              borderRadius: AppRadius.small,
-            ),
-            child: Icon(
-              setting.section.icon,
-              color: scheme.onSecondaryContainer,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              setting.section.label(l10n),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
+            const SizedBox(width: AppSpacing.sm),
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: scheme.secondaryContainer.withValues(alpha: 0.52),
+                borderRadius: AppRadius.small,
+              ),
+              child: Icon(
+                setting.section.icon,
+                color: scheme.onSecondaryContainer,
               ),
             ),
-          ),
-          Switch(
-            key: ValueKey<String>(
-              'home-section-visible-${setting.section.storageId}',
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                setting.section.label(l10n),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
-            value: setting.visible,
-            onChanged: onVisibleChanged,
-          ),
-        ],
+            Switch(
+              key: ValueKey<String>(
+                'home-section-visible-${setting.section.storageId}',
+              ),
+              value: setting.visible,
+              onChanged: onVisibleChanged,
+            ),
+          ],
+        ),
       ),
     );
   }

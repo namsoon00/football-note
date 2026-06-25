@@ -2851,6 +2851,12 @@ abstract class AppLocalizations {
   /// **'Move section'**
   String get homeLayoutReorderTooltip;
 
+  /// No description provided for @homeLayoutSavedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Home screen order saved.'**
+  String get homeLayoutSavedMessage;
+
   /// No description provided for @homeLayoutNoVisibleSections.
   ///
   /// In en, this message translates to:
