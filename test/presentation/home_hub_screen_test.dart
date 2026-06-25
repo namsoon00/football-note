@@ -230,6 +230,27 @@ void main() {
       find.byKey(const ValueKey<String>('home-section-drag-area-level')),
       findsOneWidget,
     );
+    final levelSurfaceFinder = find.byKey(
+      const ValueKey<String>('home-section-setting-surface-level'),
+    );
+    double levelSurfaceBorderWidth() {
+      final surface = tester.widget<AnimatedContainer>(levelSurfaceFinder);
+      final decoration = surface.decoration! as BoxDecoration;
+      return (decoration.border! as Border).top.width;
+    }
+
+    expect(levelSurfaceBorderWidth(), 1);
+    final pressGesture = await tester.startGesture(
+      tester.getCenter(
+        find.byKey(const ValueKey<String>('home-section-drag-area-level')),
+      ),
+    );
+    await tester.pump();
+    expect(levelSurfaceBorderWidth(), greaterThan(1));
+    await pressGesture.up();
+    await tester.pump();
+    expect(levelSurfaceBorderWidth(), 1);
+
     await tester.tap(
       find.byKey(const ValueKey<String>('home-section-visible-level')),
     );

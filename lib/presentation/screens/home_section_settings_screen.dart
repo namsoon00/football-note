@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
@@ -8,6 +9,9 @@ import '../models/home_hub_section_settings.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_bar_action_button.dart';
+
+const _homeSectionReorderDelay = Duration(milliseconds: 180);
+const _homeSectionPressFeedbackDuration = Duration(milliseconds: 90);
 
 class HomeSectionSettingsScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -162,7 +166,7 @@ class _HomeSectionSettingsScreenState extends State<HomeSectionSettingsScreen> {
   }
 }
 
-class _HomeSectionSettingTile extends StatelessWidget {
+class _HomeSectionSettingTile extends StatefulWidget {
   final int index;
   final HomeHubSectionSetting setting;
   final ValueChanged<bool> onVisibleChanged;
@@ -175,77 +179,169 @@ class _HomeSectionSettingTile extends StatelessWidget {
   });
 
   @override
+  State<_HomeSectionSettingTile> createState() =>
+      _HomeSectionSettingTileState();
+}
+
+class _HomeSectionSettingTileState extends State<_HomeSectionSettingTile> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return ReorderableDelayedDragStartListener(
+    final setting = widget.setting;
+    return _FastReorderableDelayedDragStartListener(
       key: ValueKey<String>(
         'home-section-drag-area-${setting.section.storageId}',
       ),
-      index: index,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.sm,
-          AppSpacing.sm,
-          AppSpacing.xs,
-          AppSpacing.sm,
-        ),
-        decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
-        child: Row(
-          children: [
-            Tooltip(
-              message: l10n.homeLayoutReorderTooltip,
-              child: Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.10),
-                  borderRadius: AppRadius.full,
-                ),
-                child: Icon(
-                  Icons.drag_handle_rounded,
-                  color: scheme.primary,
-                ),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: scheme.secondaryContainer.withValues(alpha: 0.52),
-                borderRadius: AppRadius.small,
-              ),
-              child: Icon(
-                setting.section.icon,
-                color: scheme.onSecondaryContainer,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                setting.section.label(l10n),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            Switch(
+      index: widget.index,
+      child: Listener(
+        onPointerDown: (_) => _setPressed(true),
+        onPointerCancel: (_) => _setPressed(false),
+        onPointerUp: (_) => _setPressed(false),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.grab,
+          child: AnimatedScale(
+            duration: _homeSectionPressFeedbackDuration,
+            curve: Curves.easeOutCubic,
+            scale: _pressed ? 0.985 : 1,
+            child: AnimatedContainer(
               key: ValueKey<String>(
-                'home-section-visible-${setting.section.storageId}',
+                'home-section-setting-surface-${setting.section.storageId}',
               ),
-              value: setting.visible,
-              onChanged: onVisibleChanged,
+              duration: _homeSectionPressFeedbackDuration,
+              curve: Curves.easeOutCubic,
+              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.sm,
+                AppSpacing.sm,
+                AppSpacing.xs,
+                AppSpacing.sm,
+              ),
+              decoration: _tileDecoration(
+                scheme,
+                theme.brightness,
+                pressed: _pressed,
+              ),
+              child: Row(
+                children: [
+                  Tooltip(
+                    message: l10n.homeLayoutReorderTooltip,
+                    child: AnimatedContainer(
+                      key: ValueKey<String>(
+                        'home-section-drag-handle-${setting.section.storageId}',
+                      ),
+                      duration: _homeSectionPressFeedbackDuration,
+                      curve: Curves.easeOutCubic,
+                      width: 40,
+                      height: 40,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: _pressed
+                            ? scheme.primary
+                            : scheme.primary.withValues(alpha: 0.10),
+                        borderRadius: AppRadius.full,
+                      ),
+                      child: Icon(
+                        Icons.drag_handle_rounded,
+                        color: _pressed ? scheme.onPrimary : scheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Container(
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: scheme.secondaryContainer.withValues(alpha: 0.52),
+                      borderRadius: AppRadius.small,
+                    ),
+                    child: Icon(
+                      setting.section.icon,
+                      color: scheme.onSecondaryContainer,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      setting.section.label(l10n),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Switch(
+                    key: ValueKey<String>(
+                      'home-section-visible-${setting.section.storageId}',
+                    ),
+                    value: setting.visible,
+                    onChanged: widget.onVisibleChanged,
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  BoxDecoration _tileDecoration(
+    ColorScheme scheme,
+    Brightness brightness, {
+    required bool pressed,
+  }) {
+    final base = AppSurfaces.cardDecoration(scheme, brightness);
+    if (!pressed) return base;
+    final baseColor = base.color ?? AppSurfaces.cardColor(scheme, brightness);
+    return base.copyWith(
+      color: Color.alphaBlend(
+        scheme.primary.withValues(
+          alpha: brightness == Brightness.dark ? 0.22 : 0.10,
+        ),
+        baseColor,
+      ),
+      border: Border.all(
+        color: scheme.primary.withValues(alpha: 0.76),
+        width: 1.6,
+      ),
+      boxShadow: <BoxShadow>[
+        BoxShadow(
+          color: scheme.primary.withValues(
+            alpha: brightness == Brightness.dark ? 0.22 : 0.14,
+          ),
+          blurRadius: 18,
+          offset: const Offset(0, 8),
+        ),
+        ...?base.boxShadow,
+      ],
+    );
+  }
+}
+
+class _FastReorderableDelayedDragStartListener
+    extends ReorderableDelayedDragStartListener {
+  const _FastReorderableDelayedDragStartListener({
+    super.key,
+    required super.child,
+    required super.index,
+  });
+
+  @override
+  MultiDragGestureRecognizer createRecognizer() {
+    return DelayedMultiDragGestureRecognizer(
+      delay: _homeSectionReorderDelay,
+      debugOwner: this,
     );
   }
 }
