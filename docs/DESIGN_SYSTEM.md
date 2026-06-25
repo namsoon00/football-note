@@ -33,11 +33,12 @@ tokens and components instead of adding one-off styling.
 
 `./scripts/verify.sh` runs `./scripts/check_design_consistency.sh`.
 
-The guardrail checks changed presentation Dart files for:
+The guardrail checks newly added lines in changed presentation Dart files for:
 
 - Korean/English copy split with locale checks instead of localization keys.
-- Raw `IconButton`, `TextButton.icon`, or `PopupMenuButton` inside `AppBar`
-  `actions`, which should use the shared app bar action components.
+- Newly added raw `IconButton`, `TextButton.icon`, or `PopupMenuButton`
+  controls. Top-right app bar actions should use the shared app bar action
+  components.
 
 The check is intentionally focused on changed files so existing debt can be
 fixed incrementally without blocking unrelated work.

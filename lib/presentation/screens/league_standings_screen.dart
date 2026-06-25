@@ -15,6 +15,7 @@ import '../utils/kickoff_time_format.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
+import '../widgets/app_skeleton.dart';
 
 class LeagueStandingsScreen extends StatefulWidget {
   final LeagueStandingsType initialType;
@@ -427,8 +428,10 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
                         if (snapshot.connectionState ==
                                 ConnectionState.waiting &&
                             !snapshot.hasData) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
+                          return const AppSkeletonList(
+                            padding: EdgeInsets.fromLTRB(16, 8, 16, 24),
+                            includeHero: true,
+                            itemCount: 5,
                           );
                         }
                         if (snapshot.hasError) {
@@ -794,7 +797,10 @@ class _FavoriteTeamLeaguePage extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const AppSkeletonList(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 24),
+            itemCount: 5,
+          );
         }
         if (snapshot.hasError) {
           return _MessageState(
