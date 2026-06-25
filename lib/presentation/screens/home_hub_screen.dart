@@ -30,8 +30,9 @@ import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
-import '../widgets/app_bar_action_button.dart';
+import '../models/home_hub_section_settings.dart';
 import '../utils/sport_conditioning_visuals.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
@@ -50,6 +51,7 @@ import 'notification_center_screen.dart';
 import 'coach_lesson_screen.dart';
 import 'challenge_screen.dart';
 import 'entry_form_screen.dart';
+import 'home_section_settings_screen.dart';
 import 'player_level_guide_screen.dart';
 import 'running_coach_screen.dart';
 import 'training_method_board_screen.dart';
@@ -58,32 +60,6 @@ import 'weather_detail_screen.dart';
 typedef _HomeHubData = DailyLoopSnapshot;
 typedef _DashboardPlan = DailyLoopPlan;
 typedef _RecentTrainingMarker = DailyLoopTrainingMarker;
-
-enum _HomeHubLayout {
-  overviewFirst('overview_first'),
-  routineFirst('routine_first');
-
-  final String storageValue;
-
-  const _HomeHubLayout(this.storageValue);
-
-  static _HomeHubLayout fromStorage(String? value) {
-    for (final layout in values) {
-      if (layout.storageValue == value) return layout;
-    }
-    return overviewFirst;
-  }
-
-  IconData get icon => switch (this) {
-        overviewFirst => Icons.dashboard_outlined,
-        routineFirst => Icons.today_outlined,
-      };
-
-  String label(AppLocalizations l10n) => switch (this) {
-        overviewFirst => l10n.homeLayoutOverviewFirst,
-        routineFirst => l10n.homeLayoutRoutineFirst,
-      };
-}
 
 class HomeHubScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -137,10 +113,9 @@ class HomeHubScreen extends StatefulWidget {
 
 class _HomeHubScreenState extends State<HomeHubScreen> {
   static const String _homeWeatherSnapshotKey = 'home_weather_snapshot_v1';
-  static const String _homeLayoutKey = 'home_hub_layout_v1';
   static const int _homeTrainingLookbackDays = 400;
 
-  late _HomeHubLayout _homeLayout;
+  late HomeHubSectionSettings _homeSectionSettings;
   bool _weatherLoading = false;
   bool _weatherNeedsLocation = true;
   bool _weatherLoadFailed = false;
@@ -176,7 +151,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   @override
   void initState() {
     super.initState();
-    _homeLayout = _loadHomeLayout();
+    _homeSectionSettings = _loadHomeSectionSettings();
     _trainingEntriesStream = _watchHomeTrainingEntries();
     _weatherSnapshotSubscription = WeatherSharedResource.snapshotUpdates.listen(
       _handleSharedWeatherSnapshot,
@@ -197,7 +172,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   void didUpdateWidget(covariant HomeHubScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.optionRepository != oldWidget.optionRepository) {
-      _homeLayout = _loadHomeLayout();
+      _homeSectionSettings = _loadHomeSectionSettings();
     }
     if (widget.trainingService == oldWidget.trainingService) return;
     _trainingEntriesStream = _watchHomeTrainingEntries();
@@ -210,16 +185,29 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     super.dispose();
   }
 
-  _HomeHubLayout _loadHomeLayout() {
-    return _HomeHubLayout.fromStorage(
-      widget.optionRepository.getValue<String>(_homeLayoutKey),
+  HomeHubSectionSettings _loadHomeSectionSettings() {
+    return HomeHubSectionSettings.decode(
+      widget.optionRepository
+          .getValue<String>(HomeHubSectionSettings.storageKey),
+      legacyLayout: widget.optionRepository.getValue<String>(
+        HomeHubSectionSettings.legacyLayoutKey,
+      ),
     );
   }
 
-  Future<void> _setHomeLayout(_HomeHubLayout layout) async {
-    if (_homeLayout == layout) return;
-    setState(() => _homeLayout = layout);
-    await widget.optionRepository.setValue(_homeLayoutKey, layout.storageValue);
+  Future<void> _openHomeSectionSettings() async {
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => HomeSectionSettingsScreen(
+          optionRepository: widget.optionRepository,
+          initialSettings: _homeSectionSettings,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      _homeSectionSettings = _loadHomeSectionSettings();
+    });
   }
 
   @override
@@ -316,10 +304,14 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        _HomeLayoutMenuButton(
-                          layout: _homeLayout,
-                          onSelected: (layout) =>
-                              unawaited(_setHomeLayout(layout)),
+                        AppBarActionButton.icon(
+                          key: const ValueKey<String>(
+                            'home-section-settings-button',
+                          ),
+                          icon: Icons.tune_outlined,
+                          tooltip: l10n.homeLayoutSettingsTitle,
+                          onPressed: _openHomeSectionSettings,
+                          margin: EdgeInsets.zero,
                         ),
                         const SizedBox(width: 8),
                         _TodayWeatherButton(
@@ -335,8 +327,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     ),
                   );
 
-                  final overviewSections = <Widget>[
-                    keyedSection(
+                  final homeSectionsById = <HomeHubSectionId, Widget?>{
+                    HomeHubSectionId.level: keyedSection(
                       'home-layout-level-section',
                       _LevelHeroCard(
                         levelState: levelState,
@@ -344,8 +336,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         onTap: _openLevelGuide,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    keyedSection(
+                    HomeHubSectionId.challenge: keyedSection(
                       'home-layout-challenge-section',
                       _ChallengeHomeCard(
                         progress: challengeProgress,
@@ -358,21 +349,19 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         onTap: _openChallenge,
                       ),
                     ),
-                    if (data.showStreakHighlight) ...[
-                      const SizedBox(height: 10),
-                      keyedSection(
-                        'home-layout-streak-section',
-                        _TrainingStreakSpotlightCard(
-                          data: data,
-                          l10n: l10n,
-                          onTap: data.latestTrainingGapDays == 0
-                              ? widget.onOpenWeeklyStats
-                              : () => _openTodayEntryOrCreate(data),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 10),
-                    keyedSection(
+                    HomeHubSectionId.streak: data.showStreakHighlight
+                        ? keyedSection(
+                            'home-layout-streak-section',
+                            _TrainingStreakSpotlightCard(
+                              data: data,
+                              l10n: l10n,
+                              onTap: data.latestTrainingGapDays == 0
+                                  ? widget.onOpenWeeklyStats
+                                  : () => _openTodayEntryOrCreate(data),
+                            ),
+                          )
+                        : null,
+                    HomeHubSectionId.meal: keyedSection(
                       'home-layout-meal-section',
                       RiceBowlSummaryCard(
                         entry: data.todayMealEntry,
@@ -384,40 +373,36 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         ).colorScheme.surface.withValues(alpha: 0.86),
                       ),
                     ),
-                  ];
-
-                  final routineSections = <Widget>[
-                    if (data.todayPlanCount > 0) ...[
-                      keyedSection(
-                        'home-layout-today-plan-section',
-                        Builder(
-                          builder: (context) {
-                            final firstPlan = data.todayPlans.first;
-                            final showLogAction = DateTime.now().isAfter(
-                              firstPlan.endsAt,
-                            );
-                            return _TodayPlanHighlightCard(
-                              l10n: l10n,
-                              plans: data.todayPlans,
-                              count: data.todayPlanCount,
-                              onOpenPlans: widget.onOpenPlans,
-                              onPrimaryAction: _isParentMode
-                                  ? widget.onOpenPlans
-                                  : showLogAction
-                                      ? _trackedAction(
-                                          'today_plan_log',
-                                          () => unawaited(
-                                            _openTodayPlanLog(data),
-                                          ),
-                                        )
-                                      : widget.onOpenPlans,
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    keyedSection(
+                    HomeHubSectionId.todayPlan: data.todayPlanCount > 0
+                        ? keyedSection(
+                            'home-layout-today-plan-section',
+                            Builder(
+                              builder: (context) {
+                                final firstPlan = data.todayPlans.first;
+                                final showLogAction = DateTime.now().isAfter(
+                                  firstPlan.endsAt,
+                                );
+                                return _TodayPlanHighlightCard(
+                                  l10n: l10n,
+                                  plans: data.todayPlans,
+                                  count: data.todayPlanCount,
+                                  onOpenPlans: widget.onOpenPlans,
+                                  onPrimaryAction: _isParentMode
+                                      ? widget.onOpenPlans
+                                      : showLogAction
+                                          ? _trackedAction(
+                                              'today_plan_log',
+                                              () => unawaited(
+                                                _openTodayPlanLog(data),
+                                              ),
+                                            )
+                                          : widget.onOpenPlans,
+                                );
+                              },
+                            ),
+                          )
+                        : null,
+                    HomeHubSectionId.dailyFlow: keyedSection(
                       'home-layout-daily-flow-section',
                       _DailyFlowCard(
                         data: data,
@@ -465,8 +450,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    keyedSection(
+                    HomeHubSectionId.quickActions: keyedSection(
                       'home-layout-quick-actions-section',
                       _QuickActionGrid(
                         weatherOutfitLabel: l10n.homeWeatherOutfitButton,
@@ -489,8 +473,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    keyedSection(
+                    HomeHubSectionId.continueSection: keyedSection(
                       'home-layout-continue-section',
                       _ContinueCard(
                         data: data,
@@ -504,24 +487,17 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                             : () => _openBoard(context, data.latestBoard!),
                       ),
                     ),
-                  ];
-
-                  final homeLayoutSections = switch (_homeLayout) {
-                    _HomeHubLayout.overviewFirst => <Widget>[
-                        ...overviewSections,
-                        const SizedBox(height: 12),
-                        titleSection,
-                        const SizedBox(height: 8),
-                        ...routineSections,
-                      ],
-                    _HomeHubLayout.routineFirst => <Widget>[
-                        titleSection,
-                        const SizedBox(height: 8),
-                        ...routineSections,
-                        const SizedBox(height: 12),
-                        ...overviewSections,
-                      ],
                   };
+
+                  final visibleHomeSections = <Widget>[];
+                  for (final section in _homeSectionSettings.visibleSections) {
+                    final child = homeSectionsById[section];
+                    if (child == null) continue;
+                    if (visibleHomeSections.isNotEmpty) {
+                      visibleHomeSections.add(const SizedBox(height: 12));
+                    }
+                    visibleHomeSections.add(child);
+                  }
 
                   return SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
@@ -557,7 +533,12 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           },
                         ),
                         const SizedBox(height: 12),
-                        ...homeLayoutSections,
+                        titleSection,
+                        const SizedBox(height: 12),
+                        if (visibleHomeSections.isEmpty)
+                          _HomeSectionsEmptyCard(l10n: l10n)
+                        else
+                          ...visibleHomeSections,
                       ],
                     ),
                   );
@@ -2432,43 +2413,20 @@ String _formatPlanTime(DateTime value, {required AppLocalizations l10n}) {
   return DateFormat(pattern, l10n.localeName).format(value);
 }
 
-class _HomeLayoutMenuButton extends StatelessWidget {
-  final _HomeHubLayout layout;
-  final ValueChanged<_HomeHubLayout> onSelected;
+class _HomeSectionsEmptyCard extends StatelessWidget {
+  final AppLocalizations l10n;
 
-  const _HomeLayoutMenuButton({
-    required this.layout,
-    required this.onSelected,
-  });
+  const _HomeSectionsEmptyCard({required this.l10n});
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    return AppBarActionMenuButton<_HomeHubLayout>(
-      key: const ValueKey<String>('home-layout-menu-button'),
-      icon: Icons.view_quilt_outlined,
-      tooltip: l10n.homeLayoutMenuTooltip,
-      initialValue: layout,
-      margin: EdgeInsets.zero,
-      onSelected: onSelected,
-      itemBuilder: (context) => _HomeHubLayout.values.map((option) {
-        final selected = option == layout;
-        return PopupMenuItem<_HomeHubLayout>(
-          value: option,
-          child: Row(
-            children: [
-              Icon(
-                selected ? Icons.check_circle : option.icon,
-                size: 18,
-                color: selected ? scheme.primary : scheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 10),
-              Text(option.label(l10n)),
-            ],
-          ),
-        );
-      }).toList(growable: false),
+    return WatchCartCard(
+      child: Text(
+        l10n.homeLayoutNoVisibleSections,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+      ),
     );
   }
 }

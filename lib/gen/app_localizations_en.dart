@@ -1590,13 +1590,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeHubTitleShort => 'Home';
 
   @override
-  String get homeLayoutMenuTooltip => 'Change home layout';
+  String get homeLayoutSettingsTitle => 'Home screen settings';
 
   @override
-  String get homeLayoutOverviewFirst => 'Overview first';
+  String get homeLayoutSettingsReset => 'Reset';
 
   @override
-  String get homeLayoutRoutineFirst => 'Routine first';
+  String get homeLayoutReorderTooltip => 'Move section';
+
+  @override
+  String get homeLayoutNoVisibleSections => 'All home sections are hidden.';
+
+  @override
+  String get homeSectionLevel => 'Level summary';
+
+  @override
+  String get homeSectionChallenge => 'Challenge';
+
+  @override
+  String get homeSectionStreak => 'Training streak';
+
+  @override
+  String get homeSectionMeal => 'Meal summary';
+
+  @override
+  String get homeSectionTodayPlan => 'Today training plan';
+
+  @override
+  String get homeSectionDailyFlow => 'Today\'s tasks';
+
+  @override
+  String get homeSectionQuickActions => 'Quick actions';
+
+  @override
+  String get homeSectionContinue => 'Continue';
 
   @override
   String get homeDailyCheckTitle => 'Today\'s tasks';

@@ -20,6 +20,7 @@ import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/main.dart' as app;
+import 'package:football_note/presentation/models/home_hub_section_settings.dart';
 import 'package:football_note/presentation/models/training_method_layout.dart';
 import 'package:football_note/presentation/screens/entry_form_screen.dart';
 import 'package:football_note/presentation/screens/home_hub_screen.dart';
@@ -174,7 +175,7 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('home layout menu persists routine-first layout', (
+  testWidgets('home section settings hide and reorder sections', (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
@@ -216,27 +217,47 @@ void main() {
 
     expect(
       sectionTop('home-layout-level-section'),
-      lessThan(sectionTop('home-layout-title-section')),
+      lessThan(sectionTop('home-layout-daily-flow-section')),
     );
 
-    await tester.ensureVisible(
-      find.byKey(const ValueKey<String>('home-layout-menu-button')),
+    await tester.tap(
+      find.byKey(const ValueKey<String>('home-section-settings-button')),
     );
-    await tester
-        .tap(find.byKey(const ValueKey<String>('home-layout-menu-button')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
-    await tester.tap(find.text('루틴 먼저').last);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
 
-    expect(
-      optionRepository.getValue<String>('home_hub_layout_v1'),
-      'routine_first',
+    expect(find.text('홈 화면 설정'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('home-section-visible-level')),
     );
+    await tester.pump();
+
+    final reorderableList = tester.widget<ReorderableListView>(
+      find.byKey(const ValueKey<String>('home-section-settings-list')),
+    );
+    reorderableList.onReorder(6, 5);
+    await tester.pump();
+
+    final rawSettings = optionRepository.getValue<String>(
+      HomeHubSectionSettings.storageKey,
+    );
+    expect(rawSettings, contains('"id":"level","visible":false'));
     expect(
-      sectionTop('home-layout-daily-flow-section'),
-      lessThan(sectionTop('home-layout-level-section')),
+      rawSettings!.indexOf('"id":"quick_actions"'),
+      lessThan(rawSettings.indexOf('"id":"daily_flow"')),
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('home-section-settings-back-button')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+        find.byKey(const ValueKey('home-layout-level-section')), findsNothing);
+    expect(
+      sectionTop('home-layout-quick-actions-section'),
+      lessThan(sectionTop('home-layout-daily-flow-section')),
     );
 
     await tester.pumpWidget(const SizedBox.shrink());

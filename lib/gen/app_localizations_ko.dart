@@ -1539,13 +1539,40 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeHubTitleShort => '홈';
 
   @override
-  String get homeLayoutMenuTooltip => '홈 배치 변경';
+  String get homeLayoutSettingsTitle => '홈 화면 설정';
 
   @override
-  String get homeLayoutOverviewFirst => '요약 먼저';
+  String get homeLayoutSettingsReset => '초기화';
 
   @override
-  String get homeLayoutRoutineFirst => '루틴 먼저';
+  String get homeLayoutReorderTooltip => '섹션 이동';
+
+  @override
+  String get homeLayoutNoVisibleSections => '표시 중인 홈 섹션이 없어요.';
+
+  @override
+  String get homeSectionLevel => '레벨 요약';
+
+  @override
+  String get homeSectionChallenge => '챌린지';
+
+  @override
+  String get homeSectionStreak => '훈련 연속 기록';
+
+  @override
+  String get homeSectionMeal => '식사 요약';
+
+  @override
+  String get homeSectionTodayPlan => '오늘의 훈련 계획';
+
+  @override
+  String get homeSectionDailyFlow => '오늘 할일';
+
+  @override
+  String get homeSectionQuickActions => '빠른 실행';
+
+  @override
+  String get homeSectionContinue => '이어하기';
 
   @override
   String get homeDailyCheckTitle => '오늘 할일';
