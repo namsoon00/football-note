@@ -20,6 +20,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
 import '../utils/match_entry_format.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/shared_tab_header.dart';
 import 'news_screen.dart';
@@ -558,10 +559,12 @@ class _MatchHubCompetitionSection extends StatelessWidget {
       children: [
         _SectionHeader(
           title: l10n.matchHubCompetitionsTitle,
-          trailing: TextButton.icon(
+          trailing: AppBarActionButton.label(
+            icon: const Icon(Icons.add_outlined),
+            label: l10n.matchCompetitionManageButton,
             onPressed: onRecordMatch,
-            icon: const Icon(Icons.add_outlined, size: 18),
-            label: Text(l10n.matchCompetitionManageButton),
+            margin: EdgeInsets.zero,
+            maxLabelWidth: 126,
           ),
         ),
         if (visibleSummaries.isEmpty)
