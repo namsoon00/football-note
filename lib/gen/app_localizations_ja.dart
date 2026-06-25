@@ -4332,6 +4332,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get voiceNotAvailable => 'このデバイスでは音声入力は利用できません。';
 
   @override
+  String get voiceInputStartTooltip => '音声入力';
+
+  @override
+  String get voiceInputStopTooltip => '音声入力を停止';
+
+  @override
+  String get voiceListeningStatus => '音声入力中';
+
+  @override
   String get liftingRecord => 'リフティング記録';
 
   @override

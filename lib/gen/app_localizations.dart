@@ -7804,6 +7804,24 @@ abstract class AppLocalizations {
   /// **'Voice input is not available on this device.'**
   String get voiceNotAvailable;
 
+  /// No description provided for @voiceInputStartTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice input'**
+  String get voiceInputStartTooltip;
+
+  /// No description provided for @voiceInputStopTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop voice input'**
+  String get voiceInputStopTooltip;
+
+  /// No description provided for @voiceListeningStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice input active'**
+  String get voiceListeningStatus;
+
   /// No description provided for @liftingRecord.
   ///
   /// In en, this message translates to:
