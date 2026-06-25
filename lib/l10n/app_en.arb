@@ -5608,6 +5608,8 @@
   "trainingSketchQuickDriveButton": "Drive",
   "trainingSketchQuickCutButton": "Cut",
   "trainingSketchQuickScreenButton": "Screen",
+  "trainingSketchQuickConeTurnButton": "Circle cone",
+  "trainingSketchQuickHurdleJumpButton": "Jump hurdle",
   "trainingSketchQuickRunBaseButton": "Base run",
   "trainingSketchQuickFieldingButton": "Fielding move",
   "trainingSketchQuickThrowButton": "Throw",

@@ -545,6 +545,131 @@ void main() {
     expect(ballRoute.points.last.y, closeTo(0.42, 0.02));
   });
 
+  testWidgets('player cone turn action creates a cone and curved route', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '콘 돌기',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.28,
+                    y: 0.54,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '콘 돌기');
+    expect(find.text('콘 돌기 대상이나 공간을 누르세요.'), findsOneWidget);
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.58, 0.43));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final player = page.items.singleWhere((item) => item.type == 'player');
+    final cone = page.items.singleWhere((item) => item.type == 'cone');
+    final route = page.routes.single;
+    final nearConePointCount = route.points.where((point) {
+      return Offset(point.x - cone.x, point.y - cone.y).distance < 0.065;
+    }).length;
+
+    expect(cone.x, closeTo(0.58, 0.02));
+    expect(cone.y, closeTo(0.43, 0.02));
+    expect(route.kind, TrainingMethodRouteKind.player);
+    expect(route.linkedItemId, player.id);
+    expect(route.points, hasLength(greaterThanOrEqualTo(6)));
+    expect(nearConePointCount, greaterThanOrEqualTo(3));
+  });
+
+  testWidgets('player hurdle jump action creates a hurdle and jump route', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '뜀틀 넘기',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.28,
+                    y: 0.54,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '뜀틀 넘기');
+    expect(find.text('뜀틀 넘기 대상이나 공간을 누르세요.'), findsOneWidget);
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.60, 0.44));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final player = page.items.singleWhere((item) => item.type == 'player');
+    final hurdle = page.items.singleWhere((item) => item.type == 'hurdle');
+    final route = page.routes.single;
+
+    expect(hurdle.x, closeTo(0.60, 0.02));
+    expect(hurdle.y, closeTo(0.44, 0.02));
+    expect(route.kind, TrainingMethodRouteKind.player);
+    expect(route.linkedItemId, player.id);
+    expect(route.points, hasLength(4));
+    expect(route.points[2].x, closeTo(hurdle.x, 0.001));
+    expect(route.points[2].y, closeTo(hurdle.y, 0.001));
+    expect(
+      Offset(
+        route.points.last.x - hurdle.x,
+        route.points.last.y - hurdle.y,
+      ).distance,
+      greaterThan(0.08),
+    );
+  });
+
   testWidgets('dribble does not move a paired carry route to stage two', (
     WidgetTester tester,
   ) async {

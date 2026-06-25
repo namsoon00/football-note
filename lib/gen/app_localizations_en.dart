@@ -10267,6 +10267,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchQuickScreenButton => 'Screen';
 
   @override
+  String get trainingSketchQuickConeTurnButton => 'Circle cone';
+
+  @override
+  String get trainingSketchQuickHurdleJumpButton => 'Jump hurdle';
+
+  @override
   String get trainingSketchQuickRunBaseButton => 'Base run';
 
   @override

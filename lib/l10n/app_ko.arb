@@ -5608,6 +5608,8 @@
   "trainingSketchQuickDriveButton": "드라이브",
   "trainingSketchQuickCutButton": "컷인",
   "trainingSketchQuickScreenButton": "스크린",
+  "trainingSketchQuickConeTurnButton": "콘 돌기",
+  "trainingSketchQuickHurdleJumpButton": "뜀틀 넘기",
   "trainingSketchQuickRunBaseButton": "베이스 러닝",
   "trainingSketchQuickFieldingButton": "수비 이동",
   "trainingSketchQuickThrowButton": "송구",

@@ -9988,6 +9988,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchQuickScreenButton => '스크린';
 
   @override
+  String get trainingSketchQuickConeTurnButton => '콘 돌기';
+
+  @override
+  String get trainingSketchQuickHurdleJumpButton => '뜀틀 넘기';
+
+  @override
   String get trainingSketchQuickRunBaseButton => '베이스 러닝';
 
   @override
