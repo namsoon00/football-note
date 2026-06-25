@@ -138,6 +138,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   late final TrainingBoardService _trainingBoardService;
   late final ParentSharedFeedbackService _parentSharedFeedbackService;
   TextEditingController? _listeningController;
+  String _listeningBaseText = '';
   String _sessionRecognizedWords = '';
   bool _sessionCommitted = false;
   int _listeningSession = 0;
@@ -1795,6 +1796,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _listeningSession++;
     _isListening = false;
     _listeningController = null;
+    _listeningBaseText = '';
     _sessionRecognizedWords = '';
     _sessionCommitted = true;
     _autoSaveTimer?.cancel();
@@ -2948,6 +2950,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final showMic = controller == _goodPointsController ||
         controller == _improvementsController ||
         controller == _nextGoalController ||
+        controller == _lessonDetailController ||
         controller == _jumpRopeNoteController;
     final isListeningFor = _isListening && _listeningController == controller;
     final isMultiline = maxLines == null || maxLines > 1 || minLines > 1;
@@ -2955,12 +2958,21 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         isMultiline ? TextInputAction.newline : TextInputAction.done;
     final micButton = showMic && enabled
         ? IconButton(
+            tooltip: isListeningFor
+                ? l10n.voiceInputStopTooltip
+                : l10n.voiceInputStartTooltip,
             onPressed: () => _toggleListening(controller, l10n),
+            style: IconButton.styleFrom(
+              backgroundColor:
+                  isListeningFor ? theme.colorScheme.primary : null,
+              foregroundColor: isListeningFor
+                  ? theme.colorScheme.onPrimary
+                  : theme.colorScheme.onSurfaceVariant,
+              minimumSize: const Size(42, 42),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
             icon: Icon(
               isListeningFor ? Icons.mic : Icons.mic_none,
-              color: isListeningFor
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurfaceVariant,
             ),
           )
         : null;
@@ -3021,7 +3033,66 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         suffixIcon: suffixIcon,
       ),
     );
-    return field;
+    if (!showMic) return field;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        field,
+        AnimatedSwitcher(
+          duration: AppMotion.base(context),
+          switchInCurve: AppMotion.curveEnter,
+          switchOutCurve: AppMotion.curveExit,
+          child: isListeningFor
+              ? _buildVoiceListeningStatus(l10n)
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVoiceListeningStatus(AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    return Padding(
+      key: const ValueKey('voice-listening-status'),
+      padding: const EdgeInsets.only(top: 8),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: theme.colorScheme.primary.withValues(alpha: 0.38),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  l10n.voiceListeningStatus,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _toggleListening(
@@ -3040,22 +3111,23 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         setState(() {
           _isListening = false;
           _listeningController = null;
+          _listeningBaseText = '';
           _sessionRecognizedWords = '';
           _sessionCommitted = false;
         });
       }
       await _speech.cancel();
       if (!mounted) return;
+      if (shouldCommit &&
+          controllerToCommit != null &&
+          recognizedToCommit.trim().isNotEmpty) {
+        _commitRecognizedText(
+          controller: controllerToCommit,
+          recognized: recognizedToCommit,
+          isKoreanLocale: locale.startsWith('ko'),
+        );
+      }
       if (wasListeningForSameController) {
-        if (shouldCommit &&
-            controllerToCommit != null &&
-            recognizedToCommit.trim().isNotEmpty) {
-          _commitRecognizedText(
-            controller: controllerToCommit,
-            recognized: recognizedToCommit,
-            isKoreanLocale: locale.startsWith('ko'),
-          );
-        }
         return;
       }
     }
@@ -3072,6 +3144,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     setState(() {
       _isListening = true;
       _listeningController = controller;
+      _listeningBaseText = controller.text;
       _sessionRecognizedWords = '';
       _sessionCommitted = false;
     });
@@ -3085,7 +3158,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         if (listeningSession != _listeningSession) return;
         final recognized = result.recognizedWords.trim();
         if (recognized.isEmpty) return;
-        _sessionRecognizedWords = recognized;
+        final controller = _listeningController;
+        if (controller == null) return;
+        final isKoreanLocale =
+            Localizations.localeOf(context).toString().startsWith('ko');
+        _applyRecognizedTextPreview(
+          controller: controller,
+          recognized: recognized,
+          isKoreanLocale: isKoreanLocale,
+        );
+        setState(() {
+          _sessionRecognizedWords = recognized;
+        });
       },
     );
   }
@@ -3111,6 +3195,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           setState(() {
             _isListening = false;
             _listeningController = null;
+            _listeningBaseText = '';
             _sessionRecognizedWords = '';
             _sessionCommitted = false;
           });
@@ -3118,9 +3203,20 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       },
       onError: (_) {
         if (!mounted || _disposing) return;
+        if (_listeningController != null &&
+            !_sessionCommitted &&
+            _sessionRecognizedWords.trim().isNotEmpty) {
+          final locale = Localizations.localeOf(context).toString();
+          _commitRecognizedText(
+            controller: _listeningController!,
+            recognized: _sessionRecognizedWords,
+            isKoreanLocale: locale.startsWith('ko'),
+          );
+        }
         setState(() {
           _isListening = false;
           _listeningController = null;
+          _listeningBaseText = '';
           _sessionRecognizedWords = '';
           _sessionCommitted = false;
         });
@@ -3143,14 +3239,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (normalizedCurrent.isNotEmpty &&
         normalizedCurrent.endsWith(normalized)) {
       _sessionCommitted = true;
+      _scheduleAutoSave();
       return;
     }
 
-    final needsSpacing = !isKoreanLocale &&
-        currentText.isNotEmpty &&
-        !RegExp(r'\s$').hasMatch(currentText);
-    final separator = needsSpacing ? ' ' : '';
-    final nextText = '$currentText$separator$normalized';
+    final nextText = _composeRecognizedText(
+      baseText: currentText,
+      recognized: normalized,
+      isKoreanLocale: isKoreanLocale,
+    );
     try {
       controller.value = controller.value.copyWith(
         text: nextText,
@@ -3163,6 +3260,41 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     }
     _sessionCommitted = true;
     _scheduleAutoSave();
+  }
+
+  void _applyRecognizedTextPreview({
+    required TextEditingController controller,
+    required String recognized,
+    required bool isKoreanLocale,
+  }) {
+    final normalized = recognized.trim();
+    if (normalized.isEmpty) return;
+    final nextText = _composeRecognizedText(
+      baseText: _listeningBaseText,
+      recognized: normalized,
+      isKoreanLocale: isKoreanLocale,
+    );
+    try {
+      controller.value = controller.value.copyWith(
+        text: nextText,
+        selection: TextSelection.collapsed(offset: nextText.length),
+        composing: TextRange.empty,
+      );
+    } on FlutterError {
+      return;
+    }
+  }
+
+  String _composeRecognizedText({
+    required String baseText,
+    required String recognized,
+    required bool isKoreanLocale,
+  }) {
+    final normalized = recognized.trim();
+    if (baseText.isEmpty) return normalized;
+    final needsSpacing = !isKoreanLocale && !RegExp(r'\s$').hasMatch(baseText);
+    final separator = needsSpacing ? ' ' : '';
+    return '$baseText$separator$normalized';
   }
 
   Future<void> _pickDate() async {

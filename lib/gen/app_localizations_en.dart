@@ -4433,6 +4433,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Voice input is not available on this device.';
 
   @override
+  String get voiceInputStartTooltip => 'Voice input';
+
+  @override
+  String get voiceInputStopTooltip => 'Stop voice input';
+
+  @override
+  String get voiceListeningStatus => 'Voice input active';
+
+  @override
   String get liftingRecord => 'Lifting Record';
 
   @override

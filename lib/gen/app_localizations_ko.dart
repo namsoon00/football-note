@@ -4327,6 +4327,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get voiceNotAvailable => '이 기기에서는 음성 입력을 사용할 수 없어요.';
 
   @override
+  String get voiceInputStartTooltip => '음성 입력';
+
+  @override
+  String get voiceInputStopTooltip => '음성 입력 중지';
+
+  @override
+  String get voiceListeningStatus => '음성 입력 중';
+
+  @override
   String get liftingRecord => '리프팅 기록';
 
   @override
