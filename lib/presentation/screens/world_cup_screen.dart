@@ -3647,6 +3647,7 @@ class _GroupTeamsCard extends StatelessWidget {
 enum _WorldCupRosterPosition { goalkeeper, defender, midfielder, forward }
 
 class _WorldCupRosterPlayer {
+  final String id;
   final String name;
   final String displayName;
   final String club;
@@ -3654,6 +3655,7 @@ class _WorldCupRosterPlayer {
   final Offset spot;
 
   const _WorldCupRosterPlayer({
+    required this.id,
     required this.name,
     required this.displayName,
     required this.club,
@@ -3687,17 +3689,42 @@ class _WorldCupTeamRosterSheet extends StatefulWidget {
 class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
   final ScrollController _scrollController = ScrollController();
   late String _team;
+  late String _selectedFormation;
+  Set<String> _selectedPlayerKeys = <String>{};
+  bool _bestXiInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _team = widget.initialTeam;
+    _selectedFormation = _worldCupDefaultFormationForTeam(_team);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_bestXiInitialized) return;
+    _selectedPlayerKeys = _worldCupDefaultBestXiKeys(
+      _worldCupRosterPlayers(_team, AppLocalizations.of(context)!),
+      _selectedFormation,
+    );
+    _bestXiInitialized = true;
   }
 
   void _openTeam(String team) {
     if (_worldCupTeamKey(team) == _worldCupTeamKey(_team)) return;
+    final l10n = AppLocalizations.of(context)!;
+    final nextFormation = _worldCupDefaultFormationForTeam(team);
+    final nextPlayers = _worldCupRosterPlayers(team, l10n);
+    final nextSelection = _worldCupDefaultBestXiKeys(
+      nextPlayers,
+      nextFormation,
+    );
     setState(() {
       _team = team;
+      _selectedFormation = nextFormation;
+      _selectedPlayerKeys = nextSelection;
+      _bestXiInitialized = true;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) return;
@@ -3708,6 +3735,57 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
           curve: Curves.easeOutCubic,
         ),
       );
+    });
+  }
+
+  void _changeFormation(String formation) {
+    final l10n = AppLocalizations.of(context)!;
+    final players = _worldCupRosterPlayers(_team, l10n);
+    setState(() {
+      _selectedFormation = formation;
+      _selectedPlayerKeys = _worldCupRebalanceBestXiKeys(
+        players,
+        _selectedPlayerKeys,
+        formation,
+      );
+    });
+  }
+
+  void _resetBestXiSelection() {
+    final l10n = AppLocalizations.of(context)!;
+    final players = _worldCupRosterPlayers(_team, l10n);
+    setState(() {
+      _selectedPlayerKeys = _worldCupDefaultBestXiKeys(
+        players,
+        _selectedFormation,
+      );
+    });
+  }
+
+  void _toggleBestXiPlayer(
+    _WorldCupRosterPlayer player,
+    List<_WorldCupRosterPlayer> players,
+  ) {
+    final playerKey = _worldCupRosterPlayerKey(player);
+    final isSelected = _selectedPlayerKeys.contains(playerKey);
+    final requirements = _worldCupFormationRequirements(_selectedFormation);
+    if (!isSelected &&
+        !_worldCupCanAddBestXiPlayer(
+          player,
+          players,
+          _selectedPlayerKeys,
+          requirements,
+        )) {
+      return;
+    }
+    setState(() {
+      final nextKeys = Set<String>.from(_selectedPlayerKeys);
+      if (isSelected) {
+        nextKeys.remove(playerKey);
+      } else {
+        nextKeys.add(playerKey);
+      }
+      _selectedPlayerKeys = nextKeys;
     });
   }
 
@@ -3724,7 +3802,21 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
     final team = _team;
     final pool = worldCupRosterPoolForTeam(team);
     final players = _worldCupRosterPlayers(team, l10n);
-    final formation = pool?.formation ?? '4-3-3';
+    final formation = _selectedFormation;
+    final selection = _worldCupSanitizeBestXiKeys(
+      players,
+      _selectedPlayerKeys,
+      formation,
+    );
+    if (!_sameStringSet(_selectedPlayerKeys, selection)) {
+      _selectedPlayerKeys = selection;
+    }
+    final selectedPlayers = _worldCupSelectedRosterPlayers(players, selection);
+    final formationRequirements = _worldCupFormationRequirements(formation);
+    final selectedCounts = _worldCupSelectedCountsByPosition(
+      players,
+      selection,
+    );
     final ranking = widget.rankingsByTeam[team];
     final hasKnownPool = pool != null;
     final flag = worldCupCountryFlag(team);
@@ -3819,11 +3911,15 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
             ),
             const SizedBox(height: 14),
             _WorldCupFormationPitch(
-              title: l10n.worldCupTeamRosterFormationLabel(formation),
-              note: hasKnownPool
-                  ? l10n.worldCupTeamRosterFormationEstimatedNote
-                  : l10n.worldCupTeamRosterFormationPlaceholderNote,
-              players: _worldCupFormationPlayers(players, formation),
+              title: l10n.worldCupTeamRosterBestXiTitle,
+              formationLabel: l10n.worldCupTeamRosterFormationLabel(formation),
+              note: l10n.worldCupTeamRosterBestXiNote,
+              formationOptions: _worldCupFormationOptions(formation),
+              selectedFormation: formation,
+              selectedCount: selection.length,
+              players: _worldCupFormationPlayers(selectedPlayers, formation),
+              onFormationChanged: _changeFormation,
+              onReset: _resetBestXiSelection,
               onPlayerTap: (player) => _openPlayerProfile(context, player),
             ),
             const SizedBox(height: 14),
@@ -3834,6 +3930,13 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
                 players,
                 _WorldCupRosterPosition.goalkeeper,
               ),
+              selectedPlayerKeys: selection,
+              requiredCount:
+                  formationRequirements[_WorldCupRosterPosition.goalkeeper] ??
+                      0,
+              selectedCount:
+                  selectedCounts[_WorldCupRosterPosition.goalkeeper] ?? 0,
+              onSelectionTap: (player) => _toggleBestXiPlayer(player, players),
               onPlayerTap: (player) => _openPlayerProfile(context, player),
             ),
             const SizedBox(height: 10),
@@ -3844,6 +3947,12 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
                 players,
                 _WorldCupRosterPosition.defender,
               ),
+              selectedPlayerKeys: selection,
+              requiredCount:
+                  formationRequirements[_WorldCupRosterPosition.defender] ?? 0,
+              selectedCount:
+                  selectedCounts[_WorldCupRosterPosition.defender] ?? 0,
+              onSelectionTap: (player) => _toggleBestXiPlayer(player, players),
               onPlayerTap: (player) => _openPlayerProfile(context, player),
             ),
             const SizedBox(height: 10),
@@ -3854,6 +3963,13 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
                 players,
                 _WorldCupRosterPosition.midfielder,
               ),
+              selectedPlayerKeys: selection,
+              requiredCount:
+                  formationRequirements[_WorldCupRosterPosition.midfielder] ??
+                      0,
+              selectedCount:
+                  selectedCounts[_WorldCupRosterPosition.midfielder] ?? 0,
+              onSelectionTap: (player) => _toggleBestXiPlayer(player, players),
               onPlayerTap: (player) => _openPlayerProfile(context, player),
             ),
             const SizedBox(height: 10),
@@ -3864,6 +3980,12 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
                 players,
                 _WorldCupRosterPosition.forward,
               ),
+              selectedPlayerKeys: selection,
+              requiredCount:
+                  formationRequirements[_WorldCupRosterPosition.forward] ?? 0,
+              selectedCount:
+                  selectedCounts[_WorldCupRosterPosition.forward] ?? 0,
+              onSelectionTap: (player) => _toggleBestXiPlayer(player, players),
               onPlayerTap: (player) => _openPlayerProfile(context, player),
             ),
             const SizedBox(height: 12),
@@ -4768,20 +4890,34 @@ class _WorldCupTeamMatchSummaryRow extends StatelessWidget {
 
 class _WorldCupFormationPitch extends StatelessWidget {
   final String title;
+  final String formationLabel;
   final String note;
+  final List<String> formationOptions;
+  final String selectedFormation;
+  final int selectedCount;
   final List<_WorldCupRosterPlayer> players;
+  final ValueChanged<String> onFormationChanged;
+  final VoidCallback onReset;
   final ValueChanged<_WorldCupRosterPlayer> onPlayerTap;
 
   const _WorldCupFormationPitch({
     required this.title,
+    required this.formationLabel,
     required this.note,
+    required this.formationOptions,
+    required this.selectedFormation,
+    required this.selectedCount,
     required this.players,
+    required this.onFormationChanged,
+    required this.onReset,
     required this.onPlayerTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final isComplete = selectedCount == 11;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -4804,6 +4940,8 @@ class _WorldCupFormationPitch extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
+              _SmallPill(label: formationLabel),
             ],
           ),
           const SizedBox(height: 6),
@@ -4813,6 +4951,93 @@ class _WorldCupFormationPitch extends StatelessWidget {
               color: theme.colorScheme.onSurfaceVariant,
               height: 1.35,
             ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.worldCupTeamRosterFormationPickerLabel,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final formation in formationOptions)
+                ChoiceChip(
+                  label: Text(formation),
+                  selected: formation == selectedFormation,
+                  onSelected: formation == selectedFormation
+                      ? null
+                      : (_) => onFormationChanged(formation),
+                  labelStyle: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _SmallPill(
+                label: l10n.worldCupTeamRosterBestXiCount(selectedCount),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isComplete
+                      ? l10n.worldCupTeamRosterBestXiComplete
+                      : l10n.worldCupTeamRosterBestXiNeedMore(
+                          11 - selectedCount,
+                        ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: isComplete
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.error,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              Tooltip(
+                message: l10n.worldCupTeamRosterBestXiReset,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onReset,
+                    borderRadius: BorderRadius.circular(999),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.auto_fix_high_rounded,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            l10n.worldCupTeamRosterBestXiReset,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           AspectRatio(
@@ -4965,18 +5190,27 @@ class _WorldCupRosterPositionSection extends StatelessWidget {
   final String title;
   final String team;
   final List<_WorldCupRosterPlayer> players;
+  final Set<String> selectedPlayerKeys;
+  final int requiredCount;
+  final int selectedCount;
+  final ValueChanged<_WorldCupRosterPlayer> onSelectionTap;
   final ValueChanged<_WorldCupRosterPlayer> onPlayerTap;
 
   const _WorldCupRosterPositionSection({
     required this.title,
     required this.team,
     required this.players,
+    required this.selectedPlayerKeys,
+    required this.requiredCount,
+    required this.selectedCount,
+    required this.onSelectionTap,
     required this.onPlayerTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -4999,17 +5233,35 @@ class _WorldCupRosterPositionSection extends StatelessWidget {
                   ),
                 ),
               ),
-              _SmallPill(label: '${players.length}'),
+              _SmallPill(
+                label: l10n.worldCupTeamRosterBestXiPositionLimit(
+                  selectedCount,
+                  requiredCount,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Column(
             children: [
               for (var index = 0; index < players.length; index += 1) ...[
-                _RosterPlayerRow(
-                  team: team,
-                  player: players[index],
-                  onTap: () => onPlayerTap(players[index]),
+                Builder(
+                  builder: (context) {
+                    final player = players[index];
+                    final isSelected = selectedPlayerKeys.contains(
+                      _worldCupRosterPlayerKey(player),
+                    );
+                    final isSelectionDisabled =
+                        !isSelected && selectedCount >= requiredCount;
+                    return _RosterPlayerRow(
+                      team: team,
+                      player: player,
+                      isSelected: isSelected,
+                      selectionDisabled: isSelectionDisabled,
+                      onSelectionTap: () => onSelectionTap(player),
+                      onPlayerTap: () => onPlayerTap(player),
+                    );
+                  },
                 ),
                 if (index != players.length - 1)
                   Divider(
@@ -5028,12 +5280,18 @@ class _WorldCupRosterPositionSection extends StatelessWidget {
 class _RosterPlayerRow extends StatelessWidget {
   final String team;
   final _WorldCupRosterPlayer player;
-  final VoidCallback onTap;
+  final bool isSelected;
+  final bool selectionDisabled;
+  final VoidCallback onSelectionTap;
+  final VoidCallback onPlayerTap;
 
   const _RosterPlayerRow({
     required this.team,
     required this.player,
-    required this.onTap,
+    required this.isSelected,
+    required this.selectionDisabled,
+    required this.onSelectionTap,
+    required this.onPlayerTap,
   });
 
   @override
@@ -5043,15 +5301,27 @@ class _RosterPlayerRow extends StatelessWidget {
     final color = _positionColor(theme, player.position);
     final club = _worldCupPlayerClubLabel(l10n, player);
     final positionLabel = _worldCupRosterPositionLabel(l10n, player.position);
+    final selectionTooltip = isSelected
+        ? l10n.worldCupTeamRosterBestXiRemoveTooltip(player.displayName)
+        : l10n.worldCupTeamRosterBestXiSelectTooltip(player.displayName);
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: selectionDisabled ? null : onSelectionTap,
         borderRadius: BorderRadius.circular(10),
         child: Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(6, 7, 4, 7),
           child: Row(
             children: [
+              Tooltip(
+                message: selectionTooltip,
+                child: Checkbox.adaptive(
+                  value: isSelected,
+                  onChanged: selectionDisabled ? null : (_) => onSelectionTap(),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+              const SizedBox(width: 4),
               Container(
                 width: 34,
                 alignment: Alignment.center,
@@ -5109,10 +5379,24 @@ class _RosterPlayerRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant,
+              Tooltip(
+                message: l10n.worldCupPlayerProfileTitle(player.displayName),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onPlayerTap,
+                    borderRadius: BorderRadius.circular(999),
+                    child: SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: Icon(
+                        Icons.info_outline_rounded,
+                        size: 20,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -5278,6 +5562,11 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
   }
   return <_WorldCupRosterPlayer>[
     _WorldCupRosterPlayer(
+      id: _worldCupRosterFallbackPlayerId(
+        team,
+        _WorldCupRosterPosition.goalkeeper,
+        1,
+      ),
       name: l10n.worldCupTeamRosterPlayerSlot(
         l10n.worldCupTeamRosterPositionGoalkeeper,
         1,
@@ -5292,6 +5581,11 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
     ),
     for (var index = 0; index < 4; index++)
       _WorldCupRosterPlayer(
+        id: _worldCupRosterFallbackPlayerId(
+          team,
+          _WorldCupRosterPosition.defender,
+          index + 1,
+        ),
         name: l10n.worldCupTeamRosterPlayerSlot(
           l10n.worldCupTeamRosterPositionDefender,
           index + 1,
@@ -5311,6 +5605,11 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
       ),
     for (var index = 0; index < 3; index++)
       _WorldCupRosterPlayer(
+        id: _worldCupRosterFallbackPlayerId(
+          team,
+          _WorldCupRosterPosition.midfielder,
+          index + 1,
+        ),
         name: l10n.worldCupTeamRosterPlayerSlot(
           l10n.worldCupTeamRosterPositionMidfielder,
           index + 1,
@@ -5329,6 +5628,11 @@ List<_WorldCupRosterPlayer> _worldCupRosterPlayers(
       ),
     for (var index = 0; index < 3; index++)
       _WorldCupRosterPlayer(
+        id: _worldCupRosterFallbackPlayerId(
+          team,
+          _WorldCupRosterPosition.forward,
+          index + 1,
+        ),
         name: l10n.worldCupTeamRosterPlayerSlot(
           l10n.worldCupTeamRosterPositionForward,
           index + 1,
@@ -5358,6 +5662,7 @@ List<_WorldCupRosterPlayer> _playersFromNames(
   return [
     for (var index = 0; index < names.length; index += 1)
       _WorldCupRosterPlayer(
+        id: _worldCupRosterPlayerId(team, position, names[index]),
         name: names[index],
         displayName: worldCupRosterDisplayNameForPlayer(
           team,
@@ -5451,12 +5756,205 @@ _WorldCupRosterPlayer _playerWithSpot(
   Offset spot,
 ) {
   return _WorldCupRosterPlayer(
+    id: player.id,
     name: player.name,
     displayName: player.displayName,
     club: player.club,
     position: player.position,
     spot: spot,
   );
+}
+
+const List<String> _worldCupFormationOptionValues = <String>[
+  '4-3-3',
+  '4-2-3-1',
+  '4-4-2',
+  '3-4-3',
+  '3-5-2',
+  '5-3-2',
+  '5-4-1',
+  '4-2-4',
+];
+
+String _worldCupDefaultFormationForTeam(String team) {
+  return worldCupRosterPoolForTeam(team)?.formation ?? '4-3-3';
+}
+
+List<String> _worldCupFormationOptions(String selectedFormation) {
+  final options = <String>[..._worldCupFormationOptionValues];
+  if (!options.contains(selectedFormation)) {
+    options.insert(0, selectedFormation);
+  }
+  return options;
+}
+
+String _worldCupRosterPlayerId(
+  String team,
+  _WorldCupRosterPosition position,
+  String name,
+) {
+  return [
+    team.trim().toLowerCase(),
+    position.name,
+    name.trim().toLowerCase(),
+  ].join('|');
+}
+
+String _worldCupRosterFallbackPlayerId(
+  String team,
+  _WorldCupRosterPosition position,
+  int number,
+) {
+  return [
+    team.trim().toLowerCase(),
+    position.name,
+    number.toString(),
+  ].join('|');
+}
+
+String _worldCupRosterPlayerKey(_WorldCupRosterPlayer player) {
+  return player.id;
+}
+
+Map<_WorldCupRosterPosition, int> _worldCupFormationRequirements(
+  String formation,
+) {
+  final shape = _formationShape(formation);
+  final requirements = <_WorldCupRosterPosition, int>{
+    _WorldCupRosterPosition.goalkeeper: 1,
+    _WorldCupRosterPosition.defender: 0,
+    _WorldCupRosterPosition.midfielder: 0,
+    _WorldCupRosterPosition.forward: 0,
+  };
+  for (var lineIndex = 0; lineIndex < shape.length; lineIndex += 1) {
+    final position = _formationLinePosition(lineIndex, shape.length);
+    requirements[position] = (requirements[position] ?? 0) + shape[lineIndex];
+  }
+  return requirements;
+}
+
+Set<String> _worldCupDefaultBestXiKeys(
+  List<_WorldCupRosterPlayer> players,
+  String formation,
+) {
+  return _worldCupRebalanceBestXiKeys(players, const <String>{}, formation);
+}
+
+Set<String> _worldCupRebalanceBestXiKeys(
+  List<_WorldCupRosterPlayer> players,
+  Set<String> currentKeys,
+  String formation,
+) {
+  final requirements = _worldCupFormationRequirements(formation);
+  final nextKeys = <String>{};
+  for (final position in _WorldCupRosterPosition.values) {
+    final requiredCount = requirements[position] ?? 0;
+    if (requiredCount <= 0) continue;
+    final positionPlayers = _playersForPosition(players, position);
+    for (final player in positionPlayers) {
+      if (nextKeys.length >= 11) break;
+      if (!currentKeys.contains(_worldCupRosterPlayerKey(player))) continue;
+      if (_worldCupCountSelectedForPosition(players, nextKeys, position) >=
+          requiredCount) {
+        break;
+      }
+      nextKeys.add(_worldCupRosterPlayerKey(player));
+    }
+    for (final player in positionPlayers) {
+      if (_worldCupCountSelectedForPosition(players, nextKeys, position) >=
+          requiredCount) {
+        break;
+      }
+      if (nextKeys.length >= 11) break;
+      nextKeys.add(_worldCupRosterPlayerKey(player));
+    }
+  }
+  return nextKeys;
+}
+
+Set<String> _worldCupSanitizeBestXiKeys(
+  List<_WorldCupRosterPlayer> players,
+  Set<String> currentKeys,
+  String formation,
+) {
+  final playerKeys = players.map(_worldCupRosterPlayerKey).toSet();
+  final filteredKeys =
+      currentKeys.where((key) => playerKeys.contains(key)).toSet();
+  final requirements = _worldCupFormationRequirements(formation);
+  final nextKeys = <String>{};
+  for (final position in _WorldCupRosterPosition.values) {
+    final requiredCount = requirements[position] ?? 0;
+    if (requiredCount <= 0) continue;
+    final positionPlayers = _playersForPosition(players, position);
+    for (final player in positionPlayers) {
+      if (_worldCupCountSelectedForPosition(players, nextKeys, position) >=
+          requiredCount) {
+        break;
+      }
+      final playerKey = _worldCupRosterPlayerKey(player);
+      if (filteredKeys.contains(playerKey)) {
+        nextKeys.add(playerKey);
+      }
+    }
+  }
+  return nextKeys;
+}
+
+List<_WorldCupRosterPlayer> _worldCupSelectedRosterPlayers(
+  List<_WorldCupRosterPlayer> players,
+  Set<String> selectedKeys,
+) {
+  return players
+      .where(
+        (player) => selectedKeys.contains(_worldCupRosterPlayerKey(player)),
+      )
+      .toList(growable: false);
+}
+
+Map<_WorldCupRosterPosition, int> _worldCupSelectedCountsByPosition(
+  List<_WorldCupRosterPlayer> players,
+  Set<String> selectedKeys,
+) {
+  return <_WorldCupRosterPosition, int>{
+    for (final position in _WorldCupRosterPosition.values)
+      position:
+          _worldCupCountSelectedForPosition(players, selectedKeys, position),
+  };
+}
+
+int _worldCupCountSelectedForPosition(
+  List<_WorldCupRosterPlayer> players,
+  Set<String> selectedKeys,
+  _WorldCupRosterPosition position,
+) {
+  return players
+      .where(
+        (player) =>
+            player.position == position &&
+            selectedKeys.contains(_worldCupRosterPlayerKey(player)),
+      )
+      .length;
+}
+
+bool _worldCupCanAddBestXiPlayer(
+  _WorldCupRosterPlayer player,
+  List<_WorldCupRosterPlayer> players,
+  Set<String> selectedKeys,
+  Map<_WorldCupRosterPosition, int> requirements,
+) {
+  if (selectedKeys.length >= 11) return false;
+  final requiredCount = requirements[player.position] ?? 0;
+  if (requiredCount <= 0) return false;
+  return _worldCupCountSelectedForPosition(
+        players,
+        selectedKeys,
+        player.position,
+      ) <
+      requiredCount;
+}
+
+bool _sameStringSet(Set<String> a, Set<String> b) {
+  return a.length == b.length && a.containsAll(b);
 }
 
 Color _positionColor(ThemeData theme, _WorldCupRosterPosition position) {

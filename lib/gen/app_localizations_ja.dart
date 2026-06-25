@@ -1221,7 +1221,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get worldCupTeamRosterSubtitle => 'ポジション別の名簿とフォーメーション配置でチームの形を確認できます。';
+  String get worldCupTeamRosterSubtitle => 'ポジション別の名簿から自分のベストXIとフォーメーションを作れます。';
 
   @override
   String get worldCupTeamHistoryTitle => 'サッカーの歴史と説明';
@@ -1407,6 +1407,47 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get worldCupTeamRosterBestXiTitle => 'マイベストXI';
+
+  @override
+  String get worldCupTeamRosterBestXiNote =>
+      '公式の試合ラインアップではありません。選んだフォーメーションと選手で描くボードです。選手行をタップして追加または外せます。';
+
+  @override
+  String get worldCupTeamRosterFormationPickerLabel => 'フォーメーション';
+
+  @override
+  String worldCupTeamRosterBestXiCount(int count) {
+    return '$count/11人選択';
+  }
+
+  @override
+  String get worldCupTeamRosterBestXiComplete => 'ベストXI完成';
+
+  @override
+  String worldCupTeamRosterBestXiNeedMore(int count) {
+    return 'あと$count人選択';
+  }
+
+  @override
+  String get worldCupTeamRosterBestXiReset => '自動選択';
+
+  @override
+  String worldCupTeamRosterBestXiPositionLimit(int selected, int required) {
+    return '$selected/$required';
+  }
+
+  @override
+  String worldCupTeamRosterBestXiSelectTooltip(String player) {
+    return '$playerを選択';
+  }
+
+  @override
+  String worldCupTeamRosterBestXiRemoveTooltip(String player) {
+    return '$playerを外す';
+  }
+
+  @override
   String get worldCupTeamRosterFormationEstimatedNote =>
       '公式の試合ラインアップではなく、現在のスカッドデータをもとに配置した予想フォーメーションです。実際の戦術や先発は変わる可能性があります。';
 
@@ -1420,7 +1461,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterCandidateSourceNote =>
-      '公開された2026年スカッド情報と予想フォーメーションデータをもとに表示しています。負傷交代や試合当日の選択はキックオフ前まで変わる可能性があります。';
+      '公開された2026年スカッド情報と所属クラブ情報をもとに表示しています。負傷交代や試合当日の選択はキックオフ前まで変わる可能性があります。';
 
   @override
   String get worldCupTeamRosterGoalkeepers => 'ゴールキーパー';

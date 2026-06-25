@@ -1214,7 +1214,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get worldCupTeamRosterSubtitle => '포지션별 명단과 포메이션 배치로 팀 구성을 빠르게 확인해요.';
+  String get worldCupTeamRosterSubtitle => '포지션별 명단에서 직접 베스트 11과 포메이션을 구성해요.';
 
   @override
   String get worldCupTeamHistoryTitle => '축구 역사와 설명';
@@ -1401,6 +1401,47 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get worldCupTeamRosterBestXiTitle => '나의 베스트 11';
+
+  @override
+  String get worldCupTeamRosterBestXiNote =>
+      '공식 경기 라인업이 아니라 사용자가 선택한 포메이션과 선수로 그린 보드예요. 선수 행을 눌러 포함하거나 제외할 수 있어요.';
+
+  @override
+  String get worldCupTeamRosterFormationPickerLabel => '포메이션';
+
+  @override
+  String worldCupTeamRosterBestXiCount(int count) {
+    return '$count/11명 선택';
+  }
+
+  @override
+  String get worldCupTeamRosterBestXiComplete => '베스트 11 완성';
+
+  @override
+  String worldCupTeamRosterBestXiNeedMore(int count) {
+    return '$count명 더 선택';
+  }
+
+  @override
+  String get worldCupTeamRosterBestXiReset => '자동 추천';
+
+  @override
+  String worldCupTeamRosterBestXiPositionLimit(int selected, int required) {
+    return '$selected/$required';
+  }
+
+  @override
+  String worldCupTeamRosterBestXiSelectTooltip(String player) {
+    return '$player 선택';
+  }
+
+  @override
+  String worldCupTeamRosterBestXiRemoveTooltip(String player) {
+    return '$player 제외';
+  }
+
+  @override
   String get worldCupTeamRosterFormationEstimatedNote =>
       '공식 경기 라인업이 아니라 현재 선수단 데이터를 기준으로 배치한 예상 포메이션이에요. 실제 경기 전술과 선발은 달라질 수 있어요.';
 
@@ -1414,7 +1455,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupTeamRosterCandidateSourceNote =>
-      '공개된 2026 선수단 정보와 예상 포메이션 데이터를 바탕으로 보여줘요. 부상 교체와 경기 당일 선택은 킥오프 전까지 바뀔 수 있어요.';
+      '공개된 2026 선수단 정보와 소속팀 정보를 바탕으로 보여줘요. 부상 교체와 경기 당일 선택은 킥오프 전까지 바뀔 수 있어요.';
 
   @override
   String get worldCupTeamRosterGoalkeepers => '골키퍼';

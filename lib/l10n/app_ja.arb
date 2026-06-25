@@ -596,7 +596,7 @@
       }
     }
   },
-  "worldCupTeamRosterSubtitle": "ポジション別の名簿とフォーメーション配置でチームの形を確認できます。",
+  "worldCupTeamRosterSubtitle": "ポジション別の名簿から自分のベストXIとフォーメーションを作れます。",
   "worldCupTeamHistoryTitle": "サッカーの歴史と説明",
   "worldCupTeamHistoryBody": "{team} のサッカー史は、代表チームの国際大会経験、国内リーグの基盤、海外組の流れ、ワールドカップ予選で積み上げた競争力によって形づくられています。この画面では、グループ日程、勝点、選手の所属クラブを合わせて、{team} が今大会でどんな流れを作れるかを確認できます。",
   "@worldCupTeamHistoryBody": {
@@ -819,10 +819,58 @@
       }
     }
   },
+  "worldCupTeamRosterBestXiTitle": "マイベストXI",
+  "worldCupTeamRosterBestXiNote": "公式の試合ラインアップではありません。選んだフォーメーションと選手で描くボードです。選手行をタップして追加または外せます。",
+  "worldCupTeamRosterFormationPickerLabel": "フォーメーション",
+  "worldCupTeamRosterBestXiCount": "{count}/11人選択",
+  "@worldCupTeamRosterBestXiCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiComplete": "ベストXI完成",
+  "worldCupTeamRosterBestXiNeedMore": "あと{count}人選択",
+  "@worldCupTeamRosterBestXiNeedMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiReset": "自動選択",
+  "worldCupTeamRosterBestXiPositionLimit": "{selected}/{required}",
+  "@worldCupTeamRosterBestXiPositionLimit": {
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiSelectTooltip": "{player}を選択",
+  "@worldCupTeamRosterBestXiSelectTooltip": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupTeamRosterBestXiRemoveTooltip": "{player}を外す",
+  "@worldCupTeamRosterBestXiRemoveTooltip": {
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupTeamRosterFormationEstimatedNote": "公式の試合ラインアップではなく、現在のスカッドデータをもとに配置した予想フォーメーションです。実際の戦術や先発は変わる可能性があります。",
   "worldCupTeamRosterFormationPlaceholderNote": "公式スカッドデータがないため、標準のポジション枠で表示しています。実際のフォーメーションとして扱わないでください。",
   "worldCupTeamRosterSourceNote": "この国の公式2026年スカッドデータはまだアプリに含まれていないため、安定した合法的なソースが接続されるまでポジション枠を表示します。",
-  "worldCupTeamRosterCandidateSourceNote": "公開された2026年スカッド情報と予想フォーメーションデータをもとに表示しています。負傷交代や試合当日の選択はキックオフ前まで変わる可能性があります。",
+  "worldCupTeamRosterCandidateSourceNote": "公開された2026年スカッド情報と所属クラブ情報をもとに表示しています。負傷交代や試合当日の選択はキックオフ前まで変わる可能性があります。",
   "worldCupTeamRosterGoalkeepers": "ゴールキーパー",
   "worldCupTeamRosterDefenders": "ディフェンダー",
   "worldCupTeamRosterMidfielders": "ミッドフィルダー",
