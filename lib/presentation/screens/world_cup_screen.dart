@@ -4236,6 +4236,32 @@ class _WorldCupQualificationOtherMatches extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final waitingForOtherMatches =
+        scenario.remainingMatches == 0 && scenario.remainingOtherMatches > 0;
+    final directPaths = scenario.otherMatchPaths
+        .where((path) => path.isAutomaticAdvance)
+        .toList(growable: false);
+    final thirdPlacePaths = scenario.otherMatchPaths
+        .where((path) => path.isThirdPlaceRace)
+        .toList(growable: false);
+    final eliminatedPaths = scenario.otherMatchPaths
+        .where((path) => path.isEliminated)
+        .toList(growable: false);
+    final sections =
+        <({String label, List<WorldCupQualificationOtherMatchPath> paths})>[
+      (
+        label: l10n.worldCupQualificationOtherPathDirectSection,
+        paths: directPaths,
+      ),
+      (
+        label: l10n.worldCupQualificationOtherPathThirdSection,
+        paths: thirdPlacePaths,
+      ),
+      (
+        label: l10n.worldCupQualificationOtherPathOutSection,
+        paths: eliminatedPaths,
+      ),
+    ].where((section) => section.paths.isNotEmpty).toList(growable: false);
     return Theme(
       data: theme.copyWith(dividerColor: Colors.transparent),
       child: Container(
@@ -4256,29 +4282,71 @@ class _WorldCupQualificationOtherMatches extends StatelessWidget {
             color: theme.colorScheme.primary,
           ),
           title: Text(
-            l10n.worldCupQualificationOtherMatchesTitle(
-              scenario.otherMatchPaths.length,
-            ),
+            waitingForOtherMatches
+                ? l10n.worldCupQualificationWaitingOtherMatchesTitle
+                : l10n.worldCupQualificationOtherMatchesTitle(
+                    scenario.otherMatchPaths.length,
+                  ),
             style: theme.textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w900,
             ),
           ),
           subtitle: Text(
-            l10n.worldCupQualificationOtherMatchesSubtitle,
+            waitingForOtherMatches
+                ? l10n.worldCupQualificationWaitingOtherMatchesSubtitle
+                : l10n.worldCupQualificationOtherMatchesSubtitle,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               height: 1.25,
             ),
           ),
           children: [
-            for (final path in scenario.otherMatchPaths) ...[
-              _WorldCupQualificationOtherPathRow(path: path),
-              if (path != scenario.otherMatchPaths.last)
-                const SizedBox(height: 6),
+            for (final section in sections) ...[
+              _WorldCupQualificationOtherPathSection(
+                label: section.label,
+                paths: section.paths,
+              ),
+              if (section != sections.last) const SizedBox(height: 8),
             ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _WorldCupQualificationOtherPathSection extends StatelessWidget {
+  final String label;
+  final List<WorldCupQualificationOtherMatchPath> paths;
+
+  const _WorldCupQualificationOtherPathSection({
+    required this.label,
+    required this.paths,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.worldCupQualificationOtherPathSectionTitle(
+            label,
+            paths.length,
+          ),
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 6),
+        for (final path in paths) ...[
+          _WorldCupQualificationOtherPathRow(path: path),
+          if (path != paths.last) const SizedBox(height: 6),
+        ],
+      ],
     );
   }
 }

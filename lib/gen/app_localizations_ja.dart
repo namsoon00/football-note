@@ -1310,6 +1310,27 @@ class AppLocalizationsJa extends AppLocalizations {
       'このチームの結果が同じでも、同じグループの他の試合結果で順位と進出状態が変わることがあります。';
 
   @override
+  String get worldCupQualificationWaitingOtherMatchesTitle => '待っている試合結果別の可能性';
+
+  @override
+  String get worldCupQualificationWaitingOtherMatchesSubtitle =>
+      'このチームの試合は終了しているため、残りのグループ試合の結果組み合わせごとにラウンド32の状態を再計算します。';
+
+  @override
+  String get worldCupQualificationOtherPathDirectSection => '自動進出する場合';
+
+  @override
+  String get worldCupQualificationOtherPathThirdSection => '3位比較に残る場合';
+
+  @override
+  String get worldCupQualificationOtherPathOutSection => '敗退する場合';
+
+  @override
+  String worldCupQualificationOtherPathSectionTitle(String label, int count) {
+    return '$label $count通り';
+  }
+
+  @override
   String worldCupQualificationOtherPathOutcome(int rank, String outcome) {
     return '$rank位 · $outcome';
   }

@@ -349,6 +349,76 @@ void main() {
     expect(find.text('이 팀 남은 경기 없음'), findsNothing);
   });
 
+  testWidgets('qualification scenarios group waiting other match outcomes', (
+    tester,
+  ) async {
+    final fixtures = _worldCupFixturesWithScores({
+      28: (1, 0),
+      54: (1, 0),
+    });
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: fixtures,
+        officialMatchesByFixtureNumber: const {},
+        rankingsByTeam: const {},
+        refreshedAt: DateTime.utc(2026, 6, 25, 3),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          initialSelectedDay: worldCupFixtures.first.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('순위'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('순위'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('조별 순위표'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('대한민국').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('32강 경우의 수'),
+      180,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('기다리는 경기 결과별 경우의 수'),
+      180,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('이 팀 남은 경기 없음'), findsOneWidget);
+    expect(find.text('기다리는 경기 결과별 경우의 수'), findsOneWidget);
+    expect(find.textContaining('3위 비교로 남는 경우'), findsOneWidget);
+    expect(find.textContaining('탈락하는 경우'), findsOneWidget);
+    expect(find.textContaining('체코 - 남아프리카공화국'), findsWidgets);
+    expect(find.textContaining('체코 - 멕시코'), findsWidgets);
+  });
+
   testWidgets('team match history country opens that team roster', (
     tester,
   ) async {

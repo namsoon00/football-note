@@ -713,6 +713,22 @@
     }
   },
   "worldCupQualificationOtherMatchesSubtitle": "이 팀 결과가 같아도 같은 조의 다른 경기 승·무·패에 따라 순위와 진출 상태가 달라질 수 있어요.",
+  "worldCupQualificationWaitingOtherMatchesTitle": "기다리는 경기 결과별 경우의 수",
+  "worldCupQualificationWaitingOtherMatchesSubtitle": "이 팀 경기는 끝났고, 아래 다른 경기 결과 조합마다 32강 상태를 다시 계산해요.",
+  "worldCupQualificationOtherPathDirectSection": "직행하는 경우",
+  "worldCupQualificationOtherPathThirdSection": "3위 비교로 남는 경우",
+  "worldCupQualificationOtherPathOutSection": "탈락하는 경우",
+  "worldCupQualificationOtherPathSectionTitle": "{label} {count}가지",
+  "@worldCupQualificationOtherPathSectionTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupQualificationOtherPathOutcome": "{rank}위 · {outcome}",
   "@worldCupQualificationOtherPathOutcome": {
     "placeholders": {
