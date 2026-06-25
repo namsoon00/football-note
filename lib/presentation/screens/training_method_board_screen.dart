@@ -89,6 +89,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _showPortraitMemo = false;
   bool _showPortraitInspector = true;
   bool _showTacticalOverlay = true;
+  bool _showSelectedColorPicker = false;
   Timer? _autoSaveTimer;
   bool _autoSaveInProgress = false;
 
@@ -352,6 +353,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _currentBoardId = board.id;
     _selectedItemId = null;
     _selectedRouteId = null;
+    _showSelectedColorPicker = false;
     _penMode = false;
     _pathMode = false;
     _activeStroke = null;
@@ -1350,6 +1352,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _selectBoardItem(_BoardItem item) {
     final kind = _routeKindForItem(item);
     setState(() {
+      if (_selectedItemId != item.id) {
+        _showSelectedColorPicker = false;
+      }
       _selectedItemId = item.id;
       _pendingTargetAction = null;
       _routeReplaceMode = false;
@@ -1384,6 +1389,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     setState(() {
       _movingItemId = item.id;
       _lastLongPressMoveOffset = Offset.zero;
+      _showSelectedColorPicker = false;
       _selectedItemId = item.id;
       _pendingTargetAction = null;
       _routeReplaceMode = false;
@@ -1465,6 +1471,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _currentPage.items.add(item);
       _selectedItemId = item.id;
       _selectedRouteId = null;
+      _showSelectedColorPicker = false;
       _penMode = false;
       _pathMode = false;
       _pendingTargetAction = null;
@@ -1492,6 +1499,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _selectedRouteId = null;
       }
       _selectedItemId = null;
+      _showSelectedColorPicker = false;
       _pendingTargetAction = null;
     });
     _scheduleAutoSave();
@@ -1722,6 +1730,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _currentBoardId = null;
         _pages = <_BoardPageState>[_emptyBoardPage(widget.boardTitle)];
         _selectedItemId = null;
+        _showSelectedColorPicker = false;
         _methodController.text = _currentPage.methodText;
         _lastSavedLayout = _serialize();
       }
@@ -1852,6 +1861,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _normalizeCurrentPageRoutes();
       _selectedItemId = null;
       _selectedRouteId = null;
+      _showSelectedColorPicker = false;
       _penMode = false;
       _pathMode = false;
       _methodController.text = _currentPage.methodText;
@@ -2090,6 +2100,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     setState(() {
       _activeStroke = <Offset>[Offset(x, y)];
       _selectedItemId = null;
+      _showSelectedColorPicker = false;
     });
   }
 
@@ -2259,6 +2270,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
       _selectedRouteId = route.id;
       _selectedItemId = resolvedLinkedItem.id;
+      _showSelectedColorPicker = false;
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
@@ -2275,6 +2287,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _pathMode = true;
       _penMode = false;
       _pendingTargetAction = null;
+      _showSelectedColorPicker = false;
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
@@ -2532,6 +2545,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     setState(() {
       _selectedItemId = item.id;
       _selectedRouteId = _routeForItem(item.id, kind)?.id;
+      _showSelectedColorPicker = false;
       _pathDrawMode = kind;
       _pathMode = true;
       _penMode = false;
@@ -2570,6 +2584,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     unawaited(HapticFeedback.selectionClick());
     setState(() {
       _pendingTargetAction = action;
+      _showSelectedColorPicker = false;
       _pathMode = false;
       _penMode = false;
       _routeReplaceMode = false;
@@ -2692,6 +2707,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }) {
     _selectedItemId = selectedItemOverride?.id ?? item.id;
     _selectedRouteId = route.id;
+    _showSelectedColorPicker = false;
     _pathDrawMode = route.kind;
     _pathMode = false;
     _penMode = false;
@@ -4314,6 +4330,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             _activeRouteLastPointAt = null;
             _selectedItemId = null;
             _selectedRouteId = null;
+            _showSelectedColorPicker = false;
             _routeReplaceMode = false;
             _pendingTargetAction = null;
           });
@@ -4860,6 +4877,115 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  Widget _buildSelectedColorButton(_BoardItem selected) {
+    final iconColor = selected.color.computeLuminance() < 0.45
+        ? Colors.white
+        : Colors.black87;
+    final label = _l10n.trainingSketchAssignColorLabel;
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        label: label,
+        selected: _showSelectedColorPicker,
+        child: Material(
+          color: _showSelectedColorPicker
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.10)
+              : Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            key: const ValueKey('training-selected-color-button'),
+            customBorder: const CircleBorder(),
+            onTap: () {
+              setState(() {
+                _showSelectedColorPicker = !_showSelectedColorPicker;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: selected.color,
+                      border: Border.all(
+                        color: _showSelectedColorPicker
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.black26,
+                        width: _showSelectedColorPicker ? 2 : 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.10),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.palette_outlined, size: 16, color: iconColor),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectedColorPicker(
+    _BoardItem selected,
+    List<Color> colorChoices,
+  ) {
+    return Wrap(
+      key: const ValueKey('training-selected-color-picker'),
+      spacing: 8,
+      runSpacing: 8,
+      children: colorChoices.map((c) {
+        final selectedColor = c.toARGB32() == selected.color.toARGB32();
+        return InkWell(
+          key: ValueKey(
+            'training-selected-color-option-${c.toARGB32().toRadixString(16)}',
+          ),
+          onTap: () {
+            setState(() {
+              selected.color = c;
+              _syncLinkedRouteColors(selected.id);
+              _showSelectedColorPicker = false;
+            });
+            _scheduleAutoSave();
+          },
+          borderRadius: BorderRadius.circular(999),
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: c,
+              border: Border.all(
+                color: selectedColor ? Colors.white : Colors.black26,
+                width: selectedColor ? 2.4 : 1.0,
+              ),
+            ),
+            child: selectedColor
+                ? Icon(
+                    Icons.check,
+                    size: 14,
+                    color: c.computeLuminance() < 0.45
+                        ? Colors.white
+                        : Colors.black87,
+                  )
+                : null,
+          ),
+        );
+      }).toList(growable: false),
+    );
+  }
+
   Widget _buildSelectedToolsContent(bool isKo) {
     final selected = _selectedItem;
     final selectedRoute = _selectedRoute;
@@ -5088,6 +5214,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
+            _buildSelectedColorButton(selected),
             IconButton(
               onPressed: _removeSelected,
               icon: const Icon(Icons.delete_outline, color: Colors.red),
@@ -5095,40 +5222,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             ),
           ],
         ),
-        Text(
-          l10n.trainingSketchAssignColorLabel,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: colorChoices.map((c) {
-            final selectedColor = c.toARGB32() == selected.color.toARGB32();
-            return InkWell(
-              onTap: () {
-                setState(() {
-                  selected.color = c;
-                  _syncLinkedRouteColors(selected.id);
-                });
-                _scheduleAutoSave();
-              },
-              borderRadius: BorderRadius.circular(999),
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: c,
-                  border: Border.all(
-                    color: selectedColor ? Colors.white : Colors.black26,
-                    width: selectedColor ? 2.4 : 1.0,
-                  ),
-                ),
-              ),
-            );
-          }).toList(growable: false),
-        ),
+        if (_showSelectedColorPicker) ...[
+          const SizedBox(height: 6),
+          _buildSelectedColorPicker(selected, colorChoices),
+        ],
         if (selected.type == _BoardItemType.player ||
             selected.type == _BoardItemType.ball) ...[
           const SizedBox(height: 10),
