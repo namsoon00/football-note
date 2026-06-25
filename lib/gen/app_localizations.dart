@@ -2827,6 +2827,12 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get homeHubTitleShort;
 
+  /// No description provided for @homeLayoutChangeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change home'**
+  String get homeLayoutChangeAction;
+
   /// No description provided for @homeLayoutSettingsTitle.
   ///
   /// In en, this message translates to:

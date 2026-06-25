@@ -219,6 +219,7 @@ void main() {
       sectionTop('home-layout-level-section'),
       lessThan(sectionTop('home-layout-daily-flow-section')),
     );
+    expect(find.text('홈화면 변경'), findsOneWidget);
 
     await tester.tap(
       find.byKey(const ValueKey<String>('home-section-settings-button')),

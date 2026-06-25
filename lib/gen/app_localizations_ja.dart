@@ -1545,6 +1545,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeHubTitleShort => '家';
 
   @override
+  String get homeLayoutChangeAction => 'ホーム変更';
+
+  @override
   String get homeLayoutSettingsTitle => 'ホーム画面設定';
 
   @override

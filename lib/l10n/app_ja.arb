@@ -945,6 +945,7 @@
   "homeTodayPlanOpenAction": "オープンプラン",
   "homeTodayPlanSelectForLogTitle": "トレーニングログにするプランを選択してください",
   "homeHubTitleShort": "家",
+  "homeLayoutChangeAction": "ホーム変更",
   "homeLayoutSettingsTitle": "ホーム画面設定",
   "homeLayoutSettingsReset": "リセット",
   "homeLayoutReorderTooltip": "セクションを移動",

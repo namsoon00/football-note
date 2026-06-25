@@ -945,6 +945,7 @@
   "homeTodayPlanOpenAction": "Open plans",
   "homeTodayPlanSelectForLogTitle": "Choose a plan to turn into a training log",
   "homeHubTitleShort": "Home",
+  "homeLayoutChangeAction": "Change home",
   "homeLayoutSettingsTitle": "Home screen settings",
   "homeLayoutSettingsReset": "Reset",
   "homeLayoutReorderTooltip": "Move section",
