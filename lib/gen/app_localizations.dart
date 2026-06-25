@@ -17247,6 +17247,144 @@ abstract class AppLocalizations {
   /// **'Balls won'**
   String get matchBallsWonLabel;
 
+  /// No description provided for @matchHubTopActionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Match hub'**
+  String get matchHubTopActionTooltip;
+
+  /// No description provided for @matchHubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match Hub'**
+  String get matchHubTitle;
+
+  /// No description provided for @matchHubSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record friendlies, leagues, and tournaments in one place and review the result flow.'**
+  String get matchHubSubtitle;
+
+  /// No description provided for @matchHubOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match operations board'**
+  String get matchHubOverviewTitle;
+
+  /// No description provided for @matchHubRecentFormLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent form'**
+  String get matchHubRecentFormLabel;
+
+  /// No description provided for @matchHubRecordButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Record match'**
+  String get matchHubRecordButton;
+
+  /// No description provided for @matchHubRecordHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter today\'s result quickly'**
+  String get matchHubRecordHelper;
+
+  /// No description provided for @matchHubCalendarButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Open calendar'**
+  String get matchHubCalendarButton;
+
+  /// No description provided for @matchHubCalendarHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Review matches and plans by date'**
+  String get matchHubCalendarHelper;
+
+  /// No description provided for @matchHubStatsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Match stats'**
+  String get matchHubStatsButton;
+
+  /// No description provided for @matchHubStatsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze record and personal output'**
+  String get matchHubStatsHelper;
+
+  /// No description provided for @matchHubCompetitionHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage teams and competition results'**
+  String get matchHubCompetitionHelper;
+
+  /// No description provided for @matchHubCompetitionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition board'**
+  String get matchHubCompetitionsTitle;
+
+  /// No description provided for @matchHubNoCompetitionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No competitions registered.'**
+  String get matchHubNoCompetitionsTitle;
+
+  /// No description provided for @matchHubNoCompetitionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When you record league or tournament matches, teams, standings, and brackets collect here.'**
+  String get matchHubNoCompetitionsSubtitle;
+
+  /// No description provided for @matchHubRecentMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent matches'**
+  String get matchHubRecentMatchesTitle;
+
+  /// No description provided for @matchHubEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No match records yet.'**
+  String get matchHubEmptyTitle;
+
+  /// No description provided for @matchHubEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with a friendly match to calculate win rate and recent form.'**
+  String get matchHubEmptySubtitle;
+
+  /// No description provided for @matchHubOpeningFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening the match screen.'**
+  String get matchHubOpeningFeedback;
+
+  /// No description provided for @matchHubRecordedOnlyProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} match(es) recorded'**
+  String matchHubRecordedOnlyProgress(int count);
+
+  /// No description provided for @matchHubKindBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Friendly {friendly} · League {league} · Tournament {tournament}'**
+  String matchHubKindBreakdown(int friendly, int league, int tournament);
+
+  /// No description provided for @matchHubCompetitionStateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition status'**
+  String get matchHubCompetitionStateLabel;
+
+  /// No description provided for @matchHubCompetitionStateValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Active {active} · Finished {finished}'**
+  String matchHubCompetitionStateValue(int active, int finished);
+
   /// No description provided for @baseballMatchHitsLabel.
   ///
   /// In en, this message translates to:

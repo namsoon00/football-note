@@ -68,6 +68,7 @@ class CalendarScreen extends StatefulWidget {
   final ValueChanged<DateTime>? onSelectedDayChanged;
   final CalendarQuickCreateAction? quickCreateAction;
   final VoidCallback? onQuickCreateHandled;
+  final VoidCallback? onOpenMatchHub;
 
   const CalendarScreen({
     super.key,
@@ -84,6 +85,7 @@ class CalendarScreen extends StatefulWidget {
     this.onSelectedDayChanged,
     this.quickCreateAction,
     this.onQuickCreateHandled,
+    this.onOpenMatchHub,
   });
 
   @override
@@ -407,6 +409,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               onNewsTap: () => _openNews(context),
                               newsBadgeCount: newsCount,
                               onQuizTap: () => _openQuiz(context),
+                              onMatchTap: widget.onOpenMatchHub,
                               onNotificationTap: () =>
                                   _openNotifications(context),
                               notificationBadgeCount: reminderUnreadCount,

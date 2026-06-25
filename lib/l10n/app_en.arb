@@ -5558,6 +5558,59 @@
   "matchNoteOptionalLabel": "Note (optional)",
   "matchShotsOnTargetLabel": "Shots on target",
   "matchBallsWonLabel": "Balls won",
+  "matchHubTopActionTooltip": "Match hub",
+  "matchHubTitle": "Match Hub",
+  "matchHubSubtitle": "Record friendlies, leagues, and tournaments in one place and review the result flow.",
+  "matchHubOverviewTitle": "Match operations board",
+  "matchHubRecentFormLabel": "Recent form",
+  "matchHubRecordButton": "Record match",
+  "matchHubRecordHelper": "Enter today's result quickly",
+  "matchHubCalendarButton": "Open calendar",
+  "matchHubCalendarHelper": "Review matches and plans by date",
+  "matchHubStatsButton": "Match stats",
+  "matchHubStatsHelper": "Analyze record and personal output",
+  "matchHubCompetitionHelper": "Manage teams and competition results",
+  "matchHubCompetitionsTitle": "Competition board",
+  "matchHubNoCompetitionsTitle": "No competitions registered.",
+  "matchHubNoCompetitionsSubtitle": "When you record league or tournament matches, teams, standings, and brackets collect here.",
+  "matchHubRecentMatchesTitle": "Recent matches",
+  "matchHubEmptyTitle": "No match records yet.",
+  "matchHubEmptySubtitle": "Start with a friendly match to calculate win rate and recent form.",
+  "matchHubOpeningFeedback": "Opening the match screen.",
+  "matchHubRecordedOnlyProgress": "{count} match(es) recorded",
+  "@matchHubRecordedOnlyProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubKindBreakdown": "Friendly {friendly} · League {league} · Tournament {tournament}",
+  "@matchHubKindBreakdown": {
+    "placeholders": {
+      "friendly": {
+        "type": "int"
+      },
+      "league": {
+        "type": "int"
+      },
+      "tournament": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubCompetitionStateLabel": "Competition status",
+  "matchHubCompetitionStateValue": "Active {active} · Finished {finished}",
+  "@matchHubCompetitionStateValue": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "finished": {
+        "type": "int"
+      }
+    }
+  },
   "baseballMatchHitsLabel": "Hits",
   "baseballMatchRbisLabel": "RBIs",
   "baseballMatchRunsLabel": "Runs",

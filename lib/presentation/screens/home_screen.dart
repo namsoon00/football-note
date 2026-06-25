@@ -23,6 +23,7 @@ import '../widgets/app_page_route.dart';
 import '../widgets/sport_scope.dart';
 import 'skill_quiz_screen.dart';
 import 'home_hub_screen.dart';
+import 'match_hub_screen.dart';
 import 'training_board_list_screen.dart';
 import 'coach_lesson_screen.dart';
 
@@ -60,6 +61,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   DateTime? _calendarSelectedDay;
   DateTimeRange? _statsInitialRange;
   int _statsInitialRangeRequestKey = 0;
+  int _statsInitialTabIndex = 0;
+  int _statsInitialTabRequestKey = 0;
   int _openTodayDiaryRequestKey = 0;
   late final Set<int> _builtTabIndices;
   CalendarQuickCreateAction? _pendingCalendarQuickCreateAction;
@@ -227,6 +230,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onQuickQuiz: _openQuiz,
           onQuickMeal: () => _openMealLog(initialDate: DateTime.now()),
           onQuickBoard: _openTrainingBoards,
+          onOpenMatchHub: _openMatchHub,
           onOpenLogs: () => _onDestinationSelected(1),
           onOpenDiary: _openTodayDiary,
           onOpenWeeklyStats: _openWeeklyStatsForCurrentWeek,
@@ -251,6 +255,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onQuickMatch: () =>
               _openCalendarQuickCreate(CalendarQuickCreateAction.match),
           onQuickQuiz: _openQuiz,
+          onOpenMatchHub: _openMatchHub,
         ),
       ),
       _buildTabChild(
@@ -270,6 +275,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           quickCreateAction: _pendingCalendarQuickCreateAction ??
               widget.calendarQuickCreateAction,
           onQuickCreateHandled: _clearCalendarQuickCreateAction,
+          onOpenMatchHub: _openMatchHub,
           onSelectedDayChanged: (day) {
             _calendarSelectedDay = DateTime(day.year, day.month, day.day);
           },
@@ -288,6 +294,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           driveBackupService: widget.driveBackupService,
           initialRange: _statsInitialRange,
           initialRangeRequestKey: _statsInitialRangeRequestKey,
+          initialTabIndex: _statsInitialTabIndex,
+          initialTabRequestKey: _statsInitialTabRequestKey,
+          onOpenMatchHub: _openMatchHub,
         ),
       ),
       _buildTabChild(
@@ -303,6 +312,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           embeddedInHomeTab: true,
           openTodayDiaryRequestKey: _openTodayDiaryRequestKey,
           dataRevision: _dataRevision,
+          onOpenMatchHub: _openMatchHub,
         ),
       ),
     ];
@@ -375,6 +385,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _builtTabIndices.add(3);
       _statsInitialRange = _currentWeekRange();
       _statsInitialRangeRequestKey++;
+      _statsInitialTabIndex = 0;
+      _statsInitialTabRequestKey++;
       _index = 3;
     });
     unawaited(_showTabGuideIfNeeded(3));
@@ -645,6 +657,45 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _index = 2;
     });
     unawaited(_showTabGuideIfNeeded(2));
+  }
+
+  Future<void> _openMatchHub() async {
+    await _pushPageSafely(
+      AppPageRoute(
+        builder: (_) => MatchHubScreen(
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+          onRecordMatch: _openMatchHubRecord,
+          onOpenCalendar: _openMatchHubCalendar,
+          onOpenMatchStats: _openMatchHubStats,
+        ),
+      ),
+    );
+  }
+
+  void _openMatchHubRecord() {
+    _openCalendarQuickCreate(CalendarQuickCreateAction.match);
+  }
+
+  void _openMatchHubCalendar() {
+    setState(() {
+      _builtTabIndices.add(2);
+      _index = 2;
+    });
+    unawaited(_showTabGuideIfNeeded(2));
+  }
+
+  void _openMatchHubStats() {
+    setState(() {
+      _builtTabIndices.add(3);
+      _statsInitialTabIndex = 1;
+      _statsInitialTabRequestKey += 1;
+      _index = 3;
+    });
+    unawaited(_showTabGuideIfNeeded(3));
   }
 
   Future<void> _openTrainingBoards() async {

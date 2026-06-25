@@ -5558,6 +5558,59 @@
   "matchNoteOptionalLabel": "注記 (オプション)",
   "matchShotsOnTargetLabel": "枠内シュート",
   "matchBallsWonLabel": "獲得したボール",
+  "matchHubTopActionTooltip": "試合ハブ",
+  "matchHubTitle": "試合ハブ",
+  "matchHubSubtitle": "親善試合、リーグ、トーナメントを一か所で記録し、結果の流れを確認できます。",
+  "matchHubOverviewTitle": "試合運営ボード",
+  "matchHubRecentFormLabel": "最近のフォーム",
+  "matchHubRecordButton": "試合を記録",
+  "matchHubRecordHelper": "今日の結果をすばやく入力",
+  "matchHubCalendarButton": "予定を見る",
+  "matchHubCalendarHelper": "日付ごとの試合と計画を確認",
+  "matchHubStatsButton": "試合統計",
+  "matchHubStatsHelper": "戦績と個人記録を分析",
+  "matchHubCompetitionHelper": "チーム登録と大会結果を管理",
+  "matchHubCompetitionsTitle": "大会ボード",
+  "matchHubNoCompetitionsTitle": "登録された大会がありません。",
+  "matchHubNoCompetitionsSubtitle": "リーグやトーナメントとして試合を記録すると、チーム、順位、トーナメント表がここに集まります。",
+  "matchHubRecentMatchesTitle": "最近の試合",
+  "matchHubEmptyTitle": "試合記録がまだありません。",
+  "matchHubEmptySubtitle": "親善試合から記録すると、勝率と最近のフォームを計算できます。",
+  "matchHubOpeningFeedback": "試合画面へ移動します。",
+  "matchHubRecordedOnlyProgress": "{count}試合記録済み",
+  "@matchHubRecordedOnlyProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubKindBreakdown": "親善 {friendly} · リーグ {league} · トーナメント {tournament}",
+  "@matchHubKindBreakdown": {
+    "placeholders": {
+      "friendly": {
+        "type": "int"
+      },
+      "league": {
+        "type": "int"
+      },
+      "tournament": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubCompetitionStateLabel": "大会ステータス",
+  "matchHubCompetitionStateValue": "進行 {active} · 終了 {finished}",
+  "@matchHubCompetitionStateValue": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "finished": {
+        "type": "int"
+      }
+    }
+  },
   "baseballMatchHitsLabel": "安打",
   "baseballMatchRbisLabel": "打点",
   "baseballMatchRunsLabel": "得点",

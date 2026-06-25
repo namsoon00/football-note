@@ -9799,6 +9799,82 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchBallsWonLabel => '獲得したボール';
 
   @override
+  String get matchHubTopActionTooltip => '試合ハブ';
+
+  @override
+  String get matchHubTitle => '試合ハブ';
+
+  @override
+  String get matchHubSubtitle => '親善試合、リーグ、トーナメントを一か所で記録し、結果の流れを確認できます。';
+
+  @override
+  String get matchHubOverviewTitle => '試合運営ボード';
+
+  @override
+  String get matchHubRecentFormLabel => '最近のフォーム';
+
+  @override
+  String get matchHubRecordButton => '試合を記録';
+
+  @override
+  String get matchHubRecordHelper => '今日の結果をすばやく入力';
+
+  @override
+  String get matchHubCalendarButton => '予定を見る';
+
+  @override
+  String get matchHubCalendarHelper => '日付ごとの試合と計画を確認';
+
+  @override
+  String get matchHubStatsButton => '試合統計';
+
+  @override
+  String get matchHubStatsHelper => '戦績と個人記録を分析';
+
+  @override
+  String get matchHubCompetitionHelper => 'チーム登録と大会結果を管理';
+
+  @override
+  String get matchHubCompetitionsTitle => '大会ボード';
+
+  @override
+  String get matchHubNoCompetitionsTitle => '登録された大会がありません。';
+
+  @override
+  String get matchHubNoCompetitionsSubtitle =>
+      'リーグやトーナメントとして試合を記録すると、チーム、順位、トーナメント表がここに集まります。';
+
+  @override
+  String get matchHubRecentMatchesTitle => '最近の試合';
+
+  @override
+  String get matchHubEmptyTitle => '試合記録がまだありません。';
+
+  @override
+  String get matchHubEmptySubtitle => '親善試合から記録すると、勝率と最近のフォームを計算できます。';
+
+  @override
+  String get matchHubOpeningFeedback => '試合画面へ移動します。';
+
+  @override
+  String matchHubRecordedOnlyProgress(int count) {
+    return '$count試合記録済み';
+  }
+
+  @override
+  String matchHubKindBreakdown(int friendly, int league, int tournament) {
+    return '親善 $friendly · リーグ $league · トーナメント $tournament';
+  }
+
+  @override
+  String get matchHubCompetitionStateLabel => '大会ステータス';
+
+  @override
+  String matchHubCompetitionStateValue(int active, int finished) {
+    return '進行 $active · 終了 $finished';
+  }
+
+  @override
   String get baseballMatchHitsLabel => '安打';
 
   @override

@@ -11,6 +11,8 @@ class SharedTabHeader extends StatelessWidget {
   final VoidCallback? onNewsTap;
   final int newsBadgeCount;
   final VoidCallback? onQuizTap;
+  final VoidCallback? onMatchTap;
+  final bool matchSelected;
   final VoidCallback onProfileTap;
   final VoidCallback? onNotificationTap;
   final int notificationBadgeCount;
@@ -28,6 +30,8 @@ class SharedTabHeader extends StatelessWidget {
     this.onNewsTap,
     this.newsBadgeCount = 0,
     this.onQuizTap,
+    this.onMatchTap,
+    this.matchSelected = false,
     required this.onProfileTap,
     this.onNotificationTap,
     this.notificationBadgeCount = 0,
@@ -52,6 +56,8 @@ class SharedTabHeader extends StatelessWidget {
             onNewsTap: onNewsTap,
             newsBadgeCount: newsBadgeCount,
             onQuizTap: onQuizTap,
+            onMatchTap: onMatchTap,
+            matchSelected: matchSelected,
             onProfileTap: onProfileTap,
             onNotificationTap: onNotificationTap,
             notificationBadgeCount: notificationBadgeCount,

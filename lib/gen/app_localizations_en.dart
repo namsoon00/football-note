@@ -10086,6 +10086,85 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchBallsWonLabel => 'Balls won';
 
   @override
+  String get matchHubTopActionTooltip => 'Match hub';
+
+  @override
+  String get matchHubTitle => 'Match Hub';
+
+  @override
+  String get matchHubSubtitle =>
+      'Record friendlies, leagues, and tournaments in one place and review the result flow.';
+
+  @override
+  String get matchHubOverviewTitle => 'Match operations board';
+
+  @override
+  String get matchHubRecentFormLabel => 'Recent form';
+
+  @override
+  String get matchHubRecordButton => 'Record match';
+
+  @override
+  String get matchHubRecordHelper => 'Enter today\'s result quickly';
+
+  @override
+  String get matchHubCalendarButton => 'Open calendar';
+
+  @override
+  String get matchHubCalendarHelper => 'Review matches and plans by date';
+
+  @override
+  String get matchHubStatsButton => 'Match stats';
+
+  @override
+  String get matchHubStatsHelper => 'Analyze record and personal output';
+
+  @override
+  String get matchHubCompetitionHelper =>
+      'Manage teams and competition results';
+
+  @override
+  String get matchHubCompetitionsTitle => 'Competition board';
+
+  @override
+  String get matchHubNoCompetitionsTitle => 'No competitions registered.';
+
+  @override
+  String get matchHubNoCompetitionsSubtitle =>
+      'When you record league or tournament matches, teams, standings, and brackets collect here.';
+
+  @override
+  String get matchHubRecentMatchesTitle => 'Recent matches';
+
+  @override
+  String get matchHubEmptyTitle => 'No match records yet.';
+
+  @override
+  String get matchHubEmptySubtitle =>
+      'Start with a friendly match to calculate win rate and recent form.';
+
+  @override
+  String get matchHubOpeningFeedback => 'Opening the match screen.';
+
+  @override
+  String matchHubRecordedOnlyProgress(int count) {
+    return '$count match(es) recorded';
+  }
+
+  @override
+  String matchHubKindBreakdown(int friendly, int league, int tournament) {
+    return 'Friendly $friendly · League $league · Tournament $tournament';
+  }
+
+  @override
+  String get matchHubCompetitionStateLabel => 'Competition status';
+
+  @override
+  String matchHubCompetitionStateValue(int active, int finished) {
+    return 'Active $active · Finished $finished';
+  }
+
+  @override
   String get baseballMatchHitsLabel => 'Hits';
 
   @override

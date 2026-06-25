@@ -16,6 +16,8 @@ class WatchCartAppBar extends StatelessWidget {
   final VoidCallback? onNewsTap;
   final int newsBadgeCount;
   final VoidCallback? onQuizTap;
+  final VoidCallback? onMatchTap;
+  final bool matchSelected;
   final VoidCallback onProfileTap;
   final VoidCallback? onNotificationTap;
   final int notificationBadgeCount;
@@ -30,6 +32,8 @@ class WatchCartAppBar extends StatelessWidget {
     this.onNewsTap,
     this.newsBadgeCount = 0,
     this.onQuizTap,
+    this.onMatchTap,
+    this.matchSelected = false,
     required this.onProfileTap,
     this.onNotificationTap,
     this.notificationBadgeCount = 0,
@@ -67,54 +71,138 @@ class WatchCartAppBar extends StatelessWidget {
             : Icon(leadingIcon, size: 22, color: scheme.onSurface),
       ),
     );
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        InkWell(
-          onTap: onLeadingTap,
-          borderRadius: AppRadius.small,
-          child: leadingTooltip == null
-              ? leadingButton
-              : Tooltip(message: leadingTooltip!, child: leadingButton),
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compactActions = constraints.maxWidth < 360;
+        final hasOverflowActions =
+            compactActions && (onNewsTap != null || onQuizTap != null);
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            if (onNewsTap != null)
-              AppBarActionButton.icon(
-                icon: Icons.newspaper_outlined,
-                tooltip: l10n.tabNews,
-                badgeCount: newsBadgeCount,
-                onPressed: onNewsTap,
-              ),
-            if (onQuizTap != null)
-              AppBarActionButton.icon(
-                icon: Icons.quiz_outlined,
-                tooltip: l10n.drawerQuiz,
-                onPressed: onQuizTap,
-              ),
-            AppBarActionButton(
-              icon: _ProfileAppBarAvatar(photoSource: profilePhotoSource),
-              onPressed: onProfileTap,
+            InkWell(
+              onTap: onLeadingTap,
+              borderRadius: AppRadius.small,
+              child: leadingTooltip == null
+                  ? leadingButton
+                  : Tooltip(message: leadingTooltip!, child: leadingButton),
             ),
-            if (onNotificationTap != null)
-              AppBarActionButton.icon(
-                icon: Icons.notifications_outlined,
-                tooltip: l10n.notifications,
-                badgeCount: notificationBadgeCount,
-                onPressed: onNotificationTap,
+            Flexible(
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onMatchTap != null)
+                      AppBarActionButton.icon(
+                        icon: Icons.sports_soccer_outlined,
+                        tooltip: l10n.matchHubTopActionTooltip,
+                        selected: matchSelected,
+                        onPressed: onMatchTap,
+                      ),
+                    if (!compactActions && onNewsTap != null)
+                      AppBarActionButton.icon(
+                        icon: Icons.newspaper_outlined,
+                        tooltip: l10n.tabNews,
+                        badgeCount: newsBadgeCount,
+                        onPressed: onNewsTap,
+                      ),
+                    if (!compactActions && onQuizTap != null)
+                      AppBarActionButton.icon(
+                        icon: Icons.quiz_outlined,
+                        tooltip: l10n.drawerQuiz,
+                        onPressed: onQuizTap,
+                      ),
+                    AppBarActionButton(
+                      icon: _ProfileAppBarAvatar(
+                        photoSource: profilePhotoSource,
+                      ),
+                      onPressed: onProfileTap,
+                    ),
+                    if (onNotificationTap != null)
+                      AppBarActionButton.icon(
+                        icon: Icons.notifications_outlined,
+                        tooltip: l10n.notifications,
+                        badgeCount: notificationBadgeCount,
+                        onPressed: onNotificationTap,
+                      ),
+                    AppBarActionButton.icon(
+                      icon: Icons.settings,
+                      tooltip: l10n.settings,
+                      onPressed: onSettingsTap,
+                    ),
+                    if (hasOverflowActions)
+                      _WatchCartOverflowActions(
+                        onNewsTap: onNewsTap,
+                        onQuizTap: onQuizTap,
+                        newsBadgeCount: newsBadgeCount,
+                      ),
+                  ],
+                ),
               ),
-            AppBarActionButton.icon(
-              icon: Icons.settings,
-              tooltip: l10n.settings,
-              onPressed: onSettingsTap,
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }
+
+class _WatchCartOverflowActions extends StatelessWidget {
+  final VoidCallback? onNewsTap;
+  final VoidCallback? onQuizTap;
+  final int newsBadgeCount;
+
+  const _WatchCartOverflowActions({
+    required this.onNewsTap,
+    required this.onQuizTap,
+    required this.newsBadgeCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AppBarActionMenuButton<_WatchCartOverflowAction>(
+      icon: Icons.more_horiz,
+      tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+      itemBuilder: (context) => [
+        if (onNewsTap != null)
+          PopupMenuItem<_WatchCartOverflowAction>(
+            value: _WatchCartOverflowAction.news,
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.newspaper_outlined),
+              title: Text(
+                newsBadgeCount > 0
+                    ? '${l10n.tabNews} $newsBadgeCount'
+                    : l10n.tabNews,
+              ),
+            ),
+          ),
+        if (onQuizTap != null)
+          PopupMenuItem<_WatchCartOverflowAction>(
+            value: _WatchCartOverflowAction.quiz,
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.quiz_outlined),
+              title: Text(l10n.drawerQuiz),
+            ),
+          ),
+      ],
+      onSelected: (value) {
+        switch (value) {
+          case _WatchCartOverflowAction.news:
+            onNewsTap?.call();
+          case _WatchCartOverflowAction.quiz:
+            onQuizTap?.call();
+        }
+      },
+    );
+  }
+}
+
+enum _WatchCartOverflowAction { news, quiz }
 
 class _ProfileAppBarAvatar extends StatelessWidget {
   final String photoSource;

@@ -9810,6 +9810,82 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchBallsWonLabel => '공을 뺏은 횟수';
 
   @override
+  String get matchHubTopActionTooltip => '시합 허브';
+
+  @override
+  String get matchHubTitle => '시합 허브';
+
+  @override
+  String get matchHubSubtitle => '친선, 리그, 토너먼트를 한곳에서 기록하고 결과 흐름을 확인하세요.';
+
+  @override
+  String get matchHubOverviewTitle => '시합 운영 보드';
+
+  @override
+  String get matchHubRecentFormLabel => '최근 폼';
+
+  @override
+  String get matchHubRecordButton => '시합 기록';
+
+  @override
+  String get matchHubRecordHelper => '오늘 경기 결과를 바로 입력';
+
+  @override
+  String get matchHubCalendarButton => '일정 보기';
+
+  @override
+  String get matchHubCalendarHelper => '날짜별 시합과 계획 확인';
+
+  @override
+  String get matchHubStatsButton => '시합 통계';
+
+  @override
+  String get matchHubStatsHelper => '전적과 개인 기록 분석';
+
+  @override
+  String get matchHubCompetitionHelper => '팀 등록과 대회 결과 관리';
+
+  @override
+  String get matchHubCompetitionsTitle => '대회 보드';
+
+  @override
+  String get matchHubNoCompetitionsTitle => '등록된 대회가 없어요.';
+
+  @override
+  String get matchHubNoCompetitionsSubtitle =>
+      '리그나 토너먼트로 시합을 기록하면 팀, 순위, 대진표가 이곳에 모입니다.';
+
+  @override
+  String get matchHubRecentMatchesTitle => '최근 시합';
+
+  @override
+  String get matchHubEmptyTitle => '아직 시합 기록이 없어요.';
+
+  @override
+  String get matchHubEmptySubtitle => '친선 경기부터 빠르게 남기면 승률과 최근 폼을 계산할 수 있어요.';
+
+  @override
+  String get matchHubOpeningFeedback => '시합 화면으로 이동합니다.';
+
+  @override
+  String matchHubRecordedOnlyProgress(int count) {
+    return '$count경기 기록됨';
+  }
+
+  @override
+  String matchHubKindBreakdown(int friendly, int league, int tournament) {
+    return '친선 $friendly · 리그 $league · 토너먼트 $tournament';
+  }
+
+  @override
+  String get matchHubCompetitionStateLabel => '대회 상태';
+
+  @override
+  String matchHubCompetitionStateValue(int active, int finished) {
+    return '진행 $active · 종료 $finished';
+  }
+
+  @override
   String get baseballMatchHitsLabel => '안타';
 
   @override
