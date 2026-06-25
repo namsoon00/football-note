@@ -5539,6 +5539,59 @@
   "matchNoteOptionalLabel": "메모(선택)",
   "matchShotsOnTargetLabel": "유효 슈팅",
   "matchBallsWonLabel": "공을 뺏은 횟수",
+  "matchHubTopActionTooltip": "시합 허브",
+  "matchHubTitle": "시합 허브",
+  "matchHubSubtitle": "친선, 리그, 토너먼트를 한곳에서 기록하고 결과 흐름을 확인하세요.",
+  "matchHubOverviewTitle": "시합 운영 보드",
+  "matchHubRecentFormLabel": "최근 폼",
+  "matchHubRecordButton": "시합 기록",
+  "matchHubRecordHelper": "오늘 경기 결과를 바로 입력",
+  "matchHubCalendarButton": "일정 보기",
+  "matchHubCalendarHelper": "날짜별 시합과 계획 확인",
+  "matchHubStatsButton": "시합 통계",
+  "matchHubStatsHelper": "전적과 개인 기록 분석",
+  "matchHubCompetitionHelper": "팀 등록과 대회 결과 관리",
+  "matchHubCompetitionsTitle": "대회 보드",
+  "matchHubNoCompetitionsTitle": "등록된 대회가 없어요.",
+  "matchHubNoCompetitionsSubtitle": "리그나 토너먼트로 시합을 기록하면 팀, 순위, 대진표가 이곳에 모입니다.",
+  "matchHubRecentMatchesTitle": "최근 시합",
+  "matchHubEmptyTitle": "아직 시합 기록이 없어요.",
+  "matchHubEmptySubtitle": "친선 경기부터 빠르게 남기면 승률과 최근 폼을 계산할 수 있어요.",
+  "matchHubOpeningFeedback": "시합 화면으로 이동합니다.",
+  "matchHubRecordedOnlyProgress": "{count}경기 기록됨",
+  "@matchHubRecordedOnlyProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubKindBreakdown": "친선 {friendly} · 리그 {league} · 토너먼트 {tournament}",
+  "@matchHubKindBreakdown": {
+    "placeholders": {
+      "friendly": {
+        "type": "int"
+      },
+      "league": {
+        "type": "int"
+      },
+      "tournament": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubCompetitionStateLabel": "대회 상태",
+  "matchHubCompetitionStateValue": "진행 {active} · 종료 {finished}",
+  "@matchHubCompetitionStateValue": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "finished": {
+        "type": "int"
+      }
+    }
+  },
   "baseballMatchHitsLabel": "안타",
   "baseballMatchRbisLabel": "타점",
   "baseballMatchRunsLabel": "득점",

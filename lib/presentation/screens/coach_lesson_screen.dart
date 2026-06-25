@@ -66,6 +66,7 @@ class CoachLessonScreen extends StatefulWidget {
   final bool embeddedInHomeTab;
   final int openTodayDiaryRequestKey;
   final int dataRevision;
+  final VoidCallback? onOpenMatchHub;
 
   const CoachLessonScreen({
     super.key,
@@ -78,6 +79,7 @@ class CoachLessonScreen extends StatefulWidget {
     this.embeddedInHomeTab = false,
     this.openTodayDiaryRequestKey = 0,
     this.dataRevision = 0,
+    this.onOpenMatchHub,
   });
 
   static String todayViewedDayToken(DateTime date) =>
@@ -313,6 +315,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                     widget.settingsService != null
                                 ? _openQuiz
                                 : null,
+                            onMatchTap: widget.onOpenMatchHub,
                             onProfileTap: _openProfile,
                             onNotificationTap: widget.settingsService != null
                                 ? _openNotifications

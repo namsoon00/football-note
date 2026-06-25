@@ -73,6 +73,7 @@ class HomeHubScreen extends StatefulWidget {
   final VoidCallback? onQuickQuiz;
   final VoidCallback? onQuickMeal;
   final VoidCallback? onQuickBoard;
+  final VoidCallback? onOpenMatchHub;
   final VoidCallback onOpenLogs;
   final VoidCallback onOpenDiary;
   final VoidCallback onOpenWeeklyStats;
@@ -94,6 +95,7 @@ class HomeHubScreen extends StatefulWidget {
     this.onQuickQuiz,
     this.onQuickMeal,
     this.onQuickBoard,
+    this.onOpenMatchHub,
     required this.onOpenLogs,
     required this.onOpenDiary,
     required this.onOpenWeeklyStats,
@@ -490,6 +492,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                 onNewsTap: _openNews,
                                 newsBadgeCount: newsCount,
                                 onQuizTap: _openQuizShortcut,
+                                onMatchTap: widget.onOpenMatchHub,
                                 onProfileTap: () => _openProfile(context),
                                 onNotificationTap: _openNotifications,
                                 notificationBadgeCount: reminderUnreadCount,

@@ -45,6 +45,9 @@ class StatsScreen extends StatefulWidget {
   final BackupService? driveBackupService;
   final DateTimeRange? initialRange;
   final int initialRangeRequestKey;
+  final int initialTabIndex;
+  final int initialTabRequestKey;
+  final VoidCallback? onOpenMatchHub;
 
   const StatsScreen({
     super.key,
@@ -57,6 +60,9 @@ class StatsScreen extends StatefulWidget {
     this.driveBackupService,
     this.initialRange,
     this.initialRangeRequestKey = 0,
+    this.initialTabIndex = 0,
+    this.initialTabRequestKey = 0,
+    this.onOpenMatchHub,
   });
 
   @override
@@ -77,6 +83,7 @@ class _StatsScreenState extends State<StatsScreen> {
   void initState() {
     super.initState();
     _benchmarkService = BenchmarkService(widget.optionRepository);
+    _statsTabIndex = widget.initialTabIndex.clamp(0, 1).toInt();
     _selectedRange = widget.initialRange ?? _recentWeekRange();
     _trainingEntriesStream = _watchSelectedTrainingEntries();
     NewsBadgeService.refresh(widget.optionRepository);
@@ -97,6 +104,12 @@ class _StatsScreenState extends State<StatsScreen> {
     }
     if (rangeChanged || widget.trainingService != oldWidget.trainingService) {
       _trainingEntriesStream = _watchSelectedTrainingEntries();
+    }
+    final tabChanged =
+        widget.initialTabRequestKey != oldWidget.initialTabRequestKey ||
+            widget.initialTabIndex != oldWidget.initialTabIndex;
+    if (tabChanged) {
+      _statsTabIndex = widget.initialTabIndex.clamp(0, 1).toInt();
     }
   }
 
@@ -262,6 +275,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 onNewsTap: () => _openNews(context),
                 newsBadgeCount: newsCount,
                 onQuizTap: () => _openQuiz(context),
+                onMatchTap: widget.onOpenMatchHub,
                 onNotificationTap: () => _openNotifications(context),
                 notificationBadgeCount: reminderUnreadCount,
                 profilePhotoSource: PlayerProfileService(

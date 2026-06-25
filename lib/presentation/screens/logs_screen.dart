@@ -56,6 +56,7 @@ class LogsScreen extends StatefulWidget {
   final VoidCallback? onQuickPlan;
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickQuiz;
+  final VoidCallback? onOpenMatchHub;
 
   const LogsScreen({
     super.key,
@@ -69,6 +70,7 @@ class LogsScreen extends StatefulWidget {
     this.onQuickPlan,
     this.onQuickMatch,
     this.onQuickQuiz,
+    this.onOpenMatchHub,
   });
 
   @override
@@ -258,6 +260,7 @@ class _LogsScreenState extends State<LogsScreen> {
                             onNewsTap: () => _openNews(context),
                             newsBadgeCount: newsCount,
                             onQuizTap: () => _openQuiz(context),
+                            onMatchTap: widget.onOpenMatchHub,
                             onNotificationTap: () =>
                                 _openNotifications(context),
                             notificationBadgeCount: reminderUnreadCount,
