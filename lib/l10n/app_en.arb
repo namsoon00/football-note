@@ -704,6 +704,49 @@
       }
     }
   },
+  "worldCupQualificationOtherMatchesTitle": "{count} other match result cases",
+  "@worldCupQualificationOtherMatchesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchesSubtitle": "Even with this team's result fixed, other group results can change the rank and qualification state.",
+  "worldCupQualificationOtherPathOutcome": "Rank {rank} · {outcome}",
+  "@worldCupQualificationOtherPathOutcome": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      },
+      "outcome": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchPick": "{home} - {away}: {result}",
+  "@worldCupQualificationOtherMatchPick": {
+    "placeholders": {
+      "home": {
+        "type": "String"
+      },
+      "away": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchWinResult": "{team} win",
+  "@worldCupQualificationOtherMatchWinResult": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchDrawResult": "Draw",
   "worldCupQualificationThirdPlaceNote": "A third-place finish still needs to rank among the 8 best third-place teams across the 12 groups.",
   "worldCupQualificationNoTeamMatchesPick": "No team matches left",
   "worldCupQualificationCompletePick": "Group rank fixed",

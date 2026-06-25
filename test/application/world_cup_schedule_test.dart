@@ -284,7 +284,18 @@ void main() {
       expect(scenario.remainingGroupMatches, 3);
       expect(scenario.remainingOtherMatches, 2);
       expect(scenario.totalCases, 9);
+      expect(scenario.otherMatchPaths, hasLength(9));
+      expect(
+        scenario.otherMatchPaths.every((path) => path.picks.length == 2),
+        isTrue,
+      );
     }
+    final sampleOtherPath = scenarios.first.otherMatchPaths.first;
+    expect(
+      sampleOtherPath.picks.map((pick) => pick.matchNumber),
+      [25, 53],
+    );
+    expect(sampleOtherPath.rank, inInclusiveRange(1, 4));
   });
 
   test('round of 32 path scenarios keep updating after team fixtures end', () {
@@ -305,6 +316,13 @@ void main() {
     expect(scenario.remainingGroupMatches, 2);
     expect(scenario.remainingOtherMatches, 2);
     expect(scenario.totalCases, 9);
+    expect(scenario.otherMatchPaths, hasLength(9));
+    expect(
+      scenario.otherMatchPaths.expand((path) => path.picks).map(
+            (pick) => pick.matchNumber,
+          ),
+      everyElement(anyOf(25, 53)),
+    );
     expect(scenario.canAdvance, isTrue);
   });
 
@@ -328,6 +346,8 @@ void main() {
     expect(scenario.remainingGroupMatches, 0);
     expect(scenario.remainingOtherMatches, 0);
     expect(scenario.totalCases, 1);
+    expect(scenario.otherMatchPaths, hasLength(1));
+    expect(scenario.otherMatchPaths.single.picks, isEmpty);
     expect(scenario.guaranteesAutomaticAdvance, isTrue);
   });
 

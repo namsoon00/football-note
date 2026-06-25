@@ -704,6 +704,49 @@
       }
     }
   },
+  "worldCupQualificationOtherMatchesTitle": "他の試合結果 {count} 通り",
+  "@worldCupQualificationOtherMatchesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchesSubtitle": "このチームの結果が同じでも、同じグループの他の試合結果で順位と進出状態が変わることがあります。",
+  "worldCupQualificationOtherPathOutcome": "{rank}位 · {outcome}",
+  "@worldCupQualificationOtherPathOutcome": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      },
+      "outcome": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchPick": "{home} - {away}: {result}",
+  "@worldCupQualificationOtherMatchPick": {
+    "placeholders": {
+      "home": {
+        "type": "String"
+      },
+      "away": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchWinResult": "{team} 勝利",
+  "@worldCupQualificationOtherMatchWinResult": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchDrawResult": "引き分け",
   "worldCupQualificationThirdPlaceNote": "グループ3位は、12グループの3位チームの中で上位8チームに入る必要があります。",
   "worldCupQualificationNoTeamMatchesPick": "このチームの残り試合なし",
   "worldCupQualificationCompletePick": "グループ順位確定",

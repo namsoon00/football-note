@@ -1341,6 +1341,34 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String worldCupQualificationOtherMatchesTitle(int count) {
+    return '$count other match result cases';
+  }
+
+  @override
+  String get worldCupQualificationOtherMatchesSubtitle =>
+      'Even with this team\'s result fixed, other group results can change the rank and qualification state.';
+
+  @override
+  String worldCupQualificationOtherPathOutcome(int rank, String outcome) {
+    return 'Rank $rank · $outcome';
+  }
+
+  @override
+  String worldCupQualificationOtherMatchPick(
+      String home, String away, String result) {
+    return '$home - $away: $result';
+  }
+
+  @override
+  String worldCupQualificationOtherMatchWinResult(String team) {
+    return '$team win';
+  }
+
+  @override
+  String get worldCupQualificationOtherMatchDrawResult => 'Draw';
+
+  @override
   String get worldCupQualificationThirdPlaceNote =>
       'A third-place finish still needs to rank among the 8 best third-place teams across the 12 groups.';
 

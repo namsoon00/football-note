@@ -2441,6 +2441,43 @@ abstract class AppLocalizations {
   String worldCupQualificationScenarioCases(int automaticCases,
       int thirdPlaceCases, int eliminatedCases, int totalCases);
 
+  /// No description provided for @worldCupQualificationOtherMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} other match result cases'**
+  String worldCupQualificationOtherMatchesTitle(int count);
+
+  /// No description provided for @worldCupQualificationOtherMatchesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Even with this team\'s result fixed, other group results can change the rank and qualification state.'**
+  String get worldCupQualificationOtherMatchesSubtitle;
+
+  /// No description provided for @worldCupQualificationOtherPathOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank {rank} · {outcome}'**
+  String worldCupQualificationOtherPathOutcome(int rank, String outcome);
+
+  /// No description provided for @worldCupQualificationOtherMatchPick.
+  ///
+  /// In en, this message translates to:
+  /// **'{home} - {away}: {result}'**
+  String worldCupQualificationOtherMatchPick(
+      String home, String away, String result);
+
+  /// No description provided for @worldCupQualificationOtherMatchWinResult.
+  ///
+  /// In en, this message translates to:
+  /// **'{team} win'**
+  String worldCupQualificationOtherMatchWinResult(String team);
+
+  /// No description provided for @worldCupQualificationOtherMatchDrawResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get worldCupQualificationOtherMatchDrawResult;
+
   /// No description provided for @worldCupQualificationThirdPlaceNote.
   ///
   /// In en, this message translates to:

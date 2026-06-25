@@ -157,6 +157,38 @@ class WorldCupQualificationMatchPick {
   });
 }
 
+class WorldCupQualificationOtherMatchPick {
+  final int matchNumber;
+  final String homeTeam;
+  final String awayTeam;
+  final WorldCupFixtureTeamResult resultForHomeTeam;
+
+  const WorldCupQualificationOtherMatchPick({
+    required this.matchNumber,
+    required this.homeTeam,
+    required this.awayTeam,
+    required this.resultForHomeTeam,
+  });
+}
+
+class WorldCupQualificationOtherMatchPath {
+  final List<WorldCupQualificationOtherMatchPick> picks;
+  final int finalPoints;
+  final int rank;
+
+  const WorldCupQualificationOtherMatchPath({
+    required this.picks,
+    required this.finalPoints,
+    required this.rank,
+  });
+
+  bool get isAutomaticAdvance => rank <= 2;
+
+  bool get isThirdPlaceRace => rank == 3;
+
+  bool get isEliminated => rank > 3;
+}
+
 class WorldCupQualificationOpponentPath {
   final int rank;
   final int matchNumber;
@@ -186,6 +218,7 @@ class WorldCupQualificationPathScenario {
   final int eliminatedCases;
   final int bestRank;
   final int worstRank;
+  final List<WorldCupQualificationOtherMatchPath> otherMatchPaths;
   final List<WorldCupQualificationOpponentPath> opponentPaths;
 
   const WorldCupQualificationPathScenario({
@@ -203,6 +236,7 @@ class WorldCupQualificationPathScenario {
     required this.eliminatedCases,
     required this.bestRank,
     required this.worstRank,
+    required this.otherMatchPaths,
     required this.opponentPaths,
   });
 
@@ -544,7 +578,10 @@ List<WorldCupQualificationPathScenario> worldCupRoundOf32PathScenariosForTeam(
       picks: picks,
     );
 
-    void recordCompletePath(List<WorldCupFixture> scenarioFixtures) {
+    void recordCompletePath(
+      List<WorldCupFixture> scenarioFixtures,
+      List<WorldCupQualificationOtherMatchPick> otherPicks,
+    ) {
       final standings =
           worldCupGroupStandings(fixtures: scenarioFixtures)[targetGroup];
       if (standings == null) return;
@@ -554,6 +591,7 @@ List<WorldCupQualificationPathScenario> worldCupRoundOf32PathScenariosForTeam(
       if (rankIndex < 0) return;
       accumulator.record(
         rankIndex + 1,
+        List<WorldCupQualificationOtherMatchPick>.unmodifiable(otherPicks),
         worldCupRoundOf32OpponentPathsForGroupRank(
           targetGroup,
           rankIndex + 1,
@@ -565,22 +603,45 @@ List<WorldCupQualificationPathScenario> worldCupRoundOf32PathScenariosForTeam(
     void walkOtherFixtures(
       int fixtureIndex,
       List<WorldCupFixture> scenarioFixtures,
+      List<WorldCupQualificationOtherMatchPick> otherPicks,
     ) {
       if (fixtureIndex >= otherRemainingFixtures.length) {
-        recordCompletePath(scenarioFixtures);
+        recordCompletePath(scenarioFixtures, otherPicks);
         return;
       }
 
       final fixture = otherRemainingFixtures[fixtureIndex];
-      for (final score in const <(int, int)>[(1, 0), (0, 0), (0, 1)]) {
+      for (final result in const <WorldCupFixtureTeamResult>[
+        WorldCupFixtureTeamResult.win,
+        WorldCupFixtureTeamResult.draw,
+        WorldCupFixtureTeamResult.loss,
+      ]) {
+        final score = _scoreForFixtureTeamResult(
+          fixture,
+          fixture.homeTeam,
+          result,
+        );
         walkOtherFixtures(
           fixtureIndex + 1,
           _replaceFixtureScore(scenarioFixtures, fixture, score),
+          [
+            ...otherPicks,
+            WorldCupQualificationOtherMatchPick(
+              matchNumber: fixture.matchNumber,
+              homeTeam: fixture.homeTeam,
+              awayTeam: fixture.awayTeam,
+              resultForHomeTeam: result,
+            ),
+          ],
         );
       }
     }
 
-    walkOtherFixtures(0, teamPathFixtures);
+    walkOtherFixtures(
+      0,
+      teamPathFixtures,
+      const <WorldCupQualificationOtherMatchPick>[],
+    );
     scenarios.add(accumulator.toScenario());
   }
 
@@ -835,6 +896,8 @@ class _WorldCupQualificationPathAccumulator {
   int eliminatedCases = 0;
   int bestRank = 4;
   int worstRank = 1;
+  final List<WorldCupQualificationOtherMatchPath> otherMatchPaths =
+      <WorldCupQualificationOtherMatchPath>[];
   final Map<String, WorldCupQualificationOpponentPath> opponentPaths =
       <String, WorldCupQualificationOpponentPath>{};
 
@@ -850,6 +913,7 @@ class _WorldCupQualificationPathAccumulator {
 
   void record(
     int rank,
+    List<WorldCupQualificationOtherMatchPick> otherPicks,
     List<WorldCupQualificationOpponentPath> paths,
   ) {
     totalCases += 1;
@@ -862,6 +926,14 @@ class _WorldCupQualificationPathAccumulator {
     } else {
       eliminatedCases += 1;
     }
+
+    otherMatchPaths.add(
+      WorldCupQualificationOtherMatchPath(
+        picks: otherPicks,
+        finalPoints: currentPoints + remainingPoints,
+        rank: rank,
+      ),
+    );
 
     if (rank <= 3) {
       for (final path in paths) {
@@ -878,6 +950,23 @@ class _WorldCupQualificationPathAccumulator {
         if (rank != 0) return rank;
         return a.matchNumber.compareTo(b.matchNumber);
       });
+    final sortedOtherMatchPaths = otherMatchPaths.toList()
+      ..sort((a, b) {
+        final rank = a.rank.compareTo(b.rank);
+        if (rank != 0) return rank;
+        for (var index = 0;
+            index < a.picks.length && index < b.picks.length;
+            index += 1) {
+          final matchNumber =
+              a.picks[index].matchNumber.compareTo(b.picks[index].matchNumber);
+          if (matchNumber != 0) return matchNumber;
+          final result = a.picks[index].resultForHomeTeam.index.compareTo(
+            b.picks[index].resultForHomeTeam.index,
+          );
+          if (result != 0) return result;
+        }
+        return a.picks.length.compareTo(b.picks.length);
+      });
     return WorldCupQualificationPathScenario(
       group: group,
       team: team,
@@ -893,6 +982,9 @@ class _WorldCupQualificationPathAccumulator {
       eliminatedCases: eliminatedCases,
       bestRank: bestRank,
       worstRank: worstRank,
+      otherMatchPaths: List<WorldCupQualificationOtherMatchPath>.unmodifiable(
+        sortedOtherMatchPaths,
+      ),
       opponentPaths: List<WorldCupQualificationOpponentPath>.unmodifiable(
         sortedOpponentPaths,
       ),

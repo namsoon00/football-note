@@ -704,6 +704,49 @@
       }
     }
   },
+  "worldCupQualificationOtherMatchesTitle": "다른 경기 결과 {count}가지",
+  "@worldCupQualificationOtherMatchesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchesSubtitle": "이 팀 결과가 같아도 같은 조의 다른 경기 승·무·패에 따라 순위와 진출 상태가 달라질 수 있어요.",
+  "worldCupQualificationOtherPathOutcome": "{rank}위 · {outcome}",
+  "@worldCupQualificationOtherPathOutcome": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      },
+      "outcome": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchPick": "{home} - {away}: {result}",
+  "@worldCupQualificationOtherMatchPick": {
+    "placeholders": {
+      "home": {
+        "type": "String"
+      },
+      "away": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchWinResult": "{team} 승",
+  "@worldCupQualificationOtherMatchWinResult": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupQualificationOtherMatchDrawResult": "무승부",
   "worldCupQualificationThirdPlaceNote": "조 3위는 12개 조 3위 중 상위 8팀에 들어야 32강에 올라갑니다.",
   "worldCupQualificationNoTeamMatchesPick": "이 팀 남은 경기 없음",
   "worldCupQualificationCompletePick": "조별 순위 확정",

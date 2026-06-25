@@ -1301,6 +1301,34 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String worldCupQualificationOtherMatchesTitle(int count) {
+    return '他の試合結果 $count 通り';
+  }
+
+  @override
+  String get worldCupQualificationOtherMatchesSubtitle =>
+      'このチームの結果が同じでも、同じグループの他の試合結果で順位と進出状態が変わることがあります。';
+
+  @override
+  String worldCupQualificationOtherPathOutcome(int rank, String outcome) {
+    return '$rank位 · $outcome';
+  }
+
+  @override
+  String worldCupQualificationOtherMatchPick(
+      String home, String away, String result) {
+    return '$home - $away: $result';
+  }
+
+  @override
+  String worldCupQualificationOtherMatchWinResult(String team) {
+    return '$team 勝利';
+  }
+
+  @override
+  String get worldCupQualificationOtherMatchDrawResult => '引き分け';
+
+  @override
   String get worldCupQualificationThirdPlaceNote =>
       'グループ3位は、12グループの3位チームの中で上位8チームに入る必要があります。';
 
