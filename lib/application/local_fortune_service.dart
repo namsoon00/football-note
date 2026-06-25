@@ -43,6 +43,30 @@ class LocalFortuneService {
         ],
       ),
       FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionHiddenStems,
+        values: _localizedValues(l10n.fortuneMyeongliHiddenStemLabels),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionTenGods,
+        values: _localizedValues(l10n.fortuneMyeongliTenGodLabels),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionTwelveStages,
+        values: _localizedValues(l10n.fortuneMyeongliTwelveStageLabels),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionBranchRelations,
+        values: _localizedValues(l10n.fortuneMyeongliBranchRelationLabels),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionSymbolicStars,
+        values: _localizedValues(l10n.fortuneMyeongliSymbolicStarLabels),
+      ),
+      FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionElementColors,
+        values: _localizedValues(l10n.fortuneMyeongliElementColorLabels),
+      ),
+      FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionDayMoods,
         values: _combinedLocalizedValues(
           l10n.fortuneSajuElementFlows,
@@ -157,9 +181,21 @@ class LocalFortuneService {
   }) {
     final baseSeed = _seed(entry, profile, history);
     final birthReading = _birthReading(profile, l10n);
-    final dailyPillar = _myeongli.dayPillar(entry.date);
-    final luckyColor = _luckyColor(seed: baseSeed + 73, l10n: l10n);
-    final luckyNumber = (baseSeed.abs() % 9) + 1;
+    final dailySignature = birthReading.chart == null
+        ? null
+        : _myeongli.dailySignature(
+            birthChart: birthReading.chart!,
+            date: entry.date,
+          );
+    final dailyPillar =
+        dailySignature?.dailyPillar ?? _myeongli.dayPillar(entry.date);
+    final luckyElement = dailyPillar.stem.element;
+    final luckyColor = _luckyColor(
+      seed: baseSeed + 73,
+      element: luckyElement,
+      l10n: l10n,
+    );
+    final luckyNumber = _luckyNumber(seed: baseSeed, element: luckyElement);
     final recommendedProgram = _recommendedProgram(entry: entry, l10n: l10n);
     final recommendationText = _recommendationText(
       entry: entry,
@@ -170,13 +206,18 @@ class LocalFortuneService {
     final fortuneTheme = _pickCombinedLocalized(
       l10n.fortuneSajuFortuneThemes,
       l10n.fortuneSajuFortuneThemeExtras,
-      baseSeed + birthReading.seed + 89,
+      baseSeed + birthReading.seed + (dailySignature?.seed ?? 0) + 89,
     );
-    final elementFlow = _pickCombinedLocalized(
-      l10n.fortuneSajuElementFlows,
-      l10n.fortuneSajuElementFlowExtras,
-      baseSeed + birthReading.elementSeed + dailyPillar.stem.index * 37,
-    );
+    final elementFlow = _myeongliElementFlow(
+          signature: dailySignature,
+          seed: baseSeed + birthReading.elementSeed,
+          l10n: l10n,
+        ) ??
+        _pickCombinedLocalized(
+          l10n.fortuneSajuElementFlows,
+          l10n.fortuneSajuElementFlowExtras,
+          baseSeed + birthReading.elementSeed + dailyPillar.stem.index * 37,
+        );
 
     final fortuneText = <String>[
       l10n.fortuneGeneratedDailyLineOne(name, elementFlow),
@@ -277,7 +318,27 @@ class LocalFortuneService {
     return l10n.fortuneRecommendationDefault(recommendedProgram);
   }
 
-  String _luckyColor({required int seed, required AppLocalizations l10n}) {
+  String _luckyColor({
+    required int seed,
+    required MyeongliElement element,
+    required AppLocalizations l10n,
+  }) {
+    final elementColorSets = _localizedValues(
+      l10n.fortuneMyeongliElementColorValues,
+    );
+    final elementColors = _splitElementColorSet(
+      _valueAt(elementColorSets, element.index),
+    );
+    if (elementColors.isNotEmpty) {
+      return _composeSegments(
+        seed: seed,
+        first: _combinedLocalizedValues(
+          l10n.fortuneLuckyColorTones,
+          l10n.fortuneLuckyColorToneExtras,
+        ),
+        second: elementColors,
+      );
+    }
     return _composeSegments(
       seed: seed,
       first: _combinedLocalizedValues(
@@ -289,6 +350,46 @@ class LocalFortuneService {
         l10n.fortuneLuckyColorBaseExtras,
       ),
     );
+  }
+
+  int _luckyNumber({
+    required int seed,
+    required MyeongliElement element,
+  }) {
+    const elementNumbers = <List<int>>[
+      <int>[3, 8],
+      <int>[2, 7],
+      <int>[5],
+      <int>[4, 9],
+      <int>[1, 6],
+    ];
+    final numbers = elementNumbers[element.index];
+    return numbers[seed.abs() % numbers.length];
+  }
+
+  String? _myeongliElementFlow({
+    required MyeongliDailySignature? signature,
+    required int seed,
+    required AppLocalizations l10n,
+  }) {
+    if (signature == null) return null;
+    final candidates = <String>[
+      _valueAt(
+        _localizedValues(l10n.fortuneMyeongliTenGodDailyLines),
+        signature.tenGod.index,
+      ),
+      _valueAt(
+        _localizedValues(l10n.fortuneMyeongliTwelveStageDailyLines),
+        signature.twelveStage.index,
+      ),
+      if (signature.branchRelation != null)
+        _valueAt(
+          _localizedValues(l10n.fortuneMyeongliBranchRelationDailyLines),
+          signature.branchRelation!.type.index,
+        ),
+    ].where((value) => value.trim().isNotEmpty).toList(growable: false);
+    if (candidates.isEmpty) return null;
+    return _valueAt(candidates, seed + signature.seed);
   }
 
   String _composeSegments({
@@ -337,6 +438,7 @@ class LocalFortuneService {
       frame: frame,
       seed: chart.seed,
       elementSeed: chart.elementSeed,
+      chart: chart,
     );
   }
 
@@ -372,6 +474,14 @@ class LocalFortuneService {
   static List<String> _localizedValues(String packed) {
     return packed
         .split('|')
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  static List<String> _splitElementColorSet(String packed) {
+    return packed
+        .split('/')
         .map((value) => value.trim())
         .where((value) => value.isNotEmpty)
         .toList(growable: false);
@@ -437,10 +547,16 @@ class LocalFortuneService {
       _fortuneSajuNameElementCount,
       _fortuneSajuPlayAdviceCount,
     );
+    final myeongliSignatureCount = countSegments(
+      _fortuneMyeongliTenGodCount,
+      _fortuneMyeongliTwelveStageCount,
+      _fortuneMyeongliBranchRelationTypeCount,
+    );
     final pillarCount = BigInt.from(_myeongli.pillars.length);
     const luckyNumberCount = 9;
 
     return pillarCount *
+        myeongliSignatureCount *
         luckyColorCount *
         luckyTimeCount *
         luckyZoneCount *
@@ -468,14 +584,19 @@ class _BirthReading {
   final String frame;
   final int seed;
   final int elementSeed;
+  final MyeongliChart? chart;
 
   const _BirthReading({
     required this.frame,
     required this.seed,
     required this.elementSeed,
+    this.chart,
   });
 }
 
+const int _fortuneMyeongliTenGodCount = 10;
+const int _fortuneMyeongliTwelveStageCount = 12;
+const int _fortuneMyeongliBranchRelationTypeCount = 7;
 const int _fortuneLuckyColorToneCount = 40;
 const int _fortuneLuckyColorBaseCount = 48;
 const int _fortuneLuckyTimePeriodCount = 32;

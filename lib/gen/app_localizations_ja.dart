@@ -6096,13 +6096,32 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseTitle => '運勢データベース全体';
 
   @override
-  String get fortuneDatabaseSubtitle => '今日の運勢を作る文のかけら、カラー、数字のデータを集めました。';
+  String get fortuneDatabaseSubtitle =>
+      '蔵干、通変星、十二運、地支の関係、神殺キーワード、今日の運勢文、カラー、数字をまとめました。';
 
   @override
   String get fortuneDatabaseCloseAction => '閉じる';
 
   @override
   String get fortuneDatabaseSectionBirthCodes => '命理コード';
+
+  @override
+  String get fortuneDatabaseSectionHiddenStems => '蔵干';
+
+  @override
+  String get fortuneDatabaseSectionTenGods => '通変星の意味';
+
+  @override
+  String get fortuneDatabaseSectionTwelveStages => '十二運';
+
+  @override
+  String get fortuneDatabaseSectionBranchRelations => '地支の合冲刑害破';
+
+  @override
+  String get fortuneDatabaseSectionSymbolicStars => '神殺キーワード';
+
+  @override
+  String get fortuneDatabaseSectionElementColors => '五行カラー';
 
   @override
   String get fortuneDatabaseSectionDayMoods => '一日の流れ';
@@ -6225,6 +6244,46 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get fortuneSajuEarthlyBranches => '子|丑|寅|卯|辰|巳|午|未|申|酉|戌|亥';
+
+  @override
+  String get fortuneMyeongliHiddenStemLabels =>
+      '子: 癸|丑: 己・癸・辛|寅: 甲・丙・戊|卯: 乙|辰: 戊・乙・癸|巳: 丙・戊・庚|午: 丁・己|未: 己・丁・乙|申: 庚・壬・戊|酉: 辛|戌: 戊・辛・丁|亥: 壬・甲';
+
+  @override
+  String get fortuneMyeongliTenGodLabels =>
+      '比肩: 自分の基準と自尊心|劫財: 競争と共有、早い反応|食神: 楽しみと表現、安定した成果|傷官: 変わった表現と枠外の発想|偏財: 広い機会と思わぬ提案|正財: 実利と整理、着実な管理|偏官: 緊張感と決断、突破力|正官: 約束と秩序、信頼の流れ|偏印: 見慣れないヒントと深い観察|印綬: 助けと学び、やさしい保護';
+
+  @override
+  String get fortuneMyeongliTwelveStageLabels =>
+      '長生: 新しい気が育つ始まり|沐浴: 感覚が目覚める変化|冠帯: 姿勢を整える準備|建禄: 自分の力がはっきりする場|帝旺: 最も強い推進力|衰: 力をゆるめて整える流れ|病: 無理より管理が必要な流れ|死: 締めくくりと判断の流れ|墓: いったん収めて熟成する流れ|絶: 切って新しく見る転換|胎: 小さな可能性が生まれる流れ|養: 次の流れを育てる準備';
+
+  @override
+  String get fortuneMyeongliBranchRelationLabels =>
+      '子午冲: 方向がぶつかり選択がはっきりする|丑未冲: 古いことが動き出す変化|寅申冲: 移動と判断が速くなる流れ|卯酉冲: 言葉と関係のバランス調整|辰戌冲: 基準と責任を見直す流れ|巳亥冲: 感情と速度を整える流れ|子丑合: 近い協力と安定|寅亥合: 学びと広がりのつながり|卯戌合: 温かな表現と共感|辰酉合: 整理と結果のつながり|巳申合: 早い判断と機転|午未合: 穏やかな関係と締めくくり|寅巳申刑: 急ぐ気持ちを整える合図|丑未戌刑: 古い負担を片づける合図|子卯刑: 言葉と感情の線を合わせる合図|子未害: 小さな誤解を確認する流れ|丑午害: 気持ちと行動の温度を合わせる流れ|寅巳害: 急ぎすぎを下げる流れ|卯辰害: 近い関係をやわらかく見る流れ|申亥害: 考えが増えたら整理する流れ|酉戌害: 言葉尻と約束を見る流れ|子酉破: 散らかった計画を立て直す流れ|丑辰破: 小さなひびを埋める流れ|寅亥破: 慣れた期待を新しく見る流れ|卯午破: 表現の仕方を変える流れ|巳申破: 早い選択をもう一度見る流れ|未戌破: 仕上げの基準を整え直す流れ|申子辰 三合水: 思考と情報が集まる流れ|亥卯未 三合木: 成長と関係が動き出す流れ|寅午戌 三合火: 表現と情熱が強まる流れ|巳酉丑 三合金: 整理と完成度が高まる流れ|亥子丑 方合水: 静かな集中が積もる流れ|寅卯辰 方合木: 始まりと成長の流れ|巳午未 方合火: 活気と表現の流れ|申酉戌 方合金: 結果と整理の流れ';
+
+  @override
+  String get fortuneMyeongliSymbolicStarLabels =>
+      '天乙貴人: 助けに出会う運|文昌貴人: 文章と学び、話し方の運|桃花: 魅力と注目が高まる運|駅馬: 移動と変化、新しい知らせの運|華蓋: 没入と好み、深い感性の運|羊刃: 強い推進力と決断の運|白虎: 大きなエネルギーと突破の運|魁罡: 押し出す力と独立性|天徳貴人: やわらかな保護と緩衝|月徳貴人: 関係の中の助けと配慮|天医星: 回復とケアの運|金輿: 安定感と心地よい好感';
+
+  @override
+  String get fortuneMyeongliElementColorLabels =>
+      '木: グリーン、ミント、ターコイズ、フォレスト|火: レッド、コーラル、ピーチ、ローズピンク|土: マスタード、バターイエロー、モカ、アイボリー|金: ホワイト、シルバー、ゴールド、ストーングレー|水: ネイビー、ブラック、スチールブルー、オーシャンブルー';
+
+  @override
+  String get fortuneMyeongliElementColorValues =>
+      'グリーン/ミント/ターコイズ/フォレスト|レッド/コーラル/ピーチ/ローズピンク|マスタード/バターイエロー/モカ/アイボリー|ホワイト/シルバー/ゴールド/ストーングレー|ネイビー/ブラック/スチールブルー/オーシャンブルー';
+
+  @override
+  String get fortuneMyeongliTenGodDailyLines =>
+      '自分の基準を守ると楽な日です|周りの速さに流されないほうが良いです|小さな楽しみが一日をやわらかくします|違う表現が意外とうまく伝わりそうです|思わぬ提案が入ってくるかもしれません|落ち着いて整えたことが頼もしく残ります|早い判断が必要な瞬間があります|約束と順番を守ると流れが良くなります|見慣れないヒントをつかみやすい日です|助けを気楽に受け取って良い日です';
+
+  @override
+  String get fortuneMyeongliTwelveStageDailyLines =>
+      '新しい気が小さく始まります|感覚が鋭くなり良い選択をつかみやすいです|姿勢を整えると一日が安定します|自分のペースを信じて良い日です|推進力が強く生きてきそうです|力を抜くともっと楽になります|無理よりコンディション管理が先です|終えることを選ぶと運が軽くなります|寝かせていた考えが答えをくれそうです|切るべきことは短く切るのが良いです|小さな可能性が見え始めます|次の流れを静かに育てると良いです';
+
+  @override
+  String get fortuneMyeongliBranchRelationDailyLines =>
+      '近い協力が一日をやわらかくします|ぶつかった後に方向がよりはっきりしそうです|絡んだことは順番に分けるとほどけます|余計な誤解は短く確認すると良いです|乱れた約束はすぐ整えると軽くなります|散った気が一か所に集まりやすいです|慣れた場所で安定感が大きくなります';
 
   @override
   String get fortuneSajuElementFlows =>

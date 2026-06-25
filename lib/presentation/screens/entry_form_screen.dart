@@ -4935,11 +4935,15 @@ class _FortuneDatabaseSheet extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Text(
-                    l10n.fortuneDialogPoolSizeCount(formattedPoolSize),
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: colors.onPrimaryContainer,
-                      fontWeight: FontWeight.w900,
+                  Flexible(
+                    child: Text(
+                      l10n.fortuneDialogPoolSizeCount(formattedPoolSize),
+                      textAlign: TextAlign.end,
+                      softWrap: true,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: colors.onPrimaryContainer,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ],
