@@ -15,6 +15,31 @@ enum MyeongliTenGod {
   directResource,
 }
 
+enum MyeongliTwelveStage {
+  longevity,
+  bath,
+  crownBelt,
+  official,
+  prosperity,
+  decline,
+  sickness,
+  death,
+  tomb,
+  extinction,
+  embryo,
+  nurturing,
+}
+
+enum MyeongliBranchRelationType {
+  sixCombination,
+  clash,
+  punishment,
+  harm,
+  breakRelation,
+  threeHarmony,
+  directionalHarmony,
+}
+
 class MyeongliStem {
   final int index;
   final String id;
@@ -49,6 +74,18 @@ class MyeongliBranch {
   });
 }
 
+class MyeongliBranchRelation {
+  final MyeongliBranchRelationType type;
+  final List<int> branchIndexes;
+  final MyeongliElement? element;
+
+  const MyeongliBranchRelation({
+    required this.type,
+    required this.branchIndexes,
+    this.element,
+  });
+}
+
 class MyeongliPillar {
   final int index;
   final MyeongliStem stem;
@@ -59,6 +96,27 @@ class MyeongliPillar {
     required this.stem,
     required this.branch,
   });
+}
+
+class MyeongliDailySignature {
+  final MyeongliPillar dailyPillar;
+  final MyeongliTenGod tenGod;
+  final MyeongliTwelveStage twelveStage;
+  final MyeongliBranchRelation? branchRelation;
+
+  const MyeongliDailySignature({
+    required this.dailyPillar,
+    required this.tenGod,
+    required this.twelveStage,
+    this.branchRelation,
+  });
+
+  int get seed {
+    return dailyPillar.index * 19 +
+        tenGod.index * 23 +
+        twelveStage.index * 29 +
+        (branchRelation?.type.index ?? 0) * 31;
+  }
 }
 
 class MyeongliChart {
@@ -107,6 +165,7 @@ class MyeongliDatabase {
 
   List<MyeongliStem> get stems => _stems;
   List<MyeongliBranch> get branches => _branches;
+  List<MyeongliBranchRelation> get branchRelations => _branchRelations;
 
   List<MyeongliPillar> get pillars => List<MyeongliPillar>.generate(
         60,
@@ -156,6 +215,28 @@ class MyeongliDatabase {
         ? hourPillar(birthDate, dayStemIndex: day.stem.index)
         : null;
     return MyeongliChart(year: year, month: month, day: day, hour: hour);
+  }
+
+  MyeongliDailySignature dailySignature({
+    required MyeongliChart birthChart,
+    required DateTime date,
+  }) {
+    final dailyPillar = dayPillar(date);
+    return MyeongliDailySignature(
+      dailyPillar: dailyPillar,
+      tenGod: tenGodFor(
+        dayStem: birthChart.day.stem,
+        targetStem: dailyPillar.stem,
+      ),
+      twelveStage: twelveStageFor(
+        dayStem: birthChart.day.stem,
+        targetBranch: dailyPillar.branch,
+      ),
+      branchRelation: firstBranchRelationFor(
+        birthChart: birthChart,
+        targetBranch: dailyPillar.branch,
+      ),
+    );
   }
 
   MyeongliPillar yearPillar(DateTime date) {
@@ -275,6 +356,49 @@ class MyeongliDatabase {
         : MyeongliTenGod.directResource;
   }
 
+  MyeongliTwelveStage twelveStageFor({
+    required MyeongliStem dayStem,
+    required MyeongliBranch targetBranch,
+  }) {
+    final rule = _twelveStageRules[stemAt(dayStem.index).index];
+    final distance = rule.forward
+        ? _positiveMod(targetBranch.index - rule.startBranchIndex, 12)
+        : _positiveMod(rule.startBranchIndex - targetBranch.index, 12);
+    return MyeongliTwelveStage.values[distance];
+  }
+
+  MyeongliBranchRelation? firstBranchRelationFor({
+    required MyeongliChart birthChart,
+    required MyeongliBranch targetBranch,
+  }) {
+    final sourceBranches = <MyeongliBranch>[
+      birthChart.year.branch,
+      birthChart.month.branch,
+      birthChart.day.branch,
+      if (birthChart.hour != null) birthChart.hour!.branch,
+    ];
+    final matches = branchRelationsFor(
+      sourceBranches: sourceBranches,
+      targetBranch: targetBranch,
+    );
+    return matches.isEmpty ? null : matches.first;
+  }
+
+  List<MyeongliBranchRelation> branchRelationsFor({
+    required List<MyeongliBranch> sourceBranches,
+    required MyeongliBranch targetBranch,
+  }) {
+    return _branchRelations.where((relation) {
+      if (!relation.branchIndexes.contains(targetBranch.index)) {
+        return false;
+      }
+      return sourceBranches.any((branch) {
+        return branch.index != targetBranch.index &&
+            relation.branchIndexes.contains(branch.index);
+      });
+    }).toList(growable: false);
+  }
+
   bool _isOnOrAfter(DateTime date, {required int month, required int day}) {
     return date.month > month || (date.month == month && date.day >= day);
   }
@@ -283,6 +407,16 @@ class MyeongliDatabase {
     final result = value % modulo;
     return result < 0 ? result + modulo : result;
   }
+}
+
+class _TwelveStageRule {
+  final int startBranchIndex;
+  final bool forward;
+
+  const _TwelveStageRule({
+    required this.startBranchIndex,
+    required this.forward,
+  });
 }
 
 class _SolarMonthStartRule {
@@ -468,6 +602,176 @@ const List<MyeongliBranch> _branches = <MyeongliBranch>[
     hiddenStemIndexes: <int>[8, 0],
     hourStart: 21,
     hourEnd: 23,
+  ),
+];
+
+const List<_TwelveStageRule> _twelveStageRules = <_TwelveStageRule>[
+  _TwelveStageRule(startBranchIndex: 11, forward: true),
+  _TwelveStageRule(startBranchIndex: 6, forward: false),
+  _TwelveStageRule(startBranchIndex: 2, forward: true),
+  _TwelveStageRule(startBranchIndex: 9, forward: false),
+  _TwelveStageRule(startBranchIndex: 2, forward: true),
+  _TwelveStageRule(startBranchIndex: 9, forward: false),
+  _TwelveStageRule(startBranchIndex: 5, forward: true),
+  _TwelveStageRule(startBranchIndex: 0, forward: false),
+  _TwelveStageRule(startBranchIndex: 8, forward: true),
+  _TwelveStageRule(startBranchIndex: 3, forward: false),
+];
+
+const List<MyeongliBranchRelation> _branchRelations = <MyeongliBranchRelation>[
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.clash,
+    branchIndexes: <int>[0, 6],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.clash,
+    branchIndexes: <int>[1, 7],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.clash,
+    branchIndexes: <int>[2, 8],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.clash,
+    branchIndexes: <int>[3, 9],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.clash,
+    branchIndexes: <int>[4, 10],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.clash,
+    branchIndexes: <int>[5, 11],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.sixCombination,
+    branchIndexes: <int>[0, 1],
+    element: MyeongliElement.earth,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.sixCombination,
+    branchIndexes: <int>[2, 11],
+    element: MyeongliElement.wood,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.sixCombination,
+    branchIndexes: <int>[3, 10],
+    element: MyeongliElement.fire,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.sixCombination,
+    branchIndexes: <int>[4, 9],
+    element: MyeongliElement.metal,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.sixCombination,
+    branchIndexes: <int>[5, 8],
+    element: MyeongliElement.water,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.sixCombination,
+    branchIndexes: <int>[6, 7],
+    element: MyeongliElement.earth,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.punishment,
+    branchIndexes: <int>[2, 5, 8],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.punishment,
+    branchIndexes: <int>[1, 7, 10],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.punishment,
+    branchIndexes: <int>[0, 3],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.harm,
+    branchIndexes: <int>[0, 7],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.harm,
+    branchIndexes: <int>[1, 6],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.harm,
+    branchIndexes: <int>[2, 5],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.harm,
+    branchIndexes: <int>[3, 4],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.harm,
+    branchIndexes: <int>[8, 11],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.harm,
+    branchIndexes: <int>[9, 10],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.breakRelation,
+    branchIndexes: <int>[0, 9],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.breakRelation,
+    branchIndexes: <int>[1, 4],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.breakRelation,
+    branchIndexes: <int>[2, 11],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.breakRelation,
+    branchIndexes: <int>[3, 6],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.breakRelation,
+    branchIndexes: <int>[5, 8],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.breakRelation,
+    branchIndexes: <int>[7, 10],
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.threeHarmony,
+    branchIndexes: <int>[8, 0, 4],
+    element: MyeongliElement.water,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.threeHarmony,
+    branchIndexes: <int>[11, 3, 7],
+    element: MyeongliElement.wood,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.threeHarmony,
+    branchIndexes: <int>[2, 6, 10],
+    element: MyeongliElement.fire,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.threeHarmony,
+    branchIndexes: <int>[5, 9, 1],
+    element: MyeongliElement.metal,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.directionalHarmony,
+    branchIndexes: <int>[11, 0, 1],
+    element: MyeongliElement.water,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.directionalHarmony,
+    branchIndexes: <int>[2, 3, 4],
+    element: MyeongliElement.wood,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.directionalHarmony,
+    branchIndexes: <int>[5, 6, 7],
+    element: MyeongliElement.fire,
+  ),
+  MyeongliBranchRelation(
+    type: MyeongliBranchRelationType.directionalHarmony,
+    branchIndexes: <int>[8, 9, 10],
+    element: MyeongliElement.metal,
   ),
 ];
 

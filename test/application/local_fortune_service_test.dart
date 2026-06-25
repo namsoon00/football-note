@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/local_fortune_service.dart';
+import 'package:football_note/application/myeongli_database.dart';
 import 'package:football_note/domain/entities/player_profile.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/gen/app_localizations_ko.dart';
@@ -41,6 +42,14 @@ void main() {
     expect(lines.first, contains('민준님'));
     expect(lines.first, isNot(contains('분위기예요')));
     expect(lines.first, isNot(contains('쪽으로 흐름이 잡혀요')));
+    final generatedFlow =
+        lines.first.replaceFirst('민준님, ', '').replaceFirst(RegExp(r'\.$'), '');
+    final myeongliDailyLines = <String>{
+      ...l10n.fortuneMyeongliTenGodDailyLines.split('|'),
+      ...l10n.fortuneMyeongliTwelveStageDailyLines.split('|'),
+      ...l10n.fortuneMyeongliBranchRelationDailyLines.split('|'),
+    };
+    expect(myeongliDailyLines, contains(generatedFlow));
     expect(lines[1], isNot(contains('훈련')));
     expect(lines[1], isNot(contains('패스')));
     expect(lines.last, contains('오늘의 컬러는 '));
@@ -70,8 +79,69 @@ void main() {
 
     expect(
       sections.map((section) => section.values.length),
-      <int>[22, 60, 96, 72, 60, 96, 40, 48, 32, 48, 40, 48, 40, 64],
+      <int>[
+        22,
+        12,
+        10,
+        12,
+        35,
+        12,
+        5,
+        60,
+        96,
+        72,
+        60,
+        96,
+        40,
+        48,
+        32,
+        48,
+        40,
+        48,
+        40,
+        64,
+      ],
     );
+    expect(sections[1].title, '지장간');
+    expect(sections[2].values, contains(startsWith('비견:')));
+    expect(sections[3].values, contains(startsWith('장생:')));
+    expect(sections[4].values, contains(startsWith('자오충:')));
+    expect(sections[5].values, contains(startsWith('천을귀인:')));
+    expect(sections[6].values, contains(startsWith('목:')));
+  });
+
+  test('myeongli database exposes practitioner-style reference rules', () {
+    const database = MyeongliDatabase.instance;
+
+    expect(database.branchRelations, hasLength(35));
+    expect(
+      database.tenGodFor(
+        dayStem: database.stemAt(0),
+        targetStem: database.stemAt(2),
+      ),
+      MyeongliTenGod.eatingGod,
+    );
+    expect(
+      database.twelveStageFor(
+        dayStem: database.stemAt(0),
+        targetBranch: database.branchAt(11),
+      ),
+      MyeongliTwelveStage.longevity,
+    );
+
+    final clash = database.branchRelationsFor(
+      sourceBranches: <MyeongliBranch>[database.branchAt(0)],
+      targetBranch: database.branchAt(6),
+    );
+    expect(clash.first.type, MyeongliBranchRelationType.clash);
+
+    final chart = database.chartForBirth(DateTime(2012, 3, 10, 7, 30));
+    final signature = database.dailySignature(
+      birthChart: chart,
+      date: DateTime(2026, 3, 15, 18),
+    );
+    expect(signature.tenGod, isA<MyeongliTenGod>());
+    expect(signature.twelveStage, isA<MyeongliTwelveStage>());
   });
 
   test('birth date and name change the generated fortune', () {

@@ -10934,7 +10934,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'All sentence pieces, colors, and numbers used to build today\'s fortune.'**
+  /// **'Myeongli reference data, hidden stems, ten gods, twelve stages, branch relations, symbolic stars, daily lines, colors, and numbers.'**
   String get fortuneDatabaseSubtitle;
 
   /// No description provided for @fortuneDatabaseCloseAction.
@@ -10948,6 +10948,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Myeongli codes'**
   String get fortuneDatabaseSectionBirthCodes;
+
+  /// No description provided for @fortuneDatabaseSectionHiddenStems.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden stems'**
+  String get fortuneDatabaseSectionHiddenStems;
+
+  /// No description provided for @fortuneDatabaseSectionTenGods.
+  ///
+  /// In en, this message translates to:
+  /// **'Ten-god meanings'**
+  String get fortuneDatabaseSectionTenGods;
+
+  /// No description provided for @fortuneDatabaseSectionTwelveStages.
+  ///
+  /// In en, this message translates to:
+  /// **'Twelve life stages'**
+  String get fortuneDatabaseSectionTwelveStages;
+
+  /// No description provided for @fortuneDatabaseSectionBranchRelations.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch relations'**
+  String get fortuneDatabaseSectionBranchRelations;
+
+  /// No description provided for @fortuneDatabaseSectionSymbolicStars.
+  ///
+  /// In en, this message translates to:
+  /// **'Symbolic stars'**
+  String get fortuneDatabaseSectionSymbolicStars;
+
+  /// No description provided for @fortuneDatabaseSectionElementColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Element colors'**
+  String get fortuneDatabaseSectionElementColors;
 
   /// No description provided for @fortuneDatabaseSectionDayMoods.
   ///
@@ -11154,6 +11190,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ja|Chuk|In|Myo|Jin|Sa|O|Mi|Sin|Yu|Sul|Hae'**
   String get fortuneSajuEarthlyBranches;
+
+  /// No description provided for @fortuneMyeongliHiddenStemLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Zi: Gui|Chou: Ji, Gui, Xin|Yin: Jia, Bing, Wu|Mao: Yi|Chen: Wu, Yi, Gui|Si: Bing, Wu, Geng|Wu: Ding, Ji|Wei: Ji, Ding, Yi|Shen: Geng, Ren, Wu|You: Xin|Xu: Wu, Xin, Ding|Hai: Ren, Jia'**
+  String get fortuneMyeongliHiddenStemLabels;
+
+  /// No description provided for @fortuneMyeongliTenGodLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend: self-direction and personal standards|Rob wealth: competition, sharing, quick response|Eating god: enjoyment, expression, steady output|Hurting officer: unusual expression and off-rule ideas|Indirect wealth: wide chances and unexpected offers|Direct wealth: practical order and steady care|Seven killings: pressure, decision, breakthrough|Direct officer: promises, order, trusted rhythm|Indirect resource: unusual clues and deep observation|Direct resource: support, learning, easy protection'**
+  String get fortuneMyeongliTenGodLabels;
+
+  /// No description provided for @fortuneMyeongliTwelveStageLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Longevity: a new force begins to grow|Bath: senses wake up and change starts|Crown belt: posture and readiness form|Official: personal strength becomes clear|Prosperity: the strongest push|Decline: easing force and arranging matters|Sickness: care matters more than overdoing|Death: endings and decisions come forward|Tomb: storing and ripening the thought|Extinction: cutting off and seeing anew|Embryo: a small possibility appears|Nurturing: preparing the next flow'**
+  String get fortuneMyeongliTwelveStageLabels;
+
+  /// No description provided for @fortuneMyeongliBranchRelationLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Zi-Wu clash: direction collides and choices sharpen|Chou-Wei clash: old matters begin to move|Yin-Shen clash: movement and judgment speed up|Mao-You clash: words and relationships need balance|Chen-Xu clash: standards and responsibility are reviewed|Si-Hai clash: feelings and speed need pacing|Zi-Chou combination: close cooperation and stability|Yin-Hai combination: learning and expansion connect|Mao-Xu combination: warm expression and empathy|Chen-You combination: order and results connect|Si-Shen combination: quick judgment and wit|Wu-Wei combination: easy relationships and closure|Yin-Si-Shen punishment: a signal to smooth urgency|Chou-Wei-Xu punishment: a signal to clear old pressure|Zi-Mao punishment: a signal to tune words and feelings|Zi-Wei harm: check small misunderstandings|Chou-Wu harm: match the heat of feeling and action|Yin-Si harm: lower the rush|Mao-Chen harm: view close ties gently|Shen-Hai harm: sort things when thoughts grow|You-Xu harm: mind wording and promises|Zi-You break: rebuild a scattered plan|Chou-Chen break: mend a small crack|Yin-Hai break: see familiar expectations anew|Mao-Wu break: change the way you express it|Si-Shen break: review a quick choice once more|Wei-Xu break: reset the finishing standard|Shen-Zi-Chen water trine: thoughts and information gather|Hai-Mao-Wei wood trine: growth and relationships wake up|Yin-Wu-Xu fire trine: expression and passion rise|Si-You-Chou metal trine: order and finish improve|Hai-Zi-Chou water frame: calm focus builds|Yin-Mao-Chen wood frame: starting and growth flow|Si-Wu-Wei fire frame: energy and expression flow|Shen-You-Xu metal frame: results and order flow'**
+  String get fortuneMyeongliBranchRelationLabels;
+
+  /// No description provided for @fortuneMyeongliSymbolicStarLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavenly noble: helpful support appears|Literary star: writing, learning, and speech|Peach blossom: charm and attention rise|Traveling horse: movement, change, and new news|Canopy: immersion, taste, and deep feeling|Sheep blade: strong drive and decision|White tiger: big energy and breakthrough|Goe-gang: forceful independence|Heavenly virtue: gentle protection and buffering|Monthly virtue: help and care through relationships|Heavenly doctor: recovery and care|Golden carriage: comfort, stability, and easy favor'**
+  String get fortuneMyeongliSymbolicStarLabels;
+
+  /// No description provided for @fortuneMyeongliElementColorLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Wood: green, mint, turquoise, forest|Fire: red, coral, peach, rose pink|Earth: mustard, butter yellow, mocha, ivory|Metal: white, silver, gold, stone gray|Water: navy, black, steel blue, ocean blue'**
+  String get fortuneMyeongliElementColorLabels;
+
+  /// No description provided for @fortuneMyeongliElementColorValues.
+  ///
+  /// In en, this message translates to:
+  /// **'green/mint/turquoise/forest|red/coral/peach/rose pink|mustard/butter yellow/mocha/ivory|white/silver/gold/stone gray|navy/black/steel blue/ocean blue'**
+  String get fortuneMyeongliElementColorValues;
+
+  /// No description provided for @fortuneMyeongliTenGodDailyLines.
+  ///
+  /// In en, this message translates to:
+  /// **'holding your own standard keeps the day easy|do not get swept up in everyone else\'s speed|a small pleasure softens the day|a different expression may land surprisingly well|an unexpected offer may come in|the thing you handle calmly will feel solid|quick judgment may matter today|promises and order make the flow better|an unfamiliar clue may be easy to catch|it is fine to receive help comfortably'**
+  String get fortuneMyeongliTenGodDailyLines;
+
+  /// No description provided for @fortuneMyeongliTwelveStageDailyLines.
+  ///
+  /// In en, this message translates to:
+  /// **'a new energy starts in a small way|your senses are sharp enough to catch a good choice|the day gets firmer when you set your posture|it is a good day to trust your pace|your push may come alive strongly|letting go of extra force makes things easier|condition care comes before overdoing it|choosing what to finish lightens your luck|a thought you stored away may give an answer|cutting off what needs to end is better today|a small possibility begins to show|it is good to quietly grow the next flow'**
+  String get fortuneMyeongliTwelveStageDailyLines;
+
+  /// No description provided for @fortuneMyeongliBranchRelationDailyLines.
+  ///
+  /// In en, this message translates to:
+  /// **'close cooperation can soften the day|after a bump, the direction may become clearer|split tangled things into steps and they loosen|check needless misunderstandings briefly|tidy up scattered promises and the day gets lighter|scattered energy can gather in one place|a familiar spot can feel especially steady'**
+  String get fortuneMyeongliBranchRelationDailyLines;
 
   /// No description provided for @fortuneSajuElementFlows.
   ///

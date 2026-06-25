@@ -6084,17 +6084,35 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseViewAction => '전체 데이터 보기';
 
   @override
-  String get fortuneDatabaseTitle => '전체 운세 데이터 베이스';
+  String get fortuneDatabaseTitle => '전체 운세 데이터베이스';
 
   @override
   String get fortuneDatabaseSubtitle =>
-      '오늘 운세를 만들 때 쓰는 문장 조각과 컬러, 숫자 데이터를 모두 모아봤어요.';
+      '지장간, 십성, 십이운성, 지지 관계, 신살 키워드와 오늘 운세 문장·컬러·숫자 데이터를 모았어요.';
 
   @override
   String get fortuneDatabaseCloseAction => '닫기';
 
   @override
   String get fortuneDatabaseSectionBirthCodes => '명리 코드';
+
+  @override
+  String get fortuneDatabaseSectionHiddenStems => '지장간';
+
+  @override
+  String get fortuneDatabaseSectionTenGods => '십성 해석';
+
+  @override
+  String get fortuneDatabaseSectionTwelveStages => '십이운성';
+
+  @override
+  String get fortuneDatabaseSectionBranchRelations => '지지 합충형해파';
+
+  @override
+  String get fortuneDatabaseSectionSymbolicStars => '신살 키워드';
+
+  @override
+  String get fortuneDatabaseSectionElementColors => '오행 컬러';
 
   @override
   String get fortuneDatabaseSectionDayMoods => '하루 흐름';
@@ -6217,6 +6235,46 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fortuneSajuEarthlyBranches => '자|축|인|묘|진|사|오|미|신|유|술|해';
+
+  @override
+  String get fortuneMyeongliHiddenStemLabels =>
+      '자: 계|축: 기·계·신|인: 갑·병·무|묘: 을|진: 무·을·계|사: 병·무·경|오: 정·기|미: 기·정·을|신: 경·임·무|유: 신|술: 무·신·정|해: 임·갑';
+
+  @override
+  String get fortuneMyeongliTenGodLabels =>
+      '비견: 나와 비슷한 힘, 기준과 자존감|겁재: 경쟁과 공유, 빠른 반응|식신: 즐거움과 표현, 안정적인 결과|상관: 색다른 표현, 규칙 밖 아이디어|편재: 넓은 기회, 뜻밖의 제안|정재: 실속과 정리, 꾸준한 관리|칠살: 긴장감과 결단, 돌파력|정관: 약속과 질서, 신뢰 흐름|편인: 낯선 힌트, 깊은 관찰|정인: 도움과 배움, 편안한 보호';
+
+  @override
+  String get fortuneMyeongliTwelveStageLabels =>
+      '장생: 새 기운이 자라는 시작|목욕: 감각이 살아나는 변화|관대: 태도를 갖추는 준비|건록: 내 힘이 선명해지는 자리|제왕: 가장 강한 추진력|쇠: 힘을 덜고 정리하는 흐름|병: 무리보다 관리가 필요한 흐름|사: 끝맺음과 판단의 흐름|묘: 잠시 보관하고 숙성하는 흐름|절: 끊고 새로 보는 전환|태: 작은 가능성이 생기는 흐름|양: 다음 흐름을 키우는 준비';
+
+  @override
+  String get fortuneMyeongliBranchRelationLabels =>
+      '자오충: 방향이 부딪혀 선택이 선명해짐|축미충: 묵은 일이 움직이는 변화|인신충: 이동과 판단이 빨라지는 흐름|묘유충: 말과 관계의 균형 조정|진술충: 기준과 책임을 다시 보는 흐름|사해충: 감정과 속도를 조절하는 흐름|자축합: 가까운 협력과 안정|인해합: 배움과 확장의 연결|묘술합: 따뜻한 표현과 공감|진유합: 정리와 결과의 연결|사신합: 빠른 판단과 재치|오미합: 편안한 관계와 마무리|인사신형: 급한 마음을 다듬는 신호|축미술형: 오래된 부담을 정리하는 신호|자묘형: 말과 감정의 선을 맞추는 신호|자미해: 작은 오해를 확인하는 흐름|축오해: 마음과 행동의 온도를 맞추는 흐름|인사해: 서두름을 낮추는 흐름|묘진해: 가까운 관계를 부드럽게 보는 흐름|신해해: 생각이 많아질 때 정리하는 흐름|유술해: 말끝과 약속을 살피는 흐름|자유파: 흐트러진 계획을 다시 잡는 흐름|축진파: 작은 균열을 메우는 흐름|인해파: 익숙한 기대를 새로 보는 흐름|묘오파: 표현 방식을 바꾸는 흐름|사신파: 재빠른 선택을 한 번 더 보는 흐름|미술파: 마무리 기준을 다시 잡는 흐름|신자진 삼합 수: 생각과 정보가 모이는 흐름|해묘미 삼합 목: 성장과 관계가 살아나는 흐름|인오술 삼합 화: 표현과 열정이 커지는 흐름|사유축 삼합 금: 정리와 완성도가 높아지는 흐름|해자축 방합 수: 차분한 집중이 쌓이는 흐름|인묘진 방합 목: 시작과 성장의 흐름|사오미 방합 화: 활기와 표현의 흐름|신유술 방합 금: 결과와 정리의 흐름';
+
+  @override
+  String get fortuneMyeongliSymbolicStarLabels =>
+      '천을귀인: 도움을 만나는 귀인 운|문창귀인: 글과 배움, 말솜씨의 운|도화: 매력과 주목이 살아나는 운|역마: 이동과 변화, 새 소식의 운|화개: 몰입과 취향, 깊은 감성의 운|양인: 강한 추진력과 결단의 운|백호: 큰 에너지와 돌파의 운|괴강: 밀어붙이는 힘과 독립성|천덕귀인: 부드러운 보호와 완충|월덕귀인: 관계 속 도움과 배려|천의성: 회복과 돌봄의 운|금여: 안정감과 편안한 호감';
+
+  @override
+  String get fortuneMyeongliElementColorLabels =>
+      '목: 그린, 민트, 터쿼이즈, 포레스트|화: 레드, 코랄, 피치, 로즈 핑크|토: 머스타드, 버터 옐로, 모카, 아이보리|금: 화이트, 실버, 골드, 스톤 그레이|수: 네이비, 블랙, 스틸 블루, 오션 블루';
+
+  @override
+  String get fortuneMyeongliElementColorValues =>
+      '그린/민트/터쿼이즈/포레스트|레드/코랄/피치/로즈 핑크|머스타드/버터 옐로/모카/아이보리|화이트/실버/골드/스톤 그레이|네이비/블랙/스틸 블루/오션 블루';
+
+  @override
+  String get fortuneMyeongliTenGodDailyLines =>
+      '내 기준을 지키면 편해지는 날이에요|주변 속도에 휩쓸리지 않는 게 좋아요|작은 즐거움이 하루를 부드럽게 해요|다른 표현이 의외로 잘 통할 수 있어요|뜻밖의 제안이 들어올 수 있어요|차분히 챙긴 일이 든든하게 남아요|빠른 판단이 필요한 순간이 있어요|약속과 순서를 지키면 흐름이 좋아요|낯선 힌트를 잡기 쉬운 날이에요|도움을 편하게 받아도 좋은 날이에요';
+
+  @override
+  String get fortuneMyeongliTwelveStageDailyLines =>
+      '새로운 기운이 작게 시작돼요|감각이 예민해져 좋은 선택을 잡기 쉬워요|자세를 갖추면 하루가 단단해져요|내 페이스를 믿어도 좋은 날이에요|추진력이 강하게 살아날 수 있어요|힘을 덜어내면 더 편해져요|무리보다 컨디션 관리가 먼저예요|마무리할 일을 고르면 운이 가벼워져요|잠시 묵혀둔 생각이 답을 줄 수 있어요|끊어낼 건 짧게 끊는 게 좋아요|작은 가능성이 보이기 시작해요|다음 흐름을 조용히 키우기 좋아요';
+
+  @override
+  String get fortuneMyeongliBranchRelationDailyLines =>
+      '가까운 협력이 하루를 부드럽게 만들어요|부딪힌 뒤 방향이 더 선명해질 수 있어요|꼬인 일은 순서를 나누면 풀려요|괜한 오해는 짧게 확인하면 좋아요|흐트러진 약속은 바로 정리하면 가벼워져요|흩어진 기운이 한곳으로 모이기 쉬워요|익숙한 자리에서 안정감이 커져요';
 
   @override
   String get fortuneSajuElementFlows =>
