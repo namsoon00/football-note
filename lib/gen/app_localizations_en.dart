@@ -6202,7 +6202,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDialogOverallFortuneLabel => 'Today fortune';
 
   @override
-  String get fortuneDialogLuckyInfoLabel => 'Fun points';
+  String get fortuneDialogLuckyInfoLabel => 'Color and number';
 
   @override
   String fortuneDialogOverallFortuneCount(int count) {
@@ -6215,7 +6215,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogLuckyInfoTitle => 'Fun points';
+  String get fortuneDialogLuckyInfoTitle => 'Color and number';
 
   @override
   String get fortuneDialogPoolSizeLabel => 'Fortune combinations';
@@ -6246,7 +6246,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneDatabaseSubtitle =>
-      'All sentence pieces and fun points used to build today\'s fortune.';
+      'All sentence pieces, colors, and numbers used to build today\'s fortune.';
 
   @override
   String get fortuneDatabaseCloseAction => 'Close';
@@ -6255,7 +6255,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseSectionBirthCodes => 'Myeongli codes';
 
   @override
-  String get fortuneDatabaseSectionDayMoods => 'Day moods';
+  String get fortuneDatabaseSectionDayMoods => 'Day flows';
 
   @override
   String get fortuneDatabaseSectionDailyEvents => 'Possible events today';
@@ -6276,13 +6276,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseSectionColorBases => 'Colors';
 
   @override
-  String get fortuneDatabaseSectionTimePeriods => 'Time moods';
+  String get fortuneDatabaseSectionTimePeriods => 'Time windows';
 
   @override
   String get fortuneDatabaseSectionTimeWindows => 'Time windows';
 
   @override
-  String get fortuneDatabaseSectionSceneModifiers => 'Place moods';
+  String get fortuneDatabaseSectionSceneModifiers => 'Place cues';
 
   @override
   String get fortuneDatabaseSectionSceneBases => 'Places and scenes';
@@ -6322,7 +6322,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name, today\'s flow leans toward $elementFlow.';
+    return '$name, $elementFlow.';
   }
 
   @override
@@ -6336,11 +6336,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get fortuneGeneratedLuckyInfoHeader => '[Fun points]';
+  String get fortuneGeneratedLuckyInfoHeader => '[Color and number]';
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return 'Fun points are number $number and $color.';
+    return 'Today\'s color is $color, and the number is $number.';
   }
 
   @override
@@ -6380,11 +6380,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneSajuElementFlows =>
-      'an easy start|a welcome message|a small lucky break|a clearer mind|a light flutter|a clean choice|a warm encounter|pleasant focus|unexpected help|calm recovery|a fresh idea|a hidden chance|tidy momentum|quick intuition|soft timing|small courage|a hint of good news|a comfortable pace|a feeling that things loosen|your own rhythm|a smile-first mood|a small change in the air|the answer you waited for|quiet confidence';
+      'take an easy start today|expect a welcome message|do not miss a small lucky break|it is a good day to clear your mind|follow the light flutter|make the choice clearly|expect a warm encounter|get into pleasant focus|unexpected help may arrive|recover calmly|hold onto a fresh idea|look for a hidden chance|tidy things cleanly|quick intuition may matter today|wait for soft timing|use a little courage|a hint of good news may show|move at a comfortable pace|things may start to loosen|trust your own rhythm|smile first and the mood gets easier|notice a small change in the air|the answer you waited for may come closer|show quiet confidence';
 
   @override
   String get fortuneSajuElementFlowExtras =>
-      'calm observation|a light turnaround|an easy challenge|a wider heart|unexpected kindness|easier choices|small satisfaction|a good feeling|slow luck|a clear answer|a sparkling coincidence|tidier surroundings|a new interest|a lighter mind|an early clue|easy conversation|comfortable courage|small recognition|room to breathe|timing that fits|deeper focus|a cute mistake|a welcome discovery|a day that gathers speed|quiet self-belief|sharper instincts|a good course change|small popularity|a promising start|a crisp finish|shorter waiting|one more laugh|a decent offer|a mind that loosens|an accurate hunch|warm curiosity';
+      'observe calmly|a light turnaround may happen|an easy challenge fits well|your heart may open wider|unexpected kindness may appear|choices may get easier|notice a small sense of achievement|trust the good feeling|slow luck may come closer|a clear answer may come to mind|expect a sparkling coincidence|tidying your surroundings may lighten your luck|a new interest may appear|your mind may feel lighter|a clue may loosen early|conversation may flow easily|use comfortable courage|small recognition may arrive|make room to breathe|the timing may fit well|focus may get deeper|a cute mistake can be laughed off|expect a welcome discovery|the day may gather speed|trust quiet self-belief|your instincts may sharpen|a good course change is possible|small popularity may appear|start with a good feeling|finish things crisply|waiting may get shorter|one more laugh may arrive|leave a decent offer open|your mind may loosen lightly|an accurate hunch may matter|follow warm curiosity';
 
   @override
   String get fortuneSajuFortuneThemes =>

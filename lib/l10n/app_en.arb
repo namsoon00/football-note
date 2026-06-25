@@ -3655,7 +3655,7 @@
   "fortuneDialogSubtitle": "A light daily fortune picked from birth date and name.",
   "fortuneDialogOverviewTitle": "Fortune view",
   "fortuneDialogOverallFortuneLabel": "Today fortune",
-  "fortuneDialogLuckyInfoLabel": "Fun points",
+  "fortuneDialogLuckyInfoLabel": "Color and number",
   "fortuneDialogOverallFortuneCount": "{count} lines",
   "@fortuneDialogOverallFortuneCount": {
     "placeholders": {
@@ -3672,7 +3672,7 @@
       }
     }
   },
-  "fortuneDialogLuckyInfoTitle": "Fun points",
+  "fortuneDialogLuckyInfoTitle": "Color and number",
   "fortuneDialogPoolSizeLabel": "Fortune combinations",
   "fortuneDialogPoolSizeCount": "{count} cases",
   "@fortuneDialogPoolSizeCount": {
@@ -3688,19 +3688,19 @@
   "fortuneDialogAction": "Got it",
   "fortuneDatabaseViewAction": "View full database",
   "fortuneDatabaseTitle": "Full Fortune Database",
-  "fortuneDatabaseSubtitle": "All sentence pieces and fun points used to build today's fortune.",
+  "fortuneDatabaseSubtitle": "All sentence pieces, colors, and numbers used to build today's fortune.",
   "fortuneDatabaseCloseAction": "Close",
   "fortuneDatabaseSectionBirthCodes": "Myeongli codes",
-  "fortuneDatabaseSectionDayMoods": "Day moods",
+  "fortuneDatabaseSectionDayMoods": "Day flows",
   "fortuneDatabaseSectionDailyEvents": "Possible events today",
   "fortuneDatabaseSectionActionCues": "Small things to try",
   "fortuneDatabaseSectionNameRhythms": "Name rhythms",
   "fortuneDatabaseSectionAdvice": "Daily notes",
   "fortuneDatabaseSectionColorTones": "Color tones",
   "fortuneDatabaseSectionColorBases": "Colors",
-  "fortuneDatabaseSectionTimePeriods": "Time moods",
+  "fortuneDatabaseSectionTimePeriods": "Time windows",
   "fortuneDatabaseSectionTimeWindows": "Time windows",
-  "fortuneDatabaseSectionSceneModifiers": "Place moods",
+  "fortuneDatabaseSectionSceneModifiers": "Place cues",
   "fortuneDatabaseSectionSceneBases": "Places and scenes",
   "fortuneDatabaseSectionCueOpenings": "Routine starts",
   "fortuneDatabaseSectionCueActions": "Small routines",
@@ -3740,7 +3740,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineOne": "{name}, today's flow leans toward {elementFlow}.",
+  "fortuneGeneratedDailyLineOne": "{name}, {elementFlow}.",
   "@fortuneGeneratedDailyLineOne": {
     "placeholders": {
       "name": {
@@ -3770,8 +3770,8 @@
       }
     }
   },
-  "fortuneGeneratedLuckyInfoHeader": "[Fun points]",
-  "fortuneGeneratedLuckyInfoLine": "Fun points are number {number} and {color}.",
+  "fortuneGeneratedLuckyInfoHeader": "[Color and number]",
+  "fortuneGeneratedLuckyInfoLine": "Today's color is {color}, and the number is {number}.",
   "@fortuneGeneratedLuckyInfoLine": {
     "placeholders": {
       "number": {
@@ -3812,8 +3812,8 @@
   },
   "fortuneSajuHeavenlyStems": "Gap|Eul|Byeong|Jeong|Mu|Gi|Gyeong|Sin|Im|Gye",
   "fortuneSajuEarthlyBranches": "Ja|Chuk|In|Myo|Jin|Sa|O|Mi|Sin|Yu|Sul|Hae",
-  "fortuneSajuElementFlows": "an easy start|a welcome message|a small lucky break|a clearer mind|a light flutter|a clean choice|a warm encounter|pleasant focus|unexpected help|calm recovery|a fresh idea|a hidden chance|tidy momentum|quick intuition|soft timing|small courage|a hint of good news|a comfortable pace|a feeling that things loosen|your own rhythm|a smile-first mood|a small change in the air|the answer you waited for|quiet confidence",
-  "fortuneSajuElementFlowExtras": "calm observation|a light turnaround|an easy challenge|a wider heart|unexpected kindness|easier choices|small satisfaction|a good feeling|slow luck|a clear answer|a sparkling coincidence|tidier surroundings|a new interest|a lighter mind|an early clue|easy conversation|comfortable courage|small recognition|room to breathe|timing that fits|deeper focus|a cute mistake|a welcome discovery|a day that gathers speed|quiet self-belief|sharper instincts|a good course change|small popularity|a promising start|a crisp finish|shorter waiting|one more laugh|a decent offer|a mind that loosens|an accurate hunch|warm curiosity",
+  "fortuneSajuElementFlows": "take an easy start today|expect a welcome message|do not miss a small lucky break|it is a good day to clear your mind|follow the light flutter|make the choice clearly|expect a warm encounter|get into pleasant focus|unexpected help may arrive|recover calmly|hold onto a fresh idea|look for a hidden chance|tidy things cleanly|quick intuition may matter today|wait for soft timing|use a little courage|a hint of good news may show|move at a comfortable pace|things may start to loosen|trust your own rhythm|smile first and the mood gets easier|notice a small change in the air|the answer you waited for may come closer|show quiet confidence",
+  "fortuneSajuElementFlowExtras": "observe calmly|a light turnaround may happen|an easy challenge fits well|your heart may open wider|unexpected kindness may appear|choices may get easier|notice a small sense of achievement|trust the good feeling|slow luck may come closer|a clear answer may come to mind|expect a sparkling coincidence|tidying your surroundings may lighten your luck|a new interest may appear|your mind may feel lighter|a clue may loosen early|conversation may flow easily|use comfortable courage|small recognition may arrive|make room to breathe|the timing may fit well|focus may get deeper|a cute mistake can be laughed off|expect a welcome discovery|the day may gather speed|trust quiet self-belief|your instincts may sharpen|a good course change is possible|small popularity may appear|start with a good feeling|finish things crisply|waiting may get shorter|one more laugh may arrive|leave a decent offer open|your mind may loosen lightly|an accurate hunch may matter|follow warm curiosity",
   "fortuneSajuFortuneThemes": "an unexpected laugh may show up in the morning.|something you postponed may turn out easier than expected.|a reply you waited for may arrive, even a little late.|an unfamiliar suggestion may feel surprisingly right.|a small discovery may feel better than a small purchase.|a tangled thought may settle into one clear sentence.|a short talk with someone close may stay with you.|a place you usually pass by may give you a useful hint.|your focus may wake up suddenly in the afternoon.|one sentence from someone may touch your confidence.|a small plan change may open a better route.|a forgotten promise or item may come back to mind.|tidying up may bring back a pleasant memory.|a color or object you keep noticing may change the day's mood.|waiting may feel shorter and choices may come faster.|it is a good day to receive or give a small compliment.|new information may arrive right when you need it.|time alone may feel sweeter than expected.|a light walk or short commute may untangle your thoughts.|a confused feeling may become clear by evening.|a moment of quiet understanding may appear.|a small mistake may turn into a funny story.|your timing may improve because you notice things faster.|it is a good flow for sending a message you delayed.|a new fact may shift your taste a little.|a quick mood reset may work better than expected.|you may value time more than money in one moment.|a good coincidence may lead to the next plan.|quiet focus may make the result clearer.|something on your mind may pass more lightly than expected.|your intuition may improve more at night than during the day.|a small chance may hide inside someone's request.|news or an item you waited for may come closer.|you may meet someone who understands you faster than expected.|one small tidy-up may make the whole day feel lighter.|the first choice you pick may stay right longer than expected.",
   "fortuneSajuFortuneThemeExtras": "the first check of the morning may show a welcome clue.|handling a small request may bring a better reaction than expected.|a postponed tidy-up may feel strangely easy today.|a conversation on your mind may soften naturally.|free time may open earlier than expected.|a route you choose lightly may show you a good scene.|today, the one who moves first may set the mood.|a screen you open without thinking may show the information you need.|after a small mistake, a better method may appear.|a short wait may make the choice feel easier.|warmth may come more from someone familiar than someone new.|a small morning win may carry your afternoon mood.|you may say less but make your feeling clearer.|something annoying may finish and leave you relieved.|the answer you looked for may be closer than expected.|someone asking for help may turn into a pleasant flow.|an unplanned schedule may become a surprisingly good memory.|a good idea may arrive while you take a short break.|an unfamiliar option may feel easier than expected.|a small bit of luck may slip in late afternoon.|unexpected praise may change your expression.|starting with what is in reach may tidy things quickly.|a casual sentence may lead into a good conversation.|it is a good day to reopen a delayed message.|blurred priorities may settle on their own.|one small discovery may sharpen your taste.|the person who quietly takes care may smile last today.|good focus may arrive at an unusual time.|a small kindness may return bigger than expected.|something you worried about may end plainly and lightly.|the words you waited for may arrive in a short form.|one light change may refresh the whole day.|checking one more time may help you choose well.|a small standard may form around a long concern.|slowing down may make the result clearer today.|a strength you kept private may show quietly.|an overlooked message may hold an important hint.|a familiar place may feel slightly different today.|from the moment you smile first, conversation may get easier.|keeping a small promise may raise trust.|the color you choose today may carry your mood longer.|a short trip may bring a thought that sorts things out.|you may discover an unexpected taste and feel good.|something hard to say may come up naturally.|good timing around you may be easier to notice today.|even if you start a bit late, the ending may stay neat.|a small concession may return as bigger comfort.|new information may lightly change today's choice.|laughing something off may soften the day.|a tidy space may give you unexpected confidence.|words from someone close may become a good direction sign.|a small reward may seem to wait at the end of the day.|an unusual check may prevent a mistake.|a meeting may feel easier than expected.|a sudden idea may be more useful than it looks.|if your mind is busy, a short walk may bring the answer.|good news may begin very small.|today's last choice may fit better than expected.|a comfortable choice may satisfy you for a long time.|a small bit of courage may change the mood.",
   "fortuneSajuTrainingTones": "things feel cleaner if you do not rush for no reason.|one first word can loosen the mood quickly.|start with a small tidy-up and the flow speeds up.|write down what bothers you in a short note.|a comfortable choice fits better than a fast decision today.|one light joke can melt the awkwardness.|reduce a complex task to three steps.|check important messages in the morning for an easier day.|after lunch, fewer extra plans may suit you better.|keep a pleasing color nearby and focus gets easier.|handle a small request quickly and your mind opens up.|save or write down any decent idea.|when words get long, the core is enough.|fun may come from a familiar route rather than a new one.|pause for one breath and the choice becomes clearer.|it is okay to get help with something you were solving alone.|pick one small thing to do while waiting.|do not wait too long before answering welcome news.|trust your taste more than the perfect answer.|drop the comparisons and your mood recovers fast.|look once more for something you thought was lost.|check unfamiliar information once before trusting it.|ask how someone close is doing first.|it is a good time to finish a delayed booking or check.|a short outing may refresh you more than expected.|fewer phone alerts can stretch your focus.|a small choice you can make now is better than later.|split a worry into smaller pieces instead of saying it big.|a neat finish raises the day's luck.|a casually chosen menu may satisfy you more than expected.|read once more before sending and misunderstandings shrink.|if the pace stalls, change your seat or background.|smiling first makes conversation much easier.|drop one unnecessary thing and your mind gets lighter.|keep ten minutes of room around appointments.|today's good scene can stay in words, not only photos.",

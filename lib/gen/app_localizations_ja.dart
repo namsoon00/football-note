@@ -6034,7 +6034,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDialogOverallFortuneLabel => '今日の運勢';
 
   @override
-  String get fortuneDialogLuckyInfoLabel => '楽しいポイント';
+  String get fortuneDialogLuckyInfoLabel => 'カラーと数字';
 
   @override
   String fortuneDialogOverallFortuneCount(int count) {
@@ -6047,7 +6047,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogLuckyInfoTitle => '楽しいポイント';
+  String get fortuneDialogLuckyInfoTitle => 'カラーと数字';
 
   @override
   String get fortuneDialogPoolSizeLabel => '運勢の組み合わせ';
@@ -6076,7 +6076,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseTitle => '運勢データベース全体';
 
   @override
-  String get fortuneDatabaseSubtitle => '今日の運勢を作る文のかけらと楽しいポイントをすべて集めました。';
+  String get fortuneDatabaseSubtitle => '今日の運勢を作る文のかけら、カラー、数字のデータを集めました。';
 
   @override
   String get fortuneDatabaseCloseAction => '閉じる';
@@ -6085,7 +6085,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseSectionBirthCodes => '命理コード';
 
   @override
-  String get fortuneDatabaseSectionDayMoods => '一日の雰囲気';
+  String get fortuneDatabaseSectionDayMoods => '一日の流れ';
 
   @override
   String get fortuneDatabaseSectionDailyEvents => '今日起こりそうなこと';
@@ -6106,13 +6106,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseSectionColorBases => 'カラー';
 
   @override
-  String get fortuneDatabaseSectionTimePeriods => '時間の雰囲気';
+  String get fortuneDatabaseSectionTimePeriods => '時間帯';
 
   @override
   String get fortuneDatabaseSectionTimeWindows => '時間帯';
 
   @override
-  String get fortuneDatabaseSectionSceneModifiers => '場所の雰囲気';
+  String get fortuneDatabaseSectionSceneModifiers => '場所のヒント';
 
   @override
   String get fortuneDatabaseSectionSceneBases => '場所と場面';
@@ -6152,7 +6152,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$nameさん、今日は$elementFlow寄りの流れです。';
+    return '$nameさん、$elementFlow。';
   }
 
   @override
@@ -6166,11 +6166,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get fortuneGeneratedLuckyInfoHeader => '[楽しいポイント]';
+  String get fortuneGeneratedLuckyInfoHeader => '[カラーと数字]';
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return '楽しいポイントは数字 $number と $color カラーです。';
+    return '今日のカラーは$color、数字は$numberです。';
   }
 
   @override
@@ -6208,11 +6208,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get fortuneSajuElementFlows =>
-      'ゆるやかな始まり|うれしい連絡|小さな幸運|整う気持ち|軽いときめき|はっきりした選択|あたたかい出会い|気持ちいい集中|思わぬ助け|落ち着いた回復|新しいアイデア|隠れたチャンス|すっきりした流れ|早い直感|やわらかなタイミング|小さな勇気|良い知らせの気配|心地よいペース|流れがほどける感じ|自分に合うリズム|先に笑う雰囲気|小さな変化の風|待っていた答え|静かな自信';
+      'ゆっくり始めると良いです|うれしい連絡を期待しても良いです|小さな幸運を見逃さないでください|気持ちを整えやすい日です|軽いときめきを追っても良いです|選択をはっきりさせても良いです|あたたかい出会いを期待しても良いです|気持ちよく集中しやすいです|思わぬ助けが来るかもしれません|落ち着いて回復すると良いです|新しいアイデアをつかんでみましょう|隠れたチャンスを探してみましょう|すっきり整えると良いです|早い直感が必要な瞬間があります|やわらかなタイミングを待ってみましょう|小さな勇気を出しやすい日です|良い知らせの気配があります|心地よいペースで進んで大丈夫です|流れがほどけ始めそうです|自分に合うリズムを信じてみましょう|先に笑うと空気が良くなります|小さな変化の風を感じてみましょう|待っていた答えが近づきそうです|静かな自信を見せても良いです';
 
   @override
   String get fortuneSajuElementFlowExtras =>
-      '落ち着いた観察|軽い反転|気楽な挑戦|心が広がる流れ|思わぬ親切|選びやすい流れ|小さな達成感|良い予感|ゆっくり来る幸運|はっきりした答え|きらめく偶然|整う周り|新しい関心|心が軽くなる流れ|早めにほどける糸口|話が通じる流れ|心地よい勇気|小さな認められ感|ひと息つける余白|タイミングが合う流れ|深まる集中|かわいいミス|うれしい発見|勢いがつく一日|静かな自己信頼|勘が冴える流れ|良い方向転換|小さな人気|感じの良い始まり|さっぱりした締めくくり|待ち時間が短くなる流れ|もう一度笑う流れ|悪くない提案|軽くほどける心|正確な勘|あたたかい好奇心';
+      '落ち着いて観察すると良いです|軽い反転が起こりそうです|気楽な挑戦がよく合います|心が広がる方へ流れます|思わぬ親切に出会えそうです|選びやすくなりそうです|小さな達成感を受け取ると良いです|良い予感を信じても大丈夫です|ゆっくり来る幸運が近づきそうです|はっきりした答えが浮かびそうです|きらめく偶然を期待しても良いです|周りを整えると運が軽くなります|新しい関心が生まれそうです|心が軽くなりそうです|糸口が早めにほどけそうです|話が通じる瞬間があります|心地よい勇気を出すと良いです|小さく認められることがありそうです|ひと息つける余白を作りましょう|タイミングがうまく合いそうです|集中が深まりそうです|かわいいミスは笑って流して大丈夫です|うれしい発見を期待しても良いです|一日に勢いがつきそうです|静かな自己信頼を持って大丈夫です|勘が冴える瞬間があります|良い方向転換ができそうです|小さな人気が出るかもしれません|感じよく始めてみましょう|さっぱり締めくくりやすいです|待ち時間が短く感じられそうです|もう一度笑えることがありそうです|悪くない提案は少し開いておきましょう|心が軽くほどけそうです|正確な勘が必要な瞬間です|あたたかい好奇心を追っても良いです';
 
   @override
   String get fortuneSajuFortuneThemes =>

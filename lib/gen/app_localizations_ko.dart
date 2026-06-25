@@ -6034,7 +6034,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDialogOverallFortuneLabel => '오늘 운세';
 
   @override
-  String get fortuneDialogLuckyInfoLabel => '재미 포인트';
+  String get fortuneDialogLuckyInfoLabel => '컬러와 숫자';
 
   @override
   String fortuneDialogOverallFortuneCount(int count) {
@@ -6047,7 +6047,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogLuckyInfoTitle => '재미 포인트';
+  String get fortuneDialogLuckyInfoTitle => '컬러와 숫자';
 
   @override
   String get fortuneDialogPoolSizeLabel => '운세 조합';
@@ -6077,7 +6077,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fortuneDatabaseSubtitle =>
-      '오늘 운세를 만들 때 쓰는 문장 조각과 재미 포인트를 모두 모아봤어요.';
+      '오늘 운세를 만들 때 쓰는 문장 조각과 컬러, 숫자 데이터를 모두 모아봤어요.';
 
   @override
   String get fortuneDatabaseCloseAction => '닫기';
@@ -6086,7 +6086,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseSectionBirthCodes => '명리 코드';
 
   @override
-  String get fortuneDatabaseSectionDayMoods => '하루 분위기';
+  String get fortuneDatabaseSectionDayMoods => '하루 흐름';
 
   @override
   String get fortuneDatabaseSectionDailyEvents => '오늘 일어날 수 있는 일';
@@ -6107,13 +6107,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseSectionColorBases => '컬러';
 
   @override
-  String get fortuneDatabaseSectionTimePeriods => '시간 분위기';
+  String get fortuneDatabaseSectionTimePeriods => '시간대';
 
   @override
   String get fortuneDatabaseSectionTimeWindows => '시간대';
 
   @override
-  String get fortuneDatabaseSectionSceneModifiers => '장소 분위기';
+  String get fortuneDatabaseSectionSceneModifiers => '장소 단서';
 
   @override
   String get fortuneDatabaseSectionSceneBases => '장소와 장면';
@@ -6153,7 +6153,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name님, 오늘은 $elementFlow 쪽으로 흐름이 잡혀요.';
+    return '$name님, $elementFlow.';
   }
 
   @override
@@ -6167,11 +6167,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get fortuneGeneratedLuckyInfoHeader => '[재미 포인트]';
+  String get fortuneGeneratedLuckyInfoHeader => '[컬러와 숫자]';
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return '재미 포인트는 $color 컬러와 숫자 $number예요.';
+    return '오늘의 컬러는 $color, 숫자는 $number예요.';
   }
 
   @override
@@ -6209,11 +6209,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fortuneSajuElementFlows =>
-      '느긋한 시작|반가운 연락|작은 행운|정리되는 마음|가벼운 설렘|선명한 선택|따뜻한 만남|기분 좋은 집중|예상 밖의 도움|차분한 회복|새로운 아이디어|숨은 기회|말끔한 정리|빠른 눈치|부드러운 타이밍|작은 용기|좋은 소식의 기미|편안한 속도|흐름이 풀리는 느낌|나에게 맞는 리듬|먼저 웃는 분위기|작은 변화의 바람|기다리던 답|은근한 자신감';
+      '느긋하게 시작하면 좋아요|반가운 연락을 기대해도 좋아요|작은 행운을 그냥 넘기지 마세요|마음을 정리하기 좋은 날이에요|가벼운 설렘을 따라가도 좋아요|선택을 선명하게 해도 좋아요|따뜻한 만남을 기대해도 좋아요|기분 좋게 집중하기 좋아요|예상 밖의 도움을 받을 수 있어요|차분히 회복하면 좋아요|새로운 아이디어를 붙잡아보세요|숨은 기회를 살펴보세요|말끔하게 정리하면 좋아요|빠른 눈치가 필요한 순간이 있어요|부드러운 타이밍을 기다려보세요|작은 용기를 내기 좋아요|좋은 소식의 기미가 보여요|편안한 속도로 가도 좋아요|막힌 흐름이 풀릴 수 있어요|나에게 맞는 리듬을 믿어보세요|먼저 웃으면 분위기가 좋아져요|작은 변화의 바람을 느껴보세요|기다리던 답이 가까워져요|은근한 자신감을 보여줘도 좋아요';
 
   @override
   String get fortuneSajuElementFlowExtras =>
-      '차분한 관찰|가벼운 반전|부담 없는 도전|마음이 넓어지는 흐름|뜻밖의 친절|선택이 쉬워지는 흐름|작은 성취감|기분 좋은 예감|느린 행운|선명한 대답|반짝이는 우연|정돈되는 주변|새로운 관심사|마음이 가벼워지는 흐름|일찍 풀리는 실마리|말이 잘 통하는 흐름|편안한 용기|작은 인정|숨 돌릴 여유|타이밍이 맞는 흐름|깊어지는 집중|귀여운 실수|반가운 발견|속도가 붙는 하루|조용한 자신감|감이 살아나는 흐름|좋은 방향 전환|작은 인기|느낌 좋은 시작|산뜻한 마무리|기다림이 줄어드는 흐름|한 번 더 웃는 흐름|괜찮은 제안|가볍게 풀리는 마음|정확한 촉|따뜻한 호기심';
+      '차분히 관찰하면 좋아요|가벼운 반전이 생길 수 있어요|부담 없는 도전이 잘 맞아요|마음이 넓어지는 쪽으로 흘러가요|뜻밖의 친절을 만날 수 있어요|선택이 쉬워질 수 있어요|작은 성취감을 챙기기 좋아요|기분 좋은 예감을 믿어도 좋아요|느린 행운이 다가올 수 있어요|선명한 대답이 떠오를 수 있어요|반짝이는 우연을 기대해도 좋아요|주변을 정돈하면 운이 가벼워져요|새로운 관심사가 생길 수 있어요|마음이 가벼워질 수 있어요|실마리가 일찍 풀릴 수 있어요|말이 잘 통하는 순간이 있어요|편안한 용기를 내기 좋아요|작은 인정을 받을 수 있어요|숨 돌릴 여유를 챙기세요|타이밍이 잘 맞을 수 있어요|집중이 깊어질 수 있어요|귀여운 실수는 웃고 넘겨도 좋아요|반가운 발견을 기대해도 좋아요|하루에 속도가 붙을 수 있어요|조용한 자신감을 믿어보세요|감이 살아나는 순간이 있어요|좋은 방향 전환이 가능해요|작은 인기가 생길 수 있어요|느낌 좋은 시작을 해보세요|산뜻하게 마무리하기 좋아요|기다림이 줄어들 수 있어요|한 번 더 웃는 일이 생길 수 있어요|괜찮은 제안을 열어두세요|마음이 가볍게 풀릴 수 있어요|정확한 촉이 필요한 순간이에요|따뜻한 호기심을 따라가도 좋아요';
 
   @override
   String get fortuneSajuFortuneThemes =>
