@@ -1572,21 +1572,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeTodayPlanCardTitle => 'Today training plan';
-
-  @override
-  String homeTodayPlanCardSummary(int count) {
-    return 'Today: $count plan(s)';
-  }
-
-  @override
-  String get homeTodayPlanOpenAction => 'Open plans';
-
-  @override
-  String get homeTodayPlanSelectForLogTitle =>
-      'Choose a plan to turn into a training log';
-
-  @override
   String get homeHubTitleShort => 'Home';
 
   @override
@@ -1618,9 +1603,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeSectionMeal => 'Meal summary';
-
-  @override
-  String get homeSectionTodayPlan => 'Today training plan';
 
   @override
   String get homeSectionDailyFlow => 'Today\'s tasks';
@@ -1718,17 +1700,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeContinueTrainingButton => 'Continue';
-
-  @override
-  String get homeContinueTodayPlanTitle => 'Today training plan';
-
-  @override
-  String homeContinueTodayPlanSubtitle(int count) {
-    return '$count plans are waiting today.';
-  }
-
-  @override
-  String get homeContinuePlanButton => 'Open plans';
 
   @override
   String get homeContinueQuizButton => 'Open quiz';

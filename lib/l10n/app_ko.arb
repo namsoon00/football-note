@@ -933,17 +933,6 @@
       }
     }
   },
-  "homeTodayPlanCardTitle": "오늘의 훈련 계획",
-  "homeTodayPlanCardSummary": "오늘 계획 {count}개",
-  "@homeTodayPlanCardSummary": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "homeTodayPlanOpenAction": "계획 보기",
-  "homeTodayPlanSelectForLogTitle": "훈련기록으로 만들 계획을 선택하세요",
   "homeHubTitleShort": "홈",
   "homeLayoutChangeAction": "홈화면 변경",
   "homeLayoutSettingsTitle": "홈 화면 설정",
@@ -955,7 +944,6 @@
   "homeSectionChallenge": "챌린지",
   "homeSectionStreak": "훈련 연속 기록",
   "homeSectionMeal": "식사 요약",
-  "homeSectionTodayPlan": "오늘의 훈련 계획",
   "homeSectionDailyFlow": "오늘 할일",
   "homeSectionQuickActions": "빠른 실행",
   "homeSectionContinue": "이어하기",
@@ -1014,16 +1002,6 @@
     }
   },
   "homeContinueTrainingButton": "이어서 쓰기",
-  "homeContinueTodayPlanTitle": "오늘 훈련 계획",
-  "homeContinueTodayPlanSubtitle": "오늘 계획 {count}개가 있어요.",
-  "@homeContinueTodayPlanSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "homeContinuePlanButton": "계획 보기",
   "homeContinueQuizButton": "퀴즈 열기",
   "homeContinueRecentBoardTitle": "최근 훈련보드",
   "homeContinueBoardCount": "스케치 {count}개",

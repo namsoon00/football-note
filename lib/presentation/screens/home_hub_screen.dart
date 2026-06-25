@@ -58,7 +58,6 @@ import 'training_method_board_screen.dart';
 import 'weather_detail_screen.dart';
 
 typedef _HomeHubData = DailyLoopSnapshot;
-typedef _DashboardPlan = DailyLoopPlan;
 typedef _RecentTrainingMarker = DailyLoopTrainingMarker;
 
 class HomeHubScreen extends StatefulWidget {
@@ -74,8 +73,6 @@ class HomeHubScreen extends StatefulWidget {
   final VoidCallback? onQuickQuiz;
   final VoidCallback? onQuickMeal;
   final VoidCallback? onQuickBoard;
-  final VoidCallback onOpenPlans;
-  final ValueChanged<DateTime>? onOpenPlansForDay;
   final VoidCallback onOpenLogs;
   final VoidCallback onOpenDiary;
   final VoidCallback onOpenWeeklyStats;
@@ -97,8 +94,6 @@ class HomeHubScreen extends StatefulWidget {
     this.onQuickQuiz,
     this.onQuickMeal,
     this.onQuickBoard,
-    required this.onOpenPlans,
-    this.onOpenPlansForDay,
     required this.onOpenLogs,
     required this.onOpenDiary,
     required this.onOpenWeeklyStats,
@@ -260,7 +255,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                   final data = DailyLoopSnapshot.build(
                     entries: allEntries,
                     mealEntries: mealEntries,
-                    plans: _loadPlans(widget.optionRepository),
                     boards: boards,
                     quizCompletedAt: _loadQuizCompletedAt(
                       widget.optionRepository,
@@ -375,35 +369,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         ).colorScheme.surface.withValues(alpha: 0.86),
                       ),
                     ),
-                    HomeHubSectionId.todayPlan: data.todayPlanCount > 0
-                        ? keyedSection(
-                            'home-layout-today-plan-section',
-                            Builder(
-                              builder: (context) {
-                                final firstPlan = data.todayPlans.first;
-                                final showLogAction = DateTime.now().isAfter(
-                                  firstPlan.endsAt,
-                                );
-                                return _TodayPlanHighlightCard(
-                                  l10n: l10n,
-                                  plans: data.todayPlans,
-                                  count: data.todayPlanCount,
-                                  onOpenPlans: widget.onOpenPlans,
-                                  onPrimaryAction: _isParentMode
-                                      ? widget.onOpenPlans
-                                      : showLogAction
-                                          ? _trackedAction(
-                                              'today_plan_log',
-                                              () => unawaited(
-                                                _openTodayPlanLog(data),
-                                              ),
-                                            )
-                                          : widget.onOpenPlans,
-                                );
-                              },
-                            ),
-                          )
-                        : null,
                     HomeHubSectionId.dailyFlow: keyedSection(
                       'home-layout-daily-flow-section',
                       _DailyFlowCard(
@@ -483,7 +448,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         onContinueQuiz: widget.onQuickQuiz,
                         onContinueTraining: () => _openTodayEntryOrCreate(data),
                         onContinueMatch: widget.onQuickMatch,
-                        onContinuePlan: widget.onOpenPlans,
                         onContinueBoard: data.latestBoard == null
                             ? widget.onQuickBoard
                             : () => _openBoard(context, data.latestBoard!),
@@ -947,23 +911,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     }
   }
 
-  static List<_DashboardPlan> _loadPlans(OptionRepository optionRepository) {
-    final raw = optionRepository.getValue<String>(
-      TrainingPlanReminderService.plansStorageKeyFor(optionRepository),
-    );
-    if (raw == null || raw.trim().isEmpty) return const <_DashboardPlan>[];
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is! List) return const <_DashboardPlan>[];
-      return decoded
-          .whereType<Map>()
-          .map((item) => DailyLoopPlan.fromMap(item.cast<String, dynamic>()))
-          .toList(growable: false);
-    } catch (_) {
-      return const <_DashboardPlan>[];
-    }
-  }
-
   static DateTime? _loadQuizCompletedAt(OptionRepository optionRepository) {
     final raw = optionRepository.getValue<String>(
       SkillQuizScreen.storageKey(
@@ -1183,7 +1130,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   Future<void> _openEntryForm({
     TrainingEntry? entry,
     DateTime? initialDate,
-    EntryFormInitialPlanContext? initialPlanContext,
     EntryFormInitialFocusTarget? initialFocusTarget,
     bool initialFocusViewOnly = false,
   }) {
@@ -1197,91 +1143,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           driveBackupService: widget.driveBackupService,
           entry: entry,
           initialDate: initialDate,
-          initialPlanContext: initialPlanContext,
           initialFocusTarget: initialFocusTarget,
           initialFocusViewOnly: initialFocusViewOnly,
         ),
       ),
     );
-  }
-
-  Future<void> _openTodayPlanLog(_HomeHubData data) async {
-    final selectedPlan = await _pickTodayPlanForLog(data.todayPlans);
-    if (!mounted || selectedPlan == null) {
-      return;
-    }
-    final scheduledDay = DateTime(
-      selectedPlan.scheduledAt.year,
-      selectedPlan.scheduledAt.month,
-      selectedPlan.scheduledAt.day,
-    );
-    await _openEntryForm(
-      initialDate: scheduledDay,
-      initialPlanContext: EntryFormInitialPlanContext(
-        scheduledAt: selectedPlan.scheduledAt,
-        program: selectedPlan.category,
-        durationMinutes: selectedPlan.durationMinutes,
-        location: '',
-        note: selectedPlan.note,
-      ),
-    );
-  }
-
-  Future<_DashboardPlan?> _pickTodayPlanForLog(
-    List<_DashboardPlan> plans,
-  ) async {
-    if (plans.isEmpty) {
-      return null;
-    }
-    if (plans.length == 1) {
-      return plans.first;
-    }
-    final l10n = AppLocalizations.of(context)!;
-    return showModalBottomSheet<_DashboardPlan>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: ListView.separated(
-            shrinkWrap: true,
-            itemCount: plans.length + 1,
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return ListTile(
-                  title: Text(
-                    l10n.homeTodayPlanSelectForLogTitle,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                  ),
-                );
-              }
-              final plan = plans[index - 1];
-              final title = plan.category.trim().isEmpty
-                  ? l10n.drawerTrainingPlan
-                  : plan.category.trim();
-              return ListTile(
-                title: Text(title),
-                subtitle: Text(_planLogSubtitle(plan, l10n)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).pop(plan),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  String _planLogSubtitle(_DashboardPlan plan, AppLocalizations l10n) {
-    final timeLabel = _formatPlanTime(plan.scheduledAt, l10n: l10n);
-    final durationLabel = l10n.minutes(plan.durationMinutes);
-    final note = plan.note.trim();
-    if (note.isEmpty) {
-      return '$timeLabel · $durationLabel';
-    }
-    return '$timeLabel · $durationLabel · $note';
   }
 
   void _openTodayBoardSketch(_HomeHubData data) {
@@ -1339,114 +1205,6 @@ String _challengeTemplateTitle(
     'focus_14' => l10n.challengeTemplateFocusTitle,
     _ => l10n.challengeTitle,
   };
-}
-
-class _TodayPlanHighlightCard extends StatelessWidget {
-  final AppLocalizations l10n;
-  final List<_DashboardPlan> plans;
-  final int count;
-  final VoidCallback onOpenPlans;
-  final VoidCallback? onPrimaryAction;
-
-  const _TodayPlanHighlightCard({
-    required this.l10n,
-    required this.plans,
-    required this.count,
-    required this.onOpenPlans,
-    required this.onPrimaryAction,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final firstPlan = plans.isEmpty ? null : plans.first;
-    final showLogAction =
-        firstPlan != null && DateTime.now().isAfter(firstPlan.endsAt);
-    final category = firstPlan?.category.trim() ?? '';
-    final detailText = [
-      if (firstPlan != null) _formatPlanTime(firstPlan.scheduledAt, l10n: l10n),
-      if (category.isNotEmpty) category,
-    ].join(' · ');
-    final summary = [
-      l10n.homeTodayPlanCardSummary(count),
-      if (detailText.isNotEmpty) detailText,
-    ].join(' · ');
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onOpenPlans,
-        child: Ink(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
-                Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.22),
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.event_note_outlined,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  summary,
-                  key: const ValueKey('today-plan-summary-text'),
-                  maxLines: 2,
-                  overflow: TextOverflow.visible,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w800,
-                        height: 1.25,
-                      ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              if (onPrimaryAction != null)
-                Align(
-                  alignment: Alignment.center,
-                  child: FilledButton.tonal(
-                    key: showLogAction
-                        ? const ValueKey('today-plan-log-action')
-                        : const ValueKey('today-plan-open-action'),
-                    onPressed: onPrimaryAction,
-                    child: Text(
-                      showLogAction
-                          ? l10n.tabLogs
-                          : l10n.homeTodayPlanOpenAction,
-                      maxLines: 2,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _ChallengeHomeCard extends StatelessWidget {
@@ -2405,16 +2163,6 @@ class _WeatherHeroPalette {
   });
 }
 
-String _formatPlanTime(DateTime value, {required AppLocalizations l10n}) {
-  final languageCode = l10n.localeName.split('_').first;
-  final pattern = switch (languageCode) {
-    'ko' => 'a h:mm',
-    'ja' => 'H:mm',
-    _ => 'h:mm a',
-  };
-  return DateFormat(pattern, l10n.localeName).format(value);
-}
-
 class _HomeSectionsEmptyCard extends StatelessWidget {
   final AppLocalizations l10n;
 
@@ -2509,7 +2257,6 @@ class _ContinueCard extends StatelessWidget {
   final VoidCallback? onContinueQuiz;
   final VoidCallback? onContinueTraining;
   final VoidCallback? onContinueMatch;
-  final VoidCallback? onContinuePlan;
   final VoidCallback? onContinueBoard;
 
   const _ContinueCard({
@@ -2518,7 +2265,6 @@ class _ContinueCard extends StatelessWidget {
     required this.onContinueQuiz,
     required this.onContinueTraining,
     required this.onContinueMatch,
-    required this.onContinuePlan,
     required this.onContinueBoard,
   });
 
@@ -2566,14 +2312,6 @@ class _ContinueCard extends StatelessWidget {
               : '${_homeTrainingProgramLabel(latestTrainingEntry)} · ${shortDateFormat.format(latestTrainingEntry.date)}',
           buttonLabel: l10n.homeContinueTrainingButton,
           onPressed: onContinueTraining,
-        ),
-      if (data.todayPlanCount > 0)
-        _ContinueItemData(
-          icon: Icons.event_note_outlined,
-          title: l10n.homeContinueTodayPlanTitle,
-          subtitle: l10n.homeContinueTodayPlanSubtitle(data.todayPlanCount),
-          buttonLabel: l10n.homeContinuePlanButton,
-          onPressed: onContinuePlan,
         ),
       if (hasQuizSession)
         _ContinueItemData(

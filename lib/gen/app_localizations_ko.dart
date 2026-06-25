@@ -1522,20 +1522,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get homeTodayPlanCardTitle => '오늘의 훈련 계획';
-
-  @override
-  String homeTodayPlanCardSummary(int count) {
-    return '오늘 계획 $count개';
-  }
-
-  @override
-  String get homeTodayPlanOpenAction => '계획 보기';
-
-  @override
-  String get homeTodayPlanSelectForLogTitle => '훈련기록으로 만들 계획을 선택하세요';
-
-  @override
   String get homeHubTitleShort => '홈';
 
   @override
@@ -1567,9 +1553,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeSectionMeal => '식사 요약';
-
-  @override
-  String get homeSectionTodayPlan => '오늘의 훈련 계획';
 
   @override
   String get homeSectionDailyFlow => '오늘 할일';
@@ -1666,17 +1649,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeContinueTrainingButton => '이어서 쓰기';
-
-  @override
-  String get homeContinueTodayPlanTitle => '오늘 훈련 계획';
-
-  @override
-  String homeContinueTodayPlanSubtitle(int count) {
-    return '오늘 계획 $count개가 있어요.';
-  }
-
-  @override
-  String get homeContinuePlanButton => '계획 보기';
 
   @override
   String get homeContinueQuizButton => '퀴즈 열기';

@@ -48,7 +48,6 @@ void main() {
     required DateTime now,
     List<TrainingEntry> entries = const <TrainingEntry>[],
     List<MealEntry> mealEntries = const <MealEntry>[],
-    List<DailyLoopPlan> plans = const <DailyLoopPlan>[],
     List<TrainingBoard> boards = const <TrainingBoard>[],
     DateTime? quizCompletedAt,
     String? viewedDiaryDayToken,
@@ -57,7 +56,6 @@ void main() {
     return DailyLoopSnapshot.build(
       entries: entries,
       mealEntries: mealEntries,
-      plans: plans,
       boards: boards,
       quizCompletedAt: quizCompletedAt,
       viewedDiaryDayToken: viewedDiaryDayToken,
@@ -66,56 +64,6 @@ void main() {
       now: now,
     );
   }
-
-  test('today plan stays visible until covered by a matching training log', () {
-    final now = DateTime(2026, 6, 17, 20);
-    final today = DateTime(2026, 6, 17);
-    final plan = DailyLoopPlan(
-      id: 'plan-pass',
-      scheduledAt: DateTime(2026, 6, 17, 18),
-      category: 'Passing',
-      durationMinutes: 60,
-      location: 'Pitch',
-      note: '',
-    );
-
-    final beforeLog = buildSnapshot(now: now, plans: <DailyLoopPlan>[plan]);
-    final afterLog = buildSnapshot(
-      now: now,
-      plans: <DailyLoopPlan>[plan],
-      entries: <TrainingEntry>[
-        trainingEntry(today, type: 'Passing'),
-      ],
-    );
-
-    expect(beforeLog.todayPlanCount, 1);
-    expect(beforeLog.todayPlans, <DailyLoopPlan>[plan]);
-    expect(afterLog.todayPlanCount, 0);
-    expect(afterLog.todayPlans, isEmpty);
-  });
-
-  test('ended plan is covered by any training log on the plan day', () {
-    final now = DateTime(2026, 6, 17, 20);
-    final today = DateTime(2026, 6, 17);
-    final plan = DailyLoopPlan(
-      id: 'plan-shooting',
-      scheduledAt: DateTime(2026, 6, 17, 18),
-      category: 'Shooting',
-      durationMinutes: 30,
-      location: 'Pitch',
-      note: '',
-    );
-
-    final snapshot = buildSnapshot(
-      now: now,
-      plans: <DailyLoopPlan>[plan],
-      entries: <TrainingEntry>[
-        trainingEntry(today, type: 'Dribble'),
-      ],
-    );
-
-    expect(snapshot.todayPlanCount, 0);
-  });
 
   test('daily task summary combines training, conditioning, meal, and review',
       () {

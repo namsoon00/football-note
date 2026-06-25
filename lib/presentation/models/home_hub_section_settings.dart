@@ -5,7 +5,6 @@ enum HomeHubSectionId {
   challenge('challenge'),
   streak('streak'),
   meal('meal'),
-  todayPlan('today_plan'),
   dailyFlow('daily_flow'),
   quickActions('quick_actions'),
   continueSection('continue');
@@ -53,14 +52,12 @@ class HomeHubSectionSettings {
     HomeHubSectionId.challenge,
     HomeHubSectionId.streak,
     HomeHubSectionId.meal,
-    HomeHubSectionId.todayPlan,
     HomeHubSectionId.dailyFlow,
     HomeHubSectionId.quickActions,
     HomeHubSectionId.continueSection,
   ];
 
   static const List<HomeHubSectionId> routineFirstOrder = <HomeHubSectionId>[
-    HomeHubSectionId.todayPlan,
     HomeHubSectionId.dailyFlow,
     HomeHubSectionId.quickActions,
     HomeHubSectionId.continueSection,

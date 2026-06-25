@@ -1528,20 +1528,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get homeTodayPlanCardTitle => '今日のトレーニングプラン';
-
-  @override
-  String homeTodayPlanCardSummary(int count) {
-    return '今日: $count プラン';
-  }
-
-  @override
-  String get homeTodayPlanOpenAction => 'オープンプラン';
-
-  @override
-  String get homeTodayPlanSelectForLogTitle => 'トレーニングログにするプランを選択してください';
-
-  @override
   String get homeHubTitleShort => '家';
 
   @override
@@ -1573,9 +1559,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeSectionMeal => '食事サマリー';
-
-  @override
-  String get homeSectionTodayPlan => '今日のトレーニングプラン';
 
   @override
   String get homeSectionDailyFlow => '今日のタスク';
@@ -1672,17 +1655,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeContinueTrainingButton => '続きを書く';
-
-  @override
-  String get homeContinueTodayPlanTitle => '今日の練習計画';
-
-  @override
-  String homeContinueTodayPlanSubtitle(int count) {
-    return '今日の計画が $count 件あります。';
-  }
-
-  @override
-  String get homeContinuePlanButton => '計画を見る';
 
   @override
   String get homeContinueQuizButton => 'クイズを開く';
