@@ -304,14 +304,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        AppBarActionButton.icon(
+                        AppBarActionButton.label(
                           key: const ValueKey<String>(
                             'home-section-settings-button',
                           ),
-                          icon: Icons.tune_outlined,
+                          icon: const Icon(Icons.tune_outlined),
+                          label: l10n.homeLayoutChangeAction,
                           tooltip: l10n.homeLayoutSettingsTitle,
                           onPressed: _openHomeSectionSettings,
                           margin: EdgeInsets.zero,
+                          maxLabelWidth: 104,
                         ),
                         const SizedBox(width: 8),
                         _TodayWeatherButton(
