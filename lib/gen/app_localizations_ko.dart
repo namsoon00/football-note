@@ -1249,8 +1249,28 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String worldCupQualificationScenariosOneMatchSubtitle(int currentPoints) {
+    return '현재 승점 $currentPoints점에서 마지막 1경기의 승·무·패별 32강 진출 가능성과 상대 후보를 계산해요.';
+  }
+
+  @override
+  String worldCupQualificationScenariosNoTeamMatchesSubtitle(
+      int currentPoints, int remainingOtherMatches) {
+    return '현재 승점 $currentPoints점이고 이 팀의 남은 경기는 없어요. 같은 조 남은 $remainingOtherMatches경기 결과에 따른 32강 경로를 계산해요.';
+  }
+
+  @override
+  String worldCupQualificationScenariosCompleteSubtitle(int currentPoints) {
+    return '조별리그 경기가 모두 끝났습니다. 최종 승점 $currentPoints점 기준의 32강 경로를 보여줘요.';
+  }
+
+  @override
   String get worldCupQualificationScenariosGuide =>
       '각 행은 이 팀의 남은 경기 결과 조합이에요. 직행은 조 1~2위, 3위 비교는 조 3위 뒤 전체 3위 팀 중 상위 8팀에 들어야 한다는 뜻입니다. 직행/3위 비교/탈락의 분모는 같은 조의 다른 남은 경기 승·무·패를 모두 섞어 본 경우 수예요. 상대 국가는 현재 순위로 브래킷 슬롯을 나라명으로 풀어쓴 후보입니다.';
+
+  @override
+  String get worldCupQualificationScenariosNoTeamMatchesGuide =>
+      '이 팀의 경기 결과 선택지는 없고, 분모는 같은 조의 남은 다른 경기 승·무·패 조합입니다. 다른 경기 결과가 없어도 현재 확정 순위를 기준으로 상대 후보를 보여줘요.';
 
   @override
   String get worldCupQualificationScenariosEmpty =>
@@ -1276,6 +1296,12 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get worldCupQualificationThirdPlaceNote =>
       '조 3위는 12개 조 3위 중 상위 8팀에 들어야 32강에 올라갑니다.';
+
+  @override
+  String get worldCupQualificationNoTeamMatchesPick => '이 팀 남은 경기 없음';
+
+  @override
+  String get worldCupQualificationCompletePick => '조별 순위 확정';
 
   @override
   String worldCupQualificationMatchPick(String opponent, String result) {

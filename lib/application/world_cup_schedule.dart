@@ -114,6 +114,7 @@ class WorldCupQualificationScenario {
   final String team;
   final int currentPoints;
   final int remainingMatches;
+  final int remainingGroupMatches;
   final int remainingPoints;
   final int finalPoints;
   final int totalCases;
@@ -128,6 +129,7 @@ class WorldCupQualificationScenario {
     required this.team,
     required this.currentPoints,
     required this.remainingMatches,
+    required this.remainingGroupMatches,
     required this.remainingPoints,
     required this.finalPoints,
     required this.totalCases,
@@ -137,6 +139,8 @@ class WorldCupQualificationScenario {
     required this.bestRank,
     required this.worstRank,
   });
+
+  int get remainingOtherMatches => remainingGroupMatches - remainingMatches;
 }
 
 class WorldCupQualificationMatchPick {
@@ -172,6 +176,7 @@ class WorldCupQualificationPathScenario {
   final String team;
   final int currentPoints;
   final int remainingMatches;
+  final int remainingGroupMatches;
   final int remainingPoints;
   final int finalPoints;
   final List<WorldCupQualificationMatchPick> picks;
@@ -188,6 +193,7 @@ class WorldCupQualificationPathScenario {
     required this.team,
     required this.currentPoints,
     required this.remainingMatches,
+    required this.remainingGroupMatches,
     required this.remainingPoints,
     required this.finalPoints,
     required this.picks,
@@ -206,6 +212,8 @@ class WorldCupQualificationPathScenario {
 
   bool get guaranteesAutomaticAdvance =>
       totalCases > 0 && automaticAdvanceCases == totalCases;
+
+  int get remainingOtherMatches => remainingGroupMatches - remainingMatches;
 }
 
 const Map<String, String> _worldCupCountryCodes = <String, String>{
@@ -432,6 +440,7 @@ List<WorldCupQualificationScenario> worldCupRoundOf32ScenariosForTeam(
         team: normalizedTeam,
         currentPoints: baseStanding.points,
         remainingMatches: teamRemainingMatches,
+        remainingGroupMatches: remainingFixtures.length,
         remainingPoints: remainingPoints,
         finalPoints: finalStanding.points,
       ),
@@ -515,9 +524,6 @@ List<WorldCupQualificationPathScenario> worldCupRoundOf32PathScenariosForTeam(
       .where((fixture) => fixture.involvesCountry(normalizedTeam))
       .toList()
     ..sort((a, b) => a.kickoffUtc.compareTo(b.kickoffUtc));
-  if (teamRemainingFixtures.isEmpty) {
-    return const <WorldCupQualificationPathScenario>[];
-  }
 
   final otherRemainingFixtures = remainingFixtures
       .where((fixture) => !fixture.involvesCountry(normalizedTeam))
@@ -533,6 +539,7 @@ List<WorldCupQualificationPathScenario> worldCupRoundOf32PathScenariosForTeam(
       team: normalizedTeam,
       currentPoints: baseStanding.points,
       remainingMatches: teamRemainingFixtures.length,
+      remainingGroupMatches: remainingFixtures.length,
       remainingPoints: picks.fold<int>(0, (sum, pick) => sum + pick.points),
       picks: picks,
     );
@@ -762,6 +769,7 @@ class _WorldCupQualificationScenarioAccumulator {
   final String team;
   final int currentPoints;
   final int remainingMatches;
+  final int remainingGroupMatches;
   final int remainingPoints;
   final int finalPoints;
   int totalCases = 0;
@@ -776,6 +784,7 @@ class _WorldCupQualificationScenarioAccumulator {
     required this.team,
     required this.currentPoints,
     required this.remainingMatches,
+    required this.remainingGroupMatches,
     required this.remainingPoints,
     required this.finalPoints,
   });
@@ -799,6 +808,7 @@ class _WorldCupQualificationScenarioAccumulator {
       team: team,
       currentPoints: currentPoints,
       remainingMatches: remainingMatches,
+      remainingGroupMatches: remainingGroupMatches,
       remainingPoints: remainingPoints,
       finalPoints: finalPoints,
       totalCases: totalCases,
@@ -816,6 +826,7 @@ class _WorldCupQualificationPathAccumulator {
   final String team;
   final int currentPoints;
   final int remainingMatches;
+  final int remainingGroupMatches;
   final int remainingPoints;
   final List<WorldCupQualificationMatchPick> picks;
   int totalCases = 0;
@@ -832,6 +843,7 @@ class _WorldCupQualificationPathAccumulator {
     required this.team,
     required this.currentPoints,
     required this.remainingMatches,
+    required this.remainingGroupMatches,
     required this.remainingPoints,
     required this.picks,
   });
@@ -871,6 +883,7 @@ class _WorldCupQualificationPathAccumulator {
       team: team,
       currentPoints: currentPoints,
       remainingMatches: remainingMatches,
+      remainingGroupMatches: remainingGroupMatches,
       remainingPoints: remainingPoints,
       finalPoints: currentPoints + remainingPoints,
       picks: List<WorldCupQualificationMatchPick>.unmodifiable(picks),

@@ -635,7 +635,35 @@
       }
     }
   },
+  "worldCupQualificationScenariosOneMatchSubtitle": "現在の勝点 {currentPoints} から、最後の1試合の勝ち・引き分け・負け別にラウンド32進出と相手候補を計算します。",
+  "@worldCupQualificationScenariosOneMatchSubtitle": {
+    "placeholders": {
+      "currentPoints": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenariosNoTeamMatchesSubtitle": "現在の勝点 {currentPoints} で、このチームの残り試合はありません。同じグループの残り {remainingOtherMatches} 試合の結果でラウンド32への道筋を計算します。",
+  "@worldCupQualificationScenariosNoTeamMatchesSubtitle": {
+    "placeholders": {
+      "currentPoints": {
+        "type": "int"
+      },
+      "remainingOtherMatches": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupQualificationScenariosCompleteSubtitle": "グループステージの全試合が終了しました。最終勝点 {currentPoints} に基づくラウンド32への道筋を表示します。",
+  "@worldCupQualificationScenariosCompleteSubtitle": {
+    "placeholders": {
+      "currentPoints": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupQualificationScenariosGuide": "各行はこのチームの残り試合の結果組み合わせです。自動進出はグループ1〜2位、3位比較はグループ3位になったあと全体の3位チーム上位8組に入る必要があるという意味です。自動進出/3位比較/敗退の分母は、同じグループの他の残り試合の勝ち・引き分け・負けをすべて組み合わせた件数です。相手国は現在の順位でブラケット枠を国名に置き換えた候補です。",
+  "worldCupQualificationScenariosNoTeamMatchesGuide": "このチームの結果選択肢はありません。分母は同じグループで残っている他の試合の勝ち・引き分け・負けの組み合わせだけを数えます。残り試合がない場合は順位表が確定しています。",
   "worldCupQualificationScenariosEmpty": "このチームのラウンド32の可能性を計算するグループステージ情報がまだありません。",
   "worldCupQualificationScenarioPoints": "残り勝点 +{remainingPoints} · 最終 {finalPoints} 点",
   "@worldCupQualificationScenarioPoints": {
@@ -677,6 +705,8 @@
     }
   },
   "worldCupQualificationThirdPlaceNote": "グループ3位は、12グループの3位チームの中で上位8チームに入る必要があります。",
+  "worldCupQualificationNoTeamMatchesPick": "このチームの残り試合なし",
+  "worldCupQualificationCompletePick": "グループ順位確定",
   "worldCupQualificationMatchPick": "{opponent}戦 {result}",
   "@worldCupQualificationMatchPick": {
     "placeholders": {

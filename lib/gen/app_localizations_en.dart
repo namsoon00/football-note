@@ -1296,8 +1296,28 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String worldCupQualificationScenariosOneMatchSubtitle(int currentPoints) {
+    return 'From $currentPoints current points, this shows the win/draw/loss paths for the final remaining match.';
+  }
+
+  @override
+  String worldCupQualificationScenariosNoTeamMatchesSubtitle(
+      int currentPoints, int remainingOtherMatches) {
+    return 'This team has $currentPoints current points and no matches left. Remaining group results ($remainingOtherMatches) still drive the Round of 32 path.';
+  }
+
+  @override
+  String worldCupQualificationScenariosCompleteSubtitle(int currentPoints) {
+    return 'The group schedule is complete. This shows the Round of 32 path from the final $currentPoints points.';
+  }
+
+  @override
   String get worldCupQualificationScenariosGuide =>
       'Each row is one result combination for this team\'s remaining matches. Auto means finishing 1st or 2nd in the group. 3rd-place race means finishing 3rd, then needing to be among the 8 best third-place teams overall. The denominators for auto, 3rd-place race, and out count every win/draw/loss combination for the other remaining matches in the same group. Opponent countries translate the bracket slot using the current table.';
+
+  @override
+  String get worldCupQualificationScenariosNoTeamMatchesGuide =>
+      'There are no result picks for this team. The denominator only counts any remaining win/draw/loss combinations elsewhere in the group; if none remain, the table is fixed.';
 
   @override
   String get worldCupQualificationScenariosEmpty =>
@@ -1323,6 +1343,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get worldCupQualificationThirdPlaceNote =>
       'A third-place finish still needs to rank among the 8 best third-place teams across the 12 groups.';
+
+  @override
+  String get worldCupQualificationNoTeamMatchesPick => 'No team matches left';
+
+  @override
+  String get worldCupQualificationCompletePick => 'Group rank fixed';
 
   @override
   String worldCupQualificationMatchPick(String opponent, String result) {

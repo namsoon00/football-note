@@ -277,6 +277,66 @@ void main() {
     expect(find.text('RSC Anderlecht'), findsOneWidget);
   });
 
+  testWidgets('qualification scenarios adapt to one remaining team match', (
+    tester,
+  ) async {
+    final fixtures = _worldCupFixturesWithScores({
+      28: (1, 1),
+    });
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: fixtures,
+        officialMatchesByFixtureNumber: const {},
+        rankingsByTeam: const {},
+        refreshedAt: DateTime.utc(2026, 6, 19, 3),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          initialSelectedDay: worldCupFixtures.first.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('순위'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('순위'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('조별 순위표'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('대한민국').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('32강 경우의 수'),
+      180,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('마지막 1경기'), findsOneWidget);
+    expect(find.textContaining('남아프리카공화국전 승'), findsOneWidget);
+    expect(find.text('이 팀 남은 경기 없음'), findsNothing);
+  });
+
   testWidgets('team match history country opens that team roster', (
     tester,
   ) async {
@@ -1032,6 +1092,18 @@ FifaRankingEntry _rankingEntry(String teamName, String countryCode, int rank) {
     previousPoints: 1600,
     publishedAt: null,
   );
+}
+
+List<WorldCupFixture> _worldCupFixturesWithScores(
+  Map<int, (int, int)> scoresByMatch,
+) {
+  return [
+    for (final fixture in worldCupFixtures)
+      if (scoresByMatch[fixture.matchNumber] case final score?)
+        fixture.copyWithScore(homeScore: score.$1, awayScore: score.$2)
+      else
+        fixture,
+  ];
 }
 
 class _MemoryOptionRepository implements OptionRepository {
