@@ -4714,6 +4714,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'High-score route: build rhythm with safe passes, expand with killer/risky passes, then finish with mission and goal rewards.';
 
   @override
+  String get gameRankingTitle => 'Game Rankings';
+
+  @override
+  String get gameRankingEmpty => 'No ranking records yet.';
+
+  @override
+  String gameRankingEntryTitle(String rankLabel, int rankScore, int score) {
+    return 'Rank $rankLabel ($rankScore pts) - Score $score';
+  }
+
+  @override
+  String gameRankingEntrySubtitle(int level, int goals, String date) {
+    return 'Level Lv.$level - Goals $goals - $date';
+  }
+
+  @override
+  String gameRankingPosition(int rankNo) {
+    return '#$rankNo';
+  }
+
+  @override
   String get gameGuideCharPacTitle => 'Pacman Attacker';
 
   @override

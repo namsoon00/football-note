@@ -187,49 +187,50 @@ class AppTheme {
       surfaceContainerHighest: const Color(0xFFF4F7FC),
       outline: const Color(0xFFE4EAF3),
     );
-    final textTheme = GoogleFonts.notoSansKrTextTheme().copyWith(
-      headlineLarge: const TextStyle(
+    final baseTextTheme = GoogleFonts.notoSansKrTextTheme();
+    final textTheme = baseTextTheme.copyWith(
+      headlineLarge: baseTextTheme.headlineLarge?.copyWith(
         fontSize: 30,
         fontWeight: FontWeight.w800,
         height: 1.22,
-        color: Color(0xFF111827),
+        color: const Color(0xFF111827),
       ),
-      headlineMedium: const TextStyle(
+      headlineMedium: baseTextTheme.headlineMedium?.copyWith(
         fontSize: 26,
         fontWeight: FontWeight.w800,
         height: 1.24,
-        color: Color(0xFF111827),
+        color: const Color(0xFF111827),
       ),
-      headlineSmall: const TextStyle(
+      headlineSmall: baseTextTheme.headlineSmall?.copyWith(
         fontSize: 24,
         fontWeight: FontWeight.w800,
         height: 1.24,
-        color: Color(0xFF111827),
+        color: const Color(0xFF111827),
       ),
-      titleLarge: const TextStyle(
+      titleLarge: baseTextTheme.titleLarge?.copyWith(
         fontSize: 20,
         fontWeight: FontWeight.w700,
-        color: Color(0xFF111827),
+        color: const Color(0xFF111827),
       ),
-      titleMedium: const TextStyle(
+      titleMedium: baseTextTheme.titleMedium?.copyWith(
         fontSize: 16,
         fontWeight: FontWeight.w700,
-        color: Color(0xFF1F2937),
+        color: const Color(0xFF1F2937),
       ),
-      bodyLarge: const TextStyle(
+      bodyLarge: baseTextTheme.bodyLarge?.copyWith(
         fontSize: 16,
         fontWeight: FontWeight.w500,
-        color: Color(0xFF1F2937),
+        color: const Color(0xFF1F2937),
       ),
-      bodyMedium: const TextStyle(
+      bodyMedium: baseTextTheme.bodyMedium?.copyWith(
         fontSize: 14,
         fontWeight: FontWeight.w500,
-        color: Color(0xFF374151),
+        color: const Color(0xFF374151),
       ),
-      bodySmall: const TextStyle(
+      bodySmall: baseTextTheme.bodySmall?.copyWith(
         fontSize: 13,
         fontWeight: FontWeight.w500,
-        color: Color(0xFF6B7280),
+        color: const Color(0xFF6B7280),
       ),
     );
 
@@ -393,8 +394,10 @@ class AppTheme {
       outline: const Color(0xFF4A556D),
       surfaceContainerHighest: const Color(0xFF2A3040),
     );
-    final textTheme =
-        GoogleFonts.latoTextTheme(ThemeData.dark().textTheme).apply(
+    final baseTextTheme = GoogleFonts.notoSansKrTextTheme(
+      ThemeData.dark().textTheme,
+    );
+    final textTheme = baseTextTheme.apply(
       bodyColor: const Color(0xFFF2F5FA),
       displayColor: const Color(0xFFF2F5FA),
     );

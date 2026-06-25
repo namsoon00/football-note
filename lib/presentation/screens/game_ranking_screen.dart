@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:football_note/gen/app_localizations.dart';
+import 'package:football_note/presentation/theme/app_theme.dart';
+import 'package:football_note/presentation/widgets/app_background.dart';
 
 class GameRankingEntry {
   final DateTime playedAt;
@@ -54,7 +57,10 @@ class GameRankingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
     final sorted = [...entries]..sort((a, b) {
         final score = b.rankScore.compareTo(a.rankScore);
         if (score != 0) return score;
@@ -63,71 +69,117 @@ class GameRankingScreen extends StatelessWidget {
     final top10 = sorted.take(10).toList(growable: false);
 
     return Scaffold(
-      appBar: AppBar(title: Text(isKo ? '게임 랭킹' : 'Game Rankings')),
-      body: top10.isEmpty
-          ? Center(
-              child: Text(isKo ? '아직 랭킹 기록이 없습니다.' : 'No ranking records yet.'),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(12),
-              itemCount: top10.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final entry = top10[index];
-                final rankNo = index + 1;
-                final dateText =
-                    '${entry.playedAt.year}.${entry.playedAt.month.toString().padLeft(2, '0')}.${entry.playedAt.day.toString().padLeft(2, '0')}';
-                return Card(
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    leading: _rankLeading(rankNo),
-                    title: Text(
-                      isKo
-                          ? '${entry.rankLabel}등급 (${entry.rankScore}점) · 게임 점수 ${entry.score}'
-                          : 'Rank ${entry.rankLabel} (${entry.rankScore}) · Score ${entry.score}',
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    subtitle: Text(
-                      isKo
-                          ? '레벨 Lv.${entry.level} · 골 ${entry.goals} · $dateText'
-                          : 'Level Lv.${entry.level} · Goals ${entry.goals} · $dateText',
-                    ),
-                    trailing: Text(
-                      isKo ? '$rankNo위' : '#$rankNo',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+      appBar: AppBar(title: Text(l10n.gameRankingTitle)),
+      body: AppBackground(
+        child: top10.isEmpty
+            ? Center(
+                child: Padding(
+                  padding: AppSpacing.screen,
+                  child: Text(
+                    l10n.gameRankingEmpty,
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.xl,
+                ),
+                itemCount: top10.length,
+                separatorBuilder: (_, __) => const SizedBox(
+                  height: AppSpacing.sm,
+                ),
+                itemBuilder: (context, index) {
+                  final entry = top10[index];
+                  final rankNo = index + 1;
+                  final dateText =
+                      '${entry.playedAt.year}.${entry.playedAt.month.toString().padLeft(2, '0')}.${entry.playedAt.day.toString().padLeft(2, '0')}';
+                  return Card(
+                    margin: EdgeInsets.zero,
+                    child: ListTile(
+                      minLeadingWidth: AppSizes.minTouchTarget,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.xs,
+                      ),
+                      leading: _rankLeading(context, rankNo),
+                      title: Text(
+                        l10n.gameRankingEntryTitle(
+                          entry.rankLabel,
+                          entry.rankScore,
+                          entry.score,
+                        ),
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xxs),
+                        child: Text(
+                          l10n.gameRankingEntrySubtitle(
+                            entry.level,
+                            entry.goals,
+                            dateText,
+                          ),
+                          style: textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      trailing: Text(
+                        l10n.gameRankingPosition(rankNo),
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: scheme.primary,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
     );
   }
 
-  Widget _rankLeading(int rankNo) {
+  Widget _rankLeading(BuildContext context, int rankNo) {
+    final scheme = Theme.of(context).colorScheme;
     if (rankNo == 1) {
-      return const CircleAvatar(
-        backgroundColor: Color(0xFFFFE082),
-        child: Icon(Icons.emoji_events, color: Color(0xFF8D6E00)),
+      return CircleAvatar(
+        backgroundColor: scheme.tertiaryContainer,
+        foregroundColor: scheme.onTertiaryContainer,
+        child: const Icon(Icons.emoji_events),
       );
     }
     if (rankNo == 2) {
-      return const CircleAvatar(
-        backgroundColor: Color(0xFFE5E7EB),
-        child: Icon(Icons.military_tech, color: Color(0xFF6B7280)),
+      return CircleAvatar(
+        backgroundColor: scheme.secondaryContainer,
+        foregroundColor: scheme.onSecondaryContainer,
+        child: const Icon(Icons.military_tech),
       );
     }
     if (rankNo == 3) {
-      return const CircleAvatar(
-        backgroundColor: Color(0xFFF2C6A6),
-        child: Icon(Icons.military_tech, color: Color(0xFF8D5A34)),
+      return CircleAvatar(
+        backgroundColor: scheme.primaryContainer,
+        foregroundColor: scheme.onPrimaryContainer,
+        child: const Icon(Icons.military_tech),
       );
     }
-    return CircleAvatar(child: Text('$rankNo'));
+    return CircleAvatar(
+      backgroundColor: scheme.surfaceContainerHighest,
+      foregroundColor: scheme.onSurfaceVariant,
+      child: Text(
+        '$rankNo',
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: scheme.onSurfaceVariant,
+            ),
+      ),
+    );
   }
 }

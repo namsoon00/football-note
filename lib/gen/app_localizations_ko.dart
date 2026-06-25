@@ -4599,6 +4599,27 @@ class AppLocalizationsKo extends AppLocalizations {
       '최고 점수 루트: 안전 패스로 리듬 구축 -> 킬/위험 패스로 확장 -> 미션/골 마무리';
 
   @override
+  String get gameRankingTitle => '게임 랭킹';
+
+  @override
+  String get gameRankingEmpty => '아직 랭킹 기록이 없어요.';
+
+  @override
+  String gameRankingEntryTitle(String rankLabel, int rankScore, int score) {
+    return '$rankLabel등급 ($rankScore점) - 게임 점수 $score';
+  }
+
+  @override
+  String gameRankingEntrySubtitle(int level, int goals, String date) {
+    return '레벨 Lv.$level - 골 $goals - $date';
+  }
+
+  @override
+  String gameRankingPosition(int rankNo) {
+    return '$rankNo위';
+  }
+
+  @override
   String get gameGuideCharPacTitle => '팩맨 공격수';
 
   @override
