@@ -35,15 +35,34 @@ void main() {
     expect(result.fortuneText, isNot(contains('행운 최근 흐름:')));
     expect(result.fortuneText, isNot(contains('생일 코드')));
     expect(result.fortuneText, isNot(contains('[재미 포인트]')));
+    expect(result.fortuneText, isNot(contains('재미 포인트')));
     final lines = result.fortuneText.split('\n');
     expect(lines, hasLength(3));
     expect(lines.first, contains('민준님'));
-    expect(lines.first, contains('쪽으로 흐름이 잡혀요.'));
+    expect(lines.first, isNot(contains('분위기예요')));
+    expect(lines.first, isNot(contains('쪽으로 흐름이 잡혀요')));
     expect(lines[1], isNot(contains('훈련')));
     expect(lines[1], isNot(contains('패스')));
-    expect(lines.last, contains('재미 포인트는 '));
-    expect(lines.last, contains('컬러와 숫자 '));
+    expect(lines.last, contains('오늘의 컬러는 '));
+    expect(lines.last, contains('숫자는 '));
     expect(lines.last, isNot(contains('시간대 ')));
+  });
+
+  test('korean day flow copy reads as complete natural snippets', () {
+    final l10n = AppLocalizationsKo();
+    final flows = '${l10n.fortuneSajuElementFlows}|'
+            '${l10n.fortuneSajuElementFlowExtras}'
+        .split('|');
+
+    expect(flows, hasLength(60));
+    expect(flows, contains('빠른 눈치가 필요한 순간이 있어요'));
+    for (final flow in flows) {
+      final line = l10n.fortuneGeneratedDailyLineOne('민준', flow);
+      expect(line, isNot(contains('빠른 눈치 분위기')));
+      expect(line, isNot(contains('분위기예요')));
+      expect(line, isNot(contains('쪽으로 흐름이 잡혀요')));
+      expect(line, endsWith('.'));
+    }
   });
 
   test('databaseSections exposes expanded fortune database', () {

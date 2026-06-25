@@ -47,10 +47,13 @@ class FortuneSections {
   static bool _isLuckyInfoHeader(String line) {
     return line == '[행운 정보]' ||
         line == '[재미 포인트]' ||
+        line == '[컬러와 숫자]' ||
         line == '[Lucky info]' ||
         line == '[Fun points]' ||
+        line == '[Color and number]' ||
         line == '[ラッキー情報]' ||
-        line == '[楽しいポイント]';
+        line == '[楽しいポイント]' ||
+        line == '[カラーと数字]';
   }
 
   static bool _isLuckyInfoLine(String line) {
@@ -88,10 +91,9 @@ class FortuneSections {
         return const <String>[];
       }
       if (number.isNotEmpty && color.isNotEmpty) {
-        return [_ensureSentence('재미 포인트는 $color 컬러와 숫자 $number예요')];
+        return [_ensureSentence('오늘의 컬러는 $color, 숫자는 $number예요')];
       }
-      final text =
-          color.isNotEmpty ? '재미 포인트는 $color 컬러예요' : '재미 포인트는 숫자 $number예요';
+      final text = color.isNotEmpty ? '오늘의 컬러는 $color예요' : '오늘의 숫자는 $number예요';
       return [_ensureSentence(text)];
     }
 
@@ -102,12 +104,12 @@ class FortuneSections {
     }
     if (number.isNotEmpty && color.isNotEmpty) {
       return [
-        _ensureSentence('Fun points are color $color and number $number')
+        _ensureSentence("Today's color is $color, and the number is $number")
       ];
     }
     final text = color.isNotEmpty
-        ? 'Fun point is color $color'
-        : 'Fun point is number $number';
+        ? "Today's color is $color"
+        : "Today's number is $number";
     return [_ensureSentence(text)];
   }
 

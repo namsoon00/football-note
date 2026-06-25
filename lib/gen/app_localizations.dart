@@ -10844,7 +10844,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogLuckyInfoLabel.
   ///
   /// In en, this message translates to:
-  /// **'Fun points'**
+  /// **'Color and number'**
   String get fortuneDialogLuckyInfoLabel;
 
   /// No description provided for @fortuneDialogOverallFortuneCount.
@@ -10862,7 +10862,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogLuckyInfoTitle.
   ///
   /// In en, this message translates to:
-  /// **'Fun points'**
+  /// **'Color and number'**
   String get fortuneDialogLuckyInfoTitle;
 
   /// No description provided for @fortuneDialogPoolSizeLabel.
@@ -10916,7 +10916,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'All sentence pieces and fun points used to build today\'s fortune.'**
+  /// **'All sentence pieces, colors, and numbers used to build today\'s fortune.'**
   String get fortuneDatabaseSubtitle;
 
   /// No description provided for @fortuneDatabaseCloseAction.
@@ -10934,7 +10934,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSectionDayMoods.
   ///
   /// In en, this message translates to:
-  /// **'Day moods'**
+  /// **'Day flows'**
   String get fortuneDatabaseSectionDayMoods;
 
   /// No description provided for @fortuneDatabaseSectionDailyEvents.
@@ -10976,7 +10976,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSectionTimePeriods.
   ///
   /// In en, this message translates to:
-  /// **'Time moods'**
+  /// **'Time windows'**
   String get fortuneDatabaseSectionTimePeriods;
 
   /// No description provided for @fortuneDatabaseSectionTimeWindows.
@@ -10988,7 +10988,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSectionSceneModifiers.
   ///
   /// In en, this message translates to:
-  /// **'Place moods'**
+  /// **'Place cues'**
   String get fortuneDatabaseSectionSceneModifiers;
 
   /// No description provided for @fortuneDatabaseSectionSceneBases.
@@ -11056,7 +11056,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedDailyLineOne.
   ///
   /// In en, this message translates to:
-  /// **'{name}, today\'s flow leans toward {elementFlow}.'**
+  /// **'{name}, {elementFlow}.'**
   String fortuneGeneratedDailyLineOne(String name, String elementFlow);
 
   /// No description provided for @fortuneGeneratedDailyLineTwo.
@@ -11074,13 +11074,13 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedLuckyInfoHeader.
   ///
   /// In en, this message translates to:
-  /// **'[Fun points]'**
+  /// **'[Color and number]'**
   String get fortuneGeneratedLuckyInfoHeader;
 
   /// No description provided for @fortuneGeneratedLuckyInfoLine.
   ///
   /// In en, this message translates to:
-  /// **'Fun points are number {number} and {color}.'**
+  /// **'Today\'s color is {color}, and the number is {number}.'**
   String fortuneGeneratedLuckyInfoLine(int number, String color);
 
   /// No description provided for @fortuneRecommendedRecoveryProgram.
@@ -11140,13 +11140,13 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneSajuElementFlows.
   ///
   /// In en, this message translates to:
-  /// **'an easy start|a welcome message|a small lucky break|a clearer mind|a light flutter|a clean choice|a warm encounter|pleasant focus|unexpected help|calm recovery|a fresh idea|a hidden chance|tidy momentum|quick intuition|soft timing|small courage|a hint of good news|a comfortable pace|a feeling that things loosen|your own rhythm|a smile-first mood|a small change in the air|the answer you waited for|quiet confidence'**
+  /// **'take an easy start today|expect a welcome message|do not miss a small lucky break|it is a good day to clear your mind|follow the light flutter|make the choice clearly|expect a warm encounter|get into pleasant focus|unexpected help may arrive|recover calmly|hold onto a fresh idea|look for a hidden chance|tidy things cleanly|quick intuition may matter today|wait for soft timing|use a little courage|a hint of good news may show|move at a comfortable pace|things may start to loosen|trust your own rhythm|smile first and the mood gets easier|notice a small change in the air|the answer you waited for may come closer|show quiet confidence'**
   String get fortuneSajuElementFlows;
 
   /// No description provided for @fortuneSajuElementFlowExtras.
   ///
   /// In en, this message translates to:
-  /// **'calm observation|a light turnaround|an easy challenge|a wider heart|unexpected kindness|easier choices|small satisfaction|a good feeling|slow luck|a clear answer|a sparkling coincidence|tidier surroundings|a new interest|a lighter mind|an early clue|easy conversation|comfortable courage|small recognition|room to breathe|timing that fits|deeper focus|a cute mistake|a welcome discovery|a day that gathers speed|quiet self-belief|sharper instincts|a good course change|small popularity|a promising start|a crisp finish|shorter waiting|one more laugh|a decent offer|a mind that loosens|an accurate hunch|warm curiosity'**
+  /// **'observe calmly|a light turnaround may happen|an easy challenge fits well|your heart may open wider|unexpected kindness may appear|choices may get easier|notice a small sense of achievement|trust the good feeling|slow luck may come closer|a clear answer may come to mind|expect a sparkling coincidence|tidying your surroundings may lighten your luck|a new interest may appear|your mind may feel lighter|a clue may loosen early|conversation may flow easily|use comfortable courage|small recognition may arrive|make room to breathe|the timing may fit well|focus may get deeper|a cute mistake can be laughed off|expect a welcome discovery|the day may gather speed|trust quiet self-belief|your instincts may sharpen|a good course change is possible|small popularity may appear|start with a good feeling|finish things crisply|waiting may get shorter|one more laugh may arrive|leave a decent offer open|your mind may loosen lightly|an accurate hunch may matter|follow warm curiosity'**
   String get fortuneSajuElementFlowExtras;
 
   /// No description provided for @fortuneSajuFortuneThemes.
