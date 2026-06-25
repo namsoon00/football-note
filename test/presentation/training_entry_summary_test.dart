@@ -91,4 +91,24 @@ void main() {
       expect(trainingEntryLocationWeatherLabel(entry), isEmpty);
     },
   );
+
+  test('training entry summary includes lesson detail', () async {
+    final l10n = await AppLocalizations.delegate.load(
+      const Locale('ko', 'KR'),
+    );
+    final entry = TrainingEntry(
+      date: DateTime(2024, 1, 6),
+      durationMinutes: 60,
+      intensity: 3,
+      type: '슈팅',
+      mood: 3,
+      injury: false,
+      notes: '',
+      location: '학교 운동장',
+      isLesson: true,
+      lessonDetail: '슈팅 그룹레슨',
+    );
+
+    expect(trainingEntryLessonLabel(entry, l10n), '레슨: 슈팅 그룹레슨');
+  });
 }

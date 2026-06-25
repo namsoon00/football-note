@@ -1750,6 +1750,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingEntryLessonSummary => '레슨';
 
   @override
+  String trainingEntryLessonSummaryWithDetail(String detail) {
+    return '레슨: $detail';
+  }
+
+  @override
   String get trainingEntryInjuryPresent => '부상 있음';
 
   @override
@@ -3116,6 +3121,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get entryLesson => '레슨 여부';
+
+  @override
+  String get entryLessonDetail => '어떤 레슨인가요?';
+
+  @override
+  String get entryLessonDetailHint => '예: 드리블 개인레슨, 슈팅 그룹레슨';
 
   @override
   String get goal => '오늘 목표';

@@ -1106,6 +1106,14 @@
   "trainingRecordSavedDialogMessage": "Record saved.",
   "trainingEntryConditioningEmpty": "No jump rope/lifting record",
   "trainingEntryLessonSummary": "Lesson",
+  "trainingEntryLessonSummaryWithDetail": "Lesson: {detail}",
+  "@trainingEntryLessonSummaryWithDetail": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "trainingEntryInjuryPresent": "Injury recorded",
   "trainingEntryInjurySummary": "Injury: {detail}",
   "@trainingEntryInjurySummary": {
@@ -1878,6 +1886,8 @@
   "painLevel": "Pain Level (1-10)",
   "rehab": "Rehab",
   "entryLesson": "Lesson",
+  "entryLessonDetail": "Lesson detail",
+  "entryLessonDetailHint": "e.g. 1:1 dribbling, shooting group lesson",
   "goal": "Goal",
   "feedback": "Feedback",
   "notes": "Notes",

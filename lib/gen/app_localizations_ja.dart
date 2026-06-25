@@ -1756,6 +1756,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingEntryLessonSummary => 'レッスン';
 
   @override
+  String trainingEntryLessonSummaryWithDetail(String detail) {
+    return 'レッスン: $detail';
+  }
+
+  @override
   String get trainingEntryInjuryPresent => 'けがの記録あり';
 
   @override
@@ -3120,6 +3125,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get entryLesson => 'レッスン';
+
+  @override
+  String get entryLessonDetail => 'どんなレッスンですか？';
+
+  @override
+  String get entryLessonDetailHint => '例: ドリブル個人レッスン、シュートグループレッスン';
 
   @override
   String get goal => 'ゴール';

@@ -190,6 +190,9 @@ class TrainingEntry extends HiveObject {
   @HiveField(67)
   final bool isLesson;
 
+  @HiveField(68)
+  final String lessonDetail;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -252,6 +255,7 @@ class TrainingEntry extends HiveObject {
     this.matchStage = '',
     this.tournamentOutcome = '',
     this.isLesson = false,
+    this.lessonDetail = '',
     String sportId = SportCatalog.defaultSportId,
   })  : sportId = SportCatalog.normalizeSportId(sportId),
         createdAt = createdAt ?? DateTime.now();
@@ -402,13 +406,14 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       matchStage: (fields[65] as String?) ?? '',
       tournamentOutcome: (fields[66] as String?) ?? '',
       isLesson: (fields[67] as bool?) ?? false,
+      lessonDetail: (fields[68] as String?) ?? '',
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(62)
+      ..writeByte(63)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -532,7 +537,9 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(66)
       ..write(obj.tournamentOutcome)
       ..writeByte(67)
-      ..write(obj.isLesson);
+      ..write(obj.isLesson)
+      ..writeByte(68)
+      ..write(obj.lessonDetail);
   }
 
   Map<String, int> _readProgramMinutes(Object? raw) {

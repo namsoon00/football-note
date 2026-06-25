@@ -3199,6 +3199,12 @@ abstract class AppLocalizations {
   /// **'Lesson'**
   String get trainingEntryLessonSummary;
 
+  /// No description provided for @trainingEntryLessonSummaryWithDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson: {detail}'**
+  String trainingEntryLessonSummaryWithDetail(String detail);
+
   /// No description provided for @trainingEntryInjuryPresent.
   ///
   /// In en, this message translates to:
@@ -5683,6 +5689,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lesson'**
   String get entryLesson;
+
+  /// No description provided for @entryLessonDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson detail'**
+  String get entryLessonDetail;
+
+  /// No description provided for @entryLessonDetailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 1:1 dribbling, shooting group lesson'**
+  String get entryLessonDetailHint;
 
   /// No description provided for @goal.
   ///
