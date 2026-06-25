@@ -967,6 +967,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.cut ||
       _SketchTargetAction.screen ||
       _SketchTargetAction.coneTurn ||
+      _SketchTargetAction.coneJump ||
       _SketchTargetAction.hurdleJump ||
       _SketchTargetAction.runBase ||
       _SketchTargetAction.fielding ||
@@ -995,6 +996,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.cut ||
       _SketchTargetAction.screen ||
       _SketchTargetAction.coneTurn ||
+      _SketchTargetAction.coneJump ||
       _SketchTargetAction.hurdleJump ||
       _SketchTargetAction.runBase ||
       _SketchTargetAction.fielding ||
@@ -1034,6 +1036,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   int _suggestedStageForNewRoute(_PathDrawMode kind) {
     if (kind != _PathDrawMode.player) return 1;
+    final selectedRoute = _selectedRoute;
+    if (selectedRoute != null &&
+        selectedRoute.kind == _PathDrawMode.ball &&
+        selectedRoute.points.length >= 2) {
+      return _normalizedRouteStageIndex(selectedRoute.stageIndex + 1);
+    }
     final ballStages = _currentPage.routes
         .where(
           (route) =>
@@ -2285,10 +2293,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   void _prepareSelectedRouteRedraw() {
     final route = _selectedRoute;
-    if (route == null || route.kind != _pathDrawMode) return;
+    if (route == null) return;
     setState(() {
       _routeReplaceMode = true;
       _pathMode = true;
+      _pathDrawMode = route.kind;
       _penMode = false;
       _pendingTargetAction = null;
       _showSelectedColorPicker = false;
@@ -2299,6 +2308,49 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _selectedItemId = route.linkedItemId;
       }
     });
+  }
+
+  void _prepareSelectedRouteExtension() {
+    final route = _selectedRoute;
+    if (route == null || route.points.length < 2) return;
+    setState(() {
+      _routeReplaceMode = true;
+      _pathMode = true;
+      _pathDrawMode = route.kind;
+      _penMode = false;
+      _pendingTargetAction = null;
+      _showSelectedColorPicker = false;
+      _activeRoutePoints = List<Offset>.from(route.points);
+      _activeRouteSegmentDurationsMs = _normalizedRouteSegmentDurations(
+        pointCount: route.points.length,
+        rawDurationsMs: route.segmentDurationsMs,
+      ).toList(growable: true);
+      _activeRouteLastPointAt = DateTime.now();
+      if (route.linkedItemId != null) {
+        _selectedItemId = route.linkedItemId;
+      }
+    });
+  }
+
+  void _reverseSelectedRoute() {
+    final route = _selectedRoute;
+    if (route == null || route.points.length < 2) return;
+    _stopRoutePlayback(restoreStart: false);
+    final reversedPoints = route.points.reversed.toList(growable: false);
+    final reversedDurations =
+        route.segmentDurationsMs.reversed.toList(growable: false);
+    setState(() {
+      route.points.setAll(0, reversedPoints);
+      route.segmentDurationsMs.setAll(0, reversedDurations);
+      _trimRouteDurations(route);
+      _pathDrawMode = route.kind;
+      _routeReplaceMode = false;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
+      _pendingTargetAction = null;
+    });
+    _scheduleAutoSave();
   }
 
   void _deleteSelectedRoute() {
@@ -2342,9 +2394,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   List<int> _visibleRouteStages() {
+    final routeCount = _sequenceableRoutes().length;
+    final maxStage = _maxRouteStageInPage();
     final count = math.min(
       _maxRouteStageIndex,
-      math.max(3, _maxRouteStageInPage() + 1),
+      routeCount <= 1 ? maxStage : math.max(2, maxStage + 1),
     );
     return List<int>.generate(count, (index) => index + 1, growable: false);
   }
@@ -2640,6 +2694,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.pass => _applyBallTargetAction(
           selected: selected,
           target: target,
+          targetItem: targetItem,
           durationMs: 680,
         ),
       _SketchTargetAction.passAndMove => _applyPassAndMoveTargetAction(
@@ -2677,6 +2732,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ),
       _SketchTargetAction.screen => _applyScreenTargetAction(selected, target),
       _SketchTargetAction.coneTurn => _applyConeTurnTargetAction(
+          selected,
+          target,
+          targetItem: targetItem,
+        ),
+      _SketchTargetAction.coneJump => _applyConeJumpTargetAction(
           selected,
           target,
           targetItem: targetItem,
@@ -2767,17 +2827,23 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required int durationMs,
     List<Offset>? points,
     List<int>? segmentDurationsMs,
+    _BoardItem? targetItem,
+    _BoardItem? selectedItemOverride,
+    int? stageIndex,
   }) {
     final ball = _ballForTargetAction(selected, target: target);
     if (ball == null) return false;
     _ensureControlledPlayerForSelectedBall(selected, target: target);
+    final nextSelectedItem = selectedItemOverride ??
+        (targetItem?.type == _BoardItemType.player ? targetItem : null) ??
+        (selected.type == _BoardItemType.player ? selected : null);
     return _applyQuickBallToPointTemplate(
       ball: ball,
       end: target,
       points: points,
       segmentDurationsMs: segmentDurationsMs ?? <int>[durationMs],
-      selectedItemOverride:
-          selected.type == _BoardItemType.player ? selected : null,
+      selectedItemOverride: nextSelectedItem,
+      stageIndex: stageIndex,
     );
   }
 
@@ -3087,22 +3153,51 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     Offset target, {
     _BoardItem? targetItem,
   }) {
+    return _applyObstacleJumpTargetAction(
+      selected,
+      target,
+      type: _BoardItemType.hurdle,
+      targetItem: targetItem,
+    );
+  }
+
+  bool _applyConeJumpTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    _BoardItem? targetItem,
+  }) {
+    return _applyObstacleJumpTargetAction(
+      selected,
+      target,
+      type: _BoardItemType.cone,
+      targetItem: targetItem,
+    );
+  }
+
+  bool _applyObstacleJumpTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    required _BoardItemType type,
+    _BoardItem? targetItem,
+  }) {
     final player = _playerForTargetAction(selected);
     if (player == null) return false;
     _stopRoutePlayback(restoreStart: false);
     setState(() {
-      final hurdle = _ensureTrainingPropForAction(
-        type: _BoardItemType.hurdle,
+      final obstacle = _ensureTrainingPropForAction(
+        type: type,
         target: target,
         targetItem: targetItem,
       );
       final start = _itemPosition(player);
-      final center = _itemPosition(hurdle);
+      final center = _itemPosition(obstacle);
       final delta = center - start;
       final direction =
           delta.distance < 0.01 ? const Offset(1, 0) : delta / delta.distance;
-      hurdle.rotationDeg =
-          (math.atan2(direction.dy, direction.dx) * 180) / math.pi + 90;
+      if (type == _BoardItemType.hurdle) {
+        obstacle.rotationDeg =
+            (math.atan2(direction.dy, direction.dx) * 180) / math.pi + 90;
+      }
       final takeoff = _clampedBoardPoint(
         center.dx - (direction.dx * 0.075),
         center.dy - (direction.dy * 0.075),
@@ -3167,6 +3262,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _applyBallTargetAction(
       selected: selected,
       target: _itemPosition(target),
+      targetItem: target,
       durationMs: 680,
     );
   }
@@ -3177,6 +3273,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     List<Offset>? points,
     List<int>? segmentDurationsMs,
     _BoardItem? selectedItemOverride,
+    int? stageIndex,
   }) {
     _stopRoutePlayback(restoreStart: false);
     setState(() {
@@ -3186,7 +3283,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         item: ball,
         points: points ?? <Offset>[start, end],
         segmentDurationsMs: segmentDurationsMs ?? const <int>[680],
-        stageIndex: 1,
+        stageIndex: stageIndex ?? 1,
       );
       _selectQuickActionRoute(
         route,
@@ -4522,6 +4619,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _SketchTargetAction.cut => l10n.trainingSketchQuickCutButton,
       _SketchTargetAction.screen => l10n.trainingSketchQuickScreenButton,
       _SketchTargetAction.coneTurn => l10n.trainingSketchQuickConeTurnButton,
+      _SketchTargetAction.coneJump => l10n.trainingSketchQuickConeJumpButton,
       _SketchTargetAction.hurdleJump =>
         l10n.trainingSketchQuickHurdleJumpButton,
       _SketchTargetAction.runBase => l10n.trainingSketchQuickRunBaseButton,
@@ -4653,6 +4751,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             icon: Icons.change_history,
           ),
           _targetActionButton(
+            action: _SketchTargetAction.coneJump,
+            icon: Icons.arrow_upward,
+          ),
+          _targetActionButton(
             action: _SketchTargetAction.runBase,
             icon: Icons.signpost_outlined,
           ),
@@ -4674,6 +4776,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           _targetActionButton(
             action: _SketchTargetAction.coneTurn,
             icon: Icons.change_history,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.coneJump,
+            icon: Icons.arrow_upward,
           ),
           _targetActionButton(
             action: _SketchTargetAction.drive,
@@ -4707,6 +4813,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             icon: Icons.change_history,
           ),
           _targetActionButton(
+            action: _SketchTargetAction.coneJump,
+            icon: Icons.arrow_upward,
+          ),
+          _targetActionButton(
             action: _SketchTargetAction.serve,
             icon: Icons.sports_tennis,
           ),
@@ -4728,6 +4838,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           _targetActionButton(
             action: _SketchTargetAction.coneTurn,
             icon: Icons.change_history,
+          ),
+          _targetActionButton(
+            action: _SketchTargetAction.coneJump,
+            icon: Icons.arrow_upward,
           ),
           _targetActionButton(
             action: _SketchTargetAction.hurdleJump,
@@ -4836,9 +4950,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _BoardItemType.player,
       excludingId: excludingId,
     );
-    if (players.isEmpty) return const <Widget>[];
     final l10n = _l10n;
-    return players.map((player) {
+    final buttons = players.map<Widget>((player) {
       final index = _itemIndexOfType(player);
       final label = switch (sportId) {
         SportCatalog.baseballId =>
@@ -4854,6 +4967,45 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       return OutlinedButton.icon(
         onPressed: () => _applyQuickBallToItemTemplate(player),
         icon: Icon(icon),
+        label: Text(label),
+      );
+    }).toList(growable: true);
+    buttons.addAll(_buildTargetSpotActionButtons(selected, sportId));
+    return buttons;
+  }
+
+  bool _isPassTargetSpot(_BoardItem item) {
+    return switch (item.type) {
+      _BoardItemType.cone ||
+      _BoardItemType.target ||
+      _BoardItemType.base =>
+        true,
+      _ => false,
+    };
+  }
+
+  List<Widget> _buildTargetSpotActionButtons(
+    _BoardItem selected,
+    String sportId,
+  ) {
+    final spots = _currentPage.items
+        .where((item) => item.id != selected.id && _isPassTargetSpot(item))
+        .toList(growable: false);
+    if (spots.isEmpty) return const <Widget>[];
+    final l10n = _l10n;
+    return spots.map((spot) {
+      final targetName = _boardToolLabel(spot.type);
+      final index = _itemIndexOfType(spot);
+      final label = switch (sportId) {
+        SportCatalog.baseballId =>
+          l10n.trainingSketchThrowToSpotButton(targetName, index),
+        SportCatalog.tennisId =>
+          l10n.trainingSketchRallyToSpotButton(targetName, index),
+        _ => l10n.trainingSketchPassToSpotButton(targetName, index),
+      };
+      return OutlinedButton.icon(
+        onPressed: () => _applyQuickBallToItemTemplate(spot),
+        icon: Icon(_boardItemIcon(spot.type, sportId: sportId)),
         label: Text(label),
       );
     }).toList(growable: false);
@@ -5014,6 +5166,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               label: Text(l10n.trainingSketchRouteAfterBallButton),
             ),
             if (includeRouteEditControls) ...[
+              OutlinedButton.icon(
+                onPressed: hasRoute ? _prepareSelectedRouteExtension : null,
+                icon: const Icon(Icons.add_road_outlined),
+                label: Text(l10n.trainingSketchExtendRouteButton),
+              ),
+              OutlinedButton.icon(
+                onPressed: hasRoute && route.points.length >= 2
+                    ? _reverseSelectedRoute
+                    : null,
+                icon: const Icon(Icons.swap_vert),
+                label: Text(l10n.trainingSketchReverseRouteButton),
+              ),
               OutlinedButton.icon(
                 onPressed: hasRoute ? _prepareSelectedRouteRedraw : null,
                 icon: const Icon(Icons.edit_outlined),
@@ -5415,7 +5579,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               accentColor: _routeGroupAccentColor(selectedStageRoute.kind),
               showStageChoices: true,
               includeActiveRouteControls: false,
-              includeRouteEditControls: false,
+              includeRouteEditControls: true,
             ),
           ],
         ],
@@ -5574,6 +5738,7 @@ enum _SketchTargetAction {
   cut,
   screen,
   coneTurn,
+  coneJump,
   hurdleJump,
   runBase,
   fielding,
