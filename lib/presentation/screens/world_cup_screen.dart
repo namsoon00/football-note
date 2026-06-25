@@ -4079,10 +4079,7 @@ class _WorldCupRoundOf32ScenarioPanel extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.worldCupQualificationScenariosSubtitle(
-              first.currentPoints,
-              first.remainingMatches,
-            ),
+            _qualificationScenariosSubtitle(l10n, first),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               height: 1.3,
@@ -4091,7 +4088,7 @@ class _WorldCupRoundOf32ScenarioPanel extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            l10n.worldCupQualificationScenariosGuide,
+            _qualificationScenariosGuide(l10n, first),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               height: 1.35,
@@ -4145,8 +4142,11 @@ class _WorldCupQualificationScenarioRow extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 6,
                   children: [
-                    for (final pick in scenario.picks)
-                      _WorldCupQualificationPickChip(pick: pick),
+                    if (scenario.picks.isEmpty)
+                      _WorldCupQualificationStatusChip(scenario: scenario)
+                    else
+                      for (final pick in scenario.picks)
+                        _WorldCupQualificationPickChip(pick: pick),
                   ],
                 ),
               ),
@@ -4217,6 +4217,37 @@ class _WorldCupQualificationScenarioRow extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _WorldCupQualificationStatusChip extends StatelessWidget {
+  final WorldCupQualificationPathScenario scenario;
+
+  const _WorldCupQualificationStatusChip({required this.scenario});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final color = _qualificationScenarioAccentColor(theme, scenario);
+    final label = scenario.remainingGroupMatches == 0
+        ? l10n.worldCupQualificationCompletePick
+        : l10n.worldCupQualificationNoTeamMatchesPick;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.32)),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }
@@ -4316,6 +4347,43 @@ String _qualificationResultLabel(
     WorldCupFixtureTeamResult.loss => l10n.worldCupResultLoss,
     WorldCupFixtureTeamResult.scheduled => l10n.worldCupResultPendingTeam,
   };
+}
+
+String _qualificationScenariosSubtitle(
+  AppLocalizations l10n,
+  WorldCupQualificationPathScenario scenario,
+) {
+  if (scenario.remainingMatches == 0) {
+    final otherMatches = scenario.remainingOtherMatches;
+    if (otherMatches > 0) {
+      return l10n.worldCupQualificationScenariosNoTeamMatchesSubtitle(
+        scenario.currentPoints,
+        otherMatches,
+      );
+    }
+    return l10n.worldCupQualificationScenariosCompleteSubtitle(
+      scenario.currentPoints,
+    );
+  }
+  if (scenario.remainingMatches == 1) {
+    return l10n.worldCupQualificationScenariosOneMatchSubtitle(
+      scenario.currentPoints,
+    );
+  }
+  return l10n.worldCupQualificationScenariosSubtitle(
+    scenario.currentPoints,
+    scenario.remainingMatches,
+  );
+}
+
+String _qualificationScenariosGuide(
+  AppLocalizations l10n,
+  WorldCupQualificationPathScenario scenario,
+) {
+  if (scenario.remainingMatches == 0) {
+    return l10n.worldCupQualificationScenariosNoTeamMatchesGuide;
+  }
+  return l10n.worldCupQualificationScenariosGuide;
 }
 
 String _qualificationOutcomeLabel(

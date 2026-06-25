@@ -261,6 +261,76 @@ void main() {
     expect(loseOut.eliminatedCases, greaterThan(0));
   });
 
+  test('round of 32 path scenarios shrink to one remaining team match', () {
+    final fixtures = _fixturesWithScores({
+      28: (1, 1),
+    });
+    final scenarios = worldCupRoundOf32PathScenariosForTeam(
+      'Korea Republic',
+      fixtures: fixtures,
+    );
+
+    expect(scenarios, hasLength(3));
+    expect(
+      scenarios.map((scenario) => scenario.picks.single.result).toSet(),
+      {
+        WorldCupFixtureTeamResult.win,
+        WorldCupFixtureTeamResult.draw,
+        WorldCupFixtureTeamResult.loss,
+      },
+    );
+    for (final scenario in scenarios) {
+      expect(scenario.remainingMatches, 1);
+      expect(scenario.remainingGroupMatches, 3);
+      expect(scenario.remainingOtherMatches, 2);
+      expect(scenario.totalCases, 9);
+    }
+  });
+
+  test('round of 32 path scenarios keep updating after team fixtures end', () {
+    final fixtures = _fixturesWithScores({
+      28: (1, 1),
+      54: (0, 2),
+    });
+    final scenarios = worldCupRoundOf32PathScenariosForTeam(
+      'Korea Republic',
+      fixtures: fixtures,
+    );
+
+    expect(scenarios, hasLength(1));
+    final scenario = scenarios.single;
+    expect(scenario.picks, isEmpty);
+    expect(scenario.currentPoints, 7);
+    expect(scenario.remainingMatches, 0);
+    expect(scenario.remainingGroupMatches, 2);
+    expect(scenario.remainingOtherMatches, 2);
+    expect(scenario.totalCases, 9);
+    expect(scenario.canAdvance, isTrue);
+  });
+
+  test('round of 32 path scenarios show a fixed state when group is complete',
+      () {
+    final fixtures = _fixturesWithScores({
+      25: (0, 0),
+      28: (1, 1),
+      53: (0, 1),
+      54: (0, 2),
+    });
+    final scenarios = worldCupRoundOf32PathScenariosForTeam(
+      'Korea Republic',
+      fixtures: fixtures,
+    );
+
+    expect(scenarios, hasLength(1));
+    final scenario = scenarios.single;
+    expect(scenario.picks, isEmpty);
+    expect(scenario.remainingMatches, 0);
+    expect(scenario.remainingGroupMatches, 0);
+    expect(scenario.remainingOtherMatches, 0);
+    expect(scenario.totalCases, 1);
+    expect(scenario.guaranteesAutomaticAdvance, isTrue);
+  });
+
   test('round of 32 opponent paths follow bracket slots by group rank', () {
     final groupWinnerPaths = worldCupRoundOf32OpponentPathsForGroupRank(
       'A',
@@ -301,4 +371,14 @@ WorldCupQualificationPathScenario _pathScenarioFor(
 
 String _opponentPathKey(WorldCupQualificationOpponentPath path) {
   return '${path.rank}:${path.matchNumber}:${path.opponentSlot}';
+}
+
+List<WorldCupFixture> _fixturesWithScores(Map<int, (int, int)> scoresByMatch) {
+  return [
+    for (final fixture in worldCupFixtures)
+      if (scoresByMatch[fixture.matchNumber] case final score?)
+        fixture.copyWithScore(homeScore: score.$1, awayScore: score.$2)
+      else
+        fixture,
+  ];
 }

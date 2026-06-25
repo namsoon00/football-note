@@ -2384,11 +2384,36 @@ abstract class AppLocalizations {
   String worldCupQualificationScenariosSubtitle(
       int currentPoints, int remainingMatches);
 
+  /// No description provided for @worldCupQualificationScenariosOneMatchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From {currentPoints} current points, this shows the win/draw/loss paths for the final remaining match.'**
+  String worldCupQualificationScenariosOneMatchSubtitle(int currentPoints);
+
+  /// No description provided for @worldCupQualificationScenariosNoTeamMatchesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This team has {currentPoints} current points and no matches left. Remaining group results ({remainingOtherMatches}) still drive the Round of 32 path.'**
+  String worldCupQualificationScenariosNoTeamMatchesSubtitle(
+      int currentPoints, int remainingOtherMatches);
+
+  /// No description provided for @worldCupQualificationScenariosCompleteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The group schedule is complete. This shows the Round of 32 path from the final {currentPoints} points.'**
+  String worldCupQualificationScenariosCompleteSubtitle(int currentPoints);
+
   /// No description provided for @worldCupQualificationScenariosGuide.
   ///
   /// In en, this message translates to:
   /// **'Each row is one result combination for this team\'s remaining matches. Auto means finishing 1st or 2nd in the group. 3rd-place race means finishing 3rd, then needing to be among the 8 best third-place teams overall. The denominators for auto, 3rd-place race, and out count every win/draw/loss combination for the other remaining matches in the same group. Opponent countries translate the bracket slot using the current table.'**
   String get worldCupQualificationScenariosGuide;
+
+  /// No description provided for @worldCupQualificationScenariosNoTeamMatchesGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no result picks for this team. The denominator only counts any remaining win/draw/loss combinations elsewhere in the group; if none remain, the table is fixed.'**
+  String get worldCupQualificationScenariosNoTeamMatchesGuide;
 
   /// No description provided for @worldCupQualificationScenariosEmpty.
   ///
@@ -2421,6 +2446,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A third-place finish still needs to rank among the 8 best third-place teams across the 12 groups.'**
   String get worldCupQualificationThirdPlaceNote;
+
+  /// No description provided for @worldCupQualificationNoTeamMatchesPick.
+  ///
+  /// In en, this message translates to:
+  /// **'No team matches left'**
+  String get worldCupQualificationNoTeamMatchesPick;
+
+  /// No description provided for @worldCupQualificationCompletePick.
+  ///
+  /// In en, this message translates to:
+  /// **'Group rank fixed'**
+  String get worldCupQualificationCompletePick;
 
   /// No description provided for @worldCupQualificationMatchPick.
   ///
