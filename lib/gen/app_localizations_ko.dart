@@ -1303,6 +1303,28 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 팀 결과가 같아도 같은 조의 다른 경기 승·무·패에 따라 순위와 진출 상태가 달라질 수 있어요.';
 
   @override
+  String get worldCupQualificationWaitingOtherMatchesTitle =>
+      '기다리는 경기 결과별 경우의 수';
+
+  @override
+  String get worldCupQualificationWaitingOtherMatchesSubtitle =>
+      '이 팀 경기는 끝났고, 아래 다른 경기 결과 조합마다 32강 상태를 다시 계산해요.';
+
+  @override
+  String get worldCupQualificationOtherPathDirectSection => '직행하는 경우';
+
+  @override
+  String get worldCupQualificationOtherPathThirdSection => '3위 비교로 남는 경우';
+
+  @override
+  String get worldCupQualificationOtherPathOutSection => '탈락하는 경우';
+
+  @override
+  String worldCupQualificationOtherPathSectionTitle(String label, int count) {
+    return '$label $count가지';
+  }
+
+  @override
   String worldCupQualificationOtherPathOutcome(int rank, String outcome) {
     return '$rank위 · $outcome';
   }

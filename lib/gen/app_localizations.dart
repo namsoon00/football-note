@@ -2453,6 +2453,42 @@ abstract class AppLocalizations {
   /// **'Even with this team\'s result fixed, other group results can change the rank and qualification state.'**
   String get worldCupQualificationOtherMatchesSubtitle;
 
+  /// No description provided for @worldCupQualificationWaitingOtherMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting result scenarios'**
+  String get worldCupQualificationWaitingOtherMatchesTitle;
+
+  /// No description provided for @worldCupQualificationWaitingOtherMatchesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This team\'s matches are finished, so every remaining group result combination recalculates the Round of 32 state below.'**
+  String get worldCupQualificationWaitingOtherMatchesSubtitle;
+
+  /// No description provided for @worldCupQualificationOtherPathDirectSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct advance cases'**
+  String get worldCupQualificationOtherPathDirectSection;
+
+  /// No description provided for @worldCupQualificationOtherPathThirdSection.
+  ///
+  /// In en, this message translates to:
+  /// **'3rd-place race cases'**
+  String get worldCupQualificationOtherPathThirdSection;
+
+  /// No description provided for @worldCupQualificationOtherPathOutSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Elimination cases'**
+  String get worldCupQualificationOtherPathOutSection;
+
+  /// No description provided for @worldCupQualificationOtherPathSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} · {count} cases'**
+  String worldCupQualificationOtherPathSectionTitle(String label, int count);
+
   /// No description provided for @worldCupQualificationOtherPathOutcome.
   ///
   /// In en, this message translates to:

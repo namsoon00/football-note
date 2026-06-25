@@ -1350,6 +1350,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'Even with this team\'s result fixed, other group results can change the rank and qualification state.';
 
   @override
+  String get worldCupQualificationWaitingOtherMatchesTitle =>
+      'Waiting result scenarios';
+
+  @override
+  String get worldCupQualificationWaitingOtherMatchesSubtitle =>
+      'This team\'s matches are finished, so every remaining group result combination recalculates the Round of 32 state below.';
+
+  @override
+  String get worldCupQualificationOtherPathDirectSection =>
+      'Direct advance cases';
+
+  @override
+  String get worldCupQualificationOtherPathThirdSection =>
+      '3rd-place race cases';
+
+  @override
+  String get worldCupQualificationOtherPathOutSection => 'Elimination cases';
+
+  @override
+  String worldCupQualificationOtherPathSectionTitle(String label, int count) {
+    return '$label · $count cases';
+  }
+
+  @override
   String worldCupQualificationOtherPathOutcome(int rank, String outcome) {
     return 'Rank $rank · $outcome';
   }

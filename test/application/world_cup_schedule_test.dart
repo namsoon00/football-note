@@ -326,6 +326,37 @@ void main() {
     expect(scenario.canAdvance, isTrue);
   });
 
+  test('round of 32 path scenarios split waiting outcomes by other results',
+      () {
+    final fixtures = _fixturesWithScores({
+      28: (1, 0),
+      54: (1, 0),
+    });
+    final scenarios = worldCupRoundOf32PathScenariosForTeam(
+      'Korea Republic',
+      fixtures: fixtures,
+    );
+
+    expect(scenarios, hasLength(1));
+    final scenario = scenarios.single;
+    expect(scenario.picks, isEmpty);
+    expect(scenario.remainingMatches, 0);
+    expect(scenario.remainingOtherMatches, 2);
+    expect(scenario.otherMatchPaths, hasLength(9));
+    expect(
+      scenario.otherMatchPaths.where((path) => path.isAutomaticAdvance),
+      isEmpty,
+    );
+    expect(
+      scenario.otherMatchPaths.where((path) => path.isThirdPlaceRace),
+      isNotEmpty,
+    );
+    expect(
+      scenario.otherMatchPaths.where((path) => path.isEliminated),
+      isNotEmpty,
+    );
+  });
+
   test('round of 32 path scenarios show a fixed state when group is complete',
       () {
     final fixtures = _fixturesWithScores({

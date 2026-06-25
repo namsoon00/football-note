@@ -713,6 +713,22 @@
     }
   },
   "worldCupQualificationOtherMatchesSubtitle": "このチームの結果が同じでも、同じグループの他の試合結果で順位と進出状態が変わることがあります。",
+  "worldCupQualificationWaitingOtherMatchesTitle": "待っている試合結果別の可能性",
+  "worldCupQualificationWaitingOtherMatchesSubtitle": "このチームの試合は終了しているため、残りのグループ試合の結果組み合わせごとにラウンド32の状態を再計算します。",
+  "worldCupQualificationOtherPathDirectSection": "自動進出する場合",
+  "worldCupQualificationOtherPathThirdSection": "3位比較に残る場合",
+  "worldCupQualificationOtherPathOutSection": "敗退する場合",
+  "worldCupQualificationOtherPathSectionTitle": "{label} {count}通り",
+  "@worldCupQualificationOtherPathSectionTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupQualificationOtherPathOutcome": "{rank}位 · {outcome}",
   "@worldCupQualificationOtherPathOutcome": {
     "placeholders": {

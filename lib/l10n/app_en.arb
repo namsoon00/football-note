@@ -713,6 +713,22 @@
     }
   },
   "worldCupQualificationOtherMatchesSubtitle": "Even with this team's result fixed, other group results can change the rank and qualification state.",
+  "worldCupQualificationWaitingOtherMatchesTitle": "Waiting result scenarios",
+  "worldCupQualificationWaitingOtherMatchesSubtitle": "This team's matches are finished, so every remaining group result combination recalculates the Round of 32 state below.",
+  "worldCupQualificationOtherPathDirectSection": "Direct advance cases",
+  "worldCupQualificationOtherPathThirdSection": "3rd-place race cases",
+  "worldCupQualificationOtherPathOutSection": "Elimination cases",
+  "worldCupQualificationOtherPathSectionTitle": "{label} · {count} cases",
+  "@worldCupQualificationOtherPathSectionTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupQualificationOtherPathOutcome": "Rank {rank} · {outcome}",
   "@worldCupQualificationOtherPathOutcome": {
     "placeholders": {
