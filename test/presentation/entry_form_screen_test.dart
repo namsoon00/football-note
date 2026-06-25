@@ -121,7 +121,9 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('entry form saves lesson flag', (WidgetTester tester) async {
+  testWidgets('entry form saves lesson flag and detail without icon', (
+    WidgetTester tester,
+  ) async {
     await resetStorage(tester);
     final original = TrainingEntry(
       date: DateTime(2026, 3, 14, 18),
@@ -164,12 +166,23 @@ void main() {
 
     final lessonToggle = find.widgetWithText(SwitchListTile, '레슨 여부');
     await tester.ensureVisible(lessonToggle);
+    expect(
+      find.descendant(
+        of: lessonToggle,
+        matching: find.byIcon(Icons.school_outlined),
+      ),
+      findsNothing,
+    );
     await tester.tap(lessonToggle);
     await tester.pump();
+    final lessonDetailField = find.widgetWithText(TextFormField, '어떤 레슨인가요?');
+    await tester.ensureVisible(lessonDetailField);
+    await tester.enterText(lessonDetailField, '드리블 개인레슨');
     await tapSaveAndFinish(tester);
 
     final savedEntry = (await allEntries(tester)).single;
     expect(savedEntry.isLesson, isTrue);
+    expect(savedEntry.lessonDetail, '드리블 개인레슨');
   });
 
   testWidgets('entry edit save does not reopen fortune dialog', (

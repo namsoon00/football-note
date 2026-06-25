@@ -1106,6 +1106,14 @@
   "trainingRecordSavedDialogMessage": "記録を保存しました。",
   "trainingEntryConditioningEmpty": "縄跳び/リフティングの記録なし",
   "trainingEntryLessonSummary": "レッスン",
+  "trainingEntryLessonSummaryWithDetail": "レッスン: {detail}",
+  "@trainingEntryLessonSummaryWithDetail": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "trainingEntryInjuryPresent": "けがの記録あり",
   "trainingEntryInjurySummary": "けが: {detail}",
   "@trainingEntryInjurySummary": {
@@ -1878,6 +1886,8 @@
   "painLevel": "痛みのレベル (1-10)",
   "rehab": "リハビリ",
   "entryLesson": "レッスン",
+  "entryLessonDetail": "どんなレッスンですか？",
+  "entryLessonDetailHint": "例: ドリブル個人レッスン、シュートグループレッスン",
   "goal": "ゴール",
   "feedback": "フィードバック",
   "notes": "注意事項",

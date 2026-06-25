@@ -115,6 +115,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _improvementsController = TextEditingController();
   final _nextGoalController = TextEditingController();
   final _drillsController = TextEditingController();
+  final _lessonDetailController = TextEditingController();
   final _injuryPartController = TextEditingController();
   final _painController = TextEditingController();
   final _liftChestController = TextEditingController();
@@ -294,6 +295,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         );
       _status = entry.status.isEmpty ? 'normal' : entry.status;
       _isLesson = entry.isLesson;
+      _lessonDetailController.text = entry.lessonDetail;
       _injury = entry.injury;
       _injuryPartController.text = entry.injuryPart;
       _painController.text = entry.painLevel?.toString() ?? '';
@@ -394,6 +396,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         );
       _status = 'normal';
       _isLesson = false;
+      _lessonDetailController.clear();
       _linkedBoardIds.clear();
       _syncDrillsPayloadFromBoardLinks();
       _jumpRopeEnabled = false;
@@ -640,6 +643,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _type.trim(),
       _status.trim(),
       _isLesson.toString(),
+      _lessonDetailController.text.trim(),
       _injury.toString(),
       _rehab.toString(),
       _liftingEnabled.toString(),
@@ -1799,6 +1803,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _improvementsController.dispose();
     _nextGoalController.dispose();
     _drillsController.dispose();
+    _lessonDetailController.dispose();
     _injuryPartController.dispose();
     _painController.dispose();
     _liftChestController.dispose();
@@ -2581,15 +2586,32 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   Widget _buildLessonSection(AppLocalizations l10n) {
     return WatchCartCard(
-      child: SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        secondary: const Icon(Icons.school_outlined),
-        title: Text(l10n.entryLesson),
-        value: _isLesson,
-        onChanged: (value) {
-          setState(() => _isLesson = value);
-          _scheduleAutoSave();
-        },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.entryLesson),
+            value: _isLesson,
+            onChanged: (value) {
+              setState(() => _isLesson = value);
+              _scheduleAutoSave();
+            },
+          ),
+          _buildAnimatedSection(
+            visible: _isLesson,
+            child: _buildEmphasizedField(
+              controller: _lessonDetailController,
+              enabled: _isLesson,
+              minLines: 1,
+              maxLines: 2,
+              decoration: InputDecoration(
+                labelText: l10n.entryLessonDetail,
+                hintText: l10n.entryLessonDetailHint,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -3424,6 +3446,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       imagePaths: _imagePaths,
       status: _status,
       isLesson: _isLesson,
+      lessonDetail: _isLesson ? _lessonDetailController.text.trim() : '',
       liftingByPart: const <String, int>{},
       liftingMinutes: _liftingEnabled
           ? (_parseInt(_liftingMinutesController.text.trim()) ?? 0)
@@ -3630,6 +3653,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         imagePaths: _imagePaths,
         status: _status,
         isLesson: _isLesson,
+        lessonDetail: _isLesson ? _lessonDetailController.text.trim() : '',
         liftingByPart: liftingByPart,
         liftingMinutes: liftingMinutes,
         goalFocuses: selectedGoals,
@@ -3692,6 +3716,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         imagePaths: draftEntry.imagePaths,
         status: draftEntry.status,
         isLesson: draftEntry.isLesson,
+        lessonDetail: draftEntry.lessonDetail,
         liftingByPart: draftEntry.liftingByPart,
         liftingMinutes: draftEntry.liftingMinutes,
         coachComment: '',

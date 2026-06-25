@@ -1802,6 +1802,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingEntryLessonSummary => 'Lesson';
 
   @override
+  String trainingEntryLessonSummaryWithDetail(String detail) {
+    return 'Lesson: $detail';
+  }
+
+  @override
   String get trainingEntryInjuryPresent => 'Injury recorded';
 
   @override
@@ -3202,6 +3207,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entryLesson => 'Lesson';
+
+  @override
+  String get entryLessonDetail => 'Lesson detail';
+
+  @override
+  String get entryLessonDetailHint =>
+      'e.g. 1:1 dribbling, shooting group lesson';
 
   @override
   String get goal => 'Goal';
