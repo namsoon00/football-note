@@ -1557,6 +1557,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeLayoutReorderTooltip => 'セクションを移動';
 
   @override
+  String get homeLayoutSavedMessage => 'ホーム画面の順序を保存しました。';
+
+  @override
   String get homeLayoutNoVisibleSections => '表示中のホームセクションがありません。';
 
   @override

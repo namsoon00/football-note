@@ -1551,6 +1551,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeLayoutReorderTooltip => '섹션 이동';
 
   @override
+  String get homeLayoutSavedMessage => '홈 화면 순서를 저장했어요.';
+
+  @override
   String get homeLayoutNoVisibleSections => '표시 중인 홈 섹션이 없어요.';
 
   @override

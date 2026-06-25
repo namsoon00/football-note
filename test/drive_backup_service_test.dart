@@ -246,6 +246,7 @@ void main() {
         'skill_quiz_history_v1': '[{"id":"quiz-1"}]',
         'skill_quiz_pending_wrong_schedule_v2': '[{"id":"wrong-1"}]',
         'news_opened_items_v1': '[{"id":"news-1"}]',
+        'home_hub_sections_v1': '{"sections":[]}',
       });
 
       final backup = service.buildBackupForTesting();
@@ -293,6 +294,7 @@ void main() {
         '[{"id":"wrong-1"}]',
       );
       expect(backupOptions['news_opened_items_v1'], '[{"id":"news-1"}]');
+      expect(backupOptions['home_hub_sections_v1'], '{"sections":[]}');
     },
   );
 
