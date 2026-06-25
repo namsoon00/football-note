@@ -9019,7 +9019,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeWeatherDetailsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Weather details'**
+  /// **'Weather'**
   String get homeWeatherDetailsTitle;
 
   /// No description provided for @homeWeatherDetailsSubtitle.

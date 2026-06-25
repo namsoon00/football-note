@@ -5109,7 +5109,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherCountryKorea => 'Korea';
 
   @override
-  String get homeWeatherDetailsTitle => 'Weather details';
+  String get homeWeatherDetailsTitle => 'Weather';
 
   @override
   String get homeWeatherDetailsSubtitle =>
