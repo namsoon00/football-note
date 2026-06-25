@@ -933,17 +933,6 @@
       }
     }
   },
-  "homeTodayPlanCardTitle": "今日のトレーニングプラン",
-  "homeTodayPlanCardSummary": "今日: {count} プラン",
-  "@homeTodayPlanCardSummary": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "homeTodayPlanOpenAction": "オープンプラン",
-  "homeTodayPlanSelectForLogTitle": "トレーニングログにするプランを選択してください",
   "homeHubTitleShort": "家",
   "homeLayoutChangeAction": "ホーム変更",
   "homeLayoutSettingsTitle": "ホーム画面設定",
@@ -955,7 +944,6 @@
   "homeSectionChallenge": "チャレンジ",
   "homeSectionStreak": "トレーニング連続記録",
   "homeSectionMeal": "食事サマリー",
-  "homeSectionTodayPlan": "今日のトレーニングプラン",
   "homeSectionDailyFlow": "今日のタスク",
   "homeSectionQuickActions": "クイック操作",
   "homeSectionContinue": "続きから",
@@ -1014,16 +1002,6 @@
     }
   },
   "homeContinueTrainingButton": "続きを書く",
-  "homeContinueTodayPlanTitle": "今日の練習計画",
-  "homeContinueTodayPlanSubtitle": "今日の計画が {count} 件あります。",
-  "@homeContinueTodayPlanSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "homeContinuePlanButton": "計画を見る",
   "homeContinueQuizButton": "クイズを開く",
   "homeContinueRecentBoardTitle": "最近の練習ボード",
   "homeContinueBoardCount": "スケッチ {count} 件",

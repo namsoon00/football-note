@@ -933,17 +933,6 @@
       }
     }
   },
-  "homeTodayPlanCardTitle": "Today training plan",
-  "homeTodayPlanCardSummary": "Today: {count} plan(s)",
-  "@homeTodayPlanCardSummary": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "homeTodayPlanOpenAction": "Open plans",
-  "homeTodayPlanSelectForLogTitle": "Choose a plan to turn into a training log",
   "homeHubTitleShort": "Home",
   "homeLayoutChangeAction": "Change home",
   "homeLayoutSettingsTitle": "Home screen settings",
@@ -955,7 +944,6 @@
   "homeSectionChallenge": "Challenge",
   "homeSectionStreak": "Training streak",
   "homeSectionMeal": "Meal summary",
-  "homeSectionTodayPlan": "Today training plan",
   "homeSectionDailyFlow": "Today's tasks",
   "homeSectionQuickActions": "Quick actions",
   "homeSectionContinue": "Continue",
@@ -1014,16 +1002,6 @@
     }
   },
   "homeContinueTrainingButton": "Continue",
-  "homeContinueTodayPlanTitle": "Today training plan",
-  "homeContinueTodayPlanSubtitle": "{count} plans are waiting today.",
-  "@homeContinueTodayPlanSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "homeContinuePlanButton": "Open plans",
   "homeContinueQuizButton": "Open quiz",
   "homeContinueRecentBoardTitle": "Recent training board",
   "homeContinueBoardCount": "{count} sketches",

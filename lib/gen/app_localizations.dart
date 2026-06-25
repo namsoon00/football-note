@@ -2797,30 +2797,6 @@ abstract class AppLocalizations {
   /// **'FIFA {time}'**
   String worldCupOfficialUpdatedAt(String time);
 
-  /// No description provided for @homeTodayPlanCardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Today training plan'**
-  String get homeTodayPlanCardTitle;
-
-  /// No description provided for @homeTodayPlanCardSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'Today: {count} plan(s)'**
-  String homeTodayPlanCardSummary(int count);
-
-  /// No description provided for @homeTodayPlanOpenAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Open plans'**
-  String get homeTodayPlanOpenAction;
-
-  /// No description provided for @homeTodayPlanSelectForLogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose a plan to turn into a training log'**
-  String get homeTodayPlanSelectForLogTitle;
-
   /// No description provided for @homeHubTitleShort.
   ///
   /// In en, this message translates to:
@@ -2886,12 +2862,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Meal summary'**
   String get homeSectionMeal;
-
-  /// No description provided for @homeSectionTodayPlan.
-  ///
-  /// In en, this message translates to:
-  /// **'Today training plan'**
-  String get homeSectionTodayPlan;
 
   /// No description provided for @homeSectionDailyFlow.
   ///
@@ -3072,24 +3042,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get homeContinueTrainingButton;
-
-  /// No description provided for @homeContinueTodayPlanTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Today training plan'**
-  String get homeContinueTodayPlanTitle;
-
-  /// No description provided for @homeContinueTodayPlanSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} plans are waiting today.'**
-  String homeContinueTodayPlanSubtitle(int count);
-
-  /// No description provided for @homeContinuePlanButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Open plans'**
-  String get homeContinuePlanButton;
 
   /// No description provided for @homeContinueQuizButton.
   ///

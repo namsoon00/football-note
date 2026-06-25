@@ -13,8 +13,6 @@ class DailyLoopSnapshot {
   final int boardCount;
   final DateTime? latestBoardUpdatedAt;
   final TrainingBoard? latestBoard;
-  final int todayPlanCount;
-  final List<DailyLoopPlan> todayPlans;
   final TrainingEntry? latestTrainingEntry;
   final TrainingEntry? latestCreatedTrainingEntry;
   final bool loggedTrainingToday;
@@ -38,8 +36,6 @@ class DailyLoopSnapshot {
     required this.boardCount,
     required this.latestBoardUpdatedAt,
     required this.latestBoard,
-    required this.todayPlanCount,
-    required this.todayPlans,
     required this.latestTrainingEntry,
     required this.latestCreatedTrainingEntry,
     required this.loggedTrainingToday,
@@ -81,7 +77,6 @@ class DailyLoopSnapshot {
   factory DailyLoopSnapshot.build({
     required List<TrainingEntry> entries,
     required List<MealEntry> mealEntries,
-    required List<DailyLoopPlan> plans,
     required List<TrainingBoard> boards,
     required DateTime? quizCompletedAt,
     required String? viewedDiaryDayToken,
@@ -167,21 +162,6 @@ class DailyLoopSnapshot {
       );
     });
 
-    final todayPlans = plans.where((plan) {
-      final day = normalizeDay(plan.scheduledAt);
-      return day == today;
-    }).toList(growable: false)
-      ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
-    final remainingTodayPlans = todayPlans
-        .where(
-          (plan) => !isPlanCoveredByTrainingEntry(
-            plan,
-            entries,
-            now: effectiveNow,
-          ),
-        )
-        .toList(growable: false);
-    final todayPlanCount = remainingTodayPlans.length;
     final quizCompletedToday = quizCompletedAt != null &&
         quizCompletedAt.year == effectiveNow.year &&
         quizCompletedAt.month == effectiveNow.month &&
@@ -203,8 +183,6 @@ class DailyLoopSnapshot {
       latestBoardUpdatedAt:
           sortedBoards.isEmpty ? null : sortedBoards.first.updatedAt,
       latestBoard: sortedBoards.isEmpty ? null : sortedBoards.first,
-      todayPlanCount: todayPlanCount,
-      todayPlans: remainingTodayPlans,
       latestTrainingEntry: latestTrainingEntry,
       latestCreatedTrainingEntry: latestCreatedTrainingEntry,
       loggedTrainingToday: loggedTrainingToday,
@@ -228,79 +206,9 @@ class DailyLoopSnapshot {
       '${date.month.toString().padLeft(2, '0')}-'
       '${date.day.toString().padLeft(2, '0')}';
 
-  static bool isPlanCoveredByTrainingEntry(
-    DailyLoopPlan plan,
-    Iterable<TrainingEntry> entries, {
-    DateTime? now,
-  }) {
-    final planDay = normalizeDay(plan.scheduledAt);
-    final normalizedCategory = plan.category.trim().toLowerCase();
-    var hasTrainingEntryOnPlanDay = false;
-    for (final entry in entries) {
-      if (entry.isMatch) continue;
-      final entryDay = normalizeDay(entry.date);
-      if (entryDay != planDay) continue;
-      hasTrainingEntryOnPlanDay = true;
-      if (normalizedCategory.isEmpty) {
-        return true;
-      }
-      final entryType = entry.type.trim().toLowerCase();
-      final entryProgram = entry.program.trim().toLowerCase();
-      final entryPrograms = entry.effectiveTrainingProgramMinutes.keys
-          .map((program) => program.trim().toLowerCase())
-          .where((program) => program.isNotEmpty)
-          .toSet();
-      final categoryMatches = normalizedCategory.isEmpty ||
-          entryType == normalizedCategory ||
-          entryProgram == normalizedCategory ||
-          entryPrograms.contains(normalizedCategory);
-      if (categoryMatches) {
-        return true;
-      }
-    }
-    return hasTrainingEntryOnPlanDay &&
-        (now ?? DateTime.now()).isAfter(plan.endsAt);
-  }
-
   static bool hasCompletedJumpRope(TrainingEntry entry) {
     if (!entry.jumpRopeEnabled) return false;
     return entry.jumpRopeCount > 0 || entry.jumpRopeMinutes > 0;
-  }
-}
-
-class DailyLoopPlan {
-  final String id;
-  final DateTime scheduledAt;
-  final String category;
-  final int durationMinutes;
-  final String location;
-  final String note;
-
-  const DailyLoopPlan({
-    required this.id,
-    required this.scheduledAt,
-    required this.category,
-    required this.durationMinutes,
-    required this.location,
-    required this.note,
-  });
-
-  DateTime get endsAt => scheduledAt.add(Duration(minutes: durationMinutes));
-
-  factory DailyLoopPlan.fromMap(
-    Map<String, dynamic> map, {
-    DateTime? fallbackNow,
-  }) {
-    final now = fallbackNow ?? DateTime.now();
-    return DailyLoopPlan(
-      id: map['id']?.toString() ?? now.microsecondsSinceEpoch.toString(),
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ?? now,
-      category: map['category']?.toString() ?? '',
-      durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,
-      location: map['location']?.toString() ?? '',
-      note: map['note']?.toString() ?? '',
-    );
   }
 }
 

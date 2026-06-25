@@ -139,7 +139,6 @@ void main() {
           onQuickQuiz: () {},
           onQuickMeal: () {},
           onQuickBoard: () {},
-          onOpenPlans: () {},
           onOpenLogs: () {},
           onOpenDiary: () {},
           onOpenWeeklyStats: () {},
@@ -198,7 +197,6 @@ void main() {
           onQuickQuiz: () {},
           onQuickMeal: () {},
           onQuickBoard: () {},
-          onOpenPlans: () {},
           onOpenLogs: () {},
           onOpenDiary: () {},
           onOpenWeeklyStats: () {},
@@ -240,7 +238,7 @@ void main() {
     final reorderableList = tester.widget<ReorderableListView>(
       find.byKey(const ValueKey<String>('home-section-settings-list')),
     );
-    reorderableList.onReorder(6, 5);
+    reorderableList.onReorder(5, 4);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
     expect(find.text('홈 화면 순서를 저장했어요.'), findsOneWidget);
@@ -348,7 +346,6 @@ void main() {
             onQuickQuiz: () {},
             onQuickMeal: () {},
             onQuickBoard: () {},
-            onOpenPlans: () {},
             onOpenLogs: () {},
             onOpenDiary: () {},
             onOpenWeeklyStats: () {},
@@ -454,288 +451,6 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('today plan section can start a training log from plan', (
-    WidgetTester tester,
-  ) async {
-    final optionRepository = _MemoryOptionRepository();
-    final localeService = LocaleService(optionRepository)..load();
-    final settingsService = SettingsService(optionRepository)..load();
-    final trainingService = TrainingService(_MemoryTrainingRepository());
-    final mealLogService = MealLogService(optionRepository);
-    final now = DateTime.now();
-    final todayPlanAt = now.subtract(const Duration(hours: 2));
-
-    await optionRepository.setValue(
-      'training_plans_v1',
-      jsonEncode([
-        <String, dynamic>{
-          'id': 'plan-issue-271',
-          'scheduledAt': todayPlanAt.toIso8601String(),
-          'category': '패스 훈련',
-          'durationMinutes': 75,
-          'location': '메인 구장',
-          'reminderMinutesBefore': 30,
-          'repeatWeekdays': <int>[todayPlanAt.weekday],
-          'alarmLoopEnabled': true,
-          'note': '짧은 패스 후 전진 타이밍 점검',
-        },
-      ]),
-    );
-
-    await tester.pumpWidget(
-      _buildApp(
-        HomeHubScreen(
-          trainingService: trainingService,
-          mealLogService: mealLogService,
-          localeService: localeService,
-          optionRepository: optionRepository,
-          settingsService: settingsService,
-          onCreate: () {},
-          onQuickPlan: () {},
-          onQuickMatch: () {},
-          onQuickQuiz: () {},
-          onQuickMeal: () {},
-          onQuickBoard: () {},
-          onOpenPlans: () {},
-          onOpenLogs: () {},
-          onOpenDiary: () {},
-          onOpenWeeklyStats: () {},
-          onEdit: (_) {},
-          onEditTrainingBoard: (_) {},
-          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
-        ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    await tester.tap(find.byKey(const ValueKey('today-plan-log-action')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-
-    expect(find.byType(EntryFormScreen), findsOneWidget);
-    expect(find.byKey(const ValueKey('entry-plan-banner')), findsOneWidget);
-    expect(find.textContaining('패스 훈련'), findsWidgets);
-    expect(find.textContaining('메인 구장'), findsNothing);
-  });
-
-  testWidgets('today plan section keeps training plan button before end time', (
-    WidgetTester tester,
-  ) async {
-    final optionRepository = _MemoryOptionRepository();
-    final localeService = LocaleService(optionRepository)..load();
-    final settingsService = SettingsService(optionRepository)..load();
-    final trainingService = TrainingService(_MemoryTrainingRepository());
-    final mealLogService = MealLogService(optionRepository);
-    final now = DateTime.now();
-    final activePlanAt = now.subtract(const Duration(minutes: 10));
-
-    await optionRepository.setValue(
-      'training_plans_v1',
-      jsonEncode([
-        <String, dynamic>{
-          'id': 'plan-issue-272-active',
-          'scheduledAt': activePlanAt.toIso8601String(),
-          'category': '드리블',
-          'durationMinutes': 60,
-          'location': '보조 구장',
-          'reminderMinutesBefore': 20,
-          'repeatWeekdays': <int>[activePlanAt.weekday],
-          'alarmLoopEnabled': false,
-          'note': '',
-        },
-      ]),
-    );
-
-    await tester.pumpWidget(
-      _buildApp(
-        HomeHubScreen(
-          trainingService: trainingService,
-          mealLogService: mealLogService,
-          localeService: localeService,
-          optionRepository: optionRepository,
-          settingsService: settingsService,
-          onCreate: () {},
-          onQuickPlan: () {},
-          onQuickMatch: () {},
-          onQuickQuiz: () {},
-          onQuickMeal: () {},
-          onQuickBoard: () {},
-          onOpenPlans: () {},
-          onOpenLogs: () {},
-          onOpenDiary: () {},
-          onOpenWeeklyStats: () {},
-          onEdit: (_) {},
-          onEditTrainingBoard: (_) {},
-          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
-        ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(
-      find.byKey(const ValueKey('today-plan-open-action')),
-      findsOneWidget,
-    );
-    expect(find.byKey(const ValueKey('today-plan-log-action')), findsNothing);
-    expect(find.text('훈련 계획'), findsWidgets);
-
-    final summary = tester.widget<Text>(
-      find.byKey(const ValueKey('today-plan-summary-text')),
-    );
-    expect(summary.data, contains('오늘 계획 1개'));
-    expect(summary.data, contains('드리블'));
-    expect(summary.data, isNot(contains('보조 구장')));
-    expect(summary.maxLines, 2);
-    expect(summary.overflow, isNot(TextOverflow.ellipsis));
-  });
-
-  testWidgets('completed today plan is hidden from home section', (
-    WidgetTester tester,
-  ) async {
-    final optionRepository = _MemoryOptionRepository();
-    final localeService = LocaleService(optionRepository)..load();
-    final settingsService = SettingsService(optionRepository)..load();
-    final trainingRepository = _MemoryTrainingRepository();
-    final trainingService = TrainingService(trainingRepository);
-    final mealLogService = MealLogService(optionRepository);
-    final now = DateTime.now();
-    final pastPlanAt = now.subtract(const Duration(hours: 3));
-
-    await optionRepository.setValue(
-      'training_plans_v1',
-      jsonEncode([
-        <String, dynamic>{
-          'id': 'plan-issue-272-complete',
-          'scheduledAt': pastPlanAt.toIso8601String(),
-          'category': '패스 훈련',
-          'durationMinutes': 60,
-          'location': '메인 구장',
-          'reminderMinutesBefore': 20,
-          'repeatWeekdays': <int>[pastPlanAt.weekday],
-          'alarmLoopEnabled': false,
-          'note': '',
-        },
-      ]),
-    );
-
-    await tester.pumpWidget(
-      _buildApp(
-        HomeHubScreen(
-          trainingService: trainingService,
-          mealLogService: mealLogService,
-          localeService: localeService,
-          optionRepository: optionRepository,
-          settingsService: settingsService,
-          onCreate: () {},
-          onQuickPlan: () {},
-          onQuickMatch: () {},
-          onQuickQuiz: () {},
-          onQuickMeal: () {},
-          onQuickBoard: () {},
-          onOpenPlans: () {},
-          onOpenLogs: () {},
-          onOpenDiary: () {},
-          onOpenWeeklyStats: () {},
-          onEdit: (_) {},
-          onEditTrainingBoard: (_) {},
-          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
-        ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    await trainingService.add(
-      TrainingEntry(
-        date: DateTime(now.year, now.month, now.day),
-        createdAt: now.subtract(const Duration(minutes: 30)),
-        durationMinutes: 60,
-        intensity: 4,
-        type: '패스 훈련',
-        mood: 4,
-        injury: false,
-        notes: '',
-        location: '',
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(find.text('오늘의 훈련 계획'), findsNothing);
-    expect(find.text('다음 훈련'), findsNothing);
-    expect(find.byKey(const ValueKey('today-plan-log-action')), findsNothing);
-  });
-
-  testWidgets('next training card is hidden when today plan section exists', (
-    WidgetTester tester,
-  ) async {
-    final optionRepository = _MemoryOptionRepository();
-    final localeService = LocaleService(optionRepository)..load();
-    final settingsService = SettingsService(optionRepository)..load();
-    final trainingService = TrainingService(_MemoryTrainingRepository());
-    final mealLogService = MealLogService(optionRepository);
-    final today = DateTime.now().copyWith(
-      hour: 0,
-      minute: 0,
-      second: 0,
-      millisecond: 0,
-      microsecond: 0,
-    );
-    final nextPlanAt = today.add(const Duration(days: 2, hours: 9));
-    DateTime? openedPlanDay;
-
-    await optionRepository.setValue(
-      'training_plans_v1',
-      jsonEncode([
-        <String, dynamic>{
-          'id': 'plan-issue-274-next',
-          'scheduledAt': nextPlanAt.toIso8601String(),
-          'category': '슈팅 훈련',
-          'durationMinutes': 60,
-          'location': '메인 구장',
-          'reminderMinutesBefore': 20,
-          'repeatWeekdays': <int>[nextPlanAt.weekday],
-          'alarmLoopEnabled': false,
-          'note': '',
-        },
-      ]),
-    );
-
-    await tester.pumpWidget(
-      _buildApp(
-        HomeHubScreen(
-          trainingService: trainingService,
-          mealLogService: mealLogService,
-          localeService: localeService,
-          optionRepository: optionRepository,
-          settingsService: settingsService,
-          onCreate: () {},
-          onQuickPlan: () {},
-          onQuickMatch: () {},
-          onQuickQuiz: () {},
-          onQuickMeal: () {},
-          onQuickBoard: () {},
-          onOpenPlans: () {},
-          onOpenPlansForDay: (day) => openedPlanDay = day,
-          onOpenLogs: () {},
-          onOpenDiary: () {},
-          onOpenWeeklyStats: () {},
-          onEdit: (_) {},
-          onEditTrainingBoard: (_) {},
-          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
-        ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(find.text('다음 훈련'), findsNothing);
-    expect(find.byKey(const ValueKey('next-plan-summary-text')), findsNothing);
-    expect(find.byKey(const ValueKey('next-plan-card')), findsNothing);
-    expect(openedPlanDay, isNull);
-  });
-
   testWidgets('today task sketch opens today saved board before entry editor', (
     WidgetTester tester,
   ) async {
@@ -778,7 +493,6 @@ void main() {
           onQuickQuiz: () {},
           onQuickMeal: () {},
           onQuickBoard: () {},
-          onOpenPlans: () {},
           onOpenLogs: () {},
           onOpenDiary: () {},
           onOpenWeeklyStats: () {},
@@ -834,7 +548,6 @@ void main() {
           onQuickQuiz: () {},
           onQuickMeal: () {},
           onQuickBoard: () {},
-          onOpenPlans: () {},
           onOpenLogs: () {},
           onOpenDiary: () {},
           onOpenWeeklyStats: () {},
@@ -928,7 +641,6 @@ void main() {
           onQuickQuiz: () {},
           onQuickMeal: () {},
           onQuickBoard: () {},
-          onOpenPlans: () {},
           onOpenLogs: () {},
           onOpenDiary: () {},
           onOpenWeeklyStats: () {},
@@ -995,7 +707,6 @@ void main() {
           onQuickQuiz: () {},
           onQuickMeal: () {},
           onQuickBoard: () {},
-          onOpenPlans: () {},
           onOpenLogs: () {},
           onOpenDiary: () {},
           onOpenWeeklyStats: () {},
