@@ -4983,7 +4983,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeWeatherCountryKorea => '韓国';
 
   @override
-  String get homeWeatherDetailsTitle => '天気の詳細';
+  String get homeWeatherDetailsTitle => '天気';
 
   @override
   String get homeWeatherDetailsSubtitle => '現在地の天気と空気の質を確認してください。';

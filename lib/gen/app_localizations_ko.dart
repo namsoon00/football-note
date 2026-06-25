@@ -4979,7 +4979,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherCountryKorea => '한국';
 
   @override
-  String get homeWeatherDetailsTitle => '상세 날씨';
+  String get homeWeatherDetailsTitle => '날씨';
 
   @override
   String get homeWeatherDetailsSubtitle => '현재 위치 기준 날씨와 대기질을 확인하세요.';

@@ -36,7 +36,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('상세 날씨'), findsOneWidget);
+    expect(find.text('날씨'), findsOneWidget);
     expect(find.text('강남구 역삼1동'), findsOneWidget);
     expect(find.text('21°C'), findsOneWidget);
     expect(find.text('맑음'), findsOneWidget);
