@@ -1723,6 +1723,68 @@ void main() {
     },
   );
 
+  testWidgets('selected item color picker is compact until opened', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '색상 패널',
+          initialLayoutJson: '',
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-selected-color-button')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('training-selected-color-picker')),
+      findsNothing,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('training-selected-color-button')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-selected-color-picker')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(
+        const ValueKey('training-selected-color-option-ff1e88e5'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-selected-color-picker')),
+      findsNothing,
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final player = saved.pages.single.items.singleWhere(
+      (item) => item.type == 'player',
+    );
+
+    expect(player.colorValue, 0xFF1E88E5);
+  });
+
   testWidgets(
     'selected player shooting action can set the ball route stage',
     (WidgetTester tester) async {
