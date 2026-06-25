@@ -176,6 +176,7 @@ class AppTheme {
       seedColor: WatchCartConstants.primaryColor,
       brightness: Brightness.light,
     ).copyWith(
+      brightness: Brightness.light,
       primary: const Color(0xFF2B6FF3),
       onPrimary: Colors.white,
       secondary: const Color(0xFF2B6FF3),
@@ -235,6 +236,7 @@ class AppTheme {
     );
 
     return ThemeData(
+      brightness: Brightness.light,
       colorScheme: colorScheme,
       useMaterial3: true,
       scaffoldBackgroundColor: const Color(0xFFF6F8FC),
@@ -389,6 +391,7 @@ class AppTheme {
       seedColor: WatchCartConstants.primaryColor,
       brightness: Brightness.dark,
     ).copyWith(
+      brightness: Brightness.dark,
       surface: const Color(0xFF1B1F2A),
       onSurface: const Color(0xFFF2F5FA),
       outline: const Color(0xFF4A556D),
@@ -403,6 +406,7 @@ class AppTheme {
     );
 
     return ThemeData(
+      brightness: Brightness.dark,
       colorScheme: colorScheme,
       useMaterial3: true,
       scaffoldBackgroundColor: const Color(0xFF0F131A),

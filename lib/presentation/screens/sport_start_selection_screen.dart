@@ -20,114 +20,112 @@ class _SportStartSelectionScreenState extends State<SportStartSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final darkTheme = AppTheme.dark().copyWith(
-      scaffoldBackgroundColor: _SportSelectionPalette.background,
-    );
-    return Theme(
-      data: darkTheme,
-      child: Builder(
-        builder: (context) {
-          final l10n = AppLocalizations.of(context)!;
-          final choices = _buildSportChoices(l10n);
-          final selectedSportId = _selectedSportId;
-          final selectedChoice = choices
-              .where((choice) => choice.id == selectedSportId)
-              .firstOrNull;
+    final l10n = AppLocalizations.of(context)!;
+    final choices = _buildSportChoices(l10n);
+    final selectedSportId = _selectedSportId;
+    final selectedChoice =
+        choices.where((choice) => choice.id == selectedSportId).firstOrNull;
 
-          return Scaffold(
-            backgroundColor: _SportSelectionPalette.background,
-            body: AppBackground(
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final listLayout = constraints.maxWidth < 560;
-                          final crossAxisCount = listLayout
-                              ? 1
-                              : (constraints.maxWidth >= 920 ? 4 : 2);
-                          final aspectRatio = listLayout
-                              ? 4.2
-                              : (crossAxisCount == 4 ? 1.02 : 1.82);
-                          return SingleChildScrollView(
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.lg,
-                              AppSpacing.xxl,
-                              AppSpacing.lg,
-                              AppSpacing.xl,
-                            ),
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints:
-                                    const BoxConstraints(maxWidth: 960),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    _SportSelectionHeader(
-                                      title: l10n.startupSportTitle,
-                                      subtitle: l10n.startupSportSubtitle,
-                                    ),
-                                    const SizedBox(height: AppSpacing.xl),
-                                    GridView.builder(
-                                      shrinkWrap: true,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      itemCount: choices.length,
-                                      gridDelegate:
-                                          SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: crossAxisCount,
-                                        crossAxisSpacing: AppSpacing.sm,
-                                        mainAxisSpacing: AppSpacing.sm,
-                                        childAspectRatio: aspectRatio,
-                                      ),
-                                      itemBuilder: (context, index) {
-                                        final choice = choices[index];
-                                        return _SportChoiceCard(
-                                          index: index,
-                                          choice: choice,
-                                          selected:
-                                              selectedSportId == choice.id,
-                                          listLayout: listLayout,
-                                          onTap: () => setState(
-                                            () => _selectedSportId = choice.id,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+    return Scaffold(
+      body: AppBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final listLayout = constraints.maxWidth < 560;
+                    final crossAxisCount =
+                        listLayout ? 1 : (constraints.maxWidth >= 920 ? 4 : 2);
+                    final aspectRatio =
+                        listLayout ? 4.2 : (crossAxisCount == 4 ? 1.02 : 1.82);
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.xxl,
+                        AppSpacing.lg,
+                        AppSpacing.xl,
                       ),
-                    ),
-                    _SportStartDock(
-                      selectedChoice: selectedChoice,
-                      label: l10n.startupSportAction,
-                      onPressed: selectedSportId == null
-                          ? null
-                          : () => widget.onSelected(selectedSportId),
-                    ),
-                  ],
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 960),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _SportSelectionHeader(
+                                title: l10n.startupSportTitle,
+                                subtitle: l10n.startupSportSubtitle,
+                              ),
+                              const SizedBox(height: AppSpacing.xl),
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: choices.length,
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: crossAxisCount,
+                                  crossAxisSpacing: AppSpacing.sm,
+                                  mainAxisSpacing: AppSpacing.sm,
+                                  childAspectRatio: aspectRatio,
+                                ),
+                                itemBuilder: (context, index) {
+                                  final choice = choices[index];
+                                  return _SportChoiceCard(
+                                    index: index,
+                                    choice: choice,
+                                    selected: selectedSportId == choice.id,
+                                    listLayout: listLayout,
+                                    onTap: () => setState(
+                                      () => _selectedSportId = choice.id,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
-            ),
-          );
-        },
+              _SportStartDock(
+                selectedChoice: selectedChoice,
+                label: l10n.startupSportAction,
+                onPressed: selectedSportId == null
+                    ? null
+                    : () => widget.onSelected(selectedSportId),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
 class _SportSelectionPalette {
-  static const background = Color(0xFF070A10);
-  static const panel = Color(0xFF0D121C);
-  static const panelRaised = Color(0xFF111827);
-  static const border = Color(0xFF273244);
-  static const muted = Color(0xFF9CA7BA);
+  static Color card(ColorScheme scheme, Brightness brightness) {
+    return AppSurfaces.cardColor(scheme, brightness);
+  }
+
+  static Color raised(ColorScheme scheme, Brightness brightness) {
+    return AppSurfaces.subtleColor(scheme, brightness);
+  }
+
+  static Color border(ColorScheme scheme, Brightness brightness) {
+    return AppSurfaces.borderColor(scheme, brightness);
+  }
+
+  static Color muted(ColorScheme scheme) {
+    return scheme.onSurfaceVariant;
+  }
+
+  static Color idleFill(ColorScheme scheme, Brightness brightness) {
+    return brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.04)
+        : scheme.surfaceContainerHighest.withValues(alpha: 0.72);
+  }
 }
 
 class _SportSelectionHeader extends StatelessWidget {
@@ -169,7 +167,7 @@ class _SportSelectionHeader extends StatelessWidget {
           child: Text(
             subtitle,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: _SportSelectionPalette.muted,
+              color: _SportSelectionPalette.muted(scheme),
               height: 1.48,
               fontWeight: FontWeight.w600,
             ),
@@ -197,13 +195,19 @@ class _SportChoiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final brightness = scheme.brightness;
     final borderColor = selected
         ? choice.color.withValues(alpha: 0.78)
-        : _SportSelectionPalette.border;
+        : _SportSelectionPalette.border(scheme, brightness);
     final background = selected
-        ? Color.lerp(_SportSelectionPalette.panelRaised, choice.color, 0.12)!
-        : _SportSelectionPalette.panel;
+        ? Color.lerp(
+            _SportSelectionPalette.raised(scheme, brightness),
+            choice.color,
+            brightness == Brightness.dark ? 0.12 : 0.08,
+          )!
+        : _SportSelectionPalette.card(scheme, brightness);
     return Semantics(
       button: true,
       selected: selected,
@@ -304,7 +308,7 @@ class _SportChoiceCard extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: _SportSelectionPalette.muted,
+            color: _SportSelectionPalette.muted(scheme),
             height: 1.35,
             fontWeight: FontWeight.w600,
           ),
@@ -339,7 +343,7 @@ class _SportChoiceCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: _SportSelectionPalette.muted,
+                  color: _SportSelectionPalette.muted(scheme),
                   height: 1.28,
                   fontWeight: FontWeight.w600,
                 ),
@@ -368,6 +372,9 @@ class _SportIconMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final brightness = scheme.brightness;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
@@ -377,12 +384,12 @@ class _SportIconMark extends StatelessWidget {
       decoration: BoxDecoration(
         color: selected
             ? choice.color.withValues(alpha: 0.20)
-            : Colors.white.withValues(alpha: 0.04),
+            : _SportSelectionPalette.idleFill(scheme, brightness),
         borderRadius: AppRadius.small,
         border: Border.all(
           color: selected
               ? choice.color.withValues(alpha: 0.54)
-              : Colors.white.withValues(alpha: 0.08),
+              : _SportSelectionPalette.border(scheme, brightness),
         ),
       ),
       child: Icon(choice.icon, color: choice.color, size: 23),
@@ -401,17 +408,23 @@ class _SportSelectionMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final brightness = scheme.brightness;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
       width: 24,
       height: 24,
       decoration: BoxDecoration(
-        color: selected ? color : Colors.white.withValues(alpha: 0.04),
+        color: selected
+            ? color
+            : _SportSelectionPalette.idleFill(scheme, brightness),
         borderRadius: BorderRadius.circular(AppRadius.xs),
         border: Border.all(
-          color: selected ? color : scheme.outline.withValues(alpha: 0.44),
+          color: selected
+              ? color
+              : _SportSelectionPalette.border(scheme, brightness),
           width: 1.2,
         ),
       ),
@@ -437,12 +450,16 @@ class _SportStartDock extends StatelessWidget {
   Widget build(BuildContext context) {
     final choice = selectedChoice;
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final brightness = scheme.brightness;
     final background = choice?.color ?? theme.colorScheme.primary;
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: _SportSelectionPalette.panel,
+      decoration: BoxDecoration(
+        color: _SportSelectionPalette.card(scheme, brightness),
         border: Border(
-          top: BorderSide(color: _SportSelectionPalette.border),
+          top: BorderSide(
+            color: _SportSelectionPalette.border(scheme, brightness),
+          ),
         ),
       ),
       child: Padding(
@@ -465,8 +482,10 @@ class _SportStartDock extends StatelessWidget {
                 ),
                 style: FilledButton.styleFrom(
                   backgroundColor: background,
-                  disabledBackgroundColor: Colors.white.withValues(alpha: 0.08),
-                  disabledForegroundColor: Colors.white.withValues(alpha: 0.36),
+                  disabledBackgroundColor:
+                      scheme.onSurface.withValues(alpha: 0.08),
+                  disabledForegroundColor:
+                      scheme.onSurface.withValues(alpha: 0.38),
                   foregroundColor: Colors.white,
                   minimumSize:
                       const Size.fromHeight(AppSizes.primaryButtonHeight),

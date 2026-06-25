@@ -10,15 +10,9 @@ void main() {
   ) async {
     String? selectedSportId;
 
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: SportStartSelectionScreen(
-          onSelected: (sportId) => selectedSportId = sportId,
-        ),
-      ),
+    await _pumpSportStartSelection(
+      tester,
+      onSelected: (sportId) => selectedSportId = sportId,
     );
 
     final startButton = find.byKey(
@@ -45,4 +39,58 @@ void main() {
 
     expect(selectedSportId, SportCatalog.basketballId);
   });
+
+  testWidgets('startup sport selection follows the active app theme', (
+    WidgetTester tester,
+  ) async {
+    const startButtonKey = ValueKey('startup-sport-start-button');
+
+    await _pumpSportStartSelection(tester, themeMode: ThemeMode.light);
+
+    expect(
+      Theme.of(tester.element(find.byKey(startButtonKey)))
+          .colorScheme
+          .brightness,
+      Brightness.light,
+    );
+
+    await _pumpSportStartSelection(tester, themeMode: ThemeMode.dark);
+
+    expect(
+      Theme.of(tester.element(find.byKey(startButtonKey)))
+          .colorScheme
+          .brightness,
+      Brightness.dark,
+    );
+  });
+}
+
+Future<void> _pumpSportStartSelection(
+  WidgetTester tester, {
+  ThemeMode themeMode = ThemeMode.light,
+  ValueChanged<String>? onSelected,
+}) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      locale: const Locale('ko'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      theme: _testTheme(Brightness.light),
+      darkTheme: _testTheme(Brightness.dark),
+      themeMode: themeMode,
+      home: SportStartSelectionScreen(onSelected: onSelected ?? (_) {}),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+ThemeData _testTheme(Brightness brightness) {
+  return ThemeData(
+    useMaterial3: true,
+    brightness: brightness,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.blue,
+      brightness: brightness,
+    ),
+  );
 }
