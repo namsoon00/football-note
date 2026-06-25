@@ -16562,6 +16562,12 @@ abstract class AppLocalizations {
   /// **'Save teams'**
   String get matchCompetitionSaveTeams;
 
+  /// No description provided for @matchCompetitionSavedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition details saved.'**
+  String get matchCompetitionSavedFeedback;
+
   /// No description provided for @matchCompetitionNameRequired.
   ///
   /// In en, this message translates to:
@@ -16809,6 +16815,66 @@ abstract class AppLocalizations {
   /// **'e.g. Suwon U15'**
   String get matchOpponentTeamHint;
 
+  /// No description provided for @matchLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Main stadium'**
+  String get matchLocationHint;
+
+  /// No description provided for @matchFlowBasicSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Basics'**
+  String get matchFlowBasicSectionTitle;
+
+  /// No description provided for @matchFlowCompetitionSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition setup'**
+  String get matchFlowCompetitionSectionTitle;
+
+  /// No description provided for @matchFlowCompetitionSectionHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a saved competition first to fill teams and status together.'**
+  String get matchFlowCompetitionSectionHelper;
+
+  /// No description provided for @matchFlowOpponentSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent'**
+  String get matchFlowOpponentSectionTitle;
+
+  /// No description provided for @matchFlowOpponentSectionHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose this match\'s opponent from the registered teams.'**
+  String get matchFlowOpponentSectionHelper;
+
+  /// No description provided for @matchFlowResultSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get matchFlowResultSectionTitle;
+
+  /// No description provided for @matchFlowResultSectionHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick W/D/L first, then adjust the score and competition result.'**
+  String get matchFlowResultSectionHelper;
+
+  /// No description provided for @matchFlowPersonalSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal record'**
+  String get matchFlowPersonalSectionTitle;
+
+  /// No description provided for @matchFlowPersonalSectionHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Add values you want to review later, such as goals, assists, and minutes.'**
+  String get matchFlowPersonalSectionHelper;
+
   /// No description provided for @matchLeagueTeamsLabel.
   ///
   /// In en, this message translates to:
@@ -17012,6 +17078,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Match record'**
   String get calendarMatchXpSourceLabel;
+
+  /// No description provided for @matchSavedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Match record saved.'**
+  String get matchSavedFeedback;
+
+  /// No description provided for @matchUpdatedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Match record updated.'**
+  String get matchUpdatedFeedback;
 
   /// No description provided for @matchSavedWithXpFeedback.
   ///

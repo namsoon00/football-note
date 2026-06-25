@@ -5301,6 +5301,7 @@
     }
   },
   "matchCompetitionSaveTeams": "チームを保存",
+  "matchCompetitionSavedFeedback": "大会情報を保存しました。",
   "matchCompetitionNameRequired": "大会名を入力してください。",
   "matchLeagueStandingsTitle": "リーグ順位",
   "matchTournamentBracketTitle": "トーナメント表",
@@ -5416,6 +5417,16 @@
   "matchTournamentOutcomeChampion": "優勝",
   "matchOpponentTeamLabel": "相手チーム",
   "matchOpponentTeamHint": "例えば水原U15",
+  "matchLocationHint": "例: メイン競技場",
+  "matchFlowBasicSectionTitle": "基本情報",
+  "matchFlowCompetitionSectionTitle": "大会設定",
+  "matchFlowCompetitionSectionHelper": "保存済み大会を先に選ぶと、参加チームと状態が一緒に入ります。",
+  "matchFlowOpponentSectionTitle": "相手チーム選択",
+  "matchFlowOpponentSectionHelper": "登録された参加チームから今回の相手を選んでください。",
+  "matchFlowResultSectionTitle": "結果入力",
+  "matchFlowResultSectionHelper": "勝敗を先に選び、その後スコアと大会結果を調整してください。",
+  "matchFlowPersonalSectionTitle": "個人記録",
+  "matchFlowPersonalSectionHelper": "得点、アシスト、出場時間など後で統計で見たい値を残してください。",
   "matchLeagueTeamsLabel": "リーグ参加チーム",
   "matchLeagueTeamsHint": "1行に1チーム、またはカンマ区切りで入力",
   "matchTournamentTeamsLabel": "トーナメント参加チーム",
@@ -5478,6 +5489,8 @@
   "tennisMatchFirstServesInLabel": "ファーストサーブ成功",
   "tennisMatchBreakPointsWonLabel": "ブレーク成功",
   "calendarMatchXpSourceLabel": "対戦成績",
+  "matchSavedFeedback": "試合記録を保存しました。",
+  "matchUpdatedFeedback": "試合記録を更新しました。",
   "matchSavedWithXpFeedback": "保存されたマッチ +{count} XP",
   "@matchSavedWithXpFeedback": {
     "placeholders": {

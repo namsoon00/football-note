@@ -328,6 +328,8 @@ void main() {
     await tester.ensureVisible(saveButton);
     await tester.pump();
     await tester.tap(saveButton);
+    await tester.pump();
+    expect(find.textContaining('시합 저장'), findsOneWidget);
     await tester.pumpAndSettle();
 
     final entries = await trainingService.allEntries();
@@ -593,7 +595,10 @@ void main() {
     expect(find.widgetWithText(ChoiceChip, '블루 FC'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, '올드 FC'), findsNothing);
 
-    await tester.tap(find.widgetWithText(ChoiceChip, '블루 FC'));
+    final blueTeamChoice = find.widgetWithText(ChoiceChip, '블루 FC');
+    await tester.ensureVisible(blueTeamChoice);
+    await tester.pump();
+    await tester.tap(blueTeamChoice);
     await tester.pump();
 
     final saveButton = find.widgetWithText(FilledButton, '저장');
