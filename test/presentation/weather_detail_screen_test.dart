@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/weather_shared_resource.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/weather_detail_screen.dart';
+import 'package:football_note/presentation/theme/app_theme.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
@@ -46,6 +47,47 @@ void main() {
     expect(find.text('초미세먼지'), findsOneWidget);
     expect(find.text('야외 활동 가이드'), findsNothing);
     expect(find.text('AQI'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Weather outfit guide uses compact themed layout', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: ThemeMode.dark,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: const WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '맑음 21°C',
+            initialWeatherCode: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('복장'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('오늘의 운동 복장'), findsAtLeastNWidgets(1));
+    expect(find.text('상의 조합'), findsOneWidget);
+    expect(find.text('겉옷'), findsOneWidget);
+    expect(find.text('하의'), findsOneWidget);
+    expect(find.text('준비물'), findsOneWidget);
+    expect(find.text('주의 포인트'), findsOneWidget);
+    expect(find.text('모든 복장 케이스 보기'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
