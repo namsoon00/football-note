@@ -135,6 +135,7 @@ class _HomeSectionSettingsScreenState extends State<HomeSectionSettingsScreen> {
                   ),
                   buildDefaultDragHandles: false,
                   itemCount: _settings.sections.length,
+                  proxyDecorator: _reorderProxyDecorator,
                   onReorder: (oldIndex, newIndex) {
                     _update(
                       _settings.move(oldIndex, newIndex),
@@ -162,6 +163,31 @@ class _HomeSectionSettingsScreenState extends State<HomeSectionSettingsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _reorderProxyDecorator(
+    Widget child,
+    int index,
+    Animation<double> animation,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    return AnimatedBuilder(
+      animation: animation,
+      child: child,
+      builder: (context, child) {
+        final lift = Curves.easeOutCubic.transform(animation.value);
+        return Transform.scale(
+          scale: 1 + (0.025 * lift),
+          child: Material(
+            color: Colors.transparent,
+            elevation: 10 + (10 * lift),
+            shadowColor: scheme.primary.withValues(alpha: 0.34),
+            borderRadius: AppRadius.surface,
+            child: child,
+          ),
+        );
+      },
     );
   }
 }
@@ -211,7 +237,7 @@ class _HomeSectionSettingTileState extends State<_HomeSectionSettingTile> {
           child: AnimatedScale(
             duration: _homeSectionPressFeedbackDuration,
             curve: Curves.easeOutCubic,
-            scale: _pressed ? 0.985 : 1,
+            scale: _pressed ? 1.012 : 1,
             child: AnimatedContainer(
               key: ValueKey<String>(
                 'home-section-setting-surface-${setting.section.storageId}',
@@ -232,27 +258,33 @@ class _HomeSectionSettingTileState extends State<_HomeSectionSettingTile> {
               ),
               child: Row(
                 children: [
-                  Tooltip(
-                    message: l10n.homeLayoutReorderTooltip,
-                    child: AnimatedContainer(
-                      key: ValueKey<String>(
-                        'home-section-drag-handle-${setting.section.storageId}',
-                      ),
-                      duration: _homeSectionPressFeedbackDuration,
-                      curve: Curves.easeOutCubic,
-                      width: 40,
-                      height: 40,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: _pressed
-                            ? scheme.primary
-                            : scheme.primary.withValues(alpha: 0.10),
-                        borderRadius: AppRadius.full,
-                      ),
-                      child: Icon(
-                        Icons.drag_handle_rounded,
-                        color: _pressed ? scheme.onPrimary : scheme.primary,
-                      ),
+                  AnimatedContainer(
+                    key: ValueKey<String>(
+                      'home-section-drag-handle-${setting.section.storageId}',
+                    ),
+                    duration: _homeSectionPressFeedbackDuration,
+                    curve: Curves.easeOutCubic,
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: _pressed
+                          ? scheme.primary
+                          : scheme.primary.withValues(alpha: 0.10),
+                      borderRadius: AppRadius.full,
+                      boxShadow: _pressed
+                          ? <BoxShadow>[
+                              BoxShadow(
+                                color: scheme.primary.withValues(alpha: 0.30),
+                                blurRadius: 14,
+                                offset: const Offset(0, 5),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Icon(
+                      Icons.drag_handle_rounded,
+                      color: _pressed ? scheme.onPrimary : scheme.primary,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -313,15 +345,15 @@ class _HomeSectionSettingTileState extends State<_HomeSectionSettingTile> {
       ),
       border: Border.all(
         color: scheme.primary.withValues(alpha: 0.76),
-        width: 1.6,
+        width: 2,
       ),
       boxShadow: <BoxShadow>[
         BoxShadow(
           color: scheme.primary.withValues(
-            alpha: brightness == Brightness.dark ? 0.22 : 0.14,
+            alpha: brightness == Brightness.dark ? 0.34 : 0.22,
           ),
-          blurRadius: 18,
-          offset: const Offset(0, 8),
+          blurRadius: 24,
+          offset: const Offset(0, 10),
         ),
         ...?base.boxShadow,
       ],
