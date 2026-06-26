@@ -2206,50 +2206,57 @@ class _QuickActionGrid extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final primaryItems = <_QuickActionItem>[
       _QuickActionItem(
+        key: const ValueKey<String>('home-quick-action-match'),
         icon: Icons.sports_soccer_outlined,
         title: l10n.homeQuickActionMatch,
         onTap: onQuickMatch,
       ),
       _QuickActionItem(
+        key: const ValueKey<String>('home-quick-action-plan'),
         icon: Icons.event_note_outlined,
         title: l10n.homeQuickActionPlan,
         onTap: onQuickPlan,
       ),
       _QuickActionItem(
+        key: const ValueKey<String>('home-quick-action-weather-outfit'),
         icon: Icons.checkroom_outlined,
         title: weatherOutfitLabel,
         onTap: onQuickWeatherOutfit,
       ),
       _QuickActionItem(
+        key: const ValueKey<String>('home-quick-action-running-coach'),
         icon: Icons.directions_run_outlined,
         title: runningCoachLabel,
         onTap: onQuickRunningCoach,
       ),
     ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.homeQuickActionsTitle,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 10),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 3.1,
+    return WatchCartCard(
+      key: const ValueKey<String>('home-quick-actions-card'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.homeQuickActionsTitle,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
           ),
-          itemCount: primaryItems.length,
-          itemBuilder: (context, index) =>
-              _QuickActionButton(item: primaryItems[index]),
-        ),
-      ],
+          const SizedBox(height: 10),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 3.1,
+            ),
+            itemCount: primaryItems.length,
+            itemBuilder: (context, index) =>
+                _QuickActionButton(item: primaryItems[index]),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -2460,11 +2467,13 @@ class _ContinueItem extends StatelessWidget {
 }
 
 class _QuickActionItem {
+  final Key? key;
   final IconData icon;
   final String title;
   final VoidCallback? onTap;
 
   const _QuickActionItem({
+    this.key,
     required this.icon,
     required this.title,
     required this.onTap,
@@ -2479,6 +2488,7 @@ class _QuickActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
+      key: item.key,
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
