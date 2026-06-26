@@ -27,6 +27,7 @@ import 'package:football_note/presentation/screens/home_hub_screen.dart';
 import 'package:football_note/presentation/screens/home_screen.dart';
 import 'package:football_note/presentation/screens/meal_log_screen.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
+import 'package:football_note/presentation/widgets/watch_cart/watch_cart_card.dart';
 
 void main() {
   setUp(WeatherSharedResource.debugClearCache);
@@ -383,6 +384,16 @@ void main() {
 
       expect(find.text('クイック操作'), findsOneWidget);
       expect(
+        find.byKey(const ValueKey<String>('home-quick-actions-card')),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget(
+          find.byKey(const ValueKey<String>('home-quick-actions-card')),
+        ),
+        isA<WatchCartCard>(),
+      );
+      expect(
         find.byKey(const ValueKey('home-quick-action-logs')),
         findsNothing,
       );
@@ -424,11 +435,14 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.ensureVisible(find.text('훈련 계획'));
+    final quickPlanButton = find.byKey(
+      const ValueKey<String>('home-quick-action-plan'),
+    );
+    await tester.ensureVisible(quickPlanButton);
     await tester.pump();
-    await tester.tap(find.text('훈련 계획'));
+    await tester.tap(quickPlanButton);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
 
     expect(find.text('훈련 계획 추가'), findsOneWidget);
 
@@ -461,11 +475,14 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.ensureVisible(find.text('시합 기록'));
+    final quickMatchButton = find.byKey(
+      const ValueKey<String>('home-quick-action-match'),
+    );
+    await tester.ensureVisible(quickMatchButton);
     await tester.pump();
-    await tester.tap(find.text('시합 기록'));
+    await tester.tap(quickMatchButton);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
 
     expect(find.text('시합 등록'), findsOneWidget);
 
