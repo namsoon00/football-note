@@ -9828,6 +9828,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchHubRecordButton => '시합 기록';
 
   @override
+  String get matchEntryManagedInHubTitle => '시합 기록은 시합 화면에서 관리합니다.';
+
+  @override
+  String get matchEntryManagedInHubBody =>
+      '훈련 노트에서는 시합 정보를 보여주지 않습니다. 시합 확인과 수정은 상단 시합 화면에서 진행해 주세요.';
+
+  @override
   String get matchHubRecordHelper => '오늘 경기 결과를 바로 입력';
 
   @override

@@ -12,6 +12,7 @@ import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/match_hub_screen.dart';
+import 'package:football_note/presentation/screens/match_record_screen.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
@@ -38,7 +39,6 @@ void main() {
 
   Future<void> pumpHub(
     WidgetTester tester, {
-    VoidCallback? onRecordMatch,
     VoidCallback? onOpenCalendar,
     VoidCallback? onOpenMatchStats,
   }) async {
@@ -63,7 +63,6 @@ void main() {
             localeService: localeService,
             optionRepository: optionRepository,
             settingsService: settingsService,
-            onRecordMatch: onRecordMatch ?? () {},
             onOpenCalendar: onOpenCalendar ?? () {},
             onOpenMatchStats: onOpenMatchStats ?? () {},
           ),
@@ -158,12 +157,79 @@ void main() {
 
     expect(openedStats, isTrue);
   });
+
+  testWidgets('Match record screen saves a friendly result from touch controls',
+      (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => MatchRecordScreen(
+                          trainingService: trainingService,
+                          localeService: localeService,
+                          optionRepository: optionRepository,
+                          settingsService: settingsService,
+                          initialDate: DateTime(2026, 6, 26),
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(1), '서울 U15');
+    await tester.ensureVisible(find.text('승'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('승'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('저장'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('저장'));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(trainingRepository.entries, hasLength(1));
+    expect(trainingRepository.entries.single.opponentTeam, '서울 U15');
+    expect(trainingRepository.entries.single.scoredGoals, 1);
+    expect(trainingRepository.entries.single.concededGoals, 0);
+    expect(trainingRepository.entries.single.matchKind, 'friendly');
+  });
 }
 
 class _MemoryTrainingRepository implements TrainingRepository {
   final List<TrainingEntry> _entries = <TrainingEntry>[];
   final StreamController<List<TrainingEntry>> _controller =
       StreamController<List<TrainingEntry>>.broadcast();
+
+  List<TrainingEntry> get entries => List<TrainingEntry>.unmodifiable(_entries);
 
   Future<void> dispose() => _controller.close();
 

@@ -69,6 +69,7 @@ class CalendarScreen extends StatefulWidget {
   final CalendarQuickCreateAction? quickCreateAction;
   final VoidCallback? onQuickCreateHandled;
   final VoidCallback? onOpenMatchHub;
+  final ValueChanged<DateTime>? onOpenMatchRecord;
 
   const CalendarScreen({
     super.key,
@@ -86,6 +87,7 @@ class CalendarScreen extends StatefulWidget {
     this.quickCreateAction,
     this.onQuickCreateHandled,
     this.onOpenMatchHub,
+    this.onOpenMatchRecord,
   });
 
   @override
@@ -207,9 +209,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
         await _openPlanSheet(day: selectedDay);
         break;
       case CalendarQuickCreateAction.match:
-        final entries = await _contextEntries();
-        if (!mounted) return;
-        await _openMatchSheet(day: selectedDay, entries: entries);
+        if (widget.onOpenMatchRecord != null) {
+          widget.onOpenMatchRecord!(selectedDay);
+        } else {
+          final entries = await _contextEntries();
+          if (!mounted) return;
+          await _openMatchSheet(day: selectedDay, entries: entries);
+        }
         break;
     }
     widget.onQuickCreateHandled?.call();
@@ -921,8 +927,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Navigator.of(context).pop(_CalendarCreateAction.meal),
               ),
               ListTile(
-                leading: const Icon(Icons.sports_soccer_outlined),
-                title: Text(isKo ? '시합' : 'Match'),
+                leading: const Icon(Icons.sports_score_outlined),
+                title: Text(l10n.matchHubRecordButton),
                 onTap: () =>
                     Navigator.of(context).pop(_CalendarCreateAction.match),
               ),
@@ -1002,7 +1008,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
         await _openPlanSheet(day: selectedDay);
         break;
       case _CalendarCreateAction.match:
-        await _openMatchSheet(day: selectedDay, entries: entries);
+        if (widget.onOpenMatchRecord != null) {
+          widget.onOpenMatchRecord!(selectedDay);
+        } else {
+          await _openMatchSheet(day: selectedDay, entries: entries);
+        }
         break;
     }
   }

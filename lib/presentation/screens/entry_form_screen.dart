@@ -1913,18 +1913,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isKo
-                            ? '시합 기록은 캘린더에서 관리합니다.'
-                            : 'Match records are managed in Calendar.',
+                        l10n.matchEntryManagedInHubTitle,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        isKo
-                            ? '훈련 노트에서는 시합 정보를 보여주지 않습니다. 시합 확인과 수정은 캘린더에서 진행해주세요.'
-                            : 'Training notes no longer show match details. View and edit matches from Calendar.',
+                        l10n.matchEntryManagedInHubBody,
                       ),
                     ],
                   ),
