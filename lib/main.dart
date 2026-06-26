@@ -139,6 +139,7 @@ Future<void> main() async {
     _warmStartupServices(
       backupService: backupService,
       reminderService: reminderService,
+      leagueFixtureReminderService: leagueFixtureReminderService,
       weatherReminderService: weatherReminderService,
       badgeService: badgeService,
       trainingService: trainingService,
@@ -149,10 +150,20 @@ Future<void> main() async {
 Future<void> _warmStartupServices({
   required BackupService backupService,
   required TrainingPlanReminderService reminderService,
+  required LeagueFixtureReminderService leagueFixtureReminderService,
   required WeatherReminderService weatherReminderService,
   required TrainingPlanBadgeService badgeService,
   required TrainingService trainingService,
 }) async {
+  var handledLaunchPayload = false;
+  void handleLaunchPayload(String? payload) {
+    if (handledLaunchPayload) return;
+    final normalized = payload?.trim();
+    if (normalized == null || normalized.isEmpty) return;
+    handledLaunchPayload = true;
+    NotificationTapRouter.handlePayload(normalized);
+  }
+
   try {
     await backupService.autoBackupDaily();
   } catch (_) {
@@ -168,16 +179,20 @@ Future<void> _warmStartupServices({
   }
   try {
     await reminderService.initialize();
-    final launchPayload = await reminderService.launchPayload();
-    if (launchPayload != null && launchPayload.trim().isNotEmpty) {
-      NotificationTapRouter.handlePayload(launchPayload);
-    }
+    handleLaunchPayload(await reminderService.launchPayload());
     await reminderService.syncAll(entries: await trainingService.allEntries());
   } catch (_) {
     // Reminder sync can recover on later app interactions.
   }
   try {
+    await leagueFixtureReminderService.initialize();
+    handleLaunchPayload(await leagueFixtureReminderService.launchPayload());
+  } catch (_) {
+    // Fixture notification launch handling can recover on later interactions.
+  }
+  try {
     await weatherReminderService.initialize();
+    handleLaunchPayload(await weatherReminderService.launchPayload());
     await weatherReminderService.syncSettingsDrivenReminders();
   } catch (_) {
     // Weather reminder sync can recover on later settings or app interactions.

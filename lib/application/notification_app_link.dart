@@ -137,16 +137,11 @@ class NotificationAppLink {
   static Uri? tryParse(String payload) {
     final trimmed = payload.trim();
     final uri = Uri.tryParse(trimmed);
-    if (uri != null && uri.scheme == scheme) return uri;
-    if (uri == null || !trimmed.startsWith('/')) return null;
-    final segments = uri.pathSegments;
-    if (segments.isEmpty || !_hosts.contains(segments.first)) return null;
-    return Uri(
-      scheme: scheme,
-      host: segments.first,
-      pathSegments: segments.skip(1),
-      queryParameters: uri.queryParameters,
-    );
+    if (uri == null) return null;
+    if (uri.scheme == scheme) return _normalize(uri);
+    if (uri.scheme.isNotEmpty) return null;
+    if (!trimmed.startsWith('/')) return null;
+    return _normalize(uri);
   }
 
   static String _dateToken(DateTime value) {
@@ -154,5 +149,62 @@ class NotificationAppLink {
     final month = local.month.toString().padLeft(2, '0');
     final day = local.day.toString().padLeft(2, '0');
     return '${local.year}-$month-$day';
+  }
+
+  static Uri? _normalize(Uri uri) {
+    final host = uri.host.trim();
+    if (_hosts.contains(host)) {
+      return Uri(
+        scheme: scheme,
+        host: host,
+        pathSegments: uri.pathSegments,
+        queryParameters: uri.queryParameters,
+      );
+    }
+
+    final segments = uri.pathSegments;
+    if (segments.isEmpty) return null;
+    final first = segments.first.trim();
+    if (_hosts.contains(first)) {
+      return Uri(
+        scheme: scheme,
+        host: first,
+        pathSegments: segments.skip(1),
+        queryParameters: uri.queryParameters,
+      );
+    }
+
+    final inferredHost = _hostForHostlessPath(first, uri.queryParameters);
+    if (inferredHost == null) return null;
+    return Uri(
+      scheme: scheme,
+      host: inferredHost,
+      pathSegments: segments,
+      queryParameters: uri.queryParameters,
+    );
+  }
+
+  static String? _hostForHostlessPath(
+    String firstSegment,
+    Map<String, String> queryParameters,
+  ) {
+    switch (firstSegment) {
+      case 'plan':
+      case 'inactivity':
+        return 'calendar';
+      case 'round':
+        return 'challenge';
+      case 'guide':
+        return 'level';
+      case 'history':
+        return 'xp';
+      case 'fixture':
+        return queryParameters.containsKey('match') ? 'world-cup' : 'league';
+      case 'detail':
+        return 'weather';
+      case 'family-sync':
+        return 'notifications';
+    }
+    return null;
   }
 }
