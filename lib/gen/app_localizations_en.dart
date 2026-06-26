@@ -10105,6 +10105,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchHubRecordButton => 'Record match';
 
   @override
+  String get matchEntryManagedInHubTitle =>
+      'Match records are managed in the Match screen.';
+
+  @override
+  String get matchEntryManagedInHubBody =>
+      'Training notes no longer show match details. View and edit matches from the top Match screen.';
+
+  @override
   String get matchHubRecordHelper => 'Enter today\'s result quickly';
 
   @override

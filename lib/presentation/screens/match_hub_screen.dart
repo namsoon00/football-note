@@ -26,6 +26,7 @@ import '../widgets/shared_tab_header.dart';
 import 'news_screen.dart';
 import 'notification_center_screen.dart';
 import 'profile_screen.dart';
+import 'match_record_screen.dart';
 import 'settings_screen.dart';
 import 'skill_quiz_screen.dart';
 
@@ -35,9 +36,10 @@ class MatchHubScreen extends StatefulWidget {
   final OptionRepository optionRepository;
   final SettingsService settingsService;
   final BackupService? driveBackupService;
-  final VoidCallback onRecordMatch;
   final VoidCallback onOpenCalendar;
   final VoidCallback onOpenMatchStats;
+  final bool openRecordOnStart;
+  final DateTime? initialRecordDate;
 
   const MatchHubScreen({
     super.key,
@@ -46,9 +48,10 @@ class MatchHubScreen extends StatefulWidget {
     required this.optionRepository,
     required this.settingsService,
     this.driveBackupService,
-    required this.onRecordMatch,
     required this.onOpenCalendar,
     required this.onOpenMatchStats,
+    this.openRecordOnStart = false,
+    this.initialRecordDate,
   });
 
   @override
@@ -62,6 +65,12 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
   void initState() {
     super.initState();
     NewsBadgeService.refresh(widget.optionRepository);
+    if (widget.openRecordOnStart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(_openMatchRecord(initialDate: widget.initialRecordDate));
+      });
+    }
   }
 
   Future<void> _pushPageSafely(Route<void> route) async {
@@ -150,11 +159,11 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubHero(
                       metrics: metrics,
-                      onRecordMatch: () => _closeThen(widget.onRecordMatch),
+                      onRecordMatch: () => _openMatchRecord(),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubQuickActions(
-                      onRecordMatch: () => _closeThen(widget.onRecordMatch),
+                      onRecordMatch: () => _openMatchRecord(),
                       onOpenCalendar: () => _closeThen(widget.onOpenCalendar),
                       onOpenMatchStats: () =>
                           _closeThen(widget.onOpenMatchStats),
@@ -162,7 +171,7 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubCompetitionSection(
                       summaries: competitionSummaries,
-                      onRecordMatch: () => _closeThen(widget.onRecordMatch),
+                      onRecordMatch: () => _openMatchRecord(),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubRecentSection(
@@ -345,6 +354,20 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
     Navigator.of(context).maybePop();
     WidgetsBinding.instance.addPostFrameCallback((_) => action());
   }
+
+  Future<void> _openMatchRecord({DateTime? initialDate}) async {
+    await _pushPageSafely(
+      AppPageRoute(
+        builder: (_) => MatchRecordScreen(
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          initialDate: initialDate,
+        ),
+      ),
+    );
+  }
 }
 
 class _MatchHubHero extends StatelessWidget {
@@ -386,7 +409,7 @@ class _MatchHubHero extends StatelessWidget {
                   ),
                 ),
                 child: const Icon(
-                  Icons.sports_soccer,
+                  Icons.sports_score_outlined,
                   color: Colors.white,
                   size: 26,
                 ),

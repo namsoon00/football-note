@@ -17283,6 +17283,18 @@ abstract class AppLocalizations {
   /// **'Record match'**
   String get matchHubRecordButton;
 
+  /// No description provided for @matchEntryManagedInHubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match records are managed in the Match screen.'**
+  String get matchEntryManagedInHubTitle;
+
+  /// No description provided for @matchEntryManagedInHubBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Training notes no longer show match details. View and edit matches from the top Match screen.'**
+  String get matchEntryManagedInHubBody;
+
   /// No description provided for @matchHubRecordHelper.
   ///
   /// In en, this message translates to:

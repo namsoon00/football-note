@@ -9817,6 +9817,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchHubRecordButton => '試合を記録';
 
   @override
+  String get matchEntryManagedInHubTitle => '試合記録は試合画面で管理します。';
+
+  @override
+  String get matchEntryManagedInHubBody =>
+      'トレーニングノートでは試合情報を表示しません。試合の確認と編集は上部の試合画面で行ってください。';
+
+  @override
   String get matchHubRecordHelper => '今日の結果をすばやく入力';
 
   @override

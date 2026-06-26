@@ -225,8 +225,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onCreate: _openCreate,
           onQuickPlan: () =>
               _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
-          onQuickMatch: () =>
-              _openCalendarQuickCreate(CalendarQuickCreateAction.match),
+          onQuickMatch: () => _openMatchHubRecord(DateTime.now()),
           onQuickQuiz: _openQuiz,
           onQuickMeal: () => _openMealLog(initialDate: DateTime.now()),
           onQuickBoard: _openTrainingBoards,
@@ -252,8 +251,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onCreate: _openCreate,
           onQuickPlan: () =>
               _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
-          onQuickMatch: () =>
-              _openCalendarQuickCreate(CalendarQuickCreateAction.match),
+          onQuickMatch: () => _openMatchHubRecord(DateTime.now()),
           onQuickQuiz: _openQuiz,
           onOpenMatchHub: _openMatchHub,
         ),
@@ -276,6 +274,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               widget.calendarQuickCreateAction,
           onQuickCreateHandled: _clearCalendarQuickCreateAction,
           onOpenMatchHub: _openMatchHub,
+          onOpenMatchRecord: _openMatchHubRecord,
           onSelectedDayChanged: (day) {
             _calendarSelectedDay = DateTime(day.year, day.month, day.day);
           },
@@ -668,7 +667,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           optionRepository: widget.optionRepository,
           settingsService: widget.settingsService,
           driveBackupService: widget.driveBackupService,
-          onRecordMatch: _openMatchHubRecord,
           onOpenCalendar: _openMatchHubCalendar,
           onOpenMatchStats: _openMatchHubStats,
         ),
@@ -676,8 +674,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _openMatchHubRecord() {
-    _openCalendarQuickCreate(CalendarQuickCreateAction.match);
+  Future<void> _openMatchHubRecord(DateTime initialDate) async {
+    await _pushPageSafely(
+      AppPageRoute(
+        builder: (_) => MatchHubScreen(
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+          onOpenCalendar: _openMatchHubCalendar,
+          onOpenMatchStats: _openMatchHubStats,
+          openRecordOnStart: true,
+          initialRecordDate: initialDate,
+        ),
+      ),
+    );
   }
 
   void _openMatchHubCalendar() {

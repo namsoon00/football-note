@@ -5564,6 +5564,8 @@
   "matchHubOverviewTitle": "Match operations board",
   "matchHubRecentFormLabel": "Recent form",
   "matchHubRecordButton": "Record match",
+  "matchEntryManagedInHubTitle": "Match records are managed in the Match screen.",
+  "matchEntryManagedInHubBody": "Training notes no longer show match details. View and edit matches from the top Match screen.",
   "matchHubRecordHelper": "Enter today's result quickly",
   "matchHubCalendarButton": "Open calendar",
   "matchHubCalendarHelper": "Review matches and plans by date",
