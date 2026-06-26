@@ -9,7 +9,7 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
-  String get appTitle => '태오의 노트';
+  String get appTitle => '태오의노트';
 
   @override
   String get tabHome => '홈';
@@ -448,7 +448,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '선호 팀의 리그 일정 알림';
 
   @override
-  String get notificationAppTitle => '태오의 노트';
+  String get notificationAppTitle => '태오의노트';
 
   @override
   String get worldCupFixtureNotificationChannelName => '월드컵 경기 알림';

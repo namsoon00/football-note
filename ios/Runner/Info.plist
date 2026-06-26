@@ -13,9 +13,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>태오의 노트</string>
+	<string>태오의노트</string>
 	<key>CFBundleDisplayName</key>
-	<string>태오의 노트</string>
+	<string>태오의노트</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

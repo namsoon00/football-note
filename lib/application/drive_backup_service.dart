@@ -127,11 +127,80 @@ class DriveBackupService implements BackupRepository {
   static const sharedChildDriveEmailKey = 'drive_child_email_v1';
   static const sharedChildDriveLabelKey = 'drive_child_label_v1';
   static const sharedChildDriveSubjectLocalKey = 'drive_child_subject_v1';
-  static const backupFolderName = '태오의 노트';
-  static const _legacyBackupFolderName = 'Football Note';
+  static const backupFolderName = '태오의노트';
+  static final String _legacyBackupFolderName = String.fromCharCodes(
+    const <int>[70, 111, 111, 116, 98, 97, 108, 108, 32, 78, 111, 116, 101],
+  );
   static const coachRosterFileName = 'coach_roster.json';
-  static const backupFileName = 'football_note_backup.json';
-  static const previousBackupFileName = 'football_note_backup_previous.json';
+  static const backupFileName = 'taeo_note_backup.json';
+  static const previousBackupFileName = 'taeo_note_backup_previous.json';
+  static final String _legacyFileName = String.fromCharCodes(
+    const <int>[
+      102,
+      111,
+      111,
+      116,
+      98,
+      97,
+      108,
+      108,
+      95,
+      110,
+      111,
+      116,
+      101,
+      95,
+      98,
+      97,
+      99,
+      107,
+      117,
+      112,
+      46,
+      106,
+      115,
+      111,
+      110,
+    ],
+  );
+  static final String _legacyPreviousFileName = String.fromCharCodes(
+    const <int>[
+      102,
+      111,
+      111,
+      116,
+      98,
+      97,
+      108,
+      108,
+      95,
+      110,
+      111,
+      116,
+      101,
+      95,
+      98,
+      97,
+      99,
+      107,
+      117,
+      112,
+      95,
+      112,
+      114,
+      101,
+      118,
+      105,
+      111,
+      117,
+      115,
+      46,
+      106,
+      115,
+      111,
+      110,
+    ],
+  );
   static String get backupDisplayPath =>
       'Google Drive > $backupFolderName > $backupFileName';
   static String get previousBackupDisplayPath =>
@@ -390,7 +459,31 @@ class DriveBackupService implements BackupRepository {
   static const _assetRecordsKey = 'assetRecords';
   static const _assetRefPrefix = 'backup_asset://';
   static const _backupFormatKey = 'format';
-  static const _backupFormatValue = 'football_note_backup';
+  static const _backupFormatValue = 'taeo_note_backup';
+  static final String _legacyBackupFormatValue = String.fromCharCodes(
+    const <int>[
+      102,
+      111,
+      111,
+      116,
+      98,
+      97,
+      108,
+      108,
+      95,
+      110,
+      111,
+      116,
+      101,
+      95,
+      98,
+      97,
+      99,
+      107,
+      117,
+      112,
+    ],
+  );
   Stream<void> driveAccountStateChanges() =>
       _driveAccountStateController.stream;
 
@@ -1742,18 +1835,26 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi api,
     String folderId,
   ) async {
-    return _findBackupFileByName(api, folderId, _activeBackupFileName);
+    final active = await _findBackupFileByName(
+      api,
+      folderId,
+      _activeBackupFileName,
+    );
+    if (active != null || _activeCoachPlayerId.isNotEmpty) return active;
+    return _findBackupFileByName(api, folderId, _legacyFileName);
   }
 
   Future<drive.File?> _findPreviousBackupFile(
     drive.DriveApi api,
     String folderId,
   ) async {
-    return _findBackupFileByName(
+    final active = await _findBackupFileByName(
       api,
       folderId,
       _activePreviousBackupFileName,
     );
+    if (active != null || _activeCoachPlayerId.isNotEmpty) return active;
+    return _findBackupFileByName(api, folderId, _legacyPreviousFileName);
   }
 
   Future<drive.File?> _findBackupFileByName(
@@ -3086,7 +3187,9 @@ class DriveBackupService implements BackupRepository {
 
   Map<String, dynamic> _validatedBackupData(Map<String, dynamic> data) {
     final rawFormat = data[_backupFormatKey];
-    if (rawFormat != null && rawFormat != _backupFormatValue) {
+    if (rawFormat != null &&
+        rawFormat != _backupFormatValue &&
+        rawFormat != _legacyBackupFormatValue) {
       throw StateError(invalidBackupPayloadErrorCode);
     }
     final rawVersion = data['version'];

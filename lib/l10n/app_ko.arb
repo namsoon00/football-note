@@ -1,5 +1,5 @@
 {
-  "appTitle": "태오의 노트",
+  "appTitle": "태오의노트",
   "tabHome": "홈",
   "tabLogs": "훈련기록",
   "tabCalendar": "캘린더",
@@ -189,7 +189,7 @@
   },
   "newsLeagueFixtureNotificationChannelName": "리그 경기 알림",
   "newsLeagueFixtureNotificationChannelDescription": "선호 팀의 리그 일정 알림",
-  "notificationAppTitle": "태오의 노트",
+  "notificationAppTitle": "태오의노트",
   "worldCupFixtureNotificationChannelName": "월드컵 경기 알림",
   "worldCupFixtureNotificationChannelDescription": "관심 국가의 월드컵 일정 알림",
   "worldCupFixtureNotificationBody": "{team} 월드컵 경기: {opponent}전 {kickoff}",
