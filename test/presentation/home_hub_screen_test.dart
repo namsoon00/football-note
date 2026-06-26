@@ -230,6 +230,7 @@ void main() {
       find.byKey(const ValueKey<String>('home-section-drag-area-level')),
       findsOneWidget,
     );
+    expect(find.byTooltip('섹션 이동'), findsNothing);
     final levelSurfaceFinder = find.byKey(
       const ValueKey<String>('home-section-setting-surface-level'),
     );
@@ -242,7 +243,7 @@ void main() {
     expect(levelSurfaceBorderWidth(), 1);
     final pressGesture = await tester.startGesture(
       tester.getCenter(
-        find.byKey(const ValueKey<String>('home-section-drag-area-level')),
+        find.byKey(const ValueKey<String>('home-section-drag-handle-level')),
       ),
     );
     await tester.pump();
