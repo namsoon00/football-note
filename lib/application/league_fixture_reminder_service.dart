@@ -60,8 +60,7 @@ class LeagueFixtureReminderService {
       LeagueFixtureEntry entry,
       String teamName,
       String opponentName,
-    )
-    bodyBuilder,
+    ) bodyBuilder,
     Duration reminderOffset = const Duration(hours: 2),
     DateTime? now,
   }) async {
@@ -179,8 +178,7 @@ class LeagueFixtureReminderService {
       WorldCupFixture fixture,
       String teamName,
       String opponentName,
-    )
-    bodyBuilder,
+    ) bodyBuilder,
     Duration reminderOffset = const Duration(hours: 2),
     DateTime? now,
   }) async {
@@ -307,20 +305,24 @@ class LeagueFixtureReminderService {
       },
     );
 
-    final androidImpl = _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
+    final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     await androidImpl?.requestNotificationsPermission();
     await androidImpl?.requestExactAlarmsPermission();
 
-    final iosImpl = _plugin
-        .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin
-        >();
+    final iosImpl = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
     await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
 
     _initialized = true;
+  }
+
+  Future<String?> launchPayload() async {
+    await initialize();
+    if (kIsWeb) return null;
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp != true) return null;
+    return details?.notificationResponse?.payload;
   }
 
   Future<void> _ensureNotificationChannel({
@@ -328,10 +330,8 @@ class LeagueFixtureReminderService {
     required String description,
   }) async {
     if (kIsWeb) return;
-    final androidImpl = _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
+    final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     await androidImpl?.createNotificationChannel(
       AndroidNotificationChannel(
         _androidChannelId,
@@ -425,20 +425,17 @@ class LeagueFixtureReminderService {
 
   List<Map<String, dynamic>> loadFixtureMessageLogSync() {
     final raw = _options.getValue<List>(fixtureMessageLogKey) ?? const [];
-    final logs =
-        raw
-            .whereType<Map>()
-            .map((item) => item.cast<String, dynamic>())
-            .toList(growable: false)
-          ..sort((a, b) {
-            final aAt =
-                DateTime.tryParse(a['scheduledAt']?.toString() ?? '') ??
-                DateTime.fromMillisecondsSinceEpoch(0);
-            final bAt =
-                DateTime.tryParse(b['scheduledAt']?.toString() ?? '') ??
-                DateTime.fromMillisecondsSinceEpoch(0);
-            return aAt.compareTo(bAt);
-          });
+    final logs = raw
+        .whereType<Map>()
+        .map((item) => item.cast<String, dynamic>())
+        .toList(growable: false)
+      ..sort((a, b) {
+        final aAt = DateTime.tryParse(a['scheduledAt']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        final bAt = DateTime.tryParse(b['scheduledAt']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        return aAt.compareTo(bAt);
+      });
     return logs;
   }
 
@@ -465,11 +462,9 @@ class LeagueFixtureReminderService {
         .toList(growable: true);
     final combined = <Map<String, dynamic>>[...nextRows, ...existing]
       ..sort((a, b) {
-        final aAt =
-            DateTime.tryParse(a['scheduledAt']?.toString() ?? '') ??
+        final aAt = DateTime.tryParse(a['scheduledAt']?.toString() ?? '') ??
             DateTime.fromMillisecondsSinceEpoch(0);
-        final bAt =
-            DateTime.tryParse(b['scheduledAt']?.toString() ?? '') ??
+        final bAt = DateTime.tryParse(b['scheduledAt']?.toString() ?? '') ??
             DateTime.fromMillisecondsSinceEpoch(0);
         return aAt.compareTo(bAt);
       });

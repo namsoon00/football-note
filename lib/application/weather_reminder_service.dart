@@ -84,6 +84,14 @@ class WeatherReminderService {
     _initialized = true;
   }
 
+  Future<String?> launchPayload() async {
+    await initialize();
+    if (kIsWeb) return null;
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp != true) return null;
+    return details?.notificationResponse?.payload;
+  }
+
   Future<int> syncSettingsDrivenReminders() async {
     await clearAllReminders(clearMessages: false);
     if (kIsWeb ||
