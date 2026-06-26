@@ -1,6 +1,6 @@
 class NotificationAppLink {
   static const scheme = 'footballnote';
-  static const notificationTitle = '태오의 노트';
+  static const notificationTitle = '태오의노트';
   static const Set<String> _hosts = {
     'calendar',
     'challenge',

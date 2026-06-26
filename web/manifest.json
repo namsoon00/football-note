@@ -1,6 +1,6 @@
 {
-    "name": "태오의 노트",
-    "short_name": "태오의 노트",
+    "name": "태오의노트",
+    "short_name": "태오의노트",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

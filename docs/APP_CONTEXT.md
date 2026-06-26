@@ -3,7 +3,7 @@
 Last updated: 2026-03-15
 
 ## Purpose
-- Product: 태오의 노트
+- Product: 태오의노트
 - Core value: help youth football players and parents record training, review growth, and continue data across devices
 - Primary business lens: improve retention around training logs and convert recorded data into paid value
 
