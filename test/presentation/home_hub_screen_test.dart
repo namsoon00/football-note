@@ -219,6 +219,13 @@ void main() {
       lessThan(sectionTop('home-layout-daily-flow-section')),
     );
     expect(find.text('홈화면 변경'), findsOneWidget);
+    final titleRect = tester.getRect(
+      find.byKey(const ValueKey<String>('home-title-label')),
+    );
+    final layoutButtonRect = tester.getRect(
+      find.byKey(const ValueKey<String>('home-section-settings-button')),
+    );
+    expect(layoutButtonRect.left - titleRect.right, closeTo(8, 0.1));
 
     await tester.tap(
       find.byKey(const ValueKey<String>('home-section-settings-button')),
