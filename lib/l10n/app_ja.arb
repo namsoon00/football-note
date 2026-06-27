@@ -5670,6 +5670,119 @@
       }
     }
   },
+  "matchHubTeamManagementHeaderSubtitle": "チーム、選手、戦術、フォーメーションを管理して試合記録につなげましょう。",
+  "matchHubTeamManagementTitle": "チーム管理ボード",
+  "matchHubTeamManagementHelper": "選手、戦術、フォーメーションを管理",
+  "matchHubTeamStateLabel": "管理チーム",
+  "matchHubTeamStateValue": "{count}チーム",
+  "@matchHubTeamStateValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubNoTeamsTitle": "管理中のチームはまだありません。",
+  "matchHubNoTeamsSubtitle": "チームを作成し、選手と戦略を入力して、ピッチ上のポジションに選手を割り当てましょう。",
+  "matchHubMoreTeamsCount": "ほか{count}チーム",
+  "@matchHubMoreTeamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubTeamFormationValue": "{formation}フォーメーション",
+  "@matchHubTeamFormationValue": {
+    "placeholders": {
+      "formation": {}
+    }
+  },
+  "teamManagementTitle": "チーム管理",
+  "teamManagementSubtitle": "選手名簿、チーム戦略、フォーメーション配置を一つの画面で整理します。",
+  "teamManagementOpenButton": "チーム管理",
+  "teamManagementDefaultTeamName": "自分のチーム",
+  "teamManagementSavedTeamsTitle": "管理チーム",
+  "teamManagementSavedTeamsHelper": "保存済みチームを選ぶと、戦略とラインアップをすぐに更新できます。",
+  "teamManagementNoTeamsTitle": "最初のチームを準備中です。",
+  "teamManagementNoTeamsBody": "チーム名と選手名簿を入力して保存すると、ここにチームカードが作成されます。",
+  "teamManagementNewTeamButton": "新しいチーム",
+  "teamManagementBasicsTitle": "チーム戦略",
+  "teamManagementBasicsHelper": "チーム名と試合運びの方針から整理しましょう。",
+  "teamManagementTeamNameLabel": "チーム名",
+  "teamManagementTeamNameHint": "例) 自分のU15",
+  "teamManagementStrategyLabel": "戦略メモ",
+  "teamManagementStrategyHint": "例) 高い位置でプレスし、素早くサイドへ展開。守備時は4-4-2ブロック",
+  "teamManagementFormationTitle": "フォーメーションボード",
+  "teamManagementFormationHelper": "フォーメーションを選び、ピッチ上のポジションをタップして選手を割り当てます。",
+  "teamManagementFormationLabel": "フォーメーション",
+  "teamManagementFormationSpotLabel": "{spot}",
+  "@teamManagementFormationSpotLabel": {
+    "placeholders": {
+      "spot": {}
+    }
+  },
+  "teamManagementSelectPositionPrompt": "ピッチ上のポジションを選択してください。",
+  "teamManagementSelectedPosition": "{position}に割り当て",
+  "@teamManagementSelectedPosition": {
+    "placeholders": {
+      "position": {}
+    }
+  },
+  "teamManagementAssignedPlayerLabel": "割り当てる選手",
+  "teamManagementUnassignedPlayer": "未割り当て",
+  "teamManagementPlayersTitle": "選手名簿",
+  "teamManagementPlayersHelper": "選手情報を追加すると、フォーメーションの枠にすぐ割り当てられます。",
+  "teamManagementPlayerNameLabel": "選手名",
+  "teamManagementPlayerNameHint": "例) キム・ミンジュン",
+  "teamManagementPlayerNumberLabel": "番号",
+  "teamManagementPlayerNumberHint": "10",
+  "teamManagementPlayerRoleLabel": "基本ポジション",
+  "teamManagementPlayerNoteLabel": "選手メモ",
+  "teamManagementPlayerNoteHint": "例) 左足のキックが良い、プレス後の切り替えが速い",
+  "teamManagementAddPlayerButton": "選手を追加",
+  "teamManagementNoPlayersTitle": "登録された選手がいません。",
+  "teamManagementNoPlayersBody": "選手を追加すると、フォーメーションボードで割り当てられます。",
+  "teamManagementPlayerMeta": "{role} · {count}ポジション",
+  "@teamManagementPlayerMeta": {
+    "placeholders": {
+      "role": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementRemovePlayerButton": "削除",
+  "teamManagementDeleteTeamButton": "チーム削除",
+  "teamManagementSaveTeamButton": "チーム保存",
+  "teamManagementSaveHint": "保存したチームは試合画面のチーム管理ボードにすぐ表示されます。",
+  "teamManagementNameRequired": "チーム名を入力してください。",
+  "teamManagementPlayerRequired": "選手名を入力してください。",
+  "teamManagementSavedFeedback": "チーム情報を保存しました。",
+  "teamManagementDeletedFeedback": "チームを削除しました。",
+  "teamManagementRoleGoalkeeper": "ゴールキーパー",
+  "teamManagementRoleDefender": "ディフェンダー",
+  "teamManagementRoleMidfielder": "ミッドフィールダー",
+  "teamManagementRoleForward": "フォワード",
+  "teamManagementLineupFilled": "{filled}/{total} 割り当て",
+  "@teamManagementLineupFilled": {
+    "placeholders": {
+      "filled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerCount": "{count}人",
+  "@teamManagementPlayerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "baseballMatchHitsLabel": "安打",
   "baseballMatchRbisLabel": "打点",
   "baseballMatchRunsLabel": "得点",

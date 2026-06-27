@@ -28,6 +28,7 @@ import 'player_level_service.dart';
 import 'player_profile_service.dart';
 import 'running_coach_history_service.dart';
 import 'running_growth_service.dart';
+import 'team_management_service.dart';
 import 'training_board_service.dart';
 import 'training_plan_reminder_service.dart';
 import 'weather_reminder_service.dart';
@@ -273,6 +274,7 @@ class DriveBackupService implements BackupRepository {
     TrainingPlanReminderService.plansStorageKey,
     MealLogService.storageKey,
     TrainingBoardService.storageKey,
+    TeamManagementService.storageKey,
     ChallengeService.storageKey,
     RunningCoachHistoryService.storageKey,
     RunningGrowthService.storageKey,
