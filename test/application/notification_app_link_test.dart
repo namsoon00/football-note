@@ -5,6 +5,7 @@ void main() {
   group('NotificationAppLink', () {
     test('normalizes generated notification links', () {
       final date = DateTime(2026, 6, 26, 9, 30);
+      expect(NotificationAppLink.scheme, 'taeonote');
 
       expectLink(
         NotificationAppLink.calendarPlan(
@@ -72,12 +73,42 @@ void main() {
         path: '/plan',
       );
       expectLink(
-        'footballnote:/calendar/plan?planId=plan-1&date=2026-06-26',
+        'taeonote:/calendar/plan?planId=plan-1&date=2026-06-26',
         host: 'calendar',
         path: '/plan',
       );
       expectLink(
-        'footballnote:///weather/detail?action=outfit',
+        'taeonote:///weather/detail?action=outfit',
+        host: 'weather',
+        path: '/detail',
+      );
+    });
+
+    test('accepts previous app scheme payloads as legacy aliases', () {
+      final previousScheme = String.fromCharCodes(
+        const <int>[
+          102,
+          111,
+          111,
+          116,
+          98,
+          97,
+          108,
+          108,
+          110,
+          111,
+          116,
+          101,
+        ],
+      );
+
+      expectLink(
+        '$previousScheme:/calendar/plan?planId=plan-1&date=2026-06-26',
+        host: 'calendar',
+        path: '/plan',
+      );
+      expectLink(
+        '$previousScheme:///weather/detail?action=outfit',
         host: 'weather',
         path: '/detail',
       );
