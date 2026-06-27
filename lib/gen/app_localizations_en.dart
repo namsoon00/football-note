@@ -9847,6 +9847,89 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchCompetitionManageButton => 'Teams / results';
 
   @override
+  String get matchCompetitionOpenButton => 'Competition management';
+
+  @override
+  String get matchCompetitionOpenHelper => 'Run leagues and tournaments';
+
+  @override
+  String get matchCompetitionProTitle => 'Competition Operations Center';
+
+  @override
+  String get matchCompetitionProSubtitle =>
+      'Manage participating teams, operations details, standings, and brackets with coaches and players.';
+
+  @override
+  String get matchCompetitionOperationsSummaryTitle => 'Operations summary';
+
+  @override
+  String get matchCompetitionCreateLeagueButton => 'Create league';
+
+  @override
+  String get matchCompetitionCreateTournamentButton => 'Create tournament';
+
+  @override
+  String get matchCompetitionSeasonLabel => 'Season';
+
+  @override
+  String get matchCompetitionSeasonHint => 'e.g. Summer 2026';
+
+  @override
+  String get matchCompetitionVenueLabel => 'Venue';
+
+  @override
+  String get matchCompetitionVenueHint => 'e.g. Main pitch';
+
+  @override
+  String get matchCompetitionOrganizerLabel => 'Lead';
+
+  @override
+  String get matchCompetitionOrganizerHint => 'e.g. Coach Kim';
+
+  @override
+  String get matchCompetitionNoteLabel => 'Operations note';
+
+  @override
+  String get matchCompetitionNoteHint =>
+      'e.g. Groups into knockout, rotation required';
+
+  @override
+  String get matchCompetitionSaveCompetition => 'Save competition';
+
+  @override
+  String get matchCompetitionEditButton => 'Edit';
+
+  @override
+  String get matchCompetitionNoCompetitionsProBody =>
+      'Create a league or tournament first to manage teams, operations details, standings, and brackets professionally.';
+
+  @override
+  String get matchCompetitionOperationsDetailEmpty => 'No operations details';
+
+  @override
+  String get matchCompetitionNextActionLabel => 'Next operation';
+
+  @override
+  String get matchCompetitionNextRegisterTeams => 'Register teams';
+
+  @override
+  String get matchCompetitionNextRecordFirstMatch => 'Record first match';
+
+  @override
+  String get matchCompetitionNextRecordNextMatch => 'Record next match';
+
+  @override
+  String get matchCompetitionNextCloseCompetition => 'Review closing';
+
+  @override
+  String get matchCompetitionNextReviewArchive => 'Review archive';
+
+  @override
+  String matchCompetitionProgressPercent(int percent) {
+    return 'Progress $percent%';
+  }
+
+  @override
   String get matchCompetitionManagerNewTitle => 'Competition manager';
 
   @override

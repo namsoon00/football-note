@@ -19,6 +19,7 @@ import '../utils/match_entry_format.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_page_route.dart';
+import 'competition_management_screen.dart';
 import 'match_record_screen.dart';
 import 'match_records_screen.dart';
 import 'team_management_screen.dart';
@@ -125,13 +126,14 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                     _MatchHubHero(
                       metrics: metrics,
                       teamCount: managedTeams.length,
-                      onRecordMatch: () => _openMatchRecord(),
                       onManageTeams: () => _openTeamManagement(),
+                      onManageCompetitions: () => _openCompetitionManagement(),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubQuickActions(
                       onRecordMatch: () => _openMatchRecord(),
                       onManageTeams: () => _openTeamManagement(),
+                      onManageCompetitions: () => _openCompetitionManagement(),
                       onOpenMatchRecords: () => _openMatchRecords(),
                       onOpenMatchStats: () =>
                           _closeThen(widget.onOpenMatchStats),
@@ -144,7 +146,7 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubCompetitionSection(
                       summaries: competitionSummaries,
-                      onRecordMatch: () => _openMatchRecord(),
+                      onManageCompetitions: () => _openCompetitionManagement(),
                     ),
                   ],
                 ),
@@ -299,6 +301,17 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
       ),
     );
   }
+
+  Future<void> _openCompetitionManagement() async {
+    await _pushPageSafely(
+      AppPageRoute(
+        builder: (_) => CompetitionManagementScreen(
+          trainingService: widget.trainingService,
+          optionRepository: widget.optionRepository,
+        ),
+      ),
+    );
+  }
 }
 
 class _MatchHubHeader extends StatelessWidget {
@@ -350,14 +363,14 @@ class _MatchHubHeader extends StatelessWidget {
 class _MatchHubHero extends StatelessWidget {
   final _MatchHubMetrics metrics;
   final int teamCount;
-  final VoidCallback onRecordMatch;
   final VoidCallback onManageTeams;
+  final VoidCallback onManageCompetitions;
 
   const _MatchHubHero({
     required this.metrics,
     required this.teamCount,
-    required this.onRecordMatch,
     required this.onManageTeams,
+    required this.onManageCompetitions,
   });
 
   @override
@@ -488,9 +501,9 @@ class _MatchHubHero extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: onRecordMatch,
-                  icon: const Icon(Icons.add_circle_outline),
-                  label: Text(l10n.matchHubRecordButton),
+                  onPressed: onManageCompetitions,
+                  icon: const Icon(Icons.emoji_events_outlined),
+                  label: Text(l10n.matchCompetitionOpenButton),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
                     side: BorderSide(
@@ -515,12 +528,14 @@ class _MatchHubHero extends StatelessWidget {
 class _MatchHubQuickActions extends StatelessWidget {
   final VoidCallback onRecordMatch;
   final VoidCallback onManageTeams;
+  final VoidCallback onManageCompetitions;
   final VoidCallback onOpenMatchRecords;
   final VoidCallback onOpenMatchStats;
 
   const _MatchHubQuickActions({
     required this.onRecordMatch,
     required this.onManageTeams,
+    required this.onManageCompetitions,
     required this.onOpenMatchRecords,
     required this.onOpenMatchStats,
   });
@@ -534,6 +549,12 @@ class _MatchHubQuickActions extends StatelessWidget {
         title: l10n.teamManagementOpenButton,
         subtitle: l10n.matchHubTeamManagementHelper,
         onTap: onManageTeams,
+      ),
+      _QuickActionData(
+        icon: Icons.emoji_events_outlined,
+        title: l10n.matchCompetitionOpenButton,
+        subtitle: l10n.matchCompetitionOpenHelper,
+        onTap: onManageCompetitions,
       ),
       _QuickActionData(
         icon: Icons.edit_note_outlined,
@@ -557,7 +578,11 @@ class _MatchHubQuickActions extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth >= 560 ? 4 : 2;
+        final crossAxisCount = constraints.maxWidth >= 720
+            ? 5
+            : constraints.maxWidth >= 560
+                ? 3
+                : 2;
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -566,7 +591,7 @@ class _MatchHubQuickActions extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             mainAxisSpacing: AppSpacing.sm,
             crossAxisSpacing: AppSpacing.sm,
-            childAspectRatio: constraints.maxWidth >= 560 ? 1.45 : 1.28,
+            childAspectRatio: constraints.maxWidth >= 560 ? 1.08 : 1.12,
           ),
           itemBuilder: (context, index) =>
               _QuickActionCard(data: actions[index]),
@@ -746,11 +771,11 @@ class _ManagedTeamCard extends StatelessWidget {
 
 class _MatchHubCompetitionSection extends StatelessWidget {
   final List<_CompetitionSummary> summaries;
-  final VoidCallback onRecordMatch;
+  final VoidCallback onManageCompetitions;
 
   const _MatchHubCompetitionSection({
     required this.summaries,
-    required this.onRecordMatch,
+    required this.onManageCompetitions,
   });
 
   @override
@@ -765,8 +790,8 @@ class _MatchHubCompetitionSection extends StatelessWidget {
           title: l10n.matchHubCompetitionsTitle,
           trailing: AppBarActionButton.label(
             icon: const Icon(Icons.add_outlined),
-            label: l10n.matchCompetitionManageButton,
-            onPressed: onRecordMatch,
+            label: l10n.matchCompetitionOpenButton,
+            onPressed: onManageCompetitions,
             margin: EdgeInsets.zero,
             maxLabelWidth: 126,
           ),
@@ -776,8 +801,8 @@ class _MatchHubCompetitionSection extends StatelessWidget {
             icon: Icons.emoji_events_outlined,
             title: l10n.matchHubNoCompetitionsTitle,
             body: l10n.matchHubNoCompetitionsSubtitle,
-            actionLabel: l10n.matchHubRecordButton,
-            onAction: onRecordMatch,
+            actionLabel: l10n.matchCompetitionOpenButton,
+            onAction: onManageCompetitions,
           )
         else
           ...visibleSummaries.map(
@@ -932,7 +957,7 @@ class _QuickActionCard extends StatelessWidget {
         borderRadius: AppRadius.surface,
         child: Ink(
           decoration: AppSurfaces.cardDecoration(scheme, brightness),
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.all(AppSpacing.sm),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

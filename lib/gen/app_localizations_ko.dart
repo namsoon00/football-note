@@ -9577,6 +9577,88 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionManageButton => '팀 등록/결과 보기';
 
   @override
+  String get matchCompetitionOpenButton => '대회 관리';
+
+  @override
+  String get matchCompetitionOpenHelper => '리그와 토너먼트 운영';
+
+  @override
+  String get matchCompetitionProTitle => '대회 운영 센터';
+
+  @override
+  String get matchCompetitionProSubtitle =>
+      '감독, 코치, 선수가 참가 팀, 운영 정보, 순위와 대진을 함께 관리하세요.';
+
+  @override
+  String get matchCompetitionOperationsSummaryTitle => '운영 요약';
+
+  @override
+  String get matchCompetitionCreateLeagueButton => '리그 만들기';
+
+  @override
+  String get matchCompetitionCreateTournamentButton => '토너먼트 만들기';
+
+  @override
+  String get matchCompetitionSeasonLabel => '시즌';
+
+  @override
+  String get matchCompetitionSeasonHint => '예) 2026 여름';
+
+  @override
+  String get matchCompetitionVenueLabel => '장소';
+
+  @override
+  String get matchCompetitionVenueHint => '예) 메인 구장';
+
+  @override
+  String get matchCompetitionOrganizerLabel => '담당';
+
+  @override
+  String get matchCompetitionOrganizerHint => '예) 감독 김코치';
+
+  @override
+  String get matchCompetitionNoteLabel => '운영 메모';
+
+  @override
+  String get matchCompetitionNoteHint => '예) 조별 후 토너먼트, 로테이션 필수';
+
+  @override
+  String get matchCompetitionSaveCompetition => '대회 저장';
+
+  @override
+  String get matchCompetitionEditButton => '수정';
+
+  @override
+  String get matchCompetitionNoCompetitionsProBody =>
+      '리그나 토너먼트를 먼저 만들면 참가 팀, 운영 정보, 순위와 대진을 전문적으로 관리할 수 있어요.';
+
+  @override
+  String get matchCompetitionOperationsDetailEmpty => '운영 정보 미입력';
+
+  @override
+  String get matchCompetitionNextActionLabel => '다음 운영';
+
+  @override
+  String get matchCompetitionNextRegisterTeams => '참가 팀 등록';
+
+  @override
+  String get matchCompetitionNextRecordFirstMatch => '첫 경기 기록';
+
+  @override
+  String get matchCompetitionNextRecordNextMatch => '다음 경기 기록';
+
+  @override
+  String get matchCompetitionNextCloseCompetition => '대회 종료 검토';
+
+  @override
+  String get matchCompetitionNextReviewArchive => '결과 아카이브';
+
+  @override
+  String matchCompetitionProgressPercent(int percent) {
+    return '진행률 $percent%';
+  }
+
+  @override
   String get matchCompetitionManagerNewTitle => '대회 관리';
 
   @override

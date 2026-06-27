@@ -5417,6 +5417,39 @@
   },
   "matchCompetitionFinishedNotice": "This competition is finished. Select it when organizing past match records.",
   "matchCompetitionManageButton": "Teams / results",
+  "matchCompetitionOpenButton": "Competition management",
+  "matchCompetitionOpenHelper": "Run leagues and tournaments",
+  "matchCompetitionProTitle": "Competition Operations Center",
+  "matchCompetitionProSubtitle": "Manage participating teams, operations details, standings, and brackets with coaches and players.",
+  "matchCompetitionOperationsSummaryTitle": "Operations summary",
+  "matchCompetitionCreateLeagueButton": "Create league",
+  "matchCompetitionCreateTournamentButton": "Create tournament",
+  "matchCompetitionSeasonLabel": "Season",
+  "matchCompetitionSeasonHint": "e.g. Summer 2026",
+  "matchCompetitionVenueLabel": "Venue",
+  "matchCompetitionVenueHint": "e.g. Main pitch",
+  "matchCompetitionOrganizerLabel": "Lead",
+  "matchCompetitionOrganizerHint": "e.g. Coach Kim",
+  "matchCompetitionNoteLabel": "Operations note",
+  "matchCompetitionNoteHint": "e.g. Groups into knockout, rotation required",
+  "matchCompetitionSaveCompetition": "Save competition",
+  "matchCompetitionEditButton": "Edit",
+  "matchCompetitionNoCompetitionsProBody": "Create a league or tournament first to manage teams, operations details, standings, and brackets professionally.",
+  "matchCompetitionOperationsDetailEmpty": "No operations details",
+  "matchCompetitionNextActionLabel": "Next operation",
+  "matchCompetitionNextRegisterTeams": "Register teams",
+  "matchCompetitionNextRecordFirstMatch": "Record first match",
+  "matchCompetitionNextRecordNextMatch": "Record next match",
+  "matchCompetitionNextCloseCompetition": "Review closing",
+  "matchCompetitionNextReviewArchive": "Review archive",
+  "matchCompetitionProgressPercent": "Progress {percent}%",
+  "@matchCompetitionProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "matchCompetitionManagerNewTitle": "Competition manager",
   "matchCompetitionManagerTitle": "{name} manager",
   "@matchCompetitionManagerTitle": {

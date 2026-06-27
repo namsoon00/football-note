@@ -14,6 +14,10 @@ class MatchCompetitionRecord {
   final String name;
   final List<String> teams;
   final String status;
+  final String season;
+  final String venue;
+  final String organizer;
+  final String note;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -23,6 +27,10 @@ class MatchCompetitionRecord {
     required this.name,
     required this.teams,
     this.status = statusActive,
+    this.season = '',
+    this.venue = '',
+    this.organizer = '',
+    this.note = '',
     required this.createdAt,
     required this.updatedAt,
   });
@@ -34,6 +42,10 @@ class MatchCompetitionRecord {
     required String name,
     required List<String> teams,
     String status = statusActive,
+    String season = '',
+    String venue = '',
+    String organizer = '',
+    String note = '',
     DateTime? now,
   }) {
     final timestamp = now ?? DateTime.now();
@@ -43,6 +55,10 @@ class MatchCompetitionRecord {
       name: name.trim(),
       teams: MatchCompetitionService.normalizeTeams(teams),
       status: MatchCompetitionService.normalizeStatus(status),
+      season: season.trim(),
+      venue: venue.trim(),
+      organizer: organizer.trim(),
+      note: note.trim(),
       createdAt: timestamp,
       updatedAt: timestamp,
     );
@@ -69,6 +85,10 @@ class MatchCompetitionRecord {
       name: name,
       teams: MatchCompetitionService.normalizeTeams(teams),
       status: status,
+      season: map['season']?.toString().trim() ?? '',
+      venue: map['venue']?.toString().trim() ?? '',
+      organizer: map['organizer']?.toString().trim() ?? '',
+      note: map['note']?.toString().trim() ?? '',
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -80,6 +100,10 @@ class MatchCompetitionRecord {
     String? name,
     List<String>? teams,
     String? status,
+    String? season,
+    String? venue,
+    String? organizer,
+    String? note,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -91,6 +115,10 @@ class MatchCompetitionRecord {
           ? this.teams
           : MatchCompetitionService.normalizeTeams(teams),
       status: MatchCompetitionService.normalizeStatus(status ?? this.status),
+      season: season?.trim() ?? this.season,
+      venue: venue?.trim() ?? this.venue,
+      organizer: organizer?.trim() ?? this.organizer,
+      note: note?.trim() ?? this.note,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -103,6 +131,10 @@ class MatchCompetitionRecord {
       'name': name,
       'teams': teams,
       'status': status,
+      'season': season,
+      'venue': venue,
+      'organizer': organizer,
+      'note': note,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -272,8 +304,21 @@ class MatchCompetitionService {
         name: name,
         teams: teams,
         status: existing?.status ?? MatchCompetitionRecord.statusActive,
+        season: existing?.season ?? '',
+        venue: existing?.venue ?? '',
+        organizer: existing?.organizer ?? '',
+        note: existing?.note ?? '',
       ),
     );
+  }
+
+  Future<void> deleteCompetition(String id) async {
+    final key = id.trim();
+    if (key.isEmpty) return;
+    final next = allCompetitions()
+        .where((record) => record.id != key)
+        .toList(growable: false);
+    await _saveAll(next);
   }
 
   Future<void> _saveAll(List<MatchCompetitionRecord> records) {

@@ -16815,6 +16815,162 @@ abstract class AppLocalizations {
   /// **'Teams / results'**
   String get matchCompetitionManageButton;
 
+  /// No description provided for @matchCompetitionOpenButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition management'**
+  String get matchCompetitionOpenButton;
+
+  /// No description provided for @matchCompetitionOpenHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Run leagues and tournaments'**
+  String get matchCompetitionOpenHelper;
+
+  /// No description provided for @matchCompetitionProTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition Operations Center'**
+  String get matchCompetitionProTitle;
+
+  /// No description provided for @matchCompetitionProSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage participating teams, operations details, standings, and brackets with coaches and players.'**
+  String get matchCompetitionProSubtitle;
+
+  /// No description provided for @matchCompetitionOperationsSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations summary'**
+  String get matchCompetitionOperationsSummaryTitle;
+
+  /// No description provided for @matchCompetitionCreateLeagueButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create league'**
+  String get matchCompetitionCreateLeagueButton;
+
+  /// No description provided for @matchCompetitionCreateTournamentButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create tournament'**
+  String get matchCompetitionCreateTournamentButton;
+
+  /// No description provided for @matchCompetitionSeasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Season'**
+  String get matchCompetitionSeasonLabel;
+
+  /// No description provided for @matchCompetitionSeasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Summer 2026'**
+  String get matchCompetitionSeasonHint;
+
+  /// No description provided for @matchCompetitionVenueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue'**
+  String get matchCompetitionVenueLabel;
+
+  /// No description provided for @matchCompetitionVenueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Main pitch'**
+  String get matchCompetitionVenueHint;
+
+  /// No description provided for @matchCompetitionOrganizerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead'**
+  String get matchCompetitionOrganizerLabel;
+
+  /// No description provided for @matchCompetitionOrganizerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Coach Kim'**
+  String get matchCompetitionOrganizerHint;
+
+  /// No description provided for @matchCompetitionNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations note'**
+  String get matchCompetitionNoteLabel;
+
+  /// No description provided for @matchCompetitionNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Groups into knockout, rotation required'**
+  String get matchCompetitionNoteHint;
+
+  /// No description provided for @matchCompetitionSaveCompetition.
+  ///
+  /// In en, this message translates to:
+  /// **'Save competition'**
+  String get matchCompetitionSaveCompetition;
+
+  /// No description provided for @matchCompetitionEditButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get matchCompetitionEditButton;
+
+  /// No description provided for @matchCompetitionNoCompetitionsProBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a league or tournament first to manage teams, operations details, standings, and brackets professionally.'**
+  String get matchCompetitionNoCompetitionsProBody;
+
+  /// No description provided for @matchCompetitionOperationsDetailEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No operations details'**
+  String get matchCompetitionOperationsDetailEmpty;
+
+  /// No description provided for @matchCompetitionNextActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next operation'**
+  String get matchCompetitionNextActionLabel;
+
+  /// No description provided for @matchCompetitionNextRegisterTeams.
+  ///
+  /// In en, this message translates to:
+  /// **'Register teams'**
+  String get matchCompetitionNextRegisterTeams;
+
+  /// No description provided for @matchCompetitionNextRecordFirstMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Record first match'**
+  String get matchCompetitionNextRecordFirstMatch;
+
+  /// No description provided for @matchCompetitionNextRecordNextMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Record next match'**
+  String get matchCompetitionNextRecordNextMatch;
+
+  /// No description provided for @matchCompetitionNextCloseCompetition.
+  ///
+  /// In en, this message translates to:
+  /// **'Review closing'**
+  String get matchCompetitionNextCloseCompetition;
+
+  /// No description provided for @matchCompetitionNextReviewArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Review archive'**
+  String get matchCompetitionNextReviewArchive;
+
+  /// No description provided for @matchCompetitionProgressPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress {percent}%'**
+  String matchCompetitionProgressPercent(int percent);
+
   /// No description provided for @matchCompetitionManagerNewTitle.
   ///
   /// In en, this message translates to:

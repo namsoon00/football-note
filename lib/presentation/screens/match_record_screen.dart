@@ -932,8 +932,15 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     setState(() => _saving = true);
     try {
       if (_isCompetitionMatch) {
-        await MatchCompetitionService(widget.optionRepository)
-            .upsertCompetition(
+        final competitionService =
+            MatchCompetitionService(widget.optionRepository);
+        final existingCompetition = _selectedCompetitionId.trim().isNotEmpty
+            ? competitionService.findCompetitionById(_selectedCompetitionId)
+            : competitionService.findCompetition(
+                kind: _matchKind,
+                name: competitionName,
+              );
+        await competitionService.upsertCompetition(
           MatchCompetitionRecord.create(
             kind: _matchKind,
             name: competitionName,
@@ -942,6 +949,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
               savedOpponent,
             ]),
             status: _competitionStatus,
+            season: existingCompetition?.season ?? '',
+            venue: existingCompetition?.venue ?? '',
+            organizer: existingCompetition?.organizer ?? '',
+            note: existingCompetition?.note ?? '',
           ),
         );
       }
