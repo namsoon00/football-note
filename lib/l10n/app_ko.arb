@@ -5613,6 +5613,119 @@
       }
     }
   },
+  "matchHubTeamManagementHeaderSubtitle": "팀, 선수, 전술, 포메이션을 관리하고 경기 기록으로 이어가세요.",
+  "matchHubTeamManagementTitle": "팀 관리 보드",
+  "matchHubTeamManagementHelper": "선수와 전술, 포메이션을 관리",
+  "matchHubTeamStateLabel": "관리 팀",
+  "matchHubTeamStateValue": "{count}팀",
+  "@matchHubTeamStateValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubNoTeamsTitle": "아직 관리 중인 팀이 없어요.",
+  "matchHubNoTeamsSubtitle": "팀을 만들고 선수와 전략을 넣은 뒤 그라운드 위 포지션에 선수를 배치해 보세요.",
+  "matchHubMoreTeamsCount": "외 {count}팀 더 있음",
+  "@matchHubMoreTeamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubTeamFormationValue": "{formation} 포메이션",
+  "@matchHubTeamFormationValue": {
+    "placeholders": {
+      "formation": {}
+    }
+  },
+  "teamManagementTitle": "팀 관리",
+  "teamManagementSubtitle": "선수 명단, 팀 전략, 포메이션 배정을 한 화면에서 정리하세요.",
+  "teamManagementOpenButton": "팀 관리",
+  "teamManagementDefaultTeamName": "우리 팀",
+  "teamManagementSavedTeamsTitle": "관리 팀",
+  "teamManagementSavedTeamsHelper": "저장된 팀을 선택하면 전략과 라인업을 바로 수정할 수 있어요.",
+  "teamManagementNoTeamsTitle": "첫 팀을 준비 중입니다.",
+  "teamManagementNoTeamsBody": "팀 이름과 선수 명단을 입력한 뒤 저장하면 이곳에 팀 카드가 생깁니다.",
+  "teamManagementNewTeamButton": "새 팀",
+  "teamManagementBasicsTitle": "팀 전략",
+  "teamManagementBasicsHelper": "팀 이름과 경기 운영 방향을 먼저 정리하세요.",
+  "teamManagementTeamNameLabel": "팀 이름",
+  "teamManagementTeamNameHint": "예) 우리 팀 U15",
+  "teamManagementStrategyLabel": "전략 메모",
+  "teamManagementStrategyHint": "예) 전방 압박 후 빠른 측면 전환, 수비 시 4-4-2 블록 유지",
+  "teamManagementFormationTitle": "포메이션 보드",
+  "teamManagementFormationHelper": "포메이션을 고르고 그라운드 위 포지션을 눌러 선수를 배정하세요.",
+  "teamManagementFormationLabel": "포메이션",
+  "teamManagementFormationSpotLabel": "{spot}",
+  "@teamManagementFormationSpotLabel": {
+    "placeholders": {
+      "spot": {}
+    }
+  },
+  "teamManagementSelectPositionPrompt": "그라운드에서 포지션을 선택하세요.",
+  "teamManagementSelectedPosition": "{position} 배정",
+  "@teamManagementSelectedPosition": {
+    "placeholders": {
+      "position": {}
+    }
+  },
+  "teamManagementAssignedPlayerLabel": "배정할 선수",
+  "teamManagementUnassignedPlayer": "미배정",
+  "teamManagementPlayersTitle": "선수 명단",
+  "teamManagementPlayersHelper": "선수 정보를 추가하면 포메이션 슬롯에 바로 배정할 수 있어요.",
+  "teamManagementPlayerNameLabel": "선수 이름",
+  "teamManagementPlayerNameHint": "예) 김민준",
+  "teamManagementPlayerNumberLabel": "번호",
+  "teamManagementPlayerNumberHint": "10",
+  "teamManagementPlayerRoleLabel": "기본 포지션",
+  "teamManagementPlayerNoteLabel": "선수 메모",
+  "teamManagementPlayerNoteHint": "예) 왼발 킥 좋음, 압박 전환 빠름",
+  "teamManagementAddPlayerButton": "선수 추가",
+  "teamManagementNoPlayersTitle": "등록된 선수가 없어요.",
+  "teamManagementNoPlayersBody": "선수를 추가하면 포메이션 보드에서 바로 배정할 수 있습니다.",
+  "teamManagementPlayerMeta": "{role} · {count}개 포지션 배정",
+  "@teamManagementPlayerMeta": {
+    "placeholders": {
+      "role": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementRemovePlayerButton": "삭제",
+  "teamManagementDeleteTeamButton": "팀 삭제",
+  "teamManagementSaveTeamButton": "팀 저장",
+  "teamManagementSaveHint": "저장한 팀은 시합 화면의 팀 관리 보드에 바로 표시됩니다.",
+  "teamManagementNameRequired": "팀 이름을 입력하세요.",
+  "teamManagementPlayerRequired": "선수 이름을 입력하세요.",
+  "teamManagementSavedFeedback": "팀 정보를 저장했어요.",
+  "teamManagementDeletedFeedback": "팀을 삭제했어요.",
+  "teamManagementRoleGoalkeeper": "골키퍼",
+  "teamManagementRoleDefender": "수비수",
+  "teamManagementRoleMidfielder": "미드필더",
+  "teamManagementRoleForward": "공격수",
+  "teamManagementLineupFilled": "{filled}/{total} 배정",
+  "@teamManagementLineupFilled": {
+    "placeholders": {
+      "filled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerCount": "{count}명",
+  "@teamManagementPlayerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "baseballMatchHitsLabel": "안타",
   "baseballMatchRbisLabel": "타점",
   "baseballMatchRunsLabel": "득점",

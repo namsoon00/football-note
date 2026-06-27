@@ -10173,6 +10173,213 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get matchHubTeamManagementHeaderSubtitle =>
+      'Manage teams, players, tactics, and formations before recording matches.';
+
+  @override
+  String get matchHubTeamManagementTitle => 'Team management board';
+
+  @override
+  String get matchHubTeamManagementHelper =>
+      'Manage players, tactics, and formations';
+
+  @override
+  String get matchHubTeamStateLabel => 'Managed teams';
+
+  @override
+  String matchHubTeamStateValue(int count) {
+    return '$count team(s)';
+  }
+
+  @override
+  String get matchHubNoTeamsTitle => 'No managed teams yet.';
+
+  @override
+  String get matchHubNoTeamsSubtitle =>
+      'Create a team, add players and strategy notes, then assign players to positions on the pitch.';
+
+  @override
+  String matchHubMoreTeamsCount(int count) {
+    return '$count more team(s)';
+  }
+
+  @override
+  String matchHubTeamFormationValue(Object formation) {
+    return '$formation formation';
+  }
+
+  @override
+  String get teamManagementTitle => 'Team Management';
+
+  @override
+  String get teamManagementSubtitle =>
+      'Organize the roster, team strategy, and formation assignments in one place.';
+
+  @override
+  String get teamManagementOpenButton => 'Team management';
+
+  @override
+  String get teamManagementDefaultTeamName => 'Our team';
+
+  @override
+  String get teamManagementSavedTeamsTitle => 'Managed teams';
+
+  @override
+  String get teamManagementSavedTeamsHelper =>
+      'Select a saved team to update its strategy and lineup.';
+
+  @override
+  String get teamManagementNoTeamsTitle => 'Preparing your first team.';
+
+  @override
+  String get teamManagementNoTeamsBody =>
+      'Enter a team name and roster, then save it to create a team card here.';
+
+  @override
+  String get teamManagementNewTeamButton => 'New team';
+
+  @override
+  String get teamManagementBasicsTitle => 'Team strategy';
+
+  @override
+  String get teamManagementBasicsHelper =>
+      'Start with the team name and how the side should play.';
+
+  @override
+  String get teamManagementTeamNameLabel => 'Team name';
+
+  @override
+  String get teamManagementTeamNameHint => 'e.g. Our U15';
+
+  @override
+  String get teamManagementStrategyLabel => 'Strategy notes';
+
+  @override
+  String get teamManagementStrategyHint =>
+      'e.g. Press high, switch quickly wide, defend in a 4-4-2 block';
+
+  @override
+  String get teamManagementFormationTitle => 'Formation board';
+
+  @override
+  String get teamManagementFormationHelper =>
+      'Choose a formation, then tap a pitch position to assign a player.';
+
+  @override
+  String get teamManagementFormationLabel => 'Formation';
+
+  @override
+  String teamManagementFormationSpotLabel(Object spot) {
+    return '$spot';
+  }
+
+  @override
+  String get teamManagementSelectPositionPrompt =>
+      'Select a position on the pitch.';
+
+  @override
+  String teamManagementSelectedPosition(Object position) {
+    return 'Assign $position';
+  }
+
+  @override
+  String get teamManagementAssignedPlayerLabel => 'Assigned player';
+
+  @override
+  String get teamManagementUnassignedPlayer => 'Unassigned';
+
+  @override
+  String get teamManagementPlayersTitle => 'Roster';
+
+  @override
+  String get teamManagementPlayersHelper =>
+      'Add players here, then assign them directly to formation slots.';
+
+  @override
+  String get teamManagementPlayerNameLabel => 'Player name';
+
+  @override
+  String get teamManagementPlayerNameHint => 'e.g. Minjun Kim';
+
+  @override
+  String get teamManagementPlayerNumberLabel => 'No.';
+
+  @override
+  String get teamManagementPlayerNumberHint => '10';
+
+  @override
+  String get teamManagementPlayerRoleLabel => 'Default position';
+
+  @override
+  String get teamManagementPlayerNoteLabel => 'Player note';
+
+  @override
+  String get teamManagementPlayerNoteHint =>
+      'e.g. Strong left foot, quick after pressing transitions';
+
+  @override
+  String get teamManagementAddPlayerButton => 'Add player';
+
+  @override
+  String get teamManagementNoPlayersTitle => 'No players registered.';
+
+  @override
+  String get teamManagementNoPlayersBody =>
+      'Add players to assign them on the formation board.';
+
+  @override
+  String teamManagementPlayerMeta(Object role, int count) {
+    return '$role · $count position(s)';
+  }
+
+  @override
+  String get teamManagementRemovePlayerButton => 'Remove';
+
+  @override
+  String get teamManagementDeleteTeamButton => 'Delete team';
+
+  @override
+  String get teamManagementSaveTeamButton => 'Save team';
+
+  @override
+  String get teamManagementSaveHint =>
+      'Saved teams appear immediately on the Match screen team board.';
+
+  @override
+  String get teamManagementNameRequired => 'Enter a team name.';
+
+  @override
+  String get teamManagementPlayerRequired => 'Enter a player name.';
+
+  @override
+  String get teamManagementSavedFeedback => 'Team details saved.';
+
+  @override
+  String get teamManagementDeletedFeedback => 'Team deleted.';
+
+  @override
+  String get teamManagementRoleGoalkeeper => 'Goalkeeper';
+
+  @override
+  String get teamManagementRoleDefender => 'Defender';
+
+  @override
+  String get teamManagementRoleMidfielder => 'Midfielder';
+
+  @override
+  String get teamManagementRoleForward => 'Forward';
+
+  @override
+  String teamManagementLineupFilled(int filled, int total) {
+    return '$filled/$total assigned';
+  }
+
+  @override
+  String teamManagementPlayerCount(int count) {
+    return '$count player(s)';
+  }
+
+  @override
   String get baseballMatchHitsLabel => 'Hits';
 
   @override

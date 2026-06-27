@@ -9882,6 +9882,205 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get matchHubTeamManagementHeaderSubtitle =>
+      'チーム、選手、戦術、フォーメーションを管理して試合記録につなげましょう。';
+
+  @override
+  String get matchHubTeamManagementTitle => 'チーム管理ボード';
+
+  @override
+  String get matchHubTeamManagementHelper => '選手、戦術、フォーメーションを管理';
+
+  @override
+  String get matchHubTeamStateLabel => '管理チーム';
+
+  @override
+  String matchHubTeamStateValue(int count) {
+    return '$countチーム';
+  }
+
+  @override
+  String get matchHubNoTeamsTitle => '管理中のチームはまだありません。';
+
+  @override
+  String get matchHubNoTeamsSubtitle =>
+      'チームを作成し、選手と戦略を入力して、ピッチ上のポジションに選手を割り当てましょう。';
+
+  @override
+  String matchHubMoreTeamsCount(int count) {
+    return 'ほか$countチーム';
+  }
+
+  @override
+  String matchHubTeamFormationValue(Object formation) {
+    return '$formationフォーメーション';
+  }
+
+  @override
+  String get teamManagementTitle => 'チーム管理';
+
+  @override
+  String get teamManagementSubtitle => '選手名簿、チーム戦略、フォーメーション配置を一つの画面で整理します。';
+
+  @override
+  String get teamManagementOpenButton => 'チーム管理';
+
+  @override
+  String get teamManagementDefaultTeamName => '自分のチーム';
+
+  @override
+  String get teamManagementSavedTeamsTitle => '管理チーム';
+
+  @override
+  String get teamManagementSavedTeamsHelper =>
+      '保存済みチームを選ぶと、戦略とラインアップをすぐに更新できます。';
+
+  @override
+  String get teamManagementNoTeamsTitle => '最初のチームを準備中です。';
+
+  @override
+  String get teamManagementNoTeamsBody =>
+      'チーム名と選手名簿を入力して保存すると、ここにチームカードが作成されます。';
+
+  @override
+  String get teamManagementNewTeamButton => '新しいチーム';
+
+  @override
+  String get teamManagementBasicsTitle => 'チーム戦略';
+
+  @override
+  String get teamManagementBasicsHelper => 'チーム名と試合運びの方針から整理しましょう。';
+
+  @override
+  String get teamManagementTeamNameLabel => 'チーム名';
+
+  @override
+  String get teamManagementTeamNameHint => '例) 自分のU15';
+
+  @override
+  String get teamManagementStrategyLabel => '戦略メモ';
+
+  @override
+  String get teamManagementStrategyHint =>
+      '例) 高い位置でプレスし、素早くサイドへ展開。守備時は4-4-2ブロック';
+
+  @override
+  String get teamManagementFormationTitle => 'フォーメーションボード';
+
+  @override
+  String get teamManagementFormationHelper =>
+      'フォーメーションを選び、ピッチ上のポジションをタップして選手を割り当てます。';
+
+  @override
+  String get teamManagementFormationLabel => 'フォーメーション';
+
+  @override
+  String teamManagementFormationSpotLabel(Object spot) {
+    return '$spot';
+  }
+
+  @override
+  String get teamManagementSelectPositionPrompt => 'ピッチ上のポジションを選択してください。';
+
+  @override
+  String teamManagementSelectedPosition(Object position) {
+    return '$positionに割り当て';
+  }
+
+  @override
+  String get teamManagementAssignedPlayerLabel => '割り当てる選手';
+
+  @override
+  String get teamManagementUnassignedPlayer => '未割り当て';
+
+  @override
+  String get teamManagementPlayersTitle => '選手名簿';
+
+  @override
+  String get teamManagementPlayersHelper => '選手情報を追加すると、フォーメーションの枠にすぐ割り当てられます。';
+
+  @override
+  String get teamManagementPlayerNameLabel => '選手名';
+
+  @override
+  String get teamManagementPlayerNameHint => '例) キム・ミンジュン';
+
+  @override
+  String get teamManagementPlayerNumberLabel => '番号';
+
+  @override
+  String get teamManagementPlayerNumberHint => '10';
+
+  @override
+  String get teamManagementPlayerRoleLabel => '基本ポジション';
+
+  @override
+  String get teamManagementPlayerNoteLabel => '選手メモ';
+
+  @override
+  String get teamManagementPlayerNoteHint => '例) 左足のキックが良い、プレス後の切り替えが速い';
+
+  @override
+  String get teamManagementAddPlayerButton => '選手を追加';
+
+  @override
+  String get teamManagementNoPlayersTitle => '登録された選手がいません。';
+
+  @override
+  String get teamManagementNoPlayersBody => '選手を追加すると、フォーメーションボードで割り当てられます。';
+
+  @override
+  String teamManagementPlayerMeta(Object role, int count) {
+    return '$role · $countポジション';
+  }
+
+  @override
+  String get teamManagementRemovePlayerButton => '削除';
+
+  @override
+  String get teamManagementDeleteTeamButton => 'チーム削除';
+
+  @override
+  String get teamManagementSaveTeamButton => 'チーム保存';
+
+  @override
+  String get teamManagementSaveHint => '保存したチームは試合画面のチーム管理ボードにすぐ表示されます。';
+
+  @override
+  String get teamManagementNameRequired => 'チーム名を入力してください。';
+
+  @override
+  String get teamManagementPlayerRequired => '選手名を入力してください。';
+
+  @override
+  String get teamManagementSavedFeedback => 'チーム情報を保存しました。';
+
+  @override
+  String get teamManagementDeletedFeedback => 'チームを削除しました。';
+
+  @override
+  String get teamManagementRoleGoalkeeper => 'ゴールキーパー';
+
+  @override
+  String get teamManagementRoleDefender => 'ディフェンダー';
+
+  @override
+  String get teamManagementRoleMidfielder => 'ミッドフィールダー';
+
+  @override
+  String get teamManagementRoleForward => 'フォワード';
+
+  @override
+  String teamManagementLineupFilled(int filled, int total) {
+    return '$filled/$total 割り当て';
+  }
+
+  @override
+  String teamManagementPlayerCount(int count) {
+    return '$count人';
+  }
+
+  @override
   String get baseballMatchHitsLabel => '安打';
 
   @override

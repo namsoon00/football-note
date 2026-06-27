@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/match_competition_service.dart';
 import 'package:football_note/application/settings_service.dart';
+import 'package:football_note/application/team_management_service.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
@@ -13,6 +14,7 @@ import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/match_hub_screen.dart';
 import 'package:football_note/presentation/screens/match_record_screen.dart';
+import 'package:football_note/presentation/screens/team_management_screen.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
@@ -91,6 +93,17 @@ void main() {
         status: MatchCompetitionRecord.statusFinished,
       ),
     );
+    await TeamManagementService(optionRepository).upsertTeam(
+      ManagedTeam.create(
+        name: '우리 팀 U15',
+        formation: '4-3-3',
+        strategy: '전방 압박 후 빠른 측면 전환',
+        players: [
+          ManagedTeamPlayer.create(name: '김민준', number: '10'),
+        ],
+        lineup: const <String, String>{},
+      ),
+    );
     await trainingService.add(
       TrainingEntry(
         date: DateTime(2026, 6, 20),
@@ -138,6 +151,8 @@ void main() {
     expect(find.text('1승 0무 1패'), findsOneWidget);
     expect(find.text('주말 리그'), findsOneWidget);
     expect(find.text('컵 대회'), findsOneWidget);
+    expect(find.text('팀 관리 보드'), findsOneWidget);
+    expect(find.text('우리 팀 U15'), findsOneWidget);
     expect(find.textContaining('서울 U15'), findsWidgets);
     expect(find.text('3 : 1'), findsOneWidget);
   });
@@ -221,6 +236,64 @@ void main() {
     expect(trainingRepository.entries.single.scoredGoals, 1);
     expect(trainingRepository.entries.single.concededGoals, 0);
     expect(trainingRepository.entries.single.matchKind, 'friendly');
+  });
+
+  testWidgets('Team management screen saves a roster and pitch assignment', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: TeamManagementScreen(optionRepository: optionRepository),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).at(0), '우리 팀 U15');
+    await tester.enterText(find.byType(TextField).at(1), '전방 압박 후 측면 전환');
+    final addPlayerButton = find.widgetWithText(FilledButton, '선수 추가');
+    await tester.ensureVisible(addPlayerButton);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(2), '김민준');
+    await tester.enterText(find.byType(TextField).at(3), '10');
+    await tester.ensureVisible(addPlayerButton);
+    await tester.pumpAndSettle();
+    await tester.tap(addPlayerButton);
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('GK').first);
+    await tester.tap(find.text('GK').first);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('미배정'));
+    await tester.tap(find.text('미배정'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('10 김민준').last);
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('팀 저장'));
+    await tester.tap(find.text('팀 저장'));
+    await tester.pumpAndSettle();
+
+    final teams = TeamManagementService(optionRepository).allTeams();
+    expect(teams, hasLength(1));
+    expect(teams.single.name, '우리 팀 U15');
+    expect(teams.single.strategy, '전방 압박 후 측면 전환');
+    expect(teams.single.players.single.name, '김민준');
+    expect(teams.single.lineup['gk'], teams.single.players.single.id);
   });
 }
 

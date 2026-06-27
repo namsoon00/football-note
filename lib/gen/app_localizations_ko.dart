@@ -9893,6 +9893,206 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get matchHubTeamManagementHeaderSubtitle =>
+      '팀, 선수, 전술, 포메이션을 관리하고 경기 기록으로 이어가세요.';
+
+  @override
+  String get matchHubTeamManagementTitle => '팀 관리 보드';
+
+  @override
+  String get matchHubTeamManagementHelper => '선수와 전술, 포메이션을 관리';
+
+  @override
+  String get matchHubTeamStateLabel => '관리 팀';
+
+  @override
+  String matchHubTeamStateValue(int count) {
+    return '$count팀';
+  }
+
+  @override
+  String get matchHubNoTeamsTitle => '아직 관리 중인 팀이 없어요.';
+
+  @override
+  String get matchHubNoTeamsSubtitle =>
+      '팀을 만들고 선수와 전략을 넣은 뒤 그라운드 위 포지션에 선수를 배치해 보세요.';
+
+  @override
+  String matchHubMoreTeamsCount(int count) {
+    return '외 $count팀 더 있음';
+  }
+
+  @override
+  String matchHubTeamFormationValue(Object formation) {
+    return '$formation 포메이션';
+  }
+
+  @override
+  String get teamManagementTitle => '팀 관리';
+
+  @override
+  String get teamManagementSubtitle => '선수 명단, 팀 전략, 포메이션 배정을 한 화면에서 정리하세요.';
+
+  @override
+  String get teamManagementOpenButton => '팀 관리';
+
+  @override
+  String get teamManagementDefaultTeamName => '우리 팀';
+
+  @override
+  String get teamManagementSavedTeamsTitle => '관리 팀';
+
+  @override
+  String get teamManagementSavedTeamsHelper =>
+      '저장된 팀을 선택하면 전략과 라인업을 바로 수정할 수 있어요.';
+
+  @override
+  String get teamManagementNoTeamsTitle => '첫 팀을 준비 중입니다.';
+
+  @override
+  String get teamManagementNoTeamsBody =>
+      '팀 이름과 선수 명단을 입력한 뒤 저장하면 이곳에 팀 카드가 생깁니다.';
+
+  @override
+  String get teamManagementNewTeamButton => '새 팀';
+
+  @override
+  String get teamManagementBasicsTitle => '팀 전략';
+
+  @override
+  String get teamManagementBasicsHelper => '팀 이름과 경기 운영 방향을 먼저 정리하세요.';
+
+  @override
+  String get teamManagementTeamNameLabel => '팀 이름';
+
+  @override
+  String get teamManagementTeamNameHint => '예) 우리 팀 U15';
+
+  @override
+  String get teamManagementStrategyLabel => '전략 메모';
+
+  @override
+  String get teamManagementStrategyHint =>
+      '예) 전방 압박 후 빠른 측면 전환, 수비 시 4-4-2 블록 유지';
+
+  @override
+  String get teamManagementFormationTitle => '포메이션 보드';
+
+  @override
+  String get teamManagementFormationHelper =>
+      '포메이션을 고르고 그라운드 위 포지션을 눌러 선수를 배정하세요.';
+
+  @override
+  String get teamManagementFormationLabel => '포메이션';
+
+  @override
+  String teamManagementFormationSpotLabel(Object spot) {
+    return '$spot';
+  }
+
+  @override
+  String get teamManagementSelectPositionPrompt => '그라운드에서 포지션을 선택하세요.';
+
+  @override
+  String teamManagementSelectedPosition(Object position) {
+    return '$position 배정';
+  }
+
+  @override
+  String get teamManagementAssignedPlayerLabel => '배정할 선수';
+
+  @override
+  String get teamManagementUnassignedPlayer => '미배정';
+
+  @override
+  String get teamManagementPlayersTitle => '선수 명단';
+
+  @override
+  String get teamManagementPlayersHelper =>
+      '선수 정보를 추가하면 포메이션 슬롯에 바로 배정할 수 있어요.';
+
+  @override
+  String get teamManagementPlayerNameLabel => '선수 이름';
+
+  @override
+  String get teamManagementPlayerNameHint => '예) 김민준';
+
+  @override
+  String get teamManagementPlayerNumberLabel => '번호';
+
+  @override
+  String get teamManagementPlayerNumberHint => '10';
+
+  @override
+  String get teamManagementPlayerRoleLabel => '기본 포지션';
+
+  @override
+  String get teamManagementPlayerNoteLabel => '선수 메모';
+
+  @override
+  String get teamManagementPlayerNoteHint => '예) 왼발 킥 좋음, 압박 전환 빠름';
+
+  @override
+  String get teamManagementAddPlayerButton => '선수 추가';
+
+  @override
+  String get teamManagementNoPlayersTitle => '등록된 선수가 없어요.';
+
+  @override
+  String get teamManagementNoPlayersBody => '선수를 추가하면 포메이션 보드에서 바로 배정할 수 있습니다.';
+
+  @override
+  String teamManagementPlayerMeta(Object role, int count) {
+    return '$role · $count개 포지션 배정';
+  }
+
+  @override
+  String get teamManagementRemovePlayerButton => '삭제';
+
+  @override
+  String get teamManagementDeleteTeamButton => '팀 삭제';
+
+  @override
+  String get teamManagementSaveTeamButton => '팀 저장';
+
+  @override
+  String get teamManagementSaveHint => '저장한 팀은 시합 화면의 팀 관리 보드에 바로 표시됩니다.';
+
+  @override
+  String get teamManagementNameRequired => '팀 이름을 입력하세요.';
+
+  @override
+  String get teamManagementPlayerRequired => '선수 이름을 입력하세요.';
+
+  @override
+  String get teamManagementSavedFeedback => '팀 정보를 저장했어요.';
+
+  @override
+  String get teamManagementDeletedFeedback => '팀을 삭제했어요.';
+
+  @override
+  String get teamManagementRoleGoalkeeper => '골키퍼';
+
+  @override
+  String get teamManagementRoleDefender => '수비수';
+
+  @override
+  String get teamManagementRoleMidfielder => '미드필더';
+
+  @override
+  String get teamManagementRoleForward => '공격수';
+
+  @override
+  String teamManagementLineupFilled(int filled, int total) {
+    return '$filled/$total 배정';
+  }
+
+  @override
+  String teamManagementPlayerCount(int count) {
+    return '$count명';
+  }
+
+  @override
   String get baseballMatchHitsLabel => '안타';
 
   @override

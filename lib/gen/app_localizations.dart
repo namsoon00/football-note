@@ -17397,6 +17397,360 @@ abstract class AppLocalizations {
   /// **'Active {active} · Finished {finished}'**
   String matchHubCompetitionStateValue(int active, int finished);
 
+  /// No description provided for @matchHubTeamManagementHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage teams, players, tactics, and formations before recording matches.'**
+  String get matchHubTeamManagementHeaderSubtitle;
+
+  /// No description provided for @matchHubTeamManagementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team management board'**
+  String get matchHubTeamManagementTitle;
+
+  /// No description provided for @matchHubTeamManagementHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage players, tactics, and formations'**
+  String get matchHubTeamManagementHelper;
+
+  /// No description provided for @matchHubTeamStateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Managed teams'**
+  String get matchHubTeamStateLabel;
+
+  /// No description provided for @matchHubTeamStateValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} team(s)'**
+  String matchHubTeamStateValue(int count);
+
+  /// No description provided for @matchHubNoTeamsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No managed teams yet.'**
+  String get matchHubNoTeamsTitle;
+
+  /// No description provided for @matchHubNoTeamsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a team, add players and strategy notes, then assign players to positions on the pitch.'**
+  String get matchHubNoTeamsSubtitle;
+
+  /// No description provided for @matchHubMoreTeamsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more team(s)'**
+  String matchHubMoreTeamsCount(int count);
+
+  /// No description provided for @matchHubTeamFormationValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{formation} formation'**
+  String matchHubTeamFormationValue(Object formation);
+
+  /// No description provided for @teamManagementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team Management'**
+  String get teamManagementTitle;
+
+  /// No description provided for @teamManagementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organize the roster, team strategy, and formation assignments in one place.'**
+  String get teamManagementSubtitle;
+
+  /// No description provided for @teamManagementOpenButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Team management'**
+  String get teamManagementOpenButton;
+
+  /// No description provided for @teamManagementDefaultTeamName.
+  ///
+  /// In en, this message translates to:
+  /// **'Our team'**
+  String get teamManagementDefaultTeamName;
+
+  /// No description provided for @teamManagementSavedTeamsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Managed teams'**
+  String get teamManagementSavedTeamsTitle;
+
+  /// No description provided for @teamManagementSavedTeamsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a saved team to update its strategy and lineup.'**
+  String get teamManagementSavedTeamsHelper;
+
+  /// No description provided for @teamManagementNoTeamsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing your first team.'**
+  String get teamManagementNoTeamsTitle;
+
+  /// No description provided for @teamManagementNoTeamsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a team name and roster, then save it to create a team card here.'**
+  String get teamManagementNoTeamsBody;
+
+  /// No description provided for @teamManagementNewTeamButton.
+  ///
+  /// In en, this message translates to:
+  /// **'New team'**
+  String get teamManagementNewTeamButton;
+
+  /// No description provided for @teamManagementBasicsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team strategy'**
+  String get teamManagementBasicsTitle;
+
+  /// No description provided for @teamManagementBasicsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with the team name and how the side should play.'**
+  String get teamManagementBasicsHelper;
+
+  /// No description provided for @teamManagementTeamNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Team name'**
+  String get teamManagementTeamNameLabel;
+
+  /// No description provided for @teamManagementTeamNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Our U15'**
+  String get teamManagementTeamNameHint;
+
+  /// No description provided for @teamManagementStrategyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Strategy notes'**
+  String get teamManagementStrategyLabel;
+
+  /// No description provided for @teamManagementStrategyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Press high, switch quickly wide, defend in a 4-4-2 block'**
+  String get teamManagementStrategyHint;
+
+  /// No description provided for @teamManagementFormationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Formation board'**
+  String get teamManagementFormationTitle;
+
+  /// No description provided for @teamManagementFormationHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a formation, then tap a pitch position to assign a player.'**
+  String get teamManagementFormationHelper;
+
+  /// No description provided for @teamManagementFormationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Formation'**
+  String get teamManagementFormationLabel;
+
+  /// No description provided for @teamManagementFormationSpotLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{spot}'**
+  String teamManagementFormationSpotLabel(Object spot);
+
+  /// No description provided for @teamManagementSelectPositionPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a position on the pitch.'**
+  String get teamManagementSelectPositionPrompt;
+
+  /// No description provided for @teamManagementSelectedPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign {position}'**
+  String teamManagementSelectedPosition(Object position);
+
+  /// No description provided for @teamManagementAssignedPlayerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned player'**
+  String get teamManagementAssignedPlayerLabel;
+
+  /// No description provided for @teamManagementUnassignedPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get teamManagementUnassignedPlayer;
+
+  /// No description provided for @teamManagementPlayersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Roster'**
+  String get teamManagementPlayersTitle;
+
+  /// No description provided for @teamManagementPlayersHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Add players here, then assign them directly to formation slots.'**
+  String get teamManagementPlayersHelper;
+
+  /// No description provided for @teamManagementPlayerNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Player name'**
+  String get teamManagementPlayerNameLabel;
+
+  /// No description provided for @teamManagementPlayerNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Minjun Kim'**
+  String get teamManagementPlayerNameHint;
+
+  /// No description provided for @teamManagementPlayerNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No.'**
+  String get teamManagementPlayerNumberLabel;
+
+  /// No description provided for @teamManagementPlayerNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'10'**
+  String get teamManagementPlayerNumberHint;
+
+  /// No description provided for @teamManagementPlayerRoleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default position'**
+  String get teamManagementPlayerRoleLabel;
+
+  /// No description provided for @teamManagementPlayerNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Player note'**
+  String get teamManagementPlayerNoteLabel;
+
+  /// No description provided for @teamManagementPlayerNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Strong left foot, quick after pressing transitions'**
+  String get teamManagementPlayerNoteHint;
+
+  /// No description provided for @teamManagementAddPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add player'**
+  String get teamManagementAddPlayerButton;
+
+  /// No description provided for @teamManagementNoPlayersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No players registered.'**
+  String get teamManagementNoPlayersTitle;
+
+  /// No description provided for @teamManagementNoPlayersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add players to assign them on the formation board.'**
+  String get teamManagementNoPlayersBody;
+
+  /// No description provided for @teamManagementPlayerMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{role} · {count} position(s)'**
+  String teamManagementPlayerMeta(Object role, int count);
+
+  /// No description provided for @teamManagementRemovePlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get teamManagementRemovePlayerButton;
+
+  /// No description provided for @teamManagementDeleteTeamButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete team'**
+  String get teamManagementDeleteTeamButton;
+
+  /// No description provided for @teamManagementSaveTeamButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save team'**
+  String get teamManagementSaveTeamButton;
+
+  /// No description provided for @teamManagementSaveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved teams appear immediately on the Match screen team board.'**
+  String get teamManagementSaveHint;
+
+  /// No description provided for @teamManagementNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a team name.'**
+  String get teamManagementNameRequired;
+
+  /// No description provided for @teamManagementPlayerRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a player name.'**
+  String get teamManagementPlayerRequired;
+
+  /// No description provided for @teamManagementSavedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Team details saved.'**
+  String get teamManagementSavedFeedback;
+
+  /// No description provided for @teamManagementDeletedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Team deleted.'**
+  String get teamManagementDeletedFeedback;
+
+  /// No description provided for @teamManagementRoleGoalkeeper.
+  ///
+  /// In en, this message translates to:
+  /// **'Goalkeeper'**
+  String get teamManagementRoleGoalkeeper;
+
+  /// No description provided for @teamManagementRoleDefender.
+  ///
+  /// In en, this message translates to:
+  /// **'Defender'**
+  String get teamManagementRoleDefender;
+
+  /// No description provided for @teamManagementRoleMidfielder.
+  ///
+  /// In en, this message translates to:
+  /// **'Midfielder'**
+  String get teamManagementRoleMidfielder;
+
+  /// No description provided for @teamManagementRoleForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward'**
+  String get teamManagementRoleForward;
+
+  /// No description provided for @teamManagementLineupFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'{filled}/{total} assigned'**
+  String teamManagementLineupFilled(int filled, int total);
+
+  /// No description provided for @teamManagementPlayerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} player(s)'**
+  String teamManagementPlayerCount(int count);
+
   /// No description provided for @baseballMatchHitsLabel.
   ///
   /// In en, this message translates to:

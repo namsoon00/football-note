@@ -5613,6 +5613,119 @@
       }
     }
   },
+  "matchHubTeamManagementHeaderSubtitle": "Manage teams, players, tactics, and formations before recording matches.",
+  "matchHubTeamManagementTitle": "Team management board",
+  "matchHubTeamManagementHelper": "Manage players, tactics, and formations",
+  "matchHubTeamStateLabel": "Managed teams",
+  "matchHubTeamStateValue": "{count} team(s)",
+  "@matchHubTeamStateValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubNoTeamsTitle": "No managed teams yet.",
+  "matchHubNoTeamsSubtitle": "Create a team, add players and strategy notes, then assign players to positions on the pitch.",
+  "matchHubMoreTeamsCount": "{count} more team(s)",
+  "@matchHubMoreTeamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchHubTeamFormationValue": "{formation} formation",
+  "@matchHubTeamFormationValue": {
+    "placeholders": {
+      "formation": {}
+    }
+  },
+  "teamManagementTitle": "Team Management",
+  "teamManagementSubtitle": "Organize the roster, team strategy, and formation assignments in one place.",
+  "teamManagementOpenButton": "Team management",
+  "teamManagementDefaultTeamName": "Our team",
+  "teamManagementSavedTeamsTitle": "Managed teams",
+  "teamManagementSavedTeamsHelper": "Select a saved team to update its strategy and lineup.",
+  "teamManagementNoTeamsTitle": "Preparing your first team.",
+  "teamManagementNoTeamsBody": "Enter a team name and roster, then save it to create a team card here.",
+  "teamManagementNewTeamButton": "New team",
+  "teamManagementBasicsTitle": "Team strategy",
+  "teamManagementBasicsHelper": "Start with the team name and how the side should play.",
+  "teamManagementTeamNameLabel": "Team name",
+  "teamManagementTeamNameHint": "e.g. Our U15",
+  "teamManagementStrategyLabel": "Strategy notes",
+  "teamManagementStrategyHint": "e.g. Press high, switch quickly wide, defend in a 4-4-2 block",
+  "teamManagementFormationTitle": "Formation board",
+  "teamManagementFormationHelper": "Choose a formation, then tap a pitch position to assign a player.",
+  "teamManagementFormationLabel": "Formation",
+  "teamManagementFormationSpotLabel": "{spot}",
+  "@teamManagementFormationSpotLabel": {
+    "placeholders": {
+      "spot": {}
+    }
+  },
+  "teamManagementSelectPositionPrompt": "Select a position on the pitch.",
+  "teamManagementSelectedPosition": "Assign {position}",
+  "@teamManagementSelectedPosition": {
+    "placeholders": {
+      "position": {}
+    }
+  },
+  "teamManagementAssignedPlayerLabel": "Assigned player",
+  "teamManagementUnassignedPlayer": "Unassigned",
+  "teamManagementPlayersTitle": "Roster",
+  "teamManagementPlayersHelper": "Add players here, then assign them directly to formation slots.",
+  "teamManagementPlayerNameLabel": "Player name",
+  "teamManagementPlayerNameHint": "e.g. Minjun Kim",
+  "teamManagementPlayerNumberLabel": "No.",
+  "teamManagementPlayerNumberHint": "10",
+  "teamManagementPlayerRoleLabel": "Default position",
+  "teamManagementPlayerNoteLabel": "Player note",
+  "teamManagementPlayerNoteHint": "e.g. Strong left foot, quick after pressing transitions",
+  "teamManagementAddPlayerButton": "Add player",
+  "teamManagementNoPlayersTitle": "No players registered.",
+  "teamManagementNoPlayersBody": "Add players to assign them on the formation board.",
+  "teamManagementPlayerMeta": "{role} · {count} position(s)",
+  "@teamManagementPlayerMeta": {
+    "placeholders": {
+      "role": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementRemovePlayerButton": "Remove",
+  "teamManagementDeleteTeamButton": "Delete team",
+  "teamManagementSaveTeamButton": "Save team",
+  "teamManagementSaveHint": "Saved teams appear immediately on the Match screen team board.",
+  "teamManagementNameRequired": "Enter a team name.",
+  "teamManagementPlayerRequired": "Enter a player name.",
+  "teamManagementSavedFeedback": "Team details saved.",
+  "teamManagementDeletedFeedback": "Team deleted.",
+  "teamManagementRoleGoalkeeper": "Goalkeeper",
+  "teamManagementRoleDefender": "Defender",
+  "teamManagementRoleMidfielder": "Midfielder",
+  "teamManagementRoleForward": "Forward",
+  "teamManagementLineupFilled": "{filled}/{total} assigned",
+  "@teamManagementLineupFilled": {
+    "placeholders": {
+      "filled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerCount": "{count} player(s)",
+  "@teamManagementPlayerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "baseballMatchHitsLabel": "Hits",
   "baseballMatchRbisLabel": "RBIs",
   "baseballMatchRunsLabel": "Runs",
