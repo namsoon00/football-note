@@ -290,9 +290,13 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     'home-layout-title-section',
                     Row(
                       children: [
-                        Expanded(
+                        Flexible(
+                          fit: FlexFit.loose,
                           child: Text(
+                            key: const ValueKey<String>('home-title-label'),
                             l10n.homeHubTitleShort,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall
@@ -311,6 +315,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           margin: EdgeInsets.zero,
                           maxLabelWidth: 104,
                         ),
+                        const Spacer(),
                         const SizedBox(width: 8),
                         _TodayWeatherButton(
                           l10n: l10n,
