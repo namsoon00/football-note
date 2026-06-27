@@ -3701,7 +3701,7 @@
   "fortuneDialogAction": "좋아요",
   "fortuneDatabaseViewAction": "전체 데이터 보기",
   "fortuneDatabaseTitle": "전체 운세 데이터베이스",
-  "fortuneDatabaseSubtitle": "지장간, 십성, 십이운성, 지지 관계, 신살 키워드와 오늘 운세 문장·컬러·숫자 데이터를 모았어요.",
+  "fortuneDatabaseSubtitle": "명리학 흐름을 먼저 보고, 그 흐름에서 이어질 수 있는 오늘의 일과 컬러·숫자 데이터를 모았어요.",
   "fortuneDatabaseCloseAction": "닫기",
   "fortuneDatabaseSectionBirthCodes": "명리 코드",
   "fortuneDatabaseSectionHiddenStems": "지장간",
@@ -3710,8 +3710,8 @@
   "fortuneDatabaseSectionBranchRelations": "지지 합충형해파",
   "fortuneDatabaseSectionSymbolicStars": "신살 키워드",
   "fortuneDatabaseSectionElementColors": "오행 컬러",
-  "fortuneDatabaseSectionDayMoods": "하루 흐름",
-  "fortuneDatabaseSectionDailyEvents": "오늘 일어날 수 있는 일",
+  "fortuneDatabaseSectionDayMoods": "오늘 흐름의 이유",
+  "fortuneDatabaseSectionDailyEvents": "이어질 수 있는 일",
   "fortuneDatabaseSectionActionCues": "가볍게 해볼 일",
   "fortuneDatabaseSectionNameRhythms": "이름 리듬",
   "fortuneDatabaseSectionAdvice": "오늘의 한마디",
@@ -3770,7 +3770,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineTwo": "{fortuneTheme}",
+  "fortuneGeneratedDailyLineTwo": "그래서 {fortuneTheme}",
   "@fortuneGeneratedDailyLineTwo": {
     "placeholders": {
       "fortuneTheme": {

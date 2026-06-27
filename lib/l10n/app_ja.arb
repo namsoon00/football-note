@@ -3701,7 +3701,7 @@
   "fortuneDialogAction": "OK",
   "fortuneDatabaseViewAction": "全データを見る",
   "fortuneDatabaseTitle": "運勢データベース全体",
-  "fortuneDatabaseSubtitle": "蔵干、通変星、十二運、地支の関係、神殺キーワード、今日の運勢文、カラー、数字をまとめました。",
+  "fortuneDatabaseSubtitle": "命理の流れを先に見て、そこから続きそうな今日の出来事、カラー、数字をまとめました。",
   "fortuneDatabaseCloseAction": "閉じる",
   "fortuneDatabaseSectionBirthCodes": "命理コード",
   "fortuneDatabaseSectionHiddenStems": "蔵干",
@@ -3710,8 +3710,8 @@
   "fortuneDatabaseSectionBranchRelations": "地支の合冲刑害破",
   "fortuneDatabaseSectionSymbolicStars": "神殺キーワード",
   "fortuneDatabaseSectionElementColors": "五行カラー",
-  "fortuneDatabaseSectionDayMoods": "一日の流れ",
-  "fortuneDatabaseSectionDailyEvents": "今日起こりそうなこと",
+  "fortuneDatabaseSectionDayMoods": "今日の流れの理由",
+  "fortuneDatabaseSectionDailyEvents": "そこから続きそうなこと",
   "fortuneDatabaseSectionActionCues": "軽く試すこと",
   "fortuneDatabaseSectionNameRhythms": "名前リズム",
   "fortuneDatabaseSectionAdvice": "今日のひとこと",
@@ -3770,7 +3770,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineTwo": "{fortuneTheme}",
+  "fortuneGeneratedDailyLineTwo": "その流れで{fortuneTheme}",
   "@fortuneGeneratedDailyLineTwo": {
     "placeholders": {
       "fortuneTheme": {
