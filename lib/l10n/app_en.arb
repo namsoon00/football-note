@@ -4231,6 +4231,63 @@
       }
     }
   },
+  "runningCoachSprintQualityTitle": "Analysis quality",
+  "runningCoachSprintQualityScore": "{score}%",
+  "@runningCoachSprintQualityScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityReviewReady": "Precision review ready",
+  "runningCoachSprintQualityLiveReady": "Live coaching ready",
+  "runningCoachSprintQualitySetupNeeded": "Adjust capture setup",
+  "runningCoachSprintQualityGateFullBody": "Full-body joints",
+  "runningCoachSprintQualityGateSize": "Runner size",
+  "runningCoachSprintQualityGateSideView": "Side view",
+  "runningCoachSprintQualityGateConfidence": "Pose confidence",
+  "runningCoachSprintQualityGateStableFrames": "Stable frames",
+  "runningCoachSprintQualityPercentValue": "{percent}%",
+  "@runningCoachSprintQualityPercentValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityCoreJointValue": "{visible}/{total}",
+  "@runningCoachSprintQualityCoreJointValue": {
+    "placeholders": {
+      "visible": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualitySizeValue": "H {heightPercent}% · A {areaPercent}%",
+  "@runningCoachSprintQualitySizeValue": {
+    "placeholders": {
+      "heightPercent": {
+        "type": "int"
+      },
+      "areaPercent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityFrameValue": "{count} frames",
+  "@runningCoachSprintQualityFrameValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityReviewReadyHint": "This segment is stable enough for saved-video precision review.",
+  "runningCoachSprintQualityReviewPendingHint": "Full body, side view, and stable frames must all lock before precision scoring.",
   "runningCoachSprintSessionLogTitle": "Session summary",
   "runningCoachSprintSessionCameraFpsLabel": "Camera input FPS",
   "runningCoachSprintSessionAnalyzedFpsLabel": "Analyzed FPS",
