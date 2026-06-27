@@ -6267,7 +6267,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneDatabaseSubtitle =>
-      'Myeongli reference data, hidden stems, ten gods, twelve stages, branch relations, symbolic stars, daily lines, colors, and numbers.';
+      'Myeongli flow cues, the daily events that can follow from them, colors, and numbers used to build today\'s fortune.';
 
   @override
   String get fortuneDatabaseCloseAction => 'Close';
@@ -6294,10 +6294,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseSectionElementColors => 'Element colors';
 
   @override
-  String get fortuneDatabaseSectionDayMoods => 'Day flows';
+  String get fortuneDatabaseSectionDayMoods => 'Why today feels this way';
 
   @override
-  String get fortuneDatabaseSectionDailyEvents => 'Possible events today';
+  String get fortuneDatabaseSectionDailyEvents => 'What may follow';
 
   @override
   String get fortuneDatabaseSectionActionCues => 'Small things to try';
@@ -6366,7 +6366,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineTwo(String fortuneTheme) {
-    return '$fortuneTheme';
+    return 'That is why $fortuneTheme';
   }
 
   @override

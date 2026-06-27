@@ -50,6 +50,7 @@ void main() {
       ...l10n.fortuneMyeongliBranchRelationDailyLines.split('|'),
     };
     expect(myeongliDailyLines, contains(generatedFlow));
+    expect(lines[1], startsWith('그래서 '));
     expect(lines[1], isNot(contains('훈련')));
     expect(lines[1], isNot(contains('패스')));
     expect(lines.last, contains('오늘의 컬러는 '));
@@ -108,6 +109,8 @@ void main() {
     expect(sections[4].values, contains(startsWith('자오충:')));
     expect(sections[5].values, contains(startsWith('천을귀인:')));
     expect(sections[6].values, contains(startsWith('목:')));
+    expect(sections[7].title, '오늘 흐름의 이유');
+    expect(sections[8].title, '이어질 수 있는 일');
   });
 
   test('myeongli database exposes practitioner-style reference rules', () {

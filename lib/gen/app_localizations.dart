@@ -10952,7 +10952,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Myeongli reference data, hidden stems, ten gods, twelve stages, branch relations, symbolic stars, daily lines, colors, and numbers.'**
+  /// **'Myeongli flow cues, the daily events that can follow from them, colors, and numbers used to build today\'s fortune.'**
   String get fortuneDatabaseSubtitle;
 
   /// No description provided for @fortuneDatabaseCloseAction.
@@ -11006,13 +11006,13 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSectionDayMoods.
   ///
   /// In en, this message translates to:
-  /// **'Day flows'**
+  /// **'Why today feels this way'**
   String get fortuneDatabaseSectionDayMoods;
 
   /// No description provided for @fortuneDatabaseSectionDailyEvents.
   ///
   /// In en, this message translates to:
-  /// **'Possible events today'**
+  /// **'What may follow'**
   String get fortuneDatabaseSectionDailyEvents;
 
   /// No description provided for @fortuneDatabaseSectionActionCues.
@@ -11134,7 +11134,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedDailyLineTwo.
   ///
   /// In en, this message translates to:
-  /// **'{fortuneTheme}'**
+  /// **'That is why {fortuneTheme}'**
   String fortuneGeneratedDailyLineTwo(String fortuneTheme);
 
   /// No description provided for @fortuneGeneratedDailyLineThree.

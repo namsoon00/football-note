@@ -6097,7 +6097,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get fortuneDatabaseSubtitle =>
-      '蔵干、通変星、十二運、地支の関係、神殺キーワード、今日の運勢文、カラー、数字をまとめました。';
+      '命理の流れを先に見て、そこから続きそうな今日の出来事、カラー、数字をまとめました。';
 
   @override
   String get fortuneDatabaseCloseAction => '閉じる';
@@ -6124,10 +6124,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseSectionElementColors => '五行カラー';
 
   @override
-  String get fortuneDatabaseSectionDayMoods => '一日の流れ';
+  String get fortuneDatabaseSectionDayMoods => '今日の流れの理由';
 
   @override
-  String get fortuneDatabaseSectionDailyEvents => '今日起こりそうなこと';
+  String get fortuneDatabaseSectionDailyEvents => 'そこから続きそうなこと';
 
   @override
   String get fortuneDatabaseSectionActionCues => '軽く試すこと';
@@ -6196,7 +6196,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineTwo(String fortuneTheme) {
-    return '$fortuneTheme';
+    return 'その流れで$fortuneTheme';
   }
 
   @override

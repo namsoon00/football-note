@@ -3701,7 +3701,7 @@
   "fortuneDialogAction": "Got it",
   "fortuneDatabaseViewAction": "View full database",
   "fortuneDatabaseTitle": "Full Fortune Database",
-  "fortuneDatabaseSubtitle": "Myeongli reference data, hidden stems, ten gods, twelve stages, branch relations, symbolic stars, daily lines, colors, and numbers.",
+  "fortuneDatabaseSubtitle": "Myeongli flow cues, the daily events that can follow from them, colors, and numbers used to build today's fortune.",
   "fortuneDatabaseCloseAction": "Close",
   "fortuneDatabaseSectionBirthCodes": "Myeongli codes",
   "fortuneDatabaseSectionHiddenStems": "Hidden stems",
@@ -3710,8 +3710,8 @@
   "fortuneDatabaseSectionBranchRelations": "Branch relations",
   "fortuneDatabaseSectionSymbolicStars": "Symbolic stars",
   "fortuneDatabaseSectionElementColors": "Element colors",
-  "fortuneDatabaseSectionDayMoods": "Day flows",
-  "fortuneDatabaseSectionDailyEvents": "Possible events today",
+  "fortuneDatabaseSectionDayMoods": "Why today feels this way",
+  "fortuneDatabaseSectionDailyEvents": "What may follow",
   "fortuneDatabaseSectionActionCues": "Small things to try",
   "fortuneDatabaseSectionNameRhythms": "Name rhythms",
   "fortuneDatabaseSectionAdvice": "Daily notes",
@@ -3770,7 +3770,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineTwo": "{fortuneTheme}",
+  "fortuneGeneratedDailyLineTwo": "That is why {fortuneTheme}",
   "@fortuneGeneratedDailyLineTwo": {
     "placeholders": {
       "fortuneTheme": {

@@ -6097,7 +6097,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fortuneDatabaseSubtitle =>
-      '지장간, 십성, 십이운성, 지지 관계, 신살 키워드와 오늘 운세 문장·컬러·숫자 데이터를 모았어요.';
+      '명리학 흐름을 먼저 보고, 그 흐름에서 이어질 수 있는 오늘의 일과 컬러·숫자 데이터를 모았어요.';
 
   @override
   String get fortuneDatabaseCloseAction => '닫기';
@@ -6124,10 +6124,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseSectionElementColors => '오행 컬러';
 
   @override
-  String get fortuneDatabaseSectionDayMoods => '하루 흐름';
+  String get fortuneDatabaseSectionDayMoods => '오늘 흐름의 이유';
 
   @override
-  String get fortuneDatabaseSectionDailyEvents => '오늘 일어날 수 있는 일';
+  String get fortuneDatabaseSectionDailyEvents => '이어질 수 있는 일';
 
   @override
   String get fortuneDatabaseSectionActionCues => '가볍게 해볼 일';
@@ -6196,7 +6196,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineTwo(String fortuneTheme) {
-    return '$fortuneTheme';
+    return '그래서 $fortuneTheme';
   }
 
   @override
