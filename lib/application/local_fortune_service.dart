@@ -220,8 +220,7 @@ class LocalFortuneService {
         );
 
     final fortuneText = <String>[
-      l10n.fortuneGeneratedDailyLineOne(name, elementFlow),
-      l10n.fortuneGeneratedDailyLineTwo(fortuneTheme),
+      l10n.fortuneGeneratedLinkedDailyLine(name, elementFlow, fortuneTheme),
       l10n.fortuneGeneratedLuckyInfoLine(luckyNumber, luckyColor),
     ].join('\n');
 
