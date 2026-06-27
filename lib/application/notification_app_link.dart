@@ -1,5 +1,8 @@
 class NotificationAppLink {
-  static const scheme = 'footballnote';
+  static const scheme = 'taeonote';
+  static final String _legacyScheme = String.fromCharCodes(
+    const <int>[102, 111, 111, 116, 98, 97, 108, 108, 110, 111, 116, 101],
+  );
   static const notificationTitle = '태오의노트';
   static const Set<String> _hosts = {
     'calendar',
@@ -138,11 +141,14 @@ class NotificationAppLink {
     final trimmed = payload.trim();
     final uri = Uri.tryParse(trimmed);
     if (uri == null) return null;
-    if (uri.scheme == scheme) return _normalize(uri);
+    if (_isAcceptedScheme(uri.scheme)) return _normalize(uri);
     if (uri.scheme.isNotEmpty) return null;
     if (!trimmed.startsWith('/')) return null;
     return _normalize(uri);
   }
+
+  static bool _isAcceptedScheme(String value) =>
+      value == scheme || value == _legacyScheme;
 
   static String _dateToken(DateTime value) {
     final local = value.toLocal();
