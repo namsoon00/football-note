@@ -6361,12 +6361,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name, $elementFlow.';
+    return '$name, $elementFlow';
   }
 
   @override
   String fortuneGeneratedDailyLineTwo(String fortuneTheme) {
-    return 'That is why $fortuneTheme';
+    return '$fortuneTheme';
+  }
+
+  @override
+  String fortuneGeneratedLinkedDailyLine(
+      String name, String elementFlow, String fortuneTheme) {
+    return '$name, with $elementFlow, $fortuneTheme';
   }
 
   @override
@@ -6447,23 +6453,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneMyeongliTenGodDailyLines =>
-      'holding your own standard keeps the day easy|do not get swept up in everyone else\'s speed|a small pleasure softens the day|a different expression may land surprisingly well|an unexpected offer may come in|the thing you handle calmly will feel solid|quick judgment may matter today|promises and order make the flow better|an unfamiliar clue may be easy to catch|it is fine to receive help comfortably';
+      'your own standard clearer today|some distance from everyone else\'s speed|small pleasure softening the day|a fresher expression ready to land well|an unexpected offer easier to notice|calmly handled details feeling solid|quick judgment closer to the surface|promises and order setting the pace|an unfamiliar clue easier to catch|help easier to receive comfortably';
 
   @override
   String get fortuneMyeongliTwelveStageDailyLines =>
-      'a new energy starts in a small way|your senses are sharp enough to catch a good choice|the day gets firmer when you set your posture|it is a good day to trust your pace|your push may come alive strongly|letting go of extra force makes things easier|condition care comes before overdoing it|choosing what to finish lightens your luck|a thought you stored away may give an answer|cutting off what needs to end is better today|a small possibility begins to show|it is good to quietly grow the next flow';
+      'new energy rising in a small way|your senses sharper than usual|your posture easier to set|your own pace becoming clearer|your drive coming forward strongly|extra force easier to release|your condition asking for first attention|unfinished pieces easier to close|an old thought coming back with an answer|loose ends easier to cut cleanly|a small possibility starting to show|the next flow growing quietly';
 
   @override
   String get fortuneMyeongliBranchRelationDailyLines =>
-      'close cooperation can soften the day|after a bump, the direction may become clearer|split tangled things into steps and they loosen|check needless misunderstandings briefly|tidy up scattered promises and the day gets lighter|scattered energy can gather in one place|a familiar spot can feel especially steady';
+      'close cooperation becoming useful|direction clearer after a small bump|tangled things loosening step by step|small misunderstandings easier to check|scattered promises ready to be tidied|scattered energy gathering in one place|a familiar spot feeling steadier';
 
   @override
   String get fortuneSajuElementFlows =>
-      'take an easy start today|expect a welcome message|do not miss a small lucky break|it is a good day to clear your mind|follow the light flutter|make the choice clearly|expect a warm encounter|get into pleasant focus|unexpected help may arrive|recover calmly|hold onto a fresh idea|look for a hidden chance|tidy things cleanly|quick intuition may matter today|wait for soft timing|use a little courage|a hint of good news may show|move at a comfortable pace|things may start to loosen|trust your own rhythm|smile first and the mood gets easier|notice a small change in the air|the answer you waited for may come closer|show quiet confidence';
+      'an easy start fitting the day|a welcome message easier to expect|a small lucky break easier to notice|your mind easier to clear|a light flutter following you|your choice becoming clearer|a warm encounter opening up|pleasant focus coming naturally|unexpected help easier to receive|calm recovery setting the tone|a fresh idea coming up|a hidden chance becoming visible|tidying up making the day lighter|quick awareness needed today|soft timing coming alive|small courage easier to use|a hint of good news showing up|a comfortable pace fitting you|a blocked matter starting to loosen|your own rhythm easier to trust|a first smile easing the mood|a small change catching your eye|the answer you waited for moving closer|quiet confidence coming back';
 
   @override
   String get fortuneSajuElementFlowExtras =>
-      'observe calmly|a light turnaround may happen|an easy challenge fits well|your heart may open wider|unexpected kindness may appear|choices may get easier|notice a small sense of achievement|trust the good feeling|slow luck may come closer|a clear answer may come to mind|expect a sparkling coincidence|tidying your surroundings may lighten your luck|a new interest may appear|your mind may feel lighter|a clue may loosen early|conversation may flow easily|use comfortable courage|small recognition may arrive|make room to breathe|the timing may fit well|focus may get deeper|a cute mistake can be laughed off|expect a welcome discovery|the day may gather speed|trust quiet self-belief|your instincts may sharpen|a good course change is possible|small popularity may appear|start with a good feeling|finish things crisply|waiting may get shorter|one more laugh may arrive|leave a decent offer open|your mind may loosen lightly|an accurate hunch may matter|follow warm curiosity';
+      'calm observation working well|a light twist becoming possible|a low-pressure challenge fitting well|your mind opening a little wider|unexpected kindness easier to meet|choices becoming easier|small achievement building up|a good hunch coming alive|slow luck moving toward you|a clear answer coming to mind|a bright coincidence becoming visible|your luck feeling lighter after a tidy-up|a new interest appearing|your mood loosening gently|the clue showing early|conversation flowing well|comfortable courage easier to use|small recognition easier to receive|a little breathing room needed|timing matching well|focus becoming deeper|small mistakes easier to laugh off|a welcome discovery appearing|the day picking up speed|quiet confidence coming alive|your hunch getting sharper|a direction change feeling natural|small popularity showing up|a good-feeling start becoming possible|a fresh finish fitting the day|waiting time becoming shorter|one more laugh becoming likely|a decent offer worth keeping open|your heart softening gently|accurate instinct needed today|warm curiosity carrying you forward';
 
   @override
   String get fortuneSajuFortuneThemes =>
