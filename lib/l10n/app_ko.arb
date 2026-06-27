@@ -4231,6 +4231,63 @@
       }
     }
   },
+  "runningCoachSprintQualityTitle": "분석 품질",
+  "runningCoachSprintQualityScore": "{score}%",
+  "@runningCoachSprintQualityScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityReviewReady": "정밀 리뷰 준비됨",
+  "runningCoachSprintQualityLiveReady": "실시간 코칭 가능",
+  "runningCoachSprintQualitySetupNeeded": "촬영 조건 조정 필요",
+  "runningCoachSprintQualityGateFullBody": "전신 관절",
+  "runningCoachSprintQualityGateSize": "러너 크기",
+  "runningCoachSprintQualityGateSideView": "측면 구도",
+  "runningCoachSprintQualityGateConfidence": "포즈 신뢰도",
+  "runningCoachSprintQualityGateStableFrames": "안정 프레임",
+  "runningCoachSprintQualityPercentValue": "{percent}%",
+  "@runningCoachSprintQualityPercentValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityCoreJointValue": "{visible}/{total}",
+  "@runningCoachSprintQualityCoreJointValue": {
+    "placeholders": {
+      "visible": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualitySizeValue": "높이 {heightPercent}% · 면적 {areaPercent}%",
+  "@runningCoachSprintQualitySizeValue": {
+    "placeholders": {
+      "heightPercent": {
+        "type": "int"
+      },
+      "areaPercent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityFrameValue": "{count}프레임",
+  "@runningCoachSprintQualityFrameValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityReviewReadyHint": "이 구간은 저장 영상 정밀 리뷰에 쓸 만큼 안정적입니다.",
+  "runningCoachSprintQualityReviewPendingHint": "전신, 측면, 안정 프레임이 모두 맞아야 정밀 판정이 켜집니다.",
   "runningCoachSprintSessionLogTitle": "세션 요약",
   "runningCoachSprintSessionCameraFpsLabel": "카메라 입력 FPS",
   "runningCoachSprintSessionAnalyzedFpsLabel": "분석 FPS",

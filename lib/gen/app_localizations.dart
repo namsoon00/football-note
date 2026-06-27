@@ -12877,6 +12877,102 @@ abstract class AppLocalizations {
   /// **'Step events {count}'**
   String runningCoachSprintDetectedSteps(int count);
 
+  /// No description provided for @runningCoachSprintQualityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis quality'**
+  String get runningCoachSprintQualityTitle;
+
+  /// No description provided for @runningCoachSprintQualityScore.
+  ///
+  /// In en, this message translates to:
+  /// **'{score}%'**
+  String runningCoachSprintQualityScore(int score);
+
+  /// No description provided for @runningCoachSprintQualityReviewReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Precision review ready'**
+  String get runningCoachSprintQualityReviewReady;
+
+  /// No description provided for @runningCoachSprintQualityLiveReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Live coaching ready'**
+  String get runningCoachSprintQualityLiveReady;
+
+  /// No description provided for @runningCoachSprintQualitySetupNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust capture setup'**
+  String get runningCoachSprintQualitySetupNeeded;
+
+  /// No description provided for @runningCoachSprintQualityGateFullBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Full-body joints'**
+  String get runningCoachSprintQualityGateFullBody;
+
+  /// No description provided for @runningCoachSprintQualityGateSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Runner size'**
+  String get runningCoachSprintQualityGateSize;
+
+  /// No description provided for @runningCoachSprintQualityGateSideView.
+  ///
+  /// In en, this message translates to:
+  /// **'Side view'**
+  String get runningCoachSprintQualityGateSideView;
+
+  /// No description provided for @runningCoachSprintQualityGateConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose confidence'**
+  String get runningCoachSprintQualityGateConfidence;
+
+  /// No description provided for @runningCoachSprintQualityGateStableFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable frames'**
+  String get runningCoachSprintQualityGateStableFrames;
+
+  /// No description provided for @runningCoachSprintQualityPercentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String runningCoachSprintQualityPercentValue(int percent);
+
+  /// No description provided for @runningCoachSprintQualityCoreJointValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{visible}/{total}'**
+  String runningCoachSprintQualityCoreJointValue(int visible, int total);
+
+  /// No description provided for @runningCoachSprintQualitySizeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'H {heightPercent}% · A {areaPercent}%'**
+  String runningCoachSprintQualitySizeValue(int heightPercent, int areaPercent);
+
+  /// No description provided for @runningCoachSprintQualityFrameValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} frames'**
+  String runningCoachSprintQualityFrameValue(int count);
+
+  /// No description provided for @runningCoachSprintQualityReviewReadyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This segment is stable enough for saved-video precision review.'**
+  String get runningCoachSprintQualityReviewReadyHint;
+
+  /// No description provided for @runningCoachSprintQualityReviewPendingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Full body, side view, and stable frames must all lock before precision scoring.'**
+  String get runningCoachSprintQualityReviewPendingHint;
+
   /// No description provided for @runningCoachSprintSessionLogTitle.
   ///
   /// In en, this message translates to:

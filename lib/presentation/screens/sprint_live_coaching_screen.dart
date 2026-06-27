@@ -207,6 +207,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
 
     final statusTheme = _statusTheme(context, _coachingState);
     final metrics = _buildCoachingMetrics(l10n);
+    final analysisQuality = _buildAnalysisQuality(l10n);
     final bannerCue = _bannerCueText(l10n, _coachingState);
     final diagnosis = _diagnosisText(l10n, _coachingState);
     final actionTip = _actionTipText(l10n, _coachingState);
@@ -237,10 +238,28 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
               padding: const EdgeInsets.all(12),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final bannerWidth = math.min(
-                    420.0,
-                    math.max(260.0, constraints.maxWidth * 0.58),
-                  );
+                  final compactOverlay = constraints.maxWidth < 560;
+                  final qualityWidth = compactOverlay
+                      ? math.min(
+                          176.0,
+                          math.max(132.0, constraints.maxWidth * 0.4),
+                        )
+                      : math.min(
+                          236.0,
+                          math.max(186.0, constraints.maxWidth * 0.42),
+                        );
+                  final bannerWidth = compactOverlay
+                      ? math.min(
+                          220.0,
+                          math.max(
+                            160.0,
+                            constraints.maxWidth - qualityWidth - 8,
+                          ),
+                        )
+                      : math.min(
+                          420.0,
+                          math.max(260.0, constraints.maxWidth * 0.58),
+                        );
                   final metricsWidth = math.min(
                     660.0,
                     math.max(320.0, constraints.maxWidth - 16),
@@ -269,13 +288,26 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                       ),
                       Align(
                         alignment: Alignment.topRight,
-                        child: _StatusDock(
-                          items: [
-                            _InfoChipData(text: _bodyVisibilityText(l10n)),
-                            _InfoChipData(
-                              text: _isSpeechEnabled
-                                  ? l10n.runningCoachLiveVoiceOn
-                                  : l10n.runningCoachLiveVoiceOff,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            _StatusDock(
+                              items: [
+                                _InfoChipData(text: _bodyVisibilityText(l10n)),
+                                _InfoChipData(
+                                  text: _isSpeechEnabled
+                                      ? l10n.runningCoachLiveVoiceOn
+                                      : l10n.runningCoachLiveVoiceOff,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: qualityWidth,
+                              child: _AnalysisQualityPanel(
+                                data: analysisQuality,
+                              ),
                             ),
                           ],
                         ),
@@ -1521,6 +1553,97 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     ];
   }
 
+  _AnalysisQualityData _buildAnalysisQuality(AppLocalizations l10n) {
+    final estimate = _coachingState.stateEstimate;
+    final hasFullBody =
+        estimate.bodyVisibilityStatus == SprintBodyVisibilityStatus.full &&
+            estimate.missingCoreLandmarkCount == 0;
+    final hasUsefulSize = estimate.personHeightRatio >=
+            _pipelineConfig.minimumPersonHeightRatio &&
+        estimate.personAreaRatio >= _pipelineConfig.minimumPersonAreaRatio;
+    final hasTrackingConfidence = estimate.trackingConfidence >=
+            _pipelineConfig.minimumTrackingConfidence &&
+        estimate.averageLandmarkConfidence >=
+            _pipelineConfig.minimumLandmarkConfidence;
+    final hasSideView = estimate.sideViewConfidence >=
+        _pipelineConfig.minimumSideViewConfidence;
+    final hasStableWindow =
+        estimate.stableFrameCount >= _pipelineConfig.minimumWindowFrames &&
+            _coachingState.trackedFrames >= _pipelineConfig.minimumWindowFrames;
+
+    final gates = [
+      _QualityGateData(
+        label: l10n.runningCoachSprintQualityGateFullBody,
+        value: l10n.runningCoachSprintQualityCoreJointValue(
+          estimate.visibleCoreLandmarkCount,
+          sprintMvpCoreLandmarkCount,
+        ),
+        passed: hasFullBody,
+      ),
+      _QualityGateData(
+        label: l10n.runningCoachSprintQualityGateSize,
+        value: l10n.runningCoachSprintQualitySizeValue(
+          (estimate.personHeightRatio * 100).round(),
+          (estimate.personAreaRatio * 100).round(),
+        ),
+        passed: hasUsefulSize,
+      ),
+      _QualityGateData(
+        label: l10n.runningCoachSprintQualityGateSideView,
+        value: l10n.runningCoachSprintQualityPercentValue(
+          (estimate.sideViewConfidence * 100).round(),
+        ),
+        passed: hasSideView,
+      ),
+      _QualityGateData(
+        label: l10n.runningCoachSprintQualityGateConfidence,
+        value: l10n.runningCoachSprintQualityPercentValue(
+          (estimate.trackingConfidence * 100).round(),
+        ),
+        passed: hasTrackingConfidence,
+      ),
+      _QualityGateData(
+        label: l10n.runningCoachSprintQualityGateStableFrames,
+        value: l10n.runningCoachSprintQualityFrameValue(
+          math
+              .max(
+                estimate.stableFrameCount,
+                _coachingState.trackedFrames,
+              )
+              .toInt(),
+        ),
+        passed: hasStableWindow,
+      ),
+    ];
+
+    final passedCount = gates.where((gate) => gate.passed).length;
+    final score = ((passedCount / gates.length) * 100).round();
+    final isReviewReady =
+        passedCount == gates.length && _coachingState.features.hasEnoughSignal;
+    final label = isReviewReady
+        ? l10n.runningCoachSprintQualityReviewReady
+        : score >= 80
+            ? l10n.runningCoachSprintQualityLiveReady
+            : l10n.runningCoachSprintQualitySetupNeeded;
+    final color = isReviewReady
+        ? const Color(0xFF73F3B4)
+        : score >= 80
+            ? const Color(0xFF8BC34A)
+            : const Color(0xFFFFD54F);
+
+    return _AnalysisQualityData(
+      title: l10n.runningCoachSprintQualityTitle,
+      scoreLabel: l10n.runningCoachSprintQualityScore(score),
+      statusLabel: label,
+      score: score,
+      accent: color,
+      gates: gates,
+      reviewHint: isReviewReady
+          ? l10n.runningCoachSprintQualityReviewReadyHint
+          : l10n.runningCoachSprintQualityReviewPendingHint,
+    );
+  }
+
   List<_SessionSummaryLine> _buildSessionSummaryLines(AppLocalizations l10n) {
     final highConfidence =
         ((_sessionMetrics.confidenceBucketRatio(4)) * 100).round();
@@ -1964,6 +2087,178 @@ class _CueHintPill extends StatelessWidget {
               ),
         ),
       ),
+    );
+  }
+}
+
+class _QualityGateData {
+  final String label;
+  final String value;
+  final bool passed;
+
+  const _QualityGateData({
+    required this.label,
+    required this.value,
+    required this.passed,
+  });
+}
+
+class _AnalysisQualityData {
+  final String title;
+  final String scoreLabel;
+  final String statusLabel;
+  final int score;
+  final Color accent;
+  final List<_QualityGateData> gates;
+  final String reviewHint;
+
+  const _AnalysisQualityData({
+    required this.title,
+    required this.scoreLabel,
+    required this.statusLabel,
+    required this.score,
+    required this.accent,
+    required this.gates,
+    required this.reviewHint,
+  });
+}
+
+class _AnalysisQualityPanel extends StatelessWidget {
+  final _AnalysisQualityData data;
+
+  const _AnalysisQualityPanel({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (data.score / 100).clamp(0.0, 1.0).toDouble();
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xA8121720),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: data.accent.withAlpha(132)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 10,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.analytics_outlined, color: data.accent, size: 17),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    data.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+                Text(
+                  data.scoreLabel,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: data.accent,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                minHeight: 5,
+                value: progress,
+                backgroundColor: Colors.white.withAlpha(18),
+                valueColor: AlwaysStoppedAnimation<Color>(data.accent),
+              ),
+            ),
+            const SizedBox(height: 7),
+            Text(
+              data.statusLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: data.accent.withAlpha(230),
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            for (final gate in data.gates) ...[
+              _QualityGateRow(gate: gate, accent: data.accent),
+              const SizedBox(height: 5),
+            ],
+            Text(
+              data.reviewHint,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.white60,
+                    height: 1.15,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QualityGateRow extends StatelessWidget {
+  final _QualityGateData gate;
+  final Color accent;
+
+  const _QualityGateRow({required this.gate, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = gate.passed ? accent : Colors.white38;
+    return Row(
+      children: [
+        Icon(
+          gate.passed
+              ? Icons.check_circle_rounded
+              : Icons.radio_button_unchecked,
+          color: color,
+          size: 14,
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            gate.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w700,
+                  height: 1.1,
+                ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          gate.value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w800,
+                height: 1.1,
+              ),
+        ),
+      ],
     );
   }
 }

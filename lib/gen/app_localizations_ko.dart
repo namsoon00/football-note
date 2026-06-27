@@ -7229,6 +7229,67 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintQualityTitle => '분석 품질';
+
+  @override
+  String runningCoachSprintQualityScore(int score) {
+    return '$score%';
+  }
+
+  @override
+  String get runningCoachSprintQualityReviewReady => '정밀 리뷰 준비됨';
+
+  @override
+  String get runningCoachSprintQualityLiveReady => '실시간 코칭 가능';
+
+  @override
+  String get runningCoachSprintQualitySetupNeeded => '촬영 조건 조정 필요';
+
+  @override
+  String get runningCoachSprintQualityGateFullBody => '전신 관절';
+
+  @override
+  String get runningCoachSprintQualityGateSize => '러너 크기';
+
+  @override
+  String get runningCoachSprintQualityGateSideView => '측면 구도';
+
+  @override
+  String get runningCoachSprintQualityGateConfidence => '포즈 신뢰도';
+
+  @override
+  String get runningCoachSprintQualityGateStableFrames => '안정 프레임';
+
+  @override
+  String runningCoachSprintQualityPercentValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String runningCoachSprintQualityCoreJointValue(int visible, int total) {
+    return '$visible/$total';
+  }
+
+  @override
+  String runningCoachSprintQualitySizeValue(
+      int heightPercent, int areaPercent) {
+    return '높이 $heightPercent% · 면적 $areaPercent%';
+  }
+
+  @override
+  String runningCoachSprintQualityFrameValue(int count) {
+    return '$count프레임';
+  }
+
+  @override
+  String get runningCoachSprintQualityReviewReadyHint =>
+      '이 구간은 저장 영상 정밀 리뷰에 쓸 만큼 안정적입니다.';
+
+  @override
+  String get runningCoachSprintQualityReviewPendingHint =>
+      '전신, 측면, 안정 프레임이 모두 맞아야 정밀 판정이 켜집니다.';
+
+  @override
   String get runningCoachSprintSessionLogTitle => '세션 요약';
 
   @override

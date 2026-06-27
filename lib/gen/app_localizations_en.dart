@@ -7424,6 +7424,67 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintQualityTitle => 'Analysis quality';
+
+  @override
+  String runningCoachSprintQualityScore(int score) {
+    return '$score%';
+  }
+
+  @override
+  String get runningCoachSprintQualityReviewReady => 'Precision review ready';
+
+  @override
+  String get runningCoachSprintQualityLiveReady => 'Live coaching ready';
+
+  @override
+  String get runningCoachSprintQualitySetupNeeded => 'Adjust capture setup';
+
+  @override
+  String get runningCoachSprintQualityGateFullBody => 'Full-body joints';
+
+  @override
+  String get runningCoachSprintQualityGateSize => 'Runner size';
+
+  @override
+  String get runningCoachSprintQualityGateSideView => 'Side view';
+
+  @override
+  String get runningCoachSprintQualityGateConfidence => 'Pose confidence';
+
+  @override
+  String get runningCoachSprintQualityGateStableFrames => 'Stable frames';
+
+  @override
+  String runningCoachSprintQualityPercentValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String runningCoachSprintQualityCoreJointValue(int visible, int total) {
+    return '$visible/$total';
+  }
+
+  @override
+  String runningCoachSprintQualitySizeValue(
+      int heightPercent, int areaPercent) {
+    return 'H $heightPercent% · A $areaPercent%';
+  }
+
+  @override
+  String runningCoachSprintQualityFrameValue(int count) {
+    return '$count frames';
+  }
+
+  @override
+  String get runningCoachSprintQualityReviewReadyHint =>
+      'This segment is stable enough for saved-video precision review.';
+
+  @override
+  String get runningCoachSprintQualityReviewPendingHint =>
+      'Full body, side view, and stable frames must all lock before precision scoring.';
+
+  @override
   String get runningCoachSprintSessionLogTitle => 'Session summary';
 
   @override

@@ -4231,6 +4231,63 @@
       }
     }
   },
+  "runningCoachSprintQualityTitle": "分析品質",
+  "runningCoachSprintQualityScore": "{score}%",
+  "@runningCoachSprintQualityScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityReviewReady": "精密レビュー準備完了",
+  "runningCoachSprintQualityLiveReady": "ライブコーチング可能",
+  "runningCoachSprintQualitySetupNeeded": "撮影条件を調整",
+  "runningCoachSprintQualityGateFullBody": "全身関節",
+  "runningCoachSprintQualityGateSize": "ランナーサイズ",
+  "runningCoachSprintQualityGateSideView": "サイドビュー",
+  "runningCoachSprintQualityGateConfidence": "ポーズ信頼度",
+  "runningCoachSprintQualityGateStableFrames": "安定フレーム",
+  "runningCoachSprintQualityPercentValue": "{percent}%",
+  "@runningCoachSprintQualityPercentValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityCoreJointValue": "{visible}/{total}",
+  "@runningCoachSprintQualityCoreJointValue": {
+    "placeholders": {
+      "visible": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualitySizeValue": "高さ {heightPercent}%・面積 {areaPercent}%",
+  "@runningCoachSprintQualitySizeValue": {
+    "placeholders": {
+      "heightPercent": {
+        "type": "int"
+      },
+      "areaPercent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityFrameValue": "{count} フレーム",
+  "@runningCoachSprintQualityFrameValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintQualityReviewReadyHint": "この区間は保存動画の精密レビューに使えるほど安定しています。",
+  "runningCoachSprintQualityReviewPendingHint": "全身、サイドビュー、安定フレームが揃うと精密判定が有効になります。",
   "runningCoachSprintSessionLogTitle": "セッションの概要",
   "runningCoachSprintSessionCameraFpsLabel": "カメラ入力FPS",
   "runningCoachSprintSessionAnalyzedFpsLabel": "分析された FPS",

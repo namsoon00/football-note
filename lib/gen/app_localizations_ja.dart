@@ -7218,6 +7218,67 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintQualityTitle => '分析品質';
+
+  @override
+  String runningCoachSprintQualityScore(int score) {
+    return '$score%';
+  }
+
+  @override
+  String get runningCoachSprintQualityReviewReady => '精密レビュー準備完了';
+
+  @override
+  String get runningCoachSprintQualityLiveReady => 'ライブコーチング可能';
+
+  @override
+  String get runningCoachSprintQualitySetupNeeded => '撮影条件を調整';
+
+  @override
+  String get runningCoachSprintQualityGateFullBody => '全身関節';
+
+  @override
+  String get runningCoachSprintQualityGateSize => 'ランナーサイズ';
+
+  @override
+  String get runningCoachSprintQualityGateSideView => 'サイドビュー';
+
+  @override
+  String get runningCoachSprintQualityGateConfidence => 'ポーズ信頼度';
+
+  @override
+  String get runningCoachSprintQualityGateStableFrames => '安定フレーム';
+
+  @override
+  String runningCoachSprintQualityPercentValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String runningCoachSprintQualityCoreJointValue(int visible, int total) {
+    return '$visible/$total';
+  }
+
+  @override
+  String runningCoachSprintQualitySizeValue(
+      int heightPercent, int areaPercent) {
+    return '高さ $heightPercent%・面積 $areaPercent%';
+  }
+
+  @override
+  String runningCoachSprintQualityFrameValue(int count) {
+    return '$count フレーム';
+  }
+
+  @override
+  String get runningCoachSprintQualityReviewReadyHint =>
+      'この区間は保存動画の精密レビューに使えるほど安定しています。';
+
+  @override
+  String get runningCoachSprintQualityReviewPendingHint =>
+      '全身、サイドビュー、安定フレームが揃うと精密判定が有効になります。';
+
+  @override
   String get runningCoachSprintSessionLogTitle => 'セッションの概要';
 
   @override
