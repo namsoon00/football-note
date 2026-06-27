@@ -226,6 +226,13 @@ void main() {
       find.byKey(const ValueKey<String>('home-section-settings-button')),
     );
     expect(layoutButtonRect.left - titleRect.right, closeTo(8, 0.1));
+    final titleSectionRect = tester.getRect(
+      find.byKey(const ValueKey<String>('home-layout-title-section')),
+    );
+    final weatherButtonRect = tester.getRect(
+      find.byKey(const ValueKey<String>('home-weather-button')),
+    );
+    expect(titleSectionRect.right - weatherButtonRect.right, closeTo(0, 0.1));
 
     await tester.tap(
       find.byKey(const ValueKey<String>('home-section-settings-button')),
