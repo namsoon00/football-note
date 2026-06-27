@@ -149,8 +149,9 @@ void main() {
 
     await pumpHub(tester);
 
-    expect(find.text('시합 허브'), findsWidgets);
-    expect(find.text('시합 운영 보드'), findsOneWidget);
+    expect(find.text('팀 관리'), findsWidgets);
+    expect(find.text('팀 운영 보드'), findsOneWidget);
+    expect(find.text('시합 허브'), findsNothing);
     expect(find.text('2경기'), findsOneWidget);
     expect(find.text('1승 0무 1패'), findsOneWidget);
     expect(find.text('주말 리그'), findsOneWidget);

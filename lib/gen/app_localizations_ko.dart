@@ -9877,16 +9877,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchBallsWonLabel => '공을 뺏은 횟수';
 
   @override
-  String get matchHubTopActionTooltip => '시합 허브';
+  String get matchHubTopActionTooltip => '팀 관리';
 
   @override
-  String get matchHubTitle => '시합 허브';
+  String get matchHubTitle => '팀 관리';
 
   @override
-  String get matchHubSubtitle => '친선, 리그, 토너먼트를 한곳에서 기록하고 결과 흐름을 확인하세요.';
+  String get matchHubSubtitle => '팀, 선수, 전술을 관리하고 친선, 리그, 토너먼트 기록으로 이어가세요.';
 
   @override
-  String get matchHubOverviewTitle => '시합 운영 보드';
+  String get matchHubOverviewTitle => '팀 운영 보드';
 
   @override
   String get matchHubRecentFormLabel => '최근 폼';
@@ -9895,11 +9895,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchHubRecordButton => '시합 기록';
 
   @override
-  String get matchEntryManagedInHubTitle => '시합 기록은 시합 화면에서 관리합니다.';
+  String get matchEntryManagedInHubTitle => '시합 기록은 팀 관리 화면에서 관리합니다.';
 
   @override
   String get matchEntryManagedInHubBody =>
-      '훈련 노트에서는 시합 정보를 보여주지 않습니다. 시합 확인과 수정은 상단 시합 화면에서 진행해 주세요.';
+      '훈련 노트에서는 시합 정보를 보여주지 않습니다. 시합 확인과 수정은 상단 팀 관리 화면에서 진행해 주세요.';
 
   @override
   String get matchHubRecordHelper => '오늘 경기 결과를 바로 입력';
@@ -9957,7 +9957,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchHubEmptySubtitle => '친선 경기부터 빠르게 남기면 승률과 최근 폼을 계산할 수 있어요.';
 
   @override
-  String get matchHubOpeningFeedback => '시합 화면으로 이동합니다.';
+  String get matchHubOpeningFeedback => '팀 관리 화면으로 이동합니다.';
 
   @override
   String matchHubRecordedOnlyProgress(int count) {

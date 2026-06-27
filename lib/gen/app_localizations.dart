@@ -17353,25 +17353,25 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubTopActionTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Match hub'**
+  /// **'Team management'**
   String get matchHubTopActionTooltip;
 
   /// No description provided for @matchHubTitle.
   ///
   /// In en, this message translates to:
-  /// **'Match Hub'**
+  /// **'Team Management'**
   String get matchHubTitle;
 
   /// No description provided for @matchHubSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Record friendlies, leagues, and tournaments in one place and review the result flow.'**
+  /// **'Manage teams, players, and tactics before recording friendlies, leagues, and tournaments.'**
   String get matchHubSubtitle;
 
   /// No description provided for @matchHubOverviewTitle.
   ///
   /// In en, this message translates to:
-  /// **'Match operations board'**
+  /// **'Team operations board'**
   String get matchHubOverviewTitle;
 
   /// No description provided for @matchHubRecentFormLabel.
@@ -17389,13 +17389,13 @@ abstract class AppLocalizations {
   /// No description provided for @matchEntryManagedInHubTitle.
   ///
   /// In en, this message translates to:
-  /// **'Match records are managed in the Match screen.'**
+  /// **'Match records are managed in Team Management.'**
   String get matchEntryManagedInHubTitle;
 
   /// No description provided for @matchEntryManagedInHubBody.
   ///
   /// In en, this message translates to:
-  /// **'Training notes no longer show match details. View and edit matches from the top Match screen.'**
+  /// **'Training notes no longer show match details. View and edit matches from the top Team Management screen.'**
   String get matchEntryManagedInHubBody;
 
   /// No description provided for @matchHubRecordHelper.
@@ -17509,7 +17509,7 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubOpeningFeedback.
   ///
   /// In en, this message translates to:
-  /// **'Opening the match screen.'**
+  /// **'Opening Team Management.'**
   String get matchHubOpeningFeedback;
 
   /// No description provided for @matchHubRecordedOnlyProgress.
