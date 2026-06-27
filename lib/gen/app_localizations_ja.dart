@@ -9566,6 +9566,88 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionManageButton => 'チーム登録/結果を見る';
 
   @override
+  String get matchCompetitionOpenButton => '大会管理';
+
+  @override
+  String get matchCompetitionOpenHelper => 'リーグとトーナメントを運営';
+
+  @override
+  String get matchCompetitionProTitle => '大会運営センター';
+
+  @override
+  String get matchCompetitionProSubtitle =>
+      '監督、コーチ、選手が参加チーム、運営情報、順位、トーナメント表をまとめて管理できます。';
+
+  @override
+  String get matchCompetitionOperationsSummaryTitle => '運営サマリー';
+
+  @override
+  String get matchCompetitionCreateLeagueButton => 'リーグを作成';
+
+  @override
+  String get matchCompetitionCreateTournamentButton => 'トーナメントを作成';
+
+  @override
+  String get matchCompetitionSeasonLabel => 'シーズン';
+
+  @override
+  String get matchCompetitionSeasonHint => '例: 2026年夏';
+
+  @override
+  String get matchCompetitionVenueLabel => '会場';
+
+  @override
+  String get matchCompetitionVenueHint => '例: メインピッチ';
+
+  @override
+  String get matchCompetitionOrganizerLabel => '担当';
+
+  @override
+  String get matchCompetitionOrganizerHint => '例: キムコーチ';
+
+  @override
+  String get matchCompetitionNoteLabel => '運営メモ';
+
+  @override
+  String get matchCompetitionNoteHint => '例: グループ後にトーナメント、ローテーション必須';
+
+  @override
+  String get matchCompetitionSaveCompetition => '大会を保存';
+
+  @override
+  String get matchCompetitionEditButton => '編集';
+
+  @override
+  String get matchCompetitionNoCompetitionsProBody =>
+      'リーグやトーナメントを先に作成すると、参加チーム、運営情報、順位、トーナメント表を専門的に管理できます。';
+
+  @override
+  String get matchCompetitionOperationsDetailEmpty => '運営情報未入力';
+
+  @override
+  String get matchCompetitionNextActionLabel => '次の運営';
+
+  @override
+  String get matchCompetitionNextRegisterTeams => '参加チーム登録';
+
+  @override
+  String get matchCompetitionNextRecordFirstMatch => '初戦を記録';
+
+  @override
+  String get matchCompetitionNextRecordNextMatch => '次の試合を記録';
+
+  @override
+  String get matchCompetitionNextCloseCompetition => '大会終了を確認';
+
+  @override
+  String get matchCompetitionNextReviewArchive => '結果アーカイブ';
+
+  @override
+  String matchCompetitionProgressPercent(int percent) {
+    return '進行率 $percent%';
+  }
+
+  @override
   String get matchCompetitionManagerNewTitle => '大会管理';
 
   @override

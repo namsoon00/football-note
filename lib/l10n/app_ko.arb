@@ -5417,6 +5417,39 @@
   },
   "matchCompetitionFinishedNotice": "종료된 대회입니다. 이전 경기 기록을 정리할 때 선택하세요.",
   "matchCompetitionManageButton": "팀 등록/결과 보기",
+  "matchCompetitionOpenButton": "대회 관리",
+  "matchCompetitionOpenHelper": "리그와 토너먼트 운영",
+  "matchCompetitionProTitle": "대회 운영 센터",
+  "matchCompetitionProSubtitle": "감독, 코치, 선수가 참가 팀, 운영 정보, 순위와 대진을 함께 관리하세요.",
+  "matchCompetitionOperationsSummaryTitle": "운영 요약",
+  "matchCompetitionCreateLeagueButton": "리그 만들기",
+  "matchCompetitionCreateTournamentButton": "토너먼트 만들기",
+  "matchCompetitionSeasonLabel": "시즌",
+  "matchCompetitionSeasonHint": "예) 2026 여름",
+  "matchCompetitionVenueLabel": "장소",
+  "matchCompetitionVenueHint": "예) 메인 구장",
+  "matchCompetitionOrganizerLabel": "담당",
+  "matchCompetitionOrganizerHint": "예) 감독 김코치",
+  "matchCompetitionNoteLabel": "운영 메모",
+  "matchCompetitionNoteHint": "예) 조별 후 토너먼트, 로테이션 필수",
+  "matchCompetitionSaveCompetition": "대회 저장",
+  "matchCompetitionEditButton": "수정",
+  "matchCompetitionNoCompetitionsProBody": "리그나 토너먼트를 먼저 만들면 참가 팀, 운영 정보, 순위와 대진을 전문적으로 관리할 수 있어요.",
+  "matchCompetitionOperationsDetailEmpty": "운영 정보 미입력",
+  "matchCompetitionNextActionLabel": "다음 운영",
+  "matchCompetitionNextRegisterTeams": "참가 팀 등록",
+  "matchCompetitionNextRecordFirstMatch": "첫 경기 기록",
+  "matchCompetitionNextRecordNextMatch": "다음 경기 기록",
+  "matchCompetitionNextCloseCompetition": "대회 종료 검토",
+  "matchCompetitionNextReviewArchive": "결과 아카이브",
+  "matchCompetitionProgressPercent": "진행률 {percent}%",
+  "@matchCompetitionProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "matchCompetitionManagerNewTitle": "대회 관리",
   "matchCompetitionManagerTitle": "{name} 관리",
   "@matchCompetitionManagerTitle": {

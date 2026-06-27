@@ -81,6 +81,9 @@ void main() {
         kind: MatchCompetitionRecord.kindLeague,
         name: '주말 리그',
         teams: const ['우리 팀', '서울 U15', '부산 U15'],
+        season: '2026 여름',
+        venue: '메인 구장',
+        organizer: '감독 김코치',
       ),
     );
     await competitionService.upsertCompetition(
@@ -158,9 +161,33 @@ void main() {
     expect(find.text('컵 대회'), findsOneWidget);
     expect(find.text('팀 관리 보드'), findsOneWidget);
     expect(find.text('우리 팀 U15'), findsOneWidget);
+    expect(find.text('대회 관리'), findsWidgets);
     expect(find.text('시합 기록 보기'), findsOneWidget);
     expect(find.text('최근 시합'), findsNothing);
     expect(find.text('3 : 1'), findsNothing);
+  });
+
+  testWidgets('Match hub opens professional competition management', (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+
+    await pumpHub(tester);
+    await tester.tap(find.text('대회 관리').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('대회 운영 센터'), findsOneWidget);
+    expect(find.text('운영 요약'), findsOneWidget);
+    expect(find.text('리그 만들기'), findsOneWidget);
+    expect(find.text('토너먼트 만들기'), findsOneWidget);
+    expect(find.text('주말 리그'), findsOneWidget);
+    expect(find.text('컵 대회'), findsOneWidget);
+    expect(find.textContaining('2026 여름'), findsOneWidget);
+    expect(find.textContaining('메인 구장'), findsOneWidget);
+    expect(find.textContaining('감독 김코치'), findsOneWidget);
+    expect(find.text('리그 순위'), findsOneWidget);
+    expect(find.text('토너먼트 대진표'), findsOneWidget);
+    expect(find.text('다음 운영'), findsWidgets);
   });
 
   testWidgets('Match hub opens a dedicated records view', (
