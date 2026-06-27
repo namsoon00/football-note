@@ -9866,16 +9866,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchBallsWonLabel => '獲得したボール';
 
   @override
-  String get matchHubTopActionTooltip => '試合ハブ';
+  String get matchHubTopActionTooltip => 'チーム管理';
 
   @override
-  String get matchHubTitle => '試合ハブ';
+  String get matchHubTitle => 'チーム管理';
 
   @override
-  String get matchHubSubtitle => '親善試合、リーグ、トーナメントを一か所で記録し、結果の流れを確認できます。';
+  String get matchHubSubtitle => 'チーム、選手、戦術を管理し、親善試合、リーグ、トーナメントの記録につなげましょう。';
 
   @override
-  String get matchHubOverviewTitle => '試合運営ボード';
+  String get matchHubOverviewTitle => 'チーム運営ボード';
 
   @override
   String get matchHubRecentFormLabel => '最近のフォーム';
@@ -9884,11 +9884,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchHubRecordButton => '試合を記録';
 
   @override
-  String get matchEntryManagedInHubTitle => '試合記録は試合画面で管理します。';
+  String get matchEntryManagedInHubTitle => '試合記録はチーム管理画面で管理します。';
 
   @override
   String get matchEntryManagedInHubBody =>
-      'トレーニングノートでは試合情報を表示しません。試合の確認と編集は上部の試合画面で行ってください。';
+      'トレーニングノートでは試合情報を表示しません。試合の確認と編集は上部のチーム管理画面で行ってください。';
 
   @override
   String get matchHubRecordHelper => '今日の結果をすばやく入力';
@@ -9946,7 +9946,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchHubEmptySubtitle => '親善試合から記録すると、勝率と最近のフォームを計算できます。';
 
   @override
-  String get matchHubOpeningFeedback => '試合画面へ移動します。';
+  String get matchHubOpeningFeedback => 'チーム管理画面へ移動します。';
 
   @override
   String matchHubRecordedOnlyProgress(int count) {

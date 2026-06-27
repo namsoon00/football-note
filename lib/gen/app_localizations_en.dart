@@ -10153,17 +10153,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchBallsWonLabel => 'Balls won';
 
   @override
-  String get matchHubTopActionTooltip => 'Match hub';
+  String get matchHubTopActionTooltip => 'Team management';
 
   @override
-  String get matchHubTitle => 'Match Hub';
+  String get matchHubTitle => 'Team Management';
 
   @override
   String get matchHubSubtitle =>
-      'Record friendlies, leagues, and tournaments in one place and review the result flow.';
+      'Manage teams, players, and tactics before recording friendlies, leagues, and tournaments.';
 
   @override
-  String get matchHubOverviewTitle => 'Match operations board';
+  String get matchHubOverviewTitle => 'Team operations board';
 
   @override
   String get matchHubRecentFormLabel => 'Recent form';
@@ -10173,11 +10173,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchEntryManagedInHubTitle =>
-      'Match records are managed in the Match screen.';
+      'Match records are managed in Team Management.';
 
   @override
   String get matchEntryManagedInHubBody =>
-      'Training notes no longer show match details. View and edit matches from the top Match screen.';
+      'Training notes no longer show match details. View and edit matches from the top Team Management screen.';
 
   @override
   String get matchHubRecordHelper => 'Enter today\'s result quickly';
@@ -10238,7 +10238,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start with a friendly match to calculate win rate and recent form.';
 
   @override
-  String get matchHubOpeningFeedback => 'Opening the match screen.';
+  String get matchHubOpeningFeedback => 'Opening Team Management.';
 
   @override
   String matchHubRecordedOnlyProgress(int count) {
