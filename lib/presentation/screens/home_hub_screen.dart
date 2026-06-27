@@ -290,18 +290,15 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     'home-layout-title-section',
                     Row(
                       children: [
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: Text(
-                            key: const ValueKey<String>('home-title-label'),
-                            l10n.homeHubTitleShort,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.w900),
-                          ),
+                        Text(
+                          key: const ValueKey<String>('home-title-label'),
+                          l10n.homeHubTitleShort,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(width: 8),
                         AppBarActionButton.label(
@@ -315,16 +312,25 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           margin: EdgeInsets.zero,
                           maxLabelWidth: 104,
                         ),
-                        const Spacer(),
-                        const SizedBox(width: 8),
-                        _TodayWeatherButton(
-                          l10n: l10n,
-                          weatherLoading: _weatherLoading,
-                          weatherNeedsLocation: _weatherNeedsLocation,
-                          weatherLoadFailed: _weatherLoadFailed,
-                          weatherSummary: _weatherSummary.trim(),
-                          weatherCode: _weatherCode,
-                          onTap: _weatherBadgeTapAction(),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: _TodayWeatherButton(
+                                key: const ValueKey<String>(
+                                  'home-weather-button',
+                                ),
+                                l10n: l10n,
+                                weatherLoading: _weatherLoading,
+                                weatherNeedsLocation: _weatherNeedsLocation,
+                                weatherLoadFailed: _weatherLoadFailed,
+                                weatherSummary: _weatherSummary.trim(),
+                                weatherCode: _weatherCode,
+                                onTap: _weatherBadgeTapAction(),
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -1868,6 +1874,7 @@ class _TodayWeatherButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _TodayWeatherButton({
+    super.key,
     required this.l10n,
     required this.weatherLoading,
     required this.weatherNeedsLocation,
