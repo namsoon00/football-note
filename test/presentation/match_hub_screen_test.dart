@@ -74,9 +74,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Match hub shows competitions and recent match results', (
-    tester,
-  ) async {
+  Future<void> seedMatchHubRecords() async {
     final competitionService = MatchCompetitionService(optionRepository);
     await competitionService.upsertCompetition(
       MatchCompetitionRecord.create(
@@ -142,6 +140,12 @@ void main() {
         tournamentOutcome: 'eliminated',
       ),
     );
+  }
+
+  testWidgets('Match hub keeps records out of the home overview', (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
 
     await pumpHub(tester);
 
@@ -153,8 +157,27 @@ void main() {
     expect(find.text('컵 대회'), findsOneWidget);
     expect(find.text('팀 관리 보드'), findsOneWidget);
     expect(find.text('우리 팀 U15'), findsOneWidget);
+    expect(find.text('시합 기록 보기'), findsOneWidget);
+    expect(find.text('최근 시합'), findsNothing);
+    expect(find.text('3 : 1'), findsNothing);
+  });
+
+  testWidgets('Match hub opens a dedicated records view', (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+
+    await pumpHub(tester);
+    await tester.tap(find.text('시합 기록 보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('시합 기록'), findsWidgets);
+    expect(find.text('기록 요약'), findsOneWidget);
+    expect(find.text('전체 시합 기록'), findsOneWidget);
     expect(find.textContaining('서울 U15'), findsWidgets);
     expect(find.text('3 : 1'), findsOneWidget);
+    expect(find.textContaining('인천 U15'), findsWidgets);
+    expect(find.text('1 : 2'), findsOneWidget);
   });
 
   testWidgets('Match hub quick stats action calls the host callback', (

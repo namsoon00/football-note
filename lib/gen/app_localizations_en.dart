@@ -10183,6 +10183,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchHubRecordHelper => 'Enter today\'s result quickly';
 
   @override
+  String get matchRecordsOpenButton => 'Match records';
+
+  @override
+  String get matchRecordsOpenHelper => 'Review past match results';
+
+  @override
+  String get matchRecordsTitle => 'Match records';
+
+  @override
+  String get matchRecordsSubtitle =>
+      'Review friendly, league, and tournament results by date.';
+
+  @override
+  String get matchRecordsSummaryTitle => 'Record summary';
+
+  @override
+  String get matchRecordsListTitle => 'All match records';
+
+  @override
   String get matchHubCalendarButton => 'Open calendar';
 
   @override

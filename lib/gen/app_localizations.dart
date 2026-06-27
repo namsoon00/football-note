@@ -17404,6 +17404,42 @@ abstract class AppLocalizations {
   /// **'Enter today\'s result quickly'**
   String get matchHubRecordHelper;
 
+  /// No description provided for @matchRecordsOpenButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Match records'**
+  String get matchRecordsOpenButton;
+
+  /// No description provided for @matchRecordsOpenHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Review past match results'**
+  String get matchRecordsOpenHelper;
+
+  /// No description provided for @matchRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match records'**
+  String get matchRecordsTitle;
+
+  /// No description provided for @matchRecordsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review friendly, league, and tournament results by date.'**
+  String get matchRecordsSubtitle;
+
+  /// No description provided for @matchRecordsSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record summary'**
+  String get matchRecordsSummaryTitle;
+
+  /// No description provided for @matchRecordsListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All match records'**
+  String get matchRecordsListTitle;
+
   /// No description provided for @matchHubCalendarButton.
   ///
   /// In en, this message translates to:
