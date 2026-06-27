@@ -9894,6 +9894,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchHubRecordHelper => '今日の結果をすばやく入力';
 
   @override
+  String get matchRecordsOpenButton => '試合記録を見る';
+
+  @override
+  String get matchRecordsOpenHelper => '過去の試合結果を確認';
+
+  @override
+  String get matchRecordsTitle => '試合記録';
+
+  @override
+  String get matchRecordsSubtitle => '親善試合、リーグ、トーナメントの結果を日付順に確認します。';
+
+  @override
+  String get matchRecordsSummaryTitle => '記録サマリー';
+
+  @override
+  String get matchRecordsListTitle => 'すべての試合記録';
+
+  @override
   String get matchHubCalendarButton => '予定を見る';
 
   @override

@@ -9905,6 +9905,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchHubRecordHelper => '오늘 경기 결과를 바로 입력';
 
   @override
+  String get matchRecordsOpenButton => '시합 기록 보기';
+
+  @override
+  String get matchRecordsOpenHelper => '지난 경기 결과를 따로 확인';
+
+  @override
+  String get matchRecordsTitle => '시합 기록';
+
+  @override
+  String get matchRecordsSubtitle => '친선, 리그, 토너먼트 결과를 날짜순으로 확인하세요.';
+
+  @override
+  String get matchRecordsSummaryTitle => '기록 요약';
+
+  @override
+  String get matchRecordsListTitle => '전체 시합 기록';
+
+  @override
   String get matchHubCalendarButton => '일정 보기';
 
   @override
