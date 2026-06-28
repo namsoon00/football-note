@@ -43,7 +43,8 @@ void main() {
     expect(lines.first, isNot(contains('그래서')));
     expect(lines.first, isNot(contains('분위기예요')));
     expect(lines.first, isNot(contains('쪽으로 흐름이 잡혀요')));
-    expect(lines.first, matches(RegExp(r'(흐름이라|날이라) .+요\.$')));
+    expect(lines.first, isNot(contains('흐름')));
+    expect(lines.first, matches(RegExp(r'날이라 .+요\.$')));
     final myeongliDailyLines = <String>{
       ...l10n.fortuneMyeongliTenGodDailyLines.split('|'),
       ...l10n.fortuneMyeongliTwelveStageDailyLines.split('|'),
@@ -64,7 +65,7 @@ void main() {
         .split('|');
 
     expect(flows, hasLength(60));
-    expect(flows, contains('빠른 눈치가 필요한 흐름이라'));
+    expect(flows, contains('상대 표정을 보고 말을 고르기 좋은 날이라'));
     for (final flow in flows) {
       final line = l10n.fortuneGeneratedLinkedDailyLine(
         '민준',
@@ -75,9 +76,40 @@ void main() {
       expect(line, isNot(contains('빠른 눈치 분위기')));
       expect(line, isNot(contains('분위기예요')));
       expect(line, isNot(contains('쪽으로 흐름이 잡혀요')));
+      expect(line, isNot(contains('흐름')));
       expect(line, isNot(contains('그래서')));
-      expect(line, matches(RegExp(r'(흐름이라|날이라) .+요\.$')));
+      expect(line, matches(RegExp(r'날이라 .+요\.$')));
       expect(line, endsWith('.'));
+    }
+  });
+
+  test('korean generated fortune database uses concrete everyday copy', () {
+    final l10n = AppLocalizationsKo();
+    final causes = <String>[
+      ...l10n.fortuneMyeongliTenGodDailyLines.split('|'),
+      ...l10n.fortuneMyeongliTwelveStageDailyLines.split('|'),
+      ...l10n.fortuneMyeongliBranchRelationDailyLines.split('|'),
+      ...l10n.fortuneSajuElementFlows.split('|'),
+      ...l10n.fortuneSajuElementFlowExtras.split('|'),
+    ];
+    final events = <String>[
+      ...l10n.fortuneSajuFortuneThemes.split('|'),
+      ...l10n.fortuneSajuFortuneThemeExtras.split('|'),
+    ];
+    final unclearTerms = RegExp(
+      '흐름|기운|가능성|예감|분위기|자신감|호기심|타이밍|감이',
+    );
+
+    expect(causes, hasLength(89));
+    expect(events, hasLength(96));
+    expect(causes, contains('상대 표정을 보고 말을 고르기 좋은 날이라'));
+    expect(events, contains('아침 알림에서 반가운 이름을 볼 수 있어요.'));
+    expect(events, contains('점심 전 미뤄둔 메시지를 보낼 수 있어요.'));
+    for (final copy in <String>[...causes, ...events]) {
+      expect(copy, isNot(matches(unclearTerms)), reason: copy);
+    }
+    for (final cause in causes) {
+      expect(cause, endsWith('날이라'), reason: cause);
     }
   });
 
