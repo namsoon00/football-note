@@ -5810,7 +5810,7 @@
     }
   },
   "teamManagementTitle": "チーム管理",
-  "teamManagementSubtitle": "選手名簿、チーム戦略、フォーメーション配置を一つの画面で整理します。",
+  "teamManagementSubtitle": "選手登録と管理から始め、ドラッグ配置と移動線ボードで戦術を整理します。",
   "teamManagementOpenButton": "チーム管理",
   "teamManagementDefaultTeamName": "自分のチーム",
   "teamManagementSavedTeamsTitle": "管理チーム",
@@ -5818,14 +5818,14 @@
   "teamManagementNoTeamsTitle": "最初のチームを準備中です。",
   "teamManagementNoTeamsBody": "チーム名と選手名簿を入力して保存すると、ここにチームカードが作成されます。",
   "teamManagementNewTeamButton": "新しいチーム",
-  "teamManagementBasicsTitle": "チーム戦略",
-  "teamManagementBasicsHelper": "チーム名と試合運びの方針から整理しましょう。",
+  "teamManagementBasicsTitle": "チーム情報と戦術説明",
+  "teamManagementBasicsHelper": "選手名簿を作成してから、チーム名と戦術説明を整理します。",
   "teamManagementTeamNameLabel": "チーム名",
   "teamManagementTeamNameHint": "例) 自分のU15",
-  "teamManagementStrategyLabel": "戦略メモ",
-  "teamManagementStrategyHint": "例) 高い位置でプレスし、素早くサイドへ展開。守備時は4-4-2ブロック",
+  "teamManagementStrategyLabel": "戦術説明",
+  "teamManagementStrategyHint": "例) プレス開始位置、サイドチェンジの約束、守備ブロックの基準",
   "teamManagementFormationTitle": "フォーメーションボード",
-  "teamManagementFormationHelper": "フォーメーションを選び、ピッチ上のポジションをタップして選手を割り当てます。",
+  "teamManagementFormationHelper": "選手をポジションへドラッグし、描画モードで移動線やプレス方向を描きます。",
   "teamManagementFormationLabel": "フォーメーション",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -5843,15 +5843,26 @@
   "teamManagementAssignedPlayerLabel": "割り当てる選手",
   "teamManagementUnassignedPlayer": "未割り当て",
   "teamManagementPlayersTitle": "選手名簿",
-  "teamManagementPlayersHelper": "選手情報を追加すると、フォーメーションの枠にすぐ割り当てられます。",
+  "teamManagementPlayersHelper": "チーム管理は選手登録から始まります。番号、ポジション、利き足、コンディション、管理メモを残しましょう。",
   "teamManagementPlayerNameLabel": "選手名",
   "teamManagementPlayerNameHint": "例) キム・ミンジュン",
   "teamManagementPlayerNumberLabel": "番号",
   "teamManagementPlayerNumberHint": "10",
   "teamManagementPlayerRoleLabel": "基本ポジション",
+  "teamManagementPlayerFootLabel": "利き足",
+  "teamManagementPlayerFootRight": "右足",
+  "teamManagementPlayerFootLeft": "左足",
+  "teamManagementPlayerFootBoth": "両足",
+  "teamManagementPlayerConditionLabel": "コンディション",
+  "teamManagementPlayerConditionReady": "出場可能",
+  "teamManagementPlayerConditionWatch": "管理が必要",
+  "teamManagementPlayerConditionRest": "休養推奨",
   "teamManagementPlayerNoteLabel": "選手メモ",
-  "teamManagementPlayerNoteHint": "例) 左足のキックが良い、プレス後の切り替えが速い",
+  "teamManagementPlayerNoteHint": "例) 左足のキックが良い、プレス後の切り替えが速い、膝の負荷を管理",
   "teamManagementAddPlayerButton": "選手を追加",
+  "teamManagementUpdatePlayerButton": "変更を保存",
+  "teamManagementCancelPlayerEditButton": "編集をキャンセル",
+  "teamManagementEditPlayerButton": "編集",
   "teamManagementNoPlayersTitle": "登録された選手がいません。",
   "teamManagementNoPlayersBody": "選手を追加すると、フォーメーションボードで割り当てられます。",
   "teamManagementPlayerMeta": "{role} · {count}ポジション",
@@ -5863,6 +5874,31 @@
       }
     }
   },
+  "teamManagementPlayerDetailMeta": "{role} · {foot} · {condition} · {count}件割り当て",
+  "@teamManagementPlayerDetailMeta": {
+    "placeholders": {
+      "role": {},
+      "foot": {},
+      "condition": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerTrayTitle": "ドラッグする選手",
+  "teamManagementPlayerTrayEmpty": "先に選手を登録すると、ここからポジションへドラッグできます。",
+  "teamManagementBoardMovePlayersMode": "選手配置",
+  "teamManagementBoardDrawMode": "移動線を描く",
+  "teamManagementBoardClearLinesButton": "線を消去",
+  "teamManagementTacticLinesCount": "移動線 {count}本",
+  "@teamManagementTacticLinesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementFormationDropHint": "選手チップをポジションの上に置いてください。",
   "teamManagementRemovePlayerButton": "削除",
   "teamManagementDeleteTeamButton": "チーム削除",
   "teamManagementSaveTeamButton": "チーム保存",

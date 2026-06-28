@@ -5810,7 +5810,7 @@
     }
   },
   "teamManagementTitle": "Team Management",
-  "teamManagementSubtitle": "Organize the roster, team strategy, and formation assignments in one place.",
+  "teamManagementSubtitle": "Start with player registration and management, then organize tactics with drag-and-drop formations and movement lines.",
   "teamManagementOpenButton": "Team management",
   "teamManagementDefaultTeamName": "Our team",
   "teamManagementSavedTeamsTitle": "Managed teams",
@@ -5818,14 +5818,14 @@
   "teamManagementNoTeamsTitle": "Preparing your first team.",
   "teamManagementNoTeamsBody": "Enter a team name and roster, then save it to create a team card here.",
   "teamManagementNewTeamButton": "New team",
-  "teamManagementBasicsTitle": "Team strategy",
-  "teamManagementBasicsHelper": "Start with the team name and how the side should play.",
+  "teamManagementBasicsTitle": "Team info and tactics",
+  "teamManagementBasicsHelper": "After building the roster, organize the team name and tactical notes.",
   "teamManagementTeamNameLabel": "Team name",
   "teamManagementTeamNameHint": "e.g. Our U15",
-  "teamManagementStrategyLabel": "Strategy notes",
-  "teamManagementStrategyHint": "e.g. Press high, switch quickly wide, defend in a 4-4-2 block",
+  "teamManagementStrategyLabel": "Tactical notes",
+  "teamManagementStrategyHint": "e.g. Pressing trigger, wide switch rule, defensive block standard",
   "teamManagementFormationTitle": "Formation board",
-  "teamManagementFormationHelper": "Choose a formation, then tap a pitch position to assign a player.",
+  "teamManagementFormationHelper": "Drag players onto positions, then use draw mode for movement lines or pressing directions.",
   "teamManagementFormationLabel": "Formation",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -5843,15 +5843,26 @@
   "teamManagementAssignedPlayerLabel": "Assigned player",
   "teamManagementUnassignedPlayer": "Unassigned",
   "teamManagementPlayersTitle": "Roster",
-  "teamManagementPlayersHelper": "Add players here, then assign them directly to formation slots.",
+  "teamManagementPlayersHelper": "Team management starts with player registration. Track number, position, preferred foot, condition, and management notes.",
   "teamManagementPlayerNameLabel": "Player name",
   "teamManagementPlayerNameHint": "e.g. Minjun Kim",
   "teamManagementPlayerNumberLabel": "No.",
   "teamManagementPlayerNumberHint": "10",
   "teamManagementPlayerRoleLabel": "Default position",
+  "teamManagementPlayerFootLabel": "Preferred foot",
+  "teamManagementPlayerFootRight": "Right",
+  "teamManagementPlayerFootLeft": "Left",
+  "teamManagementPlayerFootBoth": "Both",
+  "teamManagementPlayerConditionLabel": "Condition",
+  "teamManagementPlayerConditionReady": "Ready",
+  "teamManagementPlayerConditionWatch": "Manage",
+  "teamManagementPlayerConditionRest": "Rest advised",
   "teamManagementPlayerNoteLabel": "Player note",
-  "teamManagementPlayerNoteHint": "e.g. Strong left foot, quick after pressing transitions",
+  "teamManagementPlayerNoteHint": "e.g. Strong left foot, quick pressing transition, monitor knee load",
   "teamManagementAddPlayerButton": "Add player",
+  "teamManagementUpdatePlayerButton": "Save changes",
+  "teamManagementCancelPlayerEditButton": "Cancel edit",
+  "teamManagementEditPlayerButton": "Edit",
   "teamManagementNoPlayersTitle": "No players registered.",
   "teamManagementNoPlayersBody": "Add players to assign them on the formation board.",
   "teamManagementPlayerMeta": "{role} · {count} position(s)",
@@ -5863,6 +5874,31 @@
       }
     }
   },
+  "teamManagementPlayerDetailMeta": "{role} · {foot} · {condition} · {count} assigned",
+  "@teamManagementPlayerDetailMeta": {
+    "placeholders": {
+      "role": {},
+      "foot": {},
+      "condition": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerTrayTitle": "Players to drag",
+  "teamManagementPlayerTrayEmpty": "Register players first, then drag them from here onto positions.",
+  "teamManagementBoardMovePlayersMode": "Place players",
+  "teamManagementBoardDrawMode": "Draw movement",
+  "teamManagementBoardClearLinesButton": "Clear lines",
+  "teamManagementTacticLinesCount": "{count} movement line(s)",
+  "@teamManagementTacticLinesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementFormationDropHint": "Drop a player chip onto a position.",
   "teamManagementRemovePlayerButton": "Remove",
   "teamManagementDeleteTeamButton": "Delete team",
   "teamManagementSaveTeamButton": "Save team",

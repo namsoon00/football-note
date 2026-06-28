@@ -17977,7 +17977,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Organize the roster, team strategy, and formation assignments in one place.'**
+  /// **'Start with player registration and management, then organize tactics with drag-and-drop formations and movement lines.'**
   String get teamManagementSubtitle;
 
   /// No description provided for @teamManagementOpenButton.
@@ -18025,13 +18025,13 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementBasicsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Team strategy'**
+  /// **'Team info and tactics'**
   String get teamManagementBasicsTitle;
 
   /// No description provided for @teamManagementBasicsHelper.
   ///
   /// In en, this message translates to:
-  /// **'Start with the team name and how the side should play.'**
+  /// **'After building the roster, organize the team name and tactical notes.'**
   String get teamManagementBasicsHelper;
 
   /// No description provided for @teamManagementTeamNameLabel.
@@ -18049,13 +18049,13 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementStrategyLabel.
   ///
   /// In en, this message translates to:
-  /// **'Strategy notes'**
+  /// **'Tactical notes'**
   String get teamManagementStrategyLabel;
 
   /// No description provided for @teamManagementStrategyHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g. Press high, switch quickly wide, defend in a 4-4-2 block'**
+  /// **'e.g. Pressing trigger, wide switch rule, defensive block standard'**
   String get teamManagementStrategyHint;
 
   /// No description provided for @teamManagementFormationTitle.
@@ -18067,7 +18067,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementFormationHelper.
   ///
   /// In en, this message translates to:
-  /// **'Choose a formation, then tap a pitch position to assign a player.'**
+  /// **'Drag players onto positions, then use draw mode for movement lines or pressing directions.'**
   String get teamManagementFormationHelper;
 
   /// No description provided for @teamManagementFormationLabel.
@@ -18115,7 +18115,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementPlayersHelper.
   ///
   /// In en, this message translates to:
-  /// **'Add players here, then assign them directly to formation slots.'**
+  /// **'Team management starts with player registration. Track number, position, preferred foot, condition, and management notes.'**
   String get teamManagementPlayersHelper;
 
   /// No description provided for @teamManagementPlayerNameLabel.
@@ -18148,6 +18148,54 @@ abstract class AppLocalizations {
   /// **'Default position'**
   String get teamManagementPlayerRoleLabel;
 
+  /// No description provided for @teamManagementPlayerFootLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred foot'**
+  String get teamManagementPlayerFootLabel;
+
+  /// No description provided for @teamManagementPlayerFootRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get teamManagementPlayerFootRight;
+
+  /// No description provided for @teamManagementPlayerFootLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get teamManagementPlayerFootLeft;
+
+  /// No description provided for @teamManagementPlayerFootBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both'**
+  String get teamManagementPlayerFootBoth;
+
+  /// No description provided for @teamManagementPlayerConditionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition'**
+  String get teamManagementPlayerConditionLabel;
+
+  /// No description provided for @teamManagementPlayerConditionReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get teamManagementPlayerConditionReady;
+
+  /// No description provided for @teamManagementPlayerConditionWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get teamManagementPlayerConditionWatch;
+
+  /// No description provided for @teamManagementPlayerConditionRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest advised'**
+  String get teamManagementPlayerConditionRest;
+
   /// No description provided for @teamManagementPlayerNoteLabel.
   ///
   /// In en, this message translates to:
@@ -18157,7 +18205,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementPlayerNoteHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g. Strong left foot, quick after pressing transitions'**
+  /// **'e.g. Strong left foot, quick pressing transition, monitor knee load'**
   String get teamManagementPlayerNoteHint;
 
   /// No description provided for @teamManagementAddPlayerButton.
@@ -18165,6 +18213,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add player'**
   String get teamManagementAddPlayerButton;
+
+  /// No description provided for @teamManagementUpdatePlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get teamManagementUpdatePlayerButton;
+
+  /// No description provided for @teamManagementCancelPlayerEditButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel edit'**
+  String get teamManagementCancelPlayerEditButton;
+
+  /// No description provided for @teamManagementEditPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get teamManagementEditPlayerButton;
 
   /// No description provided for @teamManagementNoPlayersTitle.
   ///
@@ -18183,6 +18249,55 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{role} · {count} position(s)'**
   String teamManagementPlayerMeta(Object role, int count);
+
+  /// No description provided for @teamManagementPlayerDetailMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{role} · {foot} · {condition} · {count} assigned'**
+  String teamManagementPlayerDetailMeta(
+      Object role, Object foot, Object condition, int count);
+
+  /// No description provided for @teamManagementPlayerTrayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Players to drag'**
+  String get teamManagementPlayerTrayTitle;
+
+  /// No description provided for @teamManagementPlayerTrayEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Register players first, then drag them from here onto positions.'**
+  String get teamManagementPlayerTrayEmpty;
+
+  /// No description provided for @teamManagementBoardMovePlayersMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Place players'**
+  String get teamManagementBoardMovePlayersMode;
+
+  /// No description provided for @teamManagementBoardDrawMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw movement'**
+  String get teamManagementBoardDrawMode;
+
+  /// No description provided for @teamManagementBoardClearLinesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear lines'**
+  String get teamManagementBoardClearLinesButton;
+
+  /// No description provided for @teamManagementTacticLinesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} movement line(s)'**
+  String teamManagementTacticLinesCount(int count);
+
+  /// No description provided for @teamManagementFormationDropHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop a player chip onto a position.'**
+  String get teamManagementFormationDropHint;
 
   /// No description provided for @teamManagementRemovePlayerButton.
   ///
