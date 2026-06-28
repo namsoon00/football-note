@@ -80,14 +80,23 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   Future<void> _load() async {
     try {
       final seenXpIds = _loadSeenIds(_seenXpIdsStorageKey);
+      final familyReadIds = _loadSeenIds(
+        TrainingPlanReminderService.familyMessageReadIdsKey,
+      );
+      final fixtureReadIds = _loadSeenIds(
+        LeagueFixtureReminderService.fixtureMessageReadIdsKey,
+      );
+      final weatherReadIds = _loadSeenIds(
+        WeatherReminderService.messageReadIdsKey,
+      );
       await _reminderService.markAllRemindersRead();
       final permission = await _reminderService.hasNotificationPermission();
       final muted = await _reminderService.isAlarmMutedNow();
       final planRows = _loadPlanRows();
       final xpRows = _loadXpRows(seenXpIds);
-      final familyRows = _loadFamilyRows();
-      final fixtureRows = _loadFixtureRows();
-      final weatherRows = _loadWeatherRows();
+      final familyRows = _loadFamilyRows(familyReadIds);
+      final fixtureRows = _loadFixtureRows(fixtureReadIds);
+      final weatherRows = _loadWeatherRows(weatherReadIds);
       await _fixtureReminderService.markAllFixtureMessagesRead();
       await _weatherReminderService.markAllWeatherMessagesRead();
       final lastTrainingLogAt = widget.optionRepository.getValue<String>(
@@ -112,9 +121,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       setState(() {
         _planRows = _loadPlanRows();
         _xpRows = _loadXpRows(const <String>{});
-        _familyRows = _loadFamilyRows();
-        _fixtureRows = _loadFixtureRows();
-        _weatherRows = _loadWeatherRows();
+        _familyRows = _loadFamilyRows(const <String>{});
+        _fixtureRows = _loadFixtureRows(const <String>{});
+        _weatherRows = _loadWeatherRows(const <String>{});
         _loading = false;
       });
     }
@@ -162,19 +171,25 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         .toList(growable: false);
   }
 
-  List<_FamilyMessageRow> _loadFamilyRows() {
+  List<_FamilyMessageRow> _loadFamilyRows(Set<String> readIds) {
     final logs = _reminderService.loadFamilyMessageLogSync();
-    return logs.map(_FamilyMessageRow.fromMap).toList(growable: false);
+    return logs
+        .map((item) => _FamilyMessageRow.fromMap(item, readIds: readIds))
+        .toList(growable: false);
   }
 
-  List<_FixtureMessageRow> _loadFixtureRows() {
+  List<_FixtureMessageRow> _loadFixtureRows(Set<String> readIds) {
     final logs = _fixtureReminderService.loadFixtureMessageLogSync();
-    return logs.map(_FixtureMessageRow.fromMap).toList(growable: false);
+    return logs
+        .map((item) => _FixtureMessageRow.fromMap(item, readIds: readIds))
+        .toList(growable: false);
   }
 
-  List<_WeatherMessageRow> _loadWeatherRows() {
+  List<_WeatherMessageRow> _loadWeatherRows(Set<String> readIds) {
     final logs = _weatherReminderService.loadWeatherMessageLogSync();
-    return logs.map(_WeatherMessageRow.fromMap).toList(growable: false);
+    return logs
+        .map((item) => _WeatherMessageRow.fromMap(item, readIds: readIds))
+        .toList(growable: false);
   }
 
   Future<void> _deleteMessage(_PlanAlarmRow row) async {
@@ -351,6 +366,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           icon: Icons.cloud_outlined,
           color: scheme.tertiary,
           payload: item.payload,
+          isNew: item.isNew,
           upcoming: true,
           onDelete: () => _deleteWeatherMessage(item),
         ),
@@ -393,6 +409,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
               : Icons.sports_soccer_rounded,
           color: scheme.secondary,
           payload: item.payload,
+          isNew: item.isNew,
           upcoming: true,
           onDelete: () => _deleteFixtureMessage(item),
         ),
@@ -433,6 +450,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           icon: Icons.sync_alt_rounded,
           color: scheme.secondary,
           payload: item.payload,
+          isNew: item.isNew,
           upcoming: false,
           onDelete: () => _deleteFamilyMessage(item),
         ),
@@ -458,6 +476,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           .toList(growable: false);
       if (categoryItems.isEmpty) return const <_NotificationFeedSection>[];
       categoryItems.sort(_compareFeedItems);
+      final newItems =
+          categoryItems.where((item) => item.isNew).toList(growable: false);
       return [
         _NotificationFeedSection(
           category: category,
@@ -467,6 +487,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           ),
           icon: _categoryIcon(category),
           timeLabel: categoryItems.first.timeLabel,
+          newCount: newItems.length,
+          highlightedItem:
+              newItems.isNotEmpty ? newItems.first : categoryItems.first,
           items: categoryItems,
         ),
       ];
@@ -1070,57 +1093,29 @@ class _NotificationFeedSectionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final hasNew = section.newCount > 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Material(
-          color: scheme.surfaceContainerHighest.withValues(alpha: 0.42),
-          borderRadius: BorderRadius.circular(8),
+          color: hasNew
+              ? scheme.primaryContainer.withValues(alpha: 0.52)
+              : scheme.surfaceContainerHighest.withValues(alpha: 0.42),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: hasNew
+                ? BorderSide(color: scheme.primary.withValues(alpha: 0.28))
+                : BorderSide.none,
+          ),
           child: InkWell(
             borderRadius: BorderRadius.circular(8),
             onTap: onToggle,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-              child: Row(
-                children: [
-                  Icon(section.icon, size: 18, color: scheme.onSurfaceVariant),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      section.title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    flex: 2,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        section.timeLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  AnimatedRotation(
-                    turns: expanded ? 0.5 : 0,
-                    duration: kThemeAnimationDuration,
-                    child: Icon(
-                      Icons.expand_more_rounded,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+              child: _NotificationFeedSectionHeader(
+                section: section,
+                expanded: expanded,
+                newLabel: newLabel,
               ),
             ),
           ),
@@ -1151,11 +1146,115 @@ class _NotificationFeedSectionView extends StatelessWidget {
   }
 }
 
+class _NotificationFeedSectionHeader extends StatelessWidget {
+  final _NotificationFeedSection section;
+  final bool expanded;
+  final String newLabel;
+
+  const _NotificationFeedSectionHeader({
+    required this.section,
+    required this.expanded,
+    required this.newLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final hasNew = section.newCount > 0;
+    final highlightedItem = section.highlightedItem;
+    final badgeLabel =
+        section.newCount > 1 ? '$newLabel ${section.newCount}' : newLabel;
+    final primaryText =
+        hasNew ? scheme.onPrimaryContainer : scheme.onSurfaceVariant;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Icon(
+              section.icon,
+              size: 18,
+              color: hasNew ? scheme.primary : scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 3,
+              child: Text(
+                section.title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: primaryText,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ),
+            if (hasNew) ...[
+              const SizedBox(width: 8),
+              _NewBadge(label: badgeLabel),
+            ],
+            const SizedBox(width: 8),
+            Flexible(
+              flex: 2,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  section.timeLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: primaryText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            AnimatedRotation(
+              turns: expanded ? 0.5 : 0,
+              duration: kThemeAnimationDuration,
+              child: Icon(Icons.expand_more_rounded, color: primaryText),
+            ),
+          ],
+        ),
+        if (hasNew && highlightedItem != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            key: ValueKey<String>(
+              'notification-section-highlight-${section.category.name}',
+            ),
+            highlightedItem.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: scheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          if (highlightedItem.subtitle.trim().isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              highlightedItem.subtitle.trim(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: scheme.onPrimaryContainer.withValues(alpha: 0.74),
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+}
+
 class _NotificationFeedSection {
   final _NotificationCategory category;
   final String title;
   final IconData icon;
   final String timeLabel;
+  final int newCount;
+  final _NotificationFeedItem? highlightedItem;
   final List<_NotificationFeedItem> items;
 
   const _NotificationFeedSection({
@@ -1163,6 +1262,8 @@ class _NotificationFeedSection {
     required this.title,
     required this.icon,
     required this.timeLabel,
+    required this.newCount,
+    required this.highlightedItem,
     required this.items,
   });
 }
@@ -1418,6 +1519,7 @@ class _FamilyMessageRow {
   final String title;
   final String body;
   final String payload;
+  final bool isNew;
 
   const _FamilyMessageRow({
     required this.id,
@@ -1425,16 +1527,22 @@ class _FamilyMessageRow {
     required this.title,
     required this.body,
     required this.payload,
+    required this.isNew,
   });
 
-  factory _FamilyMessageRow.fromMap(Map<String, dynamic> map) {
+  factory _FamilyMessageRow.fromMap(
+    Map<String, dynamic> map, {
+    Set<String> readIds = const <String>{},
+  }) {
+    final id = map['id']?.toString() ?? '';
     return _FamilyMessageRow(
-      id: map['id']?.toString() ?? '',
+      id: id,
       createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
           DateTime.now(),
       title: map['title']?.toString() ?? '',
       body: map['body']?.toString() ?? '',
       payload: map['payload']?.toString() ?? '',
+      isNew: id.isNotEmpty && !readIds.contains(id),
     );
   }
 }
@@ -1448,6 +1556,7 @@ class _FixtureMessageRow {
   final String body;
   final String leagueName;
   final bool isWorldCup;
+  final bool isNew;
 
   const _FixtureMessageRow({
     required this.id,
@@ -1458,14 +1567,19 @@ class _FixtureMessageRow {
     required this.body,
     required this.leagueName,
     required this.isWorldCup,
+    required this.isNew,
   });
 
-  factory _FixtureMessageRow.fromMap(Map<String, dynamic> map) {
+  factory _FixtureMessageRow.fromMap(
+    Map<String, dynamic> map, {
+    Set<String> readIds = const <String>{},
+  }) {
+    final id = map['id']?.toString() ?? '';
     final kickoffAt = DateTime.tryParse(map['kickoffAt']?.toString() ?? '') ??
         DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
         DateTime.now();
     return _FixtureMessageRow(
-      id: map['id']?.toString() ?? '',
+      id: id,
       payload: map['payload']?.toString() ?? '',
       scheduledAt:
           DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ?? kickoffAt,
@@ -1474,6 +1588,7 @@ class _FixtureMessageRow {
       body: map['body']?.toString() ?? '',
       leagueName: map['leagueName']?.toString() ?? '',
       isWorldCup: (map['kind']?.toString() ?? '') == 'worldCup',
+      isNew: id.isNotEmpty && !readIds.contains(id),
     );
   }
 }
@@ -1485,6 +1600,7 @@ class _WeatherMessageRow {
   final DateTime scheduledAt;
   final String title;
   final String body;
+  final bool isNew;
 
   const _WeatherMessageRow({
     required this.id,
@@ -1493,20 +1609,26 @@ class _WeatherMessageRow {
     required this.scheduledAt,
     required this.title,
     required this.body,
+    required this.isNew,
   });
 
-  factory _WeatherMessageRow.fromMap(Map<String, dynamic> map) {
+  factory _WeatherMessageRow.fromMap(
+    Map<String, dynamic> map, {
+    Set<String> readIds = const <String>{},
+  }) {
+    final id = map['id']?.toString() ?? '';
     final scheduledAt =
         DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
             DateTime.now();
     return _WeatherMessageRow(
-      id: map['id']?.toString() ?? '',
+      id: id,
       payload: map['payload']?.toString() ?? '',
       createdAt:
           DateTime.tryParse(map['createdAt']?.toString() ?? '') ?? scheduledAt,
       scheduledAt: scheduledAt,
       title: map['title']?.toString() ?? '',
       body: map['body']?.toString() ?? '',
+      isNew: id.isNotEmpty && !readIds.contains(id),
     );
   }
 }
