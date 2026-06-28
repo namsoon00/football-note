@@ -955,6 +955,15 @@
       }
     }
   },
+  "worldCupBracketQualifiedTeamSeparator": " / ",
+  "worldCupBracketQualifiedSlotDetail": "{slot} 기준 진출",
+  "@worldCupBracketQualifiedSlotDetail": {
+    "placeholders": {
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupBracketSourceMatch": "M{matchNumber}: {home} 대 {away}",
   "@worldCupBracketSourceMatch": {
     "placeholders": {

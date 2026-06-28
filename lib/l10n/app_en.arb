@@ -955,6 +955,15 @@
       }
     }
   },
+  "worldCupBracketQualifiedTeamSeparator": " / ",
+  "worldCupBracketQualifiedSlotDetail": "Qualified from {slot}",
+  "@worldCupBracketQualifiedSlotDetail": {
+    "placeholders": {
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
   "worldCupBracketSourceMatch": "M{matchNumber}: {home} v {away}",
   "@worldCupBracketSourceMatch": {
     "placeholders": {

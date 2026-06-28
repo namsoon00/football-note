@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/fifa_world_overview_service.dart';
 import 'package:football_note/application/world_cup_live_data_service.dart';
+import 'package:football_note/application/world_cup_schedule.dart';
 import 'package:football_note/domain/entities/fifa_world_overview.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -259,6 +260,69 @@ void main() {
       expect(data.rankingsByTeam['Cape Verde']?.rank, 70);
       expect(requestedCompetitionMatches, isNotEmpty);
       expect(requestedRanges, isNotEmpty);
+
+      service.dispose();
+    },
+  );
+
+  test(
+    'fetchLatest maps knockout official matches by FIFA match number',
+    () async {
+      final roundOf32Fixture = worldCupFixtures.singleWhere(
+        (fixture) => fixture.matchNumber == 79,
+      );
+      final client = MockClient((request) async {
+        if (request.url.host == 'api.fifa.com' &&
+            request.url.path.endsWith('/rankingschedules/all')) {
+          return http.Response(jsonEncode({'Results': []}), 200);
+        }
+        if (request.url.host == 'api.fifa.com' &&
+            request.url.path.endsWith('/fifarankings/rankings/live')) {
+          return http.Response(jsonEncode({'Results': []}), 200);
+        }
+        if (request.url.host == 'inside.fifa.com') {
+          return http.Response('', 200);
+        }
+        if (request.url.host == 'api.fifa.com' &&
+            request.url.path.endsWith('/calendar/matches')) {
+          return http.Response(
+            jsonEncode({
+              'Results': [
+                _worldCupMatch(
+                  matchId: 'official-round-of-32',
+                  matchNumber: roundOf32Fixture.matchNumber,
+                  period: 10,
+                  date: roundOf32Fixture.kickoffUtc.toIso8601String(),
+                  homeName: 'Mexico',
+                  homeCode: 'MEX',
+                  awayName: 'Germany',
+                  awayCode: 'GER',
+                  homeScore: 2,
+                  awayScore: 1,
+                  calendarShape: true,
+                ),
+              ],
+            }),
+            200,
+          );
+        }
+        return http.Response('Not found', 404);
+      });
+      final service = WorldCupLiveDataService(
+        fifaService: FifaWorldOverviewService(client: client),
+      );
+
+      final data = await service.fetchLatest(
+        baseFixtures: [roundOf32Fixture],
+        now: roundOf32Fixture.kickoffUtc.add(const Duration(hours: 4)),
+      );
+
+      final officialMatch =
+          data.officialMatchesByFixtureNumber[roundOf32Fixture.matchNumber];
+      expect(officialMatch?.homeTeamName, 'Mexico');
+      expect(officialMatch?.awayTeamName, 'Germany');
+      expect(data.fixtures.single.homeScore, 2);
+      expect(data.fixtures.single.awayScore, 1);
 
       service.dispose();
     },

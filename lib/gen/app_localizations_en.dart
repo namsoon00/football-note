@@ -1591,6 +1591,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get worldCupBracketQualifiedTeamSeparator => ' / ';
+
+  @override
+  String worldCupBracketQualifiedSlotDetail(String slot) {
+    return 'Qualified from $slot';
+  }
+
+  @override
   String worldCupBracketSourceMatch(int matchNumber, String home, String away) {
     return 'M$matchNumber: $home v $away';
   }

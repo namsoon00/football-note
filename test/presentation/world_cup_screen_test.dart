@@ -200,6 +200,120 @@ void main() {
     expect(find.byIcon(Icons.open_in_full_rounded), findsNothing);
   });
 
+  testWidgets('tournament bracket resolves completed group slots to countries',
+      (
+    tester,
+  ) async {
+    final fixtures = _worldCupFixturesWithScores({
+      25: (0, 0),
+      26: (2, 0),
+      27: (2, 0),
+      28: (1, 1),
+      49: (0, 1),
+      50: (0, 0),
+      53: (0, 1),
+      54: (0, 2),
+    });
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: fixtures,
+        officialMatchesByFixtureNumber: const {},
+        rankingsByTeam: const {},
+        refreshedAt: DateTime.utc(2026, 6, 28, 12),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          initialSelectedDay: worldCupFixtures.first.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('토너먼트'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('토너먼트'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('🇲🇽 멕시코'), findsWidgets);
+    expect(find.text('🇨🇭 스위스'), findsWidgets);
+    expect(find.text('A조 2위 기준 진출'), findsWidgets);
+    expect(find.text('B조 2위 기준 진출'), findsWidgets);
+  });
+
+  testWidgets('tournament bracket uses official round-of-32 countries', (
+    tester,
+  ) async {
+    final fixture = worldCupFixtures.singleWhere(
+      (fixture) => fixture.matchNumber == 79,
+    );
+    final officialMatch = FifaAMatchEntry(
+      matchId: 'official-round-of-32',
+      matchNumber: fixture.matchNumber,
+      gender: FifaRankingGender.men,
+      competition: 'FIFA World Cup',
+      stage: 'Round of 32',
+      venue: fixture.venue,
+      city: 'Mexico City',
+      kickoffAt: fixture.kickoffUtc,
+      homeTeamName: 'Mexico',
+      homeCountryCode: 'MEX',
+      awayTeamName: 'Germany',
+      awayCountryCode: 'GER',
+      homeScore: null,
+      awayScore: null,
+      status: FifaAMatchStatus.scheduled,
+    );
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: worldCupFixtures,
+        officialMatchesByFixtureNumber: {fixture.matchNumber: officialMatch},
+        rankingsByTeam: const {},
+        refreshedAt: DateTime.utc(2026, 7, 1),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          initialSelectedDay: worldCupFixtures.first.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('토너먼트'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('토너먼트'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('🇲🇽 멕시코'), findsWidgets);
+    expect(find.text('🇩🇪 독일'), findsWidgets);
+    expect(find.text('A조 1위 기준 진출'), findsWidgets);
+  });
+
   testWidgets('team roster sheet shows expanded squad and formation data', (
     tester,
   ) async {

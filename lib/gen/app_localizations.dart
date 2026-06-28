@@ -2821,6 +2821,18 @@ abstract class AppLocalizations {
   /// **'Loser of M{matchNumber}'**
   String worldCupBracketLoserSlot(int matchNumber);
 
+  /// No description provided for @worldCupBracketQualifiedTeamSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' / '**
+  String get worldCupBracketQualifiedTeamSeparator;
+
+  /// No description provided for @worldCupBracketQualifiedSlotDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Qualified from {slot}'**
+  String worldCupBracketQualifiedSlotDetail(String slot);
+
   /// No description provided for @worldCupBracketSourceMatch.
   ///
   /// In en, this message translates to:

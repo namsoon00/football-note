@@ -166,27 +166,56 @@ class WorldCupLiveDataService {
     final usedMatchIds = <String>{};
 
     for (final fixture in fixtures) {
-      FifaAMatchEntry? bestMatch;
-      Duration? bestDelta;
-      for (final match in officialMatches) {
-        if (usedMatchIds.contains(match.matchId)) continue;
-        if (!_teamsMatchFixture(fixture, match)) continue;
-        final delta = _absoluteDuration(
-          fixture.kickoffUtc.toUtc().difference(match.kickoffAt.toUtc()),
-        );
-        if (delta > _fixtureMatchTolerance) continue;
-        if (bestDelta == null || delta < bestDelta) {
-          bestMatch = match;
-          bestDelta = delta;
-        }
+      final match = _bestOfficialMatchForFixture(
+        fixture: fixture,
+        officialMatches: officialMatches,
+        usedMatchIds: usedMatchIds,
+        matchesFixture: (match) => _teamsMatchFixture(fixture, match),
+      );
+      if (match != null) {
+        matchesByFixtureNumber[fixture.matchNumber] = match;
+        usedMatchIds.add(match.matchId);
       }
-      if (bestMatch != null) {
-        matchesByFixtureNumber[fixture.matchNumber] = bestMatch;
-        usedMatchIds.add(bestMatch.matchId);
+    }
+
+    for (final fixture in fixtures) {
+      if (matchesByFixtureNumber.containsKey(fixture.matchNumber)) continue;
+      final match = _bestOfficialMatchForFixture(
+        fixture: fixture,
+        officialMatches: officialMatches,
+        usedMatchIds: usedMatchIds,
+        matchesFixture: (match) => match.matchNumber == fixture.matchNumber,
+      );
+      if (match != null) {
+        matchesByFixtureNumber[fixture.matchNumber] = match;
+        usedMatchIds.add(match.matchId);
       }
     }
 
     return matchesByFixtureNumber;
+  }
+
+  FifaAMatchEntry? _bestOfficialMatchForFixture({
+    required WorldCupFixture fixture,
+    required List<FifaAMatchEntry> officialMatches,
+    required Set<String> usedMatchIds,
+    required bool Function(FifaAMatchEntry match) matchesFixture,
+  }) {
+    FifaAMatchEntry? bestMatch;
+    Duration? bestDelta;
+    for (final match in officialMatches) {
+      if (usedMatchIds.contains(match.matchId)) continue;
+      if (!matchesFixture(match)) continue;
+      final delta = _absoluteDuration(
+        fixture.kickoffUtc.toUtc().difference(match.kickoffAt.toUtc()),
+      );
+      if (delta > _fixtureMatchTolerance) continue;
+      if (bestDelta == null || delta < bestDelta) {
+        bestMatch = match;
+        bestDelta = delta;
+      }
+    }
+    return bestMatch;
   }
 
   Map<String, FifaRankingEntry> _rankingsByWorldCupTeam({
@@ -222,12 +251,16 @@ class WorldCupLiveDataService {
     final sameDirection =
         _teamKey(fixture.homeTeam) == _teamKey(officialMatch.homeTeamName) &&
             _teamKey(fixture.awayTeam) == _teamKey(officialMatch.awayTeamName);
-    if (sameDirection) {
+    if (sameDirection || !fixture.isGroupStage) {
       return fixture.copyWithScore(
         homeScore: officialMatch.homeScore,
         awayScore: officialMatch.awayScore,
       );
     }
+    final reverseDirection =
+        _teamKey(fixture.homeTeam) == _teamKey(officialMatch.awayTeamName) &&
+            _teamKey(fixture.awayTeam) == _teamKey(officialMatch.homeTeamName);
+    if (!reverseDirection) return fixture;
     return fixture.copyWithScore(
       homeScore: officialMatch.awayScore,
       awayScore: officialMatch.homeScore,
