@@ -1340,33 +1340,45 @@ class _MetricClusterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        const spacing = 8.0;
+        if (metrics.isEmpty) return const SizedBox.shrink();
+        const spacing = 6.0;
         final maxWidth = constraints.maxWidth;
-        final columnCount = maxWidth >= 560
+        final columnCount = maxWidth >= 620
             ? math.min(metrics.length, 4)
-            : maxWidth >= 340
+            : maxWidth >= 320
                 ? math.min(metrics.length, 3)
                 : math.min(metrics.length, 2);
         final itemWidth =
             (maxWidth - spacing * (columnCount - 1)) / columnCount;
-        return Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: [
-            for (var index = 0; index < metrics.length; index++)
-              SizedBox(
-                width: itemWidth,
-                child: _MetricCard(
-                  label: metrics[index].label,
-                  value: metrics[index].value,
-                  icon: metrics[index].icon,
-                  airLevel: metrics[index].airLevel,
-                  prominent: index < 3,
+        return Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withValues(alpha: 0.16),
+            borderRadius: AppRadius.control,
+            border: Border.all(
+              color: theme.colorScheme.surface.withValues(alpha: 0.14),
+            ),
+          ),
+          child: Wrap(
+            spacing: spacing,
+            runSpacing: spacing,
+            children: [
+              for (var index = 0; index < metrics.length; index++)
+                SizedBox(
+                  width: itemWidth,
+                  child: _MetricCard(
+                    label: metrics[index].label,
+                    value: metrics[index].value,
+                    icon: metrics[index].icon,
+                    airLevel: metrics[index].airLevel,
+                    prominent: index < 3,
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -1714,30 +1726,43 @@ class _MetricCard extends StatelessWidget {
     final palette =
         airLevel == null ? null : _airQualityPalette(theme, airLevel!);
     return Container(
-      constraints: const BoxConstraints(minHeight: 62),
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+      constraints: const BoxConstraints(minHeight: 52),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
       decoration: BoxDecoration(
         color: palette?.background ??
-            theme.colorScheme.surface.withValues(alpha: 0.80),
+            theme.colorScheme.surface.withValues(
+              alpha: prominent ? 0.88 : 0.68,
+            ),
         borderRadius: AppRadius.small,
         border: Border.all(
           color: palette?.border ??
               theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Icon(
-                icon,
-                size: 15,
-                color: palette?.foreground ?? theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
+          Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: (palette?.foreground ?? theme.colorScheme.primary)
+                  .withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              size: 15,
+              color: palette?.foreground ?? theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1748,21 +1773,21 @@ class _MetricCard extends StatelessWidget {
                     height: 1.1,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          Text(
-            value,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: (prominent
-                    ? theme.textTheme.titleSmall
-                    : theme.textTheme.labelLarge)
-                ?.copyWith(
-              color: palette?.foreground,
-              fontWeight: FontWeight.w900,
-              height: 1.08,
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: (prominent
+                          ? theme.textTheme.titleSmall
+                          : theme.textTheme.labelLarge)
+                      ?.copyWith(
+                    color: palette?.foreground,
+                    fontWeight: FontWeight.w900,
+                    height: 1.05,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
