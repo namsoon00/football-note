@@ -39,12 +39,14 @@ void main() {
     expect(result.fortuneText, isNot(contains('재미 포인트')));
     final lines = result.fortuneText.split('\n');
     expect(lines, hasLength(2));
-    expect(lines.first, contains('민준님'));
+    expect(lines.first, startsWith('민준님, 오늘은 '));
     expect(lines.first, isNot(contains('그래서')));
     expect(lines.first, isNot(contains('분위기예요')));
     expect(lines.first, isNot(contains('쪽으로 흐름이 잡혀요')));
     expect(lines.first, isNot(contains('흐름')));
-    expect(lines.first, matches(RegExp(r'날이라 .+요\.$')));
+    expect(lines.first, isNot(contains('볼 수')));
+    expect(lines.first, isNot(contains('수 있어요')));
+    expect(lines.first, matches(RegExp(r'오늘은 .+날이에요\.$')));
     final myeongliDailyLines = <String>{
       ...l10n.fortuneMyeongliTenGodDailyLines.split('|'),
       ...l10n.fortuneMyeongliTwelveStageDailyLines.split('|'),
@@ -65,20 +67,21 @@ void main() {
         .split('|');
 
     expect(flows, hasLength(60));
-    expect(flows, contains('상대 표정을 보고 말을 고르기 좋은 날이라'));
+    expect(flows, contains('상대 표정을 보고 말을 고르는 날이에요.'));
     for (final flow in flows) {
-      final line = l10n.fortuneGeneratedLinkedDailyLine(
+      final line = l10n.fortuneGeneratedDailyLineOne(
         '민준',
         flow,
-        '작은 일이 자연스럽게 풀릴 수 있어요.',
       );
-      expect(line, startsWith('민준님, '));
+      expect(line, startsWith('민준님, 오늘은 '));
       expect(line, isNot(contains('빠른 눈치 분위기')));
       expect(line, isNot(contains('분위기예요')));
       expect(line, isNot(contains('쪽으로 흐름이 잡혀요')));
       expect(line, isNot(contains('흐름')));
       expect(line, isNot(contains('그래서')));
-      expect(line, matches(RegExp(r'날이라 .+요\.$')));
+      expect(line, isNot(contains('볼 수')));
+      expect(line, isNot(contains('수 있어요')));
+      expect(line, matches(RegExp(r'오늘은 .+날이에요\.$')));
       expect(line, endsWith('.'));
     }
   });
@@ -97,19 +100,19 @@ void main() {
       ...l10n.fortuneSajuFortuneThemeExtras.split('|'),
     ];
     final unclearTerms = RegExp(
-      '흐름|기운|가능성|예감|분위기|자신감|호기심|타이밍|감이',
+      '볼 수|수 있어요|확인할 수|뭔가|무언가|보이는|보여요|눈에|흐름|기운|가능성|예감|분위기|자신감|호기심|타이밍|감이',
     );
 
     expect(causes, hasLength(89));
     expect(events, hasLength(96));
-    expect(causes, contains('상대 표정을 보고 말을 고르기 좋은 날이라'));
-    expect(events, contains('아침 알림에서 반가운 이름을 볼 수 있어요.'));
-    expect(events, contains('점심 전 미뤄둔 메시지를 보낼 수 있어요.'));
+    expect(causes, contains('상대 표정을 보고 말을 고르는 날이에요.'));
+    expect(events, contains('아침 알림에 반가운 이름이 떠요.'));
+    expect(events, contains('점심 전에 미뤄둔 메시지를 보내요.'));
     for (final copy in <String>[...causes, ...events]) {
       expect(copy, isNot(matches(unclearTerms)), reason: copy);
     }
     for (final cause in causes) {
-      expect(cause, endsWith('날이라'), reason: cause);
+      expect(cause, endsWith('날이에요.'), reason: cause);
     }
   });
 

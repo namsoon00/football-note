@@ -203,11 +203,6 @@ class LocalFortuneService {
       l10n: l10n,
     );
     final name = _playerName(profile, l10n);
-    final fortuneTheme = _pickCombinedLocalized(
-      l10n.fortuneSajuFortuneThemes,
-      l10n.fortuneSajuFortuneThemeExtras,
-      baseSeed + birthReading.seed + (dailySignature?.seed ?? 0) + 89,
-    );
     final elementFlow = _myeongliElementFlow(
           signature: dailySignature,
           seed: baseSeed + birthReading.elementSeed,
@@ -220,7 +215,7 @@ class LocalFortuneService {
         );
 
     final fortuneText = <String>[
-      l10n.fortuneGeneratedLinkedDailyLine(name, elementFlow, fortuneTheme),
+      l10n.fortuneGeneratedDailyLineOne(name, elementFlow),
       l10n.fortuneGeneratedLuckyInfoLine(luckyNumber, luckyColor),
     ].join('\n');
 
