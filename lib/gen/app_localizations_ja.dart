@@ -10218,7 +10218,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementTitle => 'チーム管理';
 
   @override
-  String get teamManagementSubtitle => '選手登録と管理から始め、ドラッグ配置と移動線ボードで戦術を整理します。';
+  String get teamManagementSubtitle => '選手登録から始め、大きなピッチボードへ選手をドラッグして戦術を整理します。';
 
   @override
   String get teamManagementOpenButton => 'チーム管理';
@@ -10231,7 +10231,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementSavedTeamsHelper =>
-      '保存済みチームを選ぶと、戦略とラインアップをすぐに更新できます。';
+      '保存済みチームを選ぶと、選手名簿、戦術メモ、ボード配置をすぐに更新できます。';
 
   @override
   String get teamManagementNoTeamsTitle => '最初のチームを準備中です。';
@@ -10262,11 +10262,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementStrategyHint => '例) プレス開始位置、サイドチェンジの約束、守備ブロックの基準';
 
   @override
-  String get teamManagementFormationTitle => 'フォーメーションボード';
+  String get teamManagementFormationTitle => 'ピッチ戦術ボード';
 
   @override
   String get teamManagementFormationHelper =>
-      '選手をポジションへドラッグし、描画モードで移動線やプレス方向を描きます。';
+      '先にフォーメーションを選ぶ必要はありません。選手チップをピッチ上の好きな場所へドラッグし、マーカーモードで移動線やプレス方向を描きます。';
 
   @override
   String get teamManagementFormationLabel => 'フォーメーション';
@@ -10359,30 +10359,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementNoPlayersTitle => '登録された選手がいません。';
 
   @override
-  String get teamManagementNoPlayersBody => '選手を追加すると、フォーメーションボードで割り当てられます。';
+  String get teamManagementNoPlayersBody => '選手を追加すると、ピッチボードへ直接ドラッグできます。';
 
   @override
   String teamManagementPlayerMeta(Object role, int count) {
-    return '$role · $countポジション';
+    return '$role · $count件のボード配置';
   }
 
   @override
   String teamManagementPlayerDetailMeta(
       Object role, Object foot, Object condition, int count) {
-    return '$role · $foot · $condition · $count件割り当て';
+    return '$role · $foot · $condition · $count件配置';
   }
 
   @override
   String get teamManagementPlayerTrayTitle => 'ドラッグする選手';
 
   @override
-  String get teamManagementPlayerTrayEmpty => '先に選手を登録すると、ここからポジションへドラッグできます。';
+  String get teamManagementPlayerTrayEmpty => '先に選手を登録すると、ここからピッチへ直接ドラッグできます。';
 
   @override
   String get teamManagementBoardMovePlayersMode => '選手配置';
 
   @override
-  String get teamManagementBoardDrawMode => '移動線を描く';
+  String get teamManagementBoardDrawMode => 'ボードマーカー';
 
   @override
   String get teamManagementBoardClearLinesButton => '線を消去';
@@ -10393,7 +10393,8 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get teamManagementFormationDropHint => '選手チップをポジションの上に置いてください。';
+  String get teamManagementFormationDropHint =>
+      '選手チップをピッチ上の好きな場所へ置いてください。下のフォーメーションは目安で、先に選ぶ必要はありません。';
 
   @override
   String get teamManagementRemovePlayerButton => '削除';

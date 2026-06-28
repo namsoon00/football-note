@@ -11,9 +11,9 @@ import '../widgets/app_feedback.dart';
 
 enum _TacticBoardMode { assign, draw }
 
-typedef _PlayerDropCallback = void Function({
-  required String spotId,
+typedef _PlayerBoardDropCallback = void Function({
   required String playerId,
+  required Offset point,
 });
 
 class TeamManagementScreen extends StatefulWidget {
@@ -42,6 +42,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   ManagedTeam? _selectedTeam;
   List<ManagedTeamPlayer> _players = const <ManagedTeamPlayer>[];
   Map<String, String> _lineup = const <String, String>{};
+  Map<String, ManagedPlayerPlacement> _playerPlacements =
+      const <String, ManagedPlayerPlacement>{};
   List<ManagedTacticLine> _tacticLines = const <ManagedTacticLine>[];
   String _formation = ManagedTeam.defaultFormation;
   String _playerRole = ManagedTeamPlayer.roleForward;
@@ -106,6 +108,13 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       players: _players,
       formation: _formation,
     );
+    _playerPlacements = team.playerPlacements.isNotEmpty
+        ? Map<String, ManagedPlayerPlacement>.from(team.playerPlacements)
+        : TeamManagementService.placementsFromLineup(
+            lineup: _lineup,
+            players: _players,
+            formation: _formation,
+          );
     _tacticLines = List<ManagedTacticLine>.from(team.tacticLines);
     _selectedSpotId = spots.isEmpty ? null : spots.first.id;
     _editingPlayerId = null;
@@ -128,6 +137,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       strategy: _strategyController.text.trim(),
       players: _players,
       lineup: _lineup,
+      playerPlacements: _playerPlacements,
       tacticLines: _tacticLines,
     );
   }
@@ -181,30 +191,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   void _selectSpot(String spotId) {
     setState(() => _selectedSpotId = spotId);
-  }
-
-  void _assignPlayerToSpot({
-    required String spotId,
-    required String playerId,
-  }) {
-    final normalizedPlayerId = playerId.trim();
-    final next = Map<String, String>.from(_lineup);
-    if (normalizedPlayerId.isEmpty) {
-      next.remove(spotId);
-    } else {
-      next.removeWhere(
-        (_, assignedPlayerId) => assignedPlayerId == normalizedPlayerId,
-      );
-      next[spotId] = normalizedPlayerId;
-    }
-    setState(() {
-      _selectedSpotId = spotId;
-      _lineup = TeamManagementService.normalizeLineup(
-        lineup: next,
-        players: _players,
-        formation: _formation,
-      );
-    });
   }
 
   void _savePlayer() {
@@ -280,7 +266,60 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       final next = Map<String, String>.from(_lineup)
         ..removeWhere((_, playerId) => playerId == player.id);
       _lineup = next;
+      _playerPlacements = Map<String, ManagedPlayerPlacement>.from(
+        _playerPlacements,
+      )..remove(player.id);
     });
+  }
+
+  void _placePlayerOnBoard({
+    required String playerId,
+    required Offset point,
+  }) {
+    final normalizedPlayerId = playerId.trim();
+    if (!_players.any((player) => player.id == normalizedPlayerId)) return;
+    final placement = ManagedPlayerPlacement.create(
+      playerId: normalizedPlayerId,
+      x: point.dx,
+      y: point.dy,
+    );
+    final nearestSpot = _nearestFormationSpot(placement);
+    setState(() {
+      _playerPlacements = {
+        ..._playerPlacements,
+        normalizedPlayerId: placement,
+      };
+      if (nearestSpot != null) {
+        final next = Map<String, String>.from(_lineup)
+          ..removeWhere((_, assignedPlayerId) {
+            return assignedPlayerId == normalizedPlayerId;
+          });
+        next[nearestSpot.id] = normalizedPlayerId;
+        _lineup = TeamManagementService.normalizeLineup(
+          lineup: next,
+          players: _players,
+          formation: _formation,
+        );
+        _selectedSpotId = nearestSpot.id;
+      }
+    });
+  }
+
+  TeamFormationSpot? _nearestFormationSpot(ManagedPlayerPlacement placement) {
+    final spots = TeamManagementService.formationSpots(_formation);
+    if (spots.isEmpty) return null;
+    TeamFormationSpot? nearest;
+    var nearestDistance = double.infinity;
+    for (final spot in spots) {
+      final dx = spot.x - placement.x;
+      final dy = spot.y - placement.y;
+      final distance = (dx * dx) + (dy * dy);
+      if (distance < nearestDistance) {
+        nearest = spot;
+        nearestDistance = distance;
+      }
+    }
+    return nearest;
   }
 
   void _changeBoardMode(_TacticBoardMode mode) {
@@ -370,6 +409,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                 _PlayersPanel(
                   players: _players,
                   lineup: _lineup,
+                  playerPlacements: _playerPlacements,
                   playerNameController: _playerNameController,
                   playerNumberController: _playerNumberController,
                   playerNoteController: _playerNoteController,
@@ -395,14 +435,14 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                 _FormationPanel(
                   formation: _formation,
                   players: _players,
-                  lineup: _lineup,
+                  playerPlacements: _playerPlacements,
                   tacticLines: _tacticLines,
                   draftTacticLine: _draftTacticLine,
                   selectedSpotId: _selectedSpotId,
                   boardMode: _boardMode,
                   onFormationChanged: _changeFormation,
                   onSpotSelected: _selectSpot,
-                  onPlayerDropped: _assignPlayerToSpot,
+                  onPlayerPlaced: _placePlayerOnBoard,
                   onBoardModeChanged: _changeBoardMode,
                   onTacticLineStarted: _startTacticLine,
                   onTacticLineUpdated: _updateTacticLine,
@@ -615,14 +655,14 @@ class _TeamBasicsPanel extends StatelessWidget {
 class _FormationPanel extends StatelessWidget {
   final String formation;
   final List<ManagedTeamPlayer> players;
-  final Map<String, String> lineup;
+  final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
   final ManagedTacticLine? draftTacticLine;
   final String? selectedSpotId;
   final _TacticBoardMode boardMode;
   final ValueChanged<String> onFormationChanged;
   final ValueChanged<String> onSpotSelected;
-  final _PlayerDropCallback onPlayerDropped;
+  final _PlayerBoardDropCallback onPlayerPlaced;
   final ValueChanged<_TacticBoardMode> onBoardModeChanged;
   final ValueChanged<Offset> onTacticLineStarted;
   final ValueChanged<Offset> onTacticLineUpdated;
@@ -632,14 +672,14 @@ class _FormationPanel extends StatelessWidget {
   const _FormationPanel({
     required this.formation,
     required this.players,
-    required this.lineup,
+    required this.playerPlacements,
     required this.tacticLines,
     required this.draftTacticLine,
     required this.selectedSpotId,
     required this.boardMode,
     required this.onFormationChanged,
     required this.onSpotSelected,
-    required this.onPlayerDropped,
+    required this.onPlayerPlaced,
     required this.onBoardModeChanged,
     required this.onTacticLineStarted,
     required this.onTacticLineUpdated,
@@ -666,19 +706,6 @@ class _FormationPanel extends StatelessWidget {
             helper: l10n.teamManagementFormationHelper,
           ),
           const SizedBox(height: AppSpacing.md),
-          SegmentedButton<String>(
-            showSelectedIcon: false,
-            segments: [
-              for (final option in TeamManagementService.supportedFormations)
-                ButtonSegment<String>(
-                  value: option,
-                  label: Text(option),
-                ),
-            ],
-            selected: {formation},
-            onSelectionChanged: (values) => onFormationChanged(values.first),
-          ),
-          const SizedBox(height: AppSpacing.md),
           _BoardModeToolbar(
             mode: boardMode,
             tacticLineCount: tacticLines.length,
@@ -688,19 +715,19 @@ class _FormationPanel extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           _BoardPlayerTray(
             players: players,
-            lineup: lineup,
+            playerPlacements: playerPlacements,
           ),
           const SizedBox(height: AppSpacing.md),
           _FormationPitch(
             spots: spots,
             players: players,
-            lineup: lineup,
+            playerPlacements: playerPlacements,
             tacticLines: tacticLines,
             draftTacticLine: draftTacticLine,
             selectedSpotId: selectedSpotId,
             boardMode: boardMode,
             onSpotSelected: onSpotSelected,
-            onPlayerDropped: onPlayerDropped,
+            onPlayerPlaced: onPlayerPlaced,
             onTacticLineStarted: onTacticLineStarted,
             onTacticLineUpdated: onTacticLineUpdated,
             onTacticLineFinished: onTacticLineFinished,
@@ -711,6 +738,27 @@ class _FormationPanel extends StatelessWidget {
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
               fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: SegmentedButton<String>(
+                showSelectedIcon: false,
+                segments: [
+                  for (final option
+                      in TeamManagementService.supportedFormations)
+                    ButtonSegment<String>(
+                      value: option,
+                      label: Text(option),
+                    ),
+                ],
+                selected: {formation},
+                onSelectionChanged: (values) =>
+                    onFormationChanged(values.first),
+              ),
             ),
           ),
         ],
@@ -778,11 +826,11 @@ class _BoardModeToolbar extends StatelessWidget {
 
 class _BoardPlayerTray extends StatelessWidget {
   final List<ManagedTeamPlayer> players;
-  final Map<String, String> lineup;
+  final Map<String, ManagedPlayerPlacement> playerPlacements;
 
   const _BoardPlayerTray({
     required this.players,
-    required this.lineup,
+    required this.playerPlacements,
   });
 
   @override
@@ -796,7 +844,7 @@ class _BoardPlayerTray extends StatelessWidget {
         body: l10n.teamManagementPlayerTrayEmpty,
       );
     }
-    final assignedPlayerIds = lineup.values.toSet();
+    final assignedPlayerIds = playerPlacements.keys.toSet();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -898,13 +946,13 @@ class _BoardPlayerChip extends StatelessWidget {
 class _FormationPitch extends StatelessWidget {
   final List<TeamFormationSpot> spots;
   final List<ManagedTeamPlayer> players;
-  final Map<String, String> lineup;
+  final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
   final ManagedTacticLine? draftTacticLine;
   final String? selectedSpotId;
   final _TacticBoardMode boardMode;
   final ValueChanged<String> onSpotSelected;
-  final _PlayerDropCallback onPlayerDropped;
+  final _PlayerBoardDropCallback onPlayerPlaced;
   final ValueChanged<Offset> onTacticLineStarted;
   final ValueChanged<Offset> onTacticLineUpdated;
   final VoidCallback onTacticLineFinished;
@@ -912,13 +960,13 @@ class _FormationPitch extends StatelessWidget {
   const _FormationPitch({
     required this.spots,
     required this.players,
-    required this.lineup,
+    required this.playerPlacements,
     required this.tacticLines,
     required this.draftTacticLine,
     required this.selectedSpotId,
     required this.boardMode,
     required this.onSpotSelected,
-    required this.onPlayerDropped,
+    required this.onPlayerPlaced,
     required this.onTacticLineStarted,
     required this.onTacticLineUpdated,
     required this.onTacticLineFinished,
@@ -927,102 +975,226 @@ class _FormationPitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final playerById = {for (final player in players) player.id: player};
-    return AspectRatio(
-      aspectRatio: 0.72,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          const slotSize = 56.0;
-          return ClipRRect(
-            borderRadius: AppRadius.surface,
-            child: GestureDetector(
-              key: const ValueKey('team-tactics-board-pitch'),
-              behavior: HitTestBehavior.opaque,
-              onPanStart: boardMode == _TacticBoardMode.draw
-                  ? (details) => onTacticLineStarted(
-                        _normalizeBoardPoint(
-                          details.localPosition,
-                          constraints.biggest,
-                        ),
-                      )
-                  : null,
-              onPanUpdate: boardMode == _TacticBoardMode.draw
-                  ? (details) => onTacticLineUpdated(
-                        _normalizeBoardPoint(
-                          details.localPosition,
-                          constraints.biggest,
-                        ),
-                      )
-                  : null,
-              onPanEnd: boardMode == _TacticBoardMode.draw
-                  ? (_) => onTacticLineFinished()
-                  : null,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CustomPaint(painter: _PitchPainter()),
-                  CustomPaint(
-                    painter: _TacticLinesPainter(
-                      lines: tacticLines,
-                      draftLine: draftTacticLine,
-                    ),
-                  ),
-                  for (final spot in spots)
-                    Positioned(
-                      left: (constraints.maxWidth * spot.x) - (slotSize / 2),
-                      top: (constraints.maxHeight * spot.y) - (slotSize / 2),
-                      width: slotSize,
-                      height: slotSize,
-                      child: DragTarget<String>(
-                        key: ValueKey('formation-slot-${spot.id}'),
-                        onWillAcceptWithDetails: (details) =>
-                            playerById.containsKey(details.data),
-                        onAcceptWithDetails: (details) => onPlayerDropped(
-                          spotId: spot.id,
-                          playerId: details.data,
-                        ),
-                        builder: (context, candidateData, rejectedData) {
-                          final player = playerById[lineup[spot.id]];
-                          final slot = _PitchSlotButton(
-                            spot: spot,
-                            player: player,
-                            selected: spot.id == selectedSpotId,
-                            dropHighlighted: candidateData.isNotEmpty,
-                            onTap: () => onSpotSelected(spot.id),
-                          );
-                          if (player == null ||
-                              boardMode == _TacticBoardMode.draw) {
-                            return slot;
-                          }
-                          return Draggable<String>(
-                            data: player.id,
-                            feedback: Material(
-                              color: Colors.transparent,
-                              child: SizedBox(
-                                width: slotSize,
-                                height: slotSize,
-                                child: _PitchSlotButton(
-                                  spot: spot,
-                                  player: player,
-                                  selected: true,
-                                  dropHighlighted: false,
-                                  onTap: () {},
+    return LayoutBuilder(
+      builder: (context, outerConstraints) {
+        final boardHeight = outerConstraints.maxWidth >= 700 ? 680.0 : 560.0;
+        return SizedBox(
+          height: boardHeight,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const markerSize = 66.0;
+              Offset normalizeFromGlobal(Offset globalPosition) {
+                final renderObject = context.findRenderObject();
+                if (renderObject is! RenderBox) {
+                  return Offset.zero;
+                }
+                return _normalizeBoardPoint(
+                  renderObject.globalToLocal(globalPosition),
+                  constraints.biggest,
+                );
+              }
+
+              return DragTarget<String>(
+                onWillAcceptWithDetails: (details) {
+                  return boardMode == _TacticBoardMode.assign &&
+                      playerById.containsKey(details.data);
+                },
+                onAcceptWithDetails: (details) => onPlayerPlaced(
+                  playerId: details.data,
+                  point: normalizeFromGlobal(details.offset),
+                ),
+                builder: (context, candidateData, rejectedData) {
+                  final dropHighlighted = candidateData.isNotEmpty;
+                  return ClipRRect(
+                    borderRadius: AppRadius.surface,
+                    child: GestureDetector(
+                      key: const ValueKey('team-tactics-board-pitch'),
+                      behavior: HitTestBehavior.opaque,
+                      onPanStart: boardMode == _TacticBoardMode.draw
+                          ? (details) => onTacticLineStarted(
+                                _normalizeBoardPoint(
+                                  details.localPosition,
+                                  constraints.biggest,
+                                ),
+                              )
+                          : null,
+                      onPanUpdate: boardMode == _TacticBoardMode.draw
+                          ? (details) => onTacticLineUpdated(
+                                _normalizeBoardPoint(
+                                  details.localPosition,
+                                  constraints.biggest,
+                                ),
+                              )
+                          : null,
+                      onPanEnd: boardMode == _TacticBoardMode.draw
+                          ? (_) => onTacticLineFinished()
+                          : null,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CustomPaint(painter: _PitchPainter()),
+                          if (dropHighlighted)
+                            DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.62),
+                                  width: 3,
                                 ),
                               ),
                             ),
-                            childWhenDragging: Opacity(
-                              opacity: 0.36,
-                              child: slot,
+                          for (final spot in spots)
+                            Positioned(
+                              left: (constraints.maxWidth * spot.x) - 22,
+                              top: (constraints.maxHeight * spot.y) - 14,
+                              width: 44,
+                              height: 28,
+                              child: _PitchGuideSpot(
+                                spot: spot,
+                                selected: spot.id == selectedSpotId,
+                                onTap: () => onSpotSelected(spot.id),
+                              ),
                             ),
-                            child: slot,
-                          );
-                        },
+                          CustomPaint(
+                            painter: _TacticLinesPainter(
+                              lines: tacticLines,
+                              draftLine: draftTacticLine,
+                            ),
+                          ),
+                          for (final placement in playerPlacements.values)
+                            if (playerById[placement.playerId] != null)
+                              Positioned(
+                                left: (constraints.maxWidth * placement.x) -
+                                    (markerSize / 2),
+                                top: (constraints.maxHeight * placement.y) -
+                                    (markerSize / 2),
+                                width: markerSize,
+                                height: markerSize,
+                                child: _BoardPlacedPlayer(
+                                  player: playerById[placement.playerId]!,
+                                  draggable:
+                                      boardMode == _TacticBoardMode.assign,
+                                ),
+                              ),
+                        ],
                       ),
                     ),
-                ],
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PitchGuideSpot extends StatelessWidget {
+  final TeamFormationSpot spot;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PitchGuideSpot({
+    required this.spot,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected
+          ? Colors.white.withValues(alpha: 0.72)
+          : Colors.white.withValues(alpha: 0.24),
+      borderRadius: AppRadius.small,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.small,
+        child: Center(
+          child: Text(
+            spot.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: selected ? const Color(0xFF064E3B) : Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BoardPlacedPlayer extends StatelessWidget {
+  final ManagedTeamPlayer player;
+  final bool draggable;
+
+  const _BoardPlacedPlayer({
+    required this.player,
+    required this.draggable,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final marker = _PitchPlayerMarker(player: player);
+    if (!draggable) return marker;
+    return Draggable<String>(
+      data: player.id,
+      feedback: Material(
+        color: Colors.transparent,
+        child: SizedBox(width: 66, height: 66, child: marker),
+      ),
+      childWhenDragging: Opacity(opacity: 0.36, child: marker),
+      child: marker,
+    );
+  }
+}
+
+class _PitchPlayerMarker extends StatelessWidget {
+  final ManagedTeamPlayer player;
+
+  const _PitchPlayerMarker({required this.player});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.white,
+      elevation: 8,
+      shape: const CircleBorder(),
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFF0F5132), width: 2),
+        ),
+        padding: const EdgeInsets.all(5),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              player.number.trim().isEmpty
+                  ? teamPlayerRoleShortLabel(player.role)
+                  : player.number.trim(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: const Color(0xFF0F5132),
+                fontWeight: FontWeight.w900,
               ),
             ),
-          );
-        },
+            Text(
+              _playerInitialLabel(player),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: const Color(0xFF0F5132),
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1151,79 +1323,10 @@ class _TacticLinesPainter extends CustomPainter {
   }
 }
 
-class _PitchSlotButton extends StatelessWidget {
-  final TeamFormationSpot spot;
-  final ManagedTeamPlayer? player;
-  final bool selected;
-  final bool dropHighlighted;
-  final VoidCallback onTap;
-
-  const _PitchSlotButton({
-    required this.spot,
-    required this.player,
-    required this.selected,
-    required this.dropHighlighted,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final color = dropHighlighted
-        ? scheme.secondaryContainer
-        : selected
-            ? scheme.tertiary
-            : Colors.white;
-    final foreground = dropHighlighted
-        ? scheme.onSecondaryContainer
-        : selected
-            ? scheme.onTertiary
-            : const Color(0xFF064E3B);
-    final name = player == null ? spot.label : _playerShortLabel(player!);
-    return Material(
-      color: color,
-      elevation: selected || dropHighlighted ? 8 : 3,
-      borderRadius: AppRadius.small,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.small,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                spot.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: foreground.withValues(alpha: 0.72),
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: foreground,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _PlayersPanel extends StatelessWidget {
   final List<ManagedTeamPlayer> players;
   final Map<String, String> lineup;
+  final Map<String, ManagedPlayerPlacement> playerPlacements;
   final TextEditingController playerNameController;
   final TextEditingController playerNumberController;
   final TextEditingController playerNoteController;
@@ -1242,6 +1345,7 @@ class _PlayersPanel extends StatelessWidget {
   const _PlayersPanel({
     required this.players,
     required this.lineup,
+    required this.playerPlacements,
     required this.playerNameController,
     required this.playerNumberController,
     required this.playerNoteController,
@@ -1303,57 +1407,80 @@ class _PlayersPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          DropdownButtonFormField<String>(
-            initialValue: playerRole,
-            decoration: InputDecoration(
-              labelText: l10n.teamManagementPlayerRoleLabel,
-            ),
-            items: [
-              for (final role in _playerRoles)
-                DropdownMenuItem<String>(
-                  value: role,
-                  child: Text(teamPlayerRoleLabel(l10n, role)),
-                ),
-            ],
-            onChanged: (role) {
-              if (role == null) return;
-              onRoleChanged(role);
-            },
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          DropdownButtonFormField<String>(
-            initialValue: playerFoot,
-            decoration: InputDecoration(
-              labelText: l10n.teamManagementPlayerFootLabel,
-            ),
-            items: [
-              for (final foot in _playerFeet)
-                DropdownMenuItem<String>(
-                  value: foot,
-                  child: Text(teamPlayerFootLabel(l10n, foot)),
-                ),
-            ],
-            onChanged: (foot) {
-              if (foot == null) return;
-              onFootChanged(foot);
-            },
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          DropdownButtonFormField<String>(
-            initialValue: playerCondition,
-            decoration: InputDecoration(
-              labelText: l10n.teamManagementPlayerConditionLabel,
-            ),
-            items: [
-              for (final condition in _playerConditions)
-                DropdownMenuItem<String>(
-                  value: condition,
-                  child: Text(teamPlayerConditionLabel(l10n, condition)),
-                ),
-            ],
-            onChanged: (condition) {
-              if (condition == null) return;
-              onConditionChanged(condition);
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= 640 ? 3 : 2;
+              final gap = AppSpacing.sm * (columns - 1);
+              final fieldWidth =
+                  math.max(150.0, (constraints.maxWidth - gap) / columns);
+              return Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  SizedBox(
+                    width: fieldWidth,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: playerRole,
+                      decoration: InputDecoration(
+                        labelText: l10n.teamManagementPlayerRoleLabel,
+                      ),
+                      items: [
+                        for (final role in _playerRoles)
+                          DropdownMenuItem<String>(
+                            value: role,
+                            child: Text(teamPlayerRoleLabel(l10n, role)),
+                          ),
+                      ],
+                      onChanged: (role) {
+                        if (role == null) return;
+                        onRoleChanged(role);
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: fieldWidth,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: playerFoot,
+                      decoration: InputDecoration(
+                        labelText: l10n.teamManagementPlayerFootLabel,
+                      ),
+                      items: [
+                        for (final foot in _playerFeet)
+                          DropdownMenuItem<String>(
+                            value: foot,
+                            child: Text(teamPlayerFootLabel(l10n, foot)),
+                          ),
+                      ],
+                      onChanged: (foot) {
+                        if (foot == null) return;
+                        onFootChanged(foot);
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: fieldWidth,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: playerCondition,
+                      decoration: InputDecoration(
+                        labelText: l10n.teamManagementPlayerConditionLabel,
+                      ),
+                      items: [
+                        for (final condition in _playerConditions)
+                          DropdownMenuItem<String>(
+                            value: condition,
+                            child: Text(
+                              teamPlayerConditionLabel(l10n, condition),
+                            ),
+                          ),
+                      ],
+                      onChanged: (condition) {
+                        if (condition == null) return;
+                        onConditionChanged(condition);
+                      },
+                    ),
+                  ),
+                ],
+              );
             },
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -1411,9 +1538,11 @@ class _PlayersPanel extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: _PlayerRosterRow(
                   player: player,
-                  assignedCount: lineup.values
-                      .where((playerId) => playerId == player.id)
-                      .length,
+                  assignedCount: playerPlacements.containsKey(player.id)
+                      ? 1
+                      : lineup.values
+                          .where((playerId) => playerId == player.id)
+                          .length,
                   onEdit: () => onEditPlayer(player),
                   onRemove: () => onRemovePlayer(player),
                 ),
@@ -1744,9 +1873,7 @@ String _playerDisplayName(ManagedTeamPlayer player) {
       : '${player.number.trim()} ${player.name}';
 }
 
-String _playerShortLabel(ManagedTeamPlayer player) {
-  final number = player.number.trim();
-  if (number.isNotEmpty) return number;
+String _playerInitialLabel(ManagedTeamPlayer player) {
   final trimmed = player.name.trim();
   if (trimmed.length <= 2) return trimmed;
   return trimmed.characters.take(2).toString();

@@ -5813,11 +5813,11 @@
     }
   },
   "teamManagementTitle": "팀 관리",
-  "teamManagementSubtitle": "선수 등록과 관리부터 시작하고, 드래그 포메이션과 이동선 보드로 전술을 정리하세요.",
+  "teamManagementSubtitle": "선수 등록부터 시작하고, 큰 그라운드 보드에 선수를 끌어 올려 전술을 정리하세요.",
   "teamManagementOpenButton": "팀 관리",
   "teamManagementDefaultTeamName": "우리 팀",
   "teamManagementSavedTeamsTitle": "관리 팀",
-  "teamManagementSavedTeamsHelper": "저장된 팀을 선택하면 전략과 라인업을 바로 수정할 수 있어요.",
+  "teamManagementSavedTeamsHelper": "저장된 팀을 선택하면 선수 명단, 전술 설명, 보드 배치를 바로 수정할 수 있어요.",
   "teamManagementNoTeamsTitle": "첫 팀을 준비 중입니다.",
   "teamManagementNoTeamsBody": "팀 이름과 선수 명단을 입력한 뒤 저장하면 이곳에 팀 카드가 생깁니다.",
   "teamManagementNewTeamButton": "새 팀",
@@ -5827,8 +5827,8 @@
   "teamManagementTeamNameHint": "예) 우리 팀 U15",
   "teamManagementStrategyLabel": "전술 설명",
   "teamManagementStrategyHint": "예) 전방 압박 시작 위치, 측면 전환 약속, 수비 블록 기준",
-  "teamManagementFormationTitle": "포메이션 보드",
-  "teamManagementFormationHelper": "선수를 끌어 포지션에 놓고, 그리기 모드에서 이동선이나 압박 방향을 그리세요.",
+  "teamManagementFormationTitle": "그라운드 전술 보드",
+  "teamManagementFormationHelper": "포메이션을 먼저 고르지 않아도 됩니다. 선수 칩을 그라운드 어디든 끌어 올리고, 마카 모드에서 이동선이나 압박 방향을 그리세요.",
   "teamManagementFormationLabel": "포메이션",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -5867,8 +5867,8 @@
   "teamManagementCancelPlayerEditButton": "수정 취소",
   "teamManagementEditPlayerButton": "수정",
   "teamManagementNoPlayersTitle": "등록된 선수가 없어요.",
-  "teamManagementNoPlayersBody": "선수를 추가하면 포메이션 보드에서 바로 배정할 수 있습니다.",
-  "teamManagementPlayerMeta": "{role} · {count}개 포지션 배정",
+  "teamManagementNoPlayersBody": "선수를 추가하면 그라운드 보드에 바로 끌어 올릴 수 있습니다.",
+  "teamManagementPlayerMeta": "{role} · {count}개 보드 배치",
   "@teamManagementPlayerMeta": {
     "placeholders": {
       "role": {},
@@ -5877,7 +5877,7 @@
       }
     }
   },
-  "teamManagementPlayerDetailMeta": "{role} · {foot} · {condition} · {count}개 배정",
+  "teamManagementPlayerDetailMeta": "{role} · {foot} · {condition} · {count}개 배치",
   "@teamManagementPlayerDetailMeta": {
     "placeholders": {
       "role": {},
@@ -5889,9 +5889,9 @@
     }
   },
   "teamManagementPlayerTrayTitle": "드래그할 선수",
-  "teamManagementPlayerTrayEmpty": "먼저 선수를 등록하면 여기에서 포지션으로 끌어 놓을 수 있어요.",
+  "teamManagementPlayerTrayEmpty": "먼저 선수를 등록하면 여기에서 그라운드로 바로 끌어 놓을 수 있어요.",
   "teamManagementBoardMovePlayersMode": "선수 배치",
-  "teamManagementBoardDrawMode": "이동선 그리기",
+  "teamManagementBoardDrawMode": "보드 마카",
   "teamManagementBoardClearLinesButton": "선 지우기",
   "teamManagementTacticLinesCount": "이동선 {count}개",
   "@teamManagementTacticLinesCount": {
@@ -5901,7 +5901,7 @@
       }
     }
   },
-  "teamManagementFormationDropHint": "선수 칩을 포지션 위에 놓으세요.",
+  "teamManagementFormationDropHint": "선수 칩을 그라운드 어디든 놓으세요. 아래 포메이션은 기준선일 뿐 먼저 선택할 필요가 없습니다.",
   "teamManagementRemovePlayerButton": "삭제",
   "teamManagementDeleteTeamButton": "팀 삭제",
   "teamManagementSaveTeamButton": "팀 저장",

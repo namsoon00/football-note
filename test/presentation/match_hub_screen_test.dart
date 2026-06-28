@@ -423,22 +423,21 @@ void main() {
     await tester.enterText(find.byType(TextField).at(4), '전방 압박 후 측면 전환');
 
     final playerChip = find.text('10 김민준').last;
-    final goalkeeperSlot = find.byKey(const ValueKey('formation-slot-gk'));
+    final pitchFinder = find.byKey(const ValueKey('team-tactics-board-pitch'));
     await tester.ensureVisible(playerChip);
-    await tester.ensureVisible(goalkeeperSlot);
+    await tester.ensureVisible(pitchFinder);
     await tester.pumpAndSettle();
+    final pitchRect = tester.getRect(pitchFinder);
+    expect(pitchRect.height, greaterThan(540));
     await tester.drag(
       playerChip,
-      tester.getCenter(goalkeeperSlot) - tester.getCenter(playerChip),
+      pitchRect.center - tester.getCenter(playerChip),
     );
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('이동선 그리기'));
-    await tester.tap(find.text('이동선 그리기'));
+    await tester.ensureVisible(find.text('보드 마카'));
+    await tester.tap(find.text('보드 마카'));
     await tester.pumpAndSettle();
-    final pitchRect = tester.getRect(
-      find.byKey(const ValueKey('team-tactics-board-pitch')),
-    );
     await tester.dragFrom(
       pitchRect.centerLeft + Offset(80, pitchRect.height * 0.28),
       const Offset(180, -120),
@@ -455,7 +454,11 @@ void main() {
     expect(teams.single.strategy, '전방 압박 후 측면 전환');
     expect(teams.single.players.single.name, '김민준');
     expect(teams.single.players.single.note, '왼발 킥 좋음');
-    expect(teams.single.lineup['gk'], teams.single.players.single.id);
+    final placement =
+        teams.single.playerPlacements[teams.single.players.single.id];
+    expect(placement, isNotNull);
+    expect(placement!.x, inInclusiveRange(0.35, 0.65));
+    expect(placement.y, inInclusiveRange(0.35, 0.65));
     expect(teams.single.tacticLines, hasLength(1));
   });
 }

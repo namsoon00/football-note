@@ -17995,7 +17995,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Start with player registration and management, then organize tactics with drag-and-drop formations and movement lines.'**
+  /// **'Start with player registration, then drag players onto a larger pitch board to organize tactics.'**
   String get teamManagementSubtitle;
 
   /// No description provided for @teamManagementOpenButton.
@@ -18019,7 +18019,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementSavedTeamsHelper.
   ///
   /// In en, this message translates to:
-  /// **'Select a saved team to update its strategy and lineup.'**
+  /// **'Select a saved team to update its roster, tactical notes, and board placement.'**
   String get teamManagementSavedTeamsHelper;
 
   /// No description provided for @teamManagementNoTeamsTitle.
@@ -18079,13 +18079,13 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementFormationTitle.
   ///
   /// In en, this message translates to:
-  /// **'Formation board'**
+  /// **'Pitch tactics board'**
   String get teamManagementFormationTitle;
 
   /// No description provided for @teamManagementFormationHelper.
   ///
   /// In en, this message translates to:
-  /// **'Drag players onto positions, then use draw mode for movement lines or pressing directions.'**
+  /// **'You do not need to choose a formation first. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.'**
   String get teamManagementFormationHelper;
 
   /// No description provided for @teamManagementFormationLabel.
@@ -18259,19 +18259,19 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementNoPlayersBody.
   ///
   /// In en, this message translates to:
-  /// **'Add players to assign them on the formation board.'**
+  /// **'Add players to drag them directly onto the pitch board.'**
   String get teamManagementNoPlayersBody;
 
   /// No description provided for @teamManagementPlayerMeta.
   ///
   /// In en, this message translates to:
-  /// **'{role} · {count} position(s)'**
+  /// **'{role} · {count} board placement(s)'**
   String teamManagementPlayerMeta(Object role, int count);
 
   /// No description provided for @teamManagementPlayerDetailMeta.
   ///
   /// In en, this message translates to:
-  /// **'{role} · {foot} · {condition} · {count} assigned'**
+  /// **'{role} · {foot} · {condition} · {count} placed'**
   String teamManagementPlayerDetailMeta(
       Object role, Object foot, Object condition, int count);
 
@@ -18284,7 +18284,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementPlayerTrayEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Register players first, then drag them from here onto positions.'**
+  /// **'Register players first, then drag them from here directly onto the pitch.'**
   String get teamManagementPlayerTrayEmpty;
 
   /// No description provided for @teamManagementBoardMovePlayersMode.
@@ -18296,7 +18296,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementBoardDrawMode.
   ///
   /// In en, this message translates to:
-  /// **'Draw movement'**
+  /// **'Board marker'**
   String get teamManagementBoardDrawMode;
 
   /// No description provided for @teamManagementBoardClearLinesButton.
@@ -18314,7 +18314,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementFormationDropHint.
   ///
   /// In en, this message translates to:
-  /// **'Drop a player chip onto a position.'**
+  /// **'Drop player chips anywhere on the pitch. The formation below is only a guide and does not need to be selected first.'**
   String get teamManagementFormationDropHint;
 
   /// No description provided for @teamManagementRemovePlayerButton.

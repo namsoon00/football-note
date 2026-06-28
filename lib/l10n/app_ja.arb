@@ -5813,11 +5813,11 @@
     }
   },
   "teamManagementTitle": "チーム管理",
-  "teamManagementSubtitle": "選手登録と管理から始め、ドラッグ配置と移動線ボードで戦術を整理します。",
+  "teamManagementSubtitle": "選手登録から始め、大きなピッチボードへ選手をドラッグして戦術を整理します。",
   "teamManagementOpenButton": "チーム管理",
   "teamManagementDefaultTeamName": "自分のチーム",
   "teamManagementSavedTeamsTitle": "管理チーム",
-  "teamManagementSavedTeamsHelper": "保存済みチームを選ぶと、戦略とラインアップをすぐに更新できます。",
+  "teamManagementSavedTeamsHelper": "保存済みチームを選ぶと、選手名簿、戦術メモ、ボード配置をすぐに更新できます。",
   "teamManagementNoTeamsTitle": "最初のチームを準備中です。",
   "teamManagementNoTeamsBody": "チーム名と選手名簿を入力して保存すると、ここにチームカードが作成されます。",
   "teamManagementNewTeamButton": "新しいチーム",
@@ -5827,8 +5827,8 @@
   "teamManagementTeamNameHint": "例) 自分のU15",
   "teamManagementStrategyLabel": "戦術説明",
   "teamManagementStrategyHint": "例) プレス開始位置、サイドチェンジの約束、守備ブロックの基準",
-  "teamManagementFormationTitle": "フォーメーションボード",
-  "teamManagementFormationHelper": "選手をポジションへドラッグし、描画モードで移動線やプレス方向を描きます。",
+  "teamManagementFormationTitle": "ピッチ戦術ボード",
+  "teamManagementFormationHelper": "先にフォーメーションを選ぶ必要はありません。選手チップをピッチ上の好きな場所へドラッグし、マーカーモードで移動線やプレス方向を描きます。",
   "teamManagementFormationLabel": "フォーメーション",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -5867,8 +5867,8 @@
   "teamManagementCancelPlayerEditButton": "編集をキャンセル",
   "teamManagementEditPlayerButton": "編集",
   "teamManagementNoPlayersTitle": "登録された選手がいません。",
-  "teamManagementNoPlayersBody": "選手を追加すると、フォーメーションボードで割り当てられます。",
-  "teamManagementPlayerMeta": "{role} · {count}ポジション",
+  "teamManagementNoPlayersBody": "選手を追加すると、ピッチボードへ直接ドラッグできます。",
+  "teamManagementPlayerMeta": "{role} · {count}件のボード配置",
   "@teamManagementPlayerMeta": {
     "placeholders": {
       "role": {},
@@ -5877,7 +5877,7 @@
       }
     }
   },
-  "teamManagementPlayerDetailMeta": "{role} · {foot} · {condition} · {count}件割り当て",
+  "teamManagementPlayerDetailMeta": "{role} · {foot} · {condition} · {count}件配置",
   "@teamManagementPlayerDetailMeta": {
     "placeholders": {
       "role": {},
@@ -5889,9 +5889,9 @@
     }
   },
   "teamManagementPlayerTrayTitle": "ドラッグする選手",
-  "teamManagementPlayerTrayEmpty": "先に選手を登録すると、ここからポジションへドラッグできます。",
+  "teamManagementPlayerTrayEmpty": "先に選手を登録すると、ここからピッチへ直接ドラッグできます。",
   "teamManagementBoardMovePlayersMode": "選手配置",
-  "teamManagementBoardDrawMode": "移動線を描く",
+  "teamManagementBoardDrawMode": "ボードマーカー",
   "teamManagementBoardClearLinesButton": "線を消去",
   "teamManagementTacticLinesCount": "移動線 {count}本",
   "@teamManagementTacticLinesCount": {
@@ -5901,7 +5901,7 @@
       }
     }
   },
-  "teamManagementFormationDropHint": "選手チップをポジションの上に置いてください。",
+  "teamManagementFormationDropHint": "選手チップをピッチ上の好きな場所へ置いてください。下のフォーメーションは目安で、先に選ぶ必要はありません。",
   "teamManagementRemovePlayerButton": "削除",
   "teamManagementDeleteTeamButton": "チーム削除",
   "teamManagementSaveTeamButton": "チーム保存",

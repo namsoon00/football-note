@@ -180,6 +180,58 @@ class ManagedTacticLine {
   }
 }
 
+class ManagedPlayerPlacement {
+  final String playerId;
+  final double x;
+  final double y;
+
+  const ManagedPlayerPlacement({
+    required this.playerId,
+    required this.x,
+    required this.y,
+  });
+
+  factory ManagedPlayerPlacement.create({
+    required String playerId,
+    required double x,
+    required double y,
+  }) {
+    return ManagedPlayerPlacement(
+      playerId: playerId.trim(),
+      x: TeamManagementService.normalizeBoardCoordinate(x),
+      y: TeamManagementService.normalizeBoardCoordinate(y),
+    );
+  }
+
+  factory ManagedPlayerPlacement.fromMap(Map<String, dynamic> map) {
+    return ManagedPlayerPlacement.create(
+      playerId: map['playerId']?.toString() ?? '',
+      x: map['x'],
+      y: map['y'],
+    );
+  }
+
+  ManagedPlayerPlacement copyWith({
+    String? playerId,
+    double? x,
+    double? y,
+  }) {
+    return ManagedPlayerPlacement.create(
+      playerId: playerId ?? this.playerId,
+      x: x ?? this.x,
+      y: y ?? this.y,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'playerId': playerId,
+      'x': x,
+      'y': y,
+    };
+  }
+}
+
 class ManagedTeam {
   static const String defaultFormation = '4-3-3';
 
@@ -189,6 +241,7 @@ class ManagedTeam {
   final String strategy;
   final List<ManagedTeamPlayer> players;
   final Map<String, String> lineup;
+  final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -200,13 +253,16 @@ class ManagedTeam {
     this.strategy = '',
     this.players = const <ManagedTeamPlayer>[],
     this.lineup = const <String, String>{},
+    this.playerPlacements = const <String, ManagedPlayerPlacement>{},
     this.tacticLines = const <ManagedTacticLine>[],
     required this.createdAt,
     required this.updatedAt,
   });
 
-  int get filledLineupCount =>
-      lineup.values.where((id) => id.isNotEmpty).length;
+  int get filledLineupCount {
+    if (playerPlacements.isNotEmpty) return playerPlacements.length;
+    return lineup.values.where((id) => id.isNotEmpty).length;
+  }
 
   factory ManagedTeam.create({
     required String name,
@@ -214,6 +270,8 @@ class ManagedTeam {
     String strategy = '',
     List<ManagedTeamPlayer> players = const <ManagedTeamPlayer>[],
     Map<String, String> lineup = const <String, String>{},
+    Map<String, ManagedPlayerPlacement> playerPlacements =
+        const <String, ManagedPlayerPlacement>{},
     List<ManagedTacticLine> tacticLines = const <ManagedTacticLine>[],
     DateTime? now,
   }) {
@@ -221,17 +279,30 @@ class ManagedTeam {
     final normalizedPlayers = TeamManagementService.normalizePlayers(players);
     final normalizedFormation =
         TeamManagementService.normalizeFormation(formation);
+    final normalizedLineup = TeamManagementService.normalizeLineup(
+      lineup: lineup,
+      players: normalizedPlayers,
+      formation: normalizedFormation,
+    );
+    final normalizedPlacements =
+        TeamManagementService.normalizePlayerPlacements(
+      placements: playerPlacements,
+      players: normalizedPlayers,
+    );
     return ManagedTeam(
       id: TeamManagementService.teamId(name: name, now: timestamp),
       name: name.trim(),
       formation: normalizedFormation,
       strategy: strategy.trim(),
       players: normalizedPlayers,
-      lineup: TeamManagementService.normalizeLineup(
-        lineup: lineup,
-        players: normalizedPlayers,
-        formation: normalizedFormation,
-      ),
+      lineup: normalizedLineup,
+      playerPlacements: normalizedPlacements.isNotEmpty
+          ? normalizedPlacements
+          : TeamManagementService.placementsFromLineup(
+              lineup: normalizedLineup,
+              players: normalizedPlayers,
+              formation: normalizedFormation,
+            ),
       tacticLines: TeamManagementService.normalizeTacticLines(tacticLines),
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -261,6 +332,22 @@ class ManagedTeam {
             (key, value) => MapEntry(key.toString(), value.toString()),
           )
         : const <String, String>{};
+    final playerPlacements = map['playerPlacements'] is Map
+        ? (map['playerPlacements'] as Map).map(
+            (key, value) {
+              final raw = value is Map
+                  ? value.cast<String, dynamic>()
+                  : <String, dynamic>{};
+              return MapEntry(
+                key.toString(),
+                ManagedPlayerPlacement.fromMap({
+                  ...raw,
+                  'playerId': raw['playerId'] ?? key.toString(),
+                }),
+              );
+            },
+          )
+        : const <String, ManagedPlayerPlacement>{};
     final tacticLines = map['tacticLines'] is List
         ? (map['tacticLines'] as List)
             .whereType<Map>()
@@ -269,6 +356,17 @@ class ManagedTeam {
                 ))
             .toList(growable: false)
         : const <ManagedTacticLine>[];
+    final normalizedPlayers = TeamManagementService.normalizePlayers(players);
+    final normalizedLineup = TeamManagementService.normalizeLineup(
+      lineup: lineup,
+      players: normalizedPlayers,
+      formation: formation,
+    );
+    final normalizedPlacements =
+        TeamManagementService.normalizePlayerPlacements(
+      placements: playerPlacements,
+      players: normalizedPlayers,
+    );
     return ManagedTeam(
       id: map['id']?.toString().trim().isNotEmpty == true
           ? map['id'].toString()
@@ -279,12 +377,15 @@ class ManagedTeam {
       name: map['name']?.toString().trim() ?? '',
       formation: formation,
       strategy: map['strategy']?.toString().trim() ?? '',
-      players: TeamManagementService.normalizePlayers(players),
-      lineup: TeamManagementService.normalizeLineup(
-        lineup: lineup,
-        players: players,
-        formation: formation,
-      ),
+      players: normalizedPlayers,
+      lineup: normalizedLineup,
+      playerPlacements: normalizedPlacements.isNotEmpty
+          ? normalizedPlacements
+          : TeamManagementService.placementsFromLineup(
+              lineup: normalizedLineup,
+              players: normalizedPlayers,
+              formation: formation,
+            ),
       tacticLines: TeamManagementService.normalizeTacticLines(tacticLines),
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -298,6 +399,7 @@ class ManagedTeam {
     String? strategy,
     List<ManagedTeamPlayer>? players,
     Map<String, String>? lineup,
+    Map<String, ManagedPlayerPlacement>? playerPlacements,
     List<ManagedTacticLine>? tacticLines,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -306,16 +408,21 @@ class ManagedTeam {
         TeamManagementService.normalizeFormation(formation ?? this.formation);
     final nextPlayers =
         TeamManagementService.normalizePlayers(players ?? this.players);
+    final nextLineup = TeamManagementService.normalizeLineup(
+      lineup: lineup ?? this.lineup,
+      players: nextPlayers,
+      formation: nextFormation,
+    );
     return ManagedTeam(
       id: id ?? this.id,
       name: name ?? this.name,
       formation: nextFormation,
       strategy: strategy ?? this.strategy,
       players: nextPlayers,
-      lineup: TeamManagementService.normalizeLineup(
-        lineup: lineup ?? this.lineup,
+      lineup: nextLineup,
+      playerPlacements: TeamManagementService.normalizePlayerPlacements(
+        placements: playerPlacements ?? this.playerPlacements,
         players: nextPlayers,
-        formation: nextFormation,
       ),
       tacticLines: TeamManagementService.normalizeTacticLines(
         tacticLines ?? this.tacticLines,
@@ -333,6 +440,9 @@ class ManagedTeam {
       'strategy': strategy,
       'players': players.map((player) => player.toMap()).toList(),
       'lineup': lineup,
+      'playerPlacements': playerPlacements.map(
+        (key, value) => MapEntry(key, value.toMap()),
+      ),
       'tacticLines': tacticLines.map((line) => line.toMap()).toList(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
@@ -526,6 +636,47 @@ class TeamManagementService {
       normalized[spotId] = playerId;
     }
     return normalized;
+  }
+
+  static Map<String, ManagedPlayerPlacement> normalizePlayerPlacements({
+    required Map<String, ManagedPlayerPlacement> placements,
+    required Iterable<ManagedTeamPlayer> players,
+  }) {
+    final playerIds = players.map((player) => player.id).toSet();
+    final normalized = <String, ManagedPlayerPlacement>{};
+    for (final entry in placements.entries) {
+      final playerId = entry.value.playerId.trim().isNotEmpty
+          ? entry.value.playerId.trim()
+          : entry.key.trim();
+      if (playerId.isEmpty || !playerIds.contains(playerId)) continue;
+      normalized[playerId] = entry.value.copyWith(playerId: playerId);
+    }
+    return normalized;
+  }
+
+  static Map<String, ManagedPlayerPlacement> placementsFromLineup({
+    required Map<String, String> lineup,
+    required Iterable<ManagedTeamPlayer> players,
+    required String formation,
+  }) {
+    final playerIds = players.map((player) => player.id).toSet();
+    final spots = {
+      for (final spot in formationSpots(formation)) spot.id: spot,
+    };
+    final placements = <String, ManagedPlayerPlacement>{};
+    for (final entry in lineup.entries) {
+      final spot = spots[entry.key.trim()];
+      final playerId = entry.value.trim();
+      if (spot == null || playerId.isEmpty || !playerIds.contains(playerId)) {
+        continue;
+      }
+      placements[playerId] = ManagedPlayerPlacement.create(
+        playerId: playerId,
+        x: spot.x,
+        y: spot.y,
+      );
+    }
+    return placements;
   }
 
   static List<ManagedTacticLine> normalizeTacticLines(
