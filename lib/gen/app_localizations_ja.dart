@@ -7514,6 +7514,93 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachResultsTitle => 'コーチング実績';
 
   @override
+  String get runningCoachAnalysisHistoryTitle => '動画分析履歴';
+
+  @override
+  String get runningCoachAnalysisHistoryBody => '分析済み動画の主な判定と修正ガイドをもう一度確認できます。';
+
+  @override
+  String runningCoachAnalysisHistoryAction(int count) {
+    return 'すべて $count件';
+  }
+
+  @override
+  String get runningCoachAnalysisHistoryEmpty => '保存された動画分析はまだありません。';
+
+  @override
+  String get runningCoachAnalysisHistoryDetailTitle => '分析ガイド';
+
+  @override
+  String get runningCoachAnalysisHistoryPrimaryFocus => 'この動画の主な判定';
+
+  @override
+  String get runningCoachAnalysisGuideTitle => '図で見る修正ポイント';
+
+  @override
+  String get runningCoachAnalysisGuideBody =>
+      '測定値が良い範囲にどれだけ近いかを、身体ライン、関節角度、着地点で確認します。';
+
+  @override
+  String get runningCoachAnalysisGuideRangeLabel => '良い範囲';
+
+  @override
+  String get runningCoachAnalysisGuideFindingLabel => '判定理由';
+
+  @override
+  String get runningCoachAnalysisGuideCueLabel => '実行キュー';
+
+  @override
+  String get runningCoachAnalysisGuideDrillLabel => 'おすすめドリル';
+
+  @override
+  String get runningCoachGuideRangePosture => '目標: 足首から身体全体が前へ8〜15°傾く前傾';
+
+  @override
+  String get runningCoachGuideRangeBounce => '目標: 身長の約5〜9%に収まる低く速い上下動';
+
+  @override
+  String get runningCoachGuideRangeFootStrike =>
+      '目標: 前足が腰の下から前方0.00〜0.18倍以内に着地';
+
+  @override
+  String get runningCoachGuideRangeKnee => '目標: 接地時の支持膝が約145〜165°で柔らかく受ける範囲';
+
+  @override
+  String get runningCoachGuideRangeArm => '目標: 肘が約70〜110°でコンパクトに前後へ動く範囲';
+
+  @override
+  String get runningCoachMetricScoreLabel => '項目スコア';
+
+  @override
+  String runningCoachConfidenceLabel(int percent) {
+    return '信頼度 $percent%';
+  }
+
+  @override
+  String get runningCoachSessionSourceUploadVideo => '動画分析';
+
+  @override
+  String get runningCoachSessionSourceLiveRun => 'ライブコーチ';
+
+  @override
+  String get runningCoachSessionSourceSprintLive => 'スプリントコーチング';
+
+  @override
+  String get runningCoachQualityReasonLowCoverage =>
+      '追跡できたフレーム比率が低いため、この指標は保守的に見てください。';
+
+  @override
+  String get runningCoachQualityReasonLimitedSamples =>
+      '安定して読めたフレームが少ないため、同じ角度でもう一度確認してください。';
+
+  @override
+  String get runningCoachQualityReasonContactPhaseProxy =>
+      '接地局面を推定したフレームが少ないため、着地と膝の指標をもう一度確認してください。';
+
+  @override
+  String get runningCoachQualityReasonGeneric => '撮影品質が低いため、同じ角度でもう一度確認してください。';
+
+  @override
   String get runningCoachOverallHeadlineStrong => '力強いランニング形状';
 
   @override

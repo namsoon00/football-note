@@ -17,6 +17,7 @@ import '../models/sample_runner_pose.dart';
 import 'running_coach_insight_copy.dart';
 import 'running_live_coach_screen.dart';
 import 'sprint_live_coaching_screen.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 
 class RunningCoachScreen extends StatefulWidget {
@@ -145,7 +146,12 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         ),
         if (_recentSessions.isNotEmpty) ...[
           const SizedBox(height: 12),
-          _RecentSessionsCard(sessions: _recentSessions.take(3).toList()),
+          _RecentSessionsCard(
+            sessions: _recentSessions.take(3).toList(),
+            totalCount: _recentSessions.length,
+            onShowAll: _showAnalysisHistory,
+            onSessionTap: _openAnalysisHistoryDetail,
+          ),
         ],
         if (_analysisResult != null && _coachingReport != null) ...[
           const SizedBox(height: 12),
@@ -255,6 +261,35 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
             mistakeReport: mistakeReport,
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _showAnalysisHistory() {
+    final sessions = _recentSessions;
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * 0.82,
+          child: _AnalysisHistorySheet(
+            sessions: sessions,
+            onSessionSelected: (session) {
+              Navigator.of(sheetContext).pop();
+              _openAnalysisHistoryDetail(session);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openAnalysisHistoryDetail(RunningCoachSessionAnalysis session) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _AnalysisHistoryDetailScreen(session: session),
       ),
     );
   }
@@ -4958,11 +4993,20 @@ class _VideoAnalysisIntentCard extends StatelessWidget {
 
 class _RecentSessionsCard extends StatelessWidget {
   final List<RunningCoachSessionAnalysis> sessions;
+  final int totalCount;
+  final VoidCallback onShowAll;
+  final ValueChanged<RunningCoachSessionAnalysis> onSessionTap;
 
-  const _RecentSessionsCard({required this.sessions});
+  const _RecentSessionsCard({
+    required this.sessions,
+    required this.totalCount,
+    required this.onShowAll,
+    required this.onSessionTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     return Card(
       child: Padding(
@@ -4974,15 +5018,32 @@ class _RecentSessionsCard extends StatelessWidget {
               children: [
                 Icon(Icons.history_rounded, color: scheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  _recentSessionsTitle(context),
-                  style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: Text(
+                    l10n.runningCoachAnalysisHistoryTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onShowAll,
+                  icon: const Icon(Icons.list_alt_rounded),
+                  label: Text(
+                    l10n.runningCoachAnalysisHistoryAction(totalCount),
+                  ),
                 ),
               ],
             ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.runningCoachAnalysisHistoryBody,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 12),
             for (var index = 0; index < sessions.length; index += 1) ...[
-              _RecentSessionTile(session: sessions[index]),
+              _RecentSessionTile(
+                session: sessions[index],
+                onTap: () => onSessionTap(sessions[index]),
+              ),
               if (index != sessions.length - 1) const Divider(height: 18),
             ],
           ],
@@ -4994,8 +5055,9 @@ class _RecentSessionsCard extends StatelessWidget {
 
 class _RecentSessionTile extends StatelessWidget {
   final RunningCoachSessionAnalysis session;
+  final VoidCallback? onTap;
 
-  const _RecentSessionTile({required this.session});
+  const _RecentSessionTile({required this.session, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -5005,59 +5067,78 @@ class _RecentSessionTile extends StatelessWidget {
       l10n,
     );
     final scheme = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Text(
-              '${session.overallScore}',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Text(
+                  '${session.overallScore}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                copy.title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                copy.cue,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _TinySessionPill(text: _sessionSourceLabel(context, session)),
-                  _TinySessionPill(text: _formatSessionDate(context, session)),
-                  _TinySessionPill(
-                    text:
-                        '${_confidenceLabel(context)} ${(session.primaryConfidence * 100).round()}%',
+                  Text(
+                    copy.title,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    copy.cue,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      _TinySessionPill(
+                        text: _sessionSourceLabel(l10n, session),
+                      ),
+                      _TinySessionPill(
+                        text: _formatSessionDate(context, session),
+                      ),
+                      _TinySessionPill(
+                        text: l10n.runningCoachConfidenceLabel(
+                          (session.primaryConfidence * 100).round(),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
+            ),
+            if (onTap != null) ...[
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right_rounded, color: scheme.outline),
             ],
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -5080,6 +5161,739 @@ class _TinySessionPill extends StatelessWidget {
         child: Text(text, style: Theme.of(context).textTheme.labelSmall),
       ),
     );
+  }
+}
+
+class _AnalysisHistorySheet extends StatelessWidget {
+  final List<RunningCoachSessionAnalysis> sessions;
+  final ValueChanged<RunningCoachSessionAnalysis> onSessionSelected;
+
+  const _AnalysisHistorySheet({
+    required this.sessions,
+    required this.onSessionSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.runningCoachAnalysisHistoryTitle,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.runningCoachAnalysisHistoryBody,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+              AppBarActionButton.icon(
+                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                onPressed: () => Navigator.of(context).pop(),
+                icon: Icons.close_rounded,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (sessions.isEmpty)
+            Expanded(
+              child: Center(
+                child: Text(
+                  l10n.runningCoachAnalysisHistoryEmpty,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.separated(
+                itemCount: sessions.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final session = sessions[index];
+                  return _AnalysisHistoryTile(
+                    session: session,
+                    onTap: () => onSessionSelected(session),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnalysisHistoryTile extends StatelessWidget {
+  final RunningCoachSessionAnalysis session;
+  final VoidCallback onTap;
+
+  const _AnalysisHistoryTile({required this.session, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final insight = session.primaryInsight;
+    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+    return Material(
+      color: scheme.surfaceContainerHighest.withValues(alpha: 0.58),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _InsightGuideThumbnail(insight: insight),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            copy.title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                        _ScoreBadge(score: session.overallScore),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      copy.summary,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        _TinySessionPill(
+                          text: _sessionSourceLabel(l10n, session),
+                        ),
+                        _TinySessionPill(
+                          text: _formatSessionDate(context, session),
+                        ),
+                        _TinySessionPill(
+                          text: l10n.runningCoachMetricScore(
+                            session.primaryScore,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right_rounded, color: scheme.outline),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnalysisHistoryDetailScreen extends StatelessWidget {
+  final RunningCoachSessionAnalysis session;
+
+  const _AnalysisHistoryDetailScreen({required this.session});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final insight = session.primaryInsight;
+    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.runningCoachAnalysisHistoryDetailTitle),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    copy.title,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.runningCoachAnalysisHistoryPrimaryFocus,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      _StatChip(
+                        label: l10n.runningCoachOverallScoreLabel,
+                        value: '${session.overallScore}',
+                      ),
+                      _StatChip(
+                        label: l10n.runningCoachMetricScoreLabel,
+                        value: '${session.primaryScore}',
+                      ),
+                      _StatChip(
+                        label: l10n.runningCoachMetricValueLabel,
+                        value: copy.value,
+                      ),
+                      _StatChip(
+                        label: l10n.runningCoachCoverageLabel,
+                        value:
+                            '${(session.coverage * 100).toStringAsFixed(0)}%',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      _TinySessionPill(
+                          text: _sessionSourceLabel(l10n, session)),
+                      _TinySessionPill(
+                        text: _formatSessionDate(context, session),
+                      ),
+                      _TinySessionPill(
+                        text: l10n.runningCoachConfidenceLabel(
+                          (session.primaryConfidence * 100).round(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _InsightGuidePanel(insight: insight),
+        ],
+      ),
+    );
+  }
+}
+
+class _InsightGuidePanel extends StatelessWidget {
+  final RunningCoachingInsight insight;
+
+  const _InsightGuidePanel({required this.insight});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  _metricGuideIcon(insight.metric),
+                  color: _statusAccentColor(insight.status),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.runningCoachAnalysisGuideTitle,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.runningCoachAnalysisGuideBody,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _InsightGuideVisual(insight: insight),
+            const SizedBox(height: 14),
+            _GuideTextRow(
+              icon: Icons.analytics_outlined,
+              label: l10n.runningCoachAnalysisGuideRangeLabel,
+              body: _metricGoodRange(l10n, insight.metric),
+            ),
+            const SizedBox(height: 10),
+            _GuideTextRow(
+              icon: Icons.notes_outlined,
+              label: l10n.runningCoachAnalysisGuideFindingLabel,
+              body: copy.summary,
+            ),
+            const SizedBox(height: 10),
+            _GuideTextRow(
+              icon: Icons.flag_outlined,
+              label: l10n.runningCoachAnalysisGuideCueLabel,
+              body: copy.cue,
+            ),
+            const SizedBox(height: 10),
+            _GuideTextRow(
+              icon: Icons.fitness_center_outlined,
+              label: l10n.runningCoachAnalysisGuideDrillLabel,
+              body: copy.drill,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GuideTextRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String body;
+
+  const _GuideTextRow({
+    required this.icon,
+    required this.label,
+    required this.body,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: scheme.primary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+              const SizedBox(height: 3),
+              Text(body, style: Theme.of(context).textTheme.bodyMedium),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _InsightGuideVisual extends StatelessWidget {
+  final RunningCoachingInsight insight;
+
+  const _InsightGuideVisual({required this.insight});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  _metricGuideIcon(insight.metric),
+                  size: 18,
+                  color: _statusAccentColor(insight.status),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _metricGoodRange(l10n, insight.metric),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 142,
+              width: double.infinity,
+              child: CustomPaint(
+                painter: _RunningInsightGuidePainter(
+                  metric: insight.metric,
+                  finding: insight.finding,
+                  status: insight.status,
+                  surfaceColor: scheme.surface,
+                  mutedColor: scheme.outline,
+                  guideColor: scheme.primary.withValues(alpha: 0.34),
+                  accentColor: _statusAccentColor(insight.status),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InsightGuideThumbnail extends StatelessWidget {
+  final RunningCoachingInsight insight;
+
+  const _InsightGuideThumbnail({required this.insight});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: SizedBox(
+        width: 72,
+        height: 72,
+        child: CustomPaint(
+          painter: _RunningInsightGuidePainter(
+            metric: insight.metric,
+            finding: insight.finding,
+            status: insight.status,
+            surfaceColor: scheme.surface,
+            mutedColor: scheme.outline,
+            guideColor: scheme.primary.withValues(alpha: 0.28),
+            accentColor: _statusAccentColor(insight.status),
+            compact: true,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RunningInsightGuidePainter extends CustomPainter {
+  final RunningCoachMetric metric;
+  final RunningCoachFinding finding;
+  final RunningCoachStatus status;
+  final Color surfaceColor;
+  final Color mutedColor;
+  final Color guideColor;
+  final Color accentColor;
+  final bool compact;
+
+  const _RunningInsightGuidePainter({
+    required this.metric,
+    required this.finding,
+    required this.status,
+    required this.surfaceColor,
+    required this.mutedColor,
+    required this.guideColor,
+    required this.accentColor,
+    this.compact = false,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final scale = math.min(size.width / 280, size.height / 140);
+    final center = Offset(size.width * 0.5, size.height * 0.52);
+    final groundY = center.dy + 46 * scale;
+    final lean = switch (finding) {
+      RunningCoachFinding.postureTooUpright => 8.0,
+      RunningCoachFinding.postureTooLean => 48.0,
+      _ => 28.0,
+    };
+    final footReach = switch (finding) {
+      RunningCoachFinding.footStrikeOverstride => 72.0,
+      _ => 42.0,
+    };
+    final kneeDrop = switch (finding) {
+      RunningCoachFinding.kneeTooStraight => 8.0,
+      RunningCoachFinding.kneeTooCollapsed => 28.0,
+      _ => 18.0,
+    };
+    final armOpen = switch (finding) {
+      RunningCoachFinding.armTooOpen => 34.0,
+      RunningCoachFinding.armTooTight => 12.0,
+      _ => 24.0,
+    };
+
+    final hip = center + Offset(-10 * scale, -6 * scale);
+    final shoulder = hip + Offset(lean * scale, -48 * scale);
+    final neck = shoulder + Offset(8 * scale, -12 * scale);
+    final head = neck + Offset(5 * scale, -12 * scale);
+    final frontKnee = hip + Offset(28 * scale, (28 + kneeDrop) * scale);
+    final frontFoot = hip + Offset(footReach * scale, 50 * scale);
+    final backKnee = hip + Offset(-42 * scale, 28 * scale);
+    final backFoot = hip + Offset(-68 * scale, 49 * scale);
+    final frontElbow = shoulder + Offset(armOpen * scale, 26 * scale);
+    final frontHand = frontElbow + Offset(16 * scale, 24 * scale);
+    final backElbow = shoulder + Offset(-armOpen * scale, 20 * scale);
+    final backHand = backElbow + Offset(-18 * scale, 24 * scale);
+
+    final guidePaint = Paint()
+      ..color = guideColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = compact ? 1.4 : 1.8
+      ..strokeCap = StrokeCap.round;
+    final bodyPaint = Paint()
+      ..color = mutedColor.withValues(alpha: 0.82)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = compact ? 3.2 : 4.4
+      ..strokeCap = StrokeCap.round;
+    final accentPaint = Paint()
+      ..color = accentColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = compact ? 3.4 : 4.8
+      ..strokeCap = StrokeCap.round;
+    final jointPaint = Paint()
+      ..color = surfaceColor
+      ..style = PaintingStyle.fill;
+    final jointStroke = Paint()
+      ..color = mutedColor.withValues(alpha: 0.70)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = compact ? 1.2 : 1.6;
+    final accentJointStroke = Paint()
+      ..color = accentColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = compact ? 1.5 : 2;
+
+    canvas.drawLine(
+      Offset(size.width * 0.08, groundY),
+      Offset(size.width * 0.92, groundY),
+      guidePaint,
+    );
+    _drawBodySegment(canvas, hip, shoulder, bodyPaint, accentPaint,
+        active: metric == RunningCoachMetric.posture);
+    _drawBodySegment(canvas, shoulder, frontElbow, bodyPaint, accentPaint,
+        active: metric == RunningCoachMetric.armCarriage);
+    _drawBodySegment(canvas, frontElbow, frontHand, bodyPaint, accentPaint,
+        active: metric == RunningCoachMetric.armCarriage);
+    _drawBodySegment(canvas, shoulder, backElbow, bodyPaint, accentPaint,
+        active: metric == RunningCoachMetric.armCarriage);
+    _drawBodySegment(canvas, backElbow, backHand, bodyPaint, accentPaint,
+        active: metric == RunningCoachMetric.armCarriage);
+    _drawBodySegment(canvas, hip, frontKnee, bodyPaint, accentPaint,
+        active: metric == RunningCoachMetric.kneeFlexion);
+    _drawBodySegment(canvas, frontKnee, frontFoot, bodyPaint, accentPaint,
+        active: metric == RunningCoachMetric.kneeFlexion ||
+            metric == RunningCoachMetric.footStrike);
+    _drawBodySegment(canvas, hip, backKnee, bodyPaint, accentPaint);
+    _drawBodySegment(canvas, backKnee, backFoot, bodyPaint, accentPaint);
+
+    canvas.drawCircle(head, compact ? 7 * scale : 10 * scale, jointPaint);
+    canvas.drawCircle(head, compact ? 7 * scale : 10 * scale, jointStroke);
+    for (final joint in [
+      shoulder,
+      hip,
+      frontElbow,
+      backElbow,
+      frontKnee,
+      backKnee,
+      frontFoot,
+      backFoot,
+    ]) {
+      canvas.drawCircle(joint, compact ? 2.8 * scale : 4 * scale, jointPaint);
+      canvas.drawCircle(joint, compact ? 2.8 * scale : 4 * scale, jointStroke);
+    }
+
+    switch (metric) {
+      case RunningCoachMetric.posture:
+        final verticalTop = Offset(hip.dx, hip.dy - 62 * scale);
+        canvas.drawLine(verticalTop, hip + Offset(0, 18 * scale), guidePaint);
+        _drawAngleArc(
+          canvas,
+          center: hip,
+          radius: 30 * scale,
+          startRadians: -math.pi / 2,
+          sweepRadians: lean / 90,
+          paint: accentPaint,
+        );
+        _drawArrow(
+            canvas, shoulder - Offset(10 * scale, 0), shoulder, accentPaint);
+      case RunningCoachMetric.bounce:
+        final topLine = groundY - 76 * scale;
+        final bottomLine = groundY - 58 * scale;
+        canvas.drawLine(
+          Offset(size.width * 0.20, topLine),
+          Offset(size.width * 0.82, topLine),
+          guidePaint,
+        );
+        canvas.drawLine(
+          Offset(size.width * 0.20, bottomLine),
+          Offset(size.width * 0.82, bottomLine),
+          guidePaint,
+        );
+        _drawArrow(
+          canvas,
+          Offset(shoulder.dx + 36 * scale, bottomLine),
+          Offset(shoulder.dx + 36 * scale, topLine),
+          accentPaint,
+        );
+        _drawArrow(
+          canvas,
+          Offset(shoulder.dx + 36 * scale, topLine),
+          Offset(shoulder.dx + 36 * scale, bottomLine),
+          accentPaint,
+        );
+      case RunningCoachMetric.footStrike:
+        final targetLeft = hip.dx - 12 * scale;
+        final targetRight = hip.dx + 46 * scale;
+        final targetRect = Rect.fromLTRB(
+          targetLeft,
+          groundY - 16 * scale,
+          targetRight,
+          groundY + 6 * scale,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(targetRect, Radius.circular(8 * scale)),
+          Paint()
+            ..color = guideColor
+            ..style = PaintingStyle.fill,
+        );
+        canvas.drawLine(
+          Offset(hip.dx, hip.dy + 5 * scale),
+          Offset(hip.dx, groundY + 4 * scale),
+          guidePaint,
+        );
+        canvas.drawCircle(frontFoot, compact ? 6 * scale : 8 * scale,
+            Paint()..color = accentColor.withValues(alpha: 0.18));
+        canvas.drawCircle(
+            frontFoot, compact ? 6 * scale : 8 * scale, accentJointStroke);
+      case RunningCoachMetric.kneeFlexion:
+        _drawAngleArc(
+          canvas,
+          center: frontKnee,
+          radius: 24 * scale,
+          startRadians: -2.35,
+          sweepRadians: 1.45,
+          paint: accentPaint,
+        );
+        canvas.drawCircle(frontKnee, compact ? 7 * scale : 9 * scale,
+            Paint()..color = accentColor.withValues(alpha: 0.16));
+        canvas.drawCircle(
+            frontKnee, compact ? 7 * scale : 9 * scale, accentJointStroke);
+      case RunningCoachMetric.armCarriage:
+        _drawAngleArc(
+          canvas,
+          center: frontElbow,
+          radius: 18 * scale,
+          startRadians: -2.1,
+          sweepRadians: 1.6,
+          paint: accentPaint,
+        );
+        canvas.drawCircle(frontElbow, compact ? 7 * scale : 9 * scale,
+            Paint()..color = accentColor.withValues(alpha: 0.16));
+        canvas.drawCircle(
+            frontElbow, compact ? 7 * scale : 9 * scale, accentJointStroke);
+    }
+  }
+
+  void _drawBodySegment(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint bodyPaint,
+    Paint accentPaint, {
+    bool active = false,
+  }) {
+    canvas.drawLine(from, to, active ? accentPaint : bodyPaint);
+  }
+
+  void _drawAngleArc(
+    Canvas canvas, {
+    required Offset center,
+    required double radius,
+    required double startRadians,
+    required double sweepRadians,
+    required Paint paint,
+  }) {
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startRadians,
+      sweepRadians,
+      false,
+      paint,
+    );
+  }
+
+  void _drawArrow(Canvas canvas, Offset from, Offset to, Paint paint) {
+    canvas.drawLine(from, to, paint);
+    final angle = math.atan2(to.dy - from.dy, to.dx - from.dx);
+    final size = compact ? 6.0 : 8.0;
+    final first = Offset(
+      to.dx - math.cos(angle - math.pi / 6) * size,
+      to.dy - math.sin(angle - math.pi / 6) * size,
+    );
+    final second = Offset(
+      to.dx - math.cos(angle + math.pi / 6) * size,
+      to.dy - math.sin(angle + math.pi / 6) * size,
+    );
+    canvas.drawLine(to, first, paint);
+    canvas.drawLine(to, second, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _RunningInsightGuidePainter oldDelegate) {
+    return oldDelegate.metric != metric ||
+        oldDelegate.finding != finding ||
+        oldDelegate.status != status ||
+        oldDelegate.surfaceColor != surfaceColor ||
+        oldDelegate.mutedColor != mutedColor ||
+        oldDelegate.guideColor != guideColor ||
+        oldDelegate.accentColor != accentColor ||
+        oldDelegate.compact != compact;
   }
 }
 
@@ -5362,6 +6176,8 @@ class _InsightCard extends StatelessWidget {
               label: l10n.runningCoachMetricValueLabel,
               value: copy.value,
             ),
+            const SizedBox(height: 12),
+            _InsightGuideVisual(insight: insight),
             if (insight.quality.isLowConfidence) ...[
               const SizedBox(height: 10),
               Text(
@@ -5372,6 +6188,8 @@ class _InsightCard extends StatelessWidget {
                     ),
               ),
             ],
+            const SizedBox(height: 12),
+            _InsightGuideVisual(insight: insight),
             const SizedBox(height: 12),
             Text(copy.summary, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 10),
@@ -5638,7 +6456,10 @@ class _QualityBadge extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Text(
-          '${_confidenceLabel(context)} ${quality.confidencePercent}%',
+          AppLocalizations.of(
+            context,
+          )!
+              .runningCoachConfidenceLabel(quality.confidencePercent),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: isLow ? scheme.onErrorContainer : null,
                 fontWeight: FontWeight.w700,
@@ -5677,47 +6498,54 @@ class _PriorityBadge extends StatelessWidget {
   }
 }
 
-String _confidenceLabel(BuildContext context) {
-  return Localizations.localeOf(context).languageCode == 'ko'
-      ? '신뢰도'
-      : 'Confidence';
-}
-
 String _qualityReasonText(BuildContext context, RunningMetricQuality quality) {
-  final isKorean = Localizations.localeOf(context).languageCode == 'ko';
+  final l10n = AppLocalizations.of(context)!;
   return switch (quality.reason) {
-    'low_coverage' => isKorean
-        ? '추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.'
-        : 'Tracking coverage is low, so treat this metric conservatively.',
-    'limited_samples' => isKorean
-        ? '안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.'
-        : 'Only a small set of stable frames was read; confirm once more from the same angle.',
-    'contact_phase_proxy' => isKorean
-        ? '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.'
-        : 'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.',
-    _ => isKorean
-        ? '촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.'
-        : 'Capture quality is low; confirm again from the same angle.',
+    'low_coverage' => l10n.runningCoachQualityReasonLowCoverage,
+    'limited_samples' => l10n.runningCoachQualityReasonLimitedSamples,
+    'contact_phase_proxy' => l10n.runningCoachQualityReasonContactPhaseProxy,
+    _ => l10n.runningCoachQualityReasonGeneric,
   };
 }
 
-String _recentSessionsTitle(BuildContext context) {
-  return Localizations.localeOf(context).languageCode == 'ko'
-      ? '최근 분석 기록'
-      : 'Recent analyses';
-}
-
 String _sessionSourceLabel(
-  BuildContext context,
+  AppLocalizations l10n,
   RunningCoachSessionAnalysis session,
 ) {
-  final isKorean = Localizations.localeOf(context).languageCode == 'ko';
   return switch (session.source) {
     RunningCoachSessionSource.uploadVideo =>
-      isKorean ? '영상 분석' : 'Video analysis',
-    RunningCoachSessionSource.liveRun => isKorean ? '실시간 코치' : 'Live run',
+      l10n.runningCoachSessionSourceUploadVideo,
+    RunningCoachSessionSource.liveRun => l10n.runningCoachSessionSourceLiveRun,
     RunningCoachSessionSource.sprintLive =>
-      isKorean ? '스프린트 코칭' : 'Sprint live',
+      l10n.runningCoachSessionSourceSprintLive,
+  };
+}
+
+IconData _metricGuideIcon(RunningCoachMetric metric) {
+  return switch (metric) {
+    RunningCoachMetric.posture => Icons.accessibility_new_rounded,
+    RunningCoachMetric.bounce => Icons.height_rounded,
+    RunningCoachMetric.footStrike => Icons.directions_run_rounded,
+    RunningCoachMetric.kneeFlexion => Icons.sports_gymnastics_rounded,
+    RunningCoachMetric.armCarriage => Icons.sync_alt_rounded,
+  };
+}
+
+Color _statusAccentColor(RunningCoachStatus status) {
+  return switch (status) {
+    RunningCoachStatus.good => Colors.green.shade700,
+    RunningCoachStatus.watch => Colors.orange.shade700,
+    RunningCoachStatus.needsWork => Colors.red.shade700,
+  };
+}
+
+String _metricGoodRange(AppLocalizations l10n, RunningCoachMetric metric) {
+  return switch (metric) {
+    RunningCoachMetric.posture => l10n.runningCoachGuideRangePosture,
+    RunningCoachMetric.bounce => l10n.runningCoachGuideRangeBounce,
+    RunningCoachMetric.footStrike => l10n.runningCoachGuideRangeFootStrike,
+    RunningCoachMetric.kneeFlexion => l10n.runningCoachGuideRangeKnee,
+    RunningCoachMetric.armCarriage => l10n.runningCoachGuideRangeArm,
   };
 }
 

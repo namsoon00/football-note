@@ -3468,17 +3468,14 @@ class _SprintViewportMapper {
   });
 
   Offset translatePoint(Offset point) {
-    final rotatedPoint = _rotatePoint(point);
-    final rotatedImageSize = switch (rotation) {
-      InputImageRotation.rotation90deg ||
-      InputImageRotation.rotation270deg =>
-        Size(imageSize.height, imageSize.width),
-      _ => imageSize,
-    };
-    final fitted = applyBoxFit(BoxFit.cover, rotatedImageSize, canvasSize);
+    final displayImageSize = _displayImageSize;
+    final sourcePoint = _pointFitsDisplay(point, displayImageSize)
+        ? point
+        : _rotatePoint(point);
+    final fitted = applyBoxFit(BoxFit.cover, displayImageSize, canvasSize);
     final sourceRect = Alignment.center.inscribe(
       fitted.source,
-      Offset.zero & rotatedImageSize,
+      Offset.zero & displayImageSize,
     );
     final destinationRect = Alignment.center.inscribe(
       fitted.destination,
@@ -3487,11 +3484,11 @@ class _SprintViewportMapper {
 
     var translated = Offset(
       destinationRect.left +
-          ((rotatedPoint.dx - sourceRect.left) *
+          ((sourcePoint.dx - sourceRect.left) *
               destinationRect.width /
               sourceRect.width),
       destinationRect.top +
-          ((rotatedPoint.dy - sourceRect.top) *
+          ((sourcePoint.dy - sourceRect.top) *
               destinationRect.height /
               sourceRect.height),
     );
@@ -3506,6 +3503,23 @@ class _SprintViewportMapper {
     final topLeft = translatePoint(rect.topLeft);
     final bottomRight = translatePoint(rect.bottomRight);
     return Rect.fromPoints(topLeft, bottomRight);
+  }
+
+  Size get _displayImageSize {
+    return switch (rotation) {
+      InputImageRotation.rotation90deg ||
+      InputImageRotation.rotation270deg =>
+        Size(imageSize.height, imageSize.width),
+      _ => imageSize,
+    };
+  }
+
+  bool _pointFitsDisplay(Offset point, Size displayImageSize) {
+    const tolerance = 1.0;
+    return point.dx >= -tolerance &&
+        point.dy >= -tolerance &&
+        point.dx <= displayImageSize.width + tolerance &&
+        point.dy <= displayImageSize.height + tolerance;
   }
 
   Offset _rotatePoint(Offset point) {
