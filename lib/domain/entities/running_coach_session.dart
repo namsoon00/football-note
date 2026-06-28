@@ -16,6 +16,8 @@ class RunningCoachSessionAnalysis {
   final int primaryScore;
   final double primaryValue;
   final double primaryConfidence;
+  final String? videoPath;
+  final String? videoName;
 
   const RunningCoachSessionAnalysis({
     required this.id,
@@ -31,6 +33,8 @@ class RunningCoachSessionAnalysis {
     required this.primaryScore,
     required this.primaryValue,
     required this.primaryConfidence,
+    this.videoPath,
+    this.videoName,
   });
 
   double get coverage =>
@@ -65,6 +69,8 @@ class RunningCoachSessionAnalysis {
       'primaryScore': primaryScore,
       'primaryValue': primaryValue,
       'primaryConfidence': primaryConfidence,
+      if (videoPath != null) 'videoPath': videoPath,
+      if (videoName != null) 'videoName': videoName,
     };
   }
 
@@ -100,8 +106,18 @@ class RunningCoachSessionAnalysis {
       primaryScore: _intValue(map['primaryScore']),
       primaryValue: _doubleValue(map['primaryValue']),
       primaryConfidence: _doubleValue(map['primaryConfidence']).clamp(0.0, 1.0),
+      videoPath: _optionalString(map['videoPath']),
+      videoName: _optionalString(map['videoName']),
     );
   }
+}
+
+String? _optionalString(Object? value) {
+  final text = value?.toString().trim();
+  if (text == null || text.isEmpty) {
+    return null;
+  }
+  return text;
 }
 
 int _intValue(Object? value) {

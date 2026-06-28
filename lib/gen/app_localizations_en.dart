@@ -7748,6 +7748,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'Key decision for this clip';
 
   @override
+  String get runningCoachAnalysisResultScreenTitle => 'Running analysis result';
+
+  @override
+  String get runningCoachHistoryVideoSaved => 'Video saved';
+
+  @override
+  String get runningCoachArchivedVideoTitle => 'Analyzed video';
+
+  @override
+  String get runningCoachArchivedVideoBody =>
+      'This video is saved with the analysis history so you can review the same form again.';
+
+  @override
+  String get runningCoachArchivedVideoPlay => 'Play';
+
+  @override
+  String get runningCoachArchivedVideoPause => 'Pause';
+
+  @override
+  String get runningCoachArchivedVideoUnavailable =>
+      'The saved video cannot be opened. The file may have been removed from this device.';
+
+  @override
   String get runningCoachAnalysisGuideTitle => 'Correction point in pictures';
 
   @override

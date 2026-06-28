@@ -7548,6 +7548,29 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachAnalysisHistoryPrimaryFocus => '이 기록의 핵심 판정';
 
   @override
+  String get runningCoachAnalysisResultScreenTitle => '달리기 분석 결과';
+
+  @override
+  String get runningCoachHistoryVideoSaved => '영상 저장됨';
+
+  @override
+  String get runningCoachArchivedVideoTitle => '분석 영상';
+
+  @override
+  String get runningCoachArchivedVideoBody =>
+      '이 영상은 분석 히스토리와 함께 저장되어 같은 자세를 다시 확인할 수 있어요.';
+
+  @override
+  String get runningCoachArchivedVideoPlay => '재생';
+
+  @override
+  String get runningCoachArchivedVideoPause => '일시정지';
+
+  @override
+  String get runningCoachArchivedVideoUnavailable =>
+      '저장된 영상을 열 수 없어요. 영상 파일이 기기에서 삭제되었을 수 있어요.';
+
+  @override
   String get runningCoachAnalysisGuideTitle => '그림으로 보는 교정 포인트';
 
   @override
