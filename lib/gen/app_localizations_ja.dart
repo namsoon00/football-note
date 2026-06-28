@@ -7534,6 +7534,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachAnalysisHistoryPrimaryFocus => 'この動画の主な判定';
 
   @override
+  String get runningCoachAnalysisResultScreenTitle => 'ランニング分析結果';
+
+  @override
+  String get runningCoachHistoryVideoSaved => '動画保存済み';
+
+  @override
+  String get runningCoachArchivedVideoTitle => '分析動画';
+
+  @override
+  String get runningCoachArchivedVideoBody =>
+      'この動画は分析履歴と一緒に保存され、同じフォームをもう一度確認できます。';
+
+  @override
+  String get runningCoachArchivedVideoPlay => '再生';
+
+  @override
+  String get runningCoachArchivedVideoPause => '一時停止';
+
+  @override
+  String get runningCoachArchivedVideoUnavailable =>
+      '保存された動画を開けません。端末からファイルが削除された可能性があります。';
+
+  @override
   String get runningCoachAnalysisGuideTitle => '図で見る修正ポイント';
 
   @override

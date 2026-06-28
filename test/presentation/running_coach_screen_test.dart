@@ -26,7 +26,7 @@ void main() {
     VideoPlayerPlatform.instance = previousVideoPlayerPlatform;
   });
 
-  testWidgets('growth loop records a sprint time and shows badges', (
+  testWidgets('coach screen omits the personal record chase area', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
@@ -53,33 +53,12 @@ void main() {
     expect(find.text("Today's speed mission"), findsOneWidget);
     expect(find.text('Session plan'), findsNothing);
     expect(find.text('Coach checkpoint'), findsNothing);
-
-    await tester.scrollUntilVisible(
+    expect(
       find.byKey(const ValueKey('running-coach-growth-record-card')),
-      -220,
-      scrollable: find.byType(Scrollable).first,
+      findsNothing,
     );
-    expect(find.text('Beat your own runner'), findsOneWidget);
-    expect(find.text('No time yet'), findsWidgets);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('running-coach-record-seconds-field')),
-      '4.32',
-    );
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('running-coach-record-save-button')),
-      -220,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('running-coach-record-save-button')),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(find.text('4.32s'), findsOneWidget);
-    expect(find.text('First sprint'), findsOneWidget);
-    expect(find.text('Sprint time saved.'), findsOneWidget);
+    expect(find.text('Beat your own runner'), findsNothing);
+    expect(find.text('Open sample video guide'), findsOneWidget);
   });
 
   testWidgets('sample sheet shows framed runner posture cues', (
@@ -285,6 +264,8 @@ void main() {
       primaryScore: 70,
       primaryValue: 4,
       primaryConfidence: 0.86,
+      videoPath: '/missing/running-coach-test.mp4',
+      videoName: 'side-view-test.mp4',
     );
     await optionRepository.setValue(
       RunningCoachHistoryService.storageKey,
@@ -308,6 +289,7 @@ void main() {
 
     expect(find.text('Video analysis history'), findsOneWidget);
     expect(find.text('All 1'), findsOneWidget);
+    expect(find.text('Video saved'), findsOneWidget);
 
     await tester.tap(find.text('All 1'));
     await tester.pumpAndSettle();
@@ -321,9 +303,12 @@ void main() {
     expect(find.byType(CustomPaint), findsWidgets);
 
     await tester.tap(find.text('Posture').last);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.text('Analysis guide'), findsOneWidget);
+    expect(find.text('Analyzed video'), findsOneWidget);
+    expect(find.text('side-view-test.mp4'), findsOneWidget);
     expect(find.text('Correction point in pictures'), findsOneWidget);
     expect(
       find.text('Target: 8-15° whole-body forward lean from the ankles'),

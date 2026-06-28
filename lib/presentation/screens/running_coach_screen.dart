@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:video_player/video_player.dart';
 
 import '../../application/running_coach_history_service.dart';
 import '../../application/running_coaching_service.dart';
-import '../../application/running_growth_service.dart';
 import '../../application/running_video_analysis_service.dart';
 import '../../application/sport_service.dart';
 import '../../domain/entities/running_coach_session.dart';
@@ -36,21 +36,12 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       const RunningVideoAnalysisService();
   final RunningCoachingService _coachingService =
       const RunningCoachingService();
-  final TextEditingController _recordSecondsController =
-      TextEditingController();
 
   RunningCoachHistoryService? _historyService;
-  RunningGrowthService? _growthService;
   XFile? _selectedVideo;
-  RunningVideoAnalysisResult? _analysisResult;
-  RunningCoachingReport? _coachingReport;
-  RunningGrowthSnapshot? _growthSnapshot;
   List<RunningCoachSessionAnalysis> _recentSessions =
       const <RunningCoachSessionAnalysis>[];
-  RunningSprintDistance _selectedSprintDistance =
-      RunningSprintDistance.twentyMeters;
   bool _isAnalyzing = false;
-  bool _isSavingRecord = false;
 
   @override
   void initState() {
@@ -62,16 +53,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         optionRepository,
         sportId: sportId,
       );
-      _growthService = RunningGrowthService(optionRepository, sportId: sportId);
       _recentSessions = _historyService!.allSessions();
-      _growthSnapshot = _growthService!.snapshot();
     }
-  }
-
-  @override
-  void dispose() {
-    _recordSecondsController.dispose();
-    super.dispose();
   }
 
   @override
@@ -92,10 +75,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   Widget _buildCoachPage(AppLocalizations l10n) {
     final mission = _missionForToday(DateTime.now());
-    final growthSnapshot = _growthSnapshot;
-    final insightSections = _coachingReport == null
-        ? const <_InsightRegionSection>[]
-        : _buildInsightSections(l10n, _coachingReport!);
     final sampleResult = _sampleAnalysisResult();
     final sampleReport = _coachingService.buildReport(sampleResult);
     final mistakeSampleResult = _mistakeSampleAnalysisResult();
@@ -116,19 +95,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           onStartLiveCoach: _openLiveCoach,
           onStartSprintCoach: _openSprintCoach,
         ),
-        if (growthSnapshot != null) ...[
-          const SizedBox(height: 12),
-          _RunningGrowthRecordCard(
-            snapshot: growthSnapshot,
-            selectedDistance: _selectedSprintDistance,
-            secondsController: _recordSecondsController,
-            isSaving: _isSavingRecord,
-            onDistanceChanged: (distance) {
-              setState(() => _selectedSprintDistance = distance);
-            },
-            onSave: _saveSprintRecord,
-          ),
-        ],
         const SizedBox(height: 12),
         _RunningCoachUploadGuideCard(
           title: l10n.runningCoachUploadGuideTitle,
@@ -158,30 +124,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
             onSessionTap: _openAnalysisHistoryDetail,
           ),
         ],
-        if (_analysisResult != null && _coachingReport != null) ...[
-          const SizedBox(height: 12),
-          _ResultsSummaryCard(
-            result: _analysisResult!,
-            report: _coachingReport!,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.runningCoachResultsTitle,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 12),
-          for (var sectionIndex = 0;
-              sectionIndex < insightSections.length;
-              sectionIndex += 1) ...[
-            _InsightRegionSectionCard(
-              title: insightSections[sectionIndex].title,
-              insights: insightSections[sectionIndex].insights,
-              priorities: _coachingReport!.focusPriorityByMetric,
-            ),
-            if (sectionIndex != insightSections.length - 1)
-              const SizedBox(height: 12),
-          ],
-        ],
       ],
     );
   }
@@ -198,38 +140,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const SprintLiveCoachingScreen()),
     );
-  }
-
-  Future<void> _saveSprintRecord() async {
-    final growthService = _growthService;
-    if (growthService == null || _isSavingRecord) return;
-
-    final l10n = AppLocalizations.of(context)!;
-    final rawSeconds =
-        _recordSecondsController.text.trim().replaceAll(',', '.');
-    final seconds = double.tryParse(rawSeconds);
-    if (seconds == null || seconds <= 0 || seconds > 60) {
-      AppFeedback.showMessage(context, text: l10n.runningCoachRecordInvalid);
-      return;
-    }
-
-    setState(() => _isSavingRecord = true);
-    try {
-      final snapshot = await growthService.saveRecord(
-        distance: _selectedSprintDistance,
-        seconds: seconds,
-      );
-      if (!mounted) return;
-      setState(() {
-        _growthSnapshot = snapshot;
-        _recordSecondsController.clear();
-      });
-      AppFeedback.showMessage(context, text: l10n.runningCoachRecordSaved);
-    } finally {
-      if (mounted) {
-        setState(() => _isSavingRecord = false);
-      }
-    }
   }
 
   Future<void> _showSampleAnalysis(
@@ -380,8 +290,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       if (!mounted || selected == null) return;
       setState(() {
         _selectedVideo = selected;
-        _analysisResult = null;
-        _coachingReport = null;
       });
     } catch (_) {
       if (!mounted) return;
@@ -397,6 +305,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     if (selected == null || _isAnalyzing) return;
     setState(() => _isAnalyzing = true);
     try {
+      final analyzedAt = DateTime.now();
       final analysis = await _analysisService.analyzeVideo(selected.path);
       final report = _coachingService.buildReport(analysis);
       final historyService = _historyService;
@@ -405,13 +314,28 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           : await historyService.saveUploadAnalysis(
               result: analysis,
               report: report,
+              sourceVideoPath: selected.path,
+              sourceVideoName: selected.name,
+              analyzedAt: analyzedAt,
+            );
+      final session = updatedSessions.isNotEmpty
+          ? updatedSessions.first
+          : _transientSessionForAnalysis(
+              result: analysis,
+              report: report,
+              selectedVideo: selected,
+              analyzedAt: analyzedAt,
             );
       if (!mounted) return;
       setState(() {
-        _analysisResult = analysis;
-        _coachingReport = report;
         _recentSessions = updatedSessions;
+        _selectedVideo = null;
       });
+      _openAnalysisResult(
+        result: analysis,
+        report: report,
+        session: session,
+      );
     } on RunningVideoAnalysisException catch (error) {
       if (!mounted) return;
       AppFeedback.showMessage(
@@ -423,6 +347,48 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         setState(() => _isAnalyzing = false);
       }
     }
+  }
+
+  RunningCoachSessionAnalysis _transientSessionForAnalysis({
+    required RunningVideoAnalysisResult result,
+    required RunningCoachingReport report,
+    required XFile selectedVideo,
+    required DateTime analyzedAt,
+  }) {
+    final primary = report.primaryFocus ?? report.rankedInsights.first;
+    return RunningCoachSessionAnalysis(
+      id: 'preview-${analyzedAt.microsecondsSinceEpoch}',
+      analyzedAt: analyzedAt,
+      source: RunningCoachSessionSource.uploadVideo,
+      overallScore: report.overallScore,
+      duration: result.videoDuration,
+      sampledFrames: result.sampledFrames,
+      validFrames: result.validFrames,
+      primaryMetric: primary.metric,
+      primaryFinding: primary.finding,
+      primaryStatus: primary.status,
+      primaryScore: primary.score,
+      primaryValue: primary.value,
+      primaryConfidence: primary.quality.confidence,
+      videoPath: selectedVideo.path,
+      videoName: selectedVideo.name,
+    );
+  }
+
+  void _openAnalysisResult({
+    required RunningVideoAnalysisResult result,
+    required RunningCoachingReport report,
+    required RunningCoachSessionAnalysis session,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _RunningAnalysisResultScreen(
+          result: result,
+          report: report,
+          session: session,
+        ),
+      ),
+    );
   }
 
   String _messageForException(
@@ -439,40 +405,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       _ => l10n.runningCoachAnalysisFailedGeneric,
     };
   }
-
-  List<_InsightRegionSection> _buildInsightSections(
-    AppLocalizations l10n,
-    RunningCoachingReport report,
-  ) {
-    const order = [
-      RunningCoachBodyRegion.upperBody,
-      RunningCoachBodyRegion.lowerBody,
-      RunningCoachBodyRegion.wholeBody,
-    ];
-    final rankedInsights = report.rankedInsights;
-    return [
-      for (final region in order)
-        if (rankedInsights
-                .where((insight) => insight.metric.bodyRegion == region)
-                .toList(growable: false)
-            case final insights when insights.isNotEmpty)
-          _InsightRegionSection(
-            title: _bodyRegionTitle(l10n, region),
-            insights: insights,
-          ),
-    ];
-  }
-
-  String _bodyRegionTitle(
-    AppLocalizations l10n,
-    RunningCoachBodyRegion region,
-  ) {
-    return switch (region) {
-      RunningCoachBodyRegion.upperBody => l10n.runningCoachBodyRegionUpper,
-      RunningCoachBodyRegion.lowerBody => l10n.runningCoachBodyRegionLower,
-      RunningCoachBodyRegion.wholeBody => l10n.runningCoachBodyRegionWhole,
-    };
-  }
 }
 
 class _InsightRegionSection {
@@ -480,6 +412,37 @@ class _InsightRegionSection {
   final List<RunningCoachingInsight> insights;
 
   const _InsightRegionSection({required this.title, required this.insights});
+}
+
+List<_InsightRegionSection> _buildRunningInsightSections(
+  AppLocalizations l10n,
+  RunningCoachingReport report,
+) {
+  const order = [
+    RunningCoachBodyRegion.upperBody,
+    RunningCoachBodyRegion.lowerBody,
+    RunningCoachBodyRegion.wholeBody,
+  ];
+  final rankedInsights = report.rankedInsights;
+  return [
+    for (final region in order)
+      if (rankedInsights
+              .where((insight) => insight.metric.bodyRegion == region)
+              .toList(growable: false)
+          case final insights when insights.isNotEmpty)
+        _InsightRegionSection(
+          title: _bodyRegionTitle(l10n, region),
+          insights: insights,
+        ),
+  ];
+}
+
+String _bodyRegionTitle(AppLocalizations l10n, RunningCoachBodyRegion region) {
+  return switch (region) {
+    RunningCoachBodyRegion.upperBody => l10n.runningCoachBodyRegionUpper,
+    RunningCoachBodyRegion.lowerBody => l10n.runningCoachBodyRegionLower,
+    RunningCoachBodyRegion.wholeBody => l10n.runningCoachBodyRegionWhole,
+  };
 }
 
 enum _RunningMissionKind {
@@ -715,405 +678,6 @@ class _MissionChip extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _RunningGrowthRecordCard extends StatelessWidget {
-  final RunningGrowthSnapshot snapshot;
-  final RunningSprintDistance selectedDistance;
-  final TextEditingController secondsController;
-  final bool isSaving;
-  final ValueChanged<RunningSprintDistance> onDistanceChanged;
-  final VoidCallback onSave;
-
-  const _RunningGrowthRecordCard({
-    required this.snapshot,
-    required this.selectedDistance,
-    required this.secondsController,
-    required this.isSaving,
-    required this.onDistanceChanged,
-    required this.onSave,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    final selectedBest = snapshot.bestFor(selectedDistance);
-    final selectedDelta = snapshot.latestDeltaFor(selectedDistance);
-    return Card(
-      key: const ValueKey('running-coach-growth-record-card'),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.flag_outlined, color: scheme.primary),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.runningCoachGrowthTitle,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.runningCoachGrowthBody,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            _GrowthStatsRow(snapshot: snapshot),
-            const SizedBox(height: 14),
-            _BestRecordGrid(snapshot: snapshot),
-            const SizedBox(height: 14),
-            Text(
-              l10n.runningCoachRecordInputTitle,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-            const SizedBox(height: 10),
-            SegmentedButton<RunningSprintDistance>(
-              showSelectedIcon: false,
-              segments: [
-                for (final distance in RunningSprintDistance.values)
-                  ButtonSegment<RunningSprintDistance>(
-                    value: distance,
-                    icon: const Icon(Icons.straighten_rounded),
-                    label: Text(
-                      l10n.runningCoachRecordDistance(distance.meters),
-                    ),
-                  ),
-              ],
-              selected: {selectedDistance},
-              onSelectionChanged: isSaving
-                  ? null
-                  : (selection) => onDistanceChanged(selection.first),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              key: const ValueKey('running-coach-record-seconds-field'),
-              controller: secondsController,
-              enabled: !isSaving,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: l10n.runningCoachRecordSecondsLabel,
-                hintText: l10n.runningCoachRecordSecondsHint,
-                suffixText: l10n.runningCoachRecordSecondsSuffix,
-                border: const OutlineInputBorder(),
-              ),
-              onSubmitted: (_) => onSave(),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                key: const ValueKey('running-coach-record-save-button'),
-                onPressed: isSaving ? null : onSave,
-                icon: isSaving
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.add_task_outlined),
-                label: Text(l10n.runningCoachRecordSaveAction),
-              ),
-            ),
-            const SizedBox(height: 12),
-            _GhostRunnerDeltaPanel(
-              distance: selectedDistance,
-              best: selectedBest,
-              delta: selectedDelta,
-            ),
-            const SizedBox(height: 14),
-            _RunningBadgePanel(snapshot: snapshot),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GrowthStatsRow extends StatelessWidget {
-  final RunningGrowthSnapshot snapshot;
-
-  const _GrowthStatsRow({required this.snapshot});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        _StatChip(
-          label: l10n.runningCoachGrowthAttemptsLabel,
-          value: l10n.runningCoachGrowthAttempts(snapshot.totalAttempts),
-        ),
-        _StatChip(
-          label: l10n.runningCoachGrowthStreakLabel,
-          value: l10n.runningCoachGrowthStreak(snapshot.currentStreakDays),
-        ),
-        _StatChip(
-          label: l10n.runningCoachGrowthDistancesLabel,
-          value:
-              l10n.runningCoachGrowthDistances(snapshot.completedDistanceCount),
-        ),
-      ],
-    );
-  }
-}
-
-class _BestRecordGrid extends StatelessWidget {
-  final RunningGrowthSnapshot snapshot;
-
-  const _BestRecordGrid({required this.snapshot});
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final itemWidth = width >= 520 ? (width - 20) / 3 : width;
-        return Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            for (final distance in RunningSprintDistance.values)
-              SizedBox(
-                width: itemWidth,
-                child: _BestRecordTile(
-                  distance: distance,
-                  record: snapshot.bestFor(distance),
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _BestRecordTile extends StatelessWidget {
-  final RunningSprintDistance distance;
-  final RunningSprintRecord? record;
-
-  const _BestRecordTile({required this.distance, required this.record});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.runningCoachRecordDistance(distance.meters),
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: scheme.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              record == null
-                  ? l10n.runningCoachRecordEmpty
-                  : l10n.runningCoachRecordSecondsValue(
-                      record!.seconds.toStringAsFixed(2),
-                    ),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GhostRunnerDeltaPanel extends StatelessWidget {
-  final RunningSprintDistance distance;
-  final RunningSprintRecord? best;
-  final RunningRecordDelta? delta;
-
-  const _GhostRunnerDeltaPanel({
-    required this.distance,
-    required this.best,
-    required this.delta,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    final title = best == null
-        ? l10n.runningCoachGhostEmptyTitle
-        : l10n.runningCoachGhostTitle(distance.meters);
-    final body = _bodyText(l10n);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer.withValues(alpha: 0.58),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.compare_arrows_rounded,
-                color: scheme.onPrimaryContainer),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(body, style: Theme.of(context).textTheme.bodySmall),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _bodyText(AppLocalizations l10n) {
-    if (best == null) {
-      return l10n.runningCoachGhostEmptyBody;
-    }
-    final resolvedDelta = delta;
-    if (resolvedDelta == null) {
-      return l10n.runningCoachGhostFirstRecordBody(
-        best!.seconds.toStringAsFixed(2),
-      );
-    }
-    final gap = resolvedDelta.secondsImproved.abs().toStringAsFixed(2);
-    if (resolvedDelta.isPersonalBest) {
-      return l10n.runningCoachGhostImprovedBody(gap);
-    }
-    return l10n.runningCoachGhostChaseBody(gap);
-  }
-}
-
-class _RunningBadgePanel extends StatelessWidget {
-  final RunningGrowthSnapshot snapshot;
-
-  const _RunningBadgePanel({required this.snapshot});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final earned = snapshot.earnedBadges.toSet();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.runningCoachBadgesTitle,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-        ),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final badge in RunningGrowthBadge.values)
-              _RunningBadgeChip(
-                badge: badge,
-                earned: earned.contains(badge),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _RunningBadgeChip extends StatelessWidget {
-  final RunningGrowthBadge badge;
-  final bool earned;
-
-  const _RunningBadgeChip({required this.badge, required this.earned});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color:
-            earned ? scheme.tertiaryContainer : scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: earned
-              ? scheme.tertiary.withValues(alpha: 0.36)
-              : scheme.outlineVariant,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              earned ? Icons.workspace_premium_outlined : Icons.lock_outline,
-              size: 16,
-              color: earned ? scheme.onTertiaryContainer : scheme.outline,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              _badgeTitle(l10n, badge),
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: earned
-                        ? scheme.onTertiaryContainer
-                        : scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _badgeTitle(AppLocalizations l10n, RunningGrowthBadge badge) {
-    return switch (badge) {
-      RunningGrowthBadge.firstRun => l10n.runningCoachBadgeFirstRun,
-      RunningGrowthBadge.recordBreaker => l10n.runningCoachBadgeRecordBreaker,
-      RunningGrowthBadge.threeDaySpark => l10n.runningCoachBadgeThreeDaySpark,
-      RunningGrowthBadge.allRounder => l10n.runningCoachBadgeAllRounder,
-    };
   }
 }
 
@@ -5124,6 +4688,10 @@ class _RecentSessionTile extends StatelessWidget {
                       _TinySessionPill(
                         text: _sessionSourceLabel(l10n, session),
                       ),
+                      if (session.videoPath != null)
+                        _TinySessionPill(
+                          text: l10n.runningCoachHistoryVideoSaved,
+                        ),
                       _TinySessionPill(
                         text: _formatSessionDate(context, session),
                       ),
@@ -5303,6 +4871,10 @@ class _AnalysisHistoryTile extends StatelessWidget {
                         _TinySessionPill(
                           text: _sessionSourceLabel(l10n, session),
                         ),
+                        if (session.videoPath != null)
+                          _TinySessionPill(
+                            text: l10n.runningCoachHistoryVideoSaved,
+                          ),
                         _TinySessionPill(
                           text: _formatSessionDate(context, session),
                         ),
@@ -5326,6 +4898,54 @@ class _AnalysisHistoryTile extends StatelessWidget {
   }
 }
 
+class _RunningAnalysisResultScreen extends StatelessWidget {
+  final RunningVideoAnalysisResult result;
+  final RunningCoachingReport report;
+  final RunningCoachSessionAnalysis session;
+
+  const _RunningAnalysisResultScreen({
+    required this.result,
+    required this.report,
+    required this.session,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final insightSections = _buildRunningInsightSections(l10n, report);
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.runningCoachAnalysisResultScreenTitle)),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (session.videoPath != null) ...[
+            _ArchivedAnalysisVideoCard(session: session),
+            const SizedBox(height: 12),
+          ],
+          _ResultsSummaryCard(result: result, report: report),
+          const SizedBox(height: 12),
+          Text(
+            l10n.runningCoachResultsTitle,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 12),
+          for (var sectionIndex = 0;
+              sectionIndex < insightSections.length;
+              sectionIndex += 1) ...[
+            _InsightRegionSectionCard(
+              title: insightSections[sectionIndex].title,
+              insights: insightSections[sectionIndex].insights,
+              priorities: report.focusPriorityByMetric,
+            ),
+            if (sectionIndex != insightSections.length - 1)
+              const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _AnalysisHistoryDetailScreen extends StatelessWidget {
   final RunningCoachSessionAnalysis session;
 
@@ -5343,6 +4963,10 @@ class _AnalysisHistoryDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (session.videoPath != null) ...[
+            _ArchivedAnalysisVideoCard(session: session),
+            const SizedBox(height: 12),
+          ],
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -5394,6 +5018,10 @@ class _AnalysisHistoryDetailScreen extends StatelessWidget {
                     children: [
                       _TinySessionPill(
                           text: _sessionSourceLabel(l10n, session)),
+                      if (session.videoPath != null)
+                        _TinySessionPill(
+                          text: l10n.runningCoachHistoryVideoSaved,
+                        ),
                       _TinySessionPill(
                         text: _formatSessionDate(context, session),
                       ),
@@ -5411,6 +5039,201 @@ class _AnalysisHistoryDetailScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _InsightGuidePanel(insight: insight),
         ],
+      ),
+    );
+  }
+}
+
+class _ArchivedAnalysisVideoCard extends StatefulWidget {
+  final RunningCoachSessionAnalysis session;
+
+  const _ArchivedAnalysisVideoCard({required this.session});
+
+  @override
+  State<_ArchivedAnalysisVideoCard> createState() =>
+      _ArchivedAnalysisVideoCardState();
+}
+
+class _ArchivedAnalysisVideoCardState
+    extends State<_ArchivedAnalysisVideoCard> {
+  VideoPlayerController? _controller;
+  bool _isInitializing = true;
+  bool _isUnavailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_initializeVideo());
+  }
+
+  @override
+  void didUpdateWidget(covariant _ArchivedAnalysisVideoCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session.videoPath != widget.session.videoPath) {
+      unawaited(_controller?.dispose());
+      _controller = null;
+      _isInitializing = true;
+      _isUnavailable = false;
+      unawaited(_initializeVideo());
+    }
+  }
+
+  @override
+  void dispose() {
+    unawaited(_controller?.dispose());
+    super.dispose();
+  }
+
+  Future<void> _initializeVideo() async {
+    final path = widget.session.videoPath;
+    if (path == null || path.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _isInitializing = false;
+        _isUnavailable = true;
+      });
+      return;
+    }
+    try {
+      final file = File(path);
+      if (!await file.exists()) {
+        if (!mounted) return;
+        setState(() {
+          _isInitializing = false;
+          _isUnavailable = true;
+        });
+        return;
+      }
+      final controller = VideoPlayerController.file(file);
+      await controller.initialize();
+      await controller.setLooping(true);
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+      setState(() {
+        _controller = controller;
+        _isInitializing = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isInitializing = false;
+        _isUnavailable = true;
+      });
+    }
+  }
+
+  Future<void> _togglePlayback() async {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) {
+      return;
+    }
+    if (controller.value.isPlaying) {
+      await controller.pause();
+    } else {
+      await controller.play();
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final controller = _controller;
+    final isReady = controller != null && controller.value.isInitialized;
+    final readyController = isReady ? controller : null;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.movie_filter_outlined, color: scheme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.runningCoachArchivedVideoTitle,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                      ),
+                      if (widget.session.videoName case final videoName?) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          videoName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (isReady)
+                  FilledButton.icon(
+                    onPressed: _togglePlayback,
+                    icon: Icon(
+                      controller.value.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                    ),
+                    label: Text(
+                      controller.value.isPlaying
+                          ? l10n.runningCoachArchivedVideoPause
+                          : l10n.runningCoachArchivedVideoPlay,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: AspectRatio(
+                  aspectRatio: readyController?.value.aspectRatio ?? 16 / 9,
+                  child: _isInitializing
+                      ? const Center(child: CircularProgressIndicator())
+                      : _isUnavailable || readyController == null
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Text(
+                                  l10n.runningCoachArchivedVideoUnavailable,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(color: Colors.white),
+                                ),
+                              ),
+                            )
+                          : VideoPlayer(readyController),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              l10n.runningCoachArchivedVideoBody,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -5573,7 +5396,7 @@ class _InsightGuideVisual extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             SizedBox(
-              height: 142,
+              height: 190,
               width: double.infinity,
               child: CustomPaint(
                 painter: _RunningInsightGuidePainter(
@@ -5651,9 +5474,9 @@ class _RunningInsightGuidePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final scale = math.min(size.width / 280, size.height / 140);
-    final center = Offset(size.width * 0.5, size.height * 0.52);
-    final groundY = center.dy + 46 * scale;
+    final scale = math.min(size.width / 300, size.height / 178);
+    final center = Offset(size.width * 0.50, size.height * 0.54);
+    final groundY = center.dy + 54 * scale;
     final lean = switch (finding) {
       RunningCoachFinding.postureTooUpright => 8.0,
       RunningCoachFinding.postureTooLean => 48.0,
@@ -5674,18 +5497,18 @@ class _RunningInsightGuidePainter extends CustomPainter {
       _ => 24.0,
     };
 
-    final hip = center + Offset(-10 * scale, -6 * scale);
-    final shoulder = hip + Offset(lean * scale, -48 * scale);
+    final hip = center + Offset(-12 * scale, -8 * scale);
+    final shoulder = hip + Offset(lean * scale, -54 * scale);
     final neck = shoulder + Offset(8 * scale, -12 * scale);
-    final head = neck + Offset(5 * scale, -12 * scale);
-    final frontKnee = hip + Offset(28 * scale, (28 + kneeDrop) * scale);
-    final frontFoot = hip + Offset(footReach * scale, 50 * scale);
-    final backKnee = hip + Offset(-42 * scale, 28 * scale);
-    final backFoot = hip + Offset(-68 * scale, 49 * scale);
-    final frontElbow = shoulder + Offset(armOpen * scale, 26 * scale);
-    final frontHand = frontElbow + Offset(16 * scale, 24 * scale);
+    final head = neck + Offset(5 * scale, -14 * scale);
+    final frontKnee = hip + Offset(30 * scale, (32 + kneeDrop) * scale);
+    final frontFoot = hip + Offset(footReach * scale, 58 * scale);
+    final backKnee = hip + Offset(-45 * scale, 32 * scale);
+    final backFoot = hip + Offset(-76 * scale, 56 * scale);
+    final frontElbow = shoulder + Offset(armOpen * scale, 28 * scale);
+    final frontHand = frontElbow + Offset(18 * scale, 26 * scale);
     final backElbow = shoulder + Offset(-armOpen * scale, 20 * scale);
-    final backHand = backElbow + Offset(-18 * scale, 24 * scale);
+    final backHand = backElbow + Offset(-20 * scale, 26 * scale);
 
     final guidePaint = Paint()
       ..color = guideColor
@@ -5714,11 +5537,15 @@ class _RunningInsightGuidePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = compact ? 1.5 : 2;
 
+    if (!compact) {
+      _drawBiomechanicsGrid(canvas, size, guidePaint);
+    }
     canvas.drawLine(
       Offset(size.width * 0.08, groundY),
       Offset(size.width * 0.92, groundY),
       guidePaint,
     );
+    _drawTorsoBiomechanics(canvas, shoulder, hip, scale);
     _drawBodySegment(canvas, hip, shoulder, bodyPaint, accentPaint,
         active: metric == RunningCoachMetric.posture);
     _drawBodySegment(canvas, shoulder, frontElbow, bodyPaint, accentPaint,
@@ -5853,7 +5680,111 @@ class _RunningInsightGuidePainter extends CustomPainter {
     Paint accentPaint, {
     bool active = false,
   }) {
-    canvas.drawLine(from, to, active ? accentPaint : bodyPaint);
+    final width = active ? (compact ? 6.0 : 9.0) : (compact ? 4.3 : 6.4);
+    final bounds = Rect.fromPoints(from, to).inflate(width * 1.6);
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: compact ? 0.06 : 0.12)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width + 2.2
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(from + Offset(0, width * 0.24),
+        to + Offset(0, width * 0.24), shadowPaint);
+    final musclePaint = Paint()
+      ..shader = LinearGradient(
+        colors: active
+            ? [
+                accentPaint.color.withValues(alpha: 0.92),
+                bodyPaint.color.withValues(alpha: 0.72),
+              ]
+            : [
+                bodyPaint.color.withValues(alpha: 0.76),
+                bodyPaint.color.withValues(alpha: 0.42),
+              ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(bounds)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(from, to, musclePaint);
+    if (!compact) {
+      canvas.drawLine(
+        from,
+        to,
+        Paint()
+          ..color = surfaceColor.withValues(alpha: active ? 0.38 : 0.22)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, width * 0.18)
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+  }
+
+  void _drawBiomechanicsGrid(Canvas canvas, Size size, Paint guidePaint) {
+    final gridPaint = Paint()
+      ..color = guidePaint.color.withValues(alpha: 0.28)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+    for (var fraction = 0.22; fraction < 0.86; fraction += 0.16) {
+      canvas.drawLine(
+        Offset(size.width * 0.08, size.height * fraction),
+        Offset(size.width * 0.92, size.height * fraction),
+        gridPaint,
+      );
+    }
+  }
+
+  void _drawTorsoBiomechanics(
+    Canvas canvas,
+    Offset shoulder,
+    Offset hip,
+    double scale,
+  ) {
+    final normal = _normalVector(shoulder, hip);
+    final path = Path()
+      ..moveTo(
+        shoulder.dx + normal.dx * 13 * scale,
+        shoulder.dy + normal.dy * 13 * scale,
+      )
+      ..lineTo(
+        shoulder.dx - normal.dx * 11 * scale,
+        shoulder.dy - normal.dy * 11 * scale,
+      )
+      ..lineTo(hip.dx - normal.dx * 15 * scale, hip.dy - normal.dy * 15 * scale)
+      ..lineTo(hip.dx + normal.dx * 13 * scale, hip.dy + normal.dy * 13 * scale)
+      ..close();
+    final paint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          metric == RunningCoachMetric.posture
+              ? accentColor.withValues(alpha: 0.84)
+              : mutedColor.withValues(alpha: 0.70),
+          mutedColor.withValues(alpha: 0.34),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(path.getBounds().inflate(6 * scale));
+    canvas.drawPath(
+      path.shift(Offset(0, 2 * scale)),
+      Paint()..color = Colors.black.withValues(alpha: 0.10),
+    );
+    canvas.drawPath(path, paint);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = mutedColor.withValues(alpha: 0.58)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = compact ? 0.8 : 1.2,
+    );
+  }
+
+  Offset _normalVector(Offset from, Offset to) {
+    final direction = to - from;
+    final length = direction.distance;
+    if (length == 0) {
+      return Offset.zero;
+    }
+    return Offset(-direction.dy / length, direction.dx / length);
   }
 
   void _drawAngleArc(
@@ -6193,8 +6124,6 @@ class _InsightCard extends StatelessWidget {
                     ),
               ),
             ],
-            const SizedBox(height: 12),
-            _InsightGuideVisual(insight: insight),
             const SizedBox(height: 12),
             Text(copy.summary, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 10),

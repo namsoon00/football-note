@@ -13381,6 +13381,48 @@ abstract class AppLocalizations {
   /// **'Key decision for this clip'**
   String get runningCoachAnalysisHistoryPrimaryFocus;
 
+  /// No description provided for @runningCoachAnalysisResultScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Running analysis result'**
+  String get runningCoachAnalysisResultScreenTitle;
+
+  /// No description provided for @runningCoachHistoryVideoSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Video saved'**
+  String get runningCoachHistoryVideoSaved;
+
+  /// No description provided for @runningCoachArchivedVideoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed video'**
+  String get runningCoachArchivedVideoTitle;
+
+  /// No description provided for @runningCoachArchivedVideoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This video is saved with the analysis history so you can review the same form again.'**
+  String get runningCoachArchivedVideoBody;
+
+  /// No description provided for @runningCoachArchivedVideoPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get runningCoachArchivedVideoPlay;
+
+  /// No description provided for @runningCoachArchivedVideoPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get runningCoachArchivedVideoPause;
+
+  /// No description provided for @runningCoachArchivedVideoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The saved video cannot be opened. The file may have been removed from this device.'**
+  String get runningCoachArchivedVideoUnavailable;
+
   /// No description provided for @runningCoachAnalysisGuideTitle.
   ///
   /// In en, this message translates to:
