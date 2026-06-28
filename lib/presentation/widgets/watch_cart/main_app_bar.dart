@@ -94,7 +94,7 @@ class WatchCartAppBar extends StatelessWidget {
                   children: [
                     if (onMatchTap != null)
                       AppBarActionButton.icon(
-                        icon: Icons.sports_score_outlined,
+                        icon: Icons.groups_2_outlined,
                         tooltip: l10n.matchHubTopActionTooltip,
                         selected: matchSelected,
                         onPressed: onMatchTap,

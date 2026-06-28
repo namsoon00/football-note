@@ -13,6 +13,19 @@ class SportCapabilities {
   }
 
   bool get supportsFootballContent => sportId == SportCatalog.footballId;
+
+  bool get supportsTeamManagement {
+    switch (sportId) {
+      case SportCatalog.footballId:
+      case SportCatalog.baseballId:
+      case SportCatalog.basketballId:
+        return true;
+      case SportCatalog.tennisId:
+        return false;
+      default:
+        return false;
+    }
+  }
 }
 
 class SportMatchMetricLabel {
