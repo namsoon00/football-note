@@ -735,7 +735,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (customDiary.photoDataUrls.isNotEmpty) ...[
-            _buildDiaryPhotoGallery(customDiary.photoDataUrls),
+            _buildDiaryPhotoGallery(customDiary.photoDataUrls, day: day.date),
             const SizedBox(height: 14),
           ],
           Text(
@@ -813,6 +813,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     required List<String> photoDataUrls,
     required VoidCallback onAddPhoto,
     required ValueChanged<int> onRemovePhoto,
+    required ValueChanged<int> onOpenPhoto,
   }) {
     return Container(
       width: double.infinity,
@@ -883,9 +884,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: AppRadius.control,
-                              child: _buildDiaryPhotoImage(
-                                photoDataUrls[index],
+                              child: _buildDiaryPhotoTapTarget(
+                                key: ValueKey('diary-composer-photo-$index'),
                                 label: _l10n.photoIndex(index + 1),
+                                onTap: () => onOpenPhoto(index),
+                                child: _buildDiaryPhotoImage(
+                                  photoDataUrls[index],
+                                  label: _l10n.photoIndex(index + 1),
+                                ),
                               ),
                             ),
                             PositionedDirectional(
@@ -916,10 +922,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  Widget _buildDiaryPhotoGallery(List<String> photoDataUrls) {
+  Widget _buildDiaryPhotoGallery(
+    List<String> photoDataUrls, {
+    required DateTime day,
+  }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
+        final dayToken = _dayStorageToken(day);
         Widget photoTile(
           int index, {
           double radius = 16,
@@ -927,10 +937,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         }) {
           return ClipRRect(
             borderRadius: BorderRadius.circular(radius),
-            child: _buildDiaryPhotoImage(
-              photoDataUrls[index],
+            child: _buildDiaryPhotoTapTarget(
+              key: ValueKey('diary-photo-$dayToken-$index'),
               label: _l10n.photoIndex(index + 1),
-              fit: fit,
+              onTap: () => _openDiaryPhotoViewer(photoDataUrls, index),
+              child: _buildDiaryPhotoImage(
+                photoDataUrls[index],
+                label: _l10n.photoIndex(index + 1),
+                fit: fit,
+              ),
             ),
           );
         }
@@ -1031,6 +1046,30 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
+  Widget _buildDiaryPhotoTapTarget({
+    Key? key,
+    required String label,
+    required VoidCallback onTap,
+    required Widget child,
+  }) {
+    return Tooltip(
+      message: _l10n.openPhotoViewer,
+      child: Semantics(
+        key: key,
+        button: true,
+        label: label,
+        onTapHint: _l10n.openPhotoViewer,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDiaryPhotoFallback() {
     return Container(
       alignment: Alignment.center,
@@ -1042,6 +1081,33 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         style: _theme.textTheme.bodySmall?.copyWith(
           color: _bodyInk,
           fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openDiaryPhotoViewer(
+    List<String> photoDataUrls,
+    int initialIndex,
+  ) async {
+    if (photoDataUrls.isEmpty) return;
+    final initialPage = initialIndex.clamp(0, photoDataUrls.length - 1).toInt();
+    final photos =
+        photoDataUrls.map(_decodeDiaryPhotoDataUrl).toList(growable: false);
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (context) => _DiaryPhotoViewer(
+          photos: photos,
+          initialIndex: initialPage,
+          title: _l10n.photo,
+          closeTooltip: _l10n.closePhotoViewer,
+          previousTooltip: _l10n.previousPhoto,
+          nextTooltip: _l10n.nextPhoto,
+          loadFailedText: _l10n.imageLoadFailed,
+          photoLabelBuilder: (index) => _l10n.photoIndex(index + 1),
+          counterBuilder: (current, total) =>
+              _l10n.photoViewerCounter(current, total),
         ),
       ),
     );
@@ -3927,6 +3993,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       _buildDiaryPhotoComposer(
                         photoDataUrls: photoDataUrls,
                         onAddPhoto: () => addDiaryPhoto(context, setModalState),
+                        onOpenPhoto: (index) =>
+                            _openDiaryPhotoViewer(photoDataUrls, index),
                         onRemovePhoto: (index) {
                           if (index < 0 || index >= photoDataUrls.length) {
                             return;
@@ -4873,6 +4941,281 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         return a.$1.compareTo(b.$1);
       });
     return indexedSeeds.map((entry) => entry.$2).toList(growable: false);
+  }
+}
+
+class _DiaryPhotoViewer extends StatefulWidget {
+  final List<Uint8List?> photos;
+  final int initialIndex;
+  final String title;
+  final String closeTooltip;
+  final String previousTooltip;
+  final String nextTooltip;
+  final String loadFailedText;
+  final String Function(int index) photoLabelBuilder;
+  final String Function(int current, int total) counterBuilder;
+
+  const _DiaryPhotoViewer({
+    required this.photos,
+    required this.initialIndex,
+    required this.title,
+    required this.closeTooltip,
+    required this.previousTooltip,
+    required this.nextTooltip,
+    required this.loadFailedText,
+    required this.photoLabelBuilder,
+    required this.counterBuilder,
+  }) : assert(photos.length > 0);
+
+  @override
+  State<_DiaryPhotoViewer> createState() => _DiaryPhotoViewerState();
+}
+
+class _DiaryPhotoViewerState extends State<_DiaryPhotoViewer> {
+  late final PageController _pageController;
+  late int _currentIndex;
+
+  bool get _hasPrevious => _currentIndex > 0;
+  bool get _hasNext => _currentIndex < widget.photos.length - 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex =
+        widget.initialIndex.clamp(0, widget.photos.length - 1).toInt();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _moveBy(int delta) {
+    final nextIndex =
+        (_currentIndex + delta).clamp(0, widget.photos.length - 1).toInt();
+    if (nextIndex == _currentIndex) return;
+    _pageController.animateToPage(
+      nextIndex,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: const ValueKey('diary-photo-viewer'),
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: widget.photos.length,
+                onPageChanged: (index) {
+                  setState(() => _currentIndex = index);
+                },
+                itemBuilder: (context, index) {
+                  return _DiaryPhotoViewerPage(
+                    key: ValueKey('diary-photo-viewer-page-$index'),
+                    bytes: widget.photos[index],
+                    label: widget.photoLabelBuilder(index),
+                    loadFailedText: widget.loadFailedText,
+                  );
+                },
+              ),
+            ),
+            PositionedDirectional(
+              top: 8,
+              start: 8,
+              end: 8,
+              child: Row(
+                children: [
+                  _DiaryPhotoViewerRoundButton(
+                    tooltip: widget.closeTooltip,
+                    icon: Icons.close_rounded,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.54),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.18),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        widget.counterBuilder(
+                          _currentIndex + 1,
+                          widget.photos.length,
+                        ),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (widget.photos.length > 1) ...[
+              PositionedDirectional(
+                start: 12,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: _DiaryPhotoViewerRoundButton(
+                    tooltip: widget.previousTooltip,
+                    icon: Icons.chevron_left_rounded,
+                    onPressed: _hasPrevious ? () => _moveBy(-1) : null,
+                  ),
+                ),
+              ),
+              PositionedDirectional(
+                end: 12,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: _DiaryPhotoViewerRoundButton(
+                    tooltip: widget.nextTooltip,
+                    icon: Icons.chevron_right_rounded,
+                    onPressed: _hasNext ? () => _moveBy(1) : null,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DiaryPhotoViewerPage extends StatelessWidget {
+  final Uint8List? bytes;
+  final String label;
+  final String loadFailedText;
+
+  const _DiaryPhotoViewerPage({
+    super.key,
+    required this.bytes,
+    required this.label,
+    required this.loadFailedText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final imageBytes = bytes;
+    return Semantics(
+      image: true,
+      label: label,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 70, 16, 24),
+        child: InteractiveViewer(
+          minScale: 1,
+          maxScale: 5,
+          child: Center(
+            child: imageBytes == null || imageBytes.isEmpty
+                ? _DiaryPhotoLoadFailure(text: loadFailedText)
+                : Image.memory(
+                    imageBytes,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) =>
+                        _DiaryPhotoLoadFailure(text: loadFailedText),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DiaryPhotoLoadFailure extends StatelessWidget {
+  final String text;
+
+  const _DiaryPhotoLoadFailure({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DiaryPhotoViewerRoundButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  const _DiaryPhotoViewerRoundButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: enabled
+            ? Colors.black.withValues(alpha: 0.54)
+            : Colors.black.withValues(alpha: 0.22),
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkResponse(
+          onTap: onPressed,
+          radius: 22,
+          child: SizedBox.square(
+            dimension: 44,
+            child: Icon(
+              icon,
+              color:
+                  enabled ? Colors.white : Colors.white.withValues(alpha: 0.32),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

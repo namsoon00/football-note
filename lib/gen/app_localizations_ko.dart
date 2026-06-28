@@ -4674,6 +4674,23 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get openPhotoViewer => '사진 크게 보기';
+
+  @override
+  String get closePhotoViewer => '사진 닫기';
+
+  @override
+  String get previousPhoto => '이전 사진';
+
+  @override
+  String get nextPhoto => '다음 사진';
+
+  @override
+  String photoViewerCounter(Object current, Object total) {
+    return '$current / $total';
+  }
+
+  @override
   String get gameGuideTitle => '게임 가이드';
 
   @override

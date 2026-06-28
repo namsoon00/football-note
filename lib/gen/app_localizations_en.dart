@@ -4788,6 +4788,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get openPhotoViewer => 'View photo';
+
+  @override
+  String get closePhotoViewer => 'Close photo';
+
+  @override
+  String get previousPhoto => 'Previous photo';
+
+  @override
+  String get nextPhoto => 'Next photo';
+
+  @override
+  String photoViewerCounter(Object current, Object total) {
+    return '$current / $total';
+  }
+
+  @override
   String get gameGuideTitle => 'Game Guide';
 
   @override
