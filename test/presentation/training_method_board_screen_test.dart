@@ -916,6 +916,70 @@ void main() {
     expect(route.points.last.y, closeTo(0.36, 0.02));
   });
 
+  testWidgets('dragging a route end extends the route directly', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '끝점 드래그',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                ],
+                routes: <TrainingMethodRoute>[
+                  TrainingMethodRoute(
+                    id: 'route-player-1',
+                    kind: TrainingMethodRouteKind.player,
+                    linkedItemId: 'player-1',
+                    points: <TrainingMethodPoint>[
+                      TrainingMethodPoint(x: 0.22, y: 0.52),
+                      TrainingMethodPoint(x: 0.44, y: 0.44),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _dragBoardRelative(
+      tester,
+      boardFinder,
+      const Offset(0.44, 0.44),
+      const Offset(0.66, 0.36),
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final route = saved.pages.single.routes.single;
+    expect(route.points, hasLength(3));
+    expect(route.points.first.x, closeTo(0.22, 0.001));
+    expect(route.points.first.y, closeTo(0.52, 0.001));
+    expect(route.points[1].x, closeTo(0.44, 0.001));
+    expect(route.points[1].y, closeTo(0.44, 0.001));
+    expect(route.points.last.x, closeTo(0.66, 0.02));
+    expect(route.points.last.y, closeTo(0.36, 0.02));
+  });
+
   testWidgets('selected route direction can be reversed', (
     WidgetTester tester,
   ) async {
@@ -2982,6 +3046,40 @@ Future<void> _tapBoardRelative(
       globalPosition: localPosition,
     ),
   );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _dragBoardRelative(
+  WidgetTester tester,
+  Finder boardFinder,
+  Offset relativeStart,
+  Offset relativeEnd,
+) async {
+  final detector = tester.widget<GestureDetector>(boardFinder);
+  final size = tester.getSize(boardFinder);
+  final start =
+      Offset(size.width * relativeStart.dx, size.height * relativeStart.dy);
+  final end = Offset(size.width * relativeEnd.dx, size.height * relativeEnd.dy);
+  final mid = Offset.lerp(start, end, 0.5)!;
+  detector.onPanStart!(DragStartDetails(localPosition: start));
+  await tester.pump();
+  detector.onPanUpdate!(
+    DragUpdateDetails(
+      localPosition: mid,
+      globalPosition: mid,
+      delta: mid - start,
+    ),
+  );
+  await tester.pump(const Duration(milliseconds: 16));
+  detector.onPanUpdate!(
+    DragUpdateDetails(
+      localPosition: end,
+      globalPosition: end,
+      delta: end - mid,
+    ),
+  );
+  await tester.pump(const Duration(milliseconds: 16));
+  detector.onPanEnd!(DragEndDetails());
   await tester.pumpAndSettle();
 }
 
