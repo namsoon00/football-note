@@ -10,6 +10,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
+import '../../application/news_badge_service.dart';
 import '../../application/notification_app_link.dart';
 import '../../application/sport_capabilities.dart';
 import '../../application/sport_service.dart';
@@ -74,11 +75,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _familySyncInFlight = false;
   StreamSubscription<void>? _backupDataChangeSubscription;
   int _dataRevision = 0;
+  String? _activeSportId;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _activeSportId = SportService(widget.optionRepository).currentSportId();
     _index = widget.initialIndex;
     _calendarSelectedDay = widget.initialCalendarSelectedDay == null
         ? null
@@ -99,6 +102,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _backupDataChangeSubscription = widget.driveBackupService
         ?.dataChanges()
         .listen((_) => _handleBackupDataChanged());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final sportId = SportScope.maybeOf(context)?.currentSportId ??
+        SportService(widget.optionRepository).currentSportId();
+    final previousSportId = _activeSportId;
+    if (previousSportId == null || previousSportId == sportId) {
+      _activeSportId = sportId;
+      return;
+    }
+    _activeSportId = sportId;
+    _resetActivityForSportChange();
   }
 
   @override
@@ -173,6 +190,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     } else {
       _dataRevision++;
     }
+  }
+
+  void _resetActivityForSportChange() {
+    widget.mealLogService.reloadFromStorage();
+    NewsBadgeService.clearUnreadCount();
+    unawaited(NewsBadgeService.refresh(widget.optionRepository, force: true));
+    _index = 0;
+    _calendarSelectedDay = null;
+    _statsInitialRange = null;
+    _statsInitialTabIndex = 0;
+    _statsInitialRangeRequestKey++;
+    _statsInitialTabRequestKey++;
+    _pendingCalendarQuickCreateAction = null;
+    _guideCheckedInSession.clear();
+    _builtTabIndices
+      ..clear()
+      ..add(0);
+    _dataRevision++;
   }
 
   String _familySyncAlertBody(
