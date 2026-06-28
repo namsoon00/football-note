@@ -4211,7 +4211,7 @@
   },
   "runningCoachLiveGuidanceTitle": "Current guidance",
   "runningCoachSprintLiveCardTitle": "Live sprint coaching",
-  "runningCoachSprintLiveCardBody": "Use the side-view camera to read trunk lean, knee drive, step rhythm, and arm balance, then get the one sprint cue to fix now.",
+  "runningCoachSprintLiveCardBody": "Use the side-view camera to check full-body capture first, then show trunk, knee, and rhythm cues only when joint confidence is stable.",
   "runningCoachSprintLiveAction": "Start sprint coaching",
   "runningCoachSprintLiveScreenTitle": "Live sprint coaching",
   "runningCoachSprintLiveStatusLowConfidence": "Fix full-body framing first",
@@ -4246,7 +4246,7 @@
       }
     }
   },
-  "runningCoachSprintQualityTitle": "Analysis quality",
+  "runningCoachSprintQualityTitle": "Capture confidence",
   "runningCoachSprintQualityScore": "{score}%",
   "@runningCoachSprintQualityScore": {
     "placeholders": {
@@ -4255,13 +4255,13 @@
       }
     }
   },
-  "runningCoachSprintQualityReviewReady": "Precision review ready",
-  "runningCoachSprintQualityLiveReady": "Live coaching ready",
+  "runningCoachSprintQualityReviewReady": "Saved review ready",
+  "runningCoachSprintQualityLiveReady": "Stable cue ready",
   "runningCoachSprintQualitySetupNeeded": "Adjust capture setup",
   "runningCoachSprintQualityGateFullBody": "Full-body joints",
   "runningCoachSprintQualityGateSize": "Runner size",
   "runningCoachSprintQualityGateSideView": "Side view",
-  "runningCoachSprintQualityGateConfidence": "Pose confidence",
+  "runningCoachSprintQualityGateConfidence": "Joint confidence",
   "runningCoachSprintQualityGateStableFrames": "Stable frames",
   "runningCoachSprintQualityPercentValue": "{percent}%",
   "@runningCoachSprintQualityPercentValue": {
@@ -4301,8 +4301,10 @@
       }
     }
   },
-  "runningCoachSprintQualityReviewReadyHint": "This segment is stable enough for saved-video precision review.",
-  "runningCoachSprintQualityReviewPendingHint": "Full body, side view, and stable frames must all lock before precision scoring.",
+  "runningCoachSprintQualityLiveCueHint": "Posture cues appear only during stable capture windows.",
+  "runningCoachSprintQualityCaptureOnlyHint": "Checking capture quality now; posture scoring stays paused.",
+  "runningCoachSprintQualityReviewReadyHint": "Saved-video analysis can inspect this segment in more detail.",
+  "runningCoachSprintQualityReviewPendingHint": "Posture scoring turns on only after full body, side view, and stable frames lock.",
   "runningCoachSprintSessionLogTitle": "Session summary",
   "runningCoachSprintSessionCameraFpsLabel": "Camera input FPS",
   "runningCoachSprintSessionAnalyzedFpsLabel": "Analyzed FPS",

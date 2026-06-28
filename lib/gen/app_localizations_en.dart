@@ -7379,7 +7379,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintLiveCardBody =>
-      'Use the side-view camera to read trunk lean, knee drive, step rhythm, and arm balance, then get the one sprint cue to fix now.';
+      'Use the side-view camera to check full-body capture first, then show trunk, knee, and rhythm cues only when joint confidence is stable.';
 
   @override
   String get runningCoachSprintLiveAction => 'Start sprint coaching';
@@ -7433,7 +7433,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintQualityTitle => 'Analysis quality';
+  String get runningCoachSprintQualityTitle => 'Capture confidence';
 
   @override
   String runningCoachSprintQualityScore(int score) {
@@ -7441,10 +7441,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintQualityReviewReady => 'Precision review ready';
+  String get runningCoachSprintQualityReviewReady => 'Saved review ready';
 
   @override
-  String get runningCoachSprintQualityLiveReady => 'Live coaching ready';
+  String get runningCoachSprintQualityLiveReady => 'Stable cue ready';
 
   @override
   String get runningCoachSprintQualitySetupNeeded => 'Adjust capture setup';
@@ -7459,7 +7459,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSprintQualityGateSideView => 'Side view';
 
   @override
-  String get runningCoachSprintQualityGateConfidence => 'Pose confidence';
+  String get runningCoachSprintQualityGateConfidence => 'Joint confidence';
 
   @override
   String get runningCoachSprintQualityGateStableFrames => 'Stable frames';
@@ -7486,12 +7486,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintQualityLiveCueHint =>
+      'Posture cues appear only during stable capture windows.';
+
+  @override
+  String get runningCoachSprintQualityCaptureOnlyHint =>
+      'Checking capture quality now; posture scoring stays paused.';
+
+  @override
   String get runningCoachSprintQualityReviewReadyHint =>
-      'This segment is stable enough for saved-video precision review.';
+      'Saved-video analysis can inspect this segment in more detail.';
 
   @override
   String get runningCoachSprintQualityReviewPendingHint =>
-      'Full body, side view, and stable frames must all lock before precision scoring.';
+      'Posture scoring turns on only after full body, side view, and stable frames lock.';
 
   @override
   String get runningCoachSprintSessionLogTitle => 'Session summary';

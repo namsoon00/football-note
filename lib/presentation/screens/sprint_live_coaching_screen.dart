@@ -1620,14 +1620,16 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     final score = ((passedCount / gates.length) * 100).round();
     final isReviewReady =
         passedCount == gates.length && _coachingState.features.hasEnoughSignal;
+    final readyForLiveCue = score >= 80 &&
+        estimate.trackingReadiness == SprintTrackingReadiness.readyForAnalysis;
     final label = isReviewReady
         ? l10n.runningCoachSprintQualityReviewReady
-        : score >= 80
+        : readyForLiveCue
             ? l10n.runningCoachSprintQualityLiveReady
             : l10n.runningCoachSprintQualitySetupNeeded;
     final color = isReviewReady
         ? const Color(0xFF73F3B4)
-        : score >= 80
+        : readyForLiveCue
             ? const Color(0xFF8BC34A)
             : const Color(0xFFFFD54F);
 
@@ -1638,6 +1640,9 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       score: score,
       accent: color,
       gates: gates,
+      methodHint: readyForLiveCue
+          ? l10n.runningCoachSprintQualityLiveCueHint
+          : l10n.runningCoachSprintQualityCaptureOnlyHint,
       reviewHint: isReviewReady
           ? l10n.runningCoachSprintQualityReviewReadyHint
           : l10n.runningCoachSprintQualityReviewPendingHint,
@@ -2110,6 +2115,7 @@ class _AnalysisQualityData {
   final int score;
   final Color accent;
   final List<_QualityGateData> gates;
+  final String methodHint;
   final String reviewHint;
 
   const _AnalysisQualityData({
@@ -2119,6 +2125,7 @@ class _AnalysisQualityData {
     required this.score,
     required this.accent,
     required this.gates,
+    required this.methodHint,
     required this.reviewHint,
   });
 }
@@ -2192,6 +2199,17 @@ class _AnalysisQualityPanel extends StatelessWidget {
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: data.accent.withAlpha(230),
                     fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              data.methodHint,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.white70,
+                    height: 1.15,
+                    fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 8),
@@ -2721,6 +2739,7 @@ class _SprintPosePainter extends CustomPainter {
   ];
   static const _debugMinimumConfidence = 0.35;
   static const _displayMinimumConfidence = 0.52;
+  static const _jointMinimumConfidence = 0.45;
   static const _coachingMinimumConfidence = 0.62;
 
   @override
@@ -2846,6 +2865,13 @@ class _SprintPosePainter extends CustomPainter {
       _paintHumanShape(
         canvas,
         displayPoints,
+        displayScale,
+        readyForAnalysis: readyForAnalysis,
+      );
+      _paintConfidenceJoints(
+        canvas,
+        mapper,
+        frame,
         displayScale,
         readyForAnalysis: readyForAnalysis,
       );
@@ -3039,6 +3065,58 @@ class _SprintPosePainter extends CustomPainter {
     _paintTorsoShape(canvas, points, bodyScale, color);
   }
 
+  void _paintConfidenceJoints(
+    Canvas canvas,
+    _SprintViewportMapper mapper,
+    SprintPoseFrame frame,
+    double bodyScale, {
+    required bool readyForAnalysis,
+  }) {
+    final radius = (bodyScale * 0.0075).clamp(3.8, 7.4).toDouble();
+    final haloRadius = radius + 2.4;
+    final haloPaint = Paint()
+      ..color = const Color(0x99000000)
+      ..style = PaintingStyle.fill;
+    for (final entry in frame.landmarks.entries) {
+      final confidence = entry.value.confidence;
+      if (confidence < _jointMinimumConfidence) {
+        continue;
+      }
+      final point = mapper.translatePoint(entry.value.position);
+      final color = _confidenceColor(
+        confidence,
+        readyForAnalysis: readyForAnalysis,
+      );
+      final fillPaint = Paint()
+        ..color = color.withAlpha(readyForAnalysis ? 210 : 170)
+        ..style = PaintingStyle.fill;
+      final ringPaint = Paint()
+        ..color = Colors.white
+            .withAlpha(confidence >= _coachingMinimumConfidence ? 215 : 150)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = confidence >= _coachingMinimumConfidence ? 1.8 : 1.2;
+
+      canvas.drawCircle(point, haloRadius, haloPaint);
+      canvas.drawCircle(point, radius, fillPaint);
+      canvas.drawCircle(point, radius, ringPaint);
+    }
+  }
+
+  Color _confidenceColor(
+    double confidence, {
+    required bool readyForAnalysis,
+  }) {
+    if (confidence >= _coachingMinimumConfidence) {
+      return readyForAnalysis
+          ? const Color(0xFF73F3B4)
+          : const Color(0xFFB7F38B);
+    }
+    if (confidence >= _displayMinimumConfidence) {
+      return const Color(0xFFFFD54F);
+    }
+    return const Color(0xFFFF8A65);
+  }
+
   void _paintHeadShape(
     Canvas canvas,
     Map<SprintPoseLandmarkType, Offset> points,
@@ -3070,12 +3148,12 @@ class _SprintPosePainter extends CustomPainter {
 
     final radius = (bodyScale * 0.045).clamp(9.0, 24.0).toDouble();
     final fillPaint = Paint()
-      ..color = color.withAlpha(44)
+      ..color = color.withAlpha(28)
       ..style = PaintingStyle.fill;
     final strokePaint = Paint()
-      ..color = color.withAlpha(135)
+      ..color = color.withAlpha(142)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 1.8;
     canvas.drawCircle(center, radius, fillPaint);
     canvas.drawCircle(center, radius, strokePaint);
   }
@@ -3113,12 +3191,12 @@ class _SprintPosePainter extends CustomPainter {
       ..lineTo(leftHip.dx, leftHip.dy)
       ..close();
     final fillPaint = Paint()
-      ..color = color.withAlpha(36)
+      ..color = color.withAlpha(22)
       ..style = PaintingStyle.fill;
     final strokePaint = Paint()
-      ..color = color.withAlpha(132)
+      ..color = color.withAlpha(126)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2;
+      ..strokeWidth = 1.8;
     canvas.drawPath(torsoPath, fillPaint);
     canvas.drawPath(torsoPath, strokePaint);
 
@@ -3142,9 +3220,9 @@ class _SprintPosePainter extends CustomPainter {
           maxRatio: 0.48,
         )) {
       final spinePaint = Paint()
-        ..color = color.withAlpha(90)
+        ..color = color.withAlpha(112)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = (bodyScale * 0.018).clamp(6.0, 14.0).toDouble()
+        ..strokeWidth = (bodyScale * 0.009).clamp(3.4, 7.0).toDouble()
         ..strokeCap = StrokeCap.round;
       canvas.drawLine(hip, shoulder, spinePaint);
     }
@@ -3169,15 +3247,15 @@ class _SprintPosePainter extends CustomPainter {
     }
 
     final bodyPaint = Paint()
-      ..color = color.withAlpha(58)
+      ..color = color.withAlpha(112)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = (bodyScale * 0.024).clamp(8.0, 18.0).toDouble()
+      ..strokeWidth = (bodyScale * 0.011).clamp(4.2, 8.2).toDouble()
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     final edgePaint = Paint()
-      ..color = color.withAlpha(125)
+      ..color = Colors.white.withAlpha(92)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.1
+      ..strokeWidth = 1.4
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 

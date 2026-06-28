@@ -4211,7 +4211,7 @@
   },
   "runningCoachLiveGuidanceTitle": "現在のガイダンス",
   "runningCoachSprintLiveCardTitle": "ライブスプリントコーチング",
-  "runningCoachSprintLiveCardBody": "サイドビュー カメラを使用して体幹の傾き、膝のドライブ、ステップのリズム、腕のバランスを読み取り、今修正すべき 1 つのスプリント キューを取得します。",
+  "runningCoachSprintLiveCardBody": "サイドビュー カメラで全身の捕捉状態を先に確認し、関節信頼度が安定した区間だけ体幹、膝、リズムのキューを表示します。",
   "runningCoachSprintLiveAction": "スプリントコーチングを始める",
   "runningCoachSprintLiveScreenTitle": "ライブスプリントコーチング",
   "runningCoachSprintLiveStatusLowConfidence": "最初に全身のフレームを修正します",
@@ -4246,7 +4246,7 @@
       }
     }
   },
-  "runningCoachSprintQualityTitle": "分析品質",
+  "runningCoachSprintQualityTitle": "捕捉信頼度",
   "runningCoachSprintQualityScore": "{score}%",
   "@runningCoachSprintQualityScore": {
     "placeholders": {
@@ -4255,13 +4255,13 @@
       }
     }
   },
-  "runningCoachSprintQualityReviewReady": "精密レビュー準備完了",
-  "runningCoachSprintQualityLiveReady": "ライブコーチング可能",
-  "runningCoachSprintQualitySetupNeeded": "撮影条件を調整",
+  "runningCoachSprintQualityReviewReady": "保存レビュー可能",
+  "runningCoachSprintQualityLiveReady": "安定区間キュー可能",
+  "runningCoachSprintQualitySetupNeeded": "捕捉条件を調整",
   "runningCoachSprintQualityGateFullBody": "全身関節",
   "runningCoachSprintQualityGateSize": "ランナーサイズ",
   "runningCoachSprintQualityGateSideView": "サイドビュー",
-  "runningCoachSprintQualityGateConfidence": "ポーズ信頼度",
+  "runningCoachSprintQualityGateConfidence": "関節信頼度",
   "runningCoachSprintQualityGateStableFrames": "安定フレーム",
   "runningCoachSprintQualityPercentValue": "{percent}%",
   "@runningCoachSprintQualityPercentValue": {
@@ -4301,8 +4301,10 @@
       }
     }
   },
-  "runningCoachSprintQualityReviewReadyHint": "この区間は保存動画の精密レビューに使えるほど安定しています。",
-  "runningCoachSprintQualityReviewPendingHint": "全身、サイドビュー、安定フレームが揃うと精密判定が有効になります。",
+  "runningCoachSprintQualityLiveCueHint": "安定した捕捉区間だけ姿勢キューを表示します。",
+  "runningCoachSprintQualityCaptureOnlyHint": "現在は捕捉状態を確認し、姿勢判定は保留しています。",
+  "runningCoachSprintQualityReviewReadyHint": "保存動画分析でこの区間をさらに詳しく確認できます。",
+  "runningCoachSprintQualityReviewPendingHint": "全身、サイドビュー、安定フレームがロックされた時だけ姿勢判定を有効にします。",
   "runningCoachSprintSessionLogTitle": "セッションの概要",
   "runningCoachSprintSessionCameraFpsLabel": "カメラ入力FPS",
   "runningCoachSprintSessionAnalyzedFpsLabel": "分析された FPS",

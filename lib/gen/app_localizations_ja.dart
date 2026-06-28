@@ -7174,7 +7174,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSprintLiveCardBody =>
-      'サイドビュー カメラを使用して体幹の傾き、膝のドライブ、ステップのリズム、腕のバランスを読み取り、今修正すべき 1 つのスプリント キューを取得します。';
+      'サイドビュー カメラで全身の捕捉状態を先に確認し、関節信頼度が安定した区間だけ体幹、膝、リズムのキューを表示します。';
 
   @override
   String get runningCoachSprintLiveAction => 'スプリントコーチングを始める';
@@ -7224,7 +7224,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintQualityTitle => '分析品質';
+  String get runningCoachSprintQualityTitle => '捕捉信頼度';
 
   @override
   String runningCoachSprintQualityScore(int score) {
@@ -7232,13 +7232,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintQualityReviewReady => '精密レビュー準備完了';
+  String get runningCoachSprintQualityReviewReady => '保存レビュー可能';
 
   @override
-  String get runningCoachSprintQualityLiveReady => 'ライブコーチング可能';
+  String get runningCoachSprintQualityLiveReady => '安定区間キュー可能';
 
   @override
-  String get runningCoachSprintQualitySetupNeeded => '撮影条件を調整';
+  String get runningCoachSprintQualitySetupNeeded => '捕捉条件を調整';
 
   @override
   String get runningCoachSprintQualityGateFullBody => '全身関節';
@@ -7250,7 +7250,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSprintQualityGateSideView => 'サイドビュー';
 
   @override
-  String get runningCoachSprintQualityGateConfidence => 'ポーズ信頼度';
+  String get runningCoachSprintQualityGateConfidence => '関節信頼度';
 
   @override
   String get runningCoachSprintQualityGateStableFrames => '安定フレーム';
@@ -7277,12 +7277,19 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintQualityLiveCueHint => '安定した捕捉区間だけ姿勢キューを表示します。';
+
+  @override
+  String get runningCoachSprintQualityCaptureOnlyHint =>
+      '現在は捕捉状態を確認し、姿勢判定は保留しています。';
+
+  @override
   String get runningCoachSprintQualityReviewReadyHint =>
-      'この区間は保存動画の精密レビューに使えるほど安定しています。';
+      '保存動画分析でこの区間をさらに詳しく確認できます。';
 
   @override
   String get runningCoachSprintQualityReviewPendingHint =>
-      '全身、サイドビュー、安定フレームが揃うと精密判定が有効になります。';
+      '全身、サイドビュー、安定フレームがロックされた時だけ姿勢判定を有効にします。';
 
   @override
   String get runningCoachSprintSessionLogTitle => 'セッションの概要';

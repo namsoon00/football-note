@@ -12809,7 +12809,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintLiveCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Use the side-view camera to read trunk lean, knee drive, step rhythm, and arm balance, then get the one sprint cue to fix now.'**
+  /// **'Use the side-view camera to check full-body capture first, then show trunk, knee, and rhythm cues only when joint confidence is stable.'**
   String get runningCoachSprintLiveCardBody;
 
   /// No description provided for @runningCoachSprintLiveAction.
@@ -12893,7 +12893,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintQualityTitle.
   ///
   /// In en, this message translates to:
-  /// **'Analysis quality'**
+  /// **'Capture confidence'**
   String get runningCoachSprintQualityTitle;
 
   /// No description provided for @runningCoachSprintQualityScore.
@@ -12905,13 +12905,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintQualityReviewReady.
   ///
   /// In en, this message translates to:
-  /// **'Precision review ready'**
+  /// **'Saved review ready'**
   String get runningCoachSprintQualityReviewReady;
 
   /// No description provided for @runningCoachSprintQualityLiveReady.
   ///
   /// In en, this message translates to:
-  /// **'Live coaching ready'**
+  /// **'Stable cue ready'**
   String get runningCoachSprintQualityLiveReady;
 
   /// No description provided for @runningCoachSprintQualitySetupNeeded.
@@ -12941,7 +12941,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintQualityGateConfidence.
   ///
   /// In en, this message translates to:
-  /// **'Pose confidence'**
+  /// **'Joint confidence'**
   String get runningCoachSprintQualityGateConfidence;
 
   /// No description provided for @runningCoachSprintQualityGateStableFrames.
@@ -12974,16 +12974,28 @@ abstract class AppLocalizations {
   /// **'{count} frames'**
   String runningCoachSprintQualityFrameValue(int count);
 
+  /// No description provided for @runningCoachSprintQualityLiveCueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Posture cues appear only during stable capture windows.'**
+  String get runningCoachSprintQualityLiveCueHint;
+
+  /// No description provided for @runningCoachSprintQualityCaptureOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking capture quality now; posture scoring stays paused.'**
+  String get runningCoachSprintQualityCaptureOnlyHint;
+
   /// No description provided for @runningCoachSprintQualityReviewReadyHint.
   ///
   /// In en, this message translates to:
-  /// **'This segment is stable enough for saved-video precision review.'**
+  /// **'Saved-video analysis can inspect this segment in more detail.'**
   String get runningCoachSprintQualityReviewReadyHint;
 
   /// No description provided for @runningCoachSprintQualityReviewPendingHint.
   ///
   /// In en, this message translates to:
-  /// **'Full body, side view, and stable frames must all lock before precision scoring.'**
+  /// **'Posture scoring turns on only after full body, side view, and stable frames lock.'**
   String get runningCoachSprintQualityReviewPendingHint;
 
   /// No description provided for @runningCoachSprintSessionLogTitle.
