@@ -140,6 +140,43 @@ void main() {
     expect(korea.goalDifference, 1);
   });
 
+  test('group completion and best third-place standings require final scores',
+      () {
+    expect(worldCupGroupComplete('A'), isFalse);
+    expect(worldCupGroupStageComplete(), isFalse);
+    expect(worldCupBestThirdPlaceStandings(), isEmpty);
+
+    final groupAComplete = _fixturesWithScores({
+      25: (0, 0),
+      28: (1, 1),
+      53: (0, 1),
+      54: (0, 2),
+    });
+    expect(
+      worldCupGroupComplete('A', fixtures: groupAComplete),
+      isTrue,
+    );
+    expect(
+      worldCupGroupStageComplete(fixtures: groupAComplete),
+      isFalse,
+    );
+
+    final allGroupsComplete = _fixturesWithScores({
+      for (final fixture in worldCupFixtures)
+        if (fixture.isGroupStage && !fixture.hasScore)
+          fixture.matchNumber: (0, 0),
+    });
+    final bestThirdPlaces = worldCupBestThirdPlaceStandings(
+      fixtures: allGroupsComplete,
+    );
+    expect(worldCupGroupStageComplete(fixtures: allGroupsComplete), isTrue);
+    expect(bestThirdPlaces, hasLength(8));
+    expect(
+      bestThirdPlaces.every((standing) => standing.group.isNotEmpty),
+      isTrue,
+    );
+  });
+
   test('group standings break point ties by goal difference and goals for', () {
     const fixtures = [
       WorldCupFixture(

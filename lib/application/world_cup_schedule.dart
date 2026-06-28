@@ -417,6 +417,56 @@ Map<String, List<WorldCupGroupStanding>> worldCupGroupStandings({
   };
 }
 
+bool worldCupGroupComplete(
+  String group, {
+  List<WorldCupFixture>? fixtures,
+}) {
+  final normalizedGroup = group.trim().toUpperCase();
+  if (normalizedGroup.isEmpty) return false;
+  final groupFixtures = (fixtures ?? worldCupFixtures)
+      .where(
+        (fixture) => fixture.isGroupStage && fixture.group == normalizedGroup,
+      )
+      .toList(growable: false);
+  return groupFixtures.isNotEmpty &&
+      groupFixtures.every((fixture) => fixture.hasScore);
+}
+
+bool worldCupGroupStageComplete({List<WorldCupFixture>? fixtures}) {
+  final groupFixtures = <String, List<WorldCupFixture>>{};
+  for (final fixture in fixtures ?? worldCupFixtures) {
+    final group = fixture.group;
+    if (!fixture.isGroupStage || group == null) continue;
+    groupFixtures.putIfAbsent(group, () => <WorldCupFixture>[]).add(fixture);
+  }
+  return groupFixtures.isNotEmpty &&
+      groupFixtures.values.every(
+        (fixtures) =>
+            fixtures.isNotEmpty &&
+            fixtures.every((fixture) => fixture.hasScore),
+      );
+}
+
+List<WorldCupGroupStanding> worldCupBestThirdPlaceStandings({
+  List<WorldCupFixture>? fixtures,
+}) {
+  final sourceFixtures = fixtures ?? worldCupFixtures;
+  if (!worldCupGroupStageComplete(fixtures: sourceFixtures)) {
+    return const <WorldCupGroupStanding>[];
+  }
+  final thirdPlaceStandings = <WorldCupGroupStanding>[];
+  final standingsByGroup = worldCupGroupStandings(fixtures: sourceFixtures);
+  for (final standings in standingsByGroup.values) {
+    if (standings.length >= 3) {
+      thirdPlaceStandings.add(standings[2]);
+    }
+  }
+  thirdPlaceStandings.sort(_compareWorldCupGroupStandings);
+  return List<WorldCupGroupStanding>.unmodifiable(
+    thirdPlaceStandings.take(8),
+  );
+}
+
 List<WorldCupQualificationScenario> worldCupRoundOf32ScenariosForTeam(
   String team, {
   List<WorldCupFixture>? fixtures,

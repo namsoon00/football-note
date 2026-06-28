@@ -1544,6 +1544,14 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get worldCupBracketQualifiedTeamSeparator => ' / ';
+
+  @override
+  String worldCupBracketQualifiedSlotDetail(String slot) {
+    return '$slotから進出';
+  }
+
+  @override
   String worldCupBracketSourceMatch(int matchNumber, String home, String away) {
     return 'M$matchNumber: $home 対 $away';
   }

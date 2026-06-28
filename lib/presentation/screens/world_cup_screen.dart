@@ -414,10 +414,14 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
 
   Widget _buildTournamentPlan(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final qualifiedSlotResolver = _WorldCupRoundOf32QualifiedSlotResolver(
+      _fixtures,
+    );
     return _WorldCupTournamentBracket(
       rounds: _tournamentRounds(context, l10n),
       thirdPlace: _tournamentThirdPlace(context, l10n),
-      slotBuilder: (slot) => _bracketSlotData(l10n, slot),
+      slotBuilder: (fixture, slot, side) =>
+          _bracketSlotData(l10n, fixture, slot, side, qualifiedSlotResolver),
       onOpenFullScreen: _openTournamentFullScreen,
     );
   }
@@ -460,12 +464,16 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
 
   Future<void> _openTournamentFullScreen() async {
     final l10n = AppLocalizations.of(context)!;
+    final qualifiedSlotResolver = _WorldCupRoundOf32QualifiedSlotResolver(
+      _fixtures,
+    );
     await Navigator.of(context).push<void>(
       AppPageRoute(
         builder: (_) => _WorldCupTournamentBracketFullScreen(
           rounds: _tournamentRounds(context, l10n),
           thirdPlace: _tournamentThirdPlace(context, l10n),
-          slotBuilder: (slot) => _bracketSlotData(l10n, slot),
+          slotBuilder: (fixture, slot, side) => _bracketSlotData(
+              l10n, fixture, slot, side, qualifiedSlotResolver),
         ),
       ),
     );
@@ -1708,12 +1716,51 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     };
   }
 
-  _BracketSlotData _bracketSlotData(AppLocalizations l10n, String slot) {
+  _BracketSlotData _bracketSlotData(
+    AppLocalizations l10n,
+    WorldCupFixture fixture,
+    String slot,
+    _BracketSlotSide side,
+    _WorldCupRoundOf32QualifiedSlotResolver qualifiedSlotResolver,
+  ) {
+    final slotLabel = _bracketSlotLabel(l10n, slot);
     final detail = _bracketSlotDetail(l10n, slot);
+    final officialTeam = _officialBracketTeamForSlot(fixture, side);
+    if (officialTeam != null) {
+      return _BracketSlotData(
+        label: _worldCupCountryLabelText(l10n, officialTeam),
+        detail: l10n.worldCupBracketQualifiedSlotDetail(slotLabel),
+      );
+    }
+    final qualifiedTeams = qualifiedSlotResolver.teamsForSlot(slot);
+    if (qualifiedTeams.isNotEmpty) {
+      return _BracketSlotData(
+        label: qualifiedTeams
+            .map((team) => _worldCupCountryLabelText(l10n, team))
+            .join(l10n.worldCupBracketQualifiedTeamSeparator),
+        detail: l10n.worldCupBracketQualifiedSlotDetail(
+          slotLabel,
+        ),
+      );
+    }
     return _BracketSlotData(
-      label: _bracketSlotLabel(l10n, slot),
+      label: slotLabel,
       detail: detail,
     );
+  }
+
+  String? _officialBracketTeamForSlot(
+    WorldCupFixture fixture,
+    _BracketSlotSide side,
+  ) {
+    final officialMatch = _officialMatchesByFixtureNumber[fixture.matchNumber];
+    if (officialMatch == null) return null;
+    final team = (switch (side) {
+      _BracketSlotSide.home => officialMatch.homeTeamName,
+      _BracketSlotSide.away => officialMatch.awayTeamName,
+    })
+        .trim();
+    return team.isEmpty ? null : _worldCupCanonicalCountry(team);
   }
 
   String _bracketSlotLabel(AppLocalizations l10n, String slot) {
@@ -2855,8 +2902,9 @@ String _worldCupFifaMatchPlayerClub(String team, FifaMatchPlayer player) {
 }
 
 String _worldCupCountryLabelText(AppLocalizations l10n, String country) {
-  final flag = worldCupCountryFlag(country);
-  final label = _worldCupCountryName(l10n, country);
+  final canonicalCountry = _worldCupCanonicalCountry(country);
+  final flag = worldCupCountryFlag(canonicalCountry);
+  final label = _worldCupCountryName(l10n, canonicalCountry);
   return flag.isEmpty ? label : '$flag $label';
 }
 
@@ -2919,6 +2967,15 @@ String _worldCupTeamKey(String value) {
     'usa' => 'usa',
     _ => normalized,
   };
+}
+
+String _worldCupCanonicalCountry(String country) {
+  final key = _worldCupTeamKey(country);
+  for (final fixture in worldCupFixtures) {
+    if (_worldCupTeamKey(fixture.homeTeam) == key) return fixture.homeTeam;
+    if (_worldCupTeamKey(fixture.awayTeam) == key) return fixture.awayTeam;
+  }
+  return country.trim();
 }
 
 String _worldCupCountryName(AppLocalizations l10n, String country) {
@@ -5966,10 +6023,18 @@ Color _positionColor(ThemeData theme, _WorldCupRosterPosition position) {
   };
 }
 
+typedef _BracketSlotBuilder = _BracketSlotData Function(
+  WorldCupFixture fixture,
+  String slot,
+  _BracketSlotSide side,
+);
+
+enum _BracketSlotSide { home, away }
+
 class _WorldCupTournamentBracketFullScreen extends StatelessWidget {
   final List<_TournamentBracketRound> rounds;
   final _TournamentBracketRound thirdPlace;
-  final _BracketSlotData Function(String slot) slotBuilder;
+  final _BracketSlotBuilder slotBuilder;
 
   const _WorldCupTournamentBracketFullScreen({
     required this.rounds,
@@ -6000,7 +6065,7 @@ class _WorldCupTournamentBracketFullScreen extends StatelessWidget {
 class _WorldCupTournamentBracket extends StatefulWidget {
   final List<_TournamentBracketRound> rounds;
   final _TournamentBracketRound thirdPlace;
-  final _BracketSlotData Function(String slot) slotBuilder;
+  final _BracketSlotBuilder slotBuilder;
   final bool fullScreen;
   final VoidCallback? onOpenFullScreen;
 
@@ -6312,7 +6377,7 @@ class _WorldCupTournamentBracketState
 
 class _TournamentBracketRoundRow extends StatelessWidget {
   final _TournamentBracketRound round;
-  final _BracketSlotData Function(String slot) slotBuilder;
+  final _BracketSlotBuilder slotBuilder;
   final double slotWidth;
   final double spacing;
   final bool compact;
@@ -6362,8 +6427,16 @@ class _TournamentBracketRoundRow extends StatelessWidget {
                   width: slotWidth,
                   child: _BracketMatchCard(
                     fixture: round.fixtures[index],
-                    homeSlot: slotBuilder(round.fixtures[index].homeTeam),
-                    awaySlot: slotBuilder(round.fixtures[index].awayTeam),
+                    homeSlot: slotBuilder(
+                      round.fixtures[index],
+                      round.fixtures[index].homeTeam,
+                      _BracketSlotSide.home,
+                    ),
+                    awaySlot: slotBuilder(
+                      round.fixtures[index],
+                      round.fixtures[index].awayTeam,
+                      _BracketSlotSide.away,
+                    ),
                     compact: compact,
                   ),
                 ),
@@ -6380,7 +6453,7 @@ class _TournamentBracketRoundRow extends StatelessWidget {
 
 class _TournamentThirdPlaceStrip extends StatelessWidget {
   final _TournamentBracketRound round;
-  final _BracketSlotData Function(String slot) slotBuilder;
+  final _BracketSlotBuilder slotBuilder;
 
   const _TournamentThirdPlaceStrip({
     required this.round,
@@ -6420,8 +6493,16 @@ class _TournamentThirdPlaceStrip extends StatelessWidget {
           for (final fixture in round.fixtures)
             _BracketMatchCard(
               fixture: fixture,
-              homeSlot: slotBuilder(fixture.homeTeam),
-              awaySlot: slotBuilder(fixture.awayTeam),
+              homeSlot: slotBuilder(
+                fixture,
+                fixture.homeTeam,
+                _BracketSlotSide.home,
+              ),
+              awaySlot: slotBuilder(
+                fixture,
+                fixture.awayTeam,
+                _BracketSlotSide.away,
+              ),
               compact: true,
             ),
         ],
@@ -6608,6 +6689,64 @@ class _BracketSlotData {
   final String? detail;
 
   const _BracketSlotData({required this.label, this.detail});
+}
+
+class _WorldCupRoundOf32QualifiedSlotResolver {
+  final Map<String, List<WorldCupGroupStanding>> standingsByGroup;
+  final Set<String> completedGroups;
+  final Map<String, String> qualifiedThirdPlaceTeamsByGroup;
+
+  _WorldCupRoundOf32QualifiedSlotResolver(List<WorldCupFixture> fixtures)
+      : standingsByGroup = worldCupGroupStandings(fixtures: fixtures),
+        completedGroups = _completedWorldCupGroups(fixtures),
+        qualifiedThirdPlaceTeamsByGroup = {
+          for (final standing
+              in worldCupBestThirdPlaceStandings(fixtures: fixtures))
+            standing.group: standing.team,
+        };
+
+  List<String> teamsForSlot(String slot) {
+    final normalizedSlot = slot.trim().toUpperCase();
+    final groupRankMatch = RegExp(
+      r'^([12])([A-L])$',
+    ).firstMatch(normalizedSlot);
+    if (groupRankMatch != null) {
+      final rank = int.parse(groupRankMatch.group(1)!);
+      final group = groupRankMatch.group(2)!;
+      if (!completedGroups.contains(group)) return const <String>[];
+      final standings = standingsByGroup[group];
+      if (standings == null || standings.length < rank) {
+        return const <String>[];
+      }
+      return <String>[standings[rank - 1].team];
+    }
+
+    final thirdPlaceMatch = RegExp(
+      r'^3([A-L](?:/[A-L])*)$',
+    ).firstMatch(normalizedSlot);
+    if (thirdPlaceMatch != null) {
+      final groups = thirdPlaceMatch.group(1)!.split('/');
+      final teams = <String>[];
+      for (final group in groups) {
+        final team = qualifiedThirdPlaceTeamsByGroup[group];
+        if (team != null) teams.add(team);
+      }
+      return List<String>.unmodifiable(teams);
+    }
+
+    return const <String>[];
+  }
+}
+
+Set<String> _completedWorldCupGroups(List<WorldCupFixture> fixtures) {
+  final groups = <String>{
+    for (final fixture in fixtures)
+      if (fixture.isGroupStage && fixture.group != null) fixture.group!,
+  };
+  return {
+    for (final group in groups)
+      if (worldCupGroupComplete(group, fixtures: fixtures)) group,
+  };
 }
 
 String _worldCupBracketSlotLabel(AppLocalizations l10n, String slot) {
