@@ -71,30 +71,30 @@ class AppLocalizationsKo extends AppLocalizations {
       '오늘 하나만 해도 괜찮아요. 기록하고 다시 시작하면 내일 한 걸음 더 갈 수 있어요.';
 
   @override
-  String get startupSportTitle => '시작할 종목 선택';
+  String get startupSportTitle => '먼저 사용할 종목을 골라요';
 
   @override
   String get startupSportSubtitle =>
-      '선택한 종목을 기준으로 기록, 목표, 통계, 뉴스 구성이 설정됩니다. 설정에서 나중에 변경할 수 있습니다.';
+      '선택한 종목에 맞춰 기록, 목표, 통계, 뉴스가 시작됩니다. 나중에 설정에서 바꿀 수 있어요.';
 
   @override
-  String get startupSportAction => '선택한 종목으로 시작';
+  String get startupSportAction => '이 종목으로 시작하기';
 
   @override
   String get startupSportFootballDescription =>
-      '훈련, 경기, 전술 스케치, 뉴스를 축구 기준으로 구성합니다.';
+      '훈련, 시합, 스케치, 뉴스까지 축구 중심으로 시작해요.';
 
   @override
   String get startupSportBaseballDescription =>
-      '투구, 타격, 수비, 컨디션 기록을 야구 기준으로 구성합니다.';
+      '투구, 타격, 수비, 컨디션 기록을 야구 기준으로 맞춰요.';
 
   @override
   String get startupSportBasketballDescription =>
-      '슛, 드리블, 경기 흐름, 컨디션 기록을 농구 기준으로 구성합니다.';
+      '슛, 드리블, 경기 흐름과 컨디션을 농구 기준으로 기록해요.';
 
   @override
   String get startupSportTennisDescription =>
-      '스트로크, 서브, 랠리, 보강 훈련을 테니스 기준으로 구성합니다.';
+      '스트로크, 서브, 랠리와 보강 운동을 테니스 기준으로 기록해요.';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {
@@ -10230,7 +10230,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementTitle => '팀 관리';
 
   @override
-  String get teamManagementSubtitle => '선수 명단, 팀 전략, 포메이션 배정을 한 화면에서 정리하세요.';
+  String get teamManagementSubtitle =>
+      '선수 등록과 관리부터 시작하고, 드래그 포메이션과 이동선 보드로 전술을 정리하세요.';
 
   @override
   String get teamManagementOpenButton => '팀 관리';
@@ -10256,10 +10257,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementNewTeamButton => '새 팀';
 
   @override
-  String get teamManagementBasicsTitle => '팀 전략';
+  String get teamManagementBasicsTitle => '팀 정보와 전술 설명';
 
   @override
-  String get teamManagementBasicsHelper => '팀 이름과 경기 운영 방향을 먼저 정리하세요.';
+  String get teamManagementBasicsHelper => '선수 명단을 만든 뒤 팀 이름과 전술 설명을 정리하세요.';
 
   @override
   String get teamManagementTeamNameLabel => '팀 이름';
@@ -10268,18 +10269,17 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementTeamNameHint => '예) 우리 팀 U15';
 
   @override
-  String get teamManagementStrategyLabel => '전략 메모';
+  String get teamManagementStrategyLabel => '전술 설명';
 
   @override
-  String get teamManagementStrategyHint =>
-      '예) 전방 압박 후 빠른 측면 전환, 수비 시 4-4-2 블록 유지';
+  String get teamManagementStrategyHint => '예) 전방 압박 시작 위치, 측면 전환 약속, 수비 블록 기준';
 
   @override
   String get teamManagementFormationTitle => '포메이션 보드';
 
   @override
   String get teamManagementFormationHelper =>
-      '포메이션을 고르고 그라운드 위 포지션을 눌러 선수를 배정하세요.';
+      '선수를 끌어 포지션에 놓고, 그리기 모드에서 이동선이나 압박 방향을 그리세요.';
 
   @override
   String get teamManagementFormationLabel => '포메이션';
@@ -10308,7 +10308,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementPlayersHelper =>
-      '선수 정보를 추가하면 포메이션 슬롯에 바로 배정할 수 있어요.';
+      '팀 관리의 시작은 선수 등록입니다. 번호, 포지션, 주발, 컨디션과 관리 메모를 남기세요.';
 
   @override
   String get teamManagementPlayerNameLabel => '선수 이름';
@@ -10326,13 +10326,46 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementPlayerRoleLabel => '기본 포지션';
 
   @override
+  String get teamManagementPlayerFootLabel => '주발';
+
+  @override
+  String get teamManagementPlayerFootRight => '오른발';
+
+  @override
+  String get teamManagementPlayerFootLeft => '왼발';
+
+  @override
+  String get teamManagementPlayerFootBoth => '양발';
+
+  @override
+  String get teamManagementPlayerConditionLabel => '컨디션';
+
+  @override
+  String get teamManagementPlayerConditionReady => '출전 가능';
+
+  @override
+  String get teamManagementPlayerConditionWatch => '관리 필요';
+
+  @override
+  String get teamManagementPlayerConditionRest => '휴식 권장';
+
+  @override
   String get teamManagementPlayerNoteLabel => '선수 메모';
 
   @override
-  String get teamManagementPlayerNoteHint => '예) 왼발 킥 좋음, 압박 전환 빠름';
+  String get teamManagementPlayerNoteHint => '예) 왼발 킥 좋음, 압박 전환 빠름, 무릎 관리 필요';
 
   @override
   String get teamManagementAddPlayerButton => '선수 추가';
+
+  @override
+  String get teamManagementUpdatePlayerButton => '수정 저장';
+
+  @override
+  String get teamManagementCancelPlayerEditButton => '수정 취소';
+
+  @override
+  String get teamManagementEditPlayerButton => '수정';
 
   @override
   String get teamManagementNoPlayersTitle => '등록된 선수가 없어요.';
@@ -10344,6 +10377,36 @@ class AppLocalizationsKo extends AppLocalizations {
   String teamManagementPlayerMeta(Object role, int count) {
     return '$role · $count개 포지션 배정';
   }
+
+  @override
+  String teamManagementPlayerDetailMeta(
+      Object role, Object foot, Object condition, int count) {
+    return '$role · $foot · $condition · $count개 배정';
+  }
+
+  @override
+  String get teamManagementPlayerTrayTitle => '드래그할 선수';
+
+  @override
+  String get teamManagementPlayerTrayEmpty =>
+      '먼저 선수를 등록하면 여기에서 포지션으로 끌어 놓을 수 있어요.';
+
+  @override
+  String get teamManagementBoardMovePlayersMode => '선수 배치';
+
+  @override
+  String get teamManagementBoardDrawMode => '이동선 그리기';
+
+  @override
+  String get teamManagementBoardClearLinesButton => '선 지우기';
+
+  @override
+  String teamManagementTacticLinesCount(int count) {
+    return '이동선 $count개';
+  }
+
+  @override
+  String get teamManagementFormationDropHint => '선수 칩을 포지션 위에 놓으세요.';
 
   @override
   String get teamManagementRemovePlayerButton => '삭제';

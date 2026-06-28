@@ -72,30 +72,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'One small action is enough. Log it, restart, and take one more step tomorrow.';
 
   @override
-  String get startupSportTitle => 'Select your primary sport';
+  String get startupSportTitle => 'Choose your sport first';
 
   @override
   String get startupSportSubtitle =>
-      'Records, goals, stats, and news will be configured around the selected sport. You can change it later in Settings.';
+      'Records, goals, stats, and news start around the sport you choose. You can change it later in Settings.';
 
   @override
-  String get startupSportAction => 'Start with selected sport';
+  String get startupSportAction => 'Start with this sport';
 
   @override
   String get startupSportFootballDescription =>
-      'Configure training, matches, tactical sketches, and news for football.';
+      'Start with football training, matches, sketches, and news.';
 
   @override
   String get startupSportBaseballDescription =>
-      'Configure pitching, batting, fielding, and conditioning records for baseball.';
+      'Track throwing, batting, fielding, and conditioning for baseball.';
 
   @override
   String get startupSportBasketballDescription =>
-      'Configure shooting, dribbling, game flow, and conditioning records for basketball.';
+      'Log shooting, dribbling, game flow, and conditioning for basketball.';
 
   @override
   String get startupSportTennisDescription =>
-      'Configure strokes, serves, rallies, and support training for tennis.';
+      'Track strokes, serves, rallies, and support training for tennis.';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {
@@ -10516,7 +10516,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementSubtitle =>
-      'Organize the roster, team strategy, and formation assignments in one place.';
+      'Start with player registration and management, then organize tactics with drag-and-drop formations and movement lines.';
 
   @override
   String get teamManagementOpenButton => 'Team management';
@@ -10542,11 +10542,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementNewTeamButton => 'New team';
 
   @override
-  String get teamManagementBasicsTitle => 'Team strategy';
+  String get teamManagementBasicsTitle => 'Team info and tactics';
 
   @override
   String get teamManagementBasicsHelper =>
-      'Start with the team name and how the side should play.';
+      'After building the roster, organize the team name and tactical notes.';
 
   @override
   String get teamManagementTeamNameLabel => 'Team name';
@@ -10555,18 +10555,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementTeamNameHint => 'e.g. Our U15';
 
   @override
-  String get teamManagementStrategyLabel => 'Strategy notes';
+  String get teamManagementStrategyLabel => 'Tactical notes';
 
   @override
   String get teamManagementStrategyHint =>
-      'e.g. Press high, switch quickly wide, defend in a 4-4-2 block';
+      'e.g. Pressing trigger, wide switch rule, defensive block standard';
 
   @override
   String get teamManagementFormationTitle => 'Formation board';
 
   @override
   String get teamManagementFormationHelper =>
-      'Choose a formation, then tap a pitch position to assign a player.';
+      'Drag players onto positions, then use draw mode for movement lines or pressing directions.';
 
   @override
   String get teamManagementFormationLabel => 'Formation';
@@ -10596,7 +10596,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementPlayersHelper =>
-      'Add players here, then assign them directly to formation slots.';
+      'Team management starts with player registration. Track number, position, preferred foot, condition, and management notes.';
 
   @override
   String get teamManagementPlayerNameLabel => 'Player name';
@@ -10614,14 +10614,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementPlayerRoleLabel => 'Default position';
 
   @override
+  String get teamManagementPlayerFootLabel => 'Preferred foot';
+
+  @override
+  String get teamManagementPlayerFootRight => 'Right';
+
+  @override
+  String get teamManagementPlayerFootLeft => 'Left';
+
+  @override
+  String get teamManagementPlayerFootBoth => 'Both';
+
+  @override
+  String get teamManagementPlayerConditionLabel => 'Condition';
+
+  @override
+  String get teamManagementPlayerConditionReady => 'Ready';
+
+  @override
+  String get teamManagementPlayerConditionWatch => 'Manage';
+
+  @override
+  String get teamManagementPlayerConditionRest => 'Rest advised';
+
+  @override
   String get teamManagementPlayerNoteLabel => 'Player note';
 
   @override
   String get teamManagementPlayerNoteHint =>
-      'e.g. Strong left foot, quick after pressing transitions';
+      'e.g. Strong left foot, quick pressing transition, monitor knee load';
 
   @override
   String get teamManagementAddPlayerButton => 'Add player';
+
+  @override
+  String get teamManagementUpdatePlayerButton => 'Save changes';
+
+  @override
+  String get teamManagementCancelPlayerEditButton => 'Cancel edit';
+
+  @override
+  String get teamManagementEditPlayerButton => 'Edit';
 
   @override
   String get teamManagementNoPlayersTitle => 'No players registered.';
@@ -10634,6 +10667,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String teamManagementPlayerMeta(Object role, int count) {
     return '$role · $count position(s)';
   }
+
+  @override
+  String teamManagementPlayerDetailMeta(
+      Object role, Object foot, Object condition, int count) {
+    return '$role · $foot · $condition · $count assigned';
+  }
+
+  @override
+  String get teamManagementPlayerTrayTitle => 'Players to drag';
+
+  @override
+  String get teamManagementPlayerTrayEmpty =>
+      'Register players first, then drag them from here onto positions.';
+
+  @override
+  String get teamManagementBoardMovePlayersMode => 'Place players';
+
+  @override
+  String get teamManagementBoardDrawMode => 'Draw movement';
+
+  @override
+  String get teamManagementBoardClearLinesButton => 'Clear lines';
+
+  @override
+  String teamManagementTacticLinesCount(int count) {
+    return '$count movement line(s)';
+  }
+
+  @override
+  String get teamManagementFormationDropHint =>
+      'Drop a player chip onto a position.';
 
   @override
   String get teamManagementRemovePlayerButton => 'Remove';
