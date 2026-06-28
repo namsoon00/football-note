@@ -9,6 +9,7 @@ import '../../application/running_coach_history_service.dart';
 import '../../application/running_coaching_service.dart';
 import '../../application/running_growth_service.dart';
 import '../../application/running_video_analysis_service.dart';
+import '../../application/sport_service.dart';
 import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -56,8 +57,12 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     super.initState();
     final optionRepository = widget.optionRepository;
     if (optionRepository != null) {
-      _historyService = RunningCoachHistoryService(optionRepository);
-      _growthService = RunningGrowthService(optionRepository);
+      final sportId = SportService(optionRepository).currentSportId();
+      _historyService = RunningCoachHistoryService(
+        optionRepository,
+        sportId: sportId,
+      );
+      _growthService = RunningGrowthService(optionRepository, sportId: sportId);
       _recentSessions = _historyService!.allSessions();
       _growthSnapshot = _growthService!.snapshot();
     }

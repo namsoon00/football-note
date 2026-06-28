@@ -9,10 +9,12 @@ import '../widgets/app_feedback.dart';
 
 class TeamManagementScreen extends StatefulWidget {
   final OptionRepository optionRepository;
+  final String? sportId;
 
   const TeamManagementScreen({
     super.key,
     required this.optionRepository,
+    this.sportId,
   });
 
   @override
@@ -42,7 +44,10 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   @override
   void initState() {
     super.initState();
-    _teamService = TeamManagementService(widget.optionRepository);
+    _teamService = TeamManagementService(
+      widget.optionRepository,
+      sportId: widget.sportId,
+    );
   }
 
   @override

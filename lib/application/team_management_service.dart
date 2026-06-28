@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../domain/repositories/option_repository.dart';
+import 'sport_scoped_storage.dart';
 
 class ManagedTeamPlayer {
   static const String roleGoalkeeper = 'goalkeeper';
@@ -246,11 +247,19 @@ class TeamManagementService {
   ];
 
   final OptionRepository _optionRepository;
+  final String? _sportId;
 
-  const TeamManagementService(this._optionRepository);
+  const TeamManagementService(this._optionRepository, {String? sportId})
+      : _sportId = sportId;
+
+  String get _storageKey => sportScopedOptionKey(
+        _optionRepository,
+        storageKey,
+        sportId: _sportId,
+      );
 
   List<ManagedTeam> allTeams() {
-    final raw = _optionRepository.getValue<String>(storageKey);
+    final raw = _optionRepository.getValue<String>(_storageKey);
     if (raw == null || raw.trim().isEmpty) {
       return const <ManagedTeam>[];
     }
@@ -310,7 +319,7 @@ class TeamManagementService {
     final normalized = [...teams]
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return _optionRepository.setValue(
-      storageKey,
+      _storageKey,
       jsonEncode(normalized.map((team) => team.toMap()).toList()),
     );
   }

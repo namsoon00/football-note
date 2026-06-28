@@ -15,6 +15,7 @@ import 'challenge_service.dart';
 import 'coach_roster_service.dart';
 import 'drive_connection_info.dart';
 import 'league_fixture_reminder_service.dart';
+import 'match_competition_service.dart';
 import 'meal_log_service.dart';
 import 'news_badge_service.dart';
 import 'news_read_state.dart';
@@ -275,6 +276,7 @@ class DriveBackupService implements BackupRepository {
     MealLogService.storageKey,
     TrainingBoardService.storageKey,
     TeamManagementService.storageKey,
+    MatchCompetitionService.storageKey,
     ChallengeService.storageKey,
     RunningCoachHistoryService.storageKey,
     RunningGrowthService.storageKey,
@@ -350,10 +352,18 @@ class DriveBackupService implements BackupRepository {
     'programs_',
     'daily_goals_',
     'default_program_',
+    'durations_',
+    'default_duration_',
+    'injury_parts_',
+    'match_locations_',
     'training_plans_v1_',
     'meal_logs_v1_',
     'training_boards_v1_',
+    'match_managed_teams_v1_',
+    'match_competitions_v1_',
     'challenge_runs_v1_',
+    'running_coach_sessions_v1_',
+    'running_growth_records_v1_',
     'custom_diary_entries_v3_',
     'coach_diary_completed_day_v2_',
     'diary_theme_v1_',
@@ -374,6 +384,8 @@ class DriveBackupService implements BackupRepository {
     'news_scrapped_items_v1_',
     'news_source_open_counts_v1_',
     'news_read_article_keys_v1_',
+    'space_speed_ranking_history_v1_',
+    'space_speed_played_count_v1_',
     'space_speed_weekly_best_',
   ];
   static const Set<String> _localDeviceOptionKeys = {
@@ -450,6 +462,10 @@ class DriveBackupService implements BackupRepository {
     'notification_',
     'family_sync_message_',
     'xp_alert_message_',
+    'training_plan_last_reminder_minutes_before_v1_',
+    'last_training_plan_template_v1_',
+    'training_plan_dismissed_message_keys_v1_',
+    'last_training_log_at_v1_',
     'league_fixture_message_',
     'logs_filter_',
   ];

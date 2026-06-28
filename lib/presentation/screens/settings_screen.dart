@@ -410,12 +410,20 @@ class _SettingsScreenState extends State<SettingsScreen>
       _autoOnSave = widget.driveBackupService!.isAutoOnSaveEnabled();
     }
 
-    _durationOptions = widget.optionRepository.getIntOptions(
-      'durations',
-      const [0, 30, 45, 60, 75, 90, 120],
-    );
     final sportId = SportScope.maybeOf(context)?.currentSportId ??
         SportService(widget.optionRepository).currentSportId();
+    final durationOptionsKey = SportCatalog.optionKey(
+      'durations',
+      sportId: sportId,
+    );
+    final defaultDurationKey = SportCatalog.optionKey(
+      'default_duration',
+      sportId: sportId,
+    );
+    final injuryPartsKey = SportCatalog.optionKey(
+      'injury_parts',
+      sportId: sportId,
+    );
     final programOptionsKey = SportCatalog.optionKey(
       'programs',
       sportId: sportId,
@@ -432,6 +440,10 @@ class _SettingsScreenState extends State<SettingsScreen>
       l10n: l10n,
       sportId: sportId,
     );
+    _durationOptions = widget.optionRepository.getIntOptions(
+      durationOptionsKey,
+      const [0, 30, 45, 60, 75, 90, 120],
+    );
     _programOptions = widget.optionRepository.getOptions(
       programOptionsKey,
       localizedProgramDefaults,
@@ -446,7 +458,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       widget.optionRepository
           .saveOptions(programOptionsKey, normalizedPrograms);
     }
-    _injuryPartOptions = widget.optionRepository.getOptions('injury_parts', [
+    _injuryPartOptions = widget.optionRepository.getOptions(injuryPartsKey, [
       l10n.defaultInjury1,
       l10n.defaultInjury2,
       l10n.defaultInjury3,
@@ -470,9 +482,10 @@ class _SettingsScreenState extends State<SettingsScreen>
       _dailyGoalOptions = normalizedDailyGoals;
       widget.optionRepository.saveOptions(dailyGoalsKey, normalizedDailyGoals);
     }
-    _defaultDuration =
-        widget.optionRepository.getValue<int>('default_duration') ??
-            _durationOptions.first;
+    _defaultDuration = widget.optionRepository.getValue<int>(
+          defaultDurationKey,
+        ) ??
+        _durationOptions.first;
 
     final storedDefaultProgram =
         widget.optionRepository.getValue<String>(defaultProgramKey);
@@ -1575,6 +1588,13 @@ class _SettingsScreenState extends State<SettingsScreen>
     bool isKo, {
     bool readOnly = false,
   }) {
+    final sportId = SportService(widget.optionRepository).currentSportId();
+    final durationOptionsKey =
+        SportCatalog.optionKey('durations', sportId: sportId);
+    final defaultDurationKey =
+        SportCatalog.optionKey('default_duration', sportId: sportId);
+    final injuryPartsKey =
+        SportCatalog.optionKey('injury_parts', sportId: sportId);
     final defaultDurationText =
         _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
     return Column(
@@ -1638,7 +1658,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           onTap: readOnly
               ? null
               : () => _manageIntOptions(
-                    key: 'durations',
+                    key: durationOptionsKey,
                     title: isKo ? '훈련 시간 옵션 관리' : 'Manage duration options',
                     options: _durationOptions,
                     minKeep: 1,
@@ -1649,7 +1669,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       if (!_durationOptions.contains(_defaultDuration)) {
                         final fallback = _durationOptions.first;
                         await widget.optionRepository.setValue(
-                          'default_duration',
+                          defaultDurationKey,
                           fallback,
                         );
                         if (!mounted) return;
@@ -1690,7 +1710,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           onTap: readOnly
               ? null
               : () => _manageStringOptions(
-                    key: 'injury_parts',
+                    key: injuryPartsKey,
                     title: isKo ? '부상 부위 옵션 관리' : 'Manage injury part options',
                     options: _injuryPartOptions,
                     minKeep: 1,
@@ -1768,8 +1788,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> _pickDefaultDuration(AppLocalizations l10n) async {
+    final sportId = SportService(widget.optionRepository).currentSportId();
     await _pickDefaultInt(
-      key: 'default_duration',
+      key: SportCatalog.optionKey('default_duration', sportId: sportId),
       current: _defaultDuration,
       options: _durationOptions,
       title: l10n.defaultDuration,

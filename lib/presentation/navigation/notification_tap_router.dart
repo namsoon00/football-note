@@ -293,7 +293,9 @@ class NotificationTapRouter {
   ) {
     if (planId.trim().isEmpty || planId.contains(':')) return null;
     final raw = dependencies.optionRepository.getValue<String>(
-      TrainingPlanReminderService.plansStorageKey,
+      TrainingPlanReminderService.plansStorageKeyFor(
+        dependencies.optionRepository,
+      ),
     );
     if (raw == null || raw.trim().isEmpty) return null;
     try {

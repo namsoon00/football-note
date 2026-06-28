@@ -133,6 +133,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   String get _plansStorageKey =>
       TrainingPlanReminderService.plansStorageKeyFor(widget.optionRepository);
+  String get _lastPlanReminderStorageKey => SportCatalog.optionKey(
+        _lastPlanReminderKey,
+        sportId: SportService(widget.optionRepository).currentSportId(),
+      );
+  String get _lastPlanTemplateStorageKey => SportCatalog.optionKey(
+        _lastPlanTemplateKey,
+        sportId: SportService(widget.optionRepository).currentSportId(),
+      );
 
   @override
   void initState() {
@@ -1118,7 +1126,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
     await _savePlans();
     await widget.optionRepository.setValue(
-      _lastPlanTemplateKey,
+      _lastPlanTemplateStorageKey,
       jsonEncode(quickPlan.toMap()),
     );
     await _requestReminderPermissionIfNeeded();
@@ -1826,11 +1834,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
     if (saved == null || saved.plans.isEmpty) return;
     await widget.optionRepository.setValue(
-      _lastPlanReminderKey,
+      _lastPlanReminderStorageKey,
       saved.plans.first.reminderMinutesBefore,
     );
     await widget.optionRepository.setValue(
-      _lastPlanTemplateKey,
+      _lastPlanTemplateStorageKey,
       jsonEncode(saved.plans.first.toMap()),
     );
     setState(() {
@@ -1924,9 +1932,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     var opponent = editingEntry?.opponentTeam ?? editingEntry?.club ?? '';
     var location = editingEntry?.effectiveMatchLocation ?? '';
     final opponentOptions = _matchOpponentOptions(entries);
-    final locationOptions = _matchLocationOptions(entries);
+    final locationOptions = _matchLocationOptions(entries, sportId);
     final matchCompetitionService = MatchCompetitionService(
       widget.optionRepository,
+      sportId: sportId,
     );
     var leagueTeamsText = editingEntry?.leagueTeamNames.join('\n') ?? '';
     var competitionNameText = editingEntry?.matchCompetitionName ?? '';
@@ -2430,6 +2439,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           teamsText: leagueTeamsText,
                                           entries: entries,
                                           readOnly: readOnly,
+                                          sportId: sportId,
                                         );
                                         if (result == null ||
                                             !context.mounted) {
@@ -2998,11 +3008,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (saved == null) return;
     final trimmedMatchLocation = saved.effectiveMatchLocation.trim();
     if (trimmedMatchLocation.isNotEmpty) {
-      await _storeMatchLocation(trimmedMatchLocation);
+      await _storeMatchLocation(trimmedMatchLocation, saved.sportId);
     }
-    await MatchCompetitionService(widget.optionRepository).upsertFromEntry(
-      saved,
-    );
+    await MatchCompetitionService(
+      widget.optionRepository,
+      sportId: saved.sportId,
+    ).upsertFromEntry(saved);
     final previousEntry = editingEntry;
     if (editingEntry?.key is int) {
       await widget.trainingService.update(editingEntry!.key as int, saved);
@@ -3026,6 +3037,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final reminderService = TrainingPlanReminderService(
       widget.optionRepository,
       widget.settingsService,
+      sportId: saved.sportId,
     );
     await reminderService.showXpGainAlert(
       gainedXp: award.gainedXp,
@@ -3047,9 +3059,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
     required String teamsText,
     required List<TrainingEntry> entries,
     required bool readOnly,
+    required String sportId,
   }) async {
     final l10n = AppLocalizations.of(context)!;
-    final service = MatchCompetitionService(widget.optionRepository);
+    final service = MatchCompetitionService(
+      widget.optionRepository,
+      sportId: sportId,
+    );
     final existing = service.findCompetition(
       kind: kind,
       name: competitionName,
@@ -4234,9 +4250,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  List<String> _matchLocationOptions(List<TrainingEntry> entries) {
+  List<String> _matchLocationOptions(
+      List<TrainingEntry> entries, String sportId) {
     final storedLocations = widget.optionRepository.getOptions(
-      'match_locations',
+      SportCatalog.optionKey('match_locations', sportId: sportId),
       [],
     );
     return _dedupeAutocompleteValues([
@@ -4247,10 +4264,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     ]);
   }
 
-  Future<void> _storeMatchLocation(String location) async {
-    final existing = widget.optionRepository.getOptions('match_locations', []);
+  Future<void> _storeMatchLocation(String location, String sportId) async {
+    final key = SportCatalog.optionKey('match_locations', sportId: sportId);
+    final existing = widget.optionRepository.getOptions(key, []);
     final updated = _dedupeAutocompleteValues([...existing, location]);
-    await widget.optionRepository.saveOptions('match_locations', updated);
+    await widget.optionRepository.saveOptions(key, updated);
   }
 
   List<String> _dedupeAutocompleteValues(Iterable<String> values) {
@@ -4743,11 +4761,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
       DateTime(day.year, day.month, day.day);
 
   int _lastPlanReminderMinutes() {
-    return widget.optionRepository.getValue<int>(_lastPlanReminderKey) ?? 10;
+    return widget.optionRepository.getValue<int>(
+          _lastPlanReminderStorageKey,
+        ) ??
+        10;
   }
 
   _TrainingPlan? _lastSavedPlanTemplate() {
-    final raw = widget.optionRepository.getValue<String>(_lastPlanTemplateKey);
+    final raw =
+        widget.optionRepository.getValue<String>(_lastPlanTemplateStorageKey);
     if (raw != null && raw.trim().isNotEmpty) {
       try {
         final decoded = jsonDecode(raw);

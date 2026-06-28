@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
+import '../../application/sport_scoped_storage.dart';
 import '../../application/training_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_bar_action_button.dart';
@@ -115,6 +116,21 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   Timer? _shotOutcomeTimer;
   bool _awaitingShotOutcome = false;
   bool _awaitingFailFinish = false;
+
+  String get _rankingHistoryStorageKey => sportScopedOptionKey(
+        widget.optionRepository,
+        _rankingHistoryKey,
+      );
+
+  String get _gamePlayedCountStorageKey => sportScopedOptionKey(
+        widget.optionRepository,
+        _gamePlayedCountKey,
+      );
+
+  String _weeklyBestStorageKey(String weekKey) => sportScopedOptionKey(
+        widget.optionRepository,
+        '$_weeklyBestPrefix$weekKey',
+      );
 
   bool _charging = false;
   DateTime? _chargeStartedAt;
@@ -3564,9 +3580,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _loadSavedState() {
-    _weeklyBest =
-        widget.optionRepository.getValue<int>('$_weeklyBestPrefix$_weekKey') ??
-            0;
+    _weeklyBest = widget.optionRepository.getValue<int>(
+          _weeklyBestStorageKey(_weekKey),
+        ) ??
+        0;
     _rankingHistory = _loadRankingHistory();
   }
 
@@ -3574,7 +3591,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (_score <= _weeklyBest) return;
     _weeklyBest = _score;
     widget.optionRepository.setValue(
-      '$_weeklyBestPrefix$_weekKey',
+      _weeklyBestStorageKey(_weekKey),
       _weeklyBest,
     );
   }
@@ -3752,9 +3769,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   Future<void> _refreshPlayGateState() async {
     final entries = await widget.trainingService.allEntries();
     if (!mounted) return;
-    final noteCount = entries.where((entry) => !entry.isMatch).length;
+    final sportId = currentSportIdForOptions(widget.optionRepository);
+    final noteCount = entries
+        .where((entry) => !entry.isMatch && entry.sportId == sportId)
+        .length;
     final played =
-        widget.optionRepository.getValue<int>(_gamePlayedCountKey) ?? 0;
+        widget.optionRepository.getValue<int>(_gamePlayedCountStorageKey) ?? 0;
     final completedAt = widget.optionRepository.getValue<String>(
           SkillQuizScreen.storageKey(
             widget.optionRepository,
@@ -3814,7 +3834,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       return;
     }
     final nextPlayed = _playedGameCount + 1;
-    await widget.optionRepository.setValue(_gamePlayedCountKey, nextPlayed);
+    await widget.optionRepository.setValue(
+      _gamePlayedCountStorageKey,
+      nextPlayed,
+    );
     if (!mounted) return;
     setState(() => _playedGameCount = nextPlayed);
     _startGame();
@@ -3950,7 +3973,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   List<GameRankingEntry> _loadRankingHistory() {
-    final raw = widget.optionRepository.getValue<String>(_rankingHistoryKey);
+    final raw =
+        widget.optionRepository.getValue<String>(_rankingHistoryStorageKey);
     if (raw == null || raw.isEmpty) return const [];
     try {
       final decoded = jsonDecode(raw);
@@ -3995,7 +4019,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
     _rankingHistory = next;
     await widget.optionRepository.setValue(
-      _rankingHistoryKey,
+      _rankingHistoryStorageKey,
       jsonEncode(_rankingHistory.map((e) => e.toMap()).toList(growable: false)),
     );
     if (!mounted) return;

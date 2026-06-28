@@ -7,6 +7,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../domain/entities/challenge.dart';
+import '../domain/entities/sport_definition.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
 import 'league_fixture_reminder_service.dart';
@@ -71,6 +72,26 @@ class TrainingPlanReminderService {
   String get _plansStorageKey => sportScopedOptionKey(
         _options,
         plansStorageKey,
+        sportId: _sportId,
+      );
+  String get _dismissedMessageKeysKey => sportScopedOptionKey(
+        _options,
+        dismissedMessageKeysKey,
+        sportId: _sportId,
+      );
+  String get _xpMessageLogKey => sportScopedOptionKey(
+        _options,
+        xpMessageLogKey,
+        sportId: _sportId,
+      );
+  String get _xpMessageReadIdsKey => sportScopedOptionKey(
+        _options,
+        xpMessageReadIdsKey,
+        sportId: _sportId,
+      );
+  String get _lastTrainingLogAtKey => sportScopedOptionKey(
+        _options,
+        lastTrainingLogAtKey,
         sportId: _sportId,
       );
 
@@ -265,9 +286,7 @@ class TrainingPlanReminderService {
     await _clearNotificationIds(inactivityReminderIdsKey);
     if (!_settings.reminderEnabled || !_settings.inactivityAlertEnabled) return;
 
-    final lastLoggedAt = DateTime.tryParse(
-      _options.getValue<String>(lastTrainingLogAtKey) ?? '',
-    );
+    final lastLoggedAt = _lastTrainingLogAt();
     if (lastLoggedAt == null) return;
 
     final now = DateTime.now();
@@ -383,23 +402,29 @@ class TrainingPlanReminderService {
   }
 
   Future<void> syncInactivityFromEntries(List<TrainingEntry> entries) async {
-    final trainingEntries =
-        entries.where((entry) => !entry.isMatch).toList(growable: false);
+    final sportId = currentSportIdForOptions(_options, sportId: _sportId);
+    final trainingEntries = entries
+        .where(
+          (entry) =>
+              !entry.isMatch &&
+              SportCatalog.normalizeSportId(entry.sportId) == sportId,
+        )
+        .toList(growable: false);
     if (trainingEntries.isEmpty) {
-      await _options.setValue(lastTrainingLogAtKey, '');
+      await _options.setValue(_lastTrainingLogAtKey, '');
       await _clearNotificationIds(inactivityReminderIdsKey);
       return;
     }
     trainingEntries.sort(TrainingEntry.compareByRecentCreated);
     await _options.setValue(
-      lastTrainingLogAtKey,
+      _lastTrainingLogAtKey,
       trainingEntries.first.createdAt.toIso8601String(),
     );
     await syncInactivityReminder();
   }
 
   Future<void> recordTrainingLog(DateTime loggedAt) async {
-    await _options.setValue(lastTrainingLogAtKey, loggedAt.toIso8601String());
+    await _options.setValue(_lastTrainingLogAtKey, loggedAt.toIso8601String());
     await syncFromPlans(loadPlansFromStorage());
     await syncInactivityReminder();
   }
@@ -560,7 +585,7 @@ class TrainingPlanReminderService {
     if (logs.length > 200) {
       logs.removeRange(200, logs.length);
     }
-    await _options.setValue(xpMessageLogKey, logs);
+    await _options.setValue(_xpMessageLogKey, logs);
   }
 
   Future<void> _appendFamilyMessageLog({
@@ -790,7 +815,7 @@ class TrainingPlanReminderService {
 
   DateTime? _lastTrainingLogAt() {
     return DateTime.tryParse(
-      _options.getValue<String>(lastTrainingLogAtKey) ?? '',
+      _options.getValue<String>(_lastTrainingLogAtKey) ?? '',
     );
   }
 
@@ -836,8 +861,8 @@ class TrainingPlanReminderService {
   }
 
   int unreadReminderCountSync() {
-    final xpLogs = _options.getValue<List>(xpMessageLogKey) ?? const [];
-    final xpReadRaw = _options.getValue<List>(xpMessageReadIdsKey) ?? const [];
+    final xpLogs = _options.getValue<List>(_xpMessageLogKey) ?? const [];
+    final xpReadRaw = _options.getValue<List>(_xpMessageReadIdsKey) ?? const [];
     final xpReadIds = xpReadRaw.map((e) => e.toString()).toSet();
     final xpUnread = xpLogs.whereType<Map>().where((item) {
       final id = item['id']?.toString() ?? '';
@@ -887,13 +912,13 @@ class TrainingPlanReminderService {
         .where((id) => id >= 0)
         .toList(growable: false);
     await _options.setValue(reminderReadIdsKey, scheduled);
-    final xpLogs = _options.getValue<List>(xpMessageLogKey) ?? const [];
+    final xpLogs = _options.getValue<List>(_xpMessageLogKey) ?? const [];
     final xpIds = xpLogs
         .whereType<Map>()
         .map((item) => item['id']?.toString() ?? '')
         .where((id) => id.isNotEmpty)
         .toList(growable: false);
-    await _options.setValue(xpMessageReadIdsKey, xpIds);
+    await _options.setValue(_xpMessageReadIdsKey, xpIds);
     final familyLogs = _options.getValue<List>(familyMessageLogKey) ?? const [];
     final familyIds = familyLogs
         .whereType<Map>()
@@ -904,7 +929,7 @@ class TrainingPlanReminderService {
   }
 
   List<String> dismissedMessageKeysSync() {
-    final raw = _options.getValue<List>(dismissedMessageKeysKey) ?? const [];
+    final raw = _options.getValue<List>(_dismissedMessageKeysKey) ?? const [];
     return raw.map((e) => e.toString()).toSet().toList(growable: false);
   }
 
@@ -912,17 +937,17 @@ class TrainingPlanReminderService {
     final current = dismissedMessageKeysSync().toSet();
     current.add(key);
     await _options.setValue(
-      dismissedMessageKeysKey,
+      _dismissedMessageKeysKey,
       current.toList(growable: false),
     );
   }
 
   Future<void> clearDismissedMessageKeys() async {
-    await _options.setValue(dismissedMessageKeysKey, <String>[]);
+    await _options.setValue(_dismissedMessageKeysKey, <String>[]);
   }
 
   List<Map<String, dynamic>> loadXpMessageLogSync() {
-    final raw = _options.getValue<List>(xpMessageLogKey) ?? const [];
+    final raw = _options.getValue<List>(_xpMessageLogKey) ?? const [];
     final logs = raw
         .whereType<Map>()
         .map((item) => item.cast<String, dynamic>())
@@ -957,11 +982,11 @@ class TrainingPlanReminderService {
     final logs = loadXpMessageLogSync()
         .where((item) => (item['id']?.toString() ?? '') != id)
         .toList(growable: false);
-    await _options.setValue(xpMessageLogKey, logs);
-    final readRaw = _options.getValue<List>(xpMessageReadIdsKey) ?? const [];
+    await _options.setValue(_xpMessageLogKey, logs);
+    final readRaw = _options.getValue<List>(_xpMessageReadIdsKey) ?? const [];
     final readIds = readRaw.map((e) => e.toString()).toSet()..remove(id);
     await _options.setValue(
-      xpMessageReadIdsKey,
+      _xpMessageReadIdsKey,
       readIds.toList(growable: false),
     );
   }

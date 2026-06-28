@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../domain/repositories/option_repository.dart';
+import 'sport_scoped_storage.dart';
 
 enum RunningSprintDistance {
   tenMeters(10),
@@ -166,8 +167,16 @@ class RunningGrowthService {
   static const maxStoredRecords = 80;
 
   final OptionRepository _options;
+  final String? _sportId;
 
-  const RunningGrowthService(this._options);
+  const RunningGrowthService(this._options, {String? sportId})
+      : _sportId = sportId;
+
+  String get _storageKey => sportScopedOptionKey(
+        _options,
+        storageKey,
+        sportId: _sportId,
+      );
 
   RunningGrowthSnapshot snapshot({DateTime? now}) {
     return RunningGrowthSnapshot(
@@ -175,7 +184,7 @@ class RunningGrowthService {
   }
 
   List<RunningSprintRecord> allRecords() {
-    final raw = _options.getValue<String>(storageKey) ?? '[]';
+    final raw = _options.getValue<String>(_storageKey) ?? '[]';
     Object? decoded;
     try {
       decoded = jsonDecode(raw);
@@ -230,7 +239,7 @@ class RunningGrowthService {
     final payload = jsonEncode(
       records.map((record) => record.toMap()).toList(growable: false),
     );
-    await _options.setValue(storageKey, payload);
+    await _options.setValue(_storageKey, payload);
   }
 }
 
