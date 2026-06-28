@@ -213,9 +213,18 @@ class LocalFortuneService {
           l10n.fortuneSajuElementFlowExtras,
           baseSeed + birthReading.elementSeed + dailyPillar.stem.index * 37,
         );
+    final fortuneTheme = _pickCombinedLocalized(
+      l10n.fortuneSajuFortuneThemes,
+      l10n.fortuneSajuFortuneThemeExtras,
+      baseSeed + birthReading.seed + dailyPillar.branch.index * 43,
+    );
 
     final fortuneText = <String>[
-      l10n.fortuneGeneratedDailyLineOne(name, elementFlow),
+      l10n.fortuneGeneratedLinkedDailyLine(
+        name,
+        elementFlow,
+        fortuneTheme,
+      ),
       l10n.fortuneGeneratedLuckyInfoLine(luckyNumber, luckyColor),
     ].join('\n');
 

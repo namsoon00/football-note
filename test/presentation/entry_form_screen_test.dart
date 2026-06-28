@@ -251,7 +251,7 @@ void main() {
     await tapSaveAndFinish(tester);
 
     expect(find.byType(AlertDialog), findsNothing);
-    expect(find.text('생일과 이름으로 고른 오늘의 가벼운 운세예요.'), findsNothing);
+    expect(find.text('생일과 이름으로 고른 오늘의 생활 운세예요.'), findsNothing);
     expect(find.text('open'), findsOneWidget);
   });
 
@@ -493,7 +493,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('오늘의 운세'), findsWidgets);
-    expect(find.text('생일과 이름으로 고른 오늘의 가벼운 운세예요.'), findsOneWidget);
+    expect(find.text('생일과 이름으로 고른 오늘의 생활 운세예요.'), findsOneWidget);
     expect(find.text('운세 보기'), findsNothing);
     expect(find.text('운세 조합'), findsNothing);
     expect(
@@ -509,7 +509,7 @@ void main() {
     await tester.tap(find.text('전체 데이터 보기'));
     await tester.pumpAndSettle();
 
-    expect(find.text('전체 운세 데이터 베이스'), findsOneWidget);
+    expect(find.text('전체 운세 데이터베이스'), findsOneWidget);
     expect(find.text('명리 코드'), findsOneWidget);
   });
 
@@ -742,7 +742,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('오늘의 운세'), findsWidgets);
-    expect(find.text('생일과 이름으로 고른 오늘의 가벼운 운세예요.'), findsOneWidget);
+    expect(find.text('생일과 이름으로 고른 오늘의 생활 운세예요.'), findsOneWidget);
     expect(find.textContaining('오늘의 컬러는 에메랄드예요'), findsOneWidget);
   });
 

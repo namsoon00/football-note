@@ -6234,7 +6234,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneDialogSubtitle =>
-      'A light daily fortune picked from birth date and name.';
+      'A practical daily-life fortune picked from birth date and name.';
 
   @override
   String get fortuneDialogOverviewTitle => 'Fortune view';

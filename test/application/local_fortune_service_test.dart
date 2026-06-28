@@ -46,13 +46,17 @@ void main() {
     expect(lines.first, isNot(contains('흐름')));
     expect(lines.first, isNot(contains('볼 수')));
     expect(lines.first, isNot(contains('수 있어요')));
-    expect(lines.first, matches(RegExp(r'오늘은 .+날이에요\.$')));
     final myeongliDailyLines = <String>{
       ...l10n.fortuneMyeongliTenGodDailyLines.split('|'),
       ...l10n.fortuneMyeongliTwelveStageDailyLines.split('|'),
       ...l10n.fortuneMyeongliBranchRelationDailyLines.split('|'),
     };
+    final dailyEvents = <String>{
+      ...l10n.fortuneSajuFortuneThemes.split('|'),
+      ...l10n.fortuneSajuFortuneThemeExtras.split('|'),
+    };
     expect(myeongliDailyLines.any(lines.first.contains), isTrue);
+    expect(dailyEvents.any(lines.first.contains), isTrue);
     expect(lines.first, isNot(contains('훈련')));
     expect(lines.first, isNot(contains('패스')));
     expect(lines.last, contains('오늘의 컬러는 '));
@@ -108,6 +112,13 @@ void main() {
     expect(causes, contains('상대 표정을 보고 말을 고르는 날이에요.'));
     expect(events, contains('아침 알림에 반가운 이름이 떠요.'));
     expect(events, contains('점심 전에 미뤄둔 메시지를 보내요.'));
+    final linkedLine = l10n.fortuneGeneratedLinkedDailyLine(
+      '민준',
+      causes.first,
+      events.first,
+    );
+    expect(linkedLine, contains(causes.first));
+    expect(linkedLine, contains(events.first));
     for (final copy in <String>[...causes, ...events]) {
       expect(copy, isNot(matches(unclearTerms)), reason: copy);
     }
