@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/running_coach_history_service.dart';
+import 'package:football_note/domain/entities/running_coach_session.dart';
+import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
@@ -259,6 +263,74 @@ void main() {
       findsNothing,
     );
     expect(find.text('Running Coach'), findsOneWidget);
+  });
+
+  testWidgets('analysis history opens a visual correction guide', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1000, 2400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final optionRepository = _MemoryOptionRepository();
+    final session = RunningCoachSessionAnalysis(
+      id: 'upload-test',
+      analyzedAt: DateTime(2026, 6, 28, 9, 30),
+      source: RunningCoachSessionSource.uploadVideo,
+      overallScore: 72,
+      duration: const Duration(seconds: 4),
+      sampledFrames: 24,
+      validFrames: 21,
+      primaryMetric: RunningCoachMetric.posture,
+      primaryFinding: RunningCoachFinding.postureTooUpright,
+      primaryStatus: RunningCoachStatus.watch,
+      primaryScore: 70,
+      primaryValue: 4,
+      primaryConfidence: 0.86,
+    );
+    await optionRepository.setValue(
+      RunningCoachHistoryService.storageKey,
+      jsonEncode([session.toMap()]),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RunningCoachScreen(optionRepository: optionRepository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Video analysis history'), findsOneWidget);
+    expect(find.text('All 1'), findsOneWidget);
+
+    await tester.tap(find.text('All 1'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Video analysis history'), findsWidgets);
+    expect(
+        find.text(
+            'Review each analyzed video with its key decision and correction guide.'),
+        findsWidgets);
+    expect(find.text('Posture'), findsWidgets);
+    expect(find.byType(CustomPaint), findsWidgets);
+
+    await tester.tap(find.text('Posture').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Analysis guide'), findsOneWidget);
+    expect(find.text('Correction point in pictures'), findsOneWidget);
+    expect(
+      find.text('Target: 8-15° whole-body forward lean from the ankles'),
+      findsWidgets,
+    );
+    expect(find.text('Action cue'), findsOneWidget);
+    expect(find.text('Recommended drill'), findsOneWidget);
   });
 }
 

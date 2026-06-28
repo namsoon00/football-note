@@ -7726,6 +7726,100 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachResultsTitle => 'Coaching results';
 
   @override
+  String get runningCoachAnalysisHistoryTitle => 'Video analysis history';
+
+  @override
+  String get runningCoachAnalysisHistoryBody =>
+      'Review each analyzed video with its key decision and correction guide.';
+
+  @override
+  String runningCoachAnalysisHistoryAction(int count) {
+    return 'All $count';
+  }
+
+  @override
+  String get runningCoachAnalysisHistoryEmpty => 'No saved video analyses yet.';
+
+  @override
+  String get runningCoachAnalysisHistoryDetailTitle => 'Analysis guide';
+
+  @override
+  String get runningCoachAnalysisHistoryPrimaryFocus =>
+      'Key decision for this clip';
+
+  @override
+  String get runningCoachAnalysisGuideTitle => 'Correction point in pictures';
+
+  @override
+  String get runningCoachAnalysisGuideBody =>
+      'Compare the measured value with the good range using body lines, joint angles, and landing zones.';
+
+  @override
+  String get runningCoachAnalysisGuideRangeLabel => 'Good range';
+
+  @override
+  String get runningCoachAnalysisGuideFindingLabel => 'Why it was flagged';
+
+  @override
+  String get runningCoachAnalysisGuideCueLabel => 'Action cue';
+
+  @override
+  String get runningCoachAnalysisGuideDrillLabel => 'Recommended drill';
+
+  @override
+  String get runningCoachGuideRangePosture =>
+      'Target: 8-15° whole-body forward lean from the ankles';
+
+  @override
+  String get runningCoachGuideRangeBounce =>
+      'Target: low, quick vertical motion around 5-9% of body height';
+
+  @override
+  String get runningCoachGuideRangeFootStrike =>
+      'Target: lead foot lands under the hips within 0.00-0.18x ahead';
+
+  @override
+  String get runningCoachGuideRangeKnee =>
+      'Target: support knee accepts contact softly around 145-165°';
+
+  @override
+  String get runningCoachGuideRangeArm =>
+      'Target: elbows move compactly front to back around 70-110°';
+
+  @override
+  String get runningCoachMetricScoreLabel => 'Metric score';
+
+  @override
+  String runningCoachConfidenceLabel(int percent) {
+    return 'Confidence $percent%';
+  }
+
+  @override
+  String get runningCoachSessionSourceUploadVideo => 'Video analysis';
+
+  @override
+  String get runningCoachSessionSourceLiveRun => 'Live coach';
+
+  @override
+  String get runningCoachSessionSourceSprintLive => 'Sprint coaching';
+
+  @override
+  String get runningCoachQualityReasonLowCoverage =>
+      'Tracking coverage is low, so treat this metric conservatively.';
+
+  @override
+  String get runningCoachQualityReasonLimitedSamples =>
+      'Only a small set of stable frames was read; confirm once more from the same angle.';
+
+  @override
+  String get runningCoachQualityReasonContactPhaseProxy =>
+      'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.';
+
+  @override
+  String get runningCoachQualityReasonGeneric =>
+      'Capture quality is low; confirm again from the same angle.';
+
+  @override
   String get runningCoachOverallHeadlineStrong => 'Strong running shape';
 
   @override

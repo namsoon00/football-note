@@ -4511,6 +4511,46 @@
   "runningCoachNoPoseDetected": "ランナーを十分に追跡できませんでした。肘、膝、足が見える、より鮮明なサイドビュー クリップを試してください。",
   "runningCoachAnalysisFailedGeneric": "分析の実行に失敗しました。より鮮明な側面図を持つ別のクリップを試してください。",
   "runningCoachResultsTitle": "コーチング実績",
+  "runningCoachAnalysisHistoryTitle": "動画分析履歴",
+  "runningCoachAnalysisHistoryBody": "分析済み動画の主な判定と修正ガイドをもう一度確認できます。",
+  "runningCoachAnalysisHistoryAction": "すべて {count}件",
+  "@runningCoachAnalysisHistoryAction": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachAnalysisHistoryEmpty": "保存された動画分析はまだありません。",
+  "runningCoachAnalysisHistoryDetailTitle": "分析ガイド",
+  "runningCoachAnalysisHistoryPrimaryFocus": "この動画の主な判定",
+  "runningCoachAnalysisGuideTitle": "図で見る修正ポイント",
+  "runningCoachAnalysisGuideBody": "測定値が良い範囲にどれだけ近いかを、身体ライン、関節角度、着地点で確認します。",
+  "runningCoachAnalysisGuideRangeLabel": "良い範囲",
+  "runningCoachAnalysisGuideFindingLabel": "判定理由",
+  "runningCoachAnalysisGuideCueLabel": "実行キュー",
+  "runningCoachAnalysisGuideDrillLabel": "おすすめドリル",
+  "runningCoachGuideRangePosture": "目標: 足首から身体全体が前へ8〜15°傾く前傾",
+  "runningCoachGuideRangeBounce": "目標: 身長の約5〜9%に収まる低く速い上下動",
+  "runningCoachGuideRangeFootStrike": "目標: 前足が腰の下から前方0.00〜0.18倍以内に着地",
+  "runningCoachGuideRangeKnee": "目標: 接地時の支持膝が約145〜165°で柔らかく受ける範囲",
+  "runningCoachGuideRangeArm": "目標: 肘が約70〜110°でコンパクトに前後へ動く範囲",
+  "runningCoachMetricScoreLabel": "項目スコア",
+  "runningCoachConfidenceLabel": "信頼度 {percent}%",
+  "@runningCoachConfidenceLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSessionSourceUploadVideo": "動画分析",
+  "runningCoachSessionSourceLiveRun": "ライブコーチ",
+  "runningCoachSessionSourceSprintLive": "スプリントコーチング",
+  "runningCoachQualityReasonLowCoverage": "追跡できたフレーム比率が低いため、この指標は保守的に見てください。",
+  "runningCoachQualityReasonLimitedSamples": "安定して読めたフレームが少ないため、同じ角度でもう一度確認してください。",
+  "runningCoachQualityReasonContactPhaseProxy": "接地局面を推定したフレームが少ないため、着地と膝の指標をもう一度確認してください。",
+  "runningCoachQualityReasonGeneric": "撮影品質が低いため、同じ角度でもう一度確認してください。",
   "runningCoachOverallHeadlineStrong": "力強いランニング形状",
   "runningCoachOverallHeadlineSolid": "1 つの明確な修正を備えた強固なベース",
   "runningCoachOverallHeadlineNeedsWork": "よりクリーンなランニングパターンを構築する",

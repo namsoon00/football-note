@@ -13345,6 +13345,162 @@ abstract class AppLocalizations {
   /// **'Coaching results'**
   String get runningCoachResultsTitle;
 
+  /// No description provided for @runningCoachAnalysisHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Video analysis history'**
+  String get runningCoachAnalysisHistoryTitle;
+
+  /// No description provided for @runningCoachAnalysisHistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Review each analyzed video with its key decision and correction guide.'**
+  String get runningCoachAnalysisHistoryBody;
+
+  /// No description provided for @runningCoachAnalysisHistoryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count}'**
+  String runningCoachAnalysisHistoryAction(int count);
+
+  /// No description provided for @runningCoachAnalysisHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved video analyses yet.'**
+  String get runningCoachAnalysisHistoryEmpty;
+
+  /// No description provided for @runningCoachAnalysisHistoryDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis guide'**
+  String get runningCoachAnalysisHistoryDetailTitle;
+
+  /// No description provided for @runningCoachAnalysisHistoryPrimaryFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Key decision for this clip'**
+  String get runningCoachAnalysisHistoryPrimaryFocus;
+
+  /// No description provided for @runningCoachAnalysisGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction point in pictures'**
+  String get runningCoachAnalysisGuideTitle;
+
+  /// No description provided for @runningCoachAnalysisGuideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare the measured value with the good range using body lines, joint angles, and landing zones.'**
+  String get runningCoachAnalysisGuideBody;
+
+  /// No description provided for @runningCoachAnalysisGuideRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Good range'**
+  String get runningCoachAnalysisGuideRangeLabel;
+
+  /// No description provided for @runningCoachAnalysisGuideFindingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why it was flagged'**
+  String get runningCoachAnalysisGuideFindingLabel;
+
+  /// No description provided for @runningCoachAnalysisGuideCueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Action cue'**
+  String get runningCoachAnalysisGuideCueLabel;
+
+  /// No description provided for @runningCoachAnalysisGuideDrillLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended drill'**
+  String get runningCoachAnalysisGuideDrillLabel;
+
+  /// No description provided for @runningCoachGuideRangePosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Target: 8-15° whole-body forward lean from the ankles'**
+  String get runningCoachGuideRangePosture;
+
+  /// No description provided for @runningCoachGuideRangeBounce.
+  ///
+  /// In en, this message translates to:
+  /// **'Target: low, quick vertical motion around 5-9% of body height'**
+  String get runningCoachGuideRangeBounce;
+
+  /// No description provided for @runningCoachGuideRangeFootStrike.
+  ///
+  /// In en, this message translates to:
+  /// **'Target: lead foot lands under the hips within 0.00-0.18x ahead'**
+  String get runningCoachGuideRangeFootStrike;
+
+  /// No description provided for @runningCoachGuideRangeKnee.
+  ///
+  /// In en, this message translates to:
+  /// **'Target: support knee accepts contact softly around 145-165°'**
+  String get runningCoachGuideRangeKnee;
+
+  /// No description provided for @runningCoachGuideRangeArm.
+  ///
+  /// In en, this message translates to:
+  /// **'Target: elbows move compactly front to back around 70-110°'**
+  String get runningCoachGuideRangeArm;
+
+  /// No description provided for @runningCoachMetricScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric score'**
+  String get runningCoachMetricScoreLabel;
+
+  /// No description provided for @runningCoachConfidenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence {percent}%'**
+  String runningCoachConfidenceLabel(int percent);
+
+  /// No description provided for @runningCoachSessionSourceUploadVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video analysis'**
+  String get runningCoachSessionSourceUploadVideo;
+
+  /// No description provided for @runningCoachSessionSourceLiveRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Live coach'**
+  String get runningCoachSessionSourceLiveRun;
+
+  /// No description provided for @runningCoachSessionSourceSprintLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprint coaching'**
+  String get runningCoachSessionSourceSprintLive;
+
+  /// No description provided for @runningCoachQualityReasonLowCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking coverage is low, so treat this metric conservatively.'**
+  String get runningCoachQualityReasonLowCoverage;
+
+  /// No description provided for @runningCoachQualityReasonLimitedSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a small set of stable frames was read; confirm once more from the same angle.'**
+  String get runningCoachQualityReasonLimitedSamples;
+
+  /// No description provided for @runningCoachQualityReasonContactPhaseProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.'**
+  String get runningCoachQualityReasonContactPhaseProxy;
+
+  /// No description provided for @runningCoachQualityReasonGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture quality is low; confirm again from the same angle.'**
+  String get runningCoachQualityReasonGeneric;
+
   /// No description provided for @runningCoachOverallHeadlineStrong.
   ///
   /// In en, this message translates to:

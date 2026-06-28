@@ -7527,6 +7527,98 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachResultsTitle => '코칭 결과';
 
   @override
+  String get runningCoachAnalysisHistoryTitle => '영상 분석 히스토리';
+
+  @override
+  String get runningCoachAnalysisHistoryBody =>
+      '분석한 영상의 핵심 판정과 교정 가이드를 다시 볼 수 있어요.';
+
+  @override
+  String runningCoachAnalysisHistoryAction(int count) {
+    return '전체 $count개';
+  }
+
+  @override
+  String get runningCoachAnalysisHistoryEmpty => '아직 저장된 영상 분석 기록이 없어요.';
+
+  @override
+  String get runningCoachAnalysisHistoryDetailTitle => '분석 가이드';
+
+  @override
+  String get runningCoachAnalysisHistoryPrimaryFocus => '이 기록의 핵심 판정';
+
+  @override
+  String get runningCoachAnalysisGuideTitle => '그림으로 보는 교정 포인트';
+
+  @override
+  String get runningCoachAnalysisGuideBody =>
+      '측정값이 좋은 범위와 얼마나 가까운지 몸의 기준선, 관절 각도, 착지 구간으로 확인하세요.';
+
+  @override
+  String get runningCoachAnalysisGuideRangeLabel => '좋은 범위';
+
+  @override
+  String get runningCoachAnalysisGuideFindingLabel => '판정 근거';
+
+  @override
+  String get runningCoachAnalysisGuideCueLabel => '실행 cue';
+
+  @override
+  String get runningCoachAnalysisGuideDrillLabel => '추천 드릴';
+
+  @override
+  String get runningCoachGuideRangePosture =>
+      '권장: 발목부터 몸 전체가 8~15° 정도 앞으로 기울어진 전경사';
+
+  @override
+  String get runningCoachGuideRangeBounce => '권장: 키 대비 약 5~9% 안의 낮고 빠른 상하 움직임';
+
+  @override
+  String get runningCoachGuideRangeFootStrike =>
+      '권장: 앞발이 엉덩이 바로 아래에서 앞쪽 0.00~0.18배 안에 착지';
+
+  @override
+  String get runningCoachGuideRangeKnee =>
+      '권장: 접지 순간 지지 무릎이 약 145~165°로 부드럽게 받치는 범위';
+
+  @override
+  String get runningCoachGuideRangeArm =>
+      '권장: 팔꿈치가 약 70~110° 안에서 앞뒤로 compact하게 움직이는 범위';
+
+  @override
+  String get runningCoachMetricScoreLabel => '항목 점수';
+
+  @override
+  String runningCoachConfidenceLabel(int percent) {
+    return '신뢰도 $percent%';
+  }
+
+  @override
+  String get runningCoachSessionSourceUploadVideo => '영상 분석';
+
+  @override
+  String get runningCoachSessionSourceLiveRun => '실시간 코치';
+
+  @override
+  String get runningCoachSessionSourceSprintLive => '스프린트 코칭';
+
+  @override
+  String get runningCoachQualityReasonLowCoverage =>
+      '추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.';
+
+  @override
+  String get runningCoachQualityReasonLimitedSamples =>
+      '안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.';
+
+  @override
+  String get runningCoachQualityReasonContactPhaseProxy =>
+      '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.';
+
+  @override
+  String get runningCoachQualityReasonGeneric =>
+      '촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.';
+
+  @override
   String get runningCoachOverallHeadlineStrong => '달리기 형태가 좋아요';
 
   @override
