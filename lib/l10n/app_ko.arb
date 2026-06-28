@@ -4211,7 +4211,7 @@
   },
   "runningCoachLiveGuidanceTitle": "현재 안내",
   "runningCoachSprintLiveCardTitle": "스프린트 실시간 코칭",
-  "runningCoachSprintLiveCardBody": "측면 카메라로 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형을 읽고 질주 중 바로 고칠 포인트를 알려줘요.",
+  "runningCoachSprintLiveCardBody": "측면 카메라로 전신 포착 상태를 먼저 확인하고, 관절 신뢰도가 안정된 구간에서만 전경사·무릎·리듬 cue를 알려줘요.",
   "runningCoachSprintLiveAction": "스프린트 코칭 시작",
   "runningCoachSprintLiveScreenTitle": "스프린트 실시간 코칭",
   "runningCoachSprintLiveStatusLowConfidence": "먼저 전신 프레이밍을 맞춰 주세요",
@@ -4246,7 +4246,7 @@
       }
     }
   },
-  "runningCoachSprintQualityTitle": "분석 품질",
+  "runningCoachSprintQualityTitle": "포착 신뢰도",
   "runningCoachSprintQualityScore": "{score}%",
   "@runningCoachSprintQualityScore": {
     "placeholders": {
@@ -4255,13 +4255,13 @@
       }
     }
   },
-  "runningCoachSprintQualityReviewReady": "정밀 리뷰 준비됨",
-  "runningCoachSprintQualityLiveReady": "실시간 코칭 가능",
-  "runningCoachSprintQualitySetupNeeded": "촬영 조건 조정 필요",
+  "runningCoachSprintQualityReviewReady": "저장 리뷰 가능",
+  "runningCoachSprintQualityLiveReady": "안정 구간 cue 가능",
+  "runningCoachSprintQualitySetupNeeded": "포착 조건 조정",
   "runningCoachSprintQualityGateFullBody": "전신 관절",
   "runningCoachSprintQualityGateSize": "러너 크기",
   "runningCoachSprintQualityGateSideView": "측면 구도",
-  "runningCoachSprintQualityGateConfidence": "포즈 신뢰도",
+  "runningCoachSprintQualityGateConfidence": "관절 신뢰도",
   "runningCoachSprintQualityGateStableFrames": "안정 프레임",
   "runningCoachSprintQualityPercentValue": "{percent}%",
   "@runningCoachSprintQualityPercentValue": {
@@ -4301,8 +4301,10 @@
       }
     }
   },
-  "runningCoachSprintQualityReviewReadyHint": "이 구간은 저장 영상 정밀 리뷰에 쓸 만큼 안정적입니다.",
-  "runningCoachSprintQualityReviewPendingHint": "전신, 측면, 안정 프레임이 모두 맞아야 정밀 판정이 켜집니다.",
+  "runningCoachSprintQualityLiveCueHint": "안정 구간에서만 자세 cue를 표시합니다.",
+  "runningCoachSprintQualityCaptureOnlyHint": "지금은 포착 상태를 확인하고 자세 판정은 보류합니다.",
+  "runningCoachSprintQualityReviewReadyHint": "저장 영상 분석에서 더 자세히 확인할 수 있습니다.",
+  "runningCoachSprintQualityReviewPendingHint": "전신, 측면, 안정 프레임이 잠길 때만 자세 판정을 켭니다.",
   "runningCoachSprintSessionLogTitle": "세션 요약",
   "runningCoachSprintSessionCameraFpsLabel": "카메라 입력 FPS",
   "runningCoachSprintSessionAnalyzedFpsLabel": "분석 FPS",

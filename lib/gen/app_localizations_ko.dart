@@ -7187,7 +7187,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSprintLiveCardBody =>
-      '측면 카메라로 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형을 읽고 질주 중 바로 고칠 포인트를 알려줘요.';
+      '측면 카메라로 전신 포착 상태를 먼저 확인하고, 관절 신뢰도가 안정된 구간에서만 전경사·무릎·리듬 cue를 알려줘요.';
 
   @override
   String get runningCoachSprintLiveAction => '스프린트 코칭 시작';
@@ -7238,7 +7238,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintQualityTitle => '분석 품질';
+  String get runningCoachSprintQualityTitle => '포착 신뢰도';
 
   @override
   String runningCoachSprintQualityScore(int score) {
@@ -7246,13 +7246,13 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintQualityReviewReady => '정밀 리뷰 준비됨';
+  String get runningCoachSprintQualityReviewReady => '저장 리뷰 가능';
 
   @override
-  String get runningCoachSprintQualityLiveReady => '실시간 코칭 가능';
+  String get runningCoachSprintQualityLiveReady => '안정 구간 cue 가능';
 
   @override
-  String get runningCoachSprintQualitySetupNeeded => '촬영 조건 조정 필요';
+  String get runningCoachSprintQualitySetupNeeded => '포착 조건 조정';
 
   @override
   String get runningCoachSprintQualityGateFullBody => '전신 관절';
@@ -7264,7 +7264,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSprintQualityGateSideView => '측면 구도';
 
   @override
-  String get runningCoachSprintQualityGateConfidence => '포즈 신뢰도';
+  String get runningCoachSprintQualityGateConfidence => '관절 신뢰도';
 
   @override
   String get runningCoachSprintQualityGateStableFrames => '안정 프레임';
@@ -7291,12 +7291,19 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintQualityLiveCueHint => '안정 구간에서만 자세 cue를 표시합니다.';
+
+  @override
+  String get runningCoachSprintQualityCaptureOnlyHint =>
+      '지금은 포착 상태를 확인하고 자세 판정은 보류합니다.';
+
+  @override
   String get runningCoachSprintQualityReviewReadyHint =>
-      '이 구간은 저장 영상 정밀 리뷰에 쓸 만큼 안정적입니다.';
+      '저장 영상 분석에서 더 자세히 확인할 수 있습니다.';
 
   @override
   String get runningCoachSprintQualityReviewPendingHint =>
-      '전신, 측면, 안정 프레임이 모두 맞아야 정밀 판정이 켜집니다.';
+      '전신, 측면, 안정 프레임이 잠길 때만 자세 판정을 켭니다.';
 
   @override
   String get runningCoachSprintSessionLogTitle => '세션 요약';
