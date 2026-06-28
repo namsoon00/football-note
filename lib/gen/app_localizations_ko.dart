@@ -5102,6 +5102,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherHourlyTemperature => '시간대별 기온';
 
   @override
+  String get homeWeatherHourlyOverview => '시간별 날씨';
+
+  @override
   String get homeWeatherWindSpeed => '풍속';
 
   @override

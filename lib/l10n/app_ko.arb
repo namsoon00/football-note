@@ -3025,6 +3025,7 @@
   "weatherPrecipitationVeryHeavy": "아주 많이 와요",
   "homeWeatherHourlyPrecipitation": "시간별 비 타임라인",
   "homeWeatherHourlyTemperature": "시간대별 기온",
+  "homeWeatherHourlyOverview": "시간별 날씨",
   "homeWeatherWindSpeed": "풍속",
   "homeWeatherUvIndex": "자외선",
   "homeWeatherOutfitTitle": "오늘의 운동 복장",

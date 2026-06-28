@@ -263,7 +263,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       precipitationLabel: l10n.homeWeatherPrecipitation,
       precipitationProbabilityLabel: l10n.homeWeatherPrecipitationProbability,
       hourlyPrecipitationLabel: l10n.homeWeatherHourlyPrecipitation,
-      hourlyTemperatureLabel: l10n.homeWeatherHourlyTemperature,
+      hourlyOverviewLabel: l10n.homeWeatherHourlyOverview,
       windLabel: l10n.homeWeatherWindSpeed,
       fineDustLabel: l10n.homeWeatherPm10,
       ultraFineDustLabel: l10n.homeWeatherPm25,
@@ -836,19 +836,29 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     if (temperatureEntries.isEmpty && precipitationEntries.isEmpty) {
       return null;
     }
+    final overviewEntries = _hourlyWeatherOverviewEntries(
+      forecasts: temperatureEntries,
+      precipitations: precipitationEntries,
+    );
+    if (overviewEntries.isNotEmpty && temperatureEntries.isNotEmpty) {
+      return _HourlyTemperatureSection(
+        title: l10n.homeWeatherHourlyOverview,
+        entries: overviewEntries,
+        precipitationProbabilityLabel: l10n.homeWeatherPrecipitationProbability,
+        precipitationLabel: l10n.homeWeatherPrecipitation,
+        windLabel: l10n.homeWeatherWindSpeed,
+        formatTime: _formatHourlyTime,
+        formatTemperature: _formatTemperature,
+        formatProbability: _formatProbability,
+        formatPrecipitation: _formatPrecipitationTimelineLabel,
+        formatWind: _formatWind,
+        iconForCode: _weatherIcon,
+        accentStyle: accentStyle,
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (temperatureEntries.isNotEmpty)
-          _HourlyTemperatureSection(
-            title: l10n.homeWeatherHourlyTemperature,
-            entries: temperatureEntries,
-            formatTime: _formatHourlyTime,
-            formatTemperature: _formatTemperature,
-            accentStyle: accentStyle,
-          ),
-        if (temperatureEntries.isNotEmpty && precipitationEntries.isNotEmpty)
-          const SizedBox(height: 10),
         if (precipitationEntries.isNotEmpty)
           _HourlyPrecipitationSection(
             title: l10n.homeWeatherHourlyPrecipitation,
@@ -2641,7 +2651,7 @@ class _TomorrowWeatherCard extends StatelessWidget {
   final String precipitationLabel;
   final String precipitationProbabilityLabel;
   final String hourlyPrecipitationLabel;
-  final String hourlyTemperatureLabel;
+  final String hourlyOverviewLabel;
   final String windLabel;
   final String fineDustLabel;
   final String ultraFineDustLabel;
@@ -2668,7 +2678,7 @@ class _TomorrowWeatherCard extends StatelessWidget {
     required this.precipitationLabel,
     required this.precipitationProbabilityLabel,
     required this.hourlyPrecipitationLabel,
-    required this.hourlyTemperatureLabel,
+    required this.hourlyOverviewLabel,
     required this.windLabel,
     required this.fineDustLabel,
     required this.ultraFineDustLabel,
@@ -2739,6 +2749,10 @@ class _TomorrowWeatherCard extends StatelessWidget {
     final precipitationEntries = _visibleHourlyPrecipitationEntries(
       forecast.hourlyPrecipitations,
     );
+    final overviewEntries = _hourlyWeatherOverviewEntries(
+      forecasts: temperatureEntries,
+      precipitations: precipitationEntries,
+    );
     final pm10Level = pm10LevelForValue(forecast.pm10);
     final pm25Level = pm25LevelForValue(forecast.pm25);
     final metrics = <_CompactMetricData>[
@@ -2794,16 +2808,21 @@ class _TomorrowWeatherCard extends StatelessWidget {
         ),
         if (temperatureEntries.isNotEmpty || precipitationEntries.isNotEmpty)
           const SizedBox(height: 12),
-        if (temperatureEntries.isNotEmpty)
+        if (temperatureEntries.isNotEmpty && overviewEntries.isNotEmpty)
           _HourlyTemperatureSection(
-            title: hourlyTemperatureLabel,
-            entries: temperatureEntries,
+            title: hourlyOverviewLabel,
+            entries: overviewEntries,
+            precipitationProbabilityLabel: precipitationProbabilityLabel,
+            precipitationLabel: precipitationLabel,
+            windLabel: windLabel,
             formatTime: formatTime,
             formatTemperature: formatTemperature,
+            formatProbability: formatProbability,
+            formatPrecipitation: formatPrecipitationEntry,
+            formatWind: formatWind,
+            iconForCode: iconForCode,
           ),
-        if (temperatureEntries.isNotEmpty && precipitationEntries.isNotEmpty)
-          const SizedBox(height: 10),
-        if (precipitationEntries.isNotEmpty)
+        if (temperatureEntries.isEmpty && precipitationEntries.isNotEmpty)
           _HourlyPrecipitationSection(
             title: hourlyPrecipitationLabel,
             entries: precipitationEntries,
@@ -3028,186 +3047,133 @@ class _WeeklyForecastRow extends StatelessWidget {
     final theme = Theme.of(context);
     final hasAirQualityInfo = fineDust != null || ultraFineDust != null;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.72),
+        borderRadius: AppRadius.small,
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.58),
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.42),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.06),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                  width: hasAirQualityInfo ? 86 : 78,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer.withValues(
-                        alpha: 0.9,
-                      ),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: theme.colorScheme.primary.withValues(
-                          alpha: 0.16,
-                        ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 54,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      forecast.weekdayLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface.withValues(
-                              alpha: 0.72,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            icon,
-                            size: 18,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          forecast.weekdayLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          forecast.label,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 2),
+                    Text(
+                      forecast.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer.withValues(
+                    alpha: 0.86,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.14),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        forecast.summary,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.thermostat_rounded,
-                            size: 18,
-                            color: theme.colorScheme.primary,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              range,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _ForecastStatPill(
-                              icon: Icons.water_drop_outlined,
-                              label: precipitationLabel,
-                              value: precipitation,
-                              showLabel: false,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _ForecastStatPill(
-                              icon: Icons.air_rounded,
-                              label: windLabel,
-                              value: wind,
-                              showLabel: false,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (fineDust != null || ultraFineDust != null) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            if (fineDust != null)
-                              Expanded(
-                                child: _ForecastStatPill(
-                                  icon: Icons.blur_on_rounded,
-                                  label: fineDustLabel,
-                                  value: fineDust!,
-                                  airLevel: fineDustLevel,
-                                ),
-                              ),
-                            if (fineDust != null && ultraFineDust != null)
-                              const SizedBox(width: 8),
-                            if (ultraFineDust != null)
-                              Expanded(
-                                child: _ForecastStatPill(
-                                  icon: Icons.blur_circular_rounded,
-                                  label: ultraFineDustLabel,
-                                  value: ultraFineDust!,
-                                  airLevel: ultraFineDustLevel,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ] else ...[
-                        const SizedBox(height: 8),
-                        _ForecastStatPill(
-                          icon: Icons.info_outline_rounded,
-                          label: fineDustLabel,
-                          value: airQualityMissingReason,
-                        ),
-                      ],
-                    ],
+                child: Icon(
+                  icon,
+                  size: 21,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  forecast.summary,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    height: 1.08,
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                range,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _ForecastStatPill(
+                icon: Icons.water_drop_outlined,
+                label: precipitationLabel,
+                value: precipitation,
+                dense: true,
+              ),
+              _ForecastStatPill(
+                icon: Icons.air_rounded,
+                label: windLabel,
+                value: wind,
+                dense: true,
+              ),
+              if (hasAirQualityInfo) ...[
+                if (fineDust != null)
+                  _ForecastStatPill(
+                    icon: Icons.blur_on_rounded,
+                    label: fineDustLabel,
+                    value: fineDust!,
+                    airLevel: fineDustLevel,
+                    dense: true,
+                  ),
+                if (ultraFineDust != null)
+                  _ForecastStatPill(
+                    icon: Icons.blur_circular_rounded,
+                    label: ultraFineDustLabel,
+                    value: ultraFineDust!,
+                    airLevel: ultraFineDustLevel,
+                    dense: true,
+                  ),
+              ] else
+                _ForecastStatPill(
+                  icon: Icons.info_outline_rounded,
+                  label: fineDustLabel,
+                  value: airQualityMissingReason,
+                  dense: true,
+                ),
+            ],
           ),
         ],
       ),
@@ -3219,15 +3185,15 @@ class _ForecastStatPill extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  final bool showLabel;
   final _AirQualityLevel? airLevel;
+  final bool dense;
 
   const _ForecastStatPill({
     required this.icon,
     required this.label,
     required this.value,
-    this.showLabel = true,
     this.airLevel,
+    this.dense = false,
   });
 
   @override
@@ -3235,41 +3201,47 @@ class _ForecastStatPill extends StatelessWidget {
     final theme = Theme.of(context);
     final palette =
         airLevel == null ? null : _airQualityPalette(theme, airLevel!);
-    final visibleText = showLabel ? '$label $value' : value;
+    final visibleText = '$label $value';
     return Semantics(
       label: '$label $value',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: dense ? 8 : 10,
+          vertical: dense ? 6 : 8,
+        ),
         decoration: BoxDecoration(
           color: palette?.background ?? theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(dense ? 12 : 14),
           border: Border.all(
             color: palette?.border ??
                 theme.colorScheme.outlineVariant.withValues(alpha: 0.32),
           ),
         ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: palette?.foreground ?? theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                visibleText,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      palette?.foreground ?? theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w800,
-                  height: 1.12,
+        child: IntrinsicWidth(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: dense ? 14 : 16,
+                color: palette?.foreground ?? theme.colorScheme.primary,
+              ),
+              SizedBox(width: dense ? 6 : 8),
+              Flexible(
+                child: Text(
+                  visibleText,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: palette?.foreground ??
+                        theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                    height: 1.12,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -3288,6 +3260,88 @@ List<_HourlyPrecipitationEntry> _visibleHourlyPrecipitationEntries(
   );
   if (firstRainIndex < 0) return const <_HourlyPrecipitationEntry>[];
   return sortedEntries.skip(firstRainIndex).toList(growable: false);
+}
+
+DateTime _hourBucket(DateTime time) =>
+    DateTime(time.year, time.month, time.day, time.hour);
+
+List<_HourlyWeatherOverviewEntry> _hourlyWeatherOverviewEntries({
+  required List<_ForecastMomentPreview> forecasts,
+  required List<_HourlyPrecipitationEntry> precipitations,
+}) {
+  final forecastByHour = <DateTime, _ForecastMomentPreview>{
+    for (final forecast in forecasts) _hourBucket(forecast.time): forecast,
+  };
+  final precipitationByHour = <DateTime, _HourlyPrecipitationEntry>{
+    for (final precipitation in precipitations)
+      _hourBucket(precipitation.time): precipitation,
+  };
+  final hours = <DateTime>{
+    ...forecastByHour.keys,
+    ...precipitationByHour.keys,
+  }.toList(growable: false)
+    ..sort();
+  return [
+    for (final hour in hours)
+      _HourlyWeatherOverviewEntry.from(
+        hour: hour,
+        forecast: forecastByHour[hour],
+        precipitationEntry: precipitationByHour[hour],
+      ),
+  ].where((entry) => entry.hasDisplayData).toList(growable: false);
+}
+
+const _hourlyWeatherLabelWidth = 70.0;
+const _hourlyWeatherColumnWidth = 64.0;
+
+class _HourlyWeatherOverviewEntry {
+  final DateTime time;
+  final double? temperature;
+  final int? weatherCode;
+  final double? precipitation;
+  final double? precipitationProbability;
+  final double? windSpeed;
+
+  const _HourlyWeatherOverviewEntry({
+    required this.time,
+    this.temperature,
+    this.weatherCode,
+    this.precipitation,
+    this.precipitationProbability,
+    this.windSpeed,
+  });
+
+  factory _HourlyWeatherOverviewEntry.from({
+    required DateTime hour,
+    required _ForecastMomentPreview? forecast,
+    required _HourlyPrecipitationEntry? precipitationEntry,
+  }) {
+    return _HourlyWeatherOverviewEntry(
+      time: hour,
+      temperature: forecast?.temperature,
+      weatherCode: forecast?.weatherCode,
+      precipitation:
+          precipitationEntry?.precipitation ?? forecast?.precipitation,
+      precipitationProbability: precipitationEntry?.precipitationProbability ??
+          forecast?.precipitationProbability,
+      windSpeed: forecast?.windSpeed,
+    );
+  }
+
+  bool get hasDisplayData =>
+      temperature != null ||
+      weatherCode != null ||
+      precipitation != null ||
+      precipitationProbability != null ||
+      windSpeed != null;
+
+  _HourlyPrecipitationEntry toPrecipitationEntry() {
+    return _HourlyPrecipitationEntry(
+      time: time,
+      precipitation: precipitation ?? 0,
+      precipitationProbability: precipitationProbability,
+    );
+  }
 }
 
 enum _PrecipitationAmountLevel {
@@ -3576,16 +3630,30 @@ class _HourlyPrecipitationChartPainter extends CustomPainter {
 
 class _HourlyTemperatureSection extends StatelessWidget {
   final String title;
-  final List<_ForecastMomentPreview> entries;
+  final List<_HourlyWeatherOverviewEntry> entries;
+  final String precipitationProbabilityLabel;
+  final String precipitationLabel;
+  final String windLabel;
   final String Function(DateTime) formatTime;
   final String Function(double?) formatTemperature;
+  final String Function(double?) formatProbability;
+  final String Function(_HourlyPrecipitationEntry) formatPrecipitation;
+  final String Function(double?) formatWind;
+  final IconData Function(int?) iconForCode;
   final bool accentStyle;
 
   const _HourlyTemperatureSection({
     required this.title,
     required this.entries,
+    required this.precipitationProbabilityLabel,
+    required this.precipitationLabel,
+    required this.windLabel,
     required this.formatTime,
     required this.formatTemperature,
+    required this.formatProbability,
+    required this.formatPrecipitation,
+    required this.formatWind,
+    required this.iconForCode,
     this.accentStyle = false,
   });
 
@@ -3597,6 +3665,7 @@ class _HourlyTemperatureSection extends StatelessWidget {
     final temperatureEntries = sortedEntries
         .where((entry) => entry.temperature != null)
         .toList(growable: false);
+    if (temperatureEntries.isEmpty) return const SizedBox.shrink();
     final background = accentStyle
         ? theme.colorScheme.surface.withValues(alpha: 0.16)
         : theme.colorScheme.surfaceContainerLow;
@@ -3612,6 +3681,9 @@ class _HourlyTemperatureSection extends StatelessWidget {
     final chartBackground = accentStyle
         ? theme.colorScheme.surface.withValues(alpha: 0.12)
         : theme.colorScheme.secondaryContainer.withValues(alpha: 0.42);
+    final rowDividerColor = accentStyle
+        ? theme.colorScheme.surface.withValues(alpha: 0.14)
+        : theme.colorScheme.outlineVariant.withValues(alpha: 0.42);
     final minTemperature = temperatureEntries
         .map((entry) => entry.temperature!)
         .fold<double?>(null, (current, value) {
@@ -3624,6 +3696,15 @@ class _HourlyTemperatureSection extends StatelessWidget {
       if (current == null) return value;
       return math.max(current, value);
     });
+    final hasProbability = sortedEntries.any(
+      (entry) => entry.precipitationProbability != null,
+    );
+    final hasPrecipitation = sortedEntries.any(
+      (entry) => entry.precipitation != null,
+    );
+    final hasWind = sortedEntries.any((entry) => entry.windSpeed != null);
+    final width = _hourlyWeatherLabelWidth +
+        (sortedEntries.length * _hourlyWeatherColumnWidth);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(10),
@@ -3667,21 +3748,149 @@ class _HourlyTemperatureSection extends StatelessWidget {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-              child: _HourlyTemperatureChart(
-                entries: temperatureEntries,
-                formatTime: formatTime,
-                formatTemperature: formatTemperature,
-                temperatureColors: [
-                  for (final entry in temperatureEntries)
-                    _temperatureGraphColor(entry.temperature!),
-                ],
-                pointFillColor: accentStyle
-                    ? theme.colorScheme.primaryContainer
-                    : theme.colorScheme.surface,
-                mutedLabelColor: timeTextColor,
+              child: SizedBox(
+                width: width,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _HourlyTemperatureChart(
+                      entries: sortedEntries,
+                      formatTime: formatTime,
+                      formatTemperature: formatTemperature,
+                      temperatureColors: [
+                        for (final entry in sortedEntries)
+                          entry.temperature == null
+                              ? timeTextColor
+                              : _temperatureGraphColor(entry.temperature!),
+                      ],
+                      pointFillColor: accentStyle
+                          ? theme.colorScheme.primaryContainer
+                          : theme.colorScheme.surface,
+                      mutedLabelColor: timeTextColor,
+                      iconForCode: iconForCode,
+                    ),
+                    if (hasProbability)
+                      _HourlyWeatherMetricRow(
+                        label: precipitationProbabilityLabel,
+                        values: [
+                          for (final entry in sortedEntries)
+                            formatProbability(entry.precipitationProbability),
+                        ],
+                        labelColor: timeTextColor,
+                        valueColor: titleColor,
+                        dividerColor: rowDividerColor,
+                      ),
+                    if (hasPrecipitation)
+                      _HourlyWeatherMetricRow(
+                        label: precipitationLabel,
+                        values: [
+                          for (var index = 0;
+                              index < sortedEntries.length;
+                              index++)
+                            _precipitationOverviewLabel(
+                              sortedEntries,
+                              index,
+                            ),
+                        ],
+                        labelColor: timeTextColor,
+                        valueColor: titleColor,
+                        dividerColor: rowDividerColor,
+                      ),
+                    if (hasWind)
+                      _HourlyWeatherMetricRow(
+                        label: windLabel,
+                        values: [
+                          for (final entry in sortedEntries)
+                            formatWind(entry.windSpeed),
+                        ],
+                        labelColor: timeTextColor,
+                        valueColor: titleColor,
+                        dividerColor: rowDividerColor,
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  String _precipitationOverviewLabel(
+    List<_HourlyWeatherOverviewEntry> entries,
+    int index,
+  ) {
+    final entry = entries[index];
+    final precipitation = entry.precipitation;
+    if (precipitation == null) return '--';
+    final previous = index == 0 ? null : entries[index - 1];
+    final level = _precipitationAmountLevel(precipitation);
+    final previousLevel = previous?.precipitation == null
+        ? null
+        : _precipitationAmountLevel(previous!.precipitation!);
+    if (previousLevel == level) return '';
+    return formatPrecipitation(entry.toPrecipitationEntry());
+  }
+}
+
+class _HourlyWeatherMetricRow extends StatelessWidget {
+  final String label;
+  final List<String> values;
+  final Color labelColor;
+  final Color valueColor;
+  final Color dividerColor;
+
+  const _HourlyWeatherMetricRow({
+    required this.label,
+    required this.values,
+    required this.labelColor,
+    required this.valueColor,
+    required this.dividerColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(minHeight: 40),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: dividerColor)),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: _hourlyWeatherLabelWidth,
+            child: Text(
+              label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: labelColor,
+                fontWeight: FontWeight.w900,
+                height: 1.08,
+              ),
+            ),
+          ),
+          for (final value in values)
+            SizedBox(
+              width: _hourlyWeatherColumnWidth,
+              child: Center(
+                child: Text(
+                  value,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: valueColor,
+                    fontWeight: value.trim().isEmpty
+                        ? FontWeight.w600
+                        : FontWeight.w900,
+                    height: 1.08,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -3697,12 +3906,13 @@ Color _temperatureGraphColor(double temperature) {
 }
 
 class _HourlyTemperatureChart extends StatelessWidget {
-  final List<_ForecastMomentPreview> entries;
+  final List<_HourlyWeatherOverviewEntry> entries;
   final String Function(DateTime) formatTime;
   final String Function(double?) formatTemperature;
   final List<Color> temperatureColors;
   final Color pointFillColor;
   final Color mutedLabelColor;
+  final IconData Function(int?) iconForCode;
 
   const _HourlyTemperatureChart({
     required this.entries,
@@ -3711,18 +3921,50 @@ class _HourlyTemperatureChart extends StatelessWidget {
     required this.temperatureColors,
     required this.pointFillColor,
     required this.mutedLabelColor,
+    required this.iconForCode,
   });
 
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
-    final width = math.max(300.0, entries.length * 52.0);
+    final width =
+        _hourlyWeatherLabelWidth + (entries.length * _hourlyWeatherColumnWidth);
     const chartHeight = 72.0;
     return SizedBox(
       width: width,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Row(
+            children: [
+              const SizedBox(width: _hourlyWeatherLabelWidth),
+              for (var index = 0; index < entries.length; index++)
+                SizedBox(
+                  width: _hourlyWeatherColumnWidth,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        formatTime(entries[index].time),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: mutedLabelColor,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Icon(
+                        iconForCode(entries[index].weatherCode),
+                        size: 20,
+                        color: temperatureColors[index],
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
           SizedBox(
             height: chartHeight,
             child: CustomPaint(
@@ -3737,33 +3979,19 @@ class _HourlyTemperatureChart extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
+              const SizedBox(width: _hourlyWeatherLabelWidth),
               for (var index = 0; index < entries.length; index++)
                 SizedBox(
-                  width: width / entries.length,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        formatTemperature(entries[index].temperature),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: temperatureColors[index],
-                                  fontWeight: FontWeight.w900,
-                                ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        formatTime(entries[index].time),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: mutedLabelColor,
-                              fontWeight: FontWeight.w800,
-                            ),
-                      ),
-                    ],
+                  width: _hourlyWeatherColumnWidth,
+                  child: Text(
+                    formatTemperature(entries[index].temperature),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: temperatureColors[index],
+                          fontWeight: FontWeight.w900,
+                        ),
                   ),
                 ),
             ],
@@ -3775,7 +4003,7 @@ class _HourlyTemperatureChart extends StatelessWidget {
 }
 
 class _HourlyTemperatureChartPainter extends CustomPainter {
-  final List<_ForecastMomentPreview> entries;
+  final List<_HourlyWeatherOverviewEntry> entries;
   final List<Color> temperatureColors;
   final Color pointFillColor;
 
@@ -3798,12 +4026,13 @@ class _HourlyTemperatureChartPainter extends CustomPainter {
     const topPadding = 12.0;
     const bottomPadding = 14.0;
     final usableHeight = size.height - topPadding - bottomPadding;
-    final step = entries.length <= 1 ? size.width : size.width / entries.length;
     final points = <({Offset point, Color color})>[];
     for (var index = 0; index < entries.length; index++) {
       final temperature = entries[index].temperature;
       if (temperature == null) continue;
-      final x = (step * index) + (step / 2);
+      final x = _hourlyWeatherLabelWidth +
+          (_hourlyWeatherColumnWidth * index) +
+          (_hourlyWeatherColumnWidth / 2);
       final normalized = (temperature - minTemperature) / spread;
       final y = topPadding + ((1 - normalized) * usableHeight);
       final color = temperatureColors[index];

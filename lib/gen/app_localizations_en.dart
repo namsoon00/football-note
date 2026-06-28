@@ -5239,6 +5239,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherHourlyTemperature => 'Hourly temperature';
 
   @override
+  String get homeWeatherHourlyOverview => 'Hourly weather';
+
+  @override
   String get homeWeatherWindSpeed => 'Wind';
 
   @override

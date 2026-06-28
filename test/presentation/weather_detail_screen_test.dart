@@ -526,8 +526,9 @@ void main() {
     expect(find.text('22°C'), findsAtLeastNWidgets(1));
     expect(find.text('비'), findsAtLeastNWidgets(1));
     expect(find.text('날씨 상태'), findsNothing);
-    expect(find.text('시간대별 기온'), findsOneWidget);
-    expect(find.text('시간별 비 타임라인'), findsOneWidget);
+    expect(find.text('시간별 날씨'), findsOneWidget);
+    expect(find.text('시간대별 기온'), findsNothing);
+    expect(find.text('시간별 비 타임라인'), findsNothing);
     expect(find.text('09:00'), findsOneWidget);
     expect(find.text('12:00'), findsOneWidget);
     expect(find.text('14:00'), findsAtLeastNWidgets(1));
