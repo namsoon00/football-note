@@ -11,6 +11,7 @@ import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
 import '../../application/notification_app_link.dart';
+import '../../application/sport_capabilities.dart';
 import '../../application/sport_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -24,6 +25,7 @@ import '../widgets/sport_scope.dart';
 import 'skill_quiz_screen.dart';
 import 'home_hub_screen.dart';
 import 'match_hub_screen.dart';
+import 'match_record_screen.dart';
 import 'training_board_list_screen.dart';
 import 'coach_lesson_screen.dart';
 
@@ -210,6 +212,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final sportId = SportScope.maybeOf(context)?.currentSportId ??
         SportService(widget.optionRepository).currentSportId();
+    final supportsTeamManagement =
+        SportCapabilities.forSport(sportId).supportsTeamManagement;
+    final openTeamManagementHub = supportsTeamManagement ? _openMatchHub : null;
+    Future<void> openMatchRecord(DateTime initialDate) => supportsTeamManagement
+        ? _openMatchHubRecord(initialDate)
+        : _openDirectMatchRecord(initialDate);
     final navBackground = Theme.of(context).colorScheme.surface;
     final pages = <Widget>[
       _buildTabChild(
@@ -225,11 +233,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onCreate: _openCreate,
           onQuickPlan: () =>
               _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
-          onQuickMatch: () => _openMatchHubRecord(DateTime.now()),
+          onQuickMatch: () => openMatchRecord(DateTime.now()),
           onQuickQuiz: _openQuiz,
           onQuickMeal: () => _openMealLog(initialDate: DateTime.now()),
           onQuickBoard: _openTrainingBoards,
-          onOpenMatchHub: _openMatchHub,
+          onOpenMatchHub: openTeamManagementHub,
           onOpenLogs: () => _onDestinationSelected(1),
           onOpenDiary: _openTodayDiary,
           onOpenWeeklyStats: _openWeeklyStatsForCurrentWeek,
@@ -251,9 +259,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onCreate: _openCreate,
           onQuickPlan: () =>
               _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
-          onQuickMatch: () => _openMatchHubRecord(DateTime.now()),
+          onQuickMatch: () => openMatchRecord(DateTime.now()),
           onQuickQuiz: _openQuiz,
-          onOpenMatchHub: _openMatchHub,
+          onOpenMatchHub: openTeamManagementHub,
         ),
       ),
       _buildTabChild(
@@ -273,8 +281,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           quickCreateAction: _pendingCalendarQuickCreateAction ??
               widget.calendarQuickCreateAction,
           onQuickCreateHandled: _clearCalendarQuickCreateAction,
-          onOpenMatchHub: _openMatchHub,
-          onOpenMatchRecord: _openMatchHubRecord,
+          onOpenMatchHub: openTeamManagementHub,
+          onOpenMatchRecord: openMatchRecord,
           onSelectedDayChanged: (day) {
             _calendarSelectedDay = DateTime(day.year, day.month, day.day);
           },
@@ -295,7 +303,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           initialRangeRequestKey: _statsInitialRangeRequestKey,
           initialTabIndex: _statsInitialTabIndex,
           initialTabRequestKey: _statsInitialTabRequestKey,
-          onOpenMatchHub: _openMatchHub,
+          onOpenMatchHub: openTeamManagementHub,
         ),
       ),
       _buildTabChild(
@@ -311,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           embeddedInHomeTab: true,
           openTodayDiaryRequestKey: _openTodayDiaryRequestKey,
           dataRevision: _dataRevision,
-          onOpenMatchHub: _openMatchHub,
+          onOpenMatchHub: openTeamManagementHub,
         ),
       ),
     ];
@@ -687,6 +695,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onOpenMatchStats: _openMatchHubStats,
           openRecordOnStart: true,
           initialRecordDate: initialDate,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openDirectMatchRecord(DateTime initialDate) async {
+    await _pushPageSafely(
+      AppPageRoute(
+        builder: (_) => MatchRecordScreen(
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          initialDate: initialDate,
         ),
       ),
     );

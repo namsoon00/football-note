@@ -8,6 +8,7 @@ import 'package:football_note/application/match_competition_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/team_management_service.dart';
 import 'package:football_note/application/training_service.dart';
+import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
@@ -227,6 +228,25 @@ void main() {
     expect(find.text('리그 순위'), findsOneWidget);
     expect(find.text('토너먼트 대진표'), findsOneWidget);
     expect(find.text('다음 운영'), findsWidgets);
+  });
+
+  testWidgets('Match hub hides team management section for personal sports', (
+    tester,
+  ) async {
+    await optionRepository.setValue(
+      SportCatalog.currentSportOptionKey,
+      SportCatalog.tennisId,
+    );
+    await seedMatchHubRecords();
+
+    await pumpHub(tester);
+
+    expect(find.text('팀 관리 보드'), findsNothing);
+    expect(find.text('관리 팀'), findsNothing);
+    expect(find.text('아직 관리 중인 팀이 없어요.'), findsNothing);
+    expect(find.text('우리 팀 U15'), findsNothing);
+    expect(find.text('대회 관리'), findsWidgets);
+    expect(find.text('시합 기록 보기'), findsOneWidget);
   });
 
   testWidgets('Competition management buttons keep contrast in both themes', (

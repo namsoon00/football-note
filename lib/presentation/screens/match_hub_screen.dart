@@ -82,6 +82,8 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
   @override
   Widget build(BuildContext context) {
     final sportId = SportService(widget.optionRepository).currentSportId();
+    final supportsTeamManagement =
+        SportCapabilities.forSport(sportId).supportsTeamManagement;
 
     return Scaffold(
       body: ColoredBox(
@@ -108,8 +110,9 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                 competitions: competitions,
                 matchEntries: matchEntries,
               );
-              final managedTeams =
-                  TeamManagementService(widget.optionRepository).allTeams();
+              final managedTeams = supportsTeamManagement
+                  ? TeamManagementService(widget.optionRepository).allTeams()
+                  : const <ManagedTeam>[];
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -125,12 +128,14 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubHero(
                       metrics: metrics,
+                      supportsTeamManagement: supportsTeamManagement,
                       teamCount: managedTeams.length,
                       onManageTeams: () => _openTeamManagement(),
                       onManageCompetitions: () => _openCompetitionManagement(),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubQuickActions(
+                      supportsTeamManagement: supportsTeamManagement,
                       onRecordMatch: () => _openMatchRecord(),
                       onManageTeams: () => _openTeamManagement(),
                       onManageCompetitions: () => _openCompetitionManagement(),
@@ -138,11 +143,13 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                       onOpenMatchStats: () =>
                           _closeThen(widget.onOpenMatchStats),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    _MatchHubTeamSection(
-                      teams: managedTeams,
-                      onManageTeams: () => _openTeamManagement(),
-                    ),
+                    if (supportsTeamManagement) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      _MatchHubTeamSection(
+                        teams: managedTeams,
+                        onManageTeams: () => _openTeamManagement(),
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubCompetitionSection(
                       summaries: competitionSummaries,
@@ -362,12 +369,14 @@ class _MatchHubHeader extends StatelessWidget {
 
 class _MatchHubHero extends StatelessWidget {
   final _MatchHubMetrics metrics;
+  final bool supportsTeamManagement;
   final int teamCount;
   final VoidCallback onManageTeams;
   final VoidCallback onManageCompetitions;
 
   const _MatchHubHero({
     required this.metrics,
+    required this.supportsTeamManagement,
     required this.teamCount,
     required this.onManageTeams,
     required this.onManageCompetitions,
@@ -403,7 +412,7 @@ class _MatchHubHero extends StatelessWidget {
                   ),
                 ),
                 child: const Icon(
-                  Icons.sports_score_outlined,
+                  Icons.groups_2_outlined,
                   color: Colors.white,
                   size: 26,
                 ),
@@ -473,32 +482,35 @@ class _MatchHubHero extends StatelessWidget {
                   metrics.finishedCompetitions,
                 ),
               ),
-              _HeroMetricPill(
-                label: l10n.matchHubTeamStateLabel,
-                value: l10n.matchHubTeamStateValue(teamCount),
-              ),
+              if (supportsTeamManagement)
+                _HeroMetricPill(
+                  label: l10n.matchHubTeamStateLabel,
+                  value: l10n.matchHubTeamStateValue(teamCount),
+                ),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: onManageTeams,
-                  icon: const Icon(Icons.groups_2_outlined),
-                  label: Text(l10n.teamManagementOpenButton),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF166153),
-                    minimumSize:
-                        const Size.fromHeight(AppSizes.primaryButtonHeight),
-                    textStyle: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
+              if (supportsTeamManagement) ...[
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: onManageTeams,
+                    icon: const Icon(Icons.groups_2_outlined),
+                    label: Text(l10n.teamManagementOpenButton),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF166153),
+                      minimumSize:
+                          const Size.fromHeight(AppSizes.primaryButtonHeight),
+                      textStyle: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
+              ],
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: onManageCompetitions,
@@ -526,6 +538,7 @@ class _MatchHubHero extends StatelessWidget {
 }
 
 class _MatchHubQuickActions extends StatelessWidget {
+  final bool supportsTeamManagement;
   final VoidCallback onRecordMatch;
   final VoidCallback onManageTeams;
   final VoidCallback onManageCompetitions;
@@ -533,6 +546,7 @@ class _MatchHubQuickActions extends StatelessWidget {
   final VoidCallback onOpenMatchStats;
 
   const _MatchHubQuickActions({
+    required this.supportsTeamManagement,
     required this.onRecordMatch,
     required this.onManageTeams,
     required this.onManageCompetitions,
@@ -544,12 +558,13 @@ class _MatchHubQuickActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final actions = [
-      _QuickActionData(
-        icon: Icons.groups_2_outlined,
-        title: l10n.teamManagementOpenButton,
-        subtitle: l10n.matchHubTeamManagementHelper,
-        onTap: onManageTeams,
-      ),
+      if (supportsTeamManagement)
+        _QuickActionData(
+          icon: Icons.groups_2_outlined,
+          title: l10n.teamManagementOpenButton,
+          subtitle: l10n.matchHubTeamManagementHelper,
+          onTap: onManageTeams,
+        ),
       _QuickActionData(
         icon: Icons.emoji_events_outlined,
         title: l10n.matchCompetitionOpenButton,

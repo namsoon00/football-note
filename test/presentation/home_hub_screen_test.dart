@@ -489,6 +489,10 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
+    final teamManagementShortcut = find.byTooltip('팀 관리');
+    expect(teamManagementShortcut, findsWidgets);
+    expect(find.byIcon(Icons.groups_2_outlined), findsOneWidget);
+
     final quickMatchButton = find.byKey(
       const ValueKey<String>('home-quick-action-match'),
     );
@@ -503,6 +507,55 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
   });
+
+  testWidgets(
+    'personal sport hides team management shortcut but keeps match record',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      await optionRepository.setValue(
+        SportCatalog.currentSportOptionKey,
+        SportCatalog.tennisId,
+      );
+      await optionRepository.setValue('tab_quick_guide_seen_v1_0', true);
+      await optionRepository.setValue('tab_quick_guide_seen_v1_2', true);
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final trainingService = TrainingService(_MemoryTrainingRepository());
+      final mealLogService = MealLogService(optionRepository);
+
+      await tester.pumpWidget(
+        _buildApp(
+          HomeScreen(
+            trainingService: trainingService,
+            mealLogService: mealLogService,
+            localeService: localeService,
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byTooltip('팀 관리'), findsNothing);
+      expect(find.byIcon(Icons.groups_2_outlined), findsNothing);
+
+      final quickMatchButton = find.byKey(
+        const ValueKey<String>('home-quick-action-match'),
+      );
+      await tester.ensureVisible(quickMatchButton);
+      await tester.pump();
+      await tester.tap(quickMatchButton);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('시합 등록'), findsOneWidget);
+      expect(find.text('팀 관리'), findsNothing);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
 
   testWidgets('today task sketch opens today saved board before entry editor', (
     WidgetTester tester,
