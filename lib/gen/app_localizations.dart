@@ -16845,6 +16845,18 @@ abstract class AppLocalizations {
   /// **'Operations summary'**
   String get matchCompetitionOperationsSummaryTitle;
 
+  /// No description provided for @matchCompetitionListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition status'**
+  String get matchCompetitionListTitle;
+
+  /// No description provided for @matchCompetitionListCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} competitions'**
+  String matchCompetitionListCount(int count);
+
   /// No description provided for @matchCompetitionCreateLeagueButton.
   ///
   /// In en, this message translates to:
@@ -16916,6 +16928,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit'**
   String get matchCompetitionEditButton;
+
+  /// No description provided for @matchCompetitionEditorBasicsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition basics'**
+  String get matchCompetitionEditorBasicsTitle;
+
+  /// No description provided for @matchCompetitionEditorOperationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations details'**
+  String get matchCompetitionEditorOperationsTitle;
 
   /// No description provided for @matchCompetitionNoCompetitionsProBody.
   ///

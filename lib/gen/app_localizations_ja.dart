@@ -9582,6 +9582,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionOperationsSummaryTitle => '運営サマリー';
 
   @override
+  String get matchCompetitionListTitle => '大会状況';
+
+  @override
+  String matchCompetitionListCount(int count) {
+    return '$count大会';
+  }
+
+  @override
   String get matchCompetitionCreateLeagueButton => 'リーグを作成';
 
   @override
@@ -9616,6 +9624,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchCompetitionEditButton => '編集';
+
+  @override
+  String get matchCompetitionEditorBasicsTitle => '大会基本';
+
+  @override
+  String get matchCompetitionEditorOperationsTitle => '運営情報';
 
   @override
   String get matchCompetitionNoCompetitionsProBody =>

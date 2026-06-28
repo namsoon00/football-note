@@ -9863,6 +9863,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchCompetitionOperationsSummaryTitle => 'Operations summary';
 
   @override
+  String get matchCompetitionListTitle => 'Competition status';
+
+  @override
+  String matchCompetitionListCount(int count) {
+    return '$count competitions';
+  }
+
+  @override
   String get matchCompetitionCreateLeagueButton => 'Create league';
 
   @override
@@ -9898,6 +9906,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchCompetitionEditButton => 'Edit';
+
+  @override
+  String get matchCompetitionEditorBasicsTitle => 'Competition basics';
+
+  @override
+  String get matchCompetitionEditorOperationsTitle => 'Operations details';
 
   @override
   String get matchCompetitionNoCompetitionsProBody =>
