@@ -10188,7 +10188,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementTitle => 'チーム管理';
 
   @override
-  String get teamManagementSubtitle => '選手名簿、チーム戦略、フォーメーション配置を一つの画面で整理します。';
+  String get teamManagementSubtitle => '選手登録と管理から始め、ドラッグ配置と移動線ボードで戦術を整理します。';
 
   @override
   String get teamManagementOpenButton => 'チーム管理';
@@ -10214,10 +10214,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementNewTeamButton => '新しいチーム';
 
   @override
-  String get teamManagementBasicsTitle => 'チーム戦略';
+  String get teamManagementBasicsTitle => 'チーム情報と戦術説明';
 
   @override
-  String get teamManagementBasicsHelper => 'チーム名と試合運びの方針から整理しましょう。';
+  String get teamManagementBasicsHelper => '選手名簿を作成してから、チーム名と戦術説明を整理します。';
 
   @override
   String get teamManagementTeamNameLabel => 'チーム名';
@@ -10226,18 +10226,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementTeamNameHint => '例) 自分のU15';
 
   @override
-  String get teamManagementStrategyLabel => '戦略メモ';
+  String get teamManagementStrategyLabel => '戦術説明';
 
   @override
-  String get teamManagementStrategyHint =>
-      '例) 高い位置でプレスし、素早くサイドへ展開。守備時は4-4-2ブロック';
+  String get teamManagementStrategyHint => '例) プレス開始位置、サイドチェンジの約束、守備ブロックの基準';
 
   @override
   String get teamManagementFormationTitle => 'フォーメーションボード';
 
   @override
   String get teamManagementFormationHelper =>
-      'フォーメーションを選び、ピッチ上のポジションをタップして選手を割り当てます。';
+      '選手をポジションへドラッグし、描画モードで移動線やプレス方向を描きます。';
 
   @override
   String get teamManagementFormationLabel => 'フォーメーション';
@@ -10265,7 +10264,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementPlayersTitle => '選手名簿';
 
   @override
-  String get teamManagementPlayersHelper => '選手情報を追加すると、フォーメーションの枠にすぐ割り当てられます。';
+  String get teamManagementPlayersHelper =>
+      'チーム管理は選手登録から始まります。番号、ポジション、利き足、コンディション、管理メモを残しましょう。';
 
   @override
   String get teamManagementPlayerNameLabel => '選手名';
@@ -10283,13 +10283,47 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementPlayerRoleLabel => '基本ポジション';
 
   @override
+  String get teamManagementPlayerFootLabel => '利き足';
+
+  @override
+  String get teamManagementPlayerFootRight => '右足';
+
+  @override
+  String get teamManagementPlayerFootLeft => '左足';
+
+  @override
+  String get teamManagementPlayerFootBoth => '両足';
+
+  @override
+  String get teamManagementPlayerConditionLabel => 'コンディション';
+
+  @override
+  String get teamManagementPlayerConditionReady => '出場可能';
+
+  @override
+  String get teamManagementPlayerConditionWatch => '管理が必要';
+
+  @override
+  String get teamManagementPlayerConditionRest => '休養推奨';
+
+  @override
   String get teamManagementPlayerNoteLabel => '選手メモ';
 
   @override
-  String get teamManagementPlayerNoteHint => '例) 左足のキックが良い、プレス後の切り替えが速い';
+  String get teamManagementPlayerNoteHint =>
+      '例) 左足のキックが良い、プレス後の切り替えが速い、膝の負荷を管理';
 
   @override
   String get teamManagementAddPlayerButton => '選手を追加';
+
+  @override
+  String get teamManagementUpdatePlayerButton => '変更を保存';
+
+  @override
+  String get teamManagementCancelPlayerEditButton => '編集をキャンセル';
+
+  @override
+  String get teamManagementEditPlayerButton => '編集';
 
   @override
   String get teamManagementNoPlayersTitle => '登録された選手がいません。';
@@ -10301,6 +10335,35 @@ class AppLocalizationsJa extends AppLocalizations {
   String teamManagementPlayerMeta(Object role, int count) {
     return '$role · $countポジション';
   }
+
+  @override
+  String teamManagementPlayerDetailMeta(
+      Object role, Object foot, Object condition, int count) {
+    return '$role · $foot · $condition · $count件割り当て';
+  }
+
+  @override
+  String get teamManagementPlayerTrayTitle => 'ドラッグする選手';
+
+  @override
+  String get teamManagementPlayerTrayEmpty => '先に選手を登録すると、ここからポジションへドラッグできます。';
+
+  @override
+  String get teamManagementBoardMovePlayersMode => '選手配置';
+
+  @override
+  String get teamManagementBoardDrawMode => '移動線を描く';
+
+  @override
+  String get teamManagementBoardClearLinesButton => '線を消去';
+
+  @override
+  String teamManagementTacticLinesCount(int count) {
+    return '移動線 $count本';
+  }
+
+  @override
+  String get teamManagementFormationDropHint => '選手チップをポジションの上に置いてください。';
 
   @override
   String get teamManagementRemovePlayerButton => '削除';

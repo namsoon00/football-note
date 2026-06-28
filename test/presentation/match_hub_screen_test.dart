@@ -374,6 +374,13 @@ void main() {
   testWidgets('Team management screen saves a roster and pitch assignment', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     await tester.pumpWidget(
       DefaultAssetBundle(
         bundle: TestAssetBundle(),
@@ -396,25 +403,46 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField).at(0), '우리 팀 U15');
-    await tester.enterText(find.byType(TextField).at(1), '전방 압박 후 측면 전환');
+    expect(
+      tester.getTopLeft(find.text('선수 명단')).dy,
+      lessThan(tester.getTopLeft(find.text('팀 정보와 전술 설명')).dy),
+    );
+
     final addPlayerButton = find.widgetWithText(FilledButton, '선수 추가');
     await tester.ensureVisible(addPlayerButton);
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).at(2), '김민준');
-    await tester.enterText(find.byType(TextField).at(3), '10');
+    await tester.enterText(find.byType(TextField).at(0), '김민준');
+    await tester.enterText(find.byType(TextField).at(1), '10');
+    await tester.enterText(find.byType(TextField).at(2), '왼발 킥 좋음');
     await tester.ensureVisible(addPlayerButton);
     await tester.pumpAndSettle();
     await tester.tap(addPlayerButton);
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('GK').first);
-    await tester.tap(find.text('GK').first);
+    await tester.enterText(find.byType(TextField).at(3), '우리 팀 U15');
+    await tester.enterText(find.byType(TextField).at(4), '전방 압박 후 측면 전환');
+
+    final playerChip = find.text('10 김민준').last;
+    final goalkeeperSlot = find.byKey(const ValueKey('formation-slot-gk'));
+    await tester.ensureVisible(playerChip);
+    await tester.ensureVisible(goalkeeperSlot);
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('미배정'));
-    await tester.tap(find.text('미배정'));
+    await tester.drag(
+      playerChip,
+      tester.getCenter(goalkeeperSlot) - tester.getCenter(playerChip),
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('10 김민준').last);
+
+    await tester.ensureVisible(find.text('이동선 그리기'));
+    await tester.tap(find.text('이동선 그리기'));
+    await tester.pumpAndSettle();
+    final pitchRect = tester.getRect(
+      find.byKey(const ValueKey('team-tactics-board-pitch')),
+    );
+    await tester.dragFrom(
+      pitchRect.centerLeft + Offset(80, pitchRect.height * 0.28),
+      const Offset(180, -120),
+    );
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('팀 저장'));
@@ -426,7 +454,9 @@ void main() {
     expect(teams.single.name, '우리 팀 U15');
     expect(teams.single.strategy, '전방 압박 후 측면 전환');
     expect(teams.single.players.single.name, '김민준');
+    expect(teams.single.players.single.note, '왼발 킥 좋음');
     expect(teams.single.lineup['gk'], teams.single.players.single.id);
+    expect(teams.single.tacticLines, hasLength(1));
   });
 }
 

@@ -8,11 +8,19 @@ class ManagedTeamPlayer {
   static const String roleDefender = 'defender';
   static const String roleMidfielder = 'midfielder';
   static const String roleForward = 'forward';
+  static const String footRight = 'right';
+  static const String footLeft = 'left';
+  static const String footBoth = 'both';
+  static const String conditionReady = 'ready';
+  static const String conditionWatch = 'watch';
+  static const String conditionRest = 'rest';
 
   final String id;
   final String name;
   final String number;
   final String role;
+  final String foot;
+  final String condition;
   final String note;
 
   const ManagedTeamPlayer({
@@ -20,6 +28,8 @@ class ManagedTeamPlayer {
     required this.name,
     this.number = '',
     this.role = roleForward,
+    this.foot = footRight,
+    this.condition = conditionReady,
     this.note = '',
   });
 
@@ -27,6 +37,8 @@ class ManagedTeamPlayer {
     required String name,
     String number = '',
     String role = roleForward,
+    String foot = footRight,
+    String condition = conditionReady,
     String note = '',
     DateTime? now,
   }) {
@@ -36,6 +48,8 @@ class ManagedTeamPlayer {
       name: name.trim(),
       number: number.trim(),
       role: TeamManagementService.normalizePlayerRole(role),
+      foot: TeamManagementService.normalizePlayerFoot(foot),
+      condition: TeamManagementService.normalizePlayerCondition(condition),
       note: note.trim(),
     );
   }
@@ -48,6 +62,12 @@ class ManagedTeamPlayer {
       role: TeamManagementService.normalizePlayerRole(
         map['role']?.toString() ?? '',
       ),
+      foot: TeamManagementService.normalizePlayerFoot(
+        map['foot']?.toString() ?? '',
+      ),
+      condition: TeamManagementService.normalizePlayerCondition(
+        map['condition']?.toString() ?? '',
+      ),
       note: map['note']?.toString().trim() ?? '',
     );
   }
@@ -57,6 +77,8 @@ class ManagedTeamPlayer {
     String? name,
     String? number,
     String? role,
+    String? foot,
+    String? condition,
     String? note,
   }) {
     return ManagedTeamPlayer(
@@ -64,6 +86,10 @@ class ManagedTeamPlayer {
       name: name ?? this.name,
       number: number ?? this.number,
       role: TeamManagementService.normalizePlayerRole(role ?? this.role),
+      foot: TeamManagementService.normalizePlayerFoot(foot ?? this.foot),
+      condition: TeamManagementService.normalizePlayerCondition(
+        condition ?? this.condition,
+      ),
       note: note ?? this.note,
     );
   }
@@ -74,7 +100,82 @@ class ManagedTeamPlayer {
       'name': name,
       'number': number,
       'role': role,
+      'foot': foot,
+      'condition': condition,
       'note': note,
+    };
+  }
+}
+
+class ManagedTacticLine {
+  final String id;
+  final double startX;
+  final double startY;
+  final double endX;
+  final double endY;
+
+  const ManagedTacticLine({
+    required this.id,
+    required this.startX,
+    required this.startY,
+    required this.endX,
+    required this.endY,
+  });
+
+  factory ManagedTacticLine.create({
+    required double startX,
+    required double startY,
+    required double endX,
+    required double endY,
+    DateTime? now,
+  }) {
+    final timestamp = now ?? DateTime.now();
+    return ManagedTacticLine(
+      id: TeamManagementService.tacticLineId(now: timestamp),
+      startX: TeamManagementService.normalizeBoardCoordinate(startX),
+      startY: TeamManagementService.normalizeBoardCoordinate(startY),
+      endX: TeamManagementService.normalizeBoardCoordinate(endX),
+      endY: TeamManagementService.normalizeBoardCoordinate(endY),
+    );
+  }
+
+  factory ManagedTacticLine.fromMap(Map<String, dynamic> map) {
+    return ManagedTacticLine(
+      id: map['id']?.toString().trim() ?? '',
+      startX: TeamManagementService.normalizeBoardCoordinate(map['startX']),
+      startY: TeamManagementService.normalizeBoardCoordinate(map['startY']),
+      endX: TeamManagementService.normalizeBoardCoordinate(map['endX']),
+      endY: TeamManagementService.normalizeBoardCoordinate(map['endY']),
+    );
+  }
+
+  ManagedTacticLine copyWith({
+    String? id,
+    double? startX,
+    double? startY,
+    double? endX,
+    double? endY,
+  }) {
+    return ManagedTacticLine(
+      id: id ?? this.id,
+      startX: TeamManagementService.normalizeBoardCoordinate(
+        startX ?? this.startX,
+      ),
+      startY: TeamManagementService.normalizeBoardCoordinate(
+        startY ?? this.startY,
+      ),
+      endX: TeamManagementService.normalizeBoardCoordinate(endX ?? this.endX),
+      endY: TeamManagementService.normalizeBoardCoordinate(endY ?? this.endY),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'id': id,
+      'startX': startX,
+      'startY': startY,
+      'endX': endX,
+      'endY': endY,
     };
   }
 }
@@ -88,6 +189,7 @@ class ManagedTeam {
   final String strategy;
   final List<ManagedTeamPlayer> players;
   final Map<String, String> lineup;
+  final List<ManagedTacticLine> tacticLines;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -98,6 +200,7 @@ class ManagedTeam {
     this.strategy = '',
     this.players = const <ManagedTeamPlayer>[],
     this.lineup = const <String, String>{},
+    this.tacticLines = const <ManagedTacticLine>[],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -111,6 +214,7 @@ class ManagedTeam {
     String strategy = '',
     List<ManagedTeamPlayer> players = const <ManagedTeamPlayer>[],
     Map<String, String> lineup = const <String, String>{},
+    List<ManagedTacticLine> tacticLines = const <ManagedTacticLine>[],
     DateTime? now,
   }) {
     final timestamp = now ?? DateTime.now();
@@ -128,6 +232,7 @@ class ManagedTeam {
         players: normalizedPlayers,
         formation: normalizedFormation,
       ),
+      tacticLines: TeamManagementService.normalizeTacticLines(tacticLines),
       createdAt: timestamp,
       updatedAt: timestamp,
     );
@@ -156,6 +261,14 @@ class ManagedTeam {
             (key, value) => MapEntry(key.toString(), value.toString()),
           )
         : const <String, String>{};
+    final tacticLines = map['tacticLines'] is List
+        ? (map['tacticLines'] as List)
+            .whereType<Map>()
+            .map((item) => ManagedTacticLine.fromMap(
+                  item.cast<String, dynamic>(),
+                ))
+            .toList(growable: false)
+        : const <ManagedTacticLine>[];
     return ManagedTeam(
       id: map['id']?.toString().trim().isNotEmpty == true
           ? map['id'].toString()
@@ -172,6 +285,7 @@ class ManagedTeam {
         players: players,
         formation: formation,
       ),
+      tacticLines: TeamManagementService.normalizeTacticLines(tacticLines),
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -184,6 +298,7 @@ class ManagedTeam {
     String? strategy,
     List<ManagedTeamPlayer>? players,
     Map<String, String>? lineup,
+    List<ManagedTacticLine>? tacticLines,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -202,6 +317,9 @@ class ManagedTeam {
         players: nextPlayers,
         formation: nextFormation,
       ),
+      tacticLines: TeamManagementService.normalizeTacticLines(
+        tacticLines ?? this.tacticLines,
+      ),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -215,6 +333,7 @@ class ManagedTeam {
       'strategy': strategy,
       'players': players.map((player) => player.toMap()).toList(),
       'lineup': lineup,
+      'tacticLines': tacticLines.map((line) => line.toMap()).toList(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -332,6 +451,10 @@ class TeamManagementService {
     return 'player:${_normalizeKey(name)}:${now.microsecondsSinceEpoch}';
   }
 
+  static String tacticLineId({required DateTime now}) {
+    return 'tactic-line:${now.microsecondsSinceEpoch}';
+  }
+
   static String normalizeFormation(String formation) {
     return supportedFormations.contains(formation)
         ? formation
@@ -345,6 +468,31 @@ class TeamManagementService {
       ManagedTeamPlayer.roleMidfielder => ManagedTeamPlayer.roleMidfielder,
       _ => ManagedTeamPlayer.roleForward,
     };
+  }
+
+  static String normalizePlayerFoot(String foot) {
+    return switch (foot) {
+      ManagedTeamPlayer.footLeft => ManagedTeamPlayer.footLeft,
+      ManagedTeamPlayer.footBoth => ManagedTeamPlayer.footBoth,
+      _ => ManagedTeamPlayer.footRight,
+    };
+  }
+
+  static String normalizePlayerCondition(String condition) {
+    return switch (condition) {
+      ManagedTeamPlayer.conditionWatch => ManagedTeamPlayer.conditionWatch,
+      ManagedTeamPlayer.conditionRest => ManagedTeamPlayer.conditionRest,
+      _ => ManagedTeamPlayer.conditionReady,
+    };
+  }
+
+  static double normalizeBoardCoordinate(Object? value) {
+    final number = switch (value) {
+      num() => value.toDouble(),
+      String() => double.tryParse(value) ?? 0.0,
+      _ => 0.0,
+    };
+    return number.clamp(0.0, 1.0).toDouble();
   }
 
   static List<ManagedTeamPlayer> normalizePlayers(
@@ -378,6 +526,20 @@ class TeamManagementService {
       normalized[spotId] = playerId;
     }
     return normalized;
+  }
+
+  static List<ManagedTacticLine> normalizeTacticLines(
+    Iterable<ManagedTacticLine> values,
+  ) {
+    final seen = <String>{};
+    final lines = <ManagedTacticLine>[];
+    for (final line in values) {
+      final id = line.id.trim();
+      if (id.isEmpty || seen.contains(id)) continue;
+      seen.add(id);
+      lines.add(line.copyWith(id: id));
+    }
+    return lines;
   }
 
   static List<TeamFormationSpot> formationSpots(String formation) {
