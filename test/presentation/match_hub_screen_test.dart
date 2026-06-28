@@ -12,9 +12,11 @@ import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
+import 'package:football_note/presentation/screens/competition_management_screen.dart';
 import 'package:football_note/presentation/screens/match_hub_screen.dart';
 import 'package:football_note/presentation/screens/match_record_screen.dart';
 import 'package:football_note/presentation/screens/team_management_screen.dart';
+import 'package:football_note/presentation/theme/app_theme.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
@@ -43,12 +45,16 @@ void main() {
     WidgetTester tester, {
     VoidCallback? onOpenCalendar,
     VoidCallback? onOpenMatchStats,
+    ThemeMode themeMode = ThemeMode.light,
   }) async {
     await tester.pumpWidget(
       DefaultAssetBundle(
         bundle: TestAssetBundle(),
         child: MaterialApp(
           locale: const Locale('ko', 'KR'),
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: themeMode,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
@@ -67,6 +73,39 @@ void main() {
             settingsService: settingsService,
             onOpenCalendar: onOpenCalendar ?? () {},
             onOpenMatchStats: onOpenMatchStats ?? () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> pumpCompetitionManagement(
+    WidgetTester tester, {
+    required ThemeMode themeMode,
+  }) async {
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: themeMode,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: CompetitionManagementScreen(
+            trainingService: trainingService,
+            optionRepository: optionRepository,
           ),
         ),
       ),
@@ -188,6 +227,29 @@ void main() {
     expect(find.text('리그 순위'), findsOneWidget);
     expect(find.text('토너먼트 대진표'), findsOneWidget);
     expect(find.text('다음 운영'), findsWidgets);
+  });
+
+  testWidgets('Competition management buttons keep contrast in both themes', (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+
+    for (final themeMode in [ThemeMode.light, ThemeMode.dark]) {
+      await pumpCompetitionManagement(tester, themeMode: themeMode);
+
+      _expectFilledButtonContrast(tester, '리그 만들기');
+      _expectOutlinedButtonContrast(tester, '토너먼트 만들기');
+
+      await tester.tap(find.widgetWithText(FilledButton, '리그 만들기'));
+      await tester.pumpAndSettle();
+
+      _expectOutlinedButtonContrast(tester, '뒤로');
+      _expectFilledButtonContrast(tester, '대회 저장');
+      _expectFilledButtonContrast(tester, '추가');
+
+      await tester.tap(find.widgetWithText(OutlinedButton, '뒤로'));
+      await tester.pumpAndSettle();
+    }
   });
 
   testWidgets('Match hub opens a dedicated records view', (
@@ -346,6 +408,56 @@ void main() {
     expect(teams.single.players.single.name, '김민준');
     expect(teams.single.lineup['gk'], teams.single.players.single.id);
   });
+}
+
+void _expectFilledButtonContrast(WidgetTester tester, String text) {
+  final button = tester.widget<FilledButton>(
+    find
+        .ancestor(
+          of: find.text(text),
+          matching: find.byType(FilledButton),
+        )
+        .first,
+  );
+  _expectButtonStyleContrast(button.style, text);
+}
+
+void _expectOutlinedButtonContrast(WidgetTester tester, String text) {
+  final button = tester.widget<OutlinedButton>(
+    find
+        .ancestor(
+          of: find.text(text),
+          matching: find.byType(OutlinedButton),
+        )
+        .first,
+  );
+  _expectButtonStyleContrast(button.style, text);
+}
+
+void _expectButtonStyleContrast(ButtonStyle? style, String text) {
+  final states = <WidgetState>{};
+  final foreground = style?.foregroundColor?.resolve(states);
+  final background = style?.backgroundColor?.resolve(states);
+
+  expect(foreground, isNotNull, reason: '$text foreground must be explicit');
+  expect(background, isNotNull, reason: '$text background must be explicit');
+  expect(
+    _contrastRatio(foreground!, background!),
+    greaterThanOrEqualTo(4.5),
+    reason: '$text button text contrast should remain readable',
+  );
+}
+
+double _contrastRatio(Color foreground, Color background) {
+  final foregroundLuminance = foreground.computeLuminance();
+  final backgroundLuminance = background.computeLuminance();
+  final lighter = foregroundLuminance > backgroundLuminance
+      ? foregroundLuminance
+      : backgroundLuminance;
+  final darker = foregroundLuminance > backgroundLuminance
+      ? backgroundLuminance
+      : foregroundLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 class _MemoryTrainingRepository implements TrainingRepository {

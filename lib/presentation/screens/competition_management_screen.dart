@@ -12,6 +12,44 @@ import '../utils/match_entry_format.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 
+ButtonStyle _competitionFilledActionStyle(BuildContext context) {
+  final theme = Theme.of(context);
+  final scheme = theme.colorScheme;
+  final background = theme.brightness == Brightness.dark
+      ? scheme.primary
+      : Color.lerp(scheme.primary, Colors.black, 0.08)!;
+  return FilledButton.styleFrom(
+    backgroundColor: background,
+    foregroundColor: scheme.onPrimary,
+    disabledBackgroundColor: scheme.onSurface.withValues(alpha: 0.12),
+    disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.38),
+    minimumSize: const Size(0, AppSizes.primaryButtonHeight),
+    textStyle: theme.textTheme.labelLarge?.copyWith(
+      fontWeight: FontWeight.w900,
+    ),
+    shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
+  );
+}
+
+ButtonStyle _competitionOutlinedActionStyle(BuildContext context) {
+  final theme = Theme.of(context);
+  final scheme = theme.colorScheme;
+  final foreground = theme.brightness == Brightness.dark
+      ? scheme.primary
+      : Color.lerp(scheme.primary, Colors.black, 0.18)!;
+  return OutlinedButton.styleFrom(
+    backgroundColor: scheme.surface,
+    foregroundColor: foreground,
+    disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.38),
+    side: BorderSide(color: foreground.withValues(alpha: 0.58)),
+    minimumSize: const Size(0, AppSizes.primaryButtonHeight),
+    textStyle: theme.textTheme.labelLarge?.copyWith(
+      fontWeight: FontWeight.w900,
+    ),
+    shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
+  );
+}
+
 class CompetitionManagementScreen extends StatefulWidget {
   final TrainingService trainingService;
   final OptionRepository optionRepository;
@@ -258,7 +296,7 @@ class _CompetitionHeroActions extends StatelessWidget {
       style: FilledButton.styleFrom(
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF166153),
-        minimumSize: const Size.fromHeight(AppSizes.primaryButtonHeight),
+        minimumSize: const Size(0, AppSizes.primaryButtonHeight),
         textStyle: theme.textTheme.labelLarge?.copyWith(
           fontWeight: FontWeight.w900,
         ),
@@ -269,9 +307,10 @@ class _CompetitionHeroActions extends StatelessWidget {
       icon: const Icon(Icons.account_tree_outlined),
       label: Text(l10n.matchCompetitionCreateTournamentButton),
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white.withValues(alpha: 0.92),
+        foregroundColor: const Color(0xFF166153),
         side: BorderSide(color: Colors.white.withValues(alpha: 0.72)),
-        minimumSize: const Size.fromHeight(AppSizes.primaryButtonHeight),
+        minimumSize: const Size(0, AppSizes.primaryButtonHeight),
         textStyle: theme.textTheme.labelLarge?.copyWith(
           fontWeight: FontWeight.w900,
         ),
@@ -419,6 +458,7 @@ class _CompetitionEmptyState extends StatelessWidget {
             onPressed: onCreateLeague,
             icon: const Icon(Icons.add_outlined),
             label: Text(l10n.matchCompetitionCreateLeagueButton),
+            style: _competitionFilledActionStyle(context),
           ),
         ],
       ),
@@ -1343,11 +1383,7 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
                       onPressed: () => Navigator.of(context).maybePop(false),
                       icon: const Icon(Icons.arrow_back),
                       label: Text(l10n.matchCompetitionBackButton),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(
-                          AppSizes.primaryButtonHeight,
-                        ),
-                      ),
+                      style: _competitionOutlinedActionStyle(context),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -1356,11 +1392,7 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
                       onPressed: _saveCompetition,
                       icon: const Icon(Icons.save_outlined),
                       label: Text(l10n.matchCompetitionSaveCompetition),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(
-                          AppSizes.primaryButtonHeight,
-                        ),
-                      ),
+                      style: _competitionFilledActionStyle(context),
                     ),
                   ),
                 ],
@@ -1625,11 +1657,7 @@ class _EditorTeamsPanel extends StatelessWidget {
                   onPressed: onAddTeam,
                   icon: const Icon(Icons.add),
                   label: Text(l10n.matchCompetitionAddTeamButton),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(
-                      AppSizes.primaryButtonHeight,
-                    ),
-                  ),
+                  style: _competitionFilledActionStyle(context),
                 ),
               ),
             ],
