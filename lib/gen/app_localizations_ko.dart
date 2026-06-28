@@ -10238,7 +10238,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementSubtitle =>
-      '선수 등록과 관리부터 시작하고, 드래그 포메이션과 이동선 보드로 전술을 정리하세요.';
+      '선수 등록부터 시작하고, 큰 그라운드 보드에 선수를 끌어 올려 전술을 정리하세요.';
 
   @override
   String get teamManagementOpenButton => '팀 관리';
@@ -10251,7 +10251,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementSavedTeamsHelper =>
-      '저장된 팀을 선택하면 전략과 라인업을 바로 수정할 수 있어요.';
+      '저장된 팀을 선택하면 선수 명단, 전술 설명, 보드 배치를 바로 수정할 수 있어요.';
 
   @override
   String get teamManagementNoTeamsTitle => '첫 팀을 준비 중입니다.';
@@ -10282,11 +10282,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementStrategyHint => '예) 전방 압박 시작 위치, 측면 전환 약속, 수비 블록 기준';
 
   @override
-  String get teamManagementFormationTitle => '포메이션 보드';
+  String get teamManagementFormationTitle => '그라운드 전술 보드';
 
   @override
   String get teamManagementFormationHelper =>
-      '선수를 끌어 포지션에 놓고, 그리기 모드에서 이동선이나 압박 방향을 그리세요.';
+      '포메이션을 먼저 고르지 않아도 됩니다. 선수 칩을 그라운드 어디든 끌어 올리고, 마카 모드에서 이동선이나 압박 방향을 그리세요.';
 
   @override
   String get teamManagementFormationLabel => '포메이션';
@@ -10378,17 +10378,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementNoPlayersTitle => '등록된 선수가 없어요.';
 
   @override
-  String get teamManagementNoPlayersBody => '선수를 추가하면 포메이션 보드에서 바로 배정할 수 있습니다.';
+  String get teamManagementNoPlayersBody =>
+      '선수를 추가하면 그라운드 보드에 바로 끌어 올릴 수 있습니다.';
 
   @override
   String teamManagementPlayerMeta(Object role, int count) {
-    return '$role · $count개 포지션 배정';
+    return '$role · $count개 보드 배치';
   }
 
   @override
   String teamManagementPlayerDetailMeta(
       Object role, Object foot, Object condition, int count) {
-    return '$role · $foot · $condition · $count개 배정';
+    return '$role · $foot · $condition · $count개 배치';
   }
 
   @override
@@ -10396,13 +10397,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementPlayerTrayEmpty =>
-      '먼저 선수를 등록하면 여기에서 포지션으로 끌어 놓을 수 있어요.';
+      '먼저 선수를 등록하면 여기에서 그라운드로 바로 끌어 놓을 수 있어요.';
 
   @override
   String get teamManagementBoardMovePlayersMode => '선수 배치';
 
   @override
-  String get teamManagementBoardDrawMode => '이동선 그리기';
+  String get teamManagementBoardDrawMode => '보드 마카';
 
   @override
   String get teamManagementBoardClearLinesButton => '선 지우기';
@@ -10413,7 +10414,8 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get teamManagementFormationDropHint => '선수 칩을 포지션 위에 놓으세요.';
+  String get teamManagementFormationDropHint =>
+      '선수 칩을 그라운드 어디든 놓으세요. 아래 포메이션은 기준선일 뿐 먼저 선택할 필요가 없습니다.';
 
   @override
   String get teamManagementRemovePlayerButton => '삭제';

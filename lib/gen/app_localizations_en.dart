@@ -10524,7 +10524,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementSubtitle =>
-      'Start with player registration and management, then organize tactics with drag-and-drop formations and movement lines.';
+      'Start with player registration, then drag players onto a larger pitch board to organize tactics.';
 
   @override
   String get teamManagementOpenButton => 'Team management';
@@ -10537,7 +10537,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementSavedTeamsHelper =>
-      'Select a saved team to update its strategy and lineup.';
+      'Select a saved team to update its roster, tactical notes, and board placement.';
 
   @override
   String get teamManagementNoTeamsTitle => 'Preparing your first team.';
@@ -10570,11 +10570,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'e.g. Pressing trigger, wide switch rule, defensive block standard';
 
   @override
-  String get teamManagementFormationTitle => 'Formation board';
+  String get teamManagementFormationTitle => 'Pitch tactics board';
 
   @override
   String get teamManagementFormationHelper =>
-      'Drag players onto positions, then use draw mode for movement lines or pressing directions.';
+      'You do not need to choose a formation first. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.';
 
   @override
   String get teamManagementFormationLabel => 'Formation';
@@ -10669,17 +10669,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementNoPlayersBody =>
-      'Add players to assign them on the formation board.';
+      'Add players to drag them directly onto the pitch board.';
 
   @override
   String teamManagementPlayerMeta(Object role, int count) {
-    return '$role · $count position(s)';
+    return '$role · $count board placement(s)';
   }
 
   @override
   String teamManagementPlayerDetailMeta(
       Object role, Object foot, Object condition, int count) {
-    return '$role · $foot · $condition · $count assigned';
+    return '$role · $foot · $condition · $count placed';
   }
 
   @override
@@ -10687,13 +10687,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementPlayerTrayEmpty =>
-      'Register players first, then drag them from here onto positions.';
+      'Register players first, then drag them from here directly onto the pitch.';
 
   @override
   String get teamManagementBoardMovePlayersMode => 'Place players';
 
   @override
-  String get teamManagementBoardDrawMode => 'Draw movement';
+  String get teamManagementBoardDrawMode => 'Board marker';
 
   @override
   String get teamManagementBoardClearLinesButton => 'Clear lines';
@@ -10705,7 +10705,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementFormationDropHint =>
-      'Drop a player chip onto a position.';
+      'Drop player chips anywhere on the pitch. The formation below is only a guide and does not need to be selected first.';
 
   @override
   String get teamManagementRemovePlayerButton => 'Remove';

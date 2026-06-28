@@ -5813,11 +5813,11 @@
     }
   },
   "teamManagementTitle": "Team Management",
-  "teamManagementSubtitle": "Start with player registration and management, then organize tactics with drag-and-drop formations and movement lines.",
+  "teamManagementSubtitle": "Start with player registration, then drag players onto a larger pitch board to organize tactics.",
   "teamManagementOpenButton": "Team management",
   "teamManagementDefaultTeamName": "Our team",
   "teamManagementSavedTeamsTitle": "Managed teams",
-  "teamManagementSavedTeamsHelper": "Select a saved team to update its strategy and lineup.",
+  "teamManagementSavedTeamsHelper": "Select a saved team to update its roster, tactical notes, and board placement.",
   "teamManagementNoTeamsTitle": "Preparing your first team.",
   "teamManagementNoTeamsBody": "Enter a team name and roster, then save it to create a team card here.",
   "teamManagementNewTeamButton": "New team",
@@ -5827,8 +5827,8 @@
   "teamManagementTeamNameHint": "e.g. Our U15",
   "teamManagementStrategyLabel": "Tactical notes",
   "teamManagementStrategyHint": "e.g. Pressing trigger, wide switch rule, defensive block standard",
-  "teamManagementFormationTitle": "Formation board",
-  "teamManagementFormationHelper": "Drag players onto positions, then use draw mode for movement lines or pressing directions.",
+  "teamManagementFormationTitle": "Pitch tactics board",
+  "teamManagementFormationHelper": "You do not need to choose a formation first. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.",
   "teamManagementFormationLabel": "Formation",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -5867,8 +5867,8 @@
   "teamManagementCancelPlayerEditButton": "Cancel edit",
   "teamManagementEditPlayerButton": "Edit",
   "teamManagementNoPlayersTitle": "No players registered.",
-  "teamManagementNoPlayersBody": "Add players to assign them on the formation board.",
-  "teamManagementPlayerMeta": "{role} · {count} position(s)",
+  "teamManagementNoPlayersBody": "Add players to drag them directly onto the pitch board.",
+  "teamManagementPlayerMeta": "{role} · {count} board placement(s)",
   "@teamManagementPlayerMeta": {
     "placeholders": {
       "role": {},
@@ -5877,7 +5877,7 @@
       }
     }
   },
-  "teamManagementPlayerDetailMeta": "{role} · {foot} · {condition} · {count} assigned",
+  "teamManagementPlayerDetailMeta": "{role} · {foot} · {condition} · {count} placed",
   "@teamManagementPlayerDetailMeta": {
     "placeholders": {
       "role": {},
@@ -5889,9 +5889,9 @@
     }
   },
   "teamManagementPlayerTrayTitle": "Players to drag",
-  "teamManagementPlayerTrayEmpty": "Register players first, then drag them from here onto positions.",
+  "teamManagementPlayerTrayEmpty": "Register players first, then drag them from here directly onto the pitch.",
   "teamManagementBoardMovePlayersMode": "Place players",
-  "teamManagementBoardDrawMode": "Draw movement",
+  "teamManagementBoardDrawMode": "Board marker",
   "teamManagementBoardClearLinesButton": "Clear lines",
   "teamManagementTacticLinesCount": "{count} movement line(s)",
   "@teamManagementTacticLinesCount": {
@@ -5901,7 +5901,7 @@
       }
     }
   },
-  "teamManagementFormationDropHint": "Drop a player chip onto a position.",
+  "teamManagementFormationDropHint": "Drop player chips anywhere on the pitch. The formation below is only a guide and does not need to be selected first.",
   "teamManagementRemovePlayerButton": "Remove",
   "teamManagementDeleteTeamButton": "Delete team",
   "teamManagementSaveTeamButton": "Save team",
