@@ -2992,6 +2992,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         stageIndex: _suggestedStageForNewRoute(_PathDrawMode.player),
       );
       _selectQuickActionRoute(moveRoute, player);
+      _pendingTargetAction = _SketchTargetAction.move;
     });
     _scheduleAutoSave();
     return true;

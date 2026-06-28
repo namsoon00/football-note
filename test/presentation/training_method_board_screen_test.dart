@@ -1243,6 +1243,92 @@ void main() {
     expect(playerRoute.stageIndex, 2);
   });
 
+  testWidgets('pass then move to a player keeps the passer move connected', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '패스 후 이동 연결',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.54,
+                    y: 0.44,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.29,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '패스 후 이동');
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.54, 0.44),
+    );
+
+    expect(find.text('이동 대상이나 공간을 누르세요.'), findsOneWidget);
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.36));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final routes = saved.pages.single.routes;
+    final ballRoute = routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.ball,
+    );
+    final playerRoute = routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.player,
+    );
+
+    expect(ballRoute.linkedItemId, 'ball-1');
+    expect(ballRoute.stageIndex, 1);
+    expect(ballRoute.points.last.x, closeTo(0.54, 0.001));
+    expect(ballRoute.points.last.y, closeTo(0.44, 0.001));
+    expect(playerRoute.linkedItemId, 'player-1');
+    expect(playerRoute.stageIndex, 2);
+    expect(playerRoute.points.first.x, closeTo(0.22, 0.001));
+    expect(playerRoute.points.first.y, closeTo(0.52, 0.001));
+    expect(playerRoute.points.last.x, closeTo(0.72, 0.02));
+    expect(playerRoute.points.last.y, closeTo(0.36, 0.02));
+  });
+
   testWidgets('targeted pass action creates a ball route to player number', (
     WidgetTester tester,
   ) async {
@@ -3046,6 +3132,21 @@ Future<void> _tapBoardRelative(
       globalPosition: localPosition,
     ),
   );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapBoardRelativeThroughWidgets(
+  WidgetTester tester,
+  Finder boardFinder,
+  Offset relativePosition,
+) async {
+  final boardTopLeft = tester.getTopLeft(boardFinder);
+  final size = tester.getSize(boardFinder);
+  final localPosition = Offset(
+    size.width * relativePosition.dx,
+    size.height * relativePosition.dy,
+  );
+  await tester.tapAt(boardTopLeft + localPosition);
   await tester.pumpAndSettle();
 }
 
