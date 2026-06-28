@@ -71,30 +71,30 @@ class AppLocalizationsKo extends AppLocalizations {
       '오늘 하나만 해도 괜찮아요. 기록하고 다시 시작하면 내일 한 걸음 더 갈 수 있어요.';
 
   @override
-  String get startupSportTitle => '시작할 종목 선택';
+  String get startupSportTitle => '먼저 사용할 종목을 골라요';
 
   @override
   String get startupSportSubtitle =>
-      '선택한 종목을 기준으로 기록, 목표, 통계, 뉴스 구성이 설정됩니다. 설정에서 나중에 변경할 수 있습니다.';
+      '선택한 종목에 맞춰 기록, 목표, 통계, 뉴스가 시작됩니다. 나중에 설정에서 바꿀 수 있어요.';
 
   @override
-  String get startupSportAction => '선택한 종목으로 시작';
+  String get startupSportAction => '이 종목으로 시작하기';
 
   @override
   String get startupSportFootballDescription =>
-      '훈련, 경기, 전술 스케치, 뉴스를 축구 기준으로 구성합니다.';
+      '훈련, 시합, 스케치, 뉴스까지 축구 중심으로 시작해요.';
 
   @override
   String get startupSportBaseballDescription =>
-      '투구, 타격, 수비, 컨디션 기록을 야구 기준으로 구성합니다.';
+      '투구, 타격, 수비, 컨디션 기록을 야구 기준으로 맞춰요.';
 
   @override
   String get startupSportBasketballDescription =>
-      '슛, 드리블, 경기 흐름, 컨디션 기록을 농구 기준으로 구성합니다.';
+      '슛, 드리블, 경기 흐름과 컨디션을 농구 기준으로 기록해요.';
 
   @override
   String get startupSportTennisDescription =>
-      '스트로크, 서브, 랠리, 보강 훈련을 테니스 기준으로 구성합니다.';
+      '스트로크, 서브, 랠리와 보강 운동을 테니스 기준으로 기록해요.';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {
