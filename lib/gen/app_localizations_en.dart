@@ -72,30 +72,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'One small action is enough. Log it, restart, and take one more step tomorrow.';
 
   @override
-  String get startupSportTitle => 'Select your primary sport';
+  String get startupSportTitle => 'Choose your sport first';
 
   @override
   String get startupSportSubtitle =>
-      'Records, goals, stats, and news will be configured around the selected sport. You can change it later in Settings.';
+      'Records, goals, stats, and news start around the sport you choose. You can change it later in Settings.';
 
   @override
-  String get startupSportAction => 'Start with selected sport';
+  String get startupSportAction => 'Start with this sport';
 
   @override
   String get startupSportFootballDescription =>
-      'Configure training, matches, tactical sketches, and news for football.';
+      'Start with football training, matches, sketches, and news.';
 
   @override
   String get startupSportBaseballDescription =>
-      'Configure pitching, batting, fielding, and conditioning records for baseball.';
+      'Track throwing, batting, fielding, and conditioning for baseball.';
 
   @override
   String get startupSportBasketballDescription =>
-      'Configure shooting, dribbling, game flow, and conditioning records for basketball.';
+      'Log shooting, dribbling, game flow, and conditioning for basketball.';
 
   @override
   String get startupSportTennisDescription =>
-      'Configure strokes, serves, rallies, and support training for tennis.';
+      'Track strokes, serves, rallies, and support training for tennis.';
 
   @override
   String tabGuideCoachMarkStep(int current, int total) {

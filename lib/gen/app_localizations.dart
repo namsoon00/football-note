@@ -217,43 +217,43 @@ abstract class AppLocalizations {
   /// No description provided for @startupSportTitle.
   ///
   /// In en, this message translates to:
-  /// **'Select your primary sport'**
+  /// **'Choose your sport first'**
   String get startupSportTitle;
 
   /// No description provided for @startupSportSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Records, goals, stats, and news will be configured around the selected sport. You can change it later in Settings.'**
+  /// **'Records, goals, stats, and news start around the sport you choose. You can change it later in Settings.'**
   String get startupSportSubtitle;
 
   /// No description provided for @startupSportAction.
   ///
   /// In en, this message translates to:
-  /// **'Start with selected sport'**
+  /// **'Start with this sport'**
   String get startupSportAction;
 
   /// No description provided for @startupSportFootballDescription.
   ///
   /// In en, this message translates to:
-  /// **'Configure training, matches, tactical sketches, and news for football.'**
+  /// **'Start with football training, matches, sketches, and news.'**
   String get startupSportFootballDescription;
 
   /// No description provided for @startupSportBaseballDescription.
   ///
   /// In en, this message translates to:
-  /// **'Configure pitching, batting, fielding, and conditioning records for baseball.'**
+  /// **'Track throwing, batting, fielding, and conditioning for baseball.'**
   String get startupSportBaseballDescription;
 
   /// No description provided for @startupSportBasketballDescription.
   ///
   /// In en, this message translates to:
-  /// **'Configure shooting, dribbling, game flow, and conditioning records for basketball.'**
+  /// **'Log shooting, dribbling, game flow, and conditioning for basketball.'**
   String get startupSportBasketballDescription;
 
   /// No description provided for @startupSportTennisDescription.
   ///
   /// In en, this message translates to:
-  /// **'Configure strokes, serves, rallies, and support training for tennis.'**
+  /// **'Track strokes, serves, rallies, and support training for tennis.'**
   String get startupSportTennisDescription;
 
   /// No description provided for @tabGuideCoachMarkStep.
