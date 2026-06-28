@@ -3025,6 +3025,7 @@
   "weatherPrecipitationVeryHeavy": "とても強く降ります",
   "homeWeatherHourlyPrecipitation": "時間別の雨タイムライン",
   "homeWeatherHourlyTemperature": "時間ごとの気温",
+  "homeWeatherHourlyOverview": "時間別の天気",
   "homeWeatherWindSpeed": "風",
   "homeWeatherUvIndex": "紫外線指数",
   "homeWeatherOutfitTitle": "おすすめのトレーニング服装",

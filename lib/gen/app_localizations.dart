@@ -9244,6 +9244,12 @@ abstract class AppLocalizations {
   /// **'Hourly temperature'**
   String get homeWeatherHourlyTemperature;
 
+  /// No description provided for @homeWeatherHourlyOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Hourly weather'**
+  String get homeWeatherHourlyOverview;
+
   /// No description provided for @homeWeatherWindSpeed.
   ///
   /// In en, this message translates to:

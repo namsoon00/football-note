@@ -3025,6 +3025,7 @@
   "weatherPrecipitationVeryHeavy": "Very heavy rain",
   "homeWeatherHourlyPrecipitation": "Hourly rain timeline",
   "homeWeatherHourlyTemperature": "Hourly temperature",
+  "homeWeatherHourlyOverview": "Hourly weather",
   "homeWeatherWindSpeed": "Wind",
   "homeWeatherUvIndex": "UV index",
   "homeWeatherOutfitTitle": "Recommended training outfit",
