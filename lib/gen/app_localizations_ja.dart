@@ -6062,7 +6062,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDialogTitle => '今日の運勢';
 
   @override
-  String get fortuneDialogSubtitle => '生年月日と名前から選んだ、今日の軽い運勢です。';
+  String get fortuneDialogSubtitle => '生年月日と名前から選んだ、今日の暮らしの運勢です。';
 
   @override
   String get fortuneDialogOverviewTitle => '運勢を見る';

@@ -10898,7 +10898,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'A light daily fortune picked from birth date and name.'**
+  /// **'A practical daily-life fortune picked from birth date and name.'**
   String get fortuneDialogSubtitle;
 
   /// No description provided for @fortuneDialogOverviewTitle.
