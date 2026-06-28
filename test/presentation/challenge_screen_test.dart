@@ -128,6 +128,10 @@ void main() {
     await tester.tap(startButton);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    final startSnackBar = tester.widget<SnackBar>(find.byType(SnackBar));
+    expect(startSnackBar.behavior, SnackBarBehavior.floating);
+    final startSnackBarMargin = startSnackBar.margin! as EdgeInsetsDirectional;
+    expect(startSnackBarMargin.bottom, greaterThan(100));
     await tester.pump(const Duration(seconds: 1));
 
     expect(

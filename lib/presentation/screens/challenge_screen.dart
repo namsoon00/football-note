@@ -855,10 +855,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       _mode = _ChallengeScreenMode.detail;
       _selectedRunId = run.id;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.challengeStartSnack(_templateTitle(l10n, template))),
-      ),
+    _showChallengeTopSnackBar(
+      l10n.challengeStartSnack(_templateTitle(l10n, template)),
     );
   }
 
@@ -896,9 +894,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       _mode = _ChallengeScreenMode.detail;
       _selectedRunId = updatedRun.id;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.challengeUpdateSnack)),
-    );
+    _showChallengeTopSnackBar(l10n.challengeUpdateSnack);
   }
 
   Future<void> _confirmAbandon(ChallengeProgress progress) async {
@@ -1179,6 +1175,30 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     unawaited(SystemSound.play(SystemSoundType.alert));
   }
 
+  void _showChallengeTopSnackBar(String message) {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return;
+    final media = MediaQuery.maybeOf(context);
+    final bottomMargin = media == null
+        ? 16.0
+        : (media.size.height - media.padding.top - 104)
+            .clamp(16.0, media.size.height * 0.82)
+            .toDouble();
+    messenger
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsetsDirectional.only(
+            start: 16,
+            end: 16,
+            bottom: bottomMargin,
+          ),
+        ),
+      );
+  }
+
   bool get _isParentReadOnlyMode {
     return FamilyAccessService(
       widget.optionRepository,
@@ -1186,16 +1206,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   void _showParentReadOnlyMessage() {
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    messenger
-      ?..clearSnackBars()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.parentReadOnlyChallengeMessage,
-          ),
-        ),
-      );
+    _showChallengeTopSnackBar(
+      AppLocalizations.of(context)!.parentReadOnlyChallengeMessage,
+    );
   }
 }
 
@@ -4137,13 +4150,8 @@ class _ChallengeListCard extends StatelessWidget {
 
 class _ChallengeCurrentRoundBadge extends StatelessWidget {
   final ChallengeRoundProgress? round;
-  final double size;
 
-  const _ChallengeCurrentRoundBadge({
-    super.key,
-    required this.round,
-    this.size = 62,
-  });
+  const _ChallengeCurrentRoundBadge({required this.round});
 
   @override
   Widget build(BuildContext context) {
@@ -4151,6 +4159,7 @@ class _ChallengeCurrentRoundBadge extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final round = this.round;
+    const size = 62.0;
     final activeGreen = theme.brightness == Brightness.dark
         ? const Color(0xFF63C986)
         : const Color(0xFF2E7D32);
@@ -4602,22 +4611,11 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
               );
             }
             if (current) {
-              return Center(
-                child: SizedBox.square(
-                  key: ValueKey(
-                    'challenge-current-round-status-${round.round.number}',
-                  ),
-                  dimension: mascotSize,
-                  child: Center(
-                    child: _ChallengeCurrentRoundBadge(
-                      key: ValueKey(
-                        'challenge-current-round-cute-marker-${round.round.number}',
-                      ),
-                      round: round,
-                      size: mascotSize,
-                    ),
-                  ),
-                ),
+              return _ChallengeRoundCurrentMarker(
+                round: round,
+                weekday: weekday,
+                foreground: foreground,
+                activeGreen: activeGreen,
               );
             }
             return Column(
@@ -4671,6 +4669,125 @@ class _ChallengeRoundCalendarCell extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _ChallengeRoundCurrentMarker extends StatelessWidget {
+  final ChallengeRoundProgress round;
+  final String weekday;
+  final Color foreground;
+  final Color activeGreen;
+
+  const _ChallengeRoundCurrentMarker({
+    required this.round,
+    required this.weekday,
+    required this.foreground,
+    required this.activeGreen,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final progress = round.missionCompletionRate.clamp(0.08, 1).toDouble();
+    return Padding(
+      padding: const EdgeInsets.all(5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  weekday,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: foreground.withValues(alpha: 0.78),
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+              ),
+              Text(
+                '${round.date.day}',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: foreground.withValues(alpha: 0.86),
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
+            ],
+          ),
+          Expanded(
+            child: Center(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final markerSize = constraints.biggest.shortestSide
+                      .clamp(28.0, 54.0)
+                      .toDouble();
+                  return SizedBox.square(
+                    key: ValueKey(
+                      'challenge-current-round-status-${round.round.number}',
+                    ),
+                    dimension: markerSize,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox.square(
+                          dimension: markerSize,
+                          child: CircularProgressIndicator(
+                            value: progress,
+                            strokeWidth: markerSize * 0.09,
+                            backgroundColor: activeGreen.withValues(
+                              alpha: 0.14,
+                            ),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              activeGreen,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          key: ValueKey(
+                            'challenge-current-round-cute-marker-${round.round.number}',
+                          ),
+                          width: markerSize * 0.62,
+                          height: markerSize * 0.62,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface.withValues(
+                              alpha: 0.86,
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.radio_button_checked_rounded,
+                            color: activeGreen,
+                            size: markerSize * 0.38,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              l10n.challengePendingBadge,
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: foreground,
+                fontWeight: FontWeight.w900,
+                height: 1,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
