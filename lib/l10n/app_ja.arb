@@ -2850,6 +2850,17 @@
   "reorderPhotos": "写真を並べ替える",
   "photoIndex": "写真{value}",
   "photoLimitReached": "{value} までの写真を追加できます。",
+  "openPhotoViewer": "写真を大きく表示",
+  "closePhotoViewer": "写真を閉じる",
+  "previousPhoto": "前の写真",
+  "nextPhoto": "次の写真",
+  "photoViewerCounter": "{current} / {total}",
+  "@photoViewerCounter": {
+    "placeholders": {
+      "current": {},
+      "total": {}
+    }
+  },
   "gameGuideTitle": "ゲームガイド",
   "gameGuideQuickTitle": "現在のゲームの流れ",
   "gameGuideQuickLine1": "各実行時間は 20 秒で、ライフは 3 つから始まります。失敗した場合は、ライフが残っている間にすぐに再試行できます。",

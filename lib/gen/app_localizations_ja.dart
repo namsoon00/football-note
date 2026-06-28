@@ -4674,6 +4674,23 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get openPhotoViewer => '写真を大きく表示';
+
+  @override
+  String get closePhotoViewer => '写真を閉じる';
+
+  @override
+  String get previousPhoto => '前の写真';
+
+  @override
+  String get nextPhoto => '次の写真';
+
+  @override
+  String photoViewerCounter(Object current, Object total) {
+    return '$current / $total';
+  }
+
+  @override
   String get gameGuideTitle => 'ゲームガイド';
 
   @override

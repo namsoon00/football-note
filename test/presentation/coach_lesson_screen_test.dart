@@ -17,6 +17,9 @@ import 'package:football_note/presentation/screens/entry_form_screen.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
+const _transparentPngDataUrl =
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=';
+
 void main() {
   testWidgets('diary top actions and theme picker use Japanese localization', (
     WidgetTester tester,
@@ -60,6 +63,70 @@ void main() {
     expect(find.text('明け方の海'), findsOneWidget);
     expect(find.text('Notebook'), findsNothing);
     expect(find.text('Dusk'), findsNothing);
+  });
+
+  testWidgets('diary photo opens a full screen viewer', (
+    WidgetTester tester,
+  ) async {
+    const dayToken = '2026-03-15';
+    final optionRepository = _FakeOptionRepository()
+      ..setRawValue(
+        'custom_diary_entries_v3',
+        jsonEncode({
+          dayToken: {
+            'title': '사진 다이어리',
+            'story': '오늘 장면',
+            'sections': <Object>[],
+            'moodId': 'calm',
+            'recordStickers': <Object>[],
+            'stickers': <Object>[],
+            'photoDataUrls': [
+              _transparentPngDataUrl,
+              _transparentPngDataUrl,
+            ],
+            'updatedAt': '2026-03-15T21:00:00.000',
+          },
+        }),
+      );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: optionRepository,
+            trainingService: TrainingService(
+              _FakeTrainingRepository(const <TrainingEntry>[]),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('diary-photo-$dayToken-0')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('diary-photo-viewer')), findsOneWidget);
+    expect(find.text('1 / 2'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('다음 사진'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 / 2'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('사진 닫기'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('diary-photo-viewer')), findsNothing);
   });
 
   testWidgets('coach lesson screen shows daily diary pages', (
