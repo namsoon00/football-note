@@ -2170,6 +2170,132 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _appendRoutePoint(_boardPointFromLocal(localPosition, width, height));
   }
 
+  Offset _routePointToLocal(Offset point, double width, double height) {
+    return Offset(point.dx * width, point.dy * height);
+  }
+
+  _BoardRoute? _routeWithEndNearLocalPoint(
+    Offset localPosition,
+    double width,
+    double height,
+  ) {
+    const hitRadius = 28.0;
+    final selectedRoute = _selectedRoute;
+    if (selectedRoute != null && selectedRoute.points.length >= 2) {
+      final selectedEnd = _routePointToLocal(
+        selectedRoute.points.last,
+        width,
+        height,
+      );
+      if ((selectedEnd - localPosition).distance <= hitRadius) {
+        return selectedRoute;
+      }
+    }
+
+    _BoardRoute? nearest;
+    var nearestDistance = hitRadius;
+    for (final route in _currentPage.routes.reversed) {
+      if (route.points.length < 2 || route.id == selectedRoute?.id) continue;
+      final end = _routePointToLocal(route.points.last, width, height);
+      final distance = (end - localPosition).distance;
+      if (distance <= nearestDistance) {
+        nearest = route;
+        nearestDistance = distance;
+      }
+    }
+    return nearest;
+  }
+
+  void _prepareRouteExtensionDraft(_BoardRoute route) {
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      _selectedRouteId = route.id;
+      _routeReplaceMode = true;
+      _pathMode = false;
+      _pathDrawMode = route.kind;
+      _penMode = false;
+      _pendingTargetAction = null;
+      _showSelectedColorPicker = false;
+      _activeRoutePoints = List<Offset>.from(route.points);
+      _activeRouteSegmentDurationsMs = _normalizedRouteSegmentDurations(
+        pointCount: route.points.length,
+        rawDurationsMs: route.segmentDurationsMs,
+      ).toList(growable: true);
+      _activeRouteLastPointAt = DateTime.now();
+      if (route.linkedItemId != null) {
+        _selectedItemId = route.linkedItemId;
+      }
+    });
+  }
+
+  void _startSelectedRouteEndDrag(
+    Offset localPosition,
+    double width,
+    double height,
+  ) {
+    if (widget.readOnly || _playController.isAnimating) return;
+    final route = _routeWithEndNearLocalPoint(localPosition, width, height);
+    if (route == null) return;
+    unawaited(HapticFeedback.selectionClick());
+    _prepareRouteExtensionDraft(route);
+  }
+
+  void _updateSelectedRouteEndDrag(
+    Offset localPosition,
+    double width,
+    double height,
+  ) {
+    final route = _selectedRoute;
+    final points = _activeRoutePoints;
+    if (route == null ||
+        points == null ||
+        !_routeReplaceMode ||
+        _pathMode ||
+        _penMode) {
+      return;
+    }
+    final point = _boardPointFromLocal(localPosition, width, height);
+    final basePointCount = route.points.length;
+    if (points.length <= basePointCount &&
+        (point - points.last).distance < 0.004) {
+      return;
+    }
+    setState(() {
+      if (points.length <= basePointCount) {
+        points.add(point);
+      } else {
+        points[points.length - 1] = point;
+      }
+      final durations = _activeRouteSegmentDurationsMs;
+      while (durations != null && durations.length < points.length - 1) {
+        durations.add(420);
+      }
+      _activeRouteLastPointAt = DateTime.now();
+    });
+  }
+
+  void _endSelectedRouteEndDrag() {
+    final route = _selectedRoute;
+    final points = _activeRoutePoints;
+    if (route == null ||
+        points == null ||
+        !_routeReplaceMode ||
+        _pathMode ||
+        _penMode) {
+      return;
+    }
+    if (points.length <= route.points.length) {
+      setState(() {
+        _activeRoutePoints = null;
+        _activeRouteSegmentDurationsMs = null;
+        _activeRouteLastPointAt = null;
+        _routeReplaceMode = false;
+      });
+      return;
+    }
+    _endPlayerPath();
+  }
+
   void _appendRoutePoint(Offset point, {int? durationMs}) {
     final points = _activeRoutePoints;
     if (points == null) return;
@@ -2313,22 +2439,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _prepareSelectedRouteExtension() {
     final route = _selectedRoute;
     if (route == null || route.points.length < 2) return;
+    _prepareRouteExtensionDraft(route);
     setState(() {
-      _routeReplaceMode = true;
       _pathMode = true;
-      _pathDrawMode = route.kind;
-      _penMode = false;
-      _pendingTargetAction = null;
-      _showSelectedColorPicker = false;
-      _activeRoutePoints = List<Offset>.from(route.points);
-      _activeRouteSegmentDurationsMs = _normalizedRouteSegmentDurations(
-        pointCount: route.points.length,
-        rawDurationsMs: route.segmentDurationsMs,
-      ).toList(growable: true);
-      _activeRouteLastPointAt = DateTime.now();
-      if (route.linkedItemId != null) {
-        _selectedItemId = route.linkedItemId;
-      }
     });
   }
 
@@ -4034,7 +4147,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     : _pathMode
                         ? (details) => _startPlayerPath(
                             details.localPosition, width, height)
-                        : null,
+                        : (details) => _startSelectedRouteEndDrag(
+                              details.localPosition,
+                              width,
+                              height,
+                            ),
             onPanUpdate: widget.readOnly
                 ? null
                 : _penMode
@@ -4043,14 +4160,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     : _pathMode
                         ? (details) => _appendPlayerPath(
                             details.localPosition, width, height)
-                        : null,
+                        : (details) => _updateSelectedRouteEndDrag(
+                              details.localPosition,
+                              width,
+                              height,
+                            ),
             onPanEnd: widget.readOnly
                 ? null
                 : _penMode
                     ? (_) => _endStroke()
                     : _pathMode
                         ? (_) => _endPlayerPath()
-                        : null,
+                        : (_) => _endSelectedRouteEndDrag(),
             onTapUp: widget.readOnly
                 ? null
                 : (_pathMode || _pendingTargetAction != null)
