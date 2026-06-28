@@ -2850,6 +2850,17 @@
   "reorderPhotos": "사진 순서 변경",
   "photoIndex": "{value}번째 사진",
   "photoLimitReached": "사진은 최대 {value}장까지 추가할 수 있어요.",
+  "openPhotoViewer": "사진 크게 보기",
+  "closePhotoViewer": "사진 닫기",
+  "previousPhoto": "이전 사진",
+  "nextPhoto": "다음 사진",
+  "photoViewerCounter": "{current} / {total}",
+  "@photoViewerCounter": {
+    "placeholders": {
+      "current": {},
+      "total": {}
+    }
+  },
   "gameGuideTitle": "게임 가이드",
   "gameGuideQuickTitle": "현재 게임 흐름",
   "gameGuideQuickLine1": "한 판은 20초이며 시작 생명은 3개입니다. 실패해도 생명이 남으면 바로 재도전합니다.",

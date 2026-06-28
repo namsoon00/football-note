@@ -2850,6 +2850,17 @@
   "reorderPhotos": "Reorder photos",
   "photoIndex": "Photo {value}",
   "photoLimitReached": "You can add up to {value} photos.",
+  "openPhotoViewer": "View photo",
+  "closePhotoViewer": "Close photo",
+  "previousPhoto": "Previous photo",
+  "nextPhoto": "Next photo",
+  "photoViewerCounter": "{current} / {total}",
+  "@photoViewerCounter": {
+    "placeholders": {
+      "current": {},
+      "total": {}
+    }
+  },
   "gameGuideTitle": "Game Guide",
   "gameGuideQuickTitle": "Current Game Flow",
   "gameGuideQuickLine1": "Each run is 20 seconds, and you start with 3 lives. If you fail, you instantly retry while lives remain.",

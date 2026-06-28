@@ -8434,6 +8434,36 @@ abstract class AppLocalizations {
   /// **'You can add up to {value} photos.'**
   String photoLimitReached(Object value);
 
+  /// No description provided for @openPhotoViewer.
+  ///
+  /// In en, this message translates to:
+  /// **'View photo'**
+  String get openPhotoViewer;
+
+  /// No description provided for @closePhotoViewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Close photo'**
+  String get closePhotoViewer;
+
+  /// No description provided for @previousPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous photo'**
+  String get previousPhoto;
+
+  /// No description provided for @nextPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Next photo'**
+  String get nextPhoto;
+
+  /// No description provided for @photoViewerCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total}'**
+  String photoViewerCounter(Object current, Object total);
+
   /// No description provided for @gameGuideTitle.
   ///
   /// In en, this message translates to:
