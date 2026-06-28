@@ -507,8 +507,10 @@ class _StatsScreenState extends State<StatsScreen> {
       );
     }
 
-    final competitionRecords =
-        MatchCompetitionService(widget.optionRepository).allCompetitions();
+    final competitionRecords = MatchCompetitionService(
+      widget.optionRepository,
+      sportId: sportId,
+    ).allCompetitions();
     final hasCompetitionRecords = competitionRecords.any(
       (record) =>
           record.kind == MatchCompetitionRecord.kindLeague ||

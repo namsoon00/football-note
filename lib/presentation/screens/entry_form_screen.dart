@@ -225,6 +225,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       'daily_goals',
       sportId: sportId,
     );
+    final durationsKey = _sportScopedEntryOptionKey(
+      'durations',
+      sportId: sportId,
+    );
+    final defaultDurationKey = _sportScopedEntryOptionKey(
+      'default_duration',
+      sportId: sportId,
+    );
+    final injuryPartsKey = _sportScopedEntryOptionKey(
+      'injury_parts',
+      sportId: sportId,
+    );
     final programDefaults = SportDefaults.programOptions(
       l10n: l10n,
       sportId: sportId,
@@ -248,11 +260,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       widget.optionRepository.saveOptions(dailyGoalsKey, normalizedDailyGoals);
     }
     _durationOptions = _loadIntOptions(
-      key: 'durations',
+      key: durationsKey,
       defaults: const [0, 30, 45, 60, 75, 90, 120],
     );
     _injuryPartOptions = _loadOptions(
-      key: 'injury_parts',
+      key: injuryPartsKey,
       defaults: [
         l10n.defaultInjury1,
         l10n.defaultInjury2,
@@ -267,7 +279,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _editingKey = entry.key is int ? entry.key as int : null;
       _date = entry.date;
       _durationMinutes = _initIntSelection(
-        'durations',
+        durationsKey,
         _durationOptions,
         entry.durationMinutes,
       );
@@ -373,11 +385,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _date = DateTime(d.year, d.month, d.day);
       }
       _durationMinutes = _defaultInt(
-        'default_duration',
+        defaultDurationKey,
         _durationOptions.first,
       );
       if (widget.initialConditioningOnly) {
-        _durationMinutes = _initIntSelection('durations', _durationOptions, 0);
+        _durationMinutes = _initIntSelection(
+          durationsKey,
+          _durationOptions,
+          0,
+        );
       }
       _intensity = 3;
       _mood = 3;
@@ -439,7 +455,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         }
         if (planContext.durationMinutes > 0) {
           _durationMinutes = _initIntSelection(
-            'durations',
+            durationsKey,
             _durationOptions,
             planContext.durationMinutes,
           );
@@ -586,6 +602,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   String _activeSportId() {
     return widget.entry?.sportId ??
         SportService(widget.optionRepository).currentSportId();
+  }
+
+  String _sportScopedEntryOptionKey(String baseKey, {String? sportId}) {
+    return SportCatalog.optionKey(
+      baseKey,
+      sportId: sportId ?? _activeSportId(),
+    );
   }
 
   void _syncDrillsPayloadFromBoardLinks() {
@@ -797,8 +820,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   void _syncTotalDurationFromPrograms() {
     final total = _trainingProgramMinutesTotal(_trainingProgramMinutes);
     _durationMinutes = total > 0
-        ? _initIntSelection('durations', _durationOptions, total)
-        : _initIntSelection('durations', _durationOptions, 0);
+        ? _initIntSelection(
+            _sportScopedEntryOptionKey('durations'),
+            _durationOptions,
+            total,
+          )
+        : _initIntSelection(
+            _sportScopedEntryOptionKey('durations'),
+            _durationOptions,
+            0,
+          );
   }
 
   bool get _hasUnsavedChanges {
@@ -877,14 +908,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Future<void> _applyLatestEntryDefaults() async {
-    final latest = await widget.trainingService.latestTrainingEntry();
+    final latest = await widget.trainingService.latestTrainingEntry(
+      sportId: _activeSportId(),
+    );
     if (!mounted || latest == null || widget.entry != null) return;
     setState(() {
       if (!widget.initialConditioningOnly &&
           (widget.initialPlanContext == null ||
               widget.initialPlanContext!.durationMinutes <= 0)) {
         _durationMinutes = _initIntSelection(
-          'durations',
+          _sportScopedEntryOptionKey('durations'),
           _durationOptions,
           latest.durationMinutes,
         );
@@ -2179,7 +2212,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                           _scheduleAutoSave();
                                         },
                                         onAdd: () => _addOption(
-                                          key: 'injury_parts',
+                                          key: _sportScopedEntryOptionKey(
+                                            'injury_parts',
+                                          ),
                                           title: l10n.injuryPart,
                                           options: _injuryPartOptions,
                                           onUpdated: (list) => setState(
@@ -3889,6 +3924,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         final reminderService = TrainingPlanReminderService(
           widget.optionRepository,
           widget.settingsService,
+          sportId: entry.sportId,
         );
         await reminderService.recordTrainingLog(entry.createdAt);
         if (levelAward.didLevelUp) {
@@ -3926,6 +3962,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           final reminderService = TrainingPlanReminderService(
             widget.optionRepository,
             widget.settingsService,
+            sportId: entry.sportId,
           );
           await reminderService.showLevelUpAlert(
             level: levelAward.after.level,
@@ -4638,7 +4675,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   void _addDurationOptionFromDurationSection(AppLocalizations l10n) {
     _addIntOption(
-      key: 'durations',
+      key: _sportScopedEntryOptionKey('durations'),
       title: l10n.trainingDuration,
       options: _durationOptions,
       onUpdated: (list) => setState(() => _durationOptions = list),
@@ -4651,7 +4688,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             _changeTrainingProgramDurationMinutes(program, value);
           } else {
             _durationMinutes = _initIntSelection(
-              'durations',
+              _sportScopedEntryOptionKey('durations'),
               _durationOptions,
               value,
             );

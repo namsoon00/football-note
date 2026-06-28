@@ -100,7 +100,10 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                   .where((entry) => entry.isMatch)
                   .toList(growable: false)
                 ..sort((a, b) => b.date.compareTo(a.date));
-              final competitions = _collectCompetitionRecords(matchEntries);
+              final competitions = _collectCompetitionRecords(
+                matchEntries,
+                sportId: sportId,
+              );
               final metrics = _MatchHubMetrics.from(
                 entries: matchEntries,
                 competitions: competitions,
@@ -111,7 +114,10 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                 matchEntries: matchEntries,
               );
               final managedTeams = supportsTeamManagement
-                  ? TeamManagementService(widget.optionRepository).allTeams()
+                  ? TeamManagementService(
+                      widget.optionRepository,
+                      sportId: sportId,
+                    ).allTeams()
                   : const <ManagedTeam>[];
 
               return SingleChildScrollView(
@@ -166,11 +172,14 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
   }
 
   List<MatchCompetitionRecord> _collectCompetitionRecords(
-    List<TrainingEntry> entries,
-  ) {
+    List<TrainingEntry> entries, {
+    required String sportId,
+  }) {
     final records = <String, MatchCompetitionRecord>{
-      for (final record
-          in MatchCompetitionService(widget.optionRepository).allCompetitions())
+      for (final record in MatchCompetitionService(
+        widget.optionRepository,
+        sportId: sportId,
+      ).allCompetitions())
         record.id: record,
     };
 
@@ -293,6 +302,7 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
       AppPageRoute(
         builder: (_) => TeamManagementScreen(
           optionRepository: widget.optionRepository,
+          sportId: SportService(widget.optionRepository).currentSportId(),
         ),
       ),
     );
@@ -315,6 +325,7 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
         builder: (_) => CompetitionManagementScreen(
           trainingService: widget.trainingService,
           optionRepository: widget.optionRepository,
+          sportId: SportService(widget.optionRepository).currentSportId(),
         ),
       ),
     );

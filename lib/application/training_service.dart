@@ -57,10 +57,11 @@ class TrainingService {
     return entries.first;
   }
 
-  Future<TrainingEntry?> latestTrainingEntry() async {
+  Future<TrainingEntry?> latestTrainingEntry({String? sportId}) async {
     final entries = await _repository.getRecent(
       limit: 1,
       includeMatches: false,
+      sportId: _normalizedSportIdOrNull(sportId),
     );
     if (entries.isEmpty) return null;
     return entries.first;

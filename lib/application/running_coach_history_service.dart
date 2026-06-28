@@ -3,17 +3,26 @@ import 'dart:convert';
 import '../domain/entities/running_coach_session.dart';
 import '../domain/entities/running_video_analysis_result.dart';
 import '../domain/repositories/option_repository.dart';
+import 'sport_scoped_storage.dart';
 
 class RunningCoachHistoryService {
   static const storageKey = 'running_coach_sessions_v1';
   static const maxStoredSessions = 8;
 
   final OptionRepository _options;
+  final String? _sportId;
 
-  const RunningCoachHistoryService(this._options);
+  const RunningCoachHistoryService(this._options, {String? sportId})
+      : _sportId = sportId;
+
+  String get _storageKey => sportScopedOptionKey(
+        _options,
+        storageKey,
+        sportId: _sportId,
+      );
 
   List<RunningCoachSessionAnalysis> allSessions() {
-    final raw = _options.getValue<String>(storageKey) ?? '[]';
+    final raw = _options.getValue<String>(_storageKey) ?? '[]';
     Object? decoded;
     try {
       decoded = jsonDecode(raw);
@@ -74,6 +83,6 @@ class RunningCoachHistoryService {
     final payload = jsonEncode(
       sessions.map((session) => session.toMap()).toList(growable: false),
     );
-    await _options.setValue(storageKey, payload);
+    await _options.setValue(_storageKey, payload);
   }
 }

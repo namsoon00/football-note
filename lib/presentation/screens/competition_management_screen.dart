@@ -53,11 +53,13 @@ ButtonStyle _competitionOutlinedActionStyle(BuildContext context) {
 class CompetitionManagementScreen extends StatefulWidget {
   final TrainingService trainingService;
   final OptionRepository optionRepository;
+  final String? sportId;
 
   const CompetitionManagementScreen({
     super.key,
     required this.trainingService,
     required this.optionRepository,
+    this.sportId,
   });
 
   @override
@@ -72,12 +74,16 @@ class _CompetitionManagementScreenState
   @override
   void initState() {
     super.initState();
-    _competitionService = MatchCompetitionService(widget.optionRepository);
+    _competitionService = MatchCompetitionService(
+      widget.optionRepository,
+      sportId: widget.sportId,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final sportId = SportService(widget.optionRepository).currentSportId();
+    final sportId = widget.sportId ??
+        SportService(widget.optionRepository).currentSportId();
     return Scaffold(
       body: ColoredBox(
         color: Theme.of(context).scaffoldBackgroundColor,

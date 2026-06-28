@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../application/league_fixture_reminder_service.dart';
 import '../../application/notification_app_link.dart';
 import '../../application/settings_service.dart';
+import '../../application/sport_scoped_storage.dart';
 import '../../application/training_plan_badge_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/weather_reminder_service.dart';
@@ -31,7 +32,7 @@ class NotificationCenterScreen extends StatefulWidget {
 }
 
 class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
-  static const _seenXpIdsStorageKey = 'notification_seen_xp_ids_v1';
+  static const _seenXpIdsBaseKey = 'notification_seen_xp_ids_v1';
 
   late final TrainingPlanReminderService _reminderService;
   late final LeagueFixtureReminderService _fixtureReminderService;
@@ -47,6 +48,16 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   String? _lastTrainingLogAt;
   final Set<_NotificationCategory> _expandedCategories =
       <_NotificationCategory>{};
+
+  String get _seenXpIdsStorageKey => sportScopedOptionKey(
+        widget.optionRepository,
+        _seenXpIdsBaseKey,
+      );
+
+  String get _lastTrainingLogAtStorageKey => sportScopedOptionKey(
+        widget.optionRepository,
+        TrainingPlanReminderService.lastTrainingLogAtKey,
+      );
 
   @override
   void initState() {
@@ -80,7 +91,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       await _fixtureReminderService.markAllFixtureMessagesRead();
       await _weatherReminderService.markAllWeatherMessagesRead();
       final lastTrainingLogAt = widget.optionRepository.getValue<String>(
-        TrainingPlanReminderService.lastTrainingLogAtKey,
+        _lastTrainingLogAtStorageKey,
       );
       await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
       if (!mounted) return;
@@ -123,7 +134,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   List<_PlanAlarmRow> _loadPlanRows() {
     final raw = widget.optionRepository.getValue<String>(
-      TrainingPlanReminderService.plansStorageKey,
+      TrainingPlanReminderService.plansStorageKeyFor(widget.optionRepository),
     );
     if (raw == null || raw.trim().isEmpty) return const [];
     try {

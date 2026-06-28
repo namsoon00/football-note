@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../domain/repositories/option_repository.dart';
 import 'league_fixture_reminder_service.dart';
+import 'sport_scoped_storage.dart';
 import 'training_plan_reminder_service.dart';
 import 'weather_reminder_service.dart';
 
@@ -22,11 +23,17 @@ class TrainingPlanBadgeService {
 
     try {
       final xpLogs = _options.getValue<List>(
-            TrainingPlanReminderService.xpMessageLogKey,
+            sportScopedOptionKey(
+              _options,
+              TrainingPlanReminderService.xpMessageLogKey,
+            ),
           ) ??
           const [];
       final xpReadRaw = _options.getValue<List>(
-            TrainingPlanReminderService.xpMessageReadIdsKey,
+            sportScopedOptionKey(
+              _options,
+              TrainingPlanReminderService.xpMessageReadIdsKey,
+            ),
           ) ??
           const [];
       final xpReadIds = xpReadRaw.map((e) => e.toString()).toSet();

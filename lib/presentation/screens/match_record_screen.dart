@@ -145,8 +145,11 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     _roundController.text = _leagueRound;
     _memoController.text = _memo;
 
+    final sportId = entry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
     final competition = MatchCompetitionService(
       widget.optionRepository,
+      sportId: sportId,
     ).findCompetition(kind: _matchKind, name: _competitionName);
     if (competition != null) {
       _applyCompetition(competition);
@@ -343,8 +346,11 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
 
   Widget _buildCompetitionSection(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final sportId = widget.editingEntry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
     final competitions = MatchCompetitionService(
       widget.optionRepository,
+      sportId: sportId,
     ).competitionsForKind(_matchKind);
     final selectedValue = competitions.any(
       (competition) => competition.id == _selectedCompetitionId,
@@ -381,6 +387,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
                         ? null
                         : MatchCompetitionService(
                             widget.optionRepository,
+                            sportId: sportId,
                           ).findCompetitionById(value);
                     if (record == null) return;
                     setState(() => _applyCompetition(record));
@@ -932,8 +939,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     setState(() => _saving = true);
     try {
       if (_isCompetitionMatch) {
-        final competitionService =
-            MatchCompetitionService(widget.optionRepository);
+        final competitionService = MatchCompetitionService(
+          widget.optionRepository,
+          sportId: sportId,
+        );
         final existingCompetition = _selectedCompetitionId.trim().isNotEmpty
             ? competitionService.findCompetitionById(_selectedCompetitionId)
             : competitionService.findCompetition(
@@ -956,9 +965,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           ),
         );
       }
-      await MatchCompetitionService(widget.optionRepository).upsertFromEntry(
-        saved,
-      );
+      await MatchCompetitionService(
+        widget.optionRepository,
+        sportId: saved.sportId,
+      ).upsertFromEntry(saved);
       if (previousEntry?.key is int) {
         await widget.trainingService.update(previousEntry!.key as int, saved);
       } else {
@@ -985,6 +995,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
         final reminderService = TrainingPlanReminderService(
           widget.optionRepository,
           widget.settingsService,
+          sportId: saved.sportId,
         );
         await reminderService.showXpGainAlert(
           gainedXp: award.gainedXp,
