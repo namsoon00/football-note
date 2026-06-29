@@ -319,6 +319,66 @@ void main() {
     expect(find.text('A조 1위 기준 진출'), findsWidgets);
   });
 
+  testWidgets('match list uses official round-of-32 countries', (
+    tester,
+  ) async {
+    final fixture = worldCupFixtures.singleWhere(
+      (fixture) => fixture.matchNumber == 79,
+    );
+    final officialMatch = FifaAMatchEntry(
+      matchId: 'official-round-of-32-list',
+      matchNumber: fixture.matchNumber,
+      gender: FifaRankingGender.men,
+      competition: 'FIFA World Cup',
+      stage: 'Round of 32',
+      venue: fixture.venue,
+      city: 'Mexico City',
+      kickoffAt: fixture.kickoffUtc,
+      homeTeamName: 'Mexico',
+      homeCountryCode: 'MEX',
+      awayTeamName: 'Germany',
+      awayCountryCode: 'GER',
+      homeScore: null,
+      awayScore: null,
+      status: FifaAMatchStatus.scheduled,
+    );
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: worldCupFixtures,
+        officialMatchesByFixtureNumber: {fixture.matchNumber: officialMatch},
+        rankingsByTeam: const {},
+        refreshedAt: DateTime.utc(2026, 7, 1),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          initialSelectedDay: fixture.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('멕시코'),
+      220,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('멕시코'), findsWidgets);
+    expect(find.text('독일'), findsWidgets);
+    expect(find.text('1A'), findsNothing);
+    expect(find.text('3C/E/F/H/I'), findsNothing);
+  });
+
   testWidgets('team roster sheet shows expanded squad and formation data', (
     tester,
   ) async {
