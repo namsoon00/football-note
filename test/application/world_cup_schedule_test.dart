@@ -10,6 +10,41 @@ void main() {
     expect(worldCupFixtures.last.venue, 'MetLife Stadium, New York/New Jersey');
   });
 
+  test('knockout fixtures follow FIFA official match numbering', () {
+    final fixturesByNumber = {
+      for (final fixture in worldCupFixtures) fixture.matchNumber: fixture,
+    };
+
+    expect(fixturesByNumber[74]!.kickoffUtcIso, '2026-06-29T20:30:00Z');
+    expect(fixturesByNumber[74]!.homeTeam, '1E');
+    expect(fixturesByNumber[75]!.kickoffUtcIso, '2026-06-30T01:00:00Z');
+    expect(fixturesByNumber[75]!.homeTeam, '1F');
+    expect(fixturesByNumber[76]!.kickoffUtcIso, '2026-06-29T17:00:00Z');
+    expect(fixturesByNumber[76]!.homeTeam, '1C');
+    expect(fixturesByNumber[77]!.kickoffUtcIso, '2026-06-30T21:00:00Z');
+    expect(fixturesByNumber[77]!.homeTeam, '1I');
+    expect(fixturesByNumber[78]!.kickoffUtcIso, '2026-06-30T17:00:00Z');
+    expect(fixturesByNumber[78]!.homeTeam, '2E');
+    expect(fixturesByNumber[89]!.kickoffUtcIso, '2026-07-04T21:00:00Z');
+    expect(fixturesByNumber[89]!.homeTeam, 'W74');
+    expect(fixturesByNumber[90]!.kickoffUtcIso, '2026-07-04T17:00:00Z');
+    expect(fixturesByNumber[90]!.homeTeam, 'W73');
+  });
+
+  test('Korea local June 30 match list follows official round of 32 order', () {
+    final fixtures = worldCupFixturesForDay(DateTime(2026, 6, 30))
+        .where((fixture) => fixture.stage == WorldCupStage.roundOf32)
+        .toList(growable: false);
+
+    expect(fixtures.map((fixture) => fixture.matchNumber), [76, 74, 75]);
+    expect(fixtures.map((fixture) => fixture.homeTeam), ['1C', '1E', '1F']);
+    expect(fixtures.map((fixture) => fixture.awayTeam), [
+      '2F',
+      '3A/B/C/D/F',
+      '2C',
+    ]);
+  });
+
   test('fixture list includes seeded group-stage results', () {
     const expectedScores = <int, (int, int)>{
       1: (2, 0),
@@ -432,7 +467,7 @@ void main() {
     );
     expect(
       worldCupRoundOf32OpponentPathsForGroupRank('A', 3).map(_opponentPathKey),
-      ['3:75:1E', '3:81:1G'],
+      ['3:74:1E', '3:82:1G'],
     );
   });
 
