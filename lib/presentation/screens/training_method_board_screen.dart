@@ -874,14 +874,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  Offset _ballCarryPointForPlayer(_BoardItem player, {Offset? toward}) {
-    final offsetX = player.x > 0.82 ? -0.07 : 0.07;
+  Offset _ballCarryPointFromOrigin(Offset origin, {Offset? toward}) {
+    final offsetX = origin.dx > 0.82 ? -0.07 : 0.07;
     return _directionalBoardPoint(
-      origin: _itemPosition(player),
+      origin: origin,
       toward: toward,
       distance: 0.07,
       fallback: Offset(offsetX, 0.024),
     );
+  }
+
+  Offset _ballCarryPointForPlayer(_BoardItem player, {Offset? toward}) {
+    return _ballCarryPointFromOrigin(_itemPosition(player), toward: toward);
   }
 
   Offset _playerCarryPointForBall(_BoardItem ball, {Offset? toward}) {
@@ -922,6 +926,41 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
     _currentPage.items.add(ball);
     return ball;
+  }
+
+  _BoardItem _createBallAtPoint(Offset point) {
+    final ball = _BoardItem(
+      id: _nextBoardItemId(),
+      type: _BoardItemType.ball,
+      x: point.dx,
+      y: point.dy,
+      size: 32,
+      rotationDeg: 0,
+      color: _nextItemColor(_BoardItemType.ball),
+    );
+    _currentPage.items.add(ball);
+    return ball;
+  }
+
+  _BoardItem _ensureUnroutedBallAtPoint(Offset point) {
+    final candidates = _itemsOfType(_BoardItemType.ball)
+        .where((ball) => _routeForItem(ball.id, _PathDrawMode.ball) == null)
+        .toList(growable: false);
+    if (candidates.isNotEmpty) {
+      candidates.sort((a, b) {
+        final aDistance = (_itemPosition(a) - point).distance;
+        final bDistance = (_itemPosition(b) - point).distance;
+        return aDistance.compareTo(bDistance);
+      });
+      final nearest = candidates.first;
+      if ((_itemPosition(nearest) - point).distance <= 0.14) {
+        nearest
+          ..x = point.dx
+          ..y = point.dy;
+        return nearest;
+      }
+    }
+    return _createBallAtPoint(point);
   }
 
   _BoardItem _createControlledPlayerForBall(
@@ -2831,11 +2870,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           selected,
           target,
         ),
-      _SketchTargetAction.shot => _applyBallTargetAction(
-          selected: selected,
-          target: target,
-          durationMs: 620,
-        ),
+      _SketchTargetAction.shot => _applyShotTargetAction(selected, target),
       _SketchTargetAction.cross => _applyCrossTargetAction(selected, target),
       _SketchTargetAction.drive => _applyDriveTargetAction(selected, target),
       _SketchTargetAction.cut => _applyMoveTargetAction(
@@ -2916,6 +2951,36 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       start.dx + ((end.dx - start.dx) * 0.5) + xOffset,
       start.dy + ((end.dy - start.dy) * 0.5) + yOffset,
     );
+  }
+
+  _BoardRoute? _playerRouteForChainedAction(_BoardItem player) {
+    final selectedRoute = _selectedRoute;
+    if (selectedRoute != null &&
+        selectedRoute.kind == _PathDrawMode.player &&
+        selectedRoute.linkedItemId == player.id &&
+        selectedRoute.points.length >= 2) {
+      return selectedRoute;
+    }
+    final route = _routeForItem(player.id, _PathDrawMode.player);
+    return route != null && route.points.length >= 2 ? route : null;
+  }
+
+  List<Offset> _playerActionBasePoints(
+    _BoardItem player,
+    _BoardRoute? existingRoute,
+  ) {
+    return existingRoute == null
+        ? <Offset>[_itemPosition(player)]
+        : existingRoute.points.toList(growable: true);
+  }
+
+  List<int> _playerActionBaseDurations(_BoardRoute? existingRoute) {
+    return existingRoute == null
+        ? <int>[]
+        : _normalizedRouteSegmentDurations(
+            pointCount: existingRoute.points.length,
+            rawDurationsMs: existingRoute.segmentDurationsMs,
+          ).toList(growable: true);
   }
 
   bool _applyMoveTargetAction(
@@ -3151,6 +3216,43 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  bool _applyShotTargetAction(_BoardItem selected, Offset target) {
+    final player = _playerForTargetAction(selected);
+    if (player == null) {
+      return _applyBallTargetAction(
+        selected: selected,
+        target: target,
+        durationMs: 620,
+      );
+    }
+    final playerRoute = _playerRouteForChainedAction(player);
+    if (playerRoute == null) {
+      return _applyBallTargetAction(
+        selected: selected,
+        target: target,
+        durationMs: 620,
+      );
+    }
+    final ballStart = _ballCarryPointFromOrigin(
+      playerRoute.points.last,
+      toward: target,
+    );
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final ball = _ensureUnroutedBallAtPoint(ballStart);
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.ball,
+        item: ball,
+        points: <Offset>[ballStart, target],
+        segmentDurationsMs: const <int>[620],
+        stageIndex: _normalizedRouteStageIndex(playerRoute.stageIndex + 1),
+      );
+      _selectQuickActionRoute(route, ball, selectedItemOverride: player);
+    });
+    _scheduleAutoSave();
+    return true;
+  }
+
   bool _applyCrossTargetAction(_BoardItem selected, Offset target) {
     final ball = _ballForTargetAction(selected, target: target);
     if (ball == null) return false;
@@ -3224,7 +3326,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         target: target,
         targetItem: targetItem,
       );
-      final start = _itemPosition(player);
+      final existingRoute = _playerRouteForChainedAction(player);
+      final basePoints = _playerActionBasePoints(player, existingRoute);
+      final start = basePoints.last;
       final center = _itemPosition(cone);
       final delta = center - start;
       final direction =
@@ -3253,8 +3357,24 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       final route = _upsertRouteForItem(
         kind: _PathDrawMode.player,
         item: player,
-        points: <Offset>[start, approach, sideA, around, sideB, exit],
-        segmentDurationsMs: const <int>[360, 280, 260, 260, 420],
+        points: <Offset>[
+          ...basePoints,
+          approach,
+          sideA,
+          around,
+          sideB,
+          exit,
+        ],
+        segmentDurationsMs: <int>[
+          ..._playerActionBaseDurations(existingRoute),
+          360,
+          280,
+          260,
+          260,
+          420,
+        ],
+        stageIndex: existingRoute?.stageIndex,
+        replacementRoute: existingRoute,
       );
       _selectQuickActionRoute(route, player);
     });
