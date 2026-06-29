@@ -81,6 +81,10 @@ class LocalFortuneService {
         ),
       ),
       FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionDailyOutcomes,
+        values: _dailyOutcomeSentences(l10n),
+      ),
+      FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionActionCues,
         values: _combinedLocalizedValues(
           l10n.fortuneSajuTrainingTones,
@@ -364,19 +368,7 @@ class LocalFortuneService {
     required int seed,
     required AppLocalizations l10n,
   }) {
-    final candidates = <String>[
-      ..._localizedValues(l10n.fortuneMyeongliTenGodDailyLines),
-      ..._localizedValues(l10n.fortuneMyeongliTwelveStageDailyLines),
-      ..._localizedValues(l10n.fortuneMyeongliBranchRelationDailyLines),
-      ..._combinedLocalizedValues(
-        l10n.fortuneSajuElementFlows,
-        l10n.fortuneSajuElementFlowExtras,
-      ),
-      ..._combinedLocalizedValues(
-        l10n.fortuneSajuFortuneThemes,
-        l10n.fortuneSajuFortuneThemeExtras,
-      ),
-    ];
+    final candidates = _dailyOutcomeSentences(l10n);
     return _valueAt(candidates, seed + (signature?.seed ?? 0));
   }
 
@@ -482,6 +474,27 @@ class LocalFortuneService {
     ];
   }
 
+  static List<String> _dailyOutcomeSentences(AppLocalizations l10n) {
+    final times = _localizedValues(l10n.fortuneDailyOutcomeTimes);
+    final subjects = _localizedValues(l10n.fortuneDailyOutcomeSubjects);
+    final results = _localizedValues(l10n.fortuneDailyOutcomeResults);
+
+    return <String>[
+      for (final time in times)
+        for (final subject in subjects)
+          for (final result in results)
+            _joinSegments(<String>[time, subject, result]),
+    ];
+  }
+
+  static String _joinSegments(List<String> values) {
+    return values
+        .where((value) => value.trim().isNotEmpty)
+        .join(' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
   static String _valueAt(List<String> values, int index) {
     if (values.isEmpty) return '';
     return values[_positiveMod(index, values.length)];
@@ -531,6 +544,11 @@ class LocalFortuneService {
       _fortuneSajuNameElementCount,
       _fortuneSajuPlayAdviceCount,
     );
+    final dailyOutcomeCount = countSegments(
+      _fortuneDailyOutcomeTimeCount,
+      _fortuneDailyOutcomeSubjectCount,
+      _fortuneDailyOutcomeResultCount,
+    );
     final myeongliSignatureCount = countSegments(
       _fortuneMyeongliTenGodCount,
       _fortuneMyeongliTwelveStageCount,
@@ -547,6 +565,7 @@ class LocalFortuneService {
         luckyCueCount *
         sajuReadingCount *
         sajuAdviceCount *
+        dailyOutcomeCount *
         BigInt.from(luckyNumberCount);
   }
 
@@ -594,3 +613,6 @@ const int _fortuneSajuThemeCount = 96;
 const int _fortuneSajuTrainingToneCount = 72;
 const int _fortuneSajuNameElementCount = 60;
 const int _fortuneSajuPlayAdviceCount = 96;
+const int _fortuneDailyOutcomeTimeCount = 10;
+const int _fortuneDailyOutcomeSubjectCount = 10;
+const int _fortuneDailyOutcomeResultCount = 10;
