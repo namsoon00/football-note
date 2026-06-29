@@ -11188,7 +11188,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedLinkedDailyLine.
   ///
   /// In en, this message translates to:
-  /// **'{name}, today is {elementFlow}. {fortuneTheme}'**
+  /// **'{name}, because today is {elementFlow}, {fortuneTheme}'**
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme);
 

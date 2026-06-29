@@ -6230,7 +6230,7 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme) {
-    return '$name님, 오늘은 $elementFlow $fortuneTheme';
+    return '$name님, 오늘은 $elementFlow이라서 $fortuneTheme';
   }
 
   @override

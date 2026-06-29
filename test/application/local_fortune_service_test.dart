@@ -46,6 +46,9 @@ void main() {
     expect(lines.first, isNot(contains('흐름')));
     expect(lines.first, isNot(contains('볼 수')));
     expect(lines.first, isNot(contains('수 있어요')));
+    expect(lines.first, matches(RegExp(r'^민준님, 오늘은 .+날이라서 .+\.$')));
+    expect(
+        lines.first.substring(0, lines.first.length - 1), isNot(contains('.')));
     final myeongliDailyLines = <String>{
       ...l10n.fortuneMyeongliTenGodDailyLines.split('|'),
       ...l10n.fortuneMyeongliTwelveStageDailyLines.split('|'),
@@ -55,7 +58,14 @@ void main() {
       ...l10n.fortuneSajuFortuneThemes.split('|'),
       ...l10n.fortuneSajuFortuneThemeExtras.split('|'),
     };
-    expect(myeongliDailyLines.any(lines.first.contains), isTrue);
+    expect(
+      myeongliDailyLines.any(
+        (line) => lines.first.contains(
+          line.replaceFirst(RegExp(r'날이에요\.$'), '날'),
+        ),
+      ),
+      isTrue,
+    );
     expect(dailyEvents.any(lines.first.contains), isTrue);
     expect(lines.first, isNot(contains('훈련')));
     expect(lines.first, isNot(contains('패스')));
@@ -112,13 +122,16 @@ void main() {
     expect(causes, contains('상대 표정을 보고 말을 고르는 날이에요.'));
     expect(events, contains('아침 알림에 반가운 이름이 떠요.'));
     expect(events, contains('점심 전에 미뤄둔 메시지를 보내요.'));
+    final causeClause = causes.first.replaceFirst(RegExp(r'날이에요\.$'), '날');
     final linkedLine = l10n.fortuneGeneratedLinkedDailyLine(
       '민준',
-      causes.first,
+      causeClause,
       events.first,
     );
-    expect(linkedLine, contains(causes.first));
+    expect(linkedLine, contains(causeClause));
+    expect(linkedLine, isNot(contains('날이에요.라서')));
     expect(linkedLine, contains(events.first));
+    expect(causes.length * events.length, 8544);
     for (final copy in <String>[...causes, ...events]) {
       expect(copy, isNot(matches(unclearTerms)), reason: copy);
     }

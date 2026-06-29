@@ -6227,7 +6227,7 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme) {
-    return '$nameさん、今日は$elementFlow $fortuneTheme';
+    return '$nameさん、今日は$elementFlowなので$fortuneTheme';
   }
 
   @override

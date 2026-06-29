@@ -3799,7 +3799,7 @@
       }
     }
   },
-  "fortuneGeneratedLinkedDailyLine": "{name}, today is {elementFlow}. {fortuneTheme}",
+  "fortuneGeneratedLinkedDailyLine": "{name}, because today is {elementFlow}, {fortuneTheme}",
   "@fortuneGeneratedLinkedDailyLine": {
     "placeholders": {
       "name": {
