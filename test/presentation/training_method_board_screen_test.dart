@@ -2098,6 +2098,75 @@ void main() {
     );
   });
 
+  testWidgets('moving a token hides its border and number badge', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '이동 표시',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.24,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.40,
+                    y: 0.52,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    final playerIcon = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.person),
+    );
+    final boardNumbers = find.descendant(
+      of: boardFinder,
+      matching: find.text('1'),
+    );
+
+    expect(boardNumbers, findsNWidgets(2));
+    expect(_tokenDecorationForIcon(tester, playerIcon).border, isNotNull);
+
+    final detector = _itemGestureDetectorForIcon(tester, playerIcon);
+    detector.onPanStart!(DragStartDetails());
+    await tester.pump();
+    detector.onPanUpdate!(
+      DragUpdateDetails(
+        delta: const Offset(28, -14),
+        globalPosition: tester.getCenter(playerIcon) + const Offset(28, -14),
+      ),
+    );
+    await tester.pump();
+
+    expect(boardNumbers, findsOneWidget);
+    expect(_tokenDecorationForIcon(tester, playerIcon).border, isNull);
+
+    detector.onPanEnd!(DragEndDetails());
+    await tester.pumpAndSettle();
+
+    expect(boardNumbers, findsNWidgets(2));
+    expect(_tokenDecorationForIcon(tester, playerIcon).border, isNotNull);
+  });
+
   testWidgets('dragging a linked item moves only its linked route', (
     WidgetTester tester,
   ) async {
@@ -3332,6 +3401,41 @@ void main() {
 
 bool _samePoint(TrainingMethodPoint a, TrainingMethodPoint b) {
   return (a.x - b.x).abs() < 0.0001 && (a.y - b.y).abs() < 0.0001;
+}
+
+BoxDecoration _tokenDecorationForIcon(WidgetTester tester, Finder iconFinder) {
+  final containers = find.ancestor(
+    of: iconFinder,
+    matching: find.byType(AnimatedContainer),
+  );
+  for (final element in containers.evaluate()) {
+    final widget = element.widget as AnimatedContainer;
+    final decoration = widget.decoration;
+    if (decoration is BoxDecoration && decoration.shape == BoxShape.circle) {
+      return decoration;
+    }
+  }
+  throw StateError('Token decoration was not found.');
+}
+
+GestureDetector _itemGestureDetectorForIcon(
+  WidgetTester tester,
+  Finder iconFinder,
+) {
+  final detectors = find.ancestor(
+    of: iconFinder,
+    matching: find.byType(GestureDetector),
+  );
+  for (final element in detectors.evaluate()) {
+    final widget = element.widget as GestureDetector;
+    if (widget.onTap != null &&
+        widget.onPanStart != null &&
+        widget.onPanUpdate != null &&
+        widget.onPanEnd != null) {
+      return widget;
+    }
+  }
+  throw StateError('Item gesture detector was not found.');
 }
 
 Widget _buildApp(Widget home) {
