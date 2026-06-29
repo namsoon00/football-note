@@ -891,7 +891,7 @@
     }
   },
   "worldCupTournamentTitle": "Tournament bracket",
-  "worldCupTournamentPlanBody": "This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.",
+  "worldCupTournamentPlanBody": "Confirmed ties are shown by country, with the path through the next rounds kept easy to scan.",
   "worldCupTournamentZoomOut": "Zoom bracket out",
   "worldCupTournamentZoomReset": "Reset bracket zoom",
   "worldCupTournamentZoomIn": "Zoom bracket in",
@@ -955,6 +955,9 @@
       }
     }
   },
+  "worldCupBracketPendingTeam": "Team to be confirmed",
+  "worldCupBracketPendingWinner": "Winner to be confirmed",
+  "worldCupBracketPendingLoser": "Loser to be confirmed",
   "worldCupBracketQualifiedTeamSeparator": " / ",
   "worldCupBracketQualifiedSlotDetail": "Qualified from {slot}",
   "@worldCupBracketQualifiedSlotDetail": {

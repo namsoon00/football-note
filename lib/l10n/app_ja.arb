@@ -891,7 +891,7 @@
     }
   },
   "worldCupTournamentTitle": "トーナメント表",
-  "worldCupTournamentPlanBody": "現在は公式日程のグループ順位枠と前試合の勝者枠を基準に表示します。グループ結果が確定したら、各枠を実際の国の道筋として追えます。",
+  "worldCupTournamentPlanBody": "確定した対戦は国名で表示し、次のラウンドへの流れを一覧で追いやすく整理します。",
   "worldCupTournamentZoomOut": "ブラケットを縮小",
   "worldCupTournamentZoomReset": "ブラケットの拡大率をリセット",
   "worldCupTournamentZoomIn": "ブラケットを拡大",
@@ -955,6 +955,9 @@
       }
     }
   },
+  "worldCupBracketPendingTeam": "進出チーム未確定",
+  "worldCupBracketPendingWinner": "勝者未確定",
+  "worldCupBracketPendingLoser": "敗者未確定",
   "worldCupBracketQualifiedTeamSeparator": " / ",
   "worldCupBracketQualifiedSlotDetail": "{slot}から進出",
   "@worldCupBracketQualifiedSlotDetail": {

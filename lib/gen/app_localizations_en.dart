@@ -1541,7 +1541,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupTournamentPlanBody =>
-      'This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.';
+      'Confirmed ties are shown by country, with the path through the next rounds kept easy to scan.';
 
   @override
   String get worldCupTournamentZoomOut => 'Zoom bracket out';
@@ -1589,6 +1589,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String worldCupBracketLoserSlot(int matchNumber) {
     return 'Loser of M$matchNumber';
   }
+
+  @override
+  String get worldCupBracketPendingTeam => 'Team to be confirmed';
+
+  @override
+  String get worldCupBracketPendingWinner => 'Winner to be confirmed';
+
+  @override
+  String get worldCupBracketPendingLoser => 'Loser to be confirmed';
 
   @override
   String get worldCupBracketQualifiedTeamSeparator => ' / ';

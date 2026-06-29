@@ -1494,7 +1494,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupTournamentPlanBody =>
-      '現在は公式日程のグループ順位枠と前試合の勝者枠を基準に表示します。グループ結果が確定したら、各枠を実際の国の道筋として追えます。';
+      '確定した対戦は国名で表示し、次のラウンドへの流れを一覧で追いやすく整理します。';
 
   @override
   String get worldCupTournamentZoomOut => 'ブラケットを縮小';
@@ -1542,6 +1542,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String worldCupBracketLoserSlot(int matchNumber) {
     return 'M$matchNumber敗者';
   }
+
+  @override
+  String get worldCupBracketPendingTeam => '進出チーム未確定';
+
+  @override
+  String get worldCupBracketPendingWinner => '勝者未確定';
+
+  @override
+  String get worldCupBracketPendingLoser => '敗者未確定';
 
   @override
   String get worldCupBracketQualifiedTeamSeparator => ' / ';
