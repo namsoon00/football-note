@@ -203,28 +203,17 @@ class LocalFortuneService {
       l10n: l10n,
     );
     final name = _playerName(profile, l10n);
-    final elementFlow = _myeongliElementFlow(
-          signature: dailySignature,
-          seed: baseSeed + birthReading.elementSeed,
-          l10n: l10n,
-        ) ??
-        _pickCombinedLocalized(
-          l10n.fortuneSajuElementFlows,
-          l10n.fortuneSajuElementFlowExtras,
-          baseSeed + birthReading.elementSeed + dailyPillar.stem.index * 37,
-        );
-    final fortuneTheme = _pickCombinedLocalized(
-      l10n.fortuneSajuFortuneThemes,
-      l10n.fortuneSajuFortuneThemeExtras,
-      baseSeed + birthReading.seed + dailyPillar.branch.index * 43,
+    final dailyFortune = _dailyFortuneSentence(
+      signature: dailySignature,
+      seed: baseSeed +
+          birthReading.elementSeed +
+          dailyPillar.stem.index * 37 +
+          dailyPillar.branch.index * 43,
+      l10n: l10n,
     );
 
     final fortuneText = <String>[
-      l10n.fortuneGeneratedLinkedDailyLine(
-        name,
-        _fortuneCauseClause(elementFlow),
-        fortuneTheme,
-      ),
+      l10n.fortuneGeneratedDailyLineOne(name, dailyFortune),
       l10n.fortuneGeneratedLuckyInfoLine(luckyNumber, luckyColor),
     ].join('\n');
 
@@ -370,29 +359,25 @@ class LocalFortuneService {
     return numbers[seed.abs() % numbers.length];
   }
 
-  String? _myeongliElementFlow({
+  String _dailyFortuneSentence({
     required MyeongliDailySignature? signature,
     required int seed,
     required AppLocalizations l10n,
   }) {
-    if (signature == null) return null;
     final candidates = <String>[
-      _valueAt(
-        _localizedValues(l10n.fortuneMyeongliTenGodDailyLines),
-        signature.tenGod.index,
+      ..._localizedValues(l10n.fortuneMyeongliTenGodDailyLines),
+      ..._localizedValues(l10n.fortuneMyeongliTwelveStageDailyLines),
+      ..._localizedValues(l10n.fortuneMyeongliBranchRelationDailyLines),
+      ..._combinedLocalizedValues(
+        l10n.fortuneSajuElementFlows,
+        l10n.fortuneSajuElementFlowExtras,
       ),
-      _valueAt(
-        _localizedValues(l10n.fortuneMyeongliTwelveStageDailyLines),
-        signature.twelveStage.index,
+      ..._combinedLocalizedValues(
+        l10n.fortuneSajuFortuneThemes,
+        l10n.fortuneSajuFortuneThemeExtras,
       ),
-      if (signature.branchRelation != null)
-        _valueAt(
-          _localizedValues(l10n.fortuneMyeongliBranchRelationDailyLines),
-          signature.branchRelation!.type.index,
-        ),
-    ].where((value) => value.trim().isNotEmpty).toList(growable: false);
-    if (candidates.isEmpty) return null;
-    return _valueAt(candidates, seed + signature.seed);
+    ];
+    return _valueAt(candidates, seed + (signature?.seed ?? 0));
   }
 
   String _composeSegments({
@@ -495,18 +480,6 @@ class LocalFortuneService {
       ..._localizedValues(base),
       ..._localizedValues(extra),
     ];
-  }
-
-  static String _fortuneCauseClause(String value) {
-    return value
-        .trim()
-        .replaceFirst(RegExp(r'날이에요\.$'), '날')
-        .replaceFirst(RegExp(r'日です。$'), '日')
-        .replaceFirst(RegExp(r'\.$'), '');
-  }
-
-  static String _pickCombinedLocalized(String base, String extra, int seed) {
-    return _valueAt(_combinedLocalizedValues(base, extra), seed);
   }
 
   static String _valueAt(List<String> values, int index) {

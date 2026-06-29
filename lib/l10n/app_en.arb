@@ -3783,7 +3783,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineOne": "{name}, today is {elementFlow}.",
+  "fortuneGeneratedDailyLineOne": "{name}, today: {elementFlow}",
   "@fortuneGeneratedDailyLineOne": {
     "placeholders": {
       "name": {
