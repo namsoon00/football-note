@@ -6285,7 +6285,7 @@ class _WorldCupTournamentBracketState
         else
           _buildBracketViewport(context),
         if (widget.thirdPlace.fixtures.isNotEmpty) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
           _TournamentThirdPlaceStrip(
             round: widget.thirdPlace,
             slotBuilder: widget.slotBuilder,
@@ -6464,12 +6464,13 @@ class _TournamentThirdPlaceStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(10),
+      key: const ValueKey('world-cup-third-place-strip'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.42,
+          alpha: 0.28,
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Column(
@@ -6477,22 +6478,41 @@ class _TournamentThirdPlaceStrip extends StatelessWidget {
         children: [
           Row(
             children: [
+              Icon(
+                Icons.emoji_events_outlined,
+                size: 15,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 5),
               Expanded(
                 child: Text(
                   round.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
-              _SmallPill(label: round.subtitle),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  round.subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           for (final fixture in round.fixtures)
-            _BracketMatchCard(
-              fixture: fixture,
+            _TournamentThirdPlaceCompactMatch(
               homeSlot: slotBuilder(
                 fixture,
                 fixture.homeTeam,
@@ -6503,9 +6523,84 @@ class _TournamentThirdPlaceStrip extends StatelessWidget {
                 fixture.awayTeam,
                 _BracketSlotSide.away,
               ),
-              compact: true,
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _TournamentThirdPlaceCompactMatch extends StatelessWidget {
+  final _BracketSlotData homeSlot;
+  final _BracketSlotData awaySlot;
+
+  const _TournamentThirdPlaceCompactMatch({
+    required this.homeSlot,
+    required this.awaySlot,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    return Row(
+      children: [
+        Expanded(
+          child: _TournamentThirdPlaceTeamChip(
+            slot: homeSlot,
+            textAlign: TextAlign.right,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            l10n.worldCupVersusShort,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        Expanded(
+          child: _TournamentThirdPlaceTeamChip(
+            slot: awaySlot,
+            textAlign: TextAlign.left,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TournamentThirdPlaceTeamChip extends StatelessWidget {
+  final _BracketSlotData slot;
+  final TextAlign textAlign;
+
+  const _TournamentThirdPlaceTeamChip({
+    required this.slot,
+    required this.textAlign,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.72),
+        ),
+      ),
+      child: Text(
+        slot.label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: textAlign,
+        style: theme.textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }

@@ -173,6 +173,11 @@ void main() {
     expect(find.text('M73 승자'), findsOneWidget);
     expect(find.text('M73: A조 2위 대 B조 2위'), findsOneWidget);
     expect(find.byType(InteractiveViewer), findsOneWidget);
+    final thirdPlaceStrip = find.byKey(
+      const ValueKey('world-cup-third-place-strip'),
+    );
+    expect(thirdPlaceStrip, findsOneWidget);
+    expect(tester.getSize(thirdPlaceStrip).height, lessThan(82));
     final bracketViewer = tester.widget<InteractiveViewer>(
       find.byType(InteractiveViewer),
     );
