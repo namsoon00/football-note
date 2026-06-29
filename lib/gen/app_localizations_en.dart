@@ -6337,6 +6337,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseSectionDailyEvents => 'What may follow';
 
   @override
+  String get fortuneDatabaseSectionDailyOutcomes => 'Daily fortune sentences';
+
+  @override
   String get fortuneDatabaseSectionActionCues => 'Small things to try';
 
   @override
@@ -6515,6 +6518,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fortuneSajuFortuneThemeExtras =>
       'you sort the needed schedule on the first screen of the morning.|you finish a small favor and hear thanks right away.|you start a postponed tidy-up within ten minutes.|you bring up a conversation on your mind briefly.|free time opens earlier than expected.|a lightly chosen route takes you to the shop or place you wanted.|moving first reduces waiting time.|you organize the information on an open screen.|a small mistake leads you to an easier method.|a short wait helps you decide the next choice.|you hear welcome news from someone familiar.|a small task finished in the morning makes the afternoon easier.|shorter words carry your meaning more accurately.|you finish an annoying task and mark it checked.|you find an answer or item in a nearby place.|someone who asks for help later gives you useful information.|an unplanned task ends faster than expected.|a thought worth writing down comes during a short break.|you compare price or time and choose an unfamiliar option.|a welcome notification or message arrives late afternoon.|unexpected praise brightens your face.|starting with what is in reach tidies things quickly.|a light sentence leads to a short conversation.|you reopen a contact you postponed.|you reduce unclear priorities to three.|a small discovery changes what you want to buy.|supplies you quietly prepared help at the end.|focus works well at a different time than usual.|small kindness returns sooner than expected.|a worry ends with a short check.|words you waited for arrive as a short text.|one light change refreshes your schedule.|one more check helps you avoid a mistake.|a rule for a long concern becomes clear.|slowing down makes the finish neater.|a strength you prepared alone shows during conversation.|a skipped message contains an important date.|you follow a new guide in a familiar place.|smiling first helps you start a conversation easily.|keeping a small promise builds trust.|the color you choose keeps catching your eye in photos or items.|a short trip helps you sort what to do.|you find a menu or item you unexpectedly like.|something hard to say comes out naturally.|you match your move to the time people around you move.|even after a late start, you finish the final check.|a small concession gives you a more comfortable seat.|new information becomes the reason for changing today’s choice.|something you laughed off becomes a good evening story.|a tidy space helps you find what you need right away.|words from someone close become today’s standard for choosing.|something feels like a small reward at the end of the day.|an unusual check helps you avoid a mistake.|you end a meeting or call more comfortably than expected.|a sudden idea becomes useful right away.|after a short walk, your next task becomes clear.|good news begins as a short sentence or small notification.|the final choice turns out more comfortable.|an easy choice satisfies you for a long time.|speaking first with small courage changes the situation.';
+
+  @override
+  String get fortuneDailyOutcomeTimes =>
+      'in the first morning notification|on the way out|before lunch|during a short break after lunch|while moving in the afternoon|in a familiar place|while checking messages|while tidying something up|while waiting|as the day wraps up';
+
+  @override
+  String get fortuneDailyOutcomeSubjects =>
+      'welcome news|a postponed task|the information you needed|a light conversation|a small compliment|a forgotten plan|unexpected free time|an easier option|a new clue|the answer you waited for';
+
+  @override
+  String get fortuneDailyOutcomeResults =>
+      'makes the day feel lighter.|puts your mind at ease.|makes the next choice easier.|turns the day in a better direction.|stays with you like a small reward.|opens the rest of the schedule comfortably.|settles a confusing thought.|spreads into a short laugh.|returns as satisfaction by the end of the day.|naturally leads to what you need.';
 
   @override
   String get fortuneSajuTrainingTones =>

@@ -47,19 +47,18 @@ void main() {
     expect(lines.first, isNot(contains('볼 수')));
     expect(lines.first, isNot(contains('수 있어요')));
     expect(lines.first, isNot(contains('라서')));
+    expect(lines.first, isNot(matches(RegExp('해보세요|하세요|두세요|고르세요|마세요|주세요'))));
     expect(lines.first, matches(RegExp(r'^민준님, 오늘은 .+\.$')));
     expect(
         lines.first.substring(0, lines.first.length - 1), isNot(contains('.')));
-    final dailySentences = <String>{
-      ...l10n.fortuneMyeongliTenGodDailyLines.split('|'),
-      ...l10n.fortuneMyeongliTwelveStageDailyLines.split('|'),
-      ...l10n.fortuneMyeongliBranchRelationDailyLines.split('|'),
-      ...l10n.fortuneSajuElementFlows.split('|'),
-      ...l10n.fortuneSajuElementFlowExtras.split('|'),
-      ...l10n.fortuneSajuFortuneThemes.split('|'),
-      ...l10n.fortuneSajuFortuneThemeExtras.split('|'),
+    final dailyOutcomeSentences = <String>{
+      for (final time in l10n.fortuneDailyOutcomeTimes.split('|'))
+        for (final subject in l10n.fortuneDailyOutcomeSubjects.split('|'))
+          for (final outcome in l10n.fortuneDailyOutcomeResults.split('|'))
+            '$time $subject $outcome',
     };
-    expect(dailySentences.any(lines.first.contains), isTrue);
+    expect(dailyOutcomeSentences, hasLength(1000));
+    expect(dailyOutcomeSentences.any(lines.first.contains), isTrue);
     expect(lines.first, isNot(contains('훈련')));
     expect(lines.first, isNot(contains('패스')));
     expect(lines.last, contains('오늘의 컬러는 '));
@@ -106,12 +105,25 @@ void main() {
       ...l10n.fortuneSajuFortuneThemes.split('|'),
       ...l10n.fortuneSajuFortuneThemeExtras.split('|'),
     ];
+    final outcomeTimes = l10n.fortuneDailyOutcomeTimes.split('|');
+    final outcomeSubjects = l10n.fortuneDailyOutcomeSubjects.split('|');
+    final outcomeResults = l10n.fortuneDailyOutcomeResults.split('|');
+    final outcomeSentences = <String>{
+      for (final time in outcomeTimes)
+        for (final subject in outcomeSubjects)
+          for (final outcome in outcomeResults) '$time $subject $outcome',
+    };
     final unclearTerms = RegExp(
       '볼 수|수 있어요|확인할 수|뭔가|무언가|보이는|보여요|눈에|흐름|기운|가능성|예감|분위기|자신감|호기심|타이밍|감이',
     );
+    final adviceTerms = RegExp('해보세요|하세요|두세요|고르세요|마세요|주세요');
 
     expect(causes, hasLength(89));
     expect(events, hasLength(96));
+    expect(outcomeTimes, hasLength(10));
+    expect(outcomeSubjects, hasLength(10));
+    expect(outcomeResults, hasLength(10));
+    expect(outcomeSentences, hasLength(1000));
     expect(causes, contains('상대 표정을 보고 말을 고르는 날이에요.'));
     expect(events, contains('아침 알림에 반가운 이름이 떠요.'));
     expect(events, contains('점심 전에 미뤄둔 메시지를 보내요.'));
@@ -121,6 +133,11 @@ void main() {
     }
     for (final cause in causes) {
       expect(cause, endsWith('날이에요.'), reason: cause);
+    }
+    for (final sentence in outcomeSentences) {
+      expect(sentence, isNot(matches(unclearTerms)), reason: sentence);
+      expect(sentence, isNot(matches(adviceTerms)), reason: sentence);
+      expect(sentence, endsWith('.'), reason: sentence);
     }
   });
 
@@ -139,6 +156,7 @@ void main() {
         5,
         60,
         96,
+        1000,
         72,
         60,
         96,
@@ -160,6 +178,11 @@ void main() {
     expect(sections[6].values, contains(startsWith('목:')));
     expect(sections[7].title, '오늘 흐름의 이유');
     expect(sections[8].title, '이어질 수 있는 일');
+    expect(sections[9].title, '오늘 운세 문장');
+    expect(
+      sections[9].values,
+      contains('아침 첫 알림에서 반가운 소식이 하루를 가볍게 만들어줘요.'),
+    );
   });
 
   test('myeongli database exposes practitioner-style reference rules', () {
