@@ -1787,7 +1787,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'SoFi Stadium, Los Angeles',
   ),
   WorldCupFixture(
-    matchNumber: 74,
+    matchNumber: 76,
     kickoffUtcIso: '2026-06-29T17:00:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '1C',
@@ -1795,7 +1795,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'NRG Stadium, Houston',
   ),
   WorldCupFixture(
-    matchNumber: 75,
+    matchNumber: 74,
     kickoffUtcIso: '2026-06-29T20:30:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '1E',
@@ -1803,7 +1803,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'Gillette Stadium, Boston',
   ),
   WorldCupFixture(
-    matchNumber: 76,
+    matchNumber: 75,
     kickoffUtcIso: '2026-06-30T01:00:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '1F',
@@ -1811,7 +1811,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'Estadio BBVA, Monterrey',
   ),
   WorldCupFixture(
-    matchNumber: 77,
+    matchNumber: 78,
     kickoffUtcIso: '2026-06-30T17:00:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '2E',
@@ -1819,7 +1819,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'AT&T Stadium, Dallas',
   ),
   WorldCupFixture(
-    matchNumber: 78,
+    matchNumber: 77,
     kickoffUtcIso: '2026-06-30T21:00:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '1I',
@@ -1843,7 +1843,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'Mercedes-Benz Stadium, Atlanta',
   ),
   WorldCupFixture(
-    matchNumber: 81,
+    matchNumber: 82,
     kickoffUtcIso: '2026-07-01T20:00:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '1G',
@@ -1851,7 +1851,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'Lumen Field, Seattle',
   ),
   WorldCupFixture(
-    matchNumber: 82,
+    matchNumber: 81,
     kickoffUtcIso: '2026-07-02T00:00:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '1D',
@@ -1859,7 +1859,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'Levi\'s Stadium, San Francisco Bay Area',
   ),
   WorldCupFixture(
-    matchNumber: 83,
+    matchNumber: 84,
     kickoffUtcIso: '2026-07-02T19:00:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '1H',
@@ -1867,7 +1867,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'SoFi Stadium, Los Angeles',
   ),
   WorldCupFixture(
-    matchNumber: 84,
+    matchNumber: 83,
     kickoffUtcIso: '2026-07-02T23:00:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '2K',
@@ -1883,7 +1883,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'BC Place, Vancouver',
   ),
   WorldCupFixture(
-    matchNumber: 86,
+    matchNumber: 88,
     kickoffUtcIso: '2026-07-03T18:00:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '2D',
@@ -1891,7 +1891,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'AT&T Stadium, Dallas',
   ),
   WorldCupFixture(
-    matchNumber: 87,
+    matchNumber: 86,
     kickoffUtcIso: '2026-07-03T22:00:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '1J',
@@ -1899,7 +1899,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'Hard Rock Stadium, Miami',
   ),
   WorldCupFixture(
-    matchNumber: 88,
+    matchNumber: 87,
     kickoffUtcIso: '2026-07-04T01:30:00Z',
     stage: WorldCupStage.roundOf32,
     homeTeam: '1K',
@@ -1907,7 +1907,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'GEHA Field at Arrowhead Stadium, Kansas City',
   ),
   WorldCupFixture(
-    matchNumber: 89,
+    matchNumber: 90,
     kickoffUtcIso: '2026-07-04T17:00:00Z',
     stage: WorldCupStage.roundOf16,
     homeTeam: 'W73',
@@ -1915,7 +1915,7 @@ const List<WorldCupFixture> worldCupFixtures = <WorldCupFixture>[
     venue: 'NRG Stadium, Houston',
   ),
   WorldCupFixture(
-    matchNumber: 90,
+    matchNumber: 89,
     kickoffUtcIso: '2026-07-04T21:00:00Z',
     stage: WorldCupStage.roundOf16,
     homeTeam: 'W74',
