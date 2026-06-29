@@ -1491,7 +1491,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupTournamentPlanBody =>
-      '현재는 공식 일정의 조 순위와 이전 경기 승자 슬롯 기준으로 보여줘요. 조별리그 결과가 확정되면 각 슬롯을 실제 국가명으로 따라갈 수 있어요.';
+      '확정된 대진은 국가명으로 보여주고, 다음 라운드 흐름을 한눈에 따라갈 수 있게 정리해요.';
 
   @override
   String get worldCupTournamentZoomOut => '브래킷 축소';
@@ -1539,6 +1539,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String worldCupBracketLoserSlot(int matchNumber) {
     return 'M$matchNumber 패자';
   }
+
+  @override
+  String get worldCupBracketPendingTeam => '진출팀 확정 전';
+
+  @override
+  String get worldCupBracketPendingWinner => '승자 확정 전';
+
+  @override
+  String get worldCupBracketPendingLoser => '패자 확정 전';
 
   @override
   String get worldCupBracketQualifiedTeamSeparator => ' / ';

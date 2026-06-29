@@ -168,10 +168,12 @@ void main() {
     expect(find.text('8강'), findsOneWidget);
     expect(find.text('16강'), findsOneWidget);
     expect(find.text('32강'), findsOneWidget);
-    expect(find.text('A조 2위'), findsOneWidget);
-    expect(find.text('B조 2위'), findsOneWidget);
-    expect(find.text('M73 승자'), findsOneWidget);
-    expect(find.text('M73: A조 2위 대 B조 2위'), findsOneWidget);
+    expect(find.text('진출팀 확정 전'), findsWidgets);
+    expect(find.text('승자 확정 전'), findsWidgets);
+    expect(find.text('A조 2위'), findsNothing);
+    expect(find.text('B조 2위'), findsNothing);
+    expect(find.text('M73 승자'), findsNothing);
+    expect(find.text('M73: A조 2위 대 B조 2위'), findsNothing);
     expect(find.byType(InteractiveViewer), findsOneWidget);
     final thirdPlaceStrip = find.byKey(
       const ValueKey('world-cup-third-place-strip'),
@@ -254,8 +256,9 @@ void main() {
 
     expect(find.text('🇲🇽 멕시코'), findsWidgets);
     expect(find.text('🇨🇭 스위스'), findsWidgets);
-    expect(find.text('A조 2위 기준 진출'), findsWidgets);
-    expect(find.text('B조 2위 기준 진출'), findsWidgets);
+    expect(find.text('A조 2위 기준 진출'), findsNothing);
+    expect(find.text('B조 2위 기준 진출'), findsNothing);
+    expect(find.text('M73'), findsNothing);
   });
 
   testWidgets('tournament bracket uses official round-of-32 countries', (
@@ -316,7 +319,57 @@ void main() {
 
     expect(find.text('🇲🇽 멕시코'), findsWidgets);
     expect(find.text('🇩🇪 독일'), findsWidgets);
-    expect(find.text('A조 1위 기준 진출'), findsWidgets);
+    expect(find.text('A조 1위 기준 진출'), findsNothing);
+    expect(find.text('M79'), findsNothing);
+  });
+
+  testWidgets('match list uses bracket-resolved tournament countries', (
+    tester,
+  ) async {
+    final fixtures = _worldCupFixturesWithScores({
+      25: (0, 0),
+      26: (2, 0),
+      27: (2, 0),
+      28: (1, 1),
+      49: (0, 1),
+      50: (0, 0),
+      53: (0, 1),
+      54: (0, 2),
+    });
+    final fixture = fixtures.singleWhere(
+      (fixture) => fixture.matchNumber == 73,
+    );
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: fixtures,
+        officialMatchesByFixtureNumber: const {},
+        rankingsByTeam: const {},
+        refreshedAt: DateTime.utc(2026, 6, 28, 12),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          initialSelectedDay: fixture.localDay,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.drag(scrollable, const Offset(0, -900));
+    await tester.pumpAndSettle();
+
+    expect(find.text('멕시코'), findsWidgets);
+    expect(find.text('스위스'), findsWidgets);
+    expect(find.text('2A'), findsNothing);
+    expect(find.text('2B'), findsNothing);
   });
 
   testWidgets('match list uses official round-of-32 countries', (

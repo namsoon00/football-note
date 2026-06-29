@@ -2752,7 +2752,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupTournamentPlanBody.
   ///
   /// In en, this message translates to:
-  /// **'This currently shows the official group-position and previous-match-winner slots. Once group results are fixed, each slot can be followed as the actual country path.'**
+  /// **'Confirmed ties are shown by country, with the path through the next rounds kept easy to scan.'**
   String get worldCupTournamentPlanBody;
 
   /// No description provided for @worldCupTournamentZoomOut.
@@ -2820,6 +2820,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loser of M{matchNumber}'**
   String worldCupBracketLoserSlot(int matchNumber);
+
+  /// No description provided for @worldCupBracketPendingTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Team to be confirmed'**
+  String get worldCupBracketPendingTeam;
+
+  /// No description provided for @worldCupBracketPendingWinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner to be confirmed'**
+  String get worldCupBracketPendingWinner;
+
+  /// No description provided for @worldCupBracketPendingLoser.
+  ///
+  /// In en, this message translates to:
+  /// **'Loser to be confirmed'**
+  String get worldCupBracketPendingLoser;
 
   /// No description provided for @worldCupBracketQualifiedTeamSeparator.
   ///
