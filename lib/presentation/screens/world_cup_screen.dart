@@ -1516,11 +1516,9 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   List<WorldCupFixture> _visibleFixturesForDay(DateTime day) {
     final fixtures = _fixturesForDay(day);
     if (!_showSelectedCountriesOnly) return fixtures;
-    return worldCupFixturesForDayAndCountries(
-      day,
-      _selectedCountrySet,
-      fixtures: _fixtures,
-    );
+    return fixtures
+        .where(_fixtureInvolvesAnySelectedCountry)
+        .toList(growable: false);
   }
 
   Widget _buildCalendarDayCell(
@@ -1555,7 +1553,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     final fixtures = _fixturesForDay(day);
     if (fixtures.isEmpty) return const <WorldCupFixture>[];
     return fixtures
-        .where((fixture) => selectedCountries.any(fixture.involvesCountry))
+        .where(_fixtureInvolvesAnySelectedCountry)
         .toList(growable: false);
   }
 
@@ -1566,7 +1564,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     final selectedCountries = _selectedCountrySet.toList()..sort();
     final flags = <String>[];
     for (final country in selectedCountries) {
-      if (!fixtures.any((fixture) => fixture.involvesCountry(country))) {
+      if (!fixtures
+          .any((fixture) => _fixtureInvolvesCountry(fixture, country))) {
         continue;
       }
       final flag = worldCupCountryFlag(country);
@@ -1579,7 +1578,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     if (fixtures.isEmpty) return const <String>[];
     final countries = <String>[];
     for (final fixture in fixtures) {
-      for (final country in [fixture.homeTeam, fixture.awayTeam]) {
+      final participants = _displayParticipantsForFixture(fixture);
+      for (final country in [participants.homeTeam, participants.awayTeam]) {
         if (!countries.contains(country)) countries.add(country);
       }
     }
@@ -1587,6 +1587,25 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
         .map(worldCupCountryFlag)
         .where((flag) => flag.isNotEmpty)
         .toList(growable: false);
+  }
+
+  bool _fixtureInvolvesAnySelectedCountry(WorldCupFixture fixture) {
+    return _selectedCountrySet.any(
+      (country) => _fixtureInvolvesCountry(fixture, country),
+    );
+  }
+
+  bool _fixtureInvolvesCountry(WorldCupFixture fixture, String country) {
+    return _displayParticipantsForFixture(fixture).involvesCountry(country);
+  }
+
+  _WorldCupFixtureParticipants _displayParticipantsForFixture(
+    WorldCupFixture fixture,
+  ) {
+    return _worldCupDisplayParticipantsForFixture(
+      fixture,
+      _officialMatchesByFixtureNumber[fixture.matchNumber],
+    );
   }
 
   Set<String> get _selectedCountrySet {
@@ -1818,6 +1837,64 @@ _WorldCupFixtureRuntimeStatus _runtimeStatusForFixture(
   return _WorldCupFixtureRuntimeStatus.scheduled;
 }
 
+class _WorldCupFixtureParticipants {
+  final String homeTeam;
+  final String awayTeam;
+
+  const _WorldCupFixtureParticipants({
+    required this.homeTeam,
+    required this.awayTeam,
+  });
+
+  bool involvesCountry(String country) {
+    final target = _worldCupTeamKey(country);
+    return _worldCupTeamKey(homeTeam) == target ||
+        _worldCupTeamKey(awayTeam) == target;
+  }
+}
+
+_WorldCupFixtureParticipants _worldCupDisplayParticipantsForFixture(
+  WorldCupFixture fixture,
+  FifaAMatchEntry? officialMatch,
+) {
+  if (officialMatch == null) {
+    return _WorldCupFixtureParticipants(
+      homeTeam: fixture.homeTeam,
+      awayTeam: fixture.awayTeam,
+    );
+  }
+  final officialHome = officialMatch.homeTeamName.trim();
+  final officialAway = officialMatch.awayTeamName.trim();
+  if (officialHome.isEmpty || officialAway.isEmpty) {
+    return _WorldCupFixtureParticipants(
+      homeTeam: fixture.homeTeam,
+      awayTeam: fixture.awayTeam,
+    );
+  }
+  final sameDirection =
+      _worldCupTeamKey(fixture.homeTeam) == _worldCupTeamKey(officialHome) &&
+          _worldCupTeamKey(fixture.awayTeam) == _worldCupTeamKey(officialAway);
+  if (sameDirection || !fixture.isGroupStage) {
+    return _WorldCupFixtureParticipants(
+      homeTeam: _worldCupCanonicalCountry(officialHome),
+      awayTeam: _worldCupCanonicalCountry(officialAway),
+    );
+  }
+  final reverseDirection =
+      _worldCupTeamKey(fixture.homeTeam) == _worldCupTeamKey(officialAway) &&
+          _worldCupTeamKey(fixture.awayTeam) == _worldCupTeamKey(officialHome);
+  if (reverseDirection) {
+    return _WorldCupFixtureParticipants(
+      homeTeam: _worldCupCanonicalCountry(officialAway),
+      awayTeam: _worldCupCanonicalCountry(officialHome),
+    );
+  }
+  return _WorldCupFixtureParticipants(
+    homeTeam: fixture.homeTeam,
+    awayTeam: fixture.awayTeam,
+  );
+}
+
 ({int? homeScore, int? awayScore}) _displayScoreForFixture(
   WorldCupFixture fixture,
   FifaAMatchEntry? officialMatch,
@@ -1830,15 +1907,22 @@ _WorldCupFixtureRuntimeStatus _runtimeStatusForFixture(
             _worldCupTeamKey(officialMatch.homeTeamName) &&
         _worldCupTeamKey(fixture.awayTeam) ==
             _worldCupTeamKey(officialMatch.awayTeamName);
-    return sameDirection
-        ? (
-            homeScore: officialMatch.homeScore,
-            awayScore: officialMatch.awayScore,
-          )
-        : (
-            homeScore: officialMatch.awayScore,
-            awayScore: officialMatch.homeScore,
-          );
+    if (sameDirection || !fixture.isGroupStage) {
+      return (
+        homeScore: officialMatch.homeScore,
+        awayScore: officialMatch.awayScore,
+      );
+    }
+    final reverseDirection = _worldCupTeamKey(fixture.homeTeam) ==
+            _worldCupTeamKey(officialMatch.awayTeamName) &&
+        _worldCupTeamKey(fixture.awayTeam) ==
+            _worldCupTeamKey(officialMatch.homeTeamName);
+    if (reverseDirection) {
+      return (
+        homeScore: officialMatch.awayScore,
+        awayScore: officialMatch.homeScore,
+      );
+    }
   }
   return (homeScore: fixture.homeScore, awayScore: fixture.awayScore);
 }
@@ -1896,8 +1980,12 @@ class _FixtureRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final supportMatch = fixture.involvesCountry(supportCountry);
-    final interestMatch = interestCountries.any(fixture.involvesCountry);
+    final participants = _worldCupDisplayParticipantsForFixture(
+      fixture,
+      officialMatch,
+    );
+    final supportMatch = participants.involvesCountry(supportCountry);
+    final interestMatch = interestCountries.any(participants.involvesCountry);
     final selected = supportMatch || interestMatch;
     final borderColor = supportMatch
         ? theme.colorScheme.primary
@@ -1927,10 +2015,10 @@ class _FixtureRow extends StatelessWidget {
             builder: (context, constraints) {
               final compact = constraints.maxWidth < 380;
               final homeBlock = _FixtureTeamBlock(
-                team: fixture.homeTeam,
-                ranking: rankingsByTeam[fixture.homeTeam],
+                team: participants.homeTeam,
+                ranking: rankingsByTeam[participants.homeTeam],
                 compact: compact,
-                onTap: () => onTeamTap(fixture.homeTeam),
+                onTap: () => onTeamTap(participants.homeTeam),
                 onRankingTap: onRankingTap,
               );
               final scoreBoard = _FixtureScoreBoard(
@@ -1941,10 +2029,10 @@ class _FixtureRow extends StatelessWidget {
                 onTap: () => onScoreTap(fixture),
               );
               final awayBlock = _FixtureTeamBlock(
-                team: fixture.awayTeam,
-                ranking: rankingsByTeam[fixture.awayTeam],
+                team: participants.awayTeam,
+                ranking: rankingsByTeam[participants.awayTeam],
                 compact: compact,
-                onTap: () => onTeamTap(fixture.awayTeam),
+                onTap: () => onTeamTap(participants.awayTeam),
                 onRankingTap: onRankingTap,
               );
               return Row(
@@ -2271,6 +2359,10 @@ class _WorldCupFixtureDetailSheetState
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final fixture = widget.fixture;
+    final participants = _worldCupDisplayParticipantsForFixture(
+      fixture,
+      widget.officialMatch,
+    );
     final status = _runtimeStatusForFixture(
       fixture,
       officialMatch: widget.officialMatch,
@@ -2322,7 +2414,7 @@ class _WorldCupFixtureDetailSheetState
                     children: [
                       Expanded(
                         child: _CountryLabel(
-                          country: fixture.homeTeam,
+                          country: participants.homeTeam,
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -2332,7 +2424,7 @@ class _WorldCupFixtureDetailSheetState
                       ),
                       Expanded(
                         child: _CountryLabel(
-                          country: fixture.awayTeam,
+                          country: participants.awayTeam,
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -2414,7 +2506,10 @@ class _WorldCupFixtureDetailSheetState
           );
         }
         return _WorldCupOfficialMatchRecords(
-          fixture: widget.fixture,
+          participants: _worldCupDisplayParticipantsForFixture(
+            widget.fixture,
+            widget.officialMatch,
+          ),
           detail: detail,
         );
       },
@@ -2441,11 +2536,11 @@ class _WorldCupOfficialRecordMessage extends StatelessWidget {
 }
 
 class _WorldCupOfficialMatchRecords extends StatelessWidget {
-  final WorldCupFixture fixture;
+  final _WorldCupFixtureParticipants participants;
   final FifaAMatchDetail detail;
 
   const _WorldCupOfficialMatchRecords({
-    required this.fixture,
+    required this.participants,
     required this.detail,
   });
 
@@ -2474,9 +2569,13 @@ class _WorldCupOfficialMatchRecords extends StatelessWidget {
             runSpacing: 8,
             children: [
               for (final scorer in detail.homeScorers)
-                _SmallPill(label: _scorerLabel(l10n, fixture.homeTeam, scorer)),
+                _SmallPill(
+                  label: _scorerLabel(l10n, participants.homeTeam, scorer),
+                ),
               for (final scorer in detail.awayScorers)
-                _SmallPill(label: _scorerLabel(l10n, fixture.awayTeam, scorer)),
+                _SmallPill(
+                  label: _scorerLabel(l10n, participants.awayTeam, scorer),
+                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -2502,7 +2601,7 @@ class _WorldCupOfficialMatchRecords extends StatelessWidget {
                   SizedBox(
                     width: width,
                     child: _WorldCupOfficialLineupCard(
-                      team: fixture.homeTeam,
+                      team: participants.homeTeam,
                       tactics: detail.homeTactics,
                       players: detail.homePlayers,
                     ),
@@ -2510,7 +2609,7 @@ class _WorldCupOfficialMatchRecords extends StatelessWidget {
                   SizedBox(
                     width: width,
                     child: _WorldCupOfficialLineupCard(
-                      team: fixture.awayTeam,
+                      team: participants.awayTeam,
                       tactics: detail.awayTactics,
                       players: detail.awayPlayers,
                     ),
