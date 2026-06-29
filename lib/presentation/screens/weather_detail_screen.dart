@@ -174,11 +174,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                             _temperatureMin,
                           ),
                           icon: Icons.device_thermostat_outlined,
+                          role: _CompactMetricRole.temperatureRange,
                         ),
                         _CompactMetricData(
                           label: l10n.homeWeatherFeelsLike,
                           value: _formatTemperature(_apparentTemperature),
                           icon: Icons.thermostat_auto_outlined,
+                          role: _CompactMetricRole.feelsLike,
                         ),
                         _CompactMetricData(
                           label: l10n.homeWeatherComparedYesterday,
@@ -186,16 +188,19 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                             _temperatureDeltaFromYesterday,
                           ),
                           icon: Icons.compare_arrows_rounded,
+                          role: _CompactMetricRole.comparedYesterday,
                         ),
                         _CompactMetricData(
                           label: l10n.homeWeatherHumidity,
                           value: _formatPercent(_humidity),
                           icon: Icons.water_drop_outlined,
+                          role: _CompactMetricRole.humidity,
                         ),
                         _CompactMetricData(
                           label: l10n.homeWeatherPrecipitation,
                           value: _formatMillimeter(_todayPrecipitation),
                           icon: Icons.umbrella_outlined,
+                          role: _CompactMetricRole.precipitation,
                         ),
                         if (_todayPrecipitationProbabilityMax != null)
                           _CompactMetricData(
@@ -204,11 +209,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                               _todayPrecipitationProbabilityMax,
                             ),
                             icon: Icons.water_drop_rounded,
+                            role: _CompactMetricRole.precipitationProbability,
                           ),
                         _CompactMetricData(
                           label: l10n.homeWeatherWindSpeed,
                           value: _formatWind(_windSpeed),
                           icon: Icons.air_rounded,
+                          role: _CompactMetricRole.wind,
                         ),
                         _CompactMetricData(
                           label: l10n.homeWeatherPm10,
@@ -216,6 +223,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                               '${_formatAirMetricValue(_pm10)} ${pm10Level.label}',
                           icon: Icons.blur_on_rounded,
                           airLevel: pm10Level.level,
+                          role: _CompactMetricRole.airQuality,
                         ),
                         _CompactMetricData(
                           label: l10n.homeWeatherPm25,
@@ -223,6 +231,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                               '${_formatAirMetricValue(_pm25)} ${pm25Level.label}',
                           icon: Icons.blur_circular_rounded,
                           airLevel: pm25Level.level,
+                          role: _CompactMetricRole.airQuality,
                         ),
                       ]
                     : const <_CompactMetricData>[],
@@ -1308,17 +1317,31 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   }
 }
 
+enum _CompactMetricRole {
+  detail,
+  temperatureRange,
+  feelsLike,
+  comparedYesterday,
+  humidity,
+  precipitation,
+  precipitationProbability,
+  wind,
+  airQuality,
+}
+
 class _CompactMetricData {
   final String label;
   final String value;
   final IconData icon;
   final _AirQualityLevel? airLevel;
+  final _CompactMetricRole role;
 
   const _CompactMetricData({
     required this.label,
     required this.value,
     required this.icon,
     this.airLevel,
+    this.role = _CompactMetricRole.detail,
   });
 }
 
@@ -1488,6 +1511,35 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
     final headline = _WeatherHeadlineParts.parse(title);
     final onGradient = theme.colorScheme.onPrimaryContainer;
     final onGradientMuted = onGradient.withValues(alpha: 0.76);
+    _CompactMetricData? metricByRole(_CompactMetricRole role) {
+      for (final metric in metrics) {
+        if (metric.role == role) return metric;
+      }
+      return null;
+    }
+
+    final comparedMetric = metricByRole(
+      _CompactMetricRole.comparedYesterday,
+    );
+    final inlineMetrics = <_CompactMetricData>[];
+    for (final role in const [
+      _CompactMetricRole.feelsLike,
+      _CompactMetricRole.humidity,
+      _CompactMetricRole.wind,
+    ]) {
+      final metric = metricByRole(role);
+      if (metric != null) inlineMetrics.add(metric);
+    }
+    final detailMetrics = metrics
+        .where(
+          (metric) => !const {
+            _CompactMetricRole.comparedYesterday,
+            _CompactMetricRole.feelsLike,
+            _CompactMetricRole.humidity,
+            _CompactMetricRole.wind,
+          }.contains(metric.role),
+        )
+        .toList(growable: false);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -1508,199 +1560,292 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Positioned(
-            top: -28,
-            right: -20,
-            child: Container(
-              width: 128,
-              height: 128,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withValues(alpha: 0.14),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            left: -24,
-            bottom: -42,
-            child: Container(
-              width: 110,
-              height: 110,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withValues(
-                          alpha: 0.22,
-                        ),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: theme.colorScheme.surface.withValues(
-                            alpha: 0.18,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            subtitleIcon,
-                            size: 16,
-                            color: onGradient,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              subtitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: onGradient,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ],
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withValues(
+                      alpha: 0.22,
+                    ),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: theme.colorScheme.surface.withValues(
+                        alpha: 0.18,
                       ),
                     ),
                   ),
-                  if (onRefresh != null || loading) ...[
-                    const SizedBox(width: AppSpacing.xs),
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withValues(
-                          alpha: 0.2,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: theme.colorScheme.surface.withValues(
-                            alpha: 0.16,
+                  child: Row(
+                    children: [
+                      Icon(
+                        subtitleIcon,
+                        size: 16,
+                        color: onGradient,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: onGradient,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: onRefresh,
-                        icon: loading
-                            ? SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.1,
-                                  color: onGradient,
-                                ),
-                              )
-                            : Icon(
-                                Icons.refresh_rounded,
-                                size: 20,
-                                color: onGradient,
-                              ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                sectionLabel,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: onGradientMuted,
-                  fontWeight: FontWeight.w900,
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 6),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          headline.primary,
-                          style: theme.textTheme.displaySmall?.copyWith(
-                            color: onGradient,
-                            fontWeight: FontWeight.w900,
-                            height: 0.95,
-                          ),
-                        ),
-                        if (headline.secondary != null) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            headline.secondary!,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              color: onGradient,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                        if (helper != null && helper!.trim().isNotEmpty) ...[
-                          const SizedBox(height: 10),
-                          Text(
-                            helper!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: onGradientMuted,
-                              height: 1.4,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ],
+              if (onRefresh != null || loading) ...[
+                const SizedBox(width: AppSpacing.xs),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withValues(
+                      alpha: 0.2,
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: theme.colorScheme.surface.withValues(
-                          alpha: 0.14,
-                        ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: theme.colorScheme.surface.withValues(
+                        alpha: 0.16,
                       ),
                     ),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: onRefresh,
                     child: Center(
                       child: loading
                           ? SizedBox(
-                              width: 28,
-                              height: 28,
+                              width: 18,
+                              height: 18,
                               child: CircularProgressIndicator(
-                                strokeWidth: 2.4,
+                                strokeWidth: 2.1,
                                 color: onGradient,
                               ),
                             )
-                          : Icon(icon, size: 34, color: onGradient),
+                          : Icon(
+                              Icons.refresh_rounded,
+                              size: 20,
+                              color: onGradient,
+                            ),
                     ),
                   ),
-                ],
-              ),
-              if (metrics.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.sm),
-                _WeatherMetricOverview(metrics: metrics),
+                ),
               ],
             ],
           ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            sectionLabel,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: onGradientMuted,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 74,
+                height: 74,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: theme.colorScheme.surface.withValues(
+                      alpha: 0.16,
+                    ),
+                  ),
+                ),
+                child: Center(
+                  child: loading
+                      ? SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: onGradient,
+                          ),
+                        )
+                      : Icon(icon, size: 42, color: onGradient),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Flexible(
+                child: Text(
+                  headline.primary,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.displayMedium?.copyWith(
+                    color: onGradient,
+                    fontWeight: FontWeight.w900,
+                    height: 0.95,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (comparedMetric != null) ...[
+            const SizedBox(height: 10),
+            _WeatherDeltaLine(
+              metric: comparedMetric,
+              labelColor: onGradientMuted,
+              valueColor: onGradient,
+            ),
+          ],
+          if (headline.secondary != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              headline.secondary!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: onGradient,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+          if (helper != null && helper!.trim().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              helper!,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: onGradientMuted,
+                height: 1.4,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+          if (inlineMetrics.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _WeatherInlineMetricStrip(
+              metrics: inlineMetrics,
+              labelColor: onGradientMuted,
+              valueColor: onGradient,
+            ),
+          ],
+          if (detailMetrics.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _WeatherMetricOverview(metrics: detailMetrics),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _WeatherDeltaLine extends StatelessWidget {
+  final _CompactMetricData metric;
+  final Color labelColor;
+  final Color valueColor;
+
+  const _WeatherDeltaLine({
+    required this.metric,
+    required this.labelColor,
+    required this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          metric.label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: labelColor,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          metric.value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: valueColor,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _WeatherInlineMetricStrip extends StatelessWidget {
+  final List<_CompactMetricData> metrics;
+  final Color labelColor;
+  final Color valueColor;
+
+  const _WeatherInlineMetricStrip({
+    required this.metrics,
+    required this.labelColor,
+    required this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
+      runSpacing: 4,
+      children: [
+        for (var index = 0; index < metrics.length; index++)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (index > 0)
+                Text(
+                  '·',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: labelColor,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              if (index > 0) const SizedBox(width: 8),
+              Text(
+                metrics[index].label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: labelColor,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 3),
+              Text(
+                metrics[index].value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: valueColor,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+      ],
     );
   }
 }
@@ -2785,22 +2930,26 @@ class _TomorrowWeatherCard extends StatelessWidget {
         label: highLowLabel,
         value: formatRange(forecast.temperatureMax, forecast.temperatureMin),
         icon: Icons.thermostat_outlined,
+        role: _CompactMetricRole.temperatureRange,
       ),
       _CompactMetricData(
         label: precipitationLabel,
         value: formatMillimeter(forecast.precipitationSum),
         icon: Icons.umbrella_outlined,
+        role: _CompactMetricRole.precipitation,
       ),
       if (forecast.precipitationProbabilityMax != null)
         _CompactMetricData(
           label: precipitationProbabilityLabel,
           value: formatProbability(forecast.precipitationProbabilityMax),
           icon: Icons.water_drop_rounded,
+          role: _CompactMetricRole.precipitationProbability,
         ),
       _CompactMetricData(
         label: windLabel,
         value: formatWind(forecast.windSpeedMax),
         icon: Icons.air_rounded,
+        role: _CompactMetricRole.wind,
       ),
       if (forecast.pm10 != null)
         _CompactMetricData(
@@ -2808,6 +2957,7 @@ class _TomorrowWeatherCard extends StatelessWidget {
           value: '${formatFineDust(forecast.pm10)} ${pm10Level.label}',
           icon: Icons.blur_on_rounded,
           airLevel: pm10Level.level,
+          role: _CompactMetricRole.airQuality,
         ),
       if (forecast.pm25 != null)
         _CompactMetricData(
@@ -2815,6 +2965,7 @@ class _TomorrowWeatherCard extends StatelessWidget {
           value: '${formatFineDust(forecast.pm25)} ${pm25Level.label}',
           icon: Icons.blur_circular_rounded,
           airLevel: pm25Level.level,
+          role: _CompactMetricRole.airQuality,
         ),
     ];
     return Column(
