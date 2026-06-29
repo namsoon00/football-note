@@ -11194,7 +11194,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedDailyLineOne.
   ///
   /// In en, this message translates to:
-  /// **'{name}, today is {elementFlow}.'**
+  /// **'{name}, today: {elementFlow}'**
   String fortuneGeneratedDailyLineOne(String name, String elementFlow);
 
   /// No description provided for @fortuneGeneratedDailyLineTwo.
