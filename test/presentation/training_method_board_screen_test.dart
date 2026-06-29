@@ -1329,6 +1329,106 @@ void main() {
     expect(playerRoute.points.last.y, closeTo(0.36, 0.02));
   });
 
+  testWidgets('pass then cone turn then shot stays connected', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '패스 콘 슛 연결',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.54,
+                    y: 0.44,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.29,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '패스 후 이동');
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.54, 0.44),
+    );
+
+    await _tapVisibleOutlinedButton(tester, '콘 돌기');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.64, 0.34));
+    await _tapVisibleOutlinedButton(tester, '슈팅');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.86, 0.42));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final ballRoutes = page.routes
+        .where((route) => route.kind == TrainingMethodRouteKind.ball)
+        .toList(growable: false);
+    final passRoute = ballRoutes.singleWhere(
+      (route) => route.linkedItemId == 'ball-1',
+    );
+    final shotRoute = ballRoutes.singleWhere(
+      (route) => route.linkedItemId != 'ball-1',
+    );
+    final playerRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.player,
+    );
+    final playerEnd = Offset(
+      playerRoute.points.last.x,
+      playerRoute.points.last.y,
+    );
+    final shotStart =
+        Offset(shotRoute.points.first.x, shotRoute.points.first.y);
+
+    expect(page.items.where((item) => item.type == 'cone'), hasLength(1));
+    expect(page.items.where((item) => item.type == 'ball'), hasLength(2));
+    expect(passRoute.stageIndex, 1);
+    expect(playerRoute.linkedItemId, 'player-1');
+    expect(playerRoute.stageIndex, 2);
+    expect(playerRoute.points.length, greaterThan(6));
+    expect(shotRoute.stageIndex, 3);
+    expect((shotStart - playerEnd).distance, closeTo(0.07, 0.02));
+    expect(shotRoute.points.last.x, closeTo(0.86, 0.02));
+    expect(shotRoute.points.last.y, closeTo(0.42, 0.02));
+  });
+
   testWidgets('targeted pass action creates a ball route to player number', (
     WidgetTester tester,
   ) async {
