@@ -6150,11 +6150,8 @@ class _BoardToken extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = _boardItemIcon(item.type, sportId: sportId);
-    final borderColor = moving
-        ? Colors.amberAccent
-        : selected
-            ? Colors.white
-            : Colors.white.withValues(alpha: 0.55);
+    final borderColor =
+        selected ? Colors.white : Colors.white.withValues(alpha: 0.55);
     final shadows = moving
         ? <BoxShadow>[
             BoxShadow(
@@ -6190,10 +6187,12 @@ class _BoardToken extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: moving ? 0.26 : 0.18),
             shape: BoxShape.circle,
-            border: Border.all(
-              color: borderColor,
-              width: moving ? 2.8 : (selected ? 2.2 : 1.2),
-            ),
+            border: moving
+                ? null
+                : Border.all(
+                    color: borderColor,
+                    width: selected ? 2.2 : 1.2,
+                  ),
             boxShadow: shadows,
           ),
           child: Stack(
@@ -6201,7 +6200,7 @@ class _BoardToken extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Icon(icon, size: 18, color: item.color),
-              if (label != null)
+              if (!moving && label != null)
                 Positioned(
                   right: -5,
                   bottom: -5,
